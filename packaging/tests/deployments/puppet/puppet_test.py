@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import string
+import subprocess
 import sys
 import tempfile
 
@@ -35,15 +36,18 @@ from tests.helpers.util import (
     REPO_DIR,
     SERVICE_NAME,
     SERVICE_OWNER,
+    DEB_DISTROS,
+    RPM_DISTROS,
 )
 
 if sys.platform == "win32":
     from tests.helpers.win_utils import has_choco, run_win_command, get_otelcol_svc_env_var
 
 IMAGES_DIR = Path(__file__).parent.resolve() / "images"
-DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "Dockerfile.*"))]
-RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "rpm" / "Dockerfile.*"))]
 CONFIG_DIR = "/etc/otel/collector"
+PKG_DIR = REPO_DIR / "dist"
+PKG_NAME = "splunk-otel-collector"
+LOCAL_COLLECTOR_PACKAGE = os.environ.get("LOCAL_COLLECTOR_PACKAGE")
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
 SPLUNK_ACCESS_TOKEN = "testing123"
 SPLUNK_REALM = "test"
@@ -146,6 +150,124 @@ def verify_dotnet_config(container, path, exists=True):
         verify_config_file(container, path, key, val, exists=exists)
 
 
+def get_package(distro, name, path, arch="amd64"):
+    """Get local package path for the given distro and arch."""
+    pkg_paths = []
+    if distro in DEB_DISTROS:
+        pkg_paths = glob.glob(str(path / f"{name}*{arch}.deb"))
+    elif distro in RPM_DISTROS:
+        if arch == "amd64":
+            arch = "x86_64"
+        elif arch == "arm64":
+            arch = "aarch64"
+        pkg_paths = glob.glob(str(path / f"{name}*{arch}.rpm"))
+    
+    if pkg_paths:
+        return sorted(pkg_paths)[-1]
+    else:
+        return None
+
+
+def get_package_version_from_file(pkg_path):
+    """Extract version from a package file (DEB or RPM)."""
+    pkg_path = Path(pkg_path)
+    if not pkg_path.exists():
+        return None
+    
+    if pkg_path.suffix == ".deb":
+        # Extract version from DEB package
+        result = subprocess.run(
+            ["dpkg-deb", "-f", str(pkg_path), "Version"],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            version = result.stdout.strip()
+            # Remove epoch if present (e.g., "1:0.1.0" -> "0.1.0")
+            if ":" in version:
+                version = version.split(":", 1)[1]
+            return version
+    elif pkg_path.suffix == ".rpm":
+        # Extract version from RPM package
+        result = subprocess.run(
+            ["rpm", "-qp", "--queryformat", "%{VERSION}", str(pkg_path)],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    
+    return None
+
+
+def setup_local_package_repo(container, pkg_path, distro):
+    """Set up a local package repository and install the package before Puppet runs."""
+    pkg_base = os.path.basename(pkg_path)
+    container_pkg_path = f"/tmp/{pkg_base}"
+    
+    # Copy package to container
+    copy_file_into_container(container, pkg_path, container_pkg_path)
+    
+    if distro in DEB_DISTROS:
+        # Install libcap2-bin dependency first
+        run_container_cmd(container, "apt-get update")
+        run_container_cmd(container, "apt-get install -y libcap2-bin")
+        
+        # Create a local DEB repository
+        repo_dir = "/tmp/local-repo"
+        run_container_cmd(container, f"mkdir -p {repo_dir}")
+        run_container_cmd(container, f"cp {container_pkg_path} {repo_dir}/")
+        run_container_cmd(container, f"cd {repo_dir} && dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz")
+        
+        # Add local repository
+        run_container_cmd(container, f"echo 'deb [trusted=yes] file://{repo_dir} ./' > /etc/apt/sources.list.d/local-repo.list")
+        run_container_cmd(container, "apt-get update")
+        
+    elif distro in RPM_DISTROS:
+        # Install libcap dependency first
+        if container.exec_run("command -v yum").exit_code == 0:
+            run_container_cmd(container, "yum install -y libcap createrepo")
+        elif container.exec_run("command -v dnf").exit_code == 0:
+            run_container_cmd(container, "dnf install -y libcap createrepo")
+        else:
+            run_container_cmd(container, "zypper install -y libcap-progs createrepo")
+        
+        # Create a local RPM repository
+        repo_dir = "/tmp/local-repo"
+        run_container_cmd(container, f"mkdir -p {repo_dir}")
+        run_container_cmd(container, f"cp {container_pkg_path} {repo_dir}/")
+        # Try createrepo_c first (newer), fall back to createrepo
+        if container.exec_run("command -v createrepo_c").exit_code == 0:
+            createrepo_cmd = "createrepo_c"
+        else:
+            createrepo_cmd = "createrepo"
+        run_container_cmd(container, f"{createrepo_cmd} {repo_dir}")
+        
+        # Add local repository
+        if container.exec_run("command -v yum").exit_code == 0 or container.exec_run("command -v dnf").exit_code == 0:
+            repo_file = f"""[local-repo]
+name=Local Repository
+baseurl=file://{repo_dir}
+enabled=1
+gpgcheck=0
+priority=1
+"""
+            run_container_cmd(container, f"echo '{repo_file}' > /etc/yum.repos.d/local-repo.repo")
+            run_container_cmd(container, "yum clean all || dnf clean all")
+        else:  # zypper
+            # For zypper, we need to use a proper repo format
+            repo_file = f"""[local-repo]
+name=Local Repository
+baseurl=file://{repo_dir}
+enabled=1
+autorefresh=0
+"""
+            run_container_cmd(container, f"echo '{repo_file}' > /etc/zypp/repos.d/local-repo.repo")
+            run_container_cmd(container, "zypper refresh")
+    
+    return container_pkg_path
+
+
 DEFAULT_CONFIG = f"""
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
@@ -172,7 +294,33 @@ def test_puppet_default(distro, puppet_release):
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            run_puppet_apply(container, DEFAULT_CONFIG)
+            # Check if we should use local package
+            collector_version = None
+            if LOCAL_COLLECTOR_PACKAGE:
+                pkg_path = Path(LOCAL_COLLECTOR_PACKAGE)
+            else:
+                pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+            
+            if pkg_path and pkg_path.exists():
+                collector_version = get_package_version_from_file(pkg_path)
+                if collector_version:
+                    print(f"Using local package: {pkg_path} (version: {collector_version})")
+                    setup_local_package_repo(container, pkg_path, distro)
+                    # Update config to use the specific version
+                    config = f"""
+class {{ splunk_otel_collector:
+    splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+    splunk_realm => '{SPLUNK_REALM}',
+    collector_version => '{collector_version}',
+}}
+"""
+                    run_puppet_apply(container, config)
+                    verify_package_version(container, "splunk-otel-collector", collector_version)
+                else:
+                    run_puppet_apply(container, DEFAULT_CONFIG)
+            else:
+                run_puppet_apply(container, DEFAULT_CONFIG)
+            
             verify_env_file(container)
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", ".*", exists=False)
             assert wait_for(lambda: service_is_running(container))
@@ -218,10 +366,25 @@ def test_puppet_with_custom_vars(distro, puppet_release):
         try:
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
-            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.126.0")
+            
+            # Check if we should use local package
+            collector_version = "0.126.0"  # default version
+            if LOCAL_COLLECTOR_PACKAGE:
+                pkg_path = Path(LOCAL_COLLECTOR_PACKAGE)
+            else:
+                pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+            
+            if pkg_path and pkg_path.exists():
+                extracted_version = get_package_version_from_file(pkg_path)
+                if extracted_version:
+                    collector_version = extracted_version
+                    print(f"Using local package: {pkg_path} (version: {collector_version})")
+                    setup_local_package_repo(container, pkg_path, distro)
+            
+            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=collector_version)
             # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
             run_puppet_apply(container, config, strict_mode=False)
-            verify_package_version(container, "splunk-otel-collector", "0.126.0")
+            verify_package_version(container, "splunk-otel-collector", collector_version)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")

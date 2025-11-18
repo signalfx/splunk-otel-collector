@@ -52,6 +52,8 @@ type stdoutOperator struct {
 
 // Start will start generating log entries.
 func (i *stdoutOperator) Start(_ operator.Persister) error {
+	i.logger.Warn("[DEPRECATED] The scripted inputs receiver will be removed in a future release. Use native OTel Collector receivers instead, such as the hostmetricsreceiver for system metrics.")
+
 	ctx, cancelAll := context.WithCancel(context.Background())
 	i.cancelAll = cancelAll
 

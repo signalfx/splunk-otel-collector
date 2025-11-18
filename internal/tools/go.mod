@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/internal/tools
 
-go 1.25
+go 1.25.3
 
 require (
 	github.com/client9/misspell v0.3.4
@@ -9,7 +9,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/build-tools/chloggen v0.26.0
-	go.opentelemetry.io/collector/cmd/mdatagen v0.138.0
+	go.opentelemetry.io/collector/cmd/mdatagen v0.139.0
 	golang.org/x/tools v0.38.0
 	golang.org/x/vuln v1.1.4
 	mvdan.cc/gofumpt v0.9.2
@@ -78,8 +78,6 @@ require (
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/ghostiam/protogetter v0.3.16 // indirect
 	github.com/go-critic/go-critic v0.13.0 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
-	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-toolsmith/astcast v1.1.0 // indirect
 	github.com/go-toolsmith/astcopy v1.1.0 // indirect
 	github.com/go-toolsmith/astequal v1.2.0 // indirect
@@ -92,7 +90,6 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/godoc-lint/godoc-lint v0.10.0 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golangci/asciicheck v0.5.0 // indirect
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.1 // indirect
@@ -222,17 +219,13 @@ require (
 	go-simpler.org/sloglint v0.11.1 // indirect
 	go.augendre.info/arangolint v0.2.0 // indirect
 	go.augendre.info/fatcontext v0.8.1 // indirect
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/component v1.44.0 // indirect
-	go.opentelemetry.io/collector/confmap v1.44.0 // indirect
-	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.44.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.44.0 // indirect
-	go.opentelemetry.io/collector/filter v0.138.0 // indirect
-	go.opentelemetry.io/collector/internal/telemetry v0.138.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.44.0 // indirect
-	go.opentelemetry.io/contrib/bridges/otelzap v0.13.0 // indirect
+	go.opentelemetry.io/collector/component v1.45.0 // indirect
+	go.opentelemetry.io/collector/confmap v1.45.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.45.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.45.0 // indirect
+	go.opentelemetry.io/collector/filter v0.139.0 // indirect
+	go.opentelemetry.io/collector/pdata v1.45.0 // indirect
 	go.opentelemetry.io/otel v1.38.0 // indirect
-	go.opentelemetry.io/otel/log v0.14.0 // indirect
 	go.opentelemetry.io/otel/metric v1.38.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect

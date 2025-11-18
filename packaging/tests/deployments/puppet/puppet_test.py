@@ -47,7 +47,7 @@ IMAGES_DIR = Path(__file__).parent.resolve() / "images"
 CONFIG_DIR = "/etc/otel/collector"
 PKG_DIR = REPO_DIR / "dist"
 PKG_NAME = "splunk-otel-collector"
-LOCAL_COLLECTOR_PACKAGE = os.environ.get("LOCAL_COLLECTOR_PACKAGE")
+LOCAL_COLLECTOR_VERSION= "0.0.1-local"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
 SPLUNK_ACCESS_TOKEN = "testing123"
 SPLUNK_REALM = "test"
@@ -295,32 +295,21 @@ def test_puppet_default(distro, puppet_release):
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
             # Check if we should use local package
-            collector_version = None
-            if LOCAL_COLLECTOR_PACKAGE:
-                pkg_path = Path(LOCAL_COLLECTOR_PACKAGE)
-            else:
-                pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+            pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
             
-            if pkg_path and pkg_path.exists():
-                collector_version = get_package_version_from_file(pkg_path)
-                if collector_version:
-                    print(f"Using local package: {pkg_path} (version: {collector_version})")
-                    setup_local_package_repo(container, pkg_path, distro)
-                    # Update config to use the specific version
-                    config = f"""
+            print(f"Using local package: {pkg_path} (version: {LOCAL_COLLECTOR_VERSION})")
+            setup_local_package_repo(container, pkg_path, distro)
+            # Update config to use the specific version
+            config = f"""
 class {{ splunk_otel_collector:
-    splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
-    splunk_realm => '{SPLUNK_REALM}',
-    collector_version => '{collector_version}',
+splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+splunk_realm => '{SPLUNK_REALM}',
+collector_version => '{LOCAL_COLLECTOR_VERSION}',
 }}
 """
-                    run_puppet_apply(container, config)
-                    verify_package_version(container, "splunk-otel-collector", collector_version)
-                else:
-                    run_puppet_apply(container, DEFAULT_CONFIG)
-            else:
-                run_puppet_apply(container, DEFAULT_CONFIG)
-            
+            run_puppet_apply(container, config)
+            verify_package_version(container, "splunk-otel-collector", LOCAL_COLLECTOR_VERSION)
+
             verify_env_file(container)
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", ".*", exists=False)
             assert wait_for(lambda: service_is_running(container))
@@ -367,24 +356,15 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
             
-            # Check if we should use local package
-            collector_version = "0.126.0"  # default version
-            if LOCAL_COLLECTOR_PACKAGE:
-                pkg_path = Path(LOCAL_COLLECTOR_PACKAGE)
-            else:
-                pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+            pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
             
-            if pkg_path and pkg_path.exists():
-                extracted_version = get_package_version_from_file(pkg_path)
-                if extracted_version:
-                    collector_version = extracted_version
-                    print(f"Using local package: {pkg_path} (version: {collector_version})")
-                    setup_local_package_repo(container, pkg_path, distro)
+            print(f"Using local package: {pkg_path} (version: {LOCAL_COLLECTOR_VERSION})")
+            setup_local_package_repo(container, pkg_path, distro)
             
-            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=collector_version)
+            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=LOCAL_COLLECTOR_VERSION)
             # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
             run_puppet_apply(container, config, strict_mode=False)
-            verify_package_version(container, "splunk-otel-collector", collector_version)
+            verify_package_version(container, "splunk-otel-collector", LOCAL_COLLECTOR_VERSION)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")

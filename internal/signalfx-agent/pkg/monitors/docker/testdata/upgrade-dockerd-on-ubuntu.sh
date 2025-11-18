@@ -1,5 +1,7 @@
 #!/bin/bash
+
 # This script is used to upgrade the Docker daemon on Ubuntu to the latest version.
+# As recommended by https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
 
 set -e
 

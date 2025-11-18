@@ -25,6 +25,10 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 )
 
+const (
+	useDockerEngineDefault = "default"
+)
+
 func TestMinimumRequiredClientVersion(t *testing.T) {
 	// Skip this test if not running on Linux GitHub runner
 	if runtime.GOOS != "linux" {
@@ -46,7 +50,7 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 		minimumRequiredClientVersion string
 	}{
 		{
-			minimumRequiredClientVersion: "default",
+			minimumRequiredClientVersion: useDockerEngineDefault,
 		},
 		{
 			minimumRequiredClientVersion: "1.24",
@@ -55,22 +59,13 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.minimumRequiredClientVersion, func(t *testing.T) {
-			if tc.minimumRequiredClientVersion != "default" {
-				// TODO: Update the docker daemon to the specified version before running the test
+			if tc.minimumRequiredClientVersion != useDockerEngineDefault {
 				updateGHLinuxRunnerDockerDaemonMinClientVersion(t, tc.minimumRequiredClientVersion)
 			}
 
-			// Run a container to have some metrics to collect
-			// Attention: this container should be started only after the settings for docker daemon are updated
-			// and should be removed before the docker daemon settings are reset.
-			cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine", "sleep", "180")
-			err := cmd.Run()
-			require.NoError(t, err, "Failed to run docker container")
-			defer func() {
-				cmd := exec.Command("docker", "rm", "-f", "docker-client-test")
-				err := cmd.Run()
-				require.NoError(t, err, "Failed to remove docker container")
-			}()
+			cleanupContainer := runDockerContainerToGenerateMetrics(t)
+			// This needs to be in a defer so the container is removed before the docker daemon settings are reset.
+			defer cleanupContainer()
 
 			output := &fakeOutput{}
 			monitor := &Monitor{
@@ -145,15 +140,26 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 	requireDockerDaemonRunning(t)
 }
 
+func runDockerContainerToGenerateMetrics(t *testing.T) func() {
+	cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine", "sleep", "180")
+	err := cmd.Run()
+	require.NoError(t, err, "Failed to run docker container")
+	return func() {
+		cmd := exec.Command("docker", "rm", "-f", "docker-client-test")
+		err := cmd.Run()
+		require.NoError(t, err, "Failed to remove docker container")
+	}
+}
+
 func requireDockerDaemonRunning(t *testing.T) {
 	require.Eventually(t, func() bool {
-		status, err := getServiceStatus(t, "docker")
+		isRunning, err := isServiceRunning(t, "docker")
 		require.NoError(t, err, "Failed to get docker service status")
-		return status == "running"
+		return isRunning
 	}, 30*time.Second, 1*time.Second)
 }
 
-func getServiceStatus(t *testing.T, serviceName string) (string, error) {
+func isServiceRunning(t *testing.T, serviceName string) (bool, error) {
 	cmd := exec.Command("service", serviceName, "status")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -163,13 +169,12 @@ func getServiceStatus(t *testing.T, serviceName string) (string, error) {
 	}
 
 	outputStr := string(output)
-	t.Logf("%q service status output:\n%s", serviceName, outputStr)
 
 	if strings.Contains(outputStr, "active (running)") {
-		return "running", nil
+		return true, nil
 	}
 
-	return "not running", nil
+	return false, nil
 }
 
 type fakeOutput struct {

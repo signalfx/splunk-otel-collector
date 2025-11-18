@@ -78,7 +78,7 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 			}
 			defaults.Set(config)
 
-			err = monitor.Configure(config)
+			err := monitor.Configure(config)
 			require.NoError(t, err, "Expected no error during monitor configuration")
 			defer monitor.Shutdown()
 

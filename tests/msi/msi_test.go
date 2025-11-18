@@ -179,6 +179,9 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 			for scanner.Scan() {
 				t.Log(scanner.Text())
 			}
+			if err := scanner.Err(); err != nil {
+				t.Logf("Error reading install log file: %v", err)
+			}
 		}
 		require.Failf(t, "MSI installation failed", "Failed to install the MSI: %v\nArgs: %v", err, args)
 	}

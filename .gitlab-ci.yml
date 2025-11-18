@@ -901,7 +901,7 @@ msi-custom-actions-package:
   dependencies: []
   script:
     - pushd ./packaging/msi/SplunkCustomActions/
-    - dotnet build ./src/SplunkCustomActions.csproj -c Release  -p:Platform=x64 -o ./bin/Release
+    - dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release
     - popd
   artifacts:
     paths:

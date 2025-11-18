@@ -93,7 +93,6 @@
          <Feature Id="SplunkCollectorConfiguration" Level="1">
             <ComponentRef Id="RegistryComponent" />
          </Feature>
-         <ComponentRef Id="RegistryComponent" />
          <ComponentRef Id="JmxMetricsJarComponent" />
          <ComponentGroupRef Id="AssortedFiles" />
       </Feature>

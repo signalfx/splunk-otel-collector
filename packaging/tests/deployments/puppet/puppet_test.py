@@ -222,6 +222,14 @@ def setup_local_package_repo(container, pkg_path, distro):
         run_container_cmd(container, f"echo 'deb [trusted=yes] file://{repo_dir} ./' > /etc/apt/sources.list.d/local-repo.list")
         run_container_cmd(container, "apt-get update")
         
+        # Verify the package is available in the repo
+        code, output = run_container_cmd(container, f"apt-cache madison {PKG_NAME}", exit_code=None)
+        if code != 0 or PKG_NAME not in output.decode('utf-8'):
+            # Debug: list what's in the repo
+            run_container_cmd(container, f"ls -la {repo_dir}/", exit_code=None)
+            run_container_cmd(container, f"zcat {repo_dir}/Packages.gz | grep -A 5 'Package: {PKG_NAME}'", exit_code=None)
+            pytest.fail(f"Package {PKG_NAME} not found in local repository after setup. Repository setup may have failed.")
+        
     elif distro in RPM_DISTROS:
         # Install libcap dependency first
         if container.exec_run("command -v yum").exit_code == 0:
@@ -308,18 +316,30 @@ def test_puppet_default(distro, puppet_release):
             # Check if we should use local package
             pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
             
-            print(f"Using local package: {pkg_path} (version: {LOCAL_COLLECTOR_VERSION})")
+            if not pkg_path:
+                pytest.fail(f"No package found in {PKG_DIR} for {distro}. Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local")
+            
+            # Extract actual version from package file
+            collector_version = get_package_version_from_file(pkg_path)
+            if not collector_version:
+                # Fallback to hardcoded version if extraction fails
+                collector_version = LOCAL_COLLECTOR_VERSION
+                print(f"Warning: Could not extract version from package, using default: {collector_version}")
+            else:
+                print(f"Extracted version from package: {collector_version}")
+            
+            print(f"Using local package: {pkg_path} (version: {collector_version})")
             setup_local_package_repo(container, pkg_path, distro)
             # Update config to use the specific version
             config = f"""
 class {{ splunk_otel_collector:
 splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
 splunk_realm => '{SPLUNK_REALM}',
-collector_version => '{LOCAL_COLLECTOR_VERSION}',
+collector_version => '{collector_version}',
 }}
 """
             run_puppet_apply(container, config)
-            verify_package_version(container, "splunk-otel-collector", LOCAL_COLLECTOR_VERSION)
+            verify_package_version(container, "splunk-otel-collector", collector_version)
 
             verify_env_file(container)
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", ".*", exists=False)
@@ -369,13 +389,25 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             
             pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
             
-            print(f"Using local package: {pkg_path} (version: {LOCAL_COLLECTOR_VERSION})")
+            if not pkg_path:
+                pytest.fail(f"No package found in {PKG_DIR} for {distro}. Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local")
+            
+            # Extract actual version from package file
+            collector_version = get_package_version_from_file(pkg_path)
+            if not collector_version:
+                # Fallback to hardcoded version if extraction fails
+                collector_version = LOCAL_COLLECTOR_VERSION
+                print(f"Warning: Could not extract version from package, using default: {collector_version}")
+            else:
+                print(f"Extracted version from package: {collector_version}")
+            
+            print(f"Using local package: {pkg_path} (version: {collector_version})")
             setup_local_package_repo(container, pkg_path, distro)
             
-            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=LOCAL_COLLECTOR_VERSION)
+            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=collector_version)
             # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
             run_puppet_apply(container, config, strict_mode=False)
-            verify_package_version(container, "splunk-otel-collector", LOCAL_COLLECTOR_VERSION)
+            verify_package_version(container, "splunk-otel-collector", collector_version)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")

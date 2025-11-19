@@ -77,6 +77,28 @@ jobs:
           echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
+  
+  puppet-build-local-package:
+    name: puppet-build-local-package
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+
+      - name: Build local package
+        run: |
+          make deb-package ARCH=amd64 VERSION=0.0.1-local
+  
+  puppet-build-rpm-local-packages:
+    name: puppet-build-rpm-local-packages
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+
+      - name: Build local package
+        run: |
+          make rpm-package ARCH=amd64 VERSION=0.0.1-local
 
   puppet-test:
     name: puppet-test
@@ -101,14 +123,6 @@ jobs:
 
       - name: Install pytest
         run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
-
-      - name: Build local package
-        run: |
-          # For DEB packages (Ubuntu/Debian)
-          make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
-          
-          # For RPM packages (RHEL/CentOS/Fedora)
-          make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
 
       - name: Test puppet deployment
         id: pytest

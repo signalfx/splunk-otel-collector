@@ -160,7 +160,7 @@ jobs:
           PLATFORM="all" make -e distribute-ta
 
       - name: Upload Collector TA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz

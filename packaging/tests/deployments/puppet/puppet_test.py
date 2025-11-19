@@ -199,7 +199,6 @@ def get_package_version_from_file(pkg_path):
     
     return None
 
-
 def setup_local_package_repo(container, pkg_path, distro):
     """Set up a local package repository and install the package before Puppet runs."""
     pkg_base = os.path.basename(pkg_path)
@@ -211,7 +210,7 @@ def setup_local_package_repo(container, pkg_path, distro):
     if distro in DEB_DISTROS:
         # Install libcap2-bin dependency first
         run_container_cmd(container, "apt-get update")
-        run_container_cmd(container, "apt-get install -y libcap2-bin")
+        run_container_cmd(container, "apt-get install -y libcap2-bin dpkg-dev")
         
         # Create a local DEB repository
         repo_dir = "/tmp/local-repo"
@@ -226,11 +225,23 @@ def setup_local_package_repo(container, pkg_path, distro):
     elif distro in RPM_DISTROS:
         # Install libcap dependency first
         if container.exec_run("command -v yum").exit_code == 0:
-            run_container_cmd(container, "yum install -y libcap createrepo")
+            run_container_cmd(container, "yum install -y libcap")
+            # Try to install createrepo_c first (newer systems), fall back to createrepo
+            code, _ = run_container_cmd(container, "yum install -y createrepo_c", exit_code=None)
+            if code != 0:
+                run_container_cmd(container, "yum install -y createrepo")
         elif container.exec_run("command -v dnf").exit_code == 0:
-            run_container_cmd(container, "dnf install -y libcap createrepo")
+            run_container_cmd(container, "dnf install -y libcap")
+            # Try to install createrepo_c first (newer systems), fall back to createrepo
+            code, _ = run_container_cmd(container, "dnf install -y createrepo_c", exit_code=None)
+            if code != 0:
+                run_container_cmd(container, "dnf install -y createrepo")
         else:
-            run_container_cmd(container, "zypper install -y libcap-progs createrepo")
+            run_container_cmd(container, "zypper install -y libcap-progs")
+            # Try to install createrepo_c first, fall back to createrepo
+            code, _ = run_container_cmd(container, "zypper install -y createrepo_c", exit_code=None)
+            if code != 0:
+                run_container_cmd(container, "zypper install -y createrepo")
         
         # Create a local RPM repository
         repo_dir = "/tmp/local-repo"

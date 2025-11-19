@@ -216,7 +216,7 @@ def setup_local_package_repo(container, pkg_path, distro):
         repo_dir = "/tmp/local-repo"
         run_container_cmd(container, f"mkdir -p {repo_dir}")
         run_container_cmd(container, f"cp {container_pkg_path} {repo_dir}/")
-        run_container_cmd(container, f"cd {repo_dir} && dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz")
+        run_container_cmd(container, f"bash -c 'cd {repo_dir} && dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz'")
         
         # Add local repository
         run_container_cmd(container, f"echo 'deb [trusted=yes] file://{repo_dir} ./' > /etc/apt/sources.list.d/local-repo.list")

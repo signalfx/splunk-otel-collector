@@ -16,6 +16,11 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR=${REPO_DIR:-"$(cd "${SCRIPT_DIR}/../../.." && pwd)"}
+WORK_DIR=${WORK_DIR:-"${REPO_DIR}/work"}
+PROJECT_DIR=${PROJECT_DIR:-"${REPO_DIR}"}
+
 MSI_SRC_DIR=${MSI_SRC_DIR:-"${REPO_DIR}/packaging/msi"}
 WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
 OTELCOL="${REPO_DIR}/bin/otelcol_windows_amd64.exe"
@@ -179,17 +184,16 @@ parse_args_and_build() {
 
     cd ${WORK_DIR}
 
-    configFilesWsx="${build_dir}/configfiles.wsx"
-    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx}"
-
-    configFilesWixObj="${build_dir}/configfiles.wixobj"
-    candle -arch x64 -out "${configFilesWixObj}" "${configFilesWsx}"
-
-    collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
-    candle -arch x64 -out "${collectorWixObj}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH}"
+    dotnet wix build "${WXS_PATH}" \
+        -arch x64 \
+        -out "${build_dir}/${msi_name}" \
+        -bindpath "${files_dir}" \
+        -d Version="${version}" \
+        -d Otelcol="${otelcol}" \
+        -d JmxMetricsJar="${jmx_metrics_jar}" \
+        -d FilesDir="${files_dir}"
 
     msi="${build_dir}/${msi_name}"
-    light -ext WixUtilExtension.dll -sval -out "${msi}" -b "${files_dir}" "${collectorWixObj}" "${configFilesWixObj}"
 
     mkdir -p $output
     cp "${msi}" "${output}/${msi_name}"

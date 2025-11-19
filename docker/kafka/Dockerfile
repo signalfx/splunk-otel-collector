@@ -1,4 +1,4 @@
-FROM bitnamilegacy/kafka:4.0.0
+FROM soldevelo/kafka:4.1.1
 
 ENV JMX_PORT=7099
 EXPOSE 7099

@@ -249,6 +249,14 @@ services:
     ports:
       - "6379:6379"
   # Kafka test, requires multiple Kafka containers and Zookeeper:
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.33.2
+    profiles:
+      - integration-test-weaviate-discovery
+    ports:
+      - "2112:2112"
+    environment:
+      PROMETHEUS_MONITORING_ENABLED: "true"
   zookeeper:
     image: zookeeper:3.5
     profiles:

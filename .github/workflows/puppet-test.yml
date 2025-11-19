@@ -107,6 +107,8 @@ jobs:
     needs:
       - puppet-lint
       - puppet-test-matrix
+      - puppet-build-local-package
+      - puppet-build-rpm-local-packages
     strategy:
       matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
       fail-fast: false

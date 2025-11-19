@@ -24,19 +24,19 @@ jobs:
         run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: binaries-windows_amd64
           path: ./bin
 
       - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: agent-bundle-windows-${{ inputs.OS }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: msi-custom-actions
           path: ./packaging/msi/SplunkCustomActions/bin/Release

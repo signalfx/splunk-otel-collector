@@ -29,12 +29,12 @@ jobs:
           cache-dependency-path: '**/go.sum'
 
       - name: Downloading binaries-linux_${{ inputs.ARCH }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: binaries-linux_${{ inputs.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: agent-bundle-linux-${{ inputs.ARCH }}
           path: ./dist

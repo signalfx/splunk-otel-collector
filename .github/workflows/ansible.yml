@@ -132,7 +132,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           path: /tmp
 
@@ -205,7 +205,7 @@ jobs:
       - name: Make tmp directory for msi build artifact
         run: mkdir -p /tmp/msi-build
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: msi-build-windows-2025
           path: /tmp/msi-build

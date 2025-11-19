@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25
+  GO_VERSION: 1.25.3
 
 jobs:
   tidy:
@@ -94,8 +94,7 @@ jobs:
     name: unit-test
     strategy:
       matrix:
-        # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
-        OS: [ "ubuntu-24.04", "macos-13", "macos-13-xlarge", "macos-14", "macos-15" ]
+        OS: [ "ubuntu-24.04", "macos-14", "macos-15" ]
     uses: ./.github/workflows/reusable-unit-test.yml
     with:
       OS: ${{ matrix.OS }}
@@ -129,3 +128,15 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
+
+  latest-dockerd-test:
+    # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: dockerd test
+        working-directory: ./internal/signalfx-agent/pkg/monitors/docker
+        run: |
+          go test -v -tags=dockerd -timeout 3m ./...

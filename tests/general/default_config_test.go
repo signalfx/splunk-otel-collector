@@ -126,14 +126,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
-					"http_forwarder/signalfx": map[string]any{
-						"egress": map[string]any{
-							"endpoint": "https://ingest.not.real.signalfx.com",
-						},
-						"ingress": map[string]any{
-							"endpoint": fmt.Sprintf("%s:9943", ip),
-						},
-					},
 					"zpages": map[string]any{
 						"endpoint": fmt.Sprintf("%s:55679", ip),
 						"expvar": map[string]any{
@@ -205,6 +197,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							},
 						},
 					},
+					"signalfx": map[string]any{
+						"endpoint": fmt.Sprintf("%s:9943", ip),
+					},
 					"zipkin": map[string]any{
 						"endpoint": fmt.Sprintf("%s:9411", ip),
 					},
@@ -222,12 +217,17 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/signalfx", "zpages"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "zpages"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"routing/logs"},
+						},
+						"logs/signalfx": map[string]any{
+							"exporters":  []any{"signalfx"},
+							"processors": []any{"memory_limiter", "batch"},
+							"receivers":  []any{"signalfx"},
 						},
 						"logs/entities": map[string]any{
 							"exporters":  []any{"otlphttp/entities"},
@@ -241,7 +241,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch"},
-							"receivers":  []any{"otlp"},
+							"receivers":  []any{"otlp", "signalfx"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},

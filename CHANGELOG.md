@@ -5,6 +5,82 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.140.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.140.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.140.0)
+and the [opentelemetry-collector-contrib v0.140.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.140.1) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `ecs_task_observer`: Removed discontinued `ecs_task_observer` extension. ([#6936](https://github.com/signalfx/splunk-otel-collector/pull/6936))
+  The `ecs_task_observer` extension has been discontinued and is no longer available in the OpenTelemetry Collector Contrib repository
+  and was removed via [PR 43818](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43818).
+- (Splunk) `gateway`: Remove SignalFx receiver from the default gateway config in favor of the HTTP forwarder extension ([#6887](https://github.com/signalfx/splunk-otel-collector/pull/6887))
+  This change means that metrics and logs sent to the gateway in the SignalFx format
+  will no longer be subject to the batch and memory limiter processors configured in
+  the gateway pipelines. Please ensure any required memory limiting or batching is
+  configured on the sending side (e.g. the agent). Please note that the `signalfx` receiver
+  will eventually be deprecated and removed.
+- (Contrib) `receiver/ciscoos`: Rename receiver component name from `ciscoosreceiver` to `ciscoos` to follow naming conventions. ([#42647](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42647))
+  Users must update their collector configuration from `ciscoosreceiver/device` to `ciscoos/device`.
+
+- (Contrib) `all`: Latest supported k8s version is moved from 1.17 to 1.21. ([#43891](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43891))
+- (Contrib) `extension/googlecloudlogentry_encoding`: Parse cloud armor logs into log record attributes instead of placing it in the body as is. ([#43389](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43389))
+- (Contrib) `pkg/ottl`: Upgrade profiles proto to 1.9.0 ([#44031](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44031))
+- (Contrib) `processor/filter`: Upgrade profiles proto to 1.9.0 ([#44031](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44031))
+- (Contrib) `processor/tail_sampling`: Replace policy latency metric with total time spent executing specific sampling policy. ([#42620](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42620))
+  The existing latency metric was misleading and expensive to compute. The new cpu time metric can be used to find expensive policies instead.
+- (Contrib) `receiver/prometheus`: The prometheus receiver no longer adjusts the start time of metrics by default. ([#43656](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43656))
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) `scriptedinputsreceiver`: Deprecate the scripted inputs receiver. ([#6893](https://github.com/signalfx/splunk-otel-collector/pull/6893))
+- (Splunk) `receiver/lightprometheus`: The `lightprometheus` receiver has been deprecated and will be removed in a future release. ([#6949](https://github.com/signalfx/splunk-otel-collector/pull/6949))
+  Please use the [Prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver) or
+  [Simple Prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver) receiver instead.
+
+### 🚀 New components 🚀
+
+- (Splunk) `exporter/prometheusremotewrite`: Add the Prometheus Remote Write exporter to the distribution. ([#6912](https://github.com/signalfx/splunk-otel-collector/pull/6912))
+  See [README](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter)
+  for more information.
+
+### 💡 Enhancements 💡
+
+- (Splunk) `javaagent`: Update Splunk Distribution of OpenTelemetry Java to version [2.21.1](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.21.1) ([#6944](https://github.com/signalfx/splunk-otel-collector/pull/6944))
+- (Splunk) `discovery`: Add a new discovery bundle for Weaviate vector search engine ([#6884](https://github.com/signalfx/splunk-otel-collector/pull/6884))
+  The discovery rule targets Weaviate instances exposing Prometheus metrics on the default port 2112.
+- (Core) `connector/forward`: Add support for Profiles to Profiles ([#14092](https://github.com/open-telemetry/opentelemetry-collector/pull/14092))
+- (Core) `exporter/debug`: Disable sending queue by default ([#14138](https://github.com/open-telemetry/opentelemetry-collector/issues/14138))
+  The recently added sending queue configuration in Debug exporter was enabled by default and had a problematic default size of 1.
+  This change disables the sending queue by default.
+  Users can enable and configure the sending queue if needed.
+- (Core) `pkg/otelcol`: This feature has been improved and tested; secure-by-default redacts configopaque values ([#12369](https://github.com/open-telemetry/opentelemetry-collector/issues/12369))
+- (Contrib) `exporter/kafka`: Adds a new configuration option to the Kafka exporter to control the linger time for the producer. ([#44075](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44075))
+  Since `franz-go` now defaults to `10ms`, it's best to allow users to configure this option to suit their needs.
+- (Contrib) `receiver/journald`: Add root_path and journalctl_path config for running journald in a chroot ([#43731](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43731))
+- (Contrib) `receiver/prometheusremotewrite`: Skip emitting empty metrics. ([#44149](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44149))
+- (Contrib) `receiver/prometheusremotewrite`: Receiver now accepts metric type unspecified histograms. ([#41840](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41840))
+- (Contrib) `receiver/redis`: Add redis metrics that are present in telegraf: cluster_enabled, tracking_total_keys, used_memory_overhead, used_memory_startup ([#39859](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39859))
+- (Contrib) `receiver/splunkenterprise`: Added pagination for search cases which may return more than the default 100 results ([#43608](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43608))
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `smartagent/docker-container-stats`: Use client API version negotiation instead of fixed version ([#6941](https://github.com/signalfx/splunk-otel-collector/pull/6941))
+  The `smartagent/docker-container-stats` monitor was using a fixed API version of `v1.24`,
+  which is not compatible with version `v29` of the Docker engine. This change updates the
+  monitor to use API version negotiation, allowing it to work with a wider range of Docker
+  engine versions.
+- (Core) `all`: Ensure `service.instance.id` is the same for all the signals when it is autogenerated. ([#14140](https://github.com/open-telemetry/opentelemetry-collector/issues/14140))
+- (Contrib) `exporter/loadbalancing`: Ensure loadbalancing child exporters use the OTLP type so backend creation succeeds ([#43950](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43950))
+- (Contrib) `extension/bearertokenauth`: Remove error messages `fsnotify: can't remove non-existent watch` when watching kubernetes SA tokens. ([#44104](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44104))
+- (Contrib) `processor/k8sattributes`: The fix is on k8sattributes processor to only set k8s.pod.ip attribute when it is requested in the extract.metadata configuration. ([#43862](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43862))
+  Previously, the `k8s.pod.ip` attribute was always populated, even if it was not included in the `extract.metadata` list.
+  This fix ensures that `k8s.pod.ip` is set only when explicitly requested, aligning the processor behavior with configuration expectations.
+- (Contrib) `receiver/sqlserver`: Resolved inaccurate data sampling in query metrics collection. ([#44303](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44303))
+- (Contrib) `receiver/sqlserver`: Fix incorrect logic in query metrics window calculation. ([#44162](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44162))
+- (Contrib) `receiver/sqlserver`: Fixed a bug in effective value calculation of lookback time in top query collection. ([#43943](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43943))
+
 ## v0.139.2
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.139.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.139.0)

@@ -122,6 +122,19 @@ def verify_config_file(container, path, key, value=None, exists=True):
         assert not match, f"'{line}' found in {path}:\n{config}"
 
 
+def write_text_file_in_container(container, target_path, content):
+    if not content.endswith("\n"):
+        content = f"{content}\n"
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
+        temp_file.write(content)
+        temp_file.flush()
+        temp_path = temp_file.name
+    try:
+        copy_file_into_container(container, temp_path, target_path)
+    finally:
+        os.remove(temp_path)
+
+
 def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_URL, hec_token=SPLUNK_ACCESS_TOKEN):
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_API_URL", api_url)
@@ -365,7 +378,8 @@ enabled=1
 gpgcheck=0
 priority=1
 """
-            run_container_cmd(container, f"echo '{repo_file}' > /etc/yum.repos.d/local-repo.repo")
+            write_text_file_in_container(container, "/etc/yum.repos.d/local-repo.repo", repo_file)
+            run_container_cmd(container, "cat /etc/yum.repos.d/local-repo.repo")
             run_container_cmd(container, "bash -c 'yum clean all || dnf clean all'")
         else:  # zypper
             # For zypper, we need to use a proper repo format
@@ -375,7 +389,8 @@ baseurl=file:{repo_dir}
 enabled=1
 autorefresh=0
 """
-            run_container_cmd(container, f"echo '{repo_file}' > /etc/zypp/repos.d/local-repo.repo")
+            write_text_file_in_container(container, "/etc/zypp/repos.d/local-repo.repo", repo_file)
+            run_container_cmd(container, "cat /etc/zypp/repos.d/local-repo.repo")
             run_container_cmd(container, "zypper refresh")
     
         verify_rpm_repo_package(container, PKG_NAME, repo_dir, actual_pkg_version)

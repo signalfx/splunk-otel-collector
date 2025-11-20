@@ -249,7 +249,19 @@ def setup_local_package_repo(container, pkg_path, distro):
         repo_dir = "/tmp/local-repo"
         run_container_cmd(container, f"mkdir -p {repo_dir}")
         run_container_cmd(container, f"cp {container_pkg_path} {repo_dir}/")
+        
+        # Verify package was copied
+        run_container_cmd(container, f"test -f {repo_dir}/{pkg_base}")
+        
+        # Create Packages.gz file
         run_container_cmd(container, f"bash -c 'cd {repo_dir} && dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz'")
+        
+        # Verify Packages.gz was created
+        run_container_cmd(container, f"test -f {repo_dir}/Packages.gz")
+        
+        # Debug: Show what's in Packages.gz
+        code, output = run_container_cmd(container, f"bash -c 'gunzip -c {repo_dir}/Packages.gz | grep -E \"^(Package|Version):\" | head -10'", exit_code=None)
+        print(f"Packages.gz contents (first 10 lines):\n{output.decode('utf-8', errors='ignore')}")
         
         # Add local repository
         run_container_cmd(container, f"echo 'deb [trusted=yes] file://{repo_dir} ./' > /etc/apt/sources.list.d/local-repo.list")
@@ -257,11 +269,16 @@ def setup_local_package_repo(container, pkg_path, distro):
         
         # Verify the package is available in the repo
         code, output = run_container_cmd(container, f"apt-cache madison {PKG_NAME}", exit_code=None)
-        if code != 0 or PKG_NAME not in output.decode('utf-8'):
+        output_str = output.decode('utf-8', errors='ignore')
+        print(f"apt-cache madison output:\n{output_str}")
+        
+        if code != 0 or PKG_NAME not in output_str:
             # Debug: list what's in the repo
+            print(f"Debugging repository setup:")
             run_container_cmd(container, f"ls -la {repo_dir}/", exit_code=None)
-            # Use gunzip -c instead of zcat for better compatibility
-            run_container_cmd(container, f"bash -c 'gunzip -c {repo_dir}/Packages.gz | grep -A 5 \"Package: {PKG_NAME}\"'", exit_code=None)
+            # Show full package info from Packages.gz
+            run_container_cmd(container, f"bash -c 'gunzip -c {repo_dir}/Packages.gz | grep -A 10 \"Package: {PKG_NAME}\"'", exit_code=None)
+            pytest.fail(f"Package {PKG_NAME} not found in local repository after setup. Repository setup may have failed.")
         
     elif distro in RPM_DISTROS:
         # Install libcap dependency first
@@ -352,23 +369,51 @@ def test_puppet_default(distro, puppet_release):
             if not pkg_path:
                 pytest.fail(f"No package found in {PKG_DIR} for {distro}. Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local")
             
-            # Extract actual version from package file
+            # Extract actual version from package file (fallback to filename parsing)
             collector_version = get_package_version_from_file(pkg_path)
             if not collector_version:
                 # Fallback to hardcoded version if extraction fails
                 collector_version = LOCAL_COLLECTOR_VERSION
-                print(f"Warning: Could not extract version from package, using default: {collector_version}")
+                print(f"Warning: Could not extract version from package filename, using default: {collector_version}")
             else:
-                print(f"Extracted version from package: {collector_version}")
+                print(f"Extracted version from package filename: {collector_version}")
             
-            print(f"Using local package: {pkg_path} (version: {collector_version})")
-            setup_local_package_repo(container, pkg_path, distro)
+            print(f"Using local package: {pkg_path} (initial version: {collector_version})")
+            container_pkg_path = setup_local_package_repo(container, pkg_path, distro)
+            
+            # Get the actual version from the package metadata inside the container
+            # This is more reliable than filename parsing
+            if distro in DEB_DISTROS:
+                code, output = run_container_cmd(container, f"dpkg-deb -f {container_pkg_path} Version", exit_code=None)
+                if code == 0:
+                    actual_pkg_version = output.decode('utf-8').strip()
+                    # Remove epoch if present (e.g., "1:0.0.1-local" -> "0.0.1-local")
+                    if ":" in actual_pkg_version:
+                        actual_pkg_version = actual_pkg_version.split(":", 1)[1]
+                    print(f"Actual package version (from dpkg-deb): {actual_pkg_version}")
+                    collector_version = actual_pkg_version
+                else:
+                    print(f"Warning: Could not get version from dpkg-deb, using extracted version: {collector_version}")
+            elif distro in RPM_DISTROS:
+                code, output = run_container_cmd(container, f"rpm -qp --queryformat '%{{VERSION}}' {container_pkg_path}", exit_code=None)
+                if code == 0:
+                    actual_pkg_version = output.decode('utf-8').strip()
+                    print(f"Actual package version (from rpm): {actual_pkg_version}")
+                    collector_version = actual_pkg_version
+                else:
+                    print(f"Warning: Could not get version from rpm, using extracted version: {collector_version}")
+            
+            print(f"Using version for Puppet: {collector_version}")
+            
             # Update config to use the specific version
+            # Set manage_repo => false to prevent Puppet from setting up official repo
+            # We're using the local repository we set up instead
             config = f"""
 class {{ splunk_otel_collector:
 splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
 splunk_realm => '{SPLUNK_REALM}',
 collector_version => '{collector_version}',
+manage_repo => false,
 }}
 """
             run_puppet_apply(container, config)
@@ -391,6 +436,7 @@ class {{ splunk_otel_collector:
     splunk_hec_token => 'fake-hec-token',
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
+    manage_repo => false,
     with_fluentd => true,
     collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
@@ -434,8 +480,32 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             else:
                 print(f"Extracted version from package: {collector_version}")
             
-            print(f"Using local package: {pkg_path} (version: {collector_version})")
-            setup_local_package_repo(container, pkg_path, distro)
+            print(f"Using local package: {pkg_path} (initial version: {collector_version})")
+            container_pkg_path = setup_local_package_repo(container, pkg_path, distro)
+            
+            # Get the actual version from the package metadata inside the container
+            # This is more reliable than filename parsing
+            if distro in DEB_DISTROS:
+                code, output = run_container_cmd(container, f"dpkg-deb -f {container_pkg_path} Version", exit_code=None)
+                if code == 0:
+                    actual_pkg_version = output.decode('utf-8').strip()
+                    # Remove epoch if present (e.g., "1:0.0.1-local" -> "0.0.1-local")
+                    if ":" in actual_pkg_version:
+                        actual_pkg_version = actual_pkg_version.split(":", 1)[1]
+                    print(f"Actual package version (from dpkg-deb): {actual_pkg_version}")
+                    collector_version = actual_pkg_version
+                else:
+                    print(f"Warning: Could not get version from dpkg-deb, using extracted version: {collector_version}")
+            elif distro in RPM_DISTROS:
+                code, output = run_container_cmd(container, f"rpm -qp --queryformat '%{{VERSION}}' {container_pkg_path}", exit_code=None)
+                if code == 0:
+                    actual_pkg_version = output.decode('utf-8').strip()
+                    print(f"Actual package version (from rpm): {actual_pkg_version}")
+                    collector_version = actual_pkg_version
+                else:
+                    print(f"Warning: Could not get version from rpm, using extracted version: {collector_version}")
+            
+            print(f"Using version for Puppet: {collector_version}")
             
             config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=collector_version)
             # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.

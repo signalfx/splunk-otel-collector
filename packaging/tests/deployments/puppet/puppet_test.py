@@ -175,27 +175,60 @@ def get_package_version_from_file(pkg_path):
         return None
     
     if pkg_path.suffix == ".deb":
-        # Extract version from DEB package
-        result = subprocess.run(
-            ["dpkg-deb", "-f", str(pkg_path), "Version"],
-            capture_output=True,
-            text=True
-        )
-        if result.returncode == 0:
-            version = result.stdout.strip()
-            # Remove epoch if present (e.g., "1:0.1.0" -> "0.1.0")
-            if ":" in version:
-                version = version.split(":", 1)[1]
+        # Try using dpkg-deb if available (Linux)
+        try:
+            result = subprocess.run(
+                ["dpkg-deb", "-f", str(pkg_path), "Version"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                version = result.stdout.strip()
+                # Remove epoch if present (e.g., "1:0.1.0" -> "0.1.0")
+                if ":" in version:
+                    version = version.split(":", 1)[1]
+                return version
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # dpkg-deb not available (e.g., on macOS), try extracting from filename
+            pass
+        
+        # Fallback: Extract version from filename pattern: name_version_arch.deb
+        # Example: splunk-otel-collector_0.0.1-local_amd64.deb
+        filename = pkg_path.name
+        parts = filename.replace(".deb", "").split("_")
+        if len(parts) >= 2:
+            # Version is typically the second part
+            version = parts[1]
             return version
+    
     elif pkg_path.suffix == ".rpm":
-        # Extract version from RPM package
-        result = subprocess.run(
-            ["rpm", "-qp", "--queryformat", "%{VERSION}", str(pkg_path)],
-            capture_output=True,
-            text=True
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
+        # Try using rpm if available
+        try:
+            result = subprocess.run(
+                ["rpm", "-qp", "--queryformat", "%{VERSION}", str(pkg_path)],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # rpm not available, try extracting from filename
+            pass
+        
+        # Fallback: Extract version from filename pattern: name-version.arch.rpm
+        # Example: splunk-otel-collector-0.0.1-local.x86_64.rpm
+        filename = pkg_path.name
+        # Remove .rpm and split by dots
+        parts = filename.replace(".rpm", "").split(".")
+        if len(parts) >= 2:
+            # Version is typically before the arch (last part)
+            # Format: name-version.arch
+            name_version = ".".join(parts[:-1])  # Everything except last part (arch)
+            if "-" in name_version:
+                version = name_version.split("-", 1)[1]  # Everything after first dash
+                return version
     
     return None
 
@@ -227,7 +260,8 @@ def setup_local_package_repo(container, pkg_path, distro):
         if code != 0 or PKG_NAME not in output.decode('utf-8'):
             # Debug: list what's in the repo
             run_container_cmd(container, f"ls -la {repo_dir}/", exit_code=None)
-            run_container_cmd(container, f"zcat {repo_dir}/Packages.gz | grep -A 5 'Package: {PKG_NAME}'", exit_code=None)
+            # Use gunzip -c instead of zcat for better compatibility
+            run_container_cmd(container, f"bash -c 'gunzip -c {repo_dir}/Packages.gz | grep -A 5 \"Package: {PKG_NAME}\"'", exit_code=None)
             pytest.fail(f"Package {PKG_NAME} not found in local repository after setup. Repository setup may have failed.")
         
     elif distro in RPM_DISTROS:

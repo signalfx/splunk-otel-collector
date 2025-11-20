@@ -360,7 +360,7 @@ def setup_local_package_repo(container, pkg_path, distro):
         if container.exec_run("command -v yum").exit_code == 0 or container.exec_run("command -v dnf").exit_code == 0:
             repo_file = f"""[local-repo]
 name=Local Repository
-baseurl=file://{repo_dir}
+baseurl=file:{repo_dir}
 enabled=1
 gpgcheck=0
 priority=1
@@ -371,14 +371,63 @@ priority=1
             # For zypper, we need to use a proper repo format
             repo_file = f"""[local-repo]
 name=Local Repository
-baseurl=file://{repo_dir}
+baseurl=file:{repo_dir}
 enabled=1
 autorefresh=0
 """
             run_container_cmd(container, f"echo '{repo_file}' > /etc/zypp/repos.d/local-repo.repo")
             run_container_cmd(container, "zypper refresh")
     
+        verify_rpm_repo_package(container, PKG_NAME, repo_dir, actual_pkg_version)
+
     return container_pkg_path, actual_pkg_version
+
+
+def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None):
+    """Verify that the temporary RPM repository exposes the desired package."""
+    repo_name = "local-repo"
+    expected_token = expected_version or pkg_name
+    commands = []
+
+    if container.exec_run("command -v dnf").exit_code == 0:
+        commands.append(
+            (
+                "dnf",
+                f"dnf -d 0 -e 0 --disablerepo='*' --enablerepo='{repo_name}' "
+                f"list --showduplicates {pkg_name}",
+            )
+        )
+    if container.exec_run("command -v yum").exit_code == 0:
+        commands.append(
+            (
+                "yum",
+                f"yum -d 0 -e 0 --disablerepo='*' --enablerepo='{repo_name}' "
+                f"list --showduplicates {pkg_name}",
+            )
+        )
+    if container.exec_run("command -v zypper").exit_code == 0:
+        commands.append(
+            (
+                "zypper",
+                f"zypper --non-interactive search -s {pkg_name}",
+            )
+        )
+
+    for manager, cmd in commands:
+        code, output = run_container_cmd(container, cmd, exit_code=None)
+        output_str = output.decode("utf-8", errors="ignore")
+        print(f"{manager} package listing output:\n{output_str}")
+        if code == 0 and expected_token in output_str:
+            return
+
+    print("Debugging RPM repository contents:")
+    run_container_cmd(container, f"ls -la {repo_dir}/", exit_code=None)
+    run_container_cmd(container, f"cat {repo_dir}/repodata/repomd.xml", exit_code=None)
+    failure_reason = (
+        f"Package {pkg_name} (expected token: {expected_token}) "
+        "was not found in the local RPM repository."
+    )
+    pytest.fail(failure_reason)
 
 
 DEFAULT_CONFIG = f"""

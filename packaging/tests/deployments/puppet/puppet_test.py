@@ -440,7 +440,6 @@ class {{ splunk_otel_collector:
 splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
 splunk_realm => '{SPLUNK_REALM}',
 collector_version => '{collector_version}',
-manage_repo => false,
 }}
 """
             run_puppet_apply(container, config)
@@ -463,7 +462,6 @@ class {{ splunk_otel_collector:
     splunk_hec_token => 'fake-hec-token',
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
-    manage_repo => false,
     with_fluentd => true,
     collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},

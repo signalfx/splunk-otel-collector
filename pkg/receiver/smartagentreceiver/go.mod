@@ -156,7 +156,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/lufia/plan9stats v0.0.0-20231016141302-07b5767bb0ed // indirect
-	github.com/mailru/easyjson v0.9.0 // indirect
+	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3 // indirect
 	github.com/microsoft/go-mssqldb v1.9.3 // indirect
 	github.com/miekg/dns v1.1.66 // indirect

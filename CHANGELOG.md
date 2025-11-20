@@ -31,7 +31,7 @@ and the [opentelemetry-collector-contrib v0.140.0](https://github.com/open-telem
 - (Contrib) `processor/tail_sampling`: Replace policy latency metric with total time spent executing specific sampling policy. ([#42620](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42620))
   The existing latency metric was misleading and expensive to compute. The new cpu time metric can be used to find expensive policies instead.
 - (Contrib) `receiver/prometheus`: The prometheus receiver no longer adjusts the start time of metrics by default. ([#43656](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43656))
-  Disable the receiver.prometheusreceiver.RemoveStartTimeAdjustment | feature gate to temporarily re-enable this functionality. Users that need | this functionality should migrate to the metricstarttime processor, | and use the true_reset strategy for equivalent behavior.
+  Disable the receiver.prometheusreceiver.RemoveStartTimeAdjustment feature gate to temporarily re-enable this functionality. Users that need this functionality should migrate to the metricstarttime processor, and use the true_reset strategy for equivalent behavior.
 
 ### 🚩 Deprecations 🚩
 

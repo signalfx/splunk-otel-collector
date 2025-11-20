@@ -75,7 +75,7 @@ and the [opentelemetry-collector-contrib v0.140.1](https://github.com/open-telem
 - (Contrib) `exporter/loadbalancing`: Ensure loadbalancing child exporters use the OTLP type so backend creation succeeds ([#43950](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43950))
 - (Contrib) `extension/bearertokenauth`: Remove error messages `fsnotify: can't remove non-existent watch` when watching kubernetes SA tokens. ([#44104](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44104))
 - (Contrib) `processor/k8sattributes`: The fix is on k8sattributes processor to only set k8s.pod.ip attribute when it is requested in the extract.metadata configuration. ([#43862](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43862))
-  Previously, the `k8s.pod.ip` attribute was always populated, even if it was not included in the `extract.metadata` list. 
+  Previously, the `k8s.pod.ip` attribute was always populated, even if it was not included in the `extract.metadata` list.
   This fix ensures that `k8s.pod.ip` is set only when explicitly requested, aligning the processor behavior with configuration expectations.  This is acceptable as the component is in alpha stability.
 - (Contrib) `receiver/sqlserver`: Resolved inaccurate data sampling in query metrics collection. ([#44303](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44303))
 - (Contrib) `receiver/sqlserver`: Fix incorrect logic in query metrics window calculation. ([#44162](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44162))

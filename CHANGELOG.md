@@ -8,7 +8,7 @@
 ## v0.140.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.140.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.140.0)
-and the [opentelemetry-collector-contrib v0.140.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.140.1) releases where appropriate.
+and the [opentelemetry-collector-contrib v0.140.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.140.1) releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
@@ -21,10 +21,11 @@ and the [opentelemetry-collector-contrib v0.140.0](https://github.com/open-telem
   the gateway pipelines. Please ensure any required memory limiting or batching is
   configured on the sending side (e.g. the agent). Please note that the `signalfx` receiver
   will eventually be deprecated and removed.
+- (Contrib) `receiver/ciscoos`: Rename receiver component name from `ciscoosreceiver` to `ciscoos` to follow naming conventions. ([#42647](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42647))
+  Users must update their collector configuration from `ciscoosreceiver/device` to `ciscoos/device`.
 
 - (Contrib) `all`: Latest supported k8s version is moved from 1.17 to 1.21. ([#43891](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43891))
 - (Contrib) `cmd/otelcontribcol`: Removing unmaintained component extension/ecstaskobserver ([#43818](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43818))
-- (Contrib) `exporter/elasticsearch`: Upgrade profiles proto to 1.9.0 ([#44031](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44031))
 - (Contrib) `extension/googlecloudlogentry_encoding`: Parse cloud armor logs into log record attributes instead of placing it in the body as is. ([#43389](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43389))
 - (Contrib) `pkg/ottl`: Upgrade profiles proto to 1.9.0 ([#44031](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44031))
 - (Contrib) `processor/filter`: Upgrade profiles proto to 1.9.0 ([#44031](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44031))
@@ -61,9 +62,9 @@ and the [opentelemetry-collector-contrib v0.140.0](https://github.com/open-telem
   Since `franz-go` now defaults to `10ms`, it's best to allow users to configure this option to suit their needs.
 - (Contrib) `receiver/journald`: Add root_path and journalctl_path config for running journald in a chroot ([#43731](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43731))
 - (Contrib) `receiver/prometheusremotewrite`: Skip emitting empty metrics. ([#44149](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44149))
-- (Contrib) `receiver/prometheusremotewrite`: prometheusremotewrite receiver now accepts metric type unspecified histograms. ([#41840](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41840))
+- (Contrib) `receiver/prometheusremotewrite`: Receiver now accepts metric type unspecified histograms. ([#41840](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41840))
 - (Contrib) `receiver/redis`: Add redis metrics that are present in telegraf: cluster_enabled, tracking_total_keys, used_memory_overhead, used_memory_startup ([#39859](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39859))
-- (Contrib) `receiver/splunkenterprise`: added pagination for search cases which may return more than the default 100 results ([#43608](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43608))
+- (Contrib) `receiver/splunkenterprise`: Added pagination for search cases which may return more than the default 100 results ([#43608](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43608))
 
 ### 🧰 Bug fixes 🧰
 
@@ -77,10 +78,7 @@ and the [opentelemetry-collector-contrib v0.140.0](https://github.com/open-telem
 - (Contrib) `extension/bearertokenauth`: Remove error messages `fsnotify: can't remove non-existent watch` when watching kubernetes SA tokens. ([#44104](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44104))
 - (Contrib) `processor/k8sattributes`: The fix is on k8sattributes processor to only set k8s.pod.ip attribute when it is requested in the extract.metadata configuration. ([#43862](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43862))
   Previously, the `k8s.pod.ip` attribute was always populated, even if it was not included in the `extract.metadata` list. 
-  This fix ensures that `k8s.pod.ip` is set only when explicitly requested, aligning the processor behavior with configuration expectations.
-- (Contrib) `receiver/ciscoos`: Rename receiver component name from `ciscoosreceiver` to `ciscoos` to follow naming conventions. ([#42647](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42647))
-  Users must update their collector configuration from `ciscoosreceiver/device` to `ciscoos/device`.
-  This is acceptable as the component is in alpha stability.
+  This fix ensures that `k8s.pod.ip` is set only when explicitly requested, aligning the processor behavior with configuration expectations.  This is acceptable as the component is in alpha stability.
 - (Contrib) `receiver/sqlserver`: Resolved inaccurate data sampling in query metrics collection. ([#44303](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44303))
 - (Contrib) `receiver/sqlserver`: Fix incorrect logic in query metrics window calculation. ([#44162](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44162))
 - (Contrib) `receiver/sqlserver`: Fixed a bug in effective value calculation of lookback time in top query collection. ([#43943](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43943))

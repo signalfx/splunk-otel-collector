@@ -42,7 +42,7 @@ and the [opentelemetry-collector-contrib v0.140.1](https://github.com/open-telem
 ### 🚀 New components 🚀
 
 - (Splunk) `exporter/prometheusremotewrite`: Add the Prometheus Remote Write exporter to the distribution. ([#6912](https://github.com/signalfx/splunk-otel-collector/pull/6912))
-  See [README](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter) 
+  See [README](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter)
   for more information.
 
 ### 💡 Enhancements 💡

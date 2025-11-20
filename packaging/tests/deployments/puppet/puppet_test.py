@@ -366,7 +366,7 @@ gpgcheck=0
 priority=1
 """
             run_container_cmd(container, f"echo '{repo_file}' > /etc/yum.repos.d/local-repo.repo")
-            run_container_cmd(container, "yum clean all || dnf clean all")
+            run_container_cmd(container, "bash -c 'yum clean all || dnf clean all'")
         else:  # zypper
             # For zypper, we need to use a proper repo format
             repo_file = f"""[local-repo]

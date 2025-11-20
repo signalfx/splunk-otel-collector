@@ -131,6 +131,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
+	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
@@ -310,7 +311,7 @@ func Get() (otelcol.Factories, error) {
 
 	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
-		forwardconnector.NewFactory(),
+		connector.Factory(forwardconnector.NewFactory()),
 		routingconnector.NewFactory(),
 		spanmetricsconnector.NewFactory(),
 		sumconnector.NewFactory(),

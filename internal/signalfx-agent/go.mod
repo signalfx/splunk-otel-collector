@@ -30,7 +30,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.10.9
-	github.com/mailru/easyjson v0.9.0
+	github.com/mailru/easyjson v0.9.1
 	github.com/mattn/go-xmlrpc v0.0.3
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mongodb/go-client-mongodb-atlas v0.2.0
@@ -54,10 +54,10 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/vmware/govmomi v0.51.0
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sync v0.16.0
-	golang.org/x/sys v0.37.0
-	golang.org/x/tools v0.36.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.18.0
+	golang.org/x/sys v0.38.0
+	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/grpc v1.76.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -82,7 +82,7 @@ require (
 	github.com/go-errors/errors v1.5.1
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
-	github.com/microsoft/go-mssqldb v1.9.2
+	github.com/microsoft/go-mssqldb v1.9.3
 	go.opentelemetry.io/collector/pdata v1.46.0
 )
 
@@ -128,7 +128,7 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dropbox/godropbox v0.0.0-20200228041828-52ad444d3502 // indirect
-	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
+	github.com/dvsekhvalnov/jose2go v1.8.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -223,12 +223,13 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/mod v0.27.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/term v0.34.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
+	golang.org/x/term v0.37.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250804133106-a7a43d27e69b // indirect

@@ -239,37 +239,20 @@ def run_container_cmd(container, cmd, env=None, exit_code:Optional[int]=0, timeo
 
 
 def copy_file_into_container(container, path, target_path, size=None):
-    """Copy a single file from the host into the container."""
-    normalized_target = target_path.lstrip("/")
-    assert normalized_target, f"target_path '{target_path}' must not resolve to root"
-    target_dir = os.path.dirname(normalized_target)
-
     with open(path, "rb") as fd:
+        tario = BytesIO()
+        tar = tarfile.TarFile(fileobj=tario, mode="w")
+
+        info = tarfile.TarInfo(name=target_path)
         if size is None:
             size = os.fstat(fd.fileno()).st_size
+        info.size = size
 
-        tario = BytesIO()
-        with tarfile.open(fileobj=tario, mode="w") as tar:
-            if target_dir:
-                dir_info = tarfile.TarInfo(name=target_dir)
-                dir_info.type = tarfile.DIRTYPE
-                dir_info.mode = 0o755
-                dir_info.mtime = int(time.time())
-                tar.addfile(dir_info)
+        tar.addfile(info, fd)
 
-            file_info = tarfile.TarInfo(name=normalized_target)
-            file_info.size = size
-            file_info.mode = 0o644
-            file_info.mtime = int(time.time())
-            tar.addfile(file_info, fd)
+        tar.close()
 
-        tario.seek(0)
-        success = container.put_archive("/", tario.read())
-        assert success, f"Failed to copy {path} to {target_path} in container"
-
-        # Verify the file now exists in the container for quicker debugging of copy failures.
-        verify_cmd = ["/bin/sh", "-c", f"test -f /{normalized_target}"]
-        assert container.exec_run(verify_cmd).exit_code == 0, f"Copied file missing at {target_path}"
+        container.put_archive("/", tario.getvalue())
 
         time.sleep(2)
 

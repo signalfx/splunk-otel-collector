@@ -1524,18 +1524,18 @@ build-push-windows-fips-image:
     paths:
       - tags_to_sign_${WIN_VERSION}-fips
 
-#sign-windows-image:
-#  extends: .sign-docker
-#  stage: release
-#  parallel:
-#    matrix:
-#      - WIN_VERSION: ["2019", "2022"]
-#        FIPS: ["-fips", ""]
-#  needs:
-#    - build-push-windows-image
-#    - build-push-windows-fips-image
-#  before_script:
-#    - mv tags_to_sign_${WIN_VERSION}${FIPS} tags_to_sign
+sign-windows-image:
+  extends: .sign-docker
+  stage: release
+  parallel:
+    matrix:
+      - WIN_VERSION: ["2019", "2022"]
+        FIPS: ["-fips", ""]
+  needs:
+    - build-push-windows-image
+    - build-push-windows-fips-image
+  before_script:
+    - mv tags_to_sign_${WIN_VERSION}${FIPS} tags_to_sign
 
 release-debs:
   extends:
@@ -1730,11 +1730,11 @@ push-multiarch-manifest:
   stage: docker-manifest-release
   parallel:
     matrix:
-      - MANIFEST: [multiarch] # , windows_multiarch]
+      - MANIFEST: [multiarch, windows_multiarch]
         FIPS: ["-fips",""]
   needs:
     - sign-linux-image
-#    - sign-windows-image
+    - sign-windows-image
   retry: 2
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
@@ -1767,9 +1767,9 @@ push-multiarch-manifest:
         # Update the linux multiarch manifest to include the windows images
         echo "Updating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
         docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
-          ${MANIFEST_NAME}:${MANIFEST_TAG} #\
-         # ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-         # ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
+          ${MANIFEST_NAME}:${MANIFEST_TAG} \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
       else
         # DEPRECATED: Create the windows multiarch manifest for the windows images
         echo "Creating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
@@ -1792,9 +1792,9 @@ push-multiarch-manifest:
         echo "$json"
         # Check number of images in the manifest
         count=$( echo "$json" | jq -r ".manifests | length" )
-        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 3 ]]; then
+        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 5 ]]; then
           exit 1
-        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 2 ]]; then
+        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 4 ]]; then
           exit 1
         elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 2 ]]; then
           exit 1
@@ -1813,18 +1813,18 @@ push-multiarch-manifest:
           done
         fi
         # Check the manifest for the windows images
-        #        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
-        #          os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
-        #          if [[ -z "$os_version" ]]; then
-        #            echo "Failed to get os.version from $base_image"
-        #            exit 1
-        #          fi
-        #          found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
-        #          if [[ -z "$found" ]]; then
-        #            echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
-        #            exit 1
-        #          fi
-        #        done
+        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
+          os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
+          if [[ -z "$os_version" ]]; then
+            echo "Failed to get os.version from $base_image"
+            exit 1
+          fi
+          found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
+          if [[ -z "$found" ]]; then
+            echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
+            exit 1
+          fi
+        done
       done
     - |
       # Get the manifest digest
@@ -1855,7 +1855,7 @@ sign-multiarch-manifest:
   stage: docker-manifest-release
   parallel:
     matrix:
-      - MANIFEST: [multiarch] #, windows_multiarch
+      - MANIFEST: [multiarch, windows_multiarch]
         FIPS: ["-fips",""]
   needs:
     - push-multiarch-manifest

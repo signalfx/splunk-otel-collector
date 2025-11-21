@@ -702,12 +702,12 @@ go.augendre.info/fatcontext v0.8.1/go.mod h1:r3Qz4ZOzex66wfyyj5VZ1xUcl81vzvHQ6/G
 go.etcd.io/etcd/api/v3 v3.5.4/go.mod h1:5GB2vv4A4AOn3yk7MftYGHkUfGtDHnEraIjym4dYz5A=
 go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
-go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
-go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
+go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
+go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/build-tools/chloggen v0.26.0 h1:3ioGgExq6MJpqFzHmgMKmkaNbk6qVa5q1NEx7XG4dTc=
 go.opentelemetry.io/build-tools/chloggen v0.26.0/go.mod h1:1e/hCg1CjMlLgdZeUuSACZLHuX59jWw2cSyJ2FHRK30=
-go.opentelemetry.io/collector/cmd/mdatagen v0.140.0 h1:Ri/KFjsCDAM0GLBX5ZVS3MT1pEk5slihHO0ED3RLGw0=
-go.opentelemetry.io/collector/cmd/mdatagen v0.140.0/go.mod h1:0HPIN8Y+Fv4LLZtVwFtSORHPJrTmak7iYw6o+LruTKE=
+go.opentelemetry.io/collector/cmd/mdatagen v0.140.1-0.20251120204106-2e9c82787618 h1:3Q++e10VXCBvBuCZI4LxPVzIkKuWdMY5sChcNghyFPY=
+go.opentelemetry.io/collector/cmd/mdatagen v0.140.1-0.20251120204106-2e9c82787618/go.mod h1:Efrlsx3Bo6j0P5YcXWWbcRijdTVSHpbUmCyP99tCk+Y=
 go.opentelemetry.io/collector/component v1.46.0 h1:m+BF5sT4wQ3AiPcMBVgYPhxTZNGYGDkgMcKFivEznSo=
 go.opentelemetry.io/collector/component v1.46.0/go.mod h1:Zp+JaUgGrPvt4JNzJU1MD7KcZhauab9W0pCykgGPSN0=
 go.opentelemetry.io/collector/confmap v1.46.0 h1:C/LfkYsKGWgGOvsUz70iUuxbSzSLaXZMSi3QVX6oJsw=

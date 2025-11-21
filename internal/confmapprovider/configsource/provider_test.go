@@ -71,8 +71,10 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 		{
 			name:            "multiple_config_success",
 			providerFactory: fileprovider.NewFactory(),
-			uris: []string{"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
-				"file:" + path.Join("testdata", "yaml_injection_expected.yaml")},
+			uris: []string{
+				"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
+				"file:" + path.Join("testdata", "yaml_injection_expected.yaml"),
+			},
 		},
 	}
 

@@ -135,7 +135,7 @@ func dimensionForContainer(cs v1.ContainerStatus) *atypes.Dimension {
 	}
 }
 
-func getAllContainerDimensions(id string, name string, image string, dims map[string]string) map[string]string {
+func getAllContainerDimensions(id, name, image string, dims map[string]string) map[string]string {
 	out := utils.CloneStringMap(dims)
 
 	out["container_id"] = k8sutil.StripContainerID(id)

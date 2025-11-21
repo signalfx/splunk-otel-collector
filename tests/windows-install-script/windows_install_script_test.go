@@ -65,7 +65,7 @@ func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
 	requireNoPendingFileOperations(t)
 }
 
-func installCollector(t *testing.T, version string, msiPath string) {
+func installCollector(t *testing.T, version, msiPath string) {
 	require.False(t, version == "" && msiPath == "", "Either version or msiPath must be provided")
 	require.False(t, version != "" && msiPath != "", "Only one of version or msiPath should be provided")
 	args := []string{

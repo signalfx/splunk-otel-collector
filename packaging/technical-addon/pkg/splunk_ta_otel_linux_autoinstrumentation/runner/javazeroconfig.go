@@ -109,7 +109,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 		LogsExporter:           modInputs.OtelLogsExporter.Value,
 	}
 
-	if err = os.MkdirAll(filepath.Dir(modInputs.JavaZeroconfigPath.Value), 0755); err != nil {
+	if err = os.MkdirAll(filepath.Dir(modInputs.JavaZeroconfigPath.Value), 0o755); err != nil {
 		return fmt.Errorf("error creating java zeroconfig path, could not make parent directories: %w", err)
 	}
 

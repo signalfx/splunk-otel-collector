@@ -145,7 +145,7 @@ func PackAddon(t *testing.T, defaultModInputs *modularinput.GenericModularInput,
 	return addonPath
 }
 
-func AssertFileShasEqual(t *testing.T, expected string, actual string) {
+func AssertFileShasEqual(t *testing.T, expected, actual string) {
 	expectedSum, err := packaging.Sha256Sum(expected)
 	require.NoError(t, err)
 	actualSum, err := packaging.Sha256Sum(actual)

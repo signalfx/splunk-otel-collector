@@ -94,5 +94,4 @@ func TestTelegrafExecWithGoScript(t *testing.T) {
 		)
 		assert.NoError(tt, err)
 	}, 60*time.Second, 1*time.Second)
-
 }

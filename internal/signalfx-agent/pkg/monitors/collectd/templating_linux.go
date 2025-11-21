@@ -22,7 +22,7 @@ import (
 // WriteConfFile writes a file to the given filePath, ensuring that the
 // containing directory exists.
 func WriteConfFile(content, filePath string) error {
-	if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(filePath), 0o700); err != nil {
 		return fmt.Errorf("failed to create collectd config dir at %s: %w", filepath.Dir(filePath), err)
 	}
 
@@ -33,7 +33,7 @@ func WriteConfFile(content, filePath string) error {
 	defer f.Close()
 
 	// Lock the file down since it could contain credentials
-	if err = f.Chmod(0600); err != nil {
+	if err = f.Chmod(0o600); err != nil {
 		return fmt.Errorf("failed to restrict permissions on collectd config file at %s: %w", filePath, err)
 	}
 
@@ -66,7 +66,7 @@ func InjectTemplateFuncs(tmpl *template.Template) *template.Template {
 			"pythonPluginRoot": func() string {
 				return filepath.Join(MainInstance().BundleDir(), "collectd-python")
 			},
-			"withDefault": func(value interface{}, def interface{}) interface{} {
+			"withDefault": func(value, def interface{}) interface{} {
 				v := reflect.ValueOf(value)
 				switch v.Kind() {
 				case reflect.String, reflect.Slice, reflect.Array, reflect.Map:

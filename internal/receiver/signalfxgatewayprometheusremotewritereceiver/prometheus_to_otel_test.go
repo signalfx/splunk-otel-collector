@@ -71,11 +71,9 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	for key, values := range typesSeen {
 		require.ElementsMatch(t, expectedTypesSeen[key], values)
 	}
-
 }
 
 func TestAddMetrics(t *testing.T) {
-
 	testCases := []struct {
 		sample    *prompb.WriteRequest
 		expected  pmetric.Metrics
@@ -195,6 +193,5 @@ func TestAddMetrics(t *testing.T) {
 				pmetrictest.IgnoreTimestamp(),
 				pmetrictest.IgnoreStartTimestamp()))
 		})
-
 	}
 }

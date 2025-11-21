@@ -21,8 +21,10 @@ func NewInventorySvc(gateway IGateway, log logrus.FieldLogger, f InvFilter, host
 }
 
 // use slice semantics to build parent dimensions while traversing the inv tree
-type pair [2]string
-type pairs []pair
+type (
+	pair  [2]string
+	pairs []pair
+)
 
 const (
 	dimDatacenter    = "datacenter"

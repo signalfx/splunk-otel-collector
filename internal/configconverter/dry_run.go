@@ -27,8 +27,10 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 )
 
-var _ confmap.Converter = (*DryRun)(nil)
-var _ configsource.Hook = (*DryRun)(nil)
+var (
+	_ confmap.Converter = (*DryRun)(nil)
+	_ configsource.Hook = (*DryRun)(nil)
+)
 
 type DryRun struct {
 	*sync.Mutex

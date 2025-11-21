@@ -147,7 +147,7 @@ func (g *fakeGateway) queryPerf(inv []*model.InventoryObject, _ int32) (*types.Q
 	return &types.QueryPerfResponse{Returnval: ret}, nil
 }
 
-func (g *fakeGateway) createRef(key string, prefix string, counter *int) types.ManagedObjectReference {
+func (g *fakeGateway) createRef(key, prefix string, counter *int) types.ManagedObjectReference {
 	out := types.ManagedObjectReference{Type: key, Value: fmt.Sprintf("%s-%d", prefix, *counter)}
 	*counter++
 	return out

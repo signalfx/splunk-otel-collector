@@ -68,7 +68,6 @@ func (m *Monitor) Configure(config *Config) error {
 
 	utils.RunOnInterval(m.ctx, func() {
 		body, err := esClient.makeHTTPRequestFromConfig(config.Index, config.ElasticsearchRequest)
-
 		if err != nil {
 			m.logger.Errorf("Failed to make HTTP request: %s", err)
 			return

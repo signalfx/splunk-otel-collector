@@ -37,7 +37,8 @@ type State struct {
 }
 
 func newState(flavor KubernetesDistribution, restConfig *rest.Config, metricCache *metrics.DatapointCache,
-	dimHandler *metrics.DimensionHandler, namespace string, logger log.FieldLogger) (*State, error) {
+	dimHandler *metrics.DimensionHandler, namespace string, logger log.FieldLogger,
+) (*State, error) {
 	state := &State{
 		reflectors:  make(map[string]*cache.Reflector),
 		metricCache: metricCache,
@@ -99,7 +100,7 @@ func (cs *State) Start() {
 	cs.beginSyncForType(ctx, &v2beta1.HorizontalPodAutoscaler{}, "horizontalpodautoscalers", cs.namespace, hpaV2Beta1Client)
 }
 
-func (cs *State) beginSyncForType(ctx context.Context, resType runtime.Object, resName string, namespace string, client cache.Getter) {
+func (cs *State) beginSyncForType(ctx context.Context, resType runtime.Object, resName, namespace string, client cache.Getter) {
 	keysSeen := make(map[interface{}]bool)
 
 	store := k8sutil.FixedFakeCustomStore{

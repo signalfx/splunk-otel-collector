@@ -8,7 +8,7 @@ import (
 
 // DefaultPythonRuntimeConfig returns the runtime config that uses the bundled Python
 // runtime.
-func DefaultPythonRuntimeConfig(bundleDir string, pkgName string) *RuntimeConfig {
+func DefaultPythonRuntimeConfig(bundleDir, pkgName string) *RuntimeConfig {
 	// The PYTHONHOME envvar is set in agent core when config is processed.
 	env := os.Environ()
 	env = append(env, config.BundlePythonHomeEnvvar(bundleDir))

@@ -10,7 +10,7 @@ import (
 // The Windows specific process attributes
 func procAttrs() *syscall.SysProcAttr {
 	return &syscall.SysProcAttr{
-		//Pdeathsig: syscall.SIGTERM,
+		// Pdeathsig: syscall.SIGTERM,
 	}
 }
 

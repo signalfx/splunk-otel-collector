@@ -142,8 +142,10 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
 
-		port = strings.Split(t.HECEndpointForCollector, ":")[1]
-		t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		if t.HECEndpointForCollector != "" {
+			port = strings.Split(t.HECEndpointForCollector, ":")[1]
+			t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		}
 	}
 
 	var c Collector

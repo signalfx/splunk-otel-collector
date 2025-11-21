@@ -34,4 +34,5 @@ import "embed"
 //go:embed bundle.d/receivers/rabbitmq.discovery.yaml
 //go:embed bundle.d/receivers/redis.discovery.yaml
 //go:embed bundle.d/receivers/sqlserver.discovery.yaml
+//go:embed bundle.d/receivers/weaviate.discovery.yaml
 var BundledFS embed.FS

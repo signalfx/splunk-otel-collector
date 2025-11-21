@@ -24,6 +24,8 @@ import (
 	"testing"
 	"time"
 
+	"go.opentelemetry.io/collector/pdata/pmetric"
+
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
@@ -173,4 +175,15 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 		require.NoError(t, os.MkdirAll(dir, 0o755))
 		require.NoError(t, golden.WriteMetrics(t, outputPath, actual))
 	}
+}
+
+func MaybeUpdateExpectedMetricsResults(t *testing.T, file string, metrics *pmetric.Metrics) {
+	if shouldUpdateExpectedResults() {
+		require.NoError(t, golden.WriteMetrics(t, file, *metrics))
+		t.Logf("Wrote updated expected metric results to %s", file)
+	}
+}
+
+var shouldUpdateExpectedResults = func() bool {
+	return os.Getenv("UPDATE_EXPECTED_RESULTS") == "true"
 }

@@ -388,10 +388,12 @@ name=Local Repository
 baseurl=file:{repo_dir}
 enabled=1
 autorefresh=0
+gpgcheck=0
+priority=1
 """
             write_text_file_in_container(container, "/etc/zypp/repos.d/local-repo.repo", repo_file)
             run_container_cmd(container, "cat /etc/zypp/repos.d/local-repo.repo")
-            run_container_cmd(container, "zypper refresh")
+            run_container_cmd(container, "zypper --non-interactive refresh local-repo")
     
         verify_rpm_repo_package(container, PKG_NAME, repo_dir, actual_pkg_version)
 

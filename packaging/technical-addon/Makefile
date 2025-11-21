@@ -3,7 +3,7 @@ THIS_MAKEFILE_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 include $(abspath $(THIS_MAKEFILE_DIR)/../../Makefile.Common)
 
 # Used for packaging
-OTEL_COLLECTOR_VERSION?=0.137.0
+OTEL_COLLECTOR_VERSION?=0.140.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
 ARCH?=amd64

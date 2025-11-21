@@ -426,7 +426,7 @@ def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None
         commands.append(
             (
                 "zypper",
-                f"zypper --non-interactive search -s {pkg_name}",
+                f"zypper --non-interactive info -t package --repo {repo_name} {pkg_name}",
             )
         )
 
@@ -434,7 +434,18 @@ def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None
         code, output = run_container_cmd(container, cmd, exit_code=None)
         output_str = output.decode("utf-8", errors="ignore")
         print(f"{manager} package listing output:\n{output_str}")
-        if code == 0 and expected_token in output_str:
+        if code != 0:
+            continue
+
+        if manager == "zypper":
+            version_match = re.search(r"^Version\s*:\s*(?P<version>\S+)", output_str, re.MULTILINE)
+            if version_match:
+                version_value = version_match.group("version")
+                if version_value.startswith(expected_token):
+                    return
+            if expected_token in output_str or pkg_name in output_str:
+                return
+        elif expected_token in output_str:
             return
 
     print("Debugging RPM repository contents:")

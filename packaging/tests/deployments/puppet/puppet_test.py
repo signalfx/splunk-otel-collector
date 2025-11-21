@@ -135,6 +135,12 @@ def write_text_file_in_container(container, target_path, content):
         os.remove(temp_path)
 
 
+def container_has_command(container, command_name):
+    """Return True if the container has the given command available."""
+    check_cmd = ["/bin/sh", "-c", f"command -v {command_name}"]
+    return container.exec_run(check_cmd).exit_code == 0
+
+
 def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_URL, hec_token=SPLUNK_ACCESS_TOKEN):
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_API_URL", api_url)
@@ -330,13 +336,13 @@ def setup_local_package_repo(container, pkg_path, distro):
         
     elif distro in RPM_DISTROS:
         # Install libcap dependency first
-        if container.exec_run("command -v yum").exit_code == 0:
+        if container_has_command(container, "yum"):
             run_container_cmd(container, "yum install -y libcap")
             # Try to install createrepo_c first (newer systems), fall back to createrepo
             code, _ = run_container_cmd(container, "yum install -y createrepo_c", exit_code=None)
             if code != 0:
                 run_container_cmd(container, "yum install -y createrepo")
-        elif container.exec_run("command -v dnf").exit_code == 0:
+        elif container_has_command(container, "dnf"):
             run_container_cmd(container, "dnf install -y libcap")
             # Try to install createrepo_c first (newer systems), fall back to createrepo
             code, _ = run_container_cmd(container, "dnf install -y createrepo_c", exit_code=None)
@@ -363,14 +369,14 @@ def setup_local_package_repo(container, pkg_path, distro):
             print("Warning: Could not read version from RPM metadata")
         
         # Try createrepo_c first (newer), fall back to createrepo
-        if container.exec_run("command -v createrepo_c").exit_code == 0:
+        if container_has_command(container, "createrepo_c"):
             createrepo_cmd = "createrepo_c"
         else:
             createrepo_cmd = "createrepo"
         run_container_cmd(container, f"{createrepo_cmd} {repo_dir}")
         
         # Add local repository
-        if container.exec_run("command -v yum").exit_code == 0 or container.exec_run("command -v dnf").exit_code == 0:
+        if container_has_command(container, "yum") or container_has_command(container, "dnf"):
             repo_file = f"""[local-repo]
 name=Local Repository
 baseurl=file:{repo_dir}
@@ -406,7 +412,7 @@ def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None
     expected_token = expected_version or pkg_name
     commands = []
 
-    if container.exec_run("command -v dnf").exit_code == 0:
+    if container_has_command(container, "dnf"):
         commands.append(
             (
                 "dnf",
@@ -414,7 +420,7 @@ def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None
                 f"list --showduplicates {pkg_name}",
             )
         )
-    if container.exec_run("command -v yum").exit_code == 0:
+    if container_has_command(container, "yum"):
         commands.append(
             (
                 "yum",
@@ -422,7 +428,7 @@ def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None
                 f"list --showduplicates {pkg_name}",
             )
         )
-    if container.exec_run("command -v zypper").exit_code == 0:
+    if container_has_command(container, "zypper"):
         commands.append(
             (
                 "zypper",

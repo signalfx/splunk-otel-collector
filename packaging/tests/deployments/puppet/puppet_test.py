@@ -430,6 +430,7 @@ def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None
             )
         )
 
+    print(f"Commands: {commands}")
     for manager, cmd in commands:
         code, output = run_container_cmd(container, cmd, exit_code=None)
         output_str = output.decode("utf-8", errors="ignore")

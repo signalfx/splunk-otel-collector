@@ -258,7 +258,10 @@ def setup_local_package_repo(container, pkg_path, distro):
         tuple[str, Optional[str]]: (path to the package inside the container, detected package version)
     """
     pkg_base = os.path.basename(pkg_path)
-    container_pkg_path = f"/tmp/{pkg_base}"
+    
+    repo_dir = "/tmp/local-repo"
+    container_pkg_path = f"{repo_dir}/{pkg_base}"
+    run_container_cmd(container, f"mkdir -p {repo_dir}")
     actual_pkg_version = None
     
     # Copy package to container
@@ -266,6 +269,9 @@ def setup_local_package_repo(container, pkg_path, distro):
     subprocess.run(["ls", "-la", pkg_path], check=True)
     copy_file_into_container(container, pkg_path, container_pkg_path)
     run_container_cmd(container, f"ls -la {container_pkg_path}", exit_code=None)
+    # Verify package was copied
+    run_container_cmd(container, f"test -f {container_pkg_path}")
+
     if distro in DEB_DISTROS:
         # Install libcap2-bin dependency first
         run_container_cmd(container, "apt-get update")
@@ -280,14 +286,6 @@ def setup_local_package_repo(container, pkg_path, distro):
             print(f"Actual package version (from dpkg-deb): {actual_pkg_version}")
         else:
             print("Warning: Could not read version from dpkg metadata for DEB package")
-        
-        # Create a local DEB repository
-        repo_dir = "/tmp/local-repo"
-        run_container_cmd(container, f"mkdir -p {repo_dir}")
-        run_container_cmd(container, f"cp {container_pkg_path} {repo_dir}/")
-        
-        # Verify package was copied
-        run_container_cmd(container, f"test -f {repo_dir}/{pkg_base}")
         
         # Create Packages.gz file
         run_container_cmd(container, f"bash -c 'cd {repo_dir} && dpkg-scanpackages . /dev/null > Packages'")
@@ -357,10 +355,6 @@ def setup_local_package_repo(container, pkg_path, distro):
             if code != 0:
                 run_container_cmd(container, "zypper install -y createrepo")
         
-        # Create a local RPM repository
-        repo_dir = "/tmp/local-repo"
-        run_container_cmd(container, f"mkdir -p {repo_dir}")
-        run_container_cmd(container, f"cp {container_pkg_path} {repo_dir}/")
         
         # Determine RPM version from metadata
         code, output = run_container_cmd(container, f"rpm -qp --queryformat '%{{VERSION}}' {container_pkg_path}", exit_code=None)

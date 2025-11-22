@@ -261,14 +261,8 @@ def setup_local_package_repo(container, pkg_path, distro):
     
     repo_dir = "/tmp/local-repo"
     container_pkg_path = f"{repo_dir}/{pkg_base}"
-    run_container_cmd(container, f"mkdir -p {repo_dir}")
     actual_pkg_version = None
     
-    # Copy package to container
-    print(f"Copying package {pkg_path} to {container_pkg_path}")
-    subprocess.run(["ls", "-la", pkg_path], check=True)
-    copy_file_into_container(container, pkg_path, container_pkg_path)
-    run_container_cmd(container, f"ls -la {container_pkg_path}", exit_code=None)
     # Verify package was copied
     run_container_cmd(container, f"test -f {container_pkg_path}")
 

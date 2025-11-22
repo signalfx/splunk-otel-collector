@@ -42,6 +42,8 @@ RUN if [ $PUPPET_RELEASE -lt 8 ]; then \
 
 COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 
+COPY dist/* /tmp/local-repo/
+
 VOLUME [ "/sys/fs/cgroup" ]
 
 ENTRYPOINT ["/lib/systemd/systemd"]

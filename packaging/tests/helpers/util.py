@@ -239,31 +239,27 @@ def run_container_cmd(container, cmd, env=None, exit_code:Optional[int]=0, timeo
 
 
 def copy_file_into_container(container, path, target_path, size=None):
-    """Copy a file from the host into the container using Docker's archive API.
-
-    Docker expects archive entries to be relative paths. Some daemon versions
-    silently drop absolute entries, which was observed on amazonlinux-2023.
-    """
+    """Copy a file from the host into the container using Docker's archive API."""
     target_path = os.path.normpath(target_path)
-    target_dir = os.path.dirname(target_path) or "/"
-    target_name = os.path.basename(target_path)
-    assert target_name, f"Invalid target_path: {target_path}"
+    rel_path = target_path.lstrip("/")
+    assert rel_path, f"Invalid target_path: {target_path}"
+    target_dir = os.path.dirname(target_path)
 
-    # Ensure destination directory exists before extracting the archive
-    if target_dir not in ["/", ""]:
-        container.exec_run(f"mkdir -p {target_dir}")
+    if target_dir not in ("", "/"):
+        code, output = container.exec_run(f"mkdir -p {target_dir}")
+        assert code == 0, f"Failed to create directory {target_dir}:\n{output.decode('utf-8', errors='ignore')}"
 
     with open(path, "rb") as fd:
         tario = BytesIO()
         with tarfile.open(fileobj=tario, mode="w") as tar:
-            info = tarfile.TarInfo(name=target_name)
+            info = tarfile.TarInfo(name=rel_path)
             if size is None:
                 size = os.fstat(fd.fileno()).st_size
             info.size = size
             tar.addfile(info, fd)
 
         tario.seek(0)
-        assert container.put_archive(target_dir, tario.getvalue()), \
+        assert container.put_archive("/", tario.getvalue()), \
             f"Failed to copy {path} to {target_path}"
 
         time.sleep(2)

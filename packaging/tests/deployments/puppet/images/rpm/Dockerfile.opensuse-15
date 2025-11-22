@@ -35,7 +35,7 @@ RUN puppet module install puppetlabs-stdlib --version 4.24.0
 
 COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 
-COPY dist/* /opt/local-repo/ && \
-     chmod -R a+rwX /opt/local-repo/
+COPY dist/* /opt/local-repo
+RUN chmod -R a+rwX /opt/local-repo/
 
 CMD ["/sbin/init"]

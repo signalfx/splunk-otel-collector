@@ -31,7 +31,7 @@ RUN puppet module install puppet-yum --version 4.3.0
 
 COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 
-COPY dist/* /opt/local-repo/ && \
-     chmod -R a+rwX /opt/local-repo/
+COPY dist/* /opt/local-repo
+RUN chmod -R a+rwX /opt/local-repo/
 
 CMD ["/usr/sbin/init"]

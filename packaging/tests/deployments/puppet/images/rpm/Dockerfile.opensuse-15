@@ -15,7 +15,7 @@ RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-sles-15.noar
     zypper install -y puppet-agent procps
 
 RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v18.20.8/node-v18.20.8-linux-x64.tar.gz && \
-    mkdir -p /opt/ && \
+    mkdir -p /opt/local-repo && \
     tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
     mv /opt/node* /opt/node
 
@@ -35,6 +35,7 @@ RUN puppet module install puppetlabs-stdlib --version 4.24.0
 
 COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 
-COPY dist/* /tmp/local-repo/
+COPY dist/* /opt/local-repo/ && \
+     chmod -R a+rwX /opt/local-repo/
 
 CMD ["/sbin/init"]

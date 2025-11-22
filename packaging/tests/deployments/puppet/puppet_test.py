@@ -259,10 +259,12 @@ def setup_local_package_repo(container, pkg_path, distro):
     """
     pkg_base = os.path.basename(pkg_path)
     
-    repo_dir = "/tmp/local-repo"
+    repo_dir = "/opt/local-repo"
     container_pkg_path = f"{repo_dir}/{pkg_base}"
     actual_pkg_version = None
     
+    # Display the contents of the repository directory
+    run_container_cmd(container, f"ls -la {repo_dir}")
     # Verify package was copied
     run_container_cmd(container, f"test -f {container_pkg_path}")
 

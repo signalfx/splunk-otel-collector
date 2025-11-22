@@ -11,7 +11,7 @@ RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-el-9.noarch.
     dnf install -y puppet-agent
 
 RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v18.20.8/node-v18.20.8-linux-x64.tar.gz && \
-    mkdir -p /opt/ && \
+    mkdir -p /opt/local-repo && \
     tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
     mv /opt/node* /opt/node
 
@@ -33,6 +33,7 @@ RUN puppet module install puppet-yum --version 4.3.0
 
 COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 
-COPY dist/* /tmp/local-repo/
+COPY dist/* /opt/local-repo/ && \
+     chmod -R a+rwX /opt/local-repo/
 
 CMD ["/usr/sbin/init"]

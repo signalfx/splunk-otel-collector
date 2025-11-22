@@ -10,7 +10,7 @@ RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-jammy.deb &&
     apt-get install -y puppet-agent
 
 RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v18.20.8/node-v18.20.8-linux-x64.tar.gz && \
-    mkdir -p /opt/ && \
+    mkdir -p /opt/local-repo && \
     tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
     mv /opt/node* /opt/node
 
@@ -38,7 +38,8 @@ RUN if [ $PUPPET_RELEASE -lt 8 ]; then \
 
 COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 
-COPY dist/* /tmp/local-repo/
+COPY dist/* /opt/local-repo/ && \
+     chmod -R a+rwX /opt/local-repo/
 
 VOLUME [ "/sys/fs/cgroup" ]
 

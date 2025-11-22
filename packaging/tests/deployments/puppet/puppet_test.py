@@ -262,6 +262,8 @@ def setup_local_package_repo(container, pkg_path, distro):
     actual_pkg_version = None
     
     # Copy package to container
+    print(f"Copying package {pkg_path} to {container_pkg_path}")
+    run_container_cmd(container, f"ls -la {pkg_path}/", exit_code=None)
     copy_file_into_container(container, pkg_path, container_pkg_path)
     
     if distro in DEB_DISTROS:

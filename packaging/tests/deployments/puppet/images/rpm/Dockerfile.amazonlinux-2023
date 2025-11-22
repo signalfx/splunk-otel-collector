@@ -2,7 +2,7 @@ FROM amazonlinux:2023
 
 ENV container=docker
 
-RUN yum install -y systemd procps initscripts wget
+RUN yum install -y systemd procps initscripts wget tar
 
 ARG PUPPET_RELEASE="6"
 RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-el-9.noarch.rpm && \

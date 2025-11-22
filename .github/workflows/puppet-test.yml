@@ -77,6 +77,40 @@ jobs:
           echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
+  
+  puppet-build-local-package:
+    name: puppet-build-local-package
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+
+      - name: Build local package
+        run: |
+          make deb-package ARCH=amd64 VERSION=0.0.1-local
+
+      - name: Upload DEB package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-amd64-package
+          path: ./dist/splunk-otel-collector*.deb
+  
+  puppet-build-rpm-local-packages:
+    name: puppet-build-rpm-local-packages
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+
+      - name: Build local package
+        run: |
+          make rpm-package ARCH=amd64 VERSION=0.0.1-local
+
+      - name: Upload RPM package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm-amd64-package
+          path: ./dist/splunk-otel-collector*.rpm
 
   puppet-test:
     name: puppet-test
@@ -85,12 +119,26 @@ jobs:
     needs:
       - puppet-lint
       - puppet-test-matrix
+      - puppet-build-local-package
+      - puppet-build-rpm-local-packages
     strategy:
       matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Download DEB package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: deb-amd64-package
+          path: ./dist
+
+      - name: Download RPM package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: rpm-amd64-package
+          path: ./dist
 
       - name: Setup python
         uses: actions/setup-python@v6

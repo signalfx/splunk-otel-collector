@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import string
+import subprocess
 import sys
 import tempfile
 
@@ -35,15 +36,18 @@ from tests.helpers.util import (
     REPO_DIR,
     SERVICE_NAME,
     SERVICE_OWNER,
+    DEB_DISTROS,
+    RPM_DISTROS,
 )
 
 if sys.platform == "win32":
     from tests.helpers.win_utils import has_choco, run_win_command, get_otelcol_svc_env_var
 
 IMAGES_DIR = Path(__file__).parent.resolve() / "images"
-DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "Dockerfile.*"))]
-RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "rpm" / "Dockerfile.*"))]
 CONFIG_DIR = "/etc/otel/collector"
+PKG_DIR = REPO_DIR / "dist"
+PKG_NAME = "splunk-otel-collector"
+LOCAL_COLLECTOR_VERSION= "0.0.1-local"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
 SPLUNK_ACCESS_TOKEN = "testing123"
 SPLUNK_REALM = "test"
@@ -118,6 +122,25 @@ def verify_config_file(container, path, key, value=None, exists=True):
         assert not match, f"'{line}' found in {path}:\n{config}"
 
 
+def write_text_file_in_container(container, target_path, content):
+    if not content.endswith("\n"):
+        content = f"{content}\n"
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
+        temp_file.write(content)
+        temp_file.flush()
+        temp_path = temp_file.name
+    try:
+        copy_file_into_container(container, temp_path, target_path)
+    finally:
+        os.remove(temp_path)
+
+
+def container_has_command(container, command_name):
+    """Return True if the container has the given command available."""
+    check_cmd = ["/bin/sh", "-c", f"command -v {command_name}"]
+    return container.exec_run(check_cmd).exit_code == 0
+
+
 def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_URL, hec_token=SPLUNK_ACCESS_TOKEN):
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_API_URL", api_url)
@@ -146,6 +169,294 @@ def verify_dotnet_config(container, path, exists=True):
         verify_config_file(container, path, key, val, exists=exists)
 
 
+def get_package(distro, name, path, arch="amd64"):
+    """Get local package path for the given distro and arch."""
+    pkg_paths = []
+    if distro in DEB_DISTROS:
+        pkg_paths = glob.glob(str(path / f"{name}*{arch}.deb"))
+    elif distro in RPM_DISTROS:
+        if arch == "amd64":
+            arch = "x86_64"
+        elif arch == "arm64":
+            arch = "aarch64"
+        pkg_paths = glob.glob(str(path / f"{name}*{arch}.rpm"))
+    
+    if pkg_paths:
+        return sorted(pkg_paths)[-1]
+    else:
+        return None
+
+
+def get_package_version_from_file(pkg_path):
+    """Extract version from a package file (DEB or RPM)."""
+    pkg_path = Path(pkg_path)
+    if not pkg_path.exists():
+        return None
+    
+    if pkg_path.suffix == ".deb":
+        # Try using dpkg-deb if available (Linux)
+        try:
+            result = subprocess.run(
+                ["dpkg-deb", "-f", str(pkg_path), "Version"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                version = result.stdout.strip()
+                # Remove epoch if present (e.g., "1:0.1.0" -> "0.1.0")
+                if ":" in version:
+                    version = version.split(":", 1)[1]
+                return version
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # dpkg-deb not available (e.g., on macOS), try extracting from filename
+            pass
+        
+        # Fallback: Extract version from filename pattern: name_version_arch.deb
+        # Example: splunk-otel-collector_0.0.1-local_amd64.deb
+        filename = pkg_path.name
+        parts = filename.replace(".deb", "").split("_")
+        if len(parts) >= 2:
+            # Version is typically the second part
+            version = parts[1]
+            return version
+    
+    elif pkg_path.suffix == ".rpm":
+        # Try using rpm if available
+        try:
+            result = subprocess.run(
+                ["rpm", "-qp", "--queryformat", "%{VERSION}", str(pkg_path)],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # rpm not available, try extracting from filename
+            pass
+        
+        # Fallback: Extract version from filename pattern: name-version.arch.rpm
+        # Example: splunk-otel-collector-0.0.1-local.x86_64.rpm
+        filename = pkg_path.name
+        # Remove .rpm and split by dots
+        parts = filename.replace(".rpm", "").split(".")
+        if len(parts) >= 2:
+            # Version is typically before the arch (last part)
+            # Format: name-version.arch
+            name_version = ".".join(parts[:-1])  # Everything except last part (arch)
+            if "-" in name_version:
+                version = name_version.split("-", 1)[1]  # Everything after first dash
+                return version
+    
+    return None
+
+def setup_local_package_repo(container, pkg_path, distro):
+    """Set up a local package repository and install the package before Puppet runs.
+
+    Returns:
+        tuple[str, Optional[str]]: (path to the package inside the container, detected package version)
+    """
+    pkg_base = os.path.basename(pkg_path)
+    
+    repo_dir = "/opt/local-repo"
+    container_pkg_path = f"{repo_dir}/{pkg_base}"
+    actual_pkg_version = None
+    
+    # Display the contents of the repository directory
+    run_container_cmd(container, f"ls -la {repo_dir}")
+    # Verify package was copied
+    run_container_cmd(container, f"test -f {container_pkg_path}")
+
+    if distro in DEB_DISTROS:
+        # Install libcap2-bin dependency first
+        run_container_cmd(container, "apt-get update")
+        run_container_cmd(container, "apt-get install -y libcap2-bin dpkg-dev apt-utils")
+        
+        # Determine the authoritative version from package metadata
+        code, output = run_container_cmd(container, f"dpkg-deb -f {container_pkg_path} Version", exit_code=None)
+        if code == 0:
+            actual_pkg_version = output.decode('utf-8').strip()
+            if ":" in actual_pkg_version:
+                actual_pkg_version = actual_pkg_version.split(":", 1)[1]
+            print(f"Actual package version (from dpkg-deb): {actual_pkg_version}")
+        else:
+            print("Warning: Could not read version from dpkg metadata for DEB package")
+        
+        # Create Packages.gz file
+        run_container_cmd(container, f"bash -c 'cd {repo_dir} && dpkg-scanpackages . /dev/null > Packages'")
+        run_container_cmd(container, f"bash -c 'cd {repo_dir} && gzip -9c Packages > Packages.gz'")
+        run_container_cmd(container, f"bash -c 'cd {repo_dir} && apt-ftparchive release . > Release'")
+        run_container_cmd(container, f"cp {repo_dir}/Release {repo_dir}/InRelease")
+        
+        # Verify Packages.gz was created
+        run_container_cmd(container, f"test -f {repo_dir}/Packages.gz")
+        
+        # Debug: Show what's in Packages.gz
+        code, output = run_container_cmd(container, f"bash -c 'gunzip -c {repo_dir}/Packages.gz | grep -E \"^(Package|Version):\" | head -10'", exit_code=None)
+        print(f"Packages.gz contents (first 10 lines):\n{output.decode('utf-8', errors='ignore')}")
+        
+        # Add local repository
+        repo_entry = f"deb [trusted=yes] file:{repo_dir} ./"
+        run_container_cmd(
+            container,
+            f"bash -c \"echo '{repo_entry}' > /etc/apt/sources.list.d/local-repo.list\"",
+        )
+        run_container_cmd(container, "cat /etc/apt/sources.list.d/local-repo.list")
+        run_container_cmd(
+            container,
+            "apt-get "
+            "-o Dir::Etc::sourcelist=/etc/apt/sources.list.d/local-repo.list "
+            "-o Dir::Etc::sourceparts=- "
+            "-o APT::Get::List-Cleanup=0 "
+            "-o Acquire::AllowInsecureRepositories=true "
+            "update",
+        )
+        
+        # Verify the package is available in the repo
+        code, output = run_container_cmd(container, f"apt-cache madison {PKG_NAME}", exit_code=None)
+        output_str = output.decode('utf-8', errors='ignore')
+        print(f"apt-cache madison output:\n{output_str}")
+        expected_token = actual_pkg_version or PKG_NAME
+        print(f"apt-cache madison code:\n{code}")
+        print(f"apt-cache madison expected_token:\n{expected_token}")
+        
+        if code != 0 or expected_token not in output_str:
+            # Debug: list what's in the repo
+            print(f"Debugging repository setup:")
+            run_container_cmd(container, f"ls -la {repo_dir}/", exit_code=None)
+            # Show full package info from Packages.gz
+            run_container_cmd(container, f"bash -c 'gunzip -c {repo_dir}/Packages.gz | grep -A 10 \"Package: {PKG_NAME}\"'", exit_code=None)
+            failure_reason = f"Package {PKG_NAME} (version token: {expected_token}) not found in local repository after setup."
+            pytest.fail(f"{failure_reason} Repository setup may have failed.")
+        
+    elif distro in RPM_DISTROS:
+        # Install libcap dependency first
+        if container_has_command(container, "yum"):
+            run_container_cmd(container, "yum install -y libcap")
+            # Try to install createrepo_c first (newer systems), fall back to createrepo
+            code, _ = run_container_cmd(container, "yum install -y createrepo_c", exit_code=None)
+            if code != 0:
+                run_container_cmd(container, "yum install -y createrepo")
+        elif container_has_command(container, "dnf"):
+            run_container_cmd(container, "dnf install -y libcap")
+            # Try to install createrepo_c first (newer systems), fall back to createrepo
+            code, _ = run_container_cmd(container, "dnf install -y createrepo_c", exit_code=None)
+            if code != 0:
+                run_container_cmd(container, "dnf install -y createrepo")
+        else:
+            run_container_cmd(container, "zypper install -y libcap-progs")
+            # Try to install createrepo_c first, fall back to createrepo
+            code, _ = run_container_cmd(container, "zypper install -y createrepo_c", exit_code=None)
+            if code != 0:
+                run_container_cmd(container, "zypper install -y createrepo")
+        
+        
+        # Determine RPM version from metadata
+        code, output = run_container_cmd(container, f"rpm -qp --queryformat '%{{VERSION}}' {container_pkg_path}", exit_code=None)
+        if code == 0:
+            actual_pkg_version = output.decode('utf-8').strip()
+            print(f"Actual package version (from rpm metadata): {actual_pkg_version}")
+        else:
+            print("Warning: Could not read version from RPM metadata")
+        
+        # Try createrepo_c first (newer), fall back to createrepo
+        if container_has_command(container, "createrepo_c"):
+            createrepo_cmd = "createrepo_c"
+        else:
+            createrepo_cmd = "createrepo"
+        run_container_cmd(container, f"{createrepo_cmd} {repo_dir}")
+        
+        # Add local repository
+        if container_has_command(container, "yum") or container_has_command(container, "dnf"):
+            repo_file = f"""[local-repo]
+name=Local Repository
+baseurl=file:{repo_dir}
+enabled=1
+gpgcheck=0
+priority=1
+"""
+            write_text_file_in_container(container, "/etc/yum.repos.d/local-repo.repo", repo_file)
+            run_container_cmd(container, "cat /etc/yum.repos.d/local-repo.repo")
+            run_container_cmd(container, "bash -c 'yum clean all || dnf clean all'")
+        else:  # zypper
+            # For zypper, we need to use a proper repo format
+            repo_file = f"""[local-repo]
+name=Local Repository
+baseurl=file:{repo_dir}
+enabled=1
+autorefresh=0
+gpgcheck=0
+priority=1
+"""
+            write_text_file_in_container(container, "/etc/zypp/repos.d/local-repo.repo", repo_file)
+            run_container_cmd(container, "cat /etc/zypp/repos.d/local-repo.repo")
+            run_container_cmd(container, "zypper --non-interactive refresh local-repo")
+    
+        verify_rpm_repo_package(container, PKG_NAME, repo_dir, actual_pkg_version)
+
+    return container_pkg_path, actual_pkg_version
+
+
+def verify_rpm_repo_package(container, pkg_name, repo_dir, expected_version=None):
+    """Verify that the temporary RPM repository exposes the desired package."""
+    repo_name = "local-repo"
+    expected_token = expected_version or pkg_name
+    commands = []
+
+    if container_has_command(container, "dnf"):
+        commands.append(
+            (
+                "dnf",
+                f"dnf -d 0 -e 0 --disablerepo='*' --enablerepo='{repo_name}' "
+                f"list --showduplicates {pkg_name}",
+            )
+        )
+    if container_has_command(container, "yum"):
+        commands.append(
+            (
+                "yum",
+                f"yum -d 0 -e 0 --disablerepo='*' --enablerepo='{repo_name}' "
+                f"list --showduplicates {pkg_name}",
+            )
+        )
+    if container_has_command(container, "zypper"):
+        commands.append(
+            (
+                "zypper",
+                f"zypper --non-interactive info -t package --repo {repo_name} {pkg_name}",
+            )
+        )
+
+    print(f"Commands: {commands}")
+    for manager, cmd in commands:
+        code, output = run_container_cmd(container, cmd, exit_code=None)
+        output_str = output.decode("utf-8", errors="ignore")
+        print(f"{manager} package listing output:\n{output_str}")
+        if code != 0:
+            continue
+
+        if manager == "zypper":
+            version_match = re.search(r"^Version\s*:\s*(?P<version>\S+)", output_str, re.MULTILINE)
+            if version_match:
+                version_value = version_match.group("version")
+                if version_value.startswith(expected_token):
+                    return
+            if expected_token in output_str or pkg_name in output_str:
+                return
+        elif expected_token in output_str:
+            return
+
+    print("Debugging RPM repository contents:")
+    run_container_cmd(container, f"ls -la {repo_dir}/", exit_code=None)
+    run_container_cmd(container, f"cat {repo_dir}/repodata/repomd.xml", exit_code=None)
+    failure_reason = (
+        f"Package {pkg_name} (expected token: {expected_token}) "
+        "was not found in the local RPM repository."
+    )
+    pytest.fail(failure_reason)
+
+
 DEFAULT_CONFIG = f"""
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
@@ -172,7 +483,44 @@ def test_puppet_default(distro, puppet_release):
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            run_puppet_apply(container, DEFAULT_CONFIG)
+            # Check if we should use local package
+            pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+            
+            if not pkg_path:
+                pytest.fail(f"No package found in {PKG_DIR} for {distro}. Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local")
+            
+            # Extract actual version from package file (fallback to filename parsing)
+            collector_version = get_package_version_from_file(pkg_path)
+            if not collector_version:
+                # Fallback to hardcoded version if extraction fails
+                collector_version = LOCAL_COLLECTOR_VERSION
+                print(f"Warning: Could not extract version from package filename, using default: {collector_version}")
+            else:
+                print(f"Extracted version from package filename: {collector_version}")
+            
+            print(f"Using local package: {pkg_path} (initial version: {collector_version})")
+            container_pkg_path, detected_pkg_version = setup_local_package_repo(container, pkg_path, distro)
+            
+            if detected_pkg_version:
+                collector_version = detected_pkg_version
+            else:
+                print(f"Warning: Could not get version from package metadata, keeping extracted version: {collector_version}")
+            
+            print(f"Using version for Puppet: {collector_version}")
+            
+            # Update config to use the specific version
+            # Set manage_repo => false to prevent Puppet from setting up official repo
+            # We're using the local repository we set up instead
+            config = f"""
+class {{ splunk_otel_collector:
+splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+splunk_realm => '{SPLUNK_REALM}',
+collector_version => '{collector_version}',
+}}
+"""
+            run_puppet_apply(container, config)
+            verify_package_version(container, "splunk-otel-collector", collector_version)
+
             verify_env_file(container)
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", ".*", exists=False)
             assert wait_for(lambda: service_is_running(container))
@@ -218,10 +566,35 @@ def test_puppet_with_custom_vars(distro, puppet_release):
         try:
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
-            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.126.0")
+            
+            pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+            
+            if not pkg_path:
+                pytest.fail(f"No package found in {PKG_DIR} for {distro}. Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local")
+            
+            # Extract actual version from package file
+            collector_version = get_package_version_from_file(pkg_path)
+            if not collector_version:
+                # Fallback to hardcoded version if extraction fails
+                collector_version = LOCAL_COLLECTOR_VERSION
+                print(f"Warning: Could not extract version from package, using default: {collector_version}")
+            else:
+                print(f"Extracted version from package: {collector_version}")
+            
+            print(f"Using local package: {pkg_path} (initial version: {collector_version})")
+            container_pkg_path, detected_pkg_version = setup_local_package_repo(container, pkg_path, distro)
+            
+            if detected_pkg_version:
+                collector_version = detected_pkg_version
+            else:
+                print(f"Warning: Could not get version from package metadata, using extracted version: {collector_version}")
+            
+            print(f"Using version for Puppet: {collector_version}")
+            
+            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=collector_version)
             # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
             run_puppet_apply(container, config, strict_mode=False)
-            verify_package_version(container, "splunk-otel-collector", "0.126.0")
+            verify_package_version(container, "splunk-otel-collector", collector_version)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")

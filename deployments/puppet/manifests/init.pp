@@ -104,10 +104,7 @@ class splunk_otel_collector (
       }
       -> package { $collector_package_name:
         ensure  => $collector_version,
-        require => defined(Exec['apt_update']) ? {
-          true  => Exec['apt_update'],
-          false => undef,
-        },
+        require => Exec['apt_update'],
       }
     }
     'redhat': {
@@ -227,10 +224,7 @@ class splunk_otel_collector (
       'debian': {
         package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:
           ensure  => 'installed',
-          require => defined(Exec['apt_update']) ? {
-            true  => Exec['apt_update'],
-            false => undef,
-          },
+          require => Exec['apt_update'],
         }
         class { 'splunk_otel_collector::fluentd_debian_repo':
           repo_url    => $fluentd_repo_base,
@@ -240,10 +234,7 @@ class splunk_otel_collector (
         }
         -> package { $fluentd_package_name:
           ensure  => $fluentd_version,
-          require => defined(Exec['apt_update']) ? {
-            true  => Exec['apt_update'],
-            false => undef,
-          },
+          require => Exec['apt_update'],
         }
         package { 'capng_c':
           ensure   => $fluentd_capng_c_version,

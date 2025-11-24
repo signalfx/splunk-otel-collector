@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 RUN apt-get update &&\
-    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release
+    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release dpkg-dev apt-utils
 
 ARG PUPPET_RELEASE="6"
 RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-jammy.deb && \
@@ -40,6 +40,19 @@ COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/spl
 
 COPY dist/* /opt/local-repo/
 RUN chmod -R a+rwX /opt/local-repo/
+RUN set -eux; \
+    cd /opt/local-repo; \
+    dpkg-scanpackages . /dev/null > Packages; \
+    gzip -9c Packages > Packages.gz; \
+    apt-ftparchive release . > Release; \
+    cp Release InRelease; \
+    echo "deb [trusted=yes] file:/opt/local-repo ./" > /etc/apt/sources.list.d/local-repo.list; \
+    apt-get \
+        -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/local-repo.list \
+        -o Dir::Etc::sourceparts=- \
+        -o APT::Get::List-Cleanup=0 \
+        -o Acquire::AllowInsecureRepositories=true \
+        update
 
 VOLUME [ "/sys/fs/cgroup" ]
 

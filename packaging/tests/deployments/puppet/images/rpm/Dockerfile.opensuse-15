@@ -37,5 +37,22 @@ COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/spl
 
 COPY dist/* /opt/local-repo/
 RUN chmod -R a+rwX /opt/local-repo/
+RUN set -eux; \
+    zypper install -y libcap-progs createrepo_c || zypper install -y createrepo; \
+    CREP=createrepo_c; \
+    if ! command -v createrepo_c >/dev/null 2>&1; then \
+        CREP=createrepo; \
+    fi; \
+    $CREP /opt/local-repo; \
+    printf '%s\n' \
+        "[local-repo]" \
+        "name=Local Repository" \
+        "baseurl=file:/opt/local-repo" \
+        "enabled=1" \
+        "autorefresh=0" \
+        "gpgcheck=0" \
+        "priority=1" \
+        > /etc/zypp/repos.d/local-repo.repo; \
+    zypper --non-interactive refresh local-repo
 
 CMD ["/sbin/init"]

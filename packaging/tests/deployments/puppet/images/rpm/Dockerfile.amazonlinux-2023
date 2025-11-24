@@ -2,7 +2,7 @@ FROM amazonlinux:2023
 
 ENV container=docker
 
-RUN yum install -y systemd procps initscripts wget tar
+RUN yum install -y systemd procps initscripts wget
 
 ARG PUPPET_RELEASE="6"
 RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-el-9.noarch.rpm && \
@@ -33,5 +33,21 @@ COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/spl
 
 COPY dist/* /opt/local-repo/
 RUN chmod -R a+rwX /opt/local-repo/
+RUN set -eux; \
+    yum install -y libcap createrepo_c || yum install -y libcap createrepo; \
+    CREP=createrepo_c; \
+    if ! command -v createrepo_c >/dev/null 2>&1; then \
+        CREP=createrepo; \
+    fi; \
+    $CREP /opt/local-repo; \
+    printf '%s\n' \
+        "[local-repo]" \
+        "name=Local Repository" \
+        "baseurl=file:/opt/local-repo" \
+        "enabled=1" \
+        "gpgcheck=0" \
+        "priority=1" \
+        > /etc/yum.repos.d/local-repo.repo; \
+    yum clean all || true
 
 CMD ["/usr/sbin/init"]

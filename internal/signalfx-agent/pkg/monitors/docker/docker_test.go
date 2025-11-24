@@ -188,7 +188,7 @@ func (fo *fakeOutput) AddDatapointExclusionFilter(_ dpfilters.DatapointFilter) {
 	panic("unimplemented")
 }
 
-func (fo *fakeOutput) AddExtraDimension(_ string, _ string) {
+func (fo *fakeOutput) AddExtraDimension(_, _ string) {
 	panic("unimplemented")
 }
 

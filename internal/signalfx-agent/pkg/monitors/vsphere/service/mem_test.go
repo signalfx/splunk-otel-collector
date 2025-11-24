@@ -33,7 +33,7 @@ func processPoints(numInvObjs, numPtsPerInvObj int) int {
 	return numPtsReceived
 }
 
-func requireMaxHeapUsage(t *testing.T, maxMBBeforeGc int, maxMBAfterGc int, f func()) {
+func requireMaxHeapUsage(t *testing.T, maxMBBeforeGc, maxMBAfterGc int, f func()) {
 	var maxBeforeGc, maxAfterGc uint64
 	maxBeforeGc = uint64(maxMBBeforeGc) * 1_000_000 //nolint:gosec
 	maxAfterGc = uint64(maxMBAfterGc) * 1_000_000   // nolint:gosec

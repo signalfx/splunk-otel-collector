@@ -339,7 +339,7 @@ require (
 	github.com/mdlayher/socket v0.4.1 // indirect
 	github.com/mdlayher/vsock v1.2.1 // indirect
 	github.com/michel-laterman/proxy-connect-dialer-go v0.1.0 // indirect
-	github.com/microsoft/go-mssqldb v1.9.3 // indirect
+	github.com/microsoft/go-mssqldb v1.9.4 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect

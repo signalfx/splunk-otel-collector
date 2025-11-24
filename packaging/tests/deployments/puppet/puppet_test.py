@@ -121,25 +121,6 @@ def verify_config_file(container, path, key, value=None, exists=True):
         assert not match, f"'{line}' found in {path}:\n{config}"
 
 
-def write_text_file_in_container(container, target_path, content):
-    if not content.endswith("\n"):
-        content = f"{content}\n"
-    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
-        temp_file.write(content)
-        temp_file.flush()
-        temp_path = temp_file.name
-    try:
-        copy_file_into_container(container, temp_path, target_path)
-    finally:
-        os.remove(temp_path)
-
-
-def container_has_command(container, command_name):
-    """Return True if the container has the given command available."""
-    check_cmd = ["/bin/sh", "-c", f"command -v {command_name}"]
-    return container.exec_run(check_cmd).exit_code == 0
-
-
 def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_URL, hec_token=SPLUNK_ACCESS_TOKEN):
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_API_URL", api_url)
@@ -251,7 +232,7 @@ def get_package_version_from_file(pkg_path):
     return None
 
 
-def resolve_collector_version_for_distro(distro, fallback_version):
+def get_controller_version_for_distro(distro):
     """
     Determine the collector version to use for a given distro by inspecting the
     locally built package. Falls back to the provided version if detection fails.
@@ -270,11 +251,7 @@ def resolve_collector_version_for_distro(distro, fallback_version):
         print(f"Using collector version '{detected_version}' from '{pkg_path}' for {distro}")
         return detected_version
 
-    print(
-        f"Warning: Could not determine collector version from '{pkg_path}' for {distro}. "
-        f"Falling back to requested version '{fallback_version}'."
-    )
-    return fallback_version
+    return None
 
 
 DEFAULT_CONFIG = string.Template(
@@ -306,14 +283,8 @@ def test_puppet_default(distro, puppet_release):
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            # Check if we should use local package
-            pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
-            
-            if not pkg_path:
-                pytest.fail(f"No package found in {PKG_DIR} for {distro}. Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local")
-            
             # Extract actual version from package file (fallback to filename parsing)
-            collector_version = get_package_version_from_file(pkg_path)
+            collector_version = get_controller_version_for_distro(distro)
             print(f"Collector version from package: {collector_version}")
             
             # Update config to use the specific version
@@ -368,13 +339,8 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
             
-            pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
-            
-            if not pkg_path:
-                pytest.fail(f"No package found in {PKG_DIR} for {distro}. Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local")
-            
             # Extract actual version from package file
-            collector_version = get_package_version_from_file(pkg_path)
+            collector_version = get_controller_version_for_distro(distro)
             print(f"Collector version from package: {collector_version}")
             
             config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=collector_version)
@@ -419,10 +385,9 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("collector_version", ["0.0.1-local"])
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
-def test_puppet_with_default_instrumentation(distro, puppet_release, collector_version, version, with_systemd):
+def test_puppet_with_default_instrumentation(distro, puppet_release, version, with_systemd):
     skip_if_necessary(distro, puppet_release)
 
     if distro in DEB_DISTROS:
@@ -432,9 +397,9 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, collector_v
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        resolved_collector_version = resolve_collector_version_for_distro(distro, collector_version)
+        collector_version = get_controller_version_for_distro(distro)
         config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(
-            collector_version=resolved_collector_version,
+            collector_version=collector_version,
             version=version,
             with_systemd=with_systemd,
         )
@@ -536,10 +501,9 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("collector_version", ["0.0.1-local"])
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
-def test_puppet_with_custom_instrumentation(distro, puppet_release, collector_version, version, with_systemd):
+def test_puppet_with_custom_instrumentation(distro, puppet_release, version, with_systemd):
     skip_if_necessary(distro, puppet_release)
 
     if distro in DEB_DISTROS:
@@ -549,7 +513,7 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, collector_ve
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        resolved_collector_version = resolve_collector_version_for_distro(distro, collector_version)
+        resolved_collector_version = get_controller_version_for_distro(distro)
         config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(
             collector_version=resolved_collector_version,
             version=version,

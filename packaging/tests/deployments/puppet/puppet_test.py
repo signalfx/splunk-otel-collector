@@ -393,7 +393,7 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("collector_version", "0.0.1-local")
+@pytest.mark.parametrize("collector_version", ["0.0.1-local"])
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_default_instrumentation(distro, puppet_release, collector_version, version, with_systemd):
@@ -505,7 +505,7 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("collector_version", "0.0.1-local")
+@pytest.mark.parametrize("collector_version", ["0.0.1-local"])
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_custom_instrumentation(distro, puppet_release, collector_version, version, with_systemd):

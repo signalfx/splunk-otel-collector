@@ -1,7 +1,12 @@
 FROM debian:bullseye
 
-RUN apt-get update &&\
-    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release dpkg-dev apt-utils
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+RUN ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    apt-get update && \
+    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release dpkg-dev apt-utils tzdata && \
+    dpkg-reconfigure -f noninteractive tzdata
 
 ARG PUPPET_RELEASE="6"
 RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-bullseye.deb && \

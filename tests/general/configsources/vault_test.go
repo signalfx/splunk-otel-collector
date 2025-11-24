@@ -96,12 +96,19 @@ func TestBasicSecretAccess(t *testing.T) {
 			"resource": map[string]any{
 				"attributes": []any{
 					map[string]any{"action": "insert", "key": "expands-vault-path-value", "value": "string.value"},
-					map[string]any{"action": "insert", "key": "also-expands-vault-path-value", "value": 123.456}}}},
+					map[string]any{"action": "insert", "key": "also-expands-vault-path-value", "value": 123.456},
+				},
+			},
+		},
 		"receivers": map[string]any{"otlp/noop": map[string]any{"protocols": map[string]any{"http": any(nil)}}},
 		"service": map[string]any{
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
 					"exporters":  []any{"debug/noop"},
 					"processors": []any{"resource"},
-					"receivers":  []any{"otlp/noop"}}}}}, effective)
+					"receivers":  []any{"otlp/noop"},
+				},
+			},
+		},
+	}, effective)
 }

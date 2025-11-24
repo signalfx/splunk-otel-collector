@@ -37,7 +37,7 @@ func removeBundledReceivers(discReceiverCfg any) (removedCount int) {
 			removedCount++
 		}
 	}
-	return
+	return removedCount
 }
 
 func readConfigFromYamlTmplFile(t *testing.T, path string, ctxData map[string]any) map[string]any {

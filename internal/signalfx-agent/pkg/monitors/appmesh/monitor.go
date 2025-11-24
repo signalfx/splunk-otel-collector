@@ -42,7 +42,6 @@ func (m *Monitor) Configure(conf *Config) error {
 
 	var err error
 	m.monitor, err = m.statsDMonitor(conf)
-
 	if err != nil {
 		return fmt.Errorf("could not start StatsD monitor: %v", err)
 	}

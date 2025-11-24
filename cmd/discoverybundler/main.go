@@ -137,7 +137,7 @@ func main() {
 	generateReceiverMetadataFile(discoveryReceiverDir, receivers)
 }
 
-func generateFile(propertiesTmpl string, outFile string, commented bool, componentID component.ID) {
+func generateFile(propertiesTmpl, outFile string, commented bool, componentID component.ID) {
 	t, err := template.New("discoverybundler").Funcs(funcMap(componentID)).Parse(propertiesTmpl)
 	panicOnError(err)
 
@@ -164,7 +164,7 @@ func generateFile(propertiesTmpl string, outFile string, commented bool, compone
 		panicOnError(fmt.Errorf("failed unmarshaling component %s: %w", componentID, err))
 	}
 
-	if err = os.WriteFile(outFile, out.Bytes(), 0600); err != nil {
+	if err = os.WriteFile(outFile, out.Bytes(), 0o600); err != nil {
 		panicOnError(fmt.Errorf("failed writing to %s: %w", outFile, err))
 	}
 }
@@ -194,7 +194,7 @@ func genBundledFS(bundleFSFile string, extensions []extensionMetadata, receivers
 	out := &bytes.Buffer{}
 	panicOnError(t.Execute(out, target))
 	filename := filepath.Join(filepath.Dir(bundleFSFile), "generated_bundledfs.go")
-	if err = os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
+	if err = os.WriteFile(filename, out.Bytes(), 0o644); err != nil { // nolint:gosec // existing project file permissions
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 }
@@ -214,7 +214,7 @@ func generateReceiverMetadataFile(discoveryReceiverDir string, receivers []recei
 	}))
 
 	filename := filepath.Join(discoveryReceiverDir, "generated_metadata.go")
-	if err := os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
+	if err := os.WriteFile(filename, out.Bytes(), 0o644); err != nil { // nolint:gosec // existing project file permissions
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 

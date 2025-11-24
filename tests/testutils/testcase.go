@@ -124,7 +124,7 @@ func (t *Testcase) Containers(builders ...Container) (containers []*Container, s
 		}
 	}
 
-	return
+	return containers, stop
 }
 
 // SplunkOtelCollector builds and starts a collector container or process using the desired config filename

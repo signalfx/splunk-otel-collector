@@ -156,7 +156,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 							for l := 0; l < dg.DataPoints().Len(); l++ {
 								dgdp := dg.DataPoints().At(l)
 								attributes = dgdp.Attributes()
-								var val = dgdp.DoubleValue()
+								val := dgdp.DoubleValue()
 								assert.NotEqual(t, val, 0, "invalid value of MetricTypeGauge metric %s", name)
 							}
 						case pmetric.MetricTypeSum:
@@ -164,7 +164,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)
 								attributes = dsdp.Attributes()
-								var val = dsdp.DoubleValue()
+								val := dsdp.DoubleValue()
 								assert.NotEqual(t, val, 0, "invalid value of MetricTypeSum metric %s", name)
 							}
 						default:
@@ -367,7 +367,6 @@ func TestJavaHomeRespected(t *testing.T) {
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
-
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "extension_config.yaml"))
 	require.NoError(t, err)
 

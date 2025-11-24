@@ -49,7 +49,6 @@ func (m *Monitor) getCPUMetrics(controllerPath string, pathFilter filter.StringF
 			err = withOpenFile(f, func(fd *os.File) {
 				fileDPs, err = parseFunc(fd)
 			})
-
 			if err != nil {
 				m.logger.WithError(err).Errorf("Failed to process %s", f)
 				continue

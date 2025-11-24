@@ -25,9 +25,11 @@ const version = "0.0.30"
 
 // EVENT(objects.top-info): Process list event.
 
-var zlibCompressor = zlib.NewWriter(&bytes.Buffer{})
-var now = time.Now
-var replacer = strings.NewReplacer(`"`, `'`, "\n", `\n`)
+var (
+	zlibCompressor = zlib.NewWriter(&bytes.Buffer{})
+	now            = time.Now
+	replacer       = strings.NewReplacer(`"`, `'`, "\n", `\n`)
+)
 
 // Config for this monitor
 type Config struct {
@@ -45,7 +47,7 @@ func compressBytes(in []byte) (buf bytes.Buffer, err error) {
 	zlibCompressor.Reset(&buf)
 	_, err = zlibCompressor.Write(in)
 	_ = zlibCompressor.Close()
-	return
+	return buf, err
 }
 
 // Monitor for Utilization

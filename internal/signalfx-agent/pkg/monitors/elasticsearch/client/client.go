@@ -21,7 +21,6 @@ func (c *ESClient) FetchJSON(url string, obj interface{}) error {
 	}
 
 	res, err := c.HTTPClient.Do(req)
-
 	if err != nil {
 		return fmt.Errorf("could not get url %s: %v", url, err)
 	}
@@ -32,7 +31,6 @@ func (c *ESClient) FetchJSON(url string, obj interface{}) error {
 	}
 
 	err = json.NewDecoder(res.Body).Decode(obj)
-
 	if err != nil {
 		return fmt.Errorf("could not get url %s: %v", url, err)
 	}

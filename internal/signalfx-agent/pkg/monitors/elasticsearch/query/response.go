@@ -56,7 +56,6 @@ func (agg *aggregationResponse) UnmarshalJSON(b []byte) error {
 
 	otherValues := map[string]interface{}{}
 	for k, v := range m {
-
 		switch k {
 		// "value" is a special key in single value metric aggregations
 		// and will be picked as a field on aggregationResponse

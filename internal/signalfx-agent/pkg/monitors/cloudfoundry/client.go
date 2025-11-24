@@ -28,7 +28,7 @@ type SignalFxGatewayClient struct {
 	ShardID string
 }
 
-func NewSignalFxGatewayClient(gatewayAddr string, uaaToken string, skipVerify bool, logger logrus.FieldLogger) *SignalFxGatewayClient {
+func NewSignalFxGatewayClient(gatewayAddr, uaaToken string, skipVerify bool, logger logrus.FieldLogger) *SignalFxGatewayClient {
 	errorCh := make(chan error)
 
 	transport := http.Transport{

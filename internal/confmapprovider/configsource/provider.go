@@ -80,8 +80,10 @@ func New(logger *zap.Logger, hooks []Hook) *ProviderWrapper {
 	}
 }
 
-var _ confmap.Provider = (*wrappedProvider)(nil)
-var _ confmap.ProviderFactory = (*wrappedProviderFactory)(nil)
+var (
+	_ confmap.Provider        = (*wrappedProvider)(nil)
+	_ confmap.ProviderFactory = (*wrappedProviderFactory)(nil)
+)
 
 type wrappedProviderFactory struct {
 	wrapper         *ProviderWrapper

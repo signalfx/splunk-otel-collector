@@ -70,8 +70,7 @@ func TestGetAggregationsMetaSimpleQuery(t *testing.T) {
 }
 
 func TestGetAggregationsMetaComplexQuery_terms(t *testing.T) {
-	query :=
-		`{ 
+	query := `{ 
    "query":{ 
       "match_all":{ 
 
@@ -175,8 +174,7 @@ func TestGetAggregationsMetaComplexQuery_terms(t *testing.T) {
 }
 
 func TestGetAggregationsMetaComplexQuery_filters(t *testing.T) {
-	query :=
-		`{ 
+	query := `{ 
    "query":{ 
       "match_all":{ 
 

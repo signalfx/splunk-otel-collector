@@ -48,8 +48,7 @@ type PerfProcProcess struct {
 	PercentProcessorTime uint64
 }
 
-type osCache struct {
-}
+type osCache struct{}
 
 func initOSCache() *osCache {
 	return &osCache{}

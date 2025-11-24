@@ -17,7 +17,7 @@ type Emitter interface {
 	// AddTag adds a key/value pair to all measurement tags.  If a key conflicts
 	// the key value pair in AddTag will override the original key on the
 	// measurement
-	AddTag(key string, val string)
+	AddTag(key, val string)
 	// AddTags adds a map of key value pairs to all measurement tags.  If a key
 	// conflicts the key value pair in AddTags will override the original key on
 	// the measurement.
@@ -49,7 +49,7 @@ type Emitter interface {
 
 // RenameFieldWithTag - takes the value of a specified tag and uses it to rename a specified field
 // the tag is deleted and the original field name is overwritten
-func RenameFieldWithTag(m telegraf.Metric, tagName string, fieldName string, replacer *strings.Replacer) {
+func RenameFieldWithTag(m telegraf.Metric, tagName, fieldName string, replacer *strings.Replacer) {
 	if tagVal, ok := m.GetTag(tagName); ok {
 		tagVal = replacer.Replace(tagVal)
 		if val, ok := m.GetField(fieldName); ok && tagVal != "" {

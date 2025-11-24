@@ -12,8 +12,10 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-const volumeNameBufferLength = uint32(windows.MAX_PATH + 1)
-const volumePathBufferLength = volumeNameBufferLength
+const (
+	volumeNameBufferLength = uint32(windows.MAX_PATH + 1)
+	volumePathBufferLength = volumeNameBufferLength
+)
 
 // Copied from https://github.com/shirou/gopsutil/blob/master/disk/disk_windows.go#L25C1-L25C1
 var (
@@ -35,7 +37,6 @@ func getPartitionsWin(
 	getVolumePaths func(volNameBuf []uint16) ([]string, error),
 	getFsNameAndFlags func(rootPath string, fsNameBuf []uint16, fsFlags *uint32) (err error),
 ) ([]gopsutil.PartitionStat, error) {
-
 	stats := make([]gopsutil.PartitionStat, 0)
 	volNameBuf := make([]uint16, volumeNameBufferLength)
 
@@ -164,7 +165,6 @@ func getPartitionStats(
 	volPaths []string,
 	getFsNameAndFlags func(rootPath string, fsNameBuf []uint16, fsFlags *uint32) (err error),
 ) ([]gopsutil.PartitionStat, error) {
-
 	stats := make([]gopsutil.PartitionStat, 0)
 
 	var lastError error
@@ -202,6 +202,6 @@ func getPartitionStats(
 	return stats, lastError
 }
 
-func getUsage(_ string, path string) (*gopsutil.UsageStat, error) {
+func getUsage(_, path string) (*gopsutil.UsageStat, error) {
 	return gopsutil.Usage(path)
 }

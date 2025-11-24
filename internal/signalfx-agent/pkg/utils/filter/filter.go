@@ -78,7 +78,6 @@ func NewBasicStringFilter(items []string) (*BasicStringFilter, error) {
 
 			reText := stripSlashes(m)
 			re, err = regexp.Compile(reText)
-
 			if err != nil {
 				return nil, err
 			}

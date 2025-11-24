@@ -62,7 +62,8 @@ func TestObservablesFromHost(t *testing.T) {
 		expectedError       string
 		watchObservers      []component.ID
 	}{
-		{name: "mixed non-observables ids",
+		{
+			name: "mixed non-observables ids",
 			extensions: map[component.ID]component.Component{
 				nopObsID:     nopObs,
 				nopObsvbleID: nopObsvble,
@@ -70,7 +71,8 @@ func TestObservablesFromHost(t *testing.T) {
 			watchObservers: []component.ID{nopObsID, nopObsvbleID},
 			expectedError:  `extension "nop_observer" in watch_observers is not an observer`,
 		},
-		{name: "mixed non-observables ids with names",
+		{
+			name: "mixed non-observables ids with names",
 			extensions: map[component.ID]component.Component{
 				nopObsIDWithName:     nopObsWithName,
 				nopObsvbleIDWithName: nopObsvbleWithName,
@@ -78,14 +80,16 @@ func TestObservablesFromHost(t *testing.T) {
 			watchObservers: []component.ID{nopObsIDWithName, nopObsvbleIDWithName},
 			expectedError:  `extension "nop_observer/with_name" in watch_observers is not an observer`,
 		},
-		{name: "only missing extension",
+		{
+			name: "only missing extension",
 			extensions: map[component.ID]component.Component{
 				nopObsvbleID: nopObsvble,
 			},
 			watchObservers: []component.ID{nopObsID},
 			expectedError:  `failed to find observer "nop_observer" as a configured extension`,
 		},
-		{name: "happy path",
+		{
+			name: "happy path",
 			extensions: map[component.ID]component.Component{
 				nopObsvbleID:         nopObsvble,
 				nopObsvbleIDWithName: nopObsvbleWithName,
@@ -140,12 +144,15 @@ func (mh mockHost) GetExtensions() map[component.ID]component.Component {
 
 type nopObserver struct{}
 
-var _ extension.Extension = (*nopObserver)(nil)
-var _ observer.Observable = (*nopObservable)(nil)
+var (
+	_ extension.Extension = (*nopObserver)(nil)
+	_ observer.Observable = (*nopObservable)(nil)
+)
 
 func (m nopObserver) Start(_ context.Context, _ component.Host) error {
 	return nil
 }
+
 func (m nopObserver) Shutdown(_ context.Context) error {
 	return nil
 }

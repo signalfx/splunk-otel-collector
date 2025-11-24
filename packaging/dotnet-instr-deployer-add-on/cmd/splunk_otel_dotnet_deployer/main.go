@@ -81,7 +81,7 @@ func setupLogger() (closer func()) {
 		return func() {}
 	}
 
-	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		log.Printf("Error: failed to open log file %s: %v", logFilePath, err)
 		return func() {}

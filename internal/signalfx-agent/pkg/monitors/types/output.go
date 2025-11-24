@@ -20,7 +20,7 @@ type Output interface {
 	SendEvent(e *event.Event)
 	SendSpans(spans ...*trace.Span)
 	SendDimensionUpdate(dim *Dimension)
-	AddExtraDimension(key string, value string)
+	AddExtraDimension(key, value string)
 }
 
 // FilteringOutput is Output enhanced with additional filtering mechanisms.

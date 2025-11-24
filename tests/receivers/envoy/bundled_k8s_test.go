@@ -49,7 +49,6 @@ import (
 )
 
 func TestEnvoyK8sObserver(t *testing.T) {
-
 	f := otlpreceiver.NewFactory()
 	port := testutils.GetAvailablePort(t)
 	otlpReceiverConfig := f.CreateDefaultConfig().(*otlpreceiver.Config)

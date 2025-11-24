@@ -176,7 +176,8 @@ service:
     metrics:
       receivers: [hostmetrics]
       exporters: [otlp]
-`},
+`,
+				},
 			)
 		},
 	)

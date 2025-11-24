@@ -122,7 +122,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 
 	// Write out an initial test file
 	dst := path.Join(t.TempDir(), "watch_file_test")
-	require.NoError(t, os.WriteFile(dst, []byte("val1"), 0600))
+	require.NoError(t, os.WriteFile(dst, []byte("val1"), 0o600))
 
 	// Perform initial retrieve
 	watchChannel := make(chan *confmap.ChangeEvent, 1)
@@ -143,7 +143,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	assert.Equal(t, "val1", val)
 
 	// Write update to file
-	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0600))
+	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0o600))
 
 	ce := <-watchChannel
 	watchDone <- struct{}{}
@@ -170,7 +170,7 @@ func TestIncludeConfigSourceDeleteFile(t *testing.T) {
 	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
 	require.NoError(t, err)
 	dst := path.Join(t.TempDir(), "copy_scalar_data_file")
-	require.NoError(t, os.WriteFile(dst, contents, 0600))
+	require.NoError(t, os.WriteFile(dst, contents, 0o600))
 
 	ctx := context.Background()
 	r, err := s.Retrieve(ctx, dst, nil, func(event *confmap.ChangeEvent) {
@@ -200,7 +200,7 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
 	require.NoError(t, err)
 	dst := path.Join("testdata", "copy_scalar_data_file")
-	require.NoError(t, os.WriteFile(dst, contents, 0600))
+	require.NoError(t, os.WriteFile(dst, contents, 0o600))
 	f, err := os.OpenFile(dst, os.O_RDWR, 0)
 	require.NoError(t, err)
 	t.Cleanup(func() {

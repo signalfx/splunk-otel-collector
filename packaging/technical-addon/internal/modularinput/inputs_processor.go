@@ -31,11 +31,13 @@ type ModInput struct {
 }
 
 // TransformerFunc is basically a reducer.. takes in "working" value of modinput string
-type TransformerFunc func(value string) (string, error)
-type ModinputProcessor struct {
-	ModularInputs map[string]*ModInput
-	SchemaName    string
-}
+type (
+	TransformerFunc   func(value string) (string, error)
+	ModinputProcessor struct {
+		ModularInputs map[string]*ModInput
+		SchemaName    string
+	}
+)
 
 func (t *ModInput) TransformInputs(value string) (string, error) {
 	t.Value = value

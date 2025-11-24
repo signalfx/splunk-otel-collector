@@ -23,9 +23,8 @@ func AugmentCertPoolFromCAFile(basePool *x509.CertPool, caCertPath string) error
 }
 
 // Returns a tls.Config that can be used to setup a  tls client
-func TLSConfig(tlsConfig *tls.Config, caCertPath string, clientCertPath string, clientKeyPath string) (*tls.Config, error) {
+func TLSConfig(tlsConfig *tls.Config, caCertPath, clientCertPath, clientKeyPath string) (*tls.Config, error) {
 	certs, err := CertPool()
-
 	if err != nil {
 		return nil, err
 	}

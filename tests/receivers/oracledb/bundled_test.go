@@ -111,5 +111,4 @@ func TestOracledbDockerObserver(t *testing.T) {
 		}
 		assert.Len(tt, missingMetrics, 0, msg)
 	}, 1*time.Minute, 1*time.Second)
-
 }

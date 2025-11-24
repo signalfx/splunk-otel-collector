@@ -157,7 +157,6 @@ func (m *Monitor) fetchContainer(dockerID string) (ecs.Container, error) {
 
 func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetricsConfig) {
 	body, err := getMetadata(m.client, m.conf.StatsEndpoint)
-
 	if err != nil {
 		m.logger.WithError(err).Error("Failed to read ECS stats")
 		return
@@ -199,7 +198,6 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 		}
 		containerStat := stats[dockerID]
 		dps, err := dmonitor.ConvertStatsToMetrics(containerJSON, &containerStat, enhancedMetricsConfig)
-
 		if err != nil {
 			m.logger.WithError(err).Errorf("Could not convert docker stats for container id %s", dockerID)
 			return
@@ -333,7 +331,7 @@ func getTaskLimitMetrics(container ecs.Container, enhancedMetricsConfig dmonitor
 	return taskLimitDps
 }
 
-func getURI(endpoint string, resourceID string) string {
+func getURI(endpoint, resourceID string) string {
 	queryIdx := strings.Index(endpoint, "?")
 	if queryIdx == -1 {
 		return fmt.Sprintf("%s/%s", endpoint, resourceID)

@@ -117,7 +117,7 @@ func assertHTTPGetRequestSuccess(c *assert.CollectT, url string) {
 	assert.Equal(c, http.StatusOK, resp.StatusCode)
 }
 
-func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
+func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url, expectedTracesFileName string) {
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 

@@ -133,7 +133,7 @@ func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModu
 			return err
 		}
 	}
-	preloadFile, err := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	preloadFile, err := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("error opening %q: %w", modInputs.AutoinstrumentationPreloadPath.Value, err)
 	}
@@ -166,8 +166,7 @@ func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentatio
 		}
 	}
 	newContent := strings.ReplaceAll(string(content), modInputs.AutoinstrumentationPreloadPath.Value, "")
-	return os.WriteFile(modInputs.AutoinstrumentationPreloadPath.Value, []byte(newContent), 0644) // #nosec G306
-
+	return os.WriteFile(modInputs.AutoinstrumentationPreloadPath.Value, []byte(newContent), 0o644) // #nosec G306
 }
 
 func backupFile(currPath string) error {
@@ -181,7 +180,7 @@ func backupFile(currPath string) error {
 }
 
 // stringContainedInFile If the file does not exist, vacuously returns (false, nil)
-func stringContainedInFile(search string, filepath string) (bool, error) {
+func stringContainedInFile(search, filepath string) (bool, error) {
 	file, err := os.Open(filepath)
 	if errors.Is(err, os.ErrNotExist) {
 		return false, nil

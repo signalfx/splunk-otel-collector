@@ -21,8 +21,10 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 )
 
-const messageTypeDatapointJSONList subproc.MessageType = 200
-const messageTypeDatapointProtobufList subproc.MessageType = 201
+const (
+	messageTypeDatapointJSONList     subproc.MessageType = 200
+	messageTypeDatapointProtobufList subproc.MessageType = 201
+)
 
 type JSONHandler struct {
 	Output types.Output

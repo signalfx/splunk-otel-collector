@@ -79,7 +79,6 @@ func (h *HTTPConfig) Build() (*http.Client, error) {
 
 		return transport, nil
 	}()
-
 	if err != nil {
 		return nil, err
 	}

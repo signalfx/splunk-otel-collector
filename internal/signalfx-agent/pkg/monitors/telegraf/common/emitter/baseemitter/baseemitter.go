@@ -70,7 +70,7 @@ type BaseEmitter struct {
 // AddTag adds a key/value pair to all measurement tags.  If a key conflicts
 // the key value pair in AddTag will override the original key on the
 // measurement
-func (b *BaseEmitter) AddTag(key string, val string) {
+func (b *BaseEmitter) AddTag(key, val string) {
 	b.addTags[key] = val
 }
 
@@ -140,12 +140,12 @@ func (b *BaseEmitter) OmitTags(tags []string) {
 
 // FilterTags - filter function for util.CloneAndFilterStringMapWithFunc()
 // it returns true if the supplied key is not in the omittedTags map
-func (b *BaseEmitter) FilterTags(key string, _ string) bool {
+func (b *BaseEmitter) FilterTags(key, _ string) bool {
 	return !b.omittedTags[key]
 }
 
 // RenameMetric adds a mapping to rename a metric by it's name
-func (b *BaseEmitter) RenameMetric(original string, override string) {
+func (b *BaseEmitter) RenameMetric(original, override string) {
 	b.nameMap[original] = override
 }
 
@@ -158,7 +158,7 @@ func (b *BaseEmitter) RenameMetrics(mappings map[string]string) {
 
 // GetMetricName parses the metric name and takes name overrides into account
 // if a name is overridden it will not have transformations applied to it
-func (b *BaseEmitter) GetMetricName(metricName string, field string) string {
+func (b *BaseEmitter) GetMetricName(metricName, field string) string {
 	var name string
 
 	if field != "value" {
@@ -248,7 +248,6 @@ func (b *BaseEmitter) TransformDatapoint(dp *datapoint.Datapoint) {
 
 // AddMetric parses metrics from telegraf and emits them through Output
 func (b *BaseEmitter) AddMetric(m telegraf.Metric) {
-
 	// apply transformation functions to the measurement
 	b.TransformMeasurement(m)
 
@@ -289,7 +288,7 @@ func (b *BaseEmitter) AddMetric(m telegraf.Metric) {
 
 		// Get the metric value as a datapoint value
 		if metricValue, err := datapoint.CastMetricValue(val); err == nil {
-			var dp = datapoint.New(
+			dp := datapoint.New(
 				metricName,
 				m.Tags(),
 				metricValue,
@@ -306,7 +305,7 @@ func (b *BaseEmitter) AddMetric(m telegraf.Metric) {
 			}
 			// We've already type checked field, so set property with value
 			metricProps := map[string]interface{}{"message": val}
-			var ev = event.NewWithProperties(
+			ev := event.NewWithProperties(
 				metricName,
 				event.AGENT,
 				m.Tags(),

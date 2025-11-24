@@ -38,6 +38,7 @@ func (e *testEmitter) OmitTags([]string)         {}
 func (e *testEmitter) AddError(err error) {
 	e.err = err
 }
+
 func (e *testEmitter) AddDebug(deb string, args ...interface{}) {
 	e.deb = fmt.Sprintf(deb, args...)
 }

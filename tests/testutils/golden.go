@@ -81,8 +81,9 @@ func WithFileMounts(mounts map[string]string) MetricsCollectionTestOption {
 
 // RunMetricsCollectionTest runs a test that collects metrics using a collector container with provided configFile and
 // compares the result with the expected metrics defined in the file expectedFilePath.
-func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath string,
-	options ...MetricsCollectionTestOption) {
+func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
+	options ...MetricsCollectionTestOption,
+) {
 	opts := &metricCollectionTestOpts{}
 	for _, opt := range options {
 		opt(opts)
@@ -128,7 +129,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
 			HostFilePath:      k,
 			ContainerFilePath: v,
-			FileMode:          0644,
+			FileMode:          0o644,
 		})
 	}
 

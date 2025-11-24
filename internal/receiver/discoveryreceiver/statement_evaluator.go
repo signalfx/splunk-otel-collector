@@ -48,7 +48,8 @@ type statementEvaluator struct {
 }
 
 func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config,
-	correlations *correlationStore) (*statementEvaluator, error) {
+	correlations *correlationStore,
+) (*statementEvaluator, error) {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	zapConfig.Sampling.Initial = 1

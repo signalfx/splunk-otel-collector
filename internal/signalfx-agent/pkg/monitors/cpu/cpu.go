@@ -17,11 +17,15 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
-const cpuUtilName = "cpu.utilization"
-const percoreMetricName = "cpu.utilization_per_core"
+const (
+	cpuUtilName       = "cpu.utilization"
+	percoreMetricName = "cpu.utilization_per_core"
+)
 
-var errorUsedDiffLessThanZero = fmt.Errorf("usedDiff < 0")
-var errorTotalDiffLessThanZero = fmt.Errorf("totalDiff < 0")
+var (
+	errorUsedDiffLessThanZero  = fmt.Errorf("usedDiff < 0")
+	errorTotalDiffLessThanZero = fmt.Errorf("totalDiff < 0")
+)
 
 func init() {
 	monitors.Register(&monitorMetadata, func() interface{} { return &Monitor{} }, &Config{})
@@ -122,7 +126,6 @@ func (m *Monitor) generateDatapoints() []*datapoint.Datapoint {
 	// calculate utilization
 	if m.previousTotal != nil {
 		utilization, err := getUtilization(m.previousTotal, current)
-
 		// append errors
 		if err != nil {
 			if err == errorTotalDiffLessThanZero || err == errorUsedDiffLessThanZero {
@@ -166,10 +169,10 @@ func makeSecondaryDatapoints(stat *cpu.TimesStat) []*datapoint.Datapoint {
 	}
 }
 
-func getUtilization(prev *totalUsed, current *totalUsed) (utilization float64, err error) {
+func getUtilization(prev, current *totalUsed) (utilization float64, err error) {
 	if prev.Total == 0 {
 		err = fmt.Errorf("prev.Total == 0 will skip until previous Total is > 0")
-		return
+		return utilization, err
 	}
 
 	usedDiff := current.Used - prev.Used
@@ -192,7 +195,7 @@ func getUtilization(prev *totalUsed, current *totalUsed) (utilization float64, e
 		}
 	}
 
-	return
+	return utilization, err
 }
 
 func (m *Monitor) initializeCPUTimes() {

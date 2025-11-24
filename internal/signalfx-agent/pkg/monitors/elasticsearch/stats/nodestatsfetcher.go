@@ -17,7 +17,7 @@ const (
 )
 
 // GetNodeStatsDatapoints fetches datapoints for ES Node stats
-func GetNodeStatsDatapoints(nodeStatsOutput *NodeStatsOutput, defaultDims map[string]string, selectedThreadPools map[string]bool, enhancedStatsForIndexGroups map[string]bool, nodeStatsGroupEnhancedOption map[string]bool) []*datapoint.Datapoint {
+func GetNodeStatsDatapoints(nodeStatsOutput *NodeStatsOutput, defaultDims map[string]string, selectedThreadPools, enhancedStatsForIndexGroups, nodeStatsGroupEnhancedOption map[string]bool) []*datapoint.Datapoint {
 	var out []*datapoint.Datapoint
 	for _, nodeStats := range nodeStatsOutput.NodeStats {
 		out = append(out, getNodeStatsDatapointsHelper(nodeStats, defaultDims, selectedThreadPools, enhancedStatsForIndexGroups, nodeStatsGroupEnhancedOption)...)
@@ -25,7 +25,7 @@ func GetNodeStatsDatapoints(nodeStatsOutput *NodeStatsOutput, defaultDims map[st
 	return out
 }
 
-func getNodeStatsDatapointsHelper(nodeStats NodeStats, defaultDims map[string]string, selectedThreadPools map[string]bool, enhancedStatsForIndexGroups map[string]bool, nodeStatsGroupEnhancedOption map[string]bool) []*datapoint.Datapoint {
+func getNodeStatsDatapointsHelper(nodeStats NodeStats, defaultDims map[string]string, selectedThreadPools, enhancedStatsForIndexGroups, nodeStatsGroupEnhancedOption map[string]bool) []*datapoint.Datapoint {
 	var dps []*datapoint.Datapoint
 
 	dps = append(dps, nodeStats.JVM.getJVMStats(nodeStatsGroupEnhancedOption[JVMStatsGroup], defaultDims)...)

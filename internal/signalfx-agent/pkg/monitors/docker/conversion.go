@@ -88,7 +88,7 @@ func convertBlkioStats(stats *container.BlkioStats, enhancedMetrics bool) []*dat
 	return out
 }
 
-func convertCPUStats(stats *container.CPUStats, prior *container.CPUStats, enhancedMetrics bool) []*datapoint.Datapoint {
+func convertCPUStats(stats, prior *container.CPUStats, enhancedMetrics bool) []*datapoint.Datapoint {
 	var out []*datapoint.Datapoint
 
 	out = append(out, []*datapoint.Datapoint{
@@ -124,7 +124,7 @@ func convertCPUStats(stats *container.CPUStats, prior *container.CPUStats, enhan
 
 // Copied from
 // https://github.com/docker/cli/blob/dbd96badb6959c2b7070664aecbcf0f7c299c538/cli/command/container/stats_helpers.go
-func calculateCPUPercent(previous *container.CPUStats, v *container.CPUStats) float64 {
+func calculateCPUPercent(previous, v *container.CPUStats) float64 {
 	var (
 		cpuPercent = 0.0
 		// calculate the change for the cpu usage of the container in between readings

@@ -35,7 +35,6 @@ func ExtractMetricNameLabel(labels []prompb.Label) (string, error) {
 // Also see: https://raw.githubusercontent.com/OpenObservability/OpenMetrics/main/specification/OpenMetrics.md
 // As this is a heuristic process, the order of operations is significant.
 func DetermineMetricTypeByConvention(metricName string, labels []prompb.Label) prompb.MetricMetadata_MetricType {
-
 	_, hasLe := getLabelValue(labels, "le")
 	_, hasQuantile := getLabelValue(labels, "quantile")
 	_, hasMetricName := getLabelValue(labels, metricName)

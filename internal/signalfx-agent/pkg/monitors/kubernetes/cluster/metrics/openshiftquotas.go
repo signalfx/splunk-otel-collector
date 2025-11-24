@@ -45,7 +45,8 @@ func datapointsForClusterQuotas(quota *quota.ClusterResourceQuota) []*datapoint.
 }
 
 func buildDatapoints(metricPrefix string, dimensions map[string]string,
-	limit v1.ResourceList, used v1.ResourceList) []*datapoint.Datapoint {
+	limit, used v1.ResourceList,
+) []*datapoint.Datapoint {
 	var dps []*datapoint.Datapoint
 	for _, resource := range resources {
 		if quantity, ok := limit[resource]; ok {

@@ -35,8 +35,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type MyErrorHandler struct {
-}
+type MyErrorHandler struct{}
 
 func (m *MyErrorHandler) Handle(err error) {
 	log.Fatal(err)

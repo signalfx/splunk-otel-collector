@@ -180,7 +180,7 @@ func setEntitiesPipelineReceivers(pipelines map[string]any, discoReceivers []any
 	ep["receivers"] = receivers
 }
 
-func appendUnique(serviceComponents []any, discoComponents []any) []any {
+func appendUnique(serviceComponents, discoComponents []any) []any {
 	existing := map[any]struct{}{}
 	for _, e := range serviceComponents {
 		existing[e] = struct{}{}

@@ -134,7 +134,6 @@ func (mc *metricConfig) setMetricLensDimensions(service accountsService) error {
 			} else {
 				return err
 			}
-
 		} else {
 			mc.metricLensDimensionMap = make(map[string]float64, len(mc.MetricLensDimensions))
 			for i, name := range mc.MetricLensDimensions {

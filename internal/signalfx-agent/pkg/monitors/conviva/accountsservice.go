@@ -31,8 +31,8 @@ type accountsService interface {
 	getID(accountName string) (string, error)
 	getFilters(accountName string) (map[string]string, error)
 	getMetricLensFilters(accountName string) (map[string]string, error)
-	getFilterID(accountName string, filterName string) (string, error)
-	getMetricLensDimensionID(accountName string, metricLensDimension string) (float64, error)
+	getFilterID(accountName, filterName string) (string, error)
+	getMetricLensDimensionID(accountName, metricLensDimension string) (float64, error)
 }
 
 type accountsServiceImpl struct {
@@ -101,7 +101,7 @@ func (s *accountsServiceImpl) getMetricLensFilters(accountName string) (map[stri
 	return nil, fmt.Errorf("could not find account %s", accountName)
 }
 
-func (s *accountsServiceImpl) getFilterID(accountName string, filterName string) (string, error) {
+func (s *accountsServiceImpl) getFilterID(accountName, filterName string) (string, error) {
 	if err := s.initAccounts(); err != nil {
 		return "", err
 	}
@@ -115,7 +115,7 @@ func (s *accountsServiceImpl) getFilterID(accountName string, filterName string)
 	return "", fmt.Errorf("no filter id for filter %s in account %s", filterName, accountName)
 }
 
-func (s *accountsServiceImpl) getMetricLensDimensionID(accountName string, metricLensDimension string) (float64, error) {
+func (s *accountsServiceImpl) getMetricLensDimensionID(accountName, metricLensDimension string) (float64, error) {
 	if err := s.initAccounts(); err != nil {
 		return 0, err
 	}

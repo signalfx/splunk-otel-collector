@@ -120,7 +120,7 @@ func ExtractAddon(sourcePath, destinationPath string) error {
 			}
 
 		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 				return fmt.Errorf("failed to create directory for file %s: %w", target, err)
 			}
 

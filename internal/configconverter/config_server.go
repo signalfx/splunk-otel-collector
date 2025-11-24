@@ -52,8 +52,10 @@ const (
 	effectiveConfig ConfigType = 2
 )
 
-var _ confmap.Converter = (*ConfigServer)(nil)
-var _ configsource.Hook = (*ConfigServer)(nil)
+var (
+	_ confmap.Converter = (*ConfigServer)(nil)
+	_ configsource.Hook = (*ConfigServer)(nil)
+)
 
 type ConfigServer struct {
 	// Use get/set methods instead of direct usage
@@ -165,7 +167,6 @@ func (cs *ConfigServer) start() {
 				}
 			}()
 			cs.serverShutdown.Add(1)
-
 		})
 }
 

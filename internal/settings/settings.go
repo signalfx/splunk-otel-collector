@@ -306,7 +306,7 @@ func parseSetOptionArguments(arguments []string) (setProperties, discoveryProper
 			setProperties = append(setProperties, arg)
 		}
 	}
-	return
+	return setProperties, discoveryProperties
 }
 
 // flagSetToArgs takes slices of core service flag names and arguments and returns a slice of corresponding command line
@@ -502,10 +502,10 @@ func checkConfig(settings *Settings) error {
 func getExistingDefaultConfigPath() (path string, err error) {
 	if _, err = os.Stat(DefaultGatewayConfig); err == nil {
 		path = DefaultGatewayConfig
-		return
+		return path, err
 	}
 	err = fmt.Errorf("unable to find the default configuration file %s", DefaultGatewayConfig)
-	return
+	return path, err
 }
 
 func envVarAsInt(env string) int {
@@ -681,7 +681,7 @@ func (s *stringPointerFlagValue) String() string {
 // SPDX-License-Identifier: Apache-2.0
 var uriRegexp = regexp.MustCompile(`(?s:^(?P<Scheme>[A-Za-z][A-Za-z0-9+.-]+):(?P<OpaqueValue>.*)$)`)
 
-func parseURI(uri string) (scheme string, location string, isURI bool) {
+func parseURI(uri string) (scheme, location string, isURI bool) {
 	submatches := uriRegexp.FindStringSubmatch(uri)
 	if len(submatches) != 3 {
 		return "", "", false

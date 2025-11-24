@@ -27,7 +27,6 @@ structure:
 // bucket aggregation
 func TestSimpleSingleValueAggregation(t *testing.T) {
 	contexts, err := getSimpleSingleValueAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -43,7 +42,6 @@ func TestSimpleSingleValueAggregation(t *testing.T) {
 // bucket aggregation
 func TestSimpleMultiValueAggregation(t *testing.T) {
 	contexts, err := getSimpleMultiValueAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -59,7 +57,6 @@ func TestSimpleMultiValueAggregation(t *testing.T) {
 // bucket aggregation
 func TestMulitpleMetricAggregations(t *testing.T) {
 	contexts, err := getMultipleMetricAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -74,7 +71,6 @@ func TestMulitpleMetricAggregations(t *testing.T) {
 // Tests for bucket aggregations without a sub metric aggregation
 func TestBucketAggregationWithoutSubMetricAggregation(t *testing.T) {
 	contexts, err := getTerminalBucketAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -89,7 +85,6 @@ func TestBucketAggregationWithoutSubMetricAggregation(t *testing.T) {
 // Tests for date histogram aggregations
 func TestDateHistogramAggregation(t *testing.T) {
 	contexts, err := getDateHistogramAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -104,7 +99,6 @@ func TestDateHistogramAggregation(t *testing.T) {
 // Tests for single bucket filter aggregation
 func TestSingleBucketFilterAggregation(t *testing.T) {
 	contexts, err := getSingleBucketFilterAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -119,7 +113,6 @@ func TestSingleBucketFilterAggregation(t *testing.T) {
 // Tests for metric aggreations within histogram aggregations
 func TestHistogramAggregation(t *testing.T) {
 	contexts, err := getHistogramAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -134,7 +127,6 @@ func TestHistogramAggregation(t *testing.T) {
 // Tests for metric aggreations within adjacency matrix aggregations
 func TestAdjacencyAggregation(t *testing.T) {
 	contexts, err := getAdjacenyMatrixAggregationTestContexts()
-
 	if err != nil {
 		t.Fatalf("Failed to load test contexts: %v", err)
 	}
@@ -1058,12 +1050,10 @@ func getMultipleMetricAggregationTestContexts() ([]*testContext, *errors.Error) 
 }
 
 func getAggregationTestContexts(responseFilePaths []string, expected []HTTPResponse) ([]*testContext, *errors.Error) {
-
 	out := make([]*testContext, len(responseFilePaths))
 
 	for i, fp := range responseFilePaths {
 		res, err := loadJSON(fp)
-
 		if err != nil {
 			return nil, errors.Errorf("failed loading %s", fp)
 		}

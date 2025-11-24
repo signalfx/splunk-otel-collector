@@ -79,7 +79,6 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 	case AuthTypeTLS:
 		var err error
 		tlsConfig, err = auth.TLSConfig(tlsConfig, kubeletAPI.CACertPath, kubeletAPI.ClientCertPath, kubeletAPI.ClientKeyPath)
-
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +86,6 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 		transport.(*http.Transport).TLSClientConfig = tlsConfig
 	case AuthTypeServiceAccount:
 		certs, err := auth.CertPool()
-
 		if err != nil {
 			return nil, err
 		}

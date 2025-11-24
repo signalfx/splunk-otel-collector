@@ -47,7 +47,6 @@ IMAGES_DIR = Path(__file__).parent.resolve() / "images"
 CONFIG_DIR = "/etc/otel/collector"
 PKG_DIR = REPO_DIR / "dist"
 PKG_NAME = "splunk-otel-collector"
-LOCAL_COLLECTOR_VERSION= "0.0.1-local"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
 SPLUNK_ACCESS_TOKEN = "testing123"
 SPLUNK_REALM = "test"
@@ -256,6 +255,7 @@ DEFAULT_CONFIG = f"""
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
+    collector_version => '$version',
 }}
 """
 
@@ -289,15 +289,8 @@ def test_puppet_default(distro, puppet_release):
             print(f"Collector version from package: {collector_version}")
             
             # Update config to use the specific version
-            # Set manage_repo => false to prevent Puppet from setting up official repo
             # We're using the local repository we set up instead
-            config = f"""
-class {{ splunk_otel_collector:
-splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
-splunk_realm => '{SPLUNK_REALM}',
-collector_version => '{collector_version}',
-}}
-"""
+            config = DEFAULT_CONFIG.substitute(version=collector_version)
             run_puppet_apply(container, config)
             verify_package_version(container, "splunk-otel-collector", collector_version)
 
@@ -381,6 +374,7 @@ DEFAULT_INSTRUMENTATION_CONFIG = string.Template(
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
+    collector_version => '$version',
     with_auto_instrumentation => true,
     auto_instrumentation_version => '$version',
     auto_instrumentation_systemd => $with_systemd,
@@ -397,7 +391,7 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("version", ["0.0.1-local", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_default_instrumentation(distro, puppet_release, version, with_systemd):
     skip_if_necessary(distro, puppet_release)
@@ -479,6 +473,7 @@ CUSTOM_INSTRUMENTATION_CONFIG = string.Template(
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
+    collector_version => '$version',
     with_auto_instrumentation => true,
     auto_instrumentation_version => '$version',
     auto_instrumentation_systemd => $with_systemd,
@@ -507,7 +502,7 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("version", ["0.0.1-local", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_custom_instrumentation(distro, puppet_release, version, with_systemd):
     skip_if_necessary(distro, puppet_release)

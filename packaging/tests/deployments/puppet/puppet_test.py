@@ -251,13 +251,15 @@ def get_package_version_from_file(pkg_path):
     return None
 
 
-DEFAULT_CONFIG = f"""
+DEFAULT_CONFIG = string.Template(
+    f"""
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
     collector_version => '$version',
 }}
 """
+)
 
 
 @pytest.mark.puppet

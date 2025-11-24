@@ -251,6 +251,32 @@ def get_package_version_from_file(pkg_path):
     return None
 
 
+def resolve_collector_version_for_distro(distro, fallback_version):
+    """
+    Determine the collector version to use for a given distro by inspecting the
+    locally built package. Falls back to the provided version if detection fails.
+    """
+    pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+
+    if not pkg_path:
+        pytest.fail(
+            f"No package found in {PKG_DIR} for {distro}. "
+            "Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local "
+            "and/or make rpm-package ARCH=amd64 VERSION=0.0.1-local"
+        )
+
+    detected_version = get_package_version_from_file(pkg_path)
+    if detected_version:
+        print(f"Using collector version '{detected_version}' from '{pkg_path}' for {distro}")
+        return detected_version
+
+    print(
+        f"Warning: Could not determine collector version from '{pkg_path}' for {distro}. "
+        f"Falling back to requested version '{fallback_version}'."
+    )
+    return fallback_version
+
+
 DEFAULT_CONFIG = string.Template(
     f"""
 class {{ splunk_otel_collector:
@@ -406,7 +432,12 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, collector_v
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(collector_version=collector_version, version=version, with_systemd=with_systemd)
+        resolved_collector_version = resolve_collector_version_for_distro(distro, collector_version)
+        config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(
+            collector_version=resolved_collector_version,
+            version=version,
+            with_systemd=with_systemd,
+        )
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
@@ -518,7 +549,12 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, collector_ve
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(collector_version=collector_version, version=version, with_systemd=with_systemd)
+        resolved_collector_version = resolve_collector_version_for_distro(distro, collector_version)
+        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(
+            collector_version=resolved_collector_version,
+            version=version,
+            with_systemd=with_systemd,
+        )
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))

@@ -376,7 +376,7 @@ DEFAULT_INSTRUMENTATION_CONFIG = string.Template(
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
-    collector_version => '$version',
+    collector_version => '$collector_version',
     with_auto_instrumentation => true,
     auto_instrumentation_version => '$version',
     auto_instrumentation_systemd => $with_systemd,
@@ -393,9 +393,10 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("version", ["0.0.1-local", "latest"])
+@pytest.mark.parametrize("collector_version", "0.0.1-local")
+@pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
-def test_puppet_with_default_instrumentation(distro, puppet_release, version, with_systemd):
+def test_puppet_with_default_instrumentation(distro, puppet_release, collector_version, version, with_systemd):
     skip_if_necessary(distro, puppet_release)
 
     if distro in DEB_DISTROS:
@@ -405,7 +406,7 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=version, with_systemd=with_systemd)
+        config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(collector_version=collector_version, version=version, with_systemd=with_systemd)
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
@@ -475,7 +476,7 @@ CUSTOM_INSTRUMENTATION_CONFIG = string.Template(
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
-    collector_version => '$version',
+    collector_version => '$collector_version',
     with_auto_instrumentation => true,
     auto_instrumentation_version => '$version',
     auto_instrumentation_systemd => $with_systemd,
@@ -504,9 +505,10 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("version", ["0.0.1-local", "latest"])
+@pytest.mark.parametrize("collector_version", "0.0.1-local")
+@pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
-def test_puppet_with_custom_instrumentation(distro, puppet_release, version, with_systemd):
+def test_puppet_with_custom_instrumentation(distro, puppet_release, collector_version, version, with_systemd):
     skip_if_necessary(distro, puppet_release)
 
     if distro in DEB_DISTROS:
@@ -516,7 +518,7 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(version=version, with_systemd=with_systemd)
+        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(collector_version=collector_version, version=version, with_systemd=with_systemd)
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))

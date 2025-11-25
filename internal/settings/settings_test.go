@@ -330,7 +330,7 @@ func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
 	someValue := "some.value"
 	for _, v := range envVars {
 		t.Setenv(v, someValue)
-		require.NoError(t, setDefaultEnvVars(newSettings())
+		require.NoError(t, setDefaultEnvVars(newSettings()))
 		val, ok := os.LookupEnv(v)
 		assert.True(t, ok, v[0])
 		assert.Equal(t, someValue, val)
@@ -338,7 +338,7 @@ func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
 
 	for _, v := range envVars {
 		t.Setenv(v, "")
-		require.NoError(t, setDefaultEnvVars(newSettings())
+		require.NoError(t, setDefaultEnvVars(newSettings()))
 		val, ok := os.LookupEnv(v)
 		assert.True(t, ok, v[0])
 		assert.Empty(t, val)
@@ -360,7 +360,7 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
 			t.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
 			s, err := parseArgs([]string{"--config", tc.config})
 			require.NoError(t, err)
-			require.NoError(t, setDefaultEnvVars(s)
+			require.NoError(t, setDefaultEnvVars(s))
 
 			val, ok := os.LookupEnv("SPLUNK_LISTEN_INTERFACE")
 			assert.True(t, ok)
@@ -400,13 +400,13 @@ func TestSetSoftMemLimitWithoutGoMemLimitEnvVar(t *testing.T) {
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, int64(188743680), debug.SetMemoryLimit(100)
+	require.Equal(t, int64(188743680), debug.SetMemoryLimit(100))
 
 	t.Cleanup(setRequiredEnvVars(t))
 	settings, err = New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, int64(482344960), debug.SetMemoryLimit(-1)
+	require.Equal(t, int64(482344960), debug.SetMemoryLimit(-1))
 }
 
 func TestUseConfigPathsFromEnvVar(t *testing.T) {
@@ -527,7 +527,7 @@ service:
 				require.NoError(t, err)
 				require.NotNil(t, set)
 
-				actualLogs := actualLogsBuf.String())
+				actualLogs := actualLogsBuf.String()
 
 				for _, expectedLog := range test.expectedLogs {
 					require.Contains(t, actualLogs, expectedLog)
@@ -551,7 +551,7 @@ func TestEnablingConfigD(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, settings.configD)
 	require.Nil(t, settings.configDir.value)
-	require.Equal(t, "/etc/otel/collector/config.d", getConfigDir(settings)
+	require.Equal(t, "/etc/otel/collector/config.d", getConfigDir(settings))
 }
 
 func TestConfigDirFromArgs(t *testing.T) {
@@ -566,7 +566,7 @@ func TestConfigDirFromArgs(t *testing.T) {
 			require.False(t, settings.configD)
 			require.NotNil(t, settings.configDir.value)
 			require.Equal(t, "/from/args", settings.configDir.String())
-			require.Equal(t, "/from/args", getConfigDir(settings)
+			require.Equal(t, "/from/args", getConfigDir(settings))
 		})
 	}
 }
@@ -577,7 +577,7 @@ func TestConfigDirFromEnvVar(t *testing.T) {
 	settings, err := New([]string{"--config", configPath})
 	require.NoError(t, err)
 	require.Nil(t, settings.configDir.value)
-	require.Equal(t, "/from/env/var", getConfigDir(settings)
+	require.Equal(t, "/from/env/var", getConfigDir(settings))
 }
 
 func TestConfigArgFileURIForm(t *testing.T) {

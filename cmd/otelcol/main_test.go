@@ -74,8 +74,7 @@ func TestRunFromCmdLine(t *testing.T) {
 		"NO_WINDOWS_SERVICE":      "true", // Avoid using the Windows service manager
 	}
 	for key, value := range requiredEnvVars {
-		os.Setenv(key, value)
-		defer os.Unsetenv(key)
+		t.Setenv(key, value)
 	}
 
 	for _, tt := range tests {

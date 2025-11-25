@@ -124,10 +124,11 @@ func TestVaultFactory_CreateConfigSource(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := factory.CreateConfigSource(context.Background(), tt.config, zap.NewNop())
-			require.ErrorAs(t, err, &tt.wantErr)
 			if tt.wantErr == nil {
+				require.NoError(t, err)
 				assert.NotNil(t, actual)
 			} else {
+				require.IsType(t, tt.wantErr, err) //nolint:testifylint
 				assert.Nil(t, actual)
 			}
 		})

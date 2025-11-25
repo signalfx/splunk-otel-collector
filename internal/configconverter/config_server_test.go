@@ -189,7 +189,7 @@ func assertValidYAMLPages(t *testing.T, expected map[string]any, path string) {
 	require.NoError(t, resp.Body.Close())
 
 	resp, err = client.Get(url)
-	if !assert.NoError(t, err, "error retrieving zpage at %q", path) {
+	if !require.NoError(t, err, "error retrieving zpage at %q", path) {
 		return
 	}
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "unsuccessful zpage %q GET", path)

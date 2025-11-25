@@ -183,9 +183,9 @@ func TestAddMetrics(t *testing.T) {
 			parser := newPrometheusRemoteOtelParser()
 			actual, err := parser.fromPrometheusWriteRequestMetrics(tc.sample)
 			if tc.errWanted {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 			require.NoError(t, pmetrictest.CompareMetrics(tc.expected, actual,
 				pmetrictest.IgnoreMetricDataPointsOrder(),

@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path"
 	"testing"
 
@@ -392,14 +391,8 @@ func TestManagerExpandString(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, os.Setenv("envvar", "envvar_value"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("envvar"))
-	}()
-	require.NoError(t, os.Setenv("envvar_str_key", "str_key"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("envvar_str_key"))
-	}()
+	t.Setenv("envvar", "envvar_value")
+	t.Setenv("envvar_str_key", "str_key")
 
 	tests := []struct {
 		want    any
@@ -513,7 +506,7 @@ func TestManagerExpandString(t *testing.T) {
 			})
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				require.ErrorAs(t, err, &tt.wantErr)
+				require.IsType(t, tt.wantErr, err) //nolint:testifylint
 			} else {
 				require.NoError(t, err)
 			}

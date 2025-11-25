@@ -95,7 +95,8 @@ func TestNewFilters(t *testing.T) {
 			Metric: "disk.utilization",
 			Dimensions: map[string]string{
 				"env": "prod",
-			}}))
+			},
+		}))
 
 		// No env dimension and metric name negated so not filtered
 		assert.False(t, f.Matches(&datapoint.Datapoint{Metric: "memory.utilization"}))
@@ -104,7 +105,8 @@ func TestNewFilters(t *testing.T) {
 			Metric: "memory.utilization",
 			Dimensions: map[string]string{
 				"env": "prod",
-			}}))
+			},
+		}))
 
 		// Metric name is negated
 		assert.False(t, f.Matches(&datapoint.Datapoint{
@@ -112,21 +114,24 @@ func TestNewFilters(t *testing.T) {
 			Dimensions: map[string]string{
 				"env":     "prod",
 				"service": "db",
-			}}))
+			},
+		}))
 
 		assert.True(t, f.Matches(&datapoint.Datapoint{
 			Metric: "cpu.utilization",
 			Dimensions: map[string]string{
 				"env":     "prod",
 				"service": "db",
-			}}))
+			},
+		}))
 
 		// One dimension missing
 		assert.False(t, f.Matches(&datapoint.Datapoint{
 			Metric: "cpu.utilization",
 			Dimensions: map[string]string{
 				"env": "prod",
-			}}))
+			},
+		}))
 
 		assert.False(t, f.Matches(&datapoint.Datapoint{Metric: "cpu.utilization"}))
 
@@ -135,6 +140,7 @@ func TestNewFilters(t *testing.T) {
 			Metric: "random.metric",
 			Dimensions: map[string]string{
 				"service": "es",
-			}}))
+			},
+		}))
 	})
 }

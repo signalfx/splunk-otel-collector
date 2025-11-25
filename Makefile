@@ -254,6 +254,7 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
 	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
+	cd ./internal/tools && go install mvdan.cc/gofumpt
 
 .PHONY: generate-metrics
 generate-metrics:

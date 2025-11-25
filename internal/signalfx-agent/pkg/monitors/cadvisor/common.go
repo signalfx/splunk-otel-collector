@@ -25,8 +25,8 @@ func (m *Monitor) Configure(
 	monConfig *config.MonitorConfig,
 	sendDPs func(...*datapoint.Datapoint),
 	statProvider converter.InfoProvider,
-	hasPodEphemeralStorageStatsGroupEnabled bool) error {
-
+	hasPodEphemeralStorageStatsGroupEnabled bool,
+) error {
 	m.monConfig = monConfig
 	if m.logger == nil {
 		m.logger = log.WithFields(log.Fields{"monitorType": monConfig.Type, "monitorID": monConfig.MonitorID})

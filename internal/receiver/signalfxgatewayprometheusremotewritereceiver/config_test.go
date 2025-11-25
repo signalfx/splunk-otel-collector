@@ -43,7 +43,6 @@ func TestLoadConfigFromFactory(t *testing.T) {
 }
 
 func TestParseConfig(t *testing.T) {
-
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
 	conf, err := confmaptest.LoadConf("internal/testdata/otel-collector-config.yaml")
 	require.NoError(t, err)
@@ -58,5 +57,4 @@ func TestParseConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, sub)
 	require.NoError(t, sub.Unmarshal(&config))
-
 }

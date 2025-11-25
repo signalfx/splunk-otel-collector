@@ -18,11 +18,13 @@ package discoverytest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"syscall"
 	"testing"
 	"time"
@@ -144,8 +146,8 @@ func Run(t *testing.T, receiverName, configFilePath, logMessageToAssert string) 
 				}
 			}
 		}
-		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
-		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", receiverName)
+		assert.Positive(tt, seenMessageAttr, "Did not see message '%s'", logMessageToAssert)
+		assert.Positive(tt, seenReceiverTypeAttr, "Did not see expected type '%s'", receiverName)
 	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", receiverName)
 
 	t.Cleanup(func() {
@@ -258,9 +260,9 @@ func getDockerGID() (string, error) {
 	fsys := finfo.Sys()
 	stat, ok := fsys.(*syscall.Stat_t)
 	if !ok {
-		return "", fmt.Errorf("OS error occurred while trying to get GID ")
+		return "", errors.New("OS error occurred while trying to get GID")
 	}
-	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	dockerGID := strconv.FormatUint(uint64(stat.Gid), 10)
 	return dockerGID, nil
 }
 

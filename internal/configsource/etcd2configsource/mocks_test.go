@@ -18,20 +18,19 @@ package etcd2configsource
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 
 	"go.etcd.io/etcd/client/v2"
-	"go.uber.org/atomic"
 )
 
 type MockWatcher struct {
-	closed *atomic.Bool
 	values chan string
 	errors chan error
+	closed atomic.Bool
 }
 
 func newMockWatcher() *MockWatcher {
 	return &MockWatcher{
-		closed: atomic.NewBool(false),
 		values: make(chan string, 1),
 		errors: make(chan error, 1),
 	}

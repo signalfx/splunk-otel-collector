@@ -16,6 +16,7 @@ package lightprometheusreceiver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -75,7 +76,7 @@ type fetcher func() (io.ReadCloser, expfmt.Format, error)
 
 func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 	fetch := func() (io.ReadCloser, expfmt.Format, error) {
-		req, err := http.NewRequest("GET", s.cfg.ClientConfig.Endpoint, nil)
+		req, err := http.NewRequest(http.MethodGet, s.cfg.ClientConfig.Endpoint, nil)
 		if err != nil {
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
@@ -85,7 +86,7 @@ func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
 
-		if resp.StatusCode != 200 {
+		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), fmt.Errorf("light prometheus %s returned status %d: %s", s.cfg.ClientConfig.Endpoint, resp.StatusCode, string(body))
 		}
@@ -159,7 +160,7 @@ func (s *scraper) doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
 		var mf dto.MetricFamily
 		err := decoder.Decode(&mf)
 
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return mfs, nil
 		} else if err != nil {
 			return nil, err

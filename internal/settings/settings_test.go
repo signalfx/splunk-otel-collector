@@ -162,7 +162,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 
 func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	require.NoError(t, os.Setenv(ConfigYamlEnvVar, "some: yaml"))
+	t.Setenv(ConfigYamlEnvVar, "some: yaml")
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
@@ -171,8 +171,8 @@ func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
 
 func TestSplunkConfigYamlNotUtilizedInResolverURIsWithConfigEnvVar(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	require.NoError(t, os.Setenv(ConfigYamlEnvVar, "some: yaml"))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
+	t.Setenv(ConfigYamlEnvVar, "some: yaml")
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
@@ -189,7 +189,7 @@ func TestNewSettingsWithValidate(t *testing.T) {
 
 func TestCheckRuntimeParams_Default(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
@@ -199,8 +199,8 @@ func TestCheckRuntimeParams_Default(t *testing.T) {
 
 func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemTotalEnvVar, "1000"))
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(MemTotalEnvVar, "1000")
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
@@ -209,7 +209,7 @@ func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 
 func TestCheckRuntimeParams_ListenInterface(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ListenInterfaceEnvVar, "1.2.3.4"))
+	t.Setenv(ListenInterfaceEnvVar, "1.2.3.4")
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
@@ -218,8 +218,8 @@ func TestCheckRuntimeParams_ListenInterface(t *testing.T) {
 
 func TestCheckRuntimeParams_MemTotalEnvs(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(MemTotalEnvVar, "200")
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
@@ -229,8 +229,8 @@ func TestCheckRuntimeParams_MemTotalEnvs(t *testing.T) {
 
 func TestCheckRuntimeParams_LimitEnvs(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemLimitMiBEnvVar, "250"))
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(MemLimitMiBEnvVar, "250")
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
@@ -260,7 +260,7 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
 	realm := "us1"
-	os.Setenv("SPLUNK_REALM", realm)
+	t.Setenv("SPLUNK_REALM", realm)
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
 	assert.Equal(t, 1, len(set.envVarWarnings))
@@ -282,8 +282,8 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 func TestNoWarningsIfTraceURLSetExplicitly(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
-	os.Setenv("SPLUNK_REALM", "us1")
-	os.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.signalfx.com/v2/trace")
+	t.Setenv("SPLUNK_REALM", "us1")
+	t.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.signalfx.com/v2/trace")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
 	assert.Equal(t, 0, len(set.envVarWarnings))
@@ -301,7 +301,7 @@ func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
 	token := "1234"
-	os.Setenv("SPLUNK_ACCESS_TOKEN", token)
+	t.Setenv("SPLUNK_ACCESS_TOKEN", token)
 	require.NoError(t, setDefaultEnvVars(nil))
 
 	val, ok := os.LookupEnv("SPLUNK_HEC_TOKEN")
@@ -312,7 +312,7 @@ func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
 func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
-	os.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com/")
+	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com/")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
 	assert.Equal(t, 1, len(set.envVarWarnings))
@@ -329,16 +329,16 @@ func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
 
 	someValue := "some.value"
 	for _, v := range envVars {
-		os.Setenv(v, someValue)
-		require.NoError(t, setDefaultEnvVars(newSettings()))
+		t.Setenv(v, someValue)
+		require.NoError(t, setDefaultEnvVars(newSettings())
 		val, ok := os.LookupEnv(v)
 		assert.True(t, ok, v[0])
 		assert.Equal(t, someValue, val)
 	}
 
 	for _, v := range envVars {
-		os.Setenv(v, "")
-		require.NoError(t, setDefaultEnvVars(newSettings()))
+		t.Setenv(v, "")
+		require.NoError(t, setDefaultEnvVars(newSettings())
 		val, ok := os.LookupEnv(v)
 		assert.True(t, ok, v[0])
 		assert.Empty(t, val)
@@ -356,11 +356,11 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
 			t.Cleanup(clearEnv(t))
-			os.Setenv("SPLUNK_REALM", "noop")
-			os.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
+			t.Setenv("SPLUNK_REALM", "noop")
+			t.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
 			s, err := parseArgs([]string{"--config", tc.config})
 			require.NoError(t, err)
-			require.NoError(t, setDefaultEnvVars(s))
+			require.NoError(t, setDefaultEnvVars(s)
 
 			val, ok := os.LookupEnv("SPLUNK_LISTEN_INTERFACE")
 			assert.True(t, ok)
@@ -396,22 +396,22 @@ func TestSetDefaultFeatureGatesRespectsOverrides(t *testing.T) {
 func TestSetSoftMemLimitWithoutGoMemLimitEnvVar(t *testing.T) {
 	// if GOLIMIT is not set, we expect soft limit to be 90% of the total memory env var or 90% of default total memory  512 Mib.
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
+	t.Setenv(MemTotalEnvVar, "200")
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, int64(188743680), debug.SetMemoryLimit(100))
+	require.Equal(t, int64(188743680), debug.SetMemoryLimit(100)
 
 	t.Cleanup(setRequiredEnvVars(t))
 	settings, err = New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, int64(482344960), debug.SetMemoryLimit(-1))
+	require.Equal(t, int64(482344960), debug.SetMemoryLimit(-1)
 }
 
 func TestUseConfigPathsFromEnvVar(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	os.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
@@ -520,14 +520,14 @@ service:
 					}
 				}
 
-				os.Setenv(ConfigEnvVar, test.splunkConfigVal)
-				os.Setenv(ConfigYamlEnvVar, test.splunkConfigYamlVal)
+				t.Setenv(ConfigEnvVar, test.splunkConfigVal)
+				t.Setenv(ConfigYamlEnvVar, test.splunkConfigYamlVal)
 
 				set, err := New(os.Args[1:])
 				require.NoError(t, err)
 				require.NotNil(t, set)
 
-				actualLogs := actualLogsBuf.String()
+				actualLogs := actualLogsBuf.String())
 
 				for _, expectedLog := range test.expectedLogs {
 					require.Contains(t, actualLogs, expectedLog)
@@ -551,7 +551,7 @@ func TestEnablingConfigD(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, settings.configD)
 	require.Nil(t, settings.configDir.value)
-	require.Equal(t, "/etc/otel/collector/config.d", getConfigDir(settings))
+	require.Equal(t, "/etc/otel/collector/config.d", getConfigDir(settings)
 }
 
 func TestConfigDirFromArgs(t *testing.T) {
@@ -566,23 +566,23 @@ func TestConfigDirFromArgs(t *testing.T) {
 			require.False(t, settings.configD)
 			require.NotNil(t, settings.configDir.value)
 			require.Equal(t, "/from/args", settings.configDir.String())
-			require.Equal(t, "/from/args", getConfigDir(settings))
+			require.Equal(t, "/from/args", getConfigDir(settings)
 		})
 	}
 }
 
 func TestConfigDirFromEnvVar(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	os.Setenv("SPLUNK_CONFIG_DIR", "/from/env/var")
+	t.Setenv("SPLUNK_CONFIG_DIR", "/from/env/var")
 	settings, err := New([]string{"--config", configPath})
 	require.NoError(t, err)
 	require.Nil(t, settings.configDir.value)
-	require.Equal(t, "/from/env/var", getConfigDir(settings))
+	require.Equal(t, "/from/env/var", getConfigDir(settings)
 }
 
 func TestConfigArgFileURIForm(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	uriPath := fmt.Sprintf("file:%s", configPath)
+	uriPath := "file:" + configPath
 	settings, err := New([]string{"--config", uriPath})
 	require.NoError(t, err)
 	require.Equal(t, []string{uriPath}, settings.configPaths.value)
@@ -599,8 +599,8 @@ func TestConfigArgEnvURIForm(t *testing.T) {
 
 func TestCheckRuntimeParams_MemTotal(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(MemTotalEnvVar, "200")
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
@@ -610,8 +610,8 @@ func TestCheckRuntimeParams_MemTotal(t *testing.T) {
 
 func TestCheckRuntimeParams_Limit(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemLimitMiBEnvVar, "337"))
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(MemLimitMiBEnvVar, "337")
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
@@ -660,7 +660,7 @@ func TestInheritedDiscoveryConfigDirWithConfigD(t *testing.T) {
 
 	require.Equal(t, []string{
 		localGatewayConfig,
-		fmt.Sprintf("splunk.properties:%s", propertiesPath),
+		"splunk.properties:" + propertiesPath,
 		"splunk.configd:/some/config.d",
 		"splunk.discovery:/some/config.d",
 	}, settings.ResolverURIs())
@@ -686,8 +686,7 @@ func TestSetDefaultEnvVarsFileStorageExtension(t *testing.T) {
 func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 	nonDefaultPath := "/var/non/default/path"
-	err := os.Setenv("SPLUNK_FILE_STORAGE_EXTENSION_PATH", nonDefaultPath)
-	require.NoError(t, err)
+	t.Setenv("SPLUNK_FILE_STORAGE_EXTENSION_PATH", nonDefaultPath)
 	require.NoError(t, setDefaultEnvVars(nil))
 	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
 	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH to be set")
@@ -697,7 +696,7 @@ func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {
 // to satisfy Settings generation
 func setRequiredEnvVars(t *testing.T) func() {
 	cleanup := clearEnv(t)
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
 	return cleanup
 }
 
@@ -715,7 +714,7 @@ func clearEnv(t *testing.T) func() {
 	return func() {
 		os.Clearenv()
 		for k, v := range toRestore {
-			require.NoError(t, os.Setenv(k, v))
+			t.Setenv(k, v)
 		}
 	}
 }

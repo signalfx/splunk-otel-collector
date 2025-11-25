@@ -18,6 +18,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"syscall"
@@ -27,7 +28,7 @@ import (
 	"golang.org/x/sys/windows/svc"
 )
 
-func run(params otelcol.CollectorSettings) error {
+func run(ctx context.Context, params otelcol.CollectorSettings) error {
 	// There shouldn't be any reason to use NO_WINDOWS_SERVICE anymore, but,
 	// keeping it as a forcing mechanism or if someone is concerned about
 	// the cost of attempting to run as a service before falling back to
@@ -42,7 +43,7 @@ func run(params otelcol.CollectorSettings) error {
 	// BenchmarkSvcRunFail-16           8232412              4369 ns/op
 	//
 	if value, present := os.LookupEnv("NO_WINDOWS_SERVICE"); present && value != "0" {
-		return runInteractive(params)
+		return runInteractive(ctx, params)
 	}
 
 	// No need to supply service name when startup is invoked through
@@ -52,7 +53,7 @@ func run(params otelcol.CollectorSettings) error {
 		if ok && errno == windows.ERROR_FAILED_SERVICE_CONTROLLER_CONNECT {
 			// Per https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatchera#return-value
 			// this means that the process is not running as a service, so run interactively.
-			return runInteractive(params)
+			return runInteractive(ctx, params)
 		}
 
 		return fmt.Errorf("failed to start service: %w", err)

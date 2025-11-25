@@ -27,14 +27,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type runFromCmdLineTestCase struct {
+	name     string
+	panicMsg string
+	skipMsg  string
+	args     []string
+	timeout  time.Duration
+}
+
 func TestRunFromCmdLine(t *testing.T) {
-	tests := []struct {
-		name     string
-		panicMsg string
-		skipMsg  string
-		args     []string
-		timeout  time.Duration
-	}{
+	tests := []runFromCmdLineTestCase{
 		{
 			name:    "agent",
 			args:    []string{"otelcol", "--config=config/collector/agent_config.yaml"},
@@ -78,38 +80,39 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.skipMsg != "" {
-				t.Skip(tt.skipMsg)
-			}
-
-			// GH darwin runners don't have docker installed, skip discovery tests on them
-			// given that the docker_observer is enabled by default.
-			if runtime.GOOS == "darwin" && (tt.name == "default_discovery" || tt.name == "dry-run_discovery") {
-				if os.Getenv("GITHUB_ACTIONS") == "true" {
-					t.Skip("skipping discovery tests on darwin runners since they don't have docker installed")
-				}
-			}
-
-			testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
-			defer cancel()
-
-			otelcolCmdTestCtx = testCtx
-			defer func() {
-				otelcolCmdTestCtx = nil
-			}()
-
-			// Wait for the ConfigServer to be down after the test.
-			defer waitForPort(t, "55554")
-
-			if tt.panicMsg != "" {
-				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
-				return
-			}
-
-			waitForPort(t, "55554")
-			runFromCmdLine(tt.args)
+			tt.run(t)
 		})
 	}
+}
+
+func (tt runFromCmdLineTestCase) run(t *testing.T) {
+	if tt.skipMsg != "" {
+		t.Skip(tt.skipMsg)
+	}
+
+	// GH darwin runners don't have docker installed, skip discovery tests on them
+	// given that the docker_observer is enabled by default.
+	if runtime.GOOS == "darwin" && (tt.name == "default_discovery" || tt.name == "dry-run_discovery") {
+		if os.Getenv("GITHUB_ACTIONS") == "true" {
+			t.Skip("skipping discovery tests on darwin runners since they don't have docker installed")
+		}
+	}
+
+	testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
+	t.Cleanup(cancel)
+
+	// Wait for the ConfigServer to be down after the test.
+	t.Cleanup(func() {
+		waitForPort(t, "55554")
+	})
+
+	if tt.panicMsg != "" {
+		assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLineWithContext(testCtx, tt.args) })
+		return
+	}
+
+	waitForPort(t, "55554")
+	runFromCmdLineWithContext(testCtx, tt.args)
 }
 
 func waitForPort(t *testing.T, port string) {

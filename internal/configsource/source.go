@@ -88,7 +88,7 @@ func BuildConfigSourcesFromConf(ctx context.Context, confToFurtherResolve *confm
 		return nil, nil, fmt.Errorf("failed to parse settings from conf: %w", err)
 	}
 
-	configSources, err := BuildConfigSources(context.Background(), configSourceSettings, logger, factories)
+	configSources, err := BuildConfigSources(ctx, configSourceSettings, logger, factories)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to build config sources: %w", err)
 	}
@@ -305,7 +305,7 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 				if cfgSrcName == "" {
 					// Not a config source, expand as os.ExpandEnv
 					cfgSrcName = "env"
-					expandableContent = fmt.Sprintf("env:%s", expandableContent)
+					expandableContent = "env:" + expandableContent
 					if confmapProviders == nil {
 						// The expansion will be handled upstream by envprovider.
 						retrieved = fmt.Sprintf("${%s}", expandableContent)

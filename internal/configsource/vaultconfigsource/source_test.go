@@ -383,7 +383,7 @@ func TestVaultRetrieveErrors(t *testing.T) {
 
 			r, err := source.Retrieve(ctx, tt.selector, nil, nil)
 			require.Error(t, err)
-			assert.IsType(t, tt.err, err)
+			assert.ErrorAs(t, err, &tt.err)
 			assert.Nil(t, r)
 		})
 	}

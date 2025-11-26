@@ -349,9 +349,11 @@ jobs:
         shell: bash
         run: |
           # Extract version from MSI filename
-          MSI_FILE=$(ls dist/splunk-otel-collector-*-amd64.msi | head -n 1)
+          MSI_FILE=$(find dist -name 'splunk-otel-collector-*-amd64.msi' -type f | head -n 1)
           MSI_FILENAME=$(basename "$MSI_FILE")
-          MSI_VERSION=$(echo "$MSI_FILENAME" | sed 's/splunk-otel-collector-\(.*\)-amd64.msi/\1/')
+          # Use bash parameter expansion instead of sed
+          MSI_VERSION="${MSI_FILENAME#splunk-otel-collector-}"
+          MSI_VERSION="${MSI_VERSION%-amd64.msi}"
           echo "msi_version=$MSI_VERSION" >> "$GITHUB_OUTPUT"
           echo "Detected MSI version: $MSI_VERSION"
 
@@ -369,6 +371,7 @@ jobs:
       - name: Test puppet deployment
         id: pytest
         continue-on-error: true
+        shell: powershell
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           WIN_COLLECTOR_VERSION: "${{ steps.msi-version.outputs.msi_version }}"
@@ -380,6 +383,7 @@ jobs:
 
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
+        shell: powershell
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           WIN_COLLECTOR_VERSION: "${{ steps.msi-version.outputs.msi_version }}"

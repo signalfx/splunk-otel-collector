@@ -11,6 +11,8 @@ on:
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
+      - 'packaging/msi/**'
+      - 'packaging/bundle/**'
       - '!**.md'
   pull_request:
     paths:
@@ -19,6 +21,8 @@ on:
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
+      - 'packaging/msi/**'
+      - 'packaging/bundle/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 3,6' # Every Wednesday and Saturday at midnight UTC
@@ -181,22 +185,153 @@ jobs:
             --last-failed \
             packaging/tests/deployments/puppet/puppet_test.py
 
+  puppet-build-windows-binary:
+    name: puppet-build-windows-binary
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.3
+          cache-dependency-path: '**/go.sum'
+      
+      - name: Build Windows binary
+        run: |
+          make binaries-windows_amd64
+      
+      - name: Upload Windows binary artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-windows_amd64
+          path: ./bin/otelcol_windows_amd64.exe
+
+  puppet-build-windows-agent-bundle:
+    name: puppet-build-windows-agent-bundle
+    runs-on: windows-2022
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+      
+      - name: Build agent bundle
+        run: ./packaging/bundle/scripts/windows/make.ps1 bundle
+      
+      - name: Upload agent bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-bundle-windows
+          path: ./dist/agent-bundle_windows_amd64.zip
+
+  puppet-build-windows-msi-custom-actions:
+    name: puppet-build-windows-msi-custom-actions
+    runs-on: windows-2022
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+      
+      - name: Uninstall default WiX
+        run: choco uninstall wixtoolset
+      
+      - name: Install WiX 3.14.0
+        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+      
+      - name: Build Custom Actions
+        working-directory: packaging/msi/SplunkCustomActions
+        run: |
+          dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
+          dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
+      
+      - name: Package Custom Actions
+        run: |
+          $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
+          $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
+          $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
+          $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
+          $customActionBinDir = "${customActionDir}\bin\Release"
+          MakeSfxCA.exe "${PWD}\dist\SplunkCustomActions.CA.dll" `
+            "${sfxcaDll}" `
+            "${customActionBinDir}\SplunkCustomActions.dll" `
+            "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
+            "${customActionDir}\src\CustomAction.config"
+      
+      - name: Upload custom actions artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-custom-actions
+          path: ./dist/SplunkCustomActions.CA.dll
+
+  puppet-build-windows-msi:
+    name: puppet-build-windows-msi
+    runs-on: windows-2022
+    needs:
+      - puppet-build-windows-binary
+      - puppet-build-windows-agent-bundle
+      - puppet-build-windows-msi-custom-actions
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+      
+      - name: Uninstall default WiX
+        run: choco uninstall wixtoolset
+      
+      - name: Install WiX 3.14.0
+        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+      
+      - name: Download Windows binary artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: binaries-windows_amd64
+          path: ./bin
+      
+      - name: Download agent bundle artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: agent-bundle-windows
+          path: ./dist
+      
+      - name: Download MSI custom actions artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: msi-custom-actions
+          path: ./packaging/msi/SplunkCustomActions/bin/Release
+      
+      - name: Build MSI
+        shell: bash
+        run: |
+          VERSION="0.0.1-local"
+          JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
+          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"
+      
+      - name: Upload MSI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-package
+          path: ./dist/*.msi
+
   puppet-test-windows:
     name: puppet-test-windows
     runs-on: ${{ matrix.OS }}
     timeout-minutes: 60
     needs:
       - puppet-lint
+      - puppet-build-windows-msi
     strategy:
       matrix:
         OS: [ "windows-2022" ]
         PUPPET_RELEASE: [ "7.21.0", "8.1.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
-        WIN_COLLECTOR_VERSION: [ "0.86.0", "latest" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Download MSI package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: msi-package
+          path: ./dist
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -208,14 +343,36 @@ jobs:
       - name: Install pytest
         run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
+      - name: Detect MSI version
+        id: msi-version
+        shell: bash
+        run: |
+          # Extract version from MSI filename
+          MSI_FILE=$(ls dist/splunk-otel-collector-*-amd64.msi | head -n 1)
+          MSI_FILENAME=$(basename "$MSI_FILE")
+          MSI_VERSION=$(echo "$MSI_FILENAME" | sed 's/splunk-otel-collector-\(.*\)-amd64.msi/\1/')
+          echo "msi_version=$MSI_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Detected MSI version: $MSI_VERSION"
+
+      - name: Start local MSI server
+        shell: powershell
+        run: |
+          # Start Python HTTP server in background
+          Start-Process python -ArgumentList "packaging/tests/deployments/puppet/local_windows_test.py --serve --port 8000" -WindowStyle Hidden
+          # Wait for server to be ready
+          Start-Sleep -Seconds 5
+          # Verify server is running
+          $response = Invoke-WebRequest -Uri "http://localhost:8000/" -UseBasicParsing -TimeoutSec 10
+          Write-Host "Local MSI server started successfully"
+
       - name: Test puppet deployment
         id: pytest
         continue-on-error: true
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
-          WIN_COLLECTOR_VERSION: "${{ matrix.WIN_COLLECTOR_VERSION }}"
+          WIN_COLLECTOR_VERSION: "${{ steps.msi-version.outputs.msi_version }}"
+          LOCAL_MSI_SERVER: "http://localhost:8000"
         run: |
-          if ($Env:WIN_COLLECTOR_VERSION -eq 'latest') { $Env:WIN_COLLECTOR_VERSION="$(curl -sS https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt)" }
           pytest -s --verbose -m windows `
             -k ${{ matrix.TEST_CASE }} `
             packaging/tests/deployments/puppet/puppet_test.py
@@ -224,9 +381,9 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
-          WIN_COLLECTOR_VERSION: "${{ matrix.WIN_COLLECTOR_VERSION }}"
+          WIN_COLLECTOR_VERSION: "${{ steps.msi-version.outputs.msi_version }}"
+          LOCAL_MSI_SERVER: "http://localhost:8000"
         run: |
-          if ($Env:WIN_COLLECTOR_VERSION -eq 'latest') { $Env:WIN_COLLECTOR_VERSION="$(curl -sS https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt)" }
           pytest -s --verbose -m windows `
             --last-failed `
             -k ${{ matrix.TEST_CASE }} `

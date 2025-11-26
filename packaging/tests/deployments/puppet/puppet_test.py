@@ -594,7 +594,29 @@ WIN_PUPPET_MODULE_DEST_DIR = r"C:\ProgramData\PuppetLabs\code\environments\produ
 WIN_INSTALL_DIR = r"C:\Program Files\Splunk\OpenTelemetry Collector"
 WIN_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml"
 
-WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure 
+WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure
+# Support for local MSI server for testing with locally built artifacts
+# Usage: LOCAL_MSI_SERVER=http://localhost:8000 WIN_COLLECTOR_VERSION=0.0.1-local pytest ...
+WIN_MSI_REPO_URL = os.environ.get("LOCAL_MSI_SERVER", "https://dl.signalfx.com/splunk-otel-collector/msi/release")
+
+# Windows-specific config template for custom vars test
+WIN_CUSTOM_VARS_CONFIG = string.Template(
+    f"""
+class {{ splunk_otel_collector:
+    splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+    splunk_realm => '{SPLUNK_REALM}',
+    splunk_api_url => '$api_url',
+    splunk_ingest_url => '$ingest_url',
+    splunk_hec_token => 'fake-hec-token',
+    splunk_listen_interface => '0.0.0.0',
+    collector_version => '$version',
+    win_repo_url => '$win_repo_url',
+    with_fluentd => true,
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
+    collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
+}}
+"""
+)
 
 def run_win_puppet_setup(puppet_release, strict_mode=True):
     assert has_choco(), "choco not installed!"
@@ -635,6 +657,7 @@ def test_win_puppet_default():
         splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
         splunk_realm => '{SPLUNK_REALM}',
         collector_version => '{WIN_COLLECTOR_VERSION}',
+        win_repo_url => '{WIN_MSI_REPO_URL}',
     }}
     """
     run_win_puppet_agent(config)
@@ -664,7 +687,12 @@ def test_win_puppet_custom_vars():
 
     api_url = "https://fake-splunk-api.com"
     ingest_url = "https://fake-splunk-ingest.com"
-    config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=WIN_COLLECTOR_VERSION)
+    config = WIN_CUSTOM_VARS_CONFIG.substitute(
+        api_url=api_url, 
+        ingest_url=ingest_url, 
+        version=WIN_COLLECTOR_VERSION,
+        win_repo_url=WIN_MSI_REPO_URL
+    )
 
     run_win_puppet_agent(config)
 

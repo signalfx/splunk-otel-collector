@@ -61,16 +61,20 @@ cd packaging/msi
 # Build with auto-detected version
 ./build.sh
 
-# Or specify a version (must be in format X.Y.Z or X.Y.Z.W)
-./build.sh 0.0.1-local
+# Or specify a version (must be NUMERIC ONLY: X.Y.Z or X.Y.Z.W)
+./build.sh 0.0.1
 ```
 
 This creates: `dist/splunk-otel-collector-<version>-amd64.msi`
 
-**Important**: 
+**Important - Version Format**: 
+- MSI versions **MUST be numeric only**: `N.N.N` or `N.N.N.N` (e.g., `0.0.1`, `1.2.3`, `1.2.3.4`)
+- ❌ **Invalid**: `0.0.1-local`, `0.0.1-dev`, `0.0.1-test` (non-numeric suffixes not allowed)
+- ✅ **Valid**: `0.0.1`, `1.2.3`, `0.130.1.0`
+- Pre-release versions with specific formats are auto-converted:
+  - `v0.130.1-rc.0` → `0.130.1.0`
+  - `v0.130.1-beta.1` → `0.130.1.101`
 - The MSI filename format is: `splunk-otel-collector-<version>-amd64.msi`
-- Version must be in Windows-compatible format (e.g., `0.0.1`, `1.2.3.4`)
-- Pre-release versions are automatically converted (e.g., `v0.130.1-rc.0` → `0.130.1.0`)
 
 ### 4. Verify Artifacts
 

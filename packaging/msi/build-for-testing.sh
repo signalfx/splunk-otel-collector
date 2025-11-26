@@ -11,7 +11,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
 
 # Default version for local testing
-DEFAULT_VERSION="0.0.1-local"
+# MSI versions must be numeric only (N.N.N or N.N.N.N format)
+DEFAULT_VERSION="0.0.1"
 VERSION="${1:-$DEFAULT_VERSION}"
 
 echo "============================================"

@@ -300,7 +300,8 @@ jobs:
       - name: Build MSI
         shell: bash
         run: |
-          VERSION="0.0.1-local"
+          # MSI versions must be numeric only (N.N.N or N.N.N.N format)
+          VERSION="0.0.1"
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
           ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"
       

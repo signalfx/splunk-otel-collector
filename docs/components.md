@@ -130,6 +130,7 @@ The distribution offers support for the following components.
 | [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/nopexporter)                                               | [beta]       |
 | [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                                             | [stable]     |
 | [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                                     | [stable]     |
+| [prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusexporter)                         | [beta]       |
 | [prometheusremotewrite](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter)   | [beta]       |
 | [pulsar](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/pulsarexporter)                                 | [alpha]      |
 | [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)                                     | [deprecated] |

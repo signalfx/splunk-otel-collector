@@ -22,6 +22,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.140.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.140.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.140.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.140.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.140.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.140.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.140.1

@@ -81,7 +81,7 @@ This creates: `dist/splunk-otel-collector-<version>-amd64.msi`
 Check that all required artifacts were built:
 
 ```bash
-python packaging/tests/deployments/puppet/local_windows_test.py --check
+python packaging/tests/deployments/puppet/local_server.py --check
 ```
 
 Expected output:
@@ -99,7 +99,7 @@ Expected output:
 In one terminal, start the HTTP server to serve your local MSI:
 
 ```bash
-python packaging/tests/deployments/puppet/local_windows_test.py --serve
+python packaging/tests/deployments/puppet/local_server.py --serve
 ```
 
 This starts a server on `http://localhost:8000` serving files from the `dist/` directory.
@@ -140,7 +140,7 @@ If port 8000 is already in use:
 
 ```bash
 # Start server on different port
-python packaging/tests/deployments/puppet/local_windows_test.py --serve --port 9000
+python packaging/tests/deployments/puppet/local_server.py --serve --port 9000
 
 # Run tests with custom port
 WIN_COLLECTOR_VERSION=0.0.1 LOCAL_MSI_SERVER=http://localhost:9000 \
@@ -200,10 +200,10 @@ cd packaging/bundle/scripts/windows && ./make.ps1 bundle && cd ../../../../
 ./packaging/msi/build.sh 0.0.1
 
 # 2. Verify artifacts
-python packaging/tests/deployments/puppet/local_windows_test.py --check
+python packaging/tests/deployments/puppet/local_server.py --check
 
 # 3. In Terminal 1: Start MSI server
-python packaging/tests/deployments/puppet/local_windows_test.py --serve
+python packaging/tests/deployments/puppet/local_server.py --serve
 
 # 4. In Terminal 2: Run tests
 WIN_COLLECTOR_VERSION=0.0.1 LOCAL_MSI_SERVER=http://localhost:8000 \

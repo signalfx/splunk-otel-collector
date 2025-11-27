@@ -11,7 +11,7 @@ Usage:
        - Build MSI: packaging/msi/build.sh [VERSION]
     
     2. Run this script to start a local HTTP server:
-       python local_windows_test.py --serve
+       python local_server.py --serve
     
     3. In another terminal, run the puppet tests with the local server:
        WIN_COLLECTOR_VERSION=<your_version> LOCAL_MSI_SERVER=http://localhost:8000 \
@@ -134,7 +134,7 @@ def check_artifacts():
     if all_found:
         print("✓ All required artifacts found!")
         print("\nYou can now run:")
-        print("  python local_windows_test.py --serve")
+        print("  python local_server.py --serve")
         return True
     else:
         print("✗ Some artifacts are missing. Please build them first.")

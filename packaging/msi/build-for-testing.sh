@@ -89,7 +89,7 @@ if [[ -n "$MSI_FILE" ]]; then
     echo "To test with Puppet:"
     echo ""
     echo "1. Start the local MSI server (in one terminal):"
-    echo "   python packaging/tests/deployments/puppet/local_windows_test.py --serve"
+    echo "   python packaging/tests/deployments/puppet/local_server.py --serve"
     echo ""
     echo "2. Run the puppet tests (in another terminal):"
     echo "   WIN_COLLECTOR_VERSION=$MSI_VERSION LOCAL_MSI_SERVER=http://localhost:8000 \\"

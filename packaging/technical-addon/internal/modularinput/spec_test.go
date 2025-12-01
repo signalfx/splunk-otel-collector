@@ -36,7 +36,6 @@ func TestLoadConfig(t *testing.T) {
 			SchemaName: "Sample_Addon",
 			Version:    "1.2.3",
 		}, actual)
-
 }
 
 func TestRenderTemplate(t *testing.T) {

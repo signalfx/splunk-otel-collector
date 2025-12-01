@@ -102,6 +102,7 @@ func TestReceiverEntryPaths(t *testing.T) {
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator)))
 }
+
 func TestDiscoveryObserverEntryPaths(t *testing.T) {
 	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
@@ -352,10 +353,13 @@ var expectedServiceConfig = map[string]any{
 		"extensions": []any{"zpages"},
 		"pipelines": map[string]any{
 			"metrics": map[string]any{
-				"exporters": []any{"debug"}}},
+				"exporters": []any{"debug"},
+			},
+		},
 		"telemetry": map[string]any{
 			"logs": map[string]any{
-				"level": "debug"},
+				"level": "debug",
+			},
 		},
 	},
 }

@@ -409,10 +409,10 @@ func getBracketedExpandableContent(s string, i int) (expandableContent string, c
 		// Bracket expandableContent contains ':' treating it as a config source.
 		cfgSrcName = expandableContent[:delimIndex]
 	}
-	return
+	return expandableContent, consumed, cfgSrcName
 }
 
-func getBareExpandableContent(s string, i int) (expandableContent string, cfgSrcName string) {
+func getBareExpandableContent(s string, i int) (expandableContent, cfgSrcName string) {
 	// Non-bracketed usage, ie.: found the prefix char, it can be either a config
 	// source or an environment variable.
 	name, consumed := getTokenName(s[i:])
@@ -426,7 +426,7 @@ func getBareExpandableContent(s string, i int) (expandableContent string, cfgSrc
 		cfgSrcName = name
 		expandableContent = s[i:]
 	}
-	return
+	return expandableContent, cfgSrcName
 }
 
 // retrieveConfigSourceData retrieves data from the specified config source and injects them into
@@ -516,7 +516,7 @@ func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigM
 	parts := strings.SplitN(s, string(configSourceNameDelimChar), 2)
 	if len(parts) != 2 {
 		err = fmt.Errorf("invalid config source syntax at %q, it must have at least the config source name and a selector", s)
-		return
+		return cfgSrcName, selector, paramsConfigMap, err
 	}
 	cfgSrcName = strings.Trim(parts[0], " ")
 
@@ -530,7 +530,7 @@ func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigM
 		paramsConfigMap, err = parseParamsAsURLQuery(paramsPart)
 		if err != nil {
 			err = fmt.Errorf("invalid parameters syntax at %q: %w", s, err)
-			return
+			return cfgSrcName, selector, paramsConfigMap, err
 		}
 	}
 

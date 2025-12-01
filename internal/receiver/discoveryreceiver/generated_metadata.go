@@ -457,4 +457,28 @@ var receiverMetaMap = map[string]ReceiverMeta{
 			},
 		},
 	},
+	"prometheus/weaviate": {
+		ServiceType: "weaviate",
+		Status: Status{
+			Metrics: []Match{
+				{
+					Status:  "successful",
+					Strict:  "weaviate_build_info",
+					Message: "weaviate prometheus receiver is working!",
+				},
+			},
+			Statements: []Match{
+				{
+					Status:  "failed",
+					Regexp:  "connection refused",
+					Message: "The container is not serving http connections.",
+				},
+				{
+					Status:  "failed",
+					Regexp:  "dial tcp: lookup",
+					Message: "Unable to resolve weaviate prometheus tcp endpoint",
+				},
+			},
+		},
+	},
 }

@@ -66,7 +66,8 @@ func TestValidProperties(t *testing.T) {
 		key      string
 		val      string
 	}{
-		{key: "splunk.discovery.receivers.receivertype.config.key", val: "val",
+		{
+			key: "splunk.discovery.receivers.receivertype.config.key", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receivertype"},
@@ -85,7 +86,8 @@ func TestValidProperties(t *testing.T) {
 				Input: "splunk.discovery.receivers.receivertype.config.key",
 			},
 		},
-		{key: "splunk.discovery.extensions.extension_type/extensionname.config.key", val: "val",
+		{
+			key: "splunk.discovery.extensions.extension_type/extensionname.config.key", val: "val",
 			expected: &Property{
 				ComponentType: "extensions",
 				Component:     ComponentID{Type: "extension_type", Name: "extensionname"},
@@ -104,7 +106,8 @@ func TestValidProperties(t *testing.T) {
 				Input: "splunk.discovery.extensions.extension_type/extensionname.config.key",
 			},
 		},
-		{key: "splunk.discovery.receivers.receivertype/.config.key", val: "val",
+		{
+			key: "splunk.discovery.receivers.receivertype/.config.key", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receivertype"},
@@ -123,7 +126,8 @@ func TestValidProperties(t *testing.T) {
 				Input: "splunk.discovery.receivers.receivertype/.config.key",
 			},
 		},
-		{key: "splunk.discovery.receivers.receiver_type/config.config.one::two::three", val: "val",
+		{
+			key: "splunk.discovery.receivers.receiver_type/config.config.one::two::three", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receiver_type", Name: "config"},
@@ -142,7 +146,8 @@ func TestValidProperties(t *testing.T) {
 				Input: "splunk.discovery.receivers.receiver_type/config.config.one::two::three",
 			},
 		},
-		{key: "splunk.discovery.receivers.receiver_type////.config.one::config", val: "val",
+		{
+			key: "splunk.discovery.receivers.receiver_type////.config.one::config", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receiver_type", Name: "///"},
@@ -153,14 +158,16 @@ func TestValidProperties(t *testing.T) {
 					"receivers": map[string]any{
 						"receiver_type////": map[string]any{
 							"config": map[string]any{
-								"one": map[string]any{"config": "val"}},
+								"one": map[string]any{"config": "val"},
+							},
 						},
 					},
 				},
 				Input: "splunk.discovery.receivers.receiver_type////.config.one::config",
 			},
 		},
-		{key: "splunk.discovery.receivers.receiver_type////.enabled", val: "false",
+		{
+			key: "splunk.discovery.receivers.receiver_type////.enabled", val: "false",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{
@@ -177,7 +184,8 @@ func TestValidProperties(t *testing.T) {
 				Input:         "splunk.discovery.receivers.receiver_type////.enabled",
 			},
 		},
-		{key: "splunk.discovery.receivers.receiver_type////.enabled", val: "T",
+		{
+			key: "splunk.discovery.receivers.receiver_type////.enabled", val: "T",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{

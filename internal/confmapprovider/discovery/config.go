@@ -421,7 +421,7 @@ func loadEntry[K keyType, V entryType](componentType string, fs fs.FS, path stri
 func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path string, dst *map[K]V) (componentID K, err error) {
 	if dst == nil {
 		err = fmt.Errorf("cannot load %s into nil entry", componentType)
-		return
+		return componentID, err
 	}
 
 	var unmarshalDst any = dst
@@ -439,7 +439,7 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 
 	if err = unmarshalYaml(fs, path, unmarshalDst); err != nil {
 		err = fmt.Errorf("failed unmarshalling component %s: %w", componentType, err)
-		return
+		return componentID, err
 	}
 
 	if componentType == typeService || componentType == typeDiscoveryProperties {
@@ -483,7 +483,7 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 		err = comp.ErrorF(
 			path, fmt.Errorf("must contain a single mapping of ComponentID to component but contained %v", cids),
 		)
-		return
+		return componentID, err
 	}
 	return componentIDs[0], nil
 }
@@ -557,7 +557,7 @@ var pathSeparatorForCharacterRange = func() string {
 	return string(os.PathSeparator)
 }()
 
-func mergeConfigWithBundle(userCfg *Config, bundleCfg *Config) error {
+func mergeConfigWithBundle(userCfg, bundleCfg *Config) error {
 	for obs, bundledObs := range bundleCfg.DiscoveryObservers {
 		userObs, ok := userCfg.DiscoveryObservers[obs]
 		if !ok {

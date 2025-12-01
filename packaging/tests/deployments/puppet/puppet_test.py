@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
 import os
 import re
 import shutil
 import string
-import subprocess
 import sys
 import tempfile
 
@@ -53,6 +51,7 @@ SPLUNK_REALM = "test"
 SPLUNK_INGEST_URL = f"https://ingest.{SPLUNK_REALM}.signalfx.com"
 SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.signalfx.com"
 PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "6,7").split(",")
+COLLECTOR_VERSION = os.environ.get("VERSION", "0.0.1")
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
@@ -149,111 +148,6 @@ def verify_dotnet_config(container, path, exists=True):
         verify_config_file(container, path, key, val, exists=exists)
 
 
-def get_package(distro, name, path, arch="amd64"):
-    """Get local package path for the given distro and arch."""
-    pkg_paths = []
-    if distro in DEB_DISTROS:
-        pkg_paths = glob.glob(str(path / f"{name}*{arch}.deb"))
-    elif distro in RPM_DISTROS:
-        if arch == "amd64":
-            arch = "x86_64"
-        elif arch == "arm64":
-            arch = "aarch64"
-        pkg_paths = glob.glob(str(path / f"{name}*{arch}.rpm"))
-    
-    if pkg_paths:
-        return sorted(pkg_paths)[-1]
-    else:
-        return None
-
-
-def get_package_version_from_file(pkg_path):
-    """Extract version from a package file (DEB or RPM)."""
-    pkg_path = Path(pkg_path)
-    if not pkg_path.exists():
-        return None
-    
-    if pkg_path.suffix == ".deb":
-        # Try using dpkg-deb if available (Linux)
-        try:
-            result = subprocess.run(
-                ["dpkg-deb", "-f", str(pkg_path), "Version"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            if result.returncode == 0:
-                version = result.stdout.strip()
-                # Remove epoch if present (e.g., "1:0.1.0" -> "0.1.0")
-                if ":" in version:
-                    version = version.split(":", 1)[1]
-                return version
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            # dpkg-deb not available (e.g., on macOS), try extracting from filename
-            pass
-        
-        # Fallback: Extract version from filename pattern: name_version_arch.deb
-        # Example: splunk-otel-collector_0.0.1-local_amd64.deb
-        filename = pkg_path.name
-        parts = filename.replace(".deb", "").split("_")
-        if len(parts) >= 2:
-            # Version is typically the second part
-            version = parts[1]
-            return version
-    
-    elif pkg_path.suffix == ".rpm":
-        # Try using rpm if available
-        try:
-            result = subprocess.run(
-                ["rpm", "-qp", "--queryformat", "%{VERSION}", str(pkg_path)],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            if result.returncode == 0:
-                return result.stdout.strip()
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            # rpm not available, try extracting from filename
-            pass
-        
-        # Fallback: Extract version from filename pattern: name-version.arch.rpm
-        # Example: splunk-otel-collector-0.0.1-local.x86_64.rpm
-        filename = pkg_path.name
-        # Remove .rpm and split by dots
-        parts = filename.replace(".rpm", "").split(".")
-        if len(parts) >= 2:
-            # Version is typically before the arch (last part)
-            # Format: name-version.arch
-            name_version = ".".join(parts[:-1])  # Everything except last part (arch)
-            if "-" in name_version:
-                version = name_version.split("-", 1)[1]  # Everything after first dash
-                return version
-    
-    return None
-
-
-def get_controller_version_for_distro(distro):
-    """
-    Determine the collector version to use for a given distro by inspecting the
-    locally built package. Falls back to the provided version if detection fails.
-    """
-    pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
-
-    if not pkg_path:
-        pytest.fail(
-            f"No package found in {PKG_DIR} for {distro}. "
-            "Build packages first with: make deb-package ARCH=amd64 VERSION=0.0.1-local "
-            "and/or make rpm-package ARCH=amd64 VERSION=0.0.1-local"
-        )
-
-    detected_version = get_package_version_from_file(pkg_path)
-    if detected_version:
-        print(f"Using collector version '{detected_version}' from '{pkg_path}' for {distro}")
-        return detected_version
-
-    return None
-
-
 DEFAULT_CONFIG = string.Template(
     f"""
 class {{ splunk_otel_collector:
@@ -283,15 +177,10 @@ def test_puppet_default(distro, puppet_release):
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            # Extract actual version from package file (fallback to filename parsing)
-            collector_version = get_controller_version_for_distro(distro)
-            print(f"Collector version from package: {collector_version}")
-            
-            # Update config to use the specific version
-            # We're using the local repository we set up instead
-            config = DEFAULT_CONFIG.substitute(version=collector_version)
+            print(f"Using collector version: {COLLECTOR_VERSION}")
+            config = DEFAULT_CONFIG.substitute(version=COLLECTOR_VERSION)
             run_puppet_apply(container, config)
-            verify_package_version(container, "splunk-otel-collector", collector_version)
+            verify_package_version(container, "splunk-otel-collector", COLLECTOR_VERSION)
 
             verify_env_file(container)
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", ".*", exists=False)
@@ -339,14 +228,11 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
             
-            # Extract actual version from package file
-            collector_version = get_controller_version_for_distro(distro)
-            print(f"Collector version from package: {collector_version}")
-            
-            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=collector_version)
+            print(f"Using collector version: {COLLECTOR_VERSION}")
+            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=COLLECTOR_VERSION)
             # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
             run_puppet_apply(container, config, strict_mode=False)
-            verify_package_version(container, "splunk-otel-collector", collector_version)
+            verify_package_version(container, "splunk-otel-collector", COLLECTOR_VERSION)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
@@ -397,9 +283,9 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        collector_version = get_controller_version_for_distro(distro)
+        print(f"Using collector version: {COLLECTOR_VERSION}")
         config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(
-            collector_version=collector_version,
+            collector_version=COLLECTOR_VERSION,
             version=version,
             with_systemd=with_systemd,
         )
@@ -513,9 +399,9 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        resolved_collector_version = get_controller_version_for_distro(distro)
+        print(f"Using collector version: {COLLECTOR_VERSION}")
         config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(
-            collector_version=resolved_collector_version,
+            collector_version=COLLECTOR_VERSION,
             version=version,
             with_systemd=with_systemd,
         )

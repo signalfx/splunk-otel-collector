@@ -16,6 +16,8 @@ env:
 jobs:
   build-package:
     runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
@@ -27,6 +29,13 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
+
+      - name: Get package version
+        id: get-version
+        run: |
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building package with version: $VERSION"
 
       - name: Downloading binaries-linux_${{ inputs.ARCH }}
         uses: actions/download-artifact@v5
@@ -40,7 +49,7 @@ jobs:
           path: ./dist
 
       - name: Build ${{ inputs.SYS_PACKAGE }} ${{ inputs.ARCH }} package
-        run: make ${{ inputs.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ inputs.ARCH }}"
+        run: make ${{ inputs.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="${{ steps.get-version.outputs.version }}" ARCH="${{ inputs.ARCH }}"
 
       - name: Uploading ${{ inputs.SYS_PACKAGE }} ${{ inputs.ARCH }} package artifacts
         uses: actions/upload-artifact@v4

@@ -157,6 +157,7 @@ jobs:
         continue-on-error: true
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
@@ -172,6 +173,7 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
@@ -258,8 +260,8 @@ jobs:
       - name: Start local MSI server
         shell: powershell
         run: |
-          # Start Python HTTP server in background
-          Start-Process python -ArgumentList "packaging/tests/deployments/puppet/local_server.py --serve --port 8000" -WindowStyle Hidden
+          # Start Python HTTP server in background to serve MSI files from dist directory
+          Start-Process python -ArgumentList "-m http.server 8000 --directory dist" -WindowStyle Hidden
           # Wait for server to be ready
           Start-Sleep -Seconds 5
           # Verify server is running

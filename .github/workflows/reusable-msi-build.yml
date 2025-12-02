@@ -37,7 +37,6 @@ jobs:
           VERSION=$(echo "$VERSION" | sed 's/-/./g')
           
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Building MSI with version: $VERSION"
 
       - name: Uninstall default WiX
         run: choco uninstall wixtoolset

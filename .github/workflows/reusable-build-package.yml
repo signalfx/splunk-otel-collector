@@ -33,9 +33,9 @@ jobs:
       - name: Get package version
         id: get-version
         run: |
-          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//')
+          # Get base version from git and strip the v prefix
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//'')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Building package with version: $VERSION"
 
       - name: Downloading binaries-linux_${{ inputs.ARCH }}
         uses: actions/download-artifact@v5

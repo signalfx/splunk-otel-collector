@@ -13,9 +13,21 @@ env:
 jobs:
   msi-build:
     runs-on: ${{ inputs.OS }}
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Get MSI version
+        id: get-version
+        shell: bash
+        run: |
+          # Get base version from git and strip the v prefix
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
+          
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building MSI with version: $VERSION"
 
       - name: Uninstall default WiX
         run: choco uninstall wixtoolset
@@ -45,7 +57,7 @@ jobs:
         shell: bash
         run: |
           # Build script parameters
-          VERSION=""
+          VERSION="${{ steps.get-version.outputs.version }}"
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
           ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"

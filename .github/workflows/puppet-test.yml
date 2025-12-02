@@ -318,7 +318,7 @@ jobs:
         shell: powershell
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
-          WIN_COLLECTOR_VERSION: "${{ steps.msi-version.outputs.msi_version }}"
+          WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
           LOCAL_MSI_SERVER: "http://localhost:8000"
         run: |
           pytest -s --verbose -m windows `
@@ -330,7 +330,7 @@ jobs:
         shell: powershell
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
-          WIN_COLLECTOR_VERSION: "${{ steps.msi-version.outputs.msi_version }}"
+          WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
           LOCAL_MSI_SERVER: "http://localhost:8000"
         run: |
           pytest -s --verbose -m windows `

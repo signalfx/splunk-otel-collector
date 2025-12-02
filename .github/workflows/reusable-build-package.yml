@@ -43,7 +43,7 @@ jobs:
           # Logic to handle deb vs rpm version format
           if [[ "${{ inputs.SYS_PACKAGE }}" = "rpm" ]]; then
             # RPM expects numeric/dot or convert X.Y.Z-60 to X.Y.Z_60 (replace dash with underscore)
-            VERSION=$(echo "$VERSION" | sed 's/-/_/g')
+            VERSION="${VERSION//-/_}"
           fi
           
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"

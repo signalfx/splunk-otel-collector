@@ -34,7 +34,7 @@ jobs:
           
           # MSI version must be N.N.N or N.N.N.N format (numeric only)
           # Convert 0.140.0-60 to 0.140.0.60 (replace dash with dot)
-          VERSION=$(echo "$VERSION" | sed 's/-/./g')
+          VERSION="${VERSION//-/.}"
           
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 

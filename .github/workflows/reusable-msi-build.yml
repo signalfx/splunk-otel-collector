@@ -32,6 +32,10 @@ jobs:
           # Get base version from git and strip the v prefix
           VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
           
+          # MSI version must be N.N.N or N.N.N.N format (numeric only)
+          # Convert 0.140.0-60 to 0.140.0.60 (replace dash with dot)
+          VERSION=$(echo "$VERSION" | sed 's/-/./g')
+          
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building MSI with version: $VERSION"
 

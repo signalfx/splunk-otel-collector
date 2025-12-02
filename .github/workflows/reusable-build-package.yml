@@ -39,7 +39,14 @@ jobs:
         run: |
           # Get base version from git and strip the v prefix
           VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          
+          # Logic to handle deb vs rpm version format
+          if [[ "${{ inputs.SYS_PACKAGE }}" = "rpm" ]]; then
+            # RPM expects numeric/dot or convert X.Y.Z-60 to X.Y.Z_60 (replace dash with underscore)
+            VERSION=$(echo "$VERSION" | sed 's/-/_/g')
+          fi
+          
+          echo "version=$FINAL_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Downloading binaries-linux_${{ inputs.ARCH }}
         uses: actions/download-artifact@v5

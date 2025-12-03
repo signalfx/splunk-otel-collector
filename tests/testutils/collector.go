@@ -28,7 +28,7 @@ type Collector interface {
 	WithLogger(logger *zap.Logger) Collector
 	WithLogLevel(level string) Collector
 	WillFail(fail bool) Collector
-	WithMount(path string, mountPoint string) Collector
+	WithMount(path, mountPoint string) Collector
 	Build() (Collector, error)
 	Start() error
 	Shutdown() error

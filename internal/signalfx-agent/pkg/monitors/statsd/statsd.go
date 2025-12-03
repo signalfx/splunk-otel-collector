@@ -44,7 +44,6 @@ func (sl *statsDListener) listenUDP() error {
 		IP:   net.ParseIP(sl.ipAddr),
 		Port: int(sl.port),
 	})
-
 	if err != nil {
 		return err
 	}
@@ -96,7 +95,6 @@ func (sl *statsDListener) readUDP(chData chan []byte) {
 	buf := make([]byte, 65536)
 	for {
 		n, _, err := sl.udpConn.ReadFromUDP(buf)
-
 		if err != nil {
 			// Exit the loop if the connection is closed
 			if atomic.LoadInt32(&sl.shutdownCalled) > 0 {

@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func AssertFilesMatch(tt *testing.T, expectedPath string, actualPath string) {
+func AssertFilesMatch(tt *testing.T, expectedPath, actualPath string) {
 	require.FileExists(tt, actualPath)
 	require.FileExists(tt, expectedPath)
 	expected, err := os.ReadFile(expectedPath)

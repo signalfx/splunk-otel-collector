@@ -141,7 +141,7 @@ jobs:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
@@ -190,7 +190,7 @@ jobs:
           image: "otelcol-windows:latest"
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
@@ -201,13 +201,19 @@ jobs:
     steps:
       - name: Check for snyk token
         id: snyk-token-check
+        env:
+          IS_FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
         run: |
           if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
             echo "defined=true" >> "$GITHUB_OUTPUT"
           else
             echo "defined=false" >> "$GITHUB_OUTPUT"
-            echo "ERROR: The Snyk token is not available. The token is not available on PRs triggered from forked repositories."
-            exit 1
+            if [ "${IS_FORK_PR}" = "true" ]; then
+              echo "INFO: The Snyk token is not available on fork-based pull requests; skipping Snyk scans."
+            else
+              echo "ERROR: The Snyk token is not available."
+              exit 1
+            fi
           fi
 
   snyk-fs-scan:
@@ -225,7 +231,7 @@ jobs:
           command: code test
           args: --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
 
@@ -262,7 +268,7 @@ jobs:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --exclude-app-vulns --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
 
@@ -332,6 +338,6 @@ jobs:
 
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: ./govulncheck/${{ matrix.category }}.sarif

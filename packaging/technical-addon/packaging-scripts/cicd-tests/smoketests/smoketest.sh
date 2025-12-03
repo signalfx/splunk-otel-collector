@@ -20,8 +20,12 @@ ADDON_DIR="$ADDON_DIR" REPACKED_TA_NAME="$REPACKED_TA_NAME" docker compose --fil
 
 docker exec -u root smoketests-so1-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
 
-MAX_ATTEMPTS=6
-DELAY=10
+# Wait for the modular input to start (takes longer under emulation)
+echo "Waiting for TA modular input to initialize..."
+sleep 30
+
+MAX_ATTEMPTS=12
+DELAY=15
 ATTEMPT=1
 
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do

@@ -203,6 +203,7 @@ jobs:
 
       - name: Run the script upgrade tests
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
+        working-directory: tests/windows-install-script
         run: |
           go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 

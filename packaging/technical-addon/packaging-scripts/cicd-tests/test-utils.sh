@@ -16,15 +16,14 @@ repack_with_test_config() {
     echo "$token" > "$TEMP_DIR/Splunk_TA_otel/local/access_token"
 
     # Loop over all YAML files and update log level and output lines
-    # Use portable sed syntax that works on both macOS (BSD) and Linux (GNU)
     for yaml_file in "$TEMP_DIR/Splunk_TA_otel/configs/"*.yaml; do
         if [ -f "$yaml_file" ]; then
-            sed -e "s/level: .*/level: info/" -e "s/# output_paths: /output_paths: /" "$yaml_file" > "${yaml_file}.tmp" && mv "${yaml_file}.tmp" "$yaml_file"
+            sed -i "s/level: .*/level: info/" "$yaml_file"
+            sed -i "s/# output_paths: /output_paths: /" "$yaml_file"
         fi
     done
 
-    # Read a fixed amount of bytes first to avoid broken pipe error with pipefail
-    random_suffix="$(head -c 256 /dev/urandom | LC_CTYPE=c tr -dc 'A-Za-z0-9' | head -c 6)"
+    random_suffix="$(LC_CTYPE=c tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 6)"
     repacked="$TEMP_DIR/Splunk_TA_otel-${random_suffix}.tgz"
     COPYFILE_DISABLE=1 tar --format ustar -C "$TEMP_DIR" -hcz --file "$repacked"  "Splunk_TA_otel"
     chmod a+rwx "$repacked"

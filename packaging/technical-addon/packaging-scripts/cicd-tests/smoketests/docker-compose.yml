@@ -6,17 +6,14 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/en-US/account/login"]
       interval: 30s
       timeout: 10s
-      retries: 10
-      start_period: 180s
+      retries: 5
+      start_period: 60s
     environment:
       # If there's a bug in the TA, you may comment out this line and use docker exec via cp and splunk restart
       # in the test script to manually debug the TA
       - SPLUNK_APPS_URL=/tmp/local-tas/$REPACKED_TA_NAME
       - SPLUNK_START_ARGS=--accept-license
-      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_PASSWORD=Chang3d!
-      # Skip CPU preinstall checks for emulated environments (e.g., linux/amd64 on Apple Silicon)
-      - SPLUNK_SKIP_PREINSTALL_CPU_CHECKS_CORRUPTING_DATA_IF_UNSUPPORTED=1
     ports:
       - 8000
     volumes:

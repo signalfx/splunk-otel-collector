@@ -122,28 +122,14 @@ linters:
 
     gocritic:
       disabled-checks:
-        - deferInLoop
-        - filepathJoin
-        - hugeParam
-        - importShadow
-        - rangeValCopy
-        - unnamedResult
-        - whyNoLint
-        - paramTypeCombine
-        - yodaStyleExpr
-        - sloppyReassign
-        - emptyStringTest
-        - octalLiteral
-        - exposedSyncMutex
-        - preferStringWriter
-        - nestingReduce
-        - typeUnparen
-        - ptrToRefParam
-        - regexpSimplify
-        - stringConcatSimplify
-        - httpNoBody
-        - stringXbytes
-        - redundantSprint
+        - deferInLoop # default
+        - filepathJoin # default
+        - hugeParam # default
+        - importShadow # default
+        - unnamedResult # default
+        - whyNoLint # default
+        - exposedSyncMutex # default
+        - ptrToRefParam # default
       enable-all: true
 
     gosec:

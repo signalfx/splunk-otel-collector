@@ -8,7 +8,7 @@ component: configserver
 note: Removed the, already deprecated, localhost config endpoint, `http://localhost:55554/debug/configz` and the related environment variables.
 
 # One or more tracking issues related to the change
-issues: [6982]
+issues: [6984]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

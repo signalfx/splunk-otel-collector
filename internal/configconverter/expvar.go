@@ -93,7 +93,6 @@ func (e *ExpvarConverter) Convert(_ context.Context, conf *confmap.Conf) error {
 	return nil
 }
 
-
 func simpleRedact(config map[string]any) map[string]any {
 	redactedConfig := make(map[string]any)
 	for k, v := range config {

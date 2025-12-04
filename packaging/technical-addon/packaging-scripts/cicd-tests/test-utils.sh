@@ -23,7 +23,10 @@ repack_with_test_config() {
         fi
     done
 
-    random_suffix="$(head -c 32 /dev/urandom | LC_CTYPE=c tr -dc 'A-Za-z0-9' | head -c 6)"
+    random_suffix=""
+    while [ "${#random_suffix}" -lt 6 ]; do
+        random_suffix="$(head -c 64 /dev/urandom | LC_CTYPE=c tr -dc 'A-Za-z0-9' | head -c 6)"
+    done
     repacked="$TEMP_DIR/Splunk_TA_otel-${random_suffix}.tgz"
     COPYFILE_DISABLE=1 tar --format ustar -C "$TEMP_DIR" -hcz --file "$repacked"  "Splunk_TA_otel"
     chmod a+rwx "$repacked"

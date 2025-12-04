@@ -520,7 +520,7 @@ func stringToKeyType[K keyType](s string, key K) (K, error) {
 			} else {
 				componentIDK = component.ID{}
 				cIDK := componentIDK.(component.ID)
-				if err = (&cIDK).UnmarshalText([]byte(s)); err != nil {
+				if err := (&cIDK).UnmarshalText([]byte(s)); err != nil {
 					var zero K
 					return zero, err // (gocritic suggestion not valid with type parameter)
 				}

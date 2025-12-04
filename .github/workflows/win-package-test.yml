@@ -112,6 +112,7 @@ jobs:
           "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Run the MSI tests
+        working-directory: tests/msi
         run: |
           go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
 

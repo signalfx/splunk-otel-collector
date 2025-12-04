@@ -721,7 +721,7 @@ func (m *mockNilCfgSrcFactory) Type() component.Type {
 	return component.MustNewType("tstcfgsrc")
 }
 
-var _ (Factory) = (*mockNilCfgSrcFactory)(nil)
+var _ Factory = (*mockNilCfgSrcFactory)(nil)
 
 func (m *mockNilCfgSrcFactory) CreateDefaultConfig() Settings {
 	return &MockCfgSrcSettings{

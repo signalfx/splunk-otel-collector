@@ -518,7 +518,6 @@ func stringToKeyType[K keyType](s string, key K) (K, error) {
 			if s == discovery.NoType.String() {
 				componentIDK = discovery.NoType
 			} else {
-				var err error
 				componentIDK = component.ID{}
 				cIDK := componentIDK.(component.ID)
 				if err = (&cIDK).UnmarshalText([]byte(s)); err != nil {

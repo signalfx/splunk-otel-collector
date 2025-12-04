@@ -286,109 +286,110 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 	i := 0
 	for j := 0; j < len(s); j++ {
 		// Skip chars until a candidate for expansion is found.
-		if s[j] == expandPrefixChar && j+1 < len(s) {
-			if buf == nil {
-				// Assuming that the length of the string will double after expansion of env vars and config sources.
-				buf = make([]byte, 0, 2*len(s))
-			}
-
-			// Append everything consumed up to the prefix char (but not including the prefix char) to the result.
-			buf = append(buf, s[i:j]...)
-
-			var expandableContent, cfgSrcName string
-			var retrieved any
-			w := 0 // number of bytes consumed on this pass
-
-			switch {
-			case s[j+1] == '{':
-				expandableContent, w, cfgSrcName = getBracketedExpandableContent(s, j+1)
-				if cfgSrcName == "" {
-					// Not a config source, expand as os.ExpandEnv
-					cfgSrcName = "env"
-					expandableContent = "env:" + expandableContent
-					if confmapProviders == nil {
-						// The expansion will be handled upstream by envprovider.
-						retrieved = fmt.Sprintf("${%s}", expandableContent)
-					}
-				}
-			case 'a' <= s[j+1] && s[j+1] <= 'z' || 'A' <= s[j+1] && s[j+1] <= 'Z':
-				// TODO: Remove all the logic for bare expandable content along with the error messages
-				//       in a future release. This is kept to facilitate the transition from the old format.
-				expandableContent, cfgSrcName = getBareExpandableContent(s, j+1)
-				switch {
-				case cfgSrcName == "":
-					fmt.Printf("[ERROR] Support for variable substitution using the $VAR format has been removed"+
-						" in favor of the ${env:VAR} format. Please update $%s in your configuration\n",
-						expandableContent)
-				case strings.Contains(expandableContent, "\n"):
-					fmt.Printf("[ERROR] Calling config sources in multiline format is not supported anymore. "+
-						"Please convert the following call to the one-line format ${uri:selector?param1"+
-						"=value1,param2=value2}:\n %s\n", expandableContent)
-				default:
-					fmt.Printf("[ERROR] Config source expansion formatted as $uri:selector is not supported anymore, "+
-						"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration\n",
-						expandableContent, expandableContent)
-				}
-				return nil, nil, fmt.Errorf("invalid config source invocation $%s", expandableContent)
-			default:
-				// The next character cannot be used to start an expandable content, ignore it.
-				// $$ escaping is being handled upstream.
-				retrieved = s[j : j+2]
-				w = 1
-			}
-
-			if retrieved == nil {
-				// A config source, retrieve and apply results.
-				var closeFunc confmap.CloseFunc
-				var err error
-				retrieved, closeFunc, err = retrieveConfigSourceData(ctx, configSources, confmapProviders, cfgSrcName, expandableContent, watcher)
-				if err != nil {
-					return nil, nil, err
-				}
-				if closeFunc != nil {
-					closeFuncs = append(closeFuncs, closeFunc)
-				}
-
-				consumedAll := j+w+1 == len(s)
-				if consumedAll && len(buf) == 0 {
-					// This is the only expandableContent on the string, config
-					// source is free to return any but parse it as YAML
-					// if it is a string or byte slice.
-					switch value := retrieved.(type) {
-					case []byte:
-						if err := yaml.Unmarshal(value, &retrieved); err != nil {
-							// The byte slice is an invalid YAML keep the original.
-							retrieved = value
-						}
-					case string:
-						if err := yaml.Unmarshal([]byte(value), &retrieved); err != nil {
-							// The string is an invalid YAML keep it as the original.
-							retrieved = value
-						}
-					}
-
-					if mapIFace, ok := retrieved.(map[any]any); ok {
-						// yaml.Unmarshal returns map[any]any but config
-						// map uses map[string]any, fix it with a cast.
-						retrieved = cast.ToStringMap(mapIFace)
-					}
-
-					return retrieved, MergeCloseFuncs(closeFuncs), nil
-				}
-			}
-
-			// Either there was a prefix already or there are still characters to be processed.
-			if retrieved == nil {
-				// Since this is going to be concatenated to a string use "" instead of nil,
-				// otherwise the string will end up with "<nil>".
-				retrieved = ""
-			}
-
-			buf = append(buf, fmt.Sprintf("%v", retrieved)...)
-
-			j += w    // move the index of the char being checked (j) by the number of characters consumed (w) on this iteration.
-			i = j + 1 // update start index (i) of next slice of bytes to be copied.
+		if s[j] != expandPrefixChar || j+1 >= len(s) {
+			continue
 		}
+		if buf == nil {
+			// Assuming that the length of the string will double after expansion of env vars and config sources.
+			buf = make([]byte, 0, 2*len(s))
+		}
+
+		// Append everything consumed up to the prefix char (but not including the prefix char) to the result.
+		buf = append(buf, s[i:j]...)
+
+		var expandableContent, cfgSrcName string
+		var retrieved any
+		w := 0 // number of bytes consumed on this pass
+
+		switch {
+		case s[j+1] == '{':
+			expandableContent, w, cfgSrcName = getBracketedExpandableContent(s, j+1)
+			if cfgSrcName == "" {
+				// Not a config source, expand as os.ExpandEnv
+				cfgSrcName = "env"
+				expandableContent = fmt.Sprintf("env:%s", expandableContent)
+				if confmapProviders == nil {
+					// The expansion will be handled upstream by envprovider.
+					retrieved = fmt.Sprintf("${%s}", expandableContent)
+				}
+			}
+		case 'a' <= s[j+1] && s[j+1] <= 'z' || 'A' <= s[j+1] && s[j+1] <= 'Z':
+			// TODO: Remove all the logic for bare expandable content along with the error messages
+			//       in a future release. This is kept to facilitate the transition from the old format.
+			expandableContent, cfgSrcName = getBareExpandableContent(s, j+1)
+			switch {
+			case cfgSrcName == "":
+				fmt.Printf("[ERROR] Support for variable substitution using the $VAR format has been removed"+
+					" in favor of the ${env:VAR} format. Please update $%s in your configuration\n",
+					expandableContent)
+			case strings.Contains(expandableContent, "\n"):
+				fmt.Printf("[ERROR] Calling config sources in multiline format is not supported anymore. "+
+					"Please convert the following call to the one-line format ${uri:selector?param1"+
+					"=value1,param2=value2}:\n %s\n", expandableContent)
+			default:
+				fmt.Printf("[ERROR] Config source expansion formatted as $uri:selector is not supported anymore, "+
+					"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration\n",
+					expandableContent, expandableContent)
+			}
+			return nil, nil, fmt.Errorf("invalid config source invocation $%s", expandableContent)
+		default:
+			// The next character cannot be used to start an expandable content, ignore it.
+			// $$ escaping is being handled upstream.
+			retrieved = s[j : j+2]
+			w = 1
+		}
+
+		if retrieved == nil {
+			// A config source, retrieve and apply results.
+			var closeFunc confmap.CloseFunc
+			var err error
+			retrieved, closeFunc, err = retrieveConfigSourceData(ctx, configSources, confmapProviders, cfgSrcName, expandableContent, watcher)
+			if err != nil {
+				return nil, nil, err
+			}
+			if closeFunc != nil {
+				closeFuncs = append(closeFuncs, closeFunc)
+			}
+
+			consumedAll := j+w+1 == len(s)
+			if consumedAll && len(buf) == 0 {
+				// This is the only expandableContent on the string, config
+				// source is free to return any but parse it as YAML
+				// if it is a string or byte slice.
+				switch value := retrieved.(type) {
+				case []byte:
+					if err := yaml.Unmarshal(value, &retrieved); err != nil {
+						// The byte slice is an invalid YAML keep the original.
+						retrieved = value
+					}
+				case string:
+					if err := yaml.Unmarshal([]byte(value), &retrieved); err != nil {
+						// The string is an invalid YAML keep it as the original.
+						retrieved = value
+					}
+				}
+
+				if mapIFace, ok := retrieved.(map[any]any); ok {
+					// yaml.Unmarshal returns map[any]any but config
+					// map uses map[string]any, fix it with a cast.
+					retrieved = cast.ToStringMap(mapIFace)
+				}
+
+				return retrieved, MergeCloseFuncs(closeFuncs), nil
+			}
+		}
+
+		// Either there was a prefix already or there are still characters to be processed.
+		if retrieved == nil {
+			// Since this is going to be concatenated to a string use "" instead of nil,
+			// otherwise the string will end up with "<nil>".
+			retrieved = ""
+		}
+
+		buf = append(buf, fmt.Sprintf("%v", retrieved)...)
+
+		j += w    // move the index of the char being checked (j) by the number of characters consumed (w) on this iteration.
+		i = j + 1 // update start index (i) of next slice of bytes to be copied.
 	}
 
 	if buf == nil {
@@ -551,7 +552,7 @@ func parseParamsAsURLQuery(s string) (*confmap.Conf, error) {
 			params[k] = nil
 		case 1:
 			var iface any
-			if err = yaml.Unmarshal([]byte(v[0]), &iface); err != nil {
+			if err := yaml.Unmarshal([]byte(v[0]), &iface); err != nil { //nolint:govet // intentional shadow
 				return nil, err
 			}
 			params[k] = iface
@@ -560,7 +561,7 @@ func parseParamsAsURLQuery(s string) (*confmap.Conf, error) {
 			elemSlice := make([]any, 0, len(v))
 			for _, elem := range v {
 				var iface any
-				if err = yaml.Unmarshal([]byte(elem), &iface); err != nil {
+				if err := yaml.Unmarshal([]byte(elem), &iface); err != nil { //nolint:govet // intentional shadow
 					return nil, err
 				}
 				elemSlice = append(elemSlice, iface)

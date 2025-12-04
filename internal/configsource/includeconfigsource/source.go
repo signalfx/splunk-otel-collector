@@ -65,12 +65,12 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 	} else {
 		params = map[string]any{}
 	}
-	if err = tmpl.Execute(&buf, params); err != nil {
+	if err := tmpl.Execute(&buf, params); err != nil { //nolint:govet // intentional shadow
 		return nil, err
 	}
 
 	if is.DeleteFiles {
-		if err = os.Remove(selector); err != nil {
+		if err := os.Remove(selector); err != nil { //nolint:govet // intentional shadow
 			return nil, &errFailedToDeleteFile{fmt.Errorf("failed to delete file %q as requested: %w", selector, err)}
 		}
 	}

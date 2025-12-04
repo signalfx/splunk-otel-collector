@@ -17,7 +17,6 @@ package discoveryreceiver
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
@@ -136,7 +135,7 @@ func (se *statementEvaluator) Write(entry zapcore.Entry, fields []zapcore.Field)
 
 	// propagate the log entry to the sampled logger using the name field + error message as the sampling key
 	errMsg := fmt.Sprintf("%v", statement.Fields["error"])
-	if ce := se.sampledLogger.Check(entry.Level, strings.Join([]string{name, entry.Message, errMsg}, "")); ce != nil {
+	if ce := se.sampledLogger.Check(entry.Level, name+entry.Message+errMsg); ce != nil {
 		_ = se.sampledLogger.Core().Write(entry, fields)
 	}
 

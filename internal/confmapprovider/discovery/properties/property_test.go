@@ -34,7 +34,7 @@ func TestWordifyHappyPath(t *testing.T) {
 	cBytes, err := os.ReadFile(filepath.Join(".", "testdata", "utf8-corpus.txt"))
 	require.NoError(t, err)
 	corpus := string(cBytes)
-	nonWordRE := regexp.MustCompile(`[^\w]+`)
+	nonWordRE := regexp.MustCompile(`\W+`)
 	require.True(t, nonWordRE.MatchString(corpus))
 
 	wordifiedCorpus := wordify(corpus)

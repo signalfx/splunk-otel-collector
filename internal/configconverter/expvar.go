@@ -17,8 +17,10 @@ package configconverter
 import (
 	"context"
 	"expvar"
+	"strings"
 	"sync"
 
+	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 
@@ -89,4 +91,52 @@ func (e *ExpvarConverter) Convert(_ context.Context, conf *confmap.Conf) error {
 	defer e.effectiveMutex.Unlock()
 	e.effective = conf.ToStringMap()
 	return nil
+}
+
+
+func simpleRedact(config map[string]any) map[string]any {
+	redactedConfig := make(map[string]any)
+	for k, v := range config {
+		switch value := v.(type) {
+		case string:
+			if shouldRedactKey(k) {
+				v = "<redacted>"
+			}
+		case map[string]any:
+			v = simpleRedact(value)
+		case map[any]any:
+			v = simpleRedact(cast.ToStringMap(value))
+		}
+
+		redactedConfig[k] = v
+	}
+
+	return redactedConfig
+}
+
+// shouldRedactKey applies a simple check to see if the contents of the given key
+// should be redacted or not.
+func shouldRedactKey(k string) bool {
+	fragments := []string{
+		"access",
+		"api_key",
+		"apikey",
+		"auth",
+		"credential",
+		"creds",
+		"login",
+		"password",
+		"pwd",
+		"token",
+		"user",
+		"X-SF-Token",
+	}
+
+	for _, fragment := range fragments {
+		if strings.Contains(k, fragment) {
+			return true
+		}
+	}
+
+	return false
 }

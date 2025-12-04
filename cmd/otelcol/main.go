@@ -58,17 +58,14 @@ func runFromCmdLine(args []string) {
 		Version: version.Version,
 	}
 
-	configServer := configconverter.NewConfigServer()
-
 	confMapConverterFactories := collectorSettings.ConfMapConverterFactories()
 	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun(), confMapConverterFactories)
 	expvarConverter := configconverter.GetExpvarConverter()
 	confMapConverterFactories = append(confMapConverterFactories,
 		configconverter.ConverterFactoryFromConverter(dryRun),
-		configconverter.ConverterFactoryFromConverter(configServer),
 		configconverter.ConverterFactoryFromConverter(expvarConverter))
 
-	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{configServer, expvarConverter, dryRun})
+	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{expvarConverter, dryRun})
 
 	var providerFactories []confmap.ProviderFactory
 	for _, pf := range collectorSettings.ConfMapProviderFactories() {

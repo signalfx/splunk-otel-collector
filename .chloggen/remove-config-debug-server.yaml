@@ -5,7 +5,7 @@ change_type: breaking
 component: configserver
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Removed the, already deprecated, localhost config endpoint, `http://localhost:55554/debug/configz` and the related environment variables.
+note: Removed the deprecated localhost config endpoint (`http://localhost:55554/debug/configz`) and its related environment variables.
 
 # One or more tracking issues related to the change
 issues: [6984]

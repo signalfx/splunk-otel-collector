@@ -132,7 +132,7 @@ func shouldRedactKey(k string) bool {
 	}
 
 	for _, fragment := range fragments {
-		if strings.Contains(k, fragment) {
+		if strings.Contains(strings.ToLower(k), fragment) {
 			return true
 		}
 	}

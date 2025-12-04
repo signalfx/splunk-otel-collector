@@ -96,7 +96,7 @@ func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 	defer func() {
 		require.NoError(t, os.Remove(f.Name()))
 	}()
-	_, err = f.Write([]byte("val1"))
+	_, err = f.WriteString("val1")
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
 

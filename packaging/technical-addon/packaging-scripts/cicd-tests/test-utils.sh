@@ -8,7 +8,7 @@ repack_with_test_config() {
 
     TEMP_DIR="$BUILD_DIR/repack"
     mkdir -p "$TEMP_DIR"
-    TEMP_DIR="$(mktemp -d "$(realpath "$TEMP_DIR")/tmp.XXXXXXXXXX")"
+    TEMP_DIR="$(mktemp -d --tmpdir="$(realpath "$TEMP_DIR")")"
     tar xzvf "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" -C "$TEMP_DIR"
     cp -r "$TEMP_DIR/Splunk_TA_otel/default/" "$TEMP_DIR/Splunk_TA_otel/local/"
     chmod -R a+rwx "$TEMP_DIR"

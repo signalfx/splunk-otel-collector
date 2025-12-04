@@ -13,8 +13,11 @@ services:
       # If there's a bug in the TA, you may comment out this line and use docker exec via cp and splunk restart
       # in the test script to manually debug the TA
       - SPLUNK_APPS_URL=/tmp/local-tas/$REPACKED_TA_NAME
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD=Chang3d!
+      - SPLUNK_SKIP_PREINSTALL_CPU_CHECKS_CORRUPTING_DATA_IF_UNSUPPORTED=1
+      - ANSIBLE_BECOME_FLAGS=-E
     volumes:
       - $ADDON_DIR:/tmp/local-tas:rwz
     depends_on:

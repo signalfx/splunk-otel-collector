@@ -96,7 +96,7 @@ func networkValues(net []info.InterfaceStats, valueFn func(*info.InterfaceStats)
 }
 
 func getContainerMetrics() []containerMetric {
-	var metrics = []containerMetric{
+	metrics := []containerMetric{
 		{
 			name:      "container_last_seen",
 			help:      "Last time a container was seen by the exporter",
@@ -512,7 +512,7 @@ func getContainerMetrics() []containerMetric {
 }
 
 func getContainerSpecCPUMetrics() []containerSpecMetric {
-	var metrics = []containerSpecMetric{
+	metrics := []containerSpecMetric{
 		{
 			containerMetric: containerMetric{
 				name:        "container_spec_cpu_shares",
@@ -552,7 +552,7 @@ func getContainerSpecCPUMetrics() []containerSpecMetric {
 }
 
 func getContainerSpecMemMetrics() []containerSpecMetric {
-	var metrics = []containerSpecMetric{
+	metrics := []containerSpecMetric{
 		{
 			containerMetric: containerMetric{
 				name:        "container_spec_memory_limit_bytes",
@@ -588,7 +588,7 @@ func getContainerSpecMemMetrics() []containerSpecMetric {
 }
 
 func getMachineInfoMetrics() []machineInfoMetric {
-	var metrics = []machineInfoMetric{
+	metrics := []machineInfoMetric{
 		{
 			containerMetric: containerMetric{
 				name:        "machine_cpu_frequency_khz",
@@ -627,7 +627,7 @@ func getMachineInfoMetrics() []machineInfoMetric {
 }
 
 func getContainerSpecMetrics() []containerSpecMetric {
-	var metrics = []containerSpecMetric{
+	metrics := []containerSpecMetric{
 		{
 			containerMetric: containerMetric{
 				name:        "container_start_time_seconds",
@@ -645,7 +645,7 @@ func getContainerSpecMetrics() []containerSpecMetric {
 }
 
 func getPodEphemeralStorageMetrics() []podStatusMetric {
-	var metrics = []podStatusMetric{
+	metrics := []podStatusMetric{
 		{
 			name:      "pod_ephemeral_storage_capacity_bytes",
 			valueType: datapoint.Gauge,
@@ -664,7 +664,6 @@ func getPodEphemeralStorageMetrics() []podStatusMetric {
 					return metricValues{{value: datapoint.NewIntValue(int64(*es.UsedBytes))}} //nolint:gosec
 				}
 				return metricValues{}
-
 			},
 		},
 	}
@@ -677,8 +676,8 @@ func NewCadvisorCollector(
 	infoProvider InfoProvider,
 	sendDPs func(...*datapoint.Datapoint),
 	defaultDimensions map[string]string,
-	logger log.FieldLogger) *CadvisorCollector {
-
+	logger log.FieldLogger,
+) *CadvisorCollector {
 	return &CadvisorCollector{
 		infoProvider:               infoProvider,
 		containerMetrics:           getContainerMetrics(),
@@ -878,7 +877,6 @@ func (c *CadvisorCollector) collectMachineInfo() {
 func (c *CadvisorCollector) collectEphemeralStorageStatsFromPod() {
 	now := time.Now()
 	podStats, err := c.infoProvider.GetEphemeralStatsFromPods()
-
 	if err != nil {
 		c.logger.Errorf("Couldn't get Pod stats: %s", err)
 		return

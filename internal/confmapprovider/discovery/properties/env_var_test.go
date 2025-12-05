@@ -31,14 +31,16 @@ func TestValidEnvVarProperties(t *testing.T) {
 		envVar   string
 		val      string
 	}{
-		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_type_x2f__CONFIG_one",
-			val: "val",
+		{
+			envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_type_x2f__CONFIG_one",
+			val:    "val",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{
 						"receiver_type": map[string]any{
 							"config": map[string]any{
-								"one": "val"},
+								"one": "val",
+							},
 						},
 					},
 				},
@@ -50,8 +52,9 @@ func TestValidEnvVarProperties(t *testing.T) {
 				Input:         "splunk.discovery.receivers.receiver_type/.config.one",
 			},
 		},
-		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_type_x2f_extension____name_CONFIG_one_x3a__x3a_two",
-			val: "a.val",
+		{
+			envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_type_x2f_extension____name_CONFIG_one_x3a__x3a_two",
+			val:    "a.val",
 			expected: &Property{
 				stringMap: map[string]any{
 					"extensions": map[string]any{
@@ -72,8 +75,9 @@ func TestValidEnvVarProperties(t *testing.T) {
 				Input:         "splunk.discovery.extensions.extension_type/extension____name.config.one::two",
 			},
 		},
-		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_type_x2f_extension____name_ENABLED",
-			val: "False",
+		{
+			envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_type_x2f_extension____name_ENABLED",
+			val:    "False",
 			expected: &Property{
 				stringMap: map[string]any{
 					"extensions": map[string]any{
@@ -89,8 +93,9 @@ func TestValidEnvVarProperties(t *testing.T) {
 				Input:         "splunk.discovery.extensions.extension_type/extension____name.enabled",
 			},
 		},
-		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_type_x2f__ENABLED",
-			val: "true",
+		{
+			envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_type_x2f__ENABLED",
+			val:    "true",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{

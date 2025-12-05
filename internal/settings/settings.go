@@ -124,11 +124,11 @@ func New(args []string) (*Settings, error) {
 		return s, nil
 	}
 
-	if err = checkRuntimeParams(s); err != nil {
+	if err := checkRuntimeParams(s); err != nil {
 		return nil, err
 	}
 
-	if err = setDefaultEnvVars(s); err != nil {
+	if err := setDefaultEnvVars(s); err != nil {
 		return nil, err
 	}
 
@@ -139,7 +139,7 @@ func New(args []string) (*Settings, error) {
 func (s *Settings) ResolverURIs() []string {
 	var configPaths []string
 	if configPaths = s.configPaths.value; len(configPaths) == 0 {
-		if configEnvVal := os.Getenv(ConfigEnvVar); len(configEnvVal) != 0 {
+		if configEnvVal := os.Getenv(ConfigEnvVar); configEnvVal != "" {
 			configPaths = []string{"file:" + configEnvVal}
 		}
 	}
@@ -306,7 +306,7 @@ func parseSetOptionArguments(arguments []string) (setProperties, discoveryProper
 			setProperties = append(setProperties, arg)
 		}
 	}
-	return
+	return setProperties, discoveryProperties
 }
 
 // flagSetToArgs takes slices of core service flag names and arguments and returns a slice of corresponding command line
@@ -491,7 +491,7 @@ func checkConfig(settings *Settings) error {
 			return err
 		}
 		settings.configPaths.Set(defaultConfigPath)
-		if err = confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value); err != nil {
+		if err := confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value); err != nil {
 			return err
 		}
 		logInfo("Set config to %v", defaultConfigPath)
@@ -502,10 +502,10 @@ func checkConfig(settings *Settings) error {
 func getExistingDefaultConfigPath() (path string, err error) {
 	if _, err = os.Stat(DefaultGatewayConfig); err == nil {
 		path = DefaultGatewayConfig
-		return
+		return path, err
 	}
 	err = fmt.Errorf("unable to find the default configuration file %s", DefaultGatewayConfig)
-	return
+	return path, err
 }
 
 func envVarAsInt(env string) int {
@@ -613,7 +613,7 @@ func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {
 			DefaultOTLPLinuxConfig:
 			requiredEnvVars := []string{RealmEnvVar, TokenEnvVar}
 			for _, v := range requiredEnvVars {
-				if len(os.Getenv(v)) == 0 {
+				if os.Getenv(v) == "" {
 					logError("Usage: %s=12345 %s=us0 %s", TokenEnvVar, RealmEnvVar, os.Args[0])
 					return fmt.Errorf("ERROR: Missing required environment variable %s with default config path %s", v, path)
 				}
@@ -681,7 +681,7 @@ func (s *stringPointerFlagValue) String() string {
 // SPDX-License-Identifier: Apache-2.0
 var uriRegexp = regexp.MustCompile(`(?s:^(?P<Scheme>[A-Za-z][A-Za-z0-9+.-]+):(?P<OpaqueValue>.*)$)`)
 
-func parseURI(uri string) (scheme string, location string, isURI bool) {
+func parseURI(uri string) (scheme, location string, isURI bool) {
 	submatches := uriRegexp.FindStringSubmatch(uri)
 	if len(submatches) != 3 {
 		return "", "", false

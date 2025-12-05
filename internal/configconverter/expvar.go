@@ -116,7 +116,7 @@ func simpleRedact(config map[string]any) map[string]any {
 // shouldRedactKey applies a simple check to see if the contents of the given key
 // should be redacted or not.
 func shouldRedactKey(k string) bool {
-	fragments := []string{
+	keyFragments := []string{
 		"access",
 		"api_key",
 		"apikey",
@@ -126,13 +126,13 @@ func shouldRedactKey(k string) bool {
 		"login",
 		"password",
 		"pwd",
-		"token",
+		"token", // This will also redact "X-SF-Token" and similar keys
 		"user",
-		"X-SF-Token",
 	}
 
-	for _, fragment := range fragments {
-		if strings.Contains(strings.ToLower(k), fragment) {
+	lowerCaseKey := strings.ToLower(k)
+	for _, fragment := range keyFragments {
+		if strings.Contains(lowerCaseKey, fragment) {
 			return true
 		}
 	}

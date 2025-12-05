@@ -126,7 +126,7 @@ func shouldRedactKey(k string) bool {
 		"login",
 		"password",
 		"pwd",
-		"token", // This will also redact "X-SF-Token" and similar keys
+		"token", // Any key containing "token" will be redacted
 		"user",
 	}
 

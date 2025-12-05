@@ -14,9 +14,20 @@ issues: [6984]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  Same functionality is available via the `zpages` extension that is configured to expose the collector configurations
-  (initial and effective) via the `expvarz` endpoint, e.g.: http://localhost:55679/debug/expvarz
-  for the default `zpages` configuration. The endpoint contents is a JSON map in which the keys
-  `splunk.config.initial` and `splunk.config.effective` contains a string with the respective
-  configuration YAML. See [#6595](https://github.com/signalfx/splunk-otel-collector/pull/6595#issue-3316751731)
-  for example usage.
+  The collector's default configuration files enable the `zpages` extension and the respective `debug/expvarz` endpoint,
+  by default at `http://localhost:55679/debug/expvarz`. This endpoint provides a JSON map containing the collector
+  configuration details. The keys `splunk.config.initial` and `splunk.config.effective` within this map
+  hold, respectively, the initial and effective YAML configurations as strings.
+
+  To retrieve the configuration in YAML format using this endpoint, you can use the following commands:
+
+  On Windows Powershell 5.1:
+  ```powershell
+  (Invoke-WebRequest http://localhost:55679/debug/expvarz).Content | ConvertFrom-Json | Select-Object -ExpandProperty splunk.config.effective
+  ```
+
+  On Bash (with `curl` and `jq`):
+  ```bash
+  curl http://localhost:55679/debug/expvarz --silent | jq -r '.["splunk.config.initial"]'
+  ```
+

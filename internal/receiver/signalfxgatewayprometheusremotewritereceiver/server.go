@@ -52,7 +52,7 @@ func newPrometheusRemoteWriteServer(ctx context.Context, config *serverConfig) (
 	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
 	mx.Host(config.ServerConfig.Endpoint)
-	server, err := config.ServerConfig.ToServer(ctx, config.Host, config.TelemetrySettings, mx,
+	server, err := config.ServerConfig.ToServer(ctx, config.Host.GetExtensions(), config.TelemetrySettings, mx,
 		// ensure we support the snappy Content-Encoding, but leave it to the prometheus remotewrite lib to decompress.
 		confighttp.WithDecoder("snappy", func(body io.ReadCloser) (io.ReadCloser, error) {
 			return body, nil

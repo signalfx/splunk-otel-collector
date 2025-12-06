@@ -122,11 +122,11 @@ func main() {
 
 	// Generate properties files for receivers
 	receivers := loadReceiverMetadata(filepath.Join(metadataDir, "receivers"))
-	for _, receiver := range receivers {
-		bundleFile := filepath.Join(filepath.Join(bundleDir, "receivers"), receiver.FileName+".discovery.yaml")
-		generateFile(receiver.PropertiesTmpl, bundleFile, false, receiver.ReceiverID)
-		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "receivers"), receiver.FileName+".discovery.yaml")
-		generateFile(receiver.PropertiesTmpl, configDLinuxFile, true, receiver.ReceiverID)
+	for i := range receivers {
+		bundleFile := filepath.Join(filepath.Join(bundleDir, "receivers"), receivers[i].FileName+".discovery.yaml")
+		generateFile(receivers[i].PropertiesTmpl, bundleFile, false, receivers[i].ReceiverID)
+		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "receivers"), receivers[i].FileName+".discovery.yaml")
+		generateFile(receivers[i].PropertiesTmpl, configDLinuxFile, true, receivers[i].ReceiverID)
 	}
 
 	bundleFSTemplate := filepath.Join(projectRoot, "internal", "confmapprovider", "discovery", "bundledfs.tmpl")
@@ -182,11 +182,11 @@ func genBundledFS(bundleFSFile string, extensions []extensionMetadata, receivers
 		ExtensionFiles []string
 		ReceiverFiles  []string
 	}{}
-	for _, ext := range extensions {
-		target.ExtensionFiles = append(target.ExtensionFiles, ext.FileName)
+	for i := range extensions {
+		target.ExtensionFiles = append(target.ExtensionFiles, extensions[i].FileName)
 	}
-	for _, rec := range receivers {
-		target.ReceiverFiles = append(target.ReceiverFiles, rec.FileName)
+	for i := range receivers {
+		target.ReceiverFiles = append(target.ReceiverFiles, receivers[i].FileName)
 	}
 
 	t, err := template.New("bundledfs").Parse(string(bundleFSTmpl))

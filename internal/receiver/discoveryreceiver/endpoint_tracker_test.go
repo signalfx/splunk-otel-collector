@@ -69,6 +69,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				entityIDAttr, _ := lr.Attributes().Get(discovery.OtelEntityIDAttr)
 				entityIDAttr.Map().PutStr("service.name", "redis-cart")
 				entityIDAttr.Map().PutStr("k8s.pod.uid", "uid")
+				entityIDAttr.Map().PutStr("container.id", "abc123")
 				entityIDAttr.Map().PutInt("source.port", 1)
 				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
 				attrs := entityAttrsAttr.Map()
@@ -76,6 +77,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("endpoint", "port.target")
 				attrs.PutStr("k8s.pod.name", "redis-cart-657b69bb49-8csql")
 				attrs.PutStr("k8s.namespace.name", "namespace")
+				attrs.PutStr("container.name", "redis-container")
 				attrs.PutStr("type", "port")
 				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
@@ -240,12 +242,12 @@ func FuzzEndpointToPlogs(f *testing.F) {
 	f.Add("observer_type", "observer.name",
 		"port.endpoint.id", "port.target", "port.name", "pod.name", "uid", "label.value",
 		"annotation.one", "annotation.value.one", "annotation.two", "annotation.value.two",
-		"namespace", "transport", uint16(1))
-	f.Add(discovery.NoType.Type().String(), "", "", "", "", "", "", "", "", "", "", "", "", "", uint16(0))
+		"namespace", "transport", "container-name", "container-id", "redis:latest", uint16(1))
+	f.Add(discovery.NoType.Type().String(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", uint16(0))
 	f.Fuzz(func(t *testing.T, observerType, observerName,
 		endpointID, target, portName, podName, uid, labelValue,
 		annotationOne, annotationValueOne, annotationTwo, annotationValueTwo,
-		namespace, transport string, port uint16,
+		namespace, transport, containerName, containerID, containerImage string, port uint16,
 	) {
 		require.NotPanics(t, func() {
 			observerTypeSanitized, err := component.NewType(observerType)
@@ -273,8 +275,11 @@ func FuzzEndpointToPlogs(f *testing.F) {
 								},
 								Namespace: namespace,
 							},
-							Port:      port,
-							Transport: observer.Transport(transport),
+							Port:           port,
+							Transport:      observer.Transport(transport),
+							ContainerName:  containerName,
+							ContainerID:    containerID,
+							ContainerImage: containerImage,
 						},
 					},
 				}, corr, t0, experimentalmetricmetadata.EventTypeState,
@@ -286,6 +291,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			entityIDAttr, _ := lr.Attributes().Get(discovery.OtelEntityIDAttr)
 			entityIDAttr.Map().PutStr("service.name", labelValue)
 			entityIDAttr.Map().PutStr("k8s.pod.uid", uid)
+			entityIDAttr.Map().PutStr("container.id", containerID)
 			entityIDAttr.Map().PutInt("source.port", int64(port))
 			attrs := lr.Attributes().PutEmptyMap(discovery.OtelEntityAttributesAttr)
 			attrs.PutStr(discovery.EndpointIDAttr, endpointID)
@@ -296,6 +302,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 
 			attrs.PutStr("k8s.pod.name", podName)
 			attrs.PutStr("k8s.namespace.name", namespace)
+			attrs.PutStr("container.name", containerName)
 			attrs.PutStr("type", "port")
 			require.Equal(t, 1, events.Len())
 
@@ -345,8 +352,11 @@ var (
 				},
 				Namespace: "namespace",
 			},
-			Port:      1,
-			Transport: "transport",
+			Port:           1,
+			Transport:      "transport",
+			ContainerName:  "redis-container",
+			ContainerID:    "abc123",
+			ContainerImage: "redis:latest",
 		},
 	}
 
@@ -657,6 +667,7 @@ func TestEntityStateEvents(t *testing.T) {
 		"service.type": "redis",
 		"service.name": "redis-cart",
 		"k8s.pod.uid":  "uid",
+		"container.id": "abc123",
 		"source.port":  int64(1),
 	}, event.ID().AsRaw())
 	assert.Equal(t, map[string]any{
@@ -668,6 +679,7 @@ func TestEntityStateEvents(t *testing.T) {
 		"discovery.endpoint.id":   "port.endpoint.id",
 		"k8s.pod.name":            "redis-cart-657b69bb49-8csql",
 		"k8s.namespace.name":      "namespace",
+		"container.name":          "redis-container",
 		"type":                    "port",
 		"attr1":                   "val1",
 		"attr2":                   "val2",
@@ -688,6 +700,7 @@ func TestEntityDeleteEvents(t *testing.T) {
 	assert.Equal(t, t0, event.Timestamp().AsTime())
 	assert.Equal(t, map[string]any{
 		"service.name": "redis-cart",
+		"container.id": "abc123",
 		sourcePortAttr: int64(1),
 		"k8s.pod.uid":  "uid",
 	}, event.ID().AsRaw())

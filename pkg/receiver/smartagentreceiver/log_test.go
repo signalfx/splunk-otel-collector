@@ -316,7 +316,6 @@ func TestRedirectMonitorLogsWithMissingMapEntryUsesDefaultLogger(t *testing.T) {
 				{Key: "monitorID", Type: zapcore.StringType, String: "id1"},
 				{Key: "monitorType", Type: zapcore.StringType, String: "monitor1"},
 			}, defaultZapLogs.All()[0].Context)
-
 		})
 	}
 }

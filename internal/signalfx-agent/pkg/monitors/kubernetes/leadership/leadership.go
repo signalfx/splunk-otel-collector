@@ -18,11 +18,13 @@ import (
 // These are global variables because all monitors share the same election
 // process and it would make the agent core more complicated by trying to pass
 // around an elector object to monitors that need it.
-var noticeChans []chan<- bool
-var lock sync.Mutex
-var started bool
-var isLeader bool
-var leaderIdentity string
+var (
+	noticeChans    []chan<- bool
+	lock           sync.Mutex
+	started        bool
+	isLeader       bool
+	leaderIdentity string
+)
 
 // RequestLeaderNotification provides a simple way for monitors to only send
 // metrics from a single instance of the agent.  It wraps client-go's
@@ -92,7 +94,6 @@ func startLeaderElection(v1Client corev1.CoreV1Interface, coordinationClient coo
 			// client-go can't make anything simple
 			EventRecorder: &record.FakeRecorder{},
 		})
-
 	if err != nil {
 		return err
 	}

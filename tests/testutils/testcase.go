@@ -109,8 +109,8 @@ func (t *Testcase) setHECEndpoint() {
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
 func (t *Testcase) Containers(builders ...Container) (containers []*Container, stop func()) {
-	for _, builder := range builders {
-		containers = append(containers, builder.Build())
+	for i := range builders {
+		containers = append(containers, builders[i].Build())
 	}
 
 	for _, container := range containers {
@@ -124,7 +124,7 @@ func (t *Testcase) Containers(builders ...Container) (containers []*Container, s
 		}
 	}
 
-	return
+	return containers, stop
 }
 
 // SplunkOtelCollector builds and starts a collector container or process using the desired config filename
@@ -142,8 +142,10 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
 
-		port = strings.Split(t.HECEndpointForCollector, ":")[1]
-		t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		if t.HECEndpointForCollector != "" {
+			port = strings.Split(t.HECEndpointForCollector, ":")[1]
+			t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		}
 	}
 
 	var c Collector
@@ -231,8 +233,9 @@ func (t *Testcase) PrintLogsOnFailure() {
 		return
 	}
 	fmt.Printf("Logs: \n")
-	for _, statement := range t.ObservedLogs.All() {
-		fmt.Printf("%v\n", statement)
+	logs := t.ObservedLogs.All()
+	for i := range logs {
+		fmt.Printf("%v\n", logs[i])
 	}
 }
 

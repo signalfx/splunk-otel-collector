@@ -62,7 +62,6 @@ func init() {
 }
 
 func TestLoadConfig(t *testing.T) {
-
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 
 	require.NoError(t, err)

@@ -31,14 +31,12 @@ func buildOutputPath(pkg *packageMetadata) string {
 }
 
 func generate(templateFile string) error {
-
 	exportVars := false
 
 	tmpl, err := template.New(generatedMetadataTemplate).Option("missingkey=error").Funcs(template.FuncMap{
 		"formatVariable": func(s string) (string, error) {
 			var formatted string
 			formatted, err := formatVariable(s)
-
 			if err != nil {
 				return "", err
 			}
@@ -64,13 +62,11 @@ func generate(templateFile string) error {
 		},
 		"deref": func(p *string) string { return *p },
 	}).ParseFiles(templateFile)
-
 	if err != nil {
 		return fmt.Errorf("parsing template %s failed: %s", generatedMetadataTemplate, err)
 	}
 
 	pkgs, err := collectMetadata("pkg/monitors")
-
 	if err != nil {
 		return err
 	}
@@ -132,18 +128,17 @@ func generate(templateFile string) error {
 		}
 
 		formatted, err := format.Source(writer.Bytes())
-
 		if err != nil {
 			return fmt.Errorf("failed to format source: %s", err)
 		}
 
 		outputFile := buildOutputPath(pkg)
 
-		if err := os.MkdirAll(path.Dir(outputFile), 0755); err != nil {
+		if err := os.MkdirAll(path.Dir(outputFile), 0o755); err != nil {
 			return err
 		}
 
-		if err := os.WriteFile(outputFile, formatted, 0600); err != nil {
+		if err := os.WriteFile(outputFile, formatted, 0o600); err != nil {
 			return err
 		}
 	}

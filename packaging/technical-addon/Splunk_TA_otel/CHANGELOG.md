@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v1.8.0
+
+- Updates addon to use collector version v0.140.0
+
+## v1.7.0
+
+- Updates addon to use collector version v0.137.0
+- Remove signalfx receiver `access_token_passthrough` configuration option from TA configuration files. This option was
+  deprecated in v0.135.0 and is now removed. If you were using this option, you should use `include_metadata: true` instead. 
+
 ## v1.6.0
 
 - Updates addon to use collector version v0.135.0

@@ -33,23 +33,23 @@ func TestOTLPHistogramsAttrs(t *testing.T) {
 	}{
 		{
 			name:       "enabled",
-			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled.yaml",
-			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_expected.yaml",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histograms_enabled.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histograms_enabled_expected.yaml",
 		},
 		{
 			name:       "enabled_no_telemetry",
-			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_no_telemetry.yaml",
-			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_no_telemetry_expected.yaml",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histograms_enabled_no_telemetry.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histograms_enabled_no_telemetry_expected.yaml",
 		},
 		{
 			name:       "disabled",
-			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled.yaml",
-			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_expected.yaml",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histograms_disabled.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histograms_disabled_expected.yaml",
 		},
 		{
 			name:       "disabled_not_in_use_exporter",
-			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_no_exp.yaml",
-			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_no_exp_expected.yaml",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histograms_disabled_no_exp.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histograms_disabled_no_exp_expected.yaml",
 		},
 	}
 	for _, tt := range tests {

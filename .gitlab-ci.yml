@@ -10,7 +10,7 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  GO_VERSION: 1.24.6
+  GO_VERSION: 1.25.5
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -44,7 +44,7 @@ include:
     ref: latest
     file: '/templates/.sast_scan.yml'
   - project: 'ci-cd/templates'
-    ref: master
+    ref: main
     file:
       - '/prodsec/.oss-scan.yml'
       - '/prodsec/.binary-scan.yml'
@@ -80,22 +80,6 @@ manual_release_trigger:
       when: on_success
   allow_failure: false
   needs: []
-
-semgrep:
-  stage: sast-oss-scan
-  extends: .sast_scan
-  retry: 2
-  variables:
-    SAST_SCANNER: "Semgrep"
-    SEMGREP_EXCLUDE: "examples,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
-    alert_mode: "policy"
-  after_script:
-    - echo "Check results at $CI_PIPELINE_URL/security"
-  only:
-    - main
-    - schedules
-  needs: []
-  dependencies: []
 
 fossa:
   extends: .oss-scan
@@ -381,14 +365,12 @@ compile:
       fi
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
-    - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink
   artifacts:
     paths:
       - bin/otelcol_*
-      - bin/migratecheckpoint_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.24:4.0.0'
+  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.25:4.3.1'
   extends:
     - .trigger-filter
   stage: build

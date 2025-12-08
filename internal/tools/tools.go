@@ -13,14 +13,13 @@
 // limitations under the License.
 
 //go:build tools
-// +build tools
 
 package tools
 
 // based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/internal/tools/tools.go
 import (
 	_ "github.com/client9/misspell/cmd/misspell"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
 	_ "github.com/jstemmer/go-junit-report"
 	_ "github.com/tcnksm/ghr"
@@ -29,4 +28,5 @@ import (
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment"
 	_ "golang.org/x/vuln/cmd/govulncheck"
+	_ "mvdan.cc/gofumpt"
 )

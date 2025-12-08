@@ -75,7 +75,7 @@ func newCorrelationStore(logger *zap.Logger, ttl time.Duration) *correlationStor
 }
 
 // UpdateEndpoint updates or creates correlation timestamps and states by endpoint.ID and receiverID.
-func (s *correlationStore) UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, observerID component.ID) {
+func (s *correlationStore) UpdateEndpoint(endpoint observer.Endpoint, receiverID, observerID component.ID) {
 	endpointUnlock := s.endpointLocks.Lock(endpoint.ID)
 	defer endpointUnlock()
 	c, ok := s.correlations.LoadOrStore(endpoint.ID, &correlation{

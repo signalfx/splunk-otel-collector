@@ -24,6 +24,7 @@ The distribution offers support for the following components.
 | [azuremonitor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azuremonitorreceiver)                                          | [alpha]          |
 | [carbon](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/carbonreceiver)                                                      | [alpha]          |
 | [chrony](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver)                                                      | [beta]           |
+| [ciscoos](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ciscoosreceiver)                                                    | [alpha]          |
 | [cloudfoundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)                                          | [beta]           |
 | [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                                                  | [beta]           |
 | [discovery](../internal/receiver/discoveryreceiver)                                                                                                                | [in development] |
@@ -36,6 +37,7 @@ The distribution offers support for the following components.
 | [haproxy](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/haproxyreceiver)                                                    | [beta]           |
 | [hostmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)                                            | [beta]           |
 | [httpcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/httpcheckreceiver)                                                | [alpha]          |
+| [icmpcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/icmpcheckreceiver)                                                | [in development] |
 | [iis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/iisreceiver)                                                            | [beta]           |
 | [influxdb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/influxdbreceiver)                                                  | [beta]           |
 | [jaeger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver)                                                      | [beta]           |
@@ -118,45 +120,47 @@ The distribution offers support for the following components.
 
 <div>
 
-| Exporters                                                                                                                   | Stability    |
-|:----------------------------------------------------------------------------------------------------------------------------|:-------------|
-| [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                 | [alpha]      |
-| [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                         | [alpha]      |
-| [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                   | [alpha]      |
-| [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)                 | [beta]       |
-| [loadbalancing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter) | [beta]       |
-| [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/nopexporter)                             | [beta]       |
-| [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                           | [stable]     |
-| [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                   | [stable]     |
-| [pulsar](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/pulsarexporter)               | [alpha]      |
-| [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)                   | [deprecated] |
-| [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)           | [beta]       |
-| [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter)        | [beta]       |
+| Exporters                                                                                                                                     | Stability    |
+|:----------------------------------------------------------------------------------------------------------------------------------------------|:-------------|
+| [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                                   | [alpha]      |
+| [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                                           | [alpha]      |
+| [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                                     | [alpha]      |
+| [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)                                   | [beta]       |
+| [loadbalancing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter)                   | [beta]       |
+| [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/nopexporter)                                               | [beta]       |
+| [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                                             | [stable]     |
+| [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                                     | [stable]     |
+| [prometheusremotewrite](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter)   | [beta]       |
+| [pulsar](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/pulsarexporter)                                 | [alpha]      |
+| [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)                                     | [deprecated] |
+| [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)                             | [beta]       |
+| [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter)                          | [beta]       |
 
 </div>
 
 <div>
 
-| Extensions                                                                                                                           | Stability |
-|:-------------------------------------------------------------------------------------------------------------------------------------|:----------|
-| [ack](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/ackextension)                            | [alpha]   |
-| [basicauth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/basicauthextension)                | [beta]    |
-| [bearertokenauth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/bearertokenauthextension)    | [beta]    |
-| [docker_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver)     | [beta]    |
-| [ecs_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver)           | [beta]    |
-| [ecs_task_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecstaskobserver)  | [beta]    |
-| [file_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/storage/filestorage)            | [beta]    |
-| [headers_setter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/headerssetterextension)       | [alpha]   |
-| [health_check](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension)           | [beta]    |
-| [host_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver)         | [beta]    |
-| [http_forwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarderextension)       | [beta]    |
-| [k8s_leader_elector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/k8sleaderelector)         | [alpha]   |
-| [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)           | [beta]    |
-| [oauth2client](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/oauth2clientauthextension)      | [beta]    |
-| [opamp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension)                        | [alpha]   |
-| [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                        | [beta]    |
-| [smartagent](../pkg/extension/smartagentextension)                                                                                   | [beta]    |
-| [zpages](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension)                              | [beta]    |
+| Extensions                                                                                                                                                          | Stability |
+|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------|
+| [ack](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/ackextension)                                                           | [alpha]   |
+| [basicauth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/basicauthextension)                                               | [beta]    |
+| [bearertokenauth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/bearertokenauthextension)                                   | [beta]    |
+| [docker_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver)                                    | [beta]    |
+| [ecs_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver)                                          | [beta]    |
+| [file_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/storage/filestorage)                                           | [beta]    |
+| [googlecloudlogentry_encoding](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/encoding/googlecloudlogentryencodingextension) | [alpha]   |
+| [headers_setter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/headerssetterextension)                                      | [alpha]   |
+| [health_check](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension)                                          | [beta]    |
+| [host_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver)                                        | [beta]    |
+| [http_forwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarderextension)                                      | [beta]    |
+| [k8s_leader_elector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/k8sleaderelector)                                        | [alpha]   |
+| [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)                                          | [beta]    |
+| [oauth2client](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/oauth2clientauthextension)                                     | [beta]    |
+| [opamp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension)                                                       | [alpha]   |
+| [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                                                       | [beta]    |
+| [smartagent](../pkg/extension/smartagentextension)                                                                                                                  | [beta]    |
+| [text_encoding](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/encoding/textencodingextension)                               | [beta]    |
+| [zpages](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension)                                                             | [beta]    |
 
 </div>
 

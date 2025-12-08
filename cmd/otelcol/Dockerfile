@@ -5,11 +5,9 @@ RUN apk --update add ca-certificates
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
 ARG TARGETARCH
 COPY dist/otelcol_linux_${TARGETARCH} /otelcol
-COPY dist/migratecheckpoint_linux_${TARGETARCH} /migratecheckpoint
 # Note that this shouldn't be necessary, but in some cases the file seems to be
 # copied with the execute bit lost (see https://github.com/open-telemetry/opentelemetry-collector/issues/1317)
 RUN chmod 755 /otelcol
-RUN chmod 755 /migratecheckpoint
 RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
 # create base dirs since we cannot chown in scratch image except via COPY
 RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
@@ -39,7 +37,7 @@ RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics.jar && \
     URL=https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/${JMX_METRIC_GATHERER_RELEASE}/${JMX_METRICS_JAR} && \
     cd /tmp && wget "$URL";
 
-FROM ${DOCKER_REPO}/debian:12.8 as journalctl
+FROM ${DOCKER_REPO}/debian:13 as journalctl
 RUN apt update
 RUN apt install -y systemd
 COPY dist/collect-libs.sh /collect-libs.sh
@@ -54,7 +52,6 @@ ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/jre/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /etc_passwd /etc/passwd
 COPY --from=otelcol --chown=999 /otelcol /
-COPY --from=otelcol --chown=999 /migratecheckpoint /
 COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
 COPY --from=otelcol --chown=999 /tmp/tmp /tmp

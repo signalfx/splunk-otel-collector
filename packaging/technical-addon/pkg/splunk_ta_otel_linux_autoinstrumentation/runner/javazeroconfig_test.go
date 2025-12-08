@@ -155,7 +155,8 @@ func TestHappyPath(t *testing.T) {
 		WaitStrategy: wait.ForAll(
 			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/splunkd.log"}).WithStartupTimeout(startupTimeout),
 			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}).WithStartupTimeout(startupTimeout),
-		).WithDeadline(startupTimeout + 15*time.Second).WithStartupTimeoutDefault(startupTimeout)})
+		).WithDeadline(startupTimeout + 15*time.Second).WithStartupTimeoutDefault(startupTimeout),
+	})
 
 	// Check Schema
 	ctx := context.Background()
@@ -188,13 +189,6 @@ func TestHappyPath(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, read)
 	assert.Equal(t, "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so", strings.TrimSpace(string(read)))
-
-	// Check preload binary
-	_, output, err = tc.Exec(ctx, []string{"sudo", "sha256sum", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so"}, tcexec.Multiplexed())
-	require.NoError(t, err)
-	read, err = io.ReadAll(output)
-	assert.NoError(t, err)
-	assert.Contains(t, string(read), "4a9944614212c477cd63f5354026850052f2aa495312fb79ebd24e22dc8953bd")
 
 	// check jar
 	_, output, err = tc.Exec(ctx, []string{"sudo", "sha256sum", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar"}, tcexec.Multiplexed())

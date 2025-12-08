@@ -142,15 +142,6 @@ receivers:
   # NOTE: It is very likely additional configuration is required
   prometheus_simple:
 
-  # Enables the signalfx receiver with default settings
-  #  - grpc (default endpoint = 0.0.0.0:9943)
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver
-  signalfx:
-    endpoint: 0.0.0.0:9943
-    # Whether to propagate the client metadata from the incoming requests to the downstream consumers
-    # Should be enabled to preserve incoming access token and use instead of exporter token
-    #include_metadata: true
-
   #############################################################################
   # Logs
   #############################################################################
@@ -689,7 +680,7 @@ exporters:
     path: ./filename.json
 
   # Enables the logging exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter
   # NOTE: This exporter is very helpful in troubleshooting issues
   debug:
     verbosity: detailed
@@ -775,16 +766,12 @@ service:
       #- resource/add_environment
       exporters: [otlphttp, signalfx]
     metrics:
-      receivers: [otlp, signalfx]
+      receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection/internal]
-      exporters: [signalfx]
-    logs/signalfx:
-      receivers: [signalfx]
-      processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
       receivers: [fluentforward, otlp, scripted_inputs/bandwidth, scripted_inputs/cpu, scripted_inputs/df, scripted_inputs/hardware, scripted_inputs/interfaces, scripted_inputs/iostat, scripted_inputs/lastlog, scripted_inputs/lsof, scripted_inputs/netstat, scripted_inputs/nfsiostat, scripted_inputs/openPorts, scripted_inputs/openPortsEnhanced, scripted_inputs/package, scripted_inputs/passwd, scripted_inputs/protocol, scripted_inputs/ps, scripted_inputs/rlog, scripted_inputs/selinuxChecker, scripted_inputs/service, scripted_inputs/sshdChecker, scripted_inputs/time, scripted_inputs/top, scripted_inputs/update, scripted_inputs/uptime, scripted_inputs/usersWithLoginPrivs, scripted_inputs/version, scripted_inputs/vmstat, scripted_inputs/vsftpdChecker, scripted_inputs/who]

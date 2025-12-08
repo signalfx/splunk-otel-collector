@@ -31,10 +31,6 @@ job "otel-agent" {
         to = 9411
       }
 
-      port "signalfx" {
-        to = 9943
-      }
-
       port "sfx_forwarder" {
         to = 9080
       }
@@ -89,12 +85,6 @@ job "otel-agent" {
 
     service {
       name = "otel-agent"
-      port = "signalfx"
-      tags = ["signalfx"]
-    }
-
-    service {
-      name = "otel-agent"
       port = "metrics"
       tags = ["metrics"]
     }
@@ -131,7 +121,6 @@ job "otel-agent" {
           "zipkin",
           "health_check",
           "zpages",
-          "signalfx",
           "sfx_forwarder",
         ]
       }
@@ -185,8 +174,6 @@ receivers:
         static_configs:
         - targets:
           - ${HOSTNAME}:8889
-  signalfx:
-    endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411
 processors:
@@ -228,7 +215,6 @@ service:
       - resourcedetection
       receivers:
       - hostmetrics
-      - signalfx
     metrics/agent:
       exporters:
       - debug

@@ -31,11 +31,13 @@ type ModInput struct {
 }
 
 // TransformerFunc is basically a reducer.. takes in "working" value of modinput string
-type TransformerFunc func(value string) (string, error)
-type ModinputProcessor struct {
-	ModularInputs map[string]*ModInput
-	SchemaName    string
-}
+type (
+	TransformerFunc   func(value string) (string, error)
+	ModinputProcessor struct {
+		ModularInputs map[string]*ModInput
+		SchemaName    string
+	}
+)
 
 func (t *ModInput) TransformInputs(value string) (string, error) {
 	t.Value = value
@@ -93,7 +95,7 @@ func (mip *ModinputProcessor) GetFlags() []string {
 	sort.Strings(keys)
 	for _, modinputName := range keys {
 		modularInput := mip.ModularInputs[modinputName]
-		if "" != modularInput.Config.Flag.Name {
+		if modularInput.Config.Flag.Name != "" {
 			flags = append(flags, fmt.Sprintf("--%s", modularInput.Config.Flag.Name))
 			if !modularInput.Config.Flag.IsUnary {
 				flags = append(flags, modularInput.Value)

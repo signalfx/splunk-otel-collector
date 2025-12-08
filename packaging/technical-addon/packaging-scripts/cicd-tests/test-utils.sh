@@ -18,12 +18,12 @@ repack_with_test_config() {
     # Loop over all YAML files and update log level and output lines
     for yaml_file in "$TEMP_DIR/Splunk_TA_otel/configs/"*.yaml; do
         if [ -f "$yaml_file" ]; then
-            sed -i "s/level: .*/level: debug/" "$yaml_file"
+            sed -i "s/level: .*/level: info/" "$yaml_file"
             sed -i "s/# output_paths: /output_paths: /" "$yaml_file"
         fi
     done
 
-    random_suffix="$(LC_CTYPE=c tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 6)"
+    random_suffix="$(head -c 256 /dev/urandom | LC_CTYPE=c tr -dc 'A-Za-z0-9' | head -c 6)"
     repacked="$TEMP_DIR/Splunk_TA_otel-${random_suffix}.tgz"
     COPYFILE_DISABLE=1 tar --format ustar -C "$TEMP_DIR" -hcz --file "$repacked"  "Splunk_TA_otel"
     chmod a+rwx "$repacked"

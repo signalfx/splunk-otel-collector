@@ -25,8 +25,10 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 )
 
-var _ confmap.Converter = (*ExpvarConverter)(nil)
-var _ configsource.Hook = (*ExpvarConverter)(nil)
+var (
+	_ confmap.Converter = (*ExpvarConverter)(nil)
+	_ configsource.Hook = (*ExpvarConverter)(nil)
+)
 
 var (
 	expvarConverterInstance *ExpvarConverter

@@ -109,3 +109,97 @@ setup_branch() {
     git checkout -b "$branch"
   fi
 }
+
+
+# Updates an existing changelog entry with PR number
+# Usage: update_changelog_pr_number <changelog_filename> <pr_number>
+update_changelog_pr_number() {
+  local changelog_file="$1"
+  local pr_number="$2"
+
+  if [[ ! -f "$changelog_file" ]]; then
+    echo "Warning: Changelog file $changelog_file not found, skipping PR number update." >&2
+    return 0
+  fi
+
+  if ! command -v yq &> /dev/null; then
+    echo "Warning: yq not found, cannot update changelog with PR number" >&2
+    return 0
+  fi
+
+  echo ">>> Updating changelog with PR #${pr_number} ..."
+  
+  yq eval -i ".issues += [${pr_number}] | .issues style=\"flow\"" "$changelog_file"
+}
+
+# Creates a PR with changelog and automatically updates the changelog with the PR number
+# Usage: create_pr_with_changelog <repo> <repo_url> <branch> <message> <changelog_filename> <component> <note> [change_type]
+# Example: create_pr_with_changelog "signalfx/splunk-otel-collector" "$repo_url" "$branch" "Update Java agent" "update-javaagent-v1.2.3" "packaging" "Update Java agent to v1.2.3"
+create_pr_with_changelog() {
+  local repo="$1"
+  local repo_url="$2"
+  local branch="$3"
+  local message="$4"
+  local changelog_filename="$5"
+  local component="$6"
+  local note="$7"
+  local change_type="${8:-enhancement}"
+
+  FILENAME="$changelog_filename" \
+  COMPONENT="$component" \
+  NOTE="$note" \
+  CHANGE_TYPE="$change_type" \
+  bash "$(dirname "${BASH_SOURCE[0]}")/create-changelog-entry.sh"
+  
+  local sanitized_filename="${changelog_filename//\//-}"
+  sanitized_filename="${sanitized_filename//[^a-zA-Z0-9_-]/-}"
+  git add ".chloggen/${sanitized_filename}.yaml"
+  
+  git commit -S -am "$message"
+  git push -f "$repo_url" "$branch"
+  
+  echo ">>> Creating the PR ..."
+  local pr_stdout pr_stderr pr_exit_code
+  pr_stderr=$(mktemp)
+  
+  pr_url=$(gh pr create \
+    --draft \
+    --repo "$repo" \
+    --title "$message" \
+    --body "$message" \
+    --base main \
+    --head "$branch" 2>"$pr_stderr")
+  pr_exit_code=$?
+  
+  if [[ $pr_exit_code -eq 0 ]]; then
+    if [[ -n "$pr_url" ]]; then
+      pr_number=$(echo "$pr_url" | grep -oE '[0-9]+$')
+      if [[ -n "$pr_number" ]]; then
+        echo ">>> PR #${pr_number} created successfully: $pr_url"
+        
+        local sanitized_filename="${changelog_filename//\//-}"
+        sanitized_filename="${sanitized_filename//[^a-zA-Z0-9_-]/-}"
+        update_changelog_pr_number ".chloggen/${sanitized_filename}.yaml" "$pr_number"
+        
+        git commit -S --amend --no-edit
+        git push -f "$repo_url" "$branch"
+        echo ">>> Updated PR #${pr_number} with changelog reference"
+      else
+        echo "Warning: Could not extract PR number from URL: $pr_url" >&2
+      fi
+    else
+      echo "Warning: PR creation succeeded but did not return a URL" >&2
+    fi
+  else
+    echo "ERROR: Failed to create PR (exit code: $pr_exit_code)" >&2
+    if [[ -s "$pr_stderr" ]]; then
+      echo "Error output from gh pr create:" >&2
+      cat "$pr_stderr" >&2
+    fi
+    rm -f "$pr_stderr"
+    return $pr_exit_code
+  fi
+  
+  # Clean up temp file
+  rm -f "$pr_stderr"
+}

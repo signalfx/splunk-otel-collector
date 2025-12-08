@@ -276,6 +276,7 @@ update-openjdk:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-openjdk.sh
 
@@ -288,6 +289,7 @@ update-javaagent:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-javaagent.sh
 
@@ -300,6 +302,7 @@ update-jmx-metrics-gatherer:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-jmx-metrics-gatherer.sh
 
@@ -315,6 +318,7 @@ update-nodejs-agent:
     - !reference [.go-cache, before_script]
     - apt update && apt install -y jq
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-nodejs-agent.sh
 
@@ -327,6 +331,7 @@ update-dotnet-agent:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
 

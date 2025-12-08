@@ -11,6 +11,8 @@ on:
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
+      - 'packaging/msi/**'
+      - 'packaging/bundle/**'
       - '!**.md'
   pull_request:
     paths:
@@ -19,6 +21,8 @@ on:
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
+      - 'packaging/msi/**'
+      - 'packaging/bundle/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 3,6' # Every Wednesday and Saturday at midnight UTC
@@ -77,6 +81,38 @@ jobs:
           echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
+  
+  # Build Linux binary for package building
+  puppet-build-linux-binary:
+    uses: ./.github/workflows/reusable-compile.yml
+    with:
+      SYS_BINARY: binaries-linux_amd64
+
+  # Build Linux agent bundle for package building
+  puppet-build-linux-agent-bundle:
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
+    with:
+      ARCH: amd64
+
+  # Use reusable workflow for DEB package
+  puppet-build-deb-local-package:
+    uses: ./.github/workflows/reusable-build-package.yml
+    needs:
+      - puppet-build-linux-binary
+      - puppet-build-linux-agent-bundle
+    with:
+      SYS_PACKAGE: deb
+      ARCH: amd64
+  
+  # Use reusable workflow for RPM package
+  puppet-build-rpm-local-package:
+    uses: ./.github/workflows/reusable-build-package.yml
+    needs:
+      - puppet-build-linux-binary
+      - puppet-build-linux-agent-bundle
+    with:
+      SYS_PACKAGE: rpm
+      ARCH: amd64
 
   puppet-test:
     name: puppet-test
@@ -85,12 +121,26 @@ jobs:
     needs:
       - puppet-lint
       - puppet-test-matrix
+      - puppet-build-deb-local-package
+      - puppet-build-rpm-local-package
     strategy:
       matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Download DEB package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: deb-amd64-package
+          path: ./dist
+
+      - name: Download RPM package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: rpm-amd64-package
+          path: ./dist
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -107,8 +157,27 @@ jobs:
         continue-on-error: true
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          DEB_VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
+          RPM_VERSION: "${{ needs.puppet-build-rpm-local-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
+          
+          # Determine VERSION based on distro type
+          case "$distro" in
+            debian-*|ubuntu-*)
+              export VERSION="$DEB_VERSION"
+              echo "Using DEB version: $VERSION"
+              ;;
+            amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
+              export VERSION="$RPM_VERSION"
+              echo "Using RPM version: $VERSION"
+              ;;
+            *)
+              echo "Unknown distro: $distro"
+              exit 1
+              ;;
+          esac
+          
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
             tests="$distro and instrumentation"
           else
@@ -122,8 +191,27 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          DEB_VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
+          RPM_VERSION: "${{ needs.puppet-build-rpm-local-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
+          
+          # Determine VERSION based on distro type
+          case "$distro" in
+            debian-*|ubuntu-*)
+              export VERSION="$DEB_VERSION"
+              echo "Using DEB version: $VERSION"
+              ;;
+            amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
+              export VERSION="$RPM_VERSION"
+              echo "Using RPM version: $VERSION"
+              ;;
+            *)
+              echo "Unknown distro: $distro"
+              exit 1
+              ;;
+          esac
+          
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
             tests="$distro and instrumentation"
           else
@@ -133,22 +221,54 @@ jobs:
             --last-failed \
             packaging/tests/deployments/puppet/puppet_test.py
 
+  # Use existing reusable workflows for building Windows artifacts
+  puppet-build-windows-binary:
+    uses: ./.github/workflows/reusable-compile.yml
+    with:
+      SYS_BINARY: binaries-windows_amd64
+
+  puppet-build-windows-agent-bundle:
+    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
+    with:
+      OS: windows-2022
+
+  puppet-build-windows-msi-custom-actions:
+    uses: ./.github/workflows/reusable-msi-custom-actions.yml
+    with:
+      OS: windows-2022
+
+  # Use reusable workflow for MSI build
+  puppet-build-windows-msi-local-package:
+    uses: ./.github/workflows/reusable-msi-build.yml
+    needs:
+      - puppet-build-windows-binary
+      - puppet-build-windows-agent-bundle
+      - puppet-build-windows-msi-custom-actions
+    with:
+      OS: windows-2022
+
   puppet-test-windows:
     name: puppet-test-windows
     runs-on: ${{ matrix.OS }}
     timeout-minutes: 60
     needs:
       - puppet-lint
+      - puppet-build-windows-msi-local-package
     strategy:
       matrix:
         OS: [ "windows-2022" ]
         PUPPET_RELEASE: [ "7.21.0", "8.1.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
-        WIN_COLLECTOR_VERSION: [ "0.86.0", "latest" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Download MSI package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: msi-build-windows-2022
+          path: ./dist
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -160,14 +280,46 @@ jobs:
       - name: Install pytest
         run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
+      - name: Start local MSI server
+        shell: powershell
+        run: |
+          # Start Python HTTP server in background to serve MSI files from dist directory
+          Start-Process python -ArgumentList "-m http.server 8000 --directory dist" -WindowStyle Hidden
+          
+          # Wait for server to be ready with retry logic
+          $maxAttempts = 10
+          $attempt = 1
+          $serverReady = $false
+          
+          while ($attempt -le $maxAttempts) {
+            Write-Host "Checking if server is ready (attempt $attempt/$maxAttempts)..."
+            try {
+              $response = Invoke-WebRequest -Uri "http://localhost:8000/" -UseBasicParsing -TimeoutSec 2
+              if ($response.StatusCode -eq 200) {
+                Write-Host "Local MSI server started successfully"
+                $serverReady = $true
+                break
+              }
+            } catch {
+              Write-Host "Server not ready yet, waiting..."
+            }
+            Start-Sleep -Seconds 1
+            $attempt++
+          }
+          
+          if (-not $serverReady) {
+            Write-Error "Failed to start local MSI server after $maxAttempts attempts"
+            exit 1
+          }
+
       - name: Test puppet deployment
         id: pytest
         continue-on-error: true
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
-          WIN_COLLECTOR_VERSION: "${{ matrix.WIN_COLLECTOR_VERSION }}"
+          WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
+          LOCAL_MSI_SERVER: "http://localhost:8000"
         run: |
-          if ($Env:WIN_COLLECTOR_VERSION -eq 'latest') { $Env:WIN_COLLECTOR_VERSION="$(curl -sS https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt)" }
           pytest -s --verbose -m windows `
             -k ${{ matrix.TEST_CASE }} `
             packaging/tests/deployments/puppet/puppet_test.py
@@ -176,9 +328,9 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
-          WIN_COLLECTOR_VERSION: "${{ matrix.WIN_COLLECTOR_VERSION }}"
+          WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
+          LOCAL_MSI_SERVER: "http://localhost:8000"
         run: |
-          if ($Env:WIN_COLLECTOR_VERSION -eq 'latest') { $Env:WIN_COLLECTOR_VERSION="$(curl -sS https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt)" }
           pytest -s --verbose -m windows `
             --last-failed `
             -k ${{ matrix.TEST_CASE }} `

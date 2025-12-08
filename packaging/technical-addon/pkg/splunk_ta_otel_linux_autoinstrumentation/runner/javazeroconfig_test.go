@@ -155,7 +155,8 @@ func TestHappyPath(t *testing.T) {
 		WaitStrategy: wait.ForAll(
 			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/splunkd.log"}).WithStartupTimeout(startupTimeout),
 			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}).WithStartupTimeout(startupTimeout),
-		).WithDeadline(startupTimeout + 15*time.Second).WithStartupTimeoutDefault(startupTimeout)})
+		).WithDeadline(startupTimeout + 15*time.Second).WithStartupTimeoutDefault(startupTimeout),
+	})
 
 	// Check Schema
 	ctx := context.Background()

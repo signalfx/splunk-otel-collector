@@ -41,8 +41,10 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 )
 
-const setOutputErrMsg = "unable to set output field of monitor"
-const systemTypeKey = "system.type"
+const (
+	setOutputErrMsg = "unable to set output field of monitor"
+	systemTypeKey   = "system.type"
+)
 
 type receiver struct {
 	monitor             any

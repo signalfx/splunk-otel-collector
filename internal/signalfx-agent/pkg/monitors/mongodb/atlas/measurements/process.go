@@ -33,7 +33,7 @@ type processesGetter struct {
 }
 
 // NewProcessesGetter returns a new ProcessesGetter.
-func NewProcessesGetter(projectID string, granularity string, period string, client *mongodbatlas.Client, enableCache bool, logger log.FieldLogger) ProcessesGetter {
+func NewProcessesGetter(projectID, granularity, period string, client *mongodbatlas.Client, enableCache bool, logger log.FieldLogger) ProcessesGetter {
 	return &processesGetter{
 		projectID:         projectID,
 		granularity:       granularity,
@@ -78,20 +78,19 @@ func (getter *processesGetter) GetProcesses(ctx context.Context, timeout time.Du
 // getProcessesHelper is a helper function for method get.
 func (getter *processesGetter) getProcessesHelper(ctx context.Context, pageNum int) (processes []Process) {
 	list, resp, err := getter.client.Processes.List(ctx, getter.projectID, &mongodbatlas.ListOptions{PageNum: pageNum})
-
 	if err != nil {
 		getter.logger.WithError(err).Errorf("the request for getting processes failed (Atlas project: %s)", getter.projectID)
-		return
+		return processes
 	}
 
 	if resp == nil {
 		getter.logger.Errorf("the response for getting processes returned empty (Atlas project: %s)", getter.projectID)
-		return
+		return processes
 	}
 
 	if err := mongodbatlas.CheckResponse(resp.Response); err != nil {
 		getter.logger.WithError(err).Errorf("the response for getting processes returned an error (Atlas project: %s)", getter.projectID)
-		return
+		return processes
 	}
 
 	if ok, next := nextPage(resp, getter.logger); ok {
@@ -107,7 +106,7 @@ func (getter *processesGetter) getProcessesHelper(ctx context.Context, pageNum i
 
 // GetMeasurements gets metric measurements of the given MongoDB processes.
 func (getter *processesGetter) GetMeasurements(ctx context.Context, timeout time.Duration, processes []Process) ProcessesMeasurements {
-	var processesMeasurements = make(ProcessesMeasurements)
+	processesMeasurements := make(ProcessesMeasurements)
 
 	var wg1 sync.WaitGroup
 	wg1.Add(1)
@@ -148,7 +147,7 @@ func (getter *processesGetter) GetMeasurements(ctx context.Context, timeout time
 
 // setMeasurements is a helper function of method GetMeasurements.
 func (getter *processesGetter) setMeasurements(ctx context.Context, process Process, processesMeasurements ProcessesMeasurements, pageNum int) {
-	var opts = &mongodbatlas.ProcessMeasurementListOptions{ListOptions: &mongodbatlas.ListOptions{PageNum: pageNum}, Granularity: getter.granularity, Period: getter.period}
+	opts := &mongodbatlas.ProcessMeasurementListOptions{ListOptions: &mongodbatlas.ListOptions{PageNum: pageNum}, Granularity: getter.granularity, Period: getter.period}
 
 	list, resp, err := getter.client.ProcessMeasurements.List(ctx, getter.projectID, process.Host, process.Port, opts)
 

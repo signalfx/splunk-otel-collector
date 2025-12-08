@@ -226,7 +226,7 @@ func infoMap(conf *Config) (map[string]string, error) {
 }
 
 // Creates datapoint from proxy stats and process info key value pairs.
-func (m *Monitor) newDp(stat string, value string) *datapoint.Datapoint {
+func (m *Monitor) newDp(stat, value string) *datapoint.Datapoint {
 	metric := sfxMetricsMap[stat]
 	if metric == "" || value == "" {
 		return nil

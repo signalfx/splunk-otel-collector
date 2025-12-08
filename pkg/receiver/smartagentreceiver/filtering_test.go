@@ -41,7 +41,8 @@ func testMetadata(sendUnknown bool) *monitors.Metadata {
 			"cpu.max":       {Type: datapoint.Gauge},
 			"mem.used":      {Type: datapoint.Counter},
 			"mem.free":      {Type: datapoint.Counter},
-			"mem.available": {Type: datapoint.Counter}},
+			"mem.available": {Type: datapoint.Counter},
+		},
 		SendUnknown: sendUnknown,
 		Groups:      utils.StringSet("cpu", "mem"),
 		GroupMetricsMap: map[string][]string{
@@ -54,8 +55,10 @@ func testMetadata(sendUnknown bool) *monitors.Metadata {
 	}
 }
 
-var exhaustiveMetadata = testMetadata(false)
-var nonexhaustiveMetadata = testMetadata(true)
+var (
+	exhaustiveMetadata    = testMetadata(false)
+	nonexhaustiveMetadata = testMetadata(true)
+)
 
 func TestDefaultMetrics(t *testing.T) {
 	if filter, err := newMetricsFilter(exhaustiveMetadata, nil, nil, zap.NewNop()); err != nil {
@@ -175,8 +178,11 @@ func Test_newExtraMetricsFilter(t *testing.T) {
 		// Successful cases.
 		{"unknown group name", args{exhaustiveMetadata, nil, []string{"unknown-group"}}, false},
 		{"no group name or metric name", args{exhaustiveMetadata, nil, nil}, false},
-		{"valid group name and unknown metric name", args{exhaustiveMetadata, []string{"unknown-metric"},
-			[]string{"cpu"}}, false},
+		{"valid group name and unknown metric name", args{
+			exhaustiveMetadata,
+			[]string{"unknown-metric"},
+			[]string{"cpu"},
+		}, false},
 		{"unknown metric name", args{exhaustiveMetadata, []string{"unknown-metric"}, nil}, false},
 		{"metric glob doesn't match any metric", args{exhaustiveMetadata, []string{"unknown-metric.*"}, nil}, false},
 		{"metric does not exist", args{nonexhaustiveMetadata, []string{"unknown-metric"}, nil}, false},

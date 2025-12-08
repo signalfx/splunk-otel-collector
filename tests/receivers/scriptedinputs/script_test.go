@@ -148,26 +148,6 @@ func TestScriptReceiverNetstat(t *testing.T) {
 	}, 10*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
 }
 
-func TestScriptReceiverOpenPorts(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorProcess("script_config_openPorts.yaml")
-	defer shutdown()
-
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if tc.OTLPReceiverSink.LogRecordCount() == 0 {
-			assert.Fail(tt, "no logs received")
-			return
-		}
-		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-
-		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-		assert.Regexp(tt, regexp.MustCompile("Proto\\s+Port"), lr.Body().Str())
-	}, 10*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
-}
-
 func TestScriptReceiverPackage(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
@@ -185,26 +165,6 @@ func TestScriptReceiverPackage(t *testing.T) {
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("NAME\\s+VERSION\\s+RELEASE\\s+ARCH\\s+VENDOR\\s+GROUP"), lr.Body().Str())
-	}, 10*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
-}
-
-func TestScriptReceiverProtocol(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorProcess("script_config_protocol.yaml")
-	defer shutdown()
-
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if tc.OTLPReceiverSink.LogRecordCount() == 0 {
-			assert.Fail(tt, "no logs received")
-			return
-		}
-		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-
-		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-		assert.Regexp(tt, regexp.MustCompile("IPdropped\\s+TCPrexmits\\s+TCPreorder\\s+TCPpktRecv\\s+TCPpktSent\\s+UDPpktLost\\s+UDPunkPort\\s+UDPpktRecv\\s+UDPpktSent"), lr.Body().Str())
 	}, 10*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
 }
 

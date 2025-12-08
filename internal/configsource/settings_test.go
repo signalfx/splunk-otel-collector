@@ -135,7 +135,6 @@ func TestConfigSourceParser(t *testing.T) {
 				expectedConf := tt.expectedConf
 				if expectedConf == nil {
 					expectedConf = map[string]any{}
-
 				}
 				require.Equal(t, expectedConf, splitConf.ToStringMap())
 			}

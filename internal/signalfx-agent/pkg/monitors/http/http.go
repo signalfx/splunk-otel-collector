@@ -25,7 +25,6 @@ import (
 )
 
 func init() {
-
 	monitors.Register(&monitorMetadata, func() interface{} { return &Monitor{monitorName: monitorMetadata.MonitorType} }, &Config{})
 }
 
@@ -168,7 +167,7 @@ func (m *Monitor) Shutdown() {
 func (m *Monitor) normalizeURL(site string) (normalizedURL *url.URL, err error) {
 	stringURL, err := url.Parse(site)
 	if err != nil {
-		return
+		return normalizedURL, err
 	}
 	host := stringURL.Hostname()
 	port := stringURL.Port()
@@ -190,9 +189,9 @@ func (m *Monitor) normalizeURL(site string) (normalizedURL *url.URL, err error) 
 	}
 	normalizedURL, err = url.Parse(fmt.Sprintf("%s://%s%s%s", stringURL.Scheme, host, path, query))
 	if err != nil {
-		return
+		return normalizedURL, err
 	}
-	return
+	return normalizedURL, err
 }
 
 func (m *Monitor) getTLSStats(site *url.URL, logger *logrus.Entry) (dps []*datapoint.Datapoint, err error) {
@@ -220,7 +219,7 @@ func (m *Monitor) getTLSStats(site *url.URL, logger *logrus.Entry) (dps []*datap
 	ipConn, err := net.Dial("tcp", host+":"+port)
 	if err != nil {
 		logger.WithError(err).Error("connection failed to host during TLS stat collection")
-		return
+		return dps, err
 	}
 	defer ipConn.Close()
 
@@ -235,7 +234,7 @@ func (m *Monitor) getTLSStats(site *url.URL, logger *logrus.Entry) (dps []*datap
 
 	conn := tls.Client(ipConn, tlsCfg)
 	if err != nil {
-		return
+		return dps, err
 	}
 	defer conn.Close()
 
@@ -260,7 +259,7 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 	// Init http client
 	client, err := m.conf.HTTPConfig.Build()
 	if err != nil {
-		return
+		return dps, redirectURL, err
 	}
 
 	// Init body if applicable
@@ -278,7 +277,7 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 
 	req, err := http.NewRequest(m.conf.Method, site.String(), body)
 	if err != nil {
-		return
+		return dps, redirectURL, err
 	}
 
 	// override excluded headers, see:
@@ -303,7 +302,7 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 	now := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		return
+		return dps, redirectURL, err
 	}
 	defer resp.Body.Close()
 

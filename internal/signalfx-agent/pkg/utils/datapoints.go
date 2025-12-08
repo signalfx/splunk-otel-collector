@@ -26,7 +26,7 @@ func TruncateDimensionValue(value string) string {
 
 // SetDatapointMeta sets a field on the datapoint.Meta field, initializing the
 // Meta map if it is nil.
-func SetDatapointMeta(dp *datapoint.Datapoint, name interface{}, val interface{}) {
+func SetDatapointMeta(dp *datapoint.Datapoint, name, val interface{}) {
 	if dp.Meta == nil {
 		dp.Meta = make(map[interface{}]interface{})
 	}

@@ -1,0 +1,221 @@
+resourceMetrics:
+  - resource:
+      attributes:
+        - key: container.image.name
+          value:
+            stringValue: cr.weaviate.io/semitechnologies/weaviate
+        - key: container.name
+          value:
+            stringValue: unruffled_roentgen
+        - key: discovery.endpoint.id
+          value:
+            stringValue: 529a617433bd52f15f65c5e3e1e387a55031d57386070042fd8222a3c21483e1:2112
+        - key: server.address
+          value:
+            stringValue: 172.17.0.3
+        - key: server.port
+          value:
+            stringValue: "2112"
+        - key: service.instance.id
+          value:
+            stringValue: 172.17.0.3:2112
+        - key: service.name
+          value:
+            stringValue: weaviate
+        - key: url.scheme
+          value:
+            stringValue: http
+    scopeMetrics:
+      - metrics:
+          - description: Number of collections per node
+            gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: nodeID
+                      value:
+                        stringValue: 529a617433bd
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: weaviate_schema_collections
+          - description: weaviate_internal_counter_raft_state_candidate
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: weaviate_internal_counter_raft_state_candidate
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - description: weaviate_internal_gauge_raft_leader_oldestLogAge
+            gauge:
+              dataPoints:
+                - asDouble: 0
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: weaviate_internal_gauge_raft_leader_oldestLogAge
+          - description: The scraping was successful
+            gauge:
+              dataPoints:
+                - asDouble: 1
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: up
+          - description: A metric with a constant '1' value labeled by version, revision, branch, goversion from which weaviate was built, and the goos and goarch for the build.
+            gauge:
+              dataPoints:
+                - asDouble: 1
+                  attributes:
+                    - key: branch
+                      value:
+                        stringValue: v1.33.2
+                    - key: goarch
+                      value:
+                        stringValue: arm64
+                    - key: goos
+                      value:
+                        stringValue: linux
+                    - key: goversion
+                      value:
+                        stringValue: go1.24.9
+                    - key: revision
+                      value:
+                        stringValue: 7c65630
+                    - key: tags
+                      value:
+                        stringValue: unknown
+                    - key: version
+                      value:
+                        stringValue: 1.33.2
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: weaviate_build_info
+          - description: Duration of the scrape
+            gauge:
+              dataPoints:
+                - asDouble: 0.019609458
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_duration_seconds
+            unit: s
+          - description: The number of samples the target exposed
+            gauge:
+              dataPoints:
+                - asDouble: 240
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_samples_scraped
+          - description: The number of samples remaining after metric relabeling was applied
+            gauge:
+              dataPoints:
+                - asDouble: 46
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_samples_post_metric_relabeling
+          - description: The approximate number of new series in this scrape
+            gauge:
+              dataPoints:
+                - asDouble: 46
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_series_added
+          - description: weaviate_internal_counter_raft_state_follower
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: weaviate_internal_counter_raft_state_follower
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - description: weaviate_internal_counter_raft_transition_heartbeat_timeout
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: weaviate_internal_counter_raft_transition_heartbeat_timeout
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - description: weaviate_internal_gauge_raft_leader_dispatchNumLogs
+            gauge:
+              dataPoints:
+                - asDouble: 1
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: weaviate_internal_gauge_raft_leader_dispatchNumLogs
+          - description: weaviate_internal_gauge_raft_peers
+            gauge:
+              dataPoints:
+                - asDouble: 1
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: weaviate_internal_gauge_raft_peers
+          - description: weaviate_internal_counter_raft_state_leader
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: weaviate_internal_counter_raft_state_leader
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - description: weaviate_internal_gauge_raft_commitNumLogs
+            gauge:
+              dataPoints:
+                - asDouble: 1
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: weaviate_internal_gauge_raft_commitNumLogs
+        scope:
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver
+          version: latest

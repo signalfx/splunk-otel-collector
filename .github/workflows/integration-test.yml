@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.3
+  GO_VERSION: 1.25.5
 jobs:
   agent-bundle-linux:
     strategy:
@@ -315,7 +315,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis"; do
+          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 # tests for mongo "6.0" and "7.0" are flaky, skipping for now
@@ -408,6 +408,10 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
+        if: runner.os == 'Linux'
+        continue-on-error: true
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

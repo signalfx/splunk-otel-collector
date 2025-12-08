@@ -270,7 +270,7 @@ func (m *Monitor) Shutdown() {
 	}
 }
 
-func calculateUtil(used float64, total float64) (percent float64, err error) {
+func calculateUtil(used, total float64) (percent float64, err error) {
 	if total == 0 {
 		percent = 0
 	} else {

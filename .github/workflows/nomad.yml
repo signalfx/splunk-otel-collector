@@ -8,6 +8,8 @@ on:
     paths:
       - 'deployments/nomad/**'
       - '.github/workflows/nomad.yml'
+      - 'internal/components/**'
+      - 'cmd/otelcol/**'
       - '!**.md'
 
 permissions:
@@ -16,6 +18,9 @@ permissions:
 defaults:
   run:
     working-directory: 'deployments/nomad'
+
+env:
+  GO_VERSION: 1.25.5
 
 jobs:
 
@@ -30,6 +35,21 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Set up environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Build Docker image from local changes
+        run: |
+          cd ${{github.workspace}}
+          make docker-otelcol SKIP_COMPILE=false IMAGE_NAME=splunk-otel-collector-local IMAGE_TAG=test
+        env:
+          ARCH: amd64
+
+      - name: Verify Docker image
+        run: |
+          docker images | grep splunk-otel-collector
+          docker tag splunk-otel-collector-local:test splunk-otel-collector:local-test
 
       - name: Install Nomad and Consul.
         run: |
@@ -128,10 +148,13 @@ jobs:
           until nc -w 10 127.0.0.1 4646; do sleep 1; done
       - name: Prepare deployment
         run: |
-          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-agent.nomad
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/token-12345/g' otel-agent.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-agent.nomad
-          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-gateway.nomad
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/token-12345/g' otel-gateway.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-gateway.nomad
+          # Use locally built Docker image instead of pulling from registry
+          sed -i 's|image = "quay.io/signalfx/splunk-otel-collector:latest"|image = "splunk-otel-collector:local-test"|g' otel-agent.nomad
+          sed -i 's|image = "quay.io/signalfx/splunk-otel-collector:latest"|image = "splunk-otel-collector:local-test"|g' otel-gateway.nomad
 
       - name: Deploy gateway with Nomad
         run: |

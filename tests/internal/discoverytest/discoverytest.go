@@ -69,7 +69,8 @@ func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 	})
 	return sink
 }
-func Run(t *testing.T, receiverName string, configFilePath string, logMessageToAssert string) {
+
+func Run(t *testing.T, receiverName, configFilePath, logMessageToAssert string) {
 	port := 16745
 	endpoint := fmt.Sprintf("localhost:%d", port)
 	sink := setupReceiver(t, endpoint)

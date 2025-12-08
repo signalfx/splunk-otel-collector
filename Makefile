@@ -163,6 +163,14 @@ integration-test-nginx-discovery-with-cover:
 integration-test-redis-discovery:
 	@make integration-test-target TARGET='discovery_integration_redis'
 
+.PHONY: integration-test-weaviate-discovery-with-cover
+integration-test-weaviate-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_weaviate'
+
+.PHONY: integration-test-weaviate-discovery
+integration-test-weaviate-discovery:
+	@make integration-test-target TARGET='discovery_integration_weaviate'
+
 .PHONY: integration-test-redis-discovery-with-cover
 integration-test-redis-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_redis'
@@ -246,6 +254,7 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
 	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
+	cd ./internal/tools && go install mvdan.cc/gofumpt
 
 .PHONY: generate-metrics
 generate-metrics:

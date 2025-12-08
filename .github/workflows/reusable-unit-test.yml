@@ -17,7 +17,7 @@ jobs:
   unit-test:
     runs-on: ${{ inputs.OS }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - run: go env -w CGO_ENABLED=0

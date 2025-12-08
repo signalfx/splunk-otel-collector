@@ -6,6 +6,10 @@ on:
       OS:
         required: true
         type: string
+    outputs:
+      version:
+        description: "The MSI version"
+        value: ${{ jobs.msi-build.outputs.version }}
 
 env:
   GO_VERSION: 1.25.5
@@ -13,9 +17,26 @@ env:
 jobs:
   msi-build:
     runs-on: ${{ inputs.OS }}
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Get MSI version
+        id: get-version
+        shell: bash
+        run: |
+          # Get base version from git and strip the v prefix
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
+          
+          # MSI version must be N.N.N or N.N.N.N format (numeric only)
+          # Convert 0.140.0-60 to 0.140.0.60 (replace dash with dot)
+          VERSION="${VERSION//-/.}"
+          
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Uninstall default WiX
         run: choco uninstall wixtoolset
@@ -45,7 +66,7 @@ jobs:
         shell: bash
         run: |
           # Build script parameters
-          VERSION=""
+          VERSION="${{ steps.get-version.outputs.version }}"
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
           ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"

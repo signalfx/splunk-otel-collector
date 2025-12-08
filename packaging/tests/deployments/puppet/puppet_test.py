@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
 import os
 import re
 import shutil
@@ -35,21 +34,24 @@ from tests.helpers.util import (
     REPO_DIR,
     SERVICE_NAME,
     SERVICE_OWNER,
+    DEB_DISTROS,
+    RPM_DISTROS,
 )
 
 if sys.platform == "win32":
     from tests.helpers.win_utils import has_choco, run_win_command, get_otelcol_svc_env_var
 
 IMAGES_DIR = Path(__file__).parent.resolve() / "images"
-DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "Dockerfile.*"))]
-RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "rpm" / "Dockerfile.*"))]
 CONFIG_DIR = "/etc/otel/collector"
+PKG_DIR = REPO_DIR / "dist"
+PKG_NAME = "splunk-otel-collector"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
 SPLUNK_ACCESS_TOKEN = "testing123"
 SPLUNK_REALM = "test"
 SPLUNK_INGEST_URL = f"https://ingest.{SPLUNK_REALM}.signalfx.com"
 SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.signalfx.com"
 PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "6,7").split(",")
+COLLECTOR_VERSION = os.environ.get("VERSION", "0.0.1")
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
@@ -146,12 +148,15 @@ def verify_dotnet_config(container, path, exists=True):
         verify_config_file(container, path, key, val, exists=exists)
 
 
-DEFAULT_CONFIG = f"""
+DEFAULT_CONFIG = string.Template(
+    f"""
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
+    collector_version => '$version',
 }}
 """
+)
 
 
 @pytest.mark.puppet
@@ -172,7 +177,11 @@ def test_puppet_default(distro, puppet_release):
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            run_puppet_apply(container, DEFAULT_CONFIG)
+            print(f"Using collector version: {COLLECTOR_VERSION}")
+            config = DEFAULT_CONFIG.substitute(version=COLLECTOR_VERSION)
+            run_puppet_apply(container, config)
+            verify_package_version(container, "splunk-otel-collector", COLLECTOR_VERSION)
+
             verify_env_file(container)
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", ".*", exists=False)
             assert wait_for(lambda: service_is_running(container))
@@ -218,10 +227,12 @@ def test_puppet_with_custom_vars(distro, puppet_release):
         try:
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
-            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.126.0")
+            
+            print(f"Using collector version: {COLLECTOR_VERSION}")
+            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=COLLECTOR_VERSION)
             # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
             run_puppet_apply(container, config, strict_mode=False)
-            verify_package_version(container, "splunk-otel-collector", "0.126.0")
+            verify_package_version(container, "splunk-otel-collector", COLLECTOR_VERSION)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
@@ -243,6 +254,7 @@ DEFAULT_INSTRUMENTATION_CONFIG = string.Template(
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
+    collector_version => '$collector_version',
     with_auto_instrumentation => true,
     auto_instrumentation_version => '$version',
     auto_instrumentation_systemd => $with_systemd,
@@ -271,7 +283,12 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=version, with_systemd=with_systemd)
+        print(f"Using collector version: {COLLECTOR_VERSION}")
+        config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(
+            collector_version=COLLECTOR_VERSION,
+            version=version,
+            with_systemd=with_systemd,
+        )
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
@@ -341,6 +358,7 @@ CUSTOM_INSTRUMENTATION_CONFIG = string.Template(
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
+    collector_version => '$collector_version',
     with_auto_instrumentation => true,
     auto_instrumentation_version => '$version',
     auto_instrumentation_systemd => $with_systemd,
@@ -381,7 +399,12 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(version=version, with_systemd=with_systemd)
+        print(f"Using collector version: {COLLECTOR_VERSION}")
+        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(
+            collector_version=COLLECTOR_VERSION,
+            version=version,
+            with_systemd=with_systemd,
+        )
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
@@ -457,7 +480,29 @@ WIN_PUPPET_MODULE_DEST_DIR = r"C:\ProgramData\PuppetLabs\code\environments\produ
 WIN_INSTALL_DIR = r"C:\Program Files\Splunk\OpenTelemetry Collector"
 WIN_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml"
 
-WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure 
+WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure
+# Support for local MSI server for testing with locally built artifacts
+# Usage: LOCAL_MSI_SERVER=http://localhost:8000 WIN_COLLECTOR_VERSION=0.0.1-local pytest ...
+WIN_MSI_REPO_URL = os.environ.get("LOCAL_MSI_SERVER", "https://dl.signalfx.com/splunk-otel-collector/msi/release")
+
+# Windows-specific config template for custom vars test
+WIN_CUSTOM_VARS_CONFIG = string.Template(
+    f"""
+class {{ splunk_otel_collector:
+    splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+    splunk_realm => '{SPLUNK_REALM}',
+    splunk_api_url => '$api_url',
+    splunk_ingest_url => '$ingest_url',
+    splunk_hec_token => 'fake-hec-token',
+    splunk_listen_interface => '0.0.0.0',
+    collector_version => '$version',
+    win_repo_url => '$win_repo_url',
+    with_fluentd => true,
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
+    collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
+}}
+"""
+)
 
 def run_win_puppet_setup(puppet_release, strict_mode=True):
     assert has_choco(), "choco not installed!"
@@ -498,6 +543,7 @@ def test_win_puppet_default():
         splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
         splunk_realm => '{SPLUNK_REALM}',
         collector_version => '{WIN_COLLECTOR_VERSION}',
+        win_repo_url => '{WIN_MSI_REPO_URL}',
     }}
     """
     run_win_puppet_agent(config)
@@ -527,7 +573,12 @@ def test_win_puppet_custom_vars():
 
     api_url = "https://fake-splunk-api.com"
     ingest_url = "https://fake-splunk-ingest.com"
-    config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=WIN_COLLECTOR_VERSION)
+    config = WIN_CUSTOM_VARS_CONFIG.substitute(
+        api_url=api_url, 
+        ingest_url=ingest_url, 
+        version=WIN_COLLECTOR_VERSION,
+        win_repo_url=WIN_MSI_REPO_URL
+    )
 
     run_win_puppet_agent(config)
 

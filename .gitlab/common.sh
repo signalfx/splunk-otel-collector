@@ -159,7 +159,7 @@ create_pr_with_changelog() {
   git push -f "$repo_url" "$branch"
   
   echo ">>> Creating the PR ..."
-  local pr_stdout pr_stderr pr_exit_code
+  local pr_stderr pr_exit_code
   pr_stderr=$(mktemp)
   
   pr_url=$(gh pr create \

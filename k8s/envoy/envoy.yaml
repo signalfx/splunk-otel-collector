@@ -15,7 +15,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-        - image: envoyproxy/envoy:v1.32-latest
+        - image: envoyproxy/envoy:v1.36-latest
           name: envoy-test
           imagePullPolicy: IfNotPresent
           ports:

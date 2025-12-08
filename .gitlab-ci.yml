@@ -1984,7 +1984,7 @@ ansible-release:
   extends: .ansible
   stage: release
   before_script:
-    - pip3 install 'ansible~=12.0.0 yq~=3.0.0'
+    - pip3 install ansible~=12.0.0 yq~=3.0.0
   script:
     - |
       COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)

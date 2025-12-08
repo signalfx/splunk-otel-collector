@@ -145,14 +145,16 @@ create_pr_with_changelog() {
   local note="$7"
   local change_type="${8:-enhancement}"
 
+  # Sanitize filename once at the beginning
+  local sanitized_filename="${changelog_filename//\//-}"
+  sanitized_filename="${sanitized_filename//[^a-zA-Z0-9_-]/-}"
+
   FILENAME="$changelog_filename" \
   COMPONENT="$component" \
   NOTE="$note" \
   CHANGE_TYPE="$change_type" \
   bash "$(dirname "${BASH_SOURCE[0]}")/create-changelog-entry.sh"
   
-  local sanitized_filename="${changelog_filename//\//-}"
-  sanitized_filename="${sanitized_filename//[^a-zA-Z0-9_-]/-}"
   git add ".chloggen/${sanitized_filename}.yaml"
   
   git commit -S -am "$message"
@@ -177,8 +179,6 @@ create_pr_with_changelog() {
       if [[ -n "$pr_number" ]]; then
         echo ">>> PR #${pr_number} created successfully: $pr_url"
         
-        local sanitized_filename="${changelog_filename//\//-}"
-        sanitized_filename="${sanitized_filename//[^a-zA-Z0-9_-]/-}"
         update_changelog_pr_number ".chloggen/${sanitized_filename}.yaml" "$pr_number"
         
         git commit -S --amend --no-edit

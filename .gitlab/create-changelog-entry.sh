@@ -59,7 +59,7 @@ if [ ! -d ".chloggen" ]; then
 fi
 
 if [ -f "$changelog_file" ]; then
-  echo "Warning: Changelog entry ${FILENAME}.yaml already exists. Overwriting."
+  echo "Warning: Changelog entry ${FILENAME}.yaml already exists. Will overwrite."
 fi
 
 echo "Creating changelog entry: $changelog_file"

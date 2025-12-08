@@ -57,16 +57,9 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - name: Run free-disk-space.sh
-        if: runner.os == 'Linux'
-        run: ./.github/workflows/scripts/free-disk-space.sh
-        shell: bash
-        continue-on-error: true
       - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+      - name: Set up environment
+        uses: ./.github/actions/setup-environment
       - uses: actions/cache@v4
         id: bundle-cache
         with:

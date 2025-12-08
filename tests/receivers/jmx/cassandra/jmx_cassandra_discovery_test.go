@@ -65,7 +65,7 @@ func getDockerGID() (string, error) {
 	return dockerGID, nil
 }
 
-func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
+func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile, logMessageToAssert string) (*otelContainer, error) {
 	factory := otlpreceiver.NewFactory()
 	port := 16745
 	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)

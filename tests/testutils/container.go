@@ -298,7 +298,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 	var started testcontainers.Container
 	started, err = testcontainers.GenericContainer(ctx, req)
 	container.container = &started
-	return
+	return err
 }
 
 func (container *Container) assertStarted(operation string) error {
@@ -440,14 +440,14 @@ func (container *Container) ContainerIPs(ctx context.Context) ([]string, error) 
 	return (*container.container).ContainerIPs(ctx)
 }
 
-func (container *Container) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
+func (container *Container) CopyDirToContainer(ctx context.Context, hostDirPath, containerParentPath string, fileMode int64) error {
 	if err := container.assertStarted("CopyDirToContainer"); err != nil {
 		return err
 	}
 	return (*container.container).CopyDirToContainer(ctx, hostDirPath, containerParentPath, fileMode)
 }
 
-func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePath string, containerFilePath string, fileMode int64) error {
+func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePath, containerFilePath string, fileMode int64) error {
 	if err := container.assertStarted("CopyFileToContainer"); err != nil {
 		return err
 	}

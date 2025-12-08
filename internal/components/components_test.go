@@ -31,8 +31,8 @@ func TestDefaultComponents(t *testing.T) {
 		"bearertokenauth",
 		"docker_observer",
 		"ecs_observer",
-		"ecs_task_observer",
 		"file_storage",
+		"googlecloudlogentry_encoding",
 		"headers_setter",
 		"health_check",
 		"host_observer",
@@ -43,6 +43,7 @@ func TestDefaultComponents(t *testing.T) {
 		"opamp",
 		"pprof",
 		"smartagent",
+		"text_encoding",
 		"zpages",
 	}
 	expectedReceivers := []string{
@@ -57,6 +58,7 @@ func TestDefaultComponents(t *testing.T) {
 		"azuremonitor",
 		"carbon",
 		"chrony",
+		"ciscoos",
 		"cloudfoundry",
 		"collectd",
 		"discovery",
@@ -69,6 +71,7 @@ func TestDefaultComponents(t *testing.T) {
 		"haproxy",
 		"hostmetrics",
 		"httpcheck",
+		"icmpcheckreceiver",
 		"iis",
 		"influxdb",
 		"jaeger",
@@ -151,6 +154,7 @@ func TestDefaultComponents(t *testing.T) {
 		"nop",
 		"otlp",
 		"otlphttp",
+		"prometheusremotewrite",
 		"pulsar",
 		"sapm",
 		"signalfx",
@@ -177,6 +181,7 @@ func TestDefaultComponents(t *testing.T) {
 
 	recvs := factories.Receivers
 	assert.Len(t, recvs, len(expectedReceivers))
+
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok, k)

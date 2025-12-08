@@ -28,9 +28,7 @@ const (
 	monitorIDDim = "monitorID"
 )
 
-var (
-	errUnsupportedMetricTypeTimestamp = fmt.Errorf("unsupported metric type timestamp")
-)
+var errUnsupportedMetricTypeTimestamp = fmt.Errorf("unsupported metric type timestamp")
 
 // Based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.15.0/receiver/signalfxreceiver/signalfxv2_to_metricdata.go
 // toMetrics() will respect the timestamp of any datapoint that isn't the zero value for time.Time,

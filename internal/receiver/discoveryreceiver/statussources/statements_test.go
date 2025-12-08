@@ -72,32 +72,38 @@ func TestReceiverNameToIDs(t *testing.T) {
 		expectedReceiverID component.ID
 		expectedEndpointID observer.EndpointID
 	}{
-		{name: "happy path",
+		{
+			name:               "happy path",
 			receiverName:       `receiver_type/receiver.name/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
 			expectedReceiverID: component.MustNewIDWithName("receiver_type", "receiver.name"),
 			expectedEndpointID: observer.EndpointID("<Endpoint.ID>"),
 		},
-		{name: "missing receiver_creator separator",
+		{
+			name:               "missing receiver_creator separator",
 			receiverName:       `receiver_type/receiver.name/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
 			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
-		{name: "missing endpoint separator",
+		{
+			name:               "missing endpoint separator",
 			receiverName:       `receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
 			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
-		{name: "missing name with forward slash hostport",
+		{
+			name:               "missing name with forward slash hostport",
 			receiverName:       `debug//receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
 			expectedReceiverID: component.MustNewID("debug"),
 			expectedEndpointID: observer.EndpointID("(host_observer/host)127.0.0.53-53-TCP)"),
 		},
-		{name: "missing name without forward slash hostport",
+		{
+			name:               "missing name without forward slash hostport",
 			receiverName:       `debug/receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
 			expectedReceiverID: component.MustNewID("debug"),
 			expectedEndpointID: observer.EndpointID("(host_observer/host)127.0.0.53-53-TCP)"),
 		},
-		{name: "docker observer",
+		{
+			name:               "docker observer",
 			receiverName:       `smartagent/redis/with/additional/slashes/receiver_creator/discovery/discovery_name{endpoint="172.17.0.2:6379"}/d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379`,
 			expectedReceiverID: component.MustNewIDWithName("smartagent", "redis/with/additional/slashes"),
 			expectedEndpointID: observer.EndpointID("d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379"),

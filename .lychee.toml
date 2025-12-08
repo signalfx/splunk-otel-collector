@@ -10,16 +10,10 @@ exclude = [
     "127.*:*",
     "splunk_gateway_url",
     ".*.cf-app.com",
-    "https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.63.1",  # release was deleted
     "ideas.splunk.com",
-    "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/pulsarexporter",  # exporter was deleted
-    "https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/translatesfx", # translatesfx was deleted
     "https://www.microsoft.com/en-us/evalcenter/download-windows-server-2022",
     "https://superuser.com/a/980821", # failing with 403 Forbidden
-    "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/databricksreceiver", # databricsreceiver was deleted
     "https://self-service.isv.ci", # Failing with timeouts, not stable and still current according to https://github.com/cf-platform-eng/selfservice/blame/main/README.md#L3
-    "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/httpsinkexporter", # exporter was deleted
-    "https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter", # exporter was deleted
     "https://github.com/.*/(pull|issues)/[0-9]+", # We have too many PR and issues links in CHANGELOG.md that we always run out of the rate limit
     "https://bugs.mysql.com/*", # Failing with 403 Forbidden. Likely rejecting the user agent
     "https://docs.splunk.com", # is returning 403, ignoring temporarily

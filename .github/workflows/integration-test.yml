@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.24.6
+  GO_VERSION: 1.25.5
 jobs:
   agent-bundle-linux:
     strategy:
@@ -147,6 +147,7 @@ jobs:
         PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:
+      COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
       # Multiarch images require more disk space
@@ -232,6 +233,7 @@ jobs:
         PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:
+      COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
@@ -313,7 +315,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis"; do
+          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 # tests for mongo "6.0" and "7.0" are flaky, skipping for now
@@ -336,6 +338,8 @@ jobs:
       strategy:
         matrix: ${{ fromJSON(needs.integration-test-discovery-matrix.outputs.matrix) }}
         fail-fast: false
+      env:
+        COVER_TESTING: true
       steps:
         - name: Free up disk space for next step
           uses: jlumbroso/free-disk-space@v1.3.1
@@ -404,11 +408,15 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
+        if: runner.os == 'Linux'
+        continue-on-error: true
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Create kind cluster
-        uses: helm/kind-action@v1.12.0
+        uses: helm/kind-action@v1.13.0
         with:
           node_image: kindest/node:v1.30.0
           kubectl_version: v1.30.0
@@ -442,6 +450,7 @@ jobs:
           KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
+          COVER_TESTING: true
       - name: Print logs
         if: failure()
         run: |

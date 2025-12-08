@@ -69,7 +69,7 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
 fi
 
 # For release, ensure version is as expected.  TODO move this to another test and compare against tag
-EXPECTED_ADDON_VERSION=v0.137.0
+EXPECTED_ADDON_VERSION=v0.140.0
 actual_version="$(grep "Version" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
 [[ "$actual_version" != "$EXPECTED_ADDON_VERSION" ]] && echo "Test failed -- invalid version" && exit 1

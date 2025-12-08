@@ -224,17 +224,17 @@ func maxGoroutinesPerInterval(metricConfigs []*metricConfig) int {
 	return int(math.Max(float64(requests), float64(2000)))
 }
 
-func latestTimeSeriesDatapoint(metricName string, metricValues []float64, timestamps []int64, accountName string, filterName string) (dp *datapoint.Datapoint) {
+func latestTimeSeriesDatapoint(metricName string, metricValues []float64, timestamps []int64, accountName, filterName string) (dp *datapoint.Datapoint) {
 	if len(metricValues) > 0 {
 		dp = sfxclient.GaugeF(metricName, map[string]string{"account": accountName, "filter": filterName}, metricValues[len(metricValues)-1])
 		// Series timestamps are in milliseconds
 		dp.Timestamp = time.Unix(timestamps[len(timestamps)-1]/1000, 0)
 		dp.Meta[dpmeta.NotHostSpecificMeta] = true
 	}
-	return
+	return dp
 }
 
-func labelSeriesDatapoints(metricName string, metricValues []float64, xvalues []string, timestamp time.Time, accountName string, filterName string) (dps *[]*datapoint.Datapoint) {
+func labelSeriesDatapoints(metricName string, metricValues []float64, xvalues []string, timestamp time.Time, accountName, filterName string) (dps *[]*datapoint.Datapoint) {
 	if len(metricValues) > 0 {
 		dps = &[]*datapoint.Datapoint{}
 		for i, metricValue := range metricValues {
@@ -245,10 +245,10 @@ func labelSeriesDatapoints(metricName string, metricValues []float64, xvalues []
 			*dps = append(*dps, dp)
 		}
 	}
-	return
+	return dps
 }
 
-func simpleSeriesDatapoints(metricName string, metricValues []float64, timestamp time.Time, accountName string, filterName string) (dps *[]*datapoint.Datapoint) {
+func simpleSeriesDatapoints(metricName string, metricValues []float64, timestamp time.Time, accountName, filterName string) (dps *[]*datapoint.Datapoint) {
 	if len(metricValues) > 0 {
 		dps = &[]*datapoint.Datapoint{}
 		for _, metricValue := range metricValues {
@@ -258,10 +258,10 @@ func simpleSeriesDatapoints(metricName string, metricValues []float64, timestamp
 			*dps = append(*dps, dp)
 		}
 	}
-	return
+	return dps
 }
 
-func tableDatapoints(metricNames []string, dimension string, rows [][]float64, xvalues []string, timestamp time.Time, accountName string, filterName string) (dps *[]*datapoint.Datapoint) {
+func tableDatapoints(metricNames []string, dimension string, rows [][]float64, xvalues []string, timestamp time.Time, accountName, filterName string) (dps *[]*datapoint.Datapoint) {
 	if len(rows) > 0 {
 		dps = &[]*datapoint.Datapoint{}
 		for rowIndex, row := range rows {
@@ -273,5 +273,5 @@ func tableDatapoints(metricNames []string, dimension string, rows [][]float64, x
 			}
 		}
 	}
-	return
+	return dps
 }

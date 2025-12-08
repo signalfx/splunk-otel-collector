@@ -1,6 +1,9 @@
 # Explicitly define the shell we will use for commands.
 SHELL?=/bin/bash
 
+# Used for building the collector to collect coverage information
+COVER_TESTING?=false
+
 # Add support to use Makefile on Windows
 SHELL_CASE_EXP = case "$$(uname -s)" in CYGWIN*|MINGW*|MSYS*) echo "true";; esac;
 UNIX_SHELL_ON_WINDOWS := $(shell $(SHELL_CASE_EXP))
@@ -45,14 +48,6 @@ BUILD_TYPE?=release
 # COVER_PKGS is the list of packages to include in the test coverage
 EXCLUDE_MODS=-not -path "./examples/*" -not -path "./packaging/technical-addon/*"
 FIND_MOD_ARGS=-type f -name "go.mod"
-COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
-
-COVER_DIR?=coverage
-COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
-TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
-COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
-COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
-COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
@@ -89,6 +84,17 @@ common: checklicense lint misspell
 test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
+ifeq ($(COVER_TESTING),true)
+# These variables and targets are expensive to build, so only build if explicitly requested
+
+COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
+COVER_DIR?=coverage
+COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
+TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
+
 .PHONY: test-with-codecov
 test-with-codecov:
 	mkdir -p $(COVER_DIR)
@@ -101,6 +107,8 @@ test-with-codecov:
 test-cover-without-race:
 	mkdir -p $(COVER_DIR_ABS)
 	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
+
+endif
 
 .PHONY: addlicense
 addlicense:
@@ -133,6 +141,7 @@ checklinks:
 
 .PHONY: fmt
 fmt: addlicense misspell-correction
+	gofumpt -l -w -extra .
 	gofmt -w -s .
 	goimports -w  -local github.com/signalfx/splunk-otel-collector,github.com/signalfx/signalfx-agent ./
 	fieldalignment -fix ./... || true

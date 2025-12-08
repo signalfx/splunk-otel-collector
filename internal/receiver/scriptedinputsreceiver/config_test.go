@@ -62,7 +62,8 @@ func TestValidConfig(t *testing.T) {
 				BasicConfig: helper.BasicConfig{
 					OperatorID:   "scripted_inputs",
 					OperatorType: "scripted_inputs",
-				}, OutputIDs: []string(nil)},
+				}, OutputIDs: []string(nil),
+			},
 		},
 		Multiline: split.Config{
 			LineStartPattern: "",

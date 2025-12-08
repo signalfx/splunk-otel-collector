@@ -85,7 +85,6 @@ func GetDefault{{ toPascal .SchemaName }}ModularInputs() modularinput.GenericMod
 
 // Given a yaml file specifying the modular inputs, generates a new golang file (see: generatedFileName) in same directory as yaml file based
 func generateModinputConfig(config *modularinput.TemplateData, outDir string) error {
-
 	outputPath := filepath.Join(outDir, generatedFileName)
 
 	tmpl, err := template.New("config").Funcs(template.FuncMap{
@@ -111,11 +110,11 @@ func generateModinputConfig(config *modularinput.TemplateData, outDir string) er
 
 // Given a yaml file specifying the modular inputs, renders all templates (.tmpl) under assets directory to same relative
 // file tree in addon
-func generateTaModInputConfs(config *modularinput.TemplateData, addonSourceDir string, buildDir string) error {
+func generateTaModInputConfs(config *modularinput.TemplateData, addonSourceDir, buildDir string) error {
 	assetsDir := filepath.Join(addonSourceDir, "assets")
 	templateSuffix := ".tmpl"
 	outDir := filepath.Join(buildDir, config.SchemaName)
-	err := os.MkdirAll(outDir, 0755)
+	err := os.MkdirAll(outDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("failed create output dir %s: %w", outDir, err)
 	}
@@ -168,7 +167,7 @@ func SnakeToPascal(snake string) string {
 	return sb.String()
 }
 
-func loadYaml(yamlPath string, schemaName string) (*modularinput.TemplateData, error) {
+func loadYaml(yamlPath, schemaName string) (*modularinput.TemplateData, error) {
 	if _, err := os.Stat(yamlPath); os.IsNotExist(err) {
 		log.Fatalf("YAML file not found: %s", yamlPath)
 	}

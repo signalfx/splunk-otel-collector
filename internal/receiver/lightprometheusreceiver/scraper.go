@@ -67,7 +67,7 @@ func (s *scraper) start(ctx context.Context, host component.Host) error {
 
 	s.startTime = pcommon.NewTimestampFromTime(time.Now())
 	var err error
-	s.client, err = s.cfg.ClientConfig.ToClient(ctx, host, s.settings)
+	s.client, err = s.cfg.ClientConfig.ToClient(ctx, host.GetExtensions(), s.settings)
 	return err
 }
 
@@ -75,7 +75,7 @@ type fetcher func() (io.ReadCloser, expfmt.Format, error)
 
 func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 	fetch := func() (io.ReadCloser, expfmt.Format, error) {
-		req, err := http.NewRequest("GET", s.cfg.ClientConfig.Endpoint, nil)
+		req, err := http.NewRequest("GET", s.cfg.ClientConfig.Endpoint, http.NoBody)
 		if err != nil {
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}

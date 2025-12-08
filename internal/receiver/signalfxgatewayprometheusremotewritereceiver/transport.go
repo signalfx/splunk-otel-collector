@@ -21,7 +21,6 @@ import (
 // reporter is used to report (via zPages, logs, metrics, etc) the events
 // happening when the Server is receiving and processing data.
 type reporter interface {
-
 	// OnError is used to report a translation error from original
 	// format to the internal format of the Collector. The context
 	// passed to it should be the ones returned by StartMetricsOp.

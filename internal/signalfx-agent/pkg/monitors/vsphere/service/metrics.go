@@ -100,7 +100,7 @@ const (
 )
 
 // Given a group name and vCenter name for the metric, returns the units.
-func getMetricUnits(groupName string, name string) units {
+func getMetricUnits(groupName, name string) units {
 	groupUnits, ok := metricUnits[groupName]
 	if !ok {
 		return ""

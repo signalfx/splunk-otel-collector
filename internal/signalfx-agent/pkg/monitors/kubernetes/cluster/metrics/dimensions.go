@@ -33,7 +33,7 @@ type DimensionHandler struct {
 }
 
 // NewDimensionHandler creates a handler for dimension updates
-func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension bool, sendUnsanitizedProperties bool, logger log.FieldLogger) *DimensionHandler {
+func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension, sendUnsanitizedProperties bool, logger log.FieldLogger) *DimensionHandler {
 	return &DimensionHandler{
 		uidKindCache:              make(map[types.UID]string),
 		sendDimensionFunc:         sendDimensionFunc,

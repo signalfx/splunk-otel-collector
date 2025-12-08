@@ -24,6 +24,8 @@ import (
 	"testing"
 	"time"
 
+	"go.opentelemetry.io/collector/pdata/pmetric"
+
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
@@ -79,8 +81,9 @@ func WithFileMounts(mounts map[string]string) MetricsCollectionTestOption {
 
 // RunMetricsCollectionTest runs a test that collects metrics using a collector container with provided configFile and
 // compares the result with the expected metrics defined in the file expectedFilePath.
-func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath string,
-	options ...MetricsCollectionTestOption) {
+func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
+	options ...MetricsCollectionTestOption,
+) {
 	opts := &metricCollectionTestOpts{}
 	for _, opt := range options {
 		opt(opts)
@@ -126,7 +129,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
 			HostFilePath:      k,
 			ContainerFilePath: v,
-			FileMode:          0644,
+			FileMode:          0o644,
 		})
 	}
 
@@ -172,4 +175,15 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		require.NoError(t, os.MkdirAll(dir, 0o755))
 		require.NoError(t, golden.WriteMetrics(t, outputPath, actual))
 	}
+}
+
+func MaybeUpdateExpectedMetricsResults(t *testing.T, file string, metrics *pmetric.Metrics) {
+	if shouldUpdateExpectedResults() {
+		require.NoError(t, golden.WriteMetrics(t, file, *metrics))
+		t.Logf("Wrote updated expected metric results to %s", file)
+	}
+}
+
+var shouldUpdateExpectedResults = func() bool {
+	return os.Getenv("UPDATE_EXPECTED_RESULTS") == "true"
 }

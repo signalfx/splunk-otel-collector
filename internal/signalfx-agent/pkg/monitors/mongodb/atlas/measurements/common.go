@@ -25,7 +25,6 @@ func nextPage(resp *mongodbatlas.Response, logger log.FieldLogger) (bool, int) {
 	}
 
 	currentPage, err := resp.CurrentPage()
-
 	if err != nil {
 		logger.WithError(err).Error("failed to get the next page")
 		return false, -1

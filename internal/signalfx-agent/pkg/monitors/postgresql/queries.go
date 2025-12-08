@@ -180,7 +180,6 @@ var makeDefaultDBQueries = func(dbname string) []sql.Query {
 			},
 		},
 	}
-
 }
 
 var makeDefaultStatementsQueries = func(limit int, totalTimeColumn string) []sql.Query {

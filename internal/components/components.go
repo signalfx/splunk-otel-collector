@@ -24,6 +24,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter"
@@ -31,6 +32,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/googlecloudlogentryencodingextension"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
@@ -38,7 +41,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension"
@@ -70,6 +72,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azuremonitorreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ciscoosreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver"
@@ -81,6 +84,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/haproxyreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/icmpcheckreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/influxdbreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
@@ -127,6 +131,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
+	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
@@ -139,6 +144,7 @@ import (
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver/nopreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
@@ -158,8 +164,8 @@ func Get() (otelcol.Factories, error) {
 		bearertokenauthextension.NewFactory(),
 		dockerobserver.NewFactory(),
 		ecsobserver.NewFactory(),
-		ecstaskobserver.NewFactory(),
 		filestorage.NewFactory(),
+		googlecloudlogentryencodingextension.NewFactory(),
 		headerssetterextension.NewFactory(),
 		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
@@ -170,6 +176,7 @@ func Get() (otelcol.Factories, error) {
 		opampextension.NewFactory(),
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),
+		textencodingextension.NewFactory(),
 		zpagesextension.NewFactory(),
 	)
 	if err != nil {
@@ -188,6 +195,7 @@ func Get() (otelcol.Factories, error) {
 		azuremonitorreceiver.NewFactory(),
 		carbonreceiver.NewFactory(),
 		chronyreceiver.NewFactory(),
+		ciscoosreceiver.NewFactory(),
 		cloudfoundryreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
 		discoveryreceiver.NewFactory(),
@@ -200,6 +208,7 @@ func Get() (otelcol.Factories, error) {
 		haproxyreceiver.NewFactory(),
 		hostmetricsreceiver.NewFactory(),
 		httpcheckreceiver.NewFactory(),
+		icmpcheckreceiver.NewFactory(),
 		iisreceiver.NewFactory(),
 		influxdbreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
@@ -266,6 +275,7 @@ func Get() (otelcol.Factories, error) {
 		nopexporter.NewFactory(),
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
+		prometheusremotewriteexporter.NewFactory(),
 		pulsarexporter.NewFactory(),
 		sapmexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
@@ -301,7 +311,7 @@ func Get() (otelcol.Factories, error) {
 
 	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
-		forwardconnector.NewFactory(),
+		connector.Factory(forwardconnector.NewFactory()),
 		routingconnector.NewFactory(),
 		spanmetricsconnector.NewFactory(),
 		sumconnector.NewFactory(),
@@ -316,6 +326,7 @@ func Get() (otelcol.Factories, error) {
 		Processors: processors,
 		Exporters:  exporters,
 		Connectors: connectors,
+		Telemetry:  otelconftelemetry.NewFactory(),
 	}
 
 	return factories, multierr.Combine(errs...)

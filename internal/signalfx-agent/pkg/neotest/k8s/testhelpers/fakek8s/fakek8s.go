@@ -22,8 +22,10 @@ import (
 	restwatch "k8s.io/client-go/rest/watch"
 )
 
-type resourceKind string
-type resourceName string
+type (
+	resourceKind string
+	resourceName string
+)
 
 // FakeK8s is a mock K8s API server.  It can serve both list and watch
 // requests.
@@ -111,7 +113,6 @@ func (f *FakeK8s) Close() {
 	}
 
 	f.server.Listener.Close()
-
 }
 
 // URL is the of the mock server to point your objects under test to
@@ -154,7 +155,7 @@ func (f *FakeK8s) acceptEvents(stopper <-chan struct{}) {
 }
 
 // Returns whether the object was created (true) or simply replaced (false)
-func (f *FakeK8s) addToResources(resKind resourceKind, namespace string, name string, resource runtime.Object) bool {
+func (f *FakeK8s) addToResources(resKind resourceKind, namespace, name string, resource runtime.Object) bool {
 	f.Lock()
 	defer f.Unlock()
 
@@ -214,7 +215,7 @@ func (f *FakeK8s) DeleteResource(obj runtime.Object) bool {
 
 // DeleteResourceByName removes a resource from the fake api server.  It will
 // generate a watch event for the deletion if the resource existed.
-func (f *FakeK8s) DeleteResourceByName(resKind string, namespace string, name string) bool {
+func (f *FakeK8s) DeleteResourceByName(resKind, namespace, name string) bool {
 	if namespaces := f.resources[resourceKind(resKind)]; namespaces != nil {
 		if names := namespaces[namespace]; names != nil {
 			name := resourceName(name)
@@ -255,7 +256,6 @@ func (f *FakeK8s) handleGetResourceByName(rw http.ResponseWriter, r *http.Reques
 }
 
 func (f *FakeK8s) handleListResource(rw http.ResponseWriter, r *http.Request) {
-
 	rw.Header().Add("Content-Type", "application/json")
 
 	isWatch := strings.Contains(r.URL.RawQuery, "watch=true")
@@ -388,6 +388,7 @@ func pluralNameToKind(name string) resourceKind {
 		panic("Unknown resource type: " + name)
 	}
 }
+
 func typeMeta(rt resourceKind) metav1.TypeMeta {
 	switch string(rt) {
 	case "Pod":

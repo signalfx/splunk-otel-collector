@@ -94,7 +94,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 		wg.Wait()
 
-		var dps = make([]*datapoint.Datapoint, 0)
+		dps := make([]*datapoint.Datapoint, 0)
 
 		// Creating metric datapoints from the 1 minute resolution process measurement datapoints
 		for k, v := range processMeasurements {
@@ -107,7 +107,6 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 		}
 
 		m.Output.SendDatapoints(dps...)
-
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 
 	return nil
@@ -133,9 +132,9 @@ func newDigestClient(publicKey, privateKey string) (*mongodbatlas.Client, error)
 }
 
 func newDps(process measurements.Process, measurementsArr []*mongodbatlas.Measurements, partitionName string) []*datapoint.Datapoint {
-	var dps = make([]*datapoint.Datapoint, 0)
+	dps := make([]*datapoint.Datapoint, 0)
 
-	var dimensions = newDimensions(&process, partitionName)
+	dimensions := newDimensions(&process, partitionName)
 
 	for _, measures := range measurementsArr {
 		metricValue := newFloatValue(measures.DataPoints)
@@ -162,9 +161,9 @@ func newFloatValue(dataPoints []*mongodbatlas.DataPoints) datapoint.FloatValue {
 		return nil
 	}
 
-	var timestamp = dataPoints[0].Timestamp
+	timestamp := dataPoints[0].Timestamp
 
-	var value = dataPoints[0].Value
+	value := dataPoints[0].Value
 
 	// Getting the latest non nil value
 	for i := 1; i < len(dataPoints); i++ {
@@ -182,7 +181,7 @@ func newFloatValue(dataPoints []*mongodbatlas.DataPoints) datapoint.FloatValue {
 }
 
 func newDimensions(process *measurements.Process, partitionName string) map[string]string {
-	var dimensions = map[string]string{"process_id": process.ID, "project_id": process.ProjectID, "host": process.Host, "port": strconv.Itoa(process.Port), "type_name": process.TypeName}
+	dimensions := map[string]string{"process_id": process.ID, "project_id": process.ProjectID, "host": process.Host, "port": strconv.Itoa(process.Port), "type_name": process.TypeName}
 
 	if process.ReplicaSetName != "" {
 		dimensions["replica_set_name"] = process.ReplicaSetName

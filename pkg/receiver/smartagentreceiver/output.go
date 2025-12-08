@@ -55,8 +55,10 @@ type output struct {
 	nextDimensionClients []metadata.MetadataExporter
 }
 
-var _ types.Output = (*output)(nil)
-var _ types.FilteringOutput = (*output)(nil)
+var (
+	_ types.Output          = (*output)(nil)
+	_ types.FilteringOutput = (*output)(nil)
+)
 
 // Deprecated: This is a temporary workaround for the following issue:
 // https://github.com/open-telemetry/opentelemetry-collector/issues/7370
@@ -128,12 +130,12 @@ func getDimensionClientsFromMetricsExporters(
 		if asMetadataExporter, ok := nextMetricsConsumer.(metadata.MetadataExporter); ok {
 			clients = append(clients, asMetadataExporter)
 		}
-		return
+		return clients, wasNil
 	}
 
 	ge, ok := host.(getExporters)
 	if !ok {
-		return
+		return clients, wasNil
 	}
 	exporters := ge.GetExporters()
 
@@ -156,7 +158,7 @@ func getDimensionClientsFromMetricsExporters(
 			}
 		}
 	}
-	return
+	return clients, wasNil
 }
 
 func getLoneSFxExporter(host component.Host, exporterType pipeline.Signal) component.Component {
@@ -179,7 +181,6 @@ func getLoneSFxExporter(host component.Host, exporterType pipeline.Signal) compo
 		}
 	}
 	return sfxExporter
-
 }
 
 func (out *output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
@@ -235,7 +236,6 @@ func (out *output) SendMetrics(metrics ...pmetric.Metric) {
 			default:
 				out.logger.Error("Unsupported metric type", zap.Any("type", dp.Type()), zap.String("name", dp.Name()))
 			}
-
 		}
 		dp.MoveTo(sm.Metrics().AppendEmpty())
 	}

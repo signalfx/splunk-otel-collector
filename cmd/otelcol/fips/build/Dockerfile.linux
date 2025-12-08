@@ -1,5 +1,5 @@
 ARG DOCKER_REPO=docker.io
-ARG GO_VERSION=1.24
+ARG GO_VERSION=1.25.5
 FROM ${DOCKER_REPO}/golang:${GO_VERSION}
 
 COPY cmd /src/cmd

@@ -14,7 +14,7 @@ type ESQueryHTTPClient struct {
 }
 
 // NewESQueryClient creates a new ESQueryHTTPClient
-func NewESQueryClient(host string, port string, scheme string, client *http.Client) ESQueryHTTPClient {
+func NewESQueryClient(host, port, scheme string, client *http.Client) ESQueryHTTPClient {
 	return ESQueryHTTPClient{
 		esClient: &es.ESClient{
 			Scheme:     scheme,
@@ -26,7 +26,7 @@ func NewESQueryClient(host string, port string, scheme string, client *http.Clie
 }
 
 // Returns a response for a given elasticsearch query
-func (es ESQueryHTTPClient) makeHTTPRequestFromConfig(index string, esSearchRequest string) ([]byte, error) {
+func (es ESQueryHTTPClient) makeHTTPRequestFromConfig(index, esSearchRequest string) ([]byte, error) {
 	url := fmt.Sprintf("%s://%s:%s/%s/_search?", es.esClient.Scheme, es.esClient.Host, es.esClient.Port, index)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBufferString(esSearchRequest))

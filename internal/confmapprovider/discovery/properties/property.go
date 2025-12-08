@@ -229,5 +229,4 @@ func unwordify(text string) (string, error) {
 		return "", fmt.Errorf("failed parsing env var hex-encoded content: %w", err)
 	}
 	return unwordified, nil
-
 }

@@ -36,8 +36,10 @@ const (
 	configDScheme        = "splunk.configd"
 )
 
-var _ confmap.ProviderFactory = (*providerShimFactory)(nil)
-var _ confmap.Provider = (*providerShim)(nil)
+var (
+	_ confmap.ProviderFactory = (*providerShimFactory)(nil)
+	_ confmap.Provider        = (*providerShim)(nil)
+)
 
 type providerShimFactory struct {
 	providerShim

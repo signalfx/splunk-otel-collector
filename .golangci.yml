@@ -39,7 +39,7 @@ output:
 
 formatters:
   enable:
-#    - gofumpt
+    - gofumpt
     - goimports
 
   settings:
@@ -47,9 +47,9 @@ formatters:
       # simplify code: gofmt with `-s` option, true by default
       simplify: true
 
-#    gofumpt:
+    gofumpt:
       # Choose whether to use the extra rules
-#      extra-rules: true
+      extra-rules: true
 
     goimports:
       # put imports beginning with prefix after 3rd-party packages;
@@ -122,28 +122,14 @@ linters:
 
     gocritic:
       disabled-checks:
-        - deferInLoop
-        - filepathJoin
-        - hugeParam
-        - importShadow
-        - rangeValCopy
-        - unnamedResult
-        - whyNoLint
-        - paramTypeCombine
-        - yodaStyleExpr
-        - sloppyReassign
-        - emptyStringTest
-        - octalLiteral
-        - exposedSyncMutex
-        - preferStringWriter
-        - nestingReduce
-        - typeUnparen
-        - ptrToRefParam
-        - regexpSimplify
-        - stringConcatSimplify
-        - httpNoBody
-        - stringXbytes
-        - redundantSprint
+        - deferInLoop # default
+        - filepathJoin # default
+        - hugeParam # default
+        - importShadow # default
+        - unnamedResult # default
+        - whyNoLint # default
+        - exposedSyncMutex # default
+        - ptrToRefParam # default
       enable-all: true
 
     gosec:
@@ -155,6 +141,8 @@ linters:
 
     govet:
       enable-all: true
+      disable:
+        - buildtag  # false positive with go1.25.3
       # settings per analyzer
       settings:
         printf: # analyzer name, run `go tool vet help` to see all analyzers

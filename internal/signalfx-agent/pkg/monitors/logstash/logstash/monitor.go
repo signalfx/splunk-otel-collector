@@ -30,9 +30,12 @@ var prefixPathMap = map[string]string{
 	"node.stats.reloads": fmt.Sprintf("%s%s", nodePath, "stats/reloads"),
 	"node.stats.os":      fmt.Sprintf("%s%s", nodePath, "stats/os"),
 }
-var pluginPath = fmt.Sprintf("%s%s", nodePath, "plugins")
-var pipelinePath = fmt.Sprintf("%s%s", nodePath, "pipelines")
-var pipelineStatPath = fmt.Sprintf("%s%s", nodePath, "stats/pipelines")
+
+var (
+	pluginPath       = fmt.Sprintf("%s%s", nodePath, "plugins")
+	pipelinePath     = fmt.Sprintf("%s%s", nodePath, "pipelines")
+	pipelineStatPath = fmt.Sprintf("%s%s", nodePath, "stats/pipelines")
+)
 
 var dimensionKeyMap = map[string]string{
 	"threads": "thread",
@@ -122,7 +125,6 @@ func (m *Monitor) fetchNodeInfo(client *http.Client, endpoint string) (map[strin
 	dims := make(map[string]string)
 
 	nodeJSON, err := getJSON(client, endpoint)
-
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +139,7 @@ func (m *Monitor) fetchNodeInfo(client *http.Client, endpoint string) (map[strin
 	return dims, nil
 }
 
-func (m *Monitor) fetchMetrics(client *http.Client, endpoint string, prefix string, dimensions map[string]string) ([]*datapoint.Datapoint, error) {
+func (m *Monitor) fetchMetrics(client *http.Client, endpoint, prefix string, dimensions map[string]string) ([]*datapoint.Datapoint, error) {
 	metricsJSON, err := getJSON(client, endpoint)
 	if err != nil {
 		return nil, err
@@ -146,7 +148,7 @@ func (m *Monitor) fetchMetrics(client *http.Client, endpoint string, prefix stri
 	return m.extractDatapoints(prefix, metricsJSON, dimensions), nil
 }
 
-func (m *Monitor) fetchPipelineMetrics(client *http.Client, endpoint string, prefix string, dimensions map[string]string) ([]*datapoint.Datapoint, error) {
+func (m *Monitor) fetchPipelineMetrics(client *http.Client, endpoint, prefix string, dimensions map[string]string) ([]*datapoint.Datapoint, error) {
 	var dps []*datapoint.Datapoint
 
 	metricsJSON, err := getJSON(client, endpoint)
@@ -177,7 +179,7 @@ func (m *Monitor) fetchPipelineMetrics(client *http.Client, endpoint string, pre
 	return dps, nil
 }
 
-func (m *Monitor) fetchPluginMetrics(client *http.Client, endpoint string, prefix string, dimensions map[string]string) ([]*datapoint.Datapoint, error) {
+func (m *Monitor) fetchPluginMetrics(client *http.Client, endpoint, prefix string, dimensions map[string]string) ([]*datapoint.Datapoint, error) {
 	metricsJSON, err := getJSON(client, endpoint)
 	if err != nil {
 		return nil, err

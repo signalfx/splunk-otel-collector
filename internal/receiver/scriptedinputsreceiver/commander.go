@@ -40,7 +40,7 @@ type commander struct {
 	running int64
 }
 
-func newCommander(logger *zap.Logger, name string, content string, stdout io.Writer, args ...string) *commander {
+func newCommander(logger *zap.Logger, name, content string, stdout io.Writer, args ...string) *commander {
 	return &commander{
 		name:    name,
 		content: content,

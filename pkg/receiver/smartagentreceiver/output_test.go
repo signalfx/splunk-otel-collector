@@ -354,6 +354,7 @@ func (h *nopHost) ReportFatalError(_ error) {}
 func (h *nopHost) GetFactory(_ component.Kind, _ component.Type) component.Factory {
 	return nil
 }
+
 func (h *nopHost) GetExtensions() map[component.ID]component.Component {
 	return nil
 }

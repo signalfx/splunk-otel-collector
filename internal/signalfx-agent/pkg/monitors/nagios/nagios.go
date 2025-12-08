@@ -60,10 +60,8 @@ const (
 	propertiesLength = 256
 )
 
-var (
-	// ErrorTimeout is returned when command is killed after timeout duration
-	ErrorTimeout = errors.New("command killed after timeout")
-)
+// ErrorTimeout is returned when command is killed after timeout duration
+var ErrorTimeout = errors.New("command killed after timeout")
 
 // Configure and kick off internal metric collection
 func (m *Monitor) Configure(conf *Config) error {
@@ -130,7 +128,6 @@ func (m *Monitor) Configure(conf *Config) error {
 			// update event properties in cache
 			c.Set(cacheKey, diffProperties, cache.NoExpiration)
 		}
-
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 
 	return nil
@@ -144,7 +141,7 @@ func (m *Monitor) Shutdown() {
 	}
 }
 
-func runCommand(command string, timeout int) (stdout []byte, stderr []byte, err error) {
+func runCommand(command string, timeout int) (stdout, stderr []byte, err error) {
 	var cmdOut, cmdErr bytes.Buffer
 
 	// Parse command string with args
@@ -158,7 +155,7 @@ func runCommand(command string, timeout int) (stdout []byte, stderr []byte, err 
 	cmd.Stderr = &cmdErr
 	// Start command
 	if err = cmd.Start(); err != nil {
-		return
+		return stdout, stderr, err
 	}
 
 	// Use a channel to signal completion so we can use a select statement
@@ -229,7 +226,7 @@ func getExitCode(err error, stdout []byte) (int, error) {
 	return ws.ExitStatus(), nil
 }
 
-func makeProperties(state int, err error, stdout []byte, stderr []byte) map[string]interface{} {
+func makeProperties(state int, err error, stdout, stderr []byte) map[string]interface{} {
 	properties := make(map[string]interface{})
 	if len(stdout) > 0 {
 		properties["stdout"] = formatStd(stdout)
@@ -254,7 +251,7 @@ func formatStd(std []byte) string {
 	return rendered
 }
 
-func filterProperties(properties map[string]interface{}, ignoreStdOut bool, ignoreStdErr bool) map[string]interface{} {
+func filterProperties(properties map[string]interface{}, ignoreStdOut, ignoreStdErr bool) map[string]interface{} {
 	filteredProperties := make(map[string]interface{})
 	for k, v := range properties {
 		if k == "stdout" && ignoreStdOut {

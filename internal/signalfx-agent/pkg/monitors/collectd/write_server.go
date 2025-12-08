@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package collectd
 
@@ -35,8 +34,8 @@ type WriteHTTPServer struct {
 
 // NewWriteHTTPServer creates but does not start a new write server
 func NewWriteHTTPServer(ipAddr string, port uint16,
-	dpCallback func([]*datapoint.Datapoint), eventCallback func([]*event.Event)) (*WriteHTTPServer, error) {
-
+	dpCallback func([]*datapoint.Datapoint), eventCallback func([]*event.Event),
+) (*WriteHTTPServer, error) {
 	inst := &WriteHTTPServer{
 		ipAddr:        ipAddr,
 		port:          port,

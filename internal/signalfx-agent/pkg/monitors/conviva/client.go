@@ -28,7 +28,7 @@ type convivaHTTPClient struct {
 }
 
 // newConvivaClient factory function for creating HTTPClientt
-func newConvivaClient(client *http.Client, username string, password string) httpClient {
+func newConvivaClient(client *http.Client, username, password string) httpClient {
 	return &convivaHTTPClient{
 		client:   client,
 		username: username,

@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"go.opentelemetry.io/collector/component"
@@ -425,10 +424,9 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 
 func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
 	factories := map[component.Type]otelcolextension.Factory{
-		component.MustNewType("docker_observer"):   dockerobserver.NewFactory(),
-		component.MustNewType("host_observer"):     hostobserver.NewFactory(),
-		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
-		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
+		component.MustNewType("docker_observer"): dockerobserver.NewFactory(),
+		component.MustNewType("host_observer"):   hostobserver.NewFactory(),
+		component.MustNewType("k8s_observer"):    k8sobserver.NewFactory(),
 	}
 
 	ef, ok := factories[extType]

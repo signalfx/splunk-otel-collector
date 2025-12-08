@@ -24,6 +24,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter"
@@ -40,7 +41,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension"
@@ -131,6 +131,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
+	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
@@ -163,7 +164,6 @@ func Get() (otelcol.Factories, error) {
 		bearertokenauthextension.NewFactory(),
 		dockerobserver.NewFactory(),
 		ecsobserver.NewFactory(),
-		ecstaskobserver.NewFactory(),
 		filestorage.NewFactory(),
 		googlecloudlogentryencodingextension.NewFactory(),
 		headerssetterextension.NewFactory(),
@@ -275,6 +275,7 @@ func Get() (otelcol.Factories, error) {
 		nopexporter.NewFactory(),
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
+		prometheusremotewriteexporter.NewFactory(),
 		pulsarexporter.NewFactory(),
 		sapmexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
@@ -310,7 +311,7 @@ func Get() (otelcol.Factories, error) {
 
 	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
-		forwardconnector.NewFactory(),
+		connector.Factory(forwardconnector.NewFactory()),
 		routingconnector.NewFactory(),
 		spanmetricsconnector.NewFactory(),
 		sumconnector.NewFactory(),

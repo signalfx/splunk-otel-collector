@@ -27,7 +27,7 @@ import (
 func SetupAddonLogger(logFilePath string) (closer func(), err error) {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.LUTC | log.Lshortfile)
 
-	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		log.Printf("Error: failed to open log file %s: %v", logFilePath, err)
 		return func() {}, fmt.Errorf("could not open log file %s", logFilePath)

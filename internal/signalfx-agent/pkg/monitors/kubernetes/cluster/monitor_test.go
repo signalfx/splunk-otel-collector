@@ -45,7 +45,6 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		// containers running in a real k8s env
 		os.Setenv("KUBERNETES_SERVICE_HOST", K8sURL.Hostname())
 		os.Setenv("KUBERNETES_SERVICE_PORT", K8sURL.Port())
-
 	})
 
 	doSetup := func(alwaysClusterReporter bool, thisPodName string) {
@@ -80,7 +79,7 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		return dps
 	}
 
-	expectIntMetric := func(dps []*datapoint.Datapoint, uidField, objUid string, metricName string, metricValue int) {
+	expectIntMetric := func(dps []*datapoint.Datapoint, uidField, objUid, metricName string, metricValue int) {
 		matched := false
 		for _, dp := range dps {
 			dims := dp.Dimensions
@@ -92,7 +91,7 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		gomega.Expect(matched).To(gomega.Equal(true), fmt.Sprintf("%s %s %d", objUid, metricName, metricValue))
 	}
 
-	expectIntMetricMissing := func(dps []*datapoint.Datapoint, uidField, objUid string, metricName string) {
+	expectIntMetricMissing := func(dps []*datapoint.Datapoint, uidField, objUid, metricName string) {
 		matched := false
 		for _, dp := range dps {
 			dims := dp.Dimensions
@@ -352,7 +351,6 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		dps = waitForDatapoints(6)
 
 		expectIntMetricMissing(dps, "kubernetes_pod_uid", "1234", "kubernetes.container_restart_count")
-
 	}, 5)
 
 	ginkgo.It("Sends unsanitized properties when enabled", func() {
@@ -517,7 +515,6 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		expectIntMetric(dps, "kubernetes_uid", "efgh", "kubernetes.deployment.available", 0)
 		expectIntMetric(dps, "kubernetes_uid", "efgh", "kubernetes.deployment.updated", 0)
 	})
-
 })
 
 func TestKubernetes(t *testing.T) {

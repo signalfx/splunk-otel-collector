@@ -154,7 +154,7 @@ func (m *Monitor) fetchObj(url url.URL) (map[string]interface{}, error) {
 }
 
 // getValuesInPath gets values in path "path" of "obj"
-func (m *Monitor) getValuesInPath(obj map[string]interface{}, path string, pathSeparator string) []*metricVal {
+func (m *Monitor) getValuesInPath(obj map[string]interface{}, path, pathSeparator string) []*metricVal {
 	// Splitting configured path into components. The path and thus its components contain regular expressions
 	pathComps, err := utils.SplitString(path, []rune(pathSeparator)[0], escape)
 	if err != nil {
@@ -170,12 +170,12 @@ func (m *Monitor) getValuesInPathHelper(obj interface{}, pathComps []string) (va
 	case map[string]interface{}:
 		if len(pathComps) == 0 {
 			m.logger.Debugf("no key(s) for embedded object %+v", value)
-			return
+			return values
 		}
 		pathComp, err := regexp.Compile(pathComps[0])
 		if err != nil {
 			m.logger.Error(err)
-			return
+			return values
 		}
 		for key := range value {
 			if !pathComp.MatchString(key) {
@@ -201,7 +201,7 @@ func (m *Monitor) getValuesInPathHelper(obj interface{}, pathComps []string) (va
 		pathComp, err := regexp.Compile(pathComps[0])
 		if err != nil {
 			m.logger.Error(err)
-			return
+			return values
 		}
 		for i := range value {
 			index := strconv.Itoa(i)
@@ -229,7 +229,7 @@ func (m *Monitor) getValuesInPathHelper(obj interface{}, pathComps []string) (va
 	}
 }
 
-func (m *Monitor) newDp(val *metricVal, name string, path string, metricType datapoint.MetricType, now time.Time) *datapoint.Datapoint {
+func (m *Monitor) newDp(val *metricVal, name, path string, metricType datapoint.MetricType, now time.Time) *datapoint.Datapoint {
 	dp := datapoint.Datapoint{
 		Metric:     strings.TrimSpace(val.metric),
 		MetricType: metricType,

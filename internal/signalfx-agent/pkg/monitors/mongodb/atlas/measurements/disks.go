@@ -35,7 +35,7 @@ type disksGetter struct {
 }
 
 // NewDisksGetter returns a new DisksGetter.
-func NewDisksGetter(projectID string, granularity string, period string, client *mongodbatlas.Client, enableCache bool, logger log.FieldLogger) DisksGetter {
+func NewDisksGetter(projectID, granularity, period string, client *mongodbatlas.Client, enableCache bool, logger log.FieldLogger) DisksGetter {
 	return &disksGetter{
 		projectID:         projectID,
 		granularity:       granularity,
@@ -51,7 +51,7 @@ func NewDisksGetter(projectID string, granularity string, period string, client 
 
 // GetMeasurements gets metric measurements of disk partitions in the hosts of the given MongoDB processes.
 func (getter *disksGetter) GetMeasurements(ctx context.Context, timeout time.Duration, processes []Process) DisksMeasurements {
-	var measurements = make(DisksMeasurements)
+	measurements := make(DisksMeasurements)
 
 	partitions := getter.getPartitions(ctx, timeout, processes)
 
@@ -70,7 +70,7 @@ func (getter *disksGetter) GetMeasurements(ctx context.Context, timeout time.Dur
 				go func(process Process, partitionName string) {
 					defer wg2.Done()
 
-					var cctx, cancel = context.WithTimeout(ctx, timeout)
+					cctx, cancel := context.WithTimeout(ctx, timeout)
 					defer cancel()
 
 					getter.setMeasurements(cctx, measurements, process, partitionName, 1)
@@ -95,7 +95,7 @@ func (getter *disksGetter) GetMeasurements(ctx context.Context, timeout time.Dur
 
 // getPartitions is a helper function for fetching the names of disk partitions is the hosts of given MongoDB processes.
 func (getter *disksGetter) getPartitions(ctx context.Context, timeout time.Duration, processes []Process) map[Process][]string {
-	var partitions = make(map[Process][]string)
+	partitions := make(map[Process][]string)
 
 	var wg1 sync.WaitGroup
 
@@ -160,7 +160,7 @@ func (getter *disksGetter) getPartitionNames(ctx context.Context, process Proces
 
 // setMeasurements is a helper function of method GetMeasurements.
 func (getter *disksGetter) setMeasurements(ctx context.Context, disksMeasurements DisksMeasurements, process Process, partitionName string, pageNum int) {
-	var opts = &mongodbatlas.ProcessMeasurementListOptions{ListOptions: &mongodbatlas.ListOptions{PageNum: pageNum}, Granularity: getter.granularity, Period: getter.period}
+	opts := &mongodbatlas.ProcessMeasurementListOptions{ListOptions: &mongodbatlas.ListOptions{PageNum: pageNum}, Granularity: getter.granularity, Period: getter.period}
 
 	list, resp, err := getter.client.ProcessDiskMeasurements.List(ctx, getter.projectID, process.Host, process.Port, partitionName, opts)
 

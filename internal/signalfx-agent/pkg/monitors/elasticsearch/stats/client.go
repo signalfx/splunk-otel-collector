@@ -21,7 +21,7 @@ type ESStatsHTTPClient struct {
 }
 
 // NewESClient creates a new esClient
-func NewESClient(host string, port string, scheme string, client *http.Client) ESStatsHTTPClient {
+func NewESClient(host, port, scheme string, client *http.Client) ESStatsHTTPClient {
 	return ESStatsHTTPClient{
 		esClient: &es.ESClient{
 			Scheme:     scheme,

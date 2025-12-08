@@ -1,6 +1,7 @@
-ansible~=7.0
-ansible-lint==5.4.0
-molecule==3.3.0
-molecule-docker==0.2.4
-docker==5.0.0
+ansible~=12.0.0
+ansible-lint==25.9.1
+ansible-compat==25.8.2
+molecule==25.5.0
+molecule-plugins[docker]==25.8.12
+docker>=7.0.0
 urllib3>=2,<3

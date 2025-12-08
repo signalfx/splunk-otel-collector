@@ -25,7 +25,8 @@ type Accumulator struct {
 // AddFields receives a measurement with tags and a time stamp to the accumulator.
 // Measurements are passed to the Accumulator's Emitter.
 func (ac *Accumulator) AddFields(measurement string, fields map[string]interface{},
-	tags map[string]string, t ...time.Time) {
+	tags map[string]string, t ...time.Time,
+) {
 	// as of right now metric always returns a nil error
 	m, _ := metric.New(measurement, tags, fields, getTime(t), telegraf.Untyped)
 	ac.AddMetric(m)
@@ -34,7 +35,8 @@ func (ac *Accumulator) AddFields(measurement string, fields map[string]interface
 // AddGauge receives a measurement as a "Gauge" with tags and a time stamp to
 // the accumulator. Measurements are passed to the Accumulator's Emitter.
 func (ac *Accumulator) AddGauge(measurement string, fields map[string]interface{},
-	tags map[string]string, t ...time.Time) {
+	tags map[string]string, t ...time.Time,
+) {
 	// as of right now metric always returns a nil error
 	m, _ := metric.New(measurement, tags, fields, getTime(t), telegraf.Gauge)
 	ac.AddMetric(m)
@@ -43,7 +45,8 @@ func (ac *Accumulator) AddGauge(measurement string, fields map[string]interface{
 // AddCounter receives a measurement as a "Counter" with tags and a time stamp
 // to the accumulator. Measurements are passed to the Accumulator's Emitter.
 func (ac *Accumulator) AddCounter(measurement string, fields map[string]interface{},
-	tags map[string]string, t ...time.Time) {
+	tags map[string]string, t ...time.Time,
+) {
 	// as of right now metric always returns a nil error
 	m, _ := metric.New(measurement, tags, fields, getTime(t), telegraf.Counter)
 	ac.AddMetric(m)
@@ -52,7 +55,8 @@ func (ac *Accumulator) AddCounter(measurement string, fields map[string]interfac
 // AddSummary receives a measurement as a "Counter" with tags and a time stamp
 // to the accumulator. Measurements are passed to the Accumulator's Emitter.
 func (ac *Accumulator) AddSummary(measurement string, fields map[string]interface{},
-	tags map[string]string, t ...time.Time) {
+	tags map[string]string, t ...time.Time,
+) {
 	// as of right now metric always returns a nil error
 	m, _ := metric.New(measurement, tags, fields, getTime(t), telegraf.Summary)
 	ac.AddMetric(m)
@@ -61,7 +65,8 @@ func (ac *Accumulator) AddSummary(measurement string, fields map[string]interfac
 // AddHistogram receives a measurement as a "Counter" with tags and a time stamp
 // to the accumulator. Measurements are passed to the Accumulator's Emitter.
 func (ac *Accumulator) AddHistogram(measurement string, fields map[string]interface{},
-	tags map[string]string, t ...time.Time) {
+	tags map[string]string, t ...time.Time,
+) {
 	// as of right now metric always returns a nil error
 	m, _ := metric.New(measurement, tags, fields, getTime(t), telegraf.Histogram)
 	ac.AddMetric(m)

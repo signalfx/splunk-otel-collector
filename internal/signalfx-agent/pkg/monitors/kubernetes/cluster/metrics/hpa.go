@@ -102,5 +102,5 @@ func newStatusMetricValue(condition v2beta1.HorizontalPodAutoscalerCondition) (m
 	default:
 		return metric, nil, fmt.Errorf("invalid horizontal pod autoscaler condition status: %v", condition.Status)
 	}
-	return
+	return metric, value, err
 }

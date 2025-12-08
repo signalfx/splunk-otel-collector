@@ -17,7 +17,7 @@ func getPartitions(all bool) ([]gopsutil.PartitionStat, error) {
 // getUsage prepends the hostFSPath to the partition mountpoint. This is needed
 // when reading from a mounted filesystem, ex: container, as the latest GoPsutil
 // now looks into 1/mountinfo and this file does not contain the relative path
-func getUsage(hostFSPath string, path string) (*gopsutil.UsageStat, error) {
+func getUsage(hostFSPath, path string) (*gopsutil.UsageStat, error) {
 	if hostFSPath != "" {
 		path = filepath.Join(hostFSPath, path)
 	}

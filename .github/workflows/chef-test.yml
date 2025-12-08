@@ -149,6 +149,11 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v5
+      
+      - name: Run free-disk-space.sh
+        run: ./.github/workflows/scripts/free-disk-space.sh
+        shell: bash
+        continue-on-error: true
 
       - uses: actions/download-artifact@v5
         with:

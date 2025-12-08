@@ -173,7 +173,7 @@ create_pr_with_changelog() {
   
   if [[ $pr_exit_code -eq 0 ]]; then
     if [[ -n "$pr_url" ]]; then
-      pr_number=$(echo "$pr_url" | grep -oE '[0-9]+$')
+      pr_number=$(echo "$pr_url" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+')
       if [[ -n "$pr_number" ]]; then
         echo ">>> PR #${pr_number} created successfully: $pr_url"
         

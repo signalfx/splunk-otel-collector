@@ -319,6 +319,7 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
           LOCAL_MSI_SERVER: "http://localhost:8000"
+        shell: pwsh
         run: |
           pytest -s --verbose -m windows `
             -k ${{ matrix.TEST_CASE }} `
@@ -330,6 +331,7 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
           LOCAL_MSI_SERVER: "http://localhost:8000"
+        shell: pwsh
         run: |
           pytest -s --verbose -m windows `
             --last-failed `

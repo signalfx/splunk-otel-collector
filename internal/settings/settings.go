@@ -48,14 +48,13 @@ const (
 	ListenInterfaceEnvVar          = "SPLUNK_LISTEN_INTERFACE"
 	GoMemLimitEnvVar               = "GOMEMLIMIT"
 	GoGCEnvVar                     = "GOGC"
-	// nolint:gosec
-	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
+	//nolint:gosec // this isn't a hardcoded token
+	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN"
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
 	MemLimitMiBEnvVar = "SPLUNK_MEMORY_LIMIT_MIB"
 	MemTotalEnvVar    = "SPLUNK_MEMORY_TOTAL_MIB"
 	RealmEnvVar       = "SPLUNK_REALM"
-	// nolint:gosec
-	TokenEnvVar = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
+	TokenEnvVar       = "SPLUNK_ACCESS_TOKEN"
 
 	// Deprecated: SPLUNK_TRACE_URL env var is deprecated, SPLUNK_REALM or SPLUNK_INGEST_URL should be used instead.
 	TraceIngestURLEnvVar = "SPLUNK_TRACE_URL"
@@ -389,7 +388,7 @@ func setDefaultEnvVars(s *Settings) error {
 
 	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {
 		ingestURL = strings.TrimSuffix(ingestURL, "/")
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("%s/v2/trace", ingestURL)
+		defaultEnvVars[TraceIngestURLEnvVar] = ingestURL + "/v2/trace"
 	}
 
 	if token, ok := os.LookupEnv(TokenEnvVar); ok {
@@ -437,7 +436,7 @@ func setDefaultFeatureGates(flagSet *flag.FlagSet) {
 		if strings.HasPrefix(fg, "+") || strings.HasPrefix(fg, "-") {
 			bareGate = fg[1:]
 		}
-		if !arrVal.contains(bareGate) && !arrVal.contains(fmt.Sprintf("-%s", bareGate)) && !arrVal.contains(fmt.Sprintf("+%s", bareGate)) {
+		if !arrVal.contains(bareGate) && !arrVal.contains("-"+bareGate) && !arrVal.contains("+"+bareGate) {
 			arrVal.value = append(arrVal.value, fg)
 		}
 		fgFlag.Changed = true
@@ -452,15 +451,33 @@ func defaultListenAddr(s *Settings) string {
 				path = location
 			}
 			cleaned := filepath.Clean(path)
-			if path == DefaultAgentConfigLinux ||
-				cleaned == DefaultAgentConfigLinux ||
-				path == DefaultAgentConfigWindows ||
-				cleaned == DefaultAgentConfigWindows {
+			if isAgentConfig(path) || isAgentConfig(cleaned) {
 				return "127.0.0.1"
 			}
 		}
 	}
 	return DefaultListenInterface
+}
+
+// isAgentConfig checks if the given path is an agent configuration file
+func isAgentConfig(path string) bool {
+	// Direct comparison with default paths
+	if path == DefaultAgentConfigLinux || path == DefaultAgentConfigWindows {
+		return true
+	}
+
+	// For Windows, check if the path ends with the agent config pattern
+	// This handles cases where paths might be constructed differently
+	if runtime.GOOS == "windows" && filepath.Base(path) == "agent_config.yaml" {
+		// Normalize path separators and check the directory structure
+		cleanPath := filepath.ToSlash(filepath.Clean(path))
+		// Check if path ends with Splunk/OpenTelemetry Collector/agent_config.yaml
+		if strings.HasSuffix(cleanPath, "Splunk/OpenTelemetry Collector/agent_config.yaml") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Config priority (highest to lowest):

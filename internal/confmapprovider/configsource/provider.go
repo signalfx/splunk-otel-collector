@@ -17,6 +17,7 @@ package configsource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -156,7 +157,7 @@ func (pw *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, on
 		return nil, fmt.Errorf("failed converting retrieved to conf: %w", acErr)
 	}
 	if conf == nil {
-		return nil, fmt.Errorf("retrieved confmap.Conf is unexpectedly nil")
+		return nil, errors.New("retrieved confmap.Conf is unexpectedly nil")
 	}
 
 	scheme, stringMap := w.provider.Scheme(), conf.ToStringMap()

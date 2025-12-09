@@ -102,7 +102,7 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 
 	d.metricsConsumer = newMetricsConsumer(d.logger, d.config, correlations, d.nextMetricsConsumer)
 
-	if err = d.createAndSetReceiverCreator(); err != nil {
+	if err = d.createAndSetReceiverCreator(ctx); err != nil {
 		return fmt.Errorf("failed creating internal receiver_creator: %w", err)
 	}
 
@@ -110,7 +110,7 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 		loopStarted := &sync.WaitGroup{}
 		loopStarted.Add(1)
 		d.loopFinished.Add(1)
-		go d.consumerLoop(loopStarted)
+		go d.consumerLoop(ctx, loopStarted)
 		// wait until we know consumer loop is running before starting receiver creator
 		// so as not to miss any resulting telemetry
 		loopStarted.Wait()
@@ -143,7 +143,7 @@ func (d *discoveryReceiver) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
+func (d *discoveryReceiver) consumerLoop(ctx context.Context, loopStarted *sync.WaitGroup) {
 	loopStarted.Done()
 	defer d.loopFinished.Done()
 	for {
@@ -155,17 +155,17 @@ func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
 			if !ok {
 				return
 			}
-			ctx := d.obsreportReceiver.StartLogsOp(context.Background())
-			err := d.nextLogsConsumer.ConsumeLogs(context.Background(), pLog)
+			opCtx := d.obsreportReceiver.StartLogsOp(ctx)
+			err := d.nextLogsConsumer.ConsumeLogs(ctx, pLog)
 			if err != nil {
 				d.logger.Info("logsConsumer failed consumption", zap.Error(err))
 			}
-			d.obsreportReceiver.EndLogsOp(ctx, typeStr, pLog.LogRecordCount(), err)
+			d.obsreportReceiver.EndLogsOp(opCtx, typeStr, pLog.LogRecordCount(), err)
 		}
 	}
 }
 
-func (d *discoveryReceiver) createAndSetReceiverCreator() error {
+func (d *discoveryReceiver) createAndSetReceiverCreator(ctx context.Context) error {
 	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig()
 	if err != nil {
 		return err
@@ -193,7 +193,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 		},
 	}
 	if d.receiverCreator, err = receiverCreatorFactory.CreateMetrics(
-		context.Background(), receiverCreatorSettings, receiverCreatorConfig, d.metricsConsumer,
+		ctx, receiverCreatorSettings, receiverCreatorConfig, d.metricsConsumer,
 	); err != nil {
 		return err
 	}

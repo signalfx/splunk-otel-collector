@@ -75,18 +75,17 @@ linters:
     - unconvert
     - unparam
     - unused
-#    Enable additional linters as needed in the future
-#    - contextcheck
-#    - depguard
-#    - errorlint
-#    - fatcontext
-#    - nolintlint
-#    - perfsprint
-#    - testifylint
-#    - thelper
-#    - usestdlibvars
-#    - usetesting
-#    - whitespace
+    - contextcheck 
+    - depguard
+    - errorlint
+    - fatcontext
+    - nolintlint
+    - perfsprint
+    - testifylint
+    - thelper
+    - usestdlibvars
+    - usetesting
+    - whitespace
 
   exclusions:
     presets:

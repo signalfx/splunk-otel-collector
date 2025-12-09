@@ -95,7 +95,7 @@ func configProperty(methodName, prefix string, args []string) (*properties.Prope
 	}
 	key := ""
 	if la > 1 {
-		key = fmt.Sprintf(".%s", strings.Join(args[:la-1], "::"))
+		key = "." + strings.Join(args[:la-1], "::")
 	}
 	property := fmt.Sprintf("%s%s", prefix, key)
 	return properties.NewProperty(property, args[la-1])

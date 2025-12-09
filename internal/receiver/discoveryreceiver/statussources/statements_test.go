@@ -140,7 +140,7 @@ func FuzzReceiverNameToIDs(f *testing.F) {
 				require.Equal(t, observer.EndpointID(""), endpointID)
 			} else if receiverID.Type() == discovery.NoType.Type() {
 				// if the receiver type is indeterminate, the name should be empty
-				require.Equal(t, "", receiverID.Name())
+				require.Empty(t, receiverID.Name())
 			}
 		})
 	})

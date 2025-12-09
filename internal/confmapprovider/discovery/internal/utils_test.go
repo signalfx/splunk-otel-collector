@@ -17,7 +17,6 @@ package internal
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
 )
@@ -39,7 +38,7 @@ func TestMergeMaps(t *testing.T) {
 		},
 	}
 	err := MergeMaps(first, second)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, map[string]any{
 		"one.key":   "one.val",
 		"two.key":   "two.val",
@@ -58,7 +57,7 @@ func TestMergeMaps(t *testing.T) {
 		},
 	}
 	err = MergeMaps(first, third)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, map[string]any{
 		"one.key":   "one.val",
 		"two.key":   "two.val",
@@ -80,7 +79,7 @@ func TestMergeMaps(t *testing.T) {
 		"five.key": "five.val",
 	}
 	err = MergeMaps(first, fourth)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, map[string]any{
 		"one.key":   "one.val",
 		"two.key":   "two.val",

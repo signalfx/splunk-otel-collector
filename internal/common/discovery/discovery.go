@@ -15,6 +15,7 @@
 package discovery
 
 import (
+	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/collector/component"
@@ -63,7 +64,7 @@ var allowedStatuses = func() map[StatusType]struct{} {
 
 func IsValidStatus(status StatusType) (bool, error) {
 	if status == "" {
-		return false, fmt.Errorf("status cannot be empty")
+		return false, errors.New("status cannot be empty")
 	}
 	if _, ok := allowedStatuses[status]; !ok {
 		return false, fmt.Errorf("invalid status %q. must be one of %v", status, StatusTypes)

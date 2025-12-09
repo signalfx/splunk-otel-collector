@@ -41,7 +41,7 @@ func TestValidConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, configs)
 
-	assert.Equal(t, 1, len(configs.ToStringMap()))
+	assert.Len(t, configs.ToStringMap(), 1)
 
 	cm, err := configs.Sub("scripted_inputs/cpu")
 	require.NoError(t, err)
@@ -102,7 +102,7 @@ func TestCreateWithSmallLogSize(t *testing.T) {
 	config.MaxLogSize = 2
 	err := config.Validate()
 
-	assert.Equal(t, err.Error(), "invalid value for parameter 'max_log_size', must be equal to or greater than 65536 bytes")
+	assert.Equal(t, "invalid value for parameter 'max_log_size', must be equal to or greater than 65536 bytes", err.Error())
 }
 
 func TestCreateWithMissingExecFile(t *testing.T) {
@@ -112,7 +112,7 @@ func TestCreateWithMissingExecFile(t *testing.T) {
 
 	err := config.Validate()
 
-	assert.Equal(t, err.Error(), "'script_name' must be specified")
+	assert.Equal(t, "'script_name' must be specified", err.Error())
 }
 
 func TestCreateWithNonEmptyMultiline(t *testing.T) {

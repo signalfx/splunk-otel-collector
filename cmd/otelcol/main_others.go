@@ -18,9 +18,11 @@
 package main
 
 import (
+	"context"
+
 	"go.opentelemetry.io/collector/otelcol"
 )
 
-func run(params otelcol.CollectorSettings) error {
-	return runInteractive(params)
+func run(ctx context.Context, params otelcol.CollectorSettings) error {
+	return runInteractive(ctx, params)
 }

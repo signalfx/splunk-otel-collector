@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -41,13 +42,17 @@ func main() {
 }
 
 func runFromCmdLine(args []string) {
+	runFromCmdLineWithContext(context.Background(), args)
+}
+
+func runFromCmdLineWithContext(ctx context.Context, args []string) {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
 		// Exit if --help flag was supplied and usage help was displayed.
-		if err == flag.ErrHelp {
+		if errors.Is(err, flag.ErrHelp) {
 			os.Exit(0)
 		}
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)
@@ -90,18 +95,14 @@ func runFromCmdLine(args []string) {
 	allArgs := args[:1]
 	allArgs = append(allArgs, collectorSettings.ColCoreArgs()...)
 	os.Args = allArgs
-	if err = run(serviceSettings); err != nil {
+	if err = run(ctx, serviceSettings); err != nil {
 		log.Fatal(err)
 	}
 }
 
-var otelcolCmdTestCtx context.Context // Use to control termination during tests.
-
-func runInteractive(settings otelcol.CollectorSettings) error {
+func runInteractive(ctx context.Context, settings otelcol.CollectorSettings) error {
 	cmd := otelcol.NewCommand(settings)
-	if otelcolCmdTestCtx != nil {
-		cmd.SetContext(otelcolCmdTestCtx)
-	}
+	cmd.SetContext(ctx)
 	if err := cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}

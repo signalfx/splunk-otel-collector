@@ -18,15 +18,16 @@ package subprocess
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
-	"go.uber.org/atomic"
 	"go.uber.org/zap"
 )
 
@@ -133,7 +134,7 @@ func (subprocess *Subprocess) Start(ctx context.Context) error {
 // Shutdown is invoked during service shutdown.
 func (subprocess *Subprocess) Shutdown(ctx context.Context) error {
 	if subprocess.cancel == nil {
-		return fmt.Errorf("no subprocess.cancel().  Has it been started properly?")
+		return errors.New("no subprocess.cancel().  Has it been started properly?")
 	}
 	subprocess.cancel()
 
@@ -159,16 +160,15 @@ func (subprocess *Subprocess) Shutdown(ctx context.Context) error {
 // doesn't write to a closed channel
 type processReturned struct {
 	ReturnedChan chan error
-	isOpen       *atomic.Bool
-	lock         *sync.Mutex
+	isOpen       atomic.Bool
+	lock         sync.Mutex
 }
 
 func newProcessReturned() *processReturned {
 	pr := processReturned{
 		ReturnedChan: make(chan error),
-		isOpen:       atomic.NewBool(true),
-		lock:         &sync.Mutex{},
 	}
+	pr.isOpen.Store(true)
 	return &pr
 }
 

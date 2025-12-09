@@ -28,7 +28,7 @@ import (
 func TestOverwritePropertiesConverter_Empty(t *testing.T) {
 	pmp := NewOverwritePropertiesConverter(nil)
 	conf := confmap.NewFromStringMap(map[string]interface{}{"foo": "bar"})
-	assert.NoError(t, pmp.Convert(context.Background(), conf))
+	require.NoError(t, pmp.Convert(context.Background(), conf))
 	assert.Equal(t, map[string]interface{}{"foo": "bar"}, conf.ToStringMap())
 }
 
@@ -60,7 +60,7 @@ func TestOverwritePropertiesConverter(t *testing.T) {
 func TestOverwritePropertiesConverter_InvalidProperty(t *testing.T) {
 	pmp := NewOverwritePropertiesConverter([]string{"=2s"})
 	conf := confmap.New()
-	assert.Error(t, pmp.Convert(context.Background(), conf))
+	require.Error(t, pmp.Convert(context.Background(), conf))
 
 	pmp = NewOverwritePropertiesConverter([]string{"key={:false"})
 	conf = confmap.New()

@@ -137,7 +137,7 @@ func TestConsumeMetrics(t *testing.T) {
 						"extra_attr":              "target_resource",
 					}, cStore.Attrs(endpointID))
 
-					assert.Equal(t, 1, len(ms.AllMetrics()))
+					assert.Len(t, ms.AllMetrics(), 1)
 					assert.Equal(t, 2, ms.AllMetrics()[0].ResourceMetrics().Len())
 					// Ensure redundant attributes are not added
 					for i := 0; i < ms.AllMetrics()[0].ResourceMetrics().Len(); i++ {

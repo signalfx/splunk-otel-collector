@@ -16,6 +16,7 @@ package discoveryreceiver
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"regexp"
 	"sync"
@@ -94,7 +95,7 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 			}
 		}
 	default:
-		err = fmt.Errorf("no valid match field provided")
+		err = errors.New("no valid match field provided")
 	}
 	if err != nil {
 		return false, err

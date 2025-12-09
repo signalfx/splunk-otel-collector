@@ -179,7 +179,7 @@ func (cs *ConfigServer) OnShutdown() {
 
 func (cs *ConfigServer) muxHandleFunc(configType ConfigType) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method != "GET" {
+		if request.Method != http.MethodGet {
 			writer.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}

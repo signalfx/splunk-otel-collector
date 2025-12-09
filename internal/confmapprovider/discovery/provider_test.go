@@ -48,14 +48,14 @@ func TestConfigDProviderHappyPath(t *testing.T) {
 
 	configDir := filepath.Join(".", "testdata", "config.d")
 	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, retrieved)
 
 	conf, err := retrieved.AsRaw()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expectedServiceConfig, conf)
 
-	assert.NoError(t, configD.Shutdown(context.Background()))
+	require.NoError(t, configD.Shutdown(context.Background()))
 }
 
 func TestConfigDProviderDifferentConfigDirs(t *testing.T) {
@@ -66,18 +66,18 @@ func TestConfigDProviderDifferentConfigDirs(t *testing.T) {
 	configD := provider.ConfigDProviderFactory().Create(confmap.ProviderSettings{})
 	configDir := filepath.Join(".", "testdata", "config.d")
 	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, retrieved)
 	conf, err := retrieved.AsRaw()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expectedServiceConfig, conf)
 
 	configDir = filepath.Join(".", "testdata", "another-config.d")
 	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, retrieved)
 	conf, err = retrieved.AsRaw()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	anotherExpectedServiceConfig := map[string]any{
 		"exporters": map[string]any{
 			"signalfx": map[string]any{
@@ -101,11 +101,11 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	configD := provider.ConfigDProviderFactory().Create(confmap.ProviderSettings{})
 	require.NotNil(t, configD)
 	retrieved, err := configD.Retrieve(context.Background(), "not.a.thing:not.a.path", nil)
-	assert.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)
+	require.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 
-	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:not.a.path", discoveryModeScheme), nil)
-	assert.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
+	retrieved, err = configD.Retrieve(context.Background(), discoveryModeScheme+":not.a.path", nil)
+	require.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 }
 
@@ -119,8 +119,8 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	provider, err := otelcol.NewConfigProvider(otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs: []string{
-				fmt.Sprintf("file:%s", filepath.Join("testdata", "base-config.yaml")),
-				fmt.Sprintf("%s:%s", discoveryModeScheme, filepath.Join("testdata", "config.d")),
+				"file:" + filepath.Join("testdata", "base-config.yaml"),
+				discoveryModeScheme + ":" + filepath.Join("testdata", "config.d"),
 			},
 			ProviderFactories: []confmap.ProviderFactory{
 				fileprovider.NewFactory(),
@@ -141,12 +141,12 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, conf)
 
-	assert.Equal(t, 1, len(conf.Receivers))
+	assert.Len(t, conf.Receivers, 1)
 	drc, ok := conf.Receivers[component.MustNewIDWithName("discovery", "host_observer")].(*discoveryreceiver.Config)
 	require.True(t, ok)
 	assert.NotNil(t, drc)
 
-	assert.Equal(t, 1, len(conf.Exporters))
+	assert.Len(t, conf.Exporters, 1)
 	oec, ok := conf.Exporters[component.MustNewIDWithName("otlphttp", "entities")].(*otlphttpexporter.Config)
 	require.True(t, ok)
 	expectedOtlpExporterConfig := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
@@ -156,14 +156,14 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	}
 	assert.Equal(t, expectedOtlpExporterConfig, oec)
 
-	assert.Equal(t, 1, len(conf.Extensions))
+	assert.Len(t, conf.Extensions, 1)
 	hoc, ok := conf.Extensions[component.MustNewID("host_observer")].(*hostobserver.Config)
 	require.True(t, ok)
 	assert.Equal(t, hostobserver.NewFactory().CreateDefaultConfig(), hoc)
 
 	assert.EqualValues(t, []component.ID{component.MustNewID("host_observer")}, conf.Service.Extensions)
 	pipelines := conf.Service.Pipelines
-	assert.Equal(t, 2, len(pipelines))
+	assert.Len(t, pipelines, 2)
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
 		pipelines[pipeline.NewID(pipeline.SignalMetrics)].Receivers)
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
@@ -179,9 +179,9 @@ func TestDiscoveryProvider_HostObserverDisabled(t *testing.T) {
 	provider, err := otelcol.NewConfigProvider(otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs: []string{
-				fmt.Sprintf("file:%s", filepath.Join("testdata", "base-config.yaml")),
-				fmt.Sprintf("%s:%s", propertiesFileScheme, filepath.Join("testdata", "disable-host-observer.properties.yaml")),
-				fmt.Sprintf("%s:%s", discoveryModeScheme, filepath.Join("testdata", "config.d")),
+				"file:" + filepath.Join("testdata", "base-config.yaml"),
+				propertiesFileScheme + ":" + filepath.Join("testdata", "disable-host-observer.properties.yaml"),
+				discoveryModeScheme + ":" + filepath.Join("testdata", "config.d"),
 			},
 			ProviderFactories: []confmap.ProviderFactory{
 				fileprovider.NewFactory(),

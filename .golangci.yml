@@ -76,12 +76,12 @@ linters:
     - unparam
     - unused
     - contextcheck
+    - perfsprint
 #    Enable additional linters as needed in the future
 #    - depguard
 #    - errorlint
 #    - fatcontext
 #    - nolintlint
-#    - perfsprint
 #    - testifylint
 #    - thelper
 #    - usestdlibvars

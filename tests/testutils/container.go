@@ -19,6 +19,7 @@ package testutils
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"runtime/debug"
@@ -282,7 +283,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 	}()
 
 	if container.req == nil {
-		return fmt.Errorf("cannot start a container that hasn't been built")
+		return errors.New("cannot start a container that hasn't been built")
 	}
 
 	req := testcontainers.GenericContainerRequest{

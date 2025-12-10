@@ -16,14 +16,14 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"go.opentelemetry.io/collector/pdata/plog"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
@@ -57,7 +57,7 @@ func (hec HECReceiverSink) WithEndpoint(endpoint string) HECReceiverSink {
 // Build will create, configure, and start an HECReceiver with GRPC listener and associated metric and log sinks
 func (hec HECReceiverSink) Build() (*HECReceiverSink, error) {
 	if hec.Endpoint == "" {
-		return nil, fmt.Errorf("must provide an Endpoint for HECReceiverSink")
+		return nil, errors.New("must provide an Endpoint for HECReceiverSink")
 	}
 	hec.Logger = zap.NewNop()
 	hec.Host = componenttest.NewNopHost()

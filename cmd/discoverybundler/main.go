@@ -16,6 +16,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -246,7 +247,7 @@ func formatMessage(message string, componentID component.ID) string {
 
 func validateReceiverMetadata(md receiverMetadata) error {
 	if md.ReceiverID == (component.ID{}) {
-		return fmt.Errorf("receiver ID cannot be empty")
+		return errors.New("receiver ID cannot be empty")
 	}
 	if md.ServiceType == "" {
 		return fmt.Errorf("service type cannot be empty for receiver %s", md.ReceiverID)

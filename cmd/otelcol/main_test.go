@@ -93,9 +93,9 @@ func TestRunFromCmdLine(t *testing.T) {
 			testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
-			otelcolCmdTestCtx = testCtx
+			otelcolCmdTestCtx = testCtx //nolint:fatcontext // Test intentionally injects context for main command
 			defer func() {
-				otelcolCmdTestCtx = nil
+				otelcolCmdTestCtx = nil //nolint:fatcontext // Test helper intentionally clears package-level context
 			}()
 
 			// Wait for the ConfigServer to be down after the test.

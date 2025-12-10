@@ -95,6 +95,10 @@ func TestRunFromCmdLine(t *testing.T) {
 
 			otelcolCmdTestCtx = testCtx //nolint:fatcontext
 
+			defer func() {
+				otelcolCmdTestCtx = nil //nolint:fatcontext
+			}()
+
 			// Wait for the ConfigServer to be down after the test.
 			defer waitForPort(t, "55554")
 

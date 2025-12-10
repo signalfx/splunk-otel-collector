@@ -108,7 +108,9 @@ func (i *stdoutOperator) beginCycle(ctx context.Context) error {
 
 		case <-ctx.Done():
 			i.logger.Warn("Script didn't complete within configured interval.", zap.String("script_name", i.cfg.ScriptName))
-			err := commander.Stop(context.Background())
+			stopCtx, stopCancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+			defer stopCancel()
+			err := commander.Stop(stopCtx)
 			if err != nil {
 				return
 			}

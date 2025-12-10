@@ -88,7 +88,7 @@ func BuildConfigSourcesFromConf(ctx context.Context, confToFurtherResolve *confm
 		return nil, nil, fmt.Errorf("failed to parse settings from conf: %w", err)
 	}
 
-	configSources, err := BuildConfigSources(context.Background(), configSourceSettings, logger, factories)
+	configSources, err := BuildConfigSources(ctx, configSourceSettings, logger, factories)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to build config sources: %w", err)
 	}

@@ -123,7 +123,7 @@ func (m *Provider) PropertiesFileProviderFactory() confmap.ProviderFactory {
 }
 
 func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
-	return func(_ context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
+	return func(ctx context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 		schemePrefix := fmt.Sprintf("%s:", scheme)
 		if !strings.HasPrefix(uri, schemePrefix) {
 			return nil, fmt.Errorf("uri %q is not supported by %s provider", uri, scheme)
@@ -180,7 +180,7 @@ func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap
 			if err := mergeConfigWithBundle(cfg, bundledCfg); err != nil {
 				return nil, fmt.Errorf("failed merging user and bundled discovery configs: %w", err)
 			}
-			discoveryCfg, err := m.discoverer.discover(cfg)
+			discoveryCfg, err := m.discoverer.discover(ctx, cfg)
 			if err != nil {
 				return nil, fmt.Errorf("failed to successfully discover target services: %w", err)
 			}

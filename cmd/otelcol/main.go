@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -47,7 +48,7 @@ func runFromCmdLine(args []string) {
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
 		// Exit if --help flag was supplied and usage help was displayed.
-		if err == flag.ErrHelp {
+		if errors.Is(err, flag.ErrHelp) {
 			os.Exit(0)
 		}
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)

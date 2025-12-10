@@ -16,6 +16,7 @@ package lightprometheusreceiver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -159,7 +160,7 @@ func (s *scraper) doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
 		var mf dto.MetricFamily
 		err := decoder.Decode(&mf)
 
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return mfs, nil
 		} else if err != nil {
 			return nil, err

@@ -60,7 +60,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	_, err := client.Get(url)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestConfigServer_EnvVar(t *testing.T) {
@@ -124,7 +124,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			if tt.serverDown {
 				client := &http.Client{}
 				_, err := client.Get(endpoint + path)
-				assert.Error(t, err)
+				require.Error(t, err)
 				return
 			}
 
@@ -184,17 +184,17 @@ func assertValidYAMLPages(t *testing.T, expected map[string]any, path string) {
 
 	// Anything other the GET should return 405.
 	resp, err := client.Head(url)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
-	assert.NoError(t, resp.Body.Close())
+	require.NoError(t, resp.Body.Close())
 
 	resp, err = client.Get(url)
-	if !assert.NoError(t, err, "error retrieving zpage at %q", path) {
+	if !assert.NoError(t, err, "error retrieving zpage at %q", path) { //nolint:testifylint
 		return
 	}
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "unsuccessful zpage %q GET", path)
 	t.Cleanup(func() {
-		assert.NoError(t, resp.Body.Close())
+		require.NoError(t, resp.Body.Close())
 	})
 
 	respBytes, err := io.ReadAll(resp.Body)

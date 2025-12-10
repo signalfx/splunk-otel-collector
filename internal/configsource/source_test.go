@@ -363,7 +363,7 @@ func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 	watchForUpdateCh <- errValueUpdated
 
 	ce := <-watchCh
-	assert.ErrorIs(t, ce.Error, errValueUpdated)
+	require.ErrorIs(t, ce.Error, errValueUpdated)
 	close(watchForUpdateCh)
 	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
@@ -506,7 +506,7 @@ func TestManagerExpandString(t *testing.T) {
 			})
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				require.IsType(t, tt.wantErr, err)
+				require.IsType(t, tt.wantErr, err) //nolint:testifylint  //nolint:testifylint
 			} else {
 				require.NoError(t, err)
 			}
@@ -604,11 +604,11 @@ func Test_parseCfgSrc(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfgSrcName, selector, paramsConfigMap, err := parseCfgSrcInvocation(tt.str)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.cfgSrcName, cfgSrcName)
 			assert.Equal(t, tt.selector, selector)
 			var val any

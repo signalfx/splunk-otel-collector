@@ -34,7 +34,7 @@ func TestValidConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, configs)
 
-	assert.Equal(t, 1, len(configs.ToStringMap()))
+	assert.Len(t, configs.ToStringMap(), 1)
 
 	cm, err := configs.Sub("discovery")
 	require.NoError(t, err)

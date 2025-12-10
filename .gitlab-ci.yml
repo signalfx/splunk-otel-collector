@@ -276,6 +276,7 @@ update-openjdk:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-openjdk.sh
 
@@ -288,6 +289,7 @@ update-javaagent:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-javaagent.sh
 
@@ -300,6 +302,7 @@ update-jmx-metrics-gatherer:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-jmx-metrics-gatherer.sh
 
@@ -315,6 +318,7 @@ update-nodejs-agent:
     - !reference [.go-cache, before_script]
     - apt update && apt install -y jq
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-nodejs-agent.sh
 
@@ -327,6 +331,7 @@ update-dotnet-agent:
   needs: []
   dependencies: []
   script:
+    - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
 
@@ -1976,7 +1981,7 @@ ansible-build:
     paths:
       - dist/
   before_script:
-    - pip3 install ansible==3.4.0
+    - pip3 install 'ansible~=12.0.0'
   script:
     - ansible-galaxy collection build ./deployments/ansible --output-path ./dist
 
@@ -1984,9 +1989,15 @@ ansible-release:
   extends: .ansible
   stage: release
   before_script:
-    - pip3 install ansible==3.4.0 yq==2.12.0
+    - pip3 install ansible~=12.0.0 yq~=3.0.0
   script:
-    - export COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
+    - |
+      COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
+      if [ -z "$COLLECTION_VERSION" ]; then
+        echo "ERROR: Failed to extract version from galaxy.yml" >&2
+        exit 1
+      fi
+      echo "Publishing collection version: $COLLECTION_VERSION"
     - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN}
 
 puppet-release:

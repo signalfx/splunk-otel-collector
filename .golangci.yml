@@ -76,8 +76,8 @@ linters:
     - unparam
     - unused
     - errorlint
+    - contextcheck
 #    Enable additional linters as needed in the future
-#    - contextcheck
 #    - depguard
 
 #    - fatcontext

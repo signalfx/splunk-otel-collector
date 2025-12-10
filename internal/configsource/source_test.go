@@ -141,7 +141,7 @@ func TestConfigSourceManagerResolveRemoveConfigSourceSection(t *testing.T) {
 
 	delete(cfg, "config_sources")
 	assert.Equal(t, cfg, res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerResolveErrors(t *testing.T) {
@@ -178,7 +178,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 			})
 			require.Error(t, err)
 			require.Nil(t, res)
-			assert.NoError(t, callClose(closeFunc))
+			assert.NoError(t, callClose(context.Background(), closeFunc))
 		})
 	}
 }
@@ -214,7 +214,7 @@ map:
 	})
 	require.NoError(t, err)
 	assert.Equal(t, expectedCfg, res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
@@ -242,7 +242,7 @@ func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerParamsHandling(t *testing.T) {
@@ -293,7 +293,7 @@ func TestConfigSourceManagerParamsHandling(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
@@ -327,7 +327,7 @@ func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
 
 	ce := <-watchCh
 	assert.NoError(t, ce.Error)
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
@@ -365,7 +365,7 @@ func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 	ce := <-watchCh
 	assert.ErrorIs(t, ce.Error, errValueUpdated)
 	close(watchForUpdateCh)
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestManagerExpandString(t *testing.T) {
@@ -510,7 +510,7 @@ func TestManagerExpandString(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			require.NoError(t, callClose(closeFunc))
+			require.NoError(t, callClose(ctx, closeFunc))
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -620,11 +620,11 @@ func Test_parseCfgSrc(t *testing.T) {
 	}
 }
 
-func callClose(closeFunc confmap.CloseFunc) error {
+func callClose(ctx context.Context, closeFunc confmap.CloseFunc) error {
 	if closeFunc == nil {
 		return nil
 	}
-	return closeFunc(context.Background())
+	return closeFunc(ctx)
 }
 
 func TestConfigSourceBuild(t *testing.T) {

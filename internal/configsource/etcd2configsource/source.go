@@ -67,11 +67,11 @@ func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ *co
 	if watcher == nil {
 		return confmap.NewRetrieved(resp.Node.Value)
 	}
-	return confmap.NewRetrieved(resp.Node.Value, confmap.WithRetrievedClose(s.newWatcher(selector, resp.Node.ModifiedIndex, watcher)))
+	return confmap.NewRetrieved(resp.Node.Value, confmap.WithRetrievedClose(s.newWatcher(ctx, selector, resp.Node.ModifiedIndex, watcher)))
 }
 
-func (s *etcd2ConfigSource) newWatcher(selector string, index uint64, watcherFunc confmap.WatcherFunc) confmap.CloseFunc {
-	watchCtx, cancel := context.WithCancel(context.Background())
+func (s *etcd2ConfigSource) newWatcher(ctx context.Context, selector string, index uint64, watcherFunc confmap.WatcherFunc) confmap.CloseFunc {
+	watchCtx, cancel := context.WithCancel(ctx)
 	watcher := s.kapi.Watcher(selector, &client.WatcherOptions{AfterIndex: index})
 	ebo := backoff.NewExponentialBackOff()
 	ebo.MaxElapsedTime = maxBackoffTime

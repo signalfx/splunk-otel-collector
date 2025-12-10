@@ -75,10 +75,11 @@ linters:
     - unconvert
     - unparam
     - unused
+    - errorlint
 #    Enable additional linters as needed in the future
 #    - contextcheck
 #    - depguard
-#    - errorlint
+
 #    - fatcontext
 #    - nolintlint
 #    - perfsprint

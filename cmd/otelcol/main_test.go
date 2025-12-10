@@ -27,10 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func resetOtelcolCmdTestCtx() {
-	otelcolCmdTestCtx = nil //nolint:fatcontext // Test helper intentionally clears package-level context
-}
-
 func TestRunFromCmdLine(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -97,8 +93,7 @@ func TestRunFromCmdLine(t *testing.T) {
 			testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
-			otelcolCmdTestCtx = testCtx //nolint:fatcontext // Test intentionally injects context for main command
-			defer resetOtelcolCmdTestCtx()
+			otelcolCmdTestCtx = testCtx //nolint:fatcontext
 
 			// Wait for the ConfigServer to be down after the test.
 			defer waitForPort(t, "55554")

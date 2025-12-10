@@ -54,17 +54,8 @@ create_collector_pr() {
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then
-    make chlog-new
-    git commit -S -am "$message"
-    git push -f "$repo_url" "$branch"
-    echo ">>> Creating the PR ..."
-    gh pr create \
-      --draft \
-      --repo "$repo" \
-      --title "$message" \
-      --body "$message" \
-      --base main \
-      --head "$branch"
+    create_pr_with_changelog "$repo" "$repo_url" "$branch" "$message" \
+      "update-openjdk-${version}" "packaging" "Update bundled OpenJDK to ${version}"
   fi
 }
 

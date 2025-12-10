@@ -76,11 +76,11 @@ linters:
     - unparam
     - unused
     - contextcheck
+    - nolintlint
 #    Enable additional linters as needed in the future
 #    - depguard
 #    - errorlint
 #    - fatcontext
-#    - nolintlint
 #    - perfsprint
 #    - testifylint
 #    - thelper

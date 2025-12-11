@@ -73,7 +73,7 @@ func (mip *ModinputProcessor) ProcessXML(modInput *XMLInput) error {
 				if input, exists := mip.ModularInputs[param.Name]; exists {
 					value, err := input.TransformInputs(param.Value)
 					if err != nil {
-						return fmt.Errorf("transform failed for input %s: %s", param.Name, err)
+						return fmt.Errorf("transform failed for input %s: %w", param.Name, err)
 					}
 					input.Value = value
 				}

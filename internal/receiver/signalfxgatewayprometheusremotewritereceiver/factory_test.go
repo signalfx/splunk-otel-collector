@@ -21,6 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/otelcol"
@@ -65,6 +66,6 @@ func TestFactoryOtelIntegration(t *testing.T) {
 	require.NoError(t, err)
 	parsedFactory := factories.Receivers[metadata.Type]
 	require.NotEmpty(t, parsedFactory)
-	assert.Equal(t, parsedFactory.Type(), metadata.Type)
-	assert.Equal(t, 3, parsedFactory.MetricsStability())
+	assert.Equal(t, parsedFactory.Type().String(), metadata.Type.String())
+	assert.Equal(t, component.StabilityLevelDevelopment, parsedFactory.MetricsStability())
 }

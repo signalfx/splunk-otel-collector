@@ -195,7 +195,7 @@ func genBundledFS(bundleFSFile string, extensions []extensionMetadata, receivers
 	out := &bytes.Buffer{}
 	panicOnError(t.Execute(out, target))
 	filename := filepath.Join(filepath.Dir(bundleFSFile), "generated_bundledfs.go")
-	if err = os.WriteFile(filename, out.Bytes(), 0o644); err != nil { // nolint:gosec // existing project file permissions
+	if err = os.WriteFile(filename, out.Bytes(), 0o644); err != nil { //nolint:gosec // existing project file permissions
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 }
@@ -215,7 +215,7 @@ func generateReceiverMetadataFile(discoveryReceiverDir string, receivers []recei
 	}))
 
 	filename := filepath.Join(discoveryReceiverDir, "generated_metadata.go")
-	if err := os.WriteFile(filename, out.Bytes(), 0o644); err != nil { // nolint:gosec // existing project file permissions
+	if err := os.WriteFile(filename, out.Bytes(), 0o644); err != nil { //nolint:gosec // existing project file permissions
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 

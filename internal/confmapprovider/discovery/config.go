@@ -521,7 +521,6 @@ func stringToKeyType[K keyType](s string, key K) (K, error) {
 				componentIDK = component.ID{}
 				cIDK := componentIDK.(component.ID)
 				if err := (&cIDK).UnmarshalText([]byte(s)); err != nil {
-					// nolint:gocritic
 					return *new(K), err // (gocritic suggestion not valid with type parameter)
 				}
 			}

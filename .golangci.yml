@@ -78,10 +78,10 @@ linters:
     - errorlint
     - contextcheck
     - testifylint
+    - nolintlint
 #    Enable additional linters as needed in the future
 #    - depguard
 #    - fatcontext
-#    - nolintlint
 #    - perfsprint
 #    - thelper
 #    - usestdlibvars

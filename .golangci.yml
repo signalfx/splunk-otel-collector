@@ -77,10 +77,10 @@ linters:
     - unused
     - errorlint
     - contextcheck
+    - fatcontext
     - nolintlint
 #    Enable additional linters as needed in the future
 #    - depguard
-
 #    - fatcontext
 #    - perfsprint
 #    - testifylint

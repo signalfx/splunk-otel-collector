@@ -18,11 +18,13 @@ package discoverytest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"syscall"
 	"testing"
 	"time"
@@ -258,9 +260,9 @@ func getDockerGID() (string, error) {
 	fsys := finfo.Sys()
 	stat, ok := fsys.(*syscall.Stat_t)
 	if !ok {
-		return "", fmt.Errorf("OS error occurred while trying to get GID ")
+		return "", errors.New("OS error occurred while trying to get GID ")
 	}
-	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	dockerGID := strconv.FormatUint(uint64(stat.Gid), 10)
 	return dockerGID, nil
 }
 

@@ -77,6 +77,8 @@ linters:
     - unused
     - errorlint
     - contextcheck
+    - perfsprint
+    - nolintlint
     - fatcontext
     - nolintlint
 #    Enable additional linters as needed in the future

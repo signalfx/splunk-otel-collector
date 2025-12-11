@@ -15,6 +15,7 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sync/atomic"
@@ -247,7 +248,7 @@ func getWriteRequestTimestampBounds(request *prompb.WriteRequest) (time.Time, ti
 
 func (prwParser *prometheusRemoteOtelParser) setFloatOrInt(dp pmetric.NumberDataPoint, sample prompb.Sample) error {
 	if math.IsNaN(sample.Value) {
-		return fmt.Errorf("NAN value found")
+		return errors.New("NAN value found")
 	}
 	if float64(int64(sample.Value)) == sample.Value {
 		dp.SetIntValue(int64(sample.Value))

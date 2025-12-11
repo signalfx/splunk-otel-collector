@@ -16,7 +16,7 @@ package configconverter
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"reflect"
 	"strings"
 
@@ -84,7 +84,7 @@ var metricRelabelConfigsCurrent = []any{
 // - "otelcol_processor_batch_.*"
 func DisableExcessiveInternalMetrics(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
-		return fmt.Errorf("cannot DisableExcessiveInternalMetrics on nil *confmap.Conf")
+		return errors.New("cannot DisableExcessiveInternalMetrics on nil *confmap.Conf")
 	}
 
 	for _, promScrapeConfigsKey := range promScrapeConfigsKeys {

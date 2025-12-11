@@ -85,7 +85,7 @@ func NewProperty(property, val string) (*Property, error) {
 		if e != nil {
 			return nil, fmt.Errorf("failed parsing %q bool: %w", property, e)
 		}
-		p.Val = fmt.Sprintf("%t", bVal)
+		p.Val = strconv.FormatBool(bVal)
 		subStringMap = map[string]any{"enabled": p.Val}
 	case "config":
 		var dst map[string]any
@@ -115,7 +115,7 @@ func (p *Property) ToEnvVar() string {
 	envVar = fmt.Sprintf("%s%s", envVar, wordify(p.Component.Type))
 	// preserve input of `component.type/` with no name
 	if p.Component.Name != "" || strings.HasPrefix(p.Input, fmt.Sprintf("splunk.discovery.%s.%s/.", p.ComponentType, p.Component.Type)) {
-		envVar = fmt.Sprintf("%s%s", envVar, wordify(fmt.Sprintf("/%s", p.Component.Name)))
+		envVar += wordify("/" + p.Component.Name)
 	}
 	envVar = fmt.Sprintf("%s_%s", envVar, strings.ToUpper(p.Type))
 	if p.Type == "config" {
@@ -137,7 +137,7 @@ const (
 )
 
 var (
-	envVarPrefixRE = regexp.MustCompile(fmt.Sprintf("^%s", envVarPrefixS))
+	envVarPrefixRE = regexp.MustCompile("^" + envVarPrefixS)
 	envVarHexRE    = regexp.MustCompile("_x[0-9a-fA-F]+_")
 )
 

@@ -847,7 +847,7 @@ func (c confmapProvider) Scheme() string {
 
 func (c confmapProvider) Retrieve(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	if c.shouldError {
-		return nil, fmt.Errorf("confmap provider error")
+		return nil, errors.New("confmap provider error")
 	}
 	return confmap.NewRetrieved("value from confmap provider")
 }

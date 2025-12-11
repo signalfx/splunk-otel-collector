@@ -120,7 +120,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				if tt.uris != nil {
 					uri = tt.uris[i]
 				} else {
-					uri = fmt.Sprintf("%s:", provider.Scheme())
+					uri = provider.Scheme() + ":"
 				}
 
 				r, err := pp.Retrieve(context.Background(), uri, nil)

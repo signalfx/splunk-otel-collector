@@ -15,6 +15,7 @@
 package discoveryreceiver
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -106,7 +107,7 @@ func (cfg *Config) Validate() error {
 	}
 
 	if len(cfg.WatchObservers) == 0 {
-		err = multierr.Combine(err, fmt.Errorf("`watch_observers` must be defined and include at least one configured observer extension"))
+		err = multierr.Combine(err, errors.New("`watch_observers` must be defined and include at least one configured observer extension"))
 	}
 
 	return err
@@ -114,11 +115,11 @@ func (cfg *Config) Validate() error {
 
 func (s *Status) Validate() error {
 	if s == nil {
-		return fmt.Errorf("`status` must be defined and contain at least one `metrics` or `statements` mapping")
+		return errors.New("`status` must be defined and contain at least one `metrics` or `statements` mapping")
 	}
 
 	if len(s.Metrics) == 0 && len(s.Statements) == 0 {
-		return fmt.Errorf("`status` must contain at least one `metrics` or `statements` list")
+		return errors.New("`status` must contain at least one `metrics` or `statements` list")
 	}
 
 	var err error
@@ -159,7 +160,7 @@ func (cfg *Config) receiverCreatorFactoryAndConfig() (receiver.Factory, componen
 	receiverCreatorDefaultConfig := receiverCreatorFactory.CreateDefaultConfig()
 	receiverCreatorConfig, ok := receiverCreatorDefaultConfig.(*receivercreator.Config)
 	if !ok {
-		return nil, nil, fmt.Errorf("failed to coerce to receivercreator.Config")
+		return nil, nil, errors.New("failed to coerce to receivercreator.Config")
 	}
 
 	receiverCreatorConfig.WatchObservers = cfg.WatchObservers

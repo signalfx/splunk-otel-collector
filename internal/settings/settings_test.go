@@ -582,7 +582,7 @@ func TestConfigDirFromEnvVar(t *testing.T) {
 
 func TestConfigArgFileURIForm(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	uriPath := fmt.Sprintf("file:%s", configPath)
+	uriPath := "file:" + configPath
 	settings, err := New([]string{"--config", uriPath})
 	require.NoError(t, err)
 	require.Equal(t, []string{uriPath}, settings.configPaths.value)
@@ -660,7 +660,7 @@ func TestInheritedDiscoveryConfigDirWithConfigD(t *testing.T) {
 
 	require.Equal(t, []string{
 		localGatewayConfig,
-		fmt.Sprintf("splunk.properties:%s", propertiesPath),
+		"splunk.properties:" + propertiesPath,
 		"splunk.configd:/some/config.d",
 		"splunk.discovery:/some/config.d",
 	}, settings.ResolverURIs())

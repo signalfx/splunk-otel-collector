@@ -124,7 +124,7 @@ func (collector CollectorProcess) Build() (Collector, error) {
 		// only specify w/ args if none are used in the test
 		if collector.Args == nil {
 			collector.Args = []string{
-				fmt.Sprintf("--set=service.telemetry.logs.level=%s", collector.LogLevel), "--config", collector.ConfigPath, "--set=service.telemetry.metrics.level=none",
+				"--set=service.telemetry.logs.level=" + collector.LogLevel, "--config", collector.ConfigPath, "--set=service.telemetry.metrics.level=none",
 			}
 		} else {
 			// fallback to env var
@@ -143,7 +143,7 @@ func (collector CollectorProcess) Build() (Collector, error) {
 
 func (collector *CollectorProcess) Start() error {
 	if collector.Process == nil {
-		return fmt.Errorf("cannot Start a CollectorProcess that hasn't been successfully built")
+		return errors.New("cannot Start a CollectorProcess that hasn't been successfully built")
 	}
 	go func() {
 		// drain stdout/err buffer (already logged for us)
@@ -157,7 +157,7 @@ func (collector *CollectorProcess) Start() error {
 
 func (collector *CollectorProcess) Shutdown() error {
 	if collector.Process == nil {
-		return fmt.Errorf("cannot Shutdown a CollectorProcess that hasn't been successfully built")
+		return errors.New("cannot Shutdown a CollectorProcess that hasn't been successfully built")
 	}
 
 	return collector.Process.Shutdown(context.Background())

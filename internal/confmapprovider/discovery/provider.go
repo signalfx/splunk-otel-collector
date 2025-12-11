@@ -124,18 +124,18 @@ func (m *Provider) PropertiesFileProviderFactory() confmap.ProviderFactory {
 
 func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	return func(ctx context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
-		schemePrefix := fmt.Sprintf("%s:", scheme)
+		schemePrefix := scheme + ":"
 		if !strings.HasPrefix(uri, schemePrefix) {
 			return nil, fmt.Errorf("uri %q is not supported by %s provider", uri, scheme)
 		}
 
 		uriVal := uri[len(schemePrefix):]
 
-		if schemePrefix == fmt.Sprintf("%s:", propertiesFileScheme) {
+		if schemePrefix == propertiesFileScheme+":" {
 			return m.loadPropertiesFile(uriVal)
 		}
 
-		if schemePrefix == fmt.Sprintf("%s:", propertyScheme) {
+		if schemePrefix == propertyScheme+":" {
 			return m.parsedProperty(uriVal)
 		}
 

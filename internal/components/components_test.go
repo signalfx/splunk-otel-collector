@@ -16,7 +16,6 @@
 package components
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -192,7 +191,7 @@ func TestDefaultComponents(t *testing.T) {
 	assert.Len(t, procs, len(expectedProcessors))
 	for _, k := range expectedProcessors {
 		v, ok := procs[component.MustNewType(k)]
-		require.True(t, ok, fmt.Sprintf("Missing expected processor %s", k))
+		require.True(t, ok, "Missing expected processor "+k)
 		assert.Equal(t, k, v.Type().String())
 	}
 
@@ -208,7 +207,7 @@ func TestDefaultComponents(t *testing.T) {
 	assert.Len(t, conns, len(expectedConnectors))
 	for _, k := range expectedConnectors {
 		v, ok := conns[component.MustNewType(k)]
-		require.True(t, ok, fmt.Sprintf("Missing expected connector %s", k))
+		require.True(t, ok, "Missing expected connector "+k)
 		assert.Equal(t, k, v.Type().String())
 	}
 }

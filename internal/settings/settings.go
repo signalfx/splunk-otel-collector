@@ -388,7 +388,7 @@ func setDefaultEnvVars(s *Settings) error {
 
 	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {
 		ingestURL = strings.TrimSuffix(ingestURL, "/")
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("%s/v2/trace", ingestURL)
+		defaultEnvVars[TraceIngestURLEnvVar] = ingestURL + "/v2/trace"
 	}
 
 	if token, ok := os.LookupEnv(TokenEnvVar); ok {
@@ -436,7 +436,7 @@ func setDefaultFeatureGates(flagSet *flag.FlagSet) {
 		if strings.HasPrefix(fg, "+") || strings.HasPrefix(fg, "-") {
 			bareGate = fg[1:]
 		}
-		if !arrVal.contains(bareGate) && !arrVal.contains(fmt.Sprintf("-%s", bareGate)) && !arrVal.contains(fmt.Sprintf("+%s", bareGate)) {
+		if !arrVal.contains(bareGate) && !arrVal.contains("-"+bareGate) && !arrVal.contains("+"+bareGate) {
 			arrVal.value = append(arrVal.value, fg)
 		}
 		fgFlag.Changed = true

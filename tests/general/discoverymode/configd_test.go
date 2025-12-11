@@ -202,7 +202,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 
 	sc, stdout, stderr := cc.Container.AssertExec(
 		tc, 15*time.Second, "sh", "-c",
-		"SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --configd --set processors.batch/from-config-file.send_batch_size=123456789 --dry-run 2>/dev/null",
+		"/otelcol --config-dir /opt/config.d --configd --set processors.batch/from-config-file.send_batch_size=123456789 --dry-run 2>/dev/null",
 	)
 	assert.Equal(t, `exporters:
   otlp/from-config-file:

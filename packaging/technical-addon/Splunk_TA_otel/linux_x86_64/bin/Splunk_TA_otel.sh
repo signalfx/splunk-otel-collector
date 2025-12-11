@@ -38,8 +38,6 @@ splunk_config_dir_name="splunk_config_dir"
 splunk_config_dir_value=""
 splunk_collectd_dir_name="splunk_collectd_dir"
 splunk_collectd_dir_value=""
-splunk_debug_config_server_name="splunk_debug_config_server"
-splunk_debug_config_server_value=""
 splunk_config_yaml_name="splunk_config_yaml"
 splunk_config_yaml_value=""
 splunk_gateway_url_name="splunk_gateway_url"
@@ -164,13 +162,6 @@ splunk_TA_otel_read_configs() {
             splunk_TA_otel_log_msg "DEBUG" "reading $splunk_collectd_dir_name from line $has_splunk_collectd_dir"
             splunk_collectd_dir_value="$(echo "$has_splunk_collectd_dir" | grep -Eo ">(.*?)<" | sed 's/^>\(.*\)<$/\1/')"
             splunk_TA_otel_log_msg "INFO" "Set $splunk_collectd_dir_name to $splunk_collectd_dir_value"
-        fi
-
-        has_splunk_debug_config_server="$(echo "$line" | grep "$splunk_debug_config_server_name")"
-        if [ "$has_splunk_debug_config_server" ] ; then
-            splunk_TA_otel_log_msg "DEBUG" "reading $splunk_debug_config_server_name from line $has_splunk_debug_config_server"
-            splunk_debug_config_server_value="$(echo "$has_splunk_debug_config_server" | grep -Eo ">(.*?)<" | sed 's/^>\(.*\)<$/\1/')"
-            splunk_TA_otel_log_msg "INFO" "Set $splunk_debug_config_server_name to $splunk_debug_config_server_value"
         fi
 
         has_splunk_config_yaml="$(echo "$line" | grep "$splunk_config_yaml_name")"
@@ -319,11 +310,6 @@ splunk_TA_otel_run_agent() {
       export SPLUNK_COLLECTD_DIR="$splunk_collectd_dir_value"
     else
       splunk_TA_otel_log_msg "INFO" "NOT SET: $splunk_collectd_dir_name"
-    fi
-    if [ "$splunk_debug_config_server_value" ] ; then
-      export SPLUNK_DEBUG_CONFIG_SERVER="$splunk_debug_config_server_value"
-    else
-      splunk_TA_otel_log_msg "DEBUG" "NOT SET: $splunk_debug_config_server_name"
     fi
     if [ "$splunk_config_yaml_value" ] ; then
       export SPLUNK_CONFIG_YAML="$splunk_config_yaml_value"

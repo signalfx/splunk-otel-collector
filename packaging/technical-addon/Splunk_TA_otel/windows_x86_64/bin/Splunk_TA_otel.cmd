@@ -27,8 +27,6 @@ set "splunk_config_dir_name=splunk_config_dir"
 set "splunk_config_dir_value="
 set "splunk_collectd_dir_name=splunk_collectd_dir"
 set "splunk_collectd_dir_value="
-set "splunk_debug_config_server_name=splunk_debug_config_server"
-set "splunk_debug_config_server_value="
 set "splunk_config_yaml_name=splunk_config_yaml"
 set "splunk_config_yaml_value="
 set "splunk_gateway_url_name=splunk_gateway_url"
@@ -122,11 +120,6 @@ if "%splunk_collectd_dir_value%" == "" (
 ) else (
     set "SPLUNK_COLLECTD_DIR=%splunk_collectd_dir_value%"
 )
-if "%splunk_debug_config_server_value%" == "" (
-    call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_debug_config_server_name% not set"
-) else (
-    set "SPLUNK_DEBUG_CONFIG_SERVER=%splunk_debug_config_server_value%"
-)
 if "%splunk_config_yaml_value%" == "" (
     call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_config_yaml_name% not set"
 ) else (
@@ -217,7 +210,7 @@ exit /b 0
 :splunk_TA_otel_read_configs
 echo "INFO grabbing config from stdin..."
 
-for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -command "$input | Select-String -Pattern '.*?(%configd_name%|%discovery_name%|%discovery_properties_name%|%gomemlimit_name%|%splunk_api_url_name%|%splunk_bundle_dir_name%|%splunk_config_name%|%splunk_config_dir_name%|%splunk_collectd_dir_name%|%splunk_debug_config_server_name%|%splunk_config_yaml_name%|%splunk_gateway_url_name%|%splunk_hec_url_name%|%splunk_listen_interface_name%|%splunk_memory_limit_mib_name%|%splunk_memory_total_mib_name%|%splunk_ingest_url_name%|%splunk_realm_name%|%splunk_access_token_file_name%|session_key).*?>(.*?)<' | ForEach-Object { $_.Matches.Groups[1].Value + '=' + $_.Matches.Groups[2].Value }"') do (
+for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -command "$input | Select-String -Pattern '.*?(%configd_name%|%discovery_name%|%discovery_properties_name%|%gomemlimit_name%|%splunk_api_url_name%|%splunk_bundle_dir_name%|%splunk_config_name%|%splunk_config_dir_name%|%splunk_collectd_dir_name%|%splunk_config_yaml_name%|%splunk_gateway_url_name%|%splunk_hec_url_name%|%splunk_listen_interface_name%|%splunk_memory_limit_mib_name%|%splunk_memory_total_mib_name%|%splunk_ingest_url_name%|%splunk_realm_name%|%splunk_access_token_file_name%|session_key).*?>(.*?)<' | ForEach-Object { $_.Matches.Groups[1].Value + '=' + $_.Matches.Groups[2].Value }"') do (
     if "%%I"=="%configd_name%" set "SPLUNK_OTEL_FLAGS=%SPLUNK_OTEL_FLAGS% /configd"
     if "%%I"=="%discovery_name%" set "SPLUNK_OTEL_FLAGS=%SPLUNK_OTEL_FLAGS% /discovery"
     if "%%I"=="%discovery_properties_name%" set "discovery_properties_value=%%J"
@@ -228,7 +221,6 @@ for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -com
     if "%%I"=="%splunk_config_dir_name%" set "splunk_config_dir_value=%%J"
     if "%%I"=="%splunk_collectd_dir_name%" set "splunk_collectd_dir_value=%%J"
     if "%%I"=="%splunk_config_yaml_name%" set "splunk_config_yaml_value=%%J"
-    if "%%I"=="%splunk_debug_config_server_name%" set "splunk_debug_config_server_value=%%J"
     if "%%I"=="%splunk_gateway_url_name%" set "splunk_gateway_url_value=%%J"
     if "%%I"=="%splunk_hec_url_name%" set "splunk_hec_url_value=%%J"
     if "%%I"=="%splunk_listen_interface_name%" set "splunk_listen_interface_value=%%J"

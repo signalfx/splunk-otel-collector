@@ -15,7 +15,6 @@
 package timestampprocessor
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -44,7 +43,7 @@ func TestConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, r0, createDefaultConfig())
 
-	cm, err = configs.Sub(fmt.Sprintf("%s/add2h", typeStr))
+	cm, err = configs.Sub(typeStr + "/add2h")
 	require.NoError(t, err)
 	r1 := NewFactory().CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&r1)
@@ -53,7 +52,7 @@ func TestConfig(t *testing.T) {
 	offset1 := offsetFn(offset)(ts)
 	require.Equal(t, now.Add(2*time.Hour), offset1.AsTime())
 
-	cm, err = configs.Sub(fmt.Sprintf("%s/remove3h", typeStr))
+	cm, err = configs.Sub(typeStr + "/remove3h")
 	require.NoError(t, err)
 	r2 := NewFactory().CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&r2)

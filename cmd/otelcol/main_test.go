@@ -93,9 +93,10 @@ func TestRunFromCmdLine(t *testing.T) {
 			testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
-			otelcolCmdTestCtx = testCtx
+			otelcolCmdTestCtx = testCtx //nolint:fatcontext
+
 			defer func() {
-				otelcolCmdTestCtx = nil
+				otelcolCmdTestCtx = nil //nolint:fatcontext
 			}()
 
 			defer waitForPort(t, "55679")

@@ -104,8 +104,8 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	require.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 
-	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:not.a.path", discoveryModeScheme), nil)
-	require.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
+	retrieved, err = configD.Retrieve(context.Background(), discoveryModeScheme+":not.a.path", nil)
+	assert.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 }
 
@@ -119,8 +119,8 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	provider, err := otelcol.NewConfigProvider(otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs: []string{
-				fmt.Sprintf("file:%s", filepath.Join("testdata", "base-config.yaml")),
-				fmt.Sprintf("%s:%s", discoveryModeScheme, filepath.Join("testdata", "config.d")),
+				"file:" + filepath.Join("testdata", "base-config.yaml"),
+				discoveryModeScheme + ":" + filepath.Join("testdata", "config.d"),
 			},
 			ProviderFactories: []confmap.ProviderFactory{
 				fileprovider.NewFactory(),
@@ -179,9 +179,9 @@ func TestDiscoveryProvider_HostObserverDisabled(t *testing.T) {
 	provider, err := otelcol.NewConfigProvider(otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs: []string{
-				fmt.Sprintf("file:%s", filepath.Join("testdata", "base-config.yaml")),
-				fmt.Sprintf("%s:%s", propertiesFileScheme, filepath.Join("testdata", "disable-host-observer.properties.yaml")),
-				fmt.Sprintf("%s:%s", discoveryModeScheme, filepath.Join("testdata", "config.d")),
+				"file:" + filepath.Join("testdata", "base-config.yaml"),
+				propertiesFileScheme + ":" + filepath.Join("testdata", "disable-host-observer.properties.yaml"),
+				discoveryModeScheme + ":" + filepath.Join("testdata", "config.d"),
 			},
 			ProviderFactories: []confmap.ProviderFactory{
 				fileprovider.NewFactory(),

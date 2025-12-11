@@ -307,7 +307,7 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 			if cfgSrcName == "" {
 				// Not a config source, expand as os.ExpandEnv
 				cfgSrcName = "env"
-				expandableContent = fmt.Sprintf("env:%s", expandableContent)
+				expandableContent = "env:" + expandableContent
 				if confmapProviders == nil {
 					// The expansion will be handled upstream by envprovider.
 					retrieved = fmt.Sprintf("${%s}", expandableContent)

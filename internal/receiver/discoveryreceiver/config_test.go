@@ -15,7 +15,6 @@
 package discoveryreceiver
 
 import (
-	"fmt"
 	"path"
 	"testing"
 	"time"
@@ -78,7 +77,7 @@ func TestInvalidConfigs(t *testing.T) {
 	for _, test := range tests {
 		func(name, expectedError string) {
 			t.Run(name, func(t *testing.T) {
-				config, err := confmaptest.LoadConf(path.Join(".", "testdata", fmt.Sprintf("%s.yaml", name)))
+				config, err := confmaptest.LoadConf(path.Join(".", "testdata", name+".yaml"))
 				require.NoError(t, err)
 				cm, err := config.Sub(typeStr)
 				require.NoError(t, err)

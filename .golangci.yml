@@ -78,9 +78,10 @@ linters:
     - errorlint
     - contextcheck
     - fatcontext
+    - nolintlint
 #    Enable additional linters as needed in the future
 #    - depguard
-#    - nolintlint
+#    - fatcontext
 #    - perfsprint
 #    - testifylint
 #    - thelper

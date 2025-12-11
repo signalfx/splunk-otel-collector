@@ -99,15 +99,14 @@ func TestRunFromCmdLine(t *testing.T) {
 				otelcolCmdTestCtx = nil //nolint:fatcontext
 			}()
 
-			// Wait for the ConfigServer to be down after the test.
-			defer waitForPort(t, "55554")
+			defer waitForPort(t, "55679")
 
 			if tt.panicMsg != "" {
 				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
 				return
 			}
 
-			waitForPort(t, "55554")
+			waitForPort(t, "55679")
 			runFromCmdLine(tt.args)
 		})
 	}

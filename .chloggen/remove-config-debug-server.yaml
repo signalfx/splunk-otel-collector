@@ -1,0 +1,33 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: breaking
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: configserver
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Removed the deprecated localhost config endpoint (`http://localhost:55554/debug/configz`) and its related environment variables.
+
+# One or more tracking issues related to the change
+issues: [6984]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  The collector's default configuration files enable the `zpages` extension and the respective `debug/expvarz` endpoint,
+  by default at `http://localhost:55679/debug/expvarz`. This endpoint provides a JSON map containing the collector
+  configuration details. The keys `splunk.config.initial` and `splunk.config.effective` within this map
+  hold, respectively, the initial and effective YAML configurations as strings.
+
+  To retrieve the configuration in YAML format using this endpoint, you can use the following commands:
+
+  On Windows Powershell 5.1:
+  ```powershell
+  (Invoke-WebRequest http://localhost:55679/debug/expvarz).Content | ConvertFrom-Json | Select-Object -ExpandProperty splunk.config.effective
+  ```
+
+  On Bash (with `curl` and `jq`):
+  ```bash
+  curl http://localhost:55679/debug/expvarz --silent | jq -r '.["splunk.config.initial"]'
+  ```
+

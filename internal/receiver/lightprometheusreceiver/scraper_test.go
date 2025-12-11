@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap/xconfmap"
@@ -186,7 +187,7 @@ istio_requests_total{response_code="foo-bar-value",reporter="foo-bar-value",sour
 # TYPE istio_request_bytes histogram
 istio_request_bytes_bucket{response_code="200",reporter="foo-bar-value",source_workload="foo-bar-value",source_workload_namespace="foo-bar-value",source_principal="foo-bar-value",source_app="foo-bar-value",source_version="foo-bar-value",source_cluster="foo-bar-value",destination_workload="foo-bar-value",destination_workload_namespace="foo-bar-value",destination_principal="foo-bar-value",destination_app="foo-bar-value",destination_version="foo-bar-value",destination_service="foo-bar-value",destination_service_name="foo-bar-value",destination_service_namespace="foo-bar-value",destination_cluster="foo-bar-value",request_protocol="foo-bar-value",response_flags="foo-bar-value",grpc_response_status="foo-bar-value",connection_security_policy="unknown",source_canonical_service="foo-bar-value",destination_canonical_service="foo-bar-value",source_canonical_revision="foo-bar-value",destination_canonical_revision="foo-bar-value",le="+Inf"} 0
 `))
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			return
 		}
 		rw.WriteHeader(http.StatusNotFound)

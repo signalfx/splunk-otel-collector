@@ -168,7 +168,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	factories, err := Get()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	exts := factories.Extensions
 	assert.Len(t, exts, len(expectedExtensions))

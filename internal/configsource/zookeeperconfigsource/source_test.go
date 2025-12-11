@@ -52,11 +52,11 @@ func TestSessionRetrieve(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			retrieved, err := source.Retrieve(context.Background(), c.key, nil, nil)
 			if c.expect != nil {
-				assert.NoError(t, err)
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.NoError(t, err)
+				require.NoError(t, retrieved.Close(context.Background()))
 				return
 			}
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Nil(t, retrieved)
 		})
 	}
@@ -85,7 +85,7 @@ func TestWatcher(t *testing.T) {
 			retrieved, err := source.Retrieve(context.Background(), "k1", nil, func(ce *confmap.ChangeEvent) {
 				watchChannel <- ce
 			})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			val, err := retrieved.AsRaw()
 			require.NoError(t, err)
@@ -94,7 +94,7 @@ func TestWatcher(t *testing.T) {
 			require.NotNil(t, conn.watcherCh)
 			switch {
 			case c.close:
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.NoError(t, retrieved.Close(context.Background()))
 				assert.Nil(t, conn.watcherCh)
 			case c.result != "":
 				conn.watcherCh <- zk.Event{
@@ -102,15 +102,15 @@ func TestWatcher(t *testing.T) {
 				}
 				ce := <-watchChannel
 				assert.NoError(t, ce.Error)
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.NoError(t, retrieved.Close(context.Background()))
 				assert.Nil(t, conn.watcherCh)
 			case c.err:
 				conn.watcherCh <- zk.Event{
 					Err: errors.New("zookeeper error"),
 				}
 				ce := <-watchChannel
-				assert.EqualError(t, ce.Error, "zookeeper error")
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.EqualError(t, ce.Error, "zookeeper error")
+				require.NoError(t, retrieved.Close(context.Background()))
 				assert.Nil(t, conn.watcherCh)
 			}
 		})

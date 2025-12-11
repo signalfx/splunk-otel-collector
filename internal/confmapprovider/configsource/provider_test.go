@@ -131,9 +131,9 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					rMap, errAsConf := r.AsConf()
 					require.NoError(t, errAsConf)
 					assert.NotNil(t, rMap)
-					assert.NoError(t, r.Close(context.Background()))
+					require.NoError(t, r.Close(context.Background()))
 				} else {
-					assert.ErrorContains(t, err, tt.wantErr)
+					require.ErrorContains(t, err, tt.wantErr)
 					assert.Nil(t, r)
 					break
 				}
@@ -150,7 +150,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				h.AssertNotCalled(t, "OnShutdown")
 			}
 
-			assert.NoError(t, pp.Shutdown(context.Background()))
+			require.NoError(t, pp.Shutdown(context.Background()))
 
 			for _, h := range hooks {
 				h.AssertCalled(t, "OnShutdown")

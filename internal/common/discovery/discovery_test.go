@@ -25,14 +25,14 @@ func TestStatusTypes(t *testing.T) {
 	for _, typ := range StatusTypes {
 		asStrings = append(asStrings, string(typ))
 	}
-	require.Equal(t, asStrings, []string{"successful", "partial", "failed"})
+	require.Equal(t, []string{"successful", "partial", "failed"}, asStrings)
 }
 
 func TestIsValidStatusType(t *testing.T) {
 	for _, typ := range StatusTypes {
 		ok, err := IsValidStatus(typ)
 		require.True(t, ok)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	ok, err := IsValidStatus("not a thing")

@@ -31,7 +31,6 @@ import (
 	dockernetwork "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
@@ -488,7 +487,7 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	rc, reader, err = container.Exec(ctx, cmd)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, reader)
 	var sout, serr bytes.Buffer
 	_, err = stdcopy.StdCopy(&sout, &serr, reader)

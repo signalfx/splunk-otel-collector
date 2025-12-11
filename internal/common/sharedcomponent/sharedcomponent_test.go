@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 )
@@ -19,7 +20,7 @@ var id = component.MustNewID("test")
 
 func TestNewSharedComponents(t *testing.T) {
 	comps := NewSharedComponents()
-	assert.Len(t, comps.comps, 0)
+	assert.Empty(t, comps.comps)
 }
 
 type mockComponent struct {
@@ -38,8 +39,8 @@ func TestSharedComponents_GetOrAdd(t *testing.T) {
 	assert.Same(t, got, comps.GetOrAdd(id, createNop))
 
 	// Shutdown nop will remove
-	assert.NoError(t, got.Shutdown(context.Background()))
-	assert.Len(t, comps.comps, 0)
+	require.NoError(t, got.Shutdown(context.Background()))
+	assert.Empty(t, comps.comps)
 	assert.NotSame(t, got, comps.GetOrAdd(id, createNop))
 }
 
@@ -64,11 +65,11 @@ func TestSharedComponent(t *testing.T) {
 	assert.Equal(t, wantErr, got.Start(context.Background(), componenttest.NewNopHost()))
 	assert.Equal(t, 1, calledStart)
 	// Second time is not called anymore.
-	assert.NoError(t, got.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, got.Start(context.Background(), componenttest.NewNopHost()))
 	assert.Equal(t, 1, calledStart)
 	assert.Equal(t, wantErr, got.Shutdown(context.Background()))
 	assert.Equal(t, 1, calledStop)
 	// Second time is not called anymore.
-	assert.NoError(t, got.Shutdown(context.Background()))
+	require.NoError(t, got.Shutdown(context.Background()))
 	assert.Equal(t, 1, calledStop)
 }

@@ -21,6 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/otelcol"
@@ -35,7 +36,7 @@ func TestFactory(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
+	require.NoError(t, componenttest.CheckConfigStruct(cfg))
 	cfg.ServerConfig.Endpoint = "localhost:0"
 	cfg.ListenPath = "/metrics"
 
@@ -44,7 +45,7 @@ func TestFactory(t *testing.T) {
 	mockConsumer := consumertest.NewNop()
 	receiver, err := newReceiver(mockSettings, cfg, mockConsumer)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, receiver)
 	require.NoError(t, receiver.Start(ctx, nopHost))
 	require.NoError(t, receiver.Shutdown(ctx))
@@ -65,6 +66,6 @@ func TestFactoryOtelIntegration(t *testing.T) {
 	require.NoError(t, err)
 	parsedFactory := factories.Receivers[metadata.Type]
 	require.NotEmpty(t, parsedFactory)
-	assert.EqualValues(t, parsedFactory.Type(), metadata.Type)
-	assert.EqualValues(t, 3, parsedFactory.MetricsStability())
+	assert.Equal(t, parsedFactory.Type().String(), metadata.Type.String())
+	assert.Equal(t, component.StabilityLevelDevelopment, parsedFactory.MetricsStability())
 }

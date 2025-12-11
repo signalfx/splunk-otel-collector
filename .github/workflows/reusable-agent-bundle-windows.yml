@@ -23,7 +23,7 @@ jobs:
 
       - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: agent-bundle-windows-${{ inputs.OS }}
           path: ./dist/agent-bundle_windows_amd64.zip

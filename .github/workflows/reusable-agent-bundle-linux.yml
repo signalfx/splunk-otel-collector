@@ -25,7 +25,7 @@ jobs:
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: agent-bundle-linux-${{ inputs.ARCH }}
           path: ./dist/agent-bundle_linux_${{ inputs.ARCH }}.tar.gz

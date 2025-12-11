@@ -53,7 +53,7 @@ jobs:
         run: make build-pack
 
       - name: Upload the .NET Instrumentation Deployer Add-On
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: splunk_otel_dotnet_deployer
           path: ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz

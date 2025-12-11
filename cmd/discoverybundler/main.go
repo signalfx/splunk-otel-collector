@@ -16,6 +16,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -122,11 +123,11 @@ func main() {
 
 	// Generate properties files for receivers
 	receivers := loadReceiverMetadata(filepath.Join(metadataDir, "receivers"))
-	for _, receiver := range receivers {
-		bundleFile := filepath.Join(filepath.Join(bundleDir, "receivers"), receiver.FileName+".discovery.yaml")
-		generateFile(receiver.PropertiesTmpl, bundleFile, false, receiver.ReceiverID)
-		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "receivers"), receiver.FileName+".discovery.yaml")
-		generateFile(receiver.PropertiesTmpl, configDLinuxFile, true, receiver.ReceiverID)
+	for i := range receivers {
+		bundleFile := filepath.Join(filepath.Join(bundleDir, "receivers"), receivers[i].FileName+".discovery.yaml")
+		generateFile(receivers[i].PropertiesTmpl, bundleFile, false, receivers[i].ReceiverID)
+		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "receivers"), receivers[i].FileName+".discovery.yaml")
+		generateFile(receivers[i].PropertiesTmpl, configDLinuxFile, true, receivers[i].ReceiverID)
 	}
 
 	bundleFSTemplate := filepath.Join(projectRoot, "internal", "confmapprovider", "discovery", "bundledfs.tmpl")
@@ -182,11 +183,11 @@ func genBundledFS(bundleFSFile string, extensions []extensionMetadata, receivers
 		ExtensionFiles []string
 		ReceiverFiles  []string
 	}{}
-	for _, ext := range extensions {
-		target.ExtensionFiles = append(target.ExtensionFiles, ext.FileName)
+	for i := range extensions {
+		target.ExtensionFiles = append(target.ExtensionFiles, extensions[i].FileName)
 	}
-	for _, rec := range receivers {
-		target.ReceiverFiles = append(target.ReceiverFiles, rec.FileName)
+	for i := range receivers {
+		target.ReceiverFiles = append(target.ReceiverFiles, receivers[i].FileName)
 	}
 
 	t, err := template.New("bundledfs").Parse(string(bundleFSTmpl))
@@ -194,7 +195,7 @@ func genBundledFS(bundleFSFile string, extensions []extensionMetadata, receivers
 	out := &bytes.Buffer{}
 	panicOnError(t.Execute(out, target))
 	filename := filepath.Join(filepath.Dir(bundleFSFile), "generated_bundledfs.go")
-	if err = os.WriteFile(filename, out.Bytes(), 0o644); err != nil { // nolint:gosec // existing project file permissions
+	if err = os.WriteFile(filename, out.Bytes(), 0o644); err != nil { //nolint:gosec // existing project file permissions
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 }
@@ -214,7 +215,7 @@ func generateReceiverMetadataFile(discoveryReceiverDir string, receivers []recei
 	}))
 
 	filename := filepath.Join(discoveryReceiverDir, "generated_metadata.go")
-	if err := os.WriteFile(filename, out.Bytes(), 0o644); err != nil { // nolint:gosec // existing project file permissions
+	if err := os.WriteFile(filename, out.Bytes(), 0o644); err != nil { //nolint:gosec // existing project file permissions
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 
@@ -246,7 +247,7 @@ func formatMessage(message string, componentID component.ID) string {
 
 func validateReceiverMetadata(md receiverMetadata) error {
 	if md.ReceiverID == (component.ID{}) {
-		return fmt.Errorf("receiver ID cannot be empty")
+		return errors.New("receiver ID cannot be empty")
 	}
 	if md.ServiceType == "" {
 		return fmt.Errorf("service type cannot be empty for receiver %s", md.ReceiverID)

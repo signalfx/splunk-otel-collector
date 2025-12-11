@@ -15,6 +15,7 @@
 package discovery
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -237,7 +238,7 @@ func (PropertiesEntry) ErrorF(path string, err error) error {
 // files as they are discovered, determined by their parent directory and filename.
 func (c *Config) Load(configDPath string) error {
 	if c == nil {
-		return fmt.Errorf("config must not be nil to be loaded (use NewConfig())")
+		return errors.New("config must not be nil to be loaded (use NewConfig())")
 	}
 	return c.LoadFS(os.DirFS(configDPath))
 }
@@ -246,7 +247,7 @@ func (c *Config) Load(configDPath string) error {
 // determined by their parent directory and filename.
 func (c *Config) LoadFS(dirfs fs.FS) error {
 	if c == nil {
-		return fmt.Errorf("config must not be nil to be loaded (use NewConfig())")
+		return errors.New("config must not be nil to be loaded (use NewConfig())")
 	}
 	err := fs.WalkDir(dirfs, ".", func(path string, d fs.DirEntry, err error) error {
 		c.logger.Debug("loading component", zap.String("path", path), zap.String("DirEntry", fmt.Sprintf("%#v", d)), zap.Error(err))
@@ -517,11 +518,9 @@ func stringToKeyType[K keyType](s string, key K) (K, error) {
 			if s == discovery.NoType.String() {
 				componentIDK = discovery.NoType
 			} else {
-				var err error
 				componentIDK = component.ID{}
 				cIDK := componentIDK.(component.ID)
-				if err = (&cIDK).UnmarshalText([]byte(s)); err != nil {
-					// nolint:gocritic
+				if err := (&cIDK).UnmarshalText([]byte(s)); err != nil {
 					return *new(K), err // (gocritic suggestion not valid with type parameter)
 				}
 			}

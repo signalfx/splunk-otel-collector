@@ -23,9 +23,6 @@ splunk_config = <value>
 splunk_config_dir = <value>
 * Value to use for the `SPLUNK_CONFIG_DIR` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/`).  Same as `--configd` parameter as defined in https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L47
 
-splunk_debug_config_server = <value>
-* Value to use for the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable
-
 splunk_config_yaml = <value>
 * Value to use for the `SPLUNK_CONFIG_YAML` environment variable
 

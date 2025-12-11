@@ -59,8 +59,8 @@ func PackageAddon(sourceDir, outputFile string) error {
 			header.Name += "/"
 		}
 
-		if err = tarWriter.WriteHeader(header); err != nil {
-			return err
+		if writeErr := tarWriter.WriteHeader(header); writeErr != nil {
+			return writeErr
 		}
 		if info.IsDir() {
 			return nil // directories only need the header

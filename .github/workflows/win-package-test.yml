@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.3
+  GO_VERSION: 1.25.5
 
 jobs:
   cross-compile:
@@ -72,7 +72,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v5.0.0
+      - uses: actions/setup-dotnet@v5.0.1
         with:
           dotnet-version: |
             8.0.300
@@ -113,6 +113,7 @@ jobs:
           "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Run the MSI tests
+        working-directory: tests/msi
         run: |
           go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
 
@@ -203,6 +204,7 @@ jobs:
 
       - name: Run the script upgrade tests
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
+        working-directory: tests/windows-install-script
         run: |
           go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 

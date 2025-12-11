@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -56,7 +55,7 @@ func TestValidateReceiverMetadata(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			data, err := os.ReadFile(filepath.Join("testdata", fmt.Sprintf("%s.yaml", test.name)))
+			data, err := os.ReadFile(filepath.Join("testdata", test.name+".yaml"))
 			require.NoError(t, err)
 
 			var metadata receiverMetadata

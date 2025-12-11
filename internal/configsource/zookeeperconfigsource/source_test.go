@@ -17,7 +17,7 @@ package zookeeperconfigsource
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/go-zookeeper/zk"
@@ -106,7 +106,7 @@ func TestWatcher(t *testing.T) {
 				assert.Nil(t, conn.watcherCh)
 			case c.err:
 				conn.watcherCh <- zk.Event{
-					Err: fmt.Errorf("zookeeper error"),
+					Err: errors.New("zookeeper error"),
 				}
 				ce := <-watchChannel
 				assert.EqualError(t, ce.Error, "zookeeper error")

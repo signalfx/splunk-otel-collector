@@ -16,6 +16,7 @@ package lightprometheusreceiver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -67,7 +68,7 @@ func (s *scraper) start(ctx context.Context, host component.Host) error {
 
 	s.startTime = pcommon.NewTimestampFromTime(time.Now())
 	var err error
-	s.client, err = s.cfg.ClientConfig.ToClient(ctx, host, s.settings)
+	s.client, err = s.cfg.ClientConfig.ToClient(ctx, host.GetExtensions(), s.settings)
 	return err
 }
 
@@ -75,7 +76,7 @@ type fetcher func() (io.ReadCloser, expfmt.Format, error)
 
 func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 	fetch := func() (io.ReadCloser, expfmt.Format, error) {
-		req, err := http.NewRequest("GET", s.cfg.ClientConfig.Endpoint, nil)
+		req, err := http.NewRequest("GET", s.cfg.ClientConfig.Endpoint, http.NoBody)
 		if err != nil {
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
@@ -159,7 +160,7 @@ func (s *scraper) doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
 		var mf dto.MetricFamily
 		err := decoder.Decode(&mf)
 
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return mfs, nil
 		} else if err != nil {
 			return nil, err

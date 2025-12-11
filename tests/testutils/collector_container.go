@@ -18,6 +18,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -172,7 +173,7 @@ func (collector CollectorContainer) Build() (Collector, error) {
 
 func (collector *CollectorContainer) Start() error {
 	if collector.Container.req == nil {
-		return fmt.Errorf("cannot Start a CollectorContainer that hasn't been successfully built")
+		return errors.New("cannot Start a CollectorContainer that hasn't been successfully built")
 	}
 
 	err := collector.Container.Start(context.Background())
@@ -185,7 +186,7 @@ func (collector *CollectorContainer) Start() error {
 
 func (collector *CollectorContainer) Shutdown() error {
 	if collector.Container.req == nil {
-		return fmt.Errorf("cannot Shutdown a CollectorContainer that hasn't been successfully built")
+		return errors.New("cannot Shutdown a CollectorContainer that hasn't been successfully built")
 	}
 	defer collector.Container.Terminate(context.Background())
 	if err := collector.Container.Stop(context.Background(), nil); err != nil {
@@ -286,7 +287,7 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, config
 	var body []byte
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		httpClient := &http.Client{}
-		req, err := http.NewRequest("GET", uri, nil)
+		req, err := http.NewRequest("GET", uri, http.NoBody)
 		require.NoError(t, err)
 		resp, err := httpClient.Do(req)
 		require.NoError(tt, err)

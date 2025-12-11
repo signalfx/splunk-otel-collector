@@ -15,6 +15,7 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sync/atomic"
@@ -78,7 +79,8 @@ func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOte
 func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *prompb.WriteRequest) (map[prompb.MetricMetadata_MetricType][]metricData, error) {
 	partitions := make(map[prompb.MetricMetadata_MetricType][]metricData)
 	var translationErrors error
-	for index, ts := range writeReq.Timeseries {
+	for index := range writeReq.Timeseries {
+		ts := &writeReq.Timeseries[index]
 		metricName, err := internal.ExtractMetricNameLabel(ts.Labels)
 		if err != nil {
 			translationErrors = multierr.Append(translationErrors, err)
@@ -90,9 +92,9 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 		}
 		md := metricData{
 			Labels:         ts.Labels,
-			Samples:        writeReq.Timeseries[index].Samples,
-			Exemplars:      writeReq.Timeseries[index].Exemplars,
-			Histograms:     writeReq.Timeseries[index].Histograms,
+			Samples:        ts.Samples,
+			Exemplars:      ts.Exemplars,
+			Histograms:     ts.Histograms,
 			MetricName:     metricName,
 			MetricMetadata: metricMetadata,
 		}
@@ -165,15 +167,15 @@ func (prwParser *prometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 
 // addGaugeMetrics handles any scalar metric family which can go up or down
 func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []metricData) {
-	for _, metricsData := range metrics {
-		if metricsData.MetricName == "" {
+	for i := range metrics {
+		if metrics[i].MetricName == "" {
 			prwParser.totalBadMetrics.Add(1)
 			continue
 		}
-		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName)
-		nm.SetName(metricsData.MetricName)
+		nm := prwParser.scaffoldNewMetric(ilm, metrics[i].MetricName)
+		nm.SetName(metrics[i].MetricName)
 		gauge := nm.SetEmptyGauge()
-		for _, sample := range metricsData.Samples {
+		for _, sample := range metrics[i].Samples {
 			if math.IsNaN(sample.Value) {
 				prwParser.totalNans.Add(1)
 				continue
@@ -182,23 +184,23 @@ func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			dp.SetStartTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			prwParser.setFloatOrInt(dp, sample)
-			prwParser.setAttributes(dp, metricsData.Labels)
+			prwParser.setAttributes(dp, metrics[i].Labels)
 		}
 	}
 }
 
 // addCounterMetrics handles any scalar metric family which can only goes up, and are cumulative
 func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []metricData) {
-	for _, metricsData := range metrics {
-		if metricsData.MetricName == "" {
+	for i := range metrics {
+		if metrics[i].MetricName == "" {
 			prwParser.totalBadMetrics.Add(1)
 			continue
 		}
-		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName)
+		nm := prwParser.scaffoldNewMetric(ilm, metrics[i].MetricName)
 		sumMetric := nm.SetEmptySum()
 		sumMetric.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 		sumMetric.SetIsMonotonic(true)
-		for _, sample := range metricsData.Samples {
+		for _, sample := range metrics[i].Samples {
 			if math.IsNaN(sample.Value) {
 				prwParser.totalNans.Add(1)
 				continue
@@ -207,7 +209,7 @@ func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.Scope
 			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			dp.SetStartTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			prwParser.setFloatOrInt(dp, sample)
-			prwParser.setAttributes(dp, metricsData.Labels)
+			prwParser.setAttributes(dp, metrics[i].Labels)
 		}
 	}
 }
@@ -232,8 +234,8 @@ func getSampleTimestampBounds(samples []prompb.Sample) (int64, int64) {
 func getWriteRequestTimestampBounds(request *prompb.WriteRequest) (time.Time, time.Time) {
 	minTimestamp := int64(math.MaxInt64)
 	maxTimestamp := int64(math.MinInt64)
-	for _, ts := range request.Timeseries {
-		sampleMin, sampleMax := getSampleTimestampBounds(ts.Samples)
+	for i := range request.Timeseries {
+		sampleMin, sampleMax := getSampleTimestampBounds(request.Timeseries[i].Samples)
 		if sampleMin < minTimestamp {
 			minTimestamp = sampleMin
 		}
@@ -246,7 +248,7 @@ func getWriteRequestTimestampBounds(request *prompb.WriteRequest) (time.Time, ti
 
 func (prwParser *prometheusRemoteOtelParser) setFloatOrInt(dp pmetric.NumberDataPoint, sample prompb.Sample) error {
 	if math.IsNaN(sample.Value) {
-		return fmt.Errorf("NAN value found")
+		return errors.New("NAN value found")
 	}
 	if float64(int64(sample.Value)) == sample.Value {
 		dp.SetIntValue(int64(sample.Value))

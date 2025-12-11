@@ -161,15 +161,23 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, hostobserver.NewFactory().CreateDefaultConfig(), hoc)
 
-	assert.Equal(t, []component.ID{component.MustNewID("host_observer")}, conf.Service.Extensions)
+	require.Len(t, conf.Service.Extensions, 1)
+	assert.Equal(t, component.MustNewID("host_observer"), conf.Service.Extensions[0])
+
 	pipelines := conf.Service.Pipelines
 	assert.Len(t, pipelines, 2)
-	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
-		pipelines[pipeline.NewID(pipeline.SignalMetrics)].Receivers)
-	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
-		pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Receivers)
-	assert.Equal(t, []component.ID{component.MustNewIDWithName("otlphttp", "entities")},
-		pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Exporters)
+
+	metricsReceivers := pipelines[pipeline.NewID(pipeline.SignalMetrics)].Receivers
+	require.Len(t, metricsReceivers, 1)
+	assert.Equal(t, component.MustNewIDWithName("discovery", "host_observer"), metricsReceivers[0])
+
+	logsReceivers := pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Receivers
+	require.Len(t, logsReceivers, 1)
+	assert.Equal(t, component.MustNewIDWithName("discovery", "host_observer"), logsReceivers[0])
+
+	logsExporters := pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Exporters
+	require.Len(t, logsExporters, 1)
+	assert.Equal(t, component.MustNewIDWithName("otlphttp", "entities"), logsExporters[0])
 }
 
 func TestDiscoveryProvider_HostObserverDisabled(t *testing.T) {

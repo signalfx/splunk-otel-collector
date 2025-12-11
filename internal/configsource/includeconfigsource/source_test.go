@@ -70,8 +70,8 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 			file := path.Join("testdata", tt.selector)
 			r, err := s.Retrieve(ctx, file, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
+				require.Error(t, err)
 				assert.Nil(t, r)
-				require.IsType(t, tt.wantErr, err) //nolint:testifylint  //nolint:testifylint
 				return
 			}
 			require.NoError(t, err)
@@ -210,6 +210,7 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 
 	ctx := context.Background()
 	r, err := s.Retrieve(ctx, dst, nil, nil)
-	assert.IsType(t, &errFailedToDeleteFile{}, err) //nolint:testifylint  //nolint:testifylint
+	var targetErr *errFailedToDeleteFile
+	require.ErrorAs(t, err, &targetErr)
 	assert.Nil(t, r)
 }

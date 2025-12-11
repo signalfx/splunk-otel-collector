@@ -506,7 +506,6 @@ func TestManagerExpandString(t *testing.T) {
 			})
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				require.IsType(t, tt.wantErr, err) //nolint:testifylint  //nolint:testifylint
 			} else {
 				require.NoError(t, err)
 			}

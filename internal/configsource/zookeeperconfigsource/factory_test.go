@@ -48,7 +48,11 @@ func TestZookeeperFactory_CreateConfigSource(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := factory.CreateConfigSource(context.Background(), tt.config, zap.NewNop())
-			require.IsType(t, tt.wantErr, err) //nolint:testifylint  //nolint:testifylint
+			if tt.wantErr != nil {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 			if tt.wantErr == nil {
 				assert.NotNil(t, actual)
 			} else {

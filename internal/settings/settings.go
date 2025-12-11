@@ -48,14 +48,13 @@ const (
 	ListenInterfaceEnvVar          = "SPLUNK_LISTEN_INTERFACE"
 	GoMemLimitEnvVar               = "GOMEMLIMIT"
 	GoGCEnvVar                     = "GOGC"
-	// nolint:gosec
+	//nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
 	MemLimitMiBEnvVar = "SPLUNK_MEMORY_LIMIT_MIB"
 	MemTotalEnvVar    = "SPLUNK_MEMORY_TOTAL_MIB"
 	RealmEnvVar       = "SPLUNK_REALM"
-	// nolint:gosec
-	TokenEnvVar = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
+	TokenEnvVar       = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
 
 	// Deprecated: SPLUNK_TRACE_URL env var is deprecated, SPLUNK_REALM or SPLUNK_INGEST_URL should be used instead.
 	TraceIngestURLEnvVar = "SPLUNK_TRACE_URL"

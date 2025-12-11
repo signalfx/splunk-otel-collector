@@ -105,7 +105,7 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	assert.Nil(t, retrieved)
 
 	retrieved, err = configD.Retrieve(context.Background(), discoveryModeScheme+":not.a.path", nil)
-	assert.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
+	require.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 }
 

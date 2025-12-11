@@ -81,12 +81,9 @@ linters:
     - nolintlint
     - fatcontext
     - nolintlint
+    - thelper
 #    Enable additional linters as needed in the future
 #    - depguard
-#    - fatcontext
-#    - perfsprint
-#    - testifylint
-#    - thelper
 #    - usestdlibvars
 #    - usetesting
 #    - whitespace

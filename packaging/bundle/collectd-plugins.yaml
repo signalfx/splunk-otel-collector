@@ -1,8 +1,4 @@
 ---
-- name: couchbase
-  version: v1.2.0
-  repo: signalfx/collectd-couchbase
-
 - name: jenkins
   version: v2.7.0
   repo: signalfx/collectd-jenkins

@@ -307,10 +307,10 @@ func TestContinuousDiscoveryWithEntitiesPipeline(t *testing.T) {
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
-func confFromYaml(t testing.TB, content string) *confmap.Conf {
+func confFromYaml(tb testing.TB, content string) *confmap.Conf {
 	var conf map[string]any
 	if err := yaml.Unmarshal([]byte(content), &conf); err != nil {
-		t.Errorf("failed loading conf from yaml: %v", err)
+		tb.Errorf("failed loading conf from yaml: %v", err)
 	}
 	return confmap.NewFromStringMap(conf)
 }

@@ -163,15 +163,15 @@ func (collector *CollectorProcess) Shutdown() error {
 	return collector.Process.Shutdown(context.Background())
 }
 
-func (collector *CollectorProcess) InitialConfig(t testing.TB) map[string]any {
-	return requestConfig(t, "http://localhost:55679/debug/expvarz", "initial")
+func (collector *CollectorProcess) InitialConfig(tb testing.TB) map[string]any {
+	return requestConfig(tb, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorProcess) EffectiveConfig(t testing.TB) map[string]any {
-	return requestConfig(t, "http://localhost:55679/debug/expvarz", "effective")
+func (collector *CollectorProcess) EffectiveConfig(tb testing.TB) map[string]any {
+	return requestConfig(tb, "http://localhost:55679/debug/expvarz", "effective")
 }
 
-func requestConfig(t testing.TB, uri, configType string) map[string]any {
+func requestConfig(tb testing.TB, uri, configType string) map[string]any {
 	var resp *http.Response
 	var err error
 	for i := 0; i < 3; i++ {
@@ -182,12 +182,12 @@ func requestConfig(t testing.TB, uri, configType string) map[string]any {
 		}
 		time.Sleep(5 * time.Second)
 	}
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
-	return expvarzPageToMap(t, body, configType)
+	return expvarzPageToMap(tb, body, configType)
 }
 
 // Walks up parent directories looking for bin/otelcol

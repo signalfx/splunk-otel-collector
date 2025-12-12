@@ -54,8 +54,8 @@ type Testcase struct {
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
 // with available endpoint and ObservedLogs.
-func NewTestcase(t testing.TB) *Testcase {
-	tc := Testcase{TB: t}
+func NewTestcase(tb testing.TB) *Testcase {
+	tc := Testcase{TB: tb}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
@@ -74,8 +74,8 @@ func NewTestcase(t testing.TB) *Testcase {
 
 // NewHECTestcase is the recommended constructor that will automatically configure a HECReceiverSink
 // with available endpoint and ObservedLogs.
-func NewHECTestcase(t testing.TB) *Testcase {
-	tc := Testcase{TB: t}
+func NewHECTestcase(tb testing.TB) *Testcase {
+	tc := Testcase{TB: tb}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)

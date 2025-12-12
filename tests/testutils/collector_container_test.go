@@ -144,9 +144,9 @@ func TestCollectorContainerLogging(t *testing.T) {
 	assert.Equal(t, []string{}, collector.Args)
 }
 
-func clearEnvVar(t testing.TB) {
+func clearEnvVar(tb testing.TB) {
 	if currentVal, ok := os.LookupEnv(collectorImageEnvVar); ok {
-		t.Cleanup(func() {
+		tb.Cleanup(func() {
 			os.Setenv(collectorImageEnvVar, currentVal)
 		})
 	}

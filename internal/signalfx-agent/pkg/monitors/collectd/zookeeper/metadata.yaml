@@ -1,6 +1,8 @@
 monitors:
   - dimensions:
     doc: |
+      **This plugin is deprecated and will be removed by the end of March 2026. Please follow the documentation to set up the zookeeper receiver.**
+
       Monitors an Apache Zookeeper instance using the [Zookeeper collectd
       plugin](https://github.com/signalfx/collectd-zookeeper). This plugin is
       installed with the Smart Agent so no additional installation is required to

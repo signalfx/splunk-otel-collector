@@ -82,11 +82,12 @@ linters:
     - nolintlint
     - fatcontext
     - usestdlibvars
+    - whitespace
 #    Enable additional linters as needed in the future
 #    - depguard
 #    - thelper
 #    - usetesting
-#    - whitespace
+
 
   exclusions:
     presets:

@@ -8,7 +8,7 @@ component: signalfx-agent
 note: The collectd/zookeeper plugin is deprecated. Please use the [zookeeper receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zookeeperreceiver) instead. This plugin will be removed by the end of March 2026.
 
 # One or more tracking issues related to the change
-issues: []
+issues: [7016]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// go:build windows
+//go:build windows
 
 package settings
 
@@ -37,8 +37,9 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOptionWithProgramData(t *testin
 		tc := tc
 		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
 			t.Cleanup(clearEnv(t))
-			os.Setenv("SPLUNK_REALM", "noop")
-			os.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
+			t.Setenv("ProgramData", pd)
+			t.Setenv("SPLUNK_REALM", "noop")
+			t.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
 			s, err := parseArgs([]string{"--config", tc.config})
 			require.NoError(t, err)
 			require.NoError(t, setDefaultEnvVars(s))

@@ -273,22 +273,22 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 	}
 }
 
-func (collector *CollectorContainer) InitialConfig(t testing.TB) map[string]any {
-	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "initial")
+func (collector *CollectorContainer) InitialConfig(tb testing.TB) map[string]any {
+	return collector.execConfigRequest(tb, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorContainer) EffectiveConfig(t testing.TB) map[string]any {
-	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "effective")
+func (collector *CollectorContainer) EffectiveConfig(tb testing.TB) map[string]any {
+	return collector.execConfigRequest(tb, "http://localhost:55679/debug/expvarz", "effective")
 }
 
-func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, configType string) map[string]any {
+func (collector *CollectorContainer) execConfigRequest(tb testing.TB, uri, configType string) map[string]any {
 	// Wait until the splunk-otel-collector is up: relying on the entrypoint of the image
 	// can have the request happening before the collector is ready.
 	var body []byte
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+	require.EventuallyWithT(tb, func(tt *assert.CollectT) {
 		httpClient := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, uri, http.NoBody)
-		require.NoError(t, err)
+		require.NoError(tb, err)
 		resp, err := httpClient.Do(req)
 		require.NoError(tt, err)
 
@@ -296,10 +296,10 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, config
 		body, err = io.ReadAll(resp.Body)
 		require.NoError(tt, err)
 
-		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(tb, http.StatusOK, resp.StatusCode)
 	}, 30*time.Second, 100*time.Millisecond)
 
-	return expvarzPageToMap(t, body, configType)
+	return expvarzPageToMap(tb, body, configType)
 }
 
 func GetCollectorImage() string {
@@ -310,30 +310,30 @@ func CollectorImageIsSet() bool {
 	return GetCollectorImage() != ""
 }
 
-func SkipIfNotContainerTest(t testing.TB) {
-	_ = GetCollectorImageOrSkipTest(t)
+func SkipIfNotContainerTest(tb testing.TB) {
+	_ = GetCollectorImageOrSkipTest(tb)
 }
 
-func GetCollectorImageOrSkipTest(t testing.TB) string {
+func GetCollectorImageOrSkipTest(tb testing.TB) string {
 	image := GetCollectorImage()
 	if image == "" {
-		t.Skipf("skipping container-only test (set SPLUNK_OTEL_COLLECTOR_IMAGE env var).")
+		tb.Skipf("skipping container-only test (set SPLUNK_OTEL_COLLECTOR_IMAGE env var).")
 	}
 	return image
 }
 
-func CollectorImageIsForArm(t testing.TB) bool {
+func CollectorImageIsForArm(tb testing.TB) bool {
 	image := GetCollectorImage()
 	if image == "" {
 		return false
 	}
 	client, err := docker.NewClientWithOpts(docker.FromEnv)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	client.NegotiateAPIVersion(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	var buf bytes.Buffer
 	inspect, err := client.ImageInspect(ctx, image, docker.ImageInspectWithRawResponse(&buf))
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	return inspect.Architecture == "arm64"
 }

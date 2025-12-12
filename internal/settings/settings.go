@@ -451,15 +451,33 @@ func defaultListenAddr(s *Settings) string {
 				path = location
 			}
 			cleaned := filepath.Clean(path)
-			if path == DefaultAgentConfigLinux ||
-				cleaned == DefaultAgentConfigLinux ||
-				path == DefaultAgentConfigWindows ||
-				cleaned == DefaultAgentConfigWindows {
+			if isAgentConfig(path) || isAgentConfig(cleaned) {
 				return "127.0.0.1"
 			}
 		}
 	}
 	return DefaultListenInterface
+}
+
+// isAgentConfig checks if the given path is an agent configuration file
+func isAgentConfig(path string) bool {
+	// Direct comparison with default paths
+	if path == DefaultAgentConfigLinux || path == DefaultAgentConfigWindows {
+		return true
+	}
+
+	// For Windows, check if the path ends with the agent config pattern
+	// This handles cases where paths might be constructed differently
+	if runtime.GOOS == "windows" && filepath.Base(path) == "agent_config.yaml" {
+		// Normalize path separators and check the directory structure
+		cleanPath := filepath.ToSlash(filepath.Clean(path))
+		// Check if path ends with Splunk/OpenTelemetry Collector/agent_config.yaml
+		if strings.HasSuffix(cleanPath, "Splunk/OpenTelemetry Collector/agent_config.yaml") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Config priority (highest to lowest):

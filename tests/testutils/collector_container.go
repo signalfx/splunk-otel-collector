@@ -287,8 +287,8 @@ func (collector *CollectorContainer) execConfigRequest(tb testing.TB, uri, confi
 	var body []byte
 	require.EventuallyWithT(tb, func(tt *assert.CollectT) {
 		httpClient := &http.Client{}
-		req, err := http.NewRequest("GET", uri, http.NoBody)
-		require.NoError(tb, err)
+		req, err := http.NewRequest(http.MethodGet, uri, http.NoBody)
+		require.NoError(t, err)
 		resp, err := httpClient.Do(req)
 		require.NoError(tt, err)
 

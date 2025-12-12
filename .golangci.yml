@@ -81,10 +81,10 @@ linters:
     - perfsprint
     - nolintlint
     - fatcontext
+    - usestdlibvars
 #    Enable additional linters as needed in the future
 #    - depguard
 #    - thelper
-#    - usestdlibvars
 #    - usetesting
 #    - whitespace
 

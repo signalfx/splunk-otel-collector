@@ -76,7 +76,7 @@ type fetcher func() (io.ReadCloser, expfmt.Format, error)
 
 func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 	fetch := func() (io.ReadCloser, expfmt.Format, error) {
-		req, err := http.NewRequest("GET", s.cfg.ClientConfig.Endpoint, http.NoBody)
+		req, err := http.NewRequest(http.MethodGet, s.cfg.ClientConfig.Endpoint, http.NoBody)
 		if err != nil {
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
@@ -86,7 +86,7 @@ func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
 
-		if resp.StatusCode != 200 {
+		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), fmt.Errorf("light prometheus %s returned status %d: %s", s.cfg.ClientConfig.Endpoint, resp.StatusCode, string(body))
 		}

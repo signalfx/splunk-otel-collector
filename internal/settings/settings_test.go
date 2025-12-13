@@ -131,7 +131,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.one=val.one",
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
 	}, settings.ResolverURIs())
-	require.Equal(t, 2, len(settings.ConfMapConverterFactories()))
+	require.Len(t, settings.ConfMapConverterFactories(), 2)
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
@@ -156,7 +156,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
-	require.Equal(t, 4, len(settings.ConfMapConverterFactories()))
+	require.Len(t, settings.ConfMapConverterFactories(), 4)
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
@@ -245,7 +245,7 @@ func TestSetDefaultEnvVarsOnlySetsURLsWithRealmSet(t *testing.T) {
 	for _, v := range envVars {
 		require.NoError(t, setDefaultEnvVars(nil))
 		_, ok := os.LookupEnv(v)
-		require.False(t, ok, fmt.Sprintf("Expected %q unset given SPLUNK_REALM is unset", v))
+		require.False(t, ok, "Expected %q unset given SPLUNK_REALM is unset", v)
 	}
 }
 
@@ -263,7 +263,7 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	os.Setenv("SPLUNK_REALM", realm)
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
-	assert.Equal(t, 1, len(set.envVarWarnings))
+	assert.Len(t, set.envVarWarnings, 1)
 	assert.Contains(t, set.envVarWarnings["SPLUNK_TRACE_URL"], `"SPLUNK_TRACE_URL" environment variable is deprecated`)
 
 	expectedEnvVars := [][]string{
@@ -286,7 +286,7 @@ func TestNoWarningsIfTraceURLSetExplicitly(t *testing.T) {
 	os.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.signalfx.com/v2/trace")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
-	assert.Equal(t, 0, len(set.envVarWarnings))
+	assert.Empty(t, set.envVarWarnings)
 
 	val, ok := os.LookupEnv("SPLUNK_INGEST_URL")
 	assert.True(t, ok)
@@ -315,7 +315,7 @@ func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
 	os.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com/")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
-	assert.Equal(t, 1, len(set.envVarWarnings))
+	assert.Len(t, set.envVarWarnings, 1)
 	assert.Contains(t, set.envVarWarnings["SPLUNK_TRACE_URL"], `"SPLUNK_TRACE_URL" environment variable is deprecated`)
 
 	val, ok := os.LookupEnv("SPLUNK_TRACE_URL")
@@ -680,7 +680,7 @@ func TestSetDefaultEnvVarsFileStorageExtension(t *testing.T) {
 	require.NoError(t, setDefaultEnvVars(nil))
 	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
 	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH set by default")
-	require.Equal(t, path, "/var/lib/otelcol/filelogs")
+	require.Equal(t, "/var/lib/otelcol/filelogs", path)
 }
 
 func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {

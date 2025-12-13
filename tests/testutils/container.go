@@ -31,7 +31,6 @@ import (
 	dockernetwork "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
@@ -482,17 +481,17 @@ func (container *Container) CopyFileFromContainer(ctx context.Context, filePath 
 
 // AssertExec will assert that the exec'ed command completes within the specified timeout, returning
 // the return code and demuxed stdout and stderr
-func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd ...string) (rc int, stdout, stderr string) {
+func (container *Container) AssertExec(tb testing.TB, timeout time.Duration, cmd ...string) (rc int, stdout, stderr string) {
 	var err error
 	var reader io.Reader
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	rc, reader, err = container.Exec(ctx, cmd)
-	assert.NoError(t, err)
-	require.NotNil(t, reader)
+	require.NoError(tb, err)
+	require.NotNil(tb, reader)
 	var sout, serr bytes.Buffer
 	_, err = stdcopy.StdCopy(&sout, &serr, reader)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	return rc, sout.String(), serr.String()
 }
 

@@ -23,19 +23,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func expvarzPageToMap(t testing.TB, body []byte, configType string) map[string]any {
+func expvarzPageToMap(tb testing.TB, body []byte, configType string) map[string]any {
 	// Convert the full expvar with the equivalent of
 	// cat <expvarz_page> | jq -r '.["splunk.config.initial"]'
 	var expvarMap map[string]any
 	err := json.Unmarshal(body, &expvarMap)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	configInJSON, ok := expvarMap["splunk.config."+configType]
-	require.True(t, ok, "key 'splunk.config.%s' not found", configType)
+	require.True(tb, ok, "key 'splunk.config.%s' not found", configType)
 	configStr, ok := configInJSON.(string)
-	require.True(t, ok, "'splunk.config.%s' cannot be cast to string", configType)
+	require.True(tb, ok, "'splunk.config.%s' cannot be cast to string", configType)
 
 	configMap := map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(configStr), &configMap))
+	require.NoError(tb, yaml.Unmarshal([]byte(configStr), &configMap))
 
 	return confmap.NewFromStringMap(configMap).ToStringMap()
 }

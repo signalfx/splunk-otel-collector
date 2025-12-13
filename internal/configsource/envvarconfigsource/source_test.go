@@ -91,8 +91,8 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			ctx := context.Background()
 			r, err := source.Retrieve(ctx, tt.selector, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
+				require.Error(t, err)
 				assert.Nil(t, r)
-				require.IsType(t, tt.wantErr, err)
 				return
 			}
 			require.NoError(t, err)

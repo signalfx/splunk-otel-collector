@@ -29,6 +29,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/sys v0.38.0
+	golang.org/x/text v0.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.34.2
 	k8s.io/apimachinery v0.34.2
@@ -156,7 +157,6 @@ require (
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/oauth2 v0.32.0 // indirect
 	golang.org/x/term v0.37.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251022142026-3a174f9686a8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251022142026-3a174f9686a8 // indirect

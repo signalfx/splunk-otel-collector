@@ -38,7 +38,7 @@ jobs:
           check-latest: true
       - name: Cache Go
         id: go-cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v4
         with:
           path: |
             ~/go/bin

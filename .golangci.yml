@@ -83,9 +83,9 @@ linters:
     - fatcontext
     - thelper
     - usestdlibvars
+    - depguard
     - whitespace
 #    Enable additional linters as needed in the future
-#    - depguard
 #    - usetesting
 
 

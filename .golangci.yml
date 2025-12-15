@@ -84,9 +84,10 @@ linters:
     - thelper
     - usestdlibvars
     - depguard
+    - whitespace
 #    Enable additional linters as needed in the future
 #    - usetesting
-#    - whitespace
+
 
   exclusions:
     presets:

@@ -7,6 +7,9 @@ default:
         - "$SECRETS_URL"
 
 variables:
+  WIN_RUNNERS:
+    value: "false"
+    description: "Set to anything different than 'false' to skip Windows runner jobs"
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
@@ -81,6 +84,7 @@ manual_release_trigger:
   allow_failure: false
   needs: []
 
+# Windows runners test trigger:
 fossa:
   extends: .oss-scan
   stage: sast-oss-scan
@@ -461,13 +465,16 @@ agent-bundle-linux:
       - dist/agent-bundle_linux_${ARCH}.tar.gz
 
 agent-bundle-windows:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+      when: manual
   extends: .trigger-filter
   stage: build
   needs:
     - job: manual_release_trigger
       optional: true
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
@@ -868,6 +875,9 @@ build-tar:
       - dist/splunk-otel-collector*.tar.gz
 
 build-msi:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+      when: manual
   extends: .trigger-filter
   stage: package
   needs:
@@ -879,8 +889,9 @@ build-msi:
     - New-Item -Path bin -ItemType Directory -Force 
     - Copy-Item -Force dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   script:
+    # TODO: Install WiX Toolset
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
@@ -897,14 +908,18 @@ build-msi:
       - dist/*.msi
 
 msi-custom-actions-package:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+      when: manual
   extends: .trigger-filter
   stage: package
   needs:
     - job: msi-custom-actions-assemblies
       artifacts: true
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   script:
+    # TODO: Install WiX Toolset
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
     - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
@@ -1232,6 +1247,9 @@ sign-linux-image:
     - mv tags_to_sign_${ARCH} tags_to_sign
 
 build-push-windows-image:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+      when: manual
   extends: .trigger-filter
   stage: release
   parallel:
@@ -1241,7 +1259,7 @@ build-push-windows-image:
     - sign-exe
     - agent-bundle-windows
   tags:
-    - splunk-otel-collector-windows${WIN_VERSION}
+    - windows${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop
@@ -1382,6 +1400,9 @@ build-push-windows-image:
       - tags_to_sign_${WIN_VERSION}
 
 build-push-windows-fips-image:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+      when: manual
   extends: .trigger-filter
   stage: release
   parallel:
@@ -1390,7 +1411,7 @@ build-push-windows-fips-image:
   dependencies:
     - sign-exe
   tags:
-    - splunk-otel-collector-windows${WIN_VERSION}
+    - windows${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop
@@ -1667,12 +1688,15 @@ release-installers:
     - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
 release-nupkg:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+      when: manual
   extends: .trigger-filter
   stage: release
   dependencies:
     - sign-msi
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   script:
     - |
       $ErrorActionPreference = 'Stop'
@@ -1691,6 +1715,9 @@ release-nupkg:
       - .\dist\signed\*.msi
 
 choco-release:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+      when: manual
   extends: .trigger-filter
   stage: publish-release
   needs:
@@ -1701,8 +1728,10 @@ choco-release:
     - job: github-release
       artifacts: false
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   script:
+    # TODO: is necessary to install choco here?
+    - choco version
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1

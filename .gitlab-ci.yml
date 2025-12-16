@@ -157,7 +157,8 @@ fossa:
     - &no-schedules-condition
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
-    - &win-runners-test
+
+.win-runners-test:
       if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
       when: manual
 
@@ -358,6 +359,7 @@ compile:
   timeout: 2h
   extends:
     - .trigger-filter
+    - .win-runners-test
     - .go-cache
   tags: [large]
   stage: build
@@ -385,6 +387,7 @@ otelcol-fips:
   image: '${DOCKER_CICD_REPO}/ci-container/golang-1.25:4.3.1'
   extends:
     - .trigger-filter
+    - .win-runners-test
   stage: build
   needs:
     - job: manual_release_trigger
@@ -468,7 +471,7 @@ agent-bundle-linux:
       - dist/agent-bundle_linux_${ARCH}.tar.gz
 
 agent-bundle-windows:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   stage: build
   needs:
     - job: manual_release_trigger
@@ -764,6 +767,7 @@ xray-instrumentation-rpm:
 sign-exe:
   extends:
     - .trigger-filter
+    - .win-runners-test
     - .submit-signing-request
   stage: sign-binaries
   retry: 2
@@ -875,7 +879,7 @@ build-tar:
       - dist/splunk-otel-collector*.tar.gz
 
 build-msi:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   stage: package
   needs:
     - sign-exe
@@ -905,7 +909,7 @@ build-msi:
       - dist/*.msi
 
 msi-custom-actions-package:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   stage: package
   needs:
     - job: msi-custom-actions-assemblies
@@ -1241,7 +1245,7 @@ sign-linux-image:
     - mv tags_to_sign_${ARCH} tags_to_sign
 
 build-push-windows-image:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   stage: release
   parallel:
     matrix:
@@ -1391,7 +1395,7 @@ build-push-windows-image:
       - tags_to_sign_${WIN_VERSION}
 
 build-push-windows-fips-image:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   stage: release
   parallel:
     matrix:
@@ -1676,7 +1680,7 @@ release-installers:
     - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
 release-nupkg:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   stage: release
   dependencies:
     - sign-msi
@@ -1700,7 +1704,7 @@ release-nupkg:
       - .\dist\signed\*.msi
 
 choco-release:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   stage: publish-release
   needs:
     - job: manual_release_trigger

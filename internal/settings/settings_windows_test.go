@@ -29,7 +29,9 @@ import (
 func TestSetDefaultEnvVarsSetsInterfaceFromConfigOptionWithProgramData(t *testing.T) {
 	pd := os.Getenv("ProgramData")
 	if pd == "" {
-		// Set default for CI environments where ProgramData might not be set
+		// DefaultAgentConfigWindows variable in settings.go line 76 gets initialized with the value of ProgramData env var.
+		// If ProgramData is not set, we need to set a default value for the test to pass. More better way to do this is to
+		// modify the cleanEnv function to avoid removing the ProgramData env var.
 		pd = "C:\\ProgramData"
 		t.Setenv("ProgramData", pd)
 	}

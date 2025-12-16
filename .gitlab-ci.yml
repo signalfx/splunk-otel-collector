@@ -473,6 +473,7 @@ agent-bundle-linux:
 
 agent-bundle-windows:
   extends: [.trigger-filter, .win-runners-test]
+  image: mcr.microsoft.com/dotnet/framework/sdk:4.8
   stage: build
   needs:
     - job: manual_release_trigger

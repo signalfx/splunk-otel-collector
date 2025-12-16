@@ -882,6 +882,7 @@ build-tar:
 
 build-msi:
   extends: [.trigger-filter, .win-runners-test]
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: package
   needs:
     - sign-exe
@@ -894,7 +895,24 @@ build-msi:
   tags:
     - windows2022
   script:
-    # TODO: Install WiX Toolset
+    # Install Chocolatey, use same version as GH runner as of 12/16/2025
+    - |
+      $env:chocolateyVersion = "2.6.0"
+      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
+    # Install legacy WiX Toolset
+    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+    # Install Git bash
+    - |
+      $ProgressPreference = 'SilentlyContinue'
+      # Get the latest download URL for the 64-bit installer dynamically from the GitHub API
+      $json = Invoke-RestMethod -Uri "https://api.github.com/repos/git-for-windows/git/releases/latest"
+      $asset = $json.assets | Where-Object Name -like "*64-bit.exe"
+      $downloadUrl = $asset.browser_download_url
+      $installerPath = "$env:TEMP\$($asset.name)"
+      Write-Host "Downloading the latest Git for Windows installer from $downloadUrl..."
+      Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing
+      Write-Host "Starting silent installation..."
+      Start-Process -FilePath $installerPath -ArgumentList "/SP-", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NOCANCEL", "/NORESTART", "/CLOSEAPPLICATIONS", "/RESTARTAPPLICATIONS" -Wait -NoNewWindow
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
@@ -1690,12 +1708,17 @@ release-installers:
 
 release-nupkg:
   extends: [.trigger-filter, .win-runners-test]
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: release
   dependencies:
     - sign-msi
   tags:
     - windows2022
   script:
+    # Install Chocolatey, use same version as GH runner as of 12/16/2025
+    - |
+      $env:chocolateyVersion = "2.6.0"
+      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1
@@ -1713,7 +1736,8 @@ release-nupkg:
       - .\dist\signed\*.msi
 
 choco-release:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: publish-release
   needs:
     - job: manual_release_trigger
@@ -1725,8 +1749,10 @@ choco-release:
   tags:
     - windows2022
   script:
-    # TODO: is necessary to install choco here?
-    - choco version
+    # Install Chocolatey, use same version as GH runner as of 12/16/2025
+    - |
+      $env:chocolateyVersion = "2.6.0"
+      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1

@@ -934,7 +934,7 @@ msi-custom-actions-package:
       - packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
 
 msi-custom-actions-assemblies:
-  extends: .trigger-filter
+  extends: [.trigger-filter, .win-runners-test]
   image: 'mcr.microsoft.com/dotnet/sdk:8.0'
   stage: package
   needs: []

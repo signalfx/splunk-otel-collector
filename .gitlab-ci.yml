@@ -1705,7 +1705,7 @@ release-nupkg:
       - .\dist\signed\*.msi
 
 choco-release:
-  extends: [.trigger-filter, .win-runners-test]
+  extends: .trigger-filter
   stage: publish-release
   needs:
     - job: manual_release_trigger

@@ -83,6 +83,8 @@ function install_python([string]$buildDir=$BUILD_DIR, [string]$pythonVersion=$PY
 
     & $targetPath\python.exe -m pip install pip==$pipVersion --no-warn-script-location
     & $targetPath\python.exe -m ensurepip
+    # When running on Windows container it is necessary to explicitly install the system certificates.
+    & $targetPath\Scripts\pip.exe install pip-system-certs
 }
 
 # install sfxpython package from the local directory

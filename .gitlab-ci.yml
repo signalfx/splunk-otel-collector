@@ -159,7 +159,8 @@ fossa:
       when: never
 
 .win-runners-test:
-      if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
       when: manual
 
 .deploy-release:

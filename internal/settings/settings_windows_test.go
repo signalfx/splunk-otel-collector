@@ -28,16 +28,19 @@ import (
 
 func TestSetDefaultEnvVarsSetsInterfaceFromConfigOptionWithProgramData(t *testing.T) {
 	pd := os.Getenv("ProgramData")
+	if pd == "" {
+		// Set default for CI environments where ProgramData might not be set
+		pd = "C:\\ProgramData"
+		t.Setenv("ProgramData", pd)
+	}
 	for _, tc := range []struct{ config, expectedIP string }{
 		{filepath.Join(pd, "Splunk", "OpenTelemetry Collector", "agent_config.yaml"), "127.0.0.1"},
 		{fmt.Sprintf("file:%s", filepath.Join(pd, "Splunk", "OpenTelemetry Collector", "agent_config.yaml")), "127.0.0.1"},
 		{"\\some-other-config.yaml", "0.0.0.0"},
 		{"file:\\some-other-config.yaml", "0.0.0.0"},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
 			t.Cleanup(clearEnv(t))
-			t.Setenv("ProgramData", pd)
 			t.Setenv("SPLUNK_REALM", "noop")
 			t.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
 			s, err := parseArgs([]string{"--config", tc.config})

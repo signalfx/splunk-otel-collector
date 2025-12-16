@@ -17,7 +17,6 @@ package configsource
 
 import (
 	"context"
-	"os"
 	"path"
 	"testing"
 
@@ -117,11 +116,7 @@ func TestConfigSourceParser(t *testing.T) {
 			require.NoError(t, err)
 
 			for key, value := range tt.envvars {
-				require.NoError(t, os.Setenv(key, value))
-				keyToUnset := key
-				defer func() {
-					assert.NoError(t, os.Unsetenv(keyToUnset))
-				}()
+				t.Setenv(key, value)
 			}
 
 			cfgSrcSettings, splitConf, err := SettingsFromConf(ctx, v, tt.factories, map[string]confmap.Provider{

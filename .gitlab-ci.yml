@@ -490,7 +490,7 @@ agent-bundle-windows:
     paths:
       - .cache/pip
   script:
-    - pip install pip-system-certs
+    - python c:\python\lib\site-packages\pip install pip-system-certs
     - ./packaging/bundle/scripts/windows/make.ps1 bundle
   artifacts:
     paths:

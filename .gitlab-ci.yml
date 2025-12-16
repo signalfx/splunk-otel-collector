@@ -8,7 +8,7 @@ default:
 
 variables:
   WIN_RUNNERS:
-    value: "false"
+    value: "true"
     description: "Set to anything different than 'false' to skip Windows runner jobs"
   RELEASE_VERSION:
     value: ""
@@ -490,6 +490,7 @@ agent-bundle-windows:
     paths:
       - .cache/pip
   script:
+    - pip install pip-system-certs
     - ./packaging/bundle/scripts/windows/make.ps1 bundle
   artifacts:
     paths:

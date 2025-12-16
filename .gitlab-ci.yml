@@ -1736,7 +1736,7 @@ release-nupkg:
       - .\dist\signed\*.msi
 
 choco-release:
-  extends: [.trigger-filter, .win-runners-test]
+  extends: .trigger-filter
   image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: publish-release
   needs:

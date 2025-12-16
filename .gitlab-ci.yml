@@ -912,6 +912,7 @@ build-msi:
 
 msi-custom-actions-package:
   extends: [.trigger-filter, .win-runners-test]
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: package
   needs:
     - job: msi-custom-actions-assemblies
@@ -919,7 +920,13 @@ msi-custom-actions-package:
   tags:
     - windows2022
   script:
-    # TODO: Install WiX Toolset
+    # Install Chocolatey, use same version as GH runner as of 12/16/2025
+    - |
+      $env:chocolateyVersion = "2.6.0"
+      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
+    # Install legacy WiX Toolset
+    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+    # Setup environment to build custom actions
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
     - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH

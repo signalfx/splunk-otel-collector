@@ -492,9 +492,9 @@ agent-bundle-windows:
   script:
     - |
       # Windows image doesn't include all the certs necessary for the bundle script
-      $certUrl = "https://cacerts.digicert.com/DigiCertGlobalRootCA.crt"
-      $certPath = "$env:TEMP\DigiCertGlobalRootCA.crt"
-      Invoke-WebRequest -Uri $certUrl -OutFile $certPath
+      $certUrl = "https://support.sectigo.com/sfc/servlet.shepherd/version/download/0681N0000068nPR"
+      $certPath = "$env:TEMP\sec.crt"
+      Invoke-WebRequest -UseBasicParsing -Uri $certUrl -OutFile $certPath
       Import-Certificate -FilePath $certPath -CertStoreLocation Cert:\LocalMachine\Root
 
     - ./packaging/bundle/scripts/windows/make.ps1 bundle

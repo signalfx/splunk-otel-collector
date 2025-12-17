@@ -1287,7 +1287,9 @@ test-docker-on-win-runner:
   variables:
     ErrorActionPreference: stop
   before_script:
-    - *win-script-install-chocolatey
+    - |
+      $env:chocolateyVersion = "1.4.4"
+      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
     - choco install docker-cli --force --yes
     - docker version
   script:

@@ -1274,6 +1274,27 @@ sign-linux-image:
   before_script:
     - mv tags_to_sign_${ARCH} tags_to_sign
 
+test-docker-on-win-runner:
+  extends: [.win-runners-test]
+  stage: build
+  parallel:
+    matrix:
+      - WIN_VERSION: ["2019", "2022"]
+  tags:
+    - windows${WIN_VERSION}
+  retry: 2
+  variables:
+    ErrorActionPreference: stop
+  before_script:
+    - *win-script-install-chocolatey
+    - choco install docker-cli --force --yes
+    - docker version
+  script:
+    - |
+      docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+    - docker image ps
+
 build-push-windows-image:
   extends: [.trigger-filter, .win-runners-test]
   stage: release

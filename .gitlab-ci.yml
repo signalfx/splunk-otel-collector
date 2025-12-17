@@ -1049,6 +1049,7 @@ sign-tar:
 sign-msi:
   extends:
     - .trigger-filter
+    - .win-runners-test
     - .submit-signing-request
   stage: sign-packages
   retry: 2

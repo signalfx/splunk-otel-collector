@@ -81,7 +81,6 @@ manual_release_trigger:
   allow_failure: false
   needs: []
 
-# Windows runners test trigger:
 fossa:
   extends: .oss-scan
   stage: sast-oss-scan

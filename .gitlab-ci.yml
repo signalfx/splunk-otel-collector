@@ -900,7 +900,7 @@ build-msi:
       $env:chocolateyVersion = "2.6.0"
       Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
     # Install legacy WiX Toolset
-    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
     # Install Git bash
     - |
       $ProgressPreference = 'SilentlyContinue'
@@ -943,7 +943,7 @@ msi-custom-actions-package:
       $env:chocolateyVersion = "2.6.0"
       Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
     # Install legacy WiX Toolset
-    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
     # Setup environment to build custom actions
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"

@@ -158,6 +158,16 @@ fossa:
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
 
+.win-script-install-chocolatey: &win-script-install-chocolatey
+    # Install Chocolatey, use same version as GH runner as of 12/16/2025
+    - |
+      $env:chocolateyVersion = "2.6.0"
+      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
+
+.win-script-install-wix: &win-script-install-wix
+    # Install legacy WiX Toolset, requires Chocolatey
+    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
+
 .win-runners-test:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web" && $WIN_RUNNERS != "false"'
@@ -895,12 +905,8 @@ build-msi:
   tags:
     - windows2022
   script:
-    # Install Chocolatey, use same version as GH runner as of 12/16/2025
-    - |
-      $env:chocolateyVersion = "2.6.0"
-      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
-    # Install legacy WiX Toolset
-    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
+    - *win-script-install-chocolatey
+    - *win-script-install-wix
     # Install Git bash
     - |
       $ProgressPreference = 'SilentlyContinue'
@@ -938,12 +944,8 @@ msi-custom-actions-package:
   tags:
     - windows2022
   script:
-    # Install Chocolatey, use same version as GH runner as of 12/16/2025
-    - |
-      $env:chocolateyVersion = "2.6.0"
-      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
-    # Install legacy WiX Toolset
-    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
+    - *win-script-install-chocolatey
+    - *win-script-install-wix
     # Setup environment to build custom actions
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
@@ -1715,10 +1717,7 @@ release-nupkg:
   tags:
     - windows2022
   script:
-    # Install Chocolatey, use same version as GH runner as of 12/16/2025
-    - |
-      $env:chocolateyVersion = "2.6.0"
-      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
+    - *win-script-install-chocolatey
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1
@@ -1749,10 +1748,7 @@ choco-release:
   tags:
     - windows2022
   script:
-    # Install Chocolatey, use same version as GH runner as of 12/16/2025
-    - |
-      $env:chocolateyVersion = "2.6.0"
-      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
+    - *win-script-install-chocolatey
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1

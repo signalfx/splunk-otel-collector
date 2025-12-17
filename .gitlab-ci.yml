@@ -1282,6 +1282,7 @@ test-docker-on-win-runner:
       - WIN_VERSION: ["2019", "2022"]
   tags:
     - windows${WIN_VERSION}
+  image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop

@@ -1324,7 +1324,7 @@ build-push-windows-image:
     - *win-script-setup-docker-for-build
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-    - &get-base-image |
+    - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
       } else {
@@ -1333,15 +1333,6 @@ build-push-windows-image:
     - |
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - &delete-all-images-except-base |
-      # Delete all images except the base image
-      $base_id = $(docker images -q $BASE_IMAGE)
-      foreach ($id in $(docker images -a -q | Get-Unique)) {
-        if ($id -ne $base_id) {
-          docker rmi -f $id
-        }
-      }
-    - docker system prune --force
   script:
     - |
       docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
@@ -1445,14 +1436,6 @@ build-push-windows-image:
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign_${env:WIN_VERSION}
-  after_script:
-    - *get-base-image
-    - *delete-all-images-except-base
-    - docker system prune --force
-    - |
-      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
-        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
-      }
   artifacts:
     paths:
       - tags_to_sign_${WIN_VERSION}
@@ -1475,7 +1458,7 @@ build-push-windows-fips-image:
     - *win-script-setup-docker-for-build
     - New-Item -Type dir .\cmd\otelcol\fips\dist
     - Copy-Item .\dist\signed\otelcol-fips_windows_amd64.exe .\cmd\otelcol\fips\dist\otelcol-fips_windows_amd64.exe
-    - &get-base-image |
+    - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
       } else {
@@ -1484,15 +1467,6 @@ build-push-windows-fips-image:
     - |
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - &delete-all-images-except-base |
-      # Delete all images except the base image
-      $base_id = $(docker images -q $BASE_IMAGE)
-      foreach ($id in $(docker images -a -q | Get-Unique)) {
-        if ($id -ne $base_id) {
-          docker rmi -f $id
-        }
-      }
-    - docker system prune --force
   script:
     - |
       docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
@@ -1595,14 +1569,6 @@ build-push-windows-fips-image:
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign_${env:WIN_VERSION}-fips
-  after_script:
-    - *get-base-image
-    - *delete-all-images-except-base
-    - docker system prune --force
-    - |
-      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
-        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
-      }
   artifacts:
     paths:
       - tags_to_sign_${WIN_VERSION}-fips

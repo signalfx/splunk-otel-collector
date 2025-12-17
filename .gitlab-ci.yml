@@ -159,14 +159,21 @@ fossa:
       when: never
 
 .win-script-install-chocolatey: &win-script-install-chocolatey
-    # Install Chocolatey, use same version as GH runner as of 12/16/2025
+    # Install Chocolatey. The selected version can be specified via $env:chocolateyVersion
+    # if that is not defined it defaults to the same version as GH runner as of 12/16/2025
     - |
-      $env:chocolateyVersion = "2.6.0"
+      if (-not $env:chocolateyVersion) {
+        $env:chocolateyVersion = "2.6.0"
+      }
       Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
 
 .win-script-install-wix: &win-script-install-wix
     # Install legacy WiX Toolset, requires Chocolatey
     - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
+
+.win-script-install-docker-cli: &win-script-install-docker-cli
+    # Install Docker CLI only, requires Chocolatey
+    - choco install docker-cli --version 29.1.3 --force --yes
 
 .win-runners-test:
   rules:
@@ -1287,10 +1294,11 @@ test-docker-on-win-runner:
   variables:
     ErrorActionPreference: stop
   before_script:
-    - |
-      $env:chocolateyVersion = "1.4.4"
-      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
-    - choco install docker-cli --force --yes
+    # Use a version of Chocolatey that works OOTB on both Windows ServerCore 2019 and 2022. After 1.4.4, Chocolatey
+    # requires .NET 4.8, which is not included in ServerCore 2019 by default.
+    - $env:chocolateyVersion = "1.4.4"
+    - *win-script-install-chocolatey
+    - *win-script-install-docker-cli
     - docker version
   script:
     - |

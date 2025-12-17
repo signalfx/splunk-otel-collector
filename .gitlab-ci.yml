@@ -1294,7 +1294,7 @@ test-docker-on-win-runner:
     - |
       docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - docker image ps
+    - docker image ls
 
 build-push-windows-image:
   extends: [.trigger-filter, .win-runners-test]

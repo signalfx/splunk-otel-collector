@@ -158,10 +158,27 @@ fossa:
     # Install Chocolatey. The selected version can be specified via $env:chocolateyVersion
     # if that is not defined it defaults to the same version as GH runner as of 12/16/2025
     - |
+      $sig = Get-AuthenticodeSignature ".\packaging\bundle\scripts\windows\install-chocolatey.ps1"
+      if ($sig.Status -eq "Valid") {
+          $cert = $sig.SignerCertificate
+
+          # Add to Trusted Publishers store
+          $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPublisher", "LocalMachine")
+          $store.Open("ReadWrite")
+          $store.Add($cert)
+          $store.Close()
+
+          Write-Host "Added trusted publisher: $($cert.Subject)"
+          Write-Host "Thumbprint: $($cert.Thumbprint)"
+      } else {
+          Write-Error "Script signature is not valid: $($sig.Status)"
+          exit 1
+      }
+
+      # $nupkgFullPath = (Resolve-Path .\packaging\bundle\scripts\windows\chocolatey.2.6.0.nupkg).Path
       $originalExecutionPolicy = Get-ExecutionPolicy
       Set-ExecutionPolicy AllSigned
-      $env:chocolateyVersion = "2.6.0"
-      Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
+      .\packaging\bundle\scripts\windows\install-chocolatey.ps1 -ChocolateyDownloadUrl .\packaging\bundle\scripts\windows\chocolatey.2.6.0.nupkg
       Set-ExecutionPolicy $originalExecutionPolicy
 
 .win-script-install-wix: &win-script-install-wix

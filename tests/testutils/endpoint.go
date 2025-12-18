@@ -81,7 +81,7 @@ func GetAvailablePort(tb testing.TB) uint16 {
 	require.NoError(tb, err)
 	require.Greater(tb, portInt, -1)
 	require.Less(tb, portInt, math.MaxUint16+1)
-	return uint16(portInt)
+	return uint16(portInt) //nolint:gosec
 }
 
 // Get excluded ports on Windows from the command: netsh interface ipv4 show excludedportrange protocol=tcp

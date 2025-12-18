@@ -178,14 +178,17 @@ fossa:
       # $nupkgFullPath = (Resolve-Path .\packaging\bundle\scripts\windows\chocolatey.2.6.0.nupkg).Path
       $originalExecutionPolicy = Get-ExecutionPolicy
       Set-ExecutionPolicy AllSigned
-      .\packaging\bundle\scripts\windows\install-chocolatey.ps1 -ChocolateyDownloadUrl .\packaging\bundle\scripts\windows\chocolatey.2.6.0.nupkg
+      .\packaging\bundle\scripts\windows\install-chocolatey.ps1 -ChocolateyDownloadUrl .\packaging\bundle\scripts\windows\nupkg\chocolatey.2.6.0.nupkg
       Set-ExecutionPolicy $originalExecutionPolicy
+      choco source remove -n chocolatey
+      choco source add -n local-nupkg -s .\packaging\bundle\scripts\windows\nupkg
+      choco source list
 
-.win-script-install-wix: &win-script-install-wix
+.win-script-choco-install-wixtoolset: &win-script-choco-install-wixtoolset
     # Install legacy WiX Toolset, requires Chocolatey
-    - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
+    - choco install wixtoolset --version 3.14.0 --force --yes
 
-.win-script-install-docker-cli: &win-script-install-docker-cli
+.win-script-choco-install-docker-cli: &win-script-choco-install-docker-cli
     # Install Docker CLI, requires Chocolatey
     - choco install docker-cli --version 29.1.3 --force --yes
 
@@ -919,7 +922,7 @@ build-msi:
     - windows2022
   script:
     - *win-script-install-chocolatey
-    - *win-script-install-wix
+    - *win-script-choco-install-wixtoolset
     # Install Git bash
     - |
       $ProgressPreference = 'SilentlyContinue'
@@ -958,7 +961,7 @@ msi-custom-actions-package:
     - windows2022
   script:
     - *win-script-install-chocolatey
-    - *win-script-install-wix
+    - *win-script-choco-install-wixtoolset
     # Setup environment to build custom actions
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
@@ -1303,7 +1306,7 @@ build-push-windows-image:
     ErrorActionPreference: stop
   before_script:
     - *win-script-install-chocolatey
-    - *win-script-install-docker-cli
+    - *win-script-choco-install-docker-cli
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
     - |
@@ -1438,7 +1441,7 @@ build-push-windows-fips-image:
     ErrorActionPreference: stop
   before_script:
     - *win-script-install-chocolatey
-    - *win-script-install-docker-cli
+    - *win-script-choco-install-docker-cli
     - New-Item -Type dir .\cmd\otelcol\fips\dist
     - Copy-Item .\dist\signed\otelcol-fips_windows_amd64.exe .\cmd\otelcol\fips\dist\otelcol-fips_windows_amd64.exe
     - |

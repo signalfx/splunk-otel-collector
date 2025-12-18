@@ -275,7 +275,7 @@ jobs:
           fi
           for config in $configs; do
             # TODO: set fake-token back to 12345 once https://github.com/open-telemetry/opentelemetry-collector/issues/10937 is resolved
-            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG="/etc/otel/collector/${config}" -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e ECS_CONTAINER_METADATA_URI_V4=http://localhost --name otelcol otelcol:latest
+            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG="/etc/otel/collector/${config}" -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
             sleep 10
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
               docker logs otelcol

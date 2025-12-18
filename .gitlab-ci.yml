@@ -158,20 +158,18 @@ fossa:
     # Install Chocolatey. The selected version can be specified via $env:chocolateyVersion
     # if that is not defined it defaults to the same version as GH runner as of 12/16/2025
     - |
-      if (-not $env:chocolateyVersion) {
-        $env:chocolateyVersion = "2.6.0"
-      }
+      $originalExecutionPolicy = Get-ExecutionPolicy
+      Set-ExecutionPolicy AllSigned
+      $env:chocolateyVersion = "2.6.0"
       Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));
+      Set-ExecutionPolicy $originalExecutionPolicy
 
 .win-script-install-wix: &win-script-install-wix
     # Install legacy WiX Toolset, requires Chocolatey
     - choco install wixtoolset --version 3.14.0 --allow-downgrade --force --yes
 
-.win-script-setup-docker-for-build: &win-script-setup-docker-for-build
-    # Use a version of Chocolatey that works OOTB on both Windows ServerCore 2019 and 2022. After 1.4.4, Chocolatey
-    # requires .NET 4.8, which is not included in ServerCore 2019 by default.
-    - $env:chocolateyVersion = "1.4.4"
-    - *win-script-install-chocolatey
+.win-script-install-docker-cli: &win-script-install-docker-cli
+    # Install Docker CLI, requires Chocolatey
     - choco install docker-cli --version 29.1.3 --force --yes
 
 .deploy-release:
@@ -1281,13 +1279,14 @@ build-push-windows-image:
     - sign-exe
     - agent-bundle-windows
   tags:
-    - windows${WIN_VERSION}
-  image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
+    - windows2022
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   retry: 2
   variables:
     ErrorActionPreference: stop
   before_script:
-    - *win-script-setup-docker-for-build
+    - *win-script-install-chocolatey
+    - *win-script-install-docker-cli
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
     - |
@@ -1415,13 +1414,14 @@ build-push-windows-fips-image:
   dependencies:
     - sign-exe
   tags:
-    - windows${WIN_VERSION}
-  image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
+    - windows2022
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   retry: 2
   variables:
     ErrorActionPreference: stop
   before_script:
-    - *win-script-setup-docker-for-build
+    - *win-script-install-chocolatey
+    - *win-script-install-docker-cli
     - New-Item -Type dir .\cmd\otelcol\fips\dist
     - Copy-Item .\dist\signed\otelcol-fips_windows_amd64.exe .\cmd\otelcol\fips\dist\otelcol-fips_windows_amd64.exe
     - |

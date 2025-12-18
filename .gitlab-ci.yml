@@ -175,11 +175,10 @@ fossa:
           exit 1
       }
 
-      # $nupkgFullPath = (Resolve-Path .\packaging\bundle\scripts\windows\chocolatey.2.6.0.nupkg).Path
       $originalExecutionPolicy = Get-ExecutionPolicy
-      Set-ExecutionPolicy AllSigned
+      Set-ExecutionPolicy AllSigned -Scope Process -Force
       .\packaging\bundle\scripts\windows\install-chocolatey.ps1 -ChocolateyDownloadUrl .\packaging\bundle\scripts\windows\nupkg\chocolatey.2.6.0.nupkg
-      Set-ExecutionPolicy $originalExecutionPolicy
+      Set-ExecutionPolicy $originalExecutionPolicy -Scope Process -Force
       choco source remove -n chocolatey
       choco source add -n local-nupkg -s .\packaging\bundle\scripts\windows\nupkg
       choco source list

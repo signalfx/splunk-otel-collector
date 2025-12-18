@@ -33,6 +33,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/ptracetest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 func TestWindowsIISInstrumentation(t *testing.T) {
@@ -151,6 +153,55 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 			)
 		}
 		index = newIndex
+
+		if matchErr != nil {
+			// Provide detailed debug information to help diagnose mismatches.
+			t.Logf("Expected traces summary:\n%s", summarizeTraces(expected))
+			// Summarize each received trace batch
+			for j := 0; j < newIndex; j++ {
+				t.Logf("Received traces batch %d summary:\n%s", j, summarizeTraces(otlp.AllTraces()[j]))
+			}
+			t.Logf("CompareTraces error: %v", matchErr)
+		}
+
 		assert.NoError(c, matchErr)
 	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
+}
+
+// summarizeTraces returns a compact human-readable summary of the provided traces,
+// including the total number of resource spans, scope spans, and spans, plus a few
+// common resource attributes (service.name, telemetry.sdk.name/version) when present.
+func summarizeTraces(tr ptrace.Traces) string {
+	rs := tr.ResourceSpans()
+	var totalRS, totalScopes, totalSpans int
+	var b strings.Builder
+
+	totalRS = rs.Len()
+	b.WriteString(fmt.Sprintf("resource_spans: %d\n", totalRS))
+
+	for i := 0; i < rs.Len(); i++ {
+		rsi := rs.At(i)
+		attrs := rsi.Resource().Attributes()
+		serviceName := getAttr(attrs, "service.name")
+		sdkName := getAttr(attrs, "telemetry.sdk.name")
+		sdkVersion := getAttr(attrs, "telemetry.sdk.version")
+		scopeSpans := rsi.ScopeSpans()
+		totalScopes += scopeSpans.Len()
+		spansCount := 0
+		for j := 0; j < scopeSpans.Len(); j++ {
+			spansCount += scopeSpans.At(j).Spans().Len()
+		}
+		totalSpans += spansCount
+		b.WriteString(fmt.Sprintf("  rs[%d]: service.name=%q sdk=%q version=%q scopes=%d spans=%d\n", i, serviceName, sdkName, sdkVersion, scopeSpans.Len(), spansCount))
+	}
+	b.WriteString(fmt.Sprintf("totals: scopes=%d spans=%d\n", totalScopes, totalSpans))
+	return b.String()
+}
+
+func getAttr(attrs pcommon.Map, key string) string {
+	val, ok := attrs.Get(key)
+	if !ok {
+		return ""
+	}
+	return val.AsString()
 }

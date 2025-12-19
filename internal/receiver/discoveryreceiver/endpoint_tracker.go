@@ -17,6 +17,7 @@ package discoveryreceiver
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
@@ -187,12 +188,12 @@ func (et *endpointTracker) receiverMatchingEndpoint(endpoint observer.Endpoint) 
 		return discovery.NoType
 	}
 	if len(receivers) > 1 {
-		var receiverNames string
+		var receiverNames strings.Builder
 		for _, receiverID := range receivers {
-			receiverNames += receiverID.String() + " "
+			receiverNames.WriteString(receiverID.String() + " ")
 		}
 		et.logger.Warn("endpoint matched multiple receivers, skipping", zap.String("endpoint",
-			string(endpoint.ID)), zap.String("receivers", receiverNames))
+			string(endpoint.ID)), zap.String("receivers", receiverNames.String()))
 		return discovery.NoType
 	}
 	return receivers[0]

@@ -18,7 +18,8 @@ and the [opentelemetry-collector-contrib v0.142.0](https://github.com/open-telem
   configuration details. The keys `splunk.config.initial` and `splunk.config.effective` within this map
   hold, respectively, the initial and effective YAML configurations as strings.
   To retrieve the configuration in YAML format using this endpoint, you can use the following commands:
-  On Windows Powershell 5.1:
+
+  On Windows PowerShell 5.1:
   ```powershell
   (Invoke-WebRequest http://localhost:55679/debug/expvarz).Content | ConvertFrom-Json | Select-Object -ExpandProperty splunk.config.effective
   ```
@@ -99,6 +100,17 @@ and the [opentelemetry-collector-contrib v0.142.0](https://github.com/open-telem
 - (Contrib) `receiver/prometheusremotewrite`: Map.PutStr causes excessive memory allocations due to repeated slice expansions ([#44612](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44612))
 - (Contrib) `receiver/splunk_hec`: Support parsing JSON array payloads in Splunk HEC receiver ([#43941](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43941))
 - (Contrib) `receiver/sshcheck`: Promote sshcheck receiver to beta stability ([#41573](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41573))
+- (Contrib) `pkg/ottl`: Accept string trace/span/profile IDs for `TraceID()`, `SpanID()`, and `ProfileID()` in OTTL. ([#43429](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43429))
+  This change allows for a more straightforward use of string values to set trace, span, and profile IDs in OTTL.
+- (Contrib) `pkg/stanza`: New featuregate `filelog.windows.caseInsensitive` introduced. It will make glob matching is case-insensitive on Windows. ([#40685](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40685))
+  Previously, any `include` pattern that included some manner of wildcard (`*` or `**`) would
+  be case-sensitive on Windows, but Windows filepaths are by default case-insensitive. This meant
+  that in a directory with the files `a.log` and `b.LOG`, the pattern `*.log` would previously only
+  match `a.log`. With the `filelog.windows.caseInsensitive` featuregate enabled, it will match both `a.log`
+  and `b.LOG` when on Windows. The behaviour is the same as always on other operating systems, as all other
+  currently supported platforms for the Collector have case-sensitive filesystems.
+- (Contrib) `processor/k8sattributes`: Updates semconv version to v1.37.0 ([#44696](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44696))
+- (Contrib) `processor/resourcedetection`: Update semconv dependency to 1.37.0 which updates the schema url in the data, but no other impact is expected. ([#44726](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44726))
 
 ### 🧰 Bug fixes 🧰
 

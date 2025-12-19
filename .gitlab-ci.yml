@@ -926,12 +926,21 @@ build-msi:
     - |
       $ProgressPreference = 'SilentlyContinue'
       # Get the latest download URL for the 64-bit installer dynamically from the GitHub API
-      $json = Invoke-RestMethod -Uri "https://api.github.com/repos/git-for-windows/git/releases/latest"
-      $asset = $json.assets | Where-Object Name -like "*64-bit.exe"
-      $downloadUrl = $asset.browser_download_url
-      $installerPath = "$env:TEMP\$($asset.name)"
+      $assetName = "Git-2.52.0-64-bit.exe"
+      $installerPath = "$env:TEMP\$assetName"
       Write-Host "Downloading the latest Git for Windows installer from $downloadUrl..."
-      Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing
+      Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.52.0.windows.1/$assetName -OutFile $installerPath -UseBasicParsing
+
+      # Verify SHA256
+      $expectedHash = "d8de7a3152266c8bb13577eab850ea1df6dccf8c2aa48be5b4a1c58b7190d62c"
+      $actualHash = (Get-FileHash -Path $installerPath -Algorithm SHA256).Hash.ToLower()
+      if ($actualHash -ne $expectedHash) {
+          Write-Error "SHA256 mismatch! Expected: $expectedHash, Got: $actualHash"
+          Remove-Item $installerPath
+          exit 1
+      }
+      Write-Host "SHA256 verified: $actualHash"
+
       Write-Host "Starting silent installation..."
       Start-Process -FilePath $installerPath -ArgumentList "/SP-", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NOCANCEL", "/NORESTART", "/CLOSEAPPLICATIONS", "/RESTARTAPPLICATIONS" -Wait -NoNewWindow
     - |

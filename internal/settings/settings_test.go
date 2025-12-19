@@ -132,7 +132,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
 	}, settings.ResolverURIs())
 	require.Len(t, settings.ConfMapConverterFactories(), 2)
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates", "-processor.resourcedetection.propagateerrors"}, settings.ColCoreArgs())
 }
 
 func TestNewSettingsConvertConfig(t *testing.T) {
@@ -157,7 +157,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Len(t, settings.ConfMapConverterFactories(), 4)
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates", "-processor.resourcedetection.propagateerrors"}, settings.ColCoreArgs())
 }
 
 func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
@@ -184,7 +184,7 @@ func TestNewSettingsWithValidate(t *testing.T) {
 	settings, err := New([]string{"validate"})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, []string{"validate"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "-processor.resourcedetection.propagateerrors", "validate"}, settings.ColCoreArgs())
 }
 
 func TestCheckRuntimeParams_Default(t *testing.T) {
@@ -374,15 +374,15 @@ func TestSetDefaultFeatureGatesRespectsOverrides(t *testing.T) {
 	for _, args := range [][]string{
 		{
 			"--feature-gates", "some-gate", "--feature-gates", "telemetry.useOtelForInternalMetrics", "--feature-gates",
-			"another-gate",
+			"another-gate", "--feature-gates", "-processor.resourcedetection.propagateerrors",
 		},
 		{
 			"--feature-gates", "some-gate", "--feature-gates", "+telemetry.useOtelForInternalMetrics",
-			"--feature-gates", "another-gate",
+			"--feature-gates", "another-gate", "--feature-gates", "-processor.resourcedetection.propagateerrors",
 		},
 		{
 			"--feature-gates", "some-gate", "--feature-gates", "-telemetry.useOtelForInternalMetrics",
-			"--feature-gates", "another-gate",
+			"--feature-gates", "another-gate", "--feature-gates", "-processor.resourcedetection.propagateerrors",
 		},
 	} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {

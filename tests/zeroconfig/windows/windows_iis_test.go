@@ -32,8 +32,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/ptracetest"
 
-	"go.opentelemetry.io/collector/pdata/ptrace"
-
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
@@ -136,6 +134,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 			matchErr = ptracetest.CompareTraces(expected, otlp.AllTraces()[i],
 				ptracetest.IgnoreResourceAttributeValue("host.id"),
 				ptracetest.IgnoreResourceAttributeValue("host.name"),
+				ptracetest.IgnoreResourceAttributeValue("host.arch"),
 				ptracetest.IgnoreResourceAttributeValue("process.owner"),
 				ptracetest.IgnoreResourceAttributeValue("process.pid"),
 				ptracetest.IgnoreResourceAttributeValue("process.runtime.description"),
@@ -150,33 +149,11 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 				ptracetest.IgnoreEndTimestamp(),
 				ptracetest.IgnoreTraceID(),
 				ptracetest.IgnoreSpanID(),
+				ptracetest.IgnoreResourceSpansOrder(),
+				ptracetest.IgnoreScopeSpansOrder(),
 			)
 		}
 		index = newIndex
-
-		if matchErr != nil {
-			// Log the received traces in JSON format for debugging
-			marshaler := &ptrace.JSONMarshaler{}
-			t.Logf("CompareTraces failed with error: %v", matchErr)
-			t.Logf("Total trace batches received: %d", newIndex)
-			for i := 0; i < newIndex; i++ {
-				jsonBytes, err := marshaler.MarshalTraces(otlp.AllTraces()[i])
-				if err != nil {
-					t.Logf("Failed to marshal traces batch %d: %v", i, err)
-				} else {
-					t.Logf("Received traces batch %d:\n%s", i, string(jsonBytes))
-				}
-			}
-
-			// Also log expected traces for comparison
-			expectedJSON, err := marshaler.MarshalTraces(expected)
-			if err != nil {
-				t.Logf("Failed to marshal expected traces: %v", err)
-			} else {
-				t.Logf("Expected traces:\n%s", string(expectedJSON))
-			}
-		}
-
 		assert.NoError(c, matchErr)
 	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
 }

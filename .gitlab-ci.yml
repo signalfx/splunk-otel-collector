@@ -154,43 +154,6 @@ fossa:
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
 
-.win-script-install-chocolatey: &win-script-install-chocolatey
-    # Install Chocolatey. The selected version can be specified via $env:chocolateyVersion
-    # if that is not defined it defaults to the same version as GH runner as of 12/16/2025
-    - |
-      $sig = Get-AuthenticodeSignature ".\packaging\bundle\scripts\windows\install-chocolatey.ps1"
-      if ($sig.Status -eq "Valid") {
-          $cert = $sig.SignerCertificate
-
-          # Add to Trusted Publishers store
-          $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPublisher", "LocalMachine")
-          $store.Open("ReadWrite")
-          $store.Add($cert)
-          $store.Close()
-
-          Write-Host "Added trusted publisher: $($cert.Subject)"
-          Write-Host "Thumbprint: $($cert.Thumbprint)"
-      } else {
-          Write-Error "Script signature is not valid: $($sig.Status)"
-          exit 1
-      }
-
-      $originalExecutionPolicy = Get-ExecutionPolicy
-      Set-ExecutionPolicy AllSigned -Scope Process -Force
-      .\packaging\bundle\scripts\windows\install-chocolatey.ps1 -ChocolateyDownloadUrl .\packaging\bundle\scripts\windows\nupkg\chocolatey.2.6.0.nupkg
-      Set-ExecutionPolicy $originalExecutionPolicy -Scope Process -Force
-      choco source remove -n chocolatey
-      choco source add -n local-nupkg -s .\packaging\bundle\scripts\windows\nupkg
-      choco source list
-
-.win-script-choco-install-wixtoolset: &win-script-choco-install-wixtoolset
-    # Install legacy WiX Toolset, requires Chocolatey
-    - choco install wixtoolset --version 3.14.0 --force --yes
-
-.win-script-choco-install-docker-cli: &win-script-choco-install-docker-cli
-    # Install Docker CLI, requires Chocolatey
-    - choco install docker-cli --version 29.1.3 --force --yes
-
 .deploy-release:
   image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
   variables:
@@ -920,29 +883,10 @@ build-msi:
   tags:
     - windows2022
   script:
-    - *win-script-install-chocolatey
-    - *win-script-choco-install-wixtoolset
-    # Install Git bash
-    - |
-      $ProgressPreference = 'SilentlyContinue'
-      # Get the latest download URL for the 64-bit installer dynamically from the GitHub API
-      $assetName = "Git-2.52.0-64-bit.exe"
-      $installerPath = "$env:TEMP\$assetName"
-      Write-Host "Downloading the latest Git for Windows installer from $downloadUrl..."
-      Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.52.0.windows.1/$assetName -OutFile $installerPath -UseBasicParsing
-
-      # Verify SHA256
-      $expectedHash = "d8de7a3152266c8bb13577eab850ea1df6dccf8c2aa48be5b4a1c58b7190d62c"
-      $actualHash = (Get-FileHash -Path $installerPath -Algorithm SHA256).Hash.ToLower()
-      if ($actualHash -ne $expectedHash) {
-          Write-Error "SHA256 mismatch! Expected: $expectedHash, Got: $actualHash"
-          Remove-Item $installerPath
-          exit 1
-      }
-      Write-Host "SHA256 verified: $actualHash"
-
-      Write-Host "Starting silent installation..."
-      Start-Process -FilePath $installerPath -ArgumentList "/SP-", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NOCANCEL", "/NORESTART", "/CLOSEAPPLICATIONS", "/RESTARTAPPLICATIONS" -Wait -NoNewWindow
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
+    - Install-WiXToolset
+    - Install-Git
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
@@ -968,8 +912,9 @@ msi-custom-actions-package:
   tags:
     - windows2022
   script:
-    - *win-script-install-chocolatey
-    - *win-script-choco-install-wixtoolset
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
+    - Install-WiXToolset
     # Setup environment to build custom actions
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
@@ -1313,8 +1258,9 @@ build-push-windows-image:
   variables:
     ErrorActionPreference: stop
   before_script:
-    - *win-script-install-chocolatey
-    - *win-script-choco-install-docker-cli
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
+    - Install-DockerCli
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
     - |
@@ -1448,8 +1394,9 @@ build-push-windows-fips-image:
   variables:
     ErrorActionPreference: stop
   before_script:
-    - *win-script-install-chocolatey
-    - *win-script-choco-install-docker-cli
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
+    - Install-DockerCli
     - New-Item -Type dir .\cmd\otelcol\fips\dist
     - Copy-Item .\dist\signed\otelcol-fips_windows_amd64.exe .\cmd\otelcol\fips\dist\otelcol-fips_windows_amd64.exe
     - |
@@ -1713,7 +1660,8 @@ release-nupkg:
   tags:
     - windows2022
   script:
-    - *win-script-install-chocolatey
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1
@@ -1744,7 +1692,8 @@ choco-release:
   tags:
     - windows2022
   script:
-    - *win-script-install-chocolatey
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1

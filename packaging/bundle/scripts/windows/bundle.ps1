@@ -95,7 +95,7 @@ function install_python([string]$buildDir=$BUILD_DIR, [string]$pythonVersion=$PY
     if ($lastexitcode -ne 0){ throw }
 }
 
-# install sfxpython package from the local director
+# install sfxpython package from the local directory
 function bundle_python_runner($buildDir=".\build") {
     $python = Resolve-Path -Path "$buildDir\python\python.exe"
     $arguments = "-m", "pip", "install", "-qq", "$scriptDir\..\..\python", "--upgrade"

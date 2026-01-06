@@ -83,7 +83,9 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
-var defaultFeatureGates = []string{}
+var defaultFeatureGates = []string{
+	"-processor.resourcedetection.propagateerrors",
+}
 
 type Settings struct {
 	discovery               *discovery.Provider

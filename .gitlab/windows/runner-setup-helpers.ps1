@@ -119,7 +119,7 @@ function Confirm-Sha256 {
     corresponding .nupkg file, verifying its SHA256 hash, and executing the
     installation script. It also configures Chocolatey to use a local source
     pointing to the directory where the .nupkg files are stored. The location of
-    this directory is made available via a global variable for use by other functions,
+    this directory is made available via a global variable for use by other functions.
     This variable is named $ChocolateyNupkgDirectory.
 
 .NOTES

@@ -80,7 +80,7 @@ function install_python([string]$buildDir=$BUILD_DIR, [string]$pythonVersion=$PY
     & $nugetPath install python -Version $pythonVersion -OutputDirectory $buildDir
     if ($lastexitcode -ne 0){ throw }
     # Recursively copy of installPath\tools to targetPath
-    New-Item -ItemType Directory -Path $targetPath | Out-Null
+    New-Item -ItemType Directory -Path $targetPath -ErrorAction Stop
     Copy-Item -Recurse -Path "$installPath\tools\*" -Destination $targetPath
     Remove-Item -Recurse -Force $installPath
 

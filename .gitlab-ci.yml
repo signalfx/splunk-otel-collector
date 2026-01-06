@@ -915,7 +915,7 @@ msi-custom-actions-package:
     - . .gitlab/windows/runner-setup-helpers.ps1
     - Install-Chocolatey
     - Install-WiXToolset
-    # Setup environment to build custom actions
+    # Set environment variables for building custom actions
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
     - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH

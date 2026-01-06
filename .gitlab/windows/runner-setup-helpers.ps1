@@ -267,7 +267,7 @@ function Install-WiXToolset {
 #>
 function Install-Git {
     # Installing Git via Chocolatey requires the chocolatey-core.extension package.
-    #  Download the package, verify its hash,, but let the git.install package handle
+    # Download the package, verify its hash, but let the git.install package handle
     # the actual installation of the core extension.
     $coreExtNupkgPath = Get-ChocolateyNupkg `
         -PackageName "chocolatey-core.extension" `

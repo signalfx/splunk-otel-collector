@@ -139,7 +139,7 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	go.etcd.io/etcd/client/v2 v2.305.25
+	go.etcd.io/etcd/client/v2 v2.305.26
 	go.opentelemetry.io/collector/component/componentstatus v0.143.0
 	go.opentelemetry.io/collector/component/componenttest v0.143.0
 	go.opentelemetry.io/collector/config/confighttp v0.143.0

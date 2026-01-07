@@ -23,7 +23,7 @@ import (
 func GetBinaryPath() (string, error) {
 	execPath, err := os.Executable()
 	if err != nil {
-		return "", fmt.Errorf("error getting executable path: %v", err)
+		return "", fmt.Errorf("error getting executable path: %w", err)
 	}
 	return execPath, nil
 }

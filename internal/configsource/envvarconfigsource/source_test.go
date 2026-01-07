@@ -17,7 +17,6 @@ package envvarconfigsource
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,10 +71,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, os.Setenv(testEnvVarName, testEnvVarValue))
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv(testEnvVarName))
-	})
+	t.Setenv(testEnvVarName, testEnvVarValue)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -91,8 +87,8 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			ctx := context.Background()
 			r, err := source.Retrieve(ctx, tt.selector, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
+				require.Error(t, err)
 				assert.Nil(t, r)
-				require.IsType(t, tt.wantErr, err)
 				return
 			}
 			require.NoError(t, err)

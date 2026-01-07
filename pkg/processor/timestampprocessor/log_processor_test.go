@@ -35,6 +35,6 @@ func Test_newLogAttributesProcessor(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, newLogs.LogRecordCount())
 	result := newLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-	require.True(t, result.ObservedTimestamp() == pcommon.Timestamp(0))
+	require.Equal(t, pcommon.Timestamp(0), result.ObservedTimestamp())
 	require.Equal(t, now.Add(1*time.Hour), result.Timestamp().AsTime())
 }

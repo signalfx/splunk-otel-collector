@@ -13,7 +13,6 @@ rm -rf "$ADDON_DIR/$REPACKED_TA_NAME"
 # Set passthrough env vars config & repackage TA
 echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/passthrough_env_vars.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'gomemlimit=512MiB' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
-echo 'splunk_debug_config_server=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'splunk_hec_url=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'splunk_gateway_url=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 cp "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/envvars/passthrough_env_vars.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
@@ -57,7 +56,6 @@ for test_str in \
     'envvartest_SPLUNK_BUNDLE_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle)' \
     'envvartest_SPLUNK_COLLECTD_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle/run/collectd)' \
     'envvartest_SPLUNK_CONFIG: Str(/opt/splunk/etc/apps/Splunk_TA_otel/configs/passthrough_env_vars.yaml)' \
-    'envvartest_SPLUNK_DEBUG_CONFIG_SERVER: Str(test_notused)' \
     'envvartest_SPLUNK_GATEWAY_URL: Str(test_notused)' \
     'envvartest_SPLUNK_HEC_URL: Str(test_notused)' \
     'envvartest_SPLUNK_INGEST_URL: Str(https://ingest.us0.signalfx.com)' \

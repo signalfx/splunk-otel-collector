@@ -29,7 +29,7 @@ import (
 func TestValidateConfigAndDefaults(t *testing.T) {
 	// Remember to change the README.md if any of these change in config
 	cfg := createDefaultConfig().(*Config)
-	assert.NoError(t, cfg.Validate())
+	require.NoError(t, cfg.Validate())
 	assert.Equal(t, "localhost:19291", cfg.ServerConfig.Endpoint)
 	assert.Equal(t, "/metrics", cfg.ListenPath)
 	assert.Equal(t, 100, cfg.BufferSize)
@@ -39,7 +39,7 @@ func TestLoadConfigFromFactory(t *testing.T) {
 	cfg := NewFactory().CreateDefaultConfig()
 	require.NotNil(t, cfg)
 	assert.NotEmpty(t, cfg)
-	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
+	require.NoError(t, componenttest.CheckConfigStruct(cfg))
 }
 
 func TestParseConfig(t *testing.T) {

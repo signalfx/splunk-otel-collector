@@ -47,6 +47,7 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in python
 func (rm *Monitor) Configure(conf *Config) error {
+	rm.Logger().Warn("[NOTICE] The collectd/zookeeper plugin is deprecated. Please use the zookeeper receiver instead. This plugin will be removed by the end of March 2026.")
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		ModuleName:    "zk-collectd",

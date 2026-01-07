@@ -202,20 +202,6 @@ function getConfig {
     } else {
         Copy-Item -Path "$FLUENTD_CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
-    # Also need to get config in memory as dynamic config may modify stored config
-    # It's possible user has disabled collecting in memory config
-    try {
-        $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55554)
-        if ($connection.Connected) {
-            (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/initial").Content > $TMPDIR/config/initial.yaml 2>&1
-            (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/effective").Content > $TMPDIR/config/effective.yaml 2>&1
-        } else { 
-            Write-Output "WARN: localhost:55554 unavailable so in memory configuration not collected"
-        }
-    }
-    catch {
-        "ERROR: localhost:55554 could not be resolved."
-    }
 }
 
 #######################################

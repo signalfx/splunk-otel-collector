@@ -18,7 +18,6 @@ package zookeeperconfigsource
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/go-zookeeper/zk"
@@ -85,7 +84,7 @@ func startWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}, watcher conf
 				watcher(&confmap.ChangeEvent{})
 				return
 			}
-			watcher(&confmap.ChangeEvent{Error: fmt.Errorf("zookeeper watcher stopped")})
+			watcher(&confmap.ChangeEvent{Error: errors.New("zookeeper watcher stopped")})
 		}
 	}()
 }

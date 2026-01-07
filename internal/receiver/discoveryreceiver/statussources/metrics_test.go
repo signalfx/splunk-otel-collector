@@ -84,7 +84,7 @@ func TestMetricsToReceiverIDsMissingRMetrics(t *testing.T) {
 	md := pmetric.NewMetrics()
 	receiverID, endpointID := MetricsToReceiverIDs(md)
 	require.Equal(t, discovery.NoType.Type(), receiverID.Type())
-	require.Equal(t, "", receiverID.Name())
+	require.Empty(t, receiverID.Name())
 	require.Equal(t, observer.EndpointID(""), endpointID)
 }
 
@@ -95,7 +95,7 @@ func TestMetricsToReceiverIDsMissingRAttributes(t *testing.T) {
 
 	receiverID, endpointID := MetricsToReceiverIDs(md)
 	require.Equal(t, discovery.NoType.Type(), receiverID.Type())
-	require.Equal(t, "", receiverID.Name())
+	require.Empty(t, receiverID.Name())
 	require.Equal(t, observer.EndpointID(""), endpointID)
 }
 

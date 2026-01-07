@@ -15,7 +15,6 @@
 package discoveryreceiver
 
 import (
-	"fmt"
 	"path"
 	"testing"
 	"time"
@@ -34,7 +33,7 @@ func TestValidConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, configs)
 
-	assert.Equal(t, 1, len(configs.ToStringMap()))
+	assert.Len(t, configs.ToStringMap(), 1)
 
 	cm, err := configs.Sub("discovery")
 	require.NoError(t, err)
@@ -78,7 +77,7 @@ func TestInvalidConfigs(t *testing.T) {
 	for _, test := range tests {
 		func(name, expectedError string) {
 			t.Run(name, func(t *testing.T) {
-				config, err := confmaptest.LoadConf(path.Join(".", "testdata", fmt.Sprintf("%s.yaml", name)))
+				config, err := confmaptest.LoadConf(path.Join(".", "testdata", name+".yaml"))
 				require.NoError(t, err)
 				cm, err := config.Sub(typeStr)
 				require.NoError(t, err)

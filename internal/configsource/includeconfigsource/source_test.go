@@ -70,8 +70,8 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 			file := path.Join("testdata", tt.selector)
 			r, err := s.Retrieve(ctx, file, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
+				require.Error(t, err)
 				assert.Nil(t, r)
-				require.IsType(t, tt.wantErr, err)
 				return
 			}
 			require.NoError(t, err)
@@ -91,11 +91,8 @@ func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 	require.NotNil(t, s)
 
 	// Write out an initial test file
-	f, err := os.CreateTemp("", "watch_file_test")
+	f, err := os.CreateTemp(t.TempDir(), "watch_file_test")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.Remove(f.Name()))
-	}()
 	_, err = f.WriteString("val1")
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
@@ -210,6 +207,7 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 
 	ctx := context.Background()
 	r, err := s.Retrieve(ctx, dst, nil, nil)
-	assert.IsType(t, &errFailedToDeleteFile{}, err)
+	var targetErr *errFailedToDeleteFile
+	require.ErrorAs(t, err, &targetErr)
 	assert.Nil(t, r)
 }

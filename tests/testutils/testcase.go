@@ -54,8 +54,8 @@ type Testcase struct {
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
 // with available endpoint and ObservedLogs.
-func NewTestcase(t testing.TB) *Testcase {
-	tc := Testcase{TB: t}
+func NewTestcase(tb testing.TB) *Testcase {
+	tc := Testcase{TB: tb}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
@@ -74,8 +74,8 @@ func NewTestcase(t testing.TB) *Testcase {
 
 // NewHECTestcase is the recommended constructor that will automatically configure a HECReceiverSink
 // with available endpoint and ObservedLogs.
-func NewHECTestcase(t testing.TB) *Testcase {
-	tc := Testcase{TB: t}
+func NewHECTestcase(tb testing.TB) *Testcase {
+	tc := Testcase{TB: tb}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
@@ -104,7 +104,7 @@ func (t *Testcase) setHECEndpoint() {
 	hecPort := GetAvailablePort(t)
 	hecHost := "0.0.0.0"
 	t.HECEndpoint = fmt.Sprintf("%s:%d", hecHost, hecPort)
-	t.HECEndpointForCollector = fmt.Sprintf("http://%s", t.HECEndpoint)
+	t.HECEndpointForCollector = "http://" + t.HECEndpoint
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
@@ -140,11 +140,11 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	// TODO why does darwin need special business logic?  Is this a proxy to say "is local dev"? Regardless need why comment
 	if runtime.GOOS == "darwin" {
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
-		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		t.OTLPEndpointForCollector = "host.docker.internal:" + port
 
 		if t.HECEndpointForCollector != "" {
 			port = strings.Split(t.HECEndpointForCollector, ":")[1]
-			t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+			t.HECEndpointForCollector = "host.docker.internal:" + port
 		}
 	}
 

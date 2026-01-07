@@ -97,7 +97,7 @@ func (c *Config) Validate() error {
 // Build will build a stdoutOperator.
 func (c *Config) Build(set component.TelemetrySettings) (operator.Operator, error) {
 	if isContainer() {
-		return nil, fmt.Errorf("scriped inputs receiver must be run directly on host and is not supported in container")
+		return nil, errors.New("scriped inputs receiver must be run directly on host and is not supported in container")
 	}
 
 	inputOperator, err := c.InputConfig.Build(set)

@@ -97,7 +97,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 	return d, nil
 }
 
-func (d *discoverer) resolveConfig(cm map[string]any) (*confmap.Conf, error) {
+func (d *discoverer) resolveConfig(ctx context.Context, cm map[string]any) (*confmap.Conf, error) {
 	out, err := yaml.Marshal(cm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal discovery config for uri: %w", err)
@@ -112,11 +112,11 @@ func (d *discoverer) resolveConfig(cm map[string]any) (*confmap.Conf, error) {
 		return nil, fmt.Errorf("failed to create a resolver from the given uris. %w", err)
 	}
 
-	conf, err := resolver.Resolve(context.Background())
+	conf, err := resolver.Resolve(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve configuration from the resolver %w", err)
 	}
-	if err = resolver.Shutdown(context.Background()); err != nil {
+	if err = resolver.Shutdown(ctx); err != nil {
 		d.logger.Warn("error shutting down resolver", zap.Error(err))
 	}
 	return conf, nil
@@ -145,7 +145,7 @@ func (d *discoverer) propertiesConfFromEnv() *confmap.Conf {
 
 // discover will create all .discovery.yaml components, start them, wait the configured
 // duration, and tear them down before returning the discovery config.
-func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
+func (d *discoverer) discover(ctx context.Context, cfg *Config) (map[string]any, error) {
 	if !d.propertiesFileSpecified {
 		if err := d.mergeDiscoveryPropertiesEntry(cfg); err != nil {
 			return nil, fmt.Errorf("failed reconciling properties.discovery: %w", err)
@@ -158,9 +158,9 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		return nil, nil
 	}
 
-	cancels := d.startObservers(cfg)
+	cancels := d.startObservers(ctx, cfg)
 	defer combineCancelFuncs(cancels)()
-	defer d.stopObservers()
+	defer d.stopObservers(ctx)
 
 	discoveryReceiversConfigs, err := d.discoveryReceiversConfigs(cfg)
 	if err != nil {
@@ -179,7 +179,7 @@ func combineCancelFuncs(cancels []context.CancelFunc) context.CancelFunc {
 	}
 }
 
-func (d *discoverer) startObservers(cfg *Config) []context.CancelFunc {
+func (d *discoverer) startObservers(ctx context.Context, cfg *Config) []context.CancelFunc {
 	var cancels []context.CancelFunc
 	d.operationalObservers = make(map[component.ID]component.Component, len(cfg.DiscoveryObservers))
 	for observerID, observerEntry := range cfg.DiscoveryObservers {
@@ -194,7 +194,7 @@ func (d *discoverer) startObservers(cfg *Config) []context.CancelFunc {
 			continue
 		}
 
-		obsCfg, err := d.resolveConfig(observerEntry.Config)
+		obsCfg, err := d.resolveConfig(ctx, observerEntry.Config)
 		if err != nil {
 			d.logger.Warn("error resolving observer config", zap.Error(err))
 			continue
@@ -211,16 +211,16 @@ func (d *discoverer) startObservers(cfg *Config) []context.CancelFunc {
 		}
 
 		observerSettings := d.createExtensionCreateSettings(observerID)
-		observer, err := observerFactory.Create(context.Background(), observerSettings, observerConfig)
+		observer, err := observerFactory.Create(ctx, observerSettings, observerConfig)
 		if err != nil {
 			d.logger.Warn(fmt.Sprintf("failed creating %q extension", observerID), zap.Error(err))
 			continue
 		}
 
 		d.logger.Debug(fmt.Sprintf("starting observer %q", observerID))
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		startCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		cancels = append(cancels, cancel)
-		if e := observer.Start(ctx, nil); e != nil {
+		if e := observer.Start(startCtx, nil); e != nil {
 			d.logger.Warn(
 				fmt.Sprintf("%q startup failed. Won't proceed with %q-based discovery", observerID, observerID.Type()),
 				zap.Error(e),
@@ -232,9 +232,9 @@ func (d *discoverer) startObservers(cfg *Config) []context.CancelFunc {
 	return cancels
 }
 
-func (d *discoverer) stopObservers() {
+func (d *discoverer) stopObservers(ctx context.Context) {
 	for observerID, observer := range d.operationalObservers {
-		if e := observer.Shutdown(context.Background()); e != nil {
+		if e := observer.Shutdown(ctx); e != nil {
 			d.logger.Warn(fmt.Sprintf("error shutting down observer %q", observerID), zap.Error(e))
 		}
 	}

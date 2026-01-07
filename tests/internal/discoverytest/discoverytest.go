@@ -18,11 +18,14 @@ package discoverytest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -144,8 +147,8 @@ func Run(t *testing.T, receiverName, configFilePath, logMessageToAssert string) 
 				}
 			}
 		}
-		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
-		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", receiverName)
+		assert.Positive(tt, seenMessageAttr, "Did not see message '%s'", logMessageToAssert)
+		assert.Positive(tt, seenReceiverTypeAttr, "Did not see expected type '%s'", receiverName)
 	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", receiverName)
 
 	t.Cleanup(func() {
@@ -191,12 +194,12 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string, setDiscov
 		}
 	})
 
-	var extraDiscoveryArgs string
+	var extraDiscoveryArgs strings.Builder
 	for _, arg := range setDiscoveryArgs {
-		extraDiscoveryArgs += fmt.Sprintf("            - --set=%s\n", arg)
+		extraDiscoveryArgs.WriteString(fmt.Sprintf("            - --set=%s\n", arg))
 	}
 
-	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs}, fmt.Sprintf("%s:%d", dockerHost, port))
+	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, fmt.Sprintf("%s:%d", dockerHost, port))
 	t.Cleanup(func() {
 		if skipTearDown {
 			return
@@ -258,9 +261,9 @@ func getDockerGID() (string, error) {
 	fsys := finfo.Sys()
 	stat, ok := fsys.(*syscall.Stat_t)
 	if !ok {
-		return "", fmt.Errorf("OS error occurred while trying to get GID ")
+		return "", errors.New("OS error occurred while trying to get GID ")
 	}
-	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	dockerGID := strconv.FormatUint(uint64(stat.Gid), 10)
 	return dockerGID, nil
 }
 

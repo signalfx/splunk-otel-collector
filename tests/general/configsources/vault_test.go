@@ -75,7 +75,7 @@ func TestBasicSecretAccess(t *testing.T) {
 			})
 			if cc, ok := collector.(*testutils.CollectorContainer); ok {
 				cc.Container = cc.Container.
-					WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
+					WithExposedPorts("55679:55679"). // Required for tests that read the zpages.
 					WithNetworks("vault").
 					WithNetworkMode("bridge")
 				return cc

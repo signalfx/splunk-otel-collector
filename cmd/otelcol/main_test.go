@@ -72,8 +72,7 @@ func TestRunFromCmdLine(t *testing.T) {
 		"NO_WINDOWS_SERVICE":      "true", // Avoid using the Windows service manager
 	}
 	for key, value := range requiredEnvVars {
-		os.Setenv(key, value)
-		defer os.Unsetenv(key)
+		t.Setenv(key, value)
 	}
 
 	for _, tt := range tests {
@@ -93,20 +92,20 @@ func TestRunFromCmdLine(t *testing.T) {
 			testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
-			otelcolCmdTestCtx = testCtx
+			otelcolCmdTestCtx = testCtx //nolint:fatcontext
+
 			defer func() {
-				otelcolCmdTestCtx = nil
+				otelcolCmdTestCtx = nil //nolint:fatcontext
 			}()
 
-			// Wait for the ConfigServer to be down after the test.
-			defer waitForPort(t, "55554")
+			defer waitForPort(t, "55679")
 
 			if tt.panicMsg != "" {
 				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
 				return
 			}
 
-			waitForPort(t, "55554")
+			waitForPort(t, "55679")
 			runFromCmdLine(tt.args)
 		})
 	}

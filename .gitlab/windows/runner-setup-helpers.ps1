@@ -112,7 +112,8 @@ function Confirm-Sha256 {
 
 <#
 .SYNOPSIS
-    Installs a hard-coded version of Chocolatey.
+    Installs a hard-coded version of Chocolatey. If $Env:WIN_VERSION is "2019",
+    installs a version compatible with Windows ServerCore 2019.
 
 .DESCRIPTION
     This function installs a hard-coded version of Chocolatey, by downloading the 
@@ -147,8 +148,16 @@ function Install-Chocolatey {
         throw
     }
 
+
     $chocolateyVersion = "2.6.0"
     $knownHash = "f13a2af9cd4ec2c9b58d81861bc95ad7151e3a871d8f758dffa72a996a3792d8"
+    if ($env:WIN_VERSION -eq "2019") {
+        # Use a version of Chocolatey that works on Windows ServerCore 2019.
+        # After 1.4.4, Chocolatey requires .NET 4.8, which can't be installed on
+        # ServerCore 2019.
+        $chocolateyVersion = "1.4.4"
+        $knownHash = "c49fdb49487e0e7a6fdb6d14ffc010630c0b40854942bac13b08bd0e4dac1bf4"
+    }
 
     $nupkgDirectory = Join-Path -Path $Env:TEMP -ChildPath "nupkg"
     $chocoNupkgPath = Get-ChocolateyNupkg -PackageName "chocolatey" -Version $chocolateyVersion -DestinationDirectory $nupkgDirectory

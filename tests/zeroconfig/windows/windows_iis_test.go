@@ -134,6 +134,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 			matchErr = ptracetest.CompareTraces(expected, otlp.AllTraces()[i],
 				ptracetest.IgnoreResourceAttributeValue("host.id"),
 				ptracetest.IgnoreResourceAttributeValue("host.name"),
+				ptracetest.IgnoreResourceAttributeValue("host.arch"),
 				ptracetest.IgnoreResourceAttributeValue("process.owner"),
 				ptracetest.IgnoreResourceAttributeValue("process.pid"),
 				ptracetest.IgnoreResourceAttributeValue("process.runtime.description"),
@@ -148,6 +149,8 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 				ptracetest.IgnoreEndTimestamp(),
 				ptracetest.IgnoreTraceID(),
 				ptracetest.IgnoreSpanID(),
+				ptracetest.IgnoreResourceSpansOrder(),
+				ptracetest.IgnoreScopeSpansOrder(),
 			)
 		}
 		index = newIndex

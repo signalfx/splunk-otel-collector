@@ -462,12 +462,13 @@ agent-bundle-linux:
 
 agent-bundle-windows:
   extends: .trigger-filter
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: build
   needs:
     - job: manual_release_trigger
       optional: true
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
@@ -869,6 +870,7 @@ build-tar:
 
 build-msi:
   extends: .trigger-filter
+  image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
   stage: package
   needs:
     - sign-exe
@@ -879,11 +881,15 @@ build-msi:
     - New-Item -Path bin -ItemType Directory -Force 
     - Copy-Item -Force dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   script:
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
+    - Install-Git
     - |
       # Install WiX toolset
       & dotnet tool restore
+    - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
           $VERSION_TAG = $env:RELEASE_VERSION
@@ -892,6 +898,7 @@ build-msi:
       } else {
           $VERSION_TAG = ""
       }
+    - |
       & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)"
   artifacts:
     paths:
@@ -899,11 +906,8 @@ build-msi:
 
 msi-custom-actions-package:
   extends: .trigger-filter
+  image: mcr.microsoft.com/dotnet/sdk:10.0.101
   stage: package
-  needs: []
-  tags:
-    - splunk-otel-collector-windows
-  dependencies: []
   script:
     - pushd ./packaging/msi/SplunkCustomActions/
     - dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release
@@ -1219,14 +1223,18 @@ build-push-windows-image:
     - sign-exe
     - agent-bundle-windows
   tags:
-    - splunk-otel-collector-windows${WIN_VERSION}
+    - windows2022
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   retry: 2
   variables:
     ErrorActionPreference: stop
   before_script:
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
+    - Install-DockerCli
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-    - &get-base-image |
+    - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
       } else {
@@ -1235,15 +1243,6 @@ build-push-windows-image:
     - |
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - &delete-all-images-except-base |
-      # Delete all images except the base image
-      $base_id = $(docker images -q $BASE_IMAGE)
-      foreach ($id in $(docker images -a -q | Get-Unique)) {
-        if ($id -ne $base_id) {
-          docker rmi -f $id
-        }
-      }
-    - docker system prune --force
   script:
     - |
       docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
@@ -1347,14 +1346,6 @@ build-push-windows-image:
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign_${env:WIN_VERSION}
-  after_script:
-    - *get-base-image
-    - *delete-all-images-except-base
-    - docker system prune --force
-    - |
-      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
-        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
-      }
   artifacts:
     paths:
       - tags_to_sign_${WIN_VERSION}
@@ -1368,14 +1359,18 @@ build-push-windows-fips-image:
   dependencies:
     - sign-exe
   tags:
-    - splunk-otel-collector-windows${WIN_VERSION}
+    - windows2022
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   retry: 2
   variables:
     ErrorActionPreference: stop
   before_script:
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
+    - Install-DockerCli
     - New-Item -Type dir .\cmd\otelcol\fips\dist
     - Copy-Item .\dist\signed\otelcol-fips_windows_amd64.exe .\cmd\otelcol\fips\dist\otelcol-fips_windows_amd64.exe
-    - &get-base-image |
+    - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
       } else {
@@ -1384,15 +1379,6 @@ build-push-windows-fips-image:
     - |
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - &delete-all-images-except-base |
-      # Delete all images except the base image
-      $base_id = $(docker images -q $BASE_IMAGE)
-      foreach ($id in $(docker images -a -q | Get-Unique)) {
-        if ($id -ne $base_id) {
-          docker rmi -f $id
-        }
-      }
-    - docker system prune --force
   script:
     - |
       docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
@@ -1495,14 +1481,6 @@ build-push-windows-fips-image:
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign_${env:WIN_VERSION}-fips
-  after_script:
-    - *get-base-image
-    - *delete-all-images-except-base
-    - docker system prune --force
-    - |
-      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
-        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
-      }
   artifacts:
     paths:
       - tags_to_sign_${WIN_VERSION}-fips
@@ -1646,12 +1624,15 @@ release-installers:
 
 release-nupkg:
   extends: .trigger-filter
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: release
   dependencies:
     - sign-msi
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   script:
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1
@@ -1670,6 +1651,7 @@ release-nupkg:
 
 choco-release:
   extends: .trigger-filter
+  image: mcr.microsoft.com/windows/servercore:ltsc2022
   stage: publish-release
   needs:
     - job: manual_release_trigger
@@ -1679,8 +1661,10 @@ choco-release:
     - job: github-release
       artifacts: false
   tags:
-    - splunk-otel-collector-windows
+    - windows2022
   script:
+    - . .gitlab/windows/runner-setup-helpers.ps1
+    - Install-Chocolatey
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1

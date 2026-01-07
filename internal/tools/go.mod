@@ -9,7 +9,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/build-tools/chloggen v0.26.0
-	go.opentelemetry.io/collector/cmd/mdatagen v0.143.0
+	go.opentelemetry.io/collector/cmd/mdatagen v0.143.1-0.20260107053435-30708643b9ad
 	golang.org/x/tools v0.39.0
 	golang.org/x/vuln v1.1.4
 	mvdan.cc/gofumpt v0.9.2

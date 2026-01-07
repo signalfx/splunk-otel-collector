@@ -25,7 +25,7 @@ import (
 func TestLoadConfig(t *testing.T) {
 	actual, err := LoadConfig("./testdata/sample-modular-inputs.yaml")
 	require.NoError(t, err)
-	require.EqualValues(t,
+	require.Equal(t,
 		&TemplateData{
 			ModularInputs: map[string]ModInputConfig{
 				"everything_set":                 {Description: "SET ALL THE THINGS", Default: "$SPLUNK_OTEL_TA_HOME/local/access_token", Flag: Flag{Name: "test-flag", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: true},

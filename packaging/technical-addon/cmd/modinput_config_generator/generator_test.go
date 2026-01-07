@@ -90,18 +90,18 @@ func TestRunner(t *testing.T) {
 
 	// Check Schema
 	code, output, err := tc.Exec(ctx, []string{"sudo", "/opt/splunk/bin/splunk", "btool", "check", "--debug"})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.LessOrEqual(t, code, 1)    // Other stanzas may be missing and thus have this be 0 or 1
 	assert.GreaterOrEqual(t, code, 0) // bound to [0,1]
 	read, err := io.ReadAll(output)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotContains(t, string(read), "Invalid Key in Stanza")
 
 	// check log output
 	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Sample_Addon.log"})
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expectedJSON := `{"Flags":["--test-flag","/opt/splunk/etc/apps/Sample_Addon/local/access_token","--test-flag"],"EnvVars":["EVERYTHING_SET=/opt/splunk/etc/apps/Sample_Addon/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=/opt/splunk/etc/apps/Sample_Addon/local/access_token"], "SplunkHome":"/opt/splunk/etc", "TaHome":"/opt/splunk/etc/apps/Sample_Addon", "PlatformHome":"/opt/splunk/etc/apps/Sample_Addon/linux_x86_64", "EverythingSet":"/opt/splunk/etc/apps/Sample_Addon/local/access_token", "MinimalSet":"", "MinimalSetRequired":"", "UnaryFlagWithEverythingSet":"/opt/splunk/etc/apps/Sample_Addon/local/access_token","Platform":"linux"}`
 	i := bytes.Index(read, []byte("Sample output:"))
 	line := read[i+len("Sample output:"):]
@@ -112,7 +112,7 @@ func TestRunner(t *testing.T) {
 	require.NoError(t, dec.Decode(unmarshalled))
 	expected := &ExampleOutput{}
 	require.NoError(t, json.Unmarshal([]byte(expectedJSON), expected))
-	assert.EqualValues(t, expected, unmarshalled)
+	assert.Equal(t, expected, unmarshalled)
 }
 
 func TestRunnerConfigGeneration(t *testing.T) {
@@ -135,9 +135,9 @@ func TestRunnerConfigGeneration(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.testSchemaName, func(tt *testing.T) {
 			config, err := loadYaml(tc.sampleYamlPath, tc.testSchemaName)
-			assert.NoError(tt, err)
+			require.NoError(tt, err)
 			err = generateModinputConfig(config, tc.outDir)
-			assert.NoError(tt, err)
+			require.NoError(tt, err)
 			assert.FileExists(tt, filepath.Join(filepath.Dir(tc.sampleYamlPath), "modinput_config.go"))
 		})
 	}
@@ -166,9 +166,9 @@ func TestInputsConfGeneration(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.testSchemaName, func(tt *testing.T) {
 			config, err := loadYaml(tc.sampleYamlPath, tc.testSchemaName)
-			assert.NoError(tt, err)
+			require.NoError(tt, err)
 			err = generateTaModInputConfs(config, tc.addonSourceDir, tc.outDir)
-			assert.NoError(tt, err)
+			require.NoError(tt, err)
 			testcommon.AssertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf"), filepath.Join(tc.outDir, tc.testSchemaName, "default", "inputs.conf"))
 			testcommon.AssertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf.spec"), filepath.Join(tc.outDir, tc.testSchemaName, "README", "inputs.conf.spec"))
 		})

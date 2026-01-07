@@ -1252,8 +1252,8 @@ build-push-windows-image:
     - sign-exe
     - agent-bundle-windows
   tags:
-    - windows2022
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+    - windows${WIN_VERSION}
+  image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop
@@ -1388,8 +1388,8 @@ build-push-windows-fips-image:
   dependencies:
     - sign-exe
   tags:
-    - windows2022
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+    - windows${WIN_VERSION}
+  image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop

@@ -91,11 +91,8 @@ func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 	require.NotNil(t, s)
 
 	// Write out an initial test file
-	f, err := os.CreateTemp("", "watch_file_test")
+	f, err := os.CreateTemp(t.TempDir(), "watch_file_test")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.Remove(f.Name()))
-	}()
 	_, err = f.WriteString("val1")
 	require.NoError(t, err)
 	require.NoError(t, f.Close())

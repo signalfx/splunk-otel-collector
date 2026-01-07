@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -193,12 +194,12 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string, setDiscov
 		}
 	})
 
-	var extraDiscoveryArgs string
+	var extraDiscoveryArgs strings.Builder
 	for _, arg := range setDiscoveryArgs {
-		extraDiscoveryArgs += fmt.Sprintf("            - --set=%s\n", arg)
+		extraDiscoveryArgs.WriteString(fmt.Sprintf("            - --set=%s\n", arg))
 	}
 
-	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs}, fmt.Sprintf("%s:%d", dockerHost, port))
+	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, fmt.Sprintf("%s:%d", dockerHost, port))
 	t.Cleanup(func() {
 		if skipTearDown {
 			return

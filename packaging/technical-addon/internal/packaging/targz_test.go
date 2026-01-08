@@ -39,7 +39,7 @@ func TestPackaging(t *testing.T) {
 	paths, err := getFilesFromTarGz(actualPath)
 	require.NoError(t, err)
 	expectedPaths := mapset.NewSet[string]("Sample_Addon/default/inputs.conf", "Sample_Addon/README/inputs.conf.spec", "Sample_Addon/linux_x86_64/bin/helloworld.sh")
-	assert.EqualValues(t, expectedPaths, paths, "expected paths to match, missing: %v ; extra: %v", expectedPaths.Difference(paths), paths.Difference(expectedPaths))
+	assert.Equal(t, expectedPaths, paths, "expected paths to match, missing: %v ; extra: %v", expectedPaths.Difference(paths), paths.Difference(expectedPaths))
 }
 
 func getFilesFromTarGz(tarGzPath string) (mapset.Set[string], error) {

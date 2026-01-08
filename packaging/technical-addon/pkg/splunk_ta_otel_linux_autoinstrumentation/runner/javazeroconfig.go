@@ -83,7 +83,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 		log.Printf("Not instrumenting java, as %q was not set", modInputs.AutoinstrumentationPath.Name)
 		return nil
 	}
-	resourceAttributes := fmt.Sprintf("splunk.zc.method=splunk-otel-auto-instrumentation-%s", strings.TrimSpace(javaVersion))
+	resourceAttributes := "splunk.zc.method=splunk-otel-auto-instrumentation-" + strings.TrimSpace(javaVersion)
 
 	if modInputs.DeploymentEnvironment.Value != "" {
 		resourceAttributes = fmt.Sprintf("%s,deployment.environment=%s", resourceAttributes, modInputs.DeploymentEnvironment.Value)

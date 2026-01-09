@@ -66,7 +66,7 @@ func (mip *ModinputProcessor) ProcessXML(modInput *XMLInput) error {
 	providedInputs := make(map[string]bool)
 
 	for _, stanza := range modInput.Configuration.Stanzas {
-		stanzaPrefix := fmt.Sprintf("%s://", mip.SchemaName)
+		stanzaPrefix := mip.SchemaName + "://"
 
 		if strings.HasPrefix(stanza.Name, stanzaPrefix) {
 			for _, param := range stanza.Params {
@@ -96,7 +96,7 @@ func (mip *ModinputProcessor) GetFlags() []string {
 	for _, modinputName := range keys {
 		modularInput := mip.ModularInputs[modinputName]
 		if modularInput.Config.Flag.Name != "" {
-			flags = append(flags, fmt.Sprintf("--%s", modularInput.Config.Flag.Name))
+			flags = append(flags, "--"+modularInput.Config.Flag.Name)
 			if !modularInput.Config.Flag.IsUnary {
 				flags = append(flags, modularInput.Value)
 			}

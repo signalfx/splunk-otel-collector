@@ -22,20 +22,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func AssertFilesMatch(tt *testing.T, expectedPath, actualPath string) {
-	require.FileExists(tt, actualPath)
-	require.FileExists(tt, expectedPath)
+func AssertFilesMatch(t *testing.T, expectedPath, actualPath string) {
+	require.FileExists(t, actualPath)
+	require.FileExists(t, expectedPath)
 	expected, err := os.ReadFile(expectedPath)
 	if err != nil {
-		tt.Fatalf("Failed to read expected file: %v", err)
+		t.Fatalf("Failed to read expected file: %v", err)
 	}
 
 	actual, err := os.ReadFile(actualPath)
 	if err != nil {
-		tt.Fatalf("Failed to read actual file: %v", err)
+		t.Fatalf("Failed to read actual file: %v", err)
 	}
 
 	if diff := cmp.Diff(string(expected), string(actual)); diff != "" {
-		tt.Errorf("File contents mismatch (-expected +actual)\npaths: (%s, %s):\n%s", expectedPath, actualPath, diff)
+		t.Errorf("File contents mismatch (-expected +actual)\npaths: (%s, %s):\n%s", expectedPath, actualPath, diff)
 	}
 }

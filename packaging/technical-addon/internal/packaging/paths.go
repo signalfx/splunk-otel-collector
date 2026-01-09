@@ -15,6 +15,7 @@
 package packaging
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -56,7 +57,7 @@ func findGitRoot(startDir string) (string, error) {
 
 		parentDir := filepath.Dir(dir)
 		if parentDir == dir {
-			return "", fmt.Errorf("no git repository found")
+			return "", errors.New("no git repository found")
 		}
 		dir = parentDir
 	}
@@ -69,7 +70,7 @@ func GetSourceDir() (string, error) {
 		fmt.Println("ADDONS_SOURCE_DIR not set, searching for make root")
 		sourceDir, err = findSourceRoot(".")
 		if err != nil || sourceDir == "" {
-			return "", fmt.Errorf("could not makefile to use as ADDONS_SOURCE_DIR and ADDONS_SOURCE_DIR was not specified as an env var")
+			return "", errors.New("could not makefile to use as ADDONS_SOURCE_DIR and ADDONS_SOURCE_DIR was not specified as an env var")
 		}
 	}
 	return sourceDir, nil
@@ -92,7 +93,7 @@ func findSourceRoot(startDir string) (string, error) {
 
 		parentDir := filepath.Dir(dir)
 		if parentDir == dir {
-			return "", fmt.Errorf("no Makefile found")
+			return "", errors.New("no Makefile found")
 		}
 		dir = parentDir
 	}

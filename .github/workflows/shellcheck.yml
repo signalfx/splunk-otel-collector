@@ -1,0 +1,41 @@
+name: shellcheck
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: v0.10.0
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - name: shellcheck github workflow scripts
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
+        env:
+          SHELLCHECK_OPTS: -x -e SC2059 -e SC2086
+        with:
+          scandir: ".github/workflows/scripts"
+          severity: warning
+          version: ${{ env.VERSION }}
+      - name: shellcheck gitlab worktflow scripts
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
+        env:
+          SHELLCHECK_OPTS: -x -e SC2059 -e SC2086
+        with:
+          scandir: ".gitlab/"
+          severity: warning
+          version: ${{ env.VERSION }}
+      - name: shellcheck scripted inputs receiver scripts
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
+        env:
+          SHELLCHECK_OPTS: -x -e SC2059 -e SC2086
+        with:
+          scandir: "./internal/receiver/scriptedinputsreceiver/scripts"
+          severity: warning
+          version: ${{ env.VERSION }}

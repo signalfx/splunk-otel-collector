@@ -16,7 +16,6 @@ package testaddon
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -139,7 +138,7 @@ func PackAddon(t *testing.T, defaultModInputs *modularinput.GenericModularInput,
 	err = repackFunc(t, packedDir)
 	require.NoError(t, err)
 
-	addonPath := filepath.Join(t.TempDir(), fmt.Sprintf("%s.tgz", defaultModInputs.SchemaName))
+	addonPath := filepath.Join(t.TempDir(), defaultModInputs.SchemaName+".tgz")
 	err = packaging.PackageAddon(packedDir, addonPath)
 	require.NoError(t, err)
 

@@ -17,11 +17,6 @@ and the [opentelemetry-collector-contrib v0.143.0](https://github.com/open-telem
   Users who have these options set in their configuration will experience collector startup failures after upgrading.
   To migrate, remove these configuration options and use the `metricstarttime` processor instead for equivalent functionality.
 
-### 🚩 Deprecations 🚩
-
-### 🚀 New components 🚀
-
-
 ### 💡 Enhancements 💡
 
 - (Splunk) `packaging`: Update Splunk OpenTelemetry .NET agent to v1.12.0 ([#7032](https://github.com/signalfx/splunk-otel-collector/pull/7032))

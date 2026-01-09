@@ -24,12 +24,12 @@ for pkg in $ALL_PKG_DIRS; do
   echo -e "\n**** Running govulncheck for package $pkg"
   set +e
   if [[ -z $FORMAT ]]; then
-    govulncheck ${GOVULN_OPTS} $pkg
+    govulncheck ${GOVULN_OPTS} "$pkg"
   else
     # Remove the repository prefix from the package name to keep the category names short
     # and replace slashes with underscores to make clear that the categories are not nested.
     OUTPUT_FILE="./govulncheck/$(echo "$pkg" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').$FORMAT"
-    govulncheck ${GOVULN_OPTS} $pkg > $OUTPUT_FILE
+    govulncheck ${GOVULN_OPTS} "$pkg" > $OUTPUT_FILE
   fi
   if [ $? -eq 0 ]; then
     echo -e "\n**** govulncheck succeeded for package $pkg"

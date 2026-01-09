@@ -20,6 +20,10 @@ jobs:
         env:
           SHELLCHECK_OPTS: -x -e SC2059 -e SC2086
         with:
+          ignore_paths: >-
+            .github/workflows/scripts/win-required-ports.ps1
+            .github/workflows/scripts/win-test-services.ps1
+            .github/workflows/scripts/win-test-support-bundle.ps1
           scandir: ".github/workflows/scripts"
           severity: warning
           version: ${{ env.VERSION }}

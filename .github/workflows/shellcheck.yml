@@ -27,7 +27,7 @@ jobs:
           scandir: ".github/workflows/scripts"
           severity: warning
           version: ${{ env.VERSION }}
-      - name: shellcheck gitlab worktflow scripts
+      - name: shellcheck gitlab workflow scripts
         uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
         env:
           SHELLCHECK_OPTS: -x -e SC2059 -e SC2086

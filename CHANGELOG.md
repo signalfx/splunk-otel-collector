@@ -24,7 +24,7 @@ and the [opentelemetry-collector-contrib v0.143.0](https://github.com/open-telem
 - (Splunk) `packaging`: Update Splunk OpenTelemetry Node.js agent to v4.3.0 ([#7048](https://github.com/signalfx/splunk-otel-collector/pull/7048))
 - (Contrib) `pkg/ottl`: Add `Bool` function for converting values to boolean ([#44770](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44770))
 - (Contrib) `receiver/awscloudwatch`: Add support for filtering log groups by account ID. ([#38391](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38391))
-- (Contrib) `receiver/awscontainerinsightreceiver`: Component type name renamed from awscontainerinsightreceiver to awscontainerinsight, controlled by feature gate receiver.awscontainerinsightreceiver.useNewTypeName. ([#44052](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44052))
+- (Contrib) `receiver/awscontainerinsightreceiver`: Component type name renamed from `awscontainerinsightreceiver` to `awscontainerinsight`, controlled by feature gate `receiver.awscontainerinsightreceiver.useNewTypeName`. ([#44052](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44052))
   When the feature gate is enabled, the receiver uses the new type name `awscontainerinsight` instead of `awscontainerinsightreceiver`.
   To enable the new type name, use: `--feature-gates=+receiver.awscontainerinsightreceiver.useNewTypeName`.
 - (Contrib) `receiver/filelog`: gzip files are auto detected based on their header ([#39682](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39682))

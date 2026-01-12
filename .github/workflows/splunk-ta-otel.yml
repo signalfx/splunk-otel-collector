@@ -171,7 +171,7 @@ jobs:
     needs: [distribute-ta]
     steps:
       - name: Download Collector TA
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution
@@ -271,7 +271,7 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
       - name: Download Collector TA
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution

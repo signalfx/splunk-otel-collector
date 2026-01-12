@@ -19,7 +19,7 @@ jobs:
     name: tidy
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: tidy
@@ -34,7 +34,7 @@ jobs:
     name: gofmt
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: gofmt
@@ -49,7 +49,7 @@ jobs:
     name: generate-metrics
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: generate-metrics
@@ -64,7 +64,7 @@ jobs:
     name: lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
@@ -81,7 +81,7 @@ jobs:
   actionlint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Download actionlint
         id: get_actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/03d0035/scripts/download-actionlint.bash) # v1.7.7
@@ -107,7 +107,7 @@ jobs:
     steps:
       - name: Free up disk space for next step
         uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: Run Unit Tests With Coverage
@@ -133,7 +133,7 @@ jobs:
     # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: dockerd test

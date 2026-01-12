@@ -43,7 +43,7 @@ jobs:
       ta_packaging_change: ${{ steps.filter.outputs.ta_packaging_change }}
       ta_workflow_change: ${{ steps.filter.outputs.ta_workflow_change }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
       - name: Get changed files
@@ -80,7 +80,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
 
@@ -102,7 +102,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: Test addon generator
@@ -131,7 +131,7 @@ jobs:
     steps:
         - name: Free up disk space for next step
           uses: jlumbroso/free-disk-space@v1.3.1
-        - uses: actions/checkout@v5
+        - uses: actions/checkout@v6
         - uses: ./.github/actions/setup-environment
         - name: Test normal go code
           run: |
@@ -151,7 +151,7 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -396,7 +396,7 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -419,7 +419,7 @@ jobs:
         PLATFORM: ["all"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -435,7 +435,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - uses: streetsidesoftware/cspell-action@v7

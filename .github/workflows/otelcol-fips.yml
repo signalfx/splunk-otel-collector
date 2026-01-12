@@ -53,7 +53,7 @@ jobs:
         env:
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: otelcol-fips-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
           path: ./bin/*
@@ -127,7 +127,7 @@ jobs:
             docker rm -f otelcol-fips
           done
       - run: docker save -o image.tar otelcol-fips:${{ matrix.ARCH }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: docker-otelcol-fips-${{ matrix.ARCH }}
           path: ./image.tar

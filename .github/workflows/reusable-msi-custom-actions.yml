@@ -39,7 +39,7 @@ jobs:
             "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
             "${customActionDir}\src\CustomAction.config"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: msi-custom-actions
           path: ./dist/SplunkCustomActions.CA.dll

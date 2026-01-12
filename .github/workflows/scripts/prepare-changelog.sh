@@ -28,7 +28,8 @@ check_pr_or_issue() {
     local number="$2"
     
     # Check if /pull/X redirects to /issues/X (meaning it's an issue, not a PR)
-    local redirect=$(curl -I -s "$repo_url/pull/$number" 2>/dev/null | grep -i "^location:" | cut -d' ' -f2 | tr -d '\r' || true)
+    local redirect
+    redirect=$(curl -I -s "$repo_url/pull/$number" 2>/dev/null | grep -i "^location:" | cut -d' ' -f2 | tr -d '\r' || true)
     
     # If it redirects to /issues/, then it's an issue
     if [[ "$redirect" == *"/issues/"* ]]; then
@@ -49,12 +50,12 @@ convert_pr_issue_links() {
     local result="$content"
     
     # Find all (#number) patterns
-    local numbers=$(echo "$content" | grep -oE '\(#[0-9]+((, ?#[0-9]+)?)*\)' | grep -oE '[0-9]+' | sort -u)
-
-    local total=$(echo "$numbers" | wc -w)
+    local numbers
+    numbers=$(echo "$content" | grep -oE '\(#[0-9]+((, ?#[0-9]+)?)*\)' | grep -oE '[0-9]+' | sort -u)
 
     for number in $numbers; do
-        local type=$(check_pr_or_issue "$repo_url" "$number")
+        local type
+        type=$(check_pr_or_issue "$repo_url" "$number")
 
         # Replace #number with proper markdown link
         # \([^0-9]\) - This is a capture group to ensure sed ONLY matches the given number. This avoids matching
@@ -73,7 +74,8 @@ fetch_upstream_entries() {
 
     # Download the changelog
     local changelog_url="$repo_url/raw/main/CHANGELOG.md"
-    local temp_changelog="$TEMP_DIR/$(basename "$repo_url")_changelog.md"
+    local temp_changelog
+    temp_changelog="$TEMP_DIR/$(basename "$repo_url")_changelog.md"
 
     if ! curl -L -s -o "$temp_changelog" "$changelog_url"; then
         echo "Error: Failed to download changelog from $repo_url" >&2
@@ -82,7 +84,8 @@ fetch_upstream_entries() {
 
     # Extract entries for the specific version (handle both "## v0.132.0" and "## v1.38.0/v0.132.0" formats)
     local escaped_version="${version//\./\\.}"
-    local entries=$(sed -E -n "/^## .*${escaped_version}/,/^(## |<!-- previous-version -->)/p" "$temp_changelog" | sed '$d' | tail -n +3)
+    local entries
+    entries=$(sed -E -n "/^## .*${escaped_version}/,/^(## |<!-- previous-version -->)/p" "$temp_changelog" | sed '$d' | tail -n +3)
 
     if [ -z "$entries" ]; then
         echo "Warning: No entries found for version $version in $repo_url" >&2
@@ -126,7 +129,8 @@ extract_section() {
 # Function to parse entries into categories
 parse_entries_by_category() {
     local content="$1"
-    local temp_dir=$(mktemp -d)
+    local temp_dir
+    temp_dir=$(mktemp -d)
 
     # Extract each section by header
     extract_section "$content" "$HEADER_BREAKING" > "$temp_dir/breaking" 2>/dev/null || true
@@ -145,9 +149,12 @@ merge_entries_by_category() {
     local contrib_entries="$3"
 
     # Parse each set of entries into categories
-    local splunk_dir=$(parse_entries_by_category "$splunk_entries")
-    local core_dir=$(parse_entries_by_category "$core_entries")
-    local contrib_dir=$(parse_entries_by_category "$contrib_entries")
+    local splunk_dir
+    splunk_dir=$(parse_entries_by_category "$splunk_entries")
+    local core_dir
+    core_dir=$(parse_entries_by_category "$core_entries")
+    local contrib_dir
+    contrib_dir=$(parse_entries_by_category "$contrib_entries")
 
     # Standard category order
     local categories=(
@@ -221,16 +228,20 @@ replace_version_section() {
     local version="$2"
     local replacement_content="$3"
 
-    local temp_file=$(mktemp)
+    local temp_file
+    temp_file=$(mktemp)
 
     # Part 1: Everything before our version
     echo "$current_changelog" | sed "/^## $version/,\$d" > "$temp_file"
 
     # Part 2: Our version section
-    echo "## $version" >> "$temp_file"
-    echo >> "$temp_file"
-    echo "$replacement_content" >> "$temp_file"
-    echo >> "$temp_file"
+    {
+      echo "## $version"
+      echo
+      echo "$replacement_content"
+      echo
+    } >> "$temp_file"
+
 
     # Part 3: Everything from next version onwards
     echo "$current_changelog" | awk '/^## / && $0 != "## '"$version"'" {found=1} found' >> "$temp_file"
@@ -244,15 +255,20 @@ main() {
         echo "Error: CHANGELOG.md not found" >&2
         exit 1
     fi
-    local current_changelog=$(cat "$CHANGELOG_FILE")
+    local current_changelog
+    current_changelog=$(cat "$CHANGELOG_FILE")
 
     # Take entries added by .chloggen, add (Splunk) prefix and make PR/issue links
-    local splunk_entries=$(echo "$current_changelog" | sed -E -n "/^## $VERSION/,/^(## |<!-- previous-version -->)/p" | sed '$d' | tail -n +3 | sed 's/^- \([^(]\)/- (Splunk) \1/')
+    local splunk_entries
+    splunk_entries=$(echo "$current_changelog" | sed -E -n "/^## $VERSION/,/^(## |<!-- previous-version -->)/p" | sed '$d' | tail -n +3 | sed 's/^- \([^(]\)/- (Splunk) \1/')
     splunk_entries=$(convert_pr_issue_links "$splunk_entries" "https://github.com/signalfx/splunk-otel-collector")
 
-    local core_entries=$(fetch_upstream_entries "https://github.com/open-telemetry/opentelemetry-collector" "Core" "$VERSION")
-    local contrib_entries=$(fetch_upstream_entries "https://github.com/open-telemetry/opentelemetry-collector-contrib" "Contrib" "$VERSION")
-    local merged_content=$(merge_entries_by_category "$splunk_entries" "$core_entries" "$contrib_entries")
+    local core_entries
+    core_entries=$(fetch_upstream_entries "https://github.com/open-telemetry/opentelemetry-collector" "Core" "$VERSION")
+    local contrib_entries
+    contrib_entries=$(fetch_upstream_entries "https://github.com/open-telemetry/opentelemetry-collector-contrib" "Contrib" "$VERSION")
+    local merged_content
+    merged_content=$(merge_entries_by_category "$splunk_entries" "$core_entries" "$contrib_entries")
 
     # Build the replacement content for the version section
     local replacement_content="This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector $VERSION](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/$VERSION)
@@ -261,7 +277,8 @@ and the [opentelemetry-collector-contrib $VERSION](https://github.com/open-telem
 $merged_content"
 
     # Replace the version section with the complete content
-    local new_changelog=$(replace_version_section "$current_changelog" "$VERSION" "$replacement_content")
+    local new_changelog
+    new_changelog=$(replace_version_section "$current_changelog" "$VERSION" "$replacement_content")
     echo "$new_changelog" > "$CHANGELOG_FILE"
 
     rm -rf "$TEMP_DIR"

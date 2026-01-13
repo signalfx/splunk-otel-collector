@@ -148,6 +148,7 @@ func TestDefaultComponents(t *testing.T) {
 		"awss3",
 		"debug",
 		"file",
+		"googlecloudstorage",
 		"kafka",
 		"loadbalancing",
 		"nop",

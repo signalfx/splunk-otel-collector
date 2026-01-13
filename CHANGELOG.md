@@ -5,6 +5,67 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.143.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.143.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.143.0)
+and the [opentelemetry-collector-contrib v0.143.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.143.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Contrib) `receiver/prometheus`: Remove deprecated `use_start_time_metric` and `start_time_metric_regex` configuration options. ([#44180](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44180))
+  The `use_start_time_metric` and `start_time_metric_regex` configuration options have been removed after being deprecated in v0.142.0.
+  Users who have these options set in their configuration will experience collector startup failures after upgrading.
+  To migrate, remove these configuration options and use the `metricstarttime` processor instead for equivalent functionality.
+
+### 💡 Enhancements 💡
+
+- (Splunk) `packaging`: Update Splunk OpenTelemetry .NET agent to v1.12.0 ([#7032](https://github.com/signalfx/splunk-otel-collector/pull/7032))
+- (Splunk) `packaging`: Update Splunk OpenTelemetry Java agent to v2.23.0 ([#7031](https://github.com/signalfx/splunk-otel-collector/pull/7031))
+- (Splunk) `packaging`: Update Splunk OpenTelemetry Node.js agent to v4.3.0 ([#7048](https://github.com/signalfx/splunk-otel-collector/pull/7048))
+- (Contrib) `pkg/ottl`: Add `Bool` function for converting values to boolean ([#44770](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44770))
+- (Contrib) `receiver/awscloudwatch`: Add support for filtering log groups by account ID. ([#38391](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38391))
+- (Contrib) `receiver/awscontainerinsightreceiver`: Component type name renamed from `awscontainerinsightreceiver` to `awscontainerinsight`, controlled by feature gate `receiver.awscontainerinsightreceiver.useNewTypeName`. ([#44052](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44052))
+  When the feature gate is enabled, the receiver uses the new type name `awscontainerinsight` instead of `awscontainerinsightreceiver`.
+  To enable the new type name, use: `--feature-gates=+receiver.awscontainerinsightreceiver.useNewTypeName`.
+- (Contrib) `receiver/filelog`: gzip files are auto detected based on their header ([#39682](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39682))
+- (Contrib) `receiver/oracledb`: Add stored procedure information to logs for top queries and query samples. ([#44764](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44764))
+  The `db.server.top_query` event now includes `oracledb.procedure_id`, `oracledb.procedure_name`, and `oracledb.procedure_type` attributes.
+  The `db.server.query_sample` event now includes `oracledb.procedure_id`, `oracledb.procedure_name`, and `oracledb.procedure_type` attributes.
+- (Contrib) `receiver/postgresql`: Added `service.instance.id` resource attribute for metrics and logs ([#43907](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43907))
+  `service.instance.id` is enabled by default.
+- (Contrib) `receiver/postgresql`: Add trace propagation support ([#44868](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44868))
+  When `postgresql.application_name` contains a valid W3C `traceparent`, emitted `db.server.query_sample` logs include `trace_id` and `span_id` for correlation.
+- (Contrib) `receiver/prometheus`: Add `receiver.prometheusreceiver.RemoveReportExtraScrapeMetricsConfig` feature gate to disable the `report_extra_scrape_metrics` config option. ([#44181](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44181))
+  When enabled, the `report_extra_scrape_metrics` configuration option is ignored, and extra scrape metrics are
+  controlled solely by the `receiver.prometheusreceiver.EnableReportExtraScrapeMetrics` feature gate.
+  This mimics Prometheus behavior where extra scrape metrics are controlled by a feature flag.
+- (Contrib) `receiver/windowseventlog`: Improved performance of the Windows Event Log Receiver ([#43195](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43195))
+  Previously, the Windows Event Log Receiver could only process events up to 100 messages per second with default settings.
+  This was because the receiver would read at most `max_reads` messages within each configured `poll_interval`, even if
+  additional events were already available.
+  This restriction has been removed. The `poll_interval` parameter behaves as described in the documentation:
+  The `poll_interval` parameter now only takes effect after all current events have been read.
+  For users who prefer the previous behavior, a new configuration option, `max_events_per_poll`, has been introduced.
+- (Contrib) `receiver/windowseventlog`: Add parsing for Version and Correlation event fields. ([#45018](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45018))
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `connector/count`: Basic config should emit default metrics ([#41769](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41769))
+- (Contrib) `exporter/kafka`: Wrap non-retriable errors from franzgo with consumererror::permanent ([#44918](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44918))
+- (Contrib) `exporter/loadbalancing`: Fix k8s resolver parsing so loadbalancing exporter works with service FQDNs ([#44472](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44472))
+- (Contrib) `receiver/azureeventhub`: Make storage of new azeventhub library backward compatible and fix checkpoint starting at earliest when storage is enabled ([#44461](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44461))
+- (Contrib) `receiver/fluentforward`: Ensure all established connections are properly closed on shutdown in the fluentforward receiver. The shutdown process now reliably closes all active connections. ([#44433](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44433))
+  - Fixes shutdown behavior so that all existing connections are closed cleanly.
+  - Adds tests to verify proper connection closure.
+- (Contrib) `receiver/kafka`: Fix deprecated field migration logic for metrics, traces, and profiles topic configuration ([#45215](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45215))
+  Fixed bug where deprecated `topic` and `exclude_topic` fields for metrics, traces, and profiles
+  were incorrectly checking logs configuration instead of their respective signal type's configuration.
+  This prevented proper migration from deprecated fields unless logs.topics was empty.
+  Also fixed validation error message typo for traces.exclude_topic and corrected profiles validation
+  to check ExcludeTopic fields instead of Topic fields.
+- (Contrib) `receiver/sqlserver`: Collect query metrics for long running queries ([#44984](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44984))
+- (Contrib) `receiver/tcpcheck`: Fix the unit of the `tcpcheck.error` metric from `error` to `errors` ([#45092](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45092))
+
 ## v0.142.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.142.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.142.0)

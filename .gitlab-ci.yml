@@ -1223,8 +1223,8 @@ build-push-windows-image:
     - sign-exe
     - agent-bundle-windows
   tags:
-    - windows2022
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+    - windows${WIN_VERSION}
+  image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop
@@ -1359,8 +1359,8 @@ build-push-windows-fips-image:
   dependencies:
     - sign-exe
   tags:
-    - windows2022
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+    - windows${WIN_VERSION}
+  image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop
@@ -1687,6 +1687,7 @@ choco-release:
         $should_release = $true
       }
       if ($should_release) {
+        choco config set --name="'defaultPushSource'" --value="'https://push.chocolatey.org/'"
         choco push -k $env:CHOCO_TOKEN .\dist\signed\splunk-otel-collector.${version}.nupkg
       } else {
         Write-Host "Skipping choco push - not a stable release tag or manual release"

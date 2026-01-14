@@ -30,7 +30,8 @@ create_collector_pr() {
   if [[ -n "$tag" ]]; then
     version=$( echo "$tag" | sed 's|^jdk-\(.*\)|\1|' | tr '+' '_' )
     if [[ -n "$version" ]]; then
-      local assets=$(gh release view --repo "${jdk_repo}" --json assets --jq '.assets[].name')
+      local assets
+      assets=$(gh release view --repo "${jdk_repo}" --json assets --jq '.assets[].name')
       local any_updates=no
       if [[ $assets == *"linux"* ]]; then
         echo ">>> Updating openjdk version to $version for linux..."

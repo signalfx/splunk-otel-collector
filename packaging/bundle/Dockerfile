@@ -152,6 +152,8 @@ RUN apt-get update && apt-get install -qq -y \
       quilt \
       zlib1g-dev
 
+RUN apt-get update -qq && apt-get upgrade -qq -y
+
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\
     tar -xzf Python-${PYTHON_VERSION}.tgz && \

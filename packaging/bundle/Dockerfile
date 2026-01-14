@@ -90,7 +90,6 @@ RUN apt-get update && apt-get install -qq -y \
       curl \
       dpkg \
       net-tools \
-      software-properties-common \
       wget \
       autoconf \
       automake \
@@ -115,7 +114,6 @@ RUN apt-get update && apt-get install -qq -y \
       libesmtp-dev \
       libexpat1-dev \
       libffi-dev \
-      libganglia1-dev \
       libgcrypt20-dev \
       libglib2.0-dev \
       libiptc-dev \

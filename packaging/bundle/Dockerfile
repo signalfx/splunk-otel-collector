@@ -23,8 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-# Trim the python version to just major.minor in case the tag for the full version isn't available yet
-FROM ${DOCKER_REPO}/python:${PYTHON_VERSION%.*}-bookworm AS base
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION}-trixie AS base
 
 ARG ARCH
 

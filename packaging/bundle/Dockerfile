@@ -23,7 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/python:${PYTHON_VERSION}-trixie AS base
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION}-bookworm AS base
 
 ARG ARCH
 
@@ -90,6 +90,7 @@ RUN apt-get update && apt-get install -qq -y \
       curl \
       dpkg \
       net-tools \
+      software-properties-common \
       wget \
       autoconf \
       automake \
@@ -114,6 +115,7 @@ RUN apt-get update && apt-get install -qq -y \
       libesmtp-dev \
       libexpat1-dev \
       libffi-dev \
+      software-properties-common \
       libgcrypt20-dev \
       libglib2.0-dev \
       libiptc-dev \
@@ -148,8 +150,6 @@ RUN apt-get update && apt-get install -qq -y \
       protobuf-c-compiler \
       quilt \
       zlib1g-dev
-
-RUN apt-get update -qq && apt-get upgrade -qq -y
 
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\

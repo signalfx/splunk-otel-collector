@@ -115,7 +115,7 @@ RUN apt-get update && apt-get install -qq -y \
       libesmtp-dev \
       libexpat1-dev \
       libffi-dev \
-      software-properties-common \
+      libganglia1-dev \
       libgcrypt20-dev \
       libglib2.0-dev \
       libiptc-dev \

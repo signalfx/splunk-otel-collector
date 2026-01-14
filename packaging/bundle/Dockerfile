@@ -23,8 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-# Trim the python version to just major.minor in case the tag for the full version isn't available yet
-FROM ${DOCKER_REPO}/python:${PYTHON_VERSION%.*}-bookworm AS base
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION}-bookworm AS base
 
 ARG ARCH
 
@@ -151,8 +150,6 @@ RUN apt-get update && apt-get install -qq -y \
       protobuf-c-compiler \
       quilt \
       zlib1g-dev
-
-RUN apt-get update -qq && apt-get install -qq -y libcurl4-gnutls-dev
 
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\

@@ -1716,6 +1716,7 @@ choco-release:
         $should_release = $true
       }
       if ($should_release) {
+        choco config set --name="'defaultPushSource'" --value="'https://push.chocolatey.org/'"
         choco push -k $env:CHOCO_TOKEN .\dist\signed\splunk-otel-collector.${version}.nupkg
       } else {
         Write-Host "Skipping choco push - not a stable release tag or manual release"

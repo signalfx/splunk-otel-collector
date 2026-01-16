@@ -1,0 +1,9 @@
+# Ignore built or downloaded assets
+assets/linux_x86_64/bin/
+assets/windows_x86_64/bin/
+
+# Ignore the directory with the compressed package to be distributed
+out/
+
+# Ignore the folder shared with the container created for local testing
+local-test-logs/

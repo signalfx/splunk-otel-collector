@@ -2,6 +2,8 @@ name: ta-v2 build and local smoke
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'packaging/ta-v2/**'
       - '.github/workflows/ta-v2.yaml'

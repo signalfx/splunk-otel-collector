@@ -19,6 +19,11 @@ endif
 MOD_INPUT_NAME := Splunk_TA_OTel_Collector
 PKG_NAME := $(MOD_INPUT_NAME)$(TA_PLATFORM_SUFFIX)
 
+sync-configs:
+	@echo "Syncing configuration files ..."
+	@if [ ! -d ./assets/configs/ ]; then mkdir -p ./assets/configs/; fi
+	cp ../../cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
+
 .PHONY: validate-target-os
 validate-target-os:
 ifneq ($(TA_TARGET_OS),)
@@ -36,7 +41,7 @@ all-packages: pack
 	$(MAKE) TA_TARGET_OS=windows pack
 
 .PHONY: pack
-pack: validate-target-os
+pack: validate-target-os sync-configs
 	@echo "Checking for binaries to include in the package ..."
 	@if [ "$(TA_TARGET_OS)" != "windows" ] && [ ! -f ./assets/linux_$(TA_ARCH)/bin/$(MOD_INPUT_NAME) ]; then echo "Error: Linux binary not found!"; exit 1; fi
 	@if [ "$(TA_TARGET_OS)" != "linux" ] && [ ! -f ./assets/windows_$(TA_ARCH)/bin/$(MOD_INPUT_NAME).exe ]; then echo "Error: Windows binary not found!"; exit 1; fi

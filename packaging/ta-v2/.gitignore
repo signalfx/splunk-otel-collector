@@ -2,6 +2,9 @@
 assets/linux_x86_64/bin/
 assets/windows_x86_64/bin/
 
+# Ignore configuration files - these are pulled via Makefile target
+assets/configs/
+
 # Ignore the directory with the compressed package to be distributed
 out/
 

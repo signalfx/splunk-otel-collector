@@ -17,7 +17,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ASSETS_DIR="${SCRIPT_DIR}/assets"
+ASSETS_DIR="${ASSETS_DIR:-${SCRIPT_DIR}/assets}"
 LOG_DIR="${SCRIPT_DIR}/local-test-logs/var/log/splunk"
 CONTAINER_NAME="${CONTAINER_NAME:-splunk-ta-otel-test}"
 SPLUNK_VERSION="${SPLUNK_VERSION:-9.4.0}"

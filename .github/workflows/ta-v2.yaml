@@ -83,13 +83,13 @@ jobs:
           set -eo pipefail
           mkdir -p ./build-out
           tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C ./build-out
+          find ./build-out -name "*"
 
       - name: Run local container smoke (linux)
         if: matrix.runner == 'ubuntu-latest'
         env:
           ASSETS_DIR: ./build-out
         run: |
-          ls -lr "$ASSETS_DIR"
           ./run-local-package-in-container.sh
 
       - name: Run local container smoke (windows)
@@ -99,5 +99,20 @@ jobs:
           ASSETS_DIR: ./build-out
         run: |
           docker build -t splunk-uf-windows:latest -f ./Dockerfile.windows .
-          dir -r "${Env:ASSETS_DIR}"
           ./run-local-package-in-container.ps1
+
+      - name: Collect logs in case of failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ta-v2-smoke-logs-${{ matrix.runner }}
+          path: packaging/ta-v2/local-test-logs
+
+      - name: Show splunkd logs
+        if: failure()
+        shell: bash
+        run: |
+          set -eo pipefail
+          echo "===== splunkd.log ====="
+          cat ./local-test-logs/var/log/splunk/splunkd.log
+          echo "======================"

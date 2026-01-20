@@ -88,7 +88,7 @@ jobs:
       - name: Run local container smoke (linux)
         if: matrix.runner == 'ubuntu-latest'
         env:
-          ASSETS_DIR: ./build-out
+          ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
         run: |
           ./run-local-package-in-container.sh
 
@@ -96,7 +96,7 @@ jobs:
         if: matrix.runner == 'windows-latest'
         shell: pwsh
         env:
-          ASSETS_DIR: ./build-out
+          ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
         run: |
           docker build -t splunk-uf-windows:latest -f ./Dockerfile.windows .
           ./run-local-package-in-container.ps1

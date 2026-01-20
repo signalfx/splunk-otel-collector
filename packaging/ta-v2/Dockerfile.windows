@@ -1,0 +1,23 @@
+# Build this docker image with a command like:
+#
+#    docker build -t splunk-uf-windows:9.4.0 --build-arg SPLUNK_UF_VERSION=9.4.0 --build-arg SPLUNK_UF_BUILD_HASH=6b4ebe426ca6 -f Dockerfile.windows .
+#
+ARG SPLUNK_UF_VERSION=9.4.0
+ARG SPLUNK_UF_BUILD_HASH=6b4ebe426ca6
+
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
+
+ARG SPLUNK_UF_VERSION
+ARG SPLUNK_UF_BUILD_HASH
+
+# On ltsc2019 RUN defaults to "powershell -Command {0}", while ltsc2022 RUN defaults to "cmd /S /C"
+# set the SHELL so it is consistent between both versions.
+SHELL [ "powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';" ]
+
+RUN curl.exe https://download.splunk.com/products/universalforwarder/releases/${Env:SPLUNK_UF_VERSION}/windows/splunkforwarder-${Env:SPLUNK_UF_VERSION}-${Env:SPLUNK_UF_BUILD_HASH}-windows-x64.msi -o splunk-uf.msi 
+
+RUN msiexec.exe /i C:\splunk-uf.msi /qn /norestart AGREETOLICENSE=Yes
+
+RUN rm C:\splunk-uf.msi
+
+CMD ["powershell.exe", "-NoLogo", "& 'C:\\Program Files\\SplunkUniversalForwarder\\bin\\splunk.exe' start; Do { Start-Sleep -Seconds 5; Write-Host '.' } While ($(Get-Service -Name SplunkForwarder).Status -eq 'Running')"]

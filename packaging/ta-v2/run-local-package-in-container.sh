@@ -76,7 +76,7 @@ elapsed=0
 while ! grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log" >/dev/null 2>&1; do
     if [ "$elapsed" -ge "$timeout" ]; then
         echo "Timeout: Splunk TA OTel Collector was not recorded on splunkd.log within ${timeout} seconds"
-        break
+        exit 1
     fi
     sleep 2
     elapsed=$((elapsed + 2))

@@ -68,22 +68,39 @@ docker run -d --name "${CONTAINER_NAME}" \
 echo ""
 echo "Container launched successfully!"
 echo ""
-echo "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd log..."
 
-# Wait for Splunk TA OTel Collector to be recorded on the log
-timeout=120
+# Wait for splunkd.log to be created
+timeout=180
 elapsed=0
-while ! grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log" >/dev/null 2>&1; do
+echo -n "Waiting for splunkd.log creation: "
+while [ ! -f "${LOG_DIR}/splunkd.log" ]; do
     if [ "$elapsed" -ge "$timeout" ]; then
-        echo "Timeout: Splunk TA OTel Collector was not recorded on splunkd.log within ${timeout} seconds"
+        echo "Timeout: splunkd.log was not created within ${timeout} seconds"
         exit 1
     fi
     sleep 2
     elapsed=$((elapsed + 2))
     echo -n "."
 done
-
 echo ""
+
+# Wait for Splunk TA OTel Collector to be recorded on the log
+timeout=180
+elapsed=0
+echo -n "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
+while ! grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log" > /dev/null 2>&1; do
+    if [ "$elapsed" -ge "$timeout" ]; then
+        echo "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within ${timeout} seconds"
+        exit 1
+    fi
+    sleep 2
+    elapsed=$((elapsed + 2))
+    echo -n "."
+done
+echo ""
+echo "Splunk_TA_OTel_Collector in splunkd.log:"
+grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log"
+
 echo ""
 echo "Splunk Web UI: http://localhost:8000"
 echo "  Username: admin"

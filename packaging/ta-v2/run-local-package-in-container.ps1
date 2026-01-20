@@ -66,22 +66,42 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 Write-Host "Container launched successfully!" -ForegroundColor Green
 Write-Host ""
-Write-Host "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd log..."
 
-# Wait for Splunk TA OTel Collector to be recorded on the log
-$timeout = 360
-$elapsed = 0
 $splunkdLog = Join-Path $LOG_DIR "splunkd.log"
 
-while (-not (Test-Path $splunkdLog) -or -not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+# Wait for splunkd.log to be created
+$timeout = 180
+$elapsed = 0
+Write-Host -NoNewline "Waiting for splunkd.log creation: "
+while (-not (Test-Path $splunkdLog)) {
     if ($elapsed -ge $timeout) {
-        Write-Host "Timeout: Splunk TA OTel Collector was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Timeout: splunkd.log was not created within $timeout seconds" -ForegroundColor Red
         exit 1
     }
     Start-Sleep -Seconds 2
     $elapsed += 2
     Write-Host -NoNewline "."
 }
+Write-Host ""
+
+# Wait for Splunk TA OTel Collector to be recorded on the log
+$timeout = 180
+$elapsed = 0
+Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
+while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+    if ($elapsed -ge $timeout) {
+        Write-Host ""
+        Write-Host "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
+        exit 1
+    }
+    Start-Sleep -Seconds 2
+    $elapsed += 2
+    Write-Host -NoNewline "."
+}
+Write-Host ""
+Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
+Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
 
 Write-Host ""
 Write-Host ""

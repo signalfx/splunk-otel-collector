@@ -43,7 +43,7 @@ pack: validate-target-os
 	@echo "Packing add-on $(PKG_NAME) ..."
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
 	@tmpdir=$$(mktemp -d) && \
-	cp -r ./assets/ $$tmpdir/$(PKG_NAME) && \
+	cp -rL ./assets/ $$tmpdir/$(PKG_NAME) && \
 	tar -C $$tmpdir $(TAR_EXCLUDE_OPT) -hcz -f ./out/distribution/$(PKG_NAME).tgz $(PKG_NAME) && \
 	rm -rf $$tmpdir
 

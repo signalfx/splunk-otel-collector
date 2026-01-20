@@ -90,7 +90,7 @@ jobs:
         env:
           ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
         run: |
-          ./run-local-package-in-container.sh
+          sudo ./run-local-package-in-container.sh
 
       - name: Run local container smoke (windows)
         if: matrix.runner == 'windows-latest'

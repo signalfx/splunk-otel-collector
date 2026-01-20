@@ -1,0 +1,103 @@
+name: ta-v2 build and local smoke
+
+on:
+  push:
+    paths:
+      - 'packaging/ta-v2/**'
+      - '.github/workflows/ta-v2.yaml'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+  pull_request:
+    paths:
+      - 'packaging/ta-v2/**'
+      - '.github/workflows/ta-v2.yaml'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+  workflow_dispatch: {}
+
+env:
+  GO_VERSION: 1.25.5
+
+jobs:
+  build-packages:
+    name: Build TA v2 packages
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build collector binaries (linux & windows)
+        run: |
+          set -eo pipefail
+          make GOOS=linux GOARCH=amd64 otelcol
+          install -D bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_OTel_Collector
+
+          make GOOS=windows GOARCH=amd64 otelcol
+          install -D bin/otelcol_windows_amd64 packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe
+
+      - name: Package TA v2
+        working-directory: packaging/ta-v2
+        run: |
+          set -eo pipefail
+          make all-packages
+
+      - name: Upload TA v2 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ta-v2-packages
+          path: packaging/ta-v2/out/distribution/*.tgz
+
+  smoke-ta-v2:
+    name: Smoke test TA v2 packages
+    needs: build-packages
+    strategy:
+      matrix:
+        runner: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.runner }}
+    defaults:
+        run:
+            working-directory: ./packaging/ta-v2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download TA v2 artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: ta-v2-packages
+          path: packaging/ta-v2/out/distribution
+
+      - name: Extract package
+        shell: bash
+        run: |
+          set -eo pipefail
+          mkdir -p ./build-out
+          tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C ./build-out
+
+      - name: Run local container smoke (linux)
+        if: matrix.runner == 'ubuntu-latest'
+        env:
+          ASSETS_DIR: ./build-out
+        run: |
+          ls -lr "$ASSETS_DIR"
+          ./run-local-package-in-container.sh
+
+      - name: Run local container smoke (windows)
+        if: matrix.runner == 'windows-latest'
+        shell: pwsh
+        env:
+          ASSETS_DIR: ./build-out
+        run: |
+          docker build -t splunk-uf-windows:latest -f ./Dockerfile.windows .
+          dir -r "${Env:ASSETS_DIR}"
+          ./run-local-package-in-container.ps1

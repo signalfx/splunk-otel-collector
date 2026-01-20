@@ -18,7 +18,7 @@ $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ASSETS_DIR = Join-Path $SCRIPT_DIR "assets"
 $LOG_DIR = Join-Path $SCRIPT_DIR "local-test-logs\var\log\splunk"
 $CONTAINER_NAME = if ($env:CONTAINER_NAME) { $env:CONTAINER_NAME } else { "splunk-ta-otel-test" }
-$IMAGE_TAG = if ($env:IMAGE_TAG) { $env:IMAGE_TAG } else { "9.4.0" }
+$IMAGE_TAG = if ($env:IMAGE_TAG) { $env:IMAGE_TAG } else { "latest" }
 
 # Check if assets directory exists
 if (-not (Test-Path $ASSETS_DIR)) {

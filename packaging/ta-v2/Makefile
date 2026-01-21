@@ -11,9 +11,9 @@ endif
 
 # Set tar exclude options based on the target OS for packaging
 ifeq ($(TA_TARGET_OS),windows)
-	TAR_EXCLUDE_OPT ?= --exclude=linux_$(TA_ARCH)/
+	TAR_EXCLUDE_OPT ?= --exclude=*/linux_$(TA_ARCH)/*
 else ifeq ($(TA_TARGET_OS),linux)
-	TAR_EXCLUDE_OPT ?= --exclude=windows_$(TA_ARCH)/
+	TAR_EXCLUDE_OPT ?= --exclude=*/windows_$(TA_ARCH)/*
 endif
 
 MOD_INPUT_NAME := Splunk_TA_OTel_Collector
@@ -46,10 +46,11 @@ pack: validate-target-os sync-configs
 	@if [ "$(TA_TARGET_OS)" != "windows" ] && [ ! -f ./assets/linux_$(TA_ARCH)/bin/$(MOD_INPUT_NAME) ]; then echo "Error: Linux binary not found!"; exit 1; fi
 	@if [ "$(TA_TARGET_OS)" != "linux" ] && [ ! -f ./assets/windows_$(TA_ARCH)/bin/$(MOD_INPUT_NAME).exe ]; then echo "Error: Windows binary not found!"; exit 1; fi
 	@echo "Packing add-on $(PKG_NAME) ..."
+	@echo "Filtering with tar options: $(TAR_EXCLUDE_OPT)"
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
 	@tmpdir=$$(mktemp -d) && \
 	cp -rL ./assets/ $$tmpdir/$(PKG_NAME) && \
-	tar -C $$tmpdir $(TAR_EXCLUDE_OPT) -hcz -f ./out/distribution/$(PKG_NAME).tgz $(PKG_NAME) && \
+	tar -czf ./out/distribution/$(PKG_NAME).tgz -C $$tmpdir $(TAR_EXCLUDE_OPT) $(PKG_NAME) && \
 	rm -rf $$tmpdir
 
 .PHONY: clean-packages

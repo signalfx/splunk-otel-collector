@@ -15,7 +15,7 @@
 $ErrorActionPreference = "Stop"
 
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ASSETS_DIR = if ($env:ASSETS_DIR) { $env:ASSETS_DIR } else { Join-Path $SCRIPT_DIR "assets" }
+$ASSETS_DIR = if ($env:ASSETS_DIR) { $(Resolve-Path $env:ASSETS_DIR).Path } else { Join-Path $SCRIPT_DIR "assets" }
 $LOG_DIR = Join-Path $SCRIPT_DIR "local-test-logs\var\log\splunk"
 $CONTAINER_NAME = if ($env:CONTAINER_NAME) { $env:CONTAINER_NAME } else { "splunk-ta-otel-test" }
 $IMAGE_TAG = if ($env:IMAGE_TAG) { $env:IMAGE_TAG } else { "latest" }

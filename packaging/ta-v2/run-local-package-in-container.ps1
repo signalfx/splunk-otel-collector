@@ -67,6 +67,9 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 Write-Host "Container launched successfully!" -ForegroundColor Green
 Write-Host ""
+Write-Host "Initial container output:" -ForegroundColor Yellow
+docker logs $CONTAINER_NAME
+Write-Host ""
 
 $splunkdLog = Join-Path $LOG_DIR "splunkd.log"
 

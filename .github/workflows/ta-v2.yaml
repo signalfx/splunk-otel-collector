@@ -108,6 +108,11 @@ jobs:
           docker build -t splunk-uf-windows:latest -f ./Dockerfile.windows .
           ./run-local-package-in-container.ps1
 
+      - name: Check splunkd.log on Windows
+        if: matrix.runner == 'windows-latest'
+        shell: pwsh
+        run: docker exec -it splunk-ta-otel-test powershell.exe -c "Get-Content 'C:\Program Files\SplunkUniversalForwarder\var\log\splunk\splunkd.log'"
+
       - name: Show splunkd.log on failure (Linux)
         if: failure() && matrix.runner == 'ubuntu-latest'
         shell: bash

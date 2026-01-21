@@ -20,4 +20,4 @@ RUN msiexec.exe /i C:\splunk-uf.msi /qn /norestart AGREETOLICENSE=Yes
 
 RUN rm C:\splunk-uf.msi
 
-CMD ["powershell.exe", "-NoLogo", "& 'C:\\Program Files\\SplunkUniversalForwarder\\bin\\splunk.exe' start; Do { Start-Sleep -Seconds 5; Write-Host '.' } While ($(Get-Service -Name SplunkForwarder).Status -eq 'Running')"]
+CMD ["powershell.exe", "-NoLogo", "& Get-Content 'C:\\Program Files\\SplunkUniversalForwarder\\var\\log\\splunk\\splunkd.log' -Wait"]

@@ -109,7 +109,7 @@ jobs:
           ./run-local-package-in-container.ps1
 
       - name: Check splunkd.log on Windows
-        if: matrix.runner == 'windows-latest'
+        if: failure() && matrix.runner == 'windows-latest'
         shell: pwsh
         run: docker exec -it splunk-ta-otel-test powershell.exe -c "Get-Content 'C:\Program Files\SplunkUniversalForwarder\var\log\splunk\splunkd.log'"
 

@@ -63,6 +63,11 @@ clean-otelcol:
 	@if [ -d ./assets/linux_x86_64/bin/ ]; then rm -rf ./assets/linux_x86_64/bin/; fi
 	@if [ -d ./assets/windows_x86_64/bin/ ]; then rm -rf ./assets/windows_x86_64/bin/; fi
 
+.PHONY: test
+test:
+	@echo "Running package tests ..."
+	cd tests && go test -v ./...
+
 .PHONY: build-otelcol
 build-otelcol: build-otelcol-linux build-otelcol-windows
 

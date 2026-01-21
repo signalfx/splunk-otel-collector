@@ -36,7 +36,7 @@ GOCMD?= go
 GOTEST=$(GOCMD) test
 GOOS=$(shell $(GOCMD) env GOOS)
 GOARCH=$(shell $(GOCMD) env GOARCH)
-ADDLICENCES= addlicense
+ADDLICENSES= addlicense
 MDLINKCHECK=markdown-link-check
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
@@ -112,10 +112,10 @@ endif
 
 .PHONY: addlicense
 addlicense:
-	@ADDLICENCESOUT=`$(ADDLICENCES) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \
-		if [ "$$ADDLICENCESOUT" ]; then \
-			echo "$(ADDLICENCES) FAILED => add License errors:\n"; \
-			echo "$$ADDLICENCESOUT\n"; \
+	@ADDLICENSESOUT=`$(ADDLICENSES) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENSESOUT" ]; then \
+			echo "$(ADDLICENSES) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENSESOUT\n"; \
 			exit 1; \
 		else \
 			echo "Add License finished successfully"; \
@@ -123,10 +123,10 @@ addlicense:
 
 .PHONY: checklicense
 checklicense:
-	@ADDLICENCESOUT=`$(ADDLICENCES) -check $(ALL_SRC) 2>&1`; \
-		if [ "$$ADDLICENCESOUT" ]; then \
-			echo "$(ADDLICENCES) FAILED => add License errors:\n"; \
-			echo "$$ADDLICENCESOUT\n"; \
+	@ADDLICENSESOUT=`$(ADDLICENSES) -check $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENSESOUT" ]; then \
+			echo "$(ADDLICENSES) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENSESOUT\n"; \
 			echo "Use 'make addlicense' to fix this."; \
 			exit 1; \
 		else \

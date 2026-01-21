@@ -49,10 +49,11 @@ jobs:
         working-directory: packaging/ta-v2
         run: |
           find ./assets -name "*"
+          ls -l ./assets/linux_x86_64/bin/*
+          ls -l ./assets/windows_x86_64/bin/*
           set -eo pipefail
           make all-packages
-          find ./assets -name "*"
-          find ./out/distribution -name "*"
+          ls -l ./out/distribution
 
       - name: Test package TA v2
         working-directory: packaging/ta-v2

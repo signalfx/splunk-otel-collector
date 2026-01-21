@@ -111,11 +111,20 @@ jobs:
           docker build -t splunk-uf-windows:latest -f ./Dockerfile.windows .
           ./run-local-package-in-container.ps1
 
-      - name: Show splunkd.log on failure
-        if: failure()
+      - name: Show splunkd.log on failure (Linux)
+        if: failure() && matrix.runner == 'ubuntu-latest'
         shell: bash
         run: |
           set -eo pipefail
           echo "===== splunkd.log ====="
           sudo cat ./local-test-logs/var/log/splunk/splunkd.log
+          echo "======================"
+
+      - name: Show splunkd.log on failure (Windows)
+        if: failure() && matrix.runner == 'windows-latest'
+        shell: bash
+        run: |
+          set -eo pipefail
+          echo "===== splunkd.log ====="
+          cat ./local-test-logs/var/log/splunk/splunkd.log
           echo "======================"

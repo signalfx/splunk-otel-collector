@@ -54,8 +54,8 @@ $SPLUNK_PASSWORD = [System.Guid]::NewGuid().ToString("N")
 
 # Launch Splunk Universal Forwarder container
 docker run -d --name $CONTAINER_NAME `
-    -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector" `
-    -v "${LOG_DIR}:C:\Program Files\SplunkUniversalForwarder\var\log\splunk" `
+    -v "${ASSETS_DIR}:C:/Program Files/SplunkUniversalForwarder/etc/apps/Splunk_TA_OTel_Collector" `
+    -v "${LOG_DIR}:C:/Program Files/SplunkUniversalForwarder/var/log/splunk" `
     "splunk-uf-windows:${IMAGE_TAG}"
 
 if ($LASTEXITCODE -ne 0) {

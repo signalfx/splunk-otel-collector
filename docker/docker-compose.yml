@@ -46,14 +46,6 @@ services:
         - "-q"
         - "Startup complete"
         - "/var/log/cassandra/system.log"
-  # Couchbase image for collectd-couchbase test:
-  couchbase:
-    image: quay.io/splunko11ytest/couchbase:latest
-    profiles:
-      - smartagent
-    build: ./couchbase
-    ports:
-      - "8091:8091"
   envoy:
     image: quay.io/splunko11ytest/envoy:latest
     profiles:

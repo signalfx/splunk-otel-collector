@@ -39,23 +39,23 @@ jobs:
       - name: Build collector binaries (linux & windows)
         run: |
           set -eo pipefail
-          make GOOS=linux GOARCH=amd64 otelcol
+          make -f Makefile.ta-v2 GOOS=linux GOARCH=amd64 otelcol
           install -D bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_OTel_Collector
 
-          make GOOS=windows GOARCH=amd64 otelcol
+          make -f Makefile.ta-v2 GOOS=windows GOARCH=amd64 otelcol
           install -D bin/otelcol_windows_amd64 packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe
 
       - name: Package TA v2
         working-directory: packaging/ta-v2
         run: |
           set -eo pipefail
-          make all-packages
+          make -f Makefile.ta-v2 all-packages
 
       - name: Test package TA v2
         working-directory: packaging/ta-v2
         run: |
           set -eo pipefail
-          make test
+          make -f Makefile.ta-v2 test
 
       - name: Upload TA v2 artifacts
         uses: actions/upload-artifact@v4
@@ -107,18 +107,11 @@ jobs:
           docker build -t splunk-uf-windows:latest -f ./Dockerfile.windows .
           ./run-local-package-in-container.ps1
 
-      - name: Collect logs in case of failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ta-v2-smoke-logs-${{ matrix.runner }}
-          path: packaging/ta-v2/local-test-logs
-
-      - name: Show splunkd logs
+      - name: Show splunkd.log on failure
         if: failure()
         shell: bash
         run: |
           set -eo pipefail
           echo "===== splunkd.log ====="
-          cat ./local-test-logs/var/log/splunk/splunkd.log
+          sudo cat ./local-test-logs/var/log/splunk/splunkd.log
           echo "======================"

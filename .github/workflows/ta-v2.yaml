@@ -48,8 +48,11 @@ jobs:
       - name: Package TA v2
         working-directory: packaging/ta-v2
         run: |
+          find ./assets -name "*"
           set -eo pipefail
           make all-packages
+          find ./assets -name "*"
+          find ./out/distribution -name "*"
 
       - name: Test package TA v2
         working-directory: packaging/ta-v2

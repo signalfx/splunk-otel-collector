@@ -19,7 +19,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/processes"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/protocols"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/statsd"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/uptime"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/process"

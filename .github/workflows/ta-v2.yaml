@@ -48,9 +48,6 @@ jobs:
       - name: Package TA v2
         working-directory: packaging/ta-v2
         run: |
-          find ./assets -name "*"
-          ls -l ./assets/linux_x86_64/bin/*
-          ls -l ./assets/windows_x86_64/bin/*
           set -eo pipefail
           make all-packages
           ls -l ./out/distribution

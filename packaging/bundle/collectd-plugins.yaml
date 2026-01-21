@@ -1,7 +1,4 @@
 ---
-- name: couchbase
-  version: v1.2.0
-  repo: signalfx/collectd-couchbase
 
 - name: openstack
   version: v4.2.0

@@ -16,7 +16,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/rabbitmq"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/spark"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/systemd"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/zookeeper"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/conviva"

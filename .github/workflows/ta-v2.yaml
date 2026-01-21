@@ -39,23 +39,23 @@ jobs:
       - name: Build collector binaries (linux & windows)
         run: |
           set -eo pipefail
-          make -f Makefile.ta-v2 GOOS=linux GOARCH=amd64 otelcol
+          make GOOS=linux GOARCH=amd64 otelcol
           install -D bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_OTel_Collector
 
-          make -f Makefile.ta-v2 GOOS=windows GOARCH=amd64 otelcol
+          make GOOS=windows GOARCH=amd64 otelcol
           install -D bin/otelcol_windows_amd64 packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe
 
       - name: Package TA v2
         working-directory: packaging/ta-v2
         run: |
           set -eo pipefail
-          make -f Makefile.ta-v2 all-packages
+          make all-packages
 
       - name: Test package TA v2
         working-directory: packaging/ta-v2
         run: |
           set -eo pipefail
-          make -f Makefile.ta-v2 test
+          make test
 
       - name: Upload TA v2 artifacts
         uses: actions/upload-artifact@v4

@@ -56,7 +56,7 @@ jobs:
         working-directory: packaging/ta-v2
         run: |
           set -eo pipefail
-          make test
+          make test-ta-v2
 
       - name: Upload TA v2 artifacts
         uses: actions/upload-artifact@v4

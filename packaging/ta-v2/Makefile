@@ -64,7 +64,7 @@ clean-otelcol:
 	@if [ -d ./assets/linux_x86_64/bin/ ]; then rm -rf ./assets/linux_x86_64/bin/; fi
 	@if [ -d ./assets/windows_x86_64/bin/ ]; then rm -rf ./assets/windows_x86_64/bin/; fi
 
-.PHONY: test
+.PHONY: test-ta-v2
 test:
 	@echo "Running package tests ..."
 	cd tests && go test --tags=ta-v2 -v ./...

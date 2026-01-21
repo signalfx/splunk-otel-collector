@@ -21,10 +21,6 @@
   version: v1.2.2
   repo: signalfx/redis-collectd-plugin
 
-- name: spark
-  version: v1.1.0
-  repo: signalfx/collectd-spark
-
 - name: zookeeper
   version: v0.1.4
   repo: signalfx/collectd-zookeeper

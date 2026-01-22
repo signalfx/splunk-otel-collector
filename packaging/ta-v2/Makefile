@@ -65,9 +65,9 @@ clean-otelcol:
 	@if [ -d ./assets/windows_x86_64/bin/ ]; then rm -rf ./assets/windows_x86_64/bin/; fi
 
 .PHONY: test-ta-v2
-test:
+test-ta-v2:
 	@echo "Running package tests ..."
-	cd tests && go test --tags=ta-v2 -v ./...
+	cd tests && go test --tags=ta_v2 -v ./...
 
 .PHONY: build-otelcol
 build-otelcol: build-otelcol-linux build-otelcol-windows

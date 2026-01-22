@@ -64,6 +64,8 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+Start-Sleep -Seconds 2
+
 Write-Host ""
 Write-Host "Container launched successfully!" -ForegroundColor Green
 Write-Host ""
@@ -81,6 +83,7 @@ while (-not (Test-Path $splunkdLog)) {
     if ($elapsed -ge $timeout) {
         Write-Host ""
         Write-Host "Timeout: splunkd.log was not created within $timeout seconds" -ForegroundColor Red
+        docker logs $CONTAINER_NAME
         exit 1
     }
     Start-Sleep -Seconds 2

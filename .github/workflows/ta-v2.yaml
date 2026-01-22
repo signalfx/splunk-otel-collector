@@ -1,4 +1,4 @@
-name: TA v2
+name: ta-v2
 
 on:
   push:
@@ -23,7 +23,7 @@ env:
   GO_VERSION: 1.25.5
 
 jobs:
-  build-packages:
+  ta-v2-build-packages:
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -63,8 +63,8 @@ jobs:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution/*.tgz
 
-  smoke-test-linux:
-    needs: build-packages
+  ta-v2-smoke-test-linux:
+    needs: ta-v2-build-packages
     runs-on: ubuntu-latest
     defaults:
         run:
@@ -102,8 +102,8 @@ jobs:
           sudo cat ./local-test-logs/var/log/splunk/splunkd.log
           echo "======================"
 
-  smoke-test-windows:
-    needs: build-packages
+  ta-v2-smoke-test-windows:
+    needs: ta-v2-build-packages
     runs-on: windows-latest
     env:
       splunk_uf_version: 9.4.0

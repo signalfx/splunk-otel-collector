@@ -2,14 +2,14 @@ on:
   push:
     branches:
       - main
-    paths: &ta-v2-paths
+    paths: &paths
       - 'packaging/ta-v2/**'
       - '.github/workflows/ta-v2.yaml'
       - 'cmd/**'
       - 'internal/**'
       - 'pkg/**'
   pull_request:
-    paths: *ta-v2-paths
+    paths: *paths
   workflow_dispatch: {}
 
 env:

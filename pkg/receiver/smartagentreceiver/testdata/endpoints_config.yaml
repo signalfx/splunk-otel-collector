@@ -13,9 +13,3 @@ smartagent/elasticsearch:
   type: elasticsearch
   endpoint: elastic:567
   intervalSeconds: 567
-smartagent/kubelet-stats:
-  type: kubelet-stats
-  endpoint: disregarded:678
-  intervalSeconds: 789
-  kubeletAPI:
-    authType: serviceAccount

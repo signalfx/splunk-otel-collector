@@ -16,9 +16,7 @@ SHELL [ "powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPre
 
 RUN curl.exe https://download.splunk.com/products/universalforwarder/releases/${Env:SPLUNK_UF_VERSION}/windows/splunkforwarder-${Env:SPLUNK_UF_VERSION}-${Env:SPLUNK_UF_BUILD_HASH}-windows-x64.msi -o splunk-uf.msi 
 
-RUN msiexec.exe /i C:\splunk-uf.msi /qn /norestart /l*v C:\splunk-uf-install.log AGREETOLICENSE=Yes
-
-RUN Get-Content C:\splunk-uf-install.log
+RUN msiexec.exe /i C:\splunk-uf.msi /qn /norestart AGREETOLICENSE=Yes
 
 RUN rm C:\splunk-uf.msi
 

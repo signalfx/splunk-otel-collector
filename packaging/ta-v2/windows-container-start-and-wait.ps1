@@ -1,5 +1,8 @@
 $splunkdLog = "C:/Program Files/SplunkUniversalForwarder/var/log/splunk/splunkd.log"
 
+Get-Content C:/splunk-uf-install.log
+Get-WinEvent -LogName Application
+Get-WinEvent -LogName System
 Get-Service SplunkForwarder
 
 Write-Host "Waiting for splunkd.log ..."

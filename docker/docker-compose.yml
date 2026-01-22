@@ -221,7 +221,6 @@ services:
     image: quay.io/splunko11ytest/nginx:latest
     profiles:
       - integration-test-nginx-discovery
-      - smartagent
     build: ./nginx
     ports:
       - "8123:80"

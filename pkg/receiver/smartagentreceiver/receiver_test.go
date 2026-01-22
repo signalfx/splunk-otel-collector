@@ -197,7 +197,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 }
 
 func TestStripMonitorTypePrefix(t *testing.T) {
-	assert.Equal(t, "nginx", stripMonitorTypePrefix("collectd/nginx"))
+	assert.Equal(t, "foo", stripMonitorTypePrefix("collectd/foo"))
 	assert.Equal(t, "cpu", stripMonitorTypePrefix("cpu"))
 }
 

@@ -43,12 +43,11 @@ func TestValidConfig(t *testing.T) {
 
 	require.Equal(t, &Config{
 		Receivers: map[component.ID]ReceiverEntry{
-			component.MustNewIDWithName("smartagent", "redis"): {
+			component.MustNewIDWithName("redis", ""): {
 				Config: map[string]any{
 					"auth": "password",
 					"host": "`host`",
 					"port": "`port`",
-					"type": "collectd/redis",
 				},
 				ResourceAttributes: map[string]string{
 					"receiver_attribute": "receiver_attribute_value",
@@ -119,17 +118,16 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 
 	receiverTemplate := dCfg.receiverCreatorReceiversConfig()
 	expectedTemplate := map[string]any{
-		"smartagent/redis": map[string]any{
+		"redis": map[string]any{
 			"config": map[string]any{
 				"auth": "password",
 				"host": "`host`",
 				"port": "`port`",
-				"type": "collectd/redis",
 			},
 			"resource_attributes": map[string]string{
 				"discovery.endpoint.id":   "`id`",
-				"discovery.receiver.name": "redis",
-				"discovery.receiver.type": "smartagent",
+				"discovery.receiver.name": "",
+				"discovery.receiver.type": "redis",
 				"receiver_attribute":      "receiver_attribute_value",
 			},
 			"rule": `type == "container" && name matches "(?i)redis"`,

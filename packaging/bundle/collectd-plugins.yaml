@@ -4,10 +4,6 @@
   version: v4.2.0
   repo: signalfx/collectd-openstack
 
-- name: redis
-  version: v1.2.2
-  repo: signalfx/redis-collectd-plugin
-
 - name: zookeeper
   version: v0.1.4
   repo: signalfx/collectd-zookeeper

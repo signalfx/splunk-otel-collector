@@ -1,5 +1,5 @@
 smartagent/negativeintervalseconds:
-  type: collectd/redis
+  type: collectd/python
   intervalSeconds: -234
 smartagent/missingrequired:
   type: collectd/fake

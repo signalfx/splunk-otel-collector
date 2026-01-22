@@ -31,7 +31,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
@@ -67,7 +66,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 4, len(cfg.ToStringMap()))
+	assert.Equal(t, 3, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -93,27 +92,6 @@ func TestLoadConfig(t *testing.T) {
 		acceptsEndpoints: true,
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
-	require.NoError(t, err)
-	redisCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&redisCfg))
-
-	require.Equal(t, &Config{
-		MonitorType:      "collectd/redis",
-		DimensionClients: []string{},
-		monitorConfig: &redis.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/redis",
-				IntervalSeconds:     234,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			Host: "localhost",
-			Port: 6379,
-		},
-		acceptsEndpoints: true,
-	}, redisCfg)
-	require.NoError(t, redisCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -192,7 +170,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 	err = cm.Unmarshal(&unexpected)
 	require.Error(t, err)
 	require.ErrorContains(t, err,
-		"failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type redis.Config")
+		"failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type python.Config")
 }
 
 func TestLoadInvalidConfigs(t *testing.T) {
@@ -207,10 +185,10 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	negativeIntervalCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&negativeIntervalCfg))
 	require.Equal(t, &Config{
-		MonitorType: "collectd/redis",
-		monitorConfig: &redis.Config{
+		MonitorType: "collectd/python",
+		monitorConfig: &python.Config{
 			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/redis",
+				Type:                "collectd/python",
 				IntervalSeconds:     -234,
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
@@ -248,7 +226,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 5, len(cfg.ToStringMap()))
+	assert.Equal(t, 4, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -277,23 +255,6 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
 	require.NoError(t, err)
-	redisCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&redisCfg))
-	require.Equal(t, &Config{
-		MonitorType: "collectd/redis",
-		Endpoint:    "redishost",
-		monitorConfig: &redis.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/redis",
-				IntervalSeconds:     234,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			Host: "redishost",
-			Port: 6379,
-		},
-		acceptsEndpoints: true,
-	}, redisCfg)
-	require.NoError(t, redisCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)

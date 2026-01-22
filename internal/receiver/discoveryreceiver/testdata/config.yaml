@@ -5,10 +5,9 @@ discovery:
   embed_receiver_config: true
   correlation_ttl: 25s
   receivers:
-    smartagent/redis:
+    redis:
       rule: type == "container" && name matches "(?i)redis"
       config:
-        type: collectd/redis
         auth: password
         host: '`host`'
         port: '`port`'

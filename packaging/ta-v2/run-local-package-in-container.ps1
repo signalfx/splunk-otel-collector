@@ -53,7 +53,7 @@ Write-Host "  Log directory: $LOG_DIR"
 $SPLUNK_PASSWORD = [System.Guid]::NewGuid().ToString("N")
 
 # Launch Splunk Universal Forwarder container
-docker run -d --name $CONTAINER_NAME `
+docker run --rm -it --name $CONTAINER_NAME `
     --user ContainerAdministrator `
     -v "${ASSETS_DIR}:C:/Program Files/SplunkUniversalForwarder/etc/apps/Splunk_TA_OTel_Collector" `
     -v "${LOG_DIR}:C:/Program Files/SplunkUniversalForwarder/var/log/splunk" `

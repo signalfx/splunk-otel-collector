@@ -53,14 +53,6 @@ services:
     build: ./envoy
     ports:
       - "9901:9901"
-  # Haproxy image for haproxy test:
-  haproxy:
-    image: quay.io/splunko11ytest/haproxy:latest
-    profiles:
-      - smartagent
-    build: ./haproxy
-    ports:
-      - "8082:8080"
   # httpd image for prometheus-exporter test
   httpd:
     image: quay.io/splunko11ytest/httpd:latest

@@ -1,9 +1,3 @@
-smartagent/haproxy:
-  endpoint: "[fe80::20c:29ff:fe59:9446]:2345"
-  type: haproxy
-  intervalSeconds: 123
-  username: SomeUser
-  password: secret
 smartagent/etcd:
   endpoint: etcdhost:5555
   type: etcd

@@ -1,6 +1,0 @@
-smartagent/haproxy:
-  dimensionClients: [1234.45, 2345.56]
-  type: haproxy
-  intervalSeconds: 123
-  username: SomeUser
-  password: secret

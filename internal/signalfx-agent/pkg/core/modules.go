@@ -27,7 +27,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/forwarder"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/gitlab"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/hana"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/heroku"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/http"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/internalmetrics"

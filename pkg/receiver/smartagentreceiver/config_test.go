@@ -29,7 +29,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
@@ -226,7 +225,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 4, len(cfg.ToStringMap()))
+	assert.Equal(t, 3, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -311,28 +310,6 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		acceptsEndpoints: true,
 	}, elasticCfg)
 	require.NoError(t, elasticCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubelet-stats").String())
-	require.NoError(t, err)
-	kubeletCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&kubeletCfg))
-	require.Equal(t, &Config{
-		MonitorType: "kubelet-stats",
-		Endpoint:    "disregarded:678",
-		monitorConfig: &cadvisor.KubeletStatsConfig{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "kubelet-stats",
-				IntervalSeconds:     789,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			KubeletAPI: kubelet.APIConfig{
-				AuthType:   "serviceAccount",
-				SkipVerify: &tru,
-			},
-		},
-		acceptsEndpoints: true,
-	}, kubeletCfg)
-	require.NoError(t, kubeletCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {

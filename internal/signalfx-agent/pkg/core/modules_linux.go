@@ -9,7 +9,6 @@ import (
 	// Import everything that isn't referenced anywhere else
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cgroups"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/chrony"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/cpu"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/cpufreq"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/custom"

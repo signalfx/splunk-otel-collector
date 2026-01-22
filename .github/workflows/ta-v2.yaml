@@ -121,9 +121,7 @@ jobs:
 
       - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
         run: |
-          $PWD
-          dir -r Splunk_TA_OTel_Collector.tgz
-          tar -xzf "packaging/ta-v2/build/out/distribution/Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          tar -xzf "Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
       - name: Start Splunk UF

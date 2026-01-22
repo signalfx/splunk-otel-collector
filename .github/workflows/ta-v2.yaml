@@ -1,3 +1,5 @@
+name: TA v2 Build and Test
+
 on:
   push:
     branches:

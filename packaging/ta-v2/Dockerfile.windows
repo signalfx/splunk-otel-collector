@@ -16,6 +16,12 @@ SHELL [ "powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPre
 
 RUN curl.exe https://download.splunk.com/products/universalforwarder/releases/${Env:SPLUNK_UF_VERSION}/windows/splunkforwarder-${Env:SPLUNK_UF_VERSION}-${Env:SPLUNK_UF_BUILD_HASH}-windows-x64.msi -o splunk-uf.msi 
 
+RUN Start-Service msiserver; msiexec.exe /i C:\splunk-uf.msi /qn /norestart /l*v C:\splunk-uf-install.log AGREETOLICENSE=Yes
+
+RUN Get-Content C:\splunk-uf-install.log
+
+RUN rm C:\splunk-uf.msi
+
 COPY windows-container-start-and-wait.ps1 C:/windows-container-start-and-wait.ps1
 
 CMD ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass", "-File", "C:\\windows-container-start-and-wait.ps1"]

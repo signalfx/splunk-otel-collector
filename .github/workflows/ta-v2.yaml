@@ -88,7 +88,7 @@ jobs:
           sudo ./run-local-package-in-container.sh
 
       - name: Show splunkd.log on failure
-        if: failure() && matrix.runner == 'ubuntu-latest'
+        if: failure()
         shell: bash
         run: |
           set -eo pipefail

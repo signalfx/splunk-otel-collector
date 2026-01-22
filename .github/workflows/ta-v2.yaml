@@ -24,7 +24,6 @@ env:
 
 jobs:
   build-packages:
-    name: Build TA v2 packages
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -130,12 +129,35 @@ jobs:
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
       - name: Start Splunk UF
-        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
-        shell: pwsh
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe status
           .\splunk.exe start
+
+      - name: Wait for splunkd log file creation
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
+          $logFile = "Splunk_TA_otel.log"
+          $found = $false
+          $timeout = 360
+          $elapsed = 0
+
+          while (-not $found -and $elapsed -lt $timeout) {
+              if (Test-Path $logFile) {
+                  $found = $true
+              }
+              if (-not $found) {
+                  Start-Sleep -Seconds 1
+                  $elapsed++
+              }
+          }
+
+          if ($found) {
+              Write-Host "splunkd.log created after $elapsed seconds"
+          } else {
+              Write-Host "Timeout reached. splunkd.log was not created after $elapsed seconds"
+              exit 1
+          }
 
       - name: Wait for Collector launch attempt
         shell: pwsh

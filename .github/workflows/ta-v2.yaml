@@ -1,17 +1,22 @@
-name: TA v2 Build and Test
+name: TA v2
 
 on:
   push:
     branches:
       - main
-    paths: &paths
+    paths:
       - 'packaging/ta-v2/**'
       - '.github/workflows/ta-v2.yaml'
       - 'cmd/**'
       - 'internal/**'
       - 'pkg/**'
   pull_request:
-    paths: *paths
+    paths:
+      - 'packaging/ta-v2/**'
+      - '.github/workflows/ta-v2.yaml'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
   workflow_dispatch: {}
 
 env:
@@ -117,11 +122,11 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: ta-v2-packages
-          path: packaging/ta-v2/out/distribution
+          path: ${{ github.workspace }}/packaging/ta-v2/out/distribution
 
       - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
         run: |
-          tar -xzf "Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
       - name: Start Splunk UF

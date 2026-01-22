@@ -44,7 +44,7 @@ var (
 		"collectd/memcached": true, "collectd/memory": true,
 		"collectd/nginx": true, "collectd/php-fpm": true,
 		"collectd/processes": true, "collectd/protocols": true,
-		"collectd/signalfx-metadata": true, "collectd/statsd": true, "collectd/uptime": true,
+		"collectd/signalfx-metadata": true, "collectd/uptime": true,
 	}
 )
 

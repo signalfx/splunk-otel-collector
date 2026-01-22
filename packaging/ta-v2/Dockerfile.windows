@@ -20,4 +20,6 @@ RUN msiexec.exe /i C:\splunk-uf.msi /qn /norestart AGREETOLICENSE=Yes
 
 RUN rm C:\splunk-uf.msi
 
-CMD ["powershell.exe", "-NoLogo", "Get-Content 'C:\\Program Files\\SplunkUniversalForwarder\\var\\log\\splunk\\splunkd.log' -Wait"]
+COPY windows-container-start-and-wait.ps1 C:/windows-container-start-and-wait.ps1
+
+CMD ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass", "-File", "C:\\windows-container-start-and-wait.ps1"]

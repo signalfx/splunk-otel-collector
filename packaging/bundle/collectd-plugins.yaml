@@ -1,29 +1,8 @@
 ---
-- name: couchbase
-  version: v1.2.0
-  repo: signalfx/collectd-couchbase
-
-- name: jenkins
-  version: v2.7.0
-  repo: signalfx/collectd-jenkins
 
 - name: openstack
   version: v4.2.0
   repo: signalfx/collectd-openstack
-
-- name: rabbitmq
-  version: v1.2.1
-  repo: signalfx/collectd-rabbitmq
-  can_remove:
-    - integration-test
-
-- name: redis
-  version: v1.2.2
-  repo: signalfx/redis-collectd-plugin
-
-- name: spark
-  version: v1.1.0
-  repo: signalfx/collectd-spark
 
 - name: zookeeper
   version: v0.1.4

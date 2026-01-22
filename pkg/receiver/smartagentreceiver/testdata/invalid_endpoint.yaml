@@ -1,7 +1,0 @@
-smartagent/haproxy:
-  endpoint: haproxyhost:notaport
-  type: haproxy
-  intervalSeconds: 123
-  username: SomeUser
-  password: secret
-

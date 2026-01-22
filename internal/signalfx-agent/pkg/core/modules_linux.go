@@ -14,7 +14,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/custom"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memory"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/nginx"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/processes"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/protocols"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"

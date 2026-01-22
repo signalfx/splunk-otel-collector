@@ -3,8 +3,3 @@ smartagent/exec:
   commands: [ 'powershell.exe -Command "\Monitoring\Get_Directory.ps1"' ]
   telegrafParser:
     dataFormat: "influx"
-smartagent/kubernetes_volumes:
-  type: kubernetes-volumes
-  kubeletAPI:
-    authType: serviceAccount
-    url: https://192.168.99.103:10250

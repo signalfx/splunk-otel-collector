@@ -6,7 +6,6 @@ package core
 import (
 	// Import everything that isn't referenced anywhere else
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/appmesh"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cloudfoundry"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/opcache"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/openstack"
@@ -34,7 +33,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/http"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/internalmetrics"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/jmx"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/load"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/logstash"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/tcp"

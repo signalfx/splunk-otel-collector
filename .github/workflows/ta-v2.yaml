@@ -1,22 +1,15 @@
-name: ta-v2 build and local smoke
-
 on:
   push:
     branches:
       - main
-    paths:
+    paths: &ta-v2-paths
       - 'packaging/ta-v2/**'
       - '.github/workflows/ta-v2.yaml'
       - 'cmd/**'
       - 'internal/**'
       - 'pkg/**'
   pull_request:
-    paths:
-      - 'packaging/ta-v2/**'
-      - '.github/workflows/ta-v2.yaml'
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
+    paths: *ta-v2-paths
   workflow_dispatch: {}
 
 env:
@@ -64,13 +57,9 @@ jobs:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution/*.tgz
 
-  smoke-ta-v2:
-    name: Smoke test TA v2 packages
+  smoke-test-linux:
     needs: build-packages
-    strategy:
-      matrix:
-        runner: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     defaults:
         run:
             working-directory: ./packaging/ta-v2
@@ -92,28 +81,13 @@ jobs:
           tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C ./build-out
           find ./build-out -name "*"
 
-      - name: Run local container smoke (linux)
-        if: matrix.runner == 'ubuntu-latest'
+      - name: Run local container
         env:
           ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
         run: |
           sudo ./run-local-package-in-container.sh
 
-      - name: Run local container smoke (windows)
-        if: matrix.runner == 'windows-latest'
-        shell: pwsh
-        env:
-          ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
-        run: |
-          docker build -t splunk-uf-windows:latest -f ./Dockerfile.windows .
-          ./run-local-package-in-container.ps1
-
-      - name: Check splunkd.log on Windows
-        if: failure() && matrix.runner == 'windows-latest'
-        shell: pwsh
-        run: docker exec -it splunk-ta-otel-test powershell.exe -ExecutionPolicy Bypass -Command "Get-Content 'C:/Program Files/SplunkUniversalForwarder/var/log/splunk/splunkd.log'"
-
-      - name: Show splunkd.log on failure (Linux)
+      - name: Show splunkd.log on failure
         if: failure() && matrix.runner == 'ubuntu-latest'
         shell: bash
         run: |
@@ -122,11 +96,67 @@ jobs:
           sudo cat ./local-test-logs/var/log/splunk/splunkd.log
           echo "======================"
 
-      - name: Show splunkd.log on failure (Windows)
-        if: failure() && matrix.runner == 'windows-latest'
+  smoke-test-windows:
+    needs: build-packages
+    runs-on: windows-latest
+    env:
+      splunk_uf_version: 9.4.0
+      splunk_uf_build_hash: 6b4ebe426ca6
+    steps:
+      - name: Download the Splunk UF MSI
         shell: bash
         run: |
+          curl https://download.splunk.com/products/universalforwarder/releases/${{ env.splunk_uf_version }}/windows/splunkforwarder-${{ env.splunk_uf_version }}-${{ env.splunk_uf_build_hash }}-windows-x64.msi -o splunkforwarder.msi
+
+      - name: Install Splunk UF
+        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
+
+      - name: Download TA v2 artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: ta-v2-packages
+          path: packaging/ta-v2/out/distribution
+
+      - name: Extract packages
+        shell: bash
+        working-directory: packaging/ta-v2
+        run: |
           set -eo pipefail
-          echo "===== splunkd.log ====="
-          cat ./local-test-logs/var/log/splunk/splunkd.log
-          echo "======================"
+          mkdir -p ./build-out
+          tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C 
+          find ./build-out -name "*"
+
+      - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
+        run: |
+          tar -xzf "${{github.workspace}}/packaging/ta-v2/build/out/distribution/Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+
+      - name: Start Splunk UF
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe status
+          .\splunk.exe start
+
+      - name: Wait for Collector launch attempt
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          $timeout = 180
+          $elapsed = 0
+          Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
+          while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+              if ($elapsed -ge $timeout) {
+                  Write-Host ""
+                  Write-Host "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
+                  exit 1
+              }
+              Start-Sleep -Seconds 2
+              $elapsed += 2
+              Write-Host -NoNewline "."
+          }
+          Write-Host ""
+          Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
+          Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
+

@@ -116,8 +116,6 @@ Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Ob
 
 Write-Host ""
 Write-Host ""
-Write-Host "Splunk Management Port: http://localhost:8089" -ForegroundColor Cyan
-Write-Host ""
 Write-Host "Useful commands:" -ForegroundColor Cyan
 Write-Host "  View container logs: docker logs -f $CONTAINER_NAME"
 Write-Host "  Stop container: docker stop $CONTAINER_NAME"

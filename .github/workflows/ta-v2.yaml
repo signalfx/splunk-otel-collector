@@ -117,15 +117,6 @@ jobs:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution
 
-      - name: Extract packages
-        shell: bash
-        working-directory: packaging/ta-v2
-        run: |
-          set -eo pipefail
-          mkdir -p ./build-out
-          tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C 
-          find ./build-out -name "*"
-
       - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
         run: |
           tar -xzf "${{github.workspace}}/packaging/ta-v2/build/out/distribution/Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
@@ -159,4 +150,3 @@ jobs:
           Write-Host ""
           Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
           Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
-

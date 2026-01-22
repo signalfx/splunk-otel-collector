@@ -199,12 +199,9 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 3, len(cfg.ToStringMap()))
+	assert.Equal(t, 2, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
-	require.NoError(t, err)
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
 	etcdCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&etcdCfg))

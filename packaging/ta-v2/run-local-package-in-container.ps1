@@ -53,7 +53,7 @@ Write-Host "  Log directory: $LOG_DIR"
 $SPLUNK_PASSWORD = [System.Guid]::NewGuid().ToString("N")
 
 # Launch Splunk Universal Forwarder container
-docker run --rm -it --name $CONTAINER_NAME `
+docker run -d --name $CONTAINER_NAME `
     --user ContainerAdministrator `
     -v "${ASSETS_DIR}:C:/Program Files/SplunkUniversalForwarder/etc/apps/Splunk_TA_OTel_Collector" `
     -v "${LOG_DIR}:C:/Program Files/SplunkUniversalForwarder/var/log/splunk" `
@@ -64,13 +64,15 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 5
 
 Write-Host ""
 Write-Host "Container launched successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Initial container output:" -ForegroundColor Yellow
-docker logs $CONTAINER_NAME
+docker logs $CONTAINER_NAME > container-initial.log 2>&1
+Get-Content -Path "container-initial.log"
+Remove-Item -Path "container-initial.log"
 Write-Host ""
 
 $splunkdLog = Join-Path $LOG_DIR "splunkd.log"
@@ -83,7 +85,9 @@ while (-not (Test-Path $splunkdLog)) {
     if ($elapsed -ge $timeout) {
         Write-Host ""
         Write-Host "Timeout: splunkd.log was not created within $timeout seconds" -ForegroundColor Red
-        docker logs $CONTAINER_NAME
+        docker logs $CONTAINER_NAME > container-timeout.log 2>&1
+        Get-Content -Path "container-timeout.log"
+        Remove-Item -Path "container-timeout.log"
         exit 1
     }
     Start-Sleep -Seconds 2

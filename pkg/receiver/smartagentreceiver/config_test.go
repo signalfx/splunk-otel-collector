@@ -25,17 +25,13 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
-	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
-	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/volumes"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/nagios"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/parser"
@@ -350,28 +346,6 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		acceptsEndpoints: true,
 	}, elasticCfg)
 	require.NoError(t, elasticCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubelet-stats").String())
-	require.NoError(t, err)
-	kubeletCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&kubeletCfg))
-	require.Equal(t, &Config{
-		MonitorType: "kubelet-stats",
-		Endpoint:    "disregarded:678",
-		monitorConfig: &cadvisor.KubeletStatsConfig{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "kubelet-stats",
-				IntervalSeconds:     789,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			KubeletAPI: kubelet.APIConfig{
-				AuthType:   "serviceAccount",
-				SkipVerify: &tru,
-			},
-		},
-		acceptsEndpoints: true,
-	}, kubeletCfg)
-	require.NoError(t, kubeletCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
@@ -542,31 +516,6 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 		},
 	}, telegrafExecCfg)
 	require.NoError(t, telegrafExecCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubernetes_volumes").String())
-	require.NoError(t, err)
-	k8sVolumesCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&k8sVolumesCfg))
-	tru := true
-	require.Equal(t, &Config{
-		MonitorType: "kubernetes-volumes",
-		monitorConfig: &volumes.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "kubernetes-volumes",
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			KubeletAPI: kubelet.APIConfig{
-				URL:        "https://192.168.99.103:10250",
-				AuthType:   "serviceAccount",
-				SkipVerify: &tru,
-			},
-			KubernetesAPI: &kubernetes.APIConfig{
-				AuthType:   "serviceAccount",
-				SkipVerify: false,
-			},
-		},
-	}, k8sVolumesCfg)
-	require.NoError(t, k8sVolumesCfg.Validate())
 }
 
 func TestInvalidMonitorConfig(t *testing.T) {

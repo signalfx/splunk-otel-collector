@@ -9,14 +9,6 @@ import (
 	"unicode"
 )
 
-// LowercaseFirstChar make the first character of a string lowercase
-func LowercaseFirstChar(s string) string {
-	for i, v := range s {
-		return string(unicode.ToLower(v)) + s[i+1:]
-	}
-	return ""
-}
-
 // ChunkScanner looks for a line and all subsequent indented lines and
 // returns a scanner that will output that chunk as a single token.  This
 // assumes that the entire chunk comes in a single read call, which will not

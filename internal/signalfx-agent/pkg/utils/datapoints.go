@@ -4,16 +4,6 @@ import (
 	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 )
 
-// BoolToInt returns 1 if b is true and 0 otherwise.  It is useful for
-// datapoints which track a binary value since we don't support boolean
-// datapoint directly.
-func BoolToInt(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
-
 // TruncateDimensionValue truncates the given string to 256 characters.
 func TruncateDimensionValue(value string) string {
 	// Not sure if our backend enforces character length or byte length.

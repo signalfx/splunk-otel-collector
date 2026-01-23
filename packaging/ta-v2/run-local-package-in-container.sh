@@ -104,7 +104,11 @@ grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log"
 echo ""
 echo "Splunk Web UI: http://localhost:8000"
 echo "  Username: admin"
-echo "  Password: ${SPLUNK_PASSWORD}"
+if [ -t 1 ] || [ "${SPLUNK_PRINT_PASSWORD:-false}" = "true" ]; then
+    echo "  Password: ${SPLUNK_PASSWORD}"
+else
+    echo "  Password: <hidden; set SPLUNK_PRINT_PASSWORD=true to show>"
+fi
 echo ""
 echo "Useful commands:"
 echo "  View Splunk logs: docker logs -f ${CONTAINER_NAME}"

@@ -31,7 +31,6 @@ BUILD_DIR?=$(SRC_ROOT)/build
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
-GOTEST_OPT_WITHOUT_RACE?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 GOCMD?= go
 GOTEST=$(GOCMD) test
 GOOS=$(shell $(GOCMD) env GOOS)
@@ -99,14 +98,6 @@ COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COV
 test-with-codecov:
 	mkdir -p $(COVER_DIR)
 	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
-
-# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
-# This target should be removed in favor of "test" once the following issue is resolved:
-# https://github.com/shirou/gopsutil/issues/1774
-.PHONY: test-cover-without-race
-test-cover-without-race:
-	mkdir -p $(COVER_DIR_ABS)
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
 
 endif
 

@@ -49,9 +49,6 @@ Write-Host "  Image tag: $IMAGE_TAG"
 Write-Host "  Assets directory: $ASSETS_DIR"
 Write-Host "  Log directory: $LOG_DIR"
 
-# Generate a random password
-$SPLUNK_PASSWORD = [System.Guid]::NewGuid().ToString("N")
-
 # Launch Splunk Universal Forwarder container
 docker run -d --name $CONTAINER_NAME `
     --user ContainerAdministrator `

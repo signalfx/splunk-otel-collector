@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |
+    **The processes monitor is deprecated and will be removed after April 2026.
+    Please use the hostmetrics receiver with the [process scraper](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/processscraper) instead.**
+    
     Gathers information about processes running on
     the host.  See
     https://collectd.org/documentation/manpages/collectd.conf.5.shtml#plugin_processes

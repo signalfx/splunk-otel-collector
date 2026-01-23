@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package packaing/ta-v2/tests provides tests and utilities for verifying
-// the Splunk TA for OpenTelemetry Collector v2 package.
+// Package tests provides tests and utilities for verifying
+// the Splunk TA for OpenTelemetry Collector v2 package under packaging/ta-v2.
 // This package is being created only to satisfy the Go toolchain.
 package tests

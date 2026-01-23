@@ -44,7 +44,7 @@ type Monitor struct {
 // Configure and kick off internal metric collection
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
-	m.logger.Warn("[NOTE] The ntp monitor is deprecated and will be removed after April 2026. Please use https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver instead.")
+	m.logger.Warn("[WARNING] The ntp monitor is deprecated and will be removed after April 2026. Please use https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver instead.")
 	// respect terms of service https://www.pool.ntp.org/tos.html
 	minIntervalSeconds := minInterval.Seconds()
 	if float64(conf.IntervalSeconds) < minIntervalSeconds {

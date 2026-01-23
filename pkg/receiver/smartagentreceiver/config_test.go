@@ -33,7 +33,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/volumes"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/nagios"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/parser"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
@@ -199,12 +198,9 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 3, len(cfg.ToStringMap()))
+	assert.Equal(t, 2, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
-	require.NoError(t, err)
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
 	etcdCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&etcdCfg))
@@ -259,35 +255,6 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		acceptsEndpoints: true,
 	}, elasticCfg)
 	require.NoError(t, elasticCfg.Validate())
-}
-
-// Even though this smart-agent monitor does not accept endpoints,
-// we can create it without setting Host/Port fields.
-func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
-	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "unsupported_endpoint.yaml"))
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
-
-	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "nagios").String())
-	require.NoError(t, err)
-	nagiosCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&nagiosCfg))
-
-	require.Equal(t, &Config{
-		MonitorType: "nagios",
-		Endpoint:    "localhost:12345",
-		monitorConfig: &nagios.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "nagios",
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			Command: "some_command",
-			Service: "some_service",
-			Timeout: 9,
-		},
-		acceptsEndpoints: false,
-	}, nagiosCfg)
-	require.NoError(t, nagiosCfg.Validate())
 }
 
 func TestFilteringConfig(t *testing.T) {

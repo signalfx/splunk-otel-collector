@@ -91,7 +91,7 @@ jobs:
         env:
           ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
         run: |
-          sudo ./run-local-package-in-container.sh
+          sudo -E ./run-local-package-in-container.sh
 
       - name: Show splunkd.log on failure
         if: failure()

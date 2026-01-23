@@ -72,5 +72,4 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vmem"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vsphere"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/windowsiis"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/windowslegacy"
 )

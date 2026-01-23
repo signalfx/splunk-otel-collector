@@ -27,7 +27,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/forwarder"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/gitlab"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/hana"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/heroku"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/http"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/internalmetrics"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/jmx"
@@ -36,8 +35,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/logstash"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/tcp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/memory"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/mongodb/atlas"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/nagios"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/netio"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/ntp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/postgresql"
@@ -72,5 +69,4 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vmem"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vsphere"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/windowsiis"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/windowslegacy"
 )

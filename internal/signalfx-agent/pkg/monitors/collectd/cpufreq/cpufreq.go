@@ -30,5 +30,5 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (m *Monitor) Configure(conf *Config) error {
-	return m.SetConfigurationAndRun(conf)
+	return m.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("hostmetricsreceiver"))
 }

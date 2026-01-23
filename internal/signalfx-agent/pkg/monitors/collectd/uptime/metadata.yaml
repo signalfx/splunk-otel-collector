@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |
+    **The uptime monitor is deprecated and will be removed after April 2026.
+    Please use the hostmetrics receiver with the [system scraper](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/systemscraper) instead.**
+    
     Sends a single metric of the total number of
     seconds the host has been up, using the [collectd uptime
     plugin](https://collectd.org/wiki/index.php/Plugin:Uptime).

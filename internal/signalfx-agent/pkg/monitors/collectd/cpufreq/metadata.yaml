@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |
+    **The cpufreq monitor is deprecated and will be removed after April 2026.
+    Please use the hostmetrics receiver with the [cpu scraper](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/cpuscraper) instead.**
+    
     Monitors the actual clock speed of each CPU on a
     host.  Useful for systems that vary the clock speed to conserve energy.
 

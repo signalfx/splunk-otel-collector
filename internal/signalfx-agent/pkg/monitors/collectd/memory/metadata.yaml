@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |
+    **The memory monitor is deprecated and will be removed after April 2026.
+    Please use the hostmetrics receiver with the [memory scraper](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/memoryscraper) instead.**
+    
     Sends memory usage stats for the underlying host.
     See https://collectd.org/wiki/index.php/Plugin:Memory
   metrics:

@@ -1,0 +1,231 @@
+# Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+
+# If the collector is installed without the Linux/Windows installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
+# - SPLUNK_BUNDLE_DIR: The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector/agent-bundle
+# - SPLUNK_COLLECTD_DIR: The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+# - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
+
+extensions:
+  headers_setter:
+    headers:
+      - action: upsert
+        key: X-SF-TOKEN
+        from_context: X-SF-TOKEN
+        default_value: "${SPLUNK_ACCESS_TOKEN}"
+  health_check:
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
+  http_forwarder:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
+    egress:
+      endpoint: "${SPLUNK_API_URL}"
+      # Use instead when sending to gateway
+      #endpoint: "${SPLUNK_GATEWAY_URL}"
+  smartagent:
+    bundleDir: "${SPLUNK_BUNDLE_DIR}"
+    collectd:
+      configDir: "${SPLUNK_COLLECTD_DIR}"
+  zpages:
+    #endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
+    expvar:
+      enabled: true
+
+receivers:
+  fluentforward:
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:8006"
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+      disk:
+      filesystem:
+      memory:
+      network:
+      # System load average metrics https://en.wikipedia.org/wiki/Load_(computing)
+      load:
+      # Paging/Swap space utilization and I/O metrics
+      paging:
+      # Aggregated system process count metrics
+      processes:
+      # System processes metrics, disabled by default
+      # process:
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:14250"
+      thrift_binary:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:6832"
+      thrift_compact:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:6831"
+      thrift_http:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:14268"
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:4317"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
+      http:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:4318"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
+  # This section is used to collect the OpenTelemetry Collector metrics
+  # Even if just a Splunk APM customer, these metrics are included
+  prometheus/internal:
+    config:
+      scrape_configs:
+      - job_name: 'otel-collector'
+        scrape_interval: 10s
+        static_configs:
+        - targets: ["0.0.0.0:8888"]
+        metric_relabel_configs:
+          - source_labels: [ __name__ ]
+            regex: 'promhttp_metric_handler_errors.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_processor_batch_.*'
+            action: drop
+  smartagent/processlist:
+    type: processlist
+  zipkin:
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:9411"
+  nop:
+
+processors:
+  batch:
+    metadata_keys:
+      - X-SF-Token
+  # Enabling the memory_limiter is strongly recommended for every pipeline.
+  # Configuration is based on the amount of memory allocated to the collector.
+  # For more information about memory limiter, see
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+
+  # Detect if the collector is running on a cloud system, which is important for creating unique cloud provider dimensions.
+  # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
+  # Resource detection processor is configured to override all host and cloud attributes because instrumentation
+  # libraries can send wrong values from container environments.
+  # https://docs.splunk.com/Observability/gdi/opentelemetry/components/resourcedetection-processor.html#ordering-considerations
+  resourcedetection:
+    detectors: [gcp, ecs, ec2, azure, system]
+    override: true
+
+  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
+  # traces when it's not populated by instrumentation libraries.
+  # If enabled, make sure to enable this processor in a pipeline.
+  # For more information, see https://docs.splunk.com/Observability/gdi/opentelemetry/components/resource-processor.html
+  #resource/add_environment:
+    #attributes:
+      #- action: insert
+        #value: staging/production/...
+        #key: deployment.environment
+
+  # The following processor is used to add "otelcol.service.mode" attribute to the internal metrics
+  resource/add_mode:
+    attributes:
+      - action: insert
+        value: "agent"
+        key: otelcol.service.mode
+
+exporters:
+  # Traces
+  otlphttp:
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
+  # Metrics + Events
+  signalfx:
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    api_url: "${SPLUNK_API_URL}"
+    ingest_url: "${SPLUNK_INGEST_URL}"
+    # Use instead when sending to gateway
+    #api_url: http://${SPLUNK_GATEWAY_URL}:6060
+    #ingest_url: http://${SPLUNK_GATEWAY_URL}:9943
+    sync_host_metadata: true
+    correlation:
+  # Entities (applicable only if discovery mode is enabled)
+  otlphttp/entities:
+    logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
+  # Logs
+  splunk_hec:
+    token: "${SPLUNK_HEC_TOKEN}"
+    endpoint: "${SPLUNK_HEC_URL}"
+    source: "otel"
+    sourcetype: "otel"
+    profiling_data_enabled: false
+  # Profiling
+  splunk_hec/profiling:
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
+    log_data_enabled: false
+  # Send to gateway
+  otlp/gateway:
+    endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+    tls:
+      insecure: true
+    auth:
+      authenticator: headers_setter
+  # Debug
+  debug:
+    verbosity: detailed
+
+service:
+  extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
+  pipelines:
+    traces:
+      receivers: [jaeger, otlp, zipkin]
+      processors:
+      - memory_limiter
+      - batch
+      - resourcedetection
+      #- resource/add_environment
+      exporters: [otlphttp, signalfx]
+      # Use instead when sending to gateway
+      #exporters: [otlp/gateway, signalfx]
+    metrics:
+      receivers: [hostmetrics, otlp]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [signalfx]
+      # Use instead when sending to gateway
+      #exporters: [otlp/gateway]
+    metrics/internal:
+      receivers: [prometheus/internal]
+      processors: [memory_limiter, batch, resourcedetection, resource/add_mode]
+      # When sending to gateway, at least one metrics pipeline needs
+      # to use signalfx exporter so host metadata gets emitted
+      exporters: [signalfx]
+    logs/signalfx:
+      receivers: [smartagent/processlist]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [signalfx]
+    logs/entities:
+      # Receivers are dynamically added if discovery mode is enabled
+      receivers: [nop]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [otlphttp/entities]
+      # Use instead when sending to gateway
+      #exporters: [otlp/gateway]
+    logs:
+      receivers: [fluentforward, otlp]
+      processors:
+      - memory_limiter
+      - batch
+      - resourcedetection
+      #- resource/add_environment
+      exporters: [splunk_hec, splunk_hec/profiling]
+      # Use instead when sending to gateway
+      #exporters: [otlp/gateway]

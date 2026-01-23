@@ -22,4 +22,4 @@ splunk_realm = <value>
 
 splunk_config = <value>
 * Optional, config file that will be used by the Splunk_TA_OTel_Collector
-* Default = $SPLUNK_HOME/etc/apps/Splunk_TA_OTel_Collector/configs/agent-config.yaml
+* Default = $SPLUNK_HOME/etc/apps/Splunk_TA_OTel_Collector/configs/agent_config.yaml

@@ -1,5 +1,6 @@
 monitors:
 - doc: |
+    **This receiver is deprecated and will be removed after April 2026. Please use [the NTP receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver) instead.**
     This monitor will retrieve clock offset from ntp server.
 
     It enforces a minimum interval of 30m.

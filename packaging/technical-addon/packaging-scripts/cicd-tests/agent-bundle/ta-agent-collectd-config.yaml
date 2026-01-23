@@ -6,7 +6,7 @@ extensions:
 
 receivers:
   smartagent/cpu:
-    type: collectd/cpu
+    type: cpu
   smartagent/apache:
     type: collectd/apache
     host: localhost

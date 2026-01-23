@@ -1,4 +1,4 @@
-//go:build !windows || (windows && arm64)
+//go:build !windows
 
 package diskio
 

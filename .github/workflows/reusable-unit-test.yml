@@ -20,8 +20,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
-      - run: go env -w CGO_ENABLED=0
-
       - name: bundle.d
         run: |
           make bundle.d

@@ -13,10 +13,7 @@
     splunk_otel_collector_config_source: ./custom_collector_config.yml
     splunk_memory_total_mib: 256
     gomemlimit: 230
-    install_fluentd: yes
     splunk_listen_interface: 1.2.3.4
-    splunk_fluentd_config: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'
-    splunk_fluentd_config_source: ./custom_fluentd_config.conf
     splunk_otel_collector_additional_env_vars:
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2

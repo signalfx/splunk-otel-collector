@@ -1,6 +1,0 @@
-smartagent/nagios:
-  endpoint: localhost:12345
-  type: nagios
-  command: some_command
-  service: some_service
-

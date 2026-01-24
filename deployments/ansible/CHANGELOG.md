@@ -1,5 +1,12 @@
 # Changelog
 
+## ansible-v0.34.0
+
+### 🚩 Deprecations 🚩
+
+- Fluentd support has been removed.
+  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+
 ## ansible-v0.33.0
 
 ### 💡 Enhancements 💡

@@ -12,11 +12,11 @@ Observability Cloud](https://www.splunk.com/en_us/products/observability.html).
 
 Currently, the following Linux distributions and versions are supported:
 
-- Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
+- Amazon Linux: 2, 2023
 - CentOS / Red Hat: 8, 9
 - Oracle: 8, 9
 - Debian: 9, 10, 11
-- SUSE: 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
+- SUSE: 15
 - Ubuntu: 16.04, 18.04, 20.04, 22.04
 
 ## Windows

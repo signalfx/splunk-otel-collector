@@ -127,33 +127,13 @@
       register: config
       failed_when: config is changed
 
-    - name: Check custom_fluentd.conf
-      stat:
-        path: /etc/otel/collector/fluentd/custom_fluentd.conf
-      register: custom_fluentd_config
-
-    - name: Assert custom_fluentd.conf is created
-      assert:
-        that: custom_fluentd_config.stat.exists
-      when: fluentd_supported
-
-    - name: Assert custom_fluentd.conf is used
-      ansible.builtin.lineinfile:
-        line: Environment=FLUENT_CONF=/etc/otel/collector/fluentd/custom_fluentd.conf
-        dest: /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf
-        state: present
-      check_mode: yes
-      when: fluentd_supported
-      register: config
-      failed_when: config is changed
-
     - name: Send a test log message
-      ansible.builtin.uri:
-        body: json={"log":"test logs pipeline"}
-        method: POST
-        url: http://localhost:9880/app.log
+      ansible.builtin.lineinfile:
+        path: /var/log/app.log
+        line: 'test logs pipeline'
+        state: present
+        create: true
       changed_when: false
-      when: fluentd_supported
 
     - name: Look for the test log message in collector service output
       ansible.builtin.shell:
@@ -163,4 +143,3 @@
       until: result.stdout != ""
       retries: 20
       delay: 1
-      when: fluentd_supported

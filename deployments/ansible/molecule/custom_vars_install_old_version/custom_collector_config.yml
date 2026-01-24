@@ -2,8 +2,9 @@
 # Custom collector config for test purposes
 
 receivers:
-  fluentforward:
-    endpoint: 127.0.0.1:8006
+  filelog:
+    include:
+      - /var/log/app.log
   otlp:
     protocols:
       grpc:
@@ -34,6 +35,6 @@ service:
       processors: [memory_limiter]
       exporters: [debug/normal]
     logs:
-      receivers: [fluentforward, otlp]
+      receivers: [filelog, otlp]
       processors: [memory_limiter]
       exporters: [debug/detailed]

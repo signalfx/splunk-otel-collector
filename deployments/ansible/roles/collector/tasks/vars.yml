@@ -7,12 +7,6 @@
       {%- else -%}
         /etc/otel/collector/agent_config.yaml
       {%- endif -%}
-    splunk_fluentd_config: |-
-      {%- if splunk_fluentd_config -%}
-        {{ splunk_fluentd_config }}
-      {%- else -%}
-        /etc/otel/collector/fluentd/fluent.conf
-      {%- endif -%}
     splunk_bundle_dir: |-
       {%- if splunk_bundle_dir -%}
         {{ splunk_bundle_dir }}
@@ -25,10 +19,6 @@
       {%- else -%}
         /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
       {%- endif -%}
-    fluentd_supported: >-
-      {{ (ansible_os_family != 'Suse'
-         and not (ansible_distribution == 'Amazon' and ansible_distribution_version == '2023')
-         and not (ansible_os_family == 'Debian' and ansible_distribution_major_version == '12')) }}
   when: ansible_os_family != "Windows"
 
 - name: set configurable defaults for Windows
@@ -37,12 +27,6 @@
 
 - name: set default vars for Windows
   set_fact:
-    splunk_fluentd_config: |-
-      {%- if splunk_fluentd_config -%}
-        {{ splunk_fluentd_config }}
-      {%- else -%}
-        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf
-      {%- endif -%}
     td_agent_version: |-
       {%- if td_agent_version -%}
         {{ td_agent_version }}

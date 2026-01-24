@@ -34,17 +34,6 @@
       check_mode: yes
       register: service_status
 
-    - name: Check fluentdwinsvc service
-      ansible.windows.win_service:
-        name: fluentdwinsvc
-        state: started
-      check_mode: yes
-      register: service_status
-
-    - name: Assert fluentdwinsvc service status
-      assert:
-        that: not service_status.changed
-
     - name: Check custom_config.yml
       ansible.windows.win_stat:
         path: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
@@ -53,26 +42,6 @@
     - name: Assert custom_config.yml exists
       assert:
         that: custom_collector_config.stat.exists
-
-    - name: Check fluentd custom_config.conf
-      ansible.windows.win_stat:
-        path: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'
-        get_checksum: yes
-      register: custom_fluentd_config
-
-    - name: Assert fluentd custom_config.conf exists
-      assert:
-        that: custom_fluentd_config.stat.exists
-
-    - name: Check td-agent.conf exists
-      ansible.windows.win_stat:
-        path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\td-agent.conf'
-        get_checksum: yes
-      register: td_agent_config
-
-    - name: Assert fluentd custom_config.conf is used
-      assert:
-        that: custom_fluentd_config.stat.checksum == td_agent_config.stat.checksum
 
     - name: Get IIS env vars
       ansible.windows.win_reg_stat:

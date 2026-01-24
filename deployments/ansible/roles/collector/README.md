@@ -37,7 +37,7 @@ how to use the role in a playbook with minimal required configuration:
 
 > **_NOTE:_**  Setting splunk_hec_token is optional.
 
-You can disable starting the collector and fluentd services by setting 
+You can disable starting the collector service by setting 
 the argument `start_service` to `false`:
 
 ```terminal
@@ -163,41 +163,13 @@ $> ansible-playbook playbook.yaml -e start_service=false
 
 #### Windows Proxy
 
-The collector and fluentd installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html),
+The collector installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html),
 which allows setting up a proxy to download the collector binaries.
 
 - `win_proxy_url` (Windows only): An explicit proxy to use for the request. By default, the request will use the IE defined proxy unless `win_use_proxy` is set to `no`. (**default:** ``)
 - `win_use_proxy` (Windows only): If set to `no`, it will not use the proxy defined in IE for the current user. (**default:** `no`)
 - `win_proxy_username` (Windows only): The username to use for proxy authentication. (**default:** ``)
 - `win_proxy_password` (Windows only): The password for `win_proxy_username`. (**default:** ``)
-
-### Fluentd
-
-> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
-> Please refer to [deprecation documentation](../../../../docs/deprecations/fluentd-support.md) for more information.
-
-- `install_fluentd`: Whether to install/manage fluentd and dependencies for log
-  collection. The dependencies include [capng_c](
-  https://github.com/fluent-plugins-nursery/capng_c) for enabling
-  [Linux capabilities](
-  https://docs.fluentd.org/deployment/linux-capability),
-  [fluent-plugin-systemd](
-  https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
-  journal log collection, and the required libraries/development tools.
-  (**default:** `false`)
-
-- `td_agent_version`: Version of td-agent (fluentd package) that will be 
-  installed (**default:** `4.3.2`)
-
-- `splunk_fluentd_config`: Path to the fluentd config file on the remote host.
-  (**default:** `/etc/otel/collector/fluentd/fluent.conf` on Linux, 
-  **default:** `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf` on Windows)
-
-- `splunk_fluentd_config_source`: Source path to a fluentd config file on your 
-  control host that will be uploaded and set in place of `splunk_fluentd_config` on
-  remote hosts. Can be used to submit a custom fluentd config,
-  e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
-  that nothing will be copied and existing `splunk_fluentd_config` will be used)
 
 ### Auto Instrumentation on Linux
 

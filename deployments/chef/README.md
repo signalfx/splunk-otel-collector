@@ -20,7 +20,7 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat: 8, 9
 - Oracle: 8, 9
 - Debian: 9, 10, 11
-- SUSE: 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
+- SUSE: 15
 - Ubuntu: 18.04, 20.04, 22.04
 
 ## Windows
@@ -152,38 +152,6 @@ required `splunk_access_token` attribute and some optional attributes:
   collector service. On Linux the value will be set to the `OTELCOL_OPTIONS` environment
   variable for the collector service. On Windows, this option is only supported
   by versions `>= 0.127.0` (**default:** `''`).
-
-### Fluentd
-
-> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
-> Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information.
-
-- `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
-  collection. On Linux, the dependencies include [capng_c](
-  https://github.com/fluent-plugins-nursery/capng_c) for enabling
-  [Linux capabilities](https://docs.fluentd.org/deployment/linux-capability),
-  [fluent-plugin-systemd](
-  https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
-  journal log collection, and the required libraries/development tools.
-  (**default:** `false`)
-
-- `fluentd_version`: Version of the [td-agent](
-  https://www.fluentd.org/download) (Fluentd) package to install (**default:**
-  `4.3.1` for all Linux distros and Windows)
-
-- `fluentd_config_source`: Source path to the Fluentd config file. This file
-  will be copied to the `fluentd_config_dest` path on the node. See the
-  [source attribute](https://docs.chef.io/resources/remote_file/) of the file
-  resource for supported value types. The default source file is provided by
-  the Collector package. Only applicable if `with_fluentd` is set to true.
-  (**default:** `/etc/otel/collector/fluentd/fluent.conf` on Linux, 
-  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf` on Windows)
-
-- `fluentd_config_dest` (Linux only): Destination path to the Fluentd config
-  file on the node. Only applicable if `with_fluentd` is set to `true`.
-  **Note**: On Windows, the path will always be set to
-  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`. (**default:**
-  `/etc/otel/collector/fluentd/fluent.conf`)
 
 ### Auto Instrumentation on Linux
 

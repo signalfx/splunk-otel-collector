@@ -40,10 +40,6 @@ if platform_family?('windows')
     action [:enable, :start]
   end
 
-  if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
-    Chef::Log.deprecation('Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
-    include_recipe 'splunk_otel_collector::fluentd_win_install'
-  end
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   if platform_family?('debian')
     package %w(apt-transport-https gnupg)
@@ -106,16 +102,6 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   service 'splunk-otel-collector' do
     service_name node['splunk_otel_collector']['service_name']
     action [:enable, :start]
-  end
-
-  if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
-    if platform_family?('debian') && node['platform_version'].to_i < 12
-      include_recipe 'splunk_otel_collector::fluentd_deb_repo'
-      include_recipe 'splunk_otel_collector::fluentd_linux_install'
-    elsif platform_family?('rhel', 'amazon')
-      include_recipe 'splunk_otel_collector::fluentd_yum_repo'
-      include_recipe 'splunk_otel_collector::fluentd_linux_install'
-    end
   end
 
   if node['splunk_otel_collector']['with_auto_instrumentation'].to_s.downcase == 'true'

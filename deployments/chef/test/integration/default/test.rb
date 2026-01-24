@@ -36,10 +36,6 @@ if os[:family] == 'windows'
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
-  describe service('fluentdwinsvc') do
-    it { should_not be_enabled }
-    it { should_not be_running }
-  end
 else
   bundle_dir = '/usr/lib/splunk-otel-collector/agent-bundle'
   collectd_dir = "#{bundle_dir}/run/collectd"

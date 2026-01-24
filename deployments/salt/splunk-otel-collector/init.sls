@@ -15,26 +15,14 @@ Check splunk_realm:
     - failhard: True
 {% endif %}
 
-{% set install_fluentd = salt['pillar.get']('splunk-otel-collector:install_fluentd', False) | to_bool %}
 {% set install_auto_instrumentation = salt['pillar.get']('splunk-otel-collector:install_auto_instrumentation', False) | to_bool %}
 
 include:
-{% if grains['os_family'] == 'Suse' or install_fluentd == False or (grains['os'] == 'Amazon' and grains['osrelease'] == '2023') %}
   - splunk-otel-collector.install
   - splunk-otel-collector.service_owner
   - splunk-otel-collector.config
   - splunk-otel-collector.collector_config
   - splunk-otel-collector.service
-{% elif install_fluentd == True %}
-  - splunk-otel-collector.install
-  - splunk-otel-collector.service_owner
-  - splunk-otel-collector.config
-  - splunk-otel-collector.collector_config
-  - splunk-otel-collector.service
-  - splunk-otel-collector.fluentd
-  - splunk-otel-collector.fluentd_config
-  - splunk-otel-collector.fluentd_service
-{% endif %}
 {% if install_auto_instrumentation %}
   - splunk-otel-collector.auto_instrumentation
 {% endif %}

@@ -35,7 +35,6 @@ splunk_memory_total_mib: "512"
 gomemlimit: ""
 
 splunk_listen_interface: ""
-install_fluentd: false
 # Whether to start the services installed by the role (splunk-otel-collector and td-agent).
 start_service: true
 
@@ -45,11 +44,6 @@ splunk_skip_repo: false
 # Explicitly set version of td-agent,
 # By default: 4.3.2
 td_agent_version: ""
-
-# Default path on Linux: "/etc/otel/collector/fluentd/fluent.conf".
-# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf".
-splunk_fluentd_config: ""
-splunk_fluentd_config_source: ""
 
 # Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle".
 # Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle".

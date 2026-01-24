@@ -23,14 +23,6 @@ class splunk_otel_collector (
   $service_group           = 'splunk-otel-collector',  # linux only
   $apt_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg',
   $yum_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub',
-  $with_fluentd            = false,
-  $fluentd_repo_base       = $splunk_otel_collector::params::fluentd_base_url,
-  $fluentd_gpg_key         = 'https://packages.treasuredata.com/GPG-KEY-td-agent',
-  $fluentd_version         = $splunk_otel_collector::params::fluentd_version,
-  $fluentd_config_source   = $splunk_otel_collector::params::fluentd_config_source,
-  $fluentd_config_dest     = $splunk_otel_collector::params::fluentd_config_dest,
-  $fluentd_capng_c_version = '<=0.2.2',  # linux only
-  $fluentd_systemd_version = '<=1.0.2',  # linux only
   $gomemlimit              = '',
   $manage_repo             = true,  # linux only
   $with_auto_instrumentation                = false,  # linux only
@@ -65,29 +57,12 @@ class splunk_otel_collector (
     if empty($collector_version) {
       fail('The $collector_version parameter is required for Windows')
     }
-    if $with_fluentd and empty($fluentd_version) {
-      fail('The $fluentd_version parameter is required for Windows')
-    }
   }
 
   $collector_service_name = 'splunk-otel-collector'
   $collector_package_name = $facts['os']['family'] ? {
     'windows' => 'Splunk OpenTelemetry Collector',
     default   => $collector_service_name,
-  }
-  $fluentd_service_name = $facts['os']['family'] ? {
-    'windows' => 'fluentdwinsvc',
-    default   => 'td-agent',
-  }
-  $fluentd_package_name = $facts['os']['family'] ? {
-    'windows' => "Td-agent v${fluentd_version}",
-    default   => $fluentd_service_name,
-  }
-
-  if $facts['os']['family'] == 'suse' or ('amazon' in downcase($facts['os']['name']) and $facts['os']['release']['major'] == '2023') {
-    $install_fluentd = false
-  } else {
-    $install_fluentd = $with_fluentd
   }
 
   case $facts['os']['family'] {
@@ -214,164 +189,6 @@ class splunk_otel_collector (
       ensure    => true,
       enable    => true,
       subscribe => [Class['splunk_otel_collector::collector_win_registry'], File[$collector_config_dest]],
-    }
-  }
-
-  if $install_fluentd {
-    deprecation('with_fluentd', 'Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
-
-    case $facts['os']['family'] {
-      'debian': {
-        package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:
-          ensure  => 'installed',
-          require => Exec['apt_update'],
-        }
-        class { 'splunk_otel_collector::fluentd_debian_repo':
-          repo_url    => $fluentd_repo_base,
-          gpg_key_url => $fluentd_gpg_key,
-          version     => $fluentd_version,
-          manage_repo => $manage_repo,
-        }
-        -> package { $fluentd_package_name:
-          ensure  => $fluentd_version,
-          require => Exec['apt_update'],
-        }
-        package { 'capng_c':
-          ensure   => $fluentd_capng_c_version,
-          provider => gem,
-          command  => '/usr/sbin/td-agent-gem',
-          require  => Package[$fluentd_package_name, 'build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config'],
-        }
-        package { 'fluent-plugin-systemd':
-          ensure   => $fluentd_systemd_version,
-          provider => gem,
-          command  => '/usr/sbin/td-agent-gem',
-          require  => Package[$fluentd_package_name, 'build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config'],
-        }
-      }
-      'redhat': {
-        class { 'splunk_otel_collector::fluentd_yum_repo':
-          repo_url    => $fluentd_repo_base,
-          gpg_key_url => $fluentd_gpg_key,
-          version     => $fluentd_version,
-          manage_repo => $manage_repo,
-        }
-        -> package { $fluentd_package_name:
-          ensure => $fluentd_version,
-        }
-        yum::group { 'Development Tools':
-          ensure => 'present',
-        }
-        package { ['libcap-ng', 'libcap-ng-devel', 'pkgconfig']:
-          ensure => 'installed',
-        }
-        package { 'capng_c':
-          ensure   => $fluentd_capng_c_version,
-          provider => gem,
-          command  => '/usr/sbin/td-agent-gem',
-          require  => [Package[$fluentd_package_name, 'libcap-ng', 'libcap-ng-devel', 'pkgconfig'],
-            Yum::Group['Development Tools']],
-        }
-        package { 'fluent-plugin-systemd':
-          ensure   => $fluentd_systemd_version,
-          provider => gem,
-          command  => '/usr/sbin/td-agent-gem',
-          require  => [Package[$fluentd_package_name, 'libcap-ng', 'libcap-ng-devel', 'pkgconfig'],
-            Yum::Group['Development Tools']],
-        }
-      }
-      'windows': {
-        class { 'splunk_otel_collector::fluentd_win_install':
-          repo_base    => $fluentd_repo_base,
-          version      => $fluentd_version,
-          package_name => $fluentd_package_name,
-          service_name => $fluentd_service_name,
-        }
-      }
-      default: {
-        fail("Your OS (${facts['os']['family']}) is not supported by the Splunk OpenTelemetry Collector")
-      }
-    }
-
-    if $facts['os']['family'] != 'windows' {
-      $fluentd_config_dir = $fluentd_config_dest.split('/')[0, - 2].join('/')
-      $fluentd_config_override = '/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf'
-      $fluentd_config_override_dir= $fluentd_config_override.split('/')[0, - 2].join('/')
-
-      exec { 'create fluentd config directory':
-        command => "mkdir -p ${fluentd_config_dir}",
-        path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
-        unless  => "test -d ${fluentd_config_dir}",
-      }
-
-      -> file { $fluentd_config_dest:
-        source  => $fluentd_config_source,
-        require => Package[$collector_package_name],
-      }
-
-      file { $fluentd_config_override_dir:
-        ensure => 'directory',
-      }
-
-      -> file { $fluentd_config_override:
-        content => @("EOH")
-          [Service]
-          Environment=FLUENT_CONF=${fluentd_config_dest}
-          | EOH
-        ,
-        require => File[$fluentd_config_dest],
-        notify  => Exec['systemctl daemon-reload'],
-      }
-
-      # enable linux capabilities for fluentd
-      exec { 'fluent-cap-ctl':
-        command => '/opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby',
-        path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
-        require => Package['capng_c'],
-        onlyif  => 'test -f /opt/td-agent/bin/fluent-cap-ctl',
-      }
-
-      -> service { $fluentd_service_name:
-        ensure    => true,
-        enable    => true,
-        require   => [Package[$fluentd_package_name, 'fluent-plugin-systemd'], Service[$collector_service_name]],
-        subscribe => File[$fluentd_config_dest, $fluentd_config_override],
-      }
-    } else {
-      $collector_install_dir = "${facts['win_programfiles']}\\Splunk\\OpenTelemetry Collector"
-      $td_agent_config_dir = "${facts['win_systemdrive']}\\opt\\td-agent\\etc\\td-agent"
-      $td_agent_config_dest = "${td_agent_config_dir}\\td-agent.conf"
-
-      file { $td_agent_config_dest:
-        source  => $fluentd_config_source,
-        require => Class['splunk_otel_collector::collector_win_install', 'splunk_otel_collector::fluentd_win_install'],
-      }
-
-      file { "${td_agent_config_dir}\\conf.d":
-        ensure  => 'directory',
-        source  => "${collector_install_dir}\\fluentd\\conf.d",
-        recurse => true,
-        require => Class['splunk_otel_collector::collector_win_install', 'splunk_otel_collector::fluentd_win_install'],
-      }
-
-      exec { "Stop ${fluentd_service_name}":
-        command     => "Stop-Service -Name \'${fluentd_service_name}\'",
-        # lint:ignore:140chars
-        onlyif      => "((Get-CimInstance -ClassName win32_service -Filter 'Name = \'${fluentd_service_name}\'' | Select Name, State).Name)",
-        # lint:endignore
-        provider    => 'powershell',
-        subscribe   => [
-          Class['splunk_otel_collector::fluentd_win_install'],
-          File[$td_agent_config_dest, "${td_agent_config_dir}\\conf.d"]
-        ],
-        refreshonly => true,
-      }
-
-      ~> service { $fluentd_service_name:
-        ensure  => true,
-        enable  => true,
-        require => [Class['splunk_otel_collector::fluentd_win_install'], Service[$collector_service_name]],
-      }
     }
   }
 

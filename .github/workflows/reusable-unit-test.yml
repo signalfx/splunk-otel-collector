@@ -20,6 +20,11 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
+      - name: Disable CGO_ENABLED on macos-14
+        if: ${{ inputs.OS == 'macos-14' }}
+        run: |
+          go env -w CGO_ENABLED=0
+
       - name: bundle.d
         run: |
           make bundle.d

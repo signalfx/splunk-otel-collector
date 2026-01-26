@@ -63,10 +63,6 @@
   when: splunk_otel_collector_config_source != ''
   notify: "restart splunk-otel-collector"
 
-- name: Install FluentD
-  ansible.builtin.import_tasks: linux_install_fluentd.yml
-  when: install_fluentd and fluentd_supported
-
 - name: Install Splunk OpenTelemetry Auto Instrumentation
   ansible.builtin.import_tasks: linux_auto_instrumentation.yml
   when: install_splunk_otel_auto_instrumentation

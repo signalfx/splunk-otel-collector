@@ -20,17 +20,6 @@
       check_mode: yes
       register: service_status
 
-    - name: Check fluentdwinsvc service
-      ansible.windows.win_service:
-        name: fluentdwinsvc
-        state: absent
-      check_mode: yes
-      register: service_status
-
-    - name: Assert fluentdwinsvc service does not exist
-      assert:
-        that: not service_status.exists
-
     - name: Get splunk-otel-collector service env vars
       ansible.windows.win_reg_stat:
         path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector

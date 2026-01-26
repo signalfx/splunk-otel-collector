@@ -192,7 +192,6 @@ def test_salt_default(distro):
             run_salt_apply(container, DEFAULT_CONFIG)
             verify_env_file(container)
             assert wait_for(lambda: service_is_running(container))
-            assert container.exec_run("systemctl status td-agent").exit_code != 0
             if distro in DEB_DISTROS:
                 assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code != 0
             else:
@@ -250,10 +249,6 @@ def test_salt_custom(distro):
             assert wait_for(lambda: service_is_running(container, service_owner="test-user"))
             _, owner = run_container_cmd(container, f"stat -c '%U:%G' {SPLUNK_ENV_PATH}")
             assert owner.decode("utf-8").strip() == "test-user:test-user"
-            if "opensuse" not in distro and distro != "amazonlinux-2023":
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
-                _, owner = run_container_cmd(container, f"stat -c '%U:%G' {CONFIG_DIR}/fluentd/fluent.conf")
-                assert owner.decode("utf-8").strip() == "td-agent:td-agent"
             if distro in DEB_DISTROS:
                 assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code != 0
             else:
@@ -295,7 +290,6 @@ def test_salt_default_instrumentation(distro, version, with_systemd):
         run_salt_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
-        assert container.exec_run("systemctl status td-agent").exit_code != 0
         resource_attributes = rf"splunk.zc.method=splunk-otel-auto-instrumentation-{version}"
         if with_systemd:
             resource_attributes = rf"{resource_attributes}-systemd"
@@ -400,7 +394,6 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
         run_salt_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
-        assert container.exec_run("systemctl status td-agent").exit_code != 0
         resource_attributes = rf"splunk.zc.method=splunk-otel-auto-instrumentation-{version}"
         if with_systemd:
             resource_attributes = rf"{resource_attributes}-systemd"

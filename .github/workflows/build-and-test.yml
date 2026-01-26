@@ -91,6 +91,7 @@ jobs:
         shell: bash
 
   test:
+    name: test
     strategy:
       matrix:
         OS: [ "ubuntu-24.04", "macos-14", "macos-15" ]

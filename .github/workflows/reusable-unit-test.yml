@@ -18,7 +18,6 @@ env:
 
 jobs:
   unit-test:
-    name: unit-test-${{ inputs.OS }}-race_detection:${{ inputs.TEST_RACE }}-coverage:${{ inputs.COVERAGE }}
     runs-on: ${{ inputs.OS }}
     steps:
       - uses: actions/checkout@v5

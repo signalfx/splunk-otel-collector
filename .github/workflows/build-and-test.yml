@@ -91,7 +91,7 @@ jobs:
         shell: bash
 
   test:
-    name: test
+    name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE }}
     strategy:
       matrix:
         OS: [ "ubuntu-24.04", "macos-14", "macos-15" ]

@@ -208,7 +208,7 @@ jobs:
       - name: Save the multiarch image archive to be loaded by downstream jobs
         run: mkdir -p docker-otelcol && docker save -o ./docker-otelcol/image.tar otelcol:latest
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: otelcol
           path: ./docker-otelcol

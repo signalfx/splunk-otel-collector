@@ -52,6 +52,20 @@ copy_lib_and_links() {
 }
 
 libs="$(find_deps $binary_paths)"
+# Add missing journalctl libraries needed after upgrading to debian 13
+if echo "$binary_paths" | grep -q "journalctl"; then
+  echo "Detected journalctl in binary_paths, adding additional libraries..."
+  for extra_lib in liblzma.so.5 liblz4.so.1; do
+    extra_lib_path=$(ldconfig -p | grep -m1 "$extra_lib" | awk '{print $NF}')
+    if [[ -n "$extra_lib_path" && -e "$extra_lib_path" ]]; then
+      libs="$libs $extra_lib_path"
+      echo "Added $extra_lib_path for journalctl"
+    else
+      echo "Warning: Could not find $extra_lib" >&2
+    fi
+  done
+fi
+
 transitive_libs="$(find_deps $libs)"
 
 for lib in $libs $transitive_libs

@@ -5,7 +5,7 @@ splunk_access_token = <value>
 * Default =
 
 splunk_api_url = <value>
-* Optional, specifies the Splunk Observability API endpoint 
+* Optional, specifies the Splunk Observability API endpoint
 * Default = https://api.us0.signalfx.com
 
 splunk_ingest_url = <value>
@@ -13,7 +13,7 @@ splunk_ingest_url = <value>
 * Default = https://ingest.us0.signalfx.com
 
 splunk_listen_interface = <value>
-* Optional, address for the listening interfaces open by the Splunk_TA_OTel_Collector
+* Optional, address for the listening interfaces opened by the Splunk_TA_OTel_Collector
 * Default = localhost
 
 splunk_realm = <value>

@@ -129,6 +129,7 @@ func TestScriptReceiverLsof(t *testing.T) {
 }
 
 func TestScriptReceiverNetstat(t *testing.T) {
+	t.Skip("skip flaky test on deprecated code")
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()

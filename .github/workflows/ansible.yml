@@ -113,6 +113,7 @@ jobs:
           python_version: "3.14"
           requirements_file: "galaxy.yml"
           setup_python: "false"
+          working_directory: "deployments/ansible"
 
   linux-test:
     name: Linux Test

@@ -17,6 +17,7 @@
 package msi
 
 import (
+	"bufio"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +31,8 @@ import (
 	"golang.org/x/sys/windows/registry"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
 // Test structure for MSI installation tests
@@ -161,13 +164,27 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 	// see https://pkg.go.dev/os/exec#Command, so we need to join the args manually.
 	cmdLine := strings.Join(args, " ")
 	installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec " + cmdLine}
+	t.Logf("Install command: %s", installCmd.SysProcAttr.CmdLine)
 	err := installCmd.Run()
 	if err != nil {
-		logText, _ := os.ReadFile(installLogFile)
-		t.Log(string(logText))
+		// Log file is in UTF16 use the proper encoding to get a nice rendering on GH logs
+		logFile, errLog := os.Open(installLogFile)
+		if errLog != nil {
+			t.Logf("Failed to open install log file: %v", errLog)
+		} else {
+			defer logFile.Close()
+			scanner := bufio.NewScanner(transform.NewReader(
+				logFile,
+				unicode.UTF16(unicode.LittleEndian, unicode.UseBOM).NewDecoder()))
+			for scanner.Scan() {
+				t.Log(scanner.Text())
+			}
+			if err := scanner.Err(); err != nil {
+				t.Logf("Error reading install log file: %v", err)
+			}
+		}
+		require.Failf(t, "MSI installation failed", "Failed to install the MSI: %v\nArgs: %v", err, args)
 	}
-	t.Logf("Install command: %s", installCmd.SysProcAttr.CmdLine)
-	require.NoError(t, err, "Failed to install the MSI: %v\nArgs: %v", err, args)
 
 	if !test.skipUninstall {
 		defer func() {

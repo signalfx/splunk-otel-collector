@@ -9,6 +9,9 @@ on:
       COVERAGE:
         required: false
         type: boolean
+      TEST_RACE:
+        required: false
+        type: boolean
 
 env:
   GO_VERSION: 1.25.5
@@ -20,7 +23,17 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
-      - run: go env -w CGO_ENABLED=0
+      - name: Set CGO_ENABLED
+        # Currently, CGO enabled is required for:
+        # - race detection on non-macOS systems
+        run: |
+          if [[ "${{ inputs.OS }}" =~ ^mac ]] || [[ "${{ inputs.TEST_RACE }}" == "false" ]]; then
+            echo "Disabling CGO"
+            go env -w CGO_ENABLED=0
+          else
+            echo "Enabling CGO"
+            go env -w CGO_ENABLED=1
+          fi
 
       - name: bundle.d
         run: |
@@ -33,16 +46,17 @@ jobs:
       - name: Unit tests
         run: |
           set -o pipefail
-          mkdir -p unit-test-results-${{ inputs.OS }}/junit
-          trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
-
+          export ENABLE_RACE_DETECTOR=${{ inputs.TEST_RACE }}
           if ${{ inputs.COVERAGE }}; then
-            COVER_TESTING=true make gotest-cover-without-race | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
+            mkdir -p unit-test-results-${{ inputs.OS }}/junit
+            trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
+            COVER_TESTING=true make gotest-with-codecov | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           else
-            make test-all | tee unit-test-results/go-unit-tests.out
+            make test-all
           fi
 
       - name: Uploading artifacts
+        if: ${{ inputs.COVERAGE }}
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-results-${{ inputs.OS }}

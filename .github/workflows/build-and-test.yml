@@ -91,14 +91,16 @@ jobs:
         shell: bash
 
   test:
-    name: unit-test
+    name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE }}
     strategy:
       matrix:
         OS: [ "ubuntu-24.04", "macos-14", "macos-15" ]
+        TEST_RACE: [ true, false ]
     uses: ./.github/workflows/reusable-unit-test.yml
     with:
       OS: ${{ matrix.OS }}
-      COVERAGE: true
+      COVERAGE: ${{ !matrix.TEST_RACE }} # No coverage when running with race
+      TEST_RACE: ${{ matrix.TEST_RACE }}
     secrets: inherit
 
   coverage:

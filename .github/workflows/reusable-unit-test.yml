@@ -24,7 +24,12 @@ jobs:
       - uses: ./.github/actions/setup-environment
 
       - name: Disable CGO_ENABLED whenever possible
-        if: ${{ !startsWith(inputs.OS, 'ubuntu') && inputs.TEST_RACE }}
+        # By default, CGO is enabled for native builds on systems where a C
+        # compiler is expected to work, and disabled when cross-compiling.
+        # So we want to explicitly disable it whenever possible.
+        # Currently, CGO enabled is required for:
+        # - ubuntu with race detector
+        if: ${{ !startsWith(inputs.OS, 'ubuntu') || inputs.TEST_RACE }}
         run: |
           go env -w CGO_ENABLED=0
 

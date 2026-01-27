@@ -39,11 +39,10 @@ jobs:
       - name: Unit tests
         run: |
           set -o pipefail
-          mkdir -p unit-test-results-${{ inputs.OS }}/junit
-          trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
-
           export ENABLE_RACE_DETECTOR=${{ inputs.TEST_RACE }}
           if ${{ inputs.COVERAGE }}; then
+          mkdir -p unit-test-results-${{ inputs.OS }}/junit
+          trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
             COVER_TESTING=true make gotest-with-codecov | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           else
             make test-all

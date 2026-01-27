@@ -111,7 +111,7 @@ jobs:
         # optional (see below):
         with:
           python_version: "3.14"
-          requirements_file: "galaxy.yml"
+          requirements_file: "molecule/requirements.yml"
           setup_python: "false"
           working_directory: "deployments/ansible"
 

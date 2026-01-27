@@ -33,10 +33,9 @@ jobs:
       - name: Unit tests
         run: |
           set -o pipefail
-          mkdir -p unit-test-results-${{ inputs.OS }}/junit
-          trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
-
           if ${{ inputs.COVERAGE }}; then
+            mkdir -p unit-test-results-${{ inputs.OS }}/junit
+            trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
             COVER_TESTING=true make gotest-cover-without-race | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           else
             make test-all | tee unit-test-results/go-unit-tests.out

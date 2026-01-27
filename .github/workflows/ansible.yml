@@ -111,7 +111,7 @@ jobs:
         # optional (see below):
         with:
           python_version: "3.14"
-          requirements_file: ""
+          requirements_file: "galaxy.yml"
           setup_python: "false"
 
   linux-test:

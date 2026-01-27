@@ -46,7 +46,7 @@ jobs:
           if ${{ inputs.COVERAGE }}; then
             COVER_TESTING=true make gotest-with-codecov | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           else
-            make test-all | tee unit-test-results/go-unit-tests.out
+            make test-all | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           fi
 
       - name: Uploading artifacts

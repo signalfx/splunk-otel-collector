@@ -111,7 +111,8 @@ jobs:
         # optional (see below):
         with:
           python_version: "3.14"
-          requirements_file: "requirements.txt"
+          requirements_file: ""
+          setup_python: "false"
 
   linux-test:
     name: Linux Test

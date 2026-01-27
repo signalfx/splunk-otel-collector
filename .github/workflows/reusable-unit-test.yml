@@ -27,7 +27,7 @@ jobs:
         # Currently, CGO enabled is required for:
         # - race detection on non-macOS systems
         run: |
-          if [ "${{ inputs.OS }}" =~ ^mac ] || [ "${{ inputs.TEST_RACE }}" == "false" ]; then
+          if [[ "${{ inputs.OS }}" =~ ^mac ]] || [[ "${{ inputs.TEST_RACE }}" == "false" ]]; then
             echo "Disabling CGO"
             go env -w CGO_ENABLED=0
           else

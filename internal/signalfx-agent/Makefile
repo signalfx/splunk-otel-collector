@@ -2,11 +2,18 @@
 
 NUM_CORES ?= $(shell getconf _NPROCESSORS_ONLN)
 
+# Used to control whether race detection is enabled for tests
+ENABLE_RACE_DETECTOR?=true
+
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GOCMD?= go
 GOTEST=$(GOCMD) test
 GO_BUILD_TAGS?=""
+ifeq ($(ENABLE_RACE_DETECTOR),true)
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+else
+GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+endif
 
 # COVER_PKGS is the list of packages to include in the coverage
 COVER_PKGS := $(shell $(GOCMD) list ./... | tr "\n" ",")

@@ -114,7 +114,7 @@ jobs:
       - name: Run the MSI tests
         working-directory: tests/msi
         run: |
-          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
+          go test --tags=msi -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
 
   windows-install-script-test:
     runs-on: ${{ matrix.OS }}
@@ -205,7 +205,7 @@ jobs:
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
         working-directory: tests/windows-install-script
         run: |
-          go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
+          go test -v --tags=msi github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 
   choco-build:
     runs-on: ${{ matrix.OS }}

@@ -11,8 +11,9 @@ runs:
         cache-dependency-path: '**/go.sum'
 
     - name: Installing required tools
+      working-directory: ${{ github.workspace }}
       run: |
-        cd ${{github.workspace}} && make install-tools
+        make install-tools
       shell: bash
 
     - name: Run free-disk-space.sh

@@ -167,9 +167,6 @@ def verify_support_bundle(container):
     assert container_file_exists(container, "/tmp/splunk-support-bundle/config/agent_config.yaml")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/splunk-otel-collector.log")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/splunk-otel-collector.txt")
-    if container_file_exists(container, "/etc/otel/collector/fluentd/fluent.conf"):
-        assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/td-agent.log")
-        assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/td-agent.txt")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/collector-metrics.txt")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/df.txt")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/free.txt")
@@ -195,18 +192,6 @@ def verify_uninstall(container, distro):
     if container_file_exists(container, NODE_PACKAGE_PATH):
         # verify splunk-otel-js was uninstalled
         assert not node_package_installed(container)
-
-
-def fluentd_supported(distro, arch):
-    if "opensuse" in distro:
-        return False
-    elif distro == "amazonlinux-2023":
-        return False
-    elif distro == "debian-bookworm":
-        return False
-    elif distro == "ubuntu-noble":
-        return False
-    return True
 
 
 @pytest.mark.installer
@@ -265,7 +250,6 @@ def test_installer_custom(distro, arch):
 
     install_cmd = " ".join((
         get_installer_cmd(),
-        "--with-fluentd",
         "--listen-interface 10.0.0.1",
         "--memory 256",
         f"--service-user {service_owner} --service-group {service_owner}",
@@ -303,19 +287,10 @@ def test_installer_custom(distro, arch):
             config_owner = container.exec_run("stat -c '%U:%G' /etc/otel").output.decode("utf-8")
             assert config_owner.strip() == f"{service_owner}:{service_owner}"
 
-            if fluentd_supported(distro, arch):
-                assert package_is_installed(container, distro, "td-agent"), "td-agent was not installed"
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
-
             verify_uninstall(container, distro)
 
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            if fluentd_supported(distro, arch):
-                run_container_cmd(container, "journalctl -u td-agent --no-pager")
-                if container_file_exists(container, "/var/log/td-agent/td-agent.log"):
-                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
-
 
 def get_instrumentation_dockerfile(distro):
     if distro in INSTR_DEB_DISTROS:

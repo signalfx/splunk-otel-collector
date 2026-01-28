@@ -16,6 +16,7 @@ tags:
   - collector
   - logs
   - metrics
+  - monitoring
   - o11y
   - observability
   - opentelemetry

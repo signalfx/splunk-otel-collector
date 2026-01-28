@@ -18,4 +18,4 @@ processors:
     detectors: [ system ]
 exporters:
   otlp_grpc: ${include:./testdata/exporter_component}
-service: ${include:./testdata/service_template_component?my_receivers=[hostmetrics]&my_processors=[resourcedetection]&my_exporters=[otlp]}
+service: ${include:./testdata/service_template_component?my_receivers=[hostmetrics]&my_processors=[resourcedetection]&my_exporters=[otlp_grpc]}

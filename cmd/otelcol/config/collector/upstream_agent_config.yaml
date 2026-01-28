@@ -157,7 +157,7 @@ exporters:
     endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
     log_data_enabled: false
   # Send to gateway
-  otlp/gateway:
+  otlp_grpc/gateway:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
@@ -180,21 +180,21 @@ service:
       #- resource/add_environment
       exporters: [otlp_http, signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway, signalfx]
+      #exporters: [otlp_grpc/gateway, signalfx]
     # Required for Splunk Infrastructure Monitoring
     metrics:
       receivers: [hostmetrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]
     # Required for Splunk APM and/or Infrastructure Monitoring
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]
     logs/entities:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
@@ -210,4 +210,4 @@ service:
       #- resource/add_environment
       exporters: [splunk_hec/profiling]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]

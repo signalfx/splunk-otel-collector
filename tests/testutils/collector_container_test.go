@@ -108,12 +108,15 @@ func TestStartAndShutdownInvalidWithoutBuildingContainer(t *testing.T) {
 }
 
 func TestCollectorContainerWithInvalidImage(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on Windows: differences in docker daemon behavior")
+	}
 	collector, err := NewCollectorContainer().WithImage("&%notanimage%&:latest").Build()
 	require.NotNil(t, collector)
 	require.NoError(t, err)
 
 	err = collector.Start()
-	if strings.Contains(err.Error(), "rootless Docker not found") || strings.Contains(err.Error(), "rootless docker is not supported on windows") {
+	if strings.Contains(err.Error(), "rootless Docker not found") {
 		t.Skip("Skipping test because it requires docker to be installed and running")
 	}
 	require.Equal(t, "create container: build image: invalid reference format", strings.ToLower(err.Error()))

@@ -16,6 +16,7 @@ package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"context"
+	"go.opentelemetry.io/collector/config/confignet"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
@@ -46,7 +47,9 @@ func createMetricsReceiver(
 func createDefaultConfig() component.Config {
 	return &Config{
 		ServerConfig: confighttp.ServerConfig{
-			Endpoint: "localhost:19291", // While not IANA registered, convention is 19291 as a common PRW port
+			NetAddr: confignet.AddrConfig{
+				Endpoint: "localhost:19291", // While not IANA registered, convention is 19291 as a common PRW port
+			},
 		},
 		ListenPath: "/metrics",
 		BufferSize: 100,

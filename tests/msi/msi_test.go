@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build windows && !arm64
+//go:build windows && msi
 
 package msi
 

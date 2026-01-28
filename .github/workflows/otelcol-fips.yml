@@ -42,7 +42,7 @@ jobs:
       # Building FIPs is flaky due to out of space issues.
       - name: Free up disk space for next step
         uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
@@ -91,7 +91,7 @@ jobs:
         ARCH: [ amd64, arm64 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
@@ -140,7 +140,7 @@ jobs:
         WIN_VERSION: [ 2022, 2025 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@v5

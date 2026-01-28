@@ -152,13 +152,17 @@ func TestDefaultComponents(t *testing.T) {
 		"kafka",
 		"loadbalancing",
 		"nop",
-		"otlp",
-		"otlphttp",
+		"otlp_grpc",
+		"otlp_http",
 		"prometheusremotewrite",
 		"pulsar",
 		"sapm",
 		"signalfx",
 		"splunk_hec",
+	}
+	expectedExporterAliases := map[string]string{
+		"otlp":     "otlp_grpc",
+		"otlphttp": "otlp_http",
 	}
 	expectedConnectors := []string{
 		"count",
@@ -197,11 +201,16 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	exps := factories.Exporters
-	assert.Len(t, exps, len(expectedExporters))
+	assert.Len(t, exps, len(expectedExporters)+len(expectedExporterAliases))
 	for _, k := range expectedExporters {
 		v, ok := exps[component.MustNewType(k)]
 		require.True(t, ok)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedExporterAliases {
+		v, ok := exps[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected exporter alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	conns := factories.Connectors

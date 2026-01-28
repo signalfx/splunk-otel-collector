@@ -83,7 +83,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -117,7 +117,7 @@ service:
         - batch
         - resourcedetection
         #- resource/add_environment
-      exporters: [otlphttp, signalfx]
+      exporters: [otlp_http, signalfx]
     metrics:
       receivers: [otlp, prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]

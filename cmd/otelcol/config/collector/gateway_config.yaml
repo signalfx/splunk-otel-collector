@@ -105,7 +105,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     sending_queue:
       num_consumers: 32
@@ -139,7 +139,7 @@ exporters:
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
   # To send entities (applicable only if discovery mode is enabled)
-  otlphttp/entities:
+  otlp_http/entities:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -164,7 +164,7 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [otlphttp]
+      exporters: [otlp_http]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
@@ -180,7 +180,7 @@ service:
     logs/entities:
       receivers: [routing/logs]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/entities]
+      exporters: [otlp_http/entities]
     logs/split:
       receivers: [otlp]
       exporters: [routing/logs]

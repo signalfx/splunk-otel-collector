@@ -58,7 +58,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			config := collector.EffectiveConfig(t)
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
-					"otlphttp": map[string]any{
+					"otlp_http": map[string]any{
 						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
 						"sending_queue": map[string]any{
 							"num_consumers": 32,
@@ -94,7 +94,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
-					"otlphttp/entities": map[string]any{
+					"otlp_http/entities": map[string]any{
 						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
@@ -230,7 +230,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"receivers":  []any{"routing/logs"},
 						},
 						"logs/entities": map[string]any{
-							"exporters":  []any{"otlphttp/entities"},
+							"exporters":  []any{"otlp_http/entities"},
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"routing/logs"},
 						},
@@ -249,7 +249,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"otlphttp"},
+							"exporters":  []any{"otlp_http"},
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},
@@ -305,7 +305,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"authenticator": "<redacted>",
 						},
 					},
-					"otlphttp": map[string]any{
+					"otlp_http": map[string]any{
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
@@ -333,7 +333,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
-					"otlphttp/entities": map[string]any{
+					"otlp_http/entities": map[string]any{
 						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
@@ -481,14 +481,14 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"otlphttp", "signalfx"},
+							"exporters":  []any{"otlp_http", "signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},
 						"logs/entities": map[string]any{
 							"receivers":  []any{"nop"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"exporters":  []any{"otlphttp/entities"},
+							"exporters":  []any{"otlp_http/entities"},
 						},
 					},
 				},

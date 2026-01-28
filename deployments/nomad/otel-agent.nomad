@@ -196,7 +196,7 @@ exporters:
     sync_host_metadata: true
   debug:
     verbosity: detailed
-  otlphttp:
+  otlp_http:
     traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -228,7 +228,7 @@ service:
     traces:
       exporters:
       - debug
-      - otlphttp
+      - otlp_http
       - signalfx
       processors:
       - memory_limiter

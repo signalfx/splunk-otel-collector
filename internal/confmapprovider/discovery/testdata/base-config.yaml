@@ -1,9 +1,9 @@
 exporters:
-  otlphttp/entities:
+  otlp_http/entities:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 service:
   pipelines:
     logs/entities:
-      exporters: [otlphttp/entities]
+      exporters: [otlp_http/entities]

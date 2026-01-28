@@ -127,7 +127,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -144,7 +144,7 @@ exporters:
     sync_host_metadata: true
     correlation:
   # Entities (applicable only if discovery mode is enabled)
-  otlphttp/entities:
+  otlp_http/entities:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
     # Use instead when sending to gateway
     # endpoint: http://${SPLUNK_GATEWAY_URL}:4318
@@ -178,7 +178,7 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlphttp, signalfx]
+      exporters: [otlp_http, signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp/gateway, signalfx]
     # Required for Splunk Infrastructure Monitoring
@@ -199,7 +199,7 @@ service:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [otlphttp/entities]
+      exporters: [otlp_http/entities]
     # Required for profiling
     logs:
       receivers: [otlp]

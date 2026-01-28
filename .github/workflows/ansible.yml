@@ -106,6 +106,15 @@ jobs:
       - name: Lint code.
         run: yamllint .
 
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v26.1.1
+        # optional (see below):
+        with:
+          python_version: "3.14"
+          requirements_file: "requirements.yml"
+          setup_python: "false"
+          working_directory: "deployments/ansible"
+
   linux-test:
     name: Linux Test
     needs: [ lint, build-package ]

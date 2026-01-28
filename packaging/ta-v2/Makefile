@@ -33,8 +33,9 @@ ifneq ($(TA_TARGET_OS),)
 		echo "Error: TA_TARGET_OS must be either empty, 'linux' or 'windows', got '$(TA_TARGET_OS)'"; \
 		exit 1; \
 	fi
+	@echo "Targeting $(TA_TARGET_OS) in a OS specific package ..."
 else
-	@echo "Targeting both Linux and Windows OSes ..."
+	@echo "Targeting both Linux and Windows in a single package ..."
 endif
 
 .PHONY: all-packages

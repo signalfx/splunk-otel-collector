@@ -1,4 +1,4 @@
-$splunkdLog = "C:/Program Files/SplunkUniversalForwarder/var/log/splunk/splunkd.log"
+$splunkdLog = "C:\Program Files\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
 
 Get-Service SplunkForwarder
 

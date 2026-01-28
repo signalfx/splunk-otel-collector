@@ -1,3 +1,5 @@
+SRC_ROOT := $(shell git rev-parse --show-toplevel)
+
 # TA_TARGET_OS empty means single package with both Linux and Windows binaries
 TA_TARGET_OS ?=
 # Only x86_64 architecture is supported for Splunk modular inputs
@@ -22,7 +24,7 @@ PKG_NAME := $(MOD_INPUT_NAME)$(TA_PLATFORM_SUFFIX)
 sync-configs:
 	@echo "Syncing configuration files ..."
 	@if [ ! -d ./assets/configs/ ]; then mkdir -p ./assets/configs/; fi
-	cp ../../cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
+	cp $(SRC_ROOT)/cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
 
 .PHONY: validate-target-os
 validate-target-os:
@@ -77,13 +79,13 @@ build-otelcol-linux: ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME)
 ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME):
 	@echo "Building Linux executable ..."
 	if [ ! -d ./assets/linux_x86_64/bin/ ]; then mkdir -p ./assets/linux_x86_64/bin/; fi
-	cd ../../ && GOOS=linux GOARCH=amd64 $(MAKE) otelcol
-	cp ../../bin/otelcol_linux_amd64 ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME)
+	cd $(SRC_ROOT)/ && GOOS=linux GOARCH=amd64 $(MAKE) otelcol
+	cp $(SRC_ROOT)/bin/otelcol_linux_amd64 ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME)
 
 .PHONY: build-otelcol-windows
 build-otelcol-windows: ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe:
 	@echo "Building Windows executable ..."
 	if [ ! -d ./assets/windows_x86_64/bin/ ]; then mkdir -p ./assets/windows_x86_64/bin/; fi
-	cd ../../ && GOOS=windows GOARCH=amd64 $(MAKE) otelcol
-	cp ../../bin/otelcol_windows_amd64 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
+	cd $(SRC_ROOT)/ && GOOS=windows GOARCH=amd64 $(MAKE) otelcol
+	cp $(SRC_ROOT)/bin/otelcol_windows_amd64 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe

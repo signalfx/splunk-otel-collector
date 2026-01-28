@@ -94,8 +94,11 @@ jobs:
     name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE }}
     strategy:
       matrix:
-        OS: [ "ubuntu-24.04", "macos-14", "macos-15" ]
+        OS: [ "ubuntu-24.04", "macos-14", "macos-15", "windows-2025", "windows-11-arm" ]
         TEST_RACE: [ true, false ]
+        exclude:
+          - OS: "windows-11-arm"
+            TEST_RACE: true
     uses: ./.github/workflows/reusable-unit-test.yml
     with:
       OS: ${{ matrix.OS }}

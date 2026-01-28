@@ -37,7 +37,7 @@ func TestFactory(t *testing.T) {
 
 	cfg := createDefaultConfig().(*Config)
 	require.NoError(t, componenttest.CheckConfigStruct(cfg))
-	cfg.ServerConfig.Endpoint = "localhost:0"
+	cfg.ServerConfig.NetAddr.Endpoint = "localhost:0"
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()

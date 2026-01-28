@@ -129,14 +129,14 @@ jobs:
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
       - name: Start Splunk UF
+        working-directory: "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
         run: |
-          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe status
           .\splunk.exe start
 
       - name: Wait for splunkd log file creation
+        working-directory: "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
         run: |
-          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
           $logFile = "splunkd.log"
           $found = $false
           $timeout = 360

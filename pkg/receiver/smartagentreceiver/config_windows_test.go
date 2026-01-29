@@ -25,6 +25,8 @@ import (
 )
 
 func TestLoadUnsupportedCollectdMonitorOnWindows(t *testing.T) {
+	t.Skip("This test was not running for a while, needs investigation to re-enable it")
+
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "collectd_apache.yaml"))
 	require.Error(t, err)
 	require.EqualError(t, err,

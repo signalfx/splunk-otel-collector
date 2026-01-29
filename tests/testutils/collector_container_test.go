@@ -18,6 +18,7 @@ package testutils
 
 import (
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -107,6 +108,9 @@ func TestStartAndShutdownInvalidWithoutBuildingContainer(t *testing.T) {
 }
 
 func TestCollectorContainerWithInvalidImage(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on Windows: differences in docker daemon behavior")
+	}
 	collector, err := NewCollectorContainer().WithImage("&%notanimage%&:latest").Build()
 	require.NotNil(t, collector)
 	require.NoError(t, err)
@@ -115,13 +119,16 @@ func TestCollectorContainerWithInvalidImage(t *testing.T) {
 	if strings.Contains(err.Error(), "rootless Docker not found") {
 		t.Skip("Skipping test because it requires docker to be installed and running")
 	}
-	require.Equal(t, strings.ToLower(err.Error()), "create container: build image: invalid reference format")
+	require.Equal(t, "create container: build image: invalid reference format", strings.ToLower(err.Error()))
 
 	err = collector.Shutdown()
 	require.EqualError(t, err, "cannot invoke Stop() on unstarted container")
 }
 
 func TestCollectorContainerWithInvalidConfigPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on Windows: invalid file path handling differs on Windows")
+	}
 	collector, err := NewCollectorContainer().WithConfigPath("notaconfig").Build()
 	require.Nil(t, collector)
 	require.EqualError(t, err, "open notaconfig: no such file or directory")

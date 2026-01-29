@@ -114,7 +114,7 @@ jobs:
       - name: Run the MSI tests
         working-directory: tests/msi
         run: |
-          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
+          go test --tags=msi -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
 
   windows-install-script-test:
     runs-on: ${{ matrix.OS }}
@@ -124,7 +124,6 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
-        WITH_FLUENTD: [ "true", "false" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
@@ -150,10 +149,10 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
+          .\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}"
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
           Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
           Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
           # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
@@ -165,10 +164,6 @@ jobs:
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
-
-      - name: fluentd logs
-        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
-        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
   windows-script-upgrade-test:
     strategy:
@@ -205,7 +200,7 @@ jobs:
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
         working-directory: tests/windows-install-script
         run: |
-          go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
+          go test -v --tags=msi github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 
   choco-build:
     runs-on: ${{ matrix.OS }}
@@ -262,7 +257,6 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
-        WITH_FLUENTD: [ "true", "false" ]
         SCENARIO: [ "install", "upgrade" ]
       fail-fast: false
     steps:
@@ -289,7 +283,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
-          $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}"
+          $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }}"
           if ("${{ matrix.SCENARIO }}" -eq "install") {
             write-host "Installing $choco_file_name ..."
             choco install splunk-otel-collector -s=".\dist" --params="'$params'" -y
@@ -326,16 +320,12 @@ jobs:
             }
           }
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
 
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
-
-      - name: fluentd logs
-        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
-        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
       - name: Uninstall test
         run: |

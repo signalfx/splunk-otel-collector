@@ -11,7 +11,7 @@ jobs:
   agent-bundle-linux:
     runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[inputs.ARCH == 'arm64'] }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/cache@v4
         id: bundle-cache

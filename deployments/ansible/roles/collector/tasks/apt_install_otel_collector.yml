@@ -14,6 +14,7 @@
   ansible.builtin.get_url:
     url: "{{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg"
     dest: /etc/apt/trusted.gpg.d/splunk.gpg
+    mode: '644'
 
 - name: Add Splunk OpenTelemetry Collector repo to apt source list
   ansible.builtin.apt_repository:
@@ -38,6 +39,7 @@
   ansible.builtin.copy:
     src: /tmp/deb-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
     dest: /etc/otel/
+    mode: '644'
   register: archive_contents
   when: local_artifact_testing_enabled
 

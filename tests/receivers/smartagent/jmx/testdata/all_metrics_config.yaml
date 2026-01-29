@@ -10,7 +10,7 @@ receivers:
     intervalSeconds: 1
     groovyScript: ${include:/opt/script.groovy}
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -19,4 +19,4 @@ service:
     metrics:
       receivers:
         - smartagent/jmx
-      exporters: [otlp]
+      exporters: [otlp_grpc]

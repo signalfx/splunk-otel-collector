@@ -4,7 +4,7 @@ extensions:
     expvar:
       enabled: true
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -21,6 +21,6 @@ service:
       level: none
   pipelines:
     metrics:
-      exporters: [otlp]
+      exporters: [otlp_grpc]
       processors: [filter]
 

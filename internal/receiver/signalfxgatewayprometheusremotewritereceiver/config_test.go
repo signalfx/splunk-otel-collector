@@ -30,7 +30,7 @@ func TestValidateConfigAndDefaults(t *testing.T) {
 	// Remember to change the README.md if any of these change in config
 	cfg := createDefaultConfig().(*Config)
 	require.NoError(t, cfg.Validate())
-	assert.Equal(t, "localhost:19291", cfg.ServerConfig.Endpoint)
+	assert.Equal(t, "localhost:19291", cfg.ServerConfig.NetAddr.Endpoint)
 	assert.Equal(t, "/metrics", cfg.ListenPath)
 	assert.Equal(t, 100, cfg.BufferSize)
 }

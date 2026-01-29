@@ -6,7 +6,7 @@ receivers:
     sourcetype: iostat
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -18,4 +18,4 @@ service:
   pipelines:
     logs:
       receivers: [scripted_inputs/iostat]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

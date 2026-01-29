@@ -8,7 +8,7 @@ processors:
   batch:
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -19,4 +19,4 @@ service:
       receivers:
         - smartagent/collectd_apache
       processors: [batch]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

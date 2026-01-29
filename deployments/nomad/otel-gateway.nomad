@@ -194,7 +194,7 @@ exporters:
     ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
   debug:
     verbosity: detailed
-  otlphttp:
+  otlp_http:
     traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -216,7 +216,7 @@ service:
       - otlp
     traces:
       exporters:
-      - otlphttp
+      - otlp_http
       - debug
       processors:
       - memory_limiter

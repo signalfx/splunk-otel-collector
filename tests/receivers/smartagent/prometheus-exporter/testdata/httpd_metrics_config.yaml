@@ -6,7 +6,7 @@ receivers:
     port: 8000
     scrapeFailureLogLevel: debug
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -14,4 +14,4 @@ service:
   pipelines:
     metrics:
       receivers: [smartagent/prometheus-exporter]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

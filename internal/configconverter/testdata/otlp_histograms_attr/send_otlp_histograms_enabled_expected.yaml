@@ -3,7 +3,7 @@ receivers:
     scrapers:
       cpu:
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "https://ingest.signalfx.com:443"
     headers:
       "X-SF-Token": TOKEN
@@ -26,7 +26,7 @@ service:
       receivers:
         - hostmetrics
       exporters:
-        - otlp
+        - otlp_grpc
         - signalfx
     metrics/signalfx:
       receivers:

@@ -178,7 +178,7 @@ def test_collector_package_install(distro, arch):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_collector_package_upgrade(distro, arch):
-    install_cmd = f"sh /test/install.sh -- testing123 --realm test --without-fluentd --collector-version 0.35.0"
+    install_cmd = f"sh /test/install.sh -- testing123 --realm test --collector-version 0.35.0"
 
     pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
     assert pkg_path, f"{PKG_NAME} package not found in {PKG_DIR}"

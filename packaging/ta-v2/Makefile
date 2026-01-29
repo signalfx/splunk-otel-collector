@@ -13,9 +13,9 @@ endif
 
 # Set tar exclude options based on the target OS for packaging
 ifeq ($(TA_TARGET_OS),windows)
-	TAR_EXCLUDE_OPT ?= --exclude=*/linux_$(TA_ARCH)/*
+	TAR_EXCLUDE_OPT ?= --exclude='*/linux_$(TA_ARCH)/*'
 else ifeq ($(TA_TARGET_OS),linux)
-	TAR_EXCLUDE_OPT ?= --exclude=*/windows_$(TA_ARCH)/*
+	TAR_EXCLUDE_OPT ?= --exclude='*/windows_$(TA_ARCH)/*'
 endif
 
 MOD_INPUT_NAME := Splunk_TA_OTel_Collector

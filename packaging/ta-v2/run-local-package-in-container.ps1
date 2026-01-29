@@ -15,7 +15,16 @@
 $ErrorActionPreference = "Stop"
 
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ASSETS_DIR = if ($env:ASSETS_DIR) { $(Resolve-Path -ErrorAction SilentlyContinue $env:ASSETS_DIR).Path } else { Join-Path $SCRIPT_DIR "assets" }
+if ($env:ASSETS_DIR) {
+    $resolvedAssetsPath = Resolve-Path -ErrorAction SilentlyContinue $env:ASSETS_DIR
+    if (-not $resolvedAssetsPath) {
+        Write-Host "Error: ASSETS_DIR environment variable is set to '$($env:ASSETS_DIR)', but the path could not be resolved." -ForegroundColor Red
+        exit 1
+    }
+    $ASSETS_DIR = $resolvedAssetsPath.Path
+} else {
+    $ASSETS_DIR = Join-Path $SCRIPT_DIR "assets"
+}
 $LOG_DIR = Join-Path $SCRIPT_DIR "local-test-logs\var\log\splunk"
 $CONTAINER_NAME = if ($env:CONTAINER_NAME) { $env:CONTAINER_NAME } else { "splunk-ta-otel-test" }
 $IMAGE_TAG = if ($env:IMAGE_TAG) { $env:IMAGE_TAG } else { "latest" }

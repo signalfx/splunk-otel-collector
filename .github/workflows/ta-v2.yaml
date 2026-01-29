@@ -1,0 +1,181 @@
+name: ta-v2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packaging/ta-v2/**'
+      - '.github/workflows/ta-v2.yaml'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+  pull_request:
+    paths:
+      - 'packaging/ta-v2/**'
+      - '.github/workflows/ta-v2.yaml'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+  workflow_dispatch: {}
+
+env:
+  GO_VERSION: 1.25.5
+
+jobs:
+  ta-v2-build-packages:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Build collector binaries (linux & windows)
+        run: |
+          set -eo pipefail
+          make GOOS=linux GOARCH=amd64 otelcol
+          install -D bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_OTel_Collector
+
+          make GOOS=windows GOARCH=amd64 otelcol
+          install -D bin/otelcol_windows_amd64 packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe
+
+      - name: Package TA v2
+        working-directory: packaging/ta-v2
+        run: |
+          set -eo pipefail
+          make all-packages
+          ls -l ./out/distribution
+
+      - name: Test package TA v2
+        working-directory: packaging/ta-v2
+        run: |
+          set -eo pipefail
+          make test-ta-v2
+
+      - name: Upload TA v2 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ta-v2-packages
+          path: packaging/ta-v2/out/distribution/*.tgz
+
+  ta-v2-smoke-test-linux:
+    needs: ta-v2-build-packages
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: ./packaging/ta-v2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download TA v2 artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: ta-v2-packages
+          path: packaging/ta-v2/out/distribution
+
+      - name: Extract package
+        shell: bash
+        run: |
+          set -eo pipefail
+          mkdir -p ./build-out
+          tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C ./build-out
+          find ./build-out -name "*"
+
+      - name: Run local container
+        env:
+          ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
+        run: |
+          sudo -E ./run-local-package-in-container.sh
+
+      - name: Show splunkd.log on failure
+        if: failure()
+        shell: bash
+        run: |
+          set -eo pipefail
+          echo "===== splunkd.log ====="
+          sudo cat ./local-test-logs/var/log/splunk/splunkd.log
+          echo "======================"
+
+  ta-v2-smoke-test-windows:
+    needs: ta-v2-build-packages
+    runs-on: windows-latest
+    env:
+      splunk_uf_version: 9.4.0
+      splunk_uf_build_hash: 6b4ebe426ca6
+    steps:
+      - name: Download the Splunk UF MSI
+        shell: bash
+        run: |
+          curl https://download.splunk.com/products/universalforwarder/releases/${{ env.splunk_uf_version }}/windows/splunkforwarder-${{ env.splunk_uf_version }}-${{ env.splunk_uf_build_hash }}-windows-x64.msi -o splunkforwarder.msi
+
+      - name: Install Splunk UF
+        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
+
+      - name: Download TA v2 artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: ta-v2-packages
+          path: ${{ github.workspace }}/packaging/ta-v2/out/distribution
+
+      - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
+        run: |
+          tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+
+      - name: Start Splunk UF
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe status
+          .\splunk.exe start
+
+      - name: Wait for splunkd log file creation
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
+          $logFile = "splunkd.log"
+          $found = $false
+          $timeout = 360
+          $elapsed = 0
+
+          while (-not $found -and $elapsed -lt $timeout) {
+              if (Test-Path $logFile) {
+                  $found = $true
+              }
+              if (-not $found) {
+                  Start-Sleep -Seconds 1
+                  $elapsed++
+              }
+          }
+
+          if ($found) {
+              Write-Host "splunkd.log created after $elapsed seconds"
+          } else {
+              Write-Host "Timeout reached. splunkd.log was not created after $elapsed seconds"
+              exit 1
+          }
+
+      - name: Wait for Collector launch attempt
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          $timeout = 180
+          $elapsed = 0
+          Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
+          while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+              if ($elapsed -ge $timeout) {
+                  Write-Host ""
+                  Write-Host "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
+                  exit 1
+              }
+              Start-Sleep -Seconds 2
+              $elapsed += 2
+              Write-Host -NoNewline "."
+          }
+          Write-Host ""
+          Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
+          Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }

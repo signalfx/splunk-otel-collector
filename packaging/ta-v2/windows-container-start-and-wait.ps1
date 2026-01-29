@@ -1,5 +1,6 @@
-$splunkdLog = "C:\Program Files\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
-
+$ufRoot = Join-Path -Path $Env:ProgramFiles -ChildPath "SplunkUniversalForwarder"
+$logDir = Join-Path -Path $ufRoot -ChildPath "var\log\splunk"
+$splunkdLog = Join-Path -Path $logDir -ChildPath "splunkd.log"
 Get-Service SplunkForwarder
 
 Write-Host "Waiting for splunkd.log ..."

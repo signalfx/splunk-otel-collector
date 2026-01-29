@@ -27,6 +27,6 @@
       register: collector_env
 
     - name: Verify splunk-otel-collector service env vars
-      assert:
+      ansible.builtin.assert:
         that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"

@@ -36,11 +36,11 @@
 
     - name: Check custom_config.yml
       ansible.windows.win_stat:
-        path: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
+        path: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\custom_config.yml'
       register: custom_collector_config
 
     - name: Assert custom_config.yml exists
-      assert:
+      ansible.builtin.assert:
         that: custom_collector_config.stat.exists
 
     - name: Get IIS env vars
@@ -50,7 +50,7 @@
       register: iis_env
 
     - name: Verify IIS env vars
-      assert:
+      ansible.builtin.assert:
         that: (item.key + '=' + (item.value | string)) in iis_env.value
       loop: "{{ iis_reg_values | dict2items }}"
 
@@ -61,7 +61,7 @@
       register: collector_env
 
     - name: Verify splunk-otel-collector service env vars
-      assert:
+      ansible.builtin.assert:
         that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"
 
@@ -72,6 +72,6 @@
       register: collector_imagepath
 
     - name: Assert service ImagePath ends with the splunk_otel_collector_command_line_args value used in the playbook
-      assert:
+      ansible.builtin.assert:
         that:
           - collector_imagepath.value.endswith("--discovery --set=processors.batch.timeout=10s")

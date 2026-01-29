@@ -38,27 +38,27 @@
     - name: Download splunk-otel-collector 0.97.0 MSI
       ansible.windows.win_get_url:
         url: https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-0.97.0-amd64.msi
-        dest: "{{ansible_env.TEMP}}"
+        dest: "{{ ansible_env.TEMP }}"
       register: otel_msi_package
 
     - name: Install splunk-otel-collector 0.97.0 MSI
       ansible.windows.win_package:
-        path: "{{otel_msi_package.dest}}"
+        path: "{{ otel_msi_package.dest }}"
         state: present
       check_mode: yes
       register: msi_installed
 
     - name: Assert splunk-otel-collector 0.97.0 MSI is already installed
-      assert:
+      ansible.builtin.assert:
         that: not msi_installed.changed
 
     - name: Check custom_config.yml
       ansible.windows.win_stat:
-        path: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
+        path: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\custom_config.yml'
       register: custom_collector_config
 
     - name: Assert custom_config.yml exists
-      assert:
+      ansible.builtin.assert:
         that: custom_collector_config.stat.exists
 
     - name: Get IIS env vars
@@ -68,7 +68,7 @@
       register: iis_env
 
     - name: Verify IIS env vars
-      assert:
+      ansible.builtin.assert:
         that: (item.key + '=' + (item.value | string)) in iis_env.value
       loop: "{{ iis_reg_values | dict2items }}"
 
@@ -79,6 +79,6 @@
       register: collector_env
 
     - name: Verify splunk-otel-collector service env vars
-      assert:
+      ansible.builtin.assert:
         that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"

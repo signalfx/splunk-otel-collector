@@ -5,6 +5,6 @@
   become: no
   tasks:
     - name: Bypass prepare stage
-      debug:
+      ansible.builtin.debug:
         msg: Bypassing the prepare stage since the client is a Windows box
       changed_when: false

@@ -9,5 +9,5 @@
     install_splunk_otel_auto_instrumentation: true
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
-      include_role:
+      ansible.builtin.include_role:
         name: "collector"

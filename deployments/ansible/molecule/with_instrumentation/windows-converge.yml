@@ -10,5 +10,5 @@
     splunk_dotnet_auto_instrumentation_github_token: ${GITHUB_TOKEN}
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
-      include_role:
+      ansible.builtin.include_role:
         name: "signalfx.splunk_otel_collector.collector"

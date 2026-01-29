@@ -7,13 +7,14 @@
       ansible.builtin.service_facts:
 
     - name: Assert splunk-otel-collector service is running
-      assert:
+      ansible.builtin.assert:
         that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
 
     - name: Populate package facts
       ansible.builtin.package_facts:
 
-    - debug:
+    - name: Debug splunk-otel-auto-instrumentation package info
+      ansible.builtin.debug:
         var: ansible_facts.packages['splunk-otel-auto-instrumentation'][0]
 
     - name: Check for the new config files
@@ -26,7 +27,7 @@
       register: new_config_files
 
     - name: Assert the new config files exist
-      assert:
+      ansible.builtin.assert:
         that: item.stat.exists
       loop: "{{ new_config_files.results }}"
 
@@ -36,7 +37,7 @@
       register: systemd
 
     - name: Assert systemd drop-in file does not exist
-      assert:
+      ansible.builtin.assert:
         that: not systemd.stat.exists
 
     - name: Assert /etc/ld.so.preload contains path to libsplunk.so

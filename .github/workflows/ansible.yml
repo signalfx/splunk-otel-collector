@@ -110,6 +110,7 @@ jobs:
         uses: ansible/ansible-lint@v26.1.1
         # optional (see below):
         with:
+          args: "-x var-naming[no-role-prefix] --exclude molecule/config/ --exclude molecule/shared/ --exclude molecule/custom_vars/custom_collector_config.yml --exclude molecule/custom_vars/custom_collector_config_deprecated.yml --exclude molecule/custom_vars_install_old_version/custom_collector_config.yml"
           python_version: "3.14"
           requirements_file: "requirements.yml"
           setup_python: "false"

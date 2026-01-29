@@ -29,7 +29,9 @@
       register: npm_ls
       changed_when: npm_ls.rc == 0
       failed_when: npm_ls.rc == 0
-      when: splunk_otel_js_dir.stat.exists and splunk_otel_js_dir.stat.isdir is defined and splunk_otel_js_dir.stat.isdir
+      when: >
+        splunk_otel_js_dir.stat.exists and splunk_otel_js_dir.stat.isdir is defined
+        and splunk_otel_js_dir.stat.isdir
 
     - name: Assert /etc/ld.so.preload does not contain path to libsplunk.so
       ansible.builtin.lineinfile:

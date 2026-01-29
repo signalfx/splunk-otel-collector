@@ -17,12 +17,18 @@
       ansible.builtin.set_fact:
         auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
+    - name: Check if splunk-otel-js directory exists
+      ansible.builtin.stat:
+        path: /usr/lib/splunk-instrumentation/splunk-otel-js
+      register: splunk_otel_js_dir
+
     - name: Check if splunk-otel-js is installed
       ansible.builtin.command: npm ls @splunk/otel
       args:
         chdir: /usr/lib/splunk-instrumentation/splunk-otel-js
       register: npm_ls
       changed_when: npm_ls.rc == 0
+      when: splunk_otel_js_dir.stat.exists and splunk_otel_js.stat.isdir is defined and splunk_otel_js_dir.stat.isdir
 
     - name: Check for the old config file
       ansible.builtin.stat:

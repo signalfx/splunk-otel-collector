@@ -5,32 +5,10 @@ $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 write-host "Checking configuration parameters ..."
 $pp = Get-PackageParameters
 
-[bool]$WITH_FLUENTD = $FALSE
-[bool]$SkipFluentd = $FALSE
-
 $MODE = $pp['MODE']
 
 if ($MODE -and ($MODE -ne "agent") -and ($MODE -ne "gateway")) {
     throw "Invalid value of MODE option is specified. Collector service can only run in agent or gateway mode."
-}
-
-if ($pp['WITH_FLUENTD']) {
-    if (($pp['WITH_FLUENTD'] -eq "true") -or ($pp['WITH_FLUENTD'] -eq "false")){
-        try {
-            $WITH_FLUENTD = [System.Convert]::ToBoolean($pp['WITH_FLUENTD']) 
-        } catch [FormatException] {
-            $WITH_FLUENTD = $FALSE
-        }
-    }
-    else {
-        throw "Invalid value of WITH_FLUENTD option is specified. Possible values are true and false."
-    }
-}
-
-if ($WITH_FLUENTD) {
-    # check execution policy
-    Write-Host 'Checking execution policy'
-    check_policy
 }
 
 # Read splunk-otel-collector environment variables.
@@ -175,18 +153,6 @@ try {
     }
 }
 
-# Install and configure fluentd to forward log events to the collector.
-if ($WITH_FLUENTD) {
-    Write-Warning '[DEPRECATED] Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md'
-    # Skip installation of fluentd if already installed
-    if ((Get-Service -Name $fluentd_service_name -ErrorAction SilentlyContinue) -OR (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
-        $SkipFluentd = $TRUE
-        Write-Host "The $fluentd_service_name service is already installed. Skipping fluentd installation."
-    } else {
-        . $toolsDir\fluentd.ps1
-    }
-}
-
 # Try starting the service(s) only after all components were successfully installed and SPLUNK_ACCESS_TOKEN was found.
 if (!$env_vars["SPLUNK_ACCESS_TOKEN"]) {
     write-host ""
@@ -197,26 +163,12 @@ if (!$env_vars["SPLUNK_ACCESS_TOKEN"]) {
     write-host '  PS> Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name $propertyName -Value $values -Type MultiString'
     write-host "before starting the $service_name service with:"
     write-host "  PS> Start-Service -Name `"${service_name}`""
-    if ($WITH_FLUENTD) {
-        write-host "Then restart the fluentd service to ensure collected log events are forwarded to the $service_name service with:"
-        write-host "  PS> Stop-Service -Name `"${fluentd_service_name}`""
-        write-host "  PS> Start-Service -Name `"${fluentd_service_name}`""
-    }
     write-host ""
 } else {
     try {
         write-host "Starting $service_name service..."
         start_service -name "$service_name" -config_path "$config_path"
         write-host "- Started"
-        if ($WITH_FLUENTD -and !$SkipFluentd) {
-            # The fluentd service is automatically started after msi installation.
-            # Wait for it to be running before trying to restart it with our custom config.
-            Write-Host "Restarting $fluentd_service_name service..."
-            start_service -name "$fluentd_service_name"
-            stop_service -name "$fluentd_service_name"
-            start_service -name "$fluentd_service_name" -config_path "$fluentd_config_path"
-            Write-Host "- Started"
-        }
         write-host ""
     } catch {
         $err = $_.Exception.Message

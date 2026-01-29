@@ -3,7 +3,6 @@ param (
     [string]$access_token = "testing123",
     [string]$realm = "test",
     [string]$memory = "512",
-    [string]$with_fluentd = "true",
     [string]$with_msi_uninstall_comments = "",
     [string]$api_url = "https://api.${realm}.signalfx.com",
     [string]$ingest_url = "https://ingest.${realm}.signalfx.com",
@@ -60,20 +59,6 @@ if ((service_running -name "splunk-otel-collector")) {
     write-host "splunk-otel-collector service is running."
 } else {
     throw "splunk-otel-collector service is not running."
-}
-
-if ("$with_fluentd" -eq "true") {
-    if ((service_running -name "fluentdwinsvc")) {
-        write-host "fluentdwinsvc service is running."
-    } else {
-        throw "fluentdwinsvc service is not running."
-    }
-} else {
-    if ((service_running -name "fluentdwinsvc")) {
-        throw "fluentdwinsvc service is running."
-    } else {
-        write-host "fluentdwinsvc service is not running."
-    }
 }
 
 $uninstallProperties = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |

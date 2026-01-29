@@ -1,0 +1,19 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: bug_fix
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: journalctl
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Added missing libraries to the bundled journalctl binary to allow reading journal files that are compressed with LZMA/LZMA2 algorithms.
+
+# One or more tracking issues related to the change
+issues: [7116]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  If you continue to experience issues reading journal files with the bundled journalctl binary, we recommend configuring your k8s Splunk OTEL Collector deployment to use the host journalctl instead.  
+  For more details, see [Use the Host Journalctl binary](https://github.com/signalfx/splunk-otel-collector-chart/blob/main/docs/advanced-configuration.md#use-the-host-journalctl-binary).
+  This option will be available starting with chart version 0.144.0.

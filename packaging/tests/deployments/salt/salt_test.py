@@ -215,7 +215,6 @@ splunk-otel-collector:
   collector_additional_env_vars:
     MY_CUSTOM_VAR1: value1
     MY_CUSTOM_VAR2: value2
-  install_fluentd: True
   """
 
 

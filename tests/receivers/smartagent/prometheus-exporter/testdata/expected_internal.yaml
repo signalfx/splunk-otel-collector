@@ -61,7 +61,7 @@ resourceMetrics:
                         stringValue: metrics
                     - key: exporter
                       value:
-                        stringValue: otlp
+                        stringValue: otlp_grpc
                     - key: foo
                       value:
                         stringValue: bar
@@ -136,7 +136,7 @@ resourceMetrics:
                   attributes:
                     - key: exporter
                       value:
-                        stringValue: otlp
+                        stringValue: otlp_grpc
                     - key: foo
                       value:
                         stringValue: bar
@@ -162,7 +162,7 @@ resourceMetrics:
                         stringValue: metrics
                     - key: exporter
                       value:
-                        stringValue: otlp
+                        stringValue: otlp_grpc
                     - key: foo
                       value:
                         stringValue: bar
@@ -329,7 +329,7 @@ resourceMetrics:
                   attributes:
                     - key: exporter
                       value:
-                        stringValue: otlp
+                        stringValue: otlp_grpc
                     - key: foo
                       value:
                         stringValue: bar

@@ -141,6 +141,7 @@
         cmd: |
           set -o pipefail
           journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"
+        executable: /bin/bash
       register: result
       changed_when: false
       until: result.stdout != ""

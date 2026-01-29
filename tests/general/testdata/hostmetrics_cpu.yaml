@@ -5,7 +5,7 @@ receivers:
       cpu:
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -14,4 +14,4 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

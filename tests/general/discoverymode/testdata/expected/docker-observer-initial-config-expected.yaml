@@ -1,6 +1,6 @@
 file:
   exporters:
-    otlp:
+    otlp_grpc:
       endpoint: ${OTLP_ENDPOINT}
       tls:
         insecure: true
@@ -19,7 +19,7 @@ file:
     extensions: [zpages]
     pipelines:
       metrics:
-        exporters: [otlp]
+        exporters: [otlp_grpc]
         processors: [filter]
     telemetry:
       metrics:

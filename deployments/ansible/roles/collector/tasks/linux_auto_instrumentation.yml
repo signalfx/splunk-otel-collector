@@ -51,7 +51,7 @@
   ansible.builtin.file:
     path: /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
     state: directory
-    mode: '644'
+    mode: '0755'
   when: with_nodejs and npm_found and package_changed
 
 - name: Install splunk-otel-js

@@ -22,7 +22,7 @@
       args:
         chdir: /usr/lib/splunk-instrumentation/splunk-otel-js
       register: npm_ls
-      changed_when: npm_ls.rc != 0
+      changed_when: npm_ls.rc == 0
 
     - name: Check for the old config file
       ansible.builtin.stat:

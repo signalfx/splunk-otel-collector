@@ -6,7 +6,7 @@ extensions:
     expvar:
       enabled: true
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "{{ .OTLPEndpoint }}"
     tls:
       insecure: true
@@ -36,7 +36,7 @@ service:
   pipelines:
     metrics:
       receivers: [discovery/docker_observer]
-      exporters: [otlp]
+      exporters: [otlp_grpc]
       processors: [filter]
   telemetry:
     metrics:

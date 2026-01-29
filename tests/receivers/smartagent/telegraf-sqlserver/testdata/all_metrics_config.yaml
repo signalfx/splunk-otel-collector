@@ -18,7 +18,7 @@ processors:
       - system.type
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -29,4 +29,4 @@ service:
       receivers:
         - smartagent/sqlserver
       processors: [ groupbyattrs, batch, groupbyattrs/2, batch/2 ]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

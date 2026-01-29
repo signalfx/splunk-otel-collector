@@ -4,22 +4,8 @@ $config_path = "$program_data_path\"
 
 $service_name = "splunk-otel-collector"
 
-try {
-    Resolve-Path $env:SYSTEMDRIVE 2>&1>$null
-    $fluentd_base_dir = "${env:SYSTEMDRIVE}\opt\td-agent"
-} catch {
-    $fluentd_base_dir = "\opt\td-agent"
-}
-$fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
-$fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
-$fluentd_service_name = "fluentdwinsvc"
-$fluentd_log_path = "$fluentd_base_dir\td-agent.log"
-
 function get_service_log_path([string]$name) {
     $log_path = "the Windows Event Viewer"
-    if (($name -eq $fluentd_service_name) -and (Test-Path -Path "$fluentd_log_path")) {
-        $log_path = $fluentd_log_path
-    }
     return $log_path
 }
 

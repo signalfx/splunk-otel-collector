@@ -391,8 +391,8 @@ github.com/kkHAIKE/contextcheck v1.1.6 h1:7HIyRcnyzxL9Lz06NGhiKvenXq7Zw6Q0UQu/tt
 github.com/kkHAIKE/contextcheck v1.1.6/go.mod h1:3dDbMRNBFaq8HFXWC1JyvDSPm43CmE6IuHam8Wr0rkg=
 github.com/knadh/koanf v1.5.0 h1:q2TSd/3Pyc/5yP9ldIrSdIz26MCcyNQzW0pEAugLPNs=
 github.com/knadh/koanf v1.5.0/go.mod h1:Hgyjp4y8v44hpZtPzs7JZfRAW5AhN7KfZcwv1RYggDs=
-github.com/knadh/koanf/v2 v2.3.0 h1:Qg076dDRFHvqnKG97ZEsi9TAg2/nFTa9hCdcSa1lvlM=
-github.com/knadh/koanf/v2 v2.3.0/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
+github.com/knadh/koanf/v2 v2.3.2 h1:Ee6tuzQYFwcZXQpc2MiVeC6qHMandf5SMUJJNoFp/c4=
+github.com/knadh/koanf/v2 v2.3.2/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/konsorten/go-windows-terminal-sequences v1.0.3/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
@@ -706,8 +706,8 @@ go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/build-tools/chloggen v0.26.0 h1:3ioGgExq6MJpqFzHmgMKmkaNbk6qVa5q1NEx7XG4dTc=
 go.opentelemetry.io/build-tools/chloggen v0.26.0/go.mod h1:1e/hCg1CjMlLgdZeUuSACZLHuX59jWw2cSyJ2FHRK30=
-go.opentelemetry.io/collector/cmd/mdatagen v0.144.0 h1:UfDQUw2aiOAeBpcJOYH2Xpjfwl8CGEDaSs8+ISG8rHA=
-go.opentelemetry.io/collector/cmd/mdatagen v0.144.0/go.mod h1:7K8US+AtyOZA95pCKy+c4GzUyGWAUYCdJThnvRcNolc=
+go.opentelemetry.io/collector/cmd/mdatagen v0.144.1-0.20260128232850-0bb8e65fdaa4 h1:mQnQFuIUKoqhmSk8Kvty0JGpHiUKydcEkjvcaixGBGU=
+go.opentelemetry.io/collector/cmd/mdatagen v0.144.1-0.20260128232850-0bb8e65fdaa4/go.mod h1:75lNW00TwUwIkwfPLjr5w5WBA/yRJPFawjPV2sol1Qc=
 go.opentelemetry.io/collector/component v1.50.0 h1:AvIhCc/J7tXlKZDETPDMDp6g6pwa3FBD6c0Q8h2u3xA=
 go.opentelemetry.io/collector/component v1.50.0/go.mod h1:S0p+mq0ZvEEN67BKWt0atC5cHn2Km8vBeeIZuYzD0XU=
 go.opentelemetry.io/collector/confmap v1.50.0 h1:ty8pqwn5lwVX3i7RkP9myDOlG8rNUAAtyTQHHatDfhg=

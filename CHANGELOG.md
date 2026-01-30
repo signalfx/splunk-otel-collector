@@ -119,7 +119,7 @@ and the [opentelemetry-collector-contrib v0.144.0](https://github.com/open-telem
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `journalctl`: Added missing libraries to the bundled journalctl binary to allow reading journal files that are compressed with LZMA/LZMA2 algorithms. ([#7116](https://github.com/signalfx/splunk-otel-collector/pull/7116))
-  If you continue to experience issues reading journal files with the bundled journalctl binary, we recommend configuring your k8s Splunk OTEL Collector deployment to use the host journalctl instead.  
+  If you continue to experience issues reading journal files with the bundled journalctl binary, we recommend configuring your k8s Splunk OTel Collector deployment to use the host journalctl instead.  
   For more details, see [Use the Host Journalctl binary](https://github.com/signalfx/splunk-otel-collector-chart/blob/main/docs/advanced-configuration.md#use-the-host-journalctl-binary).
   This option will be available starting with chart version 0.144.0.
 - (Core) `pkg/exporterhelper`: Fix reference count bug in partition batcher ([#14444](https://github.com/open-telemetry/opentelemetry-collector/pull/14444))

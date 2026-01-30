@@ -66,8 +66,6 @@ and the [opentelemetry-collector-contrib v0.144.0](https://github.com/open-telem
 - (Core) `pkg/exporterhelper`: Change verbosity level for otelcol_exporter_queue_batch_send_size metric to detailed. ([#14278](https://github.com/open-telemetry/opentelemetry-collector/issues/14278))
 - (Core) `pkg/service`: Remove deprecated `telemetry.disableHighCardinalityMetrics` feature gate. ([#14373](https://github.com/open-telemetry/opentelemetry-collector/pull/14373))
 - (Core) `pkg/service`: Remove deprecated `service.noopTracerProvider` feature gate. ([#14374](https://github.com/open-telemetry/opentelemetry-collector/pull/14374))
-- (Contrib) `exporter/elasticsearch`: Remove ecs mode span enrichment for `span.action`, `span.message.queue.name`, and `transaction.message.queue.name` ([#45014](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45014))
-  The removed span enrichments have been moved to the `github.com/elastic/opentelemetry-collector-components/processor/elasticapmprocessor`. It is recommended to use the `github.com/elastic/opentelemetry-collector-components/processor/elasticapmprocessor` when using mapping mode `ecs` to ensure index documents contain all required Elastic fields to power the Kibana UI.
 - (Contrib) `exporter/kafka`: Remove Sarama producer implementation ([#44565](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44565))
   The Sarama-based Kafka producer has been removed from kafkaexporter.
   Feature gate `exporter.kafkaexporter.UseFranzGo` has also been removed since Franz-go is now the only supported Kafka client.

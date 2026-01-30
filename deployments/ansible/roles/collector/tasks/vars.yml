@@ -27,12 +27,6 @@
 
 - name: Set default vars for Windows
   ansible.builtin.set_fact:
-    td_agent_version: |-
-      {%- if td_agent_version -%}
-        {{ td_agent_version }}
-      {%- else -%}
-        4.3.2
-      {%- endif -%}
     registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
     package_stage: release
     win_base_url: https://dl.signalfx.com

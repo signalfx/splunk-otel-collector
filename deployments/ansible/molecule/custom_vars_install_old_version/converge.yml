@@ -22,5 +22,5 @@
       MY_CUSTOM_VAR3: "value3 with spaces"
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
-      include_role:
+      ansible.builtin.include_role:
         name: "signalfx.splunk_otel_collector.collector"

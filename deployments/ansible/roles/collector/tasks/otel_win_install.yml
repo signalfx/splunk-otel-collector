@@ -9,19 +9,19 @@
   when: not local_artifact_testing_enabled
 
 - name: Use MSI capabilities to install the collector if possible
-  set_fact:
+  ansible.builtin.set_fact:
     splunk_collector_msi_is_configurable: true
   when:
     - local_artifact_testing_enabled or splunk_otel_collector_version is version('0.98.0', '>=')
 
 - name: Build the arguments for the MSI installer
   when: splunk_collector_msi_is_configurable is defined
-  set_fact:
+  ansible.builtin.set_fact:
     msi_unfiltered_arguments:
       - SPLUNK_ACCESS_TOKEN={{ splunk_access_token }}
       - "{{ 'SPLUNK_API_URL=' + splunk_api_url if splunk_api_url != '' else '' }}"
       - "{{ 'GOMEMLIMIT=' + (gomemlimit | string) if (gomemlimit | string) != '' else '' }}"
-      - "{{ 'SPLUNK_BUNDLE_DIR='+ splunk_bundle_dir if splunk_bundle_dir != '' else '' }}"
+      - "{{ 'SPLUNK_BUNDLE_DIR=' + splunk_bundle_dir if splunk_bundle_dir != '' else '' }}"
       - "{{ 'SPLUNK_COLLECTD_DIR=' + splunk_collectd_dir if splunk_collectd_dir != '' else '' }}"
       - "{{ 'SPLUNK_CONFIG=' + splunk_otel_collector_config if splunk_otel_collector_config != '' else '' }}"
       - "{{ 'SPLUNK_INGEST_URL=' + splunk_ingest_url if splunk_ingest_url != '' else '' }}"
@@ -36,10 +36,11 @@
 
 - name: Filter out undefined arguments
   when: splunk_collector_msi_is_configurable is defined
-  set_fact:
+  ansible.builtin.set_fact:
     msi_arguments: "{{ msi_unfiltered_arguments | reject('eq', '') | list }}"
 
-- set_fact:
+- name: Initialize lists for arguments
+  ansible.builtin.set_fact:
     args_without_spaces: []
     args_with_spaces: []
 
@@ -47,27 +48,28 @@
   when:
     - splunk_collector_msi_is_configurable is defined
     - item is search(' ')
-  set_fact:
+  ansible.builtin.set_fact:
     args_with_spaces: "{{ args_with_spaces + [item | ansible.builtin.regex_replace(_regex, _replacement)] }}"
   vars:
     _regex: '^([^=]*)=(.*)$'
     _replacement: '\1="\2"'
   loop: "{{ msi_arguments }}"
 
-- name: compile args without spaces
-  set_fact:
+- name: Compile args without spaces
+  ansible.builtin.set_fact:
     args_without_spaces: "{{ args_without_spaces + [item] }}"
   loop: "{{ msi_arguments }}"
   when:
     - splunk_collector_msi_is_configurable is defined
     - item is not search(' ')
 
-- set_fact:
+- name: Combine args with and without spaces
+  ansible.builtin.set_fact:
     msi_arguments: "{{ args_with_spaces + args_without_spaces }}"
 
 - name: Join msi argument list into space separated string
   when: splunk_collector_msi_is_configurable is defined
-  set_fact:
+  ansible.builtin.set_fact:
     msi_arguments: "{{ msi_arguments | join(' ') }}"
 
 - name: Install splunk-otel-collector-msi
@@ -89,12 +91,12 @@
 
 - name: Copy the custom config
   ansible.windows.win_copy:
-    content: '{{ updated_config | to_nice_yaml (indent=2) }}'
+    content: '{{ updated_config | to_nice_yaml(indent=2) }}'
     dest: "{{ splunk_otel_collector_config }}"
   when: splunk_config_override != ''
 
 - name: Push Custom Config file for splunk-otel-collector, If provided
   ansible.windows.win_template:
-    src: "{{splunk_otel_collector_config_source}}"
-    dest: "{{splunk_otel_collector_config}}"
+    src: "{{ splunk_otel_collector_config_source }}"
+    dest: "{{ splunk_otel_collector_config }}"
   when: splunk_otel_collector_config_source != ''

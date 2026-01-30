@@ -8,12 +8,12 @@
       ansible.builtin.import_tasks: ../shared/verify_tasks.yml
 
     - name: Check custom_config.yaml
-      stat:
+      ansible.builtin.stat:
         path: /etc/otel/collector/custom_config.yml
       register: custom_collector_config
 
     - name: Assert custom_config.yaml is created
-      assert:
+      ansible.builtin.assert:
         that: custom_collector_config.stat.exists
 
     - name: Assert custom_config.yaml is used
@@ -133,11 +133,15 @@
         line: 'test logs pipeline'
         state: present
         create: true
+        mode: '644'
       changed_when: false
 
     - name: Look for the test log message in collector service output
       ansible.builtin.shell:
-        cmd: 'journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"'
+        cmd: |
+          set -o pipefail
+          journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"
+        executable: /bin/bash
       register: result
       changed_when: false
       until: result.stdout != ""

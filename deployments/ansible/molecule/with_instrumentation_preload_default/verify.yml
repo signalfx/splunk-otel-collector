@@ -7,20 +7,22 @@
       ansible.builtin.service_facts:
 
     - name: Assert splunk-otel-collector service is running
-      assert:
+      ansible.builtin.assert:
         that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
 
     - name: Populate package facts
       ansible.builtin.package_facts:
 
     - name: Get splunk-otel-auto-instrumentation version
-      set_fact:
+      ansible.builtin.set_fact:
         auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
     - name: Check if splunk-otel-js is installed
-      shell: npm ls @splunk/otel
+      ansible.builtin.command: npm ls @splunk/otel
       args:
         chdir: /usr/lib/splunk-instrumentation/splunk-otel-js
+      register: npm_ls
+      changed_when: npm_ls.rc != 0
 
     - name: Check for the old config file
       ansible.builtin.stat:
@@ -28,7 +30,7 @@
       register: old_config
 
     - name: Assert the old config file does not exist
-      assert:
+      ansible.builtin.assert:
         that: not old_config.stat.exists
 
     - name: Check for systemd drop-in file
@@ -37,7 +39,7 @@
       register: systemd
 
     - name: Assert systemd drop-in file does not exist
-      assert:
+      ansible.builtin.assert:
         that: not systemd.stat.exists
 
     - name: Assert /etc/ld.so.preload contains path to libsplunk.so

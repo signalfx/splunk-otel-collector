@@ -106,6 +106,15 @@ jobs:
       - name: Lint code.
         run: yamllint .
 
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v26.1.1
+        # optional (see below):
+        with:
+          args: "-x var-naming[no-role-prefix] --exclude molecule/config/ --exclude molecule/shared/ --exclude molecule/custom_vars/custom_collector_config.yml --exclude molecule/custom_vars/custom_collector_config_deprecated.yml --exclude molecule/custom_vars_install_old_version/custom_collector_config.yml"
+          requirements_file: "molecule/requirements.yml"
+          setup_python: "false"
+          working_directory: "deployments/ansible"
+
   linux-test:
     name: Linux Test
     needs: [ lint, build-package ]
@@ -141,7 +150,7 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            ansible-lint==25.9.1
+            ansible-lint==26.1.1
             molecule==25.5.0
             molecule-plugins[docker]==25.8.12
             docker==7.1.0
@@ -223,7 +232,7 @@ jobs:
           contents: |
             ${{ matrix.ansible }}
             ansible-compat==25.8.2
-            ansible-lint==25.9.1
+            ansible-lint==26.1.1
             molecule==25.1.0
             molecule-plugins[vagrant]==25.8.12
             pywinrm==0.4.3

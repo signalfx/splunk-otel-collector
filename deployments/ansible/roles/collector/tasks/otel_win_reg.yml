@@ -1,7 +1,7 @@
 ---
 - name: Get Splunk OpenTelemetry Collector options list (including default options)
   when: splunk_collector_msi_is_configurable is not defined
-  set_fact:
+  ansible.builtin.set_fact:
     splunk_otel_collector_options_list: |-
       {%- set value = item.value -%}
       {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
@@ -10,7 +10,7 @@
 
 - name: Get Splunk OpenTelemetry Collector options list (only custom config variables)
   when: splunk_collector_msi_is_configurable is defined
-  set_fact:
+  ansible.builtin.set_fact:
     splunk_otel_collector_options_list: |-
       {%- set value = item.value -%}
       {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
@@ -29,7 +29,7 @@
   when:
     - splunk_collector_msi_is_configurable is defined
     - splunk_otel_collector_options_list is defined
-  set_fact:
+  ansible.builtin.set_fact:
     splunk_otel_collector_options_list:
       "{{ registry_contents.properties.Environment.value + splunk_otel_collector_options_list }}"
 

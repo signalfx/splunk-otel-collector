@@ -1,6 +1,7 @@
 ---
 
-- set_fact:
+- name: Set temporary MSI build directory path
+  ansible.builtin.set_fact:
     win_temp_msi_dir: "%TEMP%\\msi-build"
 
 - name: Create temporary MSI build directory
@@ -22,5 +23,5 @@
 
 - name: Set MSI source path (local install)
   when: local_artifact_testing_enabled
-  set_fact:
+  ansible.builtin.set_fact:
     msi_path: "{{ msi_dir_contents.files[0].path }}"

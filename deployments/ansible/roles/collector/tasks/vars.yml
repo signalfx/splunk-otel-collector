@@ -1,6 +1,6 @@
 ---
-- name: set default vars for Linux
-  set_fact:
+- name: Set default vars for Linux
+  ansible.builtin.set_fact:
     splunk_otel_collector_config: |-
       {%- if splunk_otel_collector_config -%}
         {{ splunk_otel_collector_config }}
@@ -21,12 +21,12 @@
       {%- endif -%}
   when: ansible_os_family != "Windows"
 
-- name: set configurable defaults for Windows
+- name: Set configurable defaults for Windows
   ansible.builtin.import_tasks: win_configurable_vars.yml
   when: ansible_os_family == "Windows"
 
-- name: set default vars for Windows
-  set_fact:
+- name: Set default vars for Windows
+  ansible.builtin.set_fact:
     td_agent_version: |-
       {%- if td_agent_version -%}
         {{ td_agent_version }}

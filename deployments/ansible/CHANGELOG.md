@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## ansible-v0.35.0
 
 ### 💡 Enhancements 💡
 

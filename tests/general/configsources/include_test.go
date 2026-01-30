@@ -95,7 +95,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 		"exporters": map[string]any{
-			"otlp": map[string]any{
+			"otlp_grpc": map[string]any{
 				"endpoint": "localhost:23456",
 				"tls": map[string]any{
 					"insecure": true,
@@ -108,7 +108,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 				"metrics": map[string]any{
 					"processors": []any{"resourcedetection"},
 					"receivers":  []any{"hostmetrics"},
-					"exporters":  []any{"otlp"},
+					"exporters":  []any{"otlp_grpc"},
 				},
 			},
 		},

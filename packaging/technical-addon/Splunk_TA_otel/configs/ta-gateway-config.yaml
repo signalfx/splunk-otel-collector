@@ -104,7 +104,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     sending_queue:
       num_consumers: 32
@@ -143,7 +143,7 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [otlphttp]
+      exporters: [otlp_http]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]

@@ -17,7 +17,7 @@ processors:
   batch:
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: 10.1.1.1:4318
     tls:
       insecure: true
@@ -27,7 +27,7 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      exporters: [otlp]
+      exporters: [otlp_grpc]
     traces:
       receivers: [otlp]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

@@ -15,7 +15,7 @@ processors:
         metric_names: overwritten
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -25,4 +25,4 @@ service:
     metrics:
       receivers: [otlp]
       processors: [filter/one, filter/two]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

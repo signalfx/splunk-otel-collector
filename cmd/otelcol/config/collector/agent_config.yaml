@@ -137,7 +137,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -154,7 +154,7 @@ exporters:
     sync_host_metadata: true
     correlation:
   # Entities (applicable only if discovery mode is enabled)
-  otlphttp/entities:
+  otlp_http/entities:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -173,7 +173,7 @@ exporters:
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
   # Send to gateway
-  otlp/gateway:
+  otlp_grpc/gateway:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
@@ -193,15 +193,15 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlphttp, signalfx]
+      exporters: [otlp_http, signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway, signalfx]
+      #exporters: [otlp_grpc/gateway, signalfx]
     metrics:
       receivers: [hostmetrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection, resource/add_mode]
@@ -216,9 +216,9 @@ service:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [otlphttp/entities]
+      exporters: [otlp_http/entities]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]
     logs:
       receivers: [fluentforward, otlp]
       processors:
@@ -228,4 +228,4 @@ service:
       #- resource/add_environment
       exporters: [splunk_hec, splunk_hec/profiling]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]

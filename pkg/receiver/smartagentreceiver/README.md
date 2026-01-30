@@ -65,7 +65,7 @@ exporters:
   signalfx:
     access_token: "${SIGNALFX_ACCESS_TOKEN}"
     realm: us1
-  otlphttp:
+  otlp_http:
     traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -93,5 +93,5 @@ service:
       processors:
         - resourcedetection
       exporters:
-        - otlphttp
+        - otlp_http
 ```

@@ -23,7 +23,7 @@ receivers:
 exporters:
   debug:
     verbosity: detailed
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -38,4 +38,4 @@ service:
   pipelines:
     logs:
       receivers: [discovery]
-      exporters: [otlp, debug]
+      exporters: [otlp_grpc, debug]

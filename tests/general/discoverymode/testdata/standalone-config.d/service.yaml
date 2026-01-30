@@ -3,4 +3,4 @@ pipelines:
     receivers:
       - hostmetrics
     exporters:
-      - otlp
+      - otlp_grpc

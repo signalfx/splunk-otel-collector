@@ -59,7 +59,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 	expectedInitial := map[string]any{
 		"file": map[string]any{
 			"exporters": map[string]any{
-				"otlp/from-config-file": map[string]any{
+				"otlp_grpc/from-config-file": map[string]any{
 					"endpoint": "0.0.0.0:${CONFIG_FILE_PORT_FROM_ENV_VAR}",
 				},
 			},
@@ -88,7 +88,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				"extensions": []any{"health_check/from-config-file"},
 				"pipelines": map[string]any{
 					"metrics/from-config-file": map[string]any{
-						"exporters":  []any{"otlp/from-config-file"},
+						"exporters":  []any{"otlp_grpc/from-config-file"},
 						"processors": []any{"batch/from-config-file"},
 						"receivers":  []any{"otlp/from-config-file"},
 					},
@@ -97,7 +97,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 		},
 		"splunk.configd": map[string]any{
 			"exporters": map[string]any{
-				"otlp/from-configd": map[string]any{
+				"otlp_grpc/from-configd": map[string]any{
 					"endpoint": "0.0.0.0:${CONFIGD_PORT_FROM_ENV_VAR}",
 				},
 			},
@@ -120,7 +120,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				"extensions": []any{"health_check/from-configd", "zpages"},
 				"pipelines": map[string]any{
 					"metrics/from-configd": map[string]any{
-						"exporters":  []any{"otlp/from-configd"},
+						"exporters":  []any{"otlp_grpc/from-configd"},
 						"processors": []any{"batch/from-configd"},
 						"receivers":  []any{"otlp/from-configd"},
 					},
@@ -137,10 +137,10 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 
 	expectedEffective := map[string]any{
 		"exporters": map[string]any{
-			"otlp/from-config-file": map[string]any{
+			"otlp_grpc/from-config-file": map[string]any{
 				"endpoint": "0.0.0.0:12345",
 			},
-			"otlp/from-configd": map[string]any{
+			"otlp_grpc/from-configd": map[string]any{
 				"endpoint": "0.0.0.0:34567",
 			},
 		},
@@ -180,12 +180,12 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			"extensions": []any{"health_check/from-configd", "zpages"},
 			"pipelines": map[string]any{
 				"metrics/from-config-file": map[string]any{
-					"exporters":  []any{"otlp/from-config-file"},
+					"exporters":  []any{"otlp_grpc/from-config-file"},
 					"processors": []any{"batch/from-config-file"},
 					"receivers":  []any{"otlp/from-config-file"},
 				},
 				"metrics/from-configd": map[string]any{
-					"exporters":  []any{"otlp/from-configd"},
+					"exporters":  []any{"otlp_grpc/from-configd"},
 					"processors": []any{"batch/from-configd"},
 					"receivers":  []any{"otlp/from-configd"},
 				},
@@ -205,9 +205,9 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 		"/otelcol --config-dir /opt/config.d --configd --set processors.batch/from-config-file.send_batch_size=123456789 --dry-run 2>/dev/null",
 	)
 	assert.Equal(t, `exporters:
-  otlp/from-config-file:
+  otlp_grpc/from-config-file:
     endpoint: 0.0.0.0:${CONFIG_FILE_PORT_FROM_ENV_VAR}
-  otlp/from-configd:
+  otlp_grpc/from-configd:
     endpoint: 0.0.0.0:${CONFIGD_PORT_FROM_ENV_VAR}
 extensions:
   health_check/from-config-file:
@@ -236,14 +236,14 @@ service:
   pipelines:
     metrics/from-config-file:
       exporters:
-      - otlp/from-config-file
+      - otlp_grpc/from-config-file
       processors:
       - batch/from-config-file
       receivers:
       - otlp/from-config-file
     metrics/from-configd:
       exporters:
-      - otlp/from-configd
+      - otlp_grpc/from-configd
       processors:
       - batch/from-configd
       receivers:

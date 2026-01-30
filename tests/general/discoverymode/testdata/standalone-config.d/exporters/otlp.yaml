@@ -1,4 +1,4 @@
-otlp:
+otlp_grpc:
   endpoint: "${OTLP_ENDPOINT}"
   tls:
     insecure: true

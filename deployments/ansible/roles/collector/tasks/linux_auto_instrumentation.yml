@@ -13,15 +13,15 @@
   when: ansible_os_family == "Suse"
 
 - name: Get installed package facts
-  package_facts:
+  ansible.builtin.package_facts:
     manager: auto
 
 - name: Get installed splunk-otel-auto-instrumentation version
-  set_fact:
+  ansible.builtin.set_fact:
     auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
 - name: Set auto instrumentation facts
-  set_fact:
+  ansible.builtin.set_fact:
     package_changed: "{{ apt_instrumentation_package is changed \
       or yum_instrumentation_package is changed \
       or zypper_instrumentation_package is changed }}"
@@ -36,13 +36,14 @@
       and ansible_architecture in ('x86_64', 'amd64', 'aarch64') }}"
 
 - name: Check for npm
-  shell: npm --version
+  ansible.builtin.command: npm --version
   register: npm_check
   changed_when: false
   ignore_errors: true
   when: with_nodejs and not npm_found
 
-- set_fact:
+- name: Set npm_found fact
+  ansible.builtin.set_fact:
     npm_found: yes
   when: with_nodejs and not npm_found and npm_check is defined and npm_check.rc == 0
 
@@ -50,6 +51,7 @@
   ansible.builtin.file:
     path: /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
     state: directory
+    mode: '0755'
   when: with_nodejs and npm_found and package_changed
 
 - name: Install splunk-otel-js
@@ -130,6 +132,7 @@
   ansible.builtin.file:
     path: /usr/lib/systemd/system.conf.d
     state: directory
+    mode: '644'
   when: with_systemd
 
 - name: Set up systemd for Splunk OpenTelemetry Auto Instrumentation

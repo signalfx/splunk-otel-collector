@@ -57,7 +57,7 @@ Note that this role requires root access.
   # "The Powershell family is incompatible with the sudo become plugin". Remove "become: yes" tag to run on Windows
   tasks:
     - name: "Include splunk_otel_collector"
-      include_role:
+      ansible.builtin.include_role:
         name: "signalfx.splunk_otel_collector.collector"
       vars:
         splunk_access_token: YOUR_ACCESS_TOKEN

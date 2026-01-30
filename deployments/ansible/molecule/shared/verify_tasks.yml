@@ -5,5 +5,5 @@
   ansible.builtin.service_facts:
 
 - name: Assert splunk-otel-collector service is running
-  assert:
+  ansible.builtin.assert:
     that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'

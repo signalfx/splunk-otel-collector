@@ -7,5 +7,5 @@
     splunk_realm: fake-realm
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
-      include_role:
+      ansible.builtin.include_role:
         name: "signalfx.splunk_otel_collector.collector"

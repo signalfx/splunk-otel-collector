@@ -14,18 +14,18 @@
   when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_url
 
 - name: Set dotnet_download_url fact
-  set_fact:
+  ansible.builtin.set_fact:
     dotnet_download_url: |-
       {%- if splunk_dotnet_auto_instrumentation_url -%}
-        {{ splunk_dotnet_auto_instrumentation_url }}
+      {{ splunk_dotnet_auto_instrumentation_url }}
       {%- else -%}
-        {%- if splunk_dotnet_auto_instrumentation_version != "latest" -%}
-          {%- set version = splunk_dotnet_auto_instrumentation_version.lstrip("v") -%}
-          {{ base_url }}/v{{ version }}
-        {%- elif splunk_dotnet_auto_instrumentation_version == "latest" and latest_dotnet_release is defined -%}
-          {%- set version = latest_dotnet_release.json.tag_name.lstrip("v") -%}
-          {{ base_url }}/v{{ version }}
-        {%- endif -%}
+      {%- if splunk_dotnet_auto_instrumentation_version != "latest" -%}
+      {%- set version = splunk_dotnet_auto_instrumentation_version.lstrip("v") -%}
+      {{ base_url }}/v{{ version }}
+      {%- elif splunk_dotnet_auto_instrumentation_version == "latest" and latest_dotnet_release is defined -%}
+      {%- set version = latest_dotnet_release.json.tag_name.lstrip("v") -%}
+      {{ base_url }}/v{{ version }}
+      {%- endif -%}
       {%- endif -%}
   vars:
     base_url: https://github.com/signalfx/splunk-otel-dotnet/releases/download
@@ -76,7 +76,7 @@
     state: present
 
 - name: Get IIS options list
-  set_fact:
+  ansible.builtin.set_fact:
     options_list: |-
       {%- set value = item.value -%}
       {%- if (item.value | type_debug) == "bool" -%}

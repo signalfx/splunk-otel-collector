@@ -147,7 +147,7 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	assert.NotNil(t, drc)
 
 	assert.Len(t, conf.Exporters, 1)
-	oec, ok := conf.Exporters[component.MustNewIDWithName("otlphttp", "entities")].(*otlphttpexporter.Config)
+	oec, ok := conf.Exporters[component.MustNewIDWithName("otlp_http", "entities")].(*otlphttpexporter.Config)
 	require.True(t, ok)
 	expectedOtlpExporterConfig := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
 	expectedOtlpExporterConfig.LogsEndpoint = "https://ingest.fake-realm.signalfx.com/v3/event"
@@ -177,7 +177,7 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 
 	logsExporters := pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Exporters
 	require.Len(t, logsExporters, 1)
-	assert.Equal(t, component.MustNewIDWithName("otlphttp", "entities"), logsExporters[0])
+	assert.Equal(t, component.MustNewIDWithName("otlp_http", "entities"), logsExporters[0])
 }
 
 func TestDiscoveryProvider_HostObserverDisabled(t *testing.T) {

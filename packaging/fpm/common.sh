@@ -38,8 +38,6 @@ GATEWAY_CONFIG_INSTALL_PATH="/etc/otel/collector/gateway_config.yaml"
 SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
-FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
-
 JMX_METRIC_GATHERER_RELEASE_PATH="${FPM_DIR}/../jmx-metric-gatherer-release.txt"
 BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
 AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"

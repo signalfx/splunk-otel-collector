@@ -4,7 +4,6 @@
 - name: Set Linux packages sources
   ansible.builtin.set_fact:
     splunk_repo_base_url: https://splunk.jfrog.io/splunk
-    td_agent_repo_base: https://packages.treasuredata.com
 
 - name: Install Splunk OpenTelemetry Collector with apt package manager
   ansible.builtin.import_tasks: apt_install_otel_collector.yml

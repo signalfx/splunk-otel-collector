@@ -41,10 +41,6 @@ start_service: true
 # Disable setting the official Splunk Debian or RPM repository.
 splunk_skip_repo: false
 
-# Explicitly set version of td-agent,
-# By default: 4.3.2
-td_agent_version: ""
-
 # Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle".
 # Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle".
 splunk_bundle_dir: ""

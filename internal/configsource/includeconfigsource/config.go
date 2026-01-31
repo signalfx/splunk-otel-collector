@@ -26,6 +26,8 @@ type Config struct {
 	// files after its content is read. The default value is 'false'.
 	// Set it to 'true' to force the deletion of the file as soon
 	// as the config source finished using it.
+	//
+	// Deprecated: this setting will be removed on or after April 2026
 	DeleteFiles bool `mapstructure:"delete_files"`
 	// WatchFiles is used to control if the referenced files should
 	// be watched for updates or not. The default value is 'false'.

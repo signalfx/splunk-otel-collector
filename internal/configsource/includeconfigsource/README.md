@@ -19,6 +19,7 @@ config_sources:
     # file system. The file is deleted as soon as its value is read by the config
     # source. The default value is false. It is an invalid configuration to set it
     # to true together with the watch_files parameter (see below).
+    # Deprecated: this setting will be removed on or after April 2026.
     delete_files: true
   include/my_name_01:
     # watch_files can be used to make the "include" config source monitor for

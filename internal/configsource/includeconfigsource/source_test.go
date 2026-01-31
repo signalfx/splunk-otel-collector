@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
 )
 
 func TestIncludeConfigSource_Session(t *testing.T) {
@@ -63,7 +64,7 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s, err := newConfigSource(&Config{})
+			s, err := newConfigSource(&Config{}, zap.NewNop())
 			require.NoError(t, err)
 
 			ctx := context.Background()
@@ -86,7 +87,7 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 }
 
 func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
-	s, err := newConfigSource(&Config{WatchFiles: true})
+	s, err := newConfigSource(&Config{WatchFiles: true}, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -113,7 +114,7 @@ func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 }
 
 func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
-	s, err := newConfigSource(&Config{WatchFiles: true})
+	s, err := newConfigSource(&Config{WatchFiles: true}, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -159,7 +160,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 }
 
 func TestIncludeConfigSourceDeleteFile(t *testing.T) {
-	s, err := newConfigSource(&Config{DeleteFiles: true})
+	s, err := newConfigSource(&Config{DeleteFiles: true}, zap.NewNop()) // SA1019: deprecated DeleteFiles
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -190,7 +191,7 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 		t.Skip("Windows only test")
 	}
 
-	s, err := newConfigSource(&Config{DeleteFiles: true})
+	s, err := newConfigSource(&Config{DeleteFiles: true}, zap.NewNop()) // SA1019: deprecated DeleteFiles
 	require.NoError(t, err)
 
 	// Copy test file

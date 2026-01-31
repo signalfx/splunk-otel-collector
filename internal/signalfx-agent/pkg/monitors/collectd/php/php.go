@@ -58,5 +58,5 @@ func (am *Monitor) Configure(conf *Config) error {
 	if conf.URL == "" {
 		conf.URL = fmt.Sprintf("%s://%s:%d%s?json", conf.Scheme(), conf.Host, conf.Port, conf.Path)
 	}
-	return am.SetConfigurationAndRun(conf)
+	return am.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog2("[NOTICE] The php-fpm plugin is deprecated and will be removed in a future release. Please use the PHP instrumentation SDK instead."))
 }

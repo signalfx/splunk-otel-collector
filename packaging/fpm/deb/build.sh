@@ -61,7 +61,6 @@ sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --config-files "$CONFIG_DIR_INSTALL_PATH" \
     --config-files "$AGENT_CONFIG_INSTALL_PATH" \
     --config-files "$GATEWAY_CONFIG_INSTALL_PATH" \
-    --config-files "$FLUENTD_CONFIG_INSTALL_DIR" \
     "$buildroot/"=/
 
 dpkg -c "${OUTPUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"

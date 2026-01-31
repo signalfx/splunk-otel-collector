@@ -3,6 +3,9 @@ monitors:
     plugin_instance:
       description: Set to whatever you set in the `name` config option.
   doc: |
+    **Deprecated: this monitor is deprecated and has no direct replacement. It will be removed on or after April 2026.
+    Consider using the OpenTelemetry SDK for PHP to instrument your application.**
+    
     Monitors PHP-FPM using pool status URL.
 
     <!--- SETUP --->

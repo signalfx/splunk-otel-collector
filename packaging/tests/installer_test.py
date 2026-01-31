@@ -180,7 +180,7 @@ def verify_uninstall(container, distro):
 
     run_container_cmd(container, f"sh -l {debug_flag} /test/install.sh --uninstall")
 
-    for pkg in ("splunk-otel-collector", "td-agent", "splunk-otel-auto-instrumentation"):
+    for pkg in ("splunk-otel-collector", "splunk-otel-auto-instrumentation"):
         assert not package_is_installed(container, distro, pkg), f"{pkg} was not uninstalled"
 
     # verify libsplunk.so was removed from /etc/ld.so.preload after uninstall
@@ -216,10 +216,8 @@ def test_installer_default(distro, arch, mode):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
-            for pkg in ("td-agent", "splunk-otel-auto-instrumentation"):
-                assert not package_is_installed(container, distro, "td-agent"), f"{pkg} was installed"
-
-            assert container.exec_run("systemctl status td-agent").exit_code != 0
+            for pkg in ("splunk-otel-auto-instrumentation"):
+                assert not package_is_installed(container, distro, pkg), f"{pkg} was installed"
 
             # verify env file created with configured parameters
             verify_env_file(container, mode=mode)

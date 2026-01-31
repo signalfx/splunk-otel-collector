@@ -1,6 +1,8 @@
 monitors:
 - monitorType: postgresql
   doc: |
+    **This monitor is deprecated and will be removed on or after April 2026.
+    Please use the [postgresql receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/postgresql-receiver) instead.**
     This monitor pulls metrics from all PostgreSQL databases from a specific
     Postgres server instance.  It pulls basic information that is applicable
     to any database.  It gathers these metrics via SQL queries.

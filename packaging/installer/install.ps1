@@ -64,11 +64,6 @@
     (OPTIONAL) Set values for the GODEBUG environment variable.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -godebug "fips140=on"
-.PARAMETER with_fluentd
-    DEPRECATED: Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
-    (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $false)
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $true
 .PARAMETER with_dotnet_instrumentation
     (OPTIONAL) Whether to install and configure the Splunk Distribution of OpenTelemetry .NET to forward .NET application telemetry to the local collector (default: $false).
     .EXAMPLE
@@ -98,10 +93,6 @@
     If specified, the -collector_version and -stage parameters will be ignored.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -collector_msi_url https://my.host/splunk-otel-collector-1.2.3-amd64.msi
-.PARAMETER fluentd_msi_url
-    (OPTIONAL) Specify the URL to the Fluentd MSI package to install (default: "https://packages.treasuredata.com/4/windows/td-agent-4.1.0-x64.msi")
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -fluentd_msi_url https://my.host/td-agent-4.1.0-x64.msi
 .PARAMETER msi_path
     (OPTIONAL) Specify a local path to a Splunk OpenTelemetry Collector MSI package to install instead of downloading the package.
     If specified, the -collector_version and -stage parameters will be ignored.
@@ -148,7 +139,6 @@ param (
     [string]$godebug= "",
     [bool]$insecure = $false,
     [string]$collector_version = "",
-    [bool]$with_fluentd = $false,
     [bool]$with_dotnet_instrumentation = $false,
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
@@ -157,7 +147,6 @@ param (
     [string]$config_path = "",
     [bool]$preserve_prev_default_config = $false,
     [string]$collector_msi_url = "",
-    [string]$fluentd_msi_url = "",
     [string]$dotnet_psm1_path = "",
     [string]$dotnet_auto_zip_path = "",
     [bool]$force_skip_verify_access_token = $false,
@@ -193,19 +182,6 @@ try {
 } catch {
     $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 }
-
-$fluentd_msi_name = "td-agent-4.3.2-x64.msi"
-$fluentd_dl_url = "https://s3.amazonaws.com/packages.treasuredata.com/4/windows/$fluentd_msi_name"
-try {
-    Resolve-Path $env:SYSTEMDRIVE 2>&1>$null
-    $fluentd_base_dir = "${env:SYSTEMDRIVE}\opt\td-agent"
-} catch {
-    $fluentd_base_dir = "\opt\td-agent"
-}
-$fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
-$fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
-$fluentd_service_name = "fluentdwinsvc"
-$fluentd_log_path = "$fluentd_base_dir\td-agent.log"
 
 # check that we're not running with a restricted execution policy
 function check_policy() {
@@ -316,11 +292,7 @@ function create_temp_dir($tempdir=$tempdir) {
 }
 
 function get_service_log_path([string]$name) {
-    $log_path = "the Windows Event Viewer"
-    if (($name -eq $fluentd_service_name) -and (Test-Path -Path "$fluentd_log_path")) {
-        $log_path = $fluentd_log_path
-    }
-    return $log_path
+    return "the Windows Event Viewer"
 }
 
 # start the service if it's not already running
@@ -519,14 +491,6 @@ if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
     }
 }
 
-if ($with_fluentd -And (Get-Service -name $fluentd_service_name -ErrorAction SilentlyContinue)) {
-    throw "The $fluentd_service_name service is already installed. Remove or uninstall fluentd and rerun this script."
-}
-
-if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
-    throw "$fluentd_base_dir\bin\fluentd is already installed. Remove or uninstall fluentd and rerun this script."
-}
-
 # create a temporary directory
 $tempdir = create_temp_dir -tempdir $tempdir
 
@@ -692,64 +656,6 @@ following PowerShell commands:
 "
 echo "$message"
 
-if ($with_fluentd) {
-    Write-Warning '[DEPRECATED] Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md'
-    $default_fluentd_config = "$installation_path\fluentd\td-agent.conf"
-    $default_confd_dir = "$installation_path\fluentd\conf.d"
-
-    # copy the default fluentd config to $fluentd_config_path if it does not already exist
-    if (!(Test-Path -Path "$fluentd_config_path") -And (Test-Path -Path "$default_fluentd_config")) {
-        $default_fluentd_config = Resolve-Path "$default_fluentd_config"
-        echo "Copying $default_fluentd_config to $fluentd_config_path"
-        mkdir "$fluentd_config_dir" -ErrorAction Ignore | Out-Null
-        Copy-Item "$default_fluentd_config" "$fluentd_config_path"
-    }
-
-    # copy the default source configs to $fluentd_config_dir\conf.d if it does not already exist
-    if (Test-Path -Path "$default_confd_dir\*.conf") {
-        mkdir "$fluentd_config_dir\conf.d" -ErrorAction Ignore | Out-Null
-        $confFiles = (Get-Item "$default_confd_dir\*.conf")
-        foreach ($confFile in $confFiles) {
-            $name = $confFile.Name
-            $path = $confFile.FullName
-            if (!(Test-Path -Path "$fluentd_config_dir\conf.d\$name")) {
-                echo "Copying $path to $fluentd_config_dir\conf.d\$name"
-                Copy-Item "$path" "$fluentd_config_dir\conf.d\$name"
-            }
-        }
-    }
-
-    if ($fluentd_msi_url) {
-        $fluentd_dl_url = $fluentd_msi_url
-        $fluentd_msi_name = "td-agent.msi"
-    }
-
-    echo ""
-    echo "Downloading $fluentd_dl_url..."
-    download_file -url "$fluentd_dl_url" -outputDir "$tempdir" -fileName "$fluentd_msi_name"
-    $fluentd_msi_path = (Join-Path "$tempdir" "$fluentd_msi_name")
-
-    install_msi -path "$fluentd_msi_path"
-
-    $message = "
-Fluentd has been installed and configured to forward log events to the $CollectorServiceDisplayName.
-By default, all log events with the @SPLUNK label will be forwarded to the collector.
-
-The main fluentd configuration file is located at $fluentd_config_path.
-Custom input sources and configurations can be added to the $fluentd_config_dir\conf.d directory.
-All files with the .conf extension in this directory will automatically be included by fluentd.
-
-By default, fluentd has been configured to collect from the Windows Event Log.
-See $fluentd_config_dir\conf.d\eventlog.conf for the default source configuration.
-
-If the fluentd configuration is modified or new config files are added, the fluentd service must be
-restarted to apply the changes by restarting the system or running the following PowerShell commands:
-  PS> Stop-Service $fluentd_service_name
-  PS> Start-Service $fluentd_service_name
-"
-    echo "$message"
-}
-
 $otel_resource_attributes = ""
 if ($deployment_env -ne "") {
     echo "Setting deployment environment to $deployment_env"
@@ -806,16 +712,6 @@ Remove-Item -Recurse -Force "$tempdir"
 echo "Starting $service_name service..."
 start_service -name "$service_name" -config_path "$config_path"
 echo "- Started"
-
-if ($with_fluentd) {
-    # The fluentd service is automatically started after msi installation.
-    # Wait for it to be running before trying to restart it with our custom config.
-    echo "Restarting $fluentd_service_name service..."
-    start_service -name "$fluentd_service_name"
-    stop_service -name "$fluentd_service_name"
-    start_service -name "$fluentd_service_name" -config_path "$fluentd_config_path"
-    echo "- Started"
-}
 
 if (($network_interface -Eq "") -And ($mode -Eq "agent")) {
     echo "[NOTICE] Starting with version 0.86.0, the collector installer changed its default network listening interface from 0.0.0.0 to 127.0.0.1 for agent mode. Please consult the release notes for more information and configuration options."

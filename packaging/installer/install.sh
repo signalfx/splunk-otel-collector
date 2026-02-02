@@ -81,7 +81,6 @@ default_memory_size="512"
 default_listen_interface="0.0.0.0"
 
 default_collector_version="latest"
-default_td_agent_version="4.3.2"
 
 default_service_user="splunk-otel-collector"
 default_service_group="splunk-otel-collector"
@@ -199,18 +198,6 @@ install_collector_apt_repo() {
   echo "deb $trusted_flag $deb_repo_base $stage main" > /etc/apt/sources.list.d/splunk-otel-collector.list
 }
 
-install_td_agent_apt_repo() {
-  local td_agent_version="$1"
-  local td_agent_major_version="$( echo $td_agent_version | cut -d '.' -f1 )"
-
-  if ! download_file_to_stdout "$td_agent_gpg_key_url" | apt-key add -; then
-    echo "Could not download Debian GPG key from $td_agent_gpg_key_url" >&2
-    exit 1
-  fi
-
-  echo "deb ${td_agent_repo_base}/${td_agent_major_version}/${distro}/${distro_codename} $distro_codename contrib" > /etc/apt/sources.list.d/td_agent.list
-}
-
 install_apt_package() {
   local package_name="$1"
   local version="$2"
@@ -247,28 +234,6 @@ enabled=1
 EOH
 }
 
-install_td_agent_yum_repo() {
-  local td_agent_version="$1"
-  local repo_path="${2:-/etc/yum.repos.d}"
-  local td_agent_major_version="$( echo $td_agent_version | cut -d '.' -f1 )"
-  local releasever="$( echo "$distro_version" | cut -d '.' -f1 )"
-
-  if [ "$distro" = "amzn" ]; then
-    distro="amazon"
-  else
-    distro="redhat"
-  fi
-
-  cat <<EOH > ${repo_path}/td_agent.repo
-[td_agent]
-name=TreasureData Repository
-baseurl=${td_agent_repo_base}/${td_agent_major_version}/${distro}/${releasever}/\$basearch
-gpgcheck=1
-gpgkey=$td_agent_gpg_key_url
-enabled=1
-EOH
-}
-
 install_yum_package() {
   local package_name="$1"
   local version="${2:-}"
@@ -296,7 +261,6 @@ ensure_not_installed() {
   local with_systemd_instrumentation="$2"
   local npm_path="$3"
   local otelcol_path=$( command -v otelcol 2>/dev/null || true )
-  local td_agent_path=$( command -v td-agent 2>/dev/null || true )
 
   if [ -n "$otelcol_path" ]; then
     echo "$otelcol_path already exists which implies that the collector is already installed." >&2
@@ -366,23 +330,6 @@ EOH
   chown root:root $override_path
   chmod 644 $override_path
   systemctl daemon-reload
-}
-
-fluent_plugin_installed() {
-  local name="$1"
-
-  td-agent-gem list "$name" --exact | grep -q "$name"
-}
-
-install_fluent_plugin() {
-  local name="$1"
-  local version="${2:-}"
-
-  if [ -n "$version" ]; then
-    td-agent-gem install "$name" --version "$version"
-  else
-    td-agent-gem install "$name"
-  fi
 }
 
 backup_file() {
@@ -671,9 +618,8 @@ EOH
 install() {
   local stage="$1"
   local collector_version="$2"
-  local td_agent_version="$3"
-  local skip_collector_repo="$4"
-  local instrumentation_version="$5"
+  local skip_collector_repo="$3"
+  local instrumentation_version="$4"
 
   case "$distro" in
     ubuntu|debian)
@@ -728,7 +674,7 @@ install() {
 uninstall() {
   local npm_path="$1"
 
-  for agent in otelcol td-agent $instrumentation_so_path; do
+  for agent in otelcol $instrumentation_so_path; do
     if command -v $agent >/dev/null 2>&1; then
       pkg="$agent"
       if [ "$agent" = "otelcol" ]; then
@@ -1114,7 +1060,6 @@ parse_args_and_install() {
   local service_group="$default_service_group"
   local stage="$default_stage"
   local service_user="$default_service_user"
-  local td_agent_version="$default_td_agent_version"
   local uninstall="false"
   local mode="agent"
   local collector_config_path=
@@ -1463,7 +1408,7 @@ parse_args_and_install() {
     exit 1
   fi
 
-  install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$instrumentation_version"
+  install "$stage" "$collector_version" "$skip_collector_repo" "$instrumentation_version"
 
   if [ "$with_instrumentation" = "true" ]; then
     if item_in_list "java" "$sdks_to_enable"; then

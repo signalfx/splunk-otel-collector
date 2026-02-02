@@ -25,6 +25,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
@@ -41,9 +42,12 @@ type includeConfigSource struct {
 	watchedFiles map[string]struct{}
 }
 
-func newConfigSource(config *Config) (configsource.ConfigSource, error) {
-	if config.DeleteFiles && config.WatchFiles {
+func newConfigSource(config *Config, logger *zap.Logger) (configsource.ConfigSource, error) {
+	if config.DeleteFiles && config.WatchFiles { // SA1019: deprecated DeleteFiles
 		return nil, errors.New(`cannot be configured with "delete_files" and "watch_files" at the same time`)
+	}
+	if config.DeleteFiles { // SA1019: deprecated DeleteFiles
+		logger.Warn("[NOTICE] delete_files is a deprecated setting and will be removed in a future release on or after April 2026")
 	}
 
 	return &includeConfigSource{
@@ -69,7 +73,7 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 		return nil, err
 	}
 
-	if is.DeleteFiles {
+	if is.DeleteFiles { // SA1019: deprecated DeleteFiles
 		if err := os.Remove(selector); err != nil { //nolint:govet // intentional shadow
 			return nil, &errFailedToDeleteFile{fmt.Errorf("failed to delete file %q as requested: %w", selector, err)}
 		}

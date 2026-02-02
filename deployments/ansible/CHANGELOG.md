@@ -1,19 +1,17 @@
 # Changelog
 
-## ansible-v0.35.0
-
-### 💡 Enhancements 💡
-
-- Minimum supported Ansible version is now 2.15. ([#7118](https://github.com/signalfx/splunk-otel-collector/pull/7118))
-- Set explicit mode for all files and directories created by role. By default, all files are given `644` and
-  directories are set to `0755`. ([#7118](https://github.com/signalfx/splunk-otel-collector/pull/7118))
-
 ## ansible-v0.34.0
 
 ### 🚩 Deprecations 🚩
 
 - Fluentd support has been removed.
   Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+
+### 💡 Enhancements 💡
+
+- Minimum supported Ansible version is now 2.15. ([#7118](https://github.com/signalfx/splunk-otel-collector/pull/7118))
+- Set explicit mode for all files and directories created by role. By default, all files are given `644` and
+  directories are set to `0755`. ([#7118](https://github.com/signalfx/splunk-otel-collector/pull/7118))
 
 ## ansible-v0.33.0
 

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/shirou/gopsutil/v4/process"
 	flag "github.com/spf13/pflag"
@@ -36,6 +37,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
+	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
 func main() {
@@ -47,10 +49,9 @@ func runFromCmdLine(args []string) {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	isModularInput, isQueryMode := isModularInputMode(args)
-	if isModularInput && isQueryMode {
-		// Query modes (scheme/validate) are empty no-ops for now.
-		os.Exit(0)
+	err := handleLaunchAsTA(args)
+	if err != nil {
+		log.Fatalf("ERROR launching as TA modular input: %v", err)
 	}
 
 	collectorSettings, err := settings.New(args[1:])
@@ -156,4 +157,41 @@ func isParentProcessSplunkd() bool {
 
 	// Check if parent process is splunkd (Linux) or splunkd.exe (Windows)
 	return parentName == "splunkd" || parentName == "splunkd.exe"
+}
+
+func handleLaunchAsTA(args []string) error {
+	isModularInput, isQueryMode := isModularInputMode(args)
+	if !isModularInput {
+		return nil
+	}
+
+	if isQueryMode {
+		// Query modes (scheme/validate) are empty no-ops for now.
+		// Do not write anything to stdout, just exit 0.
+		os.Exit(0)
+	}
+
+	input, err := modularinput.ReadXML(os.Stdin)
+	if err != nil {
+		return fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
+	}
+
+	var configStanza modularinput.Stanza
+	for _, stanza := range input.Configuration.Stanza {
+		if stanza.Name == "Splunk_TA_OTel_Collector://Splunk_TA_OTel_Collector" {
+			configStanza = stanza
+			break
+		}
+	}
+
+	for _, param := range configStanza.Param {
+		envVarName := strings.ToUpper(param.Name)
+		envVarValue := os.ExpandEnv(param.Value)
+		err := os.Setenv(envVarName, envVarValue)
+		if err != nil {
+			return fmt.Errorf("launch as TA failed to set environment variable '%s' with value '%s': %w", envVarName, envVarValue, err)
+		}
+	}
+
+	return nil
 }

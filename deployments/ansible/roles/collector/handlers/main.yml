@@ -6,7 +6,6 @@
     daemon_reload: yes
   listen:
     - restart splunk-otel-collector
-    - restart td-agent
 
 - name: Restart Splunk OpenTelemetry Collector
   ansible.builtin.service:

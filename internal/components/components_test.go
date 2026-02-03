@@ -99,6 +99,7 @@ func TestDefaultComponents(t *testing.T) {
 		"rabbitmq",
 		"receiver_creator",
 		"redis",
+		"saphana",
 		"scripted_inputs",
 		"signalfx",
 		"signalfxgatewayprometheusremotewrite",

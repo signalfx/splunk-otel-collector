@@ -24,8 +24,8 @@ import (
 	"log"
 	"os"
 
-	flag "github.com/spf13/pflag"
 	"github.com/shirou/gopsutil/v4/process"
+	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/otelcol"
@@ -115,7 +115,7 @@ func runInteractive(settings otelcol.CollectorSettings) error {
 	return nil
 }
 
-func isModularInputMode(args []string) (isModularInput bool, isQueryMode bool) {
+func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
 	// SPLUNK_HOME must be defined if this is running as a modular input.
 	_, hasSplunkHome := os.LookupEnv("SPLUNK_HOME")
 	if !hasSplunkHome {
@@ -139,22 +139,9 @@ func isModularInputMode(args []string) (isModularInput bool, isQueryMode bool) {
 
 // isParentProcessSplunkd checks if the parent process name is splunkd (Linux) or splunkd.exe (Windows)
 func isParentProcessSplunkd() bool {
-	// Get current process
-	currentProc, err := process.NewProcess(int32(os.Getpid()))
-	if err != nil {
-		log.Printf("ERROR unable to get current process: %v\n", err)
-		return false
-	}
-
 	// Get parent process ID
-	ppid, err := currentProc.Ppid()
-	if err != nil {
-		log.Printf("ERROR unable to get parent process ID: %v\n", err)
-		return false
-	}
-
-	// Get parent process
-	parentProc, err := process.NewProcess(ppid)
+	ppid := os.Getppid()
+	parentProc, err := process.NewProcess(int32(ppid)) //nolint:gosec // disable G115
 	if err != nil {
 		log.Printf("ERROR unable to get parent process: %v\n", err)
 		return false

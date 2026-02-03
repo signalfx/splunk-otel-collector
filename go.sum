@@ -1678,6 +1678,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventl
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.144.0/go.mod h1:vmIRIa8laCWj2Ce/GLWo2oKdIVxG1QsqiwnDr+pwZQg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.144.0 h1:+71cGP8/qP1JW2J8YSo6Jr98Jcykz7n8p1V5MgGnMhk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.144.0/go.mod h1:Th4TmFe/xOuf6Od+5I6oyrAE9M/hpxgnxm23odnqh3k=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver v0.144.0 h1:1z5j1wb8n/WX58eC77ivpKNOsRyiuxhbRBletliO8DI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver v0.144.0/go.mod h1:9EyzasvTGCpviHvlZ/261fGtLlVRrgQHsZ2oT7hyi7A=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.144.0 h1:+b5MC8EU7JaGwbWKHEOuSgqY65hEPk6fRuWB30Hy3Eg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.144.0/go.mod h1:RYIVyrFcE7qd2N33sHT+JZZSR58AdYURALcTfrp10DQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.144.0 h1:YAUXeivMyUsnM99s0DAXjL3XvFklFxfb0jMOA8DCke0=

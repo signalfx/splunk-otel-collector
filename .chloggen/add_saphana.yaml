@@ -14,4 +14,4 @@ issues: [7162]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/saphanareceiver
+  See [README](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/saphanareceiver)

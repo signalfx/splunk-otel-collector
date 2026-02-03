@@ -32,7 +32,6 @@
     update_cache: yes
   notify:
     - "restart splunk-otel-collector"
-    - "restart td-agent"
   when: not local_artifact_testing_enabled
 
 - name: Copy Splunk OpenTelemetry Collector DEB artifact to remote machine
@@ -48,5 +47,4 @@
     deb: "{{ archive_contents.dest }}"
   notify:
     - "restart splunk-otel-collector"
-    - "restart td-agent"
   when: local_artifact_testing_enabled

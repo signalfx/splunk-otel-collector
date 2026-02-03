@@ -11,10 +11,6 @@
       ansible.builtin.assert:
         that: ansible_facts.services['splunk-otel-collector.service'].state == 'stopped'
 
-    - name: Assert td-agent service is not installed
-      ansible.builtin.assert:
-        that: "'td-agent.service' not in ansible_facts.services"
-
     - name: Assert SPLUNK_ACCESS_TOKEN env var is set
       ansible.builtin.lineinfile:
         line: SPLUNK_ACCESS_TOKEN=fake-token

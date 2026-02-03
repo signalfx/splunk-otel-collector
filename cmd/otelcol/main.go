@@ -25,6 +25,7 @@ import (
 	"os"
 
 	flag "github.com/spf13/pflag"
+	"github.com/shirou/gopsutil/v4/process"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/otelcol"
@@ -44,6 +45,13 @@ func main() {
 func runFromCmdLine(args []string) {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	// Handle the cases of running as a TA
+	isModularInput, isQueryMode := isModularInputMode(args)
+	if isModularInput && isQueryMode {
+		// Query modes (scheme/validate) are empty no-ops for now.
+		os.Exit(0)
+	}
 
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
@@ -105,4 +113,60 @@ func runInteractive(settings otelcol.CollectorSettings) error {
 	}
 
 	return nil
+}
+
+func isModularInputMode(args []string) (isModularInput bool, isQueryMode bool) {
+	// SPLUNK_HOME must be defined if this is running as a modular input.
+	_, hasSplunkHome := os.LookupEnv("SPLUNK_HOME")
+	if !hasSplunkHome {
+		return false, false
+	}
+
+	// Check if the parent process is splunkd
+	if !isParentProcessSplunkd() {
+		return false, false
+	}
+
+	// This is running as a modular input
+	if len(args) == 2 && (args[1] == "--scheme" || args[1] == "--validate-arguments") {
+		return true, true
+	}
+
+	// TODO: process the XML input for actual modular input operation
+
+	return true, false
+}
+
+// isParentProcessSplunkd checks if the parent process name is splunkd (Linux) or splunkd.exe (Windows)
+func isParentProcessSplunkd() bool {
+	// Get current process
+	currentProc, err := process.NewProcess(int32(os.Getpid()))
+	if err != nil {
+		log.Printf("ERROR unable to get current process: %v\n", err)
+		return false
+	}
+
+	// Get parent process ID
+	ppid, err := currentProc.Ppid()
+	if err != nil {
+		log.Printf("ERROR unable to get parent process ID: %v\n", err)
+		return false
+	}
+
+	// Get parent process
+	parentProc, err := process.NewProcess(ppid)
+	if err != nil {
+		log.Printf("ERROR unable to get parent process: %v\n", err)
+		return false
+	}
+
+	// Get parent process name
+	parentName, err := parentProc.Name()
+	if err != nil {
+		log.Printf("ERROR unable to get parent process name: %v\n", err)
+		return false
+	}
+
+	// Check if parent process is splunkd (Linux) or splunkd.exe (Windows)
+	return parentName == "splunkd" || parentName == "splunkd.exe"
 }

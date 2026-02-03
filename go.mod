@@ -109,6 +109,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/rabbitmqreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.144.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/saphanareceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snmpreceiver v0.144.0

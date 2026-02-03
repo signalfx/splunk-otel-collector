@@ -1636,6 +1636,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreat
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.144.0/go.mod h1:B/kHP5R8LArk9QEzmh62RTE7Agmekiht1w0YRQkqzVE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.144.0 h1:W934/Bpw1HXucn6ZbaeRSJp41ExI6FLbtKkWIbduytc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.144.0/go.mod h1:oF4zqNhZzGQGM+jAzFJUN39jP9X6C5zMMW43nu11N5E=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/saphanareceiver v0.144.0 h1:ucCWrzLTiQzvNMR1DgZdVTpFDHiuC3xxUHGScYX2iXM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/saphanareceiver v0.144.0/go.mod h1:vexay5z2zOZ+BzHL+1cGXzbz6Cx9KE9OWZicDhoCQF4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.144.0 h1:efQU5fCLpyeIVJ9N3Z20sE5D6JxhzYtDyBRPcepwlg0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.144.0/go.mod h1:Gn3DWHFRkcTcd6RBI6prycMrRzBKbtWjf2ZeermqVvE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.144.0 h1:LelAmbkNmqR7r+86XeH3Gq/0K8pgLNeYb7WQdQmOb4w=

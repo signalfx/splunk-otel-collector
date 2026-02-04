@@ -24,10 +24,13 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 )
 
+var ErrQueryMode = fmt.Errorf("modular input called in query mode")
+
 // HandleLaunchAsTA handles the launch of the collector as a Splunk TA modular input.
 // It checks if the collector is running in modular input mode and processes the input XML
 // to set environment variables from the configuration stanza.
-// Returns an error if the launch fails, or nil if not running in modular input mode or on success.
+// Returns an error if the launch fails, ErrQueryMode if running in query mode,
+// or nil if not running in modular input mode or on success.
 func HandleLaunchAsTA(args []string, stdin io.Reader) error {
 	isModularInput, isQueryMode := isModularInputMode(args)
 	if !isModularInput {
@@ -36,8 +39,9 @@ func HandleLaunchAsTA(args []string, stdin io.Reader) error {
 
 	if isQueryMode {
 		// Query modes (scheme/validate) are empty no-ops for now.
-		// Do not write anything to stdout, just exit 0.
-		os.Exit(0)
+		// Do not write anything to stdout, just signal it to the caller
+		// with a specific error.
+		return ErrQueryMode
 	}
 
 	input, err := ReadXML(stdin)

@@ -49,6 +49,10 @@ func runFromCmdLine(args []string) {
 	// Handle the cases of running as a TA
 	err := modularinput.HandleLaunchAsTA(args, os.Stdin)
 	if err != nil {
+		if errors.Is(err, modularinput.ErrQueryMode) {
+			// Query modes (scheme/validate) do not write anything to stdout.
+			os.Exit(0)
+		}
 		log.Fatalf("ERROR launching as TA modular input: %v", err)
 	}
 

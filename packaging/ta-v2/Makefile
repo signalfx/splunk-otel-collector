@@ -50,9 +50,11 @@ pack: validate-target-os sync-configs
 	@echo "Packing add-on $(PKG_NAME) ..."
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
 	@tmpdir=$$(mktemp -d) && \
+	listfile=$$(mktemp) && \
+	tr -d '\r' < $(PKG_NAME).fileslist.txt > $$listfile && \
 	cp -rL ./assets/ $$tmpdir/$(MOD_INPUT_NAME) && \
-	tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -T $(PKG_NAME).fileslist.txt -C $$tmpdir && \
-	rm -rf $$tmpdir
+	tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
+	rm -rf $$tmpdir $$listfile
 
 .PHONY: clean-packages
 clean-packages:

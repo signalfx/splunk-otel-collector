@@ -15,6 +15,7 @@
 package modularinput
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -24,14 +25,20 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 )
 
-var ErrQueryMode = fmt.Errorf("modular input called in query mode")
+var (
+	ErrQueryMode = errors.New("modular input called in query mode")
+
+	// Function variables to facilitate testing
+	setEnvFn                 = os.Setenv
+	isParentProcessSplunkdFn = isParentProcessSplunkd
+)
 
 // HandleLaunchAsTA handles the launch of the collector as a Splunk TA modular input.
 // It checks if the collector is running in modular input mode and processes the input XML
 // to set environment variables from the configuration stanza.
 // Returns an error if the launch fails, ErrQueryMode if running in query mode,
 // or nil if not running in modular input mode or on success.
-func HandleLaunchAsTA(args []string, stdin io.Reader) error {
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaName string) error {
 	isModularInput, isQueryMode := isModularInputMode(args)
 	if !isModularInput {
 		return nil
@@ -51,7 +58,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader) error {
 
 	var configStanza Stanza
 	for _, stanza := range input.Configuration.Stanza {
-		if stanza.Name == "Splunk_TA_OTel_Collector://Splunk_TA_OTel_Collector" {
+		if stanza.Name == configStanzaName {
 			configStanza = stanza
 			break
 		}
@@ -60,7 +67,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader) error {
 	for _, param := range configStanza.Param {
 		envVarName := strings.ToUpper(param.Name)
 		envVarValue := os.ExpandEnv(param.Value)
-		err := os.Setenv(envVarName, envVarValue)
+		err := setEnvFn(envVarName, envVarValue)
 		if err != nil {
 			return fmt.Errorf("launch as TA failed to set environment variable '%s' with value '%s': %w", envVarName, envVarValue, err)
 		}
@@ -77,7 +84,7 @@ func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
 	}
 
 	// Check if the parent process is splunkd
-	if !isParentProcessSplunkd() {
+	if !isParentProcessSplunkdFn() {
 		return false, false
 	}
 
@@ -86,12 +93,12 @@ func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
 		return true, true
 	}
 
-	// TODO: process the XML input for actual modular input operation
-
 	return true, false
 }
 
 // isParentProcessSplunkd checks if the parent process name is splunkd (Linux) or splunkd.exe (Windows)
+// error cases are a good indication that the parent is not splunkd, so log errors and return false
+// in those cases.
 func isParentProcessSplunkd() bool {
 	// Get parent process ID
 	ppid := os.Getppid()

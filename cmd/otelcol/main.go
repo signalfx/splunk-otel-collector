@@ -23,9 +23,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
-	"github.com/shirou/gopsutil/v4/process"
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
@@ -49,7 +47,7 @@ func runFromCmdLine(args []string) {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	err := handleLaunchAsTA(args)
+	err := modularinput.HandleLaunchAsTA(args, os.Stdin)
 	if err != nil {
 		log.Fatalf("ERROR launching as TA modular input: %v", err)
 	}
@@ -111,86 +109,6 @@ func runInteractive(settings otelcol.CollectorSettings) error {
 	}
 	if err := cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
-	}
-
-	return nil
-}
-
-func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
-	// SPLUNK_HOME must be defined if this is running as a modular input.
-	_, hasSplunkHome := os.LookupEnv("SPLUNK_HOME")
-	if !hasSplunkHome {
-		return false, false
-	}
-
-	// Check if the parent process is splunkd
-	if !isParentProcessSplunkd() {
-		return false, false
-	}
-
-	// This is running as a modular input
-	if len(args) == 2 && (args[1] == "--scheme" || args[1] == "--validate-arguments") {
-		return true, true
-	}
-
-	// TODO: process the XML input for actual modular input operation
-
-	return true, false
-}
-
-// isParentProcessSplunkd checks if the parent process name is splunkd (Linux) or splunkd.exe (Windows)
-func isParentProcessSplunkd() bool {
-	// Get parent process ID
-	ppid := os.Getppid()
-	parentProc, err := process.NewProcess(int32(ppid)) //nolint:gosec // disable G115
-	if err != nil {
-		log.Printf("ERROR unable to get parent process: %v\n", err)
-		return false
-	}
-
-	// Get parent process name
-	parentName, err := parentProc.Name()
-	if err != nil {
-		log.Printf("ERROR unable to get parent process name: %v\n", err)
-		return false
-	}
-
-	// Check if parent process is splunkd (Linux) or splunkd.exe (Windows)
-	return parentName == "splunkd" || parentName == "splunkd.exe"
-}
-
-func handleLaunchAsTA(args []string) error {
-	isModularInput, isQueryMode := isModularInputMode(args)
-	if !isModularInput {
-		return nil
-	}
-
-	if isQueryMode {
-		// Query modes (scheme/validate) are empty no-ops for now.
-		// Do not write anything to stdout, just exit 0.
-		os.Exit(0)
-	}
-
-	input, err := modularinput.ReadXML(os.Stdin)
-	if err != nil {
-		return fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
-	}
-
-	var configStanza modularinput.Stanza
-	for _, stanza := range input.Configuration.Stanza {
-		if stanza.Name == "Splunk_TA_OTel_Collector://Splunk_TA_OTel_Collector" {
-			configStanza = stanza
-			break
-		}
-	}
-
-	for _, param := range configStanza.Param {
-		envVarName := strings.ToUpper(param.Name)
-		envVarValue := os.ExpandEnv(param.Value)
-		err := os.Setenv(envVarName, envVarValue)
-		if err != nil {
-			return fmt.Errorf("launch as TA failed to set environment variable '%s' with value '%s': %w", envVarName, envVarValue, err)
-		}
 	}
 
 	return nil

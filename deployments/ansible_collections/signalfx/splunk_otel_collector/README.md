@@ -3,7 +3,7 @@
 ## Description
 
 Ansible Collection `signalfx.splunk_otel_collector` contains just one [Ansible 
-role for Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector): 
+role for Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible_collections/signalfx/splunk_otel_collector/roles/collector): 
 `signalfx.splunk_otel_collector.collector`.
 
 The role installs Splunk OpenTelemetry Collector configured to
@@ -77,7 +77,7 @@ Note that this role requires root access.
 > **_NOTE:_**  Setting splunk_hec_token is optional.
 
 Full documentation on how to configure the role:
-[Splunk OpenTelemetry Collector Role](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector)
+[Splunk OpenTelemetry Collector Role](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible_collections/signalfx/splunk_otel_collector/roles/collector)
 
 ## Testing
 
@@ -87,7 +87,7 @@ varying flavours of Linux and Windows to ensure compatibility.
 
 ## Contributing
 
-Check [Contributing guidelines](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/contributing/README.md) 
+Check [Contributing guidelines](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible_collections/signalfx/splunk_otel_collector/contributing/README.md) 
 if you see something that needs to be improved in this Ansible role.
 
 ## Support
@@ -99,7 +99,7 @@ if you see something that needs to be improved in this Ansible role.
 
 ## Release Notes
 
-[Release notes](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible/CHANGELOG.md)
+[Release notes](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible_collections/signalfx/splunk_otel_collector/CHANGELOG.md)
 
 ## Related Information
 

@@ -1,21 +1,21 @@
 name: Ansible
 
-# The workflow triggered by any change in deployments/ansible/.
+# The workflow triggered by any change in deployments/ansible_collections/signalfx/splunk_otel_collector/.
 # 1. Run lint checks and Ansible Molecule tests.
 # 2. Push a new "ansible-v<VERSION>" tag, if the version was updated
-#    in deployments/ansible/galaxy.yml.
+#    in deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml.
 
 on:
   push:
     paths:
       - '.github/workflows/ansible.yml'
-      - 'deployments/ansible/galaxy.yml'
+      - 'deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml'
     branches:
       - main
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
-      - 'deployments/ansible/**'
+      - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
       - '!**.md'
       - '!packaging/technical-addon/**'
   schedule:
@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
@@ -113,7 +113,10 @@ jobs:
           args: "-x var-naming[no-role-prefix] --exclude molecule/config/ --exclude molecule/shared/ --exclude molecule/custom_vars/custom_collector_config.yml --exclude molecule/custom_vars/custom_collector_config_deprecated.yml --exclude molecule/custom_vars_install_old_version/custom_collector_config.yml"
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"
-          working_directory: "deployments/ansible"
+          working_directory: "deployments/ansible_collections/signalfx/splunk_otel_collector"
+
+      - name: Run Ansible sanity tests
+        run: ansible-test sanity
 
   linux-test:
     name: Linux Test
@@ -121,7 +124,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     strategy:
       fail-fast: false
       matrix:
@@ -185,7 +188,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -283,7 +286,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout
@@ -293,7 +296,7 @@ jobs:
         id: read-galaxy-yaml
         uses: cumulusds/get-yaml-paths-action@v1
         with:
-          file: deployments/ansible/galaxy.yml
+          file: deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml
           version: version
       
       - name: Ensure version is fetched from galaxy.yml

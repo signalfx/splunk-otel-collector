@@ -1975,7 +1975,7 @@ ansible-build:
   before_script:
     - pip3 install 'ansible~=12.0.0'
   script:
-    - ansible-galaxy collection build ./deployments/ansible --output-path ./dist
+    - ansible-galaxy collection build ./deployments/ansible_collections/signalfx/splunk_otel_collector --output-path ./dist
 
 ansible-release:
   extends: .ansible
@@ -1984,7 +1984,7 @@ ansible-release:
     - pip3 install ansible~=12.0.0 yq~=3.0.0
   script:
     - |
-      COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
+      COLLECTION_VERSION=$(cat ./deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml | yq .version -r)
       if [ -z "$COLLECTION_VERSION" ]; then
         echo "ERROR: Failed to extract version from galaxy.yml" >&2
         exit 1

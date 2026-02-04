@@ -102,8 +102,8 @@ jobs:
 
       - name: Install dependencies.
         run: |
-          pip3 install yamllint
-          pip3 install galaxy-importer
+          pip3 install 'yamllint==1.38.0'
+          pip3 install 'galaxy-importer==0.4.37'
 
       - name: Lint code.
         run: yamllint .

@@ -123,8 +123,8 @@ jobs:
       - name: Get collector PID from Splunk container
         id: get_pid
         run: |
-          docker exec $CONTAINER_NAME sudo ps -aux | grep $TA
-          otelcol_pid="$(docker exec $CONTAINER_NAME sudo ps -aux | grep $TA | awk '{print $2}')"
+          docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA"
+          otelcol_pid="$(docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA" | awk '{print $2}')"
           echo "$TA PID $otelcol_pid"
           echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
 
@@ -132,7 +132,7 @@ jobs:
         run: |
           sleep 30
           otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
-          if docker exec $CONTAINER_NAME sudo ps "$otelcol_pid"; then
+          if docker exec "$CONTAINER_NAME" sudo ps "$otelcol_pid"; then
             echo "$TA process ($otelcol_pid) was still running."
           else
             echo "$TA process ($otelcol_pid) was not running!"

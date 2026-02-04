@@ -31,6 +31,7 @@ import (
 
 const (
 	distDir                  = "../out/distribution"
+	modularInputName         = "Splunk_TA_OTel_Collector"
 	multiOSTgz               = "Splunk_TA_OTel_Collector.tgz"
 	linuxTgz                 = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
 	windowsTgz               = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
@@ -66,6 +67,23 @@ func getTarContents(t *testing.T, tgzPath string) []string {
 			break
 		}
 		require.NoError(t, err, "Failed to read tar entry")
+
+		// Skip "pax" names, paths ending in "/", and exclude files named:
+		// "._*", ".DS_Store", and "__MACOSX/"
+		if header.Typeflag == tar.TypeXGlobalHeader || header.Typeflag == tar.TypeXHeader {
+			continue
+		}
+		if strings.HasSuffix(header.Name, "/") {
+			continue
+		}
+		baseName := filepath.Base(header.Name)
+		if strings.HasPrefix(baseName, "._") || baseName == ".DS_Store" {
+			continue
+		}
+		if strings.Contains(header.Name, "__MACOSX/") {
+			continue
+		}
+
 		contents = append(contents, header.Name)
 	}
 
@@ -161,32 +179,33 @@ func TestMultiOSPackageContents(t *testing.T) {
 
 func TestPackageMandatoryFiles(t *testing.T) {
 	packages := map[string]string{
-		"Multi-OS": filepath.Join(distDir, multiOSTgz),
-		"Linux":    filepath.Join(distDir, linuxTgz),
-		"Windows":  filepath.Join(distDir, windowsTgz),
+		"Multi-OS": multiOSTgz,
+		"Linux":    linuxTgz,
+		"Windows":  windowsTgz,
 	}
 
-	for pkgName, pkgPath := range packages {
+	for pkgName, pkgFile := range packages {
+		pkgPath := filepath.Join(distDir, pkgFile)
 		t.Run(pkgName, func(t *testing.T) {
 			require.FileExists(t, pkgPath, "%s package not found", pkgName)
 
 			mandatoryPaths := []string{
-				"/configs/agent_config.yaml",
-				"/default/app.conf",
-				"/default/inputs.conf",
-				"/README/inputs.conf.spec",
-				"/static/appIcon_2x.png",
-				"/static/appIcon.png",
+				modularInputName + "/configs/agent_config.yaml",
+				modularInputName + "/default/app.conf",
+				modularInputName + "/default/inputs.conf",
+				modularInputName + "/README/inputs.conf.spec",
+				modularInputName + "/static/appIcon_2x.png",
+				modularInputName + "/static/appIcon.png",
 			}
 
 			addLinuxExecutable := pkgName != "Windows"
 			if addLinuxExecutable {
-				mandatoryPaths = append(mandatoryPaths, "/linux_x86_64/bin/Splunk_TA_OTel_Collector")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/linux_x86_64/bin/Splunk_TA_OTel_Collector")
 			}
 
 			addWindowsExecutable := pkgName != "Linux"
 			if addWindowsExecutable {
-				mandatoryPaths = append(mandatoryPaths, "/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe")
 			}
 
 			contents := getTarContents(t, pkgPath)
@@ -194,12 +213,17 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			for _, mandatoryPath := range mandatoryPaths {
 				found := false
 				for _, entry := range contents {
-					if strings.Contains(entry, mandatoryPath) {
+					if entry == mandatoryPath {
 						found = true
 						break
 					}
 				}
 				assert.True(t, found, "%s package should contain %s", pkgName, mandatoryPath)
+			}
+
+			for _, path := range contents {
+				assert.Contains(t, mandatoryPaths, path,
+					"%s package contains unexpected file: %s", pkgName, path)
 			}
 		})
 	}

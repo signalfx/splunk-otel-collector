@@ -37,8 +37,8 @@ const (
 	windowsTgz               = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
 	linuxBinPath             = "Splunk_TA_OTel_Collector/linux_x86_64/"
 	windowsBinPath           = "Splunk_TA_OTel_Collector/windows_x86_64/"
-	linuxBinPathWithSuffix   = "Splunk_TA_OTel_Collector_linux_x86_64/linux_x86_64/"
-	windowsBinPathWithSuffix = "Splunk_TA_OTel_Collector_windows_x86_64/windows_x86_64/"
+	linuxBinPathWithSuffix   = "Splunk_TA_OTel_Collector/linux_x86_64/"
+	windowsBinPathWithSuffix = "Splunk_TA_OTel_Collector/windows_x86_64/"
 )
 
 // getFileSize returns the size of a file in bytes

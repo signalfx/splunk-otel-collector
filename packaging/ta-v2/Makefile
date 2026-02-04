@@ -55,7 +55,7 @@ pack: validate-target-os sync-configs
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
 	@tmpdir=$$(mktemp -d) && \
 	cp -rL ./assets/ $$tmpdir/$(PKG_NAME) && \
-	tar -czf ./out/distribution/$(PKG_NAME).tgz -C $$tmpdir $(TAR_EXCLUDE_OPT) $(PKG_NAME) && \
+	tar -czf ./out/distribution/$(PKG_NAME).tgz -C $$tmpdir --exclude='*/local/*' $(TAR_EXCLUDE_OPT) $(PKG_NAME) && \
 	rm -rf $$tmpdir
 
 .PHONY: clean-packages

@@ -109,6 +109,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/rabbitmqreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.144.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/saphanareceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snmpreceiver v0.144.0
@@ -130,6 +131,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.144.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.144.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.144.0
 	github.com/prometheus/client_model v0.6.2

@@ -26,7 +26,6 @@
     update_cache: yes
   notify:
     - "restart splunk-otel-collector"
-    - "restart td-agent"
   when: not local_artifact_testing_enabled
 
 - name: Copy Splunk OpenTelemetry Collector RPM artifact to remote machine
@@ -43,5 +42,4 @@
     disable_gpg_check: true
   notify:
     - "restart splunk-otel-collector"
-    - "restart td-agent"
   when: local_artifact_testing_enabled

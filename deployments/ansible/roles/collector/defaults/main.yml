@@ -35,7 +35,7 @@ splunk_memory_total_mib: "512"
 gomemlimit: ""
 
 splunk_listen_interface: ""
-# Whether to start the services installed by the role (splunk-otel-collector and td-agent).
+# Whether to start the services installed by the role (splunk-otel-collector).
 start_service: true
 
 # Disable setting the official Splunk Debian or RPM repository.

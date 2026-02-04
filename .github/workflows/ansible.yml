@@ -100,20 +100,26 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install yamllint.
-        run: pip3 install yamllint
+      - name: Install dependencies.
+        run: |
+          pip3 install 'yamllint==1.38.0'
+          pip3 install 'galaxy-importer==0.4.37'
 
       - name: Lint code.
         run: yamllint .
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v26.1.1
-        # optional (see below):
         with:
           args: "-x var-naming[no-role-prefix] --exclude molecule/config/ --exclude molecule/shared/ --exclude molecule/custom_vars/custom_collector_config.yml --exclude molecule/custom_vars/custom_collector_config_deprecated.yml --exclude molecule/custom_vars_install_old_version/custom_collector_config.yml"
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"
           working_directory: "deployments/ansible"
+
+      - name: Run galaxy-importer
+        run: |
+          ansible-galaxy collection build ./ --output-path ./dist
+          python3 -m galaxy_importer.main dist/signalfx-splunk_otel_collector-*
 
   linux-test:
     name: Linux Test

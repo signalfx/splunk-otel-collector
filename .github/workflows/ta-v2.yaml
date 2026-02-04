@@ -67,8 +67,17 @@ jobs:
     needs: ta-v2-build-packages
     runs-on: ubuntu-latest
     defaults:
-        run:
-            working-directory: ./packaging/ta-v2
+      run:
+        working-directory: ./packaging/ta-v2
+    env:
+      CONTAINER_NAME: splunk-ta-otel-test
+      TA: Splunk_TA_OTel_Collector
+    strategy:
+      matrix:
+        splunk_version: [8.3.0, 9.4.0, 10.2.0]
+        package:
+          - Splunk_TA_OTel_Collector.tgz
+          - Splunk_TA_OTel_Collector_linux_x86_64.tgz
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -84,14 +93,51 @@ jobs:
         run: |
           set -eo pipefail
           mkdir -p ./build-out
-          tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C ./build-out
+          tar -xzf out/distribution/${{ matrix.package }} -C ./build-out
           find ./build-out -name "*"
 
       - name: Run local container
         env:
           ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
+          SPLUNK_VERSION: ${{ matrix.splunk_version }}
         run: |
           sudo -E ./run-local-package-in-container.sh
+
+      - name: Check collector up and running
+        shell: bash
+        run: |
+          timeout=180
+          elapsed=0
+          echo -n "Waiting for expvar endpoint to be available: "
+          while ! docker exec -it splunk-ta-otel-test curl http://localhost:55676/debug/expvarz --silent > /dev/null; do
+              if [ $elapsed -ge $timeout ]; then
+                  echo ""
+                  echo "Timeout: expvar endpoint was not available within $timeout seconds"
+                  exit 1
+              fi
+              sleep 2
+              elapsed=$((elapsed + 2))
+              echo -n "."
+          done
+
+      - name: Get collector PID from Splunk container
+        id: get_pid
+        run: |
+          docker exec $CONTAINER_NAME sudo ps -aux | grep $TA
+          otelcol_pid="$(docker exec $CONTAINER_NAME sudo ps -aux | grep $TA | awk '{print $2}')"
+          echo "$TA PID $otelcol_pid"
+          echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
+
+      - name: Check if collector process is alive after 30 seconds
+        run: |
+          sleep 30
+          otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
+          if docker exec $CONTAINER_NAME sudo ps "$otelcol_pid"; then
+            echo "$TA process ($otelcol_pid) was still running."
+          else
+            echo "$TA process ($otelcol_pid) was not running!"
+            exit 1
+          fi
 
       - name: Show splunkd.log on failure
         if: failure()

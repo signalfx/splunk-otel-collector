@@ -74,7 +74,7 @@ jobs:
       TA: Splunk_TA_OTel_Collector
     strategy:
       matrix:
-        splunk_version: [9.4.0, 10.2.0]
+        splunk_version: [8.2.0, 9.4.0, 10.2.0]
         package:
           - Splunk_TA_OTel_Collector.tgz
           - Splunk_TA_OTel_Collector_linux_x86_64.tgz

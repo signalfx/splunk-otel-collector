@@ -99,6 +99,7 @@ func TestDefaultComponents(t *testing.T) {
 		"rabbitmq",
 		"receiver_creator",
 		"redis",
+		"saphana",
 		"scripted_inputs",
 		"signalfx",
 		"signalfxgatewayprometheusremotewrite",
@@ -113,6 +114,7 @@ func TestDefaultComponents(t *testing.T) {
 		"sshcheck",
 		"statsd",
 		"syslog",
+		"systemd",
 		"tcpcheck",
 		"tcplog",
 		"tlscheck",
@@ -121,6 +123,7 @@ func TestDefaultComponents(t *testing.T) {
 		"wavefront",
 		"windowseventlog",
 		"windowsperfcounters",
+		"yanggrpc",
 		"zipkin",
 		"zookeeper",
 	}

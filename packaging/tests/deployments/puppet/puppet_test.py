@@ -199,7 +199,6 @@ class {{ splunk_otel_collector:
     splunk_hec_token => 'fake-hec-token',
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
-    with_fluentd => true,
     collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
 }}
@@ -230,8 +229,7 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             
             print(f"Using collector version: {COLLECTOR_VERSION}")
             config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=COLLECTOR_VERSION)
-            # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
-            run_puppet_apply(container, config, strict_mode=False)
+            run_puppet_apply(container, config)
             verify_package_version(container, "splunk-otel-collector", COLLECTOR_VERSION)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
@@ -239,14 +237,8 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
             assert wait_for(lambda: service_is_running(container))
-            if "opensuse" not in distro and distro != "amazonlinux-2023":
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            if "opensuse" not in distro and distro != "amazonlinux-2023":
-                run_container_cmd(container, "journalctl -u td-agent --no-pager")
-                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
-                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
 
 
 DEFAULT_INSTRUMENTATION_CONFIG = string.Template(
@@ -292,7 +284,6 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
-        assert container.exec_run("systemctl status td-agent").exit_code != 0
         resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
         if with_systemd == "true":
             resource_attributes = rf"{resource_attributes}-systemd"
@@ -408,7 +399,6 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
         run_puppet_apply(container, config)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
-        assert container.exec_run("systemctl status td-agent").exit_code != 0
         resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
         if with_systemd == "true":
             resource_attributes = rf"{resource_attributes}-systemd"
@@ -497,7 +487,6 @@ class {{ splunk_otel_collector:
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
     win_repo_url => '$win_repo_url',
-    with_fluentd => true,
     collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
 }}
@@ -561,15 +550,12 @@ def test_win_puppet_default():
     assert listen_interface is None
 
     assert psutil.win_service_get("splunk-otel-collector").status() == psutil.STATUS_RUNNING
-    for service in psutil.win_service_iter():
-        assert service.name() != "fluentdwinsvc"
 
 
 @pytest.mark.windows
 @pytest.mark.skipif(sys.platform != "win32", reason="only runs on windows")
 def test_win_puppet_custom_vars():
-    # TODO: Remove strict_mode option when fluentd is disabled or removed
-    run_win_puppet_setup(WIN_PUPPET_RELEASE, strict_mode=False)
+    run_win_puppet_setup(WIN_PUPPET_RELEASE)
 
     api_url = "https://fake-splunk-api.com"
     ingest_url = "https://fake-splunk-ingest.com"
@@ -596,5 +582,3 @@ def test_win_puppet_custom_vars():
     assert collector_service.status() == psutil.STATUS_RUNNING
     if WIN_COLLECTOR_VERSION == "latest":
         assert collector_service.binpath().endswith("--discovery --set=processors.batch.timeout=10s")
-
-    assert psutil.win_service_get("fluentdwinsvc").status() == psutil.STATUS_RUNNING

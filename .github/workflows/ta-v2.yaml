@@ -281,6 +281,35 @@ jobs:
           }
           "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
+      - name: Check collector up and running
+        shell: pwsh
+        run: |
+          $timeout = 120
+          $elapsed = 0
+          Write-Host -NoNewline "Waiting for expvar endpoint to be available: "
+          while ($true) {
+              try {
+                  $response = Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -Method Get -UseBasicParsing-ErrorAction Stop
+                  if ($response.StatusCode -eq 200) {
+                      Write-Host ""
+                      Write-Host "Expvar endpoint is available" -ForegroundColor Green
+                      break
+                  }
+              } catch {
+                  # Endpoint not available yet
+              }
+
+              if ($elapsed -ge $timeout) {
+                  Write-Host ""
+                  Write-Host "Timeout: expvar endpoint was not available within $timeout seconds" -ForegroundColor Red
+                  exit 1
+              }
+
+              Start-Sleep -Seconds 1
+              $elapsed += 1
+              Write-Host -NoNewline "."
+          }
+
       - name: Check if Splunk_TA_OTel_Collector process is alive after 30 seconds
         shell: pwsh
         run: |

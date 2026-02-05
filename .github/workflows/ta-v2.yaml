@@ -151,14 +151,21 @@ jobs:
   ta-v2-smoke-test-windows:
     needs: ta-v2-build-packages
     runs-on: windows-latest
-    env:
-      splunk_uf_version: 9.4.0
-      splunk_uf_build_hash: 6b4ebe426ca6
+    strategy:
+      matrix:
+        splunk_uf:
+          - version: 9.4.0
+            build_hash: 6b4ebe426ca6
+          - version: 10.0.3
+            build_hash: adbac1c8811c
+        package:
+          - Splunk_TA_OTel_Collector.tgz
+          - Splunk_TA_OTel_Collector_windows_x86_64.tgz
     steps:
       - name: Download the Splunk UF MSI
         shell: bash
         run: |
-          curl https://download.splunk.com/products/universalforwarder/releases/${{ env.splunk_uf_version }}/windows/splunkforwarder-${{ env.splunk_uf_version }}-${{ env.splunk_uf_build_hash }}-windows-x64.msi -o splunkforwarder.msi
+          curl https://download.splunk.com/products/universalforwarder/releases/${{ matrix.splunk_uf.version }}/windows/splunkforwarder-${{ matrix.splunk_uf.version }}-${{ matrix.splunk_uf.build_hash }}-windows-x64.msi -o splunkforwarder.msi
 
       - name: Install Splunk UF
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
@@ -171,7 +178,7 @@ jobs:
 
       - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
         run: |
-          tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/${{ matrix.package }}" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
       - name: Start Splunk UF
@@ -225,3 +232,63 @@ jobs:
           Write-Host ""
           Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
           Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
+
+      - name: Check collector up and running
+        shell: pwsh
+        run: |
+          $timeout = 180
+          $elapsed = 0
+          Write-Host -NoNewline "Waiting for expvar endpoint to be available: "
+          while ($true) {
+              try {
+                  $response = Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -Method Get -TimeoutSec 1 -ErrorAction Stop
+                  if ($response.StatusCode -eq 200) {
+                      Write-Host ""
+                      Write-Host "Expvar endpoint is available" -ForegroundColor Green
+                      break
+                  }
+              } catch {
+                  # Endpoint not available yet
+              }
+
+              if ($elapsed -ge $timeout) {
+                  Write-Host ""
+                  Write-Host "Timeout: expvar endpoint was not available within $timeout seconds" -ForegroundColor Red
+                  exit 1
+              }
+
+              Start-Sleep -Seconds 1
+              $elapsed += 2
+              Write-Host -NoNewline "."
+          }
+
+      - name: Get Splunk_TA_OTel_Collector PID
+        id: get_pid
+        shell: pwsh
+        run: |
+          Get-Process
+          $otelcol_pid = (Get-Process -Name Splunk_TA_OTel_Collector).Id
+          Write-Host "Splunk_TA_OTel_Collector PID $otelcol_pid"
+          "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Check if Splunk_TA_OTel_Collector process is alive after 30 seconds
+        shell: pwsh
+        run: |
+          Start-Sleep -Seconds 30
+          $prev_otelcol_pid = ${{ steps.get_pid.outputs.otelcol_pid }}
+          $otelcol_pid = (Get-Process -Id $prev_otelcol_pid).Id
+          if ($otelcol_pid) {
+              Write-Host "Splunk_TA_OTel_Collector process ($prev_otelcol_pid) was still running."
+          } else {
+              Write-Host "Splunk_TA_OTel_Collector process ($prev_otelcol_pid) was not running!"
+              exit 1
+          }
+
+      - name: Show splunkd.log on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          Write-Host "`n======= splunkd.log contents ======="
+          Get-Content $splunkdLog -ErrorAction SilentlyContinue
+

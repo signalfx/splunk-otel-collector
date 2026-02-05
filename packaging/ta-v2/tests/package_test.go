@@ -37,8 +37,6 @@ const (
 	windowsTgz               = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
 	linuxBinPath             = "Splunk_TA_OTel_Collector/linux_x86_64/"
 	windowsBinPath           = "Splunk_TA_OTel_Collector/windows_x86_64/"
-	linuxBinPathWithSuffix   = "Splunk_TA_OTel_Collector/linux_x86_64/"
-	windowsBinPathWithSuffix = "Splunk_TA_OTel_Collector/windows_x86_64/"
 )
 
 // getFileSize returns the size of a file in bytes
@@ -138,12 +136,12 @@ func TestLinuxPackageContents(t *testing.T) {
 	t.Logf("Linux package contains %d entries", len(contents))
 
 	// Linux package should contain linux binaries
-	assert.True(t, containsPath(contents, linuxBinPathWithSuffix),
-		"Linux package should contain %s folder", linuxBinPathWithSuffix)
+	assert.True(t, containsPath(contents, linuxBinPath),
+		"Linux package should contain %s folder", linuxBinPath)
 
 	// Linux package should NOT contain windows binaries
-	assert.False(t, containsPath(contents, windowsBinPathWithSuffix),
-		"Linux package should NOT contain %s folder", windowsBinPathWithSuffix)
+	assert.False(t, containsPath(contents, windowsBinPath),
+		"Linux package should NOT contain %s folder", windowsBinPath)
 }
 
 func TestWindowsPackageContents(t *testing.T) {
@@ -154,12 +152,12 @@ func TestWindowsPackageContents(t *testing.T) {
 	t.Logf("Windows package contains %d entries", len(contents))
 
 	// Windows package should contain windows binaries
-	assert.True(t, containsPath(contents, windowsBinPathWithSuffix),
-		"Windows package should contain %s folder", windowsBinPathWithSuffix)
+	assert.True(t, containsPath(contents, windowsBinPath),
+		"Windows package should contain %s folder", windowsBinPath)
 
 	// Windows package should NOT contain linux binaries
-	assert.False(t, containsPath(contents, linuxBinPathWithSuffix),
-		"Windows package should NOT contain %s folder", linuxBinPathWithSuffix)
+	assert.False(t, containsPath(contents, linuxBinPath),
+		"Windows package should NOT contain %s folder", linuxBinPath)
 }
 
 func TestMultiOSPackageContents(t *testing.T) {

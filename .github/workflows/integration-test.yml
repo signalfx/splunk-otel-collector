@@ -217,7 +217,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
           verbose: true
           fail_ci_if_error: true
@@ -299,7 +299,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
           verbose: true
           fail_ci_if_error: true
@@ -375,7 +375,7 @@ jobs:
             CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
-          uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+          uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
           with:
             verbose: true
             fail_ci_if_error: true
@@ -457,7 +457,7 @@ jobs:
           kubectl get pods -A 
           kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c "kubectl logs -n $0 $1"
       - name: Upload coverage report
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
           verbose: true
           fail_ci_if_error: true

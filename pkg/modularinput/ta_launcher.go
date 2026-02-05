@@ -69,7 +69,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaName string) e
 		envVarValue := os.ExpandEnv(param.Value)
 		err := setEnvFn(envVarName, envVarValue)
 		if err != nil {
-			return fmt.Errorf("launch as TA failed to set environment variable '%s' with value '%s': %w", envVarName, envVarValue, err)
+			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)
 		}
 	}
 

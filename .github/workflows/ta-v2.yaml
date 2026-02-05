@@ -180,6 +180,7 @@ jobs:
         run: |
           tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/${{ matrix.package }}" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
           $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector"
+          New-Item -ItemType Directory -Path "$modularInputDir\local" -Force | Out-Null
           $inputsConfPath = "$modularInputDir\local\inputs.conf"
           Copy-Item -Path "$modularInputDir\default\inputs.conf" -Destination $inputsConfPath -Force
           $inputsContent = Get-Content -Path $inputsConfPath

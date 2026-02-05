@@ -69,6 +69,7 @@ SPLUNK_PASSWORD="$(uuidgen 2>/dev/null || openssl rand -hex 16)"
 docker run -d --name "${CONTAINER_NAME}" \
     --platform linux/amd64 \
     -e SPLUNK_START_ARGS="--accept-license" \
+    -e SPLUNK_GENERAL_TERMS="--accept-sgt-current-at-splunk-com" \
     -e SPLUNK_PASSWORD="${SPLUNK_PASSWORD}" \
     -v "${ASSETS_DIR}":/opt/splunk/etc/apps/Splunk_TA_OTel_Collector \
     -v "${LOG_DIR}":/opt/splunk/var/log/splunk \

@@ -179,6 +179,22 @@ jobs:
       - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
         run: |
           tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/${{ matrix.package }}" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector"
+          $inputsConfPath = "$modularInputDir\local\inputs.conf"
+          Copy-Item -Path "$modularInputDir\default\inputs.conf" -Destination $inputsConfPath -Force
+          $inputsContent = Get-Content -Path $inputsConfPath
+          $tokenLineFound = $false
+          $updatedContent = $inputsContent | ForEach-Object {
+              if ($_ -match "^splunk_access_token\s*=\s*$") {
+                  $tokenLineFound = $true
+                  "splunk_access_token = F3K3TestT0Ken"
+              } else {
+                  $_
+              }
+          }
+          if ($tokenLineFound) {
+              $updatedContent | Set-Content -Path $inputsConfPath
+          }
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
       - name: Start Splunk UF

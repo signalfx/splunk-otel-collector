@@ -27,7 +27,7 @@ build: ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
 pack:
 	@echo "Packing add-on ..."
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
-	@tar -C ./assets/ -s '|^|$(MOD_INPUT_NAME)/|' -hcz -f ./out/distribution/$(MOD_INPUT_NAME).tgz .
+	@tar -C ./assets/ --transform='s,^,$(MOD_INPUT_NAME)/,' -hcz -f ./out/distribution/$(MOD_INPUT_NAME).tgz .
 
 .PHONY: clean
 clean:

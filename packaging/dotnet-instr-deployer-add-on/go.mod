@@ -1,6 +1,6 @@
 module github.com/splunk/splunk_otel_dotnet_deployer
 
-go 1.25.6
+go 1.25.7
 
 require github.com/stretchr/testify v1.11.1
 

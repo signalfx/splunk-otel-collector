@@ -250,35 +250,6 @@ jobs:
           Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
           Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
 
-      - name: Check collector up and running
-        shell: pwsh
-        run: |
-          $timeout = 180
-          $elapsed = 0
-          Write-Host -NoNewline "Waiting for expvar endpoint to be available: "
-          while ($true) {
-              try {
-                  $response = Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -Method Get -TimeoutSec 1 -ErrorAction Stop
-                  if ($response.StatusCode -eq 200) {
-                      Write-Host ""
-                      Write-Host "Expvar endpoint is available" -ForegroundColor Green
-                      break
-                  }
-              } catch {
-                  # Endpoint not available yet
-              }
-
-              if ($elapsed -ge $timeout) {
-                  Write-Host ""
-                  Write-Host "Timeout: expvar endpoint was not available within $timeout seconds" -ForegroundColor Red
-                  exit 1
-              }
-
-              Start-Sleep -Seconds 1
-              $elapsed += 2
-              Write-Host -NoNewline "."
-          }
-
       - name: Get Splunk_TA_OTel_Collector PID
         id: get_pid
         shell: pwsh

@@ -289,7 +289,7 @@ jobs:
           Write-Host -NoNewline "Waiting for expvar endpoint to be available: "
           while ($true) {
               try {
-                  $response = Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -Method Get -UseBasicParsing-ErrorAction Stop
+                  $response = Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -Method Get -UseBasicParsing -ErrorAction Stop
                   if ($response.StatusCode -eq 200) {
                       Write-Host ""
                       Write-Host "Expvar endpoint is available" -ForegroundColor Green

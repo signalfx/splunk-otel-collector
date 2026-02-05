@@ -6,7 +6,8 @@
 
 ### 🛑 Breaking changes 🛑
 
-- Fluentd support has been removed. Please use native OpenTelemetry log receivers such as filelog receiver instead. ([#7109](https://github.com/signalfx/splunk-otel-collector/pull/7109))
+- Fluentd support has been removed. ([#7109](https://github.com/signalfx/splunk-otel-collector/pull/7109))
+  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information
 
 ### 💡 Enhancements 💡
 

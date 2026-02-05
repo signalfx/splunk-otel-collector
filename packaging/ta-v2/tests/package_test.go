@@ -30,13 +30,13 @@ import (
 )
 
 const (
-	distDir                  = "../out/distribution"
-	modularInputName         = "Splunk_TA_OTel_Collector"
-	multiOSTgz               = "Splunk_TA_OTel_Collector.tgz"
-	linuxTgz                 = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
-	windowsTgz               = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
-	linuxBinPath             = "Splunk_TA_OTel_Collector/linux_x86_64/"
-	windowsBinPath           = "Splunk_TA_OTel_Collector/windows_x86_64/"
+	distDir          = "../out/distribution"
+	modularInputName = "Splunk_TA_OTel_Collector"
+	multiOSTgz       = "Splunk_TA_OTel_Collector.tgz"
+	linuxTgz         = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
+	windowsTgz       = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
+	linuxBinPath     = "Splunk_TA_OTel_Collector/linux_x86_64/"
+	windowsBinPath   = "Splunk_TA_OTel_Collector/windows_x86_64/"
 )
 
 // getFileSize returns the size of a file in bytes

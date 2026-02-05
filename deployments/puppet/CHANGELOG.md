@@ -2,16 +2,17 @@
 
 ## Unreleased
 
-### 🚩 Deprecations 🚩
+## puppet-v0.19.0
 
-- Fluentd support has been deprecated and will be removed in a future release.
-  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+### 🛑 Breaking changes 🛑
+
+- Fluentd support has been removed. Please use native OpenTelemetry log receivers such as filelog receiver instead. ([#7109](https://github.com/signalfx/splunk-otel-collector/pull/7109))
 
 ### 💡 Enhancements 💡
 
 - Add support for the `collector_command_line_args` option to
   configure the command line arguments for the Splunk OpenTelemetry Collector
-  service. On Windows, this option is only supported by versions `>= 0.127.0`.
+  service. On Windows, this option is only supported by versions `>= 0.127.0`. ([#6415](https://github.com/signalfx/splunk-otel-collector/pull/6415))
 
 ## puppet-v0.18.0
 

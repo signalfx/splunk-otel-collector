@@ -45,7 +45,7 @@ require (
 	github.com/signalfx/golib/v3 v3.4.1
 	github.com/signalfx/ingest-protocols v0.4.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/snowflakedb/gosnowflake v1.16.0
+	github.com/snowflakedb/gosnowflake v1.19.0
 	github.com/stretchr/testify v1.11.1
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/vmware/govmomi v0.51.0
@@ -93,11 +93,11 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
-	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
-	github.com/apache/arrow-go/v18 v18.0.0 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
+	github.com/apache/arrow-go/v18 v18.4.0 // indirect
 	github.com/apache/thrift v0.22.0 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.36.4 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.38.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.29.16 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.69 // indirect
@@ -115,7 +115,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.25.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.21 // indirect
-	github.com/aws/smithy-go v1.22.3 // indirect
+	github.com/aws/smithy-go v1.22.5 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
@@ -171,10 +171,13 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
+	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/lufia/plan9stats v0.0.0-20231016141302-07b5767bb0ed // indirect
 	github.com/miekg/dns v1.1.61 // indirect
+	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
+	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/atomicwriter v0.1.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
@@ -219,7 +222,7 @@ require (
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.47.0 // indirect
-	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/mod v0.32.0 // indirect
 	golang.org/x/oauth2 v0.32.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260109210033-bd525da824e2 // indirect

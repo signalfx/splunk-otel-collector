@@ -20,7 +20,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   ta-v2-build-packages:

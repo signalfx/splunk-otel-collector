@@ -45,6 +45,8 @@ func TestDefaultComponents(t *testing.T) {
 		"text_encoding",
 		"zpages",
 	}
+	// Note: Duplicates are required for receivers that have deprecated aliases
+	// as a result of upstream's MakeFactoryMap function
 	expectedReceivers := []string{
 		"active_directory_ds",
 		"apache",
@@ -53,7 +55,8 @@ func TestDefaultComponents(t *testing.T) {
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureblob",
-		"azureeventhub",
+		"azure_event_hub",
+		"azure_event_hub",
 		"azuremonitor",
 		"carbon",
 		"chrony",
@@ -85,7 +88,8 @@ func TestDefaultComponents(t *testing.T) {
 		"lightprometheus",
 		"memcached",
 		"mongodb",
-		"mongodbatlas",
+		"mongodb_atlas",
+		"mongodb_atlas",
 		"mysql",
 		"nginx",
 		"nop",

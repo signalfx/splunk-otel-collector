@@ -45,8 +45,6 @@ func TestDefaultComponents(t *testing.T) {
 		"text_encoding",
 		"zpages",
 	}
-	// Note: Duplicates are required for receivers that have deprecated aliases
-	// as a result of upstream's MakeFactoryMap function
 	expectedReceivers := []string{
 		"active_directory_ds",
 		"apache",
@@ -55,7 +53,6 @@ func TestDefaultComponents(t *testing.T) {
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureblob",
-		"azure_event_hub",
 		"azure_event_hub",
 		"azuremonitor",
 		"carbon",
@@ -88,7 +85,6 @@ func TestDefaultComponents(t *testing.T) {
 		"lightprometheus",
 		"memcached",
 		"mongodb",
-		"mongodb_atlas",
 		"mongodb_atlas",
 		"mysql",
 		"nginx",
@@ -131,6 +127,10 @@ func TestDefaultComponents(t *testing.T) {
 		"yanggrpc",
 		"zipkin",
 		"zookeeper",
+	}
+	expectedReceiverAliases := map[string]string{
+		"azureeventhub": "azure_event_hub",
+		"mongodbatlas":  "mongodb_atlas",
 	}
 	expectedProcessors := []string{
 		"attributes",
@@ -192,12 +192,17 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	recvs := factories.Receivers
-	assert.Len(t, recvs, len(expectedReceivers))
+	assert.Len(t, recvs, len(expectedReceivers)+len(expectedReceiverAliases))
 
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok, k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedReceiverAliases {
+		v, ok := recvs[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected exporter alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	procs := factories.Processors

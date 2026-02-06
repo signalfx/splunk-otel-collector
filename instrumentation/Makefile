@@ -5,34 +5,23 @@ INSTALL_DIR=/usr/lib/splunk-instrumentation
 DOCKER_REPO?=docker.io
 
 .PHONY: all
-all: so/libsplunk.so
+all: so/libotelinject_$(ARCH).so
 
 # make -d: Prerequisite 'obj' is newer than target 'obj/logger.o'.
 so:
 	@mkdir -p so
 
-obj:
-	@mkdir -p obj
-
 .PHONY: clean
 clean:
-	rm -f tests so/* obj/*
+	rm -f tests so/*
 
-obj/main.o: obj src/main.c
-	gcc -c -Wall -Werror -fpic -o obj/main.o src/main.c
-
-so/libsplunk.so: obj so obj/main.o
-	gcc -shared -o so/libsplunk.so obj/main.o
+so/libotelinject_$(ARCH).so: so
+	@wget -q -O so/libotelinject_$(ARCH).so https://github.com/open-telemetry/opentelemetry-injector/releases/download/v0.1.0/libotelinject_$(ARCH).so
 
 .PHONY: dist
-dist:
+dist: so/libotelinject_$(ARCH).so
 	@mkdir -p dist
-	docker buildx build --platform linux/$(ARCH) --build-arg DOCKER_REPO=$(DOCKER_REPO) -o type=image,name=libsplunk-builder:$(ARCH),push=false .
-	docker rm -f libsplunk-builder 2>/dev/null || true
-	docker run -d --platform linux/$(ARCH) --name libsplunk-builder libsplunk-builder:$(ARCH) sleep inf
-	docker exec libsplunk-builder make all
-	docker cp libsplunk-builder:/libsplunk/so/libsplunk.so dist/libsplunk_$(ARCH).so
-	docker rm -f libsplunk-builder
+	@cp so/libotelinject_$(ARCH).so dist/libotelinject_$(ARCH).so
 
 .PHONY: deb-rpm-package
 %-package:
@@ -48,14 +37,14 @@ endif
 install: all uninstall
 	mkdir -p $(INSTALL_DIR)
 	cp splunk-otel-javaagent.jar $(INSTALL_DIR)
-	cp so/libsplunk.so $(INSTALL_DIR)
-	echo $(INSTALL_DIR)/libsplunk.so > /etc/ld.so.preload
+	cp so/libotelinject.so $(INSTALL_DIR)
+	echo $(INSTALL_DIR)/libotelinject.so > /etc/ld.so.preload
 
 .PHONY: uninstall
 uninstall:
 	rm -f /etc/ld.so.preload
 	rm -f $(INSTALL_DIR)/splunk-otel-javaagent.jar
-	rm -f $(INSTALL_DIR)/libsplunk.so
+	rm -f $(INSTALL_DIR)/libotelinject.so
 
 # Run this from within this directory to create the devel image (just debian with gcc and a jdk). You only have to run
 # this once-ish. Mostly intended for development.

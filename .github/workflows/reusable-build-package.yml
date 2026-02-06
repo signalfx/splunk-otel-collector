@@ -63,7 +63,7 @@ jobs:
         run: make ${{ inputs.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="${{ steps.get-version.outputs.version }}" ARCH="${{ inputs.ARCH }}"
 
       - name: Uploading ${{ inputs.SYS_PACKAGE }} ${{ inputs.ARCH }} package artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.SYS_PACKAGE }}-${{ inputs.ARCH }}-package
           path: ./dist/splunk-otel-collector*

@@ -58,7 +58,7 @@ jobs:
           make test-ta-v2
 
       - name: Upload TA v2 artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution/*.tgz

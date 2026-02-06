@@ -1,5 +1,6 @@
 ARG BASE=busybox
 FROM $BASE
+ARG ARCH=amd64
 
 COPY Main.java .
 
@@ -14,6 +15,6 @@ ENV OTEL_SERVICE_NAME=iknowmyownservicename
 
 ENV ANOTHER_VAR=foo
 
-COPY libsplunk.so /usr/lib/splunk-instrumentation/libsplunk.so
+COPY libotelinject_${ARCH}.so /usr/lib/splunk-instrumentation/libotelinject_${ARCH}.so
 
-RUN echo /usr/lib/splunk-instrumentation/libsplunk.so >> /etc/ld.so.preload
+RUN echo /usr/lib/splunk-instrumentation/libotelinject_${ARCH}.so >> /etc/ld.so.preload

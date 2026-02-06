@@ -15,7 +15,7 @@
 # limitations under the License.
 
 PRELOAD_PATH="/etc/ld.so.preload"
-LIBSPLUNK_PATH="/usr/lib/splunk-instrumentation/libsplunk.so"
+LIBSPLUNK_PATH="/usr/lib/splunk-instrumentation/libotelinject_${arch}.so"
 
 if [ -f "$PRELOAD_PATH" ] && grep -q "$LIBSPLUNK_PATH" "$PRELOAD_PATH"; then
     echo "Removing $LIBSPLUNK_PATH from $PRELOAD_PATH"

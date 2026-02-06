@@ -10,8 +10,8 @@ fi
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
-docker buildx build -q --platform linux/${arch} --build-arg BASE=$BASE -o type=image,name=zeroconfig-test-java,push=false .
+cp "${SCRIPT_DIR}/../../dist/libotelinject_${arch}.so" "libotelinject_${arch}.so"
+docker buildx build -q --platform linux/${arch} --build-arg BASE=$BASE --build-arg ARCH=$arch -o type=image,name=zeroconfig-test-java,push=false .
 OUTPUT=$(docker run --platform linux/${arch} --rm zeroconfig-test-java)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"

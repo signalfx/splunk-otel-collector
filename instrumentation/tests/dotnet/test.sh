@@ -6,7 +6,7 @@ arch="${ARCH:-amd64}"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
+cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" "libotelinject_${arch}.so"
 docker buildx build -q --platform linux/${arch} --build-arg TARGETARCH=${arch} -o type=image,name=zeroconfig-test-dotnet,push=false .
 OUTPUT=$(docker run --platform linux/${arch} --rm zeroconfig-test-dotnet)
 echo "========== OUTPUT =========="

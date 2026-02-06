@@ -4,7 +4,7 @@ If you found a bug in the Ansible role, don't hesitate to submit an issue or a
 pull request.
 
 Please make sure to add a line to the
-[Ansible Changelog](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible/CHANGELOG.md)
+[Ansible Changelog](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible_collections/signalfx/splunk_otel_collector/CHANGELOG.md)
 if your change affects behavior of the Ansible collection.
 
 ## Local development
@@ -132,6 +132,6 @@ molecule --base-config ./molecule/config/docker.yml test --all
 ## Making new release of the Ansible Collection
 
 To cut a new release of the Ansible Collection, just bump the version in
-[galaxy.yml](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible/galaxy.yml),
+[galaxy.yml](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml),
 and it'll automatically build a new version of the collection and publish it to 
 [Ansible Galaxy](https://galaxy.ansible.com/signalfx/splunk_otel_collector).

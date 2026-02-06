@@ -49,12 +49,12 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Downloading binaries-linux_${{ inputs.ARCH }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: binaries-linux_${{ inputs.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: agent-bundle-linux-${{ inputs.ARCH }}
           path: ./dist

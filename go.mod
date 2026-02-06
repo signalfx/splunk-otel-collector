@@ -474,7 +474,7 @@ require (
 	go.etcd.io/bbolt v1.4.3 // indirect
 	go.mongodb.org/mongo-driver v1.17.6 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.3.1 // indirect
-	go.opentelemetry.io/auto/sdk v1.2.1 // indirect; indirect	go.opentelemetry.io/collector v0.145.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/collector/client v1.51.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v1.51.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.51.0 // indirect

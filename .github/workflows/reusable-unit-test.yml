@@ -60,7 +60,7 @@ jobs:
 
       - name: Uploading artifacts
         if: ${{ inputs.COVERAGE }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unit-test-results-${{ inputs.OS }}
           path: ./unit-test-results-${{ inputs.OS }}

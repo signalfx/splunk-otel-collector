@@ -69,7 +69,7 @@ jobs:
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ${{ env.GOLANGCI_LINT_CACHE }}
           key: golangci-lint-${{ hashFiles('**/.golangci.yml', '**/*.go', '**/go.sum') }}

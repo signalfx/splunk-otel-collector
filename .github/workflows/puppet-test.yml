@@ -131,13 +131,13 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download DEB package artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: deb-amd64-package
           path: ./dist
 
       - name: Download RPM package artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: rpm-amd64-package
           path: ./dist
@@ -265,7 +265,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download MSI package artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: msi-build-windows-2022
           path: ./dist

@@ -25,12 +25,10 @@ PKG_LICENSE="Apache 2.0"
 PKG_URL="https://github.com/signalfx/splunk-otel-collector"
 ARCH=amd64
 INSTALL_DIR="/usr/lib/splunk-instrumentation"
-LIBSPLUNK_INSTALL_PATH="${INSTALL_DIR}/libotelinject_${ARCH}.so"
+LIBOTELINJECT_INSTALL_PATH="${INSTALL_DIR}/libotelinject_${ARCH}.so"
 JAVA_AGENT_INSTALL_PATH="${INSTALL_DIR}/splunk-otel-javaagent.jar"
 CONFIG_DIR_REPO_PATH="${FPM_DIR}/etc/opentelemetry"
 CONFIG_DIR_INSTALL_PATH="/etc/opentelemetry"
-EXAMPLES_INSTALL_DIR="${INSTALL_DIR}/examples"
-EXAMPLES_DIR="${FPM_DIR}/examples"
 
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
 JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/"
@@ -108,9 +106,9 @@ setup_files_and_permissions() {
     local nodejs_agent_release="$(cat "$NODEJS_AGENT_RELEASE_PATH")"
     local dotnet_agent_release="$(cat "$DOTNET_AGENT_RELEASE_PATH")"
 
-    mkdir -p "$buildroot/$(dirname $LIBSPLUNK_INSTALL_PATH)"
-    cp -f "$libsplunk" "$buildroot/$LIBSPLUNK_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$LIBSPLUNK_INSTALL_PATH"
+    mkdir -p "$buildroot/$(dirname $LIBOTELINJECT_INSTALL_PATH)"
+    cp -f "$libsplunk" "$buildroot/$LIBOTELINJECT_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$LIBOTELINJECT_INSTALL_PATH"
 
     download_java_agent "$java_agent_release" "${buildroot}/${JAVA_AGENT_INSTALL_PATH}"
     sudo chmod 755 "$buildroot/$JAVA_AGENT_INSTALL_PATH"
@@ -128,8 +126,6 @@ setup_files_and_permissions() {
     sudo chmod -R 755 "$buildroot/$CONFIG_DIR_INSTALL_PATH"
 
     mkdir -p "$buildroot/$INSTALL_DIR"
-    cp -rf "$EXAMPLES_DIR" "$buildroot/$INSTALL_DIR/"
-    sudo chmod -R 755 "$buildroot/$EXAMPLES_INSTALL_DIR"
 
     sudo chown -R root:root "$buildroot"
 }

@@ -15,11 +15,11 @@
 # limitations under the License.
 
 PRELOAD_PATH="/etc/ld.so.preload"
-LIBSPLUNK_PATH="/usr/lib/splunk-instrumentation/libotelinject_${arch}.so"
+LIBOTELINJECT_PRELOAD_PATH="/usr/lib/splunk-instrumentation/libotelinject_`arch`.so"
 
-if [ -f "$PRELOAD_PATH" ] && grep -q "$LIBSPLUNK_PATH" "$PRELOAD_PATH"; then
-    echo "Removing $LIBSPLUNK_PATH from $PRELOAD_PATH"
-    sed -i -e "s|$LIBSPLUNK_PATH||" "$PRELOAD_PATH"
+if [ -f "$PRELOAD_PATH" ] && grep -q "$LIBOTELINJECT_PRELOAD_PATH" "$PRELOAD_PATH"; then
+    echo "Removing $LIBOTELINJECT_PRELOAD_PATH from $PRELOAD_PATH"
+    sed -i -e "s|$LIBOTELINJECT_PRELOAD_PATH||" "$PRELOAD_PATH"
     if [ ! -s "$PRELOAD_PATH" ] || ! grep -q '[^[:space:]]' "$PRELOAD_PATH"; then
         echo "Removing empty $PRELOAD_PATH"
         rm -f "$PRELOAD_PATH"

@@ -44,35 +44,23 @@ COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 
 PKG_NAME = "splunk-otel-auto-instrumentation"
 LIB_DIR = "/usr/lib/splunk-instrumentation"
-LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
+LIBOTELINJECT_PATH = f"{LIB_DIR}/libotelinject_amd64.so"
 PRELOAD_PATH = "/etc/ld.so.preload"
-SYSTEMD_CONF_DIR = "/usr/lib/systemd/system.conf.d"
-SAMPLE_SYSTEMD_CONF_PATH = f"{LIB_DIR}/examples/systemd/00-splunk-otel-auto-instrumentation.conf"
 
 JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
-JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
-CUSTOM_JAVA_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-java-test.conf"
 
 NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
-NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
 CUSTOM_NODE_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-node-test.conf"
-CUSTOM_NODE_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-node-test.conf"
 
 DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_CONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
 CUSTOM_DOTNET_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-dotnet-test.conf"
-CUSTOM_DOTNET_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-dotnet-test.conf"
 
 INSTALLED_FILES = [
     JAVA_AGENT_PATH,
     NODE_AGENT_PATH,
     DOTNET_AGENT_PATH,
-    LIBSPLUNK_PATH,
-    JAVA_CONFIG_PATH,
-    NODE_CONFIG_PATH,
-    DOTNET_CONFIG_PATH,
-    SAMPLE_SYSTEMD_CONF_PATH,
+    LIBOTELINJECT_PATH,
 ]
 
 TOMCAT_PIDFILE = "/usr/local/tomcat/temp/tomcat.pid"
@@ -145,25 +133,21 @@ def verify_preload(container, line, exists=True):
         assert not match, f"'{line}' found in {PRELOAD_PATH}"
 
 
-def start_app(container, app, systemd, timeout=300):
-    if systemd:
-        print(f"Starting the {app} systemd service ...")
-        run_container_cmd(container, f"systemctl start {app}")
-    else:
-        print(f"Starting {app} from a shell ...")
-        if app == "tomcat":
-            run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=TOMCAT_ENV, user='tomcat:tomcat')
-        elif app == "express":
-            run_container_cmd(
-                container, f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'", user='express:express',
-            )
-        elif app == "dotnet":
-            run_container_cmd(
-                container,
-                f"bash -c '/opt/dotnet-sdk/dotnet /opt/dotnet/myWebApp.dll & echo $! > {DOTNET_PIDFILE}'",
-                user='dotnet:dotnet',
-                workdir="/opt/dotnet",
-            )
+def start_app(container, app, timeout=300):
+    print(f"Starting {app} from a shell ...")
+    if app == "tomcat":
+        run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=TOMCAT_ENV, user='tomcat:tomcat')
+    elif app == "express":
+        run_container_cmd(
+            container, f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'", user='express:express',
+        )
+    elif app == "dotnet":
+        run_container_cmd(
+            container,
+            f"bash -c '/opt/dotnet-sdk/dotnet /opt/dotnet/myWebApp.dll & echo $! > {DOTNET_PIDFILE}'",
+            user='dotnet:dotnet',
+            workdir="/opt/dotnet",
+        )
 
     if app == "tomcat":
         print("Waiting for http://127.0.0.1:8080/sample ...")
@@ -217,8 +201,7 @@ def verify_attributes(stream, attributes, timeout=300):
         assert found[key], f"timed out waiting for '{key}: {value}'"
 
 
-def verify_app_instrumentation(container, app, method, attributes, otelcol_path=None, timeout=300):
-    systemd = True if method == "systemd" else False
+def verify_app_instrumentation(container, app, attributes, otelcol_path=None, timeout=300):
 
     try:
         stop_app(container, app)
@@ -238,7 +221,7 @@ def verify_app_instrumentation(container, app, method, attributes, otelcol_path=
         # start the collector from the shell and get the output stream
         stream = container.exec_run(f"{otelcol_path} --config=/test/config.yaml", stream=True).output
 
-    start_app(container, app, systemd)
+    start_app(container, app)
 
     # check the collector output stream for attributes
     verify_attributes(stream, attributes, timeout=timeout)
@@ -268,43 +251,31 @@ def test_tomcat_instrumentation(distro, arch):
 
         install_package(container, distro, f"/test/{pkg_base}", arch=arch)
 
-        for method in ["systemd", "libsplunk"]:
-            # attributes from default config
-            attributes = {
-                r"telemetry\.sdk\.language": r"Str\(java\)",
-                r"service\.name": r"Str\(Hello, World Application\)",  # auto-generated for the sample app
-            }
+        # attributes from default config
+        attributes = {
+            r"telemetry\.sdk\.language": r"Str\(java\)",
+            r"service\.name": r"Str\(Hello, World Application\)",  # auto-generated for the sample app
+        }
 
-            if method == "systemd":
-                # install the sample drop-in file to enable the agent
-                run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
-                run_container_cmd(container, f"cp -f {SAMPLE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
-                if container_file_exists(container, "/etc/ld.so.preload"):
-                    run_container_cmd(container, "rm -f /etc/ld.so.preload")
-            else:
-                # add libsplunk.so to /etc/ld.so.preload
-                run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libsplunk.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
-            # verify default config
-            verify_app_instrumentation(container, "tomcat", method, attributes, otelcol_path=otelcol)
+        # verify default config
+        verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
 
-            # attributes from custom config
-            attributes = {
-                r"telemetry\.sdk\.language": r"Str\(java\)",
-                r"service\.name": rf"Str\(service_name_from_{method}_java\)",
-                r"deployment\.environment": rf"Str\(deployment_environment_from_{method}_java\)",
-                r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
-            }
+        # attributes from custom config
+        attributes = {
+            r"telemetry\.sdk\.language": r"Str\(java\)",
+            r"service\.name": rf"Str\(service_name_from_java\)",
+            r"deployment\.environment": rf"Str\(deployment_environment_from_java\)",
+            r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
+        }
 
-            if method == "systemd":
-                # install the custom drop-in file to configure the agent
-                copy_file_into_container(container, CUSTOM_JAVA_SYSTEMD_CONF_PATH, f"{SYSTEMD_CONF_DIR}/test.conf")
-            else:
-                # overwrite the default libsplunk config with the custom one for testing
-                copy_file_into_container(container, CUSTOM_JAVA_CONFIG_PATH, JAVA_CONFIG_PATH)
+        # overwrite the default libsplunk config with the custom one for testing
+        copy_file_into_container(container, CUSTOM_JAVA_CONFIG_PATH, JAVA_CONFIG_PATH)
 
-            # verify custom config
-            verify_app_instrumentation(container, "tomcat", method, attributes, otelcol_path=otelcol)
+        # verify custom config
+        verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
 
 
 @pytest.mark.parametrize(
@@ -340,43 +311,31 @@ def test_express_instrumentation(distro, arch):
         run_container_cmd(container, f"mkdir -p {LIB_DIR}/splunk-otel-js")
         run_container_cmd(container, f"bash -l -c 'cd {LIB_DIR}/splunk-otel-js && npm install {NODE_AGENT_PATH}'")
 
-        for method in ["systemd", "libsplunk"]:
-            # attributes from default config
-            attributes = {
-                r"telemetry\.sdk\.language": r"Str\(nodejs\)",
-                r"service\.name": r"Str\(unnamed-node-service\)",  # auto-generated for the sample app
-            }
+        # attributes from default config
+        attributes = {
+            r"telemetry\.sdk\.language": r"Str\(nodejs\)",
+            r"service\.name": r"Str\(unnamed-node-service\)",  # auto-generated for the sample app
+        }
 
-            if method == "systemd":
-                # install the sample drop-in file to enable the agent
-                run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
-                run_container_cmd(container, f"cp -f {SAMPLE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
-                if container_file_exists(container, "/etc/ld.so.preload"):
-                    run_container_cmd(container, "rm -f /etc/ld.so.preload")
-            else:
-                # add libsplunk.so to /etc/ld.so.preload
-                run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libsplunk.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
-            # verify default config
-            verify_app_instrumentation(container, "express", method, attributes, otelcol_path=otelcol)
+        # verify default config
+        verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
 
-            # attributes from custom config
-            attributes = {
-                r"telemetry\.sdk\.language": r"Str\(nodejs\)",
-                r"service\.name": rf"Str\(service_name_from_{method}_node\)",
-                r"deployment\.environment": rf"Str\(deployment_environment_from_{method}_node\)",
-                r"com\.splunk\.sourcetype": None if node_version < 16 else r"Str\(otel\.profiling\)",
-            }
+        # attributes from custom config
+        attributes = {
+            r"telemetry\.sdk\.language": r"Str\(nodejs\)",
+            r"service\.name": rf"Str\(service_name_from_node\)",
+            r"deployment\.environment": rf"Str\(deployment_environment_from_node\)",
+            r"com\.splunk\.sourcetype": None if node_version < 16 else r"Str\(otel\.profiling\)",
+        }
 
-            if method == "systemd":
-                # install the custom drop-in file to configure the agent
-                copy_file_into_container(container, CUSTOM_NODE_SYSTEMD_CONF_PATH, f"{SYSTEMD_CONF_DIR}/test.conf")
-            else:
-                # overwrite the default libsplunk config with the custom one for testing
-                copy_file_into_container(container, CUSTOM_NODE_CONFIG_PATH, NODE_CONFIG_PATH)
+        # overwrite the default libsplunk config with the custom one for testing
+        copy_file_into_container(container, CUSTOM_NODE_CONFIG_PATH, NODE_CONFIG_PATH)
 
-            # verify custom config
-            verify_app_instrumentation(container, "express", method, attributes, otelcol_path=otelcol)
+        # verify custom config
+        verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
 
 
 @pytest.mark.parametrize(
@@ -403,43 +362,31 @@ def test_dotnet_instrumentation(distro, arch):
 
         install_package(container, distro, f"/test/{pkg_base}", arch=arch)
 
-        for method in ["libsplunk", "systemd"]:
-            # attributes from default config
-            attributes = {
-                r"telemetry\.sdk\.language": r"Str\(dotnet\)",
-                r"service\.name": r"Str\(myWebApp\)",  # auto-generated for the sample app
-            }
+        # attributes from default config
+        attributes = {
+            r"telemetry\.sdk\.language": r"Str\(dotnet\)",
+            r"service\.name": r"Str\(myWebApp\)",  # auto-generated for the sample app
+        }
 
-            if method == "systemd":
-                # install the sample drop-in file to enable the agent
-                run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
-                run_container_cmd(container, f"cp -f {SAMPLE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
-                if container_file_exists(container, "/etc/ld.so.preload"):
-                    run_container_cmd(container, "rm -f /etc/ld.so.preload")
-            else:
-                # add libsplunk.so to /etc/ld.so.preload
-                run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libsplunk.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
-            # verify default config
-            verify_app_instrumentation(container, "dotnet", method, attributes, otelcol_path=otelcol)
+        # verify default config
+        verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)
 
-            # attributes from custom config
-            attributes = {
-                r"telemetry\.sdk\.language": r"Str\(dotnet\)",
-                r"service\.name": rf"Str\(service_name_from_{method}_dotnet\)",
-                r"deployment\.environment": rf"Str\(deployment_environment_from_{method}_dotnet\)",
-                r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
-            }
+        # attributes from custom config
+        attributes = {
+            r"telemetry\.sdk\.language": r"Str\(dotnet\)",
+            r"service\.name": rf"Str\(service_name_from_dotnet\)",
+            r"deployment\.environment": rf"Str\(deployment_environment_from_dotnet\)",
+            r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
+        }
 
-            if method == "systemd":
-                # install the custom drop-in file to configure the agent
-                copy_file_into_container(container, CUSTOM_DOTNET_SYSTEMD_CONF_PATH, f"{SYSTEMD_CONF_DIR}/test.conf")
-            else:
-                # overwrite the default libsplunk config with the custom one for testing
-                copy_file_into_container(container, CUSTOM_DOTNET_CONFIG_PATH, DOTNET_CONFIG_PATH)
+        # overwrite the default libsplunk config with the custom one for testing
+        copy_file_into_container(container, CUSTOM_DOTNET_CONFIG_PATH, DOTNET_CONFIG_PATH)
 
-            # verify custom config
-            verify_app_instrumentation(container, "dotnet", method, attributes, otelcol_path=otelcol)
+        # verify custom config
+        verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)
 
 
 @pytest.mark.parametrize(
@@ -463,10 +410,10 @@ def test_package_uninstall(distro, arch):
         verify_preload(container, "# This line should be preserved")
 
         # verify libsplunk.so was not automatically added to /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
         # explicitly add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} >> {PRELOAD_PATH}'")
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} >> {PRELOAD_PATH}'")
 
         # uninstall the package
         if distro in DEB_DISTROS:
@@ -485,6 +432,6 @@ def test_package_uninstall(distro, arch):
             assert not container_file_exists(container, path)
 
         # verify libsplunk.so was removed from /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
         verify_preload(container, "# This line should be preserved")

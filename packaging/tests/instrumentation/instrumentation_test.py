@@ -44,30 +44,23 @@ COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 
 PKG_NAME = "splunk-otel-auto-instrumentation"
 LIB_DIR = "/usr/lib/splunk-instrumentation"
-LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
+LIBOTELINJECT_PATH = f"{LIB_DIR}/libotelinject_amd64.so"
 PRELOAD_PATH = "/etc/ld.so.preload"
-SYSTEMD_CONF_DIR = "/usr/lib/systemd/system.conf.d"
 
 JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
-JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
 
 NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
-NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
 CUSTOM_NODE_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-node-test.conf"
 
 DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_CONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
 CUSTOM_DOTNET_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-dotnet-test.conf"
 
 INSTALLED_FILES = [
     JAVA_AGENT_PATH,
     NODE_AGENT_PATH,
     DOTNET_AGENT_PATH,
-    LIBSPLUNK_PATH,
-    JAVA_CONFIG_PATH,
-    NODE_CONFIG_PATH,
-    DOTNET_CONFIG_PATH,
+    LIBOTELINJECT_PATH,
 ]
 
 TOMCAT_PIDFILE = "/usr/local/tomcat/temp/tomcat.pid"
@@ -264,8 +257,7 @@ def test_tomcat_instrumentation(distro, arch):
             r"service\.name": r"Str\(Hello, World Application\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
@@ -324,8 +316,7 @@ def test_express_instrumentation(distro, arch):
             r"service\.name": r"Str\(unnamed-node-service\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
@@ -337,7 +328,6 @@ def test_express_instrumentation(distro, arch):
             r"deployment\.environment": rf"Str\(deployment_environment_from_node\)",
             r"com\.splunk\.sourcetype": None if node_version < 16 else r"Str\(otel\.profiling\)",
         }
-
 
         # overwrite the default libsplunk config with the custom one for testing
         copy_file_into_container(container, CUSTOM_NODE_CONFIG_PATH, NODE_CONFIG_PATH)
@@ -376,8 +366,7 @@ def test_dotnet_instrumentation(distro, arch):
             r"service\.name": r"Str\(myWebApp\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)
@@ -418,10 +407,10 @@ def test_package_uninstall(distro, arch):
         verify_preload(container, "# This line should be preserved")
 
         # verify libsplunk.so was not automatically added to /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
         # explicitly add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} >> {PRELOAD_PATH}'")
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} >> {PRELOAD_PATH}'")
 
         # uninstall the package
         if distro in DEB_DISTROS:
@@ -440,6 +429,6 @@ def test_package_uninstall(distro, arch):
             assert not container_file_exists(container, path)
 
         # verify libsplunk.so was removed from /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
         verify_preload(container, "# This line should be preserved")

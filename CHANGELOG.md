@@ -12,7 +12,7 @@ and the [opentelemetry-collector-contrib v0.145.0](https://github.com/open-telem
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) `ps1`: Remove FluentD support from Powershell installer ([#7137](https://github.com/signalfx/splunk-otel-collector/pull/7137))
+- (Splunk) `ps1`: Remove FluentD support from PowerShell installer ([#7137](https://github.com/signalfx/splunk-otel-collector/pull/7137))
   FluentD support is removed after deprecation period.
   Prefer using the filelog receiver for log ingestion.
 - (Splunk) `rpm/deb`: Remove FluentD installation and configuration ([#7138](https://github.com/signalfx/splunk-otel-collector/pull/7138))

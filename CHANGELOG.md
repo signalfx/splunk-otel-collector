@@ -75,7 +75,7 @@ and the [opentelemetry-collector-contrib v0.145.0](https://github.com/open-telem
   This feature is behind the `exporter.signalfx.consumeEntityEvents` feature gate (disabled by default).
 - (Contrib) `extension/oauth2client`: Support jwt-bearer grant-type (RFC7523) ([#44314](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44314))
 - (Contrib) `extension/opamp`: This change adds support for the OpAMP AcceptsRestartCommand capability. The implementation for this capability sends a SIGHUP signal to restart the collector which will reload the config on startup. ([#45056](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45056))
-  This functionality is behind a feature gate (extension.opampextension.RemoteRestarts) that defaults disabled. The SIGHUP signal does not work on windows systems, but might later be updated to use the SIGUSR2 signal.
+  This functionality is behind a feature gate (extension.opampextension.RemoteRestarts) that defaults to disabled. The SIGHUP signal does not work on Windows systems, but might later be updated to use the SIGUSR2 signal.
 - (Contrib) `internal/coreinternal`: Improve performance of hashing function for attraction package. ([#45211](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45211))
 - (Contrib) `pkg/fileconsumer`: Open files on Windows with FILE_SHARE_DELETE mode ([#32037](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32037))
 - (Contrib) `pkg/ottl`: Added generic path to get/set span flags in OTTL trace span context. ([#34739](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/34739))
@@ -131,7 +131,7 @@ and the [opentelemetry-collector-contrib v0.145.0](https://github.com/open-telem
   The default value for `max_log_size` is now changed from `0` to `1MiB` to prevent boundless memory usage.
 - (Contrib) `pkg/stanza`: Fix syslog parser operator logging errors at ERROR level when `on_error` is set to quiet mode ([#42646](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42646))
 - (Contrib) `pkg/stanza`: Fix data race in fileconsumer FileAttributes map access ([#42825](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42825))
-- (Contrib) `processor/azuredetector`: Avoid set cloud.availability_zone when Azure Availability Zone is not assigned ([#45642](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45642))
+- (Contrib) `processor/azuredetector`: Avoid setting `cloud.availability_zone` when Azure Availability Zone is not assigned ([#45642](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45642))
   In cases where an Azure VM is not assigned to any Availability Zone,
   the `cloud.availability_zone` attribute was being set to an empty string.
   This fix ensures that the attribute is only set when an Availability Zone
@@ -140,7 +140,7 @@ and the [opentelemetry-collector-contrib v0.145.0](https://github.com/open-telem
   In certain Azure images, the `osProfile.computerName` field may not be set.
   This fix ensures that the hostname detection falls back to using the VM Name
   from the instance metadata service when `osProfile.computerName` is empty.
-- (Contrib) `processor/azuredetector`: Avoid set azure.vm.scaleset.name empty when VM not in scale set ([#45642](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45642))
+- (Contrib) `processor/azuredetector`: Avoid setting `azure.vm.scaleset.name` to empty when VM not in scale set ([#45642](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45642))
   In scenarios where a VM is not part of a scale set, the
   `azure.vm.scaleset.name` attribute was being set to an empty string.
   This fix ensures that the attribute is only set when the VM is indeed
@@ -148,9 +148,9 @@ and the [opentelemetry-collector-contrib v0.145.0](https://github.com/open-telem
 - (Contrib) `processor/k8sattributes`: Fix k8s.node.uid extraction when node.name is disabled ([#45328](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45328))
 - (Contrib) `receiver/awscontainerinsightreceiver`: Add cAdvisor filesystem plugin imports to fix missing NodeFS and InstanceFS metrics ([#45534](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45534))
 - (Contrib) `receiver/filelog`: Fixed encoding not being applied to multiline pattern matching ([#39011](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39011))
-  Previously, when using multiline pattern matching with non-UTF-8 encodings (e.g., utf-16le), 
-  the encoding was not properly applied during pattern matching, causing multiline patterns to fail. 
-  This fix ensures that the specified encoding is correctly applied when processing multiline patterns, 
+  Previously, when using multiline pattern matching with non-UTF-8 encodings (e.g., utf-16le),
+  the encoding was not properly applied during pattern matching, causing multiline patterns to fail.
+  This fix ensures that the specified encoding is correctly applied when processing multiline patterns,
   allowing proper parsing of files with fixed-length records and no line terminators in various encodings.
 - (Contrib) `receiver/journald`: Avoid passing empty cursors to journalctl when resuming journald reads ([#45435](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45435))
 - (Contrib) `receiver/receiver_creator`: Do not log config in receivercreator since it could contain sensitive information ([#38163](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38163))

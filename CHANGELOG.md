@@ -35,7 +35,7 @@ and the [opentelemetry-collector-contrib v0.145.0](https://github.com/open-telem
   It will be removed on or after April 2026.
   There is no direct replacement for this monitor. Please consider using the PHP SDK for OpenTelemetry moving forward.
 - (Splunk) `collectd/php-fpm`: Deprecate collectd/php-fpm ([#7140](https://github.com/signalfx/splunk-otel-collector/pull/7140))
-  Deprecate the collectd/php-fpm monitor. 
+  Deprecate the collectd/php-fpm monitor.
   It will be removed on or after April 2026.
   There is no direct replacement for this monitor. Please consider using the PHP SDK for OpenTelemetry moving forward.
 - (Splunk) `collectd/protocols`: Deprecate collectd/protocols ([#7170](https://github.com/signalfx/splunk-otel-collector/pull/7170))

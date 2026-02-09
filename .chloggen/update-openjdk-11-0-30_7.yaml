@@ -1,0 +1,5 @@
+change_type: enhancement
+component: packaging
+note: Update bundled OpenJDK to 11.0.30_7
+issues: [7172]
+subtext:

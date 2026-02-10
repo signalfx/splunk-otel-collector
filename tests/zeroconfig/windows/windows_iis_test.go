@@ -177,7 +177,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 			require.NoError(t, errUnmarshal)
 			yamlBytes, errYAMLMarshal := yaml.Marshal(data)
 			require.NoError(t, errYAMLMarshal)
-			require.NoError(t, os.WriteFile(expectedTracesFileName, yamlBytes, 0644))
+			require.NoError(t, os.WriteFile(expectedTracesFileName, yamlBytes, 0o644))
 		}
 	}
 }

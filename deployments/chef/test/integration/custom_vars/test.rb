@@ -47,10 +47,6 @@ if os[:family] == 'windows'
     it { should have_property 'ImagePath' }
     its('ImagePath') { should match /^.*--discovery --set=processors.batch.timeout=10s$/ }
   end
-  describe service('fluentdwinsvc') do
-    it { should be_enabled }
-    it { should be_running }
-  end
 else
   bundle_dir = '/usr/lib/splunk-otel-collector/agent-bundle'
   collectd_dir = "#{bundle_dir}/run/collectd"
@@ -74,16 +70,6 @@ else
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=custom-user$/ }
     its('content') { should match /^Group=custom-group$/ }
-  end
-  if os[:family] != 'suse' && os[:family] != 'opensuse' && !(os[:family] == 'debian' && ::Gem::Version.new(os.release) >= ::Gem::Version.new('11'))
-    fluentd_config_path = '/etc/otel/collector/fluentd/fluent.conf'
-    describe service('td-agent') do
-      it { should be_enabled }
-      it { should be_running }
-    end
-    describe file('/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf') do
-      its('content') { should match /^Environment=FLUENT_CONF=#{fluentd_config_path}$/ }
-    end
   end
   describe package('splunk-otel-auto-instrumentation') do
     it { should_not be_installed }

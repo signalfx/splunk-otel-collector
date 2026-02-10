@@ -136,8 +136,7 @@ jobs:
       matrix:
         ansible:
           # Testing only the versions currently supported per https://endoflife.date/ansible
-          - ansible~=12.0.0
-          - ansible~=11.6.0
+          - ansible>=12.2.0
         distro:
           - amazonlinux2023
           - centos9
@@ -201,8 +200,7 @@ jobs:
       matrix:
         ansible:
           # Testing only the versions currently supported per https://endoflife.date/ansible
-          - ansible~=12.0.0
-          - ansible~=11.6.0
+          - ansible>=12.2.0
         distro:
           - "2016"
           - "2019"

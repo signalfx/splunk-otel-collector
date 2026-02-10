@@ -14,7 +14,7 @@ Observability Cloud](https://www.splunk.com/en_us/products/observability.html).
 
 ### Dependencies
 
-- Ansible 11.6.0+
+- Ansible 12.2.0+
 - Python 3.11+
 
 ### Linux

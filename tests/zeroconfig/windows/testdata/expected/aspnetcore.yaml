@@ -1,109 +1,112 @@
 resourceSpans:
-  - resource:
-      attributes:
-        - key: splunk.distro.version
-          value:
-            stringValue: 1.12.0
-        - key: telemetry.distro.name
-          value:
-            stringValue: splunk-otel-dotnet
-        - key: telemetry.distro.version
-          value:
-            stringValue: 1.12.0
-        - key: service.name
-          value:
-            stringValue: AspNetCore.WebApi.Net
-        - key: os.type
-          value:
-            stringValue: windows
-        - key: os.description
-          value:
-            stringValue: Microsoft Windows 10.0.20348
-        - key: os.build_id
-          value:
-            stringValue: '20348'
-        - key: os.name
-          value:
-            stringValue: Windows Server 2022 Datacenter
-        - key: os.version
-          value:
-            stringValue: '6.3'
-        - key: host.name
-          value:
-            stringValue: DCA444A6363F
-        - key: host.id
-          value:
-            stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
-        - key: host.arch
-          value:
-            stringValue: x64
-        - key: process.owner
-          value:
-            stringValue: AspNetCoreAppPool
-        - key: process.pid
-          value:
-            intValue: '3880'
-        - key: process.runtime.description
-          value:
-            stringValue: .NET 8.0.22
-        - key: process.runtime.name
-          value:
-            stringValue: .NET
-        - key: process.runtime.version
-          value:
-            stringValue: 8.0.22
-        - key: telemetry.sdk.name
-          value:
-            stringValue: opentelemetry
-        - key: telemetry.sdk.language
-          value:
-            stringValue: dotnet
-        - key: telemetry.sdk.version
-          value:
-            stringValue: 1.14.0
-        - key: deployment.environment
-          value:
-            stringValue: zc-iis-test
-        - key: splunk.zc.method
-          value:
-            stringValue: splunk-otel-dotnet-v1.13.0
-    scopeSpans:
-      - scope:
-          name: Microsoft.AspNetCore
-        spans:
-          - traceId: ae6573ee7f2539099cdc5a8627deb591
-            spanId: c576f0e36403f689
-            flags: 257
-            name: 'GET /api/values/{id}'
-            kind: 2
-            startTimeUnixNano: '1766112058516944100'
-            endTimeUnixNano: '1766112058715454300'
-            attributes:
-              - key: server.address
-                value:
-                  stringValue: localhost
-              - key: server.port
-                value:
-                  intValue: '8000'
-              - key: http.request.method
-                value:
-                  stringValue: GET
-              - key: url.scheme
-                value:
-                  stringValue: http
-              - key: url.path
-                value:
-                  stringValue: /aspnetcoreapp/api/values/6
-              - key: network.protocol.version
-                value:
-                  stringValue: '1.1'
-              - key: user_agent.original
-                value:
-                  stringValue: Go-http-client/1.1
-              - key: http.route
-                value:
-                  stringValue: '/api/values/{id}'
-              - key: http.response.status_code
-                value:
-                  intValue: '200'
-            status: {}
+    - resource:
+        attributes:
+            - key: splunk.distro.version
+              value:
+                stringValue: 1.13.0
+            - key: telemetry.distro.name
+              value:
+                stringValue: splunk-otel-dotnet
+            - key: telemetry.distro.version
+              value:
+                stringValue: 1.13.0
+            - key: service.instance.id
+              value:
+                stringValue: 70f3fc09-4a62-461c-979c-330cc8e1e63f
+            - key: service.name
+              value:
+                stringValue: AspNetCore.WebApi.Net
+            - key: os.type
+              value:
+                stringValue: windows
+            - key: os.description
+              value:
+                stringValue: Microsoft Windows 10.0.20348
+            - key: os.build_id
+              value:
+                stringValue: "20348"
+            - key: os.name
+              value:
+                stringValue: Windows Server 2022 Datacenter
+            - key: os.version
+              value:
+                stringValue: "6.3"
+            - key: host.name
+              value:
+                stringValue: 6F223B96A11B
+            - key: host.id
+              value:
+                stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
+            - key: host.arch
+              value:
+                stringValue: amd64
+            - key: process.owner
+              value:
+                stringValue: AspNetCoreAppPool
+            - key: process.pid
+              value:
+                intValue: "2948"
+            - key: process.runtime.description
+              value:
+                stringValue: .NET 8.0.23
+            - key: process.runtime.name
+              value:
+                stringValue: .NET
+            - key: process.runtime.version
+              value:
+                stringValue: 8.0.23
+            - key: telemetry.sdk.name
+              value:
+                stringValue: opentelemetry
+            - key: telemetry.sdk.language
+              value:
+                stringValue: dotnet
+            - key: telemetry.sdk.version
+              value:
+                stringValue: 1.15.0
+            - key: deployment.environment
+              value:
+                stringValue: zc-iis-test
+            - key: splunk.zc.method
+              value:
+                stringValue: splunk-otel-dotnet-v1.14.1
+      scopeSpans:
+        - scope:
+            name: Microsoft.AspNetCore
+          spans:
+            - attributes:
+                - key: server.address
+                  value:
+                    stringValue: localhost
+                - key: server.port
+                  value:
+                    intValue: "8000"
+                - key: http.request.method
+                  value:
+                    stringValue: GET
+                - key: url.scheme
+                  value:
+                    stringValue: http
+                - key: url.path
+                  value:
+                    stringValue: /aspnetcoreapp/api/values/6
+                - key: network.protocol.version
+                  value:
+                    stringValue: "1.1"
+                - key: user_agent.original
+                  value:
+                    stringValue: Go-http-client/1.1
+                - key: http.route
+                  value:
+                    stringValue: /api/values/{id}
+                - key: http.response.status_code
+                  value:
+                    intValue: "200"
+              endTimeUnixNano: "1770700191220245100"
+              flags: 257
+              kind: 2
+              name: GET /api/values/{id}
+              spanId: 10db206118c9fb7d
+              startTimeUnixNano: "1770700191219246100"
+              status: {}
+              traceId: 9f1a58138f774b59166388d474e1ef8f

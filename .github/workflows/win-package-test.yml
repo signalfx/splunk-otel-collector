@@ -87,6 +87,22 @@ jobs:
         run: |
           .\run-tests.ps1
 
+      - name: Check for any differences in the expected traces files
+        run: |
+          if ! git diff --exit-code; then
+            echo "One or more files were changed, this is not expected."
+            echo "Check for the job artifacts and verify if the changes to the expected traces files are expected."
+            echo "If the changes are expected, update the files in the tests/zeroconfig/windows/testdata/expected directory and push the changes."
+            exit 1
+          fi
+
+      - name: Upload expected traces file
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: expected-traces-dotnet-zeroconfig-e2e-tests
+          path: tests/zeroconfig/windows/testdata/expected/*.yaml
+
   msi-test:
     strategy:
       matrix:

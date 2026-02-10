@@ -12,7 +12,7 @@ resourceSpans:
                 stringValue: 1.13.0
             - key: service.instance.id
               value:
-                stringValue: 70f3fc09-4a62-461c-979c-330cc8e1e63f
+                stringValue: 0631db44-2dcf-499d-b80a-023b4fd986b5
             - key: service.name
               value:
                 stringValue: AspNetCore.WebApi.Net
@@ -33,7 +33,7 @@ resourceSpans:
                 stringValue: "6.3"
             - key: host.name
               value:
-                stringValue: 6F223B96A11B
+                stringValue: E65BF9CE4111
             - key: host.id
               value:
                 stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
@@ -45,7 +45,7 @@ resourceSpans:
                 stringValue: AspNetCoreAppPool
             - key: process.pid
               value:
-                intValue: "2948"
+                intValue: "800"
             - key: process.runtime.description
               value:
                 stringValue: .NET 8.0.23
@@ -102,11 +102,11 @@ resourceSpans:
                 - key: http.response.status_code
                   value:
                     intValue: "200"
-              endTimeUnixNano: "1770700191220245100"
+              endTimeUnixNano: "1770742189836664000"
               flags: 257
               kind: 2
               name: GET /api/values/{id}
-              spanId: 10db206118c9fb7d
-              startTimeUnixNano: "1770700191219246100"
+              spanId: 8e9581419aae1f6e
+              startTimeUnixNano: "1770742189834882700"
               status: {}
-              traceId: 9f1a58138f774b59166388d474e1ef8f
+              traceId: 36b084b04077b99db544a642782b3733

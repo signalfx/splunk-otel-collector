@@ -12,7 +12,7 @@ resourceSpans:
                 stringValue: 1.13.0
             - key: service.instance.id
               value:
-                stringValue: d4a1a5b6-5aa5-4544-931d-fdfeec393b3a
+                stringValue: 525112ac-f61a-4bea-910c-0df609750c2d
             - key: service.name
               value:
                 stringValue: Default Web Site/aspnetfxapp
@@ -33,7 +33,7 @@ resourceSpans:
                 stringValue: "6.3"
             - key: host.name
               value:
-                stringValue: 6F223B96A11B
+                stringValue: E65BF9CE4111
             - key: host.id
               value:
                 stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
@@ -42,7 +42,7 @@ resourceSpans:
                 stringValue: DefaultAppPool
             - key: process.pid
               value:
-                intValue: "3000"
+                intValue: "2068"
             - key: process.runtime.description
               value:
                 stringValue: .NET Framework 4.8.4775.0
@@ -101,11 +101,11 @@ resourceSpans:
                 - key: http.route
                   value:
                     stringValue: api/values/{id}
-              endTimeUnixNano: "1770700193244716200"
+              endTimeUnixNano: "1770742249883843400"
               flags: 257
               kind: 2
               name: GET api/values/{id}
-              spanId: e85eaa3fb4c9f641
-              startTimeUnixNano: "1770700193241668100"
+              spanId: febf6af96f4c0f01
+              startTimeUnixNano: "1770742249881517100"
               status: {}
-              traceId: 87d70db06763e79095d31e118dd718d7
+              traceId: 2bf4112d565cc5ab339fe8e499a00c9e

@@ -4,7 +4,7 @@
 
 ### 🛑 Breaking changes 🛑
 
-- Drop support for Ansible 11.X. Minimum supported Ansible version is now 12.2.0. ([#]())
+- Drop support for Ansible 11.X. Minimum supported Ansible version is now 12.2.0. ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191))
 
 ## ansible-v0.34.0
 

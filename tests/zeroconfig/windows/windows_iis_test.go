@@ -17,8 +17,10 @@
 package zeroconfig
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -28,6 +30,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	"gopkg.in/yaml.v3"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/ptracetest"
@@ -127,23 +131,29 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	}, 3*time.Minute, 100*time.Millisecond, "Failed to connect to target")
 
 	var index int
+	var marshaledTrace []byte
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		matchErr := fmt.Errorf("no matching traces found, %d collected", index)
 		newIndex := len(otlp.AllTraces())
 		for i := index; i < newIndex && matchErr != nil; i++ {
-			matchErr = ptracetest.CompareTraces(expected, otlp.AllTraces()[i],
+			trace := otlp.AllTraces()[i]
+			marshaler := ptrace.JSONMarshaler{}
+			marshaledTrace, err = marshaler.MarshalTraces(trace)
+			require.NoError(c, err)
+			matchErr = ptracetest.CompareTraces(expected, trace,
+				ptracetest.IgnoreResourceAttributeValue("host.arch"),
 				ptracetest.IgnoreResourceAttributeValue("host.id"),
 				ptracetest.IgnoreResourceAttributeValue("host.name"),
-				ptracetest.IgnoreResourceAttributeValue("host.arch"),
+				ptracetest.IgnoreResourceAttributeValue("os.description"),
 				ptracetest.IgnoreResourceAttributeValue("process.owner"),
 				ptracetest.IgnoreResourceAttributeValue("process.pid"),
 				ptracetest.IgnoreResourceAttributeValue("process.runtime.description"),
 				ptracetest.IgnoreResourceAttributeValue("process.runtime.version"),
-				ptracetest.IgnoreResourceAttributeValue("splunk.zc.method"),
-				ptracetest.IgnoreResourceAttributeValue("telemetry.sdk.version"),
+				ptracetest.IgnoreResourceAttributeValue("service.instance.id"),
 				ptracetest.IgnoreResourceAttributeValue("splunk.distro.version"),
+				ptracetest.IgnoreResourceAttributeValue("splunk.zc.method"),
 				ptracetest.IgnoreResourceAttributeValue("telemetry.distro.version"),
-				ptracetest.IgnoreResourceAttributeValue("os.description"),
+				ptracetest.IgnoreResourceAttributeValue("telemetry.sdk.version"),
 				ptracetest.IgnoreScopeSpanInstrumentationScopeVersion(),
 				ptracetest.IgnoreStartTimestamp(),
 				ptracetest.IgnoreEndTimestamp(),
@@ -155,5 +165,19 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 		}
 		index = newIndex
 		assert.NoError(c, matchErr)
-	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
+	}, 1*time.Minute, 100*time.Millisecond, "Failed to receive expected traces")
+
+	if t.Failed() {
+		t.Logf("Expected traces did not match actual traces.")
+		if marshaledTrace != nil {
+			t.Logf("Writing received traces over expected traces file: %s", expectedTracesFileName)
+
+			var data interface{}
+			errUnmarshal := json.Unmarshal(marshaledTrace, &data)
+			require.NoError(t, errUnmarshal)
+			yamlBytes, errYAMLMarshal := yaml.Marshal(data)
+			require.NoError(t, errYAMLMarshal)
+			require.NoError(t, os.WriteFile(expectedTracesFileName, yamlBytes, 0o644))
+		}
+	}
 }

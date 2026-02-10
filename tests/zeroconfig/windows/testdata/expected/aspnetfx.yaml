@@ -1,107 +1,111 @@
 resourceSpans:
-  - resource:
-      attributes:
-        - key: splunk.distro.version
-          value:
-            stringValue: 1.12.0
-        - key: telemetry.distro.name
-          value:
-            stringValue: splunk-otel-dotnet
-        - key: telemetry.distro.version
-          value:
-            stringValue: 1.12.0
-        - key: service.name
-          value:
-            stringValue: Default Web Site/aspnetfxapp
-        - key: os.type
-          value:
-            stringValue: windows
-        - key: os.description
-          value:
-            stringValue: Microsoft Windows NT 10.0.20348.0
-        - key: os.build_id
-          value:
-            stringValue: '20348'
-        - key: os.name
-          value:
-            stringValue: Windows Server 2022 Datacenter
-        - key: os.version
-          value:
-            stringValue: '6.3'
-        - key: host.name
-          value:
-            stringValue: DCA444A6363F
-        - key: host.id
-          value:
-            stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
-        - key: process.owner
-          value:
-            stringValue: DefaultAppPool
-        - key: process.pid
-          value:
-            intValue: '1092'
-        - key: process.runtime.description
-          value:
-            stringValue: .NET Framework 4.8.4775.0
-        - key: process.runtime.name
-          value:
-            stringValue: .NET Framework
-        - key: process.runtime.version
-          value:
-            stringValue: '4.8'
-        - key: telemetry.sdk.name
-          value:
-            stringValue: opentelemetry
-        - key: telemetry.sdk.language
-          value:
-            stringValue: dotnet
-        - key: telemetry.sdk.version
-          value:
-            stringValue: 1.14.0
-        - key: deployment.environment
-          value:
-            stringValue: zc-iis-test
-        - key: splunk.zc.method
-          value:
-            stringValue: splunk-otel-dotnet-v1.13.0
-    scopeSpans:
-      - scope:
-          name: OpenTelemetry.Instrumentation.AspNet
-          version: 1.14.0-rc.1
-        spans:
-          - traceId: fc17c3cb284f0eca2230b7d1e39fee2d
-            spanId: 4a44e6c70cdc8837
-            flags: 257
-            name: 'GET api/values/{id}'
-            kind: 2
-            startTimeUnixNano: '1766112132013379500'
-            endTimeUnixNano: '1766112132509509800'
-            attributes:
-              - key: http.request.method
-                value:
-                  stringValue: GET
-              - key: server.address
-                value:
-                  stringValue: localhost
-              - key: server.port
-                value:
-                  intValue: '80'
-              - key: url.scheme
-                value:
-                  stringValue: http
-              - key: url.path
-                value:
-                  stringValue: /aspnetfxapp/api/values/4
-              - key: user_agent.original
-                value:
-                  stringValue: Go-http-client/1.1
-              - key: network.protocol.version
-                value:
-                  stringValue: '1.1'
-              - key: http.response.status_code
-                value:
-                  intValue: '200'
-              - key: http.route
-                value:
-                  stringValue: 'api/values/{id}'
-            status: {}
+    - resource:
+        attributes:
+            - key: splunk.distro.version
+              value:
+                stringValue: 1.13.0
+            - key: telemetry.distro.name
+              value:
+                stringValue: splunk-otel-dotnet
+            - key: telemetry.distro.version
+              value:
+                stringValue: 1.13.0
+            - key: service.instance.id
+              value:
+                stringValue: 525112ac-f61a-4bea-910c-0df609750c2d
+            - key: service.name
+              value:
+                stringValue: Default Web Site/aspnetfxapp
+            - key: os.type
+              value:
+                stringValue: windows
+            - key: os.description
+              value:
+                stringValue: Microsoft Windows NT 10.0.20348.0
+            - key: os.build_id
+              value:
+                stringValue: "20348"
+            - key: os.name
+              value:
+                stringValue: Windows Server 2022 Datacenter
+            - key: os.version
+              value:
+                stringValue: "6.3"
+            - key: host.name
+              value:
+                stringValue: E65BF9CE4111
+            - key: host.id
+              value:
+                stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
+            - key: process.owner
+              value:
+                stringValue: DefaultAppPool
+            - key: process.pid
+              value:
+                intValue: "2068"
+            - key: process.runtime.description
+              value:
+                stringValue: .NET Framework 4.8.4775.0
+            - key: process.runtime.name
+              value:
+                stringValue: .NET Framework
+            - key: process.runtime.version
+              value:
+                stringValue: "4.8"
+            - key: telemetry.sdk.name
+              value:
+                stringValue: opentelemetry
+            - key: telemetry.sdk.language
+              value:
+                stringValue: dotnet
+            - key: telemetry.sdk.version
+              value:
+                stringValue: 1.15.0
+            - key: deployment.environment
+              value:
+                stringValue: zc-iis-test
+            - key: splunk.zc.method
+              value:
+                stringValue: splunk-otel-dotnet-v1.14.1
+      scopeSpans:
+        - schemaUrl: https://opentelemetry.io/schemas/1.36.0
+          scope:
+            name: OpenTelemetry.Instrumentation.AspNet
+            version: 1.15.1
+          spans:
+            - attributes:
+                - key: http.request.method
+                  value:
+                    stringValue: GET
+                - key: server.address
+                  value:
+                    stringValue: localhost
+                - key: server.port
+                  value:
+                    intValue: "80"
+                - key: url.scheme
+                  value:
+                    stringValue: http
+                - key: url.path
+                  value:
+                    stringValue: /aspnetfxapp/api/values/4
+                - key: user_agent.original
+                  value:
+                    stringValue: Go-http-client/1.1
+                - key: network.protocol.version
+                  value:
+                    stringValue: "1.1"
+                - key: http.response.status_code
+                  value:
+                    intValue: "200"
+                - key: http.route
+                  value:
+                    stringValue: api/values/{id}
+              endTimeUnixNano: "1770742249883843400"
+              flags: 257
+              kind: 2
+              name: GET api/values/{id}
+              spanId: febf6af96f4c0f01
+              startTimeUnixNano: "1770742249881517100"
+              status: {}
+              traceId: 2bf4112d565cc5ab339fe8e499a00c9e

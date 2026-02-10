@@ -36,16 +36,6 @@ shared_examples_for 'splunk-otel-collector windows service status' do
   end
 end
 
-shared_examples_for 'td-agent windows service status' do
-  it 'enables td-agent service on startup' do
-    expect(chef_run).to enable_windows_service('td-agent')
-  end
-
-  it 'starts the td-agent service' do
-    expect(chef_run).to start_windows_service 'fluentdwinsvc'
-  end
-end
-
 shared_examples_for 'collector conf' do
   it 'does not complain about a missing splunk_access_token' do
     expect(chef_run).not_to run_ruby_block('splunk-access-token-unset')

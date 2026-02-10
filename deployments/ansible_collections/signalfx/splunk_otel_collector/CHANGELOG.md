@@ -1,5 +1,11 @@
 # Changelog
 
+## ansible-v0.35.0
+
+### 🛑 Breaking changes 🛑
+
+- Drop support for Ansible 11.X. Minimum supported Ansible version is now 12.2.0. ([#]())
+
 ## ansible-v0.34.0
 
 ### 🚩 Deprecations 🚩

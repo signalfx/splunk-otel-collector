@@ -244,7 +244,7 @@ jobs:
             ansible-lint>=26.1.0
             molecule>=25.1.0
             molecule-plugins[vagrant]>=25.8.12
-            pywinrm>=0.4.3
+            pywinrm<=0.4.3
 
       - name: Set up Python 3.
         uses: actions/setup-python@v6

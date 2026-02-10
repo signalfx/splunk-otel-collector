@@ -88,6 +88,7 @@ jobs:
           .\run-tests.ps1
 
       - name: Check for any differences in the expected traces files
+        shell: bash
         run: |
           if ! git diff --exit-code; then
             echo "One or more files were changed, this is not expected."

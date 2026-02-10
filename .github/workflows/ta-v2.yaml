@@ -20,7 +20,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   ta-v2-build-packages:
@@ -58,7 +58,7 @@ jobs:
           make test-ta-v2
 
       - name: Upload TA v2 artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution/*.tgz
@@ -74,7 +74,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download TA v2 artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution
@@ -118,7 +118,7 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
 
       - name: Download TA v2 artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: ta-v2-packages
           path: ${{ github.workspace }}/packaging/ta-v2/out/distribution

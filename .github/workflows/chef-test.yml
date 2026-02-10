@@ -155,7 +155,7 @@ jobs:
         shell: bash
         continue-on-error: true
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           path: /tmp
 
@@ -186,7 +186,7 @@ jobs:
 
       - run: kitchen test ${{ matrix.DISTRO }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: ${{ matrix.DISTRO }}
@@ -205,7 +205,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           path: /tmp
 
@@ -239,7 +239,7 @@ jobs:
         env:
           KITCHEN_YAML: kitchen.windows.yml
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}

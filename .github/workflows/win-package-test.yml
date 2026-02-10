@@ -88,6 +88,7 @@ jobs:
           .\run-tests.ps1
 
       - name: Check for any differences in the expected traces files
+        if: always()
         shell: bash
         run: |
           if ! git diff --exit-code; then

@@ -1,17 +1,16 @@
 # Changelog
 
-## Unreleased
+## chef-v0.18.0
+
+### 🛑 Breaking changes 🛑
+
+- Fluentd support has been removed ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339)) Please refer to [documentation](../../docs/deprecations/fluentd-support.md) for more information.
 
 ### 💡 Enhancements 💡
 
 - Add support for the `collector_command_line_args` option to
   configure the command line arguments for the Splunk OpenTelemetry Collector
   service. On Windows, this option is only supported by versions `>= 0.127.0`.
-
-### 🚩 Deprecations 🚩
-
-- Fluentd support has been deprecated and will be removed in a future release.
-  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
 
 ## chef-v0.17.0
 

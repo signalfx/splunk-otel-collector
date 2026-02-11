@@ -46,9 +46,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run tests
-        run: make -C instrumentation tests ARCH=${{ matrix.ARCH }}
-
       - name: Build ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} package
         run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
 

@@ -32,12 +32,12 @@ if [ ! -f /etc/ld.so.preload ]; then
     echo "/etc/ld.so.preload not found" >&2
     exit 1
 fi
-if ! grep -q "$LIBSPLUNK_INSTALL_PATH" /etc/ld.so.preload; then
-    echo "$LIBSPLUNK_INSTALL_PATH not found in /etc/ld.so.preload" >&2
+if ! grep -q "LIBOTELINJECT_INSTALL_PATH" /etc/ld.so.preload; then
+    echo "LIBOTELINJECT_INSTALL_PATH not found in /etc/ld.so.preload" >&2
     exit 1
 fi
 
-ldd "$LIBSPLUNK_INSTALL_PATH"
+ldd "LIBOTELINJECT_INSTALL_PATH"
 
 # upgrade
 echo "Upgrading $PKG_PATH"
@@ -46,18 +46,18 @@ if [ ! -f /etc/ld.so.preload ]; then
     echo "/etc/ld.so.preload not found" >&2
     exit 1
 fi
-if ! grep -q "$LIBSPLUNK_INSTALL_PATH" /etc/ld.so.preload; then
-    echo "$LIBSPLUNK_INSTALL_PATH not found in /etc/ld.so.preload" >&2
+if ! grep -q "LIBOTELINJECT_INSTALL_PATH" /etc/ld.so.preload; then
+    echo "LIBOTELINJECT_INSTALL_PATH not found in /etc/ld.so.preload" >&2
     exit 1
 fi
 
-ldd "$LIBSPLUNK_INSTALL_PATH"
+ldd "LIBOTELINJECT_INSTALL_PATH"
 
 # uninstall
 echo "Uninstalling $PKG_NAME"
 $UNINSTALL_CMD "$PKG_NAME"
-if [[ -f /etc.ld.preload ]] && grep -q "$LIBSPLUNK_INSTALL_PATH" /etc/ld.so.preload; then
-    echo "$LIBSPLUNK_INSTALL_PATH not removed from /etc/ld.so.preload" >&2
+if [[ -f /etc.ld.preload ]] && grep -q "LIBOTELINJECT_INSTALL_PATH" /etc/ld.so.preload; then
+    echo "LIBOTELINJECT_INSTALL_PATH not removed from /etc/ld.so.preload" >&2
     exit 1
 fi
 
@@ -69,8 +69,8 @@ if [ ! -f /etc/ld.so.preload ]; then
     echo "/etc/ld.so.preload not found" >&2
     exit 1
 fi
-if ! grep -q "$LIBSPLUNK_INSTALL_PATH" /etc/ld.so.preload; then
-    echo "$LIBSPLUNK_INSTALL_PATH not found in /etc/ld.so.preload" >&2
+if ! grep -q "LIBOTELINJECT_INSTALL_PATH" /etc/ld.so.preload; then
+    echo "LIBOTELINJECT_INSTALL_PATH not found in /etc/ld.so.preload" >&2
     exit 1
 fi
 for backup in /etc/ld.so.preload.bak.*; do
@@ -82,12 +82,12 @@ for backup in /etc/ld.so.preload.bak.*; do
     fi
 done
 
-ldd "$LIBSPLUNK_INSTALL_PATH"
+ldd "LIBOTELINJECT_INSTALL_PATH"
 
 # uninstall
 echo "Uninstalling $PKG_NAME"
 $UNINSTALL_CMD "$PKG_NAME"
-if [[ -f /etc.ld.preload ]] && grep -q "$LIBSPLUNK_INSTALL_PATH" /etc/ld.so.preload; then
-    echo "$LIBSPLUNK_INSTALL_PATH not removed from /etc/ld.so.preload" >&2
+if [[ -f /etc.ld.preload ]] && grep -q "LIBOTELINJECT_INSTALL_PATH" /etc/ld.so.preload; then
+    echo "LIBOTELINJECT_INSTALL_PATH not removed from /etc/ld.so.preload" >&2
     exit 1
 fi

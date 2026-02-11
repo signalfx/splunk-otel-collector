@@ -23,14 +23,12 @@ PKG_MAINTAINER="Splunk, Inc."
 PKG_DESCRIPTION="Splunk OpenTelemetry Auto Instrumentation"
 PKG_LICENSE="Apache 2.0"
 PKG_URL="https://github.com/signalfx/splunk-otel-collector"
-
+ARCH=amd64
 INSTALL_DIR="/usr/lib/splunk-instrumentation"
-LIBSPLUNK_INSTALL_PATH="${INSTALL_DIR}/libsplunk.so"
+LIBOTELINJECT_INSTALL_PATH="${INSTALL_DIR}/libotelinject_${ARCH}.so"
 JAVA_AGENT_INSTALL_PATH="${INSTALL_DIR}/splunk-otel-javaagent.jar"
-CONFIG_DIR_REPO_PATH="${FPM_DIR}/etc/splunk/zeroconfig"
-CONFIG_DIR_INSTALL_PATH="/etc/splunk/zeroconfig"
-EXAMPLES_INSTALL_DIR="${INSTALL_DIR}/examples"
-EXAMPLES_DIR="${FPM_DIR}/examples"
+CONFIG_DIR_REPO_PATH="${FPM_DIR}/etc/opentelemetry"
+CONFIG_DIR_INSTALL_PATH="/etc/opentelemetry"
 
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
 JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/"
@@ -103,14 +101,14 @@ download_dotnet_agent() {
 setup_files_and_permissions() {
     local arch="$1"
     local buildroot="$2"
-    local libsplunk="$REPO_DIR/instrumentation/dist/libsplunk_${arch}.so"
+    local libsplunk="$REPO_DIR/instrumentation/dist/libotelinject_${arch}.so"
     local java_agent_release="$(cat "$JAVA_AGENT_RELEASE_PATH")"
     local nodejs_agent_release="$(cat "$NODEJS_AGENT_RELEASE_PATH")"
     local dotnet_agent_release="$(cat "$DOTNET_AGENT_RELEASE_PATH")"
 
-    mkdir -p "$buildroot/$(dirname $LIBSPLUNK_INSTALL_PATH)"
-    cp -f "$libsplunk" "$buildroot/$LIBSPLUNK_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$LIBSPLUNK_INSTALL_PATH"
+    mkdir -p "$buildroot/$(dirname $LIBOTELINJECT_INSTALL_PATH)"
+    cp -f "$libsplunk" "$buildroot/$LIBOTELINJECT_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$LIBOTELINJECT_INSTALL_PATH"
 
     download_java_agent "$java_agent_release" "${buildroot}/${JAVA_AGENT_INSTALL_PATH}"
     sudo chmod 755 "$buildroot/$JAVA_AGENT_INSTALL_PATH"
@@ -126,13 +124,8 @@ setup_files_and_permissions() {
     mkdir -p  "$buildroot/$CONFIG_DIR_INSTALL_PATH"
     cp -rf "$CONFIG_DIR_REPO_PATH"/* "$buildroot/$CONFIG_DIR_INSTALL_PATH"/
     sudo chmod -R 755 "$buildroot/$CONFIG_DIR_INSTALL_PATH"
-    if [ "$arch" != "amd64" ]; then
-        rm -f "$buildroot/$CONFIG_DIR_INSTALL_PATH/dotnet.conf"
-    fi
 
     mkdir -p "$buildroot/$INSTALL_DIR"
-    cp -rf "$EXAMPLES_DIR" "$buildroot/$INSTALL_DIR/"
-    sudo chmod -R 755 "$buildroot/$EXAMPLES_INSTALL_DIR"
 
     sudo chown -R root:root "$buildroot"
 }

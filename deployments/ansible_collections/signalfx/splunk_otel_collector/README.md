@@ -14,19 +14,17 @@ Observability Cloud](https://www.splunk.com/en_us/products/observability.html).
 
 ### Dependencies
 
-- Ansible 11.6.0+
+- Ansible 12.2.0+
 - Python 3.11+
 
 ### Linux
 
 Currently, the following Linux distributions and versions are supported:
 
-- Amazon Linux: 2, 2023
-- CentOS / Red Hat: 8, 9
-- Oracle: 8, 9
-- Debian: 9, 10, 11
-- SUSE: 15
-- Ubuntu: 16.04, 18.04, 20.04, 22.04
+- Amazon Linux: 2023
+- CentOS / Red Hat: 9
+- Debian: 11, 12
+- Ubuntu: 22.04, 24.04
 
 ### Windows
 

@@ -46,7 +46,7 @@ all-packages: pack
 
 .PHONY: pack
 pack: validate-target-os sync-configs
-	# Build a package that works for all supported OSes
+	# Build a package according to the specified TA_TARGET_OS
 	@echo "Packing add-on $(PKG_NAME) ..."
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
 	@tmpdir=$$(mktemp -d) && \

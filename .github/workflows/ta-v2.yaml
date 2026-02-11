@@ -109,7 +109,7 @@ jobs:
           timeout=180
           elapsed=0
           echo -n "Waiting for expvar endpoint to be available: "
-          while ! docker exec -i splunk-ta-otel-test curl http://localhost:55679/debug/expvarz --silent > /dev/null; do
+          while ! docker exec -i "$CONTAINER_NAME" curl http://localhost:55679/debug/expvarz --silent > /dev/null; do
               if [ $elapsed -ge $timeout ]; then
                   echo ""
                   echo "Timeout: expvar endpoint was not available within $timeout seconds"

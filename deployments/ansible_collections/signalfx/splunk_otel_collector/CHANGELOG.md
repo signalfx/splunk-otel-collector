@@ -16,6 +16,8 @@
 
 ### 💡 Enhancements 💡
 
+- Add support for Ansible 13 ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191))
+
 - Add support for the following Linux distros ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191)):
   - Debian 12
   - Ubuntu 24.04

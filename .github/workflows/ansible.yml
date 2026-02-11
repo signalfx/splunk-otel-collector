@@ -111,7 +111,6 @@ jobs:
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v26.1.1
         with:
-          args: "-x var-naming[no-role-prefix] --exclude molecule/config/ --exclude molecule/shared/ --exclude molecule/custom_vars/custom_collector_config.yml --exclude molecule/custom_vars/custom_collector_config_deprecated.yml --exclude molecule/custom_vars_install_old_version/custom_collector_config.yml"
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"
           working_directory: "deployments/ansible_collections/signalfx/splunk_otel_collector"

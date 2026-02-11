@@ -1,10 +1,10 @@
 # Changelog
 
-## ansible-v0.35.0
+## ansible-v1.0.0
 
 ### 🛑 Breaking changes 🛑
 
-- Drop support for Ansible 11.X. Minimum supported Ansible version is now 12.2.0. ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191))
+- Removed support for Ansible 11.X. Minimum supported Ansible version is now 12.2.0. ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191))
 
 - Removed support for the following Linux distros ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191)):
   - Amazon Linux  2
@@ -16,9 +16,9 @@
 
 ### 💡 Enhancements 💡
 
-- Add support for Ansible 13 ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191))
+- Added support for Ansible 13 ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191))
 
-- Add support for the following Linux distros ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191)):
+- Added support for the following Linux distros ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191)):
   - Debian 12
   - Ubuntu 24.04
 

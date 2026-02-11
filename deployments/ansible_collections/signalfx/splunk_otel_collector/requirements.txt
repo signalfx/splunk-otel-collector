@@ -1,4 +1,4 @@
-ansible>=11.6.0
+ansible>=12.2.0
 ansible-lint>=26.1.0
 molecule>=25.5.0
 molecule-plugins[docker]>=25.8.12

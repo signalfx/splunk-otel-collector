@@ -1,3 +1,4 @@
+---
 modules:
   # Python versions supported by modules/module_utils.
   python_requires: default

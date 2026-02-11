@@ -1,8 +1,6 @@
 # Fluentd support removal
 
-Fluentd support has been deprecated.
-
-Fluentd support is removed from the Ansible playbook as of v0.34.0.
+Fluentd support has been deprecated, and in some cases, removed.
 
 ## Replacement guidance
 

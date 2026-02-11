@@ -7,7 +7,7 @@
 - Removed support for Ansible 11.X. Minimum supported Ansible version is now 12.2.0. ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191))
 
 - Removed support for the following Linux distros ([#7191](https://github.com/signalfx/splunk-otel-collector/pull/7191)):
-  - Amazon Linux  2
+  - Amazon Linux 2
   - CentOS / Red Hat 8
   - Oracle 8 and 9
   - Debian 9 and 10

@@ -1867,7 +1867,7 @@ xray-scan-docker:
   stage: xray-scan
   parallel:
     matrix:
-      # - CHILD: ["amd64", "arm64", "ppc64le", "2019", "2022"]
+      - FIPS: ["", "-fips"]
       - CHILD: ["amd64"]  # the .container-scan template currently only supports linux/amd64 images
   needs:
     - push-multiarch-manifest
@@ -1875,26 +1875,7 @@ xray-scan-docker:
   variables:
     create_jira: "true"
   before_script:
-    - export CONTAINER_IMAGE="$(cat tags_to_sign_multiarch)-${CHILD}"
-    - echo $CONTAINER_IMAGE
-
-xray-scan-docker-fips:
-  extends: .container-scan
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-  stage: xray-scan
-  parallel:
-    matrix:
-      # - CHILD: ["amd64", "arm64", "ppc64le", "2019", "2022"]
-      - CHILD: ["amd64"]  # the .container-scan template currently only supports linux/amd64 images
-  needs:
-    - push-multiarch-manifest
-    - sign-linux-image-fips
-  variables:
-    create_jira: "true"
-  before_script:
-    - export CONTAINER_IMAGE="$(cat tags_to_sign_multiarch-fips)-${CHILD}"
+    - export CONTAINER_IMAGE="$(cat tags_to_sign_multiarch${FIPS})-${CHILD}"
     - echo $CONTAINER_IMAGE
 
 github-release:

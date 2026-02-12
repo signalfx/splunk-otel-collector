@@ -299,13 +299,14 @@ jobs:
         if: always()
         run: |
           ls -al /home/runner/.cache/molecule/splunk_otel_collector/
+          ls -al /home/runner/.cache/molecule/splunk_otel_collector/default
 
       - name: Upload vagrant error files
         if: failure()
         uses: actions/upload-artifact@v6
         with:
           name: vagrant_err-${{ matrix.distro }}-${{ matrix.scenario }}
-          path: /home/runner/.cache/molecule/splunk_otel_collector/default/vagrant.err
+          path: /home/runner/.cache/molecule/splunk_otel_collector/default
 
   push-release-tag:
     name: Push Release Tag

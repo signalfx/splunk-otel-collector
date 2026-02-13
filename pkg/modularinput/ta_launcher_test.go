@@ -365,6 +365,26 @@ func TestIsModularInputMode_NoSplunkHome(t *testing.T) {
 	assert.False(t, isQueryMode, "Expected not query mode without SPLUNK_HOME")
 }
 
+func TestIsModularInputMode_TAv1Launch(t *testing.T) {
+	// Save original function and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	defer func() { isParentProcessSplunkdFn = originalIsParentFn }()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+	t.Setenv("SPLUNK_OTEL_TA_HOME", "/opt/splunk/etc/apps/Splunk_TA_otel")
+
+	args := []string{"program"}
+	isModularInput, isQueryMode := isModularInputMode(args)
+	assert.False(t, isModularInput, "Expected not modular input mode when TA v1 is being launched")
+	assert.False(t, isQueryMode, "Expected not query mode when TA v1 is being launched")
+}
+
 func TestIsModularInputMode_ParentNotSplunkd(t *testing.T) {
 	// Save original function and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn

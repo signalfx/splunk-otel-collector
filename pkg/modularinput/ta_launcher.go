@@ -83,6 +83,15 @@ func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
 		return false, false
 	}
 
+	// TA v1 is a special case of the collector being launched as a modular input
+	// with TA specific behavior being handled by scripts. Use the SPLUNK_OTEL_TA_HOME
+	// environment variable to determine if this is running as a TA v1 modular input.
+	_, isTAv1Launch := os.LookupEnv("SPLUNK_OTEL_TA_HOME")
+	if isTAv1Launch {
+		// TA v1, let the scripts handle the TA specific behavior
+		return false, false
+	}
+
 	// Check if the parent process is splunkd
 	if !isParentProcessSplunkdFn() {
 		return false, false

@@ -303,6 +303,7 @@ jobs:
 
       - name: Upload vagrant error files
         if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v6
         with:
           name: vagrant_err-${{ matrix.distro }}-${{ matrix.scenario }}

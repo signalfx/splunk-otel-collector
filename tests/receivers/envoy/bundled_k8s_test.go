@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -110,7 +111,7 @@ func TestEnvoyK8sObserver(t *testing.T) {
 	// Collector:
 	stream, err = os.ReadFile(filepath.Join("testdata", "k8s", "collector.yaml"))
 	require.NoError(t, err)
-	streamStr := strings.Replace(string(stream), "$OTLP_ENDPOINT", net.JoinHostPort(dockerHost, fmt.Sprintf("%d", port)), 1)
+	streamStr := strings.Replace(string(stream), "$OTLP_ENDPOINT", net.JoinHostPort(dockerHost, strconv.FormatUint(uint64(port), 10)), 1)
 	collectorDeployment, _, err := decode([]byte(streamStr), nil, nil)
 	require.NoError(t, err)
 

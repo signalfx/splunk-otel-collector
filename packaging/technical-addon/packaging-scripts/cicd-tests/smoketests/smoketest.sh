@@ -33,7 +33,7 @@ fi
 
 docker exec -u root smoketests-so1-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
 
-MAX_ATTEMPTS=18
+MAX_ATTEMPTS=12
 DELAY=10
 ATTEMPT=1
 
@@ -43,10 +43,10 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     else
         if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
             echo "Failed to see success message in otel.log after $MAX_ATTEMPTS attempts."
-            echo "==== otel.log ===="
-            docker exec -u root smoketests-so1-1 cat /opt/splunk/var/log/splunk/otel.log
             echo "==== splunkd.log ===="
             docker exec -u root smoketests-so1-1 cat /opt/splunk/var/log/splunk/splunkd.log
+            echo "==== otel.log ===="
+            docker exec -u root smoketests-so1-1 cat /opt/splunk/var/log/splunk/otel.log
             exit 1
         fi
         echo "sucess message not found in otel.log Retrying in $DELAY seconds" 

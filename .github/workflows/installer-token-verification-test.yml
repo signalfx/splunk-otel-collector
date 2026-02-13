@@ -1,0 +1,124 @@
+name: installer-token-verification-test
+
+# Regression test for the v2/event API token validation.
+# Verifies that install.sh and install.ps1 check the HTTP status code (200)
+# rather than the response body.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/installer-token-verification-test.yml'
+      - 'packaging/installer/install.sh'
+      - 'packaging/installer/install.ps1'
+
+concurrency:
+  group: installer-token-verification-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  MOCK_SERVER: .github/workflows/scripts/mock-http-server.py
+
+jobs:
+  linux-curl:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Start mock servers
+        run: |
+          python3 "$MOCK_SERVER" 200 8199 &
+          python3 "$MOCK_SERVER" 401 8200 &
+          sleep 1
+
+      - name: "curl: 200 with non-OK body passes"
+        run: |
+          eval "$(sed -n '/^verify_access_token()/,/^}/p' packaging/installer/install.sh)"
+          verify_access_token "test-token" "http://127.0.0.1:8199" "false"
+
+      - name: "curl: 401 fails validation"
+        run: |
+          eval "$(sed -n '/^verify_access_token()/,/^}/p' packaging/installer/install.sh)"
+          if verify_access_token "bad-token" "http://127.0.0.1:8200" "false"; then
+            echo "FAIL: should have rejected 401" >&2; exit 1
+          fi
+
+  linux-wget:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Remove curl to force wget code path
+        run: |
+          sudo apt-get remove -y curl
+          command -v curl && { echo "curl still installed"; exit 1; } || true
+          command -v wget
+
+      - name: Start mock servers
+        run: |
+          python3 "$MOCK_SERVER" 200 8199 &
+          python3 "$MOCK_SERVER" 401 8200 &
+          sleep 1
+
+      - name: "wget: 200 with non-OK body passes"
+        run: |
+          eval "$(sed -n '/^verify_access_token()/,/^}/p' packaging/installer/install.sh)"
+          verify_access_token "test-token" "http://127.0.0.1:8199" "false"
+
+      - name: "wget: 401 fails validation"
+        run: |
+          eval "$(sed -n '/^verify_access_token()/,/^}/p' packaging/installer/install.sh)"
+          if verify_access_token "bad-token" "http://127.0.0.1:8200" "false"; then
+            echo "FAIL: should have rejected 401" >&2; exit 1
+          fi
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Start mock servers
+        shell: pwsh
+        run: |
+          $mockServer = "$env:MOCK_SERVER"
+          Start-Job -ScriptBlock { python3 $using:mockServer 200 8199 }
+          Start-Job -ScriptBlock { python3 $using:mockServer 401 8200 }
+          Start-Sleep -Seconds 2
+
+      - name: "PowerShell: 200 with non-OK body passes"
+        shell: pwsh
+        run: |
+          $scriptContent = Get-Content -Raw .\packaging\installer\install.ps1
+          if ($scriptContent -match '(?s)(function verify_access_token\(.+?\n\})') {
+            Invoke-Expression $matches[1]
+          } else {
+            throw "Could not extract verify_access_token function from install.ps1"
+          }
+          $result = verify_access_token -access_token "test-token" -ingest_url "http://127.0.0.1:8199" -insecure $false
+          if (-not $result) {
+            throw "FAIL: should have accepted 200 with non-OK body"
+          }
+          echo "PASS: 200 with non-OK body accepted"
+
+      - name: "PowerShell: 401 fails validation"
+        shell: pwsh
+        run: |
+          $scriptContent = Get-Content -Raw .\packaging\installer\install.ps1
+          if ($scriptContent -match '(?s)(function verify_access_token\(.+?\n\})') {
+            Invoke-Expression $matches[1]
+          } else {
+            throw "Could not extract verify_access_token function from install.ps1"
+          }
+          $failed = $false
+          try {
+            $result = verify_access_token -access_token "bad-token" -ingest_url "http://127.0.0.1:8200" -insecure $false
+            if (-not $result) { $failed = $true }
+          } catch {
+            $failed = $true
+          }
+          if (-not $failed) {
+            throw "FAIL: should have rejected 401"
+          }
+          echo "PASS: 401 correctly rejected"

@@ -468,6 +468,7 @@ jobs:
         if: failure()
         run: |
           kubectl get pods -A 
+          # shellcheck disable=SC2016
           kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1"'
           kubectl describe pod -n test -l app=otelcol
       - name: Upload coverage report

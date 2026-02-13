@@ -60,7 +60,7 @@ jobs:
     needs: [ chef-lint-spec-test ]
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS }}
@@ -69,7 +69,7 @@ jobs:
     needs: [ chef-lint-spec-test ]
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
@@ -78,7 +78,7 @@ jobs:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}

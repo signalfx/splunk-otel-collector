@@ -43,6 +43,10 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     else
         if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
             echo "Failed to see success message in otel.log after $MAX_ATTEMPTS attempts."
+            echo "==== otel.log ===="
+            docker exec -u root smoketests-so1-1 cat /opt/splunk/var/log/splunk/otel.log
+            echo "==== splunkd.log ===="
+            docker exec -u root smoketests-so1-1 cat /opt/splunk/var/log/splunk/splunkd.log
             exit 1
         fi
         echo "sucess message not found in otel.log Retrying in $DELAY seconds" 

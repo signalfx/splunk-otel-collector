@@ -72,10 +72,6 @@ jobs:
   build-ta-with-current-collector:
     name: test
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        # see https://hub.docker.com/r/splunk/splunk/tags
-        SPLUNK_VERSION: ["10.0", "9.4", "8.2"]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon

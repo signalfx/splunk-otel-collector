@@ -1973,7 +1973,7 @@ ansible-build:
     paths:
       - dist/
   before_script:
-    - pip3 install 'ansible~=12.0.0'
+    - pip3 install 'ansible>=12.2.0'
   script:
     - ansible-galaxy collection build ./deployments/ansible_collections/signalfx/splunk_otel_collector --output-path ./dist
 
@@ -1981,7 +1981,7 @@ ansible-release:
   extends: .ansible
   stage: release
   before_script:
-    - pip3 install ansible~=12.0.0 yq~=3.0.0
+    - pip3 install 'ansible>=12.2.0' yq~=3.0.0
   script:
     - |
       COLLECTION_VERSION=$(cat ./deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml | yq .version -r)

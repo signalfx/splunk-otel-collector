@@ -60,7 +60,7 @@ jobs:
     needs: [ chef-lint-spec-test ]
     strategy:
       matrix:
-        OS: [ "windows-2025" ]
+        OS: [ "windows-2022", "windows-2025" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS }}
@@ -69,7 +69,7 @@ jobs:
     needs: [ chef-lint-spec-test ]
     strategy:
       matrix:
-        OS: [ "windows-2025" ]
+        OS: [ "windows-2022", "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
@@ -78,7 +78,7 @@ jobs:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
     strategy:
       matrix:
-        OS: [ "windows-2025" ]
+        OS: [ "windows-2022", "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}
@@ -178,12 +178,6 @@ jobs:
         with:
           version: ${{ env.CHEF_VERSION }}
 
-      # Install of fluentd is failing on Debian 11, so we disable it for that distro.
-      - name: Set `with_fluentd` to false on Debian 11
-        if: matrix.DISTRO == 'debian-11'
-        run: |
-          yq eval '(.suites[] | select(.name=="custom_vars").attributes.splunk_otel_collector.with_fluentd) = false' -i kitchen.yml
-
       - run: kitchen test ${{ matrix.DISTRO }}
 
       - uses: actions/upload-artifact@v6
@@ -227,7 +221,7 @@ jobs:
           version: ${{ env.CHEF_VERSION }}
 
       - name: Install kitchen-docker
-        run: chef gem install kitchen-docker -v 2.12.0
+        run: chef gem install kitchen-docker -v 3.0.0
 
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
         run: |
@@ -244,3 +238,9 @@ jobs:
         with:
           name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
           path: deployments/chef/.kitchen/logs/*
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}-stacktrace.out
+          path: C:/Users/ContainerAdministrator/AppData/Local/Temp/kitchen/cache/chef-stacktrace.out

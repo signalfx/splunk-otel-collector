@@ -452,19 +452,10 @@ jobs:
       - name: Fix kubelet TLS server certificates
         run: |
           kubectl get csr -o=jsonpath='{range.items[?(@.spec.signerName=="kubernetes.io/kubelet-serving")]}{.metadata.name}{" "}{end}' | xargs kubectl certificate approve
-      - name: Load and verify Docker image
+      - name: Load Docker image into kind
         run: |
-          echo "=== Loading image from artifact ==="
           docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
-          echo "=== Verifying image loaded ==="
-          docker images otelcol
-          docker inspect otelcol:latest --format='{{.Id}} {{.Architecture}}'
-          echo "=== Quick smoke test ==="
-          docker run --rm otelcol:latest /otelcol --version || echo "WARNING: otelcol smoke test failed"
-          echo "=== Loading into kind ==="
           kind load docker-image otelcol:latest --name kind
-          echo "=== Verifying image in kind node ==="
-          docker exec kind-control-plane crictl images | grep otelcol || echo "WARNING: otelcol not found in kind node"
       - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test With Cover
         run: |
           CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
@@ -477,16 +468,14 @@ jobs:
         if: failure()
         run: |
           kubectl get pods -A
-          echo "=== Current otelcol logs ==="
+          echo "=== otelcol logs (last 50 lines) ==="
           # shellcheck disable=SC2016
-          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --tail=200'
-          echo "=== Previous otelcol logs (before crash restart) ==="
+          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --tail=50'
+          echo "=== otelcol previous logs (last 50 lines) ==="
           # shellcheck disable=SC2016
-          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --previous --tail=200' || true
+          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --previous --tail=50' || true
           echo "=== Pod describe ==="
           kubectl describe pod -n test -l app=otelcol || true
-          echo "=== Collector config ==="
-          kubectl get configmap -n test otelcol-config -o yaml || true
           echo "=== Events ==="
           kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report

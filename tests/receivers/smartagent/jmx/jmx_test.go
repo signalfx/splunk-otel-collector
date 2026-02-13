@@ -19,6 +19,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -86,7 +87,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 		WithEnv(map[string]string{
 			"GOCOVERDIR":    coverDest,
 			"HOST":          dockerHost,
-			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"OTLP_ENDPOINT": net.JoinHostPort(dockerHost, fmt.Sprintf("%d", port)),
 		}).
 		WithMount(mountDir, "/opt/script.groovy")
 

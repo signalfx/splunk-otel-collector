@@ -18,6 +18,7 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -122,7 +123,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 		WithLogger(logger).
 		WithEnv(map[string]string{
 			"GOCOVERDIR":    coverDest,
-			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"OTLP_ENDPOINT": net.JoinHostPort(dockerHost, fmt.Sprintf("%d", port)),
 		}).
 		WithEnv(opts.collectorEnvVars)
 	for k, v := range opts.fileMounts {

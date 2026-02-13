@@ -201,8 +201,7 @@ jobs:
       - name: Start Splunk UF
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
-          .\splunk.exe status
-          .\splunk.exe start
+          .\splunk.exe restart
 
       - name: Wait for splunkd log file creation
         run: |

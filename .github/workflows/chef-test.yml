@@ -178,7 +178,7 @@ jobs:
         with:
           version: ${{ env.CHEF_VERSION }}
 
-      - run: kitchen test ${{ matrix.DISTRO }}
+      - run: kitchen create ${{ matrix.DISTRO }} --log-level debug
 
       - uses: actions/upload-artifact@v6
         if: always()

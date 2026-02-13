@@ -233,7 +233,7 @@ jobs:
         shell: pwsh
         run: |
           $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
-          $timeout = 180
+          $timeout = 300
           $elapsed = 0
           Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
           while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {

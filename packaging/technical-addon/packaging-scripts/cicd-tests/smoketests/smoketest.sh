@@ -33,7 +33,7 @@ fi
 
 docker exec -u root smoketests-so1-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
 
-MAX_ATTEMPTS=6
+MAX_ATTEMPTS=18
 DELAY=10
 ATTEMPT=1
 

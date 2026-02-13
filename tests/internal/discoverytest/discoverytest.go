@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -199,7 +200,7 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string, setDiscov
 		extraDiscoveryArgs.WriteString(fmt.Sprintf("            - --set=%s\n", arg))
 	}
 
-	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, fmt.Sprintf("%s:%d", dockerHost, port))
+	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, net.JoinHostPort(dockerHost, strconv.Itoa(port)))
 	t.Cleanup(func() {
 		if skipTearDown {
 			return

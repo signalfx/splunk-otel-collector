@@ -70,7 +70,6 @@ jobs:
           fi
 
   build-ta-with-current-collector:
-    name: test
     runs-on: ubuntu-24.04
     defaults:
       run:

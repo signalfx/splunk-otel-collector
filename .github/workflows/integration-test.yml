@@ -85,14 +85,30 @@ jobs:
       - run: make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
         env:
           MULTIARCH_OTELCOL_BUILDER: ${{ steps.multiarch-otelcol-builder.outputs.name }}  # Use the builder created by the docker/setup-buildx-action step
+      - name: Debug Docker environment
+        run: |
+          echo "=== Docker version ==="
+          docker version
+          echo "=== Docker info (storage) ==="
+          docker info | grep -iE 'storage|driver|containerd|version'
       - name: Save image archive for each platform to be loaded by downstream jobs
         run: |
           for arch in "amd64" "arm64" "ppc64le"; do
+            echo "=== Processing ${arch} ==="
             mkdir -p docker-otelcol/${arch}
+            echo "--- Pulling ---"
             docker pull --platform=linux/${arch} localhost:5000/otelcol:latest
+            echo "--- Images after pull ---"
+            docker images --no-trunc | head -20
+            echo "--- Tagging ---"
             docker tag localhost:5000/otelcol:latest otelcol:latest
+            echo "--- Saving ---"
             docker save -o ./docker-otelcol/${arch}/image.tar otelcol:latest
+            echo "--- Cleaning up ---"
             docker rmi -f localhost:5000/otelcol:latest otelcol:latest
+            echo "--- Images after cleanup ---"
+            docker images --no-trunc | head -20
+            echo "=== Done ${arch} ==="
           done
       - uses: actions/upload-artifact@v6
         with:

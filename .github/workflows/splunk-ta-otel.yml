@@ -69,7 +69,7 @@ jobs:
             echo "ta_workflow_change=false" >> "$GITHUB_OUTPUT"
           fi
 
-  test:
+  build-ta-with-current-collector:
     name: test
     runs-on: ubuntu-24.04
     strategy:
@@ -83,7 +83,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
-
       - name: Build & Package TA
         run: |
           set -o pipefail
@@ -91,6 +90,37 @@ jobs:
           make -e bundle.d otelcol
           popd
           make -e generate-technical-addon copy-local-build-to-ta package-ta
+
+      - name: Upload TA with current Collector
+        uses: actions/upload-artifact@v6
+        with:
+          name: Splunk_TA_otel_current_collector
+          path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
+
+  test:
+    name: test
+    runs-on: ubuntu-24.04
+    needs: [build-ta-with-current-collector]
+    strategy:
+      matrix:
+        # see https://hub.docker.com/r/splunk/splunk/tags
+        SPLUNK_VERSION: ["10.0", "9.4", "8.2"]
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/packaging/technical-addon
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: Download current Collector TA
+        uses: actions/download-artifact@v7
+        with:
+          name: Splunk_TA_otel_current_collector
+          path: ${{github.workspace}}/build/out/distribution
+
+      - name: Build & Package TA
+        run: |
+          set -o pipefail
           make -e smoketest-ta
 
   test-generator:
@@ -168,12 +198,12 @@ jobs:
 
   smoke-test-linux:
     runs-on: ubuntu-24.04
-    needs: [distribute-ta]
+    needs: [build-ta-with-current-collector]
     steps:
-      - name: Download Collector TA
+      - name: Download current Collector TA
         uses: actions/download-artifact@v7
         with:
-          name: Splunk_TA_otel
+          name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution
 
       - name: Uncompress the Collector TA and prepare local configuration
@@ -260,7 +290,7 @@ jobs:
 
   smoke-test-windows:
     runs-on: otel-windows
-    needs: [distribute-ta]
+    needs: [build-ta-with-current-collector]
     steps:
       - name: Download the Splunk UF MSI
         shell: bash
@@ -270,10 +300,10 @@ jobs:
       - name: Install Splunk UF
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
-      - name: Download Collector TA
+      - name: Download current Collector TA
         uses: actions/download-artifact@v7
         with:
-          name: Splunk_TA_otel
+          name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution
 
       - name: Stop Splunk UF

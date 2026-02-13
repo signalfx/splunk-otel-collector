@@ -95,9 +95,9 @@ jobs:
           echo "$manifests" | jq .
           for arch in "amd64" "arm64" "ppc64le"; do
             mkdir -p docker-otelcol/${arch}
-            digest=$(echo "$manifests" | jq -r ".manifests[] | select(.platform.architecture==\"${arch}\") | .digest")
+            digest=$(echo "$manifests" | jq -r ".manifests[] | select(.platform.os==\"linux\" and .platform.architecture==\"${arch}\") | .digest")
             if [ -z "$digest" ]; then
-              echo "ERROR: No manifest digest found for architecture '${arch}'" >&2
+              echo "ERROR: No manifest digest found for linux/${arch}" >&2
               echo "$manifests" | jq '.manifests[].platform' >&2
               exit 1
             fi
@@ -470,7 +470,7 @@ jobs:
           kubectl get pods -A 
           # shellcheck disable=SC2016
           kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1"'
-          kubectl describe pod -n test -l app=otelcol
+          kubectl describe pod -n test -l app=otelcol || true
       - name: Upload coverage report
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:

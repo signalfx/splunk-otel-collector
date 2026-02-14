@@ -53,7 +53,7 @@ func TestDefaultComponents(t *testing.T) {
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureblob",
-		"azureeventhub",
+		"azure_event_hub",
 		"azuremonitor",
 		"carbon",
 		"chrony",
@@ -83,8 +83,9 @@ func TestDefaultComponents(t *testing.T) {
 		"kafkametrics",
 		"kubeletstats",
 		"lightprometheus",
+		"memcached",
 		"mongodb",
-		"mongodbatlas",
+		"mongodb_atlas",
 		"mysql",
 		"nginx",
 		"nop",
@@ -99,6 +100,7 @@ func TestDefaultComponents(t *testing.T) {
 		"rabbitmq",
 		"receiver_creator",
 		"redis",
+		"saphana",
 		"scripted_inputs",
 		"signalfx",
 		"signalfxgatewayprometheusremotewrite",
@@ -122,8 +124,13 @@ func TestDefaultComponents(t *testing.T) {
 		"wavefront",
 		"windowseventlog",
 		"windowsperfcounters",
+		"yanggrpc",
 		"zipkin",
 		"zookeeper",
+	}
+	expectedReceiverAliases := map[string]string{
+		"azureeventhub": "azure_event_hub",
+		"mongodbatlas":  "mongodb_atlas",
 	}
 	expectedProcessors := []string{
 		"attributes",
@@ -185,12 +192,17 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	recvs := factories.Receivers
-	assert.Len(t, recvs, len(expectedReceivers))
+	assert.Len(t, recvs, len(expectedReceivers)+len(expectedReceiverAliases))
 
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok, k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedReceiverAliases {
+		v, ok := recvs[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected exporter alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	procs := factories.Processors

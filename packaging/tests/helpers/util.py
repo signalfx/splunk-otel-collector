@@ -109,7 +109,15 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
         start_time = time.time()
         while True:
             container.reload()
-            if container.attrs["NetworkSettings"]["IPAddress"]:
+            network_settings = container.attrs.get("NetworkSettings", {})
+            ip_address = network_settings.get("IPAddress")
+            if not ip_address:
+                # Fall back to Networks.<name>.IPAddress if not found at top level
+                for net in network_settings.get("Networks", {}).values():
+                    ip_address = net.get("IPAddress")
+                    if ip_address:
+                        break
+            if ip_address:
                 break
             assert (time.time() - start_time) < timeout, "timed out waiting for container to start"
             time.sleep(1)

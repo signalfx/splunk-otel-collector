@@ -14,7 +14,7 @@ on:
         type: boolean
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   unit-test:
@@ -60,14 +60,14 @@ jobs:
 
       - name: Uploading artifacts
         if: ${{ inputs.COVERAGE }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unit-test-results-${{ inputs.OS }}
           path: ./unit-test-results-${{ inputs.OS }}
 
       - name: Upload coverage report
         if: ${{ inputs.COVERAGE }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
           fail_ci_if_error: true
           verbose: true

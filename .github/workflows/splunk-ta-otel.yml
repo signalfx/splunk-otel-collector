@@ -84,7 +84,7 @@ jobs:
           pushd ${{github.workspace}}
           make -e bundle.d otelcol
           popd
-          make -e generate-technical-addon copy-local-build-to-ta package-ta
+          PLATFORM=all make -e generate-technical-addon copy-local-build-to-ta package-ta
 
       - name: Upload TA with current Collector
         uses: actions/upload-artifact@v6

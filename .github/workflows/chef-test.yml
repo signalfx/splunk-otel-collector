@@ -180,6 +180,8 @@ jobs:
 
       - run: kitchen create ${{ matrix.DISTRO }} --log-level debug
 
+      - run: kitchen diagnose ${{ matrix.DISTRO }}
+
       - uses: actions/upload-artifact@v6
         if: always()
         with:

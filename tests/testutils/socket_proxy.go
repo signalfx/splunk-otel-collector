@@ -19,6 +19,7 @@ import (
 	"io"
 	"net"
 	"runtime"
+	"strconv"
 	"sync/atomic"
 	"testing"
 )
@@ -43,7 +44,7 @@ func CreateDockerSocketProxy(tb testing.TB) (*SocketProxy, error) {
 	s := &SocketProxy{
 		Path:              "/var/run/docker.sock",
 		Endpoint:          fmt.Sprintf("0.0.0.0:%d", port),
-		ContainerEndpoint: fmt.Sprintf("%s:%d", dockerHost, port),
+		ContainerEndpoint: net.JoinHostPort(dockerHost, strconv.FormatUint(uint64(port), 10)),
 		t:                 tb,
 	}
 	err := s.Start()

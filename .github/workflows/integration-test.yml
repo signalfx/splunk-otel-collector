@@ -205,6 +205,16 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
+      # Pre-build the telegraf-exec test image using buildx
+      - name: Build telegraf-exec test image
+        if: matrix.PROFILE == 'smartagent'
+        run: |
+          docker buildx build --load \
+            --platform linux/${{ matrix.ARCH }} \
+            --build-arg IMAGE_PLATFORM=linux/${{ matrix.ARCH }} \
+            --build-arg SPLUNK_OTEL_COLLECTOR_IMAGE=otelcol:latest \
+            -t telegraf-exec-test:latest \
+            tests/receivers/smartagent/telegraf-exec/testdata/exec
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail
@@ -221,6 +231,7 @@ jobs:
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+          TELEGRAF_EXEC_IMAGE: ${{ matrix.PROFILE == 'smartagent' && 'telegraf-exec-test:latest' || '' }}
       # The Integration Test output is extremely large so we upload it as an artifact
       - name: Upload Integration Test Output as Artifact
         uses: actions/upload-artifact@v6

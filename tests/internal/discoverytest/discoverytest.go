@@ -291,7 +291,7 @@ func getHostEndpoint(t *testing.T) string {
 		if ipam.Gateway == "" {
 			continue
 		}
-		if net.ParseIP(ipam.Gateway).To4() != nil {
+		if ip := net.ParseIP(ipam.Gateway); ip != nil && ip.To4() != nil {
 			return ipam.Gateway
 		}
 		if fallback == "" {

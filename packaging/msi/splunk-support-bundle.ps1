@@ -196,12 +196,6 @@ function getConfig {
     } else {
         Copy-Item -Path "$CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
-    $FLUENTD_CONFDIR="${env:SYSTEMDRIVE}\opt\td-agent\etc\td-agent"
-    if (-NOT (Test-Path -Path $FLUENTD_CONFDIR)) {
-        Write-Output "WARN: Could not find directory ($FLUENTD_CONFDIR)."
-    } else {
-        Copy-Item -Path "$FLUENTD_CONFDIR" -Destination "$TMPDIR/config" -Recurse
-    }
 }
 
 #######################################
@@ -214,14 +208,9 @@ function getConfig {
 function getStatus {
     Write-Output "INFO: Getting status..."
     Get-Service splunk-otel-collector -ErrorAction SilentlyContinue > $TMPDIR/logs/splunk-otel-collector.txt 2>&1
-    Get-Service fluentdwinsvc -ErrorAction SilentlyContinue > $TMPDIR/logs/td-agent.txt 2>&1
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt")) {
         Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt" -Value "Service splunk-otel-collector not exist."
         Write-Output "WARN: Service splunk-otel-collector not exist."
-    }
-    if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.txt")) {
-        Set-Content -Path "$TMPDIR/logs/td-agent.txt" -Value "Service td-agent not exist."
-        Write-Output "WARN: Service td-agent not exist."
     }
 }
 
@@ -340,10 +329,6 @@ function getHostInfo {
     if (-NOT (Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find otelcol PIDs"
         Write-Output "      Get-Process will not be collected for otelcol";
-    }
-    if (-NOT (Get-Process -Name 'ruby' -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"})) {
-        Write-Output "WARN: Unable to find fluentd (ruby) PIDs"
-        Write-Output "      Get-Process will not be collected for fluentd (ruby)";
     }
     Get-PSDrive > $TMPDIR/metrics/df.txt 2>&1
     

@@ -215,11 +215,6 @@ gotest-with-codecov:
 	@$(MAKE) for-all-target TARGET="test-with-codecov"
 	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
 
-.PHONY: gotest-cover-without-race
-gotest-cover-without-race:
-	@$(MAKE) for-all-target TARGET="test-cover-without-race"
-	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
-
 endif
 
 .PHONY: tidy-all
@@ -293,7 +288,7 @@ docker-otelcol:
 	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) SKIP_BUNDLE=$(SKIP_BUNDLE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le
+binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
@@ -314,6 +309,10 @@ binaries-linux_arm64:
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+
+.PHONY: binaries-windows_arm64
+binaries-windows_arm64:
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:

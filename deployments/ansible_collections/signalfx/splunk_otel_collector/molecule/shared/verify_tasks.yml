@@ -1,0 +1,9 @@
+---
+# Verification tasks to make sure that both collector service is running
+
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+- name: Assert splunk-otel-collector service is running
+  ansible.builtin.assert:
+    that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'

@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
   ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
   BUILD_DIR: "${{github.workspace}}/build"
   # Provide default values for non-manually triggered executions
@@ -160,7 +160,7 @@ jobs:
           PLATFORM="all" make -e distribute-ta
 
       - name: Upload Collector TA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
@@ -171,7 +171,7 @@ jobs:
     needs: [distribute-ta]
     steps:
       - name: Download Collector TA
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution
@@ -271,7 +271,7 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
       - name: Download Collector TA
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution
@@ -438,7 +438,7 @@ jobs:
         uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
-      - uses: streetsidesoftware/cspell-action@v7
+      - uses: streetsidesoftware/cspell-action@v8
         with:
           config: ${{github.workspace}}/packaging/technical-addon/packaging-scripts/cspell/cspell.json
           root: ${{github.workspace}}/packaging/technical-addon/Splunk_TA_otel

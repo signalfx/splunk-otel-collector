@@ -48,7 +48,7 @@ func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 		},
 		"include/delete_files": &Config{
 			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "delete_files")),
-			DeleteFiles:    true,
+			DeleteFiles:    true, // SA1019: deprecated DeleteFiles
 		},
 		"include/watch_files": &Config{
 			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "watch_files")),

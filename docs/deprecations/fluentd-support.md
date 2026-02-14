@@ -1,6 +1,6 @@
-# Fluentd support deprecation
+# Fluentd support removal
 
-Fluentd support has been deprecated and will be removed in a future release.
+Fluentd support has been deprecated, and in some cases, removed.
 
 ## Replacement guidance
 

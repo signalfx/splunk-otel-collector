@@ -1,6 +1,5 @@
 param (
-    [string]$mode = "agent",
-    [string]$with_fluentd = "true"
+    [string]$mode = "agent"
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,9 +19,3 @@ Test-Path -Path "\tmp\splunk-support-bundle\metrics\top.txt"
 Test-Path -Path "\tmp\splunk-support-bundle\zpages\tracez.html"
 Test-Path -Path "\tmp\splunk-support-bundle\config\${mode}_config.yaml"
 Test-Path -Path "\tmp\splunk-support-bundle\config\service_environment.txt"
-
-if ( "$with_fluentd" -eq "true" ) {
-    Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.log"
-    Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.txt"
-    Test-Path -Path "\tmp\splunk-support-bundle\config\td-agent\td-agent.conf"
-}

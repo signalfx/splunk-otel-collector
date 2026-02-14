@@ -66,7 +66,7 @@ func (hec HECReceiverSink) Build() (*HECReceiverSink, error) {
 
 	hecFactory := splunkhecreceiver.NewFactory()
 	hecConfig := hecFactory.CreateDefaultConfig().(*splunkhecreceiver.Config)
-	hecConfig.Endpoint = hec.Endpoint
+	hecConfig.NetAddr.Endpoint = hec.Endpoint
 
 	params := receiver.Settings{
 		ID: component.MustNewID(splunkhectypeStr),

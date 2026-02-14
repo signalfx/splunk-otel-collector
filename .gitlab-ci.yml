@@ -10,7 +10,7 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -359,7 +359,7 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -774,6 +774,22 @@ sign-exe:
   artifacts:
     paths:
       - dist/signed/${TARGET}_windows_amd64.exe
+
+sign-exe-arm64:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-binaries
+  retry: 2
+  needs:
+    - compile
+  variables:
+    ARTIFACT: bin/otelcol_windows_arm64.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: dist/signed
+  artifacts:
+    paths:
+      - dist/signed/otelcol_windows_arm64.exe
 
 sign-osx:
   extends:
@@ -1865,6 +1881,8 @@ github-release:
       artifacts: true
     - job: sign-exe
       artifacts: true
+    - job: sign-exe-arm64
+      artifacts: true
     - job: sign-osx
       artifacts: true
     - job: release-debs
@@ -1924,7 +1942,7 @@ github-release:
       - dist/assets
 
 .ansible:
-  image: 'cimg/python:3.9'
+  image: 'cimg/python:3.13'
   only:
     - /^ansible-v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
@@ -1946,7 +1964,7 @@ ansible-build:
   before_script:
     - pip3 install 'ansible~=12.0.0'
   script:
-    - ansible-galaxy collection build ./deployments/ansible --output-path ./dist
+    - ansible-galaxy collection build ./deployments/ansible_collections/signalfx/splunk_otel_collector --output-path ./dist
 
 ansible-release:
   extends: .ansible
@@ -1955,7 +1973,7 @@ ansible-release:
     - pip3 install ansible~=12.0.0 yq~=3.0.0
   script:
     - |
-      COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
+      COLLECTION_VERSION=$(cat ./deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml | yq .version -r)
       if [ -z "$COLLECTION_VERSION" ]; then
         echo "ERROR: Failed to extract version from galaxy.yml" >&2
         exit 1

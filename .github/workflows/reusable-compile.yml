@@ -8,7 +8,7 @@ on:
         type: string
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   compile:
@@ -23,7 +23,7 @@ jobs:
           make ${{ inputs.SYS_BINARY }}
 
       - name: Uploading binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.SYS_BINARY }}
           path: |

@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   tidy:
@@ -69,7 +69,7 @@ jobs:
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ${{ env.GOLANGCI_LINT_CACHE }}
           key: golangci-lint-${{ hashFiles('**/.golangci.yml', '**/*.go', '**/go.sum') }}
@@ -91,14 +91,19 @@ jobs:
         shell: bash
 
   test:
-    name: unit-test
+    name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE }}
     strategy:
       matrix:
-        OS: [ "ubuntu-24.04", "macos-14", "macos-15" ]
+        OS: [ "ubuntu-24.04", "macos-14", "macos-15", "windows-2025", "windows-11-arm" ]
+        TEST_RACE: [ true, false ]
+        exclude:
+          - OS: "windows-11-arm"
+            TEST_RACE: true
     uses: ./.github/workflows/reusable-unit-test.yml
     with:
       OS: ${{ matrix.OS }}
-      COVERAGE: true
+      COVERAGE: ${{ !matrix.TEST_RACE }} # No coverage when running with race
+      TEST_RACE: ${{ matrix.TEST_RACE }}
     secrets: inherit
 
   coverage:
@@ -114,7 +119,7 @@ jobs:
         run: COVER_TESTING=true make gotest-with-codecov
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
           fail_ci_if_error: true
           verbose: true
@@ -124,7 +129,7 @@ jobs:
   cross-compile:
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
+        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-windows_arm64", "binaries-linux_ppc64le" ]
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}

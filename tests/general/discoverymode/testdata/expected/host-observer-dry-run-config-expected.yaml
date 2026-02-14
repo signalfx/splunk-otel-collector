@@ -6,7 +6,7 @@ extensions:
     expvar:
       enabled: true
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: ${OTLP_ENDPOINT}
     tls:
       insecure: true
@@ -48,6 +48,6 @@ service:
   pipelines:
     metrics:
       receivers: [discovery/host_observer]
-      exporters: [otlp]
+      exporters: [otlp_grpc]
       processors: [filter]
 

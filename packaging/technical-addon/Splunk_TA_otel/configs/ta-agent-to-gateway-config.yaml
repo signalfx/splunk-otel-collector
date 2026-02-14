@@ -140,7 +140,7 @@ exporters:
     sync_host_metadata: true
     correlation:
   # Send to gateway
-  otlp:
+  otlp_grpc:
     endpoint: "${env:SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
@@ -164,11 +164,11 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlp, signalfx]
+      exporters: [otlp_grpc, signalfx]
     metrics:
       receivers: [hostmetrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [otlp]
+      exporters: [otlp_grpc]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection, resource/telemetry]
@@ -186,5 +186,5 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlp]
+      exporters: [otlp_grpc]
 

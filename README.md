@@ -47,7 +47,7 @@ provides a unified way to receive, process, and export metric, trace, and log
 data for [Splunk Observability Cloud](https://www.splunk.com/en_us/products/observability.html):
 
 - [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html#nav-Introduction-to-Splunk-APM) via the
-  [`otlphttp`
+  [`otlp_http`
   exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter).
   More information available
   [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
@@ -131,10 +131,6 @@ A variety of default configuration files are provided:
   documentation. The `logs_config_linux.yaml` is a good starting point for using
   the collector for collecting application logs on Linux environments.
   `agent_config.yaml` is the recommended starting configuration for most environments.
-- [[DEPRECATED]](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md) [Fluentd](https://github.com/signalfx/splunk-otel-collector/tree/main/packaging/fpm/etc/otel/collector/fluentd)
-  applicable to Helm or installer script installations only. See the `*.conf`
-  files as well as the `conf.d` directory. Common sources including filelog,
-  journald, and Windows event viewer are included.
 
 In addition, the following components can be configured:
 

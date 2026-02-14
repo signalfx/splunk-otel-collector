@@ -8,7 +8,7 @@ pipelines:
     processors:
      - batch/from-configd
     exporters:
-      - otlp/from-configd
+      - otlp_grpc/from-configd
 telemetry:
   logs:
     level: debug

@@ -22,7 +22,7 @@ jobs:
           mkdir "${{ github.workspace }}/dist"
           cp ./bin/Release/SplunkCustomActions.CA.dll "${{ github.workspace }}/dist/SplunkCustomActions.CA.dll"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: msi-custom-actions
           path: ./dist/SplunkCustomActions.CA.dll

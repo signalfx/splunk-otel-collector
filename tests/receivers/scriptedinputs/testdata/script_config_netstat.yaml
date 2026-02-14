@@ -6,7 +6,7 @@ receivers:
     sourcetype: netstat
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -18,4 +18,4 @@ service:
   pipelines:
     logs:
       receivers: [scripted_inputs/netstat]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

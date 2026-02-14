@@ -359,7 +359,7 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -775,6 +775,22 @@ sign-exe:
     paths:
       - dist/signed/${TARGET}_windows_amd64.exe
 
+sign-exe-arm64:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-binaries
+  retry: 2
+  needs:
+    - compile
+  variables:
+    ARTIFACT: bin/otelcol_windows_arm64.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: dist/signed
+  artifacts:
+    paths:
+      - dist/signed/otelcol_windows_arm64.exe
+
 sign-osx:
   extends:
     - .trigger-filter
@@ -870,7 +886,7 @@ build-tar:
 
 build-msi:
   extends: .trigger-filter
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+  image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
   stage: package
   needs:
     - sign-exe
@@ -885,8 +901,10 @@ build-msi:
   script:
     - . .gitlab/windows/runner-setup-helpers.ps1
     - Install-Chocolatey
-    - Install-WiXToolset
     - Install-Git
+    - |
+      # Install WiX toolset
+      & dotnet tool restore
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
@@ -896,7 +914,7 @@ build-msi:
       } else {
           $VERSION_TAG = ""
       }
-      $Env:PATH += ";${Env:ProgramFiles(x86)}\WiX Toolset v3.14\bin"
+    - |
       & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)"
   artifacts:
     paths:
@@ -904,46 +922,15 @@ build-msi:
 
 msi-custom-actions-package:
   extends: .trigger-filter
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+  image: mcr.microsoft.com/dotnet/sdk:10.0.101
   stage: package
-  needs:
-    - job: msi-custom-actions-assemblies
-      artifacts: true
-  tags:
-    - windows2022
   script:
-    - . .gitlab/windows/runner-setup-helpers.ps1
-    - Install-Chocolatey
-    - Install-WiXToolset
-    # Set environment variables for building custom actions
-    - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
-    - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
-    - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-    - $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
-    - $customActionBinDir = "${customActionDir}\bin\Release"
-    - MakeSfxCA.exe "${customActionBinDir}\SplunkCustomActions.CA.dll" `
-      "${sfxcaDll}" `
-      "${customActionBinDir}\SplunkCustomActions.dll" `
-      "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
-      "${customActionDir}\src\CustomAction.config"
+    - pushd ./packaging/msi/SplunkCustomActions/
+    - dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release
+    - popd
   artifacts:
     paths:
       - packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
-
-msi-custom-actions-assemblies:
-  extends: .trigger-filter
-  image: 'mcr.microsoft.com/dotnet/sdk:8.0'
-  stage: package
-  needs: []
-  dependencies: []
-  script:
-    - pushd ./packaging/msi/SplunkCustomActions/
-    - dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
-    - popd
-  artifacts:
-    name: msi-custom-actions-assemblies
-    paths:
-      - packaging/msi/SplunkCustomActions/bin/Release/*
 
 sign-debs:
   extends:
@@ -1893,6 +1880,8 @@ github-release:
     - job: libsplunk
       artifacts: true
     - job: sign-exe
+      artifacts: true
+    - job: sign-exe-arm64
       artifacts: true
     - job: sign-osx
       artifacts: true

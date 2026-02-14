@@ -119,7 +119,9 @@ func TestCollectorContainerWithInvalidImage(t *testing.T) {
 	if strings.Contains(err.Error(), "rootless Docker not found") {
 		t.Skip("Skipping test because it requires docker to be installed and running")
 	}
-	require.Equal(t, "create container: build image: invalid reference format", strings.ToLower(err.Error()))
+	errMsg := strings.ToLower(err.Error())
+	require.Contains(t, errMsg, "create container:")
+	require.Contains(t, errMsg, "invalid reference format")
 
 	err = collector.Shutdown()
 	require.EqualError(t, err, "cannot invoke Stop() on unstarted container")

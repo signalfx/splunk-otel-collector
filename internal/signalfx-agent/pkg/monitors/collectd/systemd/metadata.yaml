@@ -7,7 +7,8 @@ monitors:
       description: The name of the collectd plugin. Facilitates filtering operations
         in the SignalFx app
   doc: |
-    This [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent) monitor collects metrics about the state of
+    **This monitor is deprecated and will removed on or after April 2026. Please use the systemd receiver instead**
+    This monitor collects metrics about the state of
     configured systemd services using the [collectd-systemd](https://github.com/signalfx/collectd-systemd)
     plugin. A service is in the state that a metric represents if the metric value is 1 and not in that state if the
     metric value is 0. The name of the service that the metric is reporiting about is assigned to dimension

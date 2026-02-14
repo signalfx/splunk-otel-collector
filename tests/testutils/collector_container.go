@@ -130,14 +130,20 @@ func (collector CollectorContainer) Build() (Collector, error) {
 	collector.logConsumer = newCollectorLogConsumer(collector.Logger)
 
 	if collector.Container.Dockerfile.Context == "" {
-		var err error
-		collector.contextArchive, err = collector.buildContextArchive()
-		if err != nil {
-			return nil, err
+		if collector.ConfigPath != "" {
+			var err error
+			collector.contextArchive, err = collector.buildContextArchive()
+			if err != nil {
+				return nil, err
+			}
+			collector.Container = collector.Container.WithContextArchive(
+				collector.contextArchive,
+			)
+		} else {
+			// No config to copy — use the image directly without a Dockerfile
+			// build.
+			collector.Container.Image = collector.Image
 		}
-		collector.Container = collector.Container.WithContextArchive(
-			collector.contextArchive,
-		)
 	}
 
 	if collector.Container.ContainerNetworkMode == "" {

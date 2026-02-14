@@ -91,6 +91,6 @@ Run the following Powershell commands to build the bundle for Windows (requires
 ```sh
 PS> git clone https://github.com/signalfx/splunk-otel-collector
 PS> cd splunk-otel-collector
-PS> ./packaging/bundle/scripts/windows/make.ps1 bundle
+PS> ./packaging/bundle/scripts/windows/make.ps1 bundle windows_amd64
 ```
-The bundle will be saved to `dist/agent-bundl_windows_amd64.zip`.
+The bundle will be saved to `dist/agent-bundle-windows_amd64.zip`.

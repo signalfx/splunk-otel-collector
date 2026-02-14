@@ -282,12 +282,24 @@ func getHostEndpoint(t *testing.T) string {
 	client.NegotiateAPIVersion(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	network, err := client.NetworkInspect(ctx, "kind", network.InspectOptions{})
+	nw, err := client.NetworkInspect(ctx, "kind", network.InspectOptions{})
 	require.NoError(t, err)
-	for _, ipam := range network.IPAM.Config {
-		if ipam.Gateway != "" {
+
+	// Prefer IPv4 gateways
+	var fallback string
+	for _, ipam := range nw.IPAM.Config {
+		if ipam.Gateway == "" {
+			continue
+		}
+		if net.ParseIP(ipam.Gateway).To4() != nil {
 			return ipam.Gateway
 		}
+		if fallback == "" {
+			fallback = ipam.Gateway
+		}
+	}
+	if fallback != "" {
+		return fallback
 	}
 	require.Fail(t, "failed to find host endpoint")
 	return ""

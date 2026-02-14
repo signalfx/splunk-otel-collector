@@ -359,7 +359,7 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -774,6 +774,22 @@ sign-exe:
   artifacts:
     paths:
       - dist/signed/${TARGET}_windows_amd64.exe
+
+sign-exe-arm64:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-binaries
+  retry: 2
+  needs:
+    - compile
+  variables:
+    ARTIFACT: bin/otelcol_windows_arm64.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: dist/signed
+  artifacts:
+    paths:
+      - dist/signed/otelcol_windows_arm64.exe
 
 sign-osx:
   extends:
@@ -1893,6 +1909,8 @@ github-release:
     - job: libsplunk
       artifacts: true
     - job: sign-exe
+      artifacts: true
+    - job: sign-exe-arm64
       artifacts: true
     - job: sign-osx
       artifacts: true

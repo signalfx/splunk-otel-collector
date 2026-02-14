@@ -7,7 +7,7 @@ data:
   config.yaml: |
     exporters:
       otlp_grpc:
-        endpoint: {{ .HostEndpoint }}
+        endpoint: "{{ .HostEndpoint }}"
         tls:
           insecure: true
       debug:

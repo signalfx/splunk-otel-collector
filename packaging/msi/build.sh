@@ -18,7 +18,7 @@ set -euxo pipefail
 
 if [[ "$OSTYPE" != "msys" && "$OSTYPE" != "cygwin" && "$OSTYPE" != "win32" ]]; then
     echo "Running on Non-Windows system"
-    echo "This script should be run on Git Bash on a Windows box with WiX Toolset already installed"
+    echo "This script should be run on Git Bash on a Windows host with the .NET WiX Toolset installed"
     exit 1
 fi
 
@@ -74,17 +74,14 @@ convert_version_for_msi() {
 
 MSI_VERSION=$(convert_version_for_msi "$VERSION")
 
-# Verify WiX Toolset required version
-expected_candle_version="Windows Installer XML Toolset Compiler version 3.14.0.8606"
-if ! candle_first_line="$(candle.exe -? 2>/dev/null | head -n 1)"; then
-    echo "Error: candle.exe not found or failed to run. Ensure WiX Toolset 3.14.0.8606 is installed and in PATH."
-    echo "Latest version of 3.14 introduces an issue with elevation, see https://github.com/signalfx/splunk-otel-collector/pull/4688"
+if ! wix_version="$(dotnet wix --version 2>/dev/null)"; then
+    echo "Error: dotnet wix not found or failed to run. Ensure WiX Toolset 6.x is installed via 'dotnet tool restore'."
     exit 1
 fi
-if [[ "$candle_first_line" != "$expected_candle_version" ]]; then
-    echo "Error: Unexpected candle.exe version."
-    echo " Got:      '$candle_first_line'"
-    echo " Expected: '$expected_candle_version'"
+if [[ ! "$wix_version" =~ ^6\. ]]; then
+    echo "Error: Unexpected WiX Toolset version."
+    echo " Got:      '$wix_version'"
+    echo " Expected: '6.x'"
     exit 1
 fi
 

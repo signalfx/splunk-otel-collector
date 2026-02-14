@@ -53,9 +53,9 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.signalfx.com"
 .PARAMETER hec_url
-    (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.signalfx.com/v1/log).
+    (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: "").
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://ingest.us1.signalfx.com/v1/log"
+    .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://http-inputs-acme.splunkcloud.com/services/collector"
 .PARAMETER hec_token
     (OPTIONAL) Set the HEC token if different than the specified Splunk access_token.
     .EXAMPLE
@@ -530,14 +530,6 @@ if ($ingest_url -eq "") {
 
 if ($api_url -eq "") {
     $api_url = "https://api.$realm.signalfx.com"
-}
-
-if ($hec_url -eq "") {
-    $hec_url = "$ingest_url/v1/log"
-}
-
-if ($hec_token -eq "") {
-    $hec_token = "$access_token"
 }
 
 if ($bundle_dir -eq "") {

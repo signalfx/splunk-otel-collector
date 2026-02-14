@@ -106,6 +106,9 @@ jobs:
         env:
           FIPS: true
           ARCH: ${{ matrix.ARCH }}
+      # docker-otelcol.sh may only create :latest (containerd image store path).
+      # Ensure the :arch tag always exists for consistency.
+      - run: docker tag otelcol-fips:latest otelcol-fips:${{ matrix.ARCH }}
       - name: Ensure the collector container can run with the default config
         run: |
           docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm otelcol-fips:${{ matrix.ARCH }}

@@ -181,6 +181,7 @@ jobs:
       - run: kitchen create ${{ matrix.DISTRO }} --log-level debug
 
       - run: kitchen diagnose ${{ matrix.DISTRO }}
+        if: always()
 
       - uses: actions/upload-artifact@v6
         if: always()

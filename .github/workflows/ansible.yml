@@ -200,10 +200,8 @@ jobs:
       matrix:
         ansible:
           # Testing only the versions currently supported per https://endoflife.date/ansible
-          - ansible>=12.2.0, <13.0.0
           - ansible>=13.0.0, <14.0.0
         distro:
-          - "2016"
           - "2019"
           - "2022"
         scenario:

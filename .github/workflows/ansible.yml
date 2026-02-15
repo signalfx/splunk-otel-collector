@@ -226,6 +226,18 @@ jobs:
         with:
           name: msi-build-windows-2025
           path: /tmp/msi-build
+      # Workaround for https://github.com/actions/runner-images/issues/13202
+      - name: Unload KVM module (AMD)
+        run: |
+          # Check if KVM modules are loaded
+          lsmod | grep kvm
+          # Unload KVM modules if present (for Intel or AMD CPUs)
+          sudo modprobe -r kvm_intel || true
+          sudo modprobe -r kvm_amd || true
+          sudo rmmod kvm || true
+          # Verify KVM is unloaded
+          lsmod | grep kvm
+        continue-on-error: true
 
       - name: Install vagrant and virtualbox
         run: |

@@ -40,7 +40,7 @@ platforms:
     instance_raw_config_args: *vagrant_args
   - name: "2022"
     box: gusztavvargadr/iis-windows-server
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2506.0.0}
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2511.0.0}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 8192

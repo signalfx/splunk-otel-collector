@@ -273,7 +273,7 @@ jobs:
           box_version=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box_version" ./molecule/config/windows.yml )
           eval "box_version=${box_version}"
           json=$( wget -nv -O- "https://vagrantcloud.com/api/v2/vagrant/${box}" )
-          url=$( echo "$json" | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
+          url=$( echo "$json" |  tr -d '\r' |  tr -d '\n' | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
           wget -nv -O /tmp/vagrant.box "$url"
 
       - name: Clean VirtualBox cache

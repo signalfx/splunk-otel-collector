@@ -42,14 +42,14 @@ func main() {
 	runFromCmdLine(os.Args)
 }
 
-const modularinputStanzaName = "Splunk_TA_OTel_Collector://Splunk_TA_OTel_Collector"
+const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
 
 func runFromCmdLine(args []string) {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaName)
+	err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix)
 	if err != nil {
 		if errors.Is(err, modularinput.ErrQueryMode) {
 			// Query modes (scheme/validate) do not write anything to stdout.

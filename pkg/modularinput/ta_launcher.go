@@ -40,7 +40,7 @@ var (
 // to set environment variables from the configuration stanza.
 // Returns an error if the launch fails, ErrQueryMode if running in query mode,
 // or nil if not running in modular input mode or on success.
-func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaName string) error {
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix string) error {
 	isModularInput, isQueryMode := isModularInputMode(args)
 	if !isModularInput {
 		return nil
@@ -60,7 +60,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaName string) e
 
 	var configStanza Stanza
 	for _, stanza := range input.Configuration.Stanza {
-		if stanza.Name == configStanzaName {
+		if strings.HasPrefix(stanza.Name, configStanzaPrefix) {
 			configStanza = stanza
 			break
 		}

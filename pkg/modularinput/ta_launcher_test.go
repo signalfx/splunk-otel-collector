@@ -830,3 +830,150 @@ func TestSetEnvVarsInOrder_EmptyMap(t *testing.T) {
 	require.NoError(t, err, "Expected no error")
 	assert.False(t, called, "setEnv should not be called for empty map")
 }
+
+func TestHandleLaunchAsTA_StanzaPrefixMatch(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Track environment variables set
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="otel://my-instance-123" app="test-app">
+			<param name="splunk_realm">us0</param>
+			<param name="splunk_access_token">secret123</param>
+		</stanza>
+		<stanza name="other://instance" app="test-app">
+			<param name="splunk_realm">eu0</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	reader := strings.NewReader(xmlData)
+
+	// Use prefix "otel://" to match only the first stanza
+	err := HandleLaunchAsTA(args, reader, "otel://")
+	require.NoError(t, err, "Expected no error")
+
+	// Should match the first stanza only
+	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM from first stanza")
+	assert.Equal(t, "secret123", envVars["SPLUNK_ACCESS_TOKEN"], "Expected SPLUNK_ACCESS_TOKEN from first stanza")
+}
+
+func TestHandleLaunchAsTA_StanzaPrefixNoMatch(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Track that setEnv is never called
+	setEnvCalled := false
+	setEnvFn = func(_, _ string) error {
+		setEnvCalled = true
+		return nil
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="otel://instance1" app="test-app">
+			<param name="splunk_realm">us0</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	reader := strings.NewReader(xmlData)
+
+	// Use prefix that doesn't match
+	err := HandleLaunchAsTA(args, reader, "nonexistent://")
+	require.NoError(t, err, "Expected no error when prefix doesn't match")
+	assert.False(t, setEnvCalled, "Expected setEnv to not be called when prefix doesn't match")
+}
+
+func TestHandleLaunchAsTA_StanzaPrefixFirstMatch(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Track environment variables set
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="otel://instance1" app="test-app">
+			<param name="splunk_realm">us0</param>
+		</stanza>
+		<stanza name="otel://instance2" app="test-app">
+			<param name="splunk_realm">eu0</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	reader := strings.NewReader(xmlData)
+
+	// When multiple stanzas match the prefix, only the first one should be used
+	err := HandleLaunchAsTA(args, reader, "otel://")
+	require.NoError(t, err, "Expected no error")
+
+	// Should use the first matching stanza
+	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM from first matching stanza")
+}

@@ -922,8 +922,10 @@ build-msi:
 
 msi-custom-actions-package:
   extends: .trigger-filter
-  image: mcr.microsoft.com/dotnet/sdk:10.0.101
+  image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
   stage: package
+  tags:
+    - windows2022
   script:
     - pushd ./packaging/msi/SplunkCustomActions/
     - dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release

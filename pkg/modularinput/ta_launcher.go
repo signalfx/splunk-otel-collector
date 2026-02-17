@@ -20,6 +20,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/shirou/gopsutil/v4/process"
@@ -64,14 +66,19 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaName string) e
 		}
 	}
 
+	// First pass: build a map of parameters starting with "splunk_"
+	splunkEnvVars := make(map[string]string)
 	for _, param := range configStanza.Param {
-		envVarName := strings.ToUpper(param.Name)
-		envVarValue := os.ExpandEnv(param.Value)
-		log.Printf("INFO setting environment variable '%s' to '%s'", envVarName, envVarValue)
-		err := setEnvFn(envVarName, envVarValue)
-		if err != nil {
-			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)
+		if strings.HasPrefix(strings.ToLower(param.Name), "splunk_") {
+			envVarName := strings.ToUpper(param.Name)
+			splunkEnvVars[envVarName] = param.Value
 		}
+	}
+
+	// Second pass: set environment variables in dependency order
+	err = setEnvVarsInOrder(splunkEnvVars, setEnvFn)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -104,6 +111,52 @@ func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
 	}
 
 	return true, false
+}
+
+// setEnvVarsInOrder sets environment variables in dependency order.
+// Variables that don't reference other environment variables are set first,
+// followed by those that do reference other environment variables.
+func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string) error) error {
+	// Pattern to match environment variable references: $VAR, ${VAR}, %VAR%
+	envVarRefPattern := regexp.MustCompile(`\$\{?[A-Z_][A-Z0-9_]*\}?|%[A-Z_][A-Z0-9_]*%`)
+
+	// Separate variables into those with and without dependencies
+	var noDeps []string
+	var withDeps []string
+
+	for envVarName, envVarValue := range envVars {
+		if envVarRefPattern.MatchString(envVarValue) {
+			withDeps = append(withDeps, envVarName)
+		} else {
+			noDeps = append(noDeps, envVarName)
+		}
+	}
+
+	// Sort for deterministic ordering
+	sort.Strings(noDeps)
+	sort.Strings(withDeps)
+
+	// Set variables without dependencies first
+	for _, envVarName := range noDeps {
+		envVarValue := envVars[envVarName]
+		log.Printf("INFO setting environment variable '%s' to '%s'", envVarName, envVarValue)
+		err := setEnvFunc(envVarName, envVarValue)
+		if err != nil {
+			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)
+		}
+	}
+
+	// Set variables with dependencies, expanding environment variable references
+	for _, envVarName := range withDeps {
+		envVarValue := os.ExpandEnv(envVars[envVarName])
+		log.Printf("INFO setting environment variable '%s' to '%s'", envVarName, envVarValue)
+		err := setEnvFunc(envVarName, envVarValue)
+		if err != nil {
+			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)
+		}
+	}
+
+	return nil
 }
 
 // isParentProcessSplunkd checks if the parent process name is splunkd (Linux) or splunkd.exe (Windows)

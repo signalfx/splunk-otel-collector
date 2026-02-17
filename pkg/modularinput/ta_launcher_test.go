@@ -131,8 +131,8 @@ func TestHandleLaunchAsTA_Success(t *testing.T) {
 	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
 	<configuration>
 		<stanza name="test-stanza" app="test-app">
-			<param name="api_key">secret123</param>
-			<param name="endpoint">https://api.example.com</param>
+			<param name="splunk_api_key">secret123</param>
+			<param name="splunk_endpoint">https://api.example.com</param>
 		</stanza>
 	</configuration>
 </input>`
@@ -143,8 +143,8 @@ func TestHandleLaunchAsTA_Success(t *testing.T) {
 	err := HandleLaunchAsTA(args, reader, "test-stanza")
 	require.NoError(t, err, "Expected no error")
 
-	assert.Equal(t, "secret123", envVars["API_KEY"], "Expected API_KEY to be set")
-	assert.Equal(t, "https://api.example.com", envVars["ENDPOINT"], "Expected ENDPOINT to be set")
+	assert.Equal(t, "secret123", envVars["SPLUNK_API_KEY"], "Expected SPLUNK_API_KEY to be set")
+	assert.Equal(t, "https://api.example.com", envVars["SPLUNK_ENDPOINT"], "Expected SPLUNK_ENDPOINT to be set")
 }
 
 func TestHandleLaunchAsTA_SuccessWithEnvExpansion(t *testing.T) {
@@ -179,7 +179,7 @@ func TestHandleLaunchAsTA_SuccessWithEnvExpansion(t *testing.T) {
 	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
 	<configuration>
 		<stanza name="test-stanza" app="test-app">
-			<param name="config_value">$TEST_VAR</param>
+			<param name="splunk_config_value">$TEST_VAR</param>
 		</stanza>
 	</configuration>
 </input>`
@@ -190,7 +190,7 @@ func TestHandleLaunchAsTA_SuccessWithEnvExpansion(t *testing.T) {
 	err := HandleLaunchAsTA(args, reader, "test-stanza")
 	require.NoError(t, err, "Expected no error")
 
-	assert.Equal(t, "expanded_value", envVars["CONFIG_VALUE"], "Expected CONFIG_VALUE to be expanded")
+	assert.Equal(t, "expanded_value", envVars["SPLUNK_CONFIG_VALUE"], "Expected SPLUNK_CONFIG_VALUE to be expanded")
 }
 
 func TestHandleLaunchAsTA_SetEnvError(t *testing.T) {
@@ -223,7 +223,7 @@ func TestHandleLaunchAsTA_SetEnvError(t *testing.T) {
 	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
 	<configuration>
 		<stanza name="test-stanza" app="test-app">
-			<param name="api_key">secret123</param>
+			<param name="splunk_api_key">secret123</param>
 		</stanza>
 	</configuration>
 </input>`
@@ -509,3 +509,324 @@ func (er *errorReader) Read(_ []byte) (n int, err error) {
 }
 
 var _ io.Reader = (*errorReader)(nil)
+
+func TestHandleLaunchAsTA_TwoPassFiltering(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Track environment variables set
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_realm">us0</param>
+			<param name="splunk_access_token">secret123</param>
+			<param name="other_param">should_not_be_set</param>
+			<param name="api_key">also_not_set</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	reader := strings.NewReader(xmlData)
+
+	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	require.NoError(t, err, "Expected no error")
+
+	// Only splunk_ prefixed parameters should be set
+	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM to be set")
+	assert.Equal(t, "secret123", envVars["SPLUNK_ACCESS_TOKEN"], "Expected SPLUNK_ACCESS_TOKEN to be set")
+	assert.NotContains(t, envVars, "OTHER_PARAM", "Expected OTHER_PARAM to not be set")
+	assert.NotContains(t, envVars, "API_KEY", "Expected API_KEY to not be set")
+}
+
+func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Track environment variables set and their order
+	var setOrder []string
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		setOrder = append(setOrder, key)
+		envVars[key] = value
+		// Simulate setting in the actual environment for expansion
+		os.Setenv(key, value)
+		return nil
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_ingest_url">https://ingest.${SPLUNK_REALM}.signalfx.com</param>
+			<param name="splunk_realm">us0</param>
+			<param name="splunk_api_url">https://api.${SPLUNK_REALM}.signalfx.com</param>
+			<param name="splunk_access_token">secret123</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	reader := strings.NewReader(xmlData)
+
+	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	require.NoError(t, err, "Expected no error")
+
+	// Verify all variables are set
+	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM to be set")
+	assert.Equal(t, "secret123", envVars["SPLUNK_ACCESS_TOKEN"], "Expected SPLUNK_ACCESS_TOKEN to be set")
+	assert.Equal(t, "https://ingest.us0.signalfx.com", envVars["SPLUNK_INGEST_URL"], "Expected SPLUNK_INGEST_URL to be expanded")
+	assert.Equal(t, "https://api.us0.signalfx.com", envVars["SPLUNK_API_URL"], "Expected SPLUNK_API_URL to be expanded")
+
+	// Verify ordering: variables without dependencies should be set first
+	// Find positions in setOrder
+	realmPos := -1
+	tokenPos := -1
+	ingestPos := -1
+	apiPos := -1
+	for i, name := range setOrder {
+		switch name {
+		case "SPLUNK_REALM":
+			realmPos = i
+		case "SPLUNK_ACCESS_TOKEN":
+			tokenPos = i
+		case "SPLUNK_INGEST_URL":
+			ingestPos = i
+		case "SPLUNK_API_URL":
+			apiPos = i
+		}
+	}
+
+	// Variables without dependencies (SPLUNK_REALM, SPLUNK_ACCESS_TOKEN) should come before
+	// variables with dependencies (SPLUNK_INGEST_URL, SPLUNK_API_URL)
+	assert.True(t, realmPos < ingestPos, "SPLUNK_REALM should be set before SPLUNK_INGEST_URL")
+	assert.True(t, realmPos < apiPos, "SPLUNK_REALM should be set before SPLUNK_API_URL")
+	assert.True(t, tokenPos < ingestPos, "SPLUNK_ACCESS_TOKEN should be set before SPLUNK_INGEST_URL")
+	assert.True(t, tokenPos < apiPos, "SPLUNK_ACCESS_TOKEN should be set before SPLUNK_API_URL")
+}
+
+func TestHandleLaunchAsTA_MixedCaseSplunkPrefix(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Track environment variables set
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="SPLUNK_Realm">us0</param>
+			<param name="Splunk_Access_Token">secret123</param>
+			<param name="splunk_trace_url">http://localhost:9411</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	reader := strings.NewReader(xmlData)
+
+	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	require.NoError(t, err, "Expected no error")
+
+	// All should be converted to uppercase
+	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM to be set")
+	assert.Equal(t, "secret123", envVars["SPLUNK_ACCESS_TOKEN"], "Expected SPLUNK_ACCESS_TOKEN to be set")
+	assert.Equal(t, "http://localhost:9411", envVars["SPLUNK_TRACE_URL"], "Expected SPLUNK_TRACE_URL to be set")
+}
+
+func TestHandleLaunchAsTA_ComplexDependencies(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	// Mock parent process check to return true
+	isParentProcessSplunkdFn = func() bool {
+		return true
+	}
+
+	// Track environment variables set
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		// Simulate setting in the actual environment for expansion
+		os.Setenv(key, value)
+		return nil
+	}
+
+	// Set SPLUNK_HOME
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_url">${SPLUNK_PROTOCOL}://${SPLUNK_HOST}:${SPLUNK_PORT}</param>
+			<param name="splunk_protocol">https</param>
+			<param name="splunk_host">api.example.com</param>
+			<param name="splunk_port">8088</param>
+			<param name="splunk_token">abc123</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	reader := strings.NewReader(xmlData)
+
+	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	require.NoError(t, err, "Expected no error")
+
+	// Verify all variables are set correctly
+	assert.Equal(t, "https", envVars["SPLUNK_PROTOCOL"], "Expected SPLUNK_PROTOCOL to be set")
+	assert.Equal(t, "api.example.com", envVars["SPLUNK_HOST"], "Expected SPLUNK_HOST to be set")
+	assert.Equal(t, "8088", envVars["SPLUNK_PORT"], "Expected SPLUNK_PORT to be set")
+	assert.Equal(t, "abc123", envVars["SPLUNK_TOKEN"], "Expected SPLUNK_TOKEN to be set")
+	assert.Equal(t, "https://api.example.com:8088", envVars["SPLUNK_URL"], "Expected SPLUNK_URL to be fully expanded")
+}
+
+func TestSetEnvVarsInOrder_NoDependencies(t *testing.T) {
+	envVars := map[string]string{
+		"SPLUNK_REALM":        "us0",
+		"SPLUNK_ACCESS_TOKEN": "secret123",
+		"SPLUNK_TRACE_URL":    "http://localhost:9411",
+	}
+
+	// Track environment variables set
+	setVars := make(map[string]string)
+	mockSetEnv := func(key, value string) error {
+		setVars[key] = value
+		return nil
+	}
+
+	err := setEnvVarsInOrder(envVars, mockSetEnv)
+	require.NoError(t, err, "Expected no error")
+
+	assert.Equal(t, "us0", setVars["SPLUNK_REALM"])
+	assert.Equal(t, "secret123", setVars["SPLUNK_ACCESS_TOKEN"])
+	assert.Equal(t, "http://localhost:9411", setVars["SPLUNK_TRACE_URL"])
+}
+
+func TestSetEnvVarsInOrder_WithDependencies(t *testing.T) {
+	envVars := map[string]string{
+		"SPLUNK_REALM":      "us0",
+		"SPLUNK_INGEST_URL": "https://ingest.${SPLUNK_REALM}.signalfx.com",
+	}
+
+	// Track environment variables set and their order
+	var setOrder []string
+	setVars := make(map[string]string)
+	mockSetEnv := func(key, value string) error {
+		setOrder = append(setOrder, key)
+		setVars[key] = value
+		// Simulate setting in the actual environment for expansion
+		os.Setenv(key, value)
+		return nil
+	}
+
+	err := setEnvVarsInOrder(envVars, mockSetEnv)
+	require.NoError(t, err, "Expected no error")
+
+	// Verify realm is set first
+	assert.Equal(t, "SPLUNK_REALM", setOrder[0], "SPLUNK_REALM should be set first")
+	assert.Equal(t, "SPLUNK_INGEST_URL", setOrder[1], "SPLUNK_INGEST_URL should be set second")
+
+	// Verify values
+	assert.Equal(t, "us0", setVars["SPLUNK_REALM"])
+	assert.Equal(t, "https://ingest.us0.signalfx.com", setVars["SPLUNK_INGEST_URL"])
+}
+
+func TestSetEnvVarsInOrder_SetEnvError(t *testing.T) {
+	envVars := map[string]string{
+		"SPLUNK_REALM": "us0",
+	}
+
+	expectedErr := errors.New("setenv failed")
+	mockSetEnv := func(_, _ string) error {
+		return expectedErr
+	}
+
+	err := setEnvVarsInOrder(envVars, mockSetEnv)
+	require.Error(t, err, "Expected error")
+	assert.Contains(t, err.Error(), "launch as TA failed to set environment variable")
+	assert.ErrorIs(t, err, expectedErr)
+}
+
+func TestSetEnvVarsInOrder_EmptyMap(t *testing.T) {
+	envVars := make(map[string]string)
+
+	called := false
+	mockSetEnv := func(_, _ string) error {
+		called = true
+		return nil
+	}
+
+	err := setEnvVarsInOrder(envVars, mockSetEnv)
+	require.NoError(t, err, "Expected no error")
+	assert.False(t, called, "setEnv should not be called for empty map")
+}

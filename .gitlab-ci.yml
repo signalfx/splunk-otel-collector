@@ -291,6 +291,8 @@ fossa:
 
 .xray-scan-package:
   rules:
+    - if: '$MSI_LATEST_VERSION && $RELEASE_VERSION == ""'
+      when: never
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
@@ -1909,7 +1911,10 @@ xray-scan-docker:
   only:
     - main
   except:
-    - schedules
+    refs:
+      - schedules
+    variables:
+      - $MSI_LATEST_VERSION
   extends: .container-scan
   stage: xray-scan
   parallel:

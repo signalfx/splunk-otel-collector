@@ -116,6 +116,7 @@ fix-msi-latest:
         exit 1
       fi
       echo "Verified MSI exists at $MSI_URL"
+    - pip3 install awscli
     - |
       creds-helper init
       eval $(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role")

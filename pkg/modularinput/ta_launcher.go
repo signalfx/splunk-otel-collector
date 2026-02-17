@@ -139,7 +139,6 @@ func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string
 	// Set variables without dependencies first
 	for _, envVarName := range noDeps {
 		envVarValue := envVars[envVarName]
-		log.Printf("INFO setting environment variable '%s' to '%s'", envVarName, envVarValue)
 		err := setEnvFunc(envVarName, envVarValue)
 		if err != nil {
 			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)
@@ -149,7 +148,6 @@ func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string
 	// Set variables with dependencies, expanding environment variable references
 	for _, envVarName := range withDeps {
 		envVarValue := os.ExpandEnv(envVars[envVarName])
-		log.Printf("INFO setting environment variable '%s' to '%s'", envVarName, envVarValue)
 		err := setEnvFunc(envVarName, envVarValue)
 		if err != nil {
 			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)

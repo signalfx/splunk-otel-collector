@@ -5,6 +5,22 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.145.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.145.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.145.0)
+and the [opentelemetry-collector-contrib v0.145.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.145.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `autoinstrumentation`: Remove the example of using SystemD to configure zero-config instrumentation ([#7192](https://github.com/signalfx/splunk-otel-collector/pull/7192))
+  In preparation of adopting the injector, remove the SystemD approach to injecting environment variables.
+
+### 💡 Enhancements 💡
+
+- (Splunk) `otel-collector`: Add support for RHEL 10, CentOS 10, Oracle Linux 10, and Rocky Linux 10 ([#7195](https://github.com/signalfx/splunk-otel-collector/pull/7195))
+- (Splunk) `Windows`: Add a Windows ARM64 binary distribution to the released files ([#7203](https://github.com/signalfx/splunk-otel-collector/pull/7203))
+
+
 ## v0.145.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.145.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.145.0)

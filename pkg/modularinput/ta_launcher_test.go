@@ -583,7 +583,7 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 		setOrder = append(setOrder, key)
 		envVars[key] = value
 		// Simulate setting in the actual environment for expansion
-		os.Setenv(key, value)
+		t.Setenv(key, value)
 		return nil
 	}
 
@@ -638,10 +638,10 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 
 	// Variables without dependencies (SPLUNK_REALM, SPLUNK_ACCESS_TOKEN) should come before
 	// variables with dependencies (SPLUNK_INGEST_URL, SPLUNK_API_URL)
-	assert.True(t, realmPos < ingestPos, "SPLUNK_REALM should be set before SPLUNK_INGEST_URL")
-	assert.True(t, realmPos < apiPos, "SPLUNK_REALM should be set before SPLUNK_API_URL")
-	assert.True(t, tokenPos < ingestPos, "SPLUNK_ACCESS_TOKEN should be set before SPLUNK_INGEST_URL")
-	assert.True(t, tokenPos < apiPos, "SPLUNK_ACCESS_TOKEN should be set before SPLUNK_API_URL")
+	assert.Less(t, realmPos, ingestPos, "SPLUNK_REALM should be set before SPLUNK_INGEST_URL")
+	assert.Less(t, realmPos, apiPos, "SPLUNK_REALM should be set before SPLUNK_API_URL")
+	assert.Less(t, tokenPos, ingestPos, "SPLUNK_ACCESS_TOKEN should be set before SPLUNK_INGEST_URL")
+	assert.Less(t, tokenPos, apiPos, "SPLUNK_ACCESS_TOKEN should be set before SPLUNK_API_URL")
 }
 
 func TestHandleLaunchAsTA_MixedCaseSplunkPrefix(t *testing.T) {
@@ -713,7 +713,7 @@ func TestHandleLaunchAsTA_ComplexDependencies(t *testing.T) {
 	setEnvFn = func(key, value string) error {
 		envVars[key] = value
 		// Simulate setting in the actual environment for expansion
-		os.Setenv(key, value)
+		t.Setenv(key, value)
 		return nil
 	}
 
@@ -785,7 +785,7 @@ func TestSetEnvVarsInOrder_WithDependencies(t *testing.T) {
 		setOrder = append(setOrder, key)
 		setVars[key] = value
 		// Simulate setting in the actual environment for expansion
-		os.Setenv(key, value)
+		t.Setenv(key, value)
 		return nil
 	}
 

@@ -110,9 +110,9 @@ fix-msi-latest:
       fi
 
       MSI_URL="https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-${VERSION}-amd64.msi"
-      HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --head "$MSI_URL")
-      if [ "$HTTP_CODE" != "200" ]; then
-        echo "MSI not found at $MSI_URL (HTTP $HTTP_CODE). Verify the version exists before updating latest.txt." >&2
+      # Use a ranged GET (1 byte) with redirect-following to handle CDN/S3 redirects
+      if ! curl -fsSL --range 0-0 "$MSI_URL" -o /dev/null; then
+        echo "MSI not found or not accessible at $MSI_URL. Verify the version exists before updating latest.txt." >&2
         exit 1
       fi
       echo "Verified MSI exists at $MSI_URL"
@@ -197,6 +197,9 @@ fossa:
 
 .trigger-filter:
   rules:
+    # Skip all build/release jobs when only fix-msi-latest is intended
+    - if: '$MSI_LATEST_VERSION && $RELEASE_VERSION == ""'
+      when: never
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
     # commenting out the original commit-tag trigger condition for collector release

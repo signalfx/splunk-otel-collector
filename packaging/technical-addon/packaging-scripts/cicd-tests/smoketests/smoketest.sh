@@ -49,7 +49,7 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
             docker exec -u root smoketests-so1-1 cat /opt/splunk/var/log/splunk/otel.log
             exit 1
         fi
-        echo "sucess message not found in otel.log Retrying in $DELAY seconds" 
+        echo "success message not found in otel.log Retrying in $DELAY seconds" 
         ATTEMPT=$((ATTEMPT + 1))
         sleep $DELAY
     fi

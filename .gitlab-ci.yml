@@ -36,8 +36,8 @@ stages:
   - release
   - docker-manifest-release
   - xray-scan
-  - publish-release
   - orca-tests
+  - publish-release
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'

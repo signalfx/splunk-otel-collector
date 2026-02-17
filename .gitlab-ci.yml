@@ -10,9 +10,6 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  MSI_LATEST_VERSION:
-    value: ""
-    description: "Tmp - Only used by fix-msi-latest job."
   GO_VERSION: 1.25.7
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -84,60 +81,6 @@ manual_release_trigger:
   allow_failure: false
   needs: []
 
-# Manually triggered job to fix msi/release/latest.txt on S3 - tmp
-fix-msi-latest:
-  stage: manual-release
-  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
-  id_tokens:
-    CI_JOB_JWT:
-      aud: $CICD_VAULT_ADDR
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $MSI_LATEST_VERSION && $CI_COMMIT_BRANCH == "main"'
-      when: on_success
-  needs: []
-  script:
-    - |
-      set -euo pipefail
-      VERSION="$MSI_LATEST_VERSION"
-
-      if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-        echo "MSI_LATEST_VERSION must be in format X.Y.Z (e.g. 0.145.0), got: '$VERSION'" >&2
-        exit 1
-      fi
-      if echo "$VERSION" | grep -Eq '^0\.0\.'; then
-        echo "MSI_LATEST_VERSION cannot be a placeholder version (0.0.x)" >&2
-        exit 1
-      fi
-
-      MSI_URL="https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-${VERSION}-amd64.msi"
-      # Use a ranged GET (1 byte) with redirect-following to handle CDN/S3 redirects
-      if ! curl -fsSL --range 0-0 "$MSI_URL" -o /dev/null; then
-        echo "MSI not found or not accessible at $MSI_URL. Verify the version exists before updating latest.txt." >&2
-        exit 1
-      fi
-      echo "Verified MSI exists at $MSI_URL"
-    - pip3 install awscli
-    - |
-      creds-helper init
-      eval $(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role")
-    - |
-      set -euo pipefail
-      VERSION="$MSI_LATEST_VERSION"
-      echo "$VERSION" > /tmp/latest.txt
-      echo "Updating s3://public-downloads--signalfuse-com/splunk-otel-collector/msi/release/latest.txt to '$VERSION' ..."
-      aws s3 cp /tmp/latest.txt s3://public-downloads--signalfuse-com/splunk-otel-collector/msi/release/latest.txt
-      echo "Invalidating CloudFront cache ..."
-      aws cloudfront create-invalidation --distribution-id EJH671JAOI5SN --paths "/splunk-otel-collector/msi/release/latest.txt"
-
-      echo "Waiting for CloudFront invalidation to propagate ..."
-      sleep 60
-      ACTUAL=$(curl -sf https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt | tr -d '[:space:]')
-      if [ "$ACTUAL" = "$VERSION" ]; then
-        echo "Verified: latest.txt is now '$ACTUAL'"
-      else
-        echo "WARNING: latest.txt is '$ACTUAL', expected '$VERSION'. CloudFront may still be propagating." >&2
-      fi
-
 fossa:
   extends: .oss-scan
   stage: sast-oss-scan
@@ -200,9 +143,6 @@ fossa:
 
 .trigger-filter:
   rules:
-    # Skip all build/release jobs when only fix-msi-latest is intended
-    - if: '$MSI_LATEST_VERSION && $RELEASE_VERSION == ""'
-      when: never
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
     # commenting out the original commit-tag trigger condition for collector release
@@ -292,8 +232,6 @@ fossa:
 
 .xray-scan-package:
   rules:
-    - if: '$MSI_LATEST_VERSION && $RELEASE_VERSION == ""'
-      when: never
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
@@ -1912,10 +1850,7 @@ xray-scan-docker:
   only:
     - main
   except:
-    refs:
-      - schedules
-    variables:
-      - $MSI_LATEST_VERSION
+    - schedules
   extends: .container-scan
   stage: xray-scan
   parallel:

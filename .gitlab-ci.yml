@@ -57,23 +57,60 @@ include:
 # Manual release job
 manual_release_trigger:
   stage: manual-release
+  variables:
+    GIT_DEPTH: 0
   script:
     - |
+      set -euo pipefail
+
       if [ -z "$RELEASE_VERSION" ]; then
-        echo "RELEASE_VERSION is not set. Cannot proceed." && exit 1
+        echo "RELEASE_VERSION is not set. Cannot proceed." >&2
+        exit 1
       fi
-      # Validate version format (must be v1.2.3 or v1.2.3-rc.0)
+
+      # Validate version format (must be v1.2.3 or v1.2.3-rc.0 or v1.2.3-beta.1)
       if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(\-beta\.[0-9]+)?(\-rc\.[0-9]+)?$'; then
-        echo "RELEASE_VERSION must be in format v1.2.3 for stable releases and in the format v1.2.3-rc.0 or v1.2.3-beta.1 for pre-releases." && exit 1
+        echo "RELEASE_VERSION must be in format v1.2.3 for stable releases and in the format v1.2.3-rc.0 or v1.2.3-beta.1 for pre-releases." >&2
+        exit 1
       fi
+
+      if echo "$RELEASE_VERSION" | grep -Eq '^v0\.0\.'; then
+        echo "RELEASE_VERSION cannot be a placeholder version (v0.0.x). This usually means no valid version was provided." >&2
+        exit 1
+      fi
+
+      BASE_VERSION=$(echo "$RELEASE_VERSION" | sed -E 's/^v//; s/-(beta|rc)\.[0-9]+$//')
+
+      LATEST_TAG=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+      if [ -n "$LATEST_TAG" ]; then
+        LATEST_VERSION="${LATEST_TAG#v}"
+        echo "Current latest release tag: $LATEST_TAG"
+
+        IFS='.' read -r NEW_MAJOR NEW_MINOR NEW_PATCH <<< "$BASE_VERSION"
+        IFS='.' read -r CUR_MAJOR CUR_MINOR CUR_PATCH <<< "$LATEST_VERSION"
+
+        NEW_NUM=$((NEW_MAJOR * 1000000 + NEW_MINOR * 1000 + NEW_PATCH))
+        CUR_NUM=$((CUR_MAJOR * 1000000 + CUR_MINOR * 1000 + CUR_PATCH))
+
+        if [ "$NEW_NUM" -lt "$CUR_NUM" ]; then
+          echo "RELEASE_VERSION $RELEASE_VERSION (${BASE_VERSION}) is older than the current latest release $LATEST_TAG (${LATEST_VERSION})." >&2
+          echo "The release version must be greater than or equal to the current latest." >&2
+          exit 1
+        fi
+        echo "Version check passed: $RELEASE_VERSION >= $LATEST_TAG"
+      else
+        echo "WARNING: No existing release tags found. Skipping version comparison."
+      fi
+
       if echo "$RELEASE_VERSION" | grep -Eq '\-(beta|rc)\.[0-9]+$'; then
         echo "Pre-release version detected ($RELEASE_VERSION). Skipping changelog validation."
       else
-        # Validate version is in changelog only for stable releases
         if ! grep -q "^## $RELEASE_VERSION" CHANGELOG.md; then
-          echo "Version $RELEASE_VERSION not found in CHANGELOG.md" && exit 1
+          echo "Version $RELEASE_VERSION not found in CHANGELOG.md" >&2
+          exit 1
         fi
       fi
+
       echo "Manual release triggered for version $RELEASE_VERSION"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'

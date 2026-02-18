@@ -38,7 +38,7 @@ or by directly setting the values in the init script itself.
 #### Required Environment Variables
 
 1. `SPLUNK_ACCESS_TOKEN` - Set to your  [Splunk Observability Cloud access token](https://docs.splunk.com/observability/en/admin/authentication/authentication-tokens/org-tokens.html)
-2. `SPLUNK_REALM` - [Splunk Observability Cloud realm](https://docs.splunk.com/observability/en/get-started/service-description.html#sd-regions)
+1. `SPLUNK_REALM` - [Splunk Observability Cloud realm](https://docs.splunk.com/observability/en/get-started/service-description.html#sd-regions)
 to send data to. Default: `us0`
 1. `DATABRICKS_ACCESS_TOKEN` - Set to your [Databricks personal access token](https://docs.databricks.com/en/dev-tools/auth/pat.html)
 1. `DATABRICKS_CLUSTER_HOSTNAME` - Hostname of the [Databricks compute resource](https://docs.databricks.com/en/integrations/compute-details.html).

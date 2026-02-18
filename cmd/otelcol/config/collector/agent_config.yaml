@@ -184,6 +184,9 @@ exporters:
     verbosity: detailed
 
 service:
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
   extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
   pipelines:
     traces:

@@ -36,6 +36,13 @@ if (-not (Test-Path $ASSETS_DIR)) {
     exit 1
 }
 
+# Stop and remove existing container if it exists
+$existingContainer = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $CONTAINER_NAME }
+if ($existingContainer) {
+    Write-Host "Stopping and removing existing container: $CONTAINER_NAME"
+    docker rm -f $CONTAINER_NAME | Out-Null
+}
+
 # Clean up previous log directory if it exists
 if (Test-Path $LOG_DIR) {
     Write-Host "Cleaning up previous log directory at $LOG_DIR"
@@ -45,11 +52,28 @@ if (Test-Path $LOG_DIR) {
 # Create log directory
 New-Item -ItemType Directory -Path $LOG_DIR -Force | Out-Null
 
-# Stop and remove existing container if it exists
-$existingContainer = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $CONTAINER_NAME }
-if ($existingContainer) {
-    Write-Host "Stopping and removing existing container: $CONTAINER_NAME"
-    docker rm -f $CONTAINER_NAME | Out-Null
+# Add the config requirements, if not already present
+$inputsConfPath = Join-Path $ASSETS_DIR "local\inputs.conf"
+if (-not (Test-Path $inputsConfPath)) {
+    $localDir = Join-Path $ASSETS_DIR "local"
+    New-Item -ItemType Directory -Path $localDir -Force | Out-Null
+    $defaultInputsConf = Join-Path $ASSETS_DIR "default\inputs.conf"
+    Copy-Item -Path $defaultInputsConf -Destination $inputsConfPath
+}
+
+# Check if splunk_access_token is empty and set to test token if needed
+$inputsContent = Get-Content -Path $inputsConfPath
+$tokenLineFound = $false
+$updatedContent = $inputsContent | ForEach-Object {
+    if ($_ -match "^splunk_access_token\s*=\s*$") {
+        $tokenLineFound = $true
+        "splunk_access_token = F3K3TestT0Ken"
+    } else {
+        $_
+    }
+}
+if ($tokenLineFound) {
+    $updatedContent | Set-Content -Path $inputsConfPath
 }
 
 Write-Host "Launching Splunk Universal Forwarder container..."

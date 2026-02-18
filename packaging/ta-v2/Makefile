@@ -46,17 +46,15 @@ all-packages: pack
 
 .PHONY: pack
 pack: validate-target-os sync-configs
-	# Build a package that works for all supported OSes
-	@echo "Checking for binaries to include in the package ..."
-	@if ([ "$(TA_TARGET_OS)" == "" ] || [ "$(TA_TARGET_OS)" == "linux" ]) && [ ! -f ./assets/linux_$(TA_ARCH)/bin/$(MOD_INPUT_NAME) ]; then echo "Error: Linux binary not found!"; exit 1; fi
-	@if ([ "$(TA_TARGET_OS)" == "" ] || [ "$(TA_TARGET_OS)" == "windows" ]) && [ ! -f ./assets/windows_$(TA_ARCH)/bin/$(MOD_INPUT_NAME).exe ]; then echo "Error: Windows binary not found!"; exit 1; fi
+	# Build a package according to the specified TA_TARGET_OS
 	@echo "Packing add-on $(PKG_NAME) ..."
-	@echo "Filtering with tar options: $(TAR_EXCLUDE_OPT)"
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
 	@tmpdir=$$(mktemp -d) && \
-	cp -rL ./assets/ $$tmpdir/$(PKG_NAME) && \
-	tar -czf ./out/distribution/$(PKG_NAME).tgz -C $$tmpdir $(TAR_EXCLUDE_OPT) $(PKG_NAME) && \
-	rm -rf $$tmpdir
+	listfile=$$(mktemp) && \
+	tr -d '\r' < $(PKG_NAME).fileslist.txt > $$listfile && \
+	cp -rL ./assets/ $$tmpdir/$(MOD_INPUT_NAME) && \
+	tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
+	rm -rf $$tmpdir $$listfile
 
 .PHONY: clean-packages
 clean-packages:

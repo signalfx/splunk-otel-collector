@@ -72,6 +72,8 @@ platforms:
   - name: ubuntu-22.04
     driver:
       image: dokken/ubuntu-22.04
+      pid_one_command:
+        - /bin/systemd
 
 suites:
   - name: default

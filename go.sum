@@ -1679,6 +1679,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventl
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.145.0/go.mod h1:0NM+csGPkfsMaq36M7ncHW/wpQ5w7gx8s+JL2HA2k4Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.145.0 h1:82mX7FzCp75/Fw9yJMh8CfdVyCOjJbzSLwMGDzHDa0w=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.145.0/go.mod h1:W2KI5uIrGk/Yiud9a9ezQLn0LAfvhxTnmvFY/nL121k=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver v0.145.0 h1:6ekCyxE6TciyQXbU2LidLOkmLgnrgwSdD0LLdhQ1dlg=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver v0.145.0/go.mod h1:WQQg2/7Ek/OJVlmrusWSsZLZzfd7s8MENlcIpyIB3LA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver v0.145.0 h1:GoUViIXtZu8FLqzE270laBMP9fQLp0Wrts0t3fdblSQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver v0.145.0/go.mod h1:Z77OKimmgsj/focnYffaDt1hu1ysJJh0FrJvAP9Xzjs=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.145.0 h1:shcVciYxx4IQWVdZYHH/B0RhYKPpPZjRSs6to12ba2w=

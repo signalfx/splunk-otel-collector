@@ -28,6 +28,7 @@ from .constants import (
     ARTIFACTORY_DEB_REPO_URL,
     ARTIFACTORY_RPM_REPO,
     ARTIFACTORY_RPM_REPO_URL,
+    ARTIFACTORY_URL,
     CLOUDFRONT_DISTRIBUTION_ID,
     DEFAULT_TIMEOUT,
     EXTENSIONS,
@@ -135,16 +136,24 @@ def get_md5_from_artifactory(url, user, token):
 
 
 def wait_for_artifactory_metadata(url, orig_md5, user, token, timeout=DEFAULT_TIMEOUT):
-    print(f"waiting for {url} to be updated ...")
+    print(f"Waiting for {url} to be updated (original MD5: {orig_md5}) ...")
 
     start_time = time.time()
     while True:
-        assert (time.time() - start_time) < timeout, f"timed out waiting for {url} to be updated"
+        elapsed = int(time.time() - start_time)
+        assert elapsed < timeout, (
+            f"Timed out after {elapsed}s waiting for {url} to be updated "
+            f"(MD5 still {orig_md5})"
+        )
 
         new_md5 = get_md5_from_artifactory(url, user, token)
 
         if new_md5 and str(orig_md5).lower() != str(new_md5).lower():
+            print(f"Metadata updated after {elapsed}s (new MD5: {new_md5})")
             break
+
+        if elapsed > 0 and elapsed % 60 == 0:
+            print(f"  Still waiting after {elapsed}s (MD5 unchanged: {new_md5}) ...")
 
         time.sleep(5)
 
@@ -158,15 +167,38 @@ def upload_package_to_artifactory(
     sign_metadata=True,
     timeout=DEFAULT_TIMEOUT,
 ):
+    local_md5 = get_checksum(path, hashlib.md5())
+    clean_url = dest_url.split(";")[0]
+    storage_api_url = clean_url.replace(
+        ARTIFACTORY_URL + "/", ARTIFACTORY_API_URL + "/storage/", 1
+    )
+
+    pre_upload_md5 = None
+    if artifactory_file_exists(clean_url, user, token):
+        pre_upload_md5 = get_md5_from_artifactory(storage_api_url, user, token)
+        print(f"Pre-upload file MD5 (remote): {pre_upload_md5}")
+    else:
+        print(f"File does not yet exist at {clean_url}")
+
+    print(f"Local file MD5:                {local_md5}")
+    content_changed = pre_upload_md5 is None or pre_upload_md5.lower() != local_md5.lower()
+    print(f"Content changed:               {content_changed}")
+
     orig_md5 = None
     if sign_metadata:
         orig_md5 = get_md5_from_artifactory(metadata_api_url, user, token)
+        print(f"Pre-upload metadata MD5:       {orig_md5}")
 
     upload_file_to_artifactory(path, dest_url, user, token)
 
     if sign_metadata:
-        wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
-        # don't sign the metadata; just download it so that it can be signed externally
+        if content_changed:
+            wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
+        else:
+            print(
+                "Upload content is identical to existing file. "
+                "Repo metadata will not be regenerated — skipping metadata wait."
+            )
         dest = os.path.join(REPO_DIR, os.path.basename(metadata_url))
         download_file(metadata_url, dest, user, token)
 

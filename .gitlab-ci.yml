@@ -32,11 +32,11 @@ stages:
   - sign-binaries
   - package
   - code-analysis
-  - orca-tests
   - sign-packages
   - release
   - docker-manifest-release
   - xray-scan
+  - orca-tests
   - publish-release
 
 include:
@@ -601,6 +601,8 @@ test-happypath-ta:
     - .collector-ta-trigger
     - .auth-setup
   stage: "orca-tests"
+  needs:
+    - "package-technical-addon"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -637,6 +639,8 @@ test-collectd-ta:
   stage: orca-tests
   variables:
     ORCA_TAR_GZ: "$NEW_ORCA_TGZ"
+  needs:
+    - "package-technical-addon"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -666,6 +670,8 @@ test-gateway-ta:
     - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
+  needs:
+    - "package-technical-addon"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -1099,6 +1105,7 @@ sign-ps-installer:
     - .submit-signing-request
   stage: sign-packages
   retry: 2
+  needs: []
   dependencies: []
   variables:
     ARTIFACT: dist/install.ps1

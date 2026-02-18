@@ -17,7 +17,7 @@
 package tests
 
 import (
-	"path"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -32,10 +32,13 @@ import (
 )
 
 func TestTelegrafExecWithGoScript(t *testing.T) {
-	collectorImage := testutils.GetCollectorImageOrSkipTest(t)
-	platform := "amd64"
-	if testutils.CollectorImageIsForArm(t) {
-		platform = "arm64"
+	// The image is pre-built in github actions because testcontainers'
+	// Docker daemon build API hits a content-digest bug on Docker 29.x
+	// with the containerd image store for multi-stage builds.
+	imageName := os.Getenv("TELEGRAF_EXEC_IMAGE")
+	if imageName == "" {
+		t.Skip("TELEGRAF_EXEC_IMAGE env var not set; " +
+			"build the image with docker buildx and set the env var (see integration-test workflow)")
 	}
 
 	tc := testutils.NewTestcase(t)
@@ -45,12 +48,7 @@ func TestTelegrafExecWithGoScript(t *testing.T) {
 	_, shutdown := tc.SplunkOtelCollectorContainer("",
 		func(collector testutils.Collector) testutils.Collector {
 			cc := collector.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithContext(
-				path.Join(".", "testdata", "exec"),
-			).WithBuildArgs(map[string]*string{
-				"IMAGE_PLATFORM":              &platform,
-				"SPLUNK_OTEL_COLLECTOR_IMAGE": &collectorImage,
-			})
+			cc.Image = imageName
 			return cc.WithArgs("--config", "/etc/config.yaml")
 		})
 	defer shutdown()

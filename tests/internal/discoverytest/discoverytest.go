@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -199,7 +200,7 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string, setDiscov
 		extraDiscoveryArgs.WriteString(fmt.Sprintf("            - --set=%s\n", arg))
 	}
 
-	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, fmt.Sprintf("%s:%d", dockerHost, port))
+	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, net.JoinHostPort(dockerHost, strconv.Itoa(port)))
 	t.Cleanup(func() {
 		if skipTearDown {
 			return
@@ -281,12 +282,24 @@ func getHostEndpoint(t *testing.T) string {
 	client.NegotiateAPIVersion(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	network, err := client.NetworkInspect(ctx, "kind", network.InspectOptions{})
+	nw, err := client.NetworkInspect(ctx, "kind", network.InspectOptions{})
 	require.NoError(t, err)
-	for _, ipam := range network.IPAM.Config {
-		if ipam.Gateway != "" {
+
+	// Prefer IPv4 gateways
+	var fallback string
+	for _, ipam := range nw.IPAM.Config {
+		if ipam.Gateway == "" {
+			continue
+		}
+		if ip := net.ParseIP(ipam.Gateway); ip != nil && ip.To4() != nil {
 			return ipam.Gateway
 		}
+		if fallback == "" {
+			fallback = ipam.Gateway
+		}
+	}
+	if fallback != "" {
+		return fallback
 	}
 	require.Fail(t, "failed to find host endpoint")
 	return ""

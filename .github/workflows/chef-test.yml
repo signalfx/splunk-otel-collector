@@ -178,9 +178,13 @@ jobs:
         with:
           version: ${{ env.CHEF_VERSION }}
 
-      - run: kitchen create ${{ matrix.DISTRO }} --log-level debug
+      - run: chef --version
 
-      - run: kitchen diagnose ${{ matrix.DISTRO }}
+      - run: docker --version
+
+      - run: kitchen create default-${{ matrix.DISTRO }} --log-level debug
+
+      - run: kitchen diagnose default-${{ matrix.DISTRO }}
         if: always()
 
       - uses: actions/upload-artifact@v6

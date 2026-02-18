@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CHEF_VERSION: "22.12.1024"
+  CHEF_VERSION: "25.12.1102"
   CHEF_LICENSE: accept
 
 jobs:

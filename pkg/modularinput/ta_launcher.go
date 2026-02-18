@@ -117,8 +117,8 @@ func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
 // Variables that don't reference other environment variables are set first,
 // followed by those that do reference other environment variables.
 func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string) error) error {
-	// Pattern to match environment variable references: $VAR, ${VAR}, %VAR%
-	envVarRefPattern := regexp.MustCompile(`\$\{?[A-Z_][A-Z0-9_]*\}?|%[A-Z_][A-Z0-9_]*%`)
+	// Pattern to match environment variable references: $VAR, ${VAR} (case insensitive)
+	envVarRefPattern := regexp.MustCompile(`(?i)\$\{?[A-Z_][A-Z0-9_]*\}?`)
 
 	// Separate variables into those with and without dependencies
 	var noDeps []string

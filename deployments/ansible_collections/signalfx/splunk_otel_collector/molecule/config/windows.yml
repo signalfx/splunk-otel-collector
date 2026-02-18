@@ -8,9 +8,9 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: "2016"
-    box: StefanScherer/windows_2016
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2019.02.14}
+  - name: "2019"
+    box: StefanScherer/windows_2019
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2021.05.15}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 8192
@@ -28,19 +28,9 @@ platforms:
       - "winrm.password = 'vagrant'"
       - "winrm.retry_limit = 50"
       - "winrm.retry_delay = 10"
-  - name: "2019"
-    box: StefanScherer/windows_2019
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2021.05.15}
-    box_url: ${MOLECULE_VAGRANT_BOX_URL}
-    cpus: 2
-    memory: 8192
-    provider_options:
-      gui: false
-      linked_clone: true
-    instance_raw_config_args: *vagrant_args
   - name: "2022"
     box: gusztavvargadr/iis-windows-server
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2506.0.0}
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2601.0.0}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 8192

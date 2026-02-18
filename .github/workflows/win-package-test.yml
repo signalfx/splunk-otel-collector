@@ -15,6 +15,7 @@ on:
       - 'Makefile.Common'
       - 'packaging/msi/**'
       - 'tests/zeroconfig/windows/**'
+      - 'tests/msi/**'
       - '!**.md'
 
 concurrency:

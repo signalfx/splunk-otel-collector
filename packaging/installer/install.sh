@@ -926,7 +926,7 @@ distro_is_supported() {
       ;;
     centos|ol|rhel|rocky)
       case "$distro_version" in
-        7*|8*|9*)
+        7*|8*|9*|10*)
           return 0
           ;;
       esac

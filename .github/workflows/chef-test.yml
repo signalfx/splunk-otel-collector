@@ -178,6 +178,10 @@ jobs:
         with:
           version: ${{ env.CHEF_VERSION }}
 
+      # Install latest version of kitchen-dokken. As of Feb 2026 the default version
+      # installed with chef doesn't include the required bug fix released in v2.21.4
+      - name: chef gem install kitchen-dokken
+
       - run: chef --version
 
       - run: docker --version

@@ -32,11 +32,11 @@ stages:
   - sign-binaries
   - package
   - code-analysis
-  - orca-tests
   - sign-packages
   - release
   - docker-manifest-release
   - xray-scan
+  - orca-tests
   - publish-release
 
 include:
@@ -57,23 +57,62 @@ include:
 # Manual release job
 manual_release_trigger:
   stage: manual-release
+  variables:
+    GIT_DEPTH: 0
   script:
     - |
+      set -euo pipefail
+
       if [ -z "$RELEASE_VERSION" ]; then
-        echo "RELEASE_VERSION is not set. Cannot proceed." && exit 1
+        echo "RELEASE_VERSION is not set. Cannot proceed." >&2
+        exit 1
       fi
-      # Validate version format (must be v1.2.3 or v1.2.3-rc.0)
-      if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(\-beta\.[0-9]+)?(\-rc\.[0-9]+)?$'; then
-        echo "RELEASE_VERSION must be in format v1.2.3 for stable releases and in the format v1.2.3-rc.0 or v1.2.3-beta.1 for pre-releases." && exit 1
+
+      # Validate version format (must be v1.2.3 or v1.2.3-rc.0 or v1.2.3-beta.1)
+      if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(\-(beta|rc)\.[0-9]+)?$'; then
+        echo "RELEASE_VERSION must be in format v1.2.3 for stable releases and in the format v1.2.3-rc.0 or v1.2.3-beta.1 for pre-releases." >&2
+        exit 1
       fi
+
+      if echo "$RELEASE_VERSION" | grep -Eq '^v0\.0\.'; then
+        echo "RELEASE_VERSION cannot be a placeholder version (v0.0.x). This usually means no valid version was provided." >&2
+        exit 1
+      fi
+
+      BASE_VERSION=$(echo "$RELEASE_VERSION" | sed -E 's/^v//; s/-(beta|rc)\.[0-9]+$//')
+
+      LATEST_TAG=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | head -n 1)
+      if [ -n "$LATEST_TAG" ]; then
+        LATEST_VERSION="${LATEST_TAG#v}"
+        echo "Current latest release tag: $LATEST_TAG"
+
+        if [ "$BASE_VERSION" = "$LATEST_VERSION" ] && echo "$RELEASE_VERSION" | grep -Eq '\-(beta|rc)\.[0-9]+$'; then
+          echo "Pre-release $RELEASE_VERSION has the same base version as the current latest stable release $LATEST_TAG." >&2
+          echo "Pre-releases should only be created for future versions, not for already-released versions." >&2
+          exit 1
+        fi
+
+        # OLDER_VERSION is the smaller version between the latest tag and the release version
+        OLDER_VERSION=$(printf '%s\n%s\n' "$LATEST_VERSION" "$BASE_VERSION" | sort -V | head -n 1)
+        if [ "$OLDER_VERSION" != "$LATEST_VERSION" ]; then
+          echo "RELEASE_VERSION $RELEASE_VERSION (${BASE_VERSION}) is older than the current latest release $LATEST_TAG (${LATEST_VERSION})." >&2
+          echo "The release version must be greater than or equal to the current latest." >&2
+          exit 1
+        fi
+        echo "Version check passed: $RELEASE_VERSION >= $LATEST_TAG"
+      else
+        echo "WARNING: No existing release tags found. Skipping version comparison."
+      fi
+
       if echo "$RELEASE_VERSION" | grep -Eq '\-(beta|rc)\.[0-9]+$'; then
         echo "Pre-release version detected ($RELEASE_VERSION). Skipping changelog validation."
       else
-        # Validate version is in changelog only for stable releases
         if ! grep -q "^## $RELEASE_VERSION" CHANGELOG.md; then
-          echo "Version $RELEASE_VERSION not found in CHANGELOG.md" && exit 1
+          echo "Version $RELEASE_VERSION not found in CHANGELOG.md" >&2
+          exit 1
         fi
       fi
+
       echo "Manual release triggered for version $RELEASE_VERSION"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'
@@ -359,7 +398,7 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -562,6 +601,8 @@ test-happypath-ta:
     - .collector-ta-trigger
     - .auth-setup
   stage: "orca-tests"
+  needs:
+    - "package-technical-addon"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -598,6 +639,8 @@ test-collectd-ta:
   stage: orca-tests
   variables:
     ORCA_TAR_GZ: "$NEW_ORCA_TGZ"
+  needs:
+    - "package-technical-addon"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -627,6 +670,8 @@ test-gateway-ta:
     - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
+  needs:
+    - "package-technical-addon"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -775,6 +820,22 @@ sign-exe:
     paths:
       - dist/signed/${TARGET}_windows_amd64.exe
 
+sign-exe-arm64:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-binaries
+  retry: 2
+  needs:
+    - compile
+  variables:
+    ARTIFACT: bin/otelcol_windows_arm64.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: dist/signed
+  artifacts:
+    paths:
+      - dist/signed/otelcol_windows_arm64.exe
+
 sign-osx:
   extends:
     - .trigger-filter
@@ -870,7 +931,7 @@ build-tar:
 
 build-msi:
   extends: .trigger-filter
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+  image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
   stage: package
   needs:
     - sign-exe
@@ -885,8 +946,10 @@ build-msi:
   script:
     - . .gitlab/windows/runner-setup-helpers.ps1
     - Install-Chocolatey
-    - Install-WiXToolset
     - Install-Git
+    - |
+      # Install WiX toolset
+      & dotnet tool restore
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
@@ -896,7 +959,7 @@ build-msi:
       } else {
           $VERSION_TAG = ""
       }
-      $Env:PATH += ";${Env:ProgramFiles(x86)}\WiX Toolset v3.14\bin"
+    - |
       & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)"
   artifacts:
     paths:
@@ -904,46 +967,17 @@ build-msi:
 
 msi-custom-actions-package:
   extends: .trigger-filter
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
+  image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
   stage: package
-  needs:
-    - job: msi-custom-actions-assemblies
-      artifacts: true
   tags:
     - windows2022
   script:
-    - . .gitlab/windows/runner-setup-helpers.ps1
-    - Install-Chocolatey
-    - Install-WiXToolset
-    # Set environment variables for building custom actions
-    - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
-    - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
-    - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-    - $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
-    - $customActionBinDir = "${customActionDir}\bin\Release"
-    - MakeSfxCA.exe "${customActionBinDir}\SplunkCustomActions.CA.dll" `
-      "${sfxcaDll}" `
-      "${customActionBinDir}\SplunkCustomActions.dll" `
-      "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
-      "${customActionDir}\src\CustomAction.config"
+    - pushd ./packaging/msi/SplunkCustomActions/
+    - dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release
+    - popd
   artifacts:
     paths:
       - packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
-
-msi-custom-actions-assemblies:
-  extends: .trigger-filter
-  image: 'mcr.microsoft.com/dotnet/sdk:8.0'
-  stage: package
-  needs: []
-  dependencies: []
-  script:
-    - pushd ./packaging/msi/SplunkCustomActions/
-    - dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
-    - popd
-  artifacts:
-    name: msi-custom-actions-assemblies
-    paths:
-      - packaging/msi/SplunkCustomActions/bin/Release/*
 
 sign-debs:
   extends:
@@ -1071,6 +1105,7 @@ sign-ps-installer:
     - .submit-signing-request
   stage: sign-packages
   retry: 2
+  needs: []
   dependencies: []
   variables:
     ARTIFACT: dist/install.ps1
@@ -1894,6 +1929,8 @@ github-release:
       artifacts: true
     - job: sign-exe
       artifacts: true
+    - job: sign-exe-arm64
+      artifacts: true
     - job: sign-osx
       artifacts: true
     - job: release-debs
@@ -1973,7 +2010,7 @@ ansible-build:
     paths:
       - dist/
   before_script:
-    - pip3 install 'ansible~=12.0.0'
+    - pip3 install 'ansible>=12.2.0'
   script:
     - ansible-galaxy collection build ./deployments/ansible_collections/signalfx/splunk_otel_collector --output-path ./dist
 
@@ -1981,7 +2018,7 @@ ansible-release:
   extends: .ansible
   stage: release
   before_script:
-    - pip3 install ansible~=12.0.0 yq~=3.0.0
+    - pip3 install 'ansible>=12.2.0' yq~=3.0.0
   script:
     - |
       COLLECTION_VERSION=$(cat ./deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml | yq .version -r)

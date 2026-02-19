@@ -87,12 +87,25 @@ jobs:
           MULTIARCH_OTELCOL_BUILDER: ${{ steps.multiarch-otelcol-builder.outputs.name }}  # Use the builder created by the docker/setup-buildx-action step
       - name: Save image archive for each platform to be loaded by downstream jobs
         run: |
+          # The multi-arch build pushed a manifest list to localhost:5000.
+          # We pull each platform by its specific digest (not the manifest list)
+          # so docker save produces a single-platform tar for each arch.
+          manifests=$(docker buildx imagetools inspect localhost:5000/otelcol:latest --raw)
+          echo "=== Manifest list ==="
+          echo "$manifests" | jq .
           for arch in "amd64" "arm64" "ppc64le"; do
             mkdir -p docker-otelcol/${arch}
-            docker pull --platform=linux/${arch} localhost:5000/otelcol:latest
-            docker tag localhost:5000/otelcol:latest otelcol:latest
-            docker save -o ./docker-otelcol/${arch}/image.tar otelcol:latest
-            docker rmi -f localhost:5000/otelcol:latest otelcol:latest
+            digest=$(echo "$manifests" | jq -r ".manifests[] | select(.platform.os==\"linux\" and .platform.architecture==\"${arch}\") | .digest")
+            if [ -z "$digest" ]; then
+              echo "ERROR: No manifest digest found for linux/${arch}" >&2
+              echo "$manifests" | jq '.manifests[].platform' >&2
+              exit 1
+            fi
+            echo "=== ${arch}: digest=${digest} ==="
+            docker pull "localhost:5000/otelcol@${digest}"
+            docker tag "localhost:5000/otelcol@${digest}" otelcol:latest
+            docker save -o "./docker-otelcol/${arch}/image.tar" otelcol:latest
+            docker rmi -f "localhost:5000/otelcol@${digest}" otelcol:latest
           done
       - uses: actions/upload-artifact@v6
         with:
@@ -192,6 +205,16 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
+      # Pre-build the telegraf-exec test image using buildx
+      - name: Build telegraf-exec test image
+        if: matrix.PROFILE == 'smartagent'
+        run: |
+          docker buildx build --load \
+            --platform linux/${{ matrix.ARCH }} \
+            --build-arg IMAGE_PLATFORM=linux/${{ matrix.ARCH }} \
+            --build-arg SPLUNK_OTEL_COLLECTOR_IMAGE=otelcol:latest \
+            -t telegraf-exec-test:latest \
+            tests/receivers/smartagent/telegraf-exec/testdata/exec
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail
@@ -208,6 +231,7 @@ jobs:
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+          TELEGRAF_EXEC_IMAGE: ${{ matrix.PROFILE == 'smartagent' && 'telegraf-exec-test:latest' || '' }}
       # The Integration Test output is extremely large so we upload it as an artifact
       - name: Upload Integration Test Output as Artifact
         uses: actions/upload-artifact@v6
@@ -439,9 +463,9 @@ jobs:
       - name: Fix kubelet TLS server certificates
         run: |
           kubectl get csr -o=jsonpath='{range.items[?(@.spec.signerName=="kubernetes.io/kubelet-serving")]}{.metadata.name}{" "}{end}' | xargs kubectl certificate approve
-      - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
-      - name: Load Docker image in kind
+      - name: Load Docker image into kind
         run: |
+          docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
           kind load docker-image otelcol:latest --name kind
       - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test With Cover
         run: |
@@ -454,8 +478,17 @@ jobs:
       - name: Print logs
         if: failure()
         run: |
-          kubectl get pods -A 
-          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c "kubectl logs -n $0 $1"
+          kubectl get pods -A
+          echo "=== otelcol logs (last 50 lines) ==="
+          # shellcheck disable=SC2016
+          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --tail=50'
+          echo "=== otelcol previous logs (last 50 lines) ==="
+          # shellcheck disable=SC2016
+          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --previous --tail=50' || true
+          echo "=== Pod describe ==="
+          kubectl describe pod -n test -l app=otelcol || true
+          echo "=== Events ==="
+          kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:

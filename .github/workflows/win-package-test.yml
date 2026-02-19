@@ -15,6 +15,7 @@ on:
       - 'Makefile.Common'
       - 'packaging/msi/**'
       - 'tests/zeroconfig/windows/**'
+      - 'tests/msi/**'
       - '!**.md'
 
 concurrency:
@@ -71,7 +72,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v5.0.1
+      - uses: actions/setup-dotnet@v5.1.0
         with:
           dotnet-version: |
             8.0.300
@@ -86,6 +87,24 @@ jobs:
         working-directory: tests/zeroconfig/windows/
         run: |
           .\run-tests.ps1
+
+      - name: Check for any differences in the sources
+        if: always()
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "One or more files were changed, this is not expected."
+            echo "Check for the job artifacts and verify if the changes to the expected traces files are expected."
+            echo "If the changes are expected, update the files in the tests/zeroconfig/windows/testdata/expected directory and push the changes."
+            exit 1
+          fi
+
+      - name: Upload expected traces file
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: expected-traces-dotnet-zeroconfig-e2e-tests
+          path: tests/zeroconfig/windows/testdata/expected/*.yaml
 
   msi-test:
     strategy:

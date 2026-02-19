@@ -175,8 +175,6 @@ jobs:
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
 
-      - run: sudo gem update
-      - run: sudo bundle update
       - run: sudo bundle install
 
       - run: chef --version
@@ -184,9 +182,6 @@ jobs:
       - run: docker --version
 
       - run: kitchen test ${{ matrix.DISTRO }} --log-level debug
-
-      - run: kitchen diagnose default-${{ matrix.DISTRO }}
-        if: always()
 
       - uses: actions/upload-artifact@v6
         if: always()

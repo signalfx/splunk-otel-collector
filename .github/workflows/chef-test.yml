@@ -182,7 +182,8 @@ jobs:
       - name: Install kitchen-docker
         run: chef gem install test-kitchen
 
-      - run: gem update
+      - run: sudo gem update
+      - run: bundle update
       - run: bundle install
 
       - run: chef --version

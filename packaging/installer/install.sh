@@ -75,22 +75,12 @@ debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
 rpm_repo_base="${repo_base}/otel-collector-rpm"
 yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
 
-fluent_capng_c_version="0.2.2"
-fluent_config_dir="${collector_config_dir}/fluentd"
-fluent_config_path="${fluent_config_dir}/fluent.conf"
-fluent_plugin_systemd_version="1.0.1"
-journald_config_path="${fluent_config_dir}/conf.d/journald.conf"
-
-td_agent_repo_base="https://packages.treasuredata.com"
-td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
-
 default_stage="release"
 default_realm="us0"
 default_memory_size="512"
 default_listen_interface="0.0.0.0"
 
 default_collector_version="latest"
-default_td_agent_version="4.3.2"
 
 default_service_user="splunk-otel-collector"
 default_service_group="splunk-otel-collector"
@@ -208,18 +198,6 @@ install_collector_apt_repo() {
   echo "deb $trusted_flag $deb_repo_base $stage main" > /etc/apt/sources.list.d/splunk-otel-collector.list
 }
 
-install_td_agent_apt_repo() {
-  local td_agent_version="$1"
-  local td_agent_major_version="$( echo $td_agent_version | cut -d '.' -f1 )"
-
-  if ! download_file_to_stdout "$td_agent_gpg_key_url" | apt-key add -; then
-    echo "Could not download Debian GPG key from $td_agent_gpg_key_url" >&2
-    exit 1
-  fi
-
-  echo "deb ${td_agent_repo_base}/${td_agent_major_version}/${distro}/${distro_codename} $distro_codename contrib" > /etc/apt/sources.list.d/td_agent.list
-}
-
 install_apt_package() {
   local package_name="$1"
   local version="$2"
@@ -256,28 +234,6 @@ enabled=1
 EOH
 }
 
-install_td_agent_yum_repo() {
-  local td_agent_version="$1"
-  local repo_path="${2:-/etc/yum.repos.d}"
-  local td_agent_major_version="$( echo $td_agent_version | cut -d '.' -f1 )"
-  local releasever="$( echo "$distro_version" | cut -d '.' -f1 )"
-
-  if [ "$distro" = "amzn" ]; then
-    distro="amazon"
-  else
-    distro="redhat"
-  fi
-
-  cat <<EOH > ${repo_path}/td_agent.repo
-[td_agent]
-name=TreasureData Repository
-baseurl=${td_agent_repo_base}/${td_agent_major_version}/${distro}/${releasever}/\$basearch
-gpgcheck=1
-gpgkey=$td_agent_gpg_key_url
-enabled=1
-EOH
-}
-
 install_yum_package() {
   local package_name="$1"
   local version="${2:-}"
@@ -301,22 +257,14 @@ install_yum_package() {
 }
 
 ensure_not_installed() {
-  local with_fluentd="$1"
-  local with_instrumentation="$2"
-  local with_systemd_instrumentation="$3"
-  local npm_path="$4"
+  local with_instrumentation="$1"
+  local with_systemd_instrumentation="$2"
+  local npm_path="$3"
   local otelcol_path=$( command -v otelcol 2>/dev/null || true )
-  local td_agent_path=$( command -v td-agent 2>/dev/null || true )
 
   if [ -n "$otelcol_path" ]; then
     echo "$otelcol_path already exists which implies that the collector is already installed." >&2
     echo "Please uninstall the collector, or try running this script with the '--uninstall' option." >&2
-    exit 1
-  fi
-
-  if [ "$with_fluentd" = "true" ] && [ -n "$td_agent_path" ]; then
-    echo "$td_agent_path already exists which implies that fluentd/td-agent is already installed." >&2
-    echo "Please uninstall fluentd/td-agent, or try running this script with the '--uninstall' option." >&2
     exit 1
   fi
 
@@ -382,59 +330,6 @@ EOH
   chown root:root $override_path
   chmod 644 $override_path
   systemctl daemon-reload
-}
-
-fluent_plugin_installed() {
-  local name="$1"
-
-  td-agent-gem list "$name" --exact | grep -q "$name"
-}
-
-install_fluent_plugin() {
-  local name="$1"
-  local version="${2:-}"
-
-  if [ -n "$version" ]; then
-    td-agent-gem install "$name" --version "$version"
-  else
-    td-agent-gem install "$name"
-  fi
-}
-
-configure_fluentd() {
-  local override_src_path="$fluent_config_dir/splunk-otel-collector.conf"
-  local override_dest_path="/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf"
-
-  if [ -f "$override_src_path" ]; then
-    systemctl stop td-agent
-    mkdir -p $(dirname $override_dest_path)
-    cp -f $override_src_path $override_dest_path
-    chown root:root $override_dest_path
-    chmod 644 $override_dest_path
-    systemctl daemon-reload
-
-    # ensure the td-agent user has access to the config dir
-    chown -R td-agent:td-agent "$fluent_config_dir"
-
-    # configure permissions/capabilities
-    if [ -f /opt/td-agent/bin/fluent-cap-ctl ]; then
-      if ! fluent_plugin_installed "capng_c"; then
-        install_fluent_plugin "capng_c" "$fluent_capng_c_version"
-      fi
-      /opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby
-    else
-      if getent group adm >/dev/null 2>&1; then
-        usermod -a -G adm td-agent
-      fi
-      if getent group systemd-journal 2>&1; then
-        usermod -a -G systemd-journal td-agent
-      fi
-    fi
-
-    if ! fluent_plugin_installed "fluent-plugin-systemd"; then
-      install_fluent_plugin "fluent-plugin-systemd" "$fluent_plugin_systemd_version"
-    fi
-  fi
 }
 
 backup_file() {
@@ -723,10 +618,8 @@ EOH
 install() {
   local stage="$1"
   local collector_version="$2"
-  local td_agent_version="$3"
-  local skip_collector_repo="$4"
-  local skip_fluentd_repo="$5"
-  local instrumentation_version="$6"
+  local skip_collector_repo="$3"
+  local instrumentation_version="$4"
 
   case "$distro" in
     ubuntu|debian)
@@ -741,16 +634,6 @@ install() {
       fi
       apt-get -y update
       install_apt_package "splunk-otel-collector" "$collector_version"
-      if [ -n "$td_agent_version" ]; then
-        td_agent_version="${td_agent_version}-1"
-        if [ "$skip_fluentd_repo" = "false" ]; then
-          install_td_agent_apt_repo "$td_agent_version"
-        fi
-        apt-get -y update
-        install_apt_package "td-agent" "$td_agent_version"
-        apt-get -y install build-essential libcap-ng0 libcap-ng-dev pkg-config
-        systemctl stop td-agent
-      fi
       if [ -n "$instrumentation_version" ]; then
         install_apt_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
       fi
@@ -765,21 +648,6 @@ install() {
         install_collector_yum_repo "$stage"
       fi
       install_yum_package "splunk-otel-collector" "$collector_version"
-      if [ -n "$td_agent_version" ]; then
-        if [ "$skip_fluentd_repo" = "false" ]; then
-          install_td_agent_yum_repo "$td_agent_version"
-        fi
-        install_yum_package "td-agent" "$td_agent_version"
-        if command -v yum >/dev/null 2>&1; then
-          yum group install -y 'Development Tools'
-        else
-          dnf group install -y 'Development Tools'
-        fi
-        for pkg in libcap-ng libcap-ng-devel pkgconfig; do
-          install_yum_package "$pkg" ""
-        done
-        systemctl stop td-agent
-      fi
       if [ -n "$instrumentation_version" ]; then
         install_yum_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
       fi
@@ -806,7 +674,7 @@ install() {
 uninstall() {
   local npm_path="$1"
 
-  for agent in otelcol td-agent $instrumentation_so_path; do
+  for agent in otelcol $instrumentation_so_path; do
     if command -v $agent >/dev/null 2>&1; then
       pkg="$agent"
       if [ "$agent" = "otelcol" ]; then
@@ -931,15 +799,6 @@ Collector:
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
 
-Fluentd [DEPRECATED]:
-  --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
-                                        (default: --without-fluentd)
-  --skip-fluentd-repo                   By default, a apt/yum repo definition file will be created to download the
-                                        fluentd deb/rpm package from $td_agent_repo_base.
-                                        Specify this option to skip this step and use a pre-configured repo on the
-                                        target system that provides the 'td-agent' deb/rpm package.
-                                        Only applicable if the '--with-fluentd' is also specified.
-
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
                                         libsplunk.so shared object library to /etc/ld.so.preload to enable auto
@@ -1011,7 +870,7 @@ Auto Instrumentation:
                                         (default: $default_instrumentation_version)
 
 Uninstall:
-  --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux, Fluentd, and Splunk
+  --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux and Splunk
                                         OpenTelemetry Auto Instrumentation packages, if installed.
 
 EOH
@@ -1049,7 +908,7 @@ distro_is_supported() {
       ;;
     centos|ol|rhel|rocky)
       case "$distro_version" in
-        7*|8*|9*)
+        7*|8*|9*|10*)
           return 0
           ;;
       esac
@@ -1067,36 +926,6 @@ arch_supported() {
       return 1
       ;;
   esac
-}
-
-fluentd_supported() {
-  case "$distro" in
-    amzn)
-      if [ "$distro_version" != "2" ]; then
-        return 1
-      fi
-      ;;
-    sles|opensuse*)
-      return 1
-      ;;
-    debian)
-      if [ "$distro_version" = "9" ] && [ "$distro_arch" = "aarch64" ]; then
-        return 1
-      elif [ "$distro_version" = "12" ]; then
-        return 1
-      fi
-      ;;
-    ubuntu)
-      if [ "$distro_version" = "16.04" ] && [ "$distro_arch" = "aarch64" ]; then
-        return 1
-      fi
-      if [ "$distro_version" = "24.04" ]; then
-        return 1
-      fi
-      ;;
-  esac
-
-  return 0
 }
 
 version_supported() {
@@ -1231,13 +1060,10 @@ parse_args_and_install() {
   local service_group="$default_service_group"
   local stage="$default_stage"
   local service_user="$default_service_user"
-  local td_agent_version="$default_td_agent_version"
   local uninstall="false"
   local mode="agent"
-  local with_fluentd="false"
   local collector_config_path=
   local skip_collector_repo="false"
-  local skip_fluentd_repo="false"
   local with_instrumentation="false"
   local with_systemd_instrumentation="false"
   local instrumentation_version="$default_instrumentation_version"
@@ -1323,24 +1149,11 @@ parse_args_and_install() {
       --skip-collector-repo)
         skip_collector_repo="true"
         ;;
-      --skip-fluentd-repo)
-        skip_fluentd_repo="true"
-        ;;
       --test)
         stage="test"
         ;;
       --uninstall)
         uninstall="true"
-        ;;
-      --with-fluentd)
-        with_fluentd="true"
-        echo "[WARNING] Fluentd support has been deprecated and will be removed in a future release. Please use native OTel receivers instead (e.g. the filelog receiver)." >&2
-        if ! fluentd_supported; then
-          echo "[WARNING] Ignoring the --with-fluentd option since fluentd is currently not supported for ${distro}:${distro_version} ${distro_arch}." >&2
-        fi
-        ;;
-      --without-fluentd)
-        with_fluentd="false"
         ;;
       --with-instrumentation)
         with_instrumentation="true"
@@ -1483,10 +1296,6 @@ parse_args_and_install() {
     hec_url="${ingest_url}/v1/log"
   fi
 
-  if [ "$with_fluentd" != "true" ] || ! fluentd_supported; then
-    td_agent_version=""
-  fi
-
   check_support
 
   # check auto instrumentation options
@@ -1557,7 +1366,7 @@ parse_args_and_install() {
     fi
   fi
 
-  ensure_not_installed "$with_fluentd" "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
+  ensure_not_installed "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
   echo "Memory Size in MIB: $memory"
@@ -1570,9 +1379,6 @@ parse_args_and_install() {
   echo "API Endpoint: $api_url"
   echo "HEC Endpoint: $hec_url"
   echo "GODEBUG: $godebug"
-  if [ -n "$td_agent_version" ]; then
-    echo "TD Agent (Fluentd) Version: $td_agent_version"
-  fi
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
     echo "  Supported Auto Instrumentation SDK(s) to activate: $sdks_to_enable"
@@ -1602,7 +1408,7 @@ parse_args_and_install() {
     exit 1
   fi
 
-  install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo" "$instrumentation_version"
+  install "$stage" "$collector_version" "$skip_collector_repo" "$instrumentation_version"
 
   if [ "$with_instrumentation" = "true" ]; then
     if item_in_list "java" "$sdks_to_enable"; then
@@ -1746,20 +1552,6 @@ parse_args_and_install() {
   systemctl daemon-reload
   systemctl restart splunk-otel-collector
 
-  if [ -n "$td_agent_version" ]; then
-    # only start fluentd with our custom config to avoid port conflicts within the default config
-    systemctl stop td-agent
-    if [ -f "$fluent_config_path" ]; then
-      configure_fluentd
-      systemctl restart td-agent
-    else
-      if [ -f /etc/td-agent/td-agent.conf ]; then
-        mv -f /etc/td-agent/td-agent.conf /etc/td-agent/td-agent.conf.bak
-      fi
-      systemctl disable td-agent
-    fi
-  fi
-
   echo
   cat <<EOH
 The Splunk OpenTelemetry Collector for Linux has been successfully installed.
@@ -1775,30 +1567,6 @@ must be restarted to apply the changes by running the following command as root:
   systemctl restart splunk-otel-collector
 
 EOH
-
-  if [ -n "$td_agent_version" ] && [ -f "$fluent_config_path" ]; then
-    cat <<EOH
-Fluentd has been installed and configured to forward log events to the Splunk OpenTelemetry Collector.
-By default, all log events with the @SPLUNK label will be forwarded to the collector.
-
-The main fluentd configuration file is located at $fluent_config_path.
-Custom input sources and configurations can be added to the ${fluent_config_dir}/conf.d/ directory.
-All files with the .conf extension in this directory will automatically be included by fluentd.
-
-Note: The fluentd service runs as the "td-agent" user.  When adding new input sources or configuration
-files to the ${fluent_config_dir}/conf.d/ directory, ensure that the "td-agent" user has permissions
-to access the new config files and the paths defined within.
-
-By default, fluentd has been configured to collect systemd journal log events from /var/log/journal.
-See $journald_config_path for the default source configuration.
-
-If the fluentd configuration is modified or new config files are added, the fluentd service must be
-restarted to apply the changes by running the following command as root:
-
-  systemctl restart td-agent
-
-EOH
-  fi
 
   if [ -n "$sdks_to_enable" ]; then
     if [ -n "$sdks_enabled" ]; then
@@ -1845,12 +1613,6 @@ EOH
 EOH
       fi
     fi
-  fi
-
-  if [ "$with_fluentd" = "true" ] && ! fluentd_supported; then
-    cat <<EOH >&2
-[WARNING] Fluentd was not installed since it is currently not supported for ${distro}:${distro_version} ${distro_arch}
-EOH
   fi
 
   if [ -z "$listen_interface" ] && [ "$mode" = "agent" ]; then

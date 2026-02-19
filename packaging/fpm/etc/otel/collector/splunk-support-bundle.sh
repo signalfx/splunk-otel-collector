@@ -134,7 +134,6 @@ getConfig() {
 getStatus() {
     echo "INFO: Getting status..."
     systemctl status splunk-otel-collector >"$TMPDIR"/logs/splunk-otel-collector.txt 2>&1
-    systemctl status td-agent >"$TMPDIR"/logs/td-agent.txt 2>&1
 }
 
 #######################################
@@ -147,13 +146,6 @@ getStatus() {
 getLogs() {
     echo "INFO: Getting logs..."
     journalctl -u splunk-otel-collector >"$TMPDIR"/logs/splunk-otel-collector.log 2>&1
-    journalctl -u td-agent >"$TMPDIR"/logs/td-agent.log 2>&1
-    LOGDIR="/var/log/td-agent"
-    if test -r "$LOGDIR"; then
-        cp -r /var/log/td-agent "$TMPDIR"/logs/td-agent/ 2>&1
-    else
-        echo "WARN: Permission denied to directory ($LOGDIR)."
-    fi
 }
 
 #######################################
@@ -203,11 +195,11 @@ getZpages() {
 getHostInfo() {
     echo "INFO: Getting host information..."
     # Filter top to only collect Splunk-specific processes
-    PIDS=$(pgrep -d "," 'otelcol|fluentd' 2>&1)
+    PIDS=$(pgrep -d "," 'otelcol' 2>&1)
     if [ -n "$PIDS" ]; then
         top -b -n 3 -p "$PIDS" >"$TMPDIR"/metrics/top.txt 2>&1
     else
-        echo "WARN: Unable to find otelcol or fluentd PIDs"
+        echo "WARN: Unable to find otelcol PIDs"
         echo "      top will not be collected"
     fi
     df -h >"$TMPDIR"/metrics/df.txt 2>&1

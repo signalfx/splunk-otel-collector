@@ -40,7 +40,7 @@ receivers:
       - host_observer/with/another/name
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -56,7 +56,7 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      exporters: [otlp]
+      exporters: [otlp_grpc]
     logs:
       receivers: [discovery]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

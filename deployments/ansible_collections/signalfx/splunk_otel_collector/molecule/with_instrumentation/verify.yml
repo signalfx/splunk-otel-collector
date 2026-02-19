@@ -1,0 +1,122 @@
+---
+- name: Verify scenario with auto-instrumentation installation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is running
+      ansible.builtin.assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
+
+    - name: Populate package facts
+      ansible.builtin.package_facts:
+
+    - name: Debug splunk-otel-auto-instrumentation package info
+      ansible.builtin.debug:
+        var: ansible_facts.packages['splunk-otel-auto-instrumentation'][0]
+
+    - name: Check for the new config files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - /etc/splunk/zeroconfig/java.conf
+        - /etc/splunk/zeroconfig/node.conf
+        - /etc/splunk/zeroconfig/dotnet.conf
+      register: new_config_files
+
+    - name: Assert the new config files exist
+      ansible.builtin.assert:
+        that: item.stat.exists
+      loop: "{{ new_config_files.results }}"
+
+    - name: Check for systemd drop-in file
+      ansible.builtin.stat:
+        path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
+      register: systemd
+
+    - name: Assert systemd drop-in file does not exist
+      ansible.builtin.assert:
+        that: not systemd.stat.exists
+
+    - name: Assert /etc/ld.so.preload contains path to libsplunk.so
+      ansible.builtin.lineinfile:
+        line: /usr/lib/splunk-instrumentation/libsplunk.so
+        dest: /etc/ld.so.preload
+        state: present
+      check_mode: yes
+      register: preload
+      failed_when: preload is changed
+
+    - name: Assert instrumentation config contains path to java agent
+      ansible.builtin.lineinfile:
+        line: java_agent_jar=/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains resource attribute
+      ansible.builtin.lineinfile:
+        line: resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-0.126.0,deployment.environment=test
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains service name
+      ansible.builtin.lineinfile:
+        line: service_name=test
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains generate_service_name
+      ansible.builtin.lineinfile:
+        line: generate_service_name=false
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains disable_telemetry
+      ansible.builtin.lineinfile:
+        line: disable_telemetry=true
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains enable_profiler
+      ansible.builtin.lineinfile:
+        line: enable_profiler=true
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains enable_profiler_memory
+      ansible.builtin.lineinfile:
+        line: enable_profiler_memory=true
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains enable_metrics
+      ansible.builtin.lineinfile:
+        line: enable_metrics=true
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed

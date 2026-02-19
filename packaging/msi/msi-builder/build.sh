@@ -16,13 +16,16 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR=${REPO_DIR:-"$(cd "${SCRIPT_DIR}/../../.." && pwd)"}
+WORK_DIR=${WORK_DIR:-"${REPO_DIR}/work"}
+PROJECT_DIR=${PROJECT_DIR:-"${REPO_DIR}"}
+
 MSI_SRC_DIR=${MSI_SRC_DIR:-"${REPO_DIR}/packaging/msi"}
 WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
 OTELCOL="${REPO_DIR}/bin/otelcol_windows_amd64.exe"
 AGENT_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
 GATEWAY_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
-FLUENTD_CONFIG=${FLUENTD_CONFIG:-"${REPO_DIR}/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"}
-FLUENTD_CONFD="${MSI_SRC_DIR}/fluentd/conf.d"
 SUPPORT_BUNDLE_SCRIPT=${SUPPORT_BUNDLE_SCRIPT:-"${MSI_SRC_DIR}/splunk-support-bundle.ps1"}
 SPLUNK_ICON="${MSI_SRC_DIR}/splunk.ico"
 OUTPUT_DIR="${REPO_DIR}/dist"
@@ -43,16 +46,6 @@ OPTIONS:
                                       Defaults to '$AGENT_CONFIG'.
     --gateway-config PATH             Absolute path to the gateway config.
                                       Defaults to '$GATEWAY_CONFIG'.
-    --fluentd PATH                    DEPRECATED: Fluentd support has been deprecated and will be removed in a future release.
-                                      Please refer to documentation for more information:
-                                      https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
-                                      Absolute path to the fluentd config.
-                                      Defaults to '$FLUENTD_CONFIG'.
-    --fluentd-confd PATH              DEPRECATED: Fluentd support has been deprecated and will be removed in a future release.
-                                      Please refer to documentation for more information:
-                                      https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
-                                      Absolute path to the conf.d.
-                                      Defaults to '$FLUENTD_CONFD'.
     --support-bundle PATH             Absolute path to the support bundle script.
                                       Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
     --jmx-metric-gatherer VERSION     The released version of the JMX Metric Gatherer JAR to include (will be downloaded).
@@ -69,8 +62,6 @@ parse_args_and_build() {
     local otelcol="$OTELCOL"
     local agent_config="$AGENT_CONFIG"
     local gateway_config="$GATEWAY_CONFIG"
-    local fluentd_config="$FLUENTD_CONFIG"
-    local fluentd_confd="$FLUENTD_CONFD"
     local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
     local jmx_metric_gatherer_release="$JMX_METRIC_GATHERER_RELEASE"
     local splunk_icon="$SPLUNK_ICON"
@@ -90,16 +81,6 @@ parse_args_and_build() {
                 ;;
             --gateway-config)
                 gateway_config="$2"
-                shift 1
-                ;;
-            --fluentd)
-                echo "[WARNING] DEPRECATED: Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md"
-                fluentd_config="$2"
-                shift 1
-                ;;
-            --fluentd-confd)
-                echo "[WARNING] DEPRECATED: Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md"
-                fluentd_confd="$2"
                 shift 1
                 ;;
             --support-bundle)
@@ -156,12 +137,10 @@ parse_args_and_build() {
         echo "Skipping build directory removal"
     fi
 
-    mkdir -p "${files_dir}/fluentd/conf.d"
+    mkdir -p "${files_dir}"
     cp "$support_bundle" "${files_dir}/splunk-support-bundle.ps1"
     cp "$agent_config" "${files_dir}/agent_config.yaml"
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
-    cp "$fluentd_config" "${files_dir}/fluentd/td-agent.conf"
-    cp "${fluentd_confd}"/*.conf "${files_dir}/fluentd/conf.d/"
 
     if [ -z "$skip_build_dir_removal" ]; then
         unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
@@ -179,17 +158,16 @@ parse_args_and_build() {
 
     cd ${WORK_DIR}
 
-    configFilesWsx="${build_dir}/configfiles.wsx"
-    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx}"
-
-    configFilesWixObj="${build_dir}/configfiles.wixobj"
-    candle -arch x64 -out "${configFilesWixObj}" "${configFilesWsx}"
-
-    collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
-    candle -arch x64 -out "${collectorWixObj}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH}"
+    dotnet wix build "${WXS_PATH}" \
+        -arch x64 \
+        -out "${build_dir}/${msi_name}" \
+        -bindpath "${files_dir}" \
+        -d Version="${version}" \
+        -d Otelcol="${otelcol}" \
+        -d JmxMetricsJar="${jmx_metrics_jar}" \
+        -d FilesDir="${files_dir}"
 
     msi="${build_dir}/${msi_name}"
-    light -ext WixUtilExtension.dll -sval -out "${msi}" -b "${files_dir}" "${collectorWixObj}" "${configFilesWixObj}"
 
     mkdir -p $output
     cp "${msi}" "${output}/${msi_name}"

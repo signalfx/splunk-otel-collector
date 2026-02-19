@@ -1,21 +1,21 @@
 name: Ansible
 
-# The workflow triggered by any change in deployments/ansible/.
+# The workflow triggered by any change in deployments/ansible_collections/signalfx/splunk_otel_collector/.
 # 1. Run lint checks and Ansible Molecule tests.
 # 2. Push a new "ansible-v<VERSION>" tag, if the version was updated
-#    in deployments/ansible/galaxy.yml.
+#    in deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml.
 
 on:
   push:
     paths:
       - '.github/workflows/ansible.yml'
-      - 'deployments/ansible/galaxy.yml'
+      - 'deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml'
     branches:
       - main
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
-      - 'deployments/ansible/**'
+      - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
       - '!**.md'
       - '!packaging/technical-addon/**'
   schedule:
@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
@@ -100,11 +100,28 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install yamllint.
-        run: pip3 install yamllint
+      - name: Install dependencies.
+        run: |
+          pip3 install 'yamllint==1.38.0'
+          pip3 install 'galaxy-importer==0.4.37'
 
       - name: Lint code.
         run: yamllint .
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v26.1.1
+        with:
+          requirements_file: "molecule/requirements.yml"
+          setup_python: "false"
+          working_directory: "deployments/ansible_collections/signalfx/splunk_otel_collector"
+
+      - name: Run Ansible sanity tests
+        run: ansible-test sanity
+
+      - name: Run galaxy-importer
+        run: |
+          ansible-galaxy collection build ./ --output-path ./dist
+          python3 -m galaxy_importer.main dist/signalfx-splunk_otel_collector-*
 
   linux-test:
     name: Linux Test
@@ -112,27 +129,27 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     strategy:
       fail-fast: false
       matrix:
         ansible:
           # Testing only the versions currently supported per https://endoflife.date/ansible
-          - ansible~=12.0.0
-          - ansible~=11.6.0
+          - ansible>=12.2.0, <13.0.0
+          - ansible>=13.0.0, <14.0.0
         distro:
           - amazonlinux2023
           - centos9
           - debian11
           - debian12
-          - ubuntu2004
           - ubuntu2204
+          - ubuntu2404
 
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           path: /tmp
 
@@ -141,11 +158,11 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            ansible-lint==25.9.1
-            molecule==25.5.0
-            molecule-plugins[docker]==25.8.12
-            docker==7.1.0
-            requests<2.32.0
+            ansible-lint>=26.1.0
+            molecule>=25.5.0
+            molecule-plugins[docker]>=25.8.12
+            docker>=7.1.0
+            requests>=2.32.0
             urllib3<3
 
       - name: Set up Python 3.
@@ -176,17 +193,15 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         ansible:
           # Testing only the versions currently supported per https://endoflife.date/ansible
-          - ansible~=12.0.0
-          - ansible~=11.6.0
+          - ansible>=13.0.0, <14.0.0
         distro:
-          - "2016"
           - "2019"
           - "2022"
         scenario:
@@ -205,10 +220,22 @@ jobs:
       - name: Make tmp directory for msi build artifact
         run: mkdir -p /tmp/msi-build
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: msi-build-windows-2025
           path: /tmp/msi-build
+      # Workaround for https://github.com/actions/runner-images/issues/13202
+      - name: Unload KVM module (AMD)
+        run: |
+          # Check if KVM modules are loaded
+          lsmod | grep kvm
+          # Unload KVM modules if present (for Intel or AMD CPUs)
+          sudo modprobe -r kvm_intel || true
+          sudo modprobe -r kvm_amd || true
+          sudo rmmod kvm || true
+          # Verify KVM is unloaded
+          lsmod | grep kvm
+        continue-on-error: true
 
       - name: Install vagrant and virtualbox
         run: |
@@ -222,16 +249,16 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            ansible-compat==25.8.2
-            ansible-lint==25.9.1
-            molecule==25.1.0
-            molecule-plugins[vagrant]==25.8.12
-            pywinrm==0.4.3
+            ansible-compat<=25.8.2
+            ansible-lint<=26.1.1
+            molecule<=25.1.0
+            molecule-plugins[vagrant]<=25.8.12
+            pywinrm<=0.4.3
 
       - name: Set up Python 3.
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 
@@ -244,7 +271,7 @@ jobs:
           box_version=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box_version" ./molecule/config/windows.yml )
           eval "box_version=${box_version}"
           json=$( wget -nv -O- "https://vagrantcloud.com/api/v2/vagrant/${box}" )
-          url=$( echo "$json" | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
+          url=$( echo "$json" |  tr -d '\r' |  tr -d '\n' | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
           wget -nv -O /tmp/vagrant.box "$url"
 
       - name: Clean VirtualBox cache
@@ -274,7 +301,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: 'deployments/ansible'
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout
@@ -284,7 +311,7 @@ jobs:
         id: read-galaxy-yaml
         uses: cumulusds/get-yaml-paths-action@v1
         with:
-          file: deployments/ansible/galaxy.yml
+          file: deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml
           version: version
       
       - name: Ensure version is fetched from galaxy.yml

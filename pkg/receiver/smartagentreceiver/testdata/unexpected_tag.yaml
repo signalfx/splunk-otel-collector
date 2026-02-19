@@ -1,5 +1,5 @@
 smartagent/unexpectedtag:
-  type: collectd/redis
+  type: collectd/python
   intervalSeconds: 123
   notASupportedTag: somevalue
 

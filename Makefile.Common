@@ -4,6 +4,9 @@ SHELL?=/bin/bash
 # Used for building the collector to collect coverage information
 COVER_TESTING?=false
 
+# Used to control whether race detection is enabled for tests
+ENABLE_RACE_DETECTOR?=true
+
 # Add support to use Makefile on Windows
 SHELL_CASE_EXP = case "$$(uname -s)" in CYGWIN*|MINGW*|MSYS*) echo "true";; esac;
 UNIX_SHELL_ON_WINDOWS := $(shell $(SHELL_CASE_EXP))
@@ -30,13 +33,16 @@ BUILD_DIR?=$(SRC_ROOT)/build
 
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""
+ifeq ($(ENABLE_RACE_DETECTOR),true)
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
-GOTEST_OPT_WITHOUT_RACE?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+else
+GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+endif
 GOCMD?= go
 GOTEST=$(GOCMD) test
 GOOS=$(shell $(GOCMD) env GOOS)
 GOARCH=$(shell $(GOCMD) env GOARCH)
-ADDLICENCESE= addlicense
+ADDLICENSES= addlicense
 MDLINKCHECK=markdown-link-check
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
@@ -100,22 +106,14 @@ test-with-codecov:
 	mkdir -p $(COVER_DIR)
 	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
 
-# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
-# This target should be removed in favor of "test" once the following issue is resolved:
-# https://github.com/shirou/gopsutil/issues/1774
-.PHONY: test-cover-without-race
-test-cover-without-race:
-	mkdir -p $(COVER_DIR_ABS)
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
-
 endif
 
 .PHONY: addlicense
 addlicense:
-	@ADDLICENCESEOUT=`$(ADDLICENCESE) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \
-		if [ "$$ADDLICENCESEOUT" ]; then \
-			echo "$(ADDLICENCESE) FAILED => add License errors:\n"; \
-			echo "$$ADDLICENCESEOUT\n"; \
+	@ADDLICENSESOUT=`$(ADDLICENSES) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENSESOUT" ]; then \
+			echo "$(ADDLICENSES) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENSESOUT\n"; \
 			exit 1; \
 		else \
 			echo "Add License finished successfully"; \
@@ -123,10 +121,10 @@ addlicense:
 
 .PHONY: checklicense
 checklicense:
-	@ADDLICENCESEOUT=`$(ADDLICENCESE) -check $(ALL_SRC) 2>&1`; \
-		if [ "$$ADDLICENCESEOUT" ]; then \
-			echo "$(ADDLICENCESE) FAILED => add License errors:\n"; \
-			echo "$$ADDLICENCESEOUT\n"; \
+	@ADDLICENSESOUT=`$(ADDLICENSES) -check $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENSESOUT" ]; then \
+			echo "$(ADDLICENSES) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENSESOUT\n"; \
 			echo "Use 'make addlicense' to fix this."; \
 			exit 1; \
 		else \

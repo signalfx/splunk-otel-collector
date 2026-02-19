@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 concurrency:
   group: windows-test-${{ github.event.pull_request.number || github.ref }}
@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "windows-2022", "windows-2025", "windows-11-arm" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5

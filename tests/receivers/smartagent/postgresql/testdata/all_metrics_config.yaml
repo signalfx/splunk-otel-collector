@@ -12,7 +12,7 @@ receivers:
     intervalSeconds: 1
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -33,4 +33,4 @@ service:
       receivers:
         - smartagent/postgresql
       processors: [groupbyattrs, batch, groupbyattrs/2, batch/2]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

@@ -1,0 +1,31 @@
+---
+namespace: signalfx
+name: splunk_otel_collector
+description: Ansible collection for Splunk OpenTelemetry Collector
+version: 1.0.0
+readme: README.md
+authors:
+  - Splunk Inc.
+dependencies:
+  community.general: "*"
+  ansible.windows: "*"
+license:
+  - Apache-2.0
+tags:
+  - apm
+  - collector
+  - logs
+  - metrics
+  - monitoring
+  - o11y
+  - observability
+  - opentelemetry
+  - otel
+  - splunk
+  - telemetry
+  - traces
+# yamllint disable-line rule:line-length
+repository: https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible_collections/signalfx/splunk_otel_collector
+build_ignore:
+  - contributing
+  - molecule

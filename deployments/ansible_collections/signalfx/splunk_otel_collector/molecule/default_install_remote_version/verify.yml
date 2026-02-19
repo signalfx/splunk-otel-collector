@@ -1,0 +1,47 @@
+---
+- name: Verify scenario with the default configuration
+  hosts: all
+  gather_facts: true
+  tasks:
+
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is stopped
+      ansible.builtin.assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'stopped'
+
+    - name: Assert SPLUNK_ACCESS_TOKEN env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_ACCESS_TOKEN=fake-token
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert SPLUNK_REALM env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_REALM=fake-realm
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert SPLUNK_INGEST_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_INGEST_URL=https://ingest.fake-realm.signalfx.com
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert SPLUNK_API_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_INGEST_URL=https://api.fake-realm.signalfx.com
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert SPLUNK_HEC_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_HEC_URL=https://ingest.fake-realm.signalfx.com/v1/log
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes

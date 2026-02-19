@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   changelog:
@@ -38,7 +38,7 @@ jobs:
           check-latest: true
       - name: Cache Go
         id: go-cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v4
         with:
           path: |
             ~/go/bin

@@ -71,7 +71,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
     compression: gzip
     headers:
@@ -114,7 +114,7 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [otlphttp, signalfx]
+      exporters: [otlp_http, signalfx]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]

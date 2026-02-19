@@ -20,7 +20,7 @@ The distribution offers support for the following components.
 | [awscloudwatch](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscloudwatchreceiver)                                        | [alpha]          |
 | [awsecscontainermetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsecscontainermetricsreceiver)                      | [beta]           |
 | [azureblob](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureblobreceiver)                                                | [alpha]          |
-| [azureeventhub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureeventhubreceiver)                                        | [alpha]          |
+| [azure_event_hub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureeventhubreceiver)                                        | [alpha]          |
 | [azuremonitor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azuremonitorreceiver)                                          | [alpha]          |
 | [carbon](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/carbonreceiver)                                                      | [alpha]          |
 | [chrony](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver)                                                      | [beta]           |
@@ -50,8 +50,9 @@ The distribution offers support for the following components.
 | [kafkametrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver)                                          | [beta]           |
 | [kubeletstats](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver)                                          | [beta]           |
 | [lightprometheus](../internal/receiver/lightprometheusreceiver)                                                                                                    | [in development] |
+| [memcached](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/memcachedreceiver)                                                | [beta]           |
 | [mongodb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbreceiver)                                                    | [beta]           |
-| [mongodbatlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)                                          | [beta]           |
+| [mongodb_atlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)                                          | [beta]           |
 | [mysql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver)                                                        | [beta]           |
 | [nginx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/nginxreceiver)                                                        | [beta]           |
 | [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/nopreceiver)                                                                    | [beta]           |
@@ -66,6 +67,7 @@ The distribution offers support for the following components.
 | [rabbitmq](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/rabbitmqreceiver)                                                  | [beta]           |
 | [receiver_creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator)                                           | [beta]           |
 | [redis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/redisreceiver)                                                        | [beta]           |
+| [saphana](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/saphanareceiver)                                                    | [alpha]          |
 | [scripted_inputs](../internal/receiver//scriptedinputsreceiver)                                                                                                    | [in development] |
 | [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver)                                                  | [stable]         |
 | [signalfxgatewayprometheusremotewrite](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/signalfxgatewayprometheusremotewritereceiver) | [in development] |
@@ -80,6 +82,7 @@ The distribution offers support for the following components.
 | [sshcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sshcheckreceiver)                                                  | [alpha]          |
 | [statsd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver)                                                      | [beta]           |
 | [syslog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/syslogreceiver)                                                      | [alpha]          |
+| [systemd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/systemdreceiver)                                                    | [alpha]          |
 | [tcpcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tcpcheckreceiver)                                                  | [alpha]          |
 | [tcplog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tcplogreceiver)                                                      | [alpha]          |
 | [tlscheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tlscheckreceiver)                                                  | [alpha]          |
@@ -88,6 +91,7 @@ The distribution offers support for the following components.
 | [wavefront](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/wavefrontreceiver)                                                | [beta]           |
 | [windowseventlog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowseventlogreceiver)                                    | [alpha]          |
 | [windowsperfcounters](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsperfcountersreceiver)                            | [beta]           |
+| [yanggrpc](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/yanggrpcreceiver)                                                  | [alpha]          |
 | [zipkin](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zipkinreceiver)                                                      | [beta]           |
 | [zookeeper](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zookeeperreceiver)                                                | [alpha]          |
 
@@ -129,8 +133,8 @@ The distribution offers support for the following components.
 | [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)                                 | [beta]       |
 | [loadbalancing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter)                 | [beta]       |
 | [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/nopexporter)                                             | [beta]       |
-| [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                                           | [stable]     |
-| [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                                   | [stable]     |
+| [otlp_grpc](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                                      | [stable]     |
+| [otlp_http](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                                  | [stable]     |
 | [prometheusremotewrite](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter) | [beta]       |
 | [pulsar](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/pulsarexporter)                               | [alpha]      |
 | [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)                                   | [deprecated] |

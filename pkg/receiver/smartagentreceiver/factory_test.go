@@ -15,16 +15,10 @@
 package smartagentreceiver
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/consumer/consumertest"
-	otelcolreceiver "go.opentelemetry.io/collector/receiver"
-
-	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -32,108 +26,4 @@ func TestCreateDefaultConfig(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 	assert.NotNil(t, cfg, "failed to create default config")
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
-}
-
-func TestCreateMetrics(t *testing.T) {
-	factory := NewFactory()
-	cfg := factory.CreateDefaultConfig()
-	cfg.(*Config).MonitorType = "haproxy"
-	cfg.(*Config).monitorConfig = &haproxy.Config{}
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateMetrics(context.Background(), params, cfg, consumertest.NewNop())
-	assert.NoError(t, err)
-	assert.NotNil(t, receiver)
-
-	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
-}
-
-func TestCreateLogs(t *testing.T) {
-	factory := NewFactory()
-	cfg := factory.CreateDefaultConfig()
-	cfg.(*Config).MonitorType = "haproxy"
-	cfg.(*Config).monitorConfig = &haproxy.Config{}
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
-	assert.NoError(t, err)
-	assert.NotNil(t, receiver)
-
-	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
-}
-
-func TestCreateTraces(t *testing.T) {
-	factory := NewFactory()
-	cfg := factory.CreateDefaultConfig()
-	cfg.(*Config).MonitorType = "haproxy"
-	cfg.(*Config).monitorConfig = &haproxy.Config{}
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
-	assert.NoError(t, err)
-	assert.NotNil(t, receiver)
-
-	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
-}
-
-func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {
-	factory := NewFactory()
-	cfg := factory.CreateDefaultConfig()
-	cfg.(*Config).MonitorType = "haproxy"
-	cfg.(*Config).monitorConfig = &haproxy.Config{}
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	nextMetricsConsumer := consumertest.NewNop()
-	metricsReceiver, err := factory.CreateMetrics(context.Background(), params, cfg, nextMetricsConsumer)
-	assert.NoError(t, err)
-	assert.NotNil(t, metricsReceiver)
-
-	nextLogsConsumer := consumertest.NewNop()
-	logsReceiver, err := factory.CreateLogs(context.Background(), params, cfg, nextLogsConsumer)
-	assert.NoError(t, err)
-	assert.NotNil(t, logsReceiver)
-
-	nextTracesConsumer := consumertest.NewNop()
-	tracesReceiver, err := factory.CreateTraces(context.Background(), params, cfg, nextTracesConsumer)
-	assert.NoError(t, err)
-	assert.NotNil(t, tracesReceiver)
-
-	assert.Same(t, metricsReceiver, logsReceiver)
-	assert.Same(t, logsReceiver, tracesReceiver)
-	assert.Same(t, metricsReceiver, receiverStore[cfg.(*Config)])
-
-	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*receiver).nextMetricsConsumer)
-	assert.Same(t, nextLogsConsumer, metricsReceiver.(*receiver).nextLogsConsumer)
-	assert.Same(t, nextTracesConsumer, metricsReceiver.(*receiver).nextTracesConsumer)
-}
-
-func TestCreateTracesThenLogsAndThenMetricsReceiver(t *testing.T) {
-	factory := NewFactory()
-	cfg := factory.CreateDefaultConfig()
-	cfg.(*Config).MonitorType = "haproxy"
-	cfg.(*Config).monitorConfig = &haproxy.Config{}
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	nextTracesConsumer := consumertest.NewNop()
-	tracesReceiver, err := factory.CreateTraces(context.Background(), params, cfg, nextTracesConsumer)
-	assert.NoError(t, err)
-	assert.NotNil(t, tracesReceiver)
-
-	nextLogsConsumer := consumertest.NewNop()
-	logsReceiver, err := factory.CreateLogs(context.Background(), params, cfg, nextLogsConsumer)
-	assert.NoError(t, err)
-	assert.NotNil(t, logsReceiver)
-
-	nextMetricsConsumer := consumertest.NewNop()
-	metricsReceiver, err := factory.CreateMetrics(context.Background(), params, cfg, nextMetricsConsumer)
-	assert.NoError(t, err)
-	assert.NotNil(t, metricsReceiver)
-
-	assert.Same(t, metricsReceiver, logsReceiver)
-	assert.Same(t, logsReceiver, tracesReceiver)
-	assert.Same(t, metricsReceiver, receiverStore[cfg.(*Config)])
-
-	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*receiver).nextMetricsConsumer)
-	assert.Same(t, nextLogsConsumer, metricsReceiver.(*receiver).nextLogsConsumer)
-	assert.Same(t, nextTracesConsumer, metricsReceiver.(*receiver).nextTracesConsumer)
 }

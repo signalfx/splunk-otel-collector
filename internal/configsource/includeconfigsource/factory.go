@@ -41,8 +41,8 @@ func (f *includeFactory) CreateDefaultConfig() configsource.Settings {
 	}
 }
 
-func (f *includeFactory) CreateConfigSource(_ context.Context, settings configsource.Settings, _ *zap.Logger) (configsource.ConfigSource, error) {
-	return newConfigSource(settings.(*Config))
+func (f *includeFactory) CreateConfigSource(_ context.Context, settings configsource.Settings, logger *zap.Logger) (configsource.ConfigSource, error) {
+	return newConfigSource(settings.(*Config), logger)
 }
 
 // NewFactory creates a factory for include ConfigSource objects.

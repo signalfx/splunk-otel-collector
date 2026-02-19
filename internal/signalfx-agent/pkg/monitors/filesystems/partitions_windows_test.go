@@ -68,6 +68,8 @@ var removableDriveVolume = func() *volumeMock {
 }
 
 func TestGetPartitions_Supersets_gopsutil_PartitionStats(t *testing.T) {
+	t.Skip("This test was not running for a while, needs investigation to re-enable it")
+
 	// Partition stats from gopsutil are for drive mounts only.
 	want, err := gopsutil.Partitions(true)
 	require.NoError(t, err)

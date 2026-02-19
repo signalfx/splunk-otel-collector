@@ -12,7 +12,7 @@ on:
         value: ${{ jobs.msi-build.outputs.version }}
 
 env:
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   msi-build:
@@ -38,26 +38,23 @@ jobs:
           
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Uninstall default WiX
-        run: choco uninstall wixtoolset
-
-      - name: Install WiX 3.14.0
-        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+      - name: Install Wix
+        run: dotnet tool restore
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: binaries-windows_amd64
           path: ./bin
 
       - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: agent-bundle-windows-${{ inputs.OS }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: msi-custom-actions
           path: ./packaging/msi/SplunkCustomActions/bin/Release
@@ -72,7 +69,7 @@ jobs:
           ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"
 
       - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: msi-build-${{ inputs.OS }}
           path: ./dist/*.msi

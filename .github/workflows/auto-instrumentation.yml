@@ -23,7 +23,7 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.25.5
+  GO_VERSION: 1.25.7
 
 jobs:
   cross-compile:
@@ -53,7 +53,7 @@ jobs:
         run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
           path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
@@ -106,12 +106,12 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist

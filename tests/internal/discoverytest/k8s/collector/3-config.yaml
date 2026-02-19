@@ -6,8 +6,8 @@ metadata:
 data:
   config.yaml: |
     exporters:
-      otlp:
-        endpoint: {{ .HostEndpoint }}
+      otlp_grpc:
+        endpoint: "{{ .HostEndpoint }}"
         tls:
           insecure: true
       debug:
@@ -19,7 +19,7 @@ data:
       pipelines:
         logs/entities:
           exporters:
-          - otlp
+          - otlp_grpc
         metrics:
           exporters:
-          - otlp
+          - otlp_grpc

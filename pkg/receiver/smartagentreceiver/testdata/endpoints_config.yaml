@@ -1,14 +1,3 @@
-smartagent/haproxy:
-  endpoint: "[fe80::20c:29ff:fe59:9446]:2345"
-  type: haproxy
-  intervalSeconds: 123
-  username: SomeUser
-  password: secret
-smartagent/redis:
-  endpoint: redishost
-  type: collectd/redis
-  port: 6379
-  intervalSeconds: 234
 smartagent/etcd:
   endpoint: etcdhost:5555
   type: etcd
@@ -18,9 +7,3 @@ smartagent/elasticsearch:
   type: elasticsearch
   endpoint: elastic:567
   intervalSeconds: 567
-smartagent/kubelet-stats:
-  type: kubelet-stats
-  endpoint: disregarded:678
-  intervalSeconds: 789
-  kubeletAPI:
-    authType: serviceAccount

@@ -1,6 +1,6 @@
 file:
   exporters:
-    otlp:
+    otlp_grpc:
       endpoint: ${OTLP_ENDPOINT}
       tls:
         insecure: true
@@ -31,7 +31,7 @@ file:
                   without_units: true
     pipelines:
       metrics:
-        exporters: [otlp]
+        exporters: [otlp_grpc]
         processors: [filter]
 splunk.discovery:
   extensions:

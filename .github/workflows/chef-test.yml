@@ -190,7 +190,7 @@ jobs:
 
       - run: docker --version
 
-      - run: kitchen create default-${{ matrix.DISTRO }} --log-level debug
+      - run: kitchen test ${{ matrix.DISTRO }} --log-level debug
 
       - run: kitchen diagnose default-${{ matrix.DISTRO }}
         if: always()

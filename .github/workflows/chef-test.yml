@@ -183,8 +183,8 @@ jobs:
         run: chef gem install test-kitchen
 
       - run: sudo gem update
-      - run: bundle update
-      - run: bundle install
+      - run: sudo bundle update
+      - run: sudo bundle install
 
       - run: chef --version
 

@@ -175,13 +175,6 @@ jobs:
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
 
-      # Install latest version of kitchen-dokken. As of Feb 2026 the default version
-      # installed with chef doesn't include the required bug fix released in v2.21.4
-      - run: chef gem install kitchen-dokken
-
-      - name: Install kitchen-docker
-        run: chef gem install test-kitchen
-
       - run: sudo gem update
       - run: sudo bundle update
       - run: sudo bundle install

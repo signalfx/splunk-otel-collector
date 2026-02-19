@@ -178,11 +178,7 @@ jobs:
       - run: sudo gem update
       - run: sudo bundle install
 
-      - run: chef --version
-
-      - run: docker --version
-
-      - run: kitchen test ${{ matrix.DISTRO }} --log-level debug
+      - run: kitchen test ${{ matrix.DISTRO }}
 
       - uses: actions/upload-artifact@v6
         if: always()

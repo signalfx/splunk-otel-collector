@@ -175,6 +175,7 @@ jobs:
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
 
+      - run: sudo gem update
       - run: sudo bundle install
 
       - run: chef --version

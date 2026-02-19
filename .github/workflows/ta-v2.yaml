@@ -30,7 +30,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -71,7 +71,7 @@ jobs:
             working-directory: ./packaging/ta-v2
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download TA v2 artifacts
         uses: actions/download-artifact@v7

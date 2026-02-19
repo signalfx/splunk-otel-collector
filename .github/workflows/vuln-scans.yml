@@ -24,7 +24,7 @@ jobs:
   trivy-fs-scan:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Run trivy filesystem scan
         uses: aquasecurity/trivy-action@0.34.0
         with:
@@ -40,7 +40,7 @@ jobs:
   anchore-fs-scan:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: anchore/scan-action@v7
         with:
           severity-cutoff: "high"
@@ -57,7 +57,7 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up environment
         uses: ./.github/actions/setup-environment
       - uses: actions/cache@v5
@@ -95,7 +95,7 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v7
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -123,7 +123,7 @@ jobs:
     env:
       GRYPE_PLATFORM: ${{ matrix.ARCH }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v7
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -154,7 +154,7 @@ jobs:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@v7
         with:
@@ -219,7 +219,7 @@ jobs:
     needs: check-snyk-token
     if: ${{ needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
         continue-on-error: true # To make sure that SARIF upload gets called
@@ -243,7 +243,7 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       # There is no snyk/snyk:docker image for arm64, so we need to use the
       # docker setup-qemu-action to run the scan
@@ -275,7 +275,7 @@ jobs:
     runs-on: macos-14-large
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-environment
 
       - run: govulncheck --version
@@ -302,7 +302,7 @@ jobs:
       matrix: ${{ steps.capture-packages.outputs.matrix }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
@@ -326,7 +326,7 @@ jobs:
       matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download govulncheck results artifact
         uses: actions/download-artifact@v7

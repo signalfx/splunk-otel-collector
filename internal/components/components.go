@@ -160,6 +160,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
+	obicollector "go.opentelemetry.io/obi/collector"
 )
 
 func Get() (otelcol.Factories, error) {
@@ -235,6 +236,7 @@ func Get() (otelcol.Factories, error) {
 		receiver.Factory(nopreceiver.NewFactory()),
 		ntpreceiver.NewFactory(),
 		oracledbreceiver.NewFactory(),
+		obicollector.NewFactory(),
 		otlpreceiver.NewFactory(),
 		postgresqlreceiver.NewFactory(),
 		prometheusreceiver.NewFactory(),

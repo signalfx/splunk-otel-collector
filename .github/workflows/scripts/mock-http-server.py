@@ -3,11 +3,19 @@
 
 Usage: python3 mock-http-server.py <status_code> <port>
 """
-import http.server, sys
+import http.server
+import sys
 
-status = int(sys.argv[1])
-port = int(sys.argv[2])
+if len(sys.argv) != 3:
+    print(f"Usage: {sys.argv[0]} <status_code> <port>", file=sys.stderr)
+    sys.exit(1)
 
+try:
+    status = int(sys.argv[1])
+    port = int(sys.argv[2])
+except (ValueError, TypeError):
+    print("Error: <status_code> and <port> must be integers.", file=sys.stderr)
+    sys.exit(1)
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         self.send_response(status)

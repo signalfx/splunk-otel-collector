@@ -172,7 +172,7 @@ verify_access_token() {
     local wget_exit=$?
     if [ $wget_exit -eq 5 ]; then
       echo "TLS cert for Splunk ingest could not be verified, does your system have TLS certs installed?" >&2
-      exit 1
+      return 1
     fi
     # Extract HTTP status code from response headers (format: "  HTTP/1.1 200 OK")
     http_code=$(echo "$wget_output" | grep -i "^[[:space:]]*HTTP/" | tail -1 | awk '{print $2}')
@@ -182,7 +182,7 @@ verify_access_token() {
     fi
   else
     echo "Either curl or wget is required to verify the access token" >&2
-    exit 1
+    return 1
   fi
 
   # Check if status code is 200

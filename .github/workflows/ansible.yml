@@ -278,6 +278,11 @@ jobs:
           vagrant halt
           vagrant destroy
 
+      - name: free after clean cachea
+        if: always()
+        run: |
+          free -h
+
   windows-test:
     name: Windows Test
     needs: [ lint, msi-build ]

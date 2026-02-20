@@ -22,6 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  CHEF_VERSION: "25.12.1102"
   CHEF_LICENSE: accept
 
 jobs:
@@ -174,6 +175,8 @@ jobs:
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
+        with:
+          version: ${{ env.CHEF_VERSION }}
 
       - run: sudo gem update
       - run: sudo bundle install
@@ -217,9 +220,11 @@ jobs:
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
+        with:
+          version: ${{ env.CHEF_VERSION }}
 
       - name: Install kitchen-docker
-        run: chef gem install kitchen-docker
+        run: chef gem install kitchen-docker -v 2.12.0
 
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
         run: |
@@ -236,9 +241,3 @@ jobs:
         with:
           name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
           path: deployments/chef/.kitchen/logs/*
-
-      - uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}-stacktrace.out
-          path: C:/Users/ContainerAdministrator/AppData/Local/Temp/kitchen/cache/chef-stacktrace.out

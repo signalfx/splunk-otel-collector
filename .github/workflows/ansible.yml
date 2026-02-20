@@ -271,7 +271,7 @@ jobs:
           if [ ${{ matrix.distro }} = "2019" ]; then
             vagrant init StefanScherer/windows_2019 --box-version 2021.05.15
           else
-            vagrant init stromweld/windows-2022 --box-version 202511.21.0
+            vagrant init StefanScherer/windows_2022 --box-version 2021.08.23
           fi
           vagrant up
           vagrant status

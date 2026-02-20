@@ -139,7 +139,6 @@ func TestDefaultComponents(t *testing.T) {
 		"filter",
 		"groupbyattrs",
 		"k8s_attributes",
-		"k8sattributes",
 		"logstransform",
 		"memory_limiter",
 		"metricsgeneration",
@@ -152,6 +151,9 @@ func TestDefaultComponents(t *testing.T) {
 		"tail_sampling",
 		"timestamp",
 		"transform",
+	}
+	expectedProcessorAliases := map[string]string{
+		"k8sattributes": "k8s_attributes",
 	}
 	expectedExporters := []string{
 		"awss3",
@@ -207,11 +209,16 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	procs := factories.Processors
-	assert.Len(t, procs, len(expectedProcessors))
+	assert.Len(t, procs, len(expectedProcessors)+len(expectedProcessorAliases))
 	for _, k := range expectedProcessors {
 		v, ok := procs[component.MustNewType(k)]
 		require.True(t, ok, "Missing expected processor "+k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedProcessorAliases {
+		v, ok := procs[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected processor alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	exps := factories.Exporters

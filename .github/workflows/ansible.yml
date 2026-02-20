@@ -187,6 +187,134 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
 
+  windows-debug-test:
+    name: Windows Debug Test
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible:
+          # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible>=13.0.0, <14.0.0
+        distro:
+          - "2019"
+          - "2022"
+        scenario:
+          - default
+          - default_install_remote_version
+          - custom_vars
+          - with_instrumentation
+          - custom_vars_install_old_version
+    steps:
+      - name: Free up disk space for vagrant box
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+
+      - name: Make tmp directory for msi build artifact
+        run: mkdir -p /tmp/msi-build
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: msi-build-windows-2025
+          path: /tmp/msi-build
+      # Workaround for https://github.com/actions/runner-images/issues/13202
+      - name: Unload KVM module (AMD)
+        run: |
+          # Check if KVM modules are loaded
+          lsmod | grep kvm
+          # Unload KVM modules if present (for Intel or AMD CPUs)
+          sudo modprobe -r kvm_intel || true
+          sudo modprobe -r kvm_amd || true
+          sudo rmmod kvm || true
+          # Verify KVM is unloaded
+          lsmod | grep kvm
+        continue-on-error: true
+
+      - name: Install vagrant and virtualbox
+        run: |
+          sudo apt update && sudo apt install -y virtualbox
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install -y vagrant
+
+      - uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: "${{ github.workspace }}/requirements.txt"
+          contents: |
+            ${{ matrix.ansible }}
+            ansible-compat<=25.8.2
+            ansible-lint<=26.1.1
+            molecule<=25.1.0
+            molecule-plugins[vagrant]<=25.8.12
+            pywinrm<=0.4.3
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: "${{ github.workspace }}/requirements.txt"
+
+      - name: Install test dependencies.
+        run: pip3 install --use-pep517 -r "${GITHUB_WORKSPACE}/requirements.txt"
+
+      - name: Download vagrant box
+        run: |
+          box=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box" ./molecule/config/windows.yml )
+          box_version=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box_version" ./molecule/config/windows.yml )
+          eval "box_version=${box_version}"
+          json=$( wget -nv -O- "https://vagrantcloud.com/api/v2/vagrant/${box}" )
+          url=$( echo "$json" |  tr -d '\r' |  tr -d '\n' | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
+          wget -nv -O /tmp/vagrant.box "$url"
+
+      - name: Clean VirtualBox cache
+        run: |
+          # Related issues:
+          # https://bbs.archlinux.org/viewtopic.php?id=298056
+          # https://forums.virtualbox.org/viewtopic.php?t=112438
+          # https://forums.virtualbox.org/viewtopic.php?t=112481
+          echo "3" | sudo tee /proc/sys/vm/drop_caches
+          echo "1" | sudo tee /proc/sys/vm/drop_caches
+
+      - name: free after clean cache
+        run: |
+          free -h
+
+      - name: Manually start vagrant box
+        run: |
+          vagrant init gusztavvargadr/windows-server --box-version 2601.0.0
+          vagrant up
+          vagrant status
+          vagrant destroy
+
+      - name: Run Molecule tests.
+        run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_VAGRANT_BOX_URL: /tmp/vagrant.box
+          MOLECULE_VAGRANT_BOX_VERSION: " "  # version must not be set when using a local box
+
+      - name: check for vagrant error file
+        if: always()
+        run: |
+          ls -al /home/runner/.cache/molecule/splunk_otel_collector/
+          ls -al /home/runner/.cache/molecule/splunk_otel_collector/default
+
+      - name: Upload vagrant error files
+        if: failure()
+        continue-on-error: true
+        uses: actions/upload-artifact@v6
+        with:
+          name: vagrant_err-${{ matrix.distro }}-${{ matrix.scenario }}
+          path: /home/runner/.cache/molecule/splunk_otel_collector/default
+
   windows-test:
     name: Windows Test
     needs: [ lint, msi-build ]

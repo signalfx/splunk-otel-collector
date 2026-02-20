@@ -138,6 +138,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cumulativetodelta",
 		"filter",
 		"groupbyattrs",
+		"k8s_attributes",
 		"k8sattributes",
 		"logstransform",
 		"memory_limiter",

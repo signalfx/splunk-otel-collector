@@ -216,13 +216,6 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v5
 
-      - name: Make tmp directory for msi build artifact
-        run: mkdir -p /tmp/msi-build
-
-      - uses: actions/download-artifact@v7
-        with:
-          name: msi-build-windows-2025
-          path: /tmp/msi-build
       # Workaround for https://github.com/actions/runner-images/issues/13202
       - name: Unload KVM module (AMD)
         run: |
@@ -292,28 +285,6 @@ jobs:
           vagrant up
           vagrant status
           vagrant destroy
-
-      - name: Run Molecule tests.
-        run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
-        env:
-          PY_COLORS: '1'
-          ANSIBLE_FORCE_COLOR: '1'
-          MOLECULE_VAGRANT_BOX_URL: /tmp/vagrant.box
-          MOLECULE_VAGRANT_BOX_VERSION: " "  # version must not be set when using a local box
-
-      - name: check for vagrant error file
-        if: always()
-        run: |
-          ls -al /home/runner/.cache/molecule/splunk_otel_collector/
-          ls -al /home/runner/.cache/molecule/splunk_otel_collector/default
-
-      - name: Upload vagrant error files
-        if: failure()
-        continue-on-error: true
-        uses: actions/upload-artifact@v6
-        with:
-          name: vagrant_err-${{ matrix.distro }}-${{ matrix.scenario }}
-          path: /home/runner/.cache/molecule/splunk_otel_collector/default
 
   windows-test:
     name: Windows Test

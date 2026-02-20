@@ -163,6 +163,22 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 		}
 		index = newIndex
 		assert.NoError(tt, err)
+		if newIndex > 0 {
+			last := sink.AllMetrics()[newIndex-1]
+			t.Logf("=== Metric name diff (last batch) ===")
+			expectedNames := metricNames(expected)
+			actualNames := metricNames(last)
+			for n := range expectedNames {
+				if !actualNames[n] {
+					t.Logf("  MISSING in actual: %s", n)
+				}
+			}
+			for n := range actualNames {
+				if !expectedNames[n] {
+					t.Logf("  EXTRA in actual:   %s", n)
+				}
+			}
+		}
 	}, 30*time.Second, 1*time.Second)
 
 	// for dev purposes - set UPDATE_EXPECTED to update expected file after metrics have been collected
@@ -188,4 +204,18 @@ func MaybeUpdateExpectedMetricsResults(t *testing.T, file string, metrics *pmetr
 
 var shouldUpdateExpectedResults = func() bool {
 	return os.Getenv("UPDATE_EXPECTED_RESULTS") == "true"
+}
+
+func metricNames(md pmetric.Metrics) map[string]bool {
+	names := map[string]bool{}
+	for i := 0; i < md.ResourceMetrics().Len(); i++ {
+		rm := md.ResourceMetrics().At(i)
+		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+			sm := rm.ScopeMetrics().At(j)
+			for k := 0; k < sm.Metrics().Len(); k++ {
+				names[sm.Metrics().At(k).Name()] = true
+			}
+		}
+	}
+	return names
 }

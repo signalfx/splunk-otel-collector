@@ -24,7 +24,13 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
       - uses: ./.github/actions/setup-environment
+
+      - name: Generate OBI BPF files
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/generate-obi-bpf
 
       - name: Set CGO_ENABLED
         # Currently, CGO enabled is required for:

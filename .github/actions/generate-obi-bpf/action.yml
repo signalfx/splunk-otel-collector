@@ -1,0 +1,30 @@
+name: Generate OBI BPF files
+description: |
+  Installs bpf2go and runs make generate-obi to produce the *_bpfel.go / *.o
+  files that are required to build or analyze packages that import OBI on Linux.
+  The generated files are cached by the hash of the BPF C sources so re-runs
+  are near-instant when nothing has changed.
+
+runs:
+  using: composite
+  steps:
+    - name: Cache OBI generated BPF files
+      id: cache-obi-bpf
+      uses: actions/cache@v4
+      with:
+        path: third_party/opentelemetry-ebpf-instrumentation/pkg
+        key: obi-bpf-v1-${{ hashFiles('third_party/opentelemetry-ebpf-instrumentation/bpf/**') }}
+
+    - name: Install bpf2go
+      if: steps.cache-obi-bpf.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        BPF2GO_VERSION=$(grep 'github.com/cilium/ebpf' \
+          third_party/opentelemetry-ebpf-instrumentation/internal/tools/go.mod \
+          | awk '{print $2}')
+        go install github.com/cilium/ebpf/cmd/bpf2go@${BPF2GO_VERSION}
+
+    - name: Generate OBI BPF files
+      if: steps.cache-obi-bpf.outputs.cache-hit != 'true'
+      shell: bash
+      run: make generate-obi

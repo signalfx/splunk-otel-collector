@@ -16,7 +16,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
       - uses: ./.github/actions/setup-environment
+
+      - name: Generate OBI BPF files
+        if: contains(inputs.SYS_BINARY, 'linux')
+        uses: ./.github/actions/generate-obi-bpf
 
       - name: Build Collector
         run: |

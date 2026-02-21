@@ -251,6 +251,20 @@ jobs:
       - name: Load multiarch docker image
         run: docker load -i ./docker-otelcol/image.tar
 
+      - name: Start ECS metadata mock
+        run: |
+          # Mock ECS Task Metadata V4 endpoint for configs that use the ecs
+          # detector and awsecscontainermetrics receiver.
+          docker network create ecs-mock-net
+          ecs_mock_dir="${GITHUB_WORKSPACE}/.github/workflows/scripts/ecs-mock"
+          docker run -d --name ecs-mock --network ecs-mock-net -p 51678:80 \
+            -v "${ecs_mock_dir}/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+            -v "${ecs_mock_dir}/task_metadata.json:/data/task_metadata.json:ro" \
+            -v "${ecs_mock_dir}/task_stats.json:/data/task_stats.json:ro" \
+            nginx:alpine
+          sleep 2
+          curl -sf http://localhost:51678/task | head -c 80 || echo "WARNING: ECS mock server not responding"
+
       - name: Run docker image
         run: |
           # ensure the collector can start with the default config file
@@ -274,8 +288,14 @@ jobs:
             exit 1
           fi
           for config in $configs; do
+            docker_args=(--platform "linux/${{ matrix.ARCH }}" -d)
+            case "$config" in
+              ecs_ec2_config.yaml|fargate_config.yaml)
+                docker_args+=(--network ecs-mock-net -e ECS_CONTAINER_METADATA_URI_V4=http://ecs-mock) ;;
+            esac
             # TODO: set fake-token back to 12345 once https://github.com/open-telemetry/opentelemetry-collector/issues/10937 is resolved
-            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG="/etc/otel/collector/${config}" -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e ECS_CONTAINER_METADATA_URI_V4=http://localhost --name otelcol otelcol:latest
+            docker_args+=(-e "SPLUNK_CONFIG=/etc/otel/collector/${config}" -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest)
+            docker run "${docker_args[@]}"
             sleep 10
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
               docker logs otelcol
@@ -284,6 +304,13 @@ jobs:
             fi
             docker rm -f otelcol
           done
+
+      - name: Cleanup ECS metadata mock
+        if: always()
+        run: |
+          docker rm -f ecs-mock 2>/dev/null || true
+          docker rm -f otelcol 2>/dev/null || true
+          docker network rm ecs-mock-net 2>/dev/null || true
 
       - name: Check journalctl
         run: |

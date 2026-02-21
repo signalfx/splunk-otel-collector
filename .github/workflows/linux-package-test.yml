@@ -261,6 +261,7 @@ jobs:
             -v "${ecs_mock_dir}/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
             -v "${ecs_mock_dir}/task_metadata.json:/data/task_metadata.json:ro" \
             -v "${ecs_mock_dir}/task_stats.json:/data/task_stats.json:ro" \
+            -v "${ecs_mock_dir}/container_metadata.json:/data/container_metadata.json:ro" \
             nginx:alpine
           sleep 2
           curl -sf http://localhost:51678/task | head -c 80 || echo "WARNING: ECS mock server not responding"

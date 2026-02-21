@@ -1,6 +1,6 @@
 # Changelog
 
-## chef-v0.18.0
+## Unreleased
 
 ### 🛑 Breaking changes 🛑
 

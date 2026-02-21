@@ -378,6 +378,25 @@ jobs:
           name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist
 
+      - name: Wait for Docker service
+        run: |
+          $timeout = 90
+          $elapsed = 0
+          while ($elapsed -lt $timeout) {
+            $svc = Get-Service docker -ErrorAction SilentlyContinue
+            if ($svc -and $svc.Status -eq 'Running') {
+              Write-Host "Docker service is running."
+              docker version
+              return
+            }
+            Write-Host "Waiting for Docker service... ($elapsed s)"
+            Start-Sleep 5
+            $elapsed += 5
+          }
+          Write-Error "Docker service not available after ${timeout}s"
+          exit 1
+        shell: pwsh
+
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'

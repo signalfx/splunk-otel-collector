@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CHEF_VERSION: "22.12.1024"
+  CHEF_VERSION: "25.12.1102"
   CHEF_LICENSE: accept
 
 jobs:
@@ -178,11 +178,8 @@ jobs:
         with:
           version: ${{ env.CHEF_VERSION }}
 
-      # Install of fluentd is failing on Debian 11, so we disable it for that distro.
-      - name: Set `with_fluentd` to false on Debian 11
-        if: matrix.DISTRO == 'debian-11'
-        run: |
-          yq eval '(.suites[] | select(.name=="custom_vars").attributes.splunk_otel_collector.with_fluentd) = false' -i kitchen.yml
+      - run: sudo gem update
+      - run: sudo bundle install
 
       - run: kitchen test ${{ matrix.DISTRO }}
 

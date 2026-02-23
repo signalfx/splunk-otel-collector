@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.34.0
+        uses: aquasecurity/trivy-action@0.34.1
         with:
           version: v0.57.1
           scan-type: 'fs'
@@ -102,7 +102,7 @@ jobs:
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.34.0
+        uses: aquasecurity/trivy-action@0.34.1
         with:
           version: v0.57.1
           scan-type: 'image'

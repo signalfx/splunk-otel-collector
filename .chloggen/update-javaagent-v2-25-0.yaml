@@ -2,4 +2,4 @@ change_type: enhancement
 component: packaging
 note: Update Splunk OpenTelemetry Java agent to v2.25.0
 issues: [7249]
-subtext: null
+subtext:

@@ -40,6 +40,7 @@ SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
+OBI_DIR?=./third_party/opentelemetry-ebpf-instrumentation
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -255,6 +256,18 @@ install-tools:
 generate-metrics:
 	go generate -tags mdatagen ./...
 	$(MAKE) fmt
+
+.PHONY: generate-obi
+generate-obi:
+	@test -d $(OBI_DIR) || (echo "OBI source not found at $(OBI_DIR). Run: git submodule update --init --recursive" && exit 1)
+	@command -v clang >/dev/null 2>&1 || (echo "clang not found; install clang to run BPF generation" && exit 1)
+	@command -v llvm-strip >/dev/null 2>&1 || (echo "llvm-strip not found; install llvm to run BPF generation" && exit 1)
+	@command -v bpf2go >/dev/null 2>&1 || go install github.com/cilium/ebpf/cmd/bpf2go@$$(grep 'github.com/cilium/ebpf' $(OBI_DIR)/internal/tools/go.mod | awk '{print $$2}')
+	cd $(OBI_DIR) && BPF_CLANG=clang \
+		BPF_CFLAGS="-std=gnu17 -O2 -g -Wunaligned-access -Wpacked -Wpadded -Wall -Werror" \
+		BPF2GO=$$(command -v bpf2go) \
+		OTEL_EBPF_GENFILES_RUN_LOCALLY=1 \
+		go generate cmd/obi-genfiles/obi_genfiles.go
 
 .PHONY: otelcol
 otelcol:

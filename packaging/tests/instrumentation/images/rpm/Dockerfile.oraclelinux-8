@@ -2,7 +2,7 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM tomcat:9-jre8 as tomcat
 
-FROM oraclelinux:8
+FROM oraclelinux:10
 
 ARG TARGETARCH
 

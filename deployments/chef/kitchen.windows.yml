@@ -36,7 +36,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
-        local_artifact_testing_enabled: false
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
     verifier:

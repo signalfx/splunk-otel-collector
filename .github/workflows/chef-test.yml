@@ -191,7 +191,7 @@ jobs:
 
   chef-kitchen-windows:
     runs-on: ${{ matrix.DISTRO }}
-    needs: [ chef-lint-spec-test, chef-kitchen-matrix ]
+    needs: [ chef-lint-spec-test, chef-kitchen-matrix, msi-build ]
     defaults:
       run:
         working-directory: 'deployments/chef'
@@ -201,6 +201,22 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v7
+        with:
+          path: /tmp
+
+      # Chef doesn't have an easy way to get names of files from unarchived packages
+      # It's simpler to unarchive and move the built artifacts manually to the
+      # cookbook files directory. The files/ dir under the Chef deployment is a special
+      # directory in Chef, used for copying files from the cookbook to the host running
+      # Chef.
+      # Cookbook files reference: https://docs.chef.io/files/
+      - name: Extract artifacts
+        run: |
+          mkdir files
+          Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
+          mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1

@@ -12,7 +12,7 @@ REMOTE="origin"
 TAG="Splunk_TA_otel/v$TA_VERSION"
 
 git checkout -B "$BRANCH"
-git add "$ADDONS_SOURCE_DIR/Makefile" "$APP_CONFIG" "$ADDONS_SOURCE_DIR/Splunk_TA_otel/CHANGELOG.md" "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/happypath-test.sh"
+git add "$ADDONS_SOURCE_DIR/Makefile" "$APP_CONFIG" "$ADDONS_SOURCE_DIR/Splunk_TA_otel/CHANGELOG.md"
 git commit -m "[chore] Updates TA to splunk-otel-collector v$SPLUNK_OTEL_VERSION and marks TA as v$TA_VERSION" || echo "version changes already committed"
 
 git push --set-upstream "$REMOTE" "$BRANCH"

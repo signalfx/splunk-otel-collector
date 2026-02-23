@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/otelcol-fips.yml'
+      - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
       - 'internal/**'
       - 'pkg/**'

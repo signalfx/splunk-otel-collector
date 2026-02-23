@@ -1,4 +1,4 @@
-FROM oraclelinux:8
+FROM oraclelinux:10
 
 ENV container=docker
 

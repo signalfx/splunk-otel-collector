@@ -5,11 +5,11 @@ splunk_access_token = <value>
 * Default =
 
 splunk_config = <value>
-* Required, config file that will be used by the Splunk_TA_OTel_Collector
+* Optional, config file that will be used by the Splunk_TA_OTel_Collector
 * Default = $SPLUNK_HOME/etc/apps/Splunk_TA_OTel_Collector/configs/agent_config.yaml
 
 splunk_realm = <value>
-* Required, Splunk Observability realm to which data will be sent to
+* Optional, Splunk Observability realm to which data will be sent to
 * Default = us0
 
 splunk_api_url = <value>

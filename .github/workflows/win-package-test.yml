@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/scripts/*.ps1'
       - '.github/workflows/win-package-test.yml'
+      - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
       - 'instrumentation/packaging/dotnet-agent-release.txt'
       - 'internal/**'
@@ -82,6 +83,8 @@ jobs:
         with:
           name: msi-build-windows-2025
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
+
+      - uses: ./.github/actions/win-wait-for-docker
 
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
@@ -377,6 +380,8 @@ jobs:
         with:
           name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist
+
+      - uses: ./.github/actions/win-wait-for-docker
 
       - name: Build docker image
         run: |

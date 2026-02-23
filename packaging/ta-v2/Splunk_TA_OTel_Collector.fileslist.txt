@@ -1,0 +1,8 @@
+Splunk_TA_OTel_Collector/default/app.conf
+Splunk_TA_OTel_Collector/default/inputs.conf
+Splunk_TA_OTel_Collector/README/inputs.conf.spec
+Splunk_TA_OTel_Collector/linux_x86_64/bin/Splunk_TA_OTel_Collector
+Splunk_TA_OTel_Collector/static/appIcon.png
+Splunk_TA_OTel_Collector/static/appIcon_2x.png
+Splunk_TA_OTel_Collector/configs/agent_config.yaml
+Splunk_TA_OTel_Collector/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe

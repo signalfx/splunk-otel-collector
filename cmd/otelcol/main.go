@@ -35,15 +35,28 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
+	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
 func main() {
 	runFromCmdLine(os.Args)
 }
 
+const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
+
 func runFromCmdLine(args []string) {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	// Handle the cases of running as a TA
+	err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix)
+	if err != nil {
+		if errors.Is(err, modularinput.ErrQueryMode) {
+			// Query modes (scheme/validate) do not write anything to stdout.
+			os.Exit(0)
+		}
+		log.Fatalf("ERROR launching as TA modular input: %v", err)
+	}
 
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {

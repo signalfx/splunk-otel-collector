@@ -5,6 +5,9 @@ assets/windows_x86_64/bin/
 # Ignore configuration files - these are pulled via Makefile target
 assets/configs/
 
+# Ignore custom local inputs for testing
+assets/local/
+
 # Ignore the directory with the compressed package to be distributed
 out/
 

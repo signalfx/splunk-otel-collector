@@ -1,6 +1,6 @@
 # A oraclelinux9 image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM oraclelinux:9
+FROM oraclelinux:10
 
 ENV container=docker
 

@@ -44,6 +44,7 @@ and the [opentelemetry-collector-contrib v0.146.0](https://github.com/open-telem
 
 ### 💡 Enhancements 💡
 
+- (Splunk) `packaging`: Update Splunk OpenTelemetry Java agent to v2.25.0 ([#7249](https://github.com/signalfx/splunk-otel-collector/pull/7249))
 - (Splunk) `packaging`: Update JMX metrics gatherer to v1.53.0 ([#7082](https://github.com/signalfx/splunk-otel-collector/pull/7082))
 - (Core) `all`: Add detailed failure attributes to exporter send_failed metrics at detailed telemetry level. ([#13956](https://github.com/open-telemetry/opentelemetry-collector/issues/13956))
   The `otelcol_exporter_send_failed_{spans,metric_points,log_records}` metrics now include

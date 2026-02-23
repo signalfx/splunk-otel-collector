@@ -83,6 +83,8 @@ jobs:
           name: msi-build-windows-2025
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
+      - uses: ./.github/actions/win-wait-for-docker
+
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
         run: |
@@ -378,35 +380,7 @@ jobs:
           name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist
 
-      - name: Wait for Docker service
-        run: |
-          $timeout = 120
-          $elapsed = 0
-          $svc = Get-Service docker -ErrorAction SilentlyContinue
-          if ($svc -and $svc.Status -ne 'Running') {
-            Write-Host "Docker service status: $($svc.Status). Attempting to start..."
-            Start-Service docker -ErrorAction SilentlyContinue
-          } elseif (-not $svc) {
-            Write-Host "Docker service not found. Installed services:"
-            Get-Service *docker* | Format-Table -AutoSize
-          }
-          while ($elapsed -lt $timeout) {
-            $svc = Get-Service docker -ErrorAction SilentlyContinue
-            if ($svc -and $svc.Status -eq 'Running') {
-              Write-Host "Docker service is running."
-              docker version
-              return
-            }
-            Write-Host "Waiting for Docker service... ($elapsed s) status: $(if ($svc) { $svc.Status } else { 'not found' })"
-            Start-Sleep 5
-            $elapsed += 5
-          }
-          Write-Host "--- Diagnostics ---"
-          Get-Service *docker* | Format-Table -AutoSize
-          Get-EventLog -LogName Application -Source Docker* -Newest 10 -ErrorAction SilentlyContinue | Format-List
-          Write-Error "Docker service not available after ${timeout}s"
-          exit 1
-        shell: pwsh
+      - uses: ./.github/actions/win-wait-for-docker
 
       - name: Build docker image
         run: |

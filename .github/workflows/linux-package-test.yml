@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/linux-package-test.yml'
+      - '.github/workflows/scripts/ecs-mock/**'
       - 'cmd/otelcol/**'
       - 'internal/**'
       - 'Makefile'

@@ -10,6 +10,7 @@ the `ecs` detector.
 - `nginx.conf` -- routes `/task` and `/task/stats` to the JSON fixtures.
 - `task_metadata.json` -- minimal task metadata response.
 - `task_stats.json` -- minimal container stats response.
+- `container_metadata.json` -- minimal container metadata response, served at `/`.
 
 ## Fixture sources
 

@@ -30,7 +30,8 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        nomad: [ "1.7.7-1", "1.9.7-1" ]
+        # EOL REFERENCE: https://endoflife.date/nomad
+        nomad: [ "1.9.7-1", "1.11.0-1" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.

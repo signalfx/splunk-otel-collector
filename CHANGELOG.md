@@ -58,6 +58,7 @@ and the [opentelemetry-collector-contrib v0.146.0](https://github.com/open-telem
   When `use_internal_logger` is set to `false`, the debug exporter now supports configuring the output destination via the `output_paths` option.
   This allows users to send debug exporter output to `stdout`, `stderr`, or a file path.
   The default value is `["stdout"]` to maintain backward compatibility.
+- (Contrib) `exporter/signalfx`: Preserve 'k8s.service.' property names on the 'k8s.service.uid' dimension instead of converting them to 'kubernetes_service_' prefix. ([#46291](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46291))
 - (Contrib) `exporter/file`: Add support for rotation when group_by is enabled in file exporter ([#43143](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43143))
 - (Contrib) `exporter/googlecloudstorage`: Add compression support for Google Cloud Storage exporter ([#45337](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45337))
   The Google Cloud Storage exporter now supports compression of log data before uploading to GCS.

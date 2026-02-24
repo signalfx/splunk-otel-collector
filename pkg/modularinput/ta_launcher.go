@@ -63,7 +63,9 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 
 	if mode == introspectionMode {
 		// The caller is just expected to exit when receiving ErrQueryMode
-		fmt.Fprintln(stdoutWriter, scheme)
+		if _, err := fmt.Fprintln(stdoutWriter, scheme); err != nil {
+			return fmt.Errorf("failed to write scheme to stdout: %w", err)
+		}
 		return ErrQueryMode
 	}
 

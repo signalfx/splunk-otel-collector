@@ -32,7 +32,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: "3.13"
+  PYTHON_VERSION: '3.14'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
 
 jobs:
@@ -64,6 +64,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v5
 
+      # EOL REFERENCE: https://endoflife.date/puppet
       - name: Get matrix
         id: get-matrix
         run: |
@@ -74,7 +75,7 @@ jobs:
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
-          puppet_release='"7","8"'
+          puppet_release='"8"'
           with_instrumentation='"true","false"'
           matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}]}"
           echo "$matrix" | jq
@@ -257,7 +258,8 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022" ]
-        PUPPET_RELEASE: [ "7.21.0", "8.1.0" ]
+        # EOL REFERENCE: https://endoflife.date/puppet
+        PUPPET_RELEASE: [ "8.10.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
       fail-fast: false
     steps:

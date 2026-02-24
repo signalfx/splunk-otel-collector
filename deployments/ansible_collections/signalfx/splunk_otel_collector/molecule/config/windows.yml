@@ -8,9 +8,9 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: "2019"
-    box: StefanScherer/windows_2019
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2021.05.15}
+  - name: "2025"
+    box: gusztavvargadr/windows-server-2025-standard-core
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2601.0.0}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 8192

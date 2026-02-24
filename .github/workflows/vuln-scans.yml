@@ -28,7 +28,8 @@ jobs:
       - name: Run trivy filesystem scan
         uses: aquasecurity/trivy-action@0.34.1
         with:
-          version: v0.57.1
+          # EOL REFERENCE: https://github.com/aquasecurity/trivy/releases
+          version: v0.69.1
           scan-type: 'fs'
           scan-ref: '.'
           skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
@@ -104,7 +105,7 @@ jobs:
       - name: Run trivy image scan
         uses: aquasecurity/trivy-action@0.34.1
         with:
-          version: v0.57.1
+          version: v0.69.1
           scan-type: 'image'
           image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           format: 'table'

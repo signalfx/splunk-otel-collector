@@ -23,7 +23,7 @@ go run ./cmd/ta-inputs-from-schema \
 
 ```bash
 go run ./cmd/ta-inputs-from-schema \
-  -scheme cmd/otelcol/ta_v2_scheme.xml \
+  -scheme cmd/otelcol/ta_scheme.xml \
   -global-settings cmd/ta-inputs-from-schema/testdata/global_settings.txt \
   -name Splunk_TA_OTel_Collector \
   -assets packaging/ta-v2/assets

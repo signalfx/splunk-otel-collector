@@ -30,7 +30,7 @@ sync-configs:
 ta-inputs-conf:
 	@echo "Generating inputs.conf and inputs.conf.spec ..."
 	cd $(SRC_ROOT) && go run ./cmd/ta-inputs-from-schema \
-		-scheme cmd/otelcol/ta_v2_scheme.xml \
+		-scheme cmd/otelcol/ta_scheme.xml \
 		-global-settings packaging/ta-v2/inputs_conf_global_settings.txt \
 		-name $(MOD_INPUT_NAME) \
 		-assets packaging/ta-v2/assets

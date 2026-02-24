@@ -41,7 +41,7 @@ import (
 
 const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
 
-//go:embed ta_v2_scheme.xml
+//go:embed ta_scheme.xml
 var modularInputSchemeXML string
 
 func main() {

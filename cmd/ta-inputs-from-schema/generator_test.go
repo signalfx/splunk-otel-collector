@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateInputsConf(t *testing.T) {
@@ -46,8 +45,7 @@ interval = 0`
 
 	inputName := "Test_TA"
 
-	result, err := generateInputsConf(scheme, globalSettings, inputName)
-	require.NoError(t, err)
+	result := generateInputsConf(scheme, globalSettings, inputName)
 
 	// Verify the header
 	assert.Contains(t, result, "[Test_TA://Test_TA]")
@@ -79,8 +77,7 @@ func TestGenerateInputsConf_GlobalSettingsWithoutTrailingNewline(t *testing.T) {
 	globalSettings := "disabled=false"
 	inputName := "Test_TA"
 
-	result, err := generateInputsConf(scheme, globalSettings, inputName)
-	require.NoError(t, err)
+	result := generateInputsConf(scheme, globalSettings, inputName)
 
 	// Verify proper spacing between global settings and TA settings
 	lines := strings.Split(result, "\n")
@@ -91,7 +88,7 @@ func TestGenerateInputsConf_GlobalSettingsWithoutTrailingNewline(t *testing.T) {
 			foundGlobalSettings = true
 			// Check that there's a blank line after global settings
 			if i+1 < len(lines) {
-				assert.Equal(t, "", lines[i+1], "Expected blank line after global settings")
+				assert.Empty(t, lines[i+1], "Expected blank line after global settings")
 			}
 		}
 		if line == "# TA specific settings" {
@@ -130,8 +127,7 @@ func TestGenerateInputsConfSpec(t *testing.T) {
 
 	inputName := "Test_TA"
 
-	result, err := generateInputsConfSpec(scheme, inputName)
-	require.NoError(t, err)
+	result := generateInputsConfSpec(scheme, inputName)
 
 	// Verify the header
 	assert.Contains(t, result, "[Test_TA://<name>]")
@@ -168,8 +164,7 @@ func TestGenerateInputsConfSpec_DescriptionPreserved(t *testing.T) {
 
 	inputName := "Test_TA"
 
-	result, err := generateInputsConfSpec(scheme, inputName)
-	require.NoError(t, err)
+	result := generateInputsConfSpec(scheme, inputName)
 
 	// Verify description is preserved as-is
 	assert.Contains(t, result, "* Description with capital letter")
@@ -191,8 +186,7 @@ func TestGenerateInputsConfSpec_EmptyDescription(t *testing.T) {
 
 	inputName := "Test_TA"
 
-	result, err := generateInputsConfSpec(scheme, inputName)
-	require.NoError(t, err)
+	result := generateInputsConfSpec(scheme, inputName)
 
 	// Verify it handles empty description
 	assert.Contains(t, result, "test_arg = <value>")
@@ -228,8 +222,7 @@ func TestGenerateInputsConfSpec_MultipleArgs(t *testing.T) {
 
 	inputName := "Test_TA"
 
-	result, err := generateInputsConfSpec(scheme, inputName)
-	require.NoError(t, err)
+	result := generateInputsConfSpec(scheme, inputName)
 
 	// Verify both arguments are present with blank lines between them
 	lines := strings.Split(result, "\n")

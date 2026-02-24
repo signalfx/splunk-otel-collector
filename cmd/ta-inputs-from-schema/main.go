@@ -54,32 +54,26 @@ func run(schemeFile, globalSettingsFile, inputName, assetsDir string) error {
 	}
 
 	// Generate inputs.conf
-	inputsConf, err := generateInputsConf(scheme, string(globalSettings), inputName)
-	if err != nil {
-		return fmt.Errorf("failed to generate inputs.conf: %w", err)
-	}
+	inputsConf := generateInputsConf(scheme, string(globalSettings), inputName)
 
 	// Generate inputs.conf.spec
-	inputsConfSpec, err := generateInputsConfSpec(scheme, inputName)
-	if err != nil {
-		return fmt.Errorf("failed to generate inputs.conf.spec: %w", err)
-	}
+	inputsConfSpec := generateInputsConfSpec(scheme, inputName)
 
 	// Write inputs.conf
 	defaultDir := assetsDir + "/default"
-	if err := os.MkdirAll(defaultDir, 0755); err != nil {
+	if err := os.MkdirAll(defaultDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create default directory: %w", err)
 	}
-	if err := os.WriteFile(defaultDir+"/inputs.conf", []byte(inputsConf), 0644); err != nil {
+	if err := os.WriteFile(defaultDir+"/inputs.conf", []byte(inputsConf), 0o600); err != nil {
 		return fmt.Errorf("failed to write inputs.conf: %w", err)
 	}
 
 	// Write inputs.conf.spec
 	readmeDir := assetsDir + "/README"
-	if err := os.MkdirAll(readmeDir, 0755); err != nil {
+	if err := os.MkdirAll(readmeDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create README directory: %w", err)
 	}
-	if err := os.WriteFile(readmeDir+"/inputs.conf.spec", []byte(inputsConfSpec), 0644); err != nil {
+	if err := os.WriteFile(readmeDir+"/inputs.conf.spec", []byte(inputsConfSpec), 0o600); err != nil {
 		return fmt.Errorf("failed to write inputs.conf.spec: %w", err)
 	}
 

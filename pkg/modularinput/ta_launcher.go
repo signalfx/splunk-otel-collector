@@ -54,7 +54,7 @@ var (
 // to set environment variables from the configuration stanza.
 // Returns an error if the launch fails, ErrQueryMode if running in query mode,
 // or nil if not running in modular input mode or on success.
-func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix string, scheme string) error {
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string) error {
 	mode := isModularInputMode(args)
 	if mode == notModularInput {
 		return nil

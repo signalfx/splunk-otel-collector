@@ -20,7 +20,7 @@ import (
 )
 
 // generateInputsConf generates the inputs.conf file content
-func generateInputsConf(scheme *Scheme, globalSettings, inputName string) (string, error) {
+func generateInputsConf(scheme *Scheme, globalSettings, inputName string) string {
 	var sb strings.Builder
 
 	// Write header with input name
@@ -37,14 +37,14 @@ func generateInputsConf(scheme *Scheme, globalSettings, inputName string) (strin
 
 	// Write each argument with its default value
 	for _, arg := range scheme.Endpoint.Args {
-		sb.WriteString(fmt.Sprintf("%s = %s\n", arg.Name, arg.DefaultValue))
+		sb.WriteString(arg.Name + " = " + arg.DefaultValue + "\n")
 	}
 
-	return sb.String(), nil
+	return sb.String()
 }
 
 // generateInputsConfSpec generates the inputs.conf.spec file content
-func generateInputsConfSpec(scheme *Scheme, inputName string) (string, error) {
+func generateInputsConfSpec(scheme *Scheme, inputName string) string {
 	var sb strings.Builder
 
 	// Write header with input name
@@ -53,20 +53,20 @@ func generateInputsConfSpec(scheme *Scheme, inputName string) (string, error) {
 	// Write each argument specification
 	for _, arg := range scheme.Endpoint.Args {
 		// Argument name and value placeholder
-		sb.WriteString(fmt.Sprintf("%s = <value>\n", arg.Name))
+		sb.WriteString(arg.Name + " = <value>\n")
 
 		// Description (normalize whitespace)
 		desc := normalizeDescription(arg.Description)
 
-		sb.WriteString(fmt.Sprintf("* %s\n", desc))
+		sb.WriteString("* " + desc + "\n")
 
 		// Default value
-		sb.WriteString(fmt.Sprintf("* Default = %s\n", arg.DefaultValue))
+		sb.WriteString("* Default = " + arg.DefaultValue + "\n")
 
 		sb.WriteString("\n")
 	}
 
-	return sb.String(), nil
+	return sb.String()
 }
 
 // normalizeDescription normalizes the description by removing extra whitespace

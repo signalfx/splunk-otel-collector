@@ -39,11 +39,10 @@ func TestParseSchemeXML(t *testing.T) {
 </scheme>`
 
 	// Create temporary file
-	tmpFile, err := os.CreateTemp("", "scheme-*.xml")
+	tmpFile, err := os.CreateTemp(t.TempDir(), "scheme-*.xml")
 	require.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
 
-	_, err = tmpFile.Write([]byte(xmlContent))
+	_, err = tmpFile.WriteString(xmlContent)
 	require.NoError(t, err)
 	tmpFile.Close()
 
@@ -71,11 +70,10 @@ func TestParseSchemeXML_InvalidFile(t *testing.T) {
 }
 
 func TestParseSchemeXML_InvalidXML(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "invalid-*.xml")
+	tmpFile, err := os.CreateTemp(t.TempDir(), "invalid-*.xml")
 	require.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
 
-	_, err = tmpFile.Write([]byte("<invalid xml"))
+	_, err = tmpFile.WriteString("<invalid xml")
 	require.NoError(t, err)
 	tmpFile.Close()
 

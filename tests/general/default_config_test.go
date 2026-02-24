@@ -491,6 +491,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"exporters":  []any{"otlp_http/entities"},
 						},
 					},
+					"telemetry": map[string]any{
+						"logs": map[string]any{"level": "info"},
+					},
 				},
 			}, config)
 

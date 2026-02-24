@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHandleLaunchAsTA_NotModularInput(t *testing.T) {
+func TestHandleLaunchAsTA_notModularInput(t *testing.T) {
 	// Save original function and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn
 	defer func() { isParentProcessSplunkdFn = originalIsParentFn }()
@@ -39,7 +39,7 @@ func TestHandleLaunchAsTA_NotModularInput(t *testing.T) {
 	os.Unsetenv("SPLUNK_HOME")
 
 	args := []string{"program"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza")
+	err := HandleLaunchAsTA(args, nil, "test-stanza", "<scheme></scheme>")
 	assert.NoError(t, err, "Expected no error when not in modular input mode")
 }
 
@@ -57,7 +57,7 @@ func TestHandleLaunchAsTA_QueryModeScheme(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program", "--scheme"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza")
+	err := HandleLaunchAsTA(args, nil, "test-stanza", "<scheme></scheme>")
 	assert.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --scheme argument")
 }
 
@@ -75,7 +75,7 @@ func TestHandleLaunchAsTA_QueryModeValidate(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program", "--validate-arguments"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza")
+	err := HandleLaunchAsTA(args, nil, "test-stanza", "<scheme></scheme>")
 	assert.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --validate-arguments argument")
 }
 
@@ -95,7 +95,7 @@ func TestHandleLaunchAsTA_InvalidXML(t *testing.T) {
 	args := []string{"program"}
 	invalidXML := strings.NewReader("<input><invalid>")
 
-	err := HandleLaunchAsTA(args, invalidXML, "test-stanza")
+	err := HandleLaunchAsTA(args, invalidXML, "test-stanza", "<scheme></scheme>")
 	require.Error(t, err, "Expected error for invalid XML")
 	assert.Contains(t, err.Error(), "launch as TA failed to read modular input XML from stdin")
 }
@@ -140,7 +140,7 @@ func TestHandleLaunchAsTA_Success(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	assert.Equal(t, "secret123", envVars["SPLUNK_API_KEY"], "Expected SPLUNK_API_KEY to be set")
@@ -187,7 +187,7 @@ func TestHandleLaunchAsTA_SuccessWithEnvExpansion(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	assert.Equal(t, "expanded_value", envVars["SPLUNK_CONFIG_VALUE"], "Expected SPLUNK_CONFIG_VALUE to be expanded")
@@ -231,7 +231,7 @@ func TestHandleLaunchAsTA_SetEnvError(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.Error(t, err, "Expected error")
 	assert.Contains(t, err.Error(), "launch as TA failed to set environment variable")
 	assert.ErrorIs(t, err, expectedErr, "Expected wrapped error")
@@ -276,7 +276,7 @@ func TestHandleLaunchAsTA_StanzaNotFound(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error when stanza not found")
 	assert.False(t, setEnvCalled, "Expected setEnv to not be called when stanza not found")
 }
@@ -319,7 +319,7 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error with empty stanza")
 	assert.False(t, setEnvCalled, "Expected setEnv to not be called with empty stanza")
 }
@@ -341,7 +341,7 @@ func TestHandleLaunchAsTA_ReadError(t *testing.T) {
 	errorReader := &errorReader{err: errors.New("read error")}
 
 	args := []string{"program"}
-	err := HandleLaunchAsTA(args, errorReader, "test-stanza")
+	err := HandleLaunchAsTA(args, errorReader, "test-stanza", "<scheme></scheme>")
 	require.Error(t, err, "Expected error for read failure")
 	assert.Contains(t, err.Error(), "launch as TA failed to read modular input XML from stdin")
 }
@@ -360,9 +360,8 @@ func TestIsModularInputMode_NoSplunkHome(t *testing.T) {
 	os.Unsetenv("SPLUNK_HOME")
 
 	args := []string{"program"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.False(t, isModularInput, "Expected not modular input mode without SPLUNK_HOME")
-	assert.False(t, isQueryMode, "Expected not query mode without SPLUNK_HOME")
+	mode := isModularInputMode(args)
+	assert.Equal(t, notModularInput, mode, "Expected notModularInput mode without SPLUNK_HOME")
 }
 
 func TestIsModularInputMode_TAv1Launch(t *testing.T) {
@@ -380,9 +379,8 @@ func TestIsModularInputMode_TAv1Launch(t *testing.T) {
 	t.Setenv("SPLUNK_OTEL_TA_HOME", "/opt/splunk/etc/apps/Splunk_TA_otel")
 
 	args := []string{"program"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.False(t, isModularInput, "Expected not modular input mode when TA v1 is being launched")
-	assert.False(t, isQueryMode, "Expected not query mode when TA v1 is being launched")
+	mode := isModularInputMode(args)
+	assert.Equal(t, notModularInput, mode, "Expected notModularInput mode when TA v1 is being launched")
 }
 
 func TestIsModularInputMode_ParentNotSplunkd(t *testing.T) {
@@ -399,9 +397,8 @@ func TestIsModularInputMode_ParentNotSplunkd(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.False(t, isModularInput, "Expected not modular input mode when parent is not splunkd")
-	assert.False(t, isQueryMode, "Expected not query mode when parent is not splunkd")
+	mode := isModularInputMode(args)
+	assert.Equal(t, notModularInput, mode, "Expected notModularInput mode when parent is not splunkd")
 }
 
 func TestIsModularInputMode_Normal(t *testing.T) {
@@ -418,9 +415,8 @@ func TestIsModularInputMode_Normal(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.True(t, isModularInput, "Expected modular input mode")
-	assert.False(t, isQueryMode, "Expected not query mode")
+	mode := isModularInputMode(args)
+	assert.Equal(t, executionMode, mode, "Expected executionMode")
 }
 
 func TestIsModularInputMode_Scheme(t *testing.T) {
@@ -437,9 +433,8 @@ func TestIsModularInputMode_Scheme(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program", "--scheme"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.True(t, isModularInput, "Expected modular input mode")
-	assert.True(t, isQueryMode, "Expected query mode for --scheme")
+	mode := isModularInputMode(args)
+	assert.Equal(t, introspectionMode, mode, "Expected introspectionMode for --scheme")
 }
 
 func TestIsModularInputMode_ValidateArguments(t *testing.T) {
@@ -456,9 +451,8 @@ func TestIsModularInputMode_ValidateArguments(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program", "--validate-arguments"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.True(t, isModularInput, "Expected modular input mode")
-	assert.True(t, isQueryMode, "Expected query mode for --validate-arguments")
+	mode := isModularInputMode(args)
+	assert.Equal(t, validationMode, mode, "Expected validationMode for --validate-arguments")
 }
 
 func TestIsModularInputMode_OtherArguments(t *testing.T) {
@@ -475,9 +469,8 @@ func TestIsModularInputMode_OtherArguments(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program", "--other-flag"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.True(t, isModularInput, "Expected modular input mode")
-	assert.False(t, isQueryMode, "Expected not query mode for other arguments")
+	mode := isModularInputMode(args)
+	assert.Equal(t, executionMode, mode, "Expected executionMode for other arguments")
 }
 
 func TestIsModularInputMode_MultipleArguments(t *testing.T) {
@@ -494,9 +487,8 @@ func TestIsModularInputMode_MultipleArguments(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	args := []string{"program", "--scheme", "--other-flag"}
-	isModularInput, isQueryMode := isModularInputMode(args)
-	assert.True(t, isModularInput, "Expected modular input mode")
-	assert.False(t, isQueryMode, "Expected not query mode for more than 2 arguments")
+	mode := isModularInputMode(args)
+	assert.Equal(t, executionMode, mode, "Expected executionMode for more than 2 arguments")
 }
 
 // errorReader is a helper type that always returns an error when Read is called
@@ -552,7 +544,7 @@ func TestHandleLaunchAsTA_TwoPassFiltering(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	// Only splunk_ prefixed parameters should be set
@@ -608,7 +600,7 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	// Verify all variables are set
@@ -685,7 +677,7 @@ func TestHandleLaunchAsTA_MixedCaseSplunkPrefix(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	// All should be converted to uppercase
@@ -739,7 +731,7 @@ func TestHandleLaunchAsTA_ComplexDependencies(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza")
+	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	// Verify all variables are set correctly
@@ -875,7 +867,7 @@ func TestHandleLaunchAsTA_StanzaPrefixMatch(t *testing.T) {
 	reader := strings.NewReader(xmlData)
 
 	// Use prefix "otel://" to match only the first stanza
-	err := HandleLaunchAsTA(args, reader, "otel://")
+	err := HandleLaunchAsTA(args, reader, "otel://", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	// Should match the first stanza only
@@ -923,7 +915,7 @@ func TestHandleLaunchAsTA_StanzaPrefixNoMatch(t *testing.T) {
 	reader := strings.NewReader(xmlData)
 
 	// Use prefix that doesn't match
-	err := HandleLaunchAsTA(args, reader, "nonexistent://")
+	err := HandleLaunchAsTA(args, reader, "nonexistent://", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error when prefix doesn't match")
 	assert.False(t, setEnvCalled, "Expected setEnv to not be called when prefix doesn't match")
 }
@@ -971,7 +963,7 @@ func TestHandleLaunchAsTA_StanzaPrefixFirstMatch(t *testing.T) {
 	reader := strings.NewReader(xmlData)
 
 	// When multiple stanzas match the prefix, only the first one should be used
-	err := HandleLaunchAsTA(args, reader, "otel://")
+	err := HandleLaunchAsTA(args, reader, "otel://", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
 
 	// Should use the first matching stanza

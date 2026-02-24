@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"log"
@@ -38,18 +39,21 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
+const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
+
+//go:embed ta_v2_scheme.xml
+var modularInputSchemeXML string
+
 func main() {
 	runFromCmdLine(os.Args)
 }
-
-const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
 
 func runFromCmdLine(args []string) {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix)
+	err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix, modularInputSchemeXML)
 	if err != nil {
 		if errors.Is(err, modularinput.ErrQueryMode) {
 			// Query modes (scheme/validate) do not write anything to stdout.

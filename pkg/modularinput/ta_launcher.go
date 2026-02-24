@@ -27,6 +27,20 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 )
 
+// modularInputMode represents the mode in which the modular input is running
+type modularInputMode int
+
+const (
+	// notModularInput indicates the executable is not running as a modular input
+	notModularInput modularInputMode = iota
+	// executionMode indicates the executable is running as a modular input with no other arguments
+	executionMode
+	// introspectionMode indicates the executable is running as a modular input with --scheme argument
+	introspectionMode
+	// validationMode indicates the executable is running as a modular input with --validate-arguments argument
+	validationMode
+)
+
 var (
 	ErrQueryMode = errors.New("modular input called in query mode")
 
@@ -40,16 +54,20 @@ var (
 // to set environment variables from the configuration stanza.
 // Returns an error if the launch fails, ErrQueryMode if running in query mode,
 // or nil if not running in modular input mode or on success.
-func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix string) error {
-	isModularInput, isQueryMode := isModularInputMode(args)
-	if !isModularInput {
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix string, scheme string) error {
+	mode := isModularInputMode(args)
+	if mode == notModularInput {
 		return nil
 	}
 
-	if isQueryMode {
-		// Query modes (scheme/validate) are empty no-ops for now.
-		// Do not write anything to stdout, just signal it to the caller
-		// with a specific error.
+	if mode == introspectionMode {
+		// The caller is just expected to exit when receiving ErrQueryMode
+		fmt.Println(scheme)
+		return ErrQueryMode
+	}
+
+	if mode == validationMode {
+		// The caller is just expected to exit when receiving ErrQueryMode
 		return ErrQueryMode
 	}
 
@@ -84,11 +102,11 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix string)
 	return nil
 }
 
-func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
+func isModularInputMode(args []string) modularInputMode {
 	// SPLUNK_HOME must be defined if this is running as a modular input.
 	_, hasSplunkHome := os.LookupEnv("SPLUNK_HOME")
 	if !hasSplunkHome {
-		return false, false
+		return notModularInput
 	}
 
 	// TA v1 is a special case of the collector being launched as a modular input
@@ -97,20 +115,24 @@ func isModularInputMode(args []string) (isModularInput, isQueryMode bool) {
 	_, isTAv1Launch := os.LookupEnv("SPLUNK_OTEL_TA_HOME")
 	if isTAv1Launch {
 		// TA v1, let the scripts handle the TA specific behavior
-		return false, false
+		return notModularInput
 	}
 
 	// Check if the parent process is splunkd
 	if !isParentProcessSplunkdFn() {
-		return false, false
+		return notModularInput
 	}
 
 	// This is running as a modular input
-	if len(args) == 2 && (args[1] == "--scheme" || args[1] == "--validate-arguments") {
-		return true, true
+	if isArgScheme(args) {
+		return introspectionMode
 	}
 
-	return true, false
+	if isArgValidate(args) {
+		return validationMode
+	}
+
+	return executionMode
 }
 
 // setEnvVarsInOrder sets environment variables in dependency order.
@@ -178,4 +200,12 @@ func isParentProcessSplunkd() bool {
 
 	// Check if parent process is splunkd (Linux) or splunkd.exe (Windows)
 	return parentName == "splunkd" || parentName == "splunkd.exe"
+}
+
+func isArgScheme(args []string) bool {
+	return len(args) == 2 && args[1] == "--scheme"
+}
+
+func isArgValidate(args []string) bool {
+	return len(args) == 2 && args[1] == "--validate-arguments"
 }

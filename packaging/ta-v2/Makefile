@@ -88,5 +88,5 @@ build-otelcol-windows: ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe:
 	@echo "Building Windows executable ..."
 	if [ ! -d ./assets/windows_x86_64/bin/ ]; then mkdir -p ./assets/windows_x86_64/bin/; fi
-	cd $(SRC_ROOT)/ && GOOS=windows GOARCH=amd64 $(MAKE) otelcol
-	cp $(SRC_ROOT)/bin/otelcol_windows_amd64 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
+	cd $(SRC_ROOT)/ && GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	cp $(SRC_ROOT)/bin/otelcol_windows_amd64.exe ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe

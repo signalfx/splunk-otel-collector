@@ -1,0 +1,55 @@
+<scheme>
+    <title>Splunk Add-on for OpenTelemetry Collector</title>
+    <description>Deploys the Splunk OpenTelemetry Collector as a modular input for the
+        Splunk Universal Forwarder</description>
+    <streaming_mode>simple</streaming_mode>
+    <use_single_instance>false</use_single_instance>
+    <endpoint>
+        <args>
+            <arg name="splunk_access_token">
+                <title>Splunk Access Token</title>
+                <description>Access token used to send data to Splunk Observability</description>
+                <data_type>string</data_type>
+                <required_on_edit>true</required_on_edit>
+            </arg>
+            <arg name="splunk_config">
+                <title>Splunk Config</title>
+                <description>Config file that will be used by the Splunk_TA_OTel_Collector</description>
+                <data_type>string</data_type>
+                <required_on_edit>true</required_on_edit>
+            </arg>
+            <arg name="splunk_realm">
+                <title>Splunk Realm</title>
+                <description>Splunk Observability realm to which data will be sent to</description>
+                <data_type>string</data_type>
+                <required_on_edit>true</required_on_edit>
+            </arg>
+            <arg name="splunk_api_url">
+                <title>Splunk API URL</title>
+                <description>Specifies the Splunk Observability API endpoint</description>
+                <data_type>string</data_type>
+                <required_on_edit>true</required_on_edit>
+            </arg>
+            <arg name="splunk_ingest_url">
+                <title>Splunk Ingest URL</title>
+                <description>Specifies the Splunk Observability ingest endpoint</description>
+                <data_type>string</data_type>
+                <required_on_edit>true</required_on_edit>
+            </arg>
+            <arg name="splunk_listen_interface">
+                <title>Splunk Listen Interface</title>
+                <description>Address for the listening interfaces opened by the
+                    Splunk_TA_OTel_Collector</description>
+                <data_type>string</data_type>
+                <required_on_edit>true</required_on_edit>
+            </arg>
+            <arg name="splunk_collector_log_level">
+                <title>Splunk Collector Log Level</title>
+                <description>Specifies the log level to be used by the
+                    Splunk_TA_OTel_Collector</description>
+                <data_type>string</data_type>
+                <required_on_edit>true</required_on_edit>
+            </arg>
+        </args>
+    </endpoint>
+</scheme>

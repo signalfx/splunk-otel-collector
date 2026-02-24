@@ -6,44 +6,44 @@
     <use_single_instance>false</use_single_instance>
     <endpoint>
         <args>
-            <arg name="splunk_access_token">
+            <arg name="splunk_access_token" defaultValue="">
                 <title>Splunk Access Token</title>
                 <description>Access token used to send data to Splunk Observability</description>
                 <data_type>string</data_type>
                 <required_on_edit>true</required_on_edit>
             </arg>
-            <arg name="splunk_config">
+            <arg name="splunk_config" defaultValue="$SPLUNK_HOME/etc/apps/Splunk_TA_OTel_Collector/configs/agent_config.yaml">
                 <title>Splunk Config</title>
                 <description>Config file that will be used by the Splunk_TA_OTel_Collector</description>
                 <data_type>string</data_type>
                 <required_on_edit>true</required_on_edit>
             </arg>
-            <arg name="splunk_realm">
+            <arg name="splunk_realm" defaultValue="us0">
                 <title>Splunk Realm</title>
                 <description>Splunk Observability realm to which data will be sent to</description>
                 <data_type>string</data_type>
                 <required_on_edit>true</required_on_edit>
             </arg>
-            <arg name="splunk_api_url">
+            <arg name="splunk_api_url" defaultValue="https://api.$SPLUNK_REALM.signalfx.com">
                 <title>Splunk API URL</title>
                 <description>Specifies the Splunk Observability API endpoint</description>
                 <data_type>string</data_type>
                 <required_on_edit>true</required_on_edit>
             </arg>
-            <arg name="splunk_ingest_url">
+            <arg name="splunk_ingest_url" defaultValue="https://ingest.$SPLUNK_REALM.signalfx.com">
                 <title>Splunk Ingest URL</title>
                 <description>Specifies the Splunk Observability ingest endpoint</description>
                 <data_type>string</data_type>
                 <required_on_edit>true</required_on_edit>
             </arg>
-            <arg name="splunk_listen_interface">
+            <arg name="splunk_listen_interface" defaultValue="localhost">
                 <title>Splunk Listen Interface</title>
                 <description>Address for the listening interfaces opened by the
                     Splunk_TA_OTel_Collector</description>
                 <data_type>string</data_type>
                 <required_on_edit>true</required_on_edit>
             </arg>
-            <arg name="splunk_collector_log_level">
+            <arg name="splunk_collector_log_level" defaultValue="error">
                 <title>Splunk Collector Log Level</title>
                 <description>Specifies the log level to be used by the
                     Splunk_TA_OTel_Collector</description>

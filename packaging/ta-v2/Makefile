@@ -26,6 +26,15 @@ sync-configs:
 	@if [ ! -d ./assets/configs/ ]; then mkdir -p ./assets/configs/; fi
 	cp $(SRC_ROOT)/cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
 
+.PHONY: ta-inputs-conf
+ta-inputs-conf:
+	@echo "Generating inputs.conf and inputs.conf.spec ..."
+	cd $(SRC_ROOT) && go run ./cmd/ta-inputs-from-schema \
+		-scheme cmd/otelcol/ta_v2_scheme.xml \
+		-global-settings cmd/ta-inputs-from-schema/testdata/global_settings.txt \
+		-name $(MOD_INPUT_NAME) \
+		-assets packaging/ta-v2/assets
+
 .PHONY: validate-target-os
 validate-target-os:
 ifneq ($(TA_TARGET_OS),)
@@ -45,7 +54,7 @@ all-packages: pack
 	$(MAKE) TA_TARGET_OS=windows pack
 
 .PHONY: pack
-pack: validate-target-os sync-configs
+pack: validate-target-os sync-configs ta-inputs-conf
 	# Build a package according to the specified TA_TARGET_OS
 	@echo "Packing add-on $(PKG_NAME) ..."
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi

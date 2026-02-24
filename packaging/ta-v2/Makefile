@@ -62,7 +62,7 @@ pack: validate-target-os sync-configs ta-inputs-conf
 	listfile=$$(mktemp) && \
 	tr -d '\r' < $(PKG_NAME).fileslist.txt > $$listfile && \
 	cp -rL ./assets/ $$tmpdir/$(MOD_INPUT_NAME) && \
-	tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
+	COPYFILE_DISABLE=1 tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
 	rm -rf $$tmpdir $$listfile
 
 .PHONY: clean-packages

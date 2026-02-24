@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -60,20 +61,20 @@ func run(schemeFile, globalSettingsFile, inputName, assetsDir string) error {
 	inputsConfSpec := generateInputsConfSpec(scheme, inputName)
 
 	// Write inputs.conf
-	defaultDir := assetsDir + "/default"
+	defaultDir := filepath.Join(assetsDir, "default")
 	if err := os.MkdirAll(defaultDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create default directory: %w", err)
 	}
-	if err := os.WriteFile(defaultDir+"/inputs.conf", []byte(inputsConf), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(defaultDir, "inputs.conf"), []byte(inputsConf), 0o600); err != nil {
 		return fmt.Errorf("failed to write inputs.conf: %w", err)
 	}
 
 	// Write inputs.conf.spec
-	readmeDir := assetsDir + "/README"
+	readmeDir := filepath.Join(assetsDir, "README")
 	if err := os.MkdirAll(readmeDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create README directory: %w", err)
 	}
-	if err := os.WriteFile(readmeDir+"/inputs.conf.spec", []byte(inputsConfSpec), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(readmeDir, "inputs.conf.spec"), []byte(inputsConfSpec), 0o600); err != nil {
 		return fmt.Errorf("failed to write inputs.conf.spec: %w", err)
 	}
 

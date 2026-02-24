@@ -45,8 +45,9 @@ var (
 	ErrQueryMode = errors.New("modular input called in query mode")
 
 	// Function variables to facilitate testing
-	setEnvFn                 = os.Setenv
-	isParentProcessSplunkdFn = isParentProcessSplunkd
+	setEnvFn                           = os.Setenv
+	isParentProcessSplunkdFn           = isParentProcessSplunkd
+	stdoutWriter             io.Writer = os.Stdout
 )
 
 // HandleLaunchAsTA handles the launch of the collector as a Splunk TA modular input.
@@ -62,7 +63,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 
 	if mode == introspectionMode {
 		// The caller is just expected to exit when receiving ErrQueryMode
-		fmt.Println(scheme)
+		fmt.Fprintln(stdoutWriter, scheme)
 		return ErrQueryMode
 	}
 

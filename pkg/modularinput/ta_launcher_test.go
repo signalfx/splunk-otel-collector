@@ -15,6 +15,7 @@
 package modularinput
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"os"
@@ -44,39 +45,59 @@ func TestHandleLaunchAsTA_notModularInput(t *testing.T) {
 }
 
 func TestHandleLaunchAsTA_QueryModeScheme(t *testing.T) {
-	// Save original function and restore after test
+	// Save original functions and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn
-	defer func() { isParentProcessSplunkdFn = originalIsParentFn }()
+	originalStdout := stdoutWriter
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		stdoutWriter = originalStdout
+	}()
 
 	// Mock parent process check to return true
 	isParentProcessSplunkdFn = func() bool {
 		return true
 	}
 
+	// Capture stdout
+	var buf bytes.Buffer
+	stdoutWriter = &buf
+
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
+	const schemeContent = "<scheme><title>Test</title></scheme>"
 	args := []string{"program", "--scheme"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza", "<scheme></scheme>")
-	assert.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --scheme argument")
+	err := HandleLaunchAsTA(args, nil, "test-stanza", schemeContent)
+	require.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --scheme argument")
+	assert.Contains(t, buf.String(), schemeContent, "Expected scheme content written to stdout in introspection mode")
 }
 
 func TestHandleLaunchAsTA_QueryModeValidate(t *testing.T) {
-	// Save original function and restore after test
+	// Save original functions and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn
-	defer func() { isParentProcessSplunkdFn = originalIsParentFn }()
+	originalStdout := stdoutWriter
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		stdoutWriter = originalStdout
+	}()
 
 	// Mock parent process check to return true
 	isParentProcessSplunkdFn = func() bool {
 		return true
 	}
 
+	// Capture stdout
+	var buf bytes.Buffer
+	stdoutWriter = &buf
+
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
+	const schemeContent = "<scheme><title>Test</title></scheme>"
 	args := []string{"program", "--validate-arguments"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza", "<scheme></scheme>")
-	assert.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --validate-arguments argument")
+	err := HandleLaunchAsTA(args, nil, "test-stanza", schemeContent)
+	require.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --validate-arguments argument")
+	assert.Empty(t, buf.String(), "Expected no scheme content written to stdout in validation mode")
 }
 
 func TestHandleLaunchAsTA_InvalidXML(t *testing.T) {

@@ -114,7 +114,7 @@ jobs:
   msi-test:
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-11-arm" ]
     runs-on: otel-windows
     needs: [msi-build]
     timeout-minutes: 40

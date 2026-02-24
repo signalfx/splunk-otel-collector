@@ -29,6 +29,12 @@ if [ ! -d "$ASSETS_DIR" ]; then
     exit 1
 fi
 
+# Stop and remove existing container if it exists
+if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    echo "Stopping and removing existing container: ${CONTAINER_NAME}"
+    docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+fi
+
 # Clean up previous log directory if it exists
 if [ -d "$LOG_DIR" ]; then
     echo "Cleaning up previous log directory at $LOG_DIR"
@@ -38,10 +44,16 @@ fi
 # Create log directory
 mkdir -p "$LOG_DIR"
 
-# Stop and remove existing container if it exists
-if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo "Stopping and removing existing container: ${CONTAINER_NAME}"
-    docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+# Add the config requirements, if not already present
+if [ ! -f "$ASSETS_DIR/local/inputs.conf" ]; then
+    mkdir -p "$ASSETS_DIR/local"
+    cp "$ASSETS_DIR/default/inputs.conf" "$ASSETS_DIR/local/inputs.conf"
+fi
+
+# Check if splunk_access_token is empty and set to test token if needed
+if grep -q "^splunk_access_token[[:space:]]*=[[:space:]]*$" "$ASSETS_DIR/local/inputs.conf"; then
+    sed -i.bak 's/^splunk_access_token[[:space:]]*=[[:space:]]*$/splunk_access_token = F3K3TestT0Ken/' "$ASSETS_DIR/local/inputs.conf"
+    rm -f "$ASSETS_DIR/local/inputs.conf.bak"
 fi
 
 echo "Launching Splunk container..."
@@ -57,6 +69,7 @@ SPLUNK_PASSWORD="$(uuidgen 2>/dev/null || openssl rand -hex 16)"
 docker run -d --name "${CONTAINER_NAME}" \
     --platform linux/amd64 \
     -e SPLUNK_START_ARGS="--accept-license" \
+    -e SPLUNK_GENERAL_TERMS="--accept-sgt-current-at-splunk-com" \
     -e SPLUNK_PASSWORD="${SPLUNK_PASSWORD}" \
     -v "${ASSETS_DIR}":/opt/splunk/etc/apps/Splunk_TA_OTel_Collector \
     -v "${LOG_DIR}":/opt/splunk/var/log/splunk \

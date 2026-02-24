@@ -2,7 +2,7 @@
 
 splunk_access_token = <value>
 * Access token used to send data to Splunk Observability
-* Default = 
+* Default =
 
 splunk_config = <value>
 * Config file that will be used by the Splunk_TA_OTel_Collector

@@ -243,6 +243,60 @@ func TestGenerateInputsConfSpec_MultipleArgs(t *testing.T) {
 	assert.Greater(t, arg2Index, arg1Index, "arg2 should come after arg1")
 }
 
+func TestGenerateInputsConf_EmptyDefaultNoTrailingSpace(t *testing.T) {
+	scheme := &Scheme{
+		Endpoint: Endpoint{
+			Args: []Arg{
+				{
+					Name:         "no_default_arg",
+					DefaultValue: "",
+					Description:  "Arg with no default",
+				},
+				{
+					Name:         "with_default_arg",
+					DefaultValue: "somevalue",
+					Description:  "Arg with a default",
+				},
+			},
+		},
+	}
+
+	result := generateInputsConf(scheme, "", "Test_TA")
+
+	for _, line := range strings.Split(result, "\n") {
+		assert.False(t, strings.HasSuffix(line, " "), "line %q must not have a trailing space", line)
+	}
+	assert.Contains(t, result, "no_default_arg =\n")
+	assert.Contains(t, result, "with_default_arg = somevalue\n")
+}
+
+func TestGenerateInputsConfSpec_EmptyDefaultNoTrailingSpace(t *testing.T) {
+	scheme := &Scheme{
+		Endpoint: Endpoint{
+			Args: []Arg{
+				{
+					Name:         "no_default_arg",
+					DefaultValue: "",
+					Description:  "Arg with no default",
+				},
+				{
+					Name:         "with_default_arg",
+					DefaultValue: "somevalue",
+					Description:  "Arg with a default",
+				},
+			},
+		},
+	}
+
+	result := generateInputsConfSpec(scheme, "Test_TA")
+
+	for _, line := range strings.Split(result, "\n") {
+		assert.False(t, strings.HasSuffix(line, " "), "line %q must not have a trailing space", line)
+	}
+	assert.Contains(t, result, "* Default =\n")
+	assert.Contains(t, result, "* Default = somevalue\n")
+}
+
 func TestNormalizeDescription(t *testing.T) {
 	tests := []struct {
 		name     string

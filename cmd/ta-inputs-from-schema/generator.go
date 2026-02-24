@@ -37,7 +37,11 @@ func generateInputsConf(scheme *Scheme, globalSettings, inputName string) string
 
 	// Write each argument with its default value
 	for _, arg := range scheme.Endpoint.Args {
-		sb.WriteString(arg.Name + " = " + arg.DefaultValue + "\n")
+		if arg.DefaultValue == "" {
+			sb.WriteString(arg.Name + " =\n")
+		} else {
+			sb.WriteString(arg.Name + " = " + arg.DefaultValue + "\n")
+		}
 	}
 
 	return sb.String()
@@ -61,7 +65,11 @@ func generateInputsConfSpec(scheme *Scheme, inputName string) string {
 		sb.WriteString("* " + desc + "\n")
 
 		// Default value
-		sb.WriteString("* Default = " + arg.DefaultValue + "\n")
+		if arg.DefaultValue == "" {
+			sb.WriteString("* Default =\n")
+		} else {
+			sb.WriteString("* Default = " + arg.DefaultValue + "\n")
+		}
 
 		sb.WriteString("\n")
 	}

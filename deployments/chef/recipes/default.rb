@@ -37,7 +37,6 @@ if platform_family?('windows')
 
   windows_service 'splunk-otel-collector' do
     service_name node['splunk_otel_collector']['service_name']
-    timeout 180
     action [:enable, :start]
   end
 

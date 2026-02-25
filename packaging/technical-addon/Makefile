@@ -11,10 +11,6 @@ ARCH?=amd64
 # include autoinstrumentation
 AUTOINSTRUMENTATION_DIR:=$(SRC_ROOT)/instrumentation
 
-# Used for testing & validation
-ORCA_CLOUD?=kubernetes
-UF_VERSION?=8.2.7
-SPLUNK_PLATFORM?=x64_centos_7
 SPLUNK_ARCH?=x86_64
 
 # Used for releases
@@ -146,12 +142,6 @@ env-guard-ta: env-guard-all
 	$(ADDONS_SOURCE_DIR)/packaging-scripts/env/ta.sh
 
 
-.PHONY: env-guard-verify
-env-guard-verify: env-guard-ta
-	ORCA_CLOUD="$(ORCA_CLOUD)" \
-	UF_VERSION="$(UF_VERSION)" \
-	$(ADDONS_SOURCE_DIR)/packaging-scripts/env/verify.sh
-
 .PHONY: download-release
 download-release: env-guard-ta
 	BUILD_DIR="$(BUILD_DIR)" \
@@ -182,44 +172,6 @@ package-ta: env-guard-ta
 
 .PHONY: distribute-ta
 distribute-ta: generate-technical-addon download-release package-ta
-
-.PHONY: orca-test-ta
-orca-test-ta: env-guard-verify
-	ADDONS_SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
-	BUILD_DIR="$(BUILD_DIR)" \
-	ARCH="$(ARCH)" \
-	PLATFORM="$(PLATFORM)" \
-	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
-	ORCA_CLOUD="$(ORCA_CLOUD)" \
-	UF_VERSION="$(UF_VERSION)" \
-	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
-	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
-	$(ADDONS_SOURCE_DIR)/packaging-scripts/cicd-tests/happypath-test.sh
-
-.PHONY: orca-test-ta
-orca-collectd-test-ta: env-guard-verify
-	ADDONS_SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
-	BUILD_DIR="$(BUILD_DIR)" \
-	ARCH="$(ARCH)" \
-	PLATFORM="$(PLATFORM)" \
-	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
-	ORCA_CLOUD="$(ORCA_CLOUD)" \
-	UF_VERSION="$(UF_VERSION)" \
-	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
-	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
-	$(ADDONS_SOURCE_DIR)/packaging-scripts/cicd-tests/agent-bundle/orca-collectd-test.sh
-
-.PHONY: orca-gateway-test-ta
-orca-gateway-test-ta:  env-guard-verify
-	ADDONS_SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
-	BUILD_DIR="$(BUILD_DIR)" \
-	ARCH="$(ARCH)" \
-	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
-	PLATFORM="$(PLATFORM)" \
-	ORCA_CLOUD="$(ORCA_CLOUD)" \
-	UF_VERSION="$(UF_VERSION)" \
-	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
-	$(ADDONS_SOURCE_DIR)/packaging-scripts/cicd-tests/gateway/gateway.sh
 
 .PHONY: smoketest-ta
 smoketest-ta:

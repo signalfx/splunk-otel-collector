@@ -115,7 +115,7 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022", "windows-11-arm" ]
-    runs-on: otel-windows
+    runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     timeout-minutes: 40
     steps:

@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         # EOL REFERENCE: https://endoflife.date/nomad
-        nomad: [ "1.9.7-1", "1.11.0-1" ]
+        nomad: [ "1.9.7-1", "1.11.2-1" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.

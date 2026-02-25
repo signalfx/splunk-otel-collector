@@ -21,7 +21,7 @@ concurrency:
 
 env:
   # EOL REFERENCE: https://endoflife.date/python
-  PYTHON_VERSION: '3.14'
+  PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
   GO_VERSION: 1.25.7

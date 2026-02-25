@@ -152,9 +152,12 @@ type Monitor struct {
 }
 
 // Configure the monitor and kick off metric gathering
-func (m *Monitor) Configure(conf *Config) error {
+func (m *Monitor) Configure(conf *Config, deprecationWarning ...string) error {
 	m.logger = logrus.WithField("monitorType", conf.Type).WithField("monitorID", conf.MonitorID)
 	m.ctx, m.cancel = context.WithCancel(context.Background())
+	for _, warning := range deprecationWarning {
+		m.logger.Warn(warning)
+	}
 
 	// This will "open" a database by verifying that the config is sane but
 	// generally won't try and connect to it.  If it does attempt to connect

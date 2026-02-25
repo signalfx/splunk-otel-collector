@@ -67,8 +67,17 @@ jobs:
     needs: ta-v2-build-packages
     runs-on: ubuntu-latest
     defaults:
-        run:
-            working-directory: ./packaging/ta-v2
+      run:
+        working-directory: ./packaging/ta-v2
+    env:
+      CONTAINER_NAME: splunk-ta-otel-test
+      TA: Splunk_TA_OTel_Collector
+    strategy:
+      matrix:
+        splunk_version: [8.2.0, 9.4.0, 10.2.0]
+        package:
+          - Splunk_TA_OTel_Collector.tgz
+          - Splunk_TA_OTel_Collector_linux_x86_64.tgz
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -84,14 +93,51 @@ jobs:
         run: |
           set -eo pipefail
           mkdir -p ./build-out
-          tar -xzf out/distribution/Splunk_TA_OTel_Collector.tgz -C ./build-out
+          tar -xzf out/distribution/${{ matrix.package }} -C ./build-out
           find ./build-out -name "*"
 
       - name: Run local container
         env:
           ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
+          SPLUNK_VERSION: ${{ matrix.splunk_version }}
         run: |
           sudo -E ./run-local-package-in-container.sh
+
+      - name: Check collector up and running
+        shell: bash
+        run: |
+          timeout=180
+          elapsed=0
+          echo -n "Waiting for expvar endpoint to be available: "
+          while ! docker exec -i "$CONTAINER_NAME" curl http://localhost:55679/debug/expvarz --silent > /dev/null; do
+              if [ $elapsed -ge $timeout ]; then
+                  echo ""
+                  echo "Timeout: expvar endpoint was not available within $timeout seconds"
+                  exit 1
+              fi
+              sleep 2
+              elapsed=$((elapsed + 2))
+              echo -n "."
+          done
+
+      - name: Get collector PID from Splunk container
+        id: get_pid
+        run: |
+          docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA"
+          otelcol_pid="$(docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA" | awk '{print $2}')"
+          echo "$TA PID $otelcol_pid"
+          echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
+
+      - name: Check if collector process is alive after 30 seconds
+        run: |
+          sleep 30
+          otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
+          if docker exec "$CONTAINER_NAME" sudo ps "$otelcol_pid"; then
+            echo "$TA process ($otelcol_pid) was still running."
+          else
+            echo "$TA process ($otelcol_pid) was not running!"
+            exit 1
+          fi
 
       - name: Show splunkd.log on failure
         if: failure()
@@ -105,14 +151,21 @@ jobs:
   ta-v2-smoke-test-windows:
     needs: ta-v2-build-packages
     runs-on: windows-latest
-    env:
-      splunk_uf_version: 9.4.0
-      splunk_uf_build_hash: 6b4ebe426ca6
+    strategy:
+      matrix:
+        splunk_uf:
+          - version: 9.4.0
+            build_hash: 6b4ebe426ca6
+          - version: 10.0.3
+            build_hash: adbac1c8811c
+        package:
+          - Splunk_TA_OTel_Collector.tgz
+          - Splunk_TA_OTel_Collector_windows_x86_64.tgz
     steps:
       - name: Download the Splunk UF MSI
         shell: bash
         run: |
-          curl https://download.splunk.com/products/universalforwarder/releases/${{ env.splunk_uf_version }}/windows/splunkforwarder-${{ env.splunk_uf_version }}-${{ env.splunk_uf_build_hash }}-windows-x64.msi -o splunkforwarder.msi
+          curl https://download.splunk.com/products/universalforwarder/releases/${{ matrix.splunk_uf.version }}/windows/splunkforwarder-${{ matrix.splunk_uf.version }}-${{ matrix.splunk_uf.build_hash }}-windows-x64.msi -o splunkforwarder.msi
 
       - name: Install Splunk UF
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
@@ -125,14 +178,30 @@ jobs:
 
       - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
         run: |
-          tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/Splunk_TA_OTel_Collector.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/${{ matrix.package }}" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector"
+          New-Item -ItemType Directory -Path "$modularInputDir\local" -Force | Out-Null
+          $inputsConfPath = "$modularInputDir\local\inputs.conf"
+          Copy-Item -Path "$modularInputDir\default\inputs.conf" -Destination $inputsConfPath -Force
+          $inputsContent = Get-Content -Path $inputsConfPath
+          $tokenLineFound = $false
+          $updatedContent = $inputsContent | ForEach-Object {
+              if ($_ -match "^splunk_access_token\s*=\s*$") {
+                  $tokenLineFound = $true
+                  "splunk_access_token = F3K3TestT0Ken"
+              } else {
+                  $_
+              }
+          }
+          if ($tokenLineFound) {
+              $updatedContent | Set-Content -Path $inputsConfPath
+          }
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
       - name: Start Splunk UF
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
-          .\splunk.exe status
-          .\splunk.exe start
+          .\splunk.exe restart
 
       - name: Wait for splunkd log file creation
         run: |
@@ -163,7 +232,7 @@ jobs:
         shell: pwsh
         run: |
           $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
-          $timeout = 180
+          $timeout = 300
           $elapsed = 0
           Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
           while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
@@ -179,3 +248,85 @@ jobs:
           Write-Host ""
           Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
           Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
+
+      - name: Get Splunk_TA_OTel_Collector PID
+        id: get_pid
+        shell: pwsh
+        run: |
+          Get-Process
+          $timeout = 120
+          $elapsed = 0
+          $otelcol_pid = $null
+          Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector process: "
+          while ($elapsed -lt $timeout -and $null -eq $otelcol_pid) {
+              try {
+                  $otelcol_pid = (Get-Process -Name Splunk_TA_OTel_Collector -ErrorAction Stop).Id
+                  if ($null -ne $otelcol_pid) {
+                      Write-Host ""
+                      Write-Host "Found Splunk_TA_OTel_Collector PID: $otelcol_pid"
+                      break
+                  }
+              } catch {
+                  # Process not found, continue waiting
+              }
+              Start-Sleep -Seconds 1
+              $elapsed += 1
+              Write-Host -NoNewline "."
+          }
+          if ($null -eq $otelcol_pid) {
+              Write-Host ""
+              Write-Host "Timeout: Could not find Splunk_TA_OTel_Collector process within $timeout seconds" -ForegroundColor Red
+              exit 1
+          }
+          "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Check collector up and running
+        shell: pwsh
+        run: |
+          $timeout = 120
+          $elapsed = 0
+          Write-Host -NoNewline "Waiting for expvar endpoint to be available: "
+          while ($true) {
+              try {
+                  $response = Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -Method Get -UseBasicParsing -ErrorAction Stop
+                  if ($response.StatusCode -eq 200) {
+                      Write-Host ""
+                      Write-Host "Expvar endpoint is available" -ForegroundColor Green
+                      break
+                  }
+              } catch {
+                  # Endpoint not available yet
+              }
+
+              if ($elapsed -ge $timeout) {
+                  Write-Host ""
+                  Write-Host "Timeout: expvar endpoint was not available within $timeout seconds" -ForegroundColor Red
+                  exit 1
+              }
+
+              Start-Sleep -Seconds 1
+              $elapsed += 1
+              Write-Host -NoNewline "."
+          }
+
+      - name: Check if Splunk_TA_OTel_Collector process is alive after 30 seconds
+        shell: pwsh
+        run: |
+          Start-Sleep -Seconds 30
+          $prev_otelcol_pid = ${{ steps.get_pid.outputs.otelcol_pid }}
+          $otelcol_pid = (Get-Process -Id $prev_otelcol_pid).Id
+          if ($otelcol_pid) {
+              Write-Host "Splunk_TA_OTel_Collector process ($prev_otelcol_pid) was still running."
+          } else {
+              Write-Host "Splunk_TA_OTel_Collector process ($prev_otelcol_pid) was not running!"
+              exit 1
+          }
+
+      - name: Show splunkd.log on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          Write-Host "`n======= splunkd.log contents ======="
+          Get-Content $splunkdLog -ErrorAction SilentlyContinue
+

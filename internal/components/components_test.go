@@ -124,6 +124,7 @@ func TestDefaultComponents(t *testing.T) {
 		"wavefront",
 		"windowseventlog",
 		"windowsperfcounters",
+		"windowsservice",
 		"yanggrpc",
 		"zipkin",
 		"zookeeper",

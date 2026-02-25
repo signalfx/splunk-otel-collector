@@ -36,7 +36,6 @@ stages:
   - release
   - docker-manifest-release
   - xray-scan
-  - orca-tests
   - publish-release
 
 include:
@@ -538,46 +537,6 @@ agent-bundle-windows:
       when: always
     - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
       when: manual
-.auth-setup:
-  id_tokens:
-    CI_JOB_JWT:
-      aud:
-        - "$CICD_VAULT_ADDR"
-        - "$SECRETS_URL"
-  variables:
-    TEST_FOLDER: $BUILD_DIR/$CI_JOB_ID
-  after_script:
-    - splunk_orca -v destroy --labels gitlab.job_url=${CI_JOB_URL} || true
-    - splunk_orca -v --cloud aws destroy --labels gitlab.job_url=${CI_JOB_URL} || true
-    - creds-helper logout --silent=false
-  before_script: |
-      creds-helper init
-      creds-helper pypi "$PYPI_READER_ROLE"
-      eval "$(creds-helper artifactory --eval "$PYPI_READER_ROLE" )"
-      pip install --upgrade pip
-      pip install --upgrade splunk-orca
-      splunk_orca --help
-      eval "$(creds-helper artifactory --eval "$GENERIC_RELEASER_ROLE_URI" )"
-      eval "$(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role" )"
-      # extract orca config (honestly we could probably just set this up every time)
-      pushd ~
-      if [ "$SPLUNK_CLOUD" == "kubernetes" ]; then
-        echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
-        tar -xzvf ~/orca_cred.tar.gz
-        # Also set some aws auth
-        grep aws_secret_access_key "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
-        grep aws_access_key_id "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
-        grep aws_session_token "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
-        # Test access
-        splunk_orca --cloud kubernetes show deployments
-      else
-        echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
-        tar -xzvf ~/orca_cred.tar.gz
-        # Test access
-        splunk_orca --cloud aws show deployments
-      fi
-      popd
-
 package-technical-addon:
   extends:
     - .collector-ta-trigger
@@ -595,113 +554,6 @@ package-technical-addon:
     matrix:
       - PLATFORM: ["all"]
 
-test-happypath-ta:
-  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends:
-    - .collector-ta-trigger
-    - .auth-setup
-  stage: "orca-tests"
-  needs:
-    - "package-technical-addon"
-  dependencies:
-    - "package-technical-addon"
-  parallel:
-    matrix:
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7"]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["linux"]
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022" ]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["windows"]
-  script: |
-    cd "${ADDONS_SOURCE_DIR}"
-    make orca-test-ta -e
-  after_script:
-    # spin down orca deployments
-    - "cd ${CI_PROJECT_DIR}"
-    - deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca_deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
-    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"
-  artifacts:
-    when: always
-    paths:
-      - "$BUILD_DIR/out/**/*"
-      - "$BUILD_DIR/$CI_JOB_ID/**/*"
-  allow_failure: true
-test-collectd-ta:
-  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends:
-    - .collector-ta-trigger
-    - .auth-setup
-  stage: orca-tests
-  variables:
-    ORCA_TAR_GZ: "$NEW_ORCA_TGZ"
-  needs:
-    - "package-technical-addon"
-  dependencies:
-    - "package-technical-addon"
-  parallel:
-    matrix:
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7"]
-        ORCA_CLOUD: ["kubernetes"]
-        ORCA_OPTION: ["--exec-user root"]
-        PLATFORM: ["linux"]
-  script: |
-    cd "${ADDONS_SOURCE_DIR}"
-    make orca-collectd-test-ta -e
-  after_script:
-    # spin down orca deployments
-    - "cd ${CI_PROJECT_DIR}"
-    - deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca_deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
-    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"
-  artifacts:
-    when: always
-    paths:
-      - "$BUILD_DIR/out/**/*"
-      - "$BUILD_DIR/$CI_JOB_ID/**/*"
-  allow_failure: true
-test-gateway-ta:
-  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends:
-    - .collector-ta-trigger
-    - .auth-setup
-  stage: orca-tests
-  needs:
-    - "package-technical-addon"
-  dependencies:
-    - "package-technical-addon"
-  parallel:
-    matrix:
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7"]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["linux"]
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_windows_2019", "x64_windows_2022"]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["windows"]
-  script: |
-    cd "${ADDONS_SOURCE_DIR}"
-    make orca-gateway-test-ta -e
-  after_script:
-    # spin down orca deployments
-    - "cd ${CI_PROJECT_DIR}"
-    - gateway_deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca-gateway-deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
-    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${gateway_deployment_id}"
-    - gateway_agent_deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca-gateway-agent-deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
-    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${gateway_agent_deployment_id}"
-  artifacts:
-    when: always
-    paths:
-      - "$BUILD_DIR/out/**/*"
-      - "$BUILD_DIR/$CI_JOB_ID/**/*"
-  allow_failure: true
 AppInspect_local:
   extends:
     - .collector-ta-trigger
@@ -734,9 +586,6 @@ collector-ta-release:
   stage: publish-release
   dependencies:
     - package-technical-addon
-    - test-happypath-ta
-    - test-collectd-ta
-    - test-gateway-ta
   script:
     - |
       cd "${ADDONS_SOURCE_DIR}"

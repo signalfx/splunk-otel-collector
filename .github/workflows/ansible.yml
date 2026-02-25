@@ -202,8 +202,8 @@ jobs:
           - ansible>=13.0.0, <14.0.0
         distro:
           # EOL REFERENCE: https://endoflife.date/windows-server
+          - "2019"
           - "2022"
-          - "2025"
         scenario:
           - default
           - default_install_remote_version

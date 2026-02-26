@@ -27,7 +27,7 @@
 
 - name: Set default vars for Windows
   ansible.builtin.set_fact:
-    registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+    collector_registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
     collector_package_stage: release
     collector_win_base_url: https://dl.signalfx.com
     collector_win_use_proxy: "no"

@@ -18,10 +18,10 @@
 - name: Get target machine path to MSI
   ansible.windows.win_find:
     paths: collector_win_temp_msi_dir
-  register: msi_dir_contents
-  failed_when: msi_dir_contents.files is not defined or msi_dir_contents.files | length != 1
+  register: collector_msi_dir_contents
+  failed_when: collector_msi_dir_contents.files is not defined or collector_msi_dir_contents.files | length != 1
 
 - name: Set MSI source path (local install)
   when: collector_local_artifact_testing_enabled
   ansible.builtin.set_fact:
-    collector_msi_path: "{{ msi_dir_contents.files[0].path }}"
+    collector_msi_path: "{{ collector_msi_dir_contents.files[0].path }}"

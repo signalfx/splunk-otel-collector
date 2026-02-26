@@ -103,13 +103,13 @@
 
 - name: Create registry path
   ansible.windows.win_regedit:
-    path: "{{ registry_key }}"
+    path: "{{ collector_registry_key }}"
     state: present
   when: collector_splunk_dotnet_auto_instrumentation_system_wide
 
 - name: Set system-wide registry value
   ansible.windows.win_regedit:
-    path: "{{ registry_key }}"
+    path: "{{ collector_registry_key }}"
     state: present
     name: "{{ item.key }}"
     data: |-

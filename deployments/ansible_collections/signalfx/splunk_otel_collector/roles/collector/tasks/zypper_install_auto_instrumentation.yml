@@ -8,4 +8,4 @@
     state: "{% if collector_splunk_otel_auto_instrumentation_version != 'latest' %}present{% else %}latest{% endif %}"
     oldpackage: yes
     update_cache: yes
-  register: zypper_instrumentation_package
+  register: collector_zypper_instrumentation_package

@@ -8,18 +8,18 @@
     proxy_url: "{{ win_proxy_url | default(omit) }}"
     proxy_username: "{{ win_proxy_username | default(omit) }}"
     use_proxy: "{{ collector_win_use_proxy }}"
-  register: latest
+  register: collector_latest
   when: collector_splunk_otel_collector_version == "latest"
 
 - name: Get content of remote file
   ansible.builtin.slurp:
-    src: "{{ latest.dest }}"
-  register: version
+    src: "{{ collector_latest.dest }}"
+  register: collector_version
   when: collector_splunk_otel_collector_version == "latest"
 
 - name: Decode remote file content for latest version
   ansible.builtin.set_fact:
-    collector_splunk_otel_collector_version: "{{ version.content | b64decode }}"
+    collector_splunk_otel_collector_version: "{{ collector_version.content | b64decode }}"
   when: collector_splunk_otel_collector_version == "latest"
 
 - name: Get splunk-otel-collector for windows

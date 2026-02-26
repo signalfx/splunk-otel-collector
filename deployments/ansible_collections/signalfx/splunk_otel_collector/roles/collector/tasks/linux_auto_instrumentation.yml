@@ -23,8 +23,8 @@
 - name: Set auto instrumentation facts
   ansible.builtin.set_fact:
     collector_package_changed: "{{ collector_apt_instrumentation_package is changed \
-      or yum_instrumentation_package is changed \
-      or zypper_instrumentation_package is changed }}"
+      or collector_yum_instrumentation_package is changed \
+      or collector_zypper_instrumentation_package is changed }}"
     collector_collector_npm_found: "{{ (collector_splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
     collector_with_new_instrumentation: "{{ collector_auto_instrumentation_version is version('0.87.0', '>=') }}"
     collector_with_systemd: "{{ collector_splunk_otel_auto_instrumentation_systemd }}"

@@ -19,14 +19,14 @@
   ansible.builtin.set_fact:
     collector_msi_unfiltered_arguments:
       - SPLUNK_ACCESS_TOKEN={{ collector_splunk_access_token }}
-      - "{{ 'SPLUNK_API_URL=' + splunk_api_url if splunk_api_url != '' else '' }}"
+      - "{{ 'SPLUNK_API_URL=' + collector_splunk_api_url if collector_splunk_api_url != '' else '' }}"
       - "{{ 'GOMEMLIMIT=' + (collector_gomemlimit | string) if (collector_gomemlimit | string) != '' else '' }}"
       - "{{ 'SPLUNK_BUNDLE_DIR=' + collector_splunk_bundle_dir if collector_splunk_bundle_dir != '' else '' }}"
       - "{{ 'SPLUNK_COLLECTD_DIR=' + collector_splunk_collectd_dir if collector_splunk_collectd_dir != '' else '' }}"
       - "{{ 'SPLUNK_CONFIG=' + collector_splunk_otel_collector_config if collector_splunk_otel_collector_config != '' else '' }}"
-      - "{{ 'SPLUNK_INGEST_URL=' + splunk_ingest_url if splunk_ingest_url != '' else '' }}"
+      - "{{ 'SPLUNK_INGEST_URL=' + collector_splunk_ingest_url if collector_splunk_ingest_url != '' else '' }}"
       - "{{ 'SPLUNK_HEC_TOKEN=' + collector_splunk_hec_token if collector_splunk_hec_token != '' else '' }}"
-      - "{{ 'SPLUNK_HEC_URL=' + splunk_hec_url if splunk_hec_url != '' else '' }}"
+      - "{{ 'SPLUNK_HEC_URL=' + collector_splunk_hec_url if collector_splunk_hec_url != '' else '' }}"
       - "{{ 'SPLUNK_LISTEN_INTERFACE=' + collector_splunk_listen_interface if collector_splunk_listen_interface != '' else '' }}"
       - "{{ 'SPLUNK_MEMORY_TOTAL_MIB=' + (collector_splunk_memory_total_mib | string)
                if (collector_splunk_memory_total_mib | string) != '' else '' }}"
@@ -75,14 +75,14 @@
 - name: Install splunk-otel-collector-msi
   when: collector_splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:
-    path: "{{ msi_path }}"
+    path: "{{ collector_msi_path }}"
     state: present
     arguments: "{{ collector_msi_arguments }}"
 
 - name: Install splunk-otel-collector-msi-legacy
   when: collector_splunk_collector_msi_is_configurable is undefined
   ansible.windows.win_package:
-    path: "{{ msi_path }}"
+    path: "{{ collector_msi_path }}"
     state: present
 
 - name: Merge custom config into the default config

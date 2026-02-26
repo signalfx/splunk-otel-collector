@@ -2,12 +2,12 @@ OTELCOL_OPTIONS={{ collector_splunk_otel_collector_command_line_args }}
 SPLUNK_CONFIG={{ collector_splunk_otel_collector_config }}
 SPLUNK_ACCESS_TOKEN={{ collector_splunk_access_token }}
 SPLUNK_REALM={{ collector_splunk_realm }}
-SPLUNK_API_URL={{ splunk_api_url | default("https://api." + collector_splunk_realm + ".signalfx.com") }}
-SPLUNK_INGEST_URL={{ splunk_ingest_url | default("https://ingest." + collector_splunk_realm + ".signalfx.com") }}
-{% if splunk_hec_url is defined and splunk_hec_url %}
-SPLUNK_HEC_URL={{ splunk_hec_url }}
-{% elif splunk_ingest_url is defined and splunk_ingest_url %}
-SPLUNK_HEC_URL={{ splunk_ingest_url + "/v1/log" }}
+SPLUNK_API_URL={{ collector_splunk_api_url | default("https://api." + collector_splunk_realm + ".signalfx.com") }}
+SPLUNK_INGEST_URL={{ collector_splunk_ingest_url | default("https://ingest." + collector_splunk_realm + ".signalfx.com") }}
+{% if collector_splunk_hec_url is defined and collector_splunk_hec_url %}
+SPLUNK_HEC_URL={{ collector_splunk_hec_url }}
+{% elif collector_splunk_ingest_url is defined and collector_splunk_ingest_url %}
+SPLUNK_HEC_URL={{ collector_splunk_ingest_url + "/v1/log" }}
 {% else %}
 SPLUNK_HEC_URL={{ "https://ingest." + collector_splunk_realm + ".signalfx.com/v1/log" }}
 {% endif %}

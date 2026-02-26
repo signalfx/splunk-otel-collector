@@ -55,19 +55,19 @@ $> ansible-playbook playbook.yaml -e collector_start_service=false
   environment variable will be set with this value for the Splunk OTel 
   Collector service. (**default:** `us0`)
 
-- `splunk_ingest_url`: The Splunk ingest URL, e.g.
+- `collector_splunk_ingest_url`: The Splunk ingest URL, e.g.
   `https://ingest.us0.signalfx.com`. The `SPLUNK_INGEST_URL` environment
   variable will be set with this value for the collector service. (**default:**
   `https://ingest.{{ collector_splunk_realm }}.signalfx.com`)
 
-- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`.
+- `collector_splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`.
   The `SPLUNK_API_URL` environment variable will be set with this value for the
   collector service. (**default:** `https://api.{{ collector_splunk_realm }}.signalfx.com`)
 
-- `splunk_hec_url`: The Splunk HEC endpoint URL, e.g.
+- `collector_splunk_hec_url`: The Splunk HEC endpoint URL, e.g.
   `https://ingest.us0.signalfx.com/v1/log`. The `SPLUNK_HEC_URL` environment
   variable will be set with this value for the collector service. (**default:**
-  `{{ splunk_ingest_url }}/v1/log`)
+  `{{ collector_splunk_ingest_url }}/v1/log`)
 
 - `collector_splunk_otel_collector_version`: Version of the collector package to install, e.g.
   `0.25.0`. (**default:** `latest`)
@@ -166,8 +166,8 @@ $> ansible-playbook playbook.yaml -e collector_start_service=false
 The collector installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html),
 which allows setting up a proxy to download the collector binaries.
 
-- `win_proxy_url` (Windows only): An explicit proxy to use for the request. By default, the request will use the IE defined proxy unless `win_use_proxy` is set to `no`. (**default:** ``)
-- `win_use_proxy` (Windows only): If set to `no`, it will not use the proxy defined in IE for the current user. (**default:** `no`)
+- `win_proxy_url` (Windows only): An explicit proxy to use for the request. By default, the request will use the IE defined proxy unless `collector_win_use_proxy` is set to `no`. (**default:** ``)
+- `collector_win_use_proxy` (Windows only): If set to `no`, it will not use the proxy defined in IE for the current user. (**default:** `no`)
 - `win_proxy_username` (Windows only): The username to use for proxy authentication. (**default:** ``)
 - `win_proxy_password` (Windows only): The password for `win_proxy_username`. (**default:** ``)
 

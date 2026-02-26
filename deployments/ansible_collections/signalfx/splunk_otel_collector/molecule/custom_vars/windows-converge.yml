@@ -5,9 +5,9 @@
   vars:
     collector_local_artifact_testing_enabled: true
     collector_splunk_access_token: fake-token
-    splunk_ingest_url: https://fake-splunk-ingest.com
-    splunk_api_url: https://fake-splunk-api.com
-    splunk_hec_url: https://fake-splunk-hec.com
+    collector_splunk_ingest_url: https://fake-splunk-ingest.com
+    collector_splunk_api_url: https://fake-splunk-api.com
+    collector_splunk_hec_url: https://fake-splunk-hec.com
     collector_splunk_hec_token: fake-hec-token
     collector_splunk_otel_collector_version: 0.126.0
     collector_splunk_otel_collector_config: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'

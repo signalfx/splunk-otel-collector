@@ -5,8 +5,8 @@
   vars:
     collector_local_artifact_testing_enabled: true
     collector_splunk_access_token: fake-token
-    splunk_ingest_url: https://fake-splunk-ingest.com
-    splunk_api_url: https://fake-splunk-api.com
+    collector_splunk_ingest_url: https://fake-splunk-ingest.com
+    collector_splunk_api_url: https://fake-splunk-api.com
     collector_splunk_otel_collector_version: 0.126.0
     collector_splunk_otel_collector_config: /etc/otel/collector/custom_config.yml
     collector_splunk_otel_collector_config_source: ./custom_collector_config.yml

@@ -4,7 +4,7 @@ extends: default
 
 rules:
   line-length:
-    max: 180
+    max: 120
     level: error
   key-duplicates: enable
   new-lines:

@@ -5,6 +5,3 @@ exclude_paths:
   - "molecule/custom_vars/custom_collector_config.yml"
   - "molecule/custom_vars/custom_collector_config_deprecated.yml"
   - "molecule/custom_vars_install_old_version/custom_collector_config.yml"
-
-skip_list:
-  - "var-naming[no-role-prefix]"

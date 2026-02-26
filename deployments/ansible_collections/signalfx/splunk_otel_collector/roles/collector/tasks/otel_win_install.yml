@@ -10,14 +10,14 @@
 
 - name: Use MSI capabilities to install the collector if possible
   ansible.builtin.set_fact:
-    splunk_collector_msi_is_configurable: true
+    collector_splunk_collector_msi_is_configurable: true
   when:
     - collector_local_artifact_testing_enabled or collector_splunk_otel_collector_version is version('0.98.0', '>=')
 
 - name: Build the arguments for the MSI installer
-  when: splunk_collector_msi_is_configurable is defined
+  when: collector_splunk_collector_msi_is_configurable is defined
   ansible.builtin.set_fact:
-    msi_unfiltered_arguments:
+    collector_msi_unfiltered_arguments:
       - SPLUNK_ACCESS_TOKEN={{ collector_splunk_access_token }}
       - "{{ 'SPLUNK_API_URL=' + splunk_api_url if splunk_api_url != '' else '' }}"
       - "{{ 'GOMEMLIMIT=' + (collector_gomemlimit | string) if (collector_gomemlimit | string) != '' else '' }}"
@@ -25,7 +25,7 @@
       - "{{ 'SPLUNK_COLLECTD_DIR=' + collector_splunk_collectd_dir if collector_splunk_collectd_dir != '' else '' }}"
       - "{{ 'SPLUNK_CONFIG=' + collector_splunk_otel_collector_config if collector_splunk_otel_collector_config != '' else '' }}"
       - "{{ 'SPLUNK_INGEST_URL=' + splunk_ingest_url if splunk_ingest_url != '' else '' }}"
-      - "{{ 'SPLUNK_HEC_TOKEN=' + splunk_hec_token if splunk_hec_token != '' else '' }}"
+      - "{{ 'SPLUNK_HEC_TOKEN=' + collector_splunk_hec_token if collector_splunk_hec_token != '' else '' }}"
       - "{{ 'SPLUNK_HEC_URL=' + splunk_hec_url if splunk_hec_url != '' else '' }}"
       - "{{ 'SPLUNK_LISTEN_INTERFACE=' + collector_splunk_listen_interface if collector_splunk_listen_interface != '' else '' }}"
       - "{{ 'SPLUNK_MEMORY_TOTAL_MIB=' + (collector_splunk_memory_total_mib | string)
@@ -35,52 +35,52 @@
                if collector_splunk_otel_collector_command_line_args != '' else '' }}"
 
 - name: Filter out undefined arguments
-  when: splunk_collector_msi_is_configurable is defined
+  when: collector_splunk_collector_msi_is_configurable is defined
   ansible.builtin.set_fact:
-    msi_arguments: "{{ msi_unfiltered_arguments | reject('eq', '') | list }}"
+    collector_msi_arguments: "{{ collector_msi_unfiltered_arguments | reject('eq', '') | list }}"
 
 - name: Initialize lists for arguments
   ansible.builtin.set_fact:
-    args_without_spaces: []
-    args_with_spaces: []
+    collector_args_without_spaces: []
+    collector_collector_args_with_spaces: []
 
 - name: Surround msi argument values with quotes to properly handle spaces in values
   when:
-    - splunk_collector_msi_is_configurable is defined
+    - collector_splunk_collector_msi_is_configurable is defined
     - item is search(' ')
   ansible.builtin.set_fact:
-    args_with_spaces: "{{ args_with_spaces + [item | ansible.builtin.regex_replace(_regex, _replacement)] }}"
+    collector_collector_args_with_spaces: "{{ collector_collector_args_with_spaces + [item | ansible.builtin.regex_replace(_regex, _replacement)] }}"
   vars:
     _regex: '^([^=]*)=(.*)$'
     _replacement: '\1="\2"'
-  loop: "{{ msi_arguments }}"
+  loop: "{{ collector_msi_arguments }}"
 
 - name: Compile args without spaces
   ansible.builtin.set_fact:
-    args_without_spaces: "{{ args_without_spaces + [item] }}"
-  loop: "{{ msi_arguments }}"
+    collector_args_without_spaces: "{{ collector_args_without_spaces + [item] }}"
+  loop: "{{ collector_msi_arguments }}"
   when:
-    - splunk_collector_msi_is_configurable is defined
+    - collector_splunk_collector_msi_is_configurable is defined
     - item is not search(' ')
 
 - name: Combine args with and without spaces
   ansible.builtin.set_fact:
-    msi_arguments: "{{ args_with_spaces + args_without_spaces }}"
+    collector_msi_arguments: "{{ collector_collector_args_with_spaces + collector_args_without_spaces }}"
 
 - name: Join msi argument list into space separated string
-  when: splunk_collector_msi_is_configurable is defined
+  when: collector_splunk_collector_msi_is_configurable is defined
   ansible.builtin.set_fact:
-    msi_arguments: "{{ msi_arguments | join(' ') }}"
+    collector_msi_arguments: "{{ collector_msi_arguments | join(' ') }}"
 
 - name: Install splunk-otel-collector-msi
-  when: splunk_collector_msi_is_configurable is defined
+  when: collector_splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:
     path: "{{ msi_path }}"
     state: present
-    arguments: "{{ msi_arguments }}"
+    arguments: "{{ collector_msi_arguments }}"
 
 - name: Install splunk-otel-collector-msi-legacy
-  when: splunk_collector_msi_is_configurable is undefined
+  when: collector_splunk_collector_msi_is_configurable is undefined
   ansible.windows.win_package:
     path: "{{ msi_path }}"
     state: present
@@ -91,7 +91,7 @@
 
 - name: Copy the custom config
   ansible.windows.win_copy:
-    content: '{{ updated_config | to_nice_yaml(indent=2) }}'
+    content: '{{ collector_updated_config | to_nice_yaml(indent=2) }}'
     dest: "{{ collector_splunk_otel_collector_config }}"
   when: collector_splunk_config_override != ''
 

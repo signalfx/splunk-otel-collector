@@ -3,7 +3,7 @@
 
 - name: Set Linux packages sources
   ansible.builtin.set_fact:
-    splunk_repo_base_url: https://splunk.jfrog.io/splunk
+    collector_splunk_repo_base_url: https://splunk.jfrog.io/splunk
 
 - name: Install Splunk OpenTelemetry Collector with apt package manager
   ansible.builtin.import_tasks: apt_install_otel_collector.yml
@@ -30,8 +30,8 @@
 
 - name: Set default hec token
   ansible.builtin.set_fact:
-    splunk_hec_token: "{{ collector_splunk_access_token }}"
-  when: splunk_hec_token is not defined or (splunk_hec_token | trim) == ""
+    collector_splunk_hec_token: "{{ collector_splunk_access_token }}"
+  when: collector_splunk_hec_token is not defined or (collector_splunk_hec_token | trim) == ""
 
 - name: Set up env file for Splunk OTel Collector service
   ansible.builtin.template:
@@ -48,7 +48,7 @@
 
 - name: Copy the custom config
   ansible.builtin.copy:
-    content: '{{ updated_config | to_nice_yaml(indent=2) }}'
+    content: '{{ collector_updated_config | to_nice_yaml(indent=2) }}'
     dest: "{{ collector_splunk_otel_collector_config }}"
     mode: '644'
   when: collector_splunk_config_override != ''

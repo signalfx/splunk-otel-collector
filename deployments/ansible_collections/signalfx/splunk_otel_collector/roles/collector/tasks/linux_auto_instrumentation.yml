@@ -18,79 +18,79 @@
 
 - name: Get installed splunk-otel-auto-instrumentation version
   ansible.builtin.set_fact:
-    auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
+    collector_auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
 - name: Set auto instrumentation facts
   ansible.builtin.set_fact:
-    package_changed: "{{ apt_instrumentation_package is changed \
+    collector_package_changed: "{{ collector_apt_instrumentation_package is changed \
       or yum_instrumentation_package is changed \
       or zypper_instrumentation_package is changed }}"
-    npm_found: "{{ (collector_splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
-    with_new_instrumentation: "{{ auto_instrumentation_version is version('0.87.0', '>=') }}"
-    with_systemd: "{{ collector_splunk_otel_auto_instrumentation_systemd }}"
-    with_java: "{{ 'java' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) }}"
-    with_nodejs: "{{ 'nodejs' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) \
-      and auto_instrumentation_version is version('0.87.0', '>=') }}"
-    with_dotnet: "{{ 'dotnet' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) \
-      and auto_instrumentation_version is version('0.99.0', '>=') \
+    collector_collector_npm_found: "{{ (collector_splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
+    collector_with_new_instrumentation: "{{ collector_auto_instrumentation_version is version('0.87.0', '>=') }}"
+    collector_with_systemd: "{{ collector_splunk_otel_auto_instrumentation_systemd }}"
+    collector_with_java: "{{ 'java' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) }}"
+    collector_with_nodejs: "{{ 'nodejs' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) \
+      and collector_auto_instrumentation_version is version('0.87.0', '>=') }}"
+    collector_with_dotnet: "{{ 'dotnet' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) \
+      and collector_auto_instrumentation_version is version('0.99.0', '>=') \
       and ansible_architecture in ('x86_64', 'amd64', 'aarch64') }}"
 
 - name: Check for npm
   ansible.builtin.command: npm --version
-  register: npm_check
+  register: collector_npm_check
   changed_when: false
   ignore_errors: true
-  when: with_nodejs and not npm_found
+  when: collector_with_nodejs and not collector_collector_npm_found
 
-- name: Set npm_found fact
+- name: Set collector_collector_npm_found fact
   ansible.builtin.set_fact:
-    npm_found: yes
-  when: with_nodejs and not npm_found and npm_check is defined and npm_check.rc == 0
+    collector_collector_npm_found: yes
+  when: collector_with_nodejs and not collector_collector_npm_found and collector_npm_check is defined and collector_npm_check.rc == 0
 
 - name: Create /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
   ansible.builtin.file:
     path: /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
     state: directory
     mode: '0755'
-  when: with_nodejs and npm_found and package_changed
+  when: collector_with_nodejs and collector_collector_npm_found and collector_package_changed
 
 - name: Install splunk-otel-js
   community.general.npm:
     name: /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
     path: /usr/lib/splunk-instrumentation/splunk-otel-js
     executable: "{{ collector_splunk_otel_auto_instrumentation_npm_path | default('npm') }}"
-  when: with_nodejs and npm_found and package_changed
+  when: collector_with_nodejs and collector_collector_npm_found and collector_package_changed
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation systemd config
   ansible.builtin.file:
     path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
     state: absent
-  when: not with_systemd
+  when: not collector_with_systemd
   notify: "Reload systemd daemon"
 
 - name: Delete the old Splunk OpenTelemetry Auto Instrumentation config
   ansible.builtin.file:
     path: /usr/lib/splunk-instrumentation/instrumentation.conf
     state: absent
-  when: with_systemd or with_new_instrumentation
+  when: collector_with_systemd or collector_with_new_instrumentation
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for Java config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/java.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_java
+  when: collector_with_systemd or not collector_with_new_instrumentation or not collector_with_java
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/node.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_nodejs or not npm_found
+  when: collector_with_systemd or not collector_with_new_instrumentation or not collector_with_nodejs or not collector_collector_npm_found
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for .NET config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/dotnet.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_dotnet
+  when: collector_with_systemd or not collector_with_new_instrumentation or not collector_with_dotnet
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation config file
   ansible.builtin.template:
@@ -99,7 +99,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_java and not with_new_instrumentation and not with_systemd
+  when: collector_with_java and not collector_with_new_instrumentation and not collector_with_systemd
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Java config file
   ansible.builtin.template:
@@ -108,7 +108,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_java and with_new_instrumentation and not with_systemd
+  when: collector_with_java and collector_with_new_instrumentation and not collector_with_systemd
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.template:
@@ -117,7 +117,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_nodejs and npm_found and not with_systemd
+  when: collector_with_nodejs and collector_collector_npm_found and not collector_with_systemd
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for .NET config file
   ansible.builtin.template:
@@ -126,14 +126,14 @@
     owner: root
     group: root
     mode: '644'
-  when: with_dotnet and not with_systemd
+  when: collector_with_dotnet and not collector_with_systemd
 
 - name: Ensure the system.conf.d directory exists
   ansible.builtin.file:
     path: /usr/lib/systemd/system.conf.d
     state: directory
     mode: '644'
-  when: with_systemd
+  when: collector_with_systemd
 
 - name: Set up systemd for Splunk OpenTelemetry Auto Instrumentation
   ansible.builtin.template:
@@ -142,7 +142,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_systemd and (with_java or (with_nodejs and npm_found) or with_dotnet)
+  when: collector_with_systemd and (collector_with_java or (collector_with_nodejs and collector_collector_npm_found) or collector_with_dotnet)
   notify: "Reload systemd daemon"
 
 - name: Set up /etc/ld.so.preload for Splunk OpenTelemetry Auto Instrumentation

@@ -7,7 +7,7 @@
     splunk_ingest_url: https://fake-splunk-ingest.com
     splunk_api_url: https://fake-splunk-api.com
     splunk_hec_url: https://fake-splunk-hec.com
-    splunk_hec_token: fake-hec-token
+    collector_splunk_hec_token: fake-hec-token
     collector_splunk_otel_collector_version: 0.97.0
     collector_splunk_otel_collector_config: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
     collector_splunk_otel_collector_config_source: ./custom_collector_config.yml

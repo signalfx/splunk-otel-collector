@@ -10,7 +10,7 @@
 - name: Import the Splunk GPG key
   ansible.builtin.rpm_key:
     state: present
-    key: "{{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub"
+    key: "{{ collector_splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub"
   when: not (collector_splunk_skip_repo | bool)
 
 - name: Add Splunk OpenTelemetry Collector repo to zypper source list
@@ -36,12 +36,12 @@
     src: /tmp/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
     dest: /etc/otel/
     mode: '644'
-  register: archive_contents
+  register: collector_archive_contents
   when: collector_local_artifact_testing_enabled
 
 - name: Install Splunk OpenTelemetry Collector via local RPM artifact
   community.general.zypper:
-    name: "{{ archive_contents.dest }}"
+    name: "{{ collector_archive_contents.dest }}"
     disable_gpg_check: true
   notify:
     - "restart splunk-otel-collector"

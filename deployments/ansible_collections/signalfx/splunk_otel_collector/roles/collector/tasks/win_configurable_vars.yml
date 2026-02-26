@@ -16,5 +16,5 @@
 
 - name: Set default hec token
   ansible.builtin.set_fact:
-    splunk_hec_token: "{{ collector_splunk_access_token }}"
-  when: splunk_hec_token is not defined or (splunk_hec_token | trim) == ""
+    collector_splunk_hec_token: "{{ collector_splunk_access_token }}"
+  when: collector_splunk_hec_token is not defined or (collector_splunk_hec_token | trim) == ""

@@ -31,11 +31,11 @@ how to use the role in a playbook with minimal required configuration:
         name: "signalfx.splunk_otel_collector.collector"
       vars:
         collector_splunk_access_token: YOUR_ACCESS_TOKEN
-        splunk_hec_token: YOUR_HEC_TOKEN
+        collector_splunk_hec_token: YOUR_HEC_TOKEN
         collector_splunk_realm: SPLUNK_REALM
 ```
 
-> **_NOTE:_**  Setting splunk_hec_token is optional.
+> **_NOTE:_**  Setting collector_splunk_hec_token is optional.
 
 You can disable starting the collector service by setting 
 the argument `collector_start_service` to `false`:

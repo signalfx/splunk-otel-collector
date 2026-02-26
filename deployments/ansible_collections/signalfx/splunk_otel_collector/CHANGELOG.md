@@ -163,7 +163,7 @@
 
 ### 💡 Enhancements 💡
 
-- Support the `splunk_hec_token` option for Linux (thanks @chepati)
+- Support the `collector_splunk_hec_token` option for Linux (thanks @chepati)
 
 ## ansible-v0.21.0
 

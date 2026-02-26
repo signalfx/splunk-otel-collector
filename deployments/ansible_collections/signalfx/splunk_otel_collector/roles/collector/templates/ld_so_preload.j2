@@ -1,4 +1,4 @@
-{% if not with_systemd and (with_java or (with_nodejs and npm_found) or with_dotnet) %}
+{% if not collector_with_systemd and (collector_with_java or (collector_with_nodejs and collector_collector_npm_found) or collector_with_dotnet) %}
 /usr/lib/splunk-instrumentation/libsplunk.so
 {% endif %}
 {% if collector_splunk_otel_auto_instrumentation_ld_so_preload is defined and collector_splunk_otel_auto_instrumentation_ld_so_preload %}

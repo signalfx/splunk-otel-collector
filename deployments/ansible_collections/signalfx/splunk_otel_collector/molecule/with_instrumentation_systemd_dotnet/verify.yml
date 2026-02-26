@@ -15,7 +15,7 @@
 
     - name: Get splunk-otel-auto-instrumentation version
       ansible.builtin.set_fact:
-        auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
+        collector_auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
     - name: Check if splunk-otel-js directory exists
       ansible.builtin.stat:
@@ -96,7 +96,7 @@
     - name: Assert instrumentation config contains OTEL_RESOURCE_ATTRIBUTES
       ansible.builtin.lineinfile:
         line: "DefaultEnvironment=\"OTEL_RESOURCE_ATTRIBUTES=\
-              splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd\""
+              splunk.zc.method=splunk-otel-auto-instrumentation-{{ collector_auto_instrumentation_version }}-systemd\""
         dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
         state: present
       check_mode: yes

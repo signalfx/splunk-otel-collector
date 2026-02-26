@@ -56,7 +56,7 @@
         {{ collector_splunk_otel_collector_config if collector_splunk_otel_collector_config != '' else
         '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml' }}
       SPLUNK_INGEST_URL: "{{ splunk_ingest_url }}"
-      SPLUNK_HEC_TOKEN: "{{ splunk_hec_token }}"
+      SPLUNK_HEC_TOKEN: "{{ collector_splunk_hec_token }}"
       SPLUNK_HEC_URL: "{{ splunk_hec_url }}"
       SPLUNK_LISTEN_INTERFACE: "{{ collector_splunk_listen_interface if collector_splunk_listen_interface != '' else omit }}"
       SPLUNK_MEMORY_TOTAL_MIB: "{{ collector_splunk_memory_total_mib }}"

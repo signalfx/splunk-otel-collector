@@ -67,11 +67,11 @@ Note that this role requires root access.
         name: "signalfx.splunk_otel_collector.collector"
       vars:
         collector_splunk_access_token: YOUR_ACCESS_TOKEN
-        splunk_hec_token: YOUR_HEC_TOKEN
+        collector_splunk_hec_token: YOUR_HEC_TOKEN
         collector_splunk_realm: SPLUNK_REALM
 ```
 
-> **_NOTE:_**  Setting splunk_hec_token is optional.
+> **_NOTE:_**  Setting collector_splunk_hec_token is optional.
 
 Full documentation on how to configure the role:
 [Splunk OpenTelemetry Collector Role](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible_collections/signalfx/splunk_otel_collector/roles/collector)

@@ -73,6 +73,7 @@ jobs:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
+      ARCH: "x64"
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
@@ -82,6 +83,7 @@ jobs:
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}
+      ARCH: "amd64"
 
   chef-lint-spec-test:
     name: chef-lint-spec-test

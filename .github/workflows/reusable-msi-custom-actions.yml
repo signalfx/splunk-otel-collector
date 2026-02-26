@@ -6,7 +6,9 @@ on:
       OS:
         required: true
         type: string
-
+      ARCH:
+        required: true
+        type: string
 jobs:
   msi-custom-actions:
     runs-on: ${{ inputs.OS }}
@@ -18,11 +20,11 @@ jobs:
         working-directory: packaging/msi/SplunkCustomActions
         run: |
           dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
-          dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release
+          dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=${{ inputs.ARCH }} -o ./bin/Release
           mkdir "${{ github.workspace }}/dist"
-          cp ./bin/Release/SplunkCustomActions.CA.dll "${{ github.workspace }}/dist/SplunkCustomActions.CA.dll"
+          cp ./bin/Release/SplunkCustomActions.CA.dll "${{ github.workspace }}/dist/SplunkCustomActions-${{ inputs.ARCH }}.CA.dll"
 
       - uses: actions/upload-artifact@v6
         with:
-          name: msi-custom-actions
-          path: ./dist/SplunkCustomActions.CA.dll
+          name: msi-custom-actions-${{ inputs.OS }}
+          path: ./dist/SplunkCustomActions-${{ inputs.ARCH }}.CA.dll

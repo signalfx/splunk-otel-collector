@@ -236,6 +236,7 @@ jobs:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: windows-2022
+      ARCH: x64
 
   # Use reusable workflow for MSI build
   puppet-build-windows-msi-local-package:
@@ -246,6 +247,7 @@ jobs:
       - puppet-build-windows-msi-custom-actions
     with:
       OS: windows-2022
+      ARCH: amd64
 
   puppet-test-windows:
     name: puppet-test-windows

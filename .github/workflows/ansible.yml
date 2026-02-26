@@ -75,7 +75,6 @@ jobs:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
-      ARCH: "x64"
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]

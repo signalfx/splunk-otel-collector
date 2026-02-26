@@ -13,6 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This test is flaky w/ data race validation enabled. The issue is that monitors do not guarantee
+// that no more data is going to be sent after shutdown is called. This can cause data races with
+// processors and exporters that have been shut down. See https://github.com/signalfx/splunk-otel-collector/pull/7265.
+// The build directive below should be removed once the monitors are not supported anymore.
+//go:build !race
+
 package main
 
 import (

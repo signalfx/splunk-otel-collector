@@ -67,12 +67,7 @@ jobs:
 
   msi-custom-actions:
     needs: [ chef-lint-spec-test ]
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]

@@ -44,12 +44,7 @@ jobs:
       OS: ${{ matrix.OS.runner }}
 
   msi-custom-actions:
-    strategy:
-      matrix:
-        OS: [ "windows-2022", "windows-2025", "windows-11-arm" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     strategy:

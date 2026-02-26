@@ -2,14 +2,18 @@ name: msi-custom-actions
 
 on:
   workflow_call:
-    inputs:
-      OS:
-        required: true
-        type: string
+
 jobs:
   msi-custom-actions:
-    runs-on: ${{ inputs.OS }}
+    # WiX requires Windows, but what matters for the custom actions build is the
+    # .NET SDK version, that is being pinned via a dedicated step.
+    runs-on: windows-2025
     steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # tag: v5.1.0
+        with:
+          dotnet-version: 10.0.103
+
       - name: Check out the codebase.
         uses: actions/checkout@v5
 
@@ -23,5 +27,5 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: msi-custom-actions-${{ inputs.OS }}
+          name: msi-custom-actions
           path: ./dist/SplunkCustomActions.CA.dll

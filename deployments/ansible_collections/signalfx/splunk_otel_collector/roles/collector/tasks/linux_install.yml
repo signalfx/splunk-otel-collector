@@ -26,44 +26,44 @@
     dest: /etc/systemd/system/splunk-otel-collector.service.d/service-proxy.conf
     mode: '644'
   notify: "restart splunk-otel-collector"
-  when: splunk_otel_collector_proxy_http != "" or splunk_otel_collector_proxy_https != ""
+  when: collector_splunk_otel_collector_proxy_http != "" or collector_splunk_otel_collector_proxy_https != ""
 
 - name: Set default hec token
   ansible.builtin.set_fact:
-    splunk_hec_token: "{{ splunk_access_token }}"
+    splunk_hec_token: "{{ collector_splunk_access_token }}"
   when: splunk_hec_token is not defined or (splunk_hec_token | trim) == ""
 
 - name: Set up env file for Splunk OTel Collector service
   ansible.builtin.template:
     src: splunk-otel-collector.conf.j2
     dest: /etc/otel/collector/splunk-otel-collector.conf
-    owner: "{{ splunk_service_user }}"
-    group: "{{ splunk_service_group }}"
+    owner: "{{ collector_splunk_service_user }}"
+    group: "{{ collector_splunk_service_group }}"
     mode: 0600
   notify: "restart splunk-otel-collector"
 
 - name: Merge custom config into the default config
   ansible.builtin.import_tasks: config_override.yml
-  when: splunk_config_override != ''
+  when: collector_splunk_config_override != ''
 
 - name: Copy the custom config
   ansible.builtin.copy:
     content: '{{ updated_config | to_nice_yaml(indent=2) }}'
-    dest: "{{ splunk_otel_collector_config }}"
+    dest: "{{ collector_splunk_otel_collector_config }}"
     mode: '644'
-  when: splunk_config_override != ''
+  when: collector_splunk_config_override != ''
   notify: "restart splunk-otel-collector"
 
 - name: Push custom config for Splunk OTel Collector, if provided
   ansible.builtin.template:
-    src: "{{ splunk_otel_collector_config_source }}"
-    dest: "{{ splunk_otel_collector_config }}"
-    owner: "{{ splunk_service_user }}"
-    group: "{{ splunk_service_group }}"
+    src: "{{ collector_splunk_otel_collector_config_source }}"
+    dest: "{{ collector_splunk_otel_collector_config }}"
+    owner: "{{ collector_splunk_service_user }}"
+    group: "{{ collector_splunk_service_group }}"
     mode: 0644
-  when: splunk_otel_collector_config_source != ''
+  when: collector_splunk_otel_collector_config_source != ''
   notify: "restart splunk-otel-collector"
 
 - name: Install Splunk OpenTelemetry Auto Instrumentation
   ansible.builtin.import_tasks: linux_auto_instrumentation.yml
-  when: install_splunk_otel_auto_instrumentation
+  when: collector_install_splunk_otel_auto_instrumentation

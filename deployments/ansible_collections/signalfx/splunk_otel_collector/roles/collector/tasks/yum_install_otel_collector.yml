@@ -15,18 +15,18 @@
     gpgkey: "{{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub"
     gpgcheck: yes
     enabled: yes
-  when: not (splunk_skip_repo | bool)
+  when: not (collector_splunk_skip_repo | bool)
 
 - name: Install Splunk OpenTelemetry Collector via dnf package manager
   ansible.builtin.dnf:
-    name: "splunk-otel-collector{% if splunk_otel_collector_version != 'latest' %}\
-      -{{ splunk_otel_collector_version }}{% endif %}"
-    state: "{% if splunk_otel_collector_version != 'latest' %}present{% else %}latest{% endif %}"
+    name: "splunk-otel-collector{% if collector_splunk_otel_collector_version != 'latest' %}\
+      -{{ collector_splunk_otel_collector_version }}{% endif %}"
+    state: "{% if collector_splunk_otel_collector_version != 'latest' %}present{% else %}latest{% endif %}"
     allow_downgrade: yes
     update_cache: yes
   notify:
     - "restart splunk-otel-collector"
-  when: not local_artifact_testing_enabled
+  when: not collector_local_artifact_testing_enabled
 
 - name: Copy Splunk OpenTelemetry Collector RPM artifact to remote machine
   ansible.builtin.copy:
@@ -34,7 +34,7 @@
     dest: /etc/otel
     mode: '644'
   register: archive_contents
-  when: local_artifact_testing_enabled
+  when: collector_local_artifact_testing_enabled
 
 - name: Install Splunk OpenTelemetry Collector via local RPM artifact
   ansible.builtin.dnf:
@@ -42,4 +42,4 @@
     disable_gpg_check: true
   notify:
     - "restart splunk-otel-collector"
-  when: local_artifact_testing_enabled
+  when: collector_local_artifact_testing_enabled

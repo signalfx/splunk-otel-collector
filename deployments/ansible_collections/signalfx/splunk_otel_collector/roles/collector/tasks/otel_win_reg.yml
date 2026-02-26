@@ -6,7 +6,7 @@
       {%- set value = item.value -%}
       {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
   loop: >
-    {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
+    {{ splunk_otel_collector_options | default({}) | combine(collector_splunk_otel_collector_additional_env_vars) | dict2items }}
 
 - name: Get Splunk OpenTelemetry Collector options list (only custom config variables)
   when: splunk_collector_msi_is_configurable is defined
@@ -15,7 +15,7 @@
       {%- set value = item.value -%}
       {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
   loop: >
-    {{ splunk_otel_collector_additional_env_vars | dict2items }}
+    {{ collector_splunk_otel_collector_additional_env_vars | dict2items }}
 
 - name: Get existing registry contents
   when:

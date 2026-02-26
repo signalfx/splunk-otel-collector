@@ -6,26 +6,26 @@ DOTNET_SHARED_STORE=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/store
 DOTNET_STARTUP_HOOKS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll
 OTEL_DOTNET_AUTO_HOME=/usr/lib/splunk-instrumentation/splunk-otel-dotnet
 OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
-{% if splunk_otel_auto_instrumentation_resource_attributes is defined and splunk_otel_auto_instrumentation_resource_attributes %}
-OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},{{ splunk_otel_auto_instrumentation_resource_attributes }}
+{% if collector_splunk_otel_auto_instrumentation_resource_attributes is defined and collector_splunk_otel_auto_instrumentation_resource_attributes %}
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},{{ collector_splunk_otel_auto_instrumentation_resource_attributes }}
 {% else %}
 OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}
 {% endif %}
-{% if splunk_otel_auto_instrumentation_service_name is defined and splunk_otel_auto_instrumentation_service_name %}
-OTEL_SERVICE_NAME={{ splunk_otel_auto_instrumentation_service_name }}
+{% if collector_splunk_otel_auto_instrumentation_service_name is defined and collector_splunk_otel_auto_instrumentation_service_name %}
+OTEL_SERVICE_NAME={{ collector_splunk_otel_auto_instrumentation_service_name }}
 {% endif %}
-SPLUNK_PROFILER_ENABLED={{ splunk_otel_auto_instrumentation_enable_profiler | string | lower }}
-SPLUNK_PROFILER_MEMORY_ENABLED={{ splunk_otel_auto_instrumentation_enable_profiler_memory | string | lower }}
-SPLUNK_METRICS_ENABLED={{ splunk_otel_auto_instrumentation_enable_metrics | string | lower }}
-{% if splunk_otel_auto_instrumentation_otlp_endpoint is defined and splunk_otel_auto_instrumentation_otlp_endpoint %}
-OTEL_EXPORTER_OTLP_ENDPOINT={{ splunk_otel_auto_instrumentation_otlp_endpoint }}
+SPLUNK_PROFILER_ENABLED={{ collector_splunk_otel_auto_instrumentation_enable_profiler | string | lower }}
+SPLUNK_PROFILER_MEMORY_ENABLED={{ collector_splunk_otel_auto_instrumentation_enable_profiler_memory | string | lower }}
+SPLUNK_METRICS_ENABLED={{ collector_splunk_otel_auto_instrumentation_enable_metrics | string | lower }}
+{% if collector_splunk_otel_auto_instrumentation_otlp_endpoint is defined and collector_splunk_otel_auto_instrumentation_otlp_endpoint %}
+OTEL_EXPORTER_OTLP_ENDPOINT={{ collector_splunk_otel_auto_instrumentation_otlp_endpoint }}
 {% endif %}
-{% if splunk_otel_auto_instrumentation_otlp_endpoint_protocol is defined and splunk_otel_auto_instrumentation_otlp_endpoint_protocol %}
-OTEL_EXPORTER_OTLP_PROTOCOL={{ splunk_otel_auto_instrumentation_otlp_endpoint_protocol }}
+{% if collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol is defined and collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol %}
+OTEL_EXPORTER_OTLP_PROTOCOL={{ collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol }}
 {% endif %}
-{% if splunk_otel_auto_instrumentation_metrics_exporter is defined and splunk_otel_auto_instrumentation_metrics_exporter %}
-OTEL_METRICS_EXPORTER={{ splunk_otel_auto_instrumentation_metrics_exporter }}
+{% if collector_splunk_otel_auto_instrumentation_metrics_exporter is defined and collector_splunk_otel_auto_instrumentation_metrics_exporter %}
+OTEL_METRICS_EXPORTER={{ collector_splunk_otel_auto_instrumentation_metrics_exporter }}
 {% endif %}
-{% if splunk_otel_auto_instrumentation_logs_exporter is defined and splunk_otel_auto_instrumentation_logs_exporter %}
-OTEL_LOGS_EXPORTER={{ splunk_otel_auto_instrumentation_logs_exporter }}
+{% if collector_splunk_otel_auto_instrumentation_logs_exporter is defined and collector_splunk_otel_auto_instrumentation_logs_exporter %}
+OTEL_LOGS_EXPORTER={{ collector_splunk_otel_auto_instrumentation_logs_exporter }}
 {% endif %}

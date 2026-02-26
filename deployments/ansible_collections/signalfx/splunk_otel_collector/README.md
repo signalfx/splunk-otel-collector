@@ -66,9 +66,9 @@ Note that this role requires root access.
       ansible.builtin.include_role:
         name: "signalfx.splunk_otel_collector.collector"
       vars:
-        splunk_access_token: YOUR_ACCESS_TOKEN
+        collector_splunk_access_token: YOUR_ACCESS_TOKEN
         splunk_hec_token: YOUR_HEC_TOKEN
-        splunk_realm: SPLUNK_REALM
+        collector_splunk_realm: SPLUNK_REALM
 ```
 
 > **_NOTE:_**  Setting splunk_hec_token is optional.

@@ -71,7 +71,7 @@
         name: ImagePath
       register: collector_imagepath
 
-    - name: Assert service ImagePath ends with the splunk_otel_collector_command_line_args value used in the playbook
+    - name: Assert service ImagePath ends with the collector_splunk_otel_collector_command_line_args value used in the playbook
       ansible.builtin.assert:
         that:
           - collector_imagepath.value.endswith("--discovery --set=processors.batch.timeout=10s")

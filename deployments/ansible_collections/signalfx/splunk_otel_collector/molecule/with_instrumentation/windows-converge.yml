@@ -3,11 +3,11 @@
   hosts: all
   become: no
   vars:
-    local_artifact_testing_enabled: true
-    splunk_access_token: fake-token
-    splunk_realm: fake-realm
-    install_splunk_dotnet_auto_instrumentation: true
-    splunk_dotnet_auto_instrumentation_github_token: ${GITHUB_TOKEN}
+    collector_local_artifact_testing_enabled: true
+    collector_splunk_access_token: fake-token
+    collector_splunk_realm: fake-realm
+    collector_install_splunk_dotnet_auto_instrumentation: true
+    collector_splunk_dotnet_auto_instrumentation_github_token: ${GITHUB_TOKEN}
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       ansible.builtin.include_role:

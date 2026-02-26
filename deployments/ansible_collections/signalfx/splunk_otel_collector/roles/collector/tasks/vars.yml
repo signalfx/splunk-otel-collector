@@ -1,21 +1,21 @@
 ---
 - name: Set default vars for Linux
   ansible.builtin.set_fact:
-    splunk_otel_collector_config: |-
-      {%- if splunk_otel_collector_config -%}
-        {{ splunk_otel_collector_config }}
+    collector_splunk_otel_collector_config: |-
+      {%- if collector_splunk_otel_collector_config -%}
+        {{ collector_splunk_otel_collector_config }}
       {%- else -%}
         /etc/otel/collector/agent_config.yaml
       {%- endif -%}
-    splunk_bundle_dir: |-
-      {%- if splunk_bundle_dir -%}
-        {{ splunk_bundle_dir }}
+    collector_splunk_bundle_dir: |-
+      {%- if collector_splunk_bundle_dir -%}
+        {{ collector_splunk_bundle_dir }}
       {%- else -%}
         /usr/lib/splunk-otel-collector/agent-bundle
       {%- endif -%}
-    splunk_collectd_dir: |-
-      {%- if splunk_collectd_dir -%}
-        {{ splunk_collectd_dir }}
+    collector_splunk_collectd_dir: |-
+      {%- if collector_splunk_collectd_dir -%}
+        {{ collector_splunk_collectd_dir }}
       {%- else -%}
         /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
       {%- endif -%}
@@ -37,29 +37,29 @@
       CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
       OTEL_RESOURCE_ATTRIBUTES:
-        "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }}\
-        {{ ',' if splunk_otel_auto_instrumentation_resource_attributes else '' }}\
-        {{ splunk_otel_auto_instrumentation_resource_attributes }}"
-      OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
-      SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
-      SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"
+        "deployment.environment={{ collector_splunk_dotnet_auto_instrumentation_environment }}\
+        {{ ',' if collector_splunk_otel_auto_instrumentation_resource_attributes else '' }}\
+        {{ collector_splunk_otel_auto_instrumentation_resource_attributes }}"
+      OTEL_SERVICE_NAME: "{{ collector_splunk_dotnet_auto_instrumentation_service_name }}"
+      SPLUNK_PROFILER_ENABLED: "{{ collector_splunk_dotnet_auto_instrumentation_enable_profiler }}"
+      SPLUNK_PROFILER_MEMORY_ENABLED: "{{ collector_splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"
     iis_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
     splunk_otel_collector_options:
-      SPLUNK_ACCESS_TOKEN: "{{ splunk_access_token }}"
+      SPLUNK_ACCESS_TOKEN: "{{ collector_splunk_access_token }}"
       SPLUNK_API_URL: "{{ splunk_api_url }}"
-      GOMEMLIMIT: "{{ gomemlimit if gomemlimit != '' else omit }}"
+      GOMEMLIMIT: "{{ collector_gomemlimit if collector_gomemlimit != '' else omit }}"
       SPLUNK_BUNDLE_DIR: >-
-        {{ splunk_bundle_dir if splunk_bundle_dir != '' else
+        {{ collector_splunk_bundle_dir if collector_splunk_bundle_dir != '' else
         '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle' }}
-      SPLUNK_COLLECTD_DIR: "{{ splunk_collectd_dir if splunk_collectd_dir != '' else omit }}"
+      SPLUNK_COLLECTD_DIR: "{{ collector_splunk_collectd_dir if collector_splunk_collectd_dir != '' else omit }}"
       SPLUNK_CONFIG: >-
-        {{ splunk_otel_collector_config if splunk_otel_collector_config != '' else
+        {{ collector_splunk_otel_collector_config if collector_splunk_otel_collector_config != '' else
         '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml' }}
       SPLUNK_INGEST_URL: "{{ splunk_ingest_url }}"
       SPLUNK_HEC_TOKEN: "{{ splunk_hec_token }}"
       SPLUNK_HEC_URL: "{{ splunk_hec_url }}"
-      SPLUNK_LISTEN_INTERFACE: "{{ splunk_listen_interface if splunk_listen_interface != '' else omit }}"
-      SPLUNK_MEMORY_TOTAL_MIB: "{{ splunk_memory_total_mib }}"
-      SPLUNK_REALM: "{{ splunk_realm }}"
+      SPLUNK_LISTEN_INTERFACE: "{{ collector_splunk_listen_interface if collector_splunk_listen_interface != '' else omit }}"
+      SPLUNK_MEMORY_TOTAL_MIB: "{{ collector_splunk_memory_total_mib }}"
+      SPLUNK_REALM: "{{ collector_splunk_realm }}"
     splunk_otel_collector_service_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
   when: ansible_os_family == "Windows"

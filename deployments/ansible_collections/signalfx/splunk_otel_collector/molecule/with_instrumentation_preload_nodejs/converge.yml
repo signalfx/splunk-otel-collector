@@ -3,11 +3,11 @@
   hosts: all
   become: yes
   vars:
-    local_artifact_testing_enabled: true
-    splunk_access_token: fake-token
-    splunk_realm: fake-realm
-    install_splunk_otel_auto_instrumentation: true
-    splunk_otel_auto_instrumentation_sdks:
+    collector_local_artifact_testing_enabled: true
+    collector_splunk_access_token: fake-token
+    collector_splunk_realm: fake-realm
+    collector_install_splunk_otel_auto_instrumentation: true
+    collector_splunk_otel_auto_instrumentation_sdks:
       - nodejs
   tasks:
     - name: "Install nodejs for tests"

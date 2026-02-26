@@ -1,6 +1,6 @@
 [Manager]
 {% if with_java %}
-DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:{{ splunk_otel_auto_instrumentation_java_agent_jar }}"
+DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:{{ collector_splunk_otel_auto_instrumentation_java_agent_jar }}"
 {% endif %}
 {% if with_nodejs and npm_found %}
 DefaultEnvironment="NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument"
@@ -15,26 +15,26 @@ DefaultEnvironment="DOTNET_STARTUP_HOOKS=/usr/lib/splunk-instrumentation/splunk-
 DefaultEnvironment="OTEL_DOTNET_AUTO_HOME=/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
 DefaultEnvironment="OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation"
 {% endif %}
-{% if splunk_otel_auto_instrumentation_resource_attributes is defined and splunk_otel_auto_instrumentation_resource_attributes %}
-DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd,{{ splunk_otel_auto_instrumentation_resource_attributes }}"
+{% if collector_splunk_otel_auto_instrumentation_resource_attributes is defined and collector_splunk_otel_auto_instrumentation_resource_attributes %}
+DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd,{{ collector_splunk_otel_auto_instrumentation_resource_attributes }}"
 {% else %}
 DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd"
 {% endif %}
-{% if splunk_otel_auto_instrumentation_service_name is defined and splunk_otel_auto_instrumentation_service_name %}
-DefaultEnvironment="OTEL_SERVICE_NAME={{ splunk_otel_auto_instrumentation_service_name }}"
+{% if collector_splunk_otel_auto_instrumentation_service_name is defined and collector_splunk_otel_auto_instrumentation_service_name %}
+DefaultEnvironment="OTEL_SERVICE_NAME={{ collector_splunk_otel_auto_instrumentation_service_name }}"
 {% endif %}
-DefaultEnvironment="SPLUNK_PROFILER_ENABLED={{ splunk_otel_auto_instrumentation_enable_profiler | string | lower }}"
-DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED={{ splunk_otel_auto_instrumentation_enable_profiler_memory | string | lower }}"
-DefaultEnvironment="SPLUNK_METRICS_ENABLED={{ splunk_otel_auto_instrumentation_enable_metrics | string | lower }}"
-{% if splunk_otel_auto_instrumentation_otlp_endpoint is defined and splunk_otel_auto_instrumentation_otlp_endpoint %}
-DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT={{ splunk_otel_auto_instrumentation_otlp_endpoint }}"
+DefaultEnvironment="SPLUNK_PROFILER_ENABLED={{ collector_splunk_otel_auto_instrumentation_enable_profiler | string | lower }}"
+DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED={{ collector_splunk_otel_auto_instrumentation_enable_profiler_memory | string | lower }}"
+DefaultEnvironment="SPLUNK_METRICS_ENABLED={{ collector_splunk_otel_auto_instrumentation_enable_metrics | string | lower }}"
+{% if collector_splunk_otel_auto_instrumentation_otlp_endpoint is defined and collector_splunk_otel_auto_instrumentation_otlp_endpoint %}
+DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT={{ collector_splunk_otel_auto_instrumentation_otlp_endpoint }}"
 {% endif %}
-{% if splunk_otel_auto_instrumentation_otlp_endpoint_protocol is defined and splunk_otel_auto_instrumentation_otlp_endpoint_protocol %}
-DefaultEnvironment="OTEL_EXPORTER_OTLP_PROTOCOL={{ splunk_otel_auto_instrumentation_otlp_endpoint_protocol }}"
+{% if collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol is defined and collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol %}
+DefaultEnvironment="OTEL_EXPORTER_OTLP_PROTOCOL={{ collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol }}"
 {% endif %}
-{% if splunk_otel_auto_instrumentation_metrics_exporter is defined and splunk_otel_auto_instrumentation_metrics_exporter %}
-DefaultEnvironment="OTEL_METRICS_EXPORTER={{ splunk_otel_auto_instrumentation_metrics_exporter }}"
+{% if collector_splunk_otel_auto_instrumentation_metrics_exporter is defined and collector_splunk_otel_auto_instrumentation_metrics_exporter %}
+DefaultEnvironment="OTEL_METRICS_EXPORTER={{ collector_splunk_otel_auto_instrumentation_metrics_exporter }}"
 {% endif %}
-{% if splunk_otel_auto_instrumentation_logs_exporter is defined and splunk_otel_auto_instrumentation_logs_exporter %}
-DefaultEnvironment="OTEL_LOGS_EXPORTER={{ splunk_otel_auto_instrumentation_logs_exporter }}"
+{% if collector_splunk_otel_auto_instrumentation_logs_exporter is defined and collector_splunk_otel_auto_instrumentation_logs_exporter %}
+DefaultEnvironment="OTEL_LOGS_EXPORTER={{ collector_splunk_otel_auto_instrumentation_logs_exporter }}"
 {% endif %}

@@ -25,13 +25,13 @@
     package_changed: "{{ apt_instrumentation_package is changed \
       or yum_instrumentation_package is changed \
       or zypper_instrumentation_package is changed }}"
-    npm_found: "{{ (splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
+    npm_found: "{{ (collector_splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
     with_new_instrumentation: "{{ auto_instrumentation_version is version('0.87.0', '>=') }}"
-    with_systemd: "{{ splunk_otel_auto_instrumentation_systemd }}"
-    with_java: "{{ 'java' in (splunk_otel_auto_instrumentation_sdks | default([])) }}"
-    with_nodejs: "{{ 'nodejs' in (splunk_otel_auto_instrumentation_sdks | default([])) \
+    with_systemd: "{{ collector_splunk_otel_auto_instrumentation_systemd }}"
+    with_java: "{{ 'java' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) }}"
+    with_nodejs: "{{ 'nodejs' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) \
       and auto_instrumentation_version is version('0.87.0', '>=') }}"
-    with_dotnet: "{{ 'dotnet' in (splunk_otel_auto_instrumentation_sdks | default([])) \
+    with_dotnet: "{{ 'dotnet' in (collector_splunk_otel_auto_instrumentation_sdks | default([])) \
       and auto_instrumentation_version is version('0.99.0', '>=') \
       and ansible_architecture in ('x86_64', 'amd64', 'aarch64') }}"
 
@@ -58,7 +58,7 @@
   community.general.npm:
     name: /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
     path: /usr/lib/splunk-instrumentation/splunk-otel-js
-    executable: "{{ splunk_otel_auto_instrumentation_npm_path | default('npm') }}"
+    executable: "{{ collector_splunk_otel_auto_instrumentation_npm_path | default('npm') }}"
   when: with_nodejs and npm_found and package_changed
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation systemd config

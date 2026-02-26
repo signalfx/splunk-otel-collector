@@ -7,4 +7,4 @@
 
 - name: Install Auto Instrumentation for .NET
   ansible.builtin.import_tasks: win_install_dotnet_auto_instrumentation.yml
-  when: install_splunk_dotnet_auto_instrumentation
+  when: collector_install_splunk_dotnet_auto_instrumentation

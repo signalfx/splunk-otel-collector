@@ -22,6 +22,6 @@
   failed_when: msi_dir_contents.files is not defined or msi_dir_contents.files | length != 1
 
 - name: Set MSI source path (local install)
-  when: local_artifact_testing_enabled
+  when: collector_local_artifact_testing_enabled
   ansible.builtin.set_fact:
     msi_path: "{{ msi_dir_contents.files[0].path }}"

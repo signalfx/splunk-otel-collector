@@ -1,97 +1,97 @@
 ---
 # defaults file for splunk-otel-collector role vars
 
-# splunk_access_token is REQUIRED variable
-splunk_access_token: ""
+# collector_splunk_access_token is REQUIRED variable
+collector_splunk_access_token: ""
 
-splunk_realm: us0
+collector_splunk_realm: us0
 
-splunk_otel_collector_version: latest
+collector_splunk_otel_collector_version: latest
 
 # Command-line arguments to pass to the collector service.
-splunk_otel_collector_command_line_args: ""
+collector_splunk_otel_collector_command_line_args: ""
 
 # Set this variable to /etc/otel/collector/gateway_config.yaml on linux,
 # "Program Files\Splunk\OpenTelemetry Collector\gateway_config.yaml" on Windows
 # in order to deploy splunk-otel-collector in gateway mode.
-splunk_otel_collector_config: ""
+collector_splunk_otel_collector_config: ""
 
-# Set splunk_otel_collector_config_source to copy a custom config from
-# a local path to splunk_otel_collector_config on remote hosts
-splunk_otel_collector_config_source: ""
+# Set collector_splunk_otel_collector_config_source to copy a custom config from
+# a local path to collector_splunk_otel_collector_config on remote hosts
+collector_splunk_otel_collector_config_source: ""
 
-# Set splunk_config_override for adding new components to the existing default config.
-splunk_config_override: ""
+# Set collector_splunk_config_override for adding new components to the existing default config.
+collector_splunk_config_override: ""
 
-# Set splunk_config_override_list_merge to modify the behavior of splunk_config_override,
+# Set collector_splunk_config_override_list_merge to modify the behavior of collector_splunk_config_override,
 # when the hashes to merge contain arrays/lists.
-splunk_config_override_list_merge: replace
+collector_splunk_config_override_list_merge: replace
 
-splunk_service_user: splunk-otel-collector
-splunk_service_group: splunk-otel-collector
+collector_splunk_service_user: splunk-otel-collector
+collector_splunk_service_group: splunk-otel-collector
 
-splunk_memory_total_mib: "512"
+collector_splunk_memory_total_mib: "512"
 
-gomemlimit: ""
+collector_gomemlimit: ""
 
-splunk_listen_interface: ""
+collector_splunk_listen_interface: ""
 # Whether to start the services installed by the role (splunk-otel-collector).
-start_service: true
+collector_start_service: true
 
 # Disable setting the official Splunk Debian or RPM repository.
-splunk_skip_repo: false
+collector_splunk_skip_repo: false
 
 # Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle".
 # Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle".
-splunk_bundle_dir: ""
+collector_splunk_bundle_dir: ""
 
 # Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd".
 # Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd".
-splunk_collectd_dir: ""
+collector_splunk_collectd_dir: ""
 
 # Configure otel collector service to use a proxy
-splunk_otel_collector_proxy_http: ""
-splunk_otel_collector_proxy_https: ""
-splunk_otel_collector_no_proxy: "localhost,127.0.0.1,::1"
+collector_splunk_otel_collector_proxy_http: ""
+collector_splunk_otel_collector_proxy_https: ""
+collector_splunk_otel_collector_no_proxy: "localhost,127.0.0.1,::1"
 
-install_splunk_otel_auto_instrumentation: false
-splunk_otel_auto_instrumentation_systemd: false
-splunk_otel_auto_instrumentation_version: latest
-splunk_otel_auto_instrumentation_ld_so_preload: ""
-splunk_otel_auto_instrumentation_java_agent_jar: /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
-splunk_otel_auto_instrumentation_resource_attributes: ""
-splunk_otel_auto_instrumentation_service_name: ""
-splunk_otel_auto_instrumentation_generate_service_name: true
-splunk_otel_auto_instrumentation_disable_telemetry: false
-splunk_otel_auto_instrumentation_enable_profiler: false
-splunk_otel_auto_instrumentation_enable_profiler_memory: false
-splunk_otel_auto_instrumentation_enable_metrics: false
-splunk_otel_auto_instrumentation_metrics_exporter: ""
-splunk_otel_auto_instrumentation_logs_exporter: ""
-splunk_otel_auto_instrumentation_otlp_endpoint: ""
-splunk_otel_auto_instrumentation_otlp_endpoint_protocol: ""
-splunk_otel_auto_instrumentation_sdks:
+collector_install_splunk_otel_auto_instrumentation: false
+collector_splunk_otel_auto_instrumentation_systemd: false
+collector_splunk_otel_auto_instrumentation_version: latest
+collector_splunk_otel_auto_instrumentation_ld_so_preload: ""
+collector_splunk_otel_auto_instrumentation_java_agent_jar: /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
+collector_splunk_otel_auto_instrumentation_resource_attributes: ""
+collector_splunk_otel_auto_instrumentation_service_name: ""
+collector_splunk_otel_auto_instrumentation_generate_service_name: true
+collector_splunk_otel_auto_instrumentation_disable_telemetry: false
+collector_splunk_otel_auto_instrumentation_enable_profiler: false
+collector_splunk_otel_auto_instrumentation_enable_profiler_memory: false
+collector_splunk_otel_auto_instrumentation_enable_metrics: false
+collector_splunk_otel_auto_instrumentation_metrics_exporter: ""
+collector_splunk_otel_auto_instrumentation_logs_exporter: ""
+collector_splunk_otel_auto_instrumentation_otlp_endpoint: ""
+collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol: ""
+collector_splunk_otel_auto_instrumentation_sdks:
   - java
   - nodejs
   - dotnet
-splunk_otel_auto_instrumentation_npm_path: npm
+collector_splunk_otel_auto_instrumentation_npm_path: npm
 
 # Custom environment variables for the collector service
-splunk_otel_collector_additional_env_vars: {}
+collector_splunk_otel_collector_additional_env_vars: {}
 
 # Configure Auto Instrumentation for .NET
-install_splunk_dotnet_auto_instrumentation: false
-splunk_dotnet_auto_instrumentation_version: latest
-splunk_dotnet_auto_instrumentation_url: ""
-splunk_dotnet_auto_instrumentation_github_token: ""
-splunk_dotnet_auto_instrumentation_system_wide: false
-splunk_dotnet_auto_instrumentation_environment: ""
-splunk_dotnet_auto_instrumentation_service_name: ""
-splunk_dotnet_auto_instrumentation_enable_profiler: false
-splunk_dotnet_auto_instrumentation_enable_profiler_memory: false
-splunk_dotnet_auto_instrumentation_iisreset: true
-splunk_dotnet_auto_instrumentation_additional_options: {}
+collector_install_splunk_dotnet_auto_instrumentation: false
+collector_splunk_dotnet_auto_instrumentation_version: latest
+collector_splunk_dotnet_auto_instrumentation_url: ""
+collector_splunk_dotnet_auto_instrumentation_github_token: ""
+collector_splunk_dotnet_auto_instrumentation_system_wide: false
+collector_splunk_dotnet_auto_instrumentation_environment: ""
+collector_splunk_dotnet_auto_instrumentation_service_name: ""
+collector_splunk_dotnet_auto_instrumentation_enable_profiler: false
+collector_splunk_dotnet_auto_instrumentation_enable_profiler_memory: false
+collector_splunk_dotnet_auto_instrumentation_iisreset: true
+collector_splunk_dotnet_auto_instrumentation_additional_options: {}
 
 # Variables to be used only for testing
-# Used to test locally built artifacts instead of remotely downloaded version. Overrides splunk_otel_collector_version.
-local_artifact_testing_enabled: false
+# Used to test locally built artifacts instead of remotely downloaded version. Overrides collector_splunk_otel_collector_version.
+collector_local_artifact_testing_enabled: false

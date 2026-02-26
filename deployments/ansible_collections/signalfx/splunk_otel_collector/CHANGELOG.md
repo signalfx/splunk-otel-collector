@@ -1,5 +1,14 @@
 # Changelog
 
+## ansible-v1.1.0
+
+### 🛑 Breaking changes 🛑
+
+- All `collector` role variables must now be prefixed with the role name. ([#]())
+  For example:
+  - `splunk_access_token` -> `collector_splunk_access_token`
+  - `splunk_otel_auto_instrumentation_version` ->  `collector_splunk_otel_auto_instrumentation_version`
+
 ## ansible-v1.0.0
 
 ### 🛑 Breaking changes 🛑
@@ -47,14 +56,14 @@
 
 ### 💡 Enhancements 💡
 
-- Add support for the `splunk_otel_collector_command_line_args` option to
+- Add support for the `collector_splunk_otel_collector_command_line_args` option to
   configure the command line arguments for the Splunk OpenTelemetry Collector
   service.
 
 ### 🧰 Bug fixes 🧰
 
-- Fix bug causing Windows deployment failure when specified variables had spaces in their values (relevant when `splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
-- Fix bug causing custom variables to not be set on Windows deployment (relevant when `splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
+- Fix bug causing Windows deployment failure when specified variables had spaces in their values (relevant when `collector_splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
+- Fix bug causing custom variables to not be set on Windows deployment (relevant when `collector_splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
 
 ## ansible-v0.31.0
 
@@ -62,34 +71,34 @@
 
 - Install the [Splunk Distribution of OpenTelemetry .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html#instrument-net-applications-for-splunk-observability-cloud-opentelemetry)
   instead of the `SignalFx Instrumentation for .NET`
-  when setting `install_splunk_dotnet_auto_instrumentation` to `true`.
+  when setting `collector_install_splunk_dotnet_auto_instrumentation` to `true`.
   Corresponding configuration options were renamed from `signalfx_dotnet_*` to `splunk_dotnet_*`.
 
 ## ansible-v0.30.0
 
 ### 💡 Enhancements 💡
 
-- Add support for the `splunk_otel_auto_instrumentation_logs_exporter` option to configure the `OTEL_LOGS_EXPORTER` environment variable.
+- Add support for the `collector_splunk_otel_auto_instrumentation_logs_exporter` option to configure the `OTEL_LOGS_EXPORTER` environment variable.
 
 ## ansible-v0.29.0
 
 ### 🛑 Breaking changes 🛑
 
-- The default for the `splunk_otel_auto_instrumentation_otlp_endpoint` option has been changed from `http://127.0.0.1:4317`
+- The default for the `collector_splunk_otel_auto_instrumentation_otlp_endpoint` option has been changed from `http://127.0.0.1:4317`
   to `''` (empty), i.e. defer to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each activated SDK.
 
 ### 💡 Enhancements 💡
 
-- Add support for the `splunk_otel_auto_instrumentation_otlp_endpoint_protocol` and `splunk_otel_auto_instrumentation_metrics_exporter`
+- Add support for the `collector_splunk_otel_auto_instrumentation_otlp_endpoint_protocol` and `collector_splunk_otel_auto_instrumentation_metrics_exporter`
   options to configure the `OTEL_EXPORTER_OTLP_PROTOCOL` and `OTEL_METRICS_EXPORTER` environment variables, respectively.
 
 ## ansible-v0.28.0
 
 - Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto
   Instrumentation on Linux (x86_64/amd64 only):
-  - The .NET SDK is activated by default if the `install_splunk_otel_auto_instrumentation` option is set to `true` and
-    `splunk_otel_auto_instrumentation_version` is `latest` or >= `0.99.0`.
-  - Set the `splunk_otel_auto_instrumentation_sdks` option to `java` and/or `nodejs` to skip .NET auto instrumentation.
+  - The .NET SDK is activated by default if the `collector_install_splunk_otel_auto_instrumentation` option is set to `true` and
+    `collector_splunk_otel_auto_instrumentation_version` is `latest` or >= `0.99.0`.
+  - Set the `collector_splunk_otel_auto_instrumentation_sdks` option to `java` and/or `nodejs` to skip .NET auto instrumentation.
 
 ## ansible-v0.27.0
 
@@ -101,10 +110,10 @@
 
 - Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto
   Instrumentation on Linux:
-  - The Node.js SDK is installed and activated by default if the `install_splunk_otel_auto_instrumentation` option is set to `true`
+  - The Node.js SDK is installed and activated by default if the `collector_install_splunk_otel_auto_instrumentation` option is set to `true`
     and the `npm --version` shell command is successful.
-  - Set the `splunk_otel_auto_instrumentation_sdks` option to only `[java]` to skip Node.js auto instrumentation.
-  - Use the `splunk_otel_auto_instrumentation_npm_path` option to specify a custom path for `npm`.
+  - Set the `collector_splunk_otel_auto_instrumentation_sdks` option to only `[java]` to skip Node.js auto instrumentation.
+  - Use the `collector_splunk_otel_auto_instrumentation_npm_path` option to specify a custom path for `npm`.
   - **Note:** This role does not manage the installation/configuration of Node.js, `npm`, or Node.js applications.
 
 ## ansible-v0.25.0
@@ -129,8 +138,8 @@
 
 ### 🚩 Deprecations 🚩
 
-- The `splunk_otel_auto_instrumentation_generate_service_name` and `splunk_otel_auto_instrumentation_disable_telemetry`
-  options are deprecated and only applicable if `splunk_otel_auto_instrumentation_version` is < `0.87.0`.
+- The `collector_splunk_otel_auto_instrumentation_generate_service_name` and `collector_splunk_otel_auto_instrumentation_disable_telemetry`
+  options are deprecated and only applicable if `collector_splunk_otel_auto_instrumentation_version` is < `0.87.0`.
 
 ### 💡 Enhancements 💡
 
@@ -138,7 +147,7 @@
   https://github.com/signalfx/splunk-otel-collector/releases/tag/v0.87.0) and newer (Java only).
 - Support activation and configuration of auto instrumentation for only `systemd` services.
 - Support setting the OTLP exporter endpoint for auto instrumentation (default: `http://127.0.0.1:4317`). Only
-  applicable if `splunk_otel_auto_instrumentation_version` is `latest` or >= `0.87.0`.
+  applicable if `collector_splunk_otel_auto_instrumentation_version` is `latest` or >= `0.87.0`.
 
 ### 🧰 Bug fixes 🧰
 
@@ -148,7 +157,7 @@
 
 ### 💡 Enhancements 💡
 
-- Only propagate `splunk_listen_interface` to target SPLUNK_LISTEN_INTERFACE service environment variable if set.
+- Only propagate `collector_splunk_listen_interface` to target SPLUNK_LISTEN_INTERFACE service environment variable if set.
 
 ## ansible-v0.22.0
 
@@ -160,7 +169,7 @@
 
 ### 💡 Enhancements 💡
 
-- Add support for the `splunk_listen_interface` and `signalfx_dotnet_auto_instrumentation_global_tags` options
+- Add support for the `collector_splunk_listen_interface` and `signalfx_dotnet_auto_instrumentation_global_tags` options
 
 ### 🧰 Bug fixes 🧰
 
@@ -201,7 +210,7 @@
 
 ### 💡 Enhancements 💡
 
-- Add `splunk_otel_collector_additional_env_vars` option to allow passing additional environment variables to the collector service
+- Add `collector_splunk_otel_collector_additional_env_vars` option to allow passing additional environment variables to the collector service
 
 ### 🧰 Bug fixes 🧰
 
@@ -211,13 +220,13 @@
 
 ### 💡 Enhancements 💡
 
-- Add `splunk_otel_collector_no_proxy` var to update service NO_PROXY environment variable (Linux only) [(#2482)](https://github.com/signalfx/splunk-otel-collector/pull/2482)
+- Add `collector_splunk_otel_collector_no_proxy` var to update service NO_PROXY environment variable (Linux only) [(#2482)](https://github.com/signalfx/splunk-otel-collector/pull/2482)
 
 ## ansible-v0.13.0
 
 ### 💡 Enhancements 💡
 
-- Add `splunk_skip_repo` var to disable adding Splunk deb/rpm repos (#2249)
+- Add `collector_splunk_skip_repo` var to disable adding Splunk deb/rpm repos (#2249)
 
 ## ansible-v0.12.0
 
@@ -281,13 +290,13 @@
 ### 💡 Enhancements 💡
 
 - Add an option to provide a custom configuration that will be merged into the
-  default one using `splunk_config_override` var (#950)
+  default one using `collector_splunk_config_override` var (#950)
 
 ## ansible-v0.3.0
 
 ### 🛑 Breaking changes 🛑
 
-- Rename `agent_bundle_dir` parameter to `splunk_bundle_dir` (#810)
+- Rename `agent_bundle_dir` parameter to `collector_splunk_bundle_dir` (#810)
 
 ### 💡 Enhancements 💡
 

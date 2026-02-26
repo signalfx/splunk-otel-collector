@@ -3,13 +3,13 @@
 
 - name: Ensure service group created for Splunk Otel Collector
   ansible.builtin.group:
-    name: "{{ splunk_service_group }}"
+    name: "{{ collector_splunk_service_group }}"
     system: yes
 
 - name: Ensure service user created for Splunk Otel Collector
   ansible.builtin.user:
-    name: "{{ splunk_service_user }}"
-    group: "{{ splunk_service_group }}"
+    name: "{{ collector_splunk_service_user }}"
+    group: "{{ collector_splunk_service_group }}"
     system: yes
     shell: /sbin/nologin
     home: /etc/otel/collector
@@ -18,8 +18,8 @@
   ansible.builtin.file:
     path: /etc/otel/collector
     state: directory
-    owner: "{{ splunk_service_user }}"
-    group: "{{ splunk_service_group }}"
+    owner: "{{ collector_splunk_service_user }}"
+    group: "{{ collector_splunk_service_group }}"
     mode: '0755'
 
 - name: Ensure systemd service directory for Splunk Otel Collector exists
@@ -37,8 +37,8 @@
 
 - name: Set Otel Collector agent bundle directory
   ansible.builtin.file:
-    path: "{{ splunk_bundle_dir }}"
+    path: "{{ collector_splunk_bundle_dir }}"
     state: directory
-    owner: "{{ splunk_service_user }}"
-    group: "{{ splunk_service_group }}"
+    owner: "{{ collector_splunk_service_user }}"
+    group: "{{ collector_splunk_service_group }}"
     recurse: yes

@@ -3,9 +3,9 @@
   hosts: all
   become: yes
   vars:
-    splunk_access_token: fake-token
-    splunk_realm: fake-realm
-    start_service: false
+    collector_splunk_access_token: fake-token
+    collector_splunk_realm: fake-realm
+    collector_start_service: false
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       ansible.builtin.include_role:

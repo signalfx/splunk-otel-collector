@@ -5,24 +5,24 @@
     return_content: yes
     content_type: "application/json"
     headers:
-      Authorization: "{{ splunk_dotnet_auto_instrumentation_github_token | default(omit) }}"
+      Authorization: "{{ collector_splunk_dotnet_auto_instrumentation_github_token | default(omit) }}"
     proxy_password: "{{ win_proxy_password | default(omit) }}"
     proxy_url: "{{ win_proxy_url | default(omit) }}"
     proxy_username: "{{ win_proxy_username | default(omit) }}"
     use_proxy: "{{ win_use_proxy }}"
   register: latest_dotnet_release
-  when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_url
+  when: collector_splunk_dotnet_auto_instrumentation_version == "latest" and not collector_splunk_dotnet_auto_instrumentation_url
 
 - name: Set dotnet_download_url fact
   ansible.builtin.set_fact:
     dotnet_download_url: |-
-      {%- if splunk_dotnet_auto_instrumentation_url -%}
-      {{ splunk_dotnet_auto_instrumentation_url }}
+      {%- if collector_splunk_dotnet_auto_instrumentation_url -%}
+      {{ collector_splunk_dotnet_auto_instrumentation_url }}
       {%- else -%}
-      {%- if splunk_dotnet_auto_instrumentation_version != "latest" -%}
-      {%- set version = splunk_dotnet_auto_instrumentation_version.lstrip("v") -%}
+      {%- if collector_splunk_dotnet_auto_instrumentation_version != "latest" -%}
+      {%- set version = collector_splunk_dotnet_auto_instrumentation_version.lstrip("v") -%}
       {{ base_url }}/v{{ version }}
-      {%- elif splunk_dotnet_auto_instrumentation_version == "latest" and latest_dotnet_release is defined -%}
+      {%- elif collector_splunk_dotnet_auto_instrumentation_version == "latest" and latest_dotnet_release is defined -%}
       {%- set version = latest_dotnet_release.json.tag_name.lstrip("v") -%}
       {{ base_url }}/v{{ version }}
       {%- endif -%}
@@ -88,7 +88,7 @@
       {%- endif -%}
       {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
   loop: >
-    {{ dotnet_options | default({}) | combine(splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
+    {{ dotnet_options | default({}) | combine(collector_splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
   tags: molecule-idempotence-notest
 
 - name: Set IIS registry value
@@ -105,7 +105,7 @@
   ansible.windows.win_regedit:
     path: "{{ registry_key }}"
     state: present
-  when: splunk_dotnet_auto_instrumentation_system_wide
+  when: collector_splunk_dotnet_auto_instrumentation_system_wide
 
 - name: Set system-wide registry value
   ansible.windows.win_regedit:
@@ -124,7 +124,7 @@
       {{ value | string }}
     type: string
   loop: >
-    {{ dotnet_options | default({}) | combine(splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
-  when: splunk_dotnet_auto_instrumentation_system_wide
+    {{ dotnet_options | default({}) | combine(collector_splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
+  when: collector_splunk_dotnet_auto_instrumentation_system_wide
   notify: "reset iis"
   tags: molecule-idempotence-notest

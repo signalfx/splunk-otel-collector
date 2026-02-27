@@ -87,7 +87,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
       - name: Install dependencies.
         run: |
@@ -123,8 +123,7 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          # Testing only the versions currently supported per https://endoflife.date/ansible
-          - ansible>=12.2.0, <13.0.0
+          # EOL REFERENCE: https://endoflife.date/ansible
           - ansible>=13.0.0, <14.0.0
         distro:
           - amazonlinux2023
@@ -188,9 +187,10 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          # Testing only the versions currently supported per https://endoflife.date/ansible
+          # EOL REFERENCE: https://endoflife.date/ansible
           - ansible>=13.0.0, <14.0.0
         distro:
+          # EOL REFERENCE: https://endoflife.date/windows-server
           - "2019"
           - "2022"
         scenario:
@@ -247,7 +247,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
           cache: 'pip'
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 

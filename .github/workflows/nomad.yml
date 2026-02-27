@@ -30,7 +30,8 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        nomad: [ "1.7.7-1", "1.9.7-1" ]
+        # EOL REFERENCE: https://endoflife.date/nomad
+        nomad: [ "1.9.7-1", "1.11.2-1" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
@@ -53,8 +54,8 @@ jobs:
 
       - name: Install Nomad and Consul.
         run: |
-          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update
           sudo apt install nomad=${{ matrix.nomad }}
           sudo apt-get install consul

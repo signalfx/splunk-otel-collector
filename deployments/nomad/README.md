@@ -8,7 +8,7 @@ The Splunk OpenTelemetry Collector for HashiCorp Nomad is an orchestrator deploy
 
 To run the job files you need:
 
-- Access to a Nomad cluster (**version 1.6.2 to 1.9.7**)
+- Access to a Nomad cluster (**version 1.9 to 1.11**)
 - (Optional) Access to a Consul cluster - **Attention**: _the `*.nomad` examples provided
   in this repository assume that Consul is being used._
 

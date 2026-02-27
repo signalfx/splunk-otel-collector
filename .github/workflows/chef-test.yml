@@ -22,6 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # EOL REFERENCE: https://endoflife.date/chef-workstation
   CHEF_VERSION: "25.12.1102"
   CHEF_LICENSE: accept
 

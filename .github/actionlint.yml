@@ -4,6 +4,7 @@ self-hosted-runner:
   labels:
     - otel-arm64
     - otel-windows
+    - otel-windows-arm64
 
 # Path-specific configurations.
 paths:

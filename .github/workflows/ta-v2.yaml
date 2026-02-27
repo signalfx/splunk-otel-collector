@@ -30,7 +30,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -80,7 +80,7 @@ jobs:
           - Splunk_TA_OTel_Collector_linux_x86_64.tgz
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download TA v2 artifacts
         uses: actions/download-artifact@v7

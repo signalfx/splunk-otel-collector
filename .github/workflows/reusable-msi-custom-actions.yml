@@ -15,7 +15,7 @@ jobs:
           dotnet-version: 10.0.103
 
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build Custom Actions
         working-directory: packaging/msi/SplunkCustomActions

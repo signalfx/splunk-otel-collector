@@ -42,6 +42,7 @@ jobs:
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS.runner }}
+      ARCH: ${{ matrix.OS.arch }}
 
   msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
@@ -374,7 +375,7 @@ jobs:
 
       - uses: actions/download-artifact@v7
         with:
-          name: agent-bundle-${{ matrix.OS }}
+          name: agent-bundle-windows_amd64
           path: ./dist
 
       - uses: ./.github/actions/win-wait-for-docker
@@ -383,7 +384,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle-${{ matrix.OS }}.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          Copy-Item .\dist\agent-bundle-windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip

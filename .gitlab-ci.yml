@@ -517,7 +517,7 @@ agent-bundle-windows:
     paths:
       - .cache/pip
   script:
-    - ./packaging/bundle/scripts/windows/make.ps1 bundle windows_amd64
+    - ./packaging/bundle/scripts/windows/make.ps1 bundle amd64
   artifacts:
     paths:
       - dist/agent-bundle-windows_amd64.zip

@@ -6,6 +6,9 @@ on:
       OS:
         required: true
         type: string
+      ARCH:
+        required: true
+        type: string
 
 env:
   PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
@@ -21,9 +24,9 @@ jobs:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
 
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle "${{ inputs.OS }}"
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle "${{ inputs.ARCH }}"
 
       - uses: actions/upload-artifact@v6
         with:
-          name: agent-bundle-${{ inputs.OS }}
-          path: ./dist/agent-bundle-${{ inputs.OS }}.zip
+          name: agent-bundle-windows_${{ inputs.ARCH }}
+          path: ./dist/agent-bundle-windows_${{ inputs.ARCH }}.zip

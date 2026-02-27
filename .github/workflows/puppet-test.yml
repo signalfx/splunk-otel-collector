@@ -231,6 +231,7 @@ jobs:
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: windows-2022
+      ARCH: amd64
 
   puppet-build-windows-msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml

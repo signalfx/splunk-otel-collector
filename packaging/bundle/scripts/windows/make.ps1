@@ -15,17 +15,17 @@
 <#
 .PARAMETER Target
     Build target to run (bundle)
-.PARAMETER Runner
-    Github runner
+.PARAMETER Arch
+    Target architecture (e.g. amd64, arm64)
 #>
 param(
     [Parameter(Mandatory=$true, Position=1)][string]$Target,
-    [Parameter(Mandatory=$true, Position=2)][string]$Runner,
+    [Parameter(Mandatory=$true, Position=2)][string]$Arch,
     [Parameter(Mandatory=$false, ValueFromRemainingArguments=$true)]$Remaining
 )
 
 Set-PSDebug -Trace 1
-$BUNDLE_NAME = "agent-bundle-$Runner.zip"
+$BUNDLE_NAME = "agent-bundle-windows_$Arch.zip"
 $BUNDLE_DIR = "agent-bundle"
 $COLLECTD_VERSION = "5.8.0-sfx0"
 $COLLECTD_COMMIT = "4d3327b14cf4359029613baf4f90c4952702105e"

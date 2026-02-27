@@ -1,11 +1,17 @@
 name: 'Wait for Docker service (Windows)'
-description: 'Ensure the Docker daemon is running on Windows runners. Attempts to start the service if needed.'
+description: >
+  Ensure the Docker daemon is running on Windows runners. Attempts to start the service if needed.
+  Workaround for https://github.com/actions/runner-images/issues/13729
 
 inputs:
   timeout:
     description: 'Maximum seconds to wait for the Docker service'
     required: false
     default: '120'
+  start_after:
+    description: 'Seconds to wait before forcefully starting the Docker service'
+    required: false
+    default: '30'
 
 runs:
   using: "composite"
@@ -13,15 +19,10 @@ runs:
     - name: Wait for Docker service
       run: |
         $timeout = [int]"${{ inputs.timeout }}"
+        $startAfter = [int]"${{ inputs.start_after }}"
         $elapsed = 0
-        $svc = Get-Service docker -ErrorAction SilentlyContinue
-        if ($svc -and $svc.Status -ne 'Running') {
-          Write-Host "Docker service status: $($svc.Status). Attempting to start..."
-          Start-Service docker -ErrorAction SilentlyContinue
-        } elseif (-not $svc) {
-          Write-Host "Docker service not found. Installed services:"
-          Get-Service *docker* | Format-Table -AutoSize
-        }
+        $startAttempted = $false
+
         while ($elapsed -lt $timeout) {
           $svc = Get-Service docker -ErrorAction SilentlyContinue
           if ($svc -and $svc.Status -eq 'Running') {
@@ -29,6 +30,18 @@ runs:
             docker version
             return
           }
+
+          if (-not $svc) {
+            Write-Host "Docker service not found. Installed services:"
+            Get-Service *docker* | Format-Table -AutoSize
+          }
+
+          if ($elapsed -ge $startAfter -and -not $startAttempted) {
+            Write-Host "Docker not available after ${startAfter}s — starting the service (see https://github.com/actions/runner-images/issues/13729)"
+            Start-Service docker -ErrorAction SilentlyContinue
+            $startAttempted = $true
+          }
+
           Write-Host "Waiting for Docker service... ($elapsed s) status: $(if ($svc) { $svc.Status } else { 'not found' })"
           Start-Sleep 5
           $elapsed += 5

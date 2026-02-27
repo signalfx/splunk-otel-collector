@@ -60,12 +60,8 @@ jobs:
 
   agent-bundle-windows:
     needs: lint
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS }}
       ARCH: "amd64"
 
   msi-custom-actions:

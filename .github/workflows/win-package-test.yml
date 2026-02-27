@@ -38,11 +38,10 @@ jobs:
   agent-bundle-windows:
     strategy:
       matrix:
-        OS: [ {"runner": "windows-2022", "arch": "amd64"}, {"runner": "windows-2025", "arch": "amd64"}, {"runner": "windows-11-arm", "arch": "arm64"} ]
+        ARCH: [ "amd64", "arm64" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS.runner }}
-      ARCH: ${{ matrix.OS.arch }}
+      ARCH: ${{ matrix.ARCH }}
 
   msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml

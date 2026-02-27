@@ -3,9 +3,6 @@ name: agent-bundle-windows
 on:
   workflow_call:
     inputs:
-      OS:
-        required: true
-        type: string
       ARCH:
         required: true
         type: string
@@ -15,7 +12,7 @@ env:
 
 jobs:
   agent-bundle-windows:
-    runs-on: ${{ inputs.OS }}
+    runs-on: ${{ inputs.ARCH == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
     steps:
       - uses: actions/checkout@v5
 

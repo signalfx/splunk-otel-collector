@@ -26,6 +26,15 @@ sync-configs:
 	@if [ ! -d ./assets/configs/ ]; then mkdir -p ./assets/configs/; fi
 	cp $(SRC_ROOT)/cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
 
+.PHONY: ta-inputs-conf
+ta-inputs-conf:
+	@echo "Generating inputs.conf and inputs.conf.spec ..."
+	cd $(SRC_ROOT) && go run ./cmd/ta-inputs-from-schema \
+		-scheme cmd/otelcol/ta_scheme.xml \
+		-global-settings packaging/ta-v2/inputs_conf_global_settings.txt \
+		-name $(MOD_INPUT_NAME) \
+		-assets packaging/ta-v2/assets
+
 .PHONY: validate-target-os
 validate-target-os:
 ifneq ($(TA_TARGET_OS),)
@@ -45,7 +54,7 @@ all-packages: pack
 	$(MAKE) TA_TARGET_OS=windows pack
 
 .PHONY: pack
-pack: validate-target-os sync-configs
+pack: validate-target-os sync-configs ta-inputs-conf
 	# Build a package according to the specified TA_TARGET_OS
 	@echo "Packing add-on $(PKG_NAME) ..."
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
@@ -53,7 +62,7 @@ pack: validate-target-os sync-configs
 	listfile=$$(mktemp) && \
 	tr -d '\r' < $(PKG_NAME).fileslist.txt > $$listfile && \
 	cp -rL ./assets/ $$tmpdir/$(MOD_INPUT_NAME) && \
-	tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
+	COPYFILE_DISABLE=1 tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
 	rm -rf $$tmpdir $$listfile
 
 .PHONY: clean-packages
@@ -88,5 +97,5 @@ build-otelcol-windows: ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe:
 	@echo "Building Windows executable ..."
 	if [ ! -d ./assets/windows_x86_64/bin/ ]; then mkdir -p ./assets/windows_x86_64/bin/; fi
-	cd $(SRC_ROOT)/ && GOOS=windows GOARCH=amd64 $(MAKE) otelcol
-	cp $(SRC_ROOT)/bin/otelcol_windows_amd64 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
+	cd $(SRC_ROOT)/ && GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	cp $(SRC_ROOT)/bin/otelcol_windows_amd64.exe ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe

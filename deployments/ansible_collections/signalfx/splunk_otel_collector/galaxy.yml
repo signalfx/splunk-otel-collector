@@ -28,4 +28,5 @@ tags:
 repository: https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible_collections/signalfx/splunk_otel_collector
 build_ignore:
   - contributing
+  - dist
   - molecule

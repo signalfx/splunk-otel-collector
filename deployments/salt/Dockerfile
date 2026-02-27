@@ -6,6 +6,7 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest
+# EOL REFERENCE: https://pypi.org/project/salt-lint/
 ENV SALT_LINT_VERSION=0.9.2
 
 RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold

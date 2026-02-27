@@ -30,7 +30,7 @@ jobs:
   cross-compile:
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-windows_amd64" ]
+        SYS_BINARIES: [ "binaries-windows_amd64", "binaries-windows_arm64" ]
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
@@ -38,27 +38,23 @@ jobs:
   agent-bundle-windows:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ {"runner": "windows-2022", "arch": "amd64"}, {"runner": "windows-2025", "arch": "amd64"}, {"runner": "windows-11-arm", "arch": "arm64"} ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS }}
+      OS: ${{ matrix.OS.runner }}
 
   msi-custom-actions:
-    strategy:
-      matrix:
-        OS: [ "windows-2022" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ {"runner": "windows-2022", "arch": "amd64"}, {"runner": "windows-2025", "arch": "amd64"}, {"runner": "windows-11-arm", "arch": "arm64"} ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS }}
+      OS: ${{ matrix.OS.runner }}
+      ARCH: ${{ matrix.OS.arch }}
 
   dotnet-zeroconfig-e2e-test:
     runs-on: windows-2022 # windows-2022 comes preloaded with the Docker image used in the test
@@ -73,10 +69,10 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      # EOL REFERENCE: https://endoflife.date/dotnet
       - uses: actions/setup-dotnet@v5.1.0
         with:
-          dotnet-version: |
-            8.0.300
+          dotnet-version: '10.0.x'
 
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v7
@@ -112,8 +108,8 @@ jobs:
   msi-test:
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
-    runs-on: otel-windows
+        OS: [ "windows-2022", "windows-11-arm" ]
+    runs-on: ${{ matrix.OS != 'windows-11-arm' && 'otel-windows' || 'otel-windows-arm' }}
     needs: [msi-build]
     timeout-minutes: 40
     steps:
@@ -144,7 +140,7 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "windows-2022", "windows-2025", "windows-11-arm" ]
         MODE: [ "agent", "gateway" ]
     steps:
       - name: Check out the codebase.
@@ -378,7 +374,7 @@ jobs:
 
       - uses: actions/download-artifact@v7
         with:
-          name: agent-bundle-windows-${{ matrix.OS }}
+          name: agent-bundle-${{ matrix.OS }}
           path: ./dist
 
       - uses: ./.github/actions/win-wait-for-docker
@@ -387,7 +383,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          Copy-Item .\dist\agent-bundle-${{ matrix.OS }}.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip

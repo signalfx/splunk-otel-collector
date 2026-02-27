@@ -50,7 +50,7 @@ function bundle (
     if ($DOWNLOAD_PYTHON -Or !(Test-Path -Path "$buildDir\python")) {
         Remove-Item -Recurse -Force "$buildDir\python" -ErrorAction Ignore
         download_nuget -outputDir $buildDir
-        install_python -buildDir $buildDir
+        install_python -buildDir $buildDir -arch $Arch
     }
 
     if ($DOWNLOAD_COLLECTD_PLUGINS -Or !(Test-Path -Path "$buildDir\collectd-python")) {

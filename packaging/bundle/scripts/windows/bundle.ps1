@@ -62,8 +62,19 @@ function download_nuget([string]$url=$NUGET_URL, [string]$outputDir=$BUILD_DIR) 
     download_file -url $url -outputDir $outputDir -fileName $NUGET_EXE
 }
 
-function install_python([string]$buildDir=$BUILD_DIR, [string]$pythonVersion=$PYTHON_VERSION, [string]$pipVersion=$PIP_VERSION) {
+function install_python(
+    [string]$buildDir=$BUILD_DIR,
+    [string]$pythonVersion=$PYTHON_VERSION,
+    [string]$pipVersion=$PIP_VERSION,
+    [string]$arch="amd64"
+) {
     $nugetPath = Resolve-Path -Path "$buildDir\$NUGET_EXE"
+    $pythonPackageName = "python"
+    if ($arch -eq "arm64") {
+        $pythonPackageName = "pythonarm64"
+    } elseif ($arch -ne "amd64") {
+        throw "Unsupported architecture '$arch'. Expected 'amd64' or 'arm64'."
+    }
     $installPath = "$buildDir\python.$pythonVersion"
     $targetPath = "$buildDir\python"
 
@@ -77,7 +88,7 @@ function install_python([string]$buildDir=$BUILD_DIR, [string]$pythonVersion=$PY
         if ($lastexitcode -ne 0){ throw }
     }
 
-    & $nugetPath install python -Version $pythonVersion -OutputDirectory $buildDir
+    & $nugetPath install $pythonPackageName -Version $pythonVersion -OutputDirectory $buildDir
     if ($lastexitcode -ne 0){ throw }
     # Recursively copy of installPath\tools to targetPath
     New-Item -ItemType Directory -Path $targetPath -ErrorAction Stop

@@ -75,7 +75,7 @@ function install_python(
     } elseif ($arch -ne "amd64") {
         throw "Unsupported architecture '$arch'. Expected 'amd64' or 'arm64'."
     }
-    $installPath = "$buildDir\python.$pythonVersion"
+    $installPath = "$buildDir\$pythonPackageName.$pythonVersion"
     $targetPath = "$buildDir\python"
 
     Remove-Item -Recurse -Force $installPath -ErrorAction Ignore

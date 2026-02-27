@@ -266,7 +266,7 @@ jobs:
       - name: Download MSI package artifacts
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-windows-2022
+          name: msi-build-amd64
           path: ./dist
 
       - name: Setup python

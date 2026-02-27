@@ -49,12 +49,11 @@ jobs:
   msi-build:
     strategy:
       matrix:
-        OS: [ {"runner": "windows-2022", "arch": "amd64"}, {"runner": "windows-2025", "arch": "amd64"}, {"runner": "windows-11-arm", "arch": "arm64"} ]
+        ARCH: [ "amd64", "arm64" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS.runner }}
-      ARCH: ${{ matrix.OS.arch }}
+      ARCH: ${{ matrix.ARCH }}
 
   dotnet-zeroconfig-e2e-test:
     runs-on: windows-2022 # windows-2022 comes preloaded with the Docker image used in the test
@@ -77,7 +76,7 @@ jobs:
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-windows-2025
+          name: msi-build-amd64
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
       - uses: ./.github/actions/win-wait-for-docker
@@ -108,8 +107,8 @@ jobs:
   msi-test:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-11-arm" ]
-    runs-on: ${{ matrix.OS != 'windows-11-arm' && 'otel-windows' || 'otel-windows-arm' }}
+        runner: [ "otel-windows", "otel-windows-arm" ]
+    runs-on: ${{ matrix.runner }}
     needs: [msi-build]
     timeout-minutes: 40
     steps:
@@ -119,7 +118,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.runner == 'otel-windows-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Set the MSI_COLLECTOR_PATH environment variable
@@ -149,7 +148,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.OS == 'windows-11-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Ensure required ports in the dynamic range are available
@@ -197,7 +196,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
       - name: Ensure required ports in the dynamic range are available
         run: |
@@ -233,7 +232,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
 
       - name: Build Chocolatey

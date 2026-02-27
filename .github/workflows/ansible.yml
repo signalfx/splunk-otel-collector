@@ -70,12 +70,8 @@ jobs:
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS }}
       ARCH: "amd64"
 
   lint:
@@ -215,7 +211,7 @@ jobs:
 
       - uses: actions/download-artifact@v7
         with:
-          name: msi-build-windows-2025
+          name: msi-build-amd64
           path: /tmp/msi-build
       # Workaround for https://github.com/actions/runner-images/issues/13202
       - name: Unload KVM module (AMD)

@@ -83,8 +83,7 @@ jobs:
           set -o pipefail
           pushd ${{github.workspace}}
           make -e bundle.d otelcol
-          GOOS=windows GOARCH=amd64 make -e otelcol
-          mv ./bin/otelcol_windows_amd64 ./bin/otelcol_windows_amd64.exe
+          GOOS=windows GOARCH=amd64 EXTENSION=.exe make -e otelcol
           popd
           PLATFORM=all make -e generate-technical-addon copy-local-build-to-ta package-ta
 

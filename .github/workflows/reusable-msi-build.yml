@@ -59,7 +59,7 @@ jobs:
       - name: Downloading msi-custom-actions
         uses: actions/download-artifact@v7
         with:
-          name: msi-custom-actions-${{ inputs.OS }}
+          name: msi-custom-actions
           path: ./packaging/msi/SplunkCustomActions/bin/Release
 
       - name: Build MSI

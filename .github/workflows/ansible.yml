@@ -69,12 +69,7 @@ jobs:
 
   msi-custom-actions:
     needs: lint
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
@@ -84,6 +79,7 @@ jobs:
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}
+      ARCH: "amd64"
 
   lint:
     name: Lint

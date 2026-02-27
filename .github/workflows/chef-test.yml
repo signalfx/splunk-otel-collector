@@ -67,12 +67,7 @@ jobs:
 
   msi-custom-actions:
     needs: [ chef-lint-spec-test ]
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
@@ -82,6 +77,7 @@ jobs:
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}
+      ARCH: "amd64"
 
   chef-lint-spec-test:
     name: chef-lint-spec-test
@@ -174,7 +170,7 @@ jobs:
           mv "$rpm_path" ./files/soc.rpm
 
       - name: Install chef
-        uses: actionshub/chef-install@3.0.1
+        uses: actionshub/chef-install@5.0.2
         with:
           version: ${{ env.CHEF_VERSION }}
 
@@ -219,7 +215,7 @@ jobs:
           mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef
-        uses: actionshub/chef-install@3.0.1
+        uses: actionshub/chef-install@5.0.2
         with:
           version: ${{ env.CHEF_VERSION }}
 

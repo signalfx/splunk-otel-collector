@@ -6,6 +6,9 @@ on:
       OS:
         required: true
         type: string
+      ARCH:
+        required: true
+        type: string
     outputs:
       version:
         description: "The MSI version"
@@ -41,16 +44,16 @@ jobs:
       - name: Install Wix
         run: dotnet tool restore
 
-      - name: Downloading binaries-windows_amd64
+      - name: Downloading binaries-windows_${{ inputs.ARCH }}
         uses: actions/download-artifact@v7
         with:
-          name: binaries-windows_amd64
+          name: binaries-windows_${{ inputs.ARCH }}
           path: ./bin
 
       - name: Downloading agent-bundle-windows
         uses: actions/download-artifact@v7
         with:
-          name: agent-bundle-windows-${{ inputs.OS }}
+          name: agent-bundle-${{ inputs.OS }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
@@ -66,7 +69,7 @@ jobs:
           VERSION="${{ steps.get-version.outputs.version }}"
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
-          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"
+          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE" "${{ inputs.OS }}"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v6

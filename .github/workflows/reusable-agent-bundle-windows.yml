@@ -21,9 +21,9 @@ jobs:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
 
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle "${{ inputs.OS }}"
 
       - uses: actions/upload-artifact@v6
         with:
-          name: agent-bundle-windows-${{ inputs.OS }}
-          path: ./dist/agent-bundle_windows_amd64.zip
+          name: agent-bundle-${{ inputs.OS }}
+          path: ./dist/agent-bundle-${{ inputs.OS }}.zip

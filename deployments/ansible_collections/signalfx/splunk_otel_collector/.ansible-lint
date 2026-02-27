@@ -6,5 +6,8 @@ exclude_paths:
   - "molecule/custom_vars/custom_collector_config_deprecated.yml"
   - "molecule/custom_vars_install_old_version/custom_collector_config.yml"
 
+# This is required to be able to double publish the collection to Ansible Galaxy as well as
+# the Ansible Automation Hub. We have the variable rename on the roadmap, but want to ensure
+# we handle it in the smoothest way possible for users. This will be removed in the future.
 skip_list:
   - "var-naming[no-role-prefix]"

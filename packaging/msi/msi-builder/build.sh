@@ -162,8 +162,12 @@ parse_args_and_build() {
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
 
     if [ -z "$skip_build_dir_removal" ]; then
-        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle-windows_${arch}.zip"
-        rm -f "${OUTPUT_DIR}/agent-bundle-windows_${arch}.zip"
+        if [[ "$arch" == "arm64" ]]; then
+            echo "Skipping agent bundle inclusion for arm64 build"
+        else
+            unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle-windows_${arch}.zip"
+            rm -f "${OUTPUT_DIR}/agent-bundle-windows_${arch}.zip"
+        fi
     else
         echo "Skipping unzipping agent bundle"
     fi

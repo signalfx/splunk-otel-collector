@@ -1,0 +1,6 @@
+# Global settings, see https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/9.4/configuration-file-reference/9.4.1-configuration-file-reference/inputs.conf#global-settings-0
+disabled=false
+start_by_shell=false
+interval = 0
+index = _internal
+sourcetype = Splunk_TA_OTel_Collector

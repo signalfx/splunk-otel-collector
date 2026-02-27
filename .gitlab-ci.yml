@@ -505,6 +505,9 @@ agent-bundle-windows:
   needs:
     - job: manual_release_trigger
       optional: true
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
   tags:
     - windows2022
   variables:
@@ -517,10 +520,10 @@ agent-bundle-windows:
     paths:
       - .cache/pip
   script:
-    - ./packaging/bundle/scripts/windows/make.ps1 bundle amd64
+    - ./packaging/bundle/scripts/windows/make.ps1 bundle $ARCH
   artifacts:
     paths:
-      - dist/agent-bundle-windows_amd64.zip
+      - dist/agent-bundle-windows_$ARCH.zip
 
 .collector-ta-trigger:
   rules:

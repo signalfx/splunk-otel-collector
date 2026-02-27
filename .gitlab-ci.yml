@@ -809,7 +809,7 @@ build-msi:
           $VERSION_TAG = ""
       }
     - |
-      & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)" windows_amd64
+      & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)" amd64
   artifacts:
     paths:
       - dist/*.msi

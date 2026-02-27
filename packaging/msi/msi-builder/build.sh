@@ -172,16 +172,15 @@ parse_args_and_build() {
 
     cd ${WORK_DIR}
 
-    dotnetarch="x64"
+    wixarch="x64"
     if [[ "$os" =~ "arm" ]]; then
-        dotnetarch="arm64"
+        wixarch="arm64"
     fi
 
     dotnet wix build "${WXS_PATH}" \
-        -arch "${dotnetarch}" \
+        -arch "${wixarch}" \
         -out "${build_dir}/${msi_name}" \
         -bindpath "${files_dir}" \
-        -d Arch="${dotnetarch}" \
         -d Version="${version}" \
         -d Otelcol="${otelcol}" \
         -d JmxMetricsJar="${jmx_metrics_jar}" \

@@ -170,8 +170,13 @@ jobs:
           Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          if ("${{ matrix.OS }}" -ne "windows-11-arm") {
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          } else {
+            # The arm64 bundle does not include the python binaries since they are not used in the arm64 tests, so just check that the expected directory structure is created and the expected files are included
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\README.txt"
+          }
           # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
           $found_jmx = $false
           (Get-PSDrive -PSProvider FileSystem).Root | ForEach-Object {

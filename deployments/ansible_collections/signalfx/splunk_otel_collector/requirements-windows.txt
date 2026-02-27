@@ -1,1 +1,1 @@
-pywinrm<=0.4.3
+pywinrm>=0.4.0

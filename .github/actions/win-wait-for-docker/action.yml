@@ -37,9 +37,13 @@ runs:
           }
 
           if ($elapsed -ge $startAfter -and -not $startAttempted) {
-            Write-Host "Docker not available after ${startAfter}s — starting the service (see https://github.com/actions/runner-images/issues/13729)"
-            Start-Service docker -ErrorAction SilentlyContinue
-            $startAttempted = $true
+            if ($svc) {
+              Write-Host "Docker not available after ${startAfter}s — starting the service (see https://github.com/actions/runner-images/issues/13729)"
+              Start-Service docker -ErrorAction SilentlyContinue
+              $startAttempted = $true
+            } else {
+              Write-Host "Docker service still not found after ${startAfter}s — will keep waiting for it to be registered."
+            }
           }
 
           Write-Host "Waiting for Docker service... ($elapsed s) status: $(if ($svc) { $svc.Status } else { 'not found' })"

@@ -5,7 +5,7 @@ job "otel-gateway" {
   constraint {
     attribute = "${attr.nomad.version}"
     operator  = "semver"
-    value     = "< 1.9.8"
+    value     = "<= 1.11.2"
   }
 
   group "otel-gateway" {

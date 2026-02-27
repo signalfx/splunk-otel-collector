@@ -69,10 +69,10 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      # EOL REFERENCE: https://endoflife.date/dotnet
       - uses: actions/setup-dotnet@v5.1.0
         with:
-          dotnet-version: |
-            8.0.300
+          dotnet-version: '10.0.x'
 
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v7

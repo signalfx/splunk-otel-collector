@@ -12,7 +12,8 @@ jobs:
     name: shellcheck
     runs-on: ubuntu-24.04
     env:
-      VERSION: v0.10.0
+      # EOL REFERENCE: https://github.com/koalaman/shellcheck/releases
+      VERSION: v0.11.0
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - name: shellcheck github workflow scripts

@@ -1,0 +1,19 @@
+# SRS configuration file
+# Generated from .fossa.yml
+#
+# WARNING: The following FOSSA features are NOT supported in SRS
+# (only skip-files and skip-dirs are supported for now):
+#
+#   - targets.only: ['gomod', 'maven', 'setuptools']
+#     FOSSA was configured to scan only 'gomod, maven, setuptools' packages.
+#     SRS will scan ALL package managers in this repository.
+#     This may result in additional findings compared to FOSSA.
+#
+
+scan:
+  scanners:
+  - vuln
+  - license
+  skip-dirs:
+  - examples
+  - tests

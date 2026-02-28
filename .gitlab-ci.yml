@@ -812,7 +812,7 @@ build-msi:
 msi-custom-actions-package:
   extends: .trigger-filter
   image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
-  stage: package
+  stage: build
   tags:
     - windows2022
   script:

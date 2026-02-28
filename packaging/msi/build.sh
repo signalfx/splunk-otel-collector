@@ -28,7 +28,7 @@ JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.t
 
 VERSION="${1:-}"
 JMX_METRIC_GATHERER_RELEASE="${2:-}"
-OS="${3:-}"
+ARCH="${3:-}"
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
@@ -91,9 +91,9 @@ if find "$REPO_DIR/packaging/msi" -name "*.wxs" -print0 | xargs -0 grep -q "Remo
     exit 1
 fi
 
-if ! test -f "$REPO_DIR/dist/agent-bundle-$OS.zip"; then
+if ! test -f "$REPO_DIR/dist/agent-bundle-windows_$ARCH.zip"; then
     ls -la "$REPO_DIR/dist/"
-    echo "$REPO_DIR/dist/agent-bundle-$OS.zip not found! Either download a pre-built bundle to $REPO_DIR/dist/, or run '$REPO_DIR/packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to $REPO_DIR/dist/."
+    echo "$REPO_DIR/dist/agent-bundle-windows_$ARCH.zip not found! Either download a pre-built bundle to $REPO_DIR/dist/, or run '$REPO_DIR/packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to $REPO_DIR/dist/."
     exit 1
 fi
 
@@ -101,6 +101,6 @@ OUTPUT_DIR="$REPO_DIR/dist" \
 REPO_DIR="$REPO_DIR" \
 WORK_DIR="$REPO_DIR/work" \
 VERSION="$MSI_VERSION" \
-OS="$OS" \
+ARCH="$ARCH" \
 JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
     "$SCRIPT_DIR/msi-builder/build-launcher.sh"

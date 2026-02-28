@@ -3,7 +3,7 @@ name: agent-bundle-windows
 on:
   workflow_call:
     inputs:
-      OS:
+      ARCH:
         required: true
         type: string
 
@@ -12,7 +12,7 @@ env:
 
 jobs:
   agent-bundle-windows:
-    runs-on: ${{ inputs.OS }}
+    runs-on: ${{ inputs.ARCH == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -21,9 +21,9 @@ jobs:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
 
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle "${{ inputs.OS }}"
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle "${{ inputs.ARCH }}"
 
       - uses: actions/upload-artifact@v6
         with:
-          name: agent-bundle-${{ inputs.OS }}
-          path: ./dist/agent-bundle-${{ inputs.OS }}.zip
+          name: agent-bundle-windows_${{ inputs.ARCH }}
+          path: ./dist/agent-bundle-windows_${{ inputs.ARCH }}.zip

@@ -505,6 +505,9 @@ agent-bundle-windows:
   needs:
     - job: manual_release_trigger
       optional: true
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
   tags:
     - windows2022
   variables:
@@ -517,10 +520,10 @@ agent-bundle-windows:
     paths:
       - .cache/pip
   script:
-    - ./packaging/bundle/scripts/windows/make.ps1 bundle windows_amd64
+    - ./packaging/bundle/scripts/windows/make.ps1 bundle $ARCH
   artifacts:
     paths:
-      - dist/agent-bundle-windows_amd64.zip
+      - dist/agent-bundle-windows_$ARCH.zip
 
 .collector-ta-trigger:
   rules:
@@ -660,30 +663,19 @@ sign-exe:
     - otelcol-fips
   parallel:
     matrix:
-      - TARGET: [otelcol, otelcol-fips]
+      - TARGET: otelcol
+        ARCH: amd64
+      - TARGET: otelcol
+        ARCH: arm64
+      - TARGET: otelcol-fips
+        ARCH: amd64
   variables:
-    ARTIFACT: bin/${TARGET}_windows_amd64.exe
+    ARTIFACT: bin/${TARGET}_windows_${ARCH}.exe
     SIGN_TYPE: WIN
     DOWNLOAD_DIR: dist/signed
   artifacts:
     paths:
-      - dist/signed/${TARGET}_windows_amd64.exe
-
-sign-exe-arm64:
-  extends:
-    - .trigger-filter
-    - .submit-signing-request
-  stage: sign-binaries
-  retry: 2
-  needs:
-    - compile
-  variables:
-    ARTIFACT: bin/otelcol_windows_arm64.exe
-    SIGN_TYPE: WIN
-    DOWNLOAD_DIR: dist/signed
-  artifacts:
-    paths:
-      - dist/signed/otelcol_windows_arm64.exe
+      - dist/signed/${TARGET}_windows_${ARCH}.exe
 
 sign-osx:
   extends:
@@ -786,10 +778,13 @@ build-msi:
     - sign-exe
     - agent-bundle-windows
     - msi-custom-actions-package
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
   before_script:
     # build the MSI with the signed exe
     - New-Item -Path bin -ItemType Directory -Force 
-    - Copy-Item -Force dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
+    - Copy-Item -Force dist/signed/otelcol_windows_$($env:ARCH).exe bin/otelcol_windows_$($env:ARCH).exe
   tags:
     - windows2022
   script:
@@ -809,7 +804,7 @@ build-msi:
           $VERSION_TAG = ""
       }
     - |
-      & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)" windows_amd64
+      & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt) $($env:ARCH)"
   artifacts:
     paths:
       - dist/*.msi
@@ -817,12 +812,12 @@ build-msi:
 msi-custom-actions-package:
   extends: .trigger-filter
   image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
-  stage: package
+  stage: build
   tags:
     - windows2022
   script:
     - pushd ./packaging/msi/SplunkCustomActions/
-    - dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release
+    - dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform="Any CPU" -o ./bin/Release
     - popd
   artifacts:
     paths:
@@ -1777,8 +1772,6 @@ github-release:
     - job: libsplunk
       artifacts: true
     - job: sign-exe
-      artifacts: true
-    - job: sign-exe-arm64
       artifacts: true
     - job: sign-osx
       artifacts: true

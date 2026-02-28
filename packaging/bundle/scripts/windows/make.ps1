@@ -15,17 +15,17 @@
 <#
 .PARAMETER Target
     Build target to run (bundle)
-.PARAMETER Runner
-    Github runner
+.PARAMETER Arch
+    Target architecture (e.g. amd64, arm64)
 #>
 param(
     [Parameter(Mandatory=$true, Position=1)][string]$Target,
-    [Parameter(Mandatory=$true, Position=2)][string]$Runner,
+    [Parameter(Mandatory=$true, Position=2)][string]$Arch,
     [Parameter(Mandatory=$false, ValueFromRemainingArguments=$true)]$Remaining
 )
 
 Set-PSDebug -Trace 1
-$BUNDLE_NAME = "agent-bundle-$Runner.zip"
+$BUNDLE_NAME = "agent-bundle-windows_$Arch.zip"
 $BUNDLE_DIR = "agent-bundle"
 $COLLECTD_VERSION = "5.8.0-sfx0"
 $COLLECTD_COMMIT = "4d3327b14cf4359029613baf4f90c4952702105e"
@@ -44,47 +44,52 @@ function bundle (
         [bool]$DOWNLOAD_PYTHON=$false,
         [bool]$DOWNLOAD_COLLECTD=$false,
         [bool]$DOWNLOAD_COLLECTD_PLUGINS=$false) {
-    mkdir "$buildDir\$BUNDLE_DIR" -ErrorAction Ignore
-    Remove-Item -Recurse -Force "$buildDir\$BUNDLE_DIR\*" -ErrorAction Ignore
+    $bundlePath = "$buildDir\$BUNDLE_DIR"
+    mkdir $bundlePath -ErrorAction Ignore
+    Remove-Item -Recurse -Force "$bundlePath\*" -ErrorAction Ignore
 
-    if ($DOWNLOAD_PYTHON -Or !(Test-Path -Path "$buildDir\python")) {
-        Remove-Item -Recurse -Force "$buildDir\python" -ErrorAction Ignore
-        download_nuget -outputDir $buildDir
-        install_python -buildDir $buildDir
+    if ($Arch -eq "arm64") {
+        Set-Content -Path "$bundlePath\README.txt" -Value "Agent bundle is not supported on Windows ARM"
+    } else {
+        if ($DOWNLOAD_PYTHON -Or !(Test-Path -Path "$buildDir\python")) {
+            Remove-Item -Recurse -Force "$buildDir\python" -ErrorAction Ignore
+            download_nuget -outputDir $buildDir
+            install_python -buildDir $buildDir -arch $Arch
+        }
+
+        if ($DOWNLOAD_COLLECTD_PLUGINS -Or !(Test-Path -Path "$buildDir\collectd-python")) {
+            Remove-Item -Recurse -Force "$buildDir\collectd-python" -ErrorAction Ignore
+            bundle_python_runner -buildDir "$buildDir"
+            get_collectd_plugins -buildDir "$buildDir"
+        }
+
+        if ($DOWNLOAD_COLLECTD -Or !(Test-Path -Path "$buildDir\collectd")) {
+            Remove-Item -Recurse -Force "$buildDir\collectd" -ErrorAction Ignore
+            mkdir "$buildDir\collectd" -ErrorAction Ignore
+            download_collectd -collectdCommit $COLLECTD_COMMIT -outputDir "$buildDir"
+            unzip_file -zipFile "$buildDir\collectd.zip" -outputDir "$buildDir\collectd"
+        }
+
+        # copy python into agent-bundle directory
+        Copy-Item -Path "$buildDir\python" -Destination "$bundlePath\python" -recurse -Force
+        # copy Python plugins into agent-bundle directory
+        Copy-Item -Path "$buildDir\collectd-python" -Destination "$bundlePath\collectd-python" -recurse -Force
+        # copy types.db file into agent-bundle directory
+        Copy-Item -Path "$buildDir\collectd\collectd-$COLLECTD_COMMIT\src\types.db" "$bundlePath\types.db" -Force
+
+        # remove unnecessary files and directories
+        Get-ChildItem -recurse -path "$bundlePath\*" -include __pycache__ | Remove-Item -force -Recurse
+        Get-ChildItem -recurse -path "$bundlePath\*" -include *.key,*.pem | Where-Object { $_.Directory -match 'test' } | Remove-Item -force
+        Get-ChildItem -recurse -path "$bundlePath\*" -include *.pyc,*.pyo,*.whl | Remove-Item -force
+        Get-ChildItem -recurse -path "$bundlePath\collectd-python\*" -include *requirements.txt | Remove-Item -force
+
+        # clean up empty directories
+        remove_empty_directories -buildDir "$bundlePath"
     }
-
-    if ($DOWNLOAD_COLLECTD_PLUGINS -Or !(Test-Path -Path "$buildDir\collectd-python")) {
-        Remove-Item -Recurse -Force "$buildDir\collectd-python" -ErrorAction Ignore
-        bundle_python_runner -buildDir "$buildDir"
-        get_collectd_plugins -buildDir "$buildDir"
-    }
-
-    if ($DOWNLOAD_COLLECTD -Or !(Test-Path -Path "$buildDir\collectd")) {
-        Remove-Item -Recurse -Force "$buildDir\collectd" -ErrorAction Ignore
-        mkdir "$buildDir\collectd" -ErrorAction Ignore
-        download_collectd -collectdCommit $COLLECTD_COMMIT -outputDir "$buildDir"
-        unzip_file -zipFile "$buildDir\collectd.zip" -outputDir "$buildDir\collectd"
-    }
-
-    # copy python into agent-bundle directory
-    Copy-Item -Path "$buildDir\python" -Destination "$buildDir\$BUNDLE_DIR\python" -recurse -Force
-    # copy Python plugins into agent-bundle directory
-    Copy-Item -Path "$buildDir\collectd-python" -Destination "$buildDir\$BUNDLE_DIR\collectd-python" -recurse -Force
-    # copy types.db file into agent-bundle directory
-    Copy-Item -Path "$buildDir\collectd\collectd-$COLLECTD_COMMIT\src\types.db" "$buildDir\$BUNDLE_DIR\types.db" -Force
-
-    # remove unnecessary files and directories
-    Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\*" -include __pycache__ | Remove-Item -force -Recurse
-    Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\*" -include *.key,*.pem | Where-Object { $_.Directory -match 'test' } | Remove-Item -force
-    Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\*" -include *.pyc,*.pyo,*.whl | Remove-Item -force
-    Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\collectd-python\*" -include *requirements.txt | Remove-Item -force
-
-    # clean up empty directories
-    remove_empty_directories -buildDir "$buildDir\$BUNDLE_DIR"
 
     mkdir "$outputDir" -ErrorAction Ignore
     Remove-Item -Force "$outputDir\$BUNDLE_NAME" -ErrorAction Ignore
-    zip_file -src "$buildDir\$BUNDLE_DIR" -dest "$outputDir\$BUNDLE_NAME"
+    zip_file -src "$bundlePath" -dest "$outputDir\$BUNDLE_NAME"
 }
 
 try {

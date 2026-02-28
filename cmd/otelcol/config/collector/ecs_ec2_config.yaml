@@ -44,7 +44,13 @@ receivers:
       # Aggregated system process count metrics
       processes:
       # System processes metrics, disabled by default
+      # Uncomment to gather metrics per process and enable process panel
       # process:
+      #   metrics:
+      #     process.cpu.utilization:
+      #       enabled: true
+      #     process.memory.utilization:
+      #       enabled: true
   jaeger:
     protocols:
       grpc:
@@ -83,7 +89,7 @@ receivers:
 processors:
   batch:
     metadata_keys:
-      - X-SF-Token  
+      - X-SF-Token
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # For more information about memory limiter, see

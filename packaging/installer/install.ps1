@@ -551,7 +551,7 @@ if ($force_skip_verify_access_token) {
         # verify access token
         echo 'Verifying Access Token...'
         if (!(verify_access_token -access_token $access_token -ingest_url $ingest_url -insecure $insecure)) {
-            throw "Access token authentication failed. Verify that your access token is correct."
+            throw "Access token authentication failed. Verify that your access token is correct. If your access token is valid, you can skip validation by rerunning with -force_skip_verify_access_token `$true or setting the VERIFY_ACCESS_TOKEN=false environment variable."
         }
         else {
             echo '- Verified Access Token'

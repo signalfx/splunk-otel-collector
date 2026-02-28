@@ -78,7 +78,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
 	github.com/microsoft/go-mssqldb v1.9.4
-	go.opentelemetry.io/collector/pdata v1.52.0
+	go.opentelemetry.io/collector/pdata v1.52.1-0.20260224195011-be000d6f2b4a
 )
 
 require (

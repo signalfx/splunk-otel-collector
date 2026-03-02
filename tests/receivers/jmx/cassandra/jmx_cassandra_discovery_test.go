@@ -17,12 +17,14 @@
 package tests
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -184,6 +186,18 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
 		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", expectedReceiver)
 	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", expectedReceiver)
+	t.Log("*>*>*> Container logs:\n")
+	logs, err := container.Logs(ctx)
+	require.NoError(t, err)
+	defer logs.Close()
+	reader := strings.NewReader("")
+	scanner := bufio.NewScanner(reader)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		t.Log(line)
+	}
+	t.Log("*>*>*> End of container logs\n")
 
 	return &otelContainer{Container: container}, nil
 }

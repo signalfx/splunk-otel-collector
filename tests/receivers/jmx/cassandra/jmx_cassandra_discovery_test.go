@@ -162,6 +162,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 			lrs := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
 			for j := 0; j < lrs.Len(); j++ {
 				lr := lrs.At(j)
+				t.Logf("Received log: %s", lr.Body().Str())
 				attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
 				if ok {
 					m := attrMap.Map()

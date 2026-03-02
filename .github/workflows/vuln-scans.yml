@@ -28,7 +28,8 @@ jobs:
       - name: Run trivy filesystem scan
         uses: aquasecurity/trivy-action@0.34.1
         with:
-          version: v0.57.1
+          # EOL REFERENCE: https://github.com/aquasecurity/trivy/releases
+          version: v0.69.1
           scan-type: 'fs'
           scan-ref: '.'
           skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
@@ -104,7 +105,7 @@ jobs:
       - name: Run trivy image scan
         uses: aquasecurity/trivy-action@0.34.1
         with:
-          version: v0.57.1
+          version: v0.69.1
           scan-type: 'image'
           image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           format: 'table'
@@ -164,12 +165,12 @@ jobs:
         with:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle "${{ matrix.OS }}"
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          Copy-Item .\dist\agent-bundle-${{ matrix.OS }}.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           if ("${{ matrix.OS }}" -eq "windows-2025") {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
           } else {

@@ -57,6 +57,12 @@ jobs:
           set -eo pipefail
           make test-ta-v2
 
+      - name: Test package TA v2 with splunk-appinspect
+        working-directory: packaging/ta-v2
+        run: |
+          set -eo pipefail
+          ./appinspect.sh ./out/distribution
+
       - name: Upload TA v2 artifacts
         uses: actions/upload-artifact@v6
         with:
@@ -257,21 +263,27 @@ jobs:
           $timeout = 120
           $elapsed = 0
           $otelcol_pid = $null
-          Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector process: "
+          Write-Host -NoNewline "Waiting for a single Splunk_TA_OTel_Collector process: "
+          # Sleep a bit so the introspection launch can terminate before we try to get the PID, otherwise we might get the wrong PID or two PIDs
+          Start-Sleep -Seconds 5
           while ($elapsed -lt $timeout -and $null -eq $otelcol_pid) {
               try {
-                  $otelcol_pid = (Get-Process -Name Splunk_TA_OTel_Collector -ErrorAction Stop).Id
-                  if ($null -ne $otelcol_pid) {
+                  # splunkd may briefly launch two instances: one with --scheme for introspection
+                  # and then the actual execution instance. Wait until only one remains.
+                  $procs = @(Get-Process -Name Splunk_TA_OTel_Collector -ErrorAction Stop)
+                  if ($procs.Count -eq 1) {
+                      $otelcol_pid = $procs[0].Id
                       Write-Host ""
                       Write-Host "Found Splunk_TA_OTel_Collector PID: $otelcol_pid"
-                      break
                   }
               } catch {
                   # Process not found, continue waiting
               }
-              Start-Sleep -Seconds 1
-              $elapsed += 1
-              Write-Host -NoNewline "."
+              if ($null -eq $otelcol_pid) {
+                  Start-Sleep -Seconds 1
+                  $elapsed += 1
+                  Write-Host -NoNewline "."
+              }
           }
           if ($null -eq $otelcol_pid) {
               Write-Host ""

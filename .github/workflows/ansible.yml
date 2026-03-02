@@ -69,12 +69,7 @@ jobs:
 
   msi-custom-actions:
     needs: lint
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
@@ -84,6 +79,7 @@ jobs:
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}
+      ARCH: "amd64"
 
   lint:
     name: Lint
@@ -98,7 +94,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
       - name: Install dependencies.
         run: |
@@ -134,8 +130,7 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          # Testing only the versions currently supported per https://endoflife.date/ansible
-          - ansible>=12.2.0, <13.0.0
+          # EOL REFERENCE: https://endoflife.date/ansible
           - ansible>=13.0.0, <14.0.0
         distro:
           - amazonlinux2023
@@ -163,7 +158,7 @@ jobs:
             molecule-plugins[docker]>=25.8.12
             docker>=7.1.0
             requests>=2.32.0
-            urllib3<3
+            urllib3>=2
 
       - name: Set up Python 3.
         uses: actions/setup-python@v6
@@ -199,9 +194,10 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          # Testing only the versions currently supported per https://endoflife.date/ansible
+          # EOL REFERENCE: https://endoflife.date/ansible
           - ansible>=13.0.0, <14.0.0
         distro:
+          # EOL REFERENCE: https://endoflife.date/windows-server
           - "2019"
           - "2022"
         scenario:
@@ -258,7 +254,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
           cache: 'pip'
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 

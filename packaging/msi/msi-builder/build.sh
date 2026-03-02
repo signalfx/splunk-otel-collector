@@ -23,7 +23,6 @@ PROJECT_DIR=${PROJECT_DIR:-"${REPO_DIR}"}
 
 MSI_SRC_DIR=${MSI_SRC_DIR:-"${REPO_DIR}/packaging/msi"}
 WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
-OTELCOL="${REPO_DIR}/bin/otelcol_windows_amd64.exe"
 AGENT_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
 GATEWAY_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
 SUPPORT_BUNDLE_SCRIPT=${SUPPORT_BUNDLE_SCRIPT:-"${MSI_SRC_DIR}/splunk-support-bundle.ps1"}
@@ -37,11 +36,10 @@ usage: ${BASH_SOURCE[0]} [OPTIONS] VERSION
 
 Description:
     Build the Splunk OpenTelemetry MSI from the project available at ${PROJECT_DIR}.
-    By default, the MSI is saved as '${OUTPUT_DIR}/splunk-otel-collector-VERSION-amd64.msi'.
+    By default, the MSI is saved as '${OUTPUT_DIR}/splunk-otel-collector-VERSION-${msiarch}.msi'.
 
 OPTIONS:
     --otelcol PATH                    Absolute path to the otelcol exe.
-                                      Defaults to '$OTELCOL'.
     --agent-config PATH               Absolute path to the agent config.
                                       Defaults to '$AGENT_CONFIG'.
     --gateway-config PATH             Absolute path to the gateway config.
@@ -52,6 +50,8 @@ OPTIONS:
                                       Defaults to '$JMX_METRIC_GATHERER_RELEASE'.
     --splunk-icon PATH                Absolute path to the splunk.ico.
                                       Defaults to '$SPLUNK_ICON'.
+    --os OS                           OS to build for "windows-2022", "windows-11-arm".
+                                      Defaults to '$OS'.
     --output DIR                      Directory to save the MSI.
                                       Defaults to '$OUTPUT_DIR'.
     --skip-build-dir-removal          Skip removing the build directory before building the MSI.
@@ -59,7 +59,7 @@ EOH
 }
 
 parse_args_and_build() {
-    local otelcol="$OTELCOL"
+    local otelcol=""
     local agent_config="$AGENT_CONFIG"
     local gateway_config="$GATEWAY_CONFIG"
     local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
@@ -68,9 +68,14 @@ parse_args_and_build() {
     local output="$OUTPUT_DIR"
     local version=
     local skip_build_dir_removal=
+    local os="$OS"
 
     while [ -n "${1-}" ]; do
         case $1 in
+            --os)
+                os="$2"
+                shift 1
+                ;;
             --otelcol)
                 otelcol="$2"
                 shift 1
@@ -127,9 +132,18 @@ parse_args_and_build() {
     fi
 
     set -x
+    msiarch="amd64"
+    if [[ "$os" =~ "arm" ]]; then
+        msiarch="arm64"
+    fi
+    if [[ -z "$otelcol" ]]; then
+        otelcol="${REPO_DIR}/bin/otelcol_windows_${msiarch}.exe"
+    fi
+
     build_dir="${WORK_DIR}/build"
     files_dir="${build_dir}/msi"
-    msi_name="splunk-otel-collector-${version}-amd64.msi"
+
+    msi_name="splunk-otel-collector-${version}-${msiarch}.msi"
 
     if [ -z "$skip_build_dir_removal" ] && [ -d "$build_dir" ]; then
         rm -rf "$build_dir"
@@ -143,8 +157,8 @@ parse_args_and_build() {
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
 
     if [ -z "$skip_build_dir_removal" ]; then
-        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
-        rm -f "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
+        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle-${os}.zip"
+        rm -f "${OUTPUT_DIR}/agent-bundle-${os}.zip"
     else
         echo "Skipping unzipping agent bundle"
     fi
@@ -158,8 +172,13 @@ parse_args_and_build() {
 
     cd ${WORK_DIR}
 
+    wixarch="x64"
+    if [[ "$os" =~ "arm" ]]; then
+        wixarch="arm64"
+    fi
+
     dotnet wix build "${WXS_PATH}" \
-        -arch x64 \
+        -arch "${wixarch}" \
         -out "${build_dir}/${msi_name}" \
         -bindpath "${files_dir}" \
         -d Version="${version}" \

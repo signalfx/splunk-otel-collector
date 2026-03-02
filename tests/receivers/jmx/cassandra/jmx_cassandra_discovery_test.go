@@ -118,7 +118,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 			"GOCOVERDIR":                  coverDest,
 			"SPLUNK_REALM":                "us2",
 			"SPLUNK_ACCESS_TOKEN":         "12345",
-			"SPLUNK_DISCOVERY_LOG_LEVEL":  "info",
+			"SPLUNK_DISCOVERY_LOG_LEVEL":  "debug",
 			"OTLP_ENDPOINT":               endpoint,
 			"SPLUNK_OTEL_COLLECTOR_IMAGE": "otelcol:latest",
 			"USERNAME":                    "hello",
@@ -153,11 +153,11 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	expectedReceiver := "jmx"
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		allLogs := sink.AllLogs()
+		t.Logf(">*>*>*> Received %d log batches", len(allLogs))
 		if len(allLogs) == 0 {
 			assert.Fail(tt, "No logs collected")
 			return
 		}
-		t.Logf(">*>*>*> Received %d log batches", len(allLogs))
 		for i := 0; i < len(allLogs); i++ {
 			plogs := allLogs[i]
 			lrs := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()

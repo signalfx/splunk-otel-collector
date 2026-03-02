@@ -157,12 +157,14 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 			assert.Fail(tt, "No logs collected")
 			return
 		}
+		t.Logf(">*>*>*> Received %d log batches", len(allLogs))
 		for i := 0; i < len(allLogs); i++ {
 			plogs := allLogs[i]
 			lrs := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
+			t.Logf(">*>*>*> Log batch %d has %d log records", i, lrs.Len())
 			for j := 0; j < lrs.Len(); j++ {
 				lr := lrs.At(j)
-				t.Logf("Received log: %s", lr.Body().Str())
+				t.Logf(">*>*>*> Received log: %s", lr.Body().Str())
 				attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
 				if ok {
 					m := attrMap.Map()

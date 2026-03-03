@@ -3,9 +3,6 @@ name: msi-build
 on:
   workflow_call:
     inputs:
-      OS:
-        required: true
-        type: string
       ARCH:
         required: true
         type: string
@@ -19,7 +16,7 @@ env:
 
 jobs:
   msi-build:
-    runs-on: ${{ inputs.OS }}
+    runs-on: ${{ inputs.ARCH == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
@@ -53,7 +50,7 @@ jobs:
       - name: Downloading agent-bundle-windows
         uses: actions/download-artifact@v7
         with:
-          name: agent-bundle-${{ inputs.OS }}
+          name: agent-bundle-windows_${{ inputs.ARCH }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
@@ -69,10 +66,10 @@ jobs:
           VERSION="${{ steps.get-version.outputs.version }}"
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
-          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE" "${{ inputs.OS }}"
+          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE" "${{ inputs.ARCH }}"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: msi-build-${{ inputs.OS }}
+          name: msi-build-${{ inputs.ARCH }}
           path: ./dist/*.msi

@@ -165,12 +165,12 @@ jobs:
         with:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle "${{ matrix.OS }}"
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle amd64
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle-${{ matrix.OS }}.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          Copy-Item .\dist\agent-bundle-windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           if ("${{ matrix.OS }}" -eq "windows-2025") {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
           } else {

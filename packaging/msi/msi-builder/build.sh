@@ -50,8 +50,8 @@ OPTIONS:
                                       Defaults to '$JMX_METRIC_GATHERER_RELEASE'.
     --splunk-icon PATH                Absolute path to the splunk.ico.
                                       Defaults to '$SPLUNK_ICON'.
-    --os OS                           OS to build for "windows-2022", "windows-11-arm".
-                                      Defaults to '$OS'.
+    --arch ARCH                       Target architecture to build for (e.g., "amd64", "arm64").
+                                      Defaults to '$ARCH' (which defaults to "amd64" if not specified).
     --output DIR                      Directory to save the MSI.
                                       Defaults to '$OUTPUT_DIR'.
     --skip-build-dir-removal          Skip removing the build directory before building the MSI.
@@ -68,12 +68,12 @@ parse_args_and_build() {
     local output="$OUTPUT_DIR"
     local version=
     local skip_build_dir_removal=
-    local os="$OS"
+    local arch="${ARCH:-amd64}"
 
     while [ -n "${1-}" ]; do
         case $1 in
-            --os)
-                os="$2"
+            --arch|-arch)
+                arch="$2"
                 shift 1
                 ;;
             --otelcol)
@@ -132,10 +132,15 @@ parse_args_and_build() {
     fi
 
     set -x
-    msiarch="amd64"
-    if [[ "$os" =~ "arm" ]]; then
-        msiarch="arm64"
-    fi
+    case "$arch" in
+        amd64|arm64)
+            ;;
+        *)
+            echo "Invalid architecture '$arch'. Expected one of: amd64, arm64." >&2
+            exit 1
+            ;;
+    esac
+    msiarch="$arch"
     if [[ -z "$otelcol" ]]; then
         otelcol="${REPO_DIR}/bin/otelcol_windows_${msiarch}.exe"
     fi
@@ -157,8 +162,8 @@ parse_args_and_build() {
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
 
     if [ -z "$skip_build_dir_removal" ]; then
-        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle-${os}.zip"
-        rm -f "${OUTPUT_DIR}/agent-bundle-${os}.zip"
+        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle-windows_${arch}.zip"
+        rm -f "${OUTPUT_DIR}/agent-bundle-windows_${arch}.zip"
     else
         echo "Skipping unzipping agent bundle"
     fi
@@ -173,7 +178,7 @@ parse_args_and_build() {
     cd ${WORK_DIR}
 
     wixarch="x64"
-    if [[ "$os" =~ "arm" ]]; then
+    if [[ "$arch" == "arm64" ]]; then
         wixarch="arm64"
     fi
 

@@ -1544,7 +1544,7 @@ release-nupkg:
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1
-      $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*.msi | Split-Path -leaf
+      $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*-amd64.msi | Split-Path -leaf
       if ($msi_file_name -match '(\d+\.\d+\.\d+)(\.\d+)?') {
         $version = $matches[0]
       } else {
@@ -1555,7 +1555,7 @@ release-nupkg:
   artifacts:
     paths:
       - .\dist\signed\*.nupkg
-      - .\dist\signed\*.msi
+      - .\dist\signed\*amd64.msi
 
 choco-release:
   extends: .trigger-filter
@@ -1576,10 +1576,10 @@ choco-release:
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1
-      if (-not (Test-Path .\dist\signed\splunk-otel-collector*.msi)) {
+      if (-not (Test-Path .\dist\signed\splunk-otel-collector*-amd64.msi)) {
         throw "MSI artifact not found in dist/signed/"
       }
-      $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*.msi | Split-Path -leaf
+      $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*-amd64.msi | Split-Path -leaf
       if ($msi_file_name -match '(\d+\.\d+\.\d+(\.\d+)?)') {
         $version = $matches[0]
       } else {

@@ -8,6 +8,9 @@ assets/configs/
 # Ignore custom local inputs for testing
 assets/local/
 
+# Ignore metadata files created by Splunk when running the TA locally
+assets/metadata/local.meta
+
 # Ignore the directory with the compressed package to be distributed
 out/
 

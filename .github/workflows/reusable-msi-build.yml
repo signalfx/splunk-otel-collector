@@ -42,19 +42,19 @@ jobs:
         run: dotnet tool restore
 
       - name: Downloading binaries-windows_${{ inputs.ARCH }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: binaries-windows_${{ inputs.ARCH }}
           path: ./bin
 
       - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: agent-bundle-windows_${{ inputs.ARCH }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: msi-custom-actions
           path: ./packaging/msi/SplunkCustomActions/bin/Release

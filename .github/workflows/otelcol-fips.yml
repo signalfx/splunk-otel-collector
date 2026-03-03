@@ -67,7 +67,7 @@ jobs:
         FIPSMODE: [ "1", "0" ]
       fail-fast: false
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: otelcol-fips-windows-amd64
           path: ./bin
@@ -99,7 +99,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: otelcol-fips-linux-${{ matrix.ARCH }}
           path: ./bin
@@ -148,7 +148,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/win-wait-for-docker
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: otelcol-fips-windows-amd64
           path: ./cmd/otelcol/fips/dist

@@ -156,7 +156,7 @@ param (
 
 New-Variable -Name UninstallWildcardRegPath  -Option Constant -Value "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
 New-Variable -Name CollectorServiceDisplayName -Option Constant -Value "Splunk OpenTelemetry Collector"
-$arch = "amd64"
+$arch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "amd64" }
 $format = "msi"
 $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.signalfx.com"

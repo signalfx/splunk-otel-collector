@@ -38,10 +38,10 @@ jobs:
   agent-bundle-windows:
     strategy:
       matrix:
-        OS: [ {"runner": "windows-2022", "arch": "amd64"}, {"runner": "windows-2025", "arch": "amd64"}, {"runner": "windows-11-arm", "arch": "arm64"} ]
+        ARCH: [ "amd64", "arm64" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS.runner }}
+      ARCH: ${{ matrix.ARCH }}
 
   msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
@@ -49,12 +49,11 @@ jobs:
   msi-build:
     strategy:
       matrix:
-        OS: [ {"runner": "windows-2022", "arch": "amd64"}, {"runner": "windows-2025", "arch": "amd64"}, {"runner": "windows-11-arm", "arch": "arm64"} ]
+        ARCH: [ "amd64", "arm64" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS.runner }}
-      ARCH: ${{ matrix.OS.arch }}
+      ARCH: ${{ matrix.ARCH }}
 
   dotnet-zeroconfig-e2e-test:
     runs-on: windows-2022 # windows-2022 comes preloaded with the Docker image used in the test
@@ -77,7 +76,7 @@ jobs:
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-windows-2025
+          name: msi-build-amd64
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
       - uses: ./.github/actions/win-wait-for-docker
@@ -108,8 +107,8 @@ jobs:
   msi-test:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-11-arm" ]
-    runs-on: ${{ matrix.OS != 'windows-11-arm' && 'otel-windows' || 'otel-windows-arm' }}
+        runner: [ "otel-windows", "otel-windows-arm" ]
+    runs-on: ${{ matrix.runner }}
     needs: [msi-build]
     timeout-minutes: 40
     steps:
@@ -119,7 +118,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.runner == 'otel-windows-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Set the MSI_COLLECTOR_PATH environment variable
@@ -149,7 +148,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.OS == 'windows-11-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Ensure required ports in the dynamic range are available
@@ -171,8 +170,13 @@ jobs:
           Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          if ("${{ matrix.OS }}" -ne "windows-11-arm") {
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          } else {
+            # The arm64 bundle does not include the python binaries since they are not used in the arm64 tests, so just check that the expected directory structure is created and the expected files are included
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\README.txt"
+          }
           # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
           $found_jmx = $false
           (Get-PSDrive -PSProvider FileSystem).Root | ForEach-Object {
@@ -197,7 +201,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
       - name: Ensure required ports in the dynamic range are available
         run: |
@@ -233,7 +237,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
 
       - name: Build Chocolatey
@@ -374,7 +378,7 @@ jobs:
 
       - uses: actions/download-artifact@v7
         with:
-          name: agent-bundle-${{ matrix.OS }}
+          name: agent-bundle-windows_amd64
           path: ./dist
 
       - uses: ./.github/actions/win-wait-for-docker
@@ -383,7 +387,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle-${{ matrix.OS }}.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          Copy-Item .\dist\agent-bundle-windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip

@@ -93,7 +93,7 @@ fi
 
 if ! test -f "$REPO_DIR/dist/agent-bundle-windows_$ARCH.zip"; then
     ls -la "$REPO_DIR/dist/"
-    echo "$REPO_DIR/dist/agent-bundle-windows_$ARCH.zip not found! Either download a pre-built bundle to $REPO_DIR/dist/, or run '$REPO_DIR/packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to $REPO_DIR/dist/."
+    echo "$REPO_DIR/dist/agent-bundle-windows_$ARCH.zip not found! Either download a pre-built bundle to $REPO_DIR/dist/, or run '$REPO_DIR/packaging/bundle/scripts/windows/make.ps1 bundle $ARCH' (e.g., amd64 or arm64) on a Windows host and copy it to $REPO_DIR/dist/."
     exit 1
 fi
 

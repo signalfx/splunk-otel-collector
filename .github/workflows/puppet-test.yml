@@ -231,7 +231,7 @@ jobs:
   puppet-build-windows-agent-bundle:
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: windows-2022
+      ARCH: amd64
 
   puppet-build-windows-msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
@@ -244,7 +244,6 @@ jobs:
       - puppet-build-windows-agent-bundle
       - puppet-build-windows-msi-custom-actions
     with:
-      OS: windows-2022
       ARCH: amd64
 
   puppet-test-windows:
@@ -268,7 +267,7 @@ jobs:
       - name: Download MSI package artifacts
         uses: actions/download-artifact@v7
         with:
-          name: msi-build-windows-2022
+          name: msi-build-amd64
           path: ./dist
 
       - name: Setup python

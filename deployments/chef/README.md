@@ -21,7 +21,7 @@ Currently, the following Linux distributions and versions are supported:
 - Oracle: 8, 9
 - Debian: 9, 10, 11
 - SUSE: 15
-- Ubuntu: 18.04, 20.04, 22.04
+- Ubuntu: 22.04, 24.04
 
 ## Windows
 

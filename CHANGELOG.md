@@ -122,7 +122,6 @@ and the [opentelemetry-collector-contrib v0.147.0](https://github.com/open-telem
   The first poll cycle already performs the same glob walk, so the duplicate call has been
   removed.
   The warning "no files match the configured criteria" is no longer logged. It is still logged at debug level on the first (and each subsequent) poll.
-- (Contrib) `pkg/translator/pprof`: fix attribute bug ([#46336](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46336))
 - (Contrib) `pkg/translator/prometheusremotewrite`: Fixes an issue where zero_threshold was reset to the default value for exponential histograms. ([#46108](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46108))
 - (Contrib) `processor/cumulativetodelta`: Fix memory blowup in exponential histogram delta conversion ([#45927](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45927))
 - (Contrib) `processor/resourcedetection`: IRSA and Pod Identity tokens are checked to determine if running within an EKS cluster ([#45866](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45866))

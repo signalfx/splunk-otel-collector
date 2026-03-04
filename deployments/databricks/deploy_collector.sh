@@ -122,12 +122,14 @@ receivers:
     endpoint: https://$DATABRICKS_CLUSTER_HOSTNAME/driver-proxy-api/o/0/$DB_CLUSTER_ID/40001
     auth:
       authenticator: bearertokenauth
-  # TODO: Identify any additional scrapers that are necessary and useful
+  # TODO: Identify any additional scrapers that are necessary and useful. March 4 2026 adding the following metrics collection requests.
   hostmetrics:
     scrapers:
       cpu:
       memory:
       network:
+      filesystem:
+      disk:
 
 processors:
   batch:

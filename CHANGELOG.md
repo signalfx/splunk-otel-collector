@@ -56,7 +56,6 @@ and the [opentelemetry-collector-contrib v0.147.0](https://github.com/open-telem
   Files are watched for changes using fsnotify, allowing credential rotation without restarting the collector.
 - (Contrib) `pkg/ottl`: Add Base64Encode function to OTTL ([#46071](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46071))
 - (Contrib) `pkg/ottl`: Added metadata access path to all OTTL contexts for accessing client request metadata ([#33288](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33288))
-- (Contrib) `pkg/translator/pprof`: Ensure correct handling of default sample/profile in conversion. ([#45976](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45976))
 - (Contrib) `processor/k8s_attributes`: ReplicaSet handling now supports PartialObjectMetadata, reducing cold-start memory/time compared to typed informers. ([#44407](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44407))
   In in-process cold-start benchmarks (no API server), PartialObjectMetadata reduced memory by ~57–59%, exact impact depends on cluster size and selectors.
 - (Contrib) `processor/redaction`: Add HMAC hash functions (`hmac-sha256` and `hmac-sha512`) for GDPR-compliant pseudonymization of sensitive data like IP addresses ([#45715](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45715))

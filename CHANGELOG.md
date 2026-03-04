@@ -51,7 +51,6 @@ and the [opentelemetry-collector-contrib v0.147.0](https://github.com/open-telem
   is automatically configured when using `exporterhelper.WithQueue()`.
 - (Contrib) `exporter/loadbalancing`: Support metrics routing by attributes in the loadbalancing exporter ([#45675](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45675))
 - (Contrib) `exporter/prometheusremotewrite`: Add support for exporting InstrumentationScope attributes as Prometheus labels. This behavior can be disabled via the `disable_scope_info` configuration option. ([#45266](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45266))
-- (Contrib) `exporter/signalfx`: Preserve 'k8s.service.' property names on the 'k8s.service.uid' dimension instead of converting them to 'kubernetes_service_' prefix. ([#46291](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46291))
 - (Contrib) `extension/basicauth`: Add `username_file` and `password_file` options to client_auth config, enabling file-based credentials with live rotation via file watching. ([#46227](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46227))
   When set, file-based credentials take precedence over inline values.
   Files are watched for changes using fsnotify, allowing credential rotation without restarting the collector.

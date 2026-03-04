@@ -17,14 +17,12 @@
 package tests
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -120,7 +118,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 			"GOCOVERDIR":                  coverDest,
 			"SPLUNK_REALM":                "us2",
 			"SPLUNK_ACCESS_TOKEN":         "12345",
-			"SPLUNK_DISCOVERY_LOG_LEVEL":  "debug",
+			"SPLUNK_DISCOVERY_LOG_LEVEL":  "info",
 			"OTLP_ENDPOINT":               endpoint,
 			"SPLUNK_OTEL_COLLECTOR_IMAGE": "otelcol:latest",
 			"USERNAME":                    "hello",
@@ -155,7 +153,6 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	expectedReceiver := "jmx"
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		allLogs := sink.AllLogs()
-		t.Logf(">*>*>*> Received %d log batches", len(allLogs))
 		if len(allLogs) == 0 {
 			assert.Fail(tt, "No logs collected")
 			return
@@ -163,10 +160,8 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 		for i := 0; i < len(allLogs); i++ {
 			plogs := allLogs[i]
 			lrs := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
-			t.Logf(">*>*>*> Log batch %d has %d log records", i, lrs.Len())
 			for j := 0; j < lrs.Len(); j++ {
 				lr := lrs.At(j)
-				t.Logf(">*>*>*> Received log: %s", lr.Body().Str())
 				attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
 				if ok {
 					m := attrMap.Map()
@@ -186,18 +181,6 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
 		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", expectedReceiver)
 	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", expectedReceiver)
-	t.Log("*>*>*> Container logs:\n")
-	logs, err := container.Logs(ctx)
-	require.NoError(t, err)
-	defer logs.Close()
-	reader := strings.NewReader("")
-	scanner := bufio.NewScanner(reader)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		t.Log(line)
-	}
-	t.Log("*>*>*> End of container logs\n")
 
 	return &otelContainer{Container: container}, nil
 }

@@ -92,9 +92,6 @@ and the [opentelemetry-collector-contrib v0.147.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
-- (Core) `extension/memory_limiter`: Use ChainUnaryInterceptor instead of UnaryInterceptor to allow multiple interceptors. ([#14634](https://github.com/open-telemetry/opentelemetry-collector/pull/14634))
-  If multiple extensions that use the UnaryInterceptor are set the binary panics at start time.
-- (Core) `extension/memory_limiter`: Add support for streaming services. ([#14634](https://github.com/open-telemetry/opentelemetry-collector/pull/14634))
 - (Core) `pkg/confmap`: Fix another issue where configs could fail to decode when using interpolated values in string fields. ([#14034](https://github.com/open-telemetry/opentelemetry-collector/issues/14034))
   For example, a resource attribute can be set via an environment variable to a string that is parseable as a number, e.g. `1234`.
   (A similar bug was fixed in a previous release: that one was triggered when the field was nested in a struct,

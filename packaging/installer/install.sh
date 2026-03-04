@@ -141,38 +141,56 @@ verify_access_token() {
   local access_token="$1"
   local ingest_url="$2"
   local insecure="$3"
+  local http_code
 
   if command -v curl > /dev/null; then
-    api_output=$(curl \
+    http_code=$(curl \
       -d '[]' \
       -H "X-Sf-Token: $access_token" \
       -H "Content-Type:application/json" \
       -X POST \
+      -w "%{http_code}" \
+      -o /dev/null \
+      -s \
       $([ "$insecure" = "true" ] && echo -n "--insecure") \
-      "$ingest_url"/v2/event 2>/dev/null)
+      "$ingest_url"/v2/event)
+    if [ $? -ne 0 ]; then
+      echo "Failed to verify access token: curl request failed" >&2
+      return 1
+    fi
   elif command -v wget > /dev/null; then
-    api_output=$(wget \
+    # --server-response prints HTTP headers to stderr
+    local wget_output
+    wget_output=$(wget \
       --header="Content-Type: application/json" \
       --header="X-Sf-Token: $access_token" \
       --post-data='[]' \
       $([ "$insecure" = "true" ] && echo -n "--no-check-certificate") \
-      -O - \
-      -o /dev/null \
-      "$ingest_url"/v2/event)
-    if [ $? -eq 5 ]; then
+      --server-response \
+      -O /dev/null \
+      "$ingest_url"/v2/event 2>&1)
+    local wget_exit=$?
+    if [ $wget_exit -eq 5 ]; then
       echo "TLS cert for Splunk ingest could not be verified, does your system have TLS certs installed?" >&2
-      exit 1
+      return 1
+    fi
+    # Extract HTTP status code from response headers (format: "  HTTP/1.1 200 OK")
+    http_code=$(echo "$wget_output" | grep -i "^[[:space:]]*HTTP/" | tail -1 | awk '{print $2}')
+    if [ -z "$http_code" ]; then
+      echo "Failed to verify access token: wget request failed" >&2
+      return 1
     fi
   else
     echo "Either curl or wget is required to verify the access token" >&2
-    exit 1
+    return 1
   fi
 
-  if [ "$api_output" = "\"OK\"" ]; then
-    true
+  # Check if status code is 200
+  if [ "$http_code" -eq 200 ]; then
+    return 0
   else
-    echo "$api_output"
-    false
+    echo "Access token verification failed with HTTP status code: $http_code" >&2
+    return 1
   fi
 }
 
@@ -1405,6 +1423,7 @@ parse_args_and_install() {
 
   if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
+    echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1
   fi
 

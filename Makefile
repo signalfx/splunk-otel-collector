@@ -24,8 +24,9 @@ BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/int
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
-BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
-BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
+BUILD_JMX_GATHERER_HASH=-X github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver.MetricsGathererHash=ff04b1b0109d4b4fd1a21191424807ea16a447aad4b9a203476a01512bfc7c79
+BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_JMX_GATHERER_HASH}"
+BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION) ${BUILD_JMX_GATHERER_HASH}"
 CGO_ENABLED?=0
 
 # This directory is used in tests hold code coverage results.

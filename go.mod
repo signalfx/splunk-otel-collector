@@ -25,7 +25,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.147.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.147.0

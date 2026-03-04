@@ -44,7 +44,7 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.4.1
 	github.com/signalfx/ingest-protocols v0.4.1
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/snowflakedb/gosnowflake v1.19.0
 	github.com/stretchr/testify v1.11.1
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f

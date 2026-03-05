@@ -1,1 +1,0 @@
-Re-implements [linux autoinstrumentation](https://docs.splunk.com/observability/en/gdi/opentelemetry/automatic-discovery/linux/linux-backend.html#linux-backend-auto-discovery) installation from the splunk otel [installer script](https://dl.signalfx.com/splunk-otel-collector.sh)

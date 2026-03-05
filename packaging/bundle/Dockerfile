@@ -13,6 +13,8 @@
 # limitations under the License.
 
 ARG ARCH=amd64
+ARG JDK_VERSION=11.0.30_7
+ARG MAVEN_VERSION=3.6.0
 ARG PYTHON_VERSION=3.13.12
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
@@ -29,6 +31,55 @@ ARG ARCH
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
+
+
+######## Java monitor dependencies and monitor jar compilation ########
+FROM base AS java
+
+ARG JDK_VERSION
+ARG MAVEN_VERSION
+
+RUN apt-get update && apt-get install -qq -y wget
+
+ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
+
+RUN ENCODED_VER=$(echo $JDK_VERSION | sed 's/_/%2B/g') && \
+    if [ "$ARCH" = "amd64" ]; then \
+    OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_x64_linux_hotspot_${JDK_VERSION}.tar.gz"; \
+    elif [ "$ARCH" = "arm64" ]; then \
+    OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_aarch64_linux_hotspot_${JDK_VERSION}.tar.gz"; \
+    else \
+    OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_${ARCH}_linux_hotspot_${JDK_VERSION}.tar.gz"; \
+    fi && \
+    wget -nv -O /tmp/openjdk.tar.gz "$OPENJDK_URL"
+
+RUN mkdir -p /opt/root && \
+    tar -C /opt/root -xzf /tmp/openjdk.tar.gz && \
+    mv /opt/root/jdk* /opt/root/jdk && \
+    rm -f /tmp/openjdk.tar.gz
+
+ENV JAVA_HOME=/opt/root/jdk
+
+RUN mkdir -p /opt/root/jre && \
+    rm -f ${JAVA_HOME}/lib/src.zip && \
+    cp -rL ${JAVA_HOME}/bin /opt/root/jre/ && \
+    cp -rL ${JAVA_HOME}/lib /opt/root/jre/ && \
+    cp -rL ${JAVA_HOME}/conf /opt/root/jre/
+
+ENV MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
+
+RUN wget -nv -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+    tar -C /tmp -xzf /tmp/maven.tar.gz && \
+    rm -f /tmp/maven.tar.gz
+
+ENV PATH=$PATH:/tmp/apache-maven-${MAVEN_VERSION}/bin
+
+COPY java/ /usr/src/agent-java/
+
+RUN cd /usr/src/agent-java/jmx &&\
+    mvn -V -q clean package
+
+RUN rm -rf /tmp/apache-maven*
 
 
 ######## Python bundle builder image ########
@@ -153,11 +204,18 @@ RUN cd /tmp &&\
 RUN echo "#!/bin/bash" > /usr/src/collectd/version-gen.sh &&\
     echo "printf \${COLLECTD_VERSION//-/.}" >> /usr/src/collectd/version-gen.sh
 
+COPY --from=java /opt/root/jdk/ /opt/root/jdk/
+
 WORKDIR /usr/src/collectd
 
 ARG extra_cflags="-O2"
 ENV CFLAGS="-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
 ENV CXXFLAGS=$CFLAGS
+ENV JAVA_HOME=/opt/root/jdk
+
+# In the bundle, the java plugin so will live in /lib/collectd and the JVM
+# exists at /jre
+ENV JAVA_LDFLAGS="-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
 
 # xencpu plugin is not supported on ppc64le
 RUN autoreconf -vif &&\
@@ -201,6 +259,7 @@ RUN autoreconf -vif &&\
         --without-libstatgrab \
         --disable-silent-rules \
         --disable-static \
+        --with-java=${JAVA_HOME} \
         LIBPYTHON_LDFLAGS="$(python3.13-config --ldflags) -lpython3.13" \
         LIBPYTHON_CPPFLAGS="$(python3.13-config --includes)/cpython" \
         LIBPYTHON_LIBS="$(python3.13-config --libs) -lpython3.13"
@@ -315,6 +374,8 @@ COPY --from=collectd /usr/sbin/collectd /opt/root/bin/collectd
 COPY --from=collectd /opt/deps/ /opt/root/lib/
 COPY --from=collectd /usr/lib/collectd/*.so /opt/root/lib/collectd/
 
+COPY --from=java /opt/root/jre/ /opt/root/jre/
+
 COPY scripts/patch-rpath /usr/bin/
 RUN patch-rpath /opt/root
 
@@ -336,11 +397,16 @@ COPY --from=collectd /usr/local/bin/patchelf /bin/
 # natively.
 COPY --from=extra-packages /lib/*-linux-gnu/ld-* /bin/ld-linux.so
 
+# Java dependencies
+COPY --from=extra-packages /opt/root/jre/ /jre
+COPY --from=java /usr/src/agent-java/jmx/target/agent-jmx-monitor-1.0-SNAPSHOT.jar /lib/jmx-monitor.jar
+
 COPY --from=extra-packages /opt/root/lib/ /lib/
 COPY --from=extra-packages /opt/root/bin/ /bin/
 
 # Some extra non-binary collectd resources
 COPY --from=collectd /usr/share/collectd/types.db /types.db
+COPY --from=collectd /usr/share/collectd/java/ /collectd-java/
 COPY signalfx_types.db /signalfx_types.db
 
 # Pull in Python collectd plugin scripts

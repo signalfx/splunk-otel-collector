@@ -2,6 +2,8 @@ monitors:
  - monitorType: jmx
    sendAll: true
    doc: |
+     **This monitor is deprecated and will be removed on or after April 2026. Please use the [JMX receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead.**
+
      This montior allows you to run an arbitrary Groovy script to convert JMX
      MBeans fetched from a remote Java application to SignalFx datapoints.
 

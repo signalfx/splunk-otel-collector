@@ -168,7 +168,6 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp_http",
 		"prometheusremotewrite",
 		"pulsar",
-		"sapm",
 		"signalfx",
 		"splunk_hec",
 	}

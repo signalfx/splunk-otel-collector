@@ -3,8 +3,6 @@ version: 3
 targets:
   only:
     - type: gomod
-    - type: maven
-      path: packaging/bundle/java/jmx
     - type: setuptools
       path: packaging/bundle/python
     - type: setuptools

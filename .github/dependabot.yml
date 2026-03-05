@@ -43,8 +43,3 @@ updates:
       - "/tests/zeroconfig/windows/**/*"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "maven"
-    directories:
-      - "/packaging/bundle/java/jmx"
-    schedule:
-      interval: "weekly"

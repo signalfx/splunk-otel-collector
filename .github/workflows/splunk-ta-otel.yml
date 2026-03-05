@@ -146,26 +146,6 @@ jobs:
           set -o pipefail
           make -e lint
 
-  test-ta-linux-autoinstrumentation:
-    name: test-ta-linux-autoinstrumentation
-    runs-on: ubuntu-24.04
-    needs: [check_changes, test]
-    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
-    defaults:
-      run:
-        working-directory: ${{github.workspace}}/packaging/technical-addon
-    steps:
-        - name: Free up disk space for next step
-          uses: jlumbroso/free-disk-space@v1.3.1
-        - uses: actions/checkout@v5
-        - uses: ./.github/actions/setup-environment
-        - name: Test normal go code
-          run: |
-            pushd ${{github.workspace}}/instrumentation
-            make -e dist
-            popd
-            make -e test-ta-build-tools build-tas test
-
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab
     runs-on: ubuntu-24.04

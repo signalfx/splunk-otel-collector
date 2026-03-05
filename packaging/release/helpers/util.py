@@ -308,7 +308,7 @@ def release_msi_to_s3(asset, args):
     if not args.not_latest:
         with tempfile.TemporaryDirectory() as tmpdir:
             latest_txt = os.path.join(tmpdir, "latest.txt")
-            match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-amd64.msi$", asset.name)
+            match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-(amd64|arm64)\.msi$", asset.name)
             assert match, f"Failed to get version from '{asset.name}'!"
             msi_version = match.group(1)
             with open(latest_txt, "w") as fd:

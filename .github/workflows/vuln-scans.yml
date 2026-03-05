@@ -170,7 +170,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle-windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           if ("${{ matrix.OS }}" -eq "windows-2025") {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
           } else {

@@ -93,4 +93,4 @@ PS> git clone https://github.com/signalfx/splunk-otel-collector
 PS> cd splunk-otel-collector
 PS> ./packaging/bundle/scripts/windows/make.ps1 bundle amd64
 ```
-The bundle will be saved to `dist/agent-bundle-windows_amd64.zip`.
+The bundle will be saved to `dist/agent-bundle_windows_amd64.zip`.

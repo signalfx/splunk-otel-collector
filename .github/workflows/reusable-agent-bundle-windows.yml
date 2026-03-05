@@ -26,4 +26,4 @@ jobs:
       - uses: actions/upload-artifact@v6
         with:
           name: agent-bundle-windows_${{ inputs.ARCH }}
-          path: ./dist/agent-bundle-windows_${{ inputs.ARCH }}.zip
+          path: ./dist/agent-bundle_windows_${{ inputs.ARCH }}.zip

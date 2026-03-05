@@ -25,7 +25,7 @@ param(
 )
 
 Set-PSDebug -Trace 1
-$BUNDLE_NAME = "agent-bundle-windows_$Arch.zip"
+$BUNDLE_NAME = "agent-bundle_windows_$Arch.zip"
 $BUNDLE_DIR = "agent-bundle"
 $COLLECTD_VERSION = "5.8.0-sfx0"
 $COLLECTD_COMMIT = "4d3327b14cf4359029613baf4f90c4952702105e"

@@ -9,8 +9,8 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: focal64
-    box: ubuntu/focal64
+  - name: jammy64
+    box: ubuntu/jammy64
   - name: centos9
     box: centos/stream9
   - name: bookworm64

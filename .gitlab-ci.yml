@@ -523,7 +523,7 @@ agent-bundle-windows:
     - ./packaging/bundle/scripts/windows/make.ps1 bundle $ARCH
   artifacts:
     paths:
-      - dist/agent-bundle-windows_$ARCH.zip
+      - dist/agent-bundle_windows_$ARCH.zip
 
 .collector-ta-trigger:
   rules:

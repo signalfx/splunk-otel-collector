@@ -36,7 +36,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
       - run: make binaries-linux_${{ matrix.ARCH }} COVER_TESTING=true
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: |
@@ -107,15 +107,15 @@ jobs:
             docker save -o "./docker-otelcol/${arch}/image.tar" otelcol:latest
             docker rmi -f "localhost:5000/otelcol@${digest}" otelcol:latest
           done
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: docker-otelcol-amd64
           path: ./docker-otelcol/amd64
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: docker-otelcol-arm64
           path: ./docker-otelcol/arm64
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: docker-otelcol-ppc64le
           path: ./docker-otelcol/ppc64le
@@ -234,7 +234,7 @@ jobs:
           TELEGRAF_EXEC_IMAGE: ${{ matrix.PROFILE == 'smartagent' && 'telegraf-exec-test:latest' || '' }}
       # The Integration Test output is extremely large so we upload it as an artifact
       - name: Upload Integration Test Output as Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ${{ env.TEST_OUTPUT }}
@@ -316,7 +316,7 @@ jobs:
           SPLUNK_OTEL_COLLECTOR_IMAGE: ""
       # The Integration Test output is extremely large so we upload it as an artifact
       - name: Upload Integration Test Output as Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ${{ env.TEST_OUTPUT }}

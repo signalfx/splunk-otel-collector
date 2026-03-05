@@ -88,7 +88,7 @@ jobs:
           PLATFORM=all make -e generate-technical-addon copy-local-build-to-ta package-ta
 
       - name: Upload TA with current Collector
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
@@ -186,7 +186,7 @@ jobs:
           PLATFORM="all" make -e distribute-ta
 
       - name: Upload Collector TA
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz

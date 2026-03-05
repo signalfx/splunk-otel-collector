@@ -1105,6 +1105,7 @@ build-push-linux-fips-image:
     paths:
       - tags_to_sign_*
 
+
 sign-linux-image-fips:
   extends: .sign-docker
   stage: release

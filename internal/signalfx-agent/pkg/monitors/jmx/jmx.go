@@ -62,6 +62,7 @@ type Monitor struct {
 }
 
 func (m *Monitor) Configure(conf *Config) error {
+	m.Logger().Warn("[NOTICE] The smartagent/jmx monitor is deprecated and will be removed on or after April 2026. Please use the JMX receiver instead.")
 	serviceURL := conf.ServiceURL
 	if serviceURL == "" {
 		serviceURL = fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", conf.Host, conf.Port)

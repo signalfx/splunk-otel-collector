@@ -46,6 +46,11 @@ platforms:
       image: dokken/debian-12
       pid_one_command: /bin/systemd
 
+  - name: debian-13
+    driver:
+      image: dokken/debian-13
+      pid_one_command: /bin/systemd
+
   - name: opensuse-15
     driver:
       image: dokken/opensuse-leap-15

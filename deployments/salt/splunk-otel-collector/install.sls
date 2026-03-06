@@ -28,7 +28,6 @@ Add Splunk OpenTelemetry Collector repo to apt source list:
     - name: deb {{ splunk_repo_base_url }}/otel-collector-deb {{ package_stage }} main
     - file: /etc/apt/sources.list.d/splunk-otel-collector.list
     - key_url: {{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg
-    - aptkey: False
     - refresh: True
     - gpgcheck: 1
     - enabled: 1

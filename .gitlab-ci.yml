@@ -161,6 +161,7 @@ fossa:
         - $SIGNING_PRD_URL
   script:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - docker login -u splunk -p $DOCKER_HUB_TOKEN
     - echo "listing images to be signed"
     - cat tags_to_sign
     - cat tags_to_sign | xargs -L1 artifact-ci sign docker
@@ -1005,20 +1006,24 @@ build-push-linux-image:
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
+  parallel:
+    matrix:
+      - BASE_TAG: [ "quay.io/signalfx/splunk-otel-collector", "splunk/otel-collector" ]
   script:
     - *docker-reader-role
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - - docker login -u splunk -p $DOCKER_HUB_TOKEN
     - |
       # Set env vars
       set -e
       if [[ -n "${RELEASE_VERSION:-}" ]]; then
-        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
+        IMAGE_NAME="${BASE_IMAGE}"
         IMAGE_TAG=${RELEASE_VERSION#v}
       elif [[ -n "${CI_COMMIT_TAG:-}" ]]; then
-        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
+        IMAGE_NAME="${BASE_IMAGE}"
         IMAGE_TAG=${CI_COMMIT_TAG#v}
       else
-        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-dev"
+        IMAGE_NAME="${BASE_IMAGE}-dev"
         IMAGE_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""
@@ -1043,7 +1048,7 @@ build-push-linux-image:
           echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
           docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
         fi
-        echo "${IMAGE_NAME}:${arch_tag}" > tags_to_sign_${arch}
+        echo "${IMAGE_NAME}:${arch_tag}" >> tags_to_sign_${arch}
       done
   artifacts:
     paths:
@@ -1061,15 +1066,16 @@ build-push-linux-fips-image:
   script:
     - *docker-reader-role
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - - docker login -u splunk -p $DOCKER_HUB_TOKEN
     - |
       # Set env vars
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG}" ]]; then
-        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips"
+        IMAGE_NAME="${BASE_IMAGE}-fips"
         IMAGE_TAG=${VERSION_TAG#v}
       else
-        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips-dev"
+        IMAGE_NAME="${BASE_IMAGE}-fips-dev"
         IMAGE_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""
@@ -1093,11 +1099,12 @@ build-push-linux-fips-image:
           echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
           docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
         fi
-        echo "${IMAGE_NAME}:${arch_tag}" > tags_to_sign_${arch}
+        echo "${IMAGE_NAME}:${arch_tag}" >> tags_to_sign_${arch}
       done
   artifacts:
     paths:
       - tags_to_sign_*
+
 
 sign-linux-image-fips:
   extends: .sign-docker
@@ -1127,6 +1134,7 @@ build-push-windows-image:
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
+        BASE_TAG: ["quay.io/signalfx/splunk-otel-collector", "splunk/otel-collector"]
   dependencies:
     - sign-exe
     - agent-bundle-windows
@@ -1158,18 +1166,18 @@ build-push-windows-image:
     - |
       # Set env vars
       if ($env:RELEASE_VERSION) {
-        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector"
-        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
+        $IMAGE_NAME = "${BASE_TAG}"
+        $OLD_IMAGE_NAME = "${BASE_TAG}-windows"
         $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } elseif ($env:CI_COMMIT_TAG) {
-        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector"
-        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
+        $IMAGE_NAME = "${BASE_TAG}"
+        $OLD_IMAGE_NAME = "${BASE_TAG}-windows"
         $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } else {
-        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-dev"
-        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
+        $IMAGE_NAME = "${BASE_TAG}-dev"
+        $OLD_IMAGE_NAME = "${BASE_TAG}-windows-dev"
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
       }
       $LATEST_TAG = ""
@@ -1264,6 +1272,7 @@ build-push-windows-fips-image:
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
+        BASE_TAG: [ "quay.io/signalfx/splunk-otel-collector", "splunk/otel-collector" ]
   dependencies:
     - sign-exe
   tags:
@@ -1294,18 +1303,18 @@ build-push-windows-fips-image:
     - |
       # Set env vars
       if ($env:RELEASE_VERSION) {
-        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips"
-        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips-windows"
+        $IMAGE_NAME = "${BASE_TAG}-fips"
+        $OLD_IMAGE_NAME = "${BASE_TAG}-fips-windows"
         $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } elseif ($env:CI_COMMIT_TAG) {
-        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips"
-        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips-windows"
+        $IMAGE_NAME = "${BASE_TAG}-fips"
+        $OLD_IMAGE_NAME = "${BASE_TAG}-fips-windows"
         $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } else {
-        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips-dev"
-        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips-windows-dev"
+        $IMAGE_NAME = "${BASE_TAG}-fips-dev"
+        $OLD_IMAGE_NAME = "${BASE_TAG}-fips-windows-dev"
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
       }
       $LATEST_TAG = ""
@@ -1608,6 +1617,7 @@ push-multiarch-manifest:
     matrix:
       - MANIFEST: [multiarch, windows_multiarch]
         FIPS: ["-fips",""]
+        BASE_TAG: [ "quay.io/signalfx/splunk-otel-collector", "splunk/otel-collector" ]
   needs:
     - sign-linux-image
     - sign-windows-image
@@ -1617,16 +1627,17 @@ push-multiarch-manifest:
       aud: $CICD_VAULT_ADDR
   script:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - docker login -u splunk -p $DOCKER_HUB_TOKEN
     - |
       # Set env vars
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG}" ]]; then
-        MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}"
-        WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows"
+        MANIFEST_NAME="${BASE_TAG}${FIPS}"
+        WIN_MANIFEST_NAME="${BASE_TAG}${FIPS}-windows"
         MANIFEST_TAG=${VERSION_TAG#v}
       else
-        MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-dev"
-        WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows-dev"
+        MANIFEST_NAME="${BASE_TAG}${FIPS}-dev"
+        WIN_MANIFEST_NAME="${BASE_TAG}${FIPS}-windows-dev"
         MANIFEST_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""

@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload expected traces file
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: expected-traces-dotnet-zeroconfig-e2e-tests
           path: tests/zeroconfig/windows/testdata/expected/*.yaml
@@ -266,7 +266,7 @@ jobs:
           }
 
       - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist/*.nupkg

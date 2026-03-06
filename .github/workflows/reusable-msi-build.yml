@@ -69,7 +69,7 @@ jobs:
           ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE" "${{ inputs.ARCH }}"
 
       - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: msi-build-${{ inputs.ARCH }}
           path: ./dist/*.msi

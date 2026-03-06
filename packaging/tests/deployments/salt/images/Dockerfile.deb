@@ -1,4 +1,4 @@
-ARG DISTRO_IMAGE=debian:bullseye
+ARG DISTRO_IMAGE=debian:trixie
 FROM ${DISTRO_IMAGE}
 
 ARG DISTRO_IMAGE

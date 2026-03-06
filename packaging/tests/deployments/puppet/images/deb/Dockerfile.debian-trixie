@@ -1,0 +1,68 @@
+FROM debian:trixie
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+RUN ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    apt-get update && \
+    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release dpkg-dev apt-utils tzdata && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+ARG PUPPET_RELEASE="6"
+RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-trixie.deb && \
+    dpkg -i puppet${PUPPET_RELEASE}-release-trixie.deb && \
+    apt-get update && \
+    apt-get install -y puppet-agent
+
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v18.20.8/node-v18.20.8-linux-x64.tar.gz && \
+    mkdir -p /opt/local-repo && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/puppetlabs/bin:/opt/node/bin:$PATH
+
+ENV container=docker
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \   
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \                    
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\ 
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+# Keep it from wiping our scratch dir in /tmp/scratch
+RUN rm -f /usr/lib/tmpfiles.d/tmp.conf;
+
+RUN systemctl set-default multi-user.target
+ENV init=/lib/systemd/systemd
+
+RUN if [ $PUPPET_RELEASE -lt 8 ]; then \
+      puppet module install puppetlabs-stdlib --version 4.24.0 && \
+      puppet module install puppetlabs-apt --version 7.0.0; \
+    else \
+      puppet module install puppetlabs-stdlib --version 9.0.0 && \
+      puppet module install puppetlabs-apt --version 9.1.0; \
+    fi
+
+COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
+
+COPY dist/* /opt/local-repo/
+RUN chmod -R a+rwX /opt/local-repo/
+RUN set -eux; \
+    cd /opt/local-repo; \
+    dpkg-scanpackages . /dev/null > Packages; \
+    gzip -9c Packages > Packages.gz; \
+    apt-ftparchive release . > Release; \
+    cp Release InRelease; \
+    echo "deb [trusted=yes] file:/opt/local-repo ./" > /etc/apt/sources.list.d/local-repo.list; \
+    apt-get \
+        -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/local-repo.list \
+        -o Dir::Etc::sourceparts=- \
+        -o APT::Get::List-Cleanup=0 \
+        -o Acquire::AllowInsecureRepositories=true \
+        update
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+ENTRYPOINT ["/lib/systemd/systemd"]

@@ -145,7 +145,7 @@ jobs:
         shell: bash
         continue-on-error: true
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           path: /tmp
 
@@ -192,7 +192,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           path: /tmp
 

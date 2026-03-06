@@ -109,7 +109,7 @@ jobs:
       - uses: ./.github/actions/setup-environment
 
       - name: Download current Collector TA
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution
@@ -177,7 +177,7 @@ jobs:
     needs: [build-ta-with-current-collector]
     steps:
       - name: Download current Collector TA
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution
@@ -277,7 +277,7 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
       - name: Download current Collector TA
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution

@@ -8,7 +8,7 @@ component: smartagent/jmx
 note: Deprecate the `jmx` Smart Agent monitor.
 
 # One or more tracking issues related to the change
-issues: []
+issues: [7316]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

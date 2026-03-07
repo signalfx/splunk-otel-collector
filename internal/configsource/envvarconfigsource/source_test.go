@@ -19,6 +19,8 @@ import (
 	"context"
 	"testing"
 
+	"go.uber.org/zap"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
@@ -69,6 +71,12 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			selector: "FALLBACK_ENV_VAR",
 			expected: "fallback_env_var",
 		},
+		{
+			name:     "with_a_default_value",
+			defaults: map[string]any{},
+			selector: "FOO:-bar",
+			expected: "bar",
+		},
 	}
 
 	t.Setenv(testEnvVarName, testEnvVarValue)
@@ -82,6 +90,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 
 			source := &envVarConfigSource{
 				defaults: defaults,
+				logger:   zap.NewNop(),
 			}
 
 			ctx := context.Background()

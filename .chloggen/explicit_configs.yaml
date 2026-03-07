@@ -1,0 +1,19 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: deprecation
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: envvarconfigsource
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Deprecate the Splunk distribution of the envvar config source.
+
+# One or more tracking issues related to the change
+issues: [7319]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  This environment variable config source is deprecated in favor of the upstream configuration source for environment variables.
+  Please use the `env:ENV_VAR:-default` notation to set the default value of the environment variable.
+  See https://github.com/open-telemetry/opentelemetry-collector/tree/main/confmap/provider/envprovider

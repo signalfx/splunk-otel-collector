@@ -83,7 +83,10 @@ receivers:
         - targets: ["${env:SPLUNK_LISTEN_INTERFACE}:8888"]
         metric_relabel_configs:
           - source_labels: [ __name__ ]
-            regex: '.*grpc_io.*'
+            regex: 'promhttp_metric_handler_errors.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_processor_batch_.*'
             action: drop
   smartagent/processlist:
     type: processlist
@@ -152,6 +155,13 @@ service:
     logs:
       level: error
       # output_paths: [ "${env:SPLUNK_HOME}/var/log/splunk/otel.log" ]
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
   pipelines:
     traces:

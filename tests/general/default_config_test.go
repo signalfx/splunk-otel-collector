@@ -222,6 +222,25 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"service": map[string]any{
+					"telemetry": map[string]any{
+						"metrics": map[string]any{
+							"readers": []any{
+								map[string]any{
+									"pull": map[string]any{
+										"exporter": map[string]any{
+											"prometheus": map[string]any{
+												"host": "127.0.0.1",
+												"port": 8888,
+											},
+										},
+									},
+								},
+							},
+						},
+						"logs": map[string]any{
+							"level": "info",
+						},
+					},
 					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/signalfx", "zpages"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
@@ -492,7 +511,23 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 					},
 					"telemetry": map[string]any{
-						"logs": map[string]any{"level": "info"},
+						"metrics": map[string]any{
+							"readers": []any{
+								map[string]any{
+									"pull": map[string]any{
+										"exporter": map[string]any{
+											"prometheus": map[string]any{
+												"host": "127.0.0.1",
+												"port": 8888,
+											},
+										},
+									},
+								},
+							},
+						},
+						"logs": map[string]any{
+							"level": "info",
+						},
 					},
 				},
 			}, config)

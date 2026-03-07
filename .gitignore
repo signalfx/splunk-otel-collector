@@ -2,6 +2,10 @@
 dist/
 .local/
 
+# OBI source is fetched from the release tarball, not committed.
+# Run: make fetch-obi
+/third_party/opentelemetry-ebpf-instrumentation/
+
 # GoLand IDEA
 .idea
 *.iml

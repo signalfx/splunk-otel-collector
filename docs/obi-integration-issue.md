@@ -25,32 +25,35 @@ Integrate OBI as an external component in this distribution (do not copy code in
 
 - Add OBI receiver factory to component wiring in `internal/components/components.go`.
 - Keep OBI source of truth upstream (`open-telemetry/opentelemetry-ebpf-instrumentation`).
-- Pin upstream via git submodule at `third_party/opentelemetry-ebpf-instrumentation`.
+- Pin upstream via release tarball at `third_party/opentelemetry-ebpf-instrumentation` (gitignored, fetched on demand).
 
-### Dependency model: submodule + `replace` is required
+### Dependency model: release tarball + `replace`
 
-A release-based `go get go.opentelemetry.io/obi@v0.5.0` approach **does not work** and should not be pursued unless upstream fixes their module publishing. The reason:
+Starting with OBI v0.6.0, OBI publishes a `obi-vX.Y.Z-source-generated.tar.gz`
+artifact at each release that includes all pre-generated BPF files. This is the
+working approach:
 
-- OBI's `.gitignore` at `v0.5.0` explicitly lists `*_bpfel.go` and `*_bpfel.o`.
-- The Go module proxy follows `.gitignore` when creating release zips, so those files are absent from the downloaded module.
-- Those files are pre-generated C-to-Go bindings (via `cilium/ebpf`'s `bpf2go`) that embed compiled eBPF bytecode. They are committed to git but stripped from the proxy zip.
-- Without them, `go build` fails with: `pattern bpf_x86_bpfel.o: no matching files found`.
-
-The working approach:
-
-1. Add OBI upstream repo as a git submodule pinned to `v0.5.0` at `third_party/opentelemetry-ebpf-instrumentation`.
-2. Add a `replace` directive in `go.mod` pointing to the submodule path.
-3. Before building, run `make generate-obi` to produce the `*_bpfel.go` / `*_bpfel.o` files locally using `clang` and `bpf2go`.
-4. CI uses `git clone --recurse-submodules` followed by `make generate-obi && make otelcol`.
+1. Download the OBI release tarball via `make fetch-obi`.
+2. The tarball is extracted to `third_party/opentelemetry-ebpf-instrumentation/`
+   (gitignored, not committed).
+3. A `replace` directive in `go.mod` points to that local path.
+4. No BPF toolchain (`clang`, `llvm-strip`, `bpf2go`) is required.
 
 ```
 # go.mod
 go.opentelemetry.io/obi => ./third_party/opentelemetry-ebpf-instrumentation
 ```
 
-The `make generate-obi` target handles tool availability checks and invokes OBI's own `obi_genfiles.go` driver with `OTEL_EBPF_GENFILES_RUN_LOCALLY=1`. Required host tools: `clang`, `llvm-strip`, `bpf2go` (all standard Linux packages).
+> **Why not `go get`?** OBI's `.gitignore` still excludes `*_bpfel.go` /
+> `*_bpfel.o`. The Go module proxy follows `.gitignore` when creating release
+> zips, so a plain `go get go.opentelemetry.io/obi@vX.Y.Z` produces a module
+> zip that is missing the generated files. The `replace` + tarball approach
+> works around this.
 
-Upstream could simplify this by removing `*_bpfel.go` and `*_bpfel.o` from their `.gitignore` and committing the generated files at each release tag, which would make the proxy zip complete and allow a plain `go get`-based dependency.
+> **Historical note (v0.5.0):** Before v0.6.0, OBI did not publish a
+> source-generated tarball. The only working approach was a git submodule +
+> `make generate-obi` (requiring clang/bpf2go). That approach has been replaced
+> by the tarball approach above.
 
 ## Prototype status
 
@@ -58,38 +61,39 @@ A working prototype has been implemented and fully validated in this repo:
 
 - OBI factory registered in `internal/components/components.go`
 - Unit test receiver list updated in `internal/components/components_test.go`
-- `go.mod` `replace` directive pointing to `third_party/opentelemetry-ebpf-instrumentation` (submodule at `v0.5.0`)
-- `make generate-obi` target invokes OBI's local BPF generation (58s, requires `clang`/`llvm-strip`/`bpf2go`)
-- `make otelcol` builds cleanly after generation and produces `./bin/otelcol_linux_amd64` (417M)
-- Runtime validation: collector starts, OBI receiver initializes, logs `"Everything is ready. Begin running and processing data."`, proceeds to eBPF attachment (fails gracefully on unprivileged host as expected)
+- `go.mod` `replace` directive pointing to `third_party/opentelemetry-ebpf-instrumentation` (OBI v0.6.0)
+- `make fetch-obi` downloads the OBI v0.6.0 release tarball (no BPF toolchain required)
+- `make otelcol` builds cleanly and produces `./bin/otelcol_linux_amd64` (421M)
+- `go version -m ./bin/otelcol_linux_amd64` confirms `dep go.opentelemetry.io/obi v0.6.0`
+- Runtime validation: collector starts, OBI receiver initializes, config validation runs correctly
+- `TestDefaultComponents` passes, confirming OBI receiver is in the factory list
 
 Validated build sequence:
 
 ```bash
-git submodule update --init --recursive
-make generate-obi   # ~60s, requires clang + llvm-strip + bpf2go
-make otelcol        # ~40s with cache
+make fetch-obi      # ~5s with cache (downloads ~46MB tarball first time)
+make otelcol        # ~40s with warm Go build cache
 ```
 
 Reference: `docs/obi-integration-prototype.md`
+Upgrade guide: `docs/obi-upgrade.md`
 
 ## Acceptance criteria
 
 - `obi` receiver is discoverable and configurable in collector config.
 - Linux builds include OBI receiver and pass component wiring tests.
 - Build/documentation clearly defines when pre-generation is required.
-- CI path is defined for selected dependency model (release or submodule).
+- CI path is defined for the tarball-based dependency model.
 - User-facing docs cover runtime privileges/capabilities for OBI.
 
 ## Risks / considerations
 
 - OBI runtime is Linux/capability dependent.
-- Source/submodule mode adds CI complexity and generation time.
+- Tarball fetch adds ~5s to CI (cached by OBI version after first run).
 - Version alignment between collector APIs and OBI module must be monitored.
 
 ## Open questions
 
-1. Should we request upstream (OBI) to fix their `.gitignore` / module publishing so that a clean release-based dependency becomes viable long-term?
-2. Do we want OBI enabled in all Linux build variants immediately, or behind a build tag/profile first?
-3. Which CI lane should own initial OBI runtime validation (requires Linux with `CAP_BPF` etc.)?
-4. Should `third_party/opentelemetry-ebpf-instrumentation` be a git submodule (recommended) or a committed vendor copy?
+1. Do we want OBI enabled in all Linux build variants immediately, or behind a build tag/profile first?
+2. Which CI lane should own initial OBI runtime validation (requires Linux with `CAP_BPF` etc.)?
+3. Should CI automatically check that the OBI tarball exists for new OBI releases?

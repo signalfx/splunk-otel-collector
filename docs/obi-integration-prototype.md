@@ -2,46 +2,71 @@
 
 ## Summary
 
-This prototype integrates OBI as a receiver in `splunk-otel-collector` by wiring `go.opentelemetry.io/obi/collector` into the collector component factory list.
+This prototype integrates OBI as a receiver in `splunk-otel-collector` by wiring
+`go.opentelemetry.io/obi/collector` into the collector component factory list.
 
-It also adds a `make generate-obi` target to support an **Option A-style** workflow (submodule + pre-build generation) when building against OBI source instead of a released module.
+OBI is sourced from its official release tarball
+(`obi-<version>-source-generated.tar.gz`) which includes all pre-generated BPF
+files. This eliminates the need for a git submodule and for any BPF toolchain
+(`clang`, `llvm-strip`, `bpf2go`) at build time.
 
-## Feasibility of upstream "Option A"
+## Why this approach
 
-Short answer: **yes, it is possible in this repository**.
+OBI's `.gitignore` excludes `*_bpfel.go` / `*_bpfel.o`; the Go module proxy
+follows `.gitignore` when creating release zips, so a plain
+`go get go.opentelemetry.io/obi@vX.Y.Z` doesn't work (missing generated files).
+OBI publishes a separate tarball artifact at each release that includes all
+generated files, which is what this integration uses.
 
-What maps well from upstream Option A:
-- Keep OBI in its own upstream repo.
-- Add OBI into this distribution by importing the OBI receiver factory.
-- Support a pre-build generation step via `make generate-obi` when using local/submodule source.
+## Dependency model
 
-What is different here vs `collector-releases`:
-- `splunk-otel-collector` is source-built and manually wires factories in `internal/components/components.go` (not OCB manifest-driven).
-- For released OBI versions (for example `go.opentelemetry.io/obi v0.5.0`), a direct module dependency works for this integration prototype.
+OBI source is downloaded from the GitHub release tarball and extracted to
+`third_party/opentelemetry-ebpf-instrumentation/`. That directory is listed in
+`.gitignore` (not committed). A `replace` directive in `go.mod` points the
+`go.opentelemetry.io/obi` module at this local path:
 
-## Current prototype scope
+```
+# go.mod
+go.opentelemetry.io/obi => ./third_party/opentelemetry-ebpf-instrumentation
+```
+
+## Developer workflow
+
+```bash
+# First time or after an OBI version upgrade:
+make fetch-obi     # Downloads and extracts OBI vX.Y.Z tarball (~46MB, cached)
+
+# Build the collector:
+make otelcol       # ~40s with warm Go build cache
+```
+
+`make fetch-obi` is idempotent: re-running it when the source is already present
+is a no-op.
+
+## Current prototype status
 
 Implemented:
-- Added OBI receiver factory import and registration in `internal/components/components.go`.
-- Added OBI receiver expectation to `internal/components/components_test.go`.
-- Added module dependency: `go.opentelemetry.io/obi v0.5.0`.
-- Added `make generate-obi` target for optional source/submodule generation workflows.
+- OBI receiver factory imported and registered in `internal/components/components.go`.
+- OBI receiver listed in `internal/components/components_test.go`.
+- `go.mod` `replace` directive pointing to `third_party/opentelemetry-ebpf-instrumentation`.
+- `make fetch-obi` target: downloads the release tarball, extracts to `third_party/`.
+- `.github/actions/fetch-obi` composite action: cross-platform (Linux + Windows),
+  uses `actions/cache` keyed by OBI version.
+- All CI workflows updated to use `fetch-obi` (no `generate-obi-bpf`, no `submodules: recursive`).
 
 Not yet implemented (intentionally):
-- CI wiring to run `make generate-obi` when building from a local OBI submodule/replace.
-- Packaging/runtime docs for Linux capabilities and privileged execution expectations for OBI.
 - End-to-end integration tests that exercise `obi` receiver at runtime.
+- Packaging/runtime docs for Linux capabilities and privileged execution expectations for OBI.
 
-## Suggested next implementation increments
+## Upgrading to a new OBI version
 
-1. Choose dependency model:
-   - **Release-based (simpler):** keep module dependency on OBI release.
-   - **Source/submodule-based (closer to upstream Option A):** add `third_party/opentelemetry-ebpf-instrumentation` submodule + `replace` in development/CI flows.
-2. Add Linux-focused runtime documentation and config examples for `obi` receiver.
-3. Add gated CI job for Linux that validates OBI build path and a minimal receiver startup test.
-4. Add packaging checks to ensure capabilities/privileges expectations are documented for users.
+See [obi-upgrade.md](obi-upgrade.md) for step-by-step instructions.
 
 ## Notes
 
-- OBI receiver is Linux-oriented. Non-Linux builds compile because OBI provides non-Linux factory behavior in its module.
-- Runtime success for OBI depends on kernel capabilities/privileges and host setup, separate from compile-time integration.
+- OBI receiver is Linux-only at runtime. Non-Linux builds compile because OBI
+  provides no-op factory stubs in `factory_others.go`.
+- Runtime success for OBI depends on kernel capabilities/privileges and host
+  setup, separate from compile-time integration.
+- The tarball is cached locally in `.local/` (gitignored). Re-running `make fetch-obi`
+  after clearing `.local/` re-downloads it.

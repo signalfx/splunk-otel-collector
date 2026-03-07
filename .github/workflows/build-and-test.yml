@@ -20,12 +20,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
-
-      - name: Generate OBI BPF files
-        uses: ./.github/actions/generate-obi-bpf
 
       - name: tidy
         run: |
@@ -40,12 +36,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
-
-      - name: Generate OBI BPF files
-        uses: ./.github/actions/generate-obi-bpf
 
       - name: gofmt
         run: |
@@ -60,12 +52,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
-
-      - name: Generate OBI BPF files
-        uses: ./.github/actions/generate-obi-bpf
 
       - name: generate-metrics
         run: |
@@ -80,12 +68,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
-
-      - name: Generate OBI BPF files
-        uses: ./.github/actions/generate-obi-bpf
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
 
@@ -102,8 +86,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
       - name: Download actionlint
         id: get_actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/0933c14/scripts/download-actionlint.bash) # v1.7.10
@@ -135,12 +117,8 @@ jobs:
       - name: Free up disk space for next step
         uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
-
-      - name: Generate OBI BPF files
-        uses: ./.github/actions/generate-obi-bpf
 
       - name: Run Unit Tests With Coverage
         run: COVER_TESTING=true make gotest-with-codecov
@@ -166,12 +144,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
-
-      - name: Generate OBI BPF files
-        uses: ./.github/actions/generate-obi-bpf
 
       - name: dockerd test
         working-directory: ./internal/signalfx-agent/pkg/monitors/docker

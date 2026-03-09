@@ -20,7 +20,7 @@ jobs:
   ci:
     strategy:
       matrix:
-        tester: [ {arch: "amd64", runner: "ubuntu-24.04"}, {arch: "amd64", runner: "ubuntu-24.04-arm"} ]
+        tester: [ {arch: "amd64", runner: "ubuntu-24.04"}, {arch: "arm64", runner: "ubuntu-24.04-arm"} ]
     runs-on: ${{ matrix.tester.runner }}
     steps:
       - uses: actions/checkout@v5

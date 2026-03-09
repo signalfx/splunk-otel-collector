@@ -136,13 +136,14 @@ be accomplished by:
 
 The [OBI (OpenTelemetry eBPF Instrumentation)](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation)
 receiver is integrated via a `go.mod` `replace` directive pointing to a local
-copy of the OBI source. The source is not committed to this repo; it must be
-fetched before building:
+copy of the OBI source. The source is not committed to this repo but is fetched
+automatically as a dependency of `make otelcol`:
 
 ```bash
-make fetch-obi   # idempotent; re-run is a no-op if already up to date
-make otelcol
+make otelcol   # fetches OBI on first run; subsequent runs are zero-cost
 ```
+
+To fetch OBI independently (e.g. before running tests): `make fetch-obi`.
 
 **Why not `go get`?** OBI's `.gitignore` excludes the pre-generated `*_bpfel.go`
 / `*_bpfel.o` BPF files, so the Go module proxy zip is missing them. OBI
@@ -155,10 +156,9 @@ includes them; `make fetch-obi` downloads and verifies that tarball.
 2. Update `OBI_VERSION` in `Makefile`.
 3. Update the `go.opentelemetry.io/obi vX.Y.Z` line in `go.mod`.
 4. Update the `default:` version in `.github/actions/fetch-obi/action.yml`.
-5. Run `make fetch-obi` (re-fetches automatically because the stamp file is version-keyed).
-6. Run `go mod tidy` to update `go.sum`.
-7. Run `make otelcol` and `go test ./internal/components/...` to verify.
-8. Commit: `Makefile`, `go.mod`, `go.sum`, `.github/actions/fetch-obi/action.yml`.
+5. Run `go mod tidy` to update `go.sum`.
+6. Run `make otelcol` (automatically re-fetches OBI because the stamp file is version-keyed) and `go test ./internal/components/...` to verify.
+7. Commit: `Makefile`, `go.mod`, `go.sum`, `.github/actions/fetch-obi/action.yml`.
 
 ## Licensing
 

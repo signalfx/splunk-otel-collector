@@ -287,7 +287,7 @@ $(OBI_STAMP): $(OBI_TARBALL_CACHE)
 	@echo "OBI $(OBI_VERSION) source fetched and verified at $(OBI_DIR)"
 
 .PHONY: otelcol
-otelcol:
+otelcol: $(OBI_STAMP)
 	go generate ./...
 ifeq ($(COVER_TESTING), true)
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol

@@ -17,7 +17,9 @@ runs:
       id: cache-obi
       uses: actions/cache@v4
       with:
-        path: third_party/opentelemetry-ebpf-instrumentation
+        path: |
+          .local/obi-${{ inputs.obi-version }}-source-generated.tar.gz
+          third_party/opentelemetry-ebpf-instrumentation
         key: obi-source-${{ inputs.obi-version }}
 
     - name: Fetch OBI source tarball (Linux/macOS)
@@ -28,22 +30,28 @@ runs:
       run: |
         TARBALL="obi-${OBI_VERSION}-source-generated.tar.gz"
         BASE_URL="https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/${OBI_VERSION}"
+        DEST="third_party/opentelemetry-ebpf-instrumentation"
 
-        # Download tarball to a temp file so we can verify before extracting
-        curl -fL -o "/tmp/${TARBALL}" "${BASE_URL}/${TARBALL}"
+        # Download tarball to .local/ — same location Make uses — so Make's
+        # stamp-file dependency check finds it and skips the download step.
+        mkdir -p .local
+        curl -fL -o ".local/${TARBALL}" "${BASE_URL}/${TARBALL}"
 
         # Verify checksum — pipe the matching SHA256SUMS line to sha256sum/shasum --check
         # The tool handles hash computation, comparison, and error reporting
         if command -v sha256sum > /dev/null 2>&1; then
-          curl -fsSL "${BASE_URL}/SHA256SUMS" | grep -F "${TARBALL}" | (cd /tmp && sha256sum --check)
+          curl -fsSL "${BASE_URL}/SHA256SUMS" | grep -F "${TARBALL}" | (cd .local && sha256sum --check)
         else
-          curl -fsSL "${BASE_URL}/SHA256SUMS" | grep -F "${TARBALL}" | (cd /tmp && shasum -a 256 --check)
+          curl -fsSL "${BASE_URL}/SHA256SUMS" | grep -F "${TARBALL}" | (cd .local && shasum -a 256 --check)
         fi
 
         # Extract verified tarball
-        mkdir -p third_party/opentelemetry-ebpf-instrumentation
-        tar xzf "/tmp/${TARBALL}" --strip-components=1 -C third_party/opentelemetry-ebpf-instrumentation
-        rm "/tmp/${TARBALL}"
+        mkdir -p "${DEST}"
+        tar xzf ".local/${TARBALL}" --strip-components=1 -C "${DEST}"
+
+        # Create the Make stamp file so Make skips the fetch-obi target entirely
+        # when this cache is restored (matches OBI_STAMP = $(OBI_DIR)/.obi-$(OBI_VERSION))
+        touch "${DEST}/.obi-${OBI_VERSION}"
 
     - name: Fetch OBI source tarball (Windows)
       if: steps.cache-obi.outputs.cache-hit != 'true' && runner.os == 'Windows'
@@ -56,11 +64,14 @@ runs:
         $BaseUrl = "https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/${Version}"
         $Dest = "third_party/opentelemetry-ebpf-instrumentation"
 
-        # Download tarball
-        curl.exe -fL -o $Tarball "${BaseUrl}/${Tarball}"
+        # Download tarball to .local\ — same location Make uses — so Make's
+        # stamp-file dependency check finds it and skips the download step.
+        New-Item -ItemType Directory -Force -Path ".local" | Out-Null
+        $LocalTarball = ".local\$Tarball"
+        curl.exe -fL -o $LocalTarball "${BaseUrl}/${Tarball}"
 
         # Download SHA256SUMS and extract the expected hash for our tarball
-        $SumsFile = "SHA256SUMS.tmp"
+        $SumsFile = ".local\SHA256SUMS.tmp"
         curl.exe -fsSL -o $SumsFile "${BaseUrl}/SHA256SUMS"
         $Expected = (Get-Content $SumsFile | Where-Object { $_ -match [regex]::Escape($Tarball) } | Select-Object -First 1)
         Remove-Item $SumsFile
@@ -71,7 +82,7 @@ runs:
         $Expected = $Expected.Split(' ')[0].Trim()
 
         # Verify hash
-        $Actual = (Get-FileHash $Tarball -Algorithm SHA256).Hash.ToLower()
+        $Actual = (Get-FileHash $LocalTarball -Algorithm SHA256).Hash.ToLower()
         if ($Actual -ne $Expected) {
           Write-Error "ERROR: SHA256 checksum verification failed for ${Tarball}`n  Expected: ${Expected}`n  Actual:   ${Actual}"
           exit 1
@@ -80,5 +91,8 @@ runs:
 
         # Extract verified tarball
         New-Item -ItemType Directory -Force -Path $Dest | Out-Null
-        tar xzf $Tarball --strip-components=1 -C $Dest
-        Remove-Item $Tarball
+        tar xzf $LocalTarball --strip-components=1 -C $Dest
+
+        # Create the Make stamp file so Make skips the fetch-obi target entirely
+        # when this cache is restored (matches OBI_STAMP = $(OBI_DIR)/.obi-$(OBI_VERSION))
+        New-Item -ItemType File -Force -Path "$Dest/.obi-$Version" | Out-Null

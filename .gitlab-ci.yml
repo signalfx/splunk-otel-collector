@@ -409,7 +409,7 @@ compile:
         - .go/bin
     - key: "obi-source-$OBI_VERSION"
       paths:
-        - .local/
+        - .local/obi-$OBI_VERSION-source-generated.tar.gz
         - third_party/opentelemetry-ebpf-instrumentation/
   script:
     - |

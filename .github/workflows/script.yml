@@ -43,4 +43,4 @@ jobs:
         run: |
           set -o pipefail
           cd packaging/script
-          ARCH="${{ matrix.tester.arch }}" make test
+          make test_${{ matrix.tester.arch }}

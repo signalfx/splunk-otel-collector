@@ -26,10 +26,24 @@ runs:
       env:
         OBI_VERSION: ${{ inputs.obi-version }}
       run: |
+        TARBALL="obi-${OBI_VERSION}-source-generated.tar.gz"
+        BASE_URL="https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/${OBI_VERSION}"
+
+        # Download tarball to a temp file so we can verify before extracting
+        curl -fL -o "/tmp/${TARBALL}" "${BASE_URL}/${TARBALL}"
+
+        # Verify checksum — pipe the matching SHA256SUMS line to sha256sum/shasum --check
+        # The tool handles hash computation, comparison, and error reporting
+        if command -v sha256sum > /dev/null 2>&1; then
+          curl -fsSL "${BASE_URL}/SHA256SUMS" | grep -F "${TARBALL}" | (cd /tmp && sha256sum --check)
+        else
+          curl -fsSL "${BASE_URL}/SHA256SUMS" | grep -F "${TARBALL}" | (cd /tmp && shasum -a 256 --check)
+        fi
+
+        # Extract verified tarball
         mkdir -p third_party/opentelemetry-ebpf-instrumentation
-        curl -fL \
-          "https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/${OBI_VERSION}/obi-${OBI_VERSION}-source-generated.tar.gz" \
-          | tar xz --strip-components=1 -C third_party/opentelemetry-ebpf-instrumentation
+        tar xzf "/tmp/${TARBALL}" --strip-components=1 -C third_party/opentelemetry-ebpf-instrumentation
+        rm "/tmp/${TARBALL}"
 
     - name: Fetch OBI source tarball (Windows)
       if: steps.cache-obi.outputs.cache-hit != 'true' && runner.os == 'Windows'
@@ -37,10 +51,34 @@ runs:
       env:
         OBI_VERSION: ${{ inputs.obi-version }}
       run: |
-        $tarball = "obi-${env:OBI_VERSION}-source-generated.tar.gz"
-        $url = "https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/${env:OBI_VERSION}/${tarball}"
-        $dest = "third_party/opentelemetry-ebpf-instrumentation"
-        New-Item -ItemType Directory -Force -Path $dest | Out-Null
-        curl.exe -fL -o $tarball $url
-        tar xzf $tarball --strip-components=1 -C $dest
-        Remove-Item $tarball
+        $Version = $env:OBI_VERSION
+        $Tarball = "obi-${Version}-source-generated.tar.gz"
+        $BaseUrl = "https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/${Version}"
+        $Dest = "third_party/opentelemetry-ebpf-instrumentation"
+
+        # Download tarball
+        curl.exe -fL -o $Tarball "${BaseUrl}/${Tarball}"
+
+        # Download SHA256SUMS and extract the expected hash for our tarball
+        $SumsFile = "SHA256SUMS.tmp"
+        curl.exe -fsSL -o $SumsFile "${BaseUrl}/SHA256SUMS"
+        $Expected = (Get-Content $SumsFile | Where-Object { $_ -match [regex]::Escape($Tarball) } | Select-Object -First 1)
+        Remove-Item $SumsFile
+        if (-not $Expected) {
+          Write-Error "ERROR: ${Tarball} not found in SHA256SUMS"
+          exit 1
+        }
+        $Expected = $Expected.Split(' ')[0].Trim()
+
+        # Verify hash
+        $Actual = (Get-FileHash $Tarball -Algorithm SHA256).Hash.ToLower()
+        if ($Actual -ne $Expected) {
+          Write-Error "ERROR: SHA256 checksum verification failed for ${Tarball}`n  Expected: ${Expected}`n  Actual:   ${Actual}"
+          exit 1
+        }
+        Write-Host "SHA256 verified: ${Tarball}"
+
+        # Extract verified tarball
+        New-Item -ItemType Directory -Force -Path $Dest | Out-Null
+        tar xzf $Tarball --strip-components=1 -C $Dest
+        Remove-Item $Tarball

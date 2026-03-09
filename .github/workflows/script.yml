@@ -22,8 +22,6 @@ jobs:
       matrix:
         tester: [ {arch: "amd64", runner: "ubuntu-24.04"}, {arch: "amd64", runner: "ubuntu-24.04-arm"} ]
     runs-on: ${{ matrix.tester.runner }}
-    env:
-      ARCH: ${{ matrix.tester.arch }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
@@ -33,7 +31,7 @@ jobs:
           pip3 install virtualenv
           set -o pipefail
           cd packaging/script
-          make package
+          ARCH="${{ matrix.tester.arch }}" make package
 
       - name: Upload script
         uses: actions/upload-artifact@v6
@@ -45,4 +43,4 @@ jobs:
         run: |
           set -o pipefail
           cd packaging/script
-          make test
+          ARCH="${{ matrix.tester.arch }}" make test

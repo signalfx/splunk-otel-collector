@@ -2,7 +2,7 @@
 - name: Get registry entry
   ansible.windows.win_reg_stat:
     path: "{{ path }}"
-    name: "{{ name }}"
+    name: "{{ item_name }}"
   register: reg_entry
 
 - name: Verify registry entry value

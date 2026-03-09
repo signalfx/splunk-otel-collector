@@ -27,7 +27,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter" //nolint:staticcheck // SA1019: deprecated but kept for backward compatibility
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension"
@@ -133,6 +132,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
@@ -270,6 +270,7 @@ func Get() (otelcol.Factories, error) {
 		wavefrontreceiver.NewFactory(),
 		windowseventlogreceiver.NewFactory(),
 		windowsperfcountersreceiver.NewFactory(),
+		windowsservicereceiver.NewFactory(),
 		yanggrpcreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 		zookeeperreceiver.NewFactory(),
@@ -290,7 +291,6 @@ func Get() (otelcol.Factories, error) {
 		otlphttpexporter.NewFactory(),
 		prometheusremotewriteexporter.NewFactory(),
 		pulsarexporter.NewFactory(),
-		sapmexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
 	)

@@ -53,6 +53,6 @@
       ansible.builtin.include_tasks: ../shared/verify_registry_key.yml
       vars:
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        name: "{{ item.key }}"
+        item_name: "{{ item.key }}"
         exists: false
       loop: "{{ iis_reg_values | dict2items }}"

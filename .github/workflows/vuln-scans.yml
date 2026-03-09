@@ -26,9 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.34.0
+        uses: aquasecurity/trivy-action@0.34.1
         with:
-          version: v0.57.1
+          # EOL REFERENCE: https://github.com/aquasecurity/trivy/releases
+          version: v0.69.1
           scan-type: 'fs'
           scan-ref: '.'
           skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
@@ -102,9 +103,9 @@ jobs:
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.34.0
+        uses: aquasecurity/trivy-action@0.34.1
         with:
-          version: v0.57.1
+          version: v0.69.1
           scan-type: 'image'
           image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           format: 'table'
@@ -164,7 +165,7 @@ jobs:
         with:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle amd64
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'

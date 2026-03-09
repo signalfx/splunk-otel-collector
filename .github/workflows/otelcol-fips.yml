@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/otelcol-fips.yml'
+      - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
       - 'internal/**'
       - 'pkg/**'
@@ -147,6 +148,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+      - uses: ./.github/actions/win-wait-for-docker
       - uses: actions/download-artifact@v7
         with:
           name: otelcol-fips-windows-amd64

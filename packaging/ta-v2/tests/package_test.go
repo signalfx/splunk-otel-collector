@@ -30,14 +30,13 @@ import (
 )
 
 const (
-	distDir                  = "../out/distribution"
-	multiOSTgz               = "Splunk_TA_OTel_Collector.tgz"
-	linuxTgz                 = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
-	windowsTgz               = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
-	linuxBinPath             = "Splunk_TA_OTel_Collector/linux_x86_64/"
-	windowsBinPath           = "Splunk_TA_OTel_Collector/windows_x86_64/"
-	linuxBinPathWithSuffix   = "Splunk_TA_OTel_Collector_linux_x86_64/linux_x86_64/"
-	windowsBinPathWithSuffix = "Splunk_TA_OTel_Collector_windows_x86_64/windows_x86_64/"
+	distDir          = "../out/distribution"
+	modularInputName = "Splunk_TA_OTel_Collector"
+	multiOSTgz       = "Splunk_TA_OTel_Collector.tgz"
+	linuxTgz         = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
+	windowsTgz       = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
+	linuxBinPath     = "Splunk_TA_OTel_Collector/linux_x86_64/"
+	windowsBinPath   = "Splunk_TA_OTel_Collector/windows_x86_64/"
 )
 
 // getFileSize returns the size of a file in bytes
@@ -66,6 +65,23 @@ func getTarContents(t *testing.T, tgzPath string) []string {
 			break
 		}
 		require.NoError(t, err, "Failed to read tar entry")
+
+		// Skip "pax" names, paths ending in "/", and exclude files named:
+		// "._*", ".DS_Store", and "__MACOSX/"
+		if header.Typeflag == tar.TypeXGlobalHeader || header.Typeflag == tar.TypeXHeader {
+			continue
+		}
+		if strings.HasSuffix(header.Name, "/") {
+			continue
+		}
+		baseName := filepath.Base(header.Name)
+		if strings.HasPrefix(baseName, "._") || baseName == ".DS_Store" {
+			continue
+		}
+		if strings.Contains(header.Name, "__MACOSX/") {
+			continue
+		}
+
 		contents = append(contents, header.Name)
 	}
 
@@ -120,12 +136,12 @@ func TestLinuxPackageContents(t *testing.T) {
 	t.Logf("Linux package contains %d entries", len(contents))
 
 	// Linux package should contain linux binaries
-	assert.True(t, containsPath(contents, linuxBinPathWithSuffix),
-		"Linux package should contain %s folder", linuxBinPathWithSuffix)
+	assert.True(t, containsPath(contents, linuxBinPath),
+		"Linux package should contain %s folder", linuxBinPath)
 
 	// Linux package should NOT contain windows binaries
-	assert.False(t, containsPath(contents, windowsBinPathWithSuffix),
-		"Linux package should NOT contain %s folder", windowsBinPathWithSuffix)
+	assert.False(t, containsPath(contents, windowsBinPath),
+		"Linux package should NOT contain %s folder", windowsBinPath)
 }
 
 func TestWindowsPackageContents(t *testing.T) {
@@ -136,12 +152,12 @@ func TestWindowsPackageContents(t *testing.T) {
 	t.Logf("Windows package contains %d entries", len(contents))
 
 	// Windows package should contain windows binaries
-	assert.True(t, containsPath(contents, windowsBinPathWithSuffix),
-		"Windows package should contain %s folder", windowsBinPathWithSuffix)
+	assert.True(t, containsPath(contents, windowsBinPath),
+		"Windows package should contain %s folder", windowsBinPath)
 
 	// Windows package should NOT contain linux binaries
-	assert.False(t, containsPath(contents, linuxBinPathWithSuffix),
-		"Windows package should NOT contain %s folder", linuxBinPathWithSuffix)
+	assert.False(t, containsPath(contents, linuxBinPath),
+		"Windows package should NOT contain %s folder", linuxBinPath)
 }
 
 func TestMultiOSPackageContents(t *testing.T) {
@@ -161,32 +177,33 @@ func TestMultiOSPackageContents(t *testing.T) {
 
 func TestPackageMandatoryFiles(t *testing.T) {
 	packages := map[string]string{
-		"Multi-OS": filepath.Join(distDir, multiOSTgz),
-		"Linux":    filepath.Join(distDir, linuxTgz),
-		"Windows":  filepath.Join(distDir, windowsTgz),
+		"Multi-OS": multiOSTgz,
+		"Linux":    linuxTgz,
+		"Windows":  windowsTgz,
 	}
 
-	for pkgName, pkgPath := range packages {
+	for pkgName, pkgFile := range packages {
+		pkgPath := filepath.Join(distDir, pkgFile)
 		t.Run(pkgName, func(t *testing.T) {
 			require.FileExists(t, pkgPath, "%s package not found", pkgName)
 
 			mandatoryPaths := []string{
-				"/configs/agent_config.yaml",
-				"/default/app.conf",
-				"/default/inputs.conf",
-				"/README/inputs.conf.spec",
-				"/static/appIcon_2x.png",
-				"/static/appIcon.png",
+				modularInputName + "/configs/agent_config.yaml",
+				modularInputName + "/default/app.conf",
+				modularInputName + "/default/inputs.conf",
+				modularInputName + "/README/inputs.conf.spec",
+				modularInputName + "/static/appIcon_2x.png",
+				modularInputName + "/static/appIcon.png",
 			}
 
 			addLinuxExecutable := pkgName != "Windows"
 			if addLinuxExecutable {
-				mandatoryPaths = append(mandatoryPaths, "/linux_x86_64/bin/Splunk_TA_OTel_Collector")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/linux_x86_64/bin/Splunk_TA_OTel_Collector")
 			}
 
 			addWindowsExecutable := pkgName != "Linux"
 			if addWindowsExecutable {
-				mandatoryPaths = append(mandatoryPaths, "/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe")
 			}
 
 			contents := getTarContents(t, pkgPath)
@@ -194,12 +211,17 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			for _, mandatoryPath := range mandatoryPaths {
 				found := false
 				for _, entry := range contents {
-					if strings.Contains(entry, mandatoryPath) {
+					if entry == mandatoryPath {
 						found = true
 						break
 					}
 				}
 				assert.True(t, found, "%s package should contain %s", pkgName, mandatoryPath)
+			}
+
+			for _, path := range contents {
+				assert.Contains(t, mandatoryPaths, path,
+					"%s package contains unexpected file: %s", pkgName, path)
 			}
 		})
 	}

@@ -272,7 +272,7 @@ $(OBI_TARBALL_CACHE):
 	mkdir -p .local
 	curl -fL -o "$@" "$(OBI_TARBALL_URL)"
 	@echo "Verifying OBI $(OBI_VERSION) tarball checksum..."
-	@if command -v sha256sum > /dev/null 2>&1; then \
+	@if [ "$$(uname -s)" = "Linux" ]; then \
 		curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && sha256sum --check) || (rm -f "$@"; exit 1); \
 	else \
 		curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && shasum -a 256 --check) || (rm -f "$@"; exit 1); \

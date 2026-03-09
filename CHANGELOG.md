@@ -9,7 +9,7 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) `exporter/sapm`: Remove already deprecated `sapm` exporter. (#7295)
+- (Splunk) `exporter/sapm`: Remove already deprecated `sapm` exporter. ([#7295](https://github.com/signalfx/splunk-otel-collector/pull/7295))
   Replace any usage of the `sapm` exporter with the
   [OTLP HTTP exporter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/exporter/otlphttpexporter/README.md#otlphttp-exporter)
 

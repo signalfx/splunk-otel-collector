@@ -11,7 +11,7 @@ GIT_SHA=$(shell git rev-parse --short HEAD)
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
-FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*" -not -path "./third_party/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)

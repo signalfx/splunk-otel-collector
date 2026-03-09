@@ -1,0 +1,4 @@
+source 'https://rubygems.org'
+
+gem 'dotenv', '3.1.4'
+gem 'fpm', '1.15.1'

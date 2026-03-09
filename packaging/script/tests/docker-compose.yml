@@ -1,0 +1,17 @@
+services:
+  # OpenTelemetry Collector
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:latest
+    container_name: otelcollector
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+  script:
+    container_name: script
+    build: ..
+    volumes:
+      - ./jobs:/jobs
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otelcollector:4317"
+      SCRIPT_EXPORT_INTERVAL: 2000
+      SCRIPT_JOBS_FOLDER: /jobs

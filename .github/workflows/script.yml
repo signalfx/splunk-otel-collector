@@ -18,7 +18,12 @@ env:
 
 jobs:
   ci:
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        tester: [ {arch: "amd64", runner: "ubuntu-24.04"}, {arch: "amd64", runner: "ubuntu-24.04-arm"} ]
+    runs-on: ${{ matrix.tester.runner }}
+    env:
+      ARCH: ${{ matrix.tester.arch }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment

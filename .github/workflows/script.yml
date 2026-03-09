@@ -25,6 +25,7 @@ jobs:
 
       - name: package
         run: |
+          pip3 install virtualenv
           set -o pipefail
           cd packaging/script
           make package

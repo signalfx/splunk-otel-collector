@@ -66,7 +66,7 @@ jobs:
           VERSION="${{ steps.get-version.outputs.version }}"
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
-          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE" "${{ inputs.ARCH }}"
+          ./packaging/msi/build.sh --version "$VERSION" --jmx-metric-gatherer-release "$JMX_METRIC_GATHERER_RELEASE" --arch "${{ inputs.ARCH }}"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v6

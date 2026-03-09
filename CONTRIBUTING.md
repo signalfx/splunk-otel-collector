@@ -152,7 +152,7 @@ includes them; `make fetch-obi` downloads and verifies that tarball.
 
 ### Upgrading OBI to a new version
 
-1. Confirm `obi-vX.Y.Z-source-generated.tar.gz` exists on the [OBI releases page](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/tag/vX.Y.Z).
+1. Confirm `obi-vX.Y.Z-source-generated.tar.gz` exists on the [OBI release](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases).
 2. Update `OBI_VERSION` in `Makefile`.
 3. Update the `go.opentelemetry.io/obi vX.Y.Z` line in `go.mod`.
 4. Update the `default:` version in `.github/actions/fetch-obi/action.yml` and `OBI_VERSION` in `.gitlab-ci.yml`.

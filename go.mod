@@ -118,7 +118,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.147.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.147.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.147.1-0.20260305075649-32c7fef3e9f9
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.147.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.147.0
@@ -179,8 +179,8 @@ require (
 	go.opentelemetry.io/collector/scraper v0.147.0
 	go.opentelemetry.io/collector/scraper/scraperhelper v0.147.0
 	go.opentelemetry.io/collector/service v0.147.0
-	go.opentelemetry.io/otel/metric v1.40.0
-	go.opentelemetry.io/otel/trace v1.40.0
+	go.opentelemetry.io/otel/metric v1.41.0
+	go.opentelemetry.io/otel/trace v1.41.0
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.1
@@ -775,7 +775,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.65.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.40.0 // indirect
 	go.opentelemetry.io/contrib/zpages v0.65.0 // indirect
-	go.opentelemetry.io/otel v1.40.0
+	go.opentelemetry.io/otel v1.41.0
 	go.opentelemetry.io/otel/sdk v1.40.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.40.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect

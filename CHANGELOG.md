@@ -15,7 +15,7 @@
 
 ### 🚩 Deprecations 🚩
 
-- (Splunk) `smartagent/jmx`: Deprecate the `jmx` Smart Agent monitor. (#7316)
+- (Splunk) `smartagent/jmx`: Deprecate the `jmx` Smart Agent monitor. ([#7316](https://github.com/signalfx/splunk-otel-collector/pull/7316))
   The `smartagent/jmx` monitor will be removed on or after April 2026.
   Please use the [JMX receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead.
 

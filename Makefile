@@ -45,6 +45,7 @@ OBI_DIR?=./third_party/opentelemetry-ebpf-instrumentation
 OBI_TARBALL_URL=https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/$(OBI_VERSION)/obi-$(OBI_VERSION)-source-generated.tar.gz
 OBI_TARBALL_CACHE=.local/obi-$(OBI_VERSION)-source-generated.tar.gz
 OBI_CHECKSUM_URL=https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/$(OBI_VERSION)/SHA256SUMS
+OBI_STAMP=$(OBI_DIR)/.obi-$(OBI_VERSION)
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -262,23 +263,28 @@ generate-metrics:
 	$(MAKE) fmt
 
 .PHONY: fetch-obi
-fetch-obi:
-	@if [ -f "$(OBI_DIR)/go.mod" ] && grep -q 'module go.opentelemetry.io/obi' "$(OBI_DIR)/go.mod" 2>/dev/null; then \
-		echo "OBI $(OBI_VERSION) source already present at $(OBI_DIR)"; \
+fetch-obi: $(OBI_STAMP)
+
+# Download and verify the OBI release tarball. The target filename is
+# version-keyed, so changing OBI_VERSION automatically triggers a re-download.
+$(OBI_TARBALL_CACHE):
+	mkdir -p .local
+	curl -fL -o "$@" "$(OBI_TARBALL_URL)"
+	@echo "Verifying OBI $(OBI_VERSION) tarball checksum..."
+	@if command -v sha256sum > /dev/null 2>&1; then \
+		curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && sha256sum --check) || (rm -f "$@"; exit 1); \
 	else \
-		echo "Fetching OBI $(OBI_VERSION) source (includes pre-generated BPF files)..."; \
-		mkdir -p .local; \
-		[ -f "$(OBI_TARBALL_CACHE)" ] || curl -fL -o "$(OBI_TARBALL_CACHE)" "$(OBI_TARBALL_URL)"; \
-		echo "Verifying OBI $(OBI_VERSION) tarball checksum..."; \
-		if command -v sha256sum > /dev/null 2>&1; then \
-			curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && sha256sum --check); \
-		else \
-			curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && shasum -a 256 --check); \
-		fi; \
-		mkdir -p "$(OBI_DIR)"; \
-		tar xzf "$(OBI_TARBALL_CACHE)" --strip-components=1 -C "$(OBI_DIR)"; \
-		echo "OBI $(OBI_VERSION) source fetched and verified at $(OBI_DIR)"; \
+		curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && shasum -a 256 --check) || (rm -f "$@"; exit 1); \
 	fi
+
+# Extract the verified tarball. The stamp filename is version-keyed, so
+# changing OBI_VERSION causes Make to treat this as a new missing target.
+$(OBI_STAMP): $(OBI_TARBALL_CACHE)
+	rm -rf "$(OBI_DIR)"
+	mkdir -p "$(OBI_DIR)"
+	tar xzf "$(OBI_TARBALL_CACHE)" --strip-components=1 -C "$(OBI_DIR)"
+	touch $@
+	@echo "OBI $(OBI_VERSION) source fetched and verified at $(OBI_DIR)"
 
 .PHONY: otelcol
 otelcol:

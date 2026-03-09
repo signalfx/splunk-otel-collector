@@ -1,0 +1,42 @@
+name: script
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/script.yml'
+      - 'packaging/script/**'
+
+concurrency:
+  group: script-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: 1.25.7
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: package
+        run: |
+          set -o pipefail
+          cd packaging/script
+          make package
+
+      - name: Upload script
+        uses: actions/upload-artifact@v6
+        with:
+          name: script
+          path: ${{github.workspace}}/packaging/script/dist/*
+
+      - name: test
+        run: |
+          set -o pipefail
+          cd packaging/script
+          make test

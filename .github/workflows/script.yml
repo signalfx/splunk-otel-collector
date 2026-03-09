@@ -36,7 +36,7 @@ jobs:
       - name: Upload script
         uses: actions/upload-artifact@v6
         with:
-          name: script
+          name: script-${{ matrix.tester.arch }}
           path: ${{github.workspace}}/packaging/script/dist/*
 
       - name: test

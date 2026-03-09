@@ -11,6 +11,7 @@ variables:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
   GO_VERSION: 1.25.7
+  OBI_VERSION: "v0.6.0"
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -398,6 +399,18 @@ compile:
   parallel:
     matrix:
       - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
+  cache:
+    - key:
+        files:
+          - go.mod
+          - go.sum
+      paths:
+        - .go/pkg/mod
+        - .go/bin
+    - key: "obi-source-$OBI_VERSION"
+      paths:
+        - .local/
+        - third_party/opentelemetry-ebpf-instrumentation/
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"

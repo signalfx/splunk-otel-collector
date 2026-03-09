@@ -155,10 +155,10 @@ includes them; `make fetch-obi` downloads and verifies that tarball.
 1. Confirm `obi-vX.Y.Z-source-generated.tar.gz` exists on the [OBI releases page](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/tag/vX.Y.Z).
 2. Update `OBI_VERSION` in `Makefile`.
 3. Update the `go.opentelemetry.io/obi vX.Y.Z` line in `go.mod`.
-4. Update the `default:` version in `.github/actions/fetch-obi/action.yml`.
+4. Update the `default:` version in `.github/actions/fetch-obi/action.yml` and `OBI_VERSION` in `.gitlab-ci.yml`.
 5. Run `go mod tidy` to update `go.sum`.
 6. Run `make otelcol` (automatically re-fetches OBI because the stamp file is version-keyed) and `go test ./internal/components/...` to verify.
-7. Commit: `Makefile`, `go.mod`, `go.sum`, `.github/actions/fetch-obi/action.yml`.
+7. Commit: `Makefile`, `go.mod`, `go.sum`, `.github/actions/fetch-obi/action.yml`, `.gitlab-ci.yml`.
 
 ## Licensing
 

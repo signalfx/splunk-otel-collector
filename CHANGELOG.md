@@ -7,6 +7,9 @@
 
 ## v0.147.1
 
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.147.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.147.0)
+and the [opentelemetry-collector-contrib v0.147.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.147.0) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `exporter/sapm`: Remove already deprecated `sapm` exporter. ([#7295](https://github.com/signalfx/splunk-otel-collector/pull/7295))

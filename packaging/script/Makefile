@@ -23,4 +23,16 @@ package: tar-package deb-package rpm-package
 .PHONY: test
 test: tar-test rpm-test deb-test
 
+.PHONY: deb-rpm-tar-test_amd64
+%-test: venv
+	bash -c "source venv/bin/activate && pytest -m $* -k amd64 tests/package_test.py"
 
+.PHONY: deb-rpm-tar-test_arm64
+%-test: venv
+	bash -c "source venv/bin/activate && pytest -m $* -k arm64 tests/package_test.py"
+
+.PHONY: test_arm64
+test: tar-test_arm64 rpm-test_arm64 deb-test_arm64
+
+.PHONY: test_amd64
+test: tar-test_amd64 rpm-test_amd64 deb-test_amd64

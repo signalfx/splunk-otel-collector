@@ -28,9 +28,11 @@ SERVICE_PROC = "cron"
 ENV_PATH = "/etc/otel/collector/splunk-otel-script.conf"
 BUNDLE_DIR = "/usr/lib/splunk-otel-script"
 
-def get_package(distro, name, path, arch):
+def get_package(distro, packageType, name, path, arch):
     pkg_paths = []
-    if distro in DEB_DISTROS:
+    if packageType == "tar":
+        pkg_paths = glob.glob(str(path / f"{name}*{arch}.tar.gz"))
+    elif distro in DEB_DISTROS:
         pkg_paths = glob.glob(str(path / f"{name}*{arch}.deb"))
     elif distro in RPM_DISTROS:
         if arch == "amd64":
@@ -38,8 +40,6 @@ def get_package(distro, name, path, arch):
         elif arch == "arm64":
             arch = "aarch64"
         pkg_paths = glob.glob(str(path / f"{name}*{arch}.rpm"))
-    elif distro in TAR_DISTROS:
-        pkg_paths = glob.glob(str(path / f"{name}*{arch}.tar.gz"))
 
     if pkg_paths:
         return sorted(pkg_paths)[-1]
@@ -53,7 +53,7 @@ def get_package(distro, name, path, arch):
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_tar_script_package_install(distro, arch):
-    pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
+    pkg_path = get_package(distro, "tar", PKG_NAME, PKG_DIR, arch)
     assert pkg_path, f"{PKG_NAME} {arch} package not found in {PKG_DIR}"
     pkg_base = os.path.basename(pkg_path)
 
@@ -71,7 +71,7 @@ def test_tar_script_package_install(distro, arch):
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_script_package_install(distro, arch):
-    pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
+    pkg_path = get_package(distro, "", PKG_NAME, PKG_DIR, arch)
     assert pkg_path, f"{PKG_NAME} {arch} package not found in {PKG_DIR}"
     pkg_base = os.path.basename(pkg_path)
 

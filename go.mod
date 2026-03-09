@@ -831,9 +831,10 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
-	// OBI (OpenTelemetry eBPF Instrumentation): the module zip on the Go proxy
-	// strips gitignored files, which causes the pre-generated *_bpfel.go/.o BPF
-	// artifacts to be absent. The local clone at third_party/ retains them.
+	// OBI (OpenTelemetry eBPF Instrumentation): the pre-generated *_bpfel.go/.o
+	// BPF artifacts are gitignored in the OBI repo and therefore absent from the
+	// module zip on the Go proxy. The release tarball (obi-*-source-generated.tar.gz)
+	// includes them; we extract it to third_party/ via `make fetch-obi`.
 	go.opentelemetry.io/obi => ./third_party/opentelemetry-ebpf-instrumentation
 )
 

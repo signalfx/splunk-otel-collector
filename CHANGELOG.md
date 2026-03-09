@@ -5,6 +5,24 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.147.1
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `exporter/sapm`: Remove already deprecated `sapm` exporter. (#7295)
+  Replace any usage of the `sapm` exporter with the
+  [OTLP HTTP exporter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/exporter/otlphttpexporter/README.md#otlphttp-exporter)
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) `smartagent/jmx`: Deprecate the `jmx` Smart Agent monitor. (#7316)
+  The `smartagent/jmx` monitor will be removed on or after April 2026.
+  Please use the [JMX receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead.
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `receiver/sqlserver`: Fixed `host.name` resource attribute to be correctly extracted from `datasource` configuration when `server` is not set ([#46484](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46484))
+
 ## v0.147.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.147.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.147.0)

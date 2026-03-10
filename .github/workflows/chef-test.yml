@@ -196,6 +196,8 @@ jobs:
         with:
           path: /tmp
 
+      - uses: ./.github/actions/win-wait-for-docker
+
       # Chef doesn't have an easy way to get names of files from unarchived packages
       # It's simpler to unarchive and move the built artifacts manually to the
       # cookbook files directory. The files/ dir under the Chef deployment is a special

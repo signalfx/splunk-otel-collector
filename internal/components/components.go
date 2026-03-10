@@ -153,8 +153,6 @@ import (
 	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 	"go.uber.org/multierr"
 
-	obicollector "go.opentelemetry.io/obi/collector"
-
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
@@ -191,7 +189,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	receivers, err := otelcol.MakeFactoryMap(
+	receiverList := []receiver.Factory{
 		activedirectorydsreceiver.NewFactory(),
 		apachereceiver.NewFactory(),
 		apachesparkreceiver.NewFactory(),
@@ -237,7 +235,6 @@ func Get() (otelcol.Factories, error) {
 		receiver.Factory(nopreceiver.NewFactory()),
 		ntpreceiver.NewFactory(),
 		oracledbreceiver.NewFactory(),
-		obicollector.NewFactory(),
 		otlpreceiver.NewFactory(),
 		postgresqlreceiver.NewFactory(),
 		prometheusreceiver.NewFactory(),
@@ -275,7 +272,9 @@ func Get() (otelcol.Factories, error) {
 		yanggrpcreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 		zookeeperreceiver.NewFactory(),
-	)
+	}
+	receiverList = append(receiverList, obiReceivers...)
+	receivers, err := otelcol.MakeFactoryMap(receiverList...)
 	if err != nil {
 		errs = append(errs, err)
 	}

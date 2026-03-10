@@ -90,7 +90,6 @@ func TestDefaultComponents(t *testing.T) {
 		"nginx",
 		"nop",
 		"ntp",
-		"obi",
 		"oracledb",
 		"otlp",
 		"postgresql",
@@ -183,6 +182,9 @@ func TestDefaultComponents(t *testing.T) {
 		"spanmetrics",
 		"sum",
 	}
+
+	// OBI receiver is only compiled on Linux amd64/arm64 (eBPF support).
+	expectedReceivers = append(expectedReceivers, obiReceiverNames...)
 
 	factories, err := Get()
 	require.NoError(t, err)

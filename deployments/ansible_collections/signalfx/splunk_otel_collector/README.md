@@ -22,7 +22,7 @@ Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2023
 - CentOS / Red Hat: 9
-- Debian: 11, 12
+- Debian: 11, 12, 13
 - Ubuntu: 22.04, 24.04
 
 ### Windows

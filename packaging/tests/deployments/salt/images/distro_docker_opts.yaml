@@ -1,5 +1,6 @@
 deb:
   debian-bullseye: ["DISTRO_IMAGE=debian:bullseye"]
+  debian-bookworm: ["DISTRO_IMAGE=debian:bookworm"]
   ubuntu-jammy: ["DISTRO_IMAGE=ubuntu:22.04"]
   ubuntu-noble: ["DISTRO_IMAGE=ubuntu:24.04"]
 

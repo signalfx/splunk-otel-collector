@@ -46,6 +46,9 @@ get_distro_codename() {
       12)
         codename="bookworm"
         ;;
+      13)
+        codename="trixie"
+        ;;
       *)
         codename=""
         ;;
@@ -905,7 +908,7 @@ distro_is_supported() {
       ;;
     debian)
       case "$distro_codename" in
-        bookworm|bullseye)
+        bookworm|bullseye|trixie)
           return 0
           ;;
       esac

@@ -1,11 +1,11 @@
 # OBI Receiver (`obi`)
 
-| Status                   |                      |
-|--------------------------|----------------------|
-| Stability                | [alpha]              |
-| Supported pipeline types | traces, metrics      |
-| Distributions            | [Splunk]             |
-| OS                       | Linux only           |
+| Status                   |                            |
+|--------------------------|----------------------------|
+| Stability                | [alpha]                    |
+| Supported pipeline types | traces, metrics            |
+| Distributions            | [Splunk]                   |
+| OS                       | Linux only (amd64, arm64)  |
 
 The **OBI receiver** integrates [OpenTelemetry eBPF Instrumentation (OBI)](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation)
 into the Splunk OpenTelemetry Collector as a native receiver component. It uses Linux
@@ -19,8 +19,10 @@ processes **without code changes or application restarts**.
 
 ### Operating System
 
-OBI requires Linux. The receiver factory compiles on other platforms but is a no-op at
-runtime — no data will be collected on macOS or Windows.
+OBI requires **Linux on amd64 or arm64**. The receiver is gated by a build tag
+(`//go:build linux && (amd64 || arm64)`) — it is not compiled into the collector binary
+on other platforms (Windows, macOS, ppc64le, etc.), so no `obi` receiver will be
+registered on those targets.
 
 **Minimum kernel version: 4.18**
 

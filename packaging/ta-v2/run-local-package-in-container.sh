@@ -53,6 +53,8 @@ fi
 # Check if splunk_access_token is empty and set to test token if needed
 if grep -q "^splunk_access_token[[:space:]]*=[[:space:]]*$" "$ASSETS_DIR/local/inputs.conf"; then
     sed -i.bak 's/^splunk_access_token[[:space:]]*=[[:space:]]*$/splunk_access_token = F3K3TestT0Ken/' "$ASSETS_DIR/local/inputs.conf"
+    sed -i.bak 's/^splunk_realm[[:space:]]*=[[:space:]]*$/splunk_realm = us0/' "$ASSETS_DIR/local/inputs.conf"
+    sed -i.bak 's/^\[Splunk_TA_OTel_Collector.*\][[:space:]]*$/[Splunk_TA_OTel_Collector:\/\/local_run]/' "$ASSETS_DIR/local/inputs.conf"
     rm -f "$ASSETS_DIR/local/inputs.conf.bak"
 fi
 

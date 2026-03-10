@@ -804,7 +804,8 @@ build-msi:
           $VERSION_TAG = ""
       }
     - |
-      & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt) $($env:ARCH)"
+      $bashCmd = "./packaging/msi/build.sh --version '$VERSION_TAG' --jmx-metric-gatherer-release $(Get-Content ./packaging/jmx-metric-gatherer-release.txt) --arch $($env:ARCH)"
+      & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCmd"
   artifacts:
     paths:
       - dist/*.msi

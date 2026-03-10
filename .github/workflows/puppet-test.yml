@@ -270,6 +270,8 @@ jobs:
           name: msi-build-amd64
           path: ./dist
 
+      - uses: ./.github/actions/win-wait-for-docker
+
       - name: Setup python
         uses: actions/setup-python@v6
         with:

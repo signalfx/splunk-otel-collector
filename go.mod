@@ -837,6 +837,9 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
+	// OBI pulls in mongo-driver/v2 v2.4.1 which drops MongoDB 4.0 support
+	// (wire version 7). Pin to v2.3.1 to keep the MongoDB 4.0 discovery test passing.
+	go.mongodb.org/mongo-driver/v2 v2.4.1 => go.mongodb.org/mongo-driver/v2 v2.3.1
 	// OBI (OpenTelemetry eBPF Instrumentation): the pre-generated *_bpfel.go/.o
 	// BPF artifacts are gitignored in the OBI repo and therefore absent from the
 	// module zip on the Go proxy. The release tarball (obi-*-source-generated.tar.gz)

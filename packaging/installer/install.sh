@@ -90,10 +90,14 @@ default_service_group="splunk-otel-collector"
 
 preload_path="/etc/ld.so.preload"
 default_instrumentation_version="latest"
+default_obi_version="v0.6.0"
 default_deployment_environment=""
 instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 systemd_instrumentation_config_path="/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
+default_obi_install_dir="/usr/local/bin"
+obi_repo_base="https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download"
+obi_github_latest_api="https://api.github.com/repos/open-telemetry/opentelemetry-ebpf-instrumentation/releases/latest"
 service_name=""
 enable_profiler="false"
 enable_profiler_memory="false"
@@ -117,6 +121,216 @@ repo_for_stage() {
   local repo_url=$1
   local stage=$2
   echo "$repo_url/$stage"
+}
+
+normalize_obi_version() {
+  local version="$1"
+
+  if [ "$version" = "latest" ]; then
+    echo "$version"
+  else
+    echo "$version" | sed -e 's/^v//'
+  fi
+}
+
+resolve_obi_version() {
+  local version="$1"
+
+  if [ "$version" != "latest" ]; then
+    echo "v$( normalize_obi_version "$version" )"
+    return 0
+  fi
+
+  local tag
+  tag="$( download_file_to_stdout "$obi_github_latest_api" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1 )"
+  if [ -z "$tag" ]; then
+    echo "[ERROR] Could not determine latest OBI version from $obi_github_latest_api" >&2
+    exit 1
+  fi
+
+  echo "$tag"
+}
+
+kernel_major_minor() {
+  local kernel_release
+  local kernel_version
+  kernel_release="$(uname -r)"
+  kernel_version="$( echo "$kernel_release" | cut -d '-' -f 1 )"
+  echo "$kernel_version" | awk -F. '{ printf "%d.%d", $1, $2 }'
+}
+
+kernel_at_least() {
+  local minimum="$1"
+  local current="$( kernel_major_minor )"
+  local current_major="$( echo "$current" | cut -d. -f1 )"
+  local current_minor="$( echo "$current" | cut -d. -f2 )"
+  local min_major="$( echo "$minimum" | cut -d. -f1 )"
+  local min_minor="$( echo "$minimum" | cut -d. -f2 )"
+
+  if [ "$current_major" -gt "$min_major" ]; then
+    return 0
+  fi
+  if [ "$current_major" -lt "$min_major" ]; then
+    return 1
+  fi
+  [ "$current_minor" -ge "$min_minor" ]
+}
+
+bpffs_mounted() {
+  awk '$2 == "/sys/fs/bpf" && $3 == "bpf" { found = 1 } END { exit !found }' /proc/mounts
+}
+
+ensure_bpffs_available() {
+  # Confirm kernel advertises bpf fs support.
+  if ! grep -qw bpf /proc/filesystems; then
+    echo "[ERROR] OBI requires kernel support for bpf fs, but 'bpf' was not found in /proc/filesystems." >&2
+    return 1
+  fi
+
+  if bpffs_mounted; then
+    return 0
+  fi
+
+  echo "[ERROR] OBI requires bpffs mounted at /sys/fs/bpf." >&2
+  return 1
+}
+
+obi_requirements_supported() {
+  # OBI supports Linux amd64/x86_64 and arm64/aarch64.
+  case "$distro_arch" in
+    amd64|x86_64|aarch64|arm64)
+      ;;
+    *)
+      echo "[ERROR] OBI is not supported on architecture '${distro_arch}'. Supported architectures: x86_64/amd64, arm64/aarch64." >&2
+      return 1
+      ;;
+  esac
+
+  # RHEL-family kernels backport required eBPF features to 4.18.
+  local min_kernel="5.8"
+  case "$distro" in
+    amzn|centos|ol|rhel|rocky)
+      min_kernel="4.18"
+      ;;
+  esac
+
+  if ! kernel_at_least "$min_kernel"; then
+    echo "[ERROR] OBI requires Linux kernel ${min_kernel}+ on ${distro} (${distro_version}). Current kernel: $(uname -r)." >&2
+    return 1
+  fi
+
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "[ERROR] OBI installation requires root privileges." >&2
+    return 1
+  fi
+
+  if ! ensure_bpffs_available; then
+    return 1
+  fi
+
+  # If bpftool exists, use it as an additional runtime feature probe.
+  if command -v bpftool >/dev/null 2>&1; then
+    if ! bpftool feature probe kernel >/dev/null 2>&1; then
+      echo "[ERROR] OBI requires eBPF runtime features that could not be validated with bpftool." >&2
+      return 1
+    fi
+  else
+    echo "[NOTICE] bpftool is not installed; skipping detailed eBPF feature probe." >&2
+  fi
+
+  return 0
+}
+
+install_obi() {
+  local desired_version="$1"
+  local install_dir="$2"
+  local arch
+  local version_tag
+  local tar_name
+  local checksums_name="SHA256SUMS"
+  local download_base
+  local tmp_dir
+
+  case "$distro_arch" in
+    amd64|x86_64)
+      arch="amd64"
+      ;;
+    arm64|aarch64)
+      arch="arm64"
+      ;;
+    *)
+      echo "[ERROR] Unsupported OBI architecture: ${distro_arch}" >&2
+      exit 1
+      ;;
+  esac
+
+  if ! obi_requirements_supported; then
+    exit 1
+  fi
+
+  if ! command -v tar >/dev/null 2>&1; then
+    echo "[ERROR] tar is required to install OBI" >&2
+    exit 1
+  fi
+
+  if ! command -v sha256sum >/dev/null 2>&1; then
+    echo "[ERROR] sha256sum is required to verify OBI downloads" >&2
+    exit 1
+  fi
+
+  version_tag="$( resolve_obi_version "$desired_version" )"
+  tar_name="obi-${version_tag}-linux-${arch}.tar.gz"
+  download_base="${obi_repo_base}/${version_tag}"
+  tmp_dir="$(mktemp -d /tmp/splunk-obi.XXXXXX)"
+
+  echo "Installing OBI ${version_tag} (${arch}) ..."
+  echo "Downloading ${download_base}/${tar_name}"
+  if ! download_file_to_stdout "$download_base/$tar_name" > "$tmp_dir/$tar_name"; then
+    echo "[ERROR] Failed to download ${download_base}/${tar_name}" >&2
+    rm -rf "$tmp_dir"
+    exit 1
+  fi
+
+  echo "Downloading ${download_base}/${checksums_name}"
+  if ! download_file_to_stdout "$download_base/$checksums_name" > "$tmp_dir/$checksums_name"; then
+    echo "[ERROR] Failed to download ${download_base}/${checksums_name}" >&2
+    rm -rf "$tmp_dir"
+    exit 1
+  fi
+
+  echo "Verifying checksum for ${tar_name}"
+  if ! (cd "$tmp_dir" && sha256sum -c "$checksums_name" --ignore-missing | grep -q "${tar_name}: OK"); then
+    echo "[ERROR] OBI checksum verification failed for ${tar_name}" >&2
+    rm -rf "$tmp_dir"
+    exit 1
+  fi
+
+  (cd "$tmp_dir" && tar -xzf "$tar_name")
+
+  if [ ! -f "$tmp_dir/obi" ]; then
+    echo "[ERROR] OBI archive did not contain expected binary (obi)" >&2
+    rm -rf "$tmp_dir"
+    exit 1
+  fi
+
+  mkdir -p "$install_dir"
+  command install -m 0755 "$tmp_dir/obi" "$install_dir/obi"
+
+  rm -rf "$tmp_dir"
+
+  echo "Installed OBI binaries to $install_dir"
+  "$install_dir/obi" --version || true
+}
+
+uninstall_obi() {
+  local install_dir="$1"
+
+  for bin in obi k8s-cache; do
+    if [ -f "$install_dir/$bin" ]; then
+      rm -f "$install_dir/$bin"
+      echo "Removed OBI binary: $install_dir/$bin"
+    fi
+  done
 }
 
 download_file_to_stdout() {
@@ -694,6 +908,8 @@ install() {
 
 uninstall() {
   local npm_path="$1"
+  local with_obi="$2"
+  local obi_install_dir="$3"
 
   for agent in otelcol $instrumentation_so_path; do
     if command -v $agent >/dev/null 2>&1; then
@@ -761,6 +977,10 @@ uninstall() {
   if splunk_otel_js_installed "$npm_path"; then
     (cd $node_install_prefix && "$npm_path" uninstall --global=false @splunk/otel)
     echo "Successfully uninstalled the @splunk/otel npm package from $node_install_prefix"
+  fi
+
+  if [ "$with_obi" = "true" ]; then
+    uninstall_obi "$obi_install_dir"
   fi
 }
 
@@ -889,6 +1109,19 @@ Auto Instrumentation:
                                         is 0.87.0, and the minimum supported version for .NET auto instrumentation is
                                         0.99.0.
                                         (default: $default_instrumentation_version)
+
+OBI (OpenTelemetry eBPF Instrumentation):
+  --with-obi                            Download and install the OBI standalone binary (obi).
+                                        OBI is Linux-only and requires x86_64/amd64 or arm64/aarch64,
+                                        root privileges, eBPF runtime support, and Linux kernel 5.8+
+                                        (or 4.18+ for RHEL-family distributions).
+                                        (default: --without-obi)
+  --without-obi                         Disable OBI installation.
+  --obi-version <version|latest>        OBI version to install from GitHub releases.
+                                        Values can be provided with or without the 'v' prefix.
+                                        (default: $default_obi_version)
+  --obi-install-dir <path>              Directory where OBI binaries will be installed.
+                                        (default: $default_obi_install_dir)
 
 Uninstall:
   --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux and Splunk
@@ -1089,6 +1322,9 @@ parse_args_and_install() {
   local with_systemd_instrumentation="false"
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
+  local with_obi="false"
+  local obi_version="$default_obi_version"
+  local obi_install_dir="$default_obi_install_dir"
   local discovery=
   local npm_path="npm"
   local node_package_installed="false"
@@ -1224,6 +1460,20 @@ parse_args_and_install() {
         instrumentation_version="$2"
         shift 1
         ;;
+      --with-obi)
+        with_obi="true"
+        ;;
+      --without-obi)
+        with_obi="false"
+        ;;
+      --obi-version)
+        obi_version="$2"
+        shift 1
+        ;;
+      --obi-install-dir)
+        obi_install_dir="$2"
+        shift 1
+        ;;
       --deployment-environment)
         deployment_environment="$2"
         shift 1
@@ -1293,7 +1543,7 @@ parse_args_and_install() {
 
   if [ "$uninstall" = true ]; then
       check_support
-      uninstall "$npm_path"
+      uninstall "$npm_path" "$with_obi" "$obi_install_dir"
       exit 0
   fi
 
@@ -1400,6 +1650,10 @@ parse_args_and_install() {
   echo "API Endpoint: $api_url"
   echo "HEC Endpoint: $hec_url"
   echo "GODEBUG: $godebug"
+  if [ "$with_obi" = "true" ]; then
+    echo "OBI Version: $( normalize_obi_version "$obi_version" )"
+    echo "OBI Install Dir: $obi_install_dir"
+  fi
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
     echo "  Supported Auto Instrumentation SDK(s) to activate: $sdks_to_enable"
@@ -1431,6 +1685,10 @@ parse_args_and_install() {
   fi
 
   install "$stage" "$collector_version" "$skip_collector_repo" "$instrumentation_version"
+
+  if [ "$with_obi" = "true" ]; then
+    install_obi "$obi_version" "$obi_install_dir"
+  fi
 
   if [ "$with_instrumentation" = "true" ]; then
     if item_in_list "java" "$sdks_to_enable"; then
@@ -1482,6 +1740,16 @@ parse_args_and_install() {
       backup_file "$systemd_instrumentation_config_path"
       rm -f "$systemd_instrumentation_config_path"
     fi
+  fi
+
+  if [ "$with_obi" = "true" ]; then
+    cat <<EOH
+OBI has been installed successfully.
+Binaries available at:
+
+  ${obi_install_dir}/obi
+
+EOH
   fi
 
   create_user_group "$service_user" "$service_group"

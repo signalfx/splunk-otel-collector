@@ -19,7 +19,7 @@ Currently, the following Linux distributions and versions are supported:
 - Amazon Linux: 2
 - CentOS / Red Hat: 8, 9
 - Oracle: 8, 9
-- Debian: 9, 10, 11
+- Debian: 11, 12, 13
 - SUSE: 15
 - Ubuntu: 22.04, 24.04
 

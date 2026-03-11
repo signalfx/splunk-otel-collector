@@ -84,6 +84,28 @@ DOTNET_VARS = {
 
 INSTALLER_TIMEOUT = "30m"
 
+OBI_INSTALL_DIR = "/usr/local/bin"
+OBI_BIN = f"{OBI_INSTALL_DIR}/obi"
+OBI_VERSION = os.environ.get("OBI_VERSION", "v0.6.0")
+
+
+def bpffs_mounted_on_host():
+    """Return True if bpffs is mounted at /sys/fs/bpf on the test host.
+
+    OBI requires bpffs at runtime. Privileged Docker containers share the
+    host's /sys mount namespace, so if the host has bpffs the container will
+    too. Skip OBI tests when the test host doesn't meet this prerequisite.
+    """
+    try:
+        with open("/proc/mounts", encoding="utf-8") as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) >= 3 and parts[1] == "/sys/fs/bpf" and parts[2] == "bpf":
+                    return True
+    except OSError:
+        pass
+    return False
+
 
 def container_file_exists(container, path):
     return container.exec_run(f"test -f {path}").exit_code == 0
@@ -611,3 +633,47 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
         verify_uninstall(container, distro)
 
         verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
+
+
+@pytest.mark.installer
+@pytest.mark.obi
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64"])
+def test_installer_with_obi(distro, arch):
+    if not bpffs_mounted_on_host():
+        pytest.skip("bpffs not mounted on test host at /sys/fs/bpf; required for OBI (run 'mount -t bpf bpf /sys/fs/bpf' on the host)")
+
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--with-obi",
+        f"--obi-version {OBI_VERSION}",
+    ))
+
+    print(f"Testing OBI installation on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch=arch, extra_volumes={"/sys/fs/bpf": {"bind": "/sys/fs/bpf", "mode": "rw"}}) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+        time.sleep(5)
+
+        # verify collector service is running (OBI install should not break it)
+        assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
+
+        # verify obi binary was installed at the expected path
+        assert container_file_exists(container, OBI_BIN), \
+            f"OBI binary not found at {OBI_BIN}"
+
+        # verify the binary is functional (obi --version exits non-zero but prints version info)
+        run_container_cmd(container, f"{OBI_BIN} --version", exit_code=None)
+
+        # uninstall with --with-obi and verify obi binary is removed
+        debug_flag = "-x" if DEBUG == "yes" else ""
+        run_container_cmd(container, f"sh -l {debug_flag} /test/install.sh --uninstall --with-obi")
+
+        assert not container_file_exists(container, OBI_BIN), \
+            f"OBI binary was not removed from {OBI_BIN} after uninstall"
+

@@ -305,26 +305,25 @@ install_obi() {
   tar_name="obi-${version_tag}-linux-${arch}.tar.gz"
   download_base="${obi_repo_base}/${version_tag}"
   tmp_dir="$(mktemp -d /tmp/splunk-obi.XXXXXX)"
+  # Ensure temporary files are removed on both success and any early exit.
+  trap "rm -rf '$tmp_dir'" EXIT HUP INT TERM
 
   echo "Installing OBI ${version_tag} (${arch}) ..."
   echo "Downloading ${download_base}/${tar_name}"
   if ! download_file_to_stdout "$download_base/$tar_name" > "$tmp_dir/$tar_name"; then
     echo "[ERROR] Failed to download ${download_base}/${tar_name}" >&2
-    rm -rf "$tmp_dir"
     exit 1
   fi
 
   echo "Downloading ${download_base}/${checksums_name}"
   if ! download_file_to_stdout "$download_base/$checksums_name" > "$tmp_dir/$checksums_name"; then
     echo "[ERROR] Failed to download ${download_base}/${checksums_name}" >&2
-    rm -rf "$tmp_dir"
     exit 1
   fi
 
   echo "Verifying checksum for ${tar_name}"
   if ! (cd "$tmp_dir" && sha256sum -c "$checksums_name" --ignore-missing | grep -q "${tar_name}: OK"); then
     echo "[ERROR] OBI checksum verification failed for ${tar_name}" >&2
-    rm -rf "$tmp_dir"
     exit 1
   fi
 
@@ -332,7 +331,6 @@ install_obi() {
 
   if [ ! -f "$tmp_dir/obi" ]; then
     echo "[ERROR] OBI archive did not contain expected binary (obi)" >&2
-    rm -rf "$tmp_dir"
     exit 1
   fi
 
@@ -340,6 +338,7 @@ install_obi() {
   command install -m 0755 -- "$tmp_dir/obi" "$install_dir/obi"
 
   rm -rf "$tmp_dir"
+  trap - EXIT HUP INT TERM
 
   echo "Installed OBI binaries to $install_dir"
   "$install_dir/obi" --version || true

@@ -92,9 +92,10 @@ OBI_VERSION = os.environ.get("OBI_VERSION", "v0.6.0")
 def bpffs_mounted_on_host():
     """Return True if bpffs is mounted at /sys/fs/bpf on the test host.
 
-    OBI requires bpffs at runtime. Privileged Docker containers share the
-    host's /sys mount namespace, so if the host has bpffs the container will
-    too. Skip OBI tests when the test host doesn't meet this prerequisite.
+    OBI requires bpffs at runtime. These tests assume that /sys/fs/bpf is
+    mounted on the host and then made available inside the Docker container
+    (for example, via a bind mount configured elsewhere in the test harness).
+    Skip OBI tests when the test host doesn't meet this prerequisite.
     """
     try:
         with open("/proc/mounts", encoding="utf-8") as f:

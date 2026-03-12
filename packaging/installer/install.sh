@@ -208,7 +208,7 @@ ensure_bpffs_available() {
     return 0
   fi
 
-  echo "[ERROR] OBI requires bpffs mounted at /sys/fs/bpf." >&2
+  echo "[ERROR] OBI requires bpffs mounted at /sys/fs/bpf. You can mount it with: 'mount -t bpf bpf /sys/fs/bpf' (run as root), then rerun this installer." >&2
   return 1
 }
 

@@ -278,6 +278,29 @@ install_obi() {
     exit 1
   fi
 
+  # Some minimal images (for example, openSUSE test images) ship tar without
+  # a gzip binary in PATH. Ensure gzip is available before extracting .tar.gz.
+  if ! command -v gzip >/dev/null 2>&1; then
+    echo "gzip is required to extract OBI archives and was not found; attempting to install it ..."
+    case "$distro" in
+      ubuntu|debian)
+        install_apt_package "gzip" "latest"
+        ;;
+      amzn|centos|ol|rhel|rocky|sles|opensuse*)
+        install_yum_package "gzip"
+        ;;
+      *)
+        echo "[ERROR] gzip is required to extract OBI archives, but package installation is unsupported on distro '$distro'." >&2
+        exit 1
+        ;;
+    esac
+  fi
+
+  if ! command -v gzip >/dev/null 2>&1; then
+    echo "[ERROR] gzip is required to extract OBI archives" >&2
+    exit 1
+  fi
+
   version_tag="$( resolve_obi_version "$desired_version" )"
   tar_name="obi-${version_tag}-linux-${arch}.tar.gz"
   download_base="${obi_repo_base}/${version_tag}"

@@ -354,6 +354,11 @@ install_obi() {
   fi
 
   mkdir -p -- "$install_dir"
+  if [ -e "$install_dir/obi" ]; then
+    echo "[ERROR] $install_dir/obi already exists. Refusing to overwrite an existing OBI binary." >&2
+    echo "[ERROR] Use '--uninstall --with-obi --obi-install-dir $install_dir' to remove it first, or choose a different '--obi-install-dir'." >&2
+    exit 1
+  fi
   command install -m 0755 -- "$tmp_dir/obi" "$install_dir/obi"
 
   rm -rf "$tmp_dir"

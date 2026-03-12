@@ -133,6 +133,23 @@ normalize_obi_version() {
   fi
 }
 
+validate_obi_version() {
+  local version="$1"
+
+  case "$version" in
+    latest)
+      return 0
+      ;;
+  esac
+
+  # Allow only semver-like tags with optional leading 'v' and optional
+  # prerelease/build suffixes (e.g., 1.2.3, v1.2.3, 1.2.3-rc.1, v1.2.3+build.7).
+  if ! printf '%s\n' "$version" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+|-[0-9A-Za-z.-]+(\+[0-9A-Za-z.-]+)?)?$'; then
+    echo "[ERROR] Invalid OBI version '$version'. Expected 'latest' or a semver tag (for example: 0.6.0, v0.6.0, 0.6.0-rc.1)." >&2
+    exit 1
+  fi
+}
+
 resolve_obi_version() {
   local version="$1"
 
@@ -278,6 +295,8 @@ install_obi() {
     exit 1
   fi
 
+  validate_obi_version "$desired_version"
+
   # Some minimal images (for example, openSUSE test images) ship tar without
   # a gzip binary in PATH. Ensure gzip is available before extracting .tar.gz.
   if ! command -v gzip >/dev/null 2>&1; then
@@ -359,9 +378,9 @@ download_file_to_stdout() {
   local url=$1
 
   if command -v curl > /dev/null; then
-    curl -sSL $url
+    curl -sSL -- "$url"
   elif command -v wget > /dev/null; then
-    wget -O - -o /dev/null $url
+    wget -O - -o /dev/null -- "$url"
   else
     echo "Either curl or wget must be installed to download $url" >&2
     exit 1
@@ -956,7 +975,7 @@ uninstall() {
               systemctl daemon-reload
             fi
           else
-            agent_path="$( command -v agent )"
+            agent_path="$( command -v "$agent" )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
@@ -982,7 +1001,7 @@ uninstall() {
               systemctl daemon-reload
             fi
           else
-            agent_path="$( command -v agent )"
+            agent_path="$( command -v "$agent" )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
@@ -1148,6 +1167,9 @@ OBI (OpenTelemetry eBPF Instrumentation):
 Uninstall:
   --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux and Splunk
                                         OpenTelemetry Auto Instrumentation packages, if installed.
+                                        To also remove OBI binaries installed with --with-obi,
+                                        include --with-obi and, if needed, --obi-install-dir <path>
+                                        so uninstall targets the correct OBI install location.
 
 EOH
 }

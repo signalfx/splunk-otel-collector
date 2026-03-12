@@ -129,8 +129,6 @@ pytest -s --verbose -k "test_puppet_default and ubuntu-jammy and not instrumenta
 - `centos-9`
 - `opensuse-15`
 - `oraclelinux-8`
-- `oraclelinux-9`
-- `oraclelinux-10`
 
 ## Common pytest Options
 

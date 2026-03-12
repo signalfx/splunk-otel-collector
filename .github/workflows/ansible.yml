@@ -131,6 +131,8 @@ jobs:
           - debian11
           - debian12
           - debian13
+          - oracle9
+          - oracle10
           - ubuntu2204
           - ubuntu2404
 

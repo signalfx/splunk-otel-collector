@@ -642,7 +642,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
-@pytest.mark.parametrize("arch", ["amd64"])
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_installer_with_obi(distro, arch):
     if not bpffs_mounted_on_host():
         pytest.skip("bpffs not mounted on test host at /sys/fs/bpf; required for OBI (run 'mount -t bpf bpf /sys/fs/bpf' on the host)")

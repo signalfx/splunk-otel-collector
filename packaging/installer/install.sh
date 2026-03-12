@@ -336,8 +336,8 @@ install_obi() {
     exit 1
   fi
 
-  mkdir -p "$install_dir"
-  command install -m 0755 "$tmp_dir/obi" "$install_dir/obi"
+  mkdir -p -- "$install_dir"
+  command install -m 0755 -- "$tmp_dir/obi" "$install_dir/obi"
 
   rm -rf "$tmp_dir"
 
@@ -350,7 +350,7 @@ uninstall_obi() {
 
   for bin in obi k8s-cache; do
     if [ -f "$install_dir/$bin" ]; then
-      rm -f "$install_dir/$bin"
+      rm -f -- "$install_dir/$bin"
       echo "Removed OBI binary: $install_dir/$bin"
     fi
   done

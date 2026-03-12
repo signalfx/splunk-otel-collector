@@ -195,6 +195,10 @@ jobs:
               if ($_ -match "^splunk_access_token\s*=\s*$") {
                   $tokenLineFound = $true
                   "splunk_access_token = F3K3TestT0Ken"
+              } elseif ($_ -match "^splunk_realm\s*=\s*$") {
+                  "splunk_realm = us0"
+              } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
+                  "[Splunk_TA_OTel_Collector://local_run]"
               } else {
                   $_
               }

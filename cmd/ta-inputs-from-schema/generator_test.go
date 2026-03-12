@@ -48,7 +48,7 @@ interval = 0`
 	result := generateInputsConf(scheme, globalSettings, inputName)
 
 	// Verify the header
-	assert.Contains(t, result, "[Test_TA://Test_TA]")
+	assert.Contains(t, result, "[Test_TA]")
 
 	// Verify global settings are included
 	assert.Contains(t, result, "disabled=false")

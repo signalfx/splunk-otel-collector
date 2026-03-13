@@ -101,7 +101,8 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 		switch {
 		// TODO: to be refactored: the caller will specify which parameters should be parsed as env var pairs instead of using a naming convention
 		case strings.HasSuffix(paramName, "_env_vars"):
-			pairs, err := parseEnvVarPairs(param.Value)
+			var pairs map[string]string
+			pairs, err = parseEnvVarPairs(param.Value)
 			if err != nil {
 				return fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
 			}

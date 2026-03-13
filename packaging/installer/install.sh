@@ -1793,16 +1793,6 @@ parse_args_and_install() {
     fi
   fi
 
-  if [ "$with_obi" = "true" ]; then
-    cat <<EOH
-OBI has been installed successfully.
-Binaries available at:
-
-  ${obi_install_dir}/obi
-
-EOH
-  fi
-
   create_user_group "$service_user" "$service_group"
   configure_service_owner "$service_user" "$service_group"
 

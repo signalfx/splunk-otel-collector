@@ -212,17 +212,32 @@ ensure_bpffs_available() {
   return 1
 }
 
-obi_requirements_supported() {
-  # OBI supports Linux amd64/x86_64 and arm64/aarch64.
-  case "$distro_arch" in
-    amd64|x86_64|aarch64|arm64)
-      ;;
+# Maps a raw uname -m value to the canonical OBI arch name (amd64 or arm64).
+# Unknown values are echoed unchanged so ensure_obi_supported_arch can reject them.
+normalize_obi_arch() {
+  local arch="$1"
+  case "$arch" in
+    x86_64)  echo "amd64" ;;
+    aarch64) echo "arm64" ;;
+    *)       echo "$arch" ;;
+  esac
+}
+
+# Exits with an error if arch is not a supported OBI architecture.
+ensure_obi_supported_arch() {
+  local arch="$1"
+  case "$arch" in
+    amd64|arm64) return 0 ;;
     *)
-      echo "[ERROR] OBI is not supported on architecture '${distro_arch}'. Supported architectures: x86_64/amd64, arm64/aarch64." >&2
+      echo "[ERROR] OBI is not supported on architecture '${arch}'. Supported architectures: amd64, arm64." >&2
       return 1
       ;;
   esac
+}
 
+# Returns 0 if the running kernel meets OBI's minimum version requirement for
+# the current distro, 1 with an error otherwise.
+ensure_obi_supported_kernel() {
   # RHEL-family kernels backport required eBPF features to 4.18.
   local min_kernel="5.8"
   case "$distro" in
@@ -235,17 +250,14 @@ obi_requirements_supported() {
     echo "[ERROR] OBI requires Linux kernel ${min_kernel}+ on ${distro} (${distro_version}). Current kernel: $(uname -r)." >&2
     return 1
   fi
+}
 
-  if [ "$(id -u)" -ne 0 ]; then
-    echo "[ERROR] OBI installation requires root privileges." >&2
-    return 1
-  fi
-
+# Returns 0 if the eBPF capabilities required by OBI are available, 1 otherwise.
+ensure_bpf_enabled() {
   if ! ensure_bpffs_available; then
     return 1
   fi
 
-  # If bpftool exists, use it as an additional runtime feature probe.
   if command -v bpftool >/dev/null 2>&1; then
     if ! bpftool feature probe kernel >/dev/null 2>&1; then
       echo "[ERROR] OBI requires eBPF runtime features that could not be validated with bpftool." >&2
@@ -254,8 +266,13 @@ obi_requirements_supported() {
   else
     echo "[NOTICE] bpftool is not installed; skipping detailed eBPF feature probe." >&2
   fi
+}
 
-  return 0
+ensure_running_as_root() {
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "[ERROR] OBI installation requires root privileges." >&2
+    return 1
+  fi
 }
 
 install_obi() {
@@ -268,22 +285,11 @@ install_obi() {
   local download_base
   local tmp_dir
 
-  case "$distro_arch" in
-    amd64|x86_64)
-      arch="amd64"
-      ;;
-    arm64|aarch64)
-      arch="arm64"
-      ;;
-    *)
-      echo "[ERROR] Unsupported OBI architecture: ${distro_arch}" >&2
-      exit 1
-      ;;
-  esac
-
-  if ! obi_requirements_supported; then
-    exit 1
-  fi
+  arch=$(normalize_obi_arch "$distro_arch")
+  ensure_obi_supported_arch "$arch" || exit 1
+  ensure_obi_supported_kernel || exit 1
+  ensure_running_as_root || exit 1
+  ensure_bpf_enabled || exit 1
 
   if ! command -v tar >/dev/null 2>&1; then
     echo "[ERROR] tar is required to install OBI" >&2

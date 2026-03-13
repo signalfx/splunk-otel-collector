@@ -2,20 +2,19 @@
 
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
 
-{% elif item.image in ["centos9", "oraclelinux9", "oraclelinux10"] %}
-
-{% if item.image == "centos9" %}
-FROM quay.io/centos/centos:stream9
 {% elif item.image == "oraclelinux9" %}
-FROM quay.io/lib/oraclelinux:9
-{% else %}
-FROM quay.io/lib/oraclelinux:10
-{% endif %}
 
+FROM glillico/docker-oraclelinux9-ansible:latest
+
+{% elif item.image == "oraclelinux10" %}
+
+FROM glillico/docker-oraclelinux10-ansible:latest
+
+{% elif item.image == "centos9" %}
+
+FROM quay.io/centos/centos:stream9
 ENV container=docker
-{% if item.image == "centos9" %}
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
-{% endif %}
 RUN dnf install -y initscripts sudo systemd
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

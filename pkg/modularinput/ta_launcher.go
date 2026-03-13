@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -88,16 +90,29 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	}
 
 	// First pass: build a map of parameters starting with "splunk_"
-	splunkEnvVars := make(map[string]string)
+	modularInputEnvVars := make(map[string]string)
 	for _, param := range configStanza.Param {
-		if strings.HasPrefix(strings.ToLower(param.Name), "splunk_") {
-			envVarName := strings.ToUpper(param.Name)
-			splunkEnvVars[envVarName] = param.Value
+		paramName := strings.ToLower(param.Name)
+		if !strings.HasPrefix(paramName, "splunk_") {
+			continue
+		}
+
+		// Process special parameters
+		switch {
+		// TODO: to be refactored: the caller will specify which parameters should be parsed as env var pairs instead of using a naming convention
+		case strings.HasSuffix(paramName, "_env_vars"):
+			pairs, err := parseEnvVarPairs(param.Value)
+			if err != nil {
+				return fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
+			}
+			maps.Copy(modularInputEnvVars, pairs)
+		default:
+			modularInputEnvVars[strings.ToUpper(param.Name)] = param.Value
 		}
 	}
 
 	// Second pass: set environment variables in dependency order
-	err = setEnvVarsInOrder(splunkEnvVars, setEnvFn)
+	err = setEnvVarsInOrder(modularInputEnvVars, setEnvFn)
 	if err != nil {
 		return err
 	}
@@ -211,4 +226,37 @@ func isArgScheme(args []string) bool {
 
 func isArgValidate(args []string) bool {
 	return len(args) == 2 && args[1] == "--validate-arguments"
+}
+
+// parseEnvVarPairs parses a comma-separated list of key=value pairs into a map of
+// environment variable names to their string values.
+// The ',' and '=' characters in keys and values must be percent-encoded (%2C and %3D).
+// Other characters may also be percent-encoded (e.g., non-ASCII characters).
+// Example input: "KEY1=value1,KEY2=value%3D2" → {"KEY1": "value1", "KEY2": "value=2"}
+func parseEnvVarPairs(s string) (map[string]string, error) {
+	result := make(map[string]string)
+	if s == "" {
+		return result, nil
+	}
+	for pair := range strings.SplitSeq(s, ",") {
+		rawKey, rawVal, found := strings.Cut(pair, "=")
+		if !found {
+			return nil, fmt.Errorf("invalid key=value pair %q: missing '='", pair)
+		}
+
+		key, err := url.PathUnescape(rawKey)
+		if err != nil {
+			return nil, fmt.Errorf("invalid percent-encoding in key %q: %w", rawKey, err)
+		}
+		val, err := url.PathUnescape(rawVal)
+		if err != nil {
+			return nil, fmt.Errorf("invalid percent-encoding in value %q: %w", rawVal, err)
+		}
+
+		if key == "" {
+			return nil, fmt.Errorf("invalid key=value pair %q: key must not be empty", pair)
+		}
+		result[key] = val
+	}
+	return result, nil
 }

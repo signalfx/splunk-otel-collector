@@ -102,6 +102,14 @@ jobs:
           tar -xzf out/distribution/${{ matrix.package }} -C ./build-out
           find ./build-out -name "*"
 
+      - name: Configure env vars for smoke test
+        shell: bash
+        run: |
+          set -eo pipefail
+          mkdir -p ./build-out/Splunk_TA_OTel_Collector/local
+          cp ./build-out/Splunk_TA_OTel_Collector/default/inputs.conf ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
+          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = TA_SMOKE_TEST_VAR=smoke_test_value/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
+
       - name: Run local container
         env:
           ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
@@ -133,6 +141,16 @@ jobs:
           otelcol_pid="$(docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA" | awk '{print $2}')"
           echo "$TA PID $otelcol_pid"
           echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
+
+      - name: Check env vars are set on collector process
+        run: |
+          otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
+          if docker exec "$CONTAINER_NAME" sudo cat /proc/"$otelcol_pid"/environ | tr '\0' '\n' | grep -q "^TA_SMOKE_TEST_VAR=smoke_test_value$"; then
+            echo "TA_SMOKE_TEST_VAR is correctly set on $TA process."
+          else
+            echo "TA_SMOKE_TEST_VAR is NOT set on $TA process!"
+            exit 1
+          fi
 
       - name: Check if collector process is alive after 30 seconds
         run: |

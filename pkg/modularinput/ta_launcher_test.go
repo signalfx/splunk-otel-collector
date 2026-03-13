@@ -941,6 +941,199 @@ func TestHandleLaunchAsTA_StanzaPrefixNoMatch(t *testing.T) {
 	assert.False(t, setEnvCalled, "Expected setEnv to not be called when prefix doesn't match")
 }
 
+func TestParseEnvVarPairs_Empty(t *testing.T) {
+	result, err := parseEnvVarPairs("")
+	require.NoError(t, err)
+	assert.Empty(t, result)
+}
+
+func TestParseEnvVarPairs_SinglePair(t *testing.T) {
+	result, err := parseEnvVarPairs("MY_KEY=my_value")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"MY_KEY": "my_value"}, result)
+}
+
+func TestParseEnvVarPairs_MultiplePairs(t *testing.T) {
+	result, err := parseEnvVarPairs("KEY1=value1,KEY2=value2,KEY3=value3")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{
+		"KEY1": "value1",
+		"KEY2": "value2",
+		"KEY3": "value3",
+	}, result)
+}
+
+func TestParseEnvVarPairs_KeyCasePreserved(t *testing.T) {
+	result, err := parseEnvVarPairs("my_key=value,Mixed_Key=other")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{
+		"my_key":    "value",
+		"Mixed_Key": "other",
+	}, result)
+}
+
+func TestParseEnvVarPairs_PercentEncodedEquals(t *testing.T) {
+	// '=' in a value must be percent-encoded as %3D
+	result, err := parseEnvVarPairs("KEY=val%3Dwithin")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"KEY": "val=within"}, result)
+}
+
+func TestParseEnvVarPairs_PercentEncodedComma(t *testing.T) {
+	// ',' in a value must be percent-encoded as %2C
+	result, err := parseEnvVarPairs("KEY=a%2Cb")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"KEY": "a,b"}, result)
+}
+
+func TestParseEnvVarPairs_PercentEncodedInKey(t *testing.T) {
+	// '=' and ',' percent-encoded in a key
+	result, err := parseEnvVarPairs("KEY%2CSUFFIX=value")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"KEY,SUFFIX": "value"}, result)
+}
+
+func TestParseEnvVarPairs_NonASCIIValue(t *testing.T) {
+	// Non-ASCII characters may be percent-encoded
+	result, err := parseEnvVarPairs("KEY=%C3%A9l%C3%A8ve")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"KEY": "élève"}, result)
+}
+
+func TestParseEnvVarPairs_EmptyValue(t *testing.T) {
+	result, err := parseEnvVarPairs("KEY=")
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"KEY": ""}, result)
+}
+
+func TestParseEnvVarPairs_MissingEquals(t *testing.T) {
+	_, err := parseEnvVarPairs("NOEQUALS")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "missing '='")
+}
+
+func TestParseEnvVarPairs_EmptyKey(t *testing.T) {
+	_, err := parseEnvVarPairs("=value")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "key must not be empty")
+}
+
+func TestParseEnvVarPairs_InvalidPercentEncoding(t *testing.T) {
+	_, err := parseEnvVarPairs("KEY=val%ZZue")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid percent-encoding")
+}
+
+func TestParseEnvVarPairs_MultipleOTelResourceAttributes(t *testing.T) {
+	envVars, err := parseEnvVarPairs("OTEL_LOG_LEVEL=debug,OTEL_RESOURCE_ATTRIBUTES=service.name=svc%2Ccustom_attr=00")
+	require.NoError(t, err)
+	assert.Equal(t, "debug", envVars["OTEL_LOG_LEVEL"])
+	assert.Equal(t, "service.name=svc,custom_attr=00", envVars["OTEL_RESOURCE_ATTRIBUTES"])
+
+	envVars, err = parseEnvVarPairs("OTEL_RESOURCE_ATTRIBUTES=service.name=svc%2Ccustom_attr=00,OTEL_LOG_LEVEL=debug")
+	require.NoError(t, err)
+	assert.Equal(t, "debug", envVars["OTEL_LOG_LEVEL"])
+	assert.Equal(t, "service.name=svc,custom_attr=00", envVars["OTEL_RESOURCE_ATTRIBUTES"])
+}
+
+func TestHandleLaunchAsTA_EnvVarsSuffix(t *testing.T) {
+	// Save original functions and restore after test
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_realm">us0</param>
+			<param name="splunk_custom_env_vars">OTEL_LOG_LEVEL=debug,OTEL_RESOURCE_ATTRIBUTES=service.name=myapp</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err)
+
+	assert.Equal(t, "us0", envVars["SPLUNK_REALM"])
+	assert.Equal(t, "debug", envVars["OTEL_LOG_LEVEL"])
+	assert.Equal(t, "service.name=myapp", envVars["OTEL_RESOURCE_ATTRIBUTES"])
+	// The _env_vars parameter itself must not appear as an env var
+	assert.NotContains(t, envVars, "SPLUNK_CUSTOM_ENV_VARS")
+}
+
+func TestHandleLaunchAsTA_EnvVarsSuffix_PercentEncodedSeparators(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	// Value contains a literal ',' (%2C) and a literal '=' (%3D)
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_extra_env_vars">K1=a%2Cb,K2=x%3Dy</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err)
+
+	assert.Equal(t, "a,b", envVars["K1"])
+	assert.Equal(t, "x=y", envVars["K2"])
+}
+
+func TestHandleLaunchAsTA_EnvVarsSuffix_InvalidValue(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+	setEnvFn = func(_, _ string) error { return nil }
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_bad_env_vars">NOEQUALS</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "launch as TA failed to parse env vars from parameter 'splunk_bad_env_vars'")
+}
+
 func TestHandleLaunchAsTA_StanzaPrefixFirstMatch(t *testing.T) {
 	// Save original functions and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn

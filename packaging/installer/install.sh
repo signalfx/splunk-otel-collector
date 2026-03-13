@@ -281,15 +281,13 @@ ensure_running_as_root() {
   fi
 }
 
-install_obi() {
+# Validates that OBI can be installed in the current environment and resolves
+# the concrete release tag to install. Exits with an error on any failure.
+# On success, echoes the resolved version tag (e.g. "v0.7.1") to stdout.
+preflight_obi() {
   local desired_version="$1"
   local install_dir="$2"
   local arch
-  local version_tag
-  local tar_name
-  local checksums_name="SHA256SUMS"
-  local download_base
-  local tmp_dir
 
   arch=$(normalize_obi_arch "$distro_arch")
   ensure_obi_supported_arch "$arch" || exit 1
@@ -332,7 +330,22 @@ install_obi() {
     exit 1
   fi
 
-  version_tag="$( resolve_obi_version "$desired_version" )"
+  resolve_obi_version "$desired_version"
+}
+
+# Downloads, verifies, and installs the OBI binary.
+# Expects preflight_obi() to have already been called.
+# $1: resolved version tag (e.g. "v0.7.1"), $2: install directory
+install_obi() {
+  local version_tag="$1"
+  local install_dir="$2"
+  local arch
+  local tar_name
+  local checksums_name="SHA256SUMS"
+  local download_base
+  local tmp_dir
+
+  arch=$(normalize_obi_arch "$distro_arch")
   tar_name="obi-${version_tag}-linux-${arch}.tar.gz"
   download_base="${obi_repo_base}/${version_tag}"
   tmp_dir="$(mktemp -d /tmp/splunk-obi.XXXXXX)"
@@ -375,11 +388,6 @@ install_obi() {
   fi
 
   mkdir -p -- "$install_dir"
-  if [ -e "$install_dir/obi" ]; then
-    echo "[ERROR] $install_dir/obi already exists. Refusing to overwrite an existing OBI binary." >&2
-    echo "[ERROR] Use '--uninstall --with-obi --obi-install-dir $install_dir' to remove it first, or choose a different '--obi-install-dir'." >&2
-    exit 1
-  fi
   command install -m 0755 -- "$tmp_dir/obi" "$install_dir/obi"
 
   rm -rf "$tmp_dir"
@@ -560,6 +568,8 @@ ensure_not_installed() {
   local with_instrumentation="$1"
   local with_systemd_instrumentation="$2"
   local npm_path="$3"
+  local with_obi="${4:-false}"
+  local obi_install_dir="${5:-$default_obi_install_dir}"
   local otelcol_path=$( command -v otelcol 2>/dev/null || true )
 
   if [ -n "$otelcol_path" ]; then
@@ -584,6 +594,12 @@ ensure_not_installed() {
       echo "Please uninstall @splunk/otel, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
+  fi
+
+  if [ "$with_obi" = "true" ] && [ -e "$obi_install_dir/obi" ]; then
+    echo "$obi_install_dir/obi already exists which implies that OBI is already installed." >&2
+    echo "Please uninstall OBI, or try running this script with the '--uninstall --with-obi' option." >&2
+    exit 1
   fi
 }
 
@@ -1393,6 +1409,7 @@ parse_args_and_install() {
   local with_obi="false"
   local obi_version="$default_obi_version"
   local obi_install_dir="$default_obi_install_dir"
+  local obi_version_tag=
   local discovery=
   local npm_path="npm"
   local node_package_installed="false"
@@ -1705,7 +1722,11 @@ parse_args_and_install() {
     fi
   fi
 
-  ensure_not_installed "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
+  if [ "$with_obi" = "true" ]; then
+    obi_version_tag="$( preflight_obi "$obi_version" "$obi_install_dir" )"
+  fi
+
+  ensure_not_installed "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path" "$with_obi" "$obi_install_dir"
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
   echo "Memory Size in MIB: $memory"
@@ -1751,7 +1772,7 @@ parse_args_and_install() {
   install "$stage" "$collector_version" "$skip_collector_repo" "$instrumentation_version"
 
   if [ "$with_obi" = "true" ]; then
-    install_obi "$obi_version" "$obi_install_dir"
+    install_obi "$obi_version_tag" "$obi_install_dir"
   fi
 
   if [ "$with_instrumentation" = "true" ]; then

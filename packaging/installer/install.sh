@@ -281,9 +281,8 @@ ensure_running_as_root() {
   fi
 }
 
-# Validates that OBI can be installed in the current environment and resolves
-# the concrete release tag to install. Exits with an error on any failure.
-# On success, echoes the resolved version tag (e.g. "v0.7.1") to stdout.
+# Validates that OBI can be installed in the current environment.
+# Exits with an error on any failure.
 preflight_obi() {
   local desired_version="$1"
   local install_dir="$2"
@@ -330,7 +329,6 @@ preflight_obi() {
     exit 1
   fi
 
-  resolve_obi_version "$desired_version"
 }
 
 # Downloads, verifies, and installs the OBI binary.
@@ -1723,7 +1721,8 @@ parse_args_and_install() {
   fi
 
   if [ "$with_obi" = "true" ]; then
-    obi_version_tag="$( preflight_obi "$obi_version" "$obi_install_dir" )"
+    preflight_obi "$obi_version" "$obi_install_dir"
+    obi_version_tag="$( resolve_obi_version "$obi_version" )"
   fi
 
   ensure_not_installed "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path" "$with_obi" "$obi_install_dir"

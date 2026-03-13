@@ -347,7 +347,11 @@ install_obi() {
   fi
 
   echo "Verifying checksum for ${tar_name}"
-  if ! (cd "$tmp_dir" && sha256sum -c "$checksums_name" --ignore-missing | grep -q "${tar_name}: OK"); then
+  if ! (cd "$tmp_dir" && \
+    expected_checksum="$(awk -v f="$tar_name" '$2 == f { print $1 }' "$checksums_name" || true)" && \
+    [ -n "$expected_checksum" ] && \
+    actual_checksum="$(sha256sum "$tar_name" | awk '{ print $1 }')" && \
+    [ "$expected_checksum" = "$actual_checksum" ]); then
     echo "[ERROR] OBI checksum verification failed for ${tar_name}" >&2
     exit 1
   fi

@@ -1720,7 +1720,7 @@ parse_args_and_install() {
   fi
 
   if [ "$with_obi" = "true" ]; then
-    preflight_obi "$obi_version" "$obi_install_dir"
+    preflight_obi "$obi_version"
     obi_version_tag="$( resolve_obi_version "$obi_version" )"
   fi
 

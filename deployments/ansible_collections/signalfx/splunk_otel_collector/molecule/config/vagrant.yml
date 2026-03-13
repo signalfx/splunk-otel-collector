@@ -17,9 +17,9 @@ platforms:
     box: debian/bookworm64
   - name: trixie64
     box: debian/trixie64
-  - name: oracle9
+  - name: oraclelinux9
     box: generic/oracle9
-  - name: oracle10
+  - name: oraclelinux10
     box: oraclebase/oracle-10
 provisioner:
   env:

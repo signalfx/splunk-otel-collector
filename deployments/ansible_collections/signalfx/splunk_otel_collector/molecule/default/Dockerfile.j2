@@ -2,7 +2,7 @@
 
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
 
-{% elif item.image in ["centos9", "oraclelinux9", "oraclelinux10" %}
+{% elif item.image in ["centos9", "oraclelinux9", "oraclelinux10"] %}
 
 {% if item.image == "centos9" %}
 FROM quay.io/centos/centos:stream9

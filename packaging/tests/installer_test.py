@@ -669,8 +669,8 @@ def test_installer_with_obi(distro, arch):
             f"OBI binary not found at {OBI_BIN}"
 
         # verify the binary is functional: obi --version may exit non-zero but must print version info
-        obi_version_output = run_container_cmd(container, f"{OBI_BIN} --version", exit_code=None)
-        assert re.search(r"\b\d+\.\d+\.\d+\b", obi_version_output), \
+        _, obi_version_output = run_container_cmd(container, f"{OBI_BIN} --version", exit_code=None)
+        assert re.search(r"\b\d+\.\d+\.\d+\b", obi_version_output.decode("utf-8")), \
             f"OBI version output did not contain a version string: {obi_version_output!r}"
 
         # uninstall with --with-obi and verify obi binary is removed

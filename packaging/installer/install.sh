@@ -398,7 +398,7 @@ download_file_to_stdout() {
   local url=$1
 
   if command -v curl > /dev/null; then
-    curl -sSL -- "$url"
+    curl -fsSL -- "$url"
   elif command -v wget > /dev/null; then
     wget -O - -o /dev/null -- "$url"
   else

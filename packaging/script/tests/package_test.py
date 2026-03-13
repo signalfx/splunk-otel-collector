@@ -80,6 +80,8 @@ def test_script_package_install(distro, arch):
         if distro in DEB_DISTROS:
             run_container_cmd(container, "apt-get update")
             run_container_cmd(container, "apt-get -y install python3 gcc")
+        elif "opensuse" in distro:
+            run_container_cmd(container, "zypper install -y python3 gcc-c++ python3-devel")
         else:
             run_container_cmd(container, "yum install -y python3 gcc-c++ python3-devel")
 

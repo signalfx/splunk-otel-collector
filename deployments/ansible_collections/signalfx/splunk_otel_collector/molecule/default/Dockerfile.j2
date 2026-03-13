@@ -15,7 +15,7 @@ FROM quay.io/lib/oraclelinux:10
 ENV container=docker
 {% if item.image == "centos9" %}
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
-{% end %}
+{% endif %}
 RUN dnf install -y initscripts sudo systemd
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

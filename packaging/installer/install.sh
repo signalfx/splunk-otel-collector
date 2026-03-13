@@ -311,6 +311,7 @@ preflight_obi() {
     echo "gzip is required to extract OBI archives and was not found; attempting to install it ..."
     case "$distro" in
       ubuntu|debian)
+        apt-get -y update
         install_apt_package "gzip" "latest"
         ;;
       amzn|centos|ol|rhel|rocky|sles|opensuse*)

@@ -356,7 +356,12 @@ install_obi() {
     exit 1
   fi
 
-  (cd "$tmp_dir" && tar -xzf "$tar_name")
+  # Safely extract only the expected 'obi' binary from the archive without
+  # allowing other files or paths inside the tarball to be created.
+  if ! (cd "$tmp_dir" && tar -xOzf "$tar_name" obi > "$tmp_dir/obi"); then
+    echo "[ERROR] Failed to extract expected binary (obi) from OBI archive" >&2
+    exit 1
+  fi
 
   if [ ! -f "$tmp_dir/obi" ]; then
     echo "[ERROR] OBI archive did not contain expected binary (obi)" >&2

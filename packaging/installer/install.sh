@@ -158,8 +158,14 @@ resolve_obi_version() {
     return 0
   fi
 
+  local api_response
+  if ! api_response="$( download_file_to_stdout "$obi_github_latest_api" )"; then
+    echo "[ERROR] Failed to download OBI release metadata from $obi_github_latest_api" >&2
+    exit 1
+  fi
+
   local tag
-  tag="$( download_file_to_stdout "$obi_github_latest_api" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1 )"
+  tag="$( printf '%s\n' "$api_response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1 )"
   if [ -z "$tag" ]; then
     echo "[ERROR] Could not determine latest OBI version from $obi_github_latest_api" >&2
     exit 1

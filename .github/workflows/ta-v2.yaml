@@ -144,7 +144,7 @@ jobs:
 
       - name: Check env vars are set on collector process
         run: |
-          if docker exec -i "$CONTAINER_NAME" curl -s http://localhost:8888/metrics | grep -q "ta.smoke.test=\"smoke_test_value\""; then
+          if docker exec -i "$CONTAINER_NAME" curl -s http://localhost:8888/metrics | grep -q "ta_smoke_test=\"smoke_test_value\""; then
             echo "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
           else
             echo "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!"
@@ -227,7 +227,7 @@ jobs:
           }
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
-      - name: Start Splunk UF
+      - name: Restart Splunk UF
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe restart
@@ -348,7 +348,7 @@ jobs:
         shell: pwsh
         run: |
           $metrics = Invoke-WebRequest -Uri "http://localhost:8888/metrics" -UseBasicParsing
-          if ($metrics.Content -match 'ta\.smoke\.test="smoke_test_value"') {
+          if ($metrics.Content -match 'ta_smoke_test="smoke_test_value"') {
               Write-Host "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
           } else {
               Write-Host "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!" -ForegroundColor Red

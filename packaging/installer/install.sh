@@ -386,12 +386,10 @@ install_obi() {
 uninstall_obi() {
   local install_dir="$1"
 
-  for bin in obi k8s-cache; do
-    if [ -f "$install_dir/$bin" ]; then
-      rm -f -- "$install_dir/$bin"
-      echo "Removed OBI binary: $install_dir/$bin"
-    fi
-  done
+  if [ -f "$install_dir/obi" ]; then
+    rm -f -- "$install_dir/obi"
+    echo "Removed OBI binary: $install_dir/obi"
+  fi
 }
 
 download_file_to_stdout() {

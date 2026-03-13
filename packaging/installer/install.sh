@@ -1705,10 +1705,6 @@ parse_args_and_install() {
   echo "API Endpoint: $api_url"
   echo "HEC Endpoint: $hec_url"
   echo "GODEBUG: $godebug"
-  if [ "$with_obi" = "true" ]; then
-    echo "OBI Version: $( normalize_obi_version "$obi_version" )"
-    echo "OBI Install Dir: $obi_install_dir"
-  fi
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
     echo "  Supported Auto Instrumentation SDK(s) to activate: $sdks_to_enable"

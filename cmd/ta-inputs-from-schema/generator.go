@@ -24,7 +24,7 @@ func generateInputsConf(scheme *Scheme, globalSettings, inputName string) string
 	var sb strings.Builder
 
 	// Write header with input name
-	sb.WriteString(fmt.Sprintf("[%s://%s]\n\n", inputName, inputName))
+	sb.WriteString(fmt.Sprintf("[%s]\n\n", inputName))
 
 	// Write global settings
 	sb.WriteString(globalSettings)

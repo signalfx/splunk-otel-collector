@@ -285,7 +285,6 @@ ensure_running_as_root() {
 # Exits with an error on any failure.
 preflight_obi() {
   local desired_version="$1"
-  local install_dir="$2"
   local arch
 
   arch=$(normalize_obi_arch "$distro_arch")

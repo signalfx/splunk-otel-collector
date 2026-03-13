@@ -108,7 +108,7 @@ jobs:
           set -eo pipefail
           mkdir -p ./build-out/Splunk_TA_OTel_Collector/local
           cp ./build-out/Splunk_TA_OTel_Collector/default/inputs.conf ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
-          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = TA_SMOKE_TEST_VAR=smoke_test_value/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
+          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
 
       - name: Run local container
         env:
@@ -144,11 +144,10 @@ jobs:
 
       - name: Check env vars are set on collector process
         run: |
-          otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
-          if docker exec "$CONTAINER_NAME" sudo cat /proc/"$otelcol_pid"/environ | tr '\0' '\n' | grep -q "^TA_SMOKE_TEST_VAR=smoke_test_value$"; then
-            echo "TA_SMOKE_TEST_VAR is correctly set on $TA process."
+          if docker exec -i "$CONTAINER_NAME" curl -s http://localhost:8888/metrics | grep -q "ta.smoke.test=\"smoke_test_value\""; then
+            echo "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
           else
-            echo "TA_SMOKE_TEST_VAR is NOT set on $TA process!"
+            echo "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!"
             exit 1
           fi
 
@@ -215,6 +214,8 @@ jobs:
                   "splunk_access_token = F3K3TestT0Ken"
               } elseif ($_ -match "^splunk_realm\s*=\s*$") {
                   "splunk_realm = us0"
+              } elseif ($_ -match "^splunk_collector_env_vars\s*=\s*$") {
+                  "splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value"
               } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
                   "[Splunk_TA_OTel_Collector://local_run]"
               } else {
@@ -341,6 +342,17 @@ jobs:
               Start-Sleep -Seconds 1
               $elapsed += 1
               Write-Host -NoNewline "."
+          }
+
+      - name: Check env vars are set on collector process
+        shell: pwsh
+        run: |
+          $metrics = Invoke-WebRequest -Uri "http://localhost:8888/metrics" -UseBasicParsing
+          if ($metrics.Content -match 'ta\.smoke\.test="smoke_test_value"') {
+              Write-Host "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
+          } else {
+              Write-Host "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!" -ForegroundColor Red
+              exit 1
           }
 
       - name: Check if Splunk_TA_OTel_Collector process is alive after 30 seconds

@@ -14,7 +14,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: 1.25.7
+  GO_VERSION: 1.25.8
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -29,7 +29,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.34.1
         with:
           # EOL REFERENCE: https://github.com/aquasecurity/trivy/releases
-          version: v0.69.1
+          version: v0.69.3
           scan-type: 'fs'
           scan-ref: '.'
           skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
@@ -105,7 +105,7 @@ jobs:
       - name: Run trivy image scan
         uses: aquasecurity/trivy-action@0.34.1
         with:
-          version: v0.69.1
+          version: v0.69.3
           scan-type: 'image'
           image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           format: 'table'

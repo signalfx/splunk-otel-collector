@@ -1,6 +1,6 @@
 module github.com/splunk/splunk-technical-addon
 
-go 1.25.7
+go 1.25.8
 
 require (
 	github.com/deckarep/golang-set/v2 v2.8.0

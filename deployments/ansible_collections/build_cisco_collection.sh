@@ -46,6 +46,6 @@ else
 fi
 
 mkdir -p "${COLLECTION_DIR}"
-ansible-galaxy collection build "${DEST_DIR}"/splunk_otel_collector/ --output-path "${COLLECTION_DIR}"
+ansible-galaxy collection build "${DEST_DIR}"/splunk_otel_collector/ --output-path "${COLLECTION_DIR}" --force
 
 rm -rf "${DEST_DIR}"

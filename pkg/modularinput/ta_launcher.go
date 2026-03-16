@@ -231,9 +231,12 @@ func isArgValidate(args []string) bool {
 
 // parseEnvVarPairs parses a comma-separated list of key=value pairs into a map of
 // environment variable names to their string values.
-// The ',' and '=' characters in keys and values must be percent-encoded (%2C and %3D).
-// Other characters may also be percent-encoded (e.g., non-ASCII characters).
-// Example input: "KEY1=value1,KEY2=value%3D2" → {"KEY1": "value1", "KEY2": "value=2"}
+// Commas in keys and values must be percent-encoded as %2C so they are not treated as pair
+// separators. '=' characters in keys must be percent-encoded as %3D so the first literal '='
+// in each pair can be used as the key/value separator. '=' characters in values may be
+// percent-encoded as %3D but do not need to be, because only the first '=' is treated as the
+// separator. Other characters may also be percent-encoded (e.g., non-ASCII characters).
+// Example input: "KEY1=value1,KEY2=value=2%2Cextra" → {"KEY1": "value1", "KEY2": "value=2,extra"}
 func parseEnvVarPairs(s string) (map[string]string, error) {
 	result := make(map[string]string)
 	if s == "" {

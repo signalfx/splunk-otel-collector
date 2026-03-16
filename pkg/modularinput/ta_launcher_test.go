@@ -987,7 +987,7 @@ func TestParseEnvVarPairs_PercentEncodedComma(t *testing.T) {
 }
 
 func TestParseEnvVarPairs_PercentEncodedInKey(t *testing.T) {
-	// '=' and ',' percent-encoded in a key
+	// ',' percent-encoded in a key
 	result, err := parseEnvVarPairs("KEY%2CSUFFIX=value")
 	require.NoError(t, err)
 	assert.Equal(t, map[string]string{"KEY,SUFFIX": "value"}, result)

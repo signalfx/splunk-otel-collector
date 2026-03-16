@@ -235,8 +235,9 @@ func isArgValidate(args []string) bool {
 // separators. '=' characters in keys must be percent-encoded as %3D so the first literal '='
 // in each pair can be used as the key/value separator. '=' characters in values may be
 // percent-encoded as %3D but do not need to be, because only the first '=' is treated as the
-// separator. Other characters may also be percent-encoded (e.g., non-ASCII characters).
-// Example input: "KEY1=value1,KEY2=value=2%2Cextra" → {"KEY1": "value1", "KEY2": "value=2,extra"}
+ // separator. This function expects standard percent-encoding: literal '%' characters must be
+ // written as %25, and other characters may also be percent-encoded (e.g., non-ASCII characters).
+ // Example input: "KEY1=value1,KEY2=value=2%2Cextra" → {"KEY1": "value1", "KEY2": "value=2,extra"}
 func parseEnvVarPairs(s string) (map[string]string, error) {
 	result := make(map[string]string)
 	if s == "" {

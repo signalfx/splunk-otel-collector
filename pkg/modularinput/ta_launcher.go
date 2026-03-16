@@ -243,10 +243,13 @@ func parseEnvVarPairs(s string) (map[string]string, error) {
 		return result, nil
 	}
 	for pair := range strings.SplitSeq(s, ",") {
+		pair = strings.TrimSpace(pair)
 		rawKey, rawVal, found := strings.Cut(pair, "=")
 		if !found {
 			return nil, fmt.Errorf("invalid key=value pair %q: missing '='", pair)
 		}
+		rawKey = strings.TrimSpace(rawKey)
+		rawVal = strings.TrimSpace(rawVal)
 
 		key, err := url.PathUnescape(rawKey)
 		if err != nil {

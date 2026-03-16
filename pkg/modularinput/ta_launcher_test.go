@@ -40,8 +40,9 @@ func TestHandleLaunchAsTA_notModularInput(t *testing.T) {
 	os.Unsetenv("SPLUNK_HOME")
 
 	args := []string{"program"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza", "<scheme></scheme>")
-	assert.NoError(t, err, "Expected no error when not in modular input mode")
+	resultArgs, err := HandleLaunchAsTA(args, nil, "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err, "Expected no error when not in modular input mode")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged when not in modular input mode")
 }
 
 func TestHandleLaunchAsTA_QueryModeScheme(t *testing.T) {
@@ -67,8 +68,9 @@ func TestHandleLaunchAsTA_QueryModeScheme(t *testing.T) {
 
 	const schemeContent = "<scheme><title>Test</title></scheme>"
 	args := []string{"program", "--scheme"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza", schemeContent)
+	resultArgs, err := HandleLaunchAsTA(args, nil, "test-stanza", schemeContent)
 	require.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --scheme argument")
+	assert.Nil(t, resultArgs, "Expected nil args in introspection mode")
 	assert.Contains(t, buf.String(), schemeContent, "Expected scheme content written to stdout in introspection mode")
 }
 
@@ -95,8 +97,9 @@ func TestHandleLaunchAsTA_QueryModeValidate(t *testing.T) {
 
 	const schemeContent = "<scheme><title>Test</title></scheme>"
 	args := []string{"program", "--validate-arguments"}
-	err := HandleLaunchAsTA(args, nil, "test-stanza", schemeContent)
+	resultArgs, err := HandleLaunchAsTA(args, nil, "test-stanza", schemeContent)
 	require.ErrorIs(t, err, ErrQueryMode, "Expected ErrQueryMode for --validate-arguments argument")
+	assert.Nil(t, resultArgs, "Expected nil args in validation mode")
 	assert.Empty(t, buf.String(), "Expected no scheme content written to stdout in validation mode")
 }
 
@@ -116,8 +119,9 @@ func TestHandleLaunchAsTA_InvalidXML(t *testing.T) {
 	args := []string{"program"}
 	invalidXML := strings.NewReader("<input><invalid>")
 
-	err := HandleLaunchAsTA(args, invalidXML, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, invalidXML, "test-stanza", "<scheme></scheme>")
 	require.Error(t, err, "Expected error for invalid XML")
+	assert.Nil(t, resultArgs, "Expected nil args on error")
 	assert.Contains(t, err.Error(), "launch as TA failed to read modular input XML from stdin")
 }
 
@@ -161,8 +165,9 @@ func TestHandleLaunchAsTA_Success(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	assert.Equal(t, "secret123", envVars["SPLUNK_API_KEY"], "Expected SPLUNK_API_KEY to be set")
 	assert.Equal(t, "https://api.example.com", envVars["SPLUNK_ENDPOINT"], "Expected SPLUNK_ENDPOINT to be set")
@@ -208,8 +213,9 @@ func TestHandleLaunchAsTA_SuccessWithEnvExpansion(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	assert.Equal(t, "expanded_value", envVars["SPLUNK_CONFIG_VALUE"], "Expected SPLUNK_CONFIG_VALUE to be expanded")
 }
@@ -252,8 +258,9 @@ func TestHandleLaunchAsTA_SetEnvError(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.Error(t, err, "Expected error")
+	assert.Nil(t, resultArgs, "Expected nil args on error")
 	assert.Contains(t, err.Error(), "launch as TA failed to set environment variable")
 	assert.ErrorIs(t, err, expectedErr, "Expected wrapped error")
 }
@@ -297,8 +304,9 @@ func TestHandleLaunchAsTA_StanzaNotFound(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error when stanza not found")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged when stanza not found")
 	assert.False(t, setEnvCalled, "Expected setEnv to not be called when stanza not found")
 }
 
@@ -340,8 +348,9 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error with empty stanza")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged with empty stanza")
 	assert.False(t, setEnvCalled, "Expected setEnv to not be called with empty stanza")
 }
 
@@ -362,8 +371,9 @@ func TestHandleLaunchAsTA_ReadError(t *testing.T) {
 	errorReader := &errorReader{err: errors.New("read error")}
 
 	args := []string{"program"}
-	err := HandleLaunchAsTA(args, errorReader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, errorReader, "test-stanza", "<scheme></scheme>")
 	require.Error(t, err, "Expected error for read failure")
+	assert.Nil(t, resultArgs, "Expected nil args on error")
 	assert.Contains(t, err.Error(), "launch as TA failed to read modular input XML from stdin")
 }
 
@@ -565,8 +575,9 @@ func TestHandleLaunchAsTA_TwoPassFiltering(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	// Only splunk_ prefixed parameters should be set
 	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM to be set")
@@ -621,8 +632,9 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	// Verify all variables are set
 	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM to be set")
@@ -698,8 +710,9 @@ func TestHandleLaunchAsTA_MixedCaseSplunkPrefix(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	// All should be converted to uppercase
 	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM to be set")
@@ -752,8 +765,9 @@ func TestHandleLaunchAsTA_ComplexDependencies(t *testing.T) {
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
 
-	err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	// Verify all variables are set correctly
 	assert.Equal(t, "https", envVars["SPLUNK_PROTOCOL"], "Expected SPLUNK_PROTOCOL to be set")
@@ -888,8 +902,9 @@ func TestHandleLaunchAsTA_StanzaPrefixMatch(t *testing.T) {
 	reader := strings.NewReader(xmlData)
 
 	// Use prefix "otel://" to match only the first stanza
-	err := HandleLaunchAsTA(args, reader, "otel://", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "otel://", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	// Should match the first stanza only
 	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM from first stanza")
@@ -936,8 +951,9 @@ func TestHandleLaunchAsTA_StanzaPrefixNoMatch(t *testing.T) {
 	reader := strings.NewReader(xmlData)
 
 	// Use prefix that doesn't match
-	err := HandleLaunchAsTA(args, reader, "nonexistent://", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "nonexistent://", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error when prefix doesn't match")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged when prefix doesn't match")
 	assert.False(t, setEnvCalled, "Expected setEnv to not be called when prefix doesn't match")
 }
 
@@ -1064,8 +1080,10 @@ func TestHandleLaunchAsTA_EnvVarsSuffix(t *testing.T) {
 	</configuration>
 </input>`
 
-	err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	inputArgs := []string{"program"}
+	resultArgs, err := HandleLaunchAsTA(inputArgs, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err)
+	assert.Equal(t, inputArgs, resultArgs, "Expected args to be returned unchanged")
 
 	assert.Equal(t, "us0", envVars["SPLUNK_REALM"])
 	assert.Equal(t, "debug", envVars["OTEL_LOG_LEVEL"])
@@ -1101,8 +1119,10 @@ func TestHandleLaunchAsTA_EnvVarsSuffix_PercentEncodedSeparators(t *testing.T) {
 	</configuration>
 </input>`
 
-	err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	inputArgs := []string{"program"}
+	resultArgs, err := HandleLaunchAsTA(inputArgs, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
 	require.NoError(t, err)
+	assert.Equal(t, inputArgs, resultArgs, "Expected args to be returned unchanged")
 
 	assert.Equal(t, "a,b", envVars["K1"])
 	assert.Equal(t, "x=y", envVars["K2"])
@@ -1129,8 +1149,9 @@ func TestHandleLaunchAsTA_EnvVarsSuffix_InvalidValue(t *testing.T) {
 	</configuration>
 </input>`
 
-	err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
 	require.Error(t, err)
+	assert.Nil(t, resultArgs, "Expected nil args on error")
 	assert.Contains(t, err.Error(), "launch as TA failed to parse env vars from parameter 'splunk_bad_env_vars'")
 }
 
@@ -1177,9 +1198,183 @@ func TestHandleLaunchAsTA_StanzaPrefixFirstMatch(t *testing.T) {
 	reader := strings.NewReader(xmlData)
 
 	// When multiple stanzas match the prefix, only the first one should be used
-	err := HandleLaunchAsTA(args, reader, "otel://", "<scheme></scheme>")
+	resultArgs, err := HandleLaunchAsTA(args, reader, "otel://", "<scheme></scheme>")
 	require.NoError(t, err, "Expected no error")
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
 
 	// Should use the first matching stanza
 	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM from first matching stanza")
+}
+
+func TestHandleLaunchAsTA_CmdArgsSuffix(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+	setEnvFn = func(_, _ string) error { return nil }
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_realm">us0</param>
+			<param name="splunk_collector_cmd_args">--config=/etc/otel/config.yaml --feature-gates=foo</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	inputArgs := []string{"program"}
+	resultArgs, err := HandleLaunchAsTA(inputArgs, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"program", "--config=/etc/otel/config.yaml", "--feature-gates=foo"}, resultArgs)
+}
+
+func TestHandleLaunchAsTA_CmdArgsSuffix_QuotedArgs(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+	setEnvFn = func(_, _ string) error { return nil }
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_collector_cmd_args">--config=/etc/otel/config.yaml "--some-arg=value with spaces"</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	inputArgs := []string{"program"}
+	resultArgs, err := HandleLaunchAsTA(inputArgs, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"program", "--config=/etc/otel/config.yaml", "--some-arg=value with spaces"}, resultArgs)
+}
+
+func TestHandleLaunchAsTA_CmdArgsSuffix_MultipleCmdArgParams(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+	setEnvFn = func(_, _ string) error { return nil }
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_extra_cmd_args">--arg1=val1</param>
+			<param name="splunk_collector_cmd_args">--arg2=val2</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	inputArgs := []string{"program"}
+	resultArgs, err := HandleLaunchAsTA(inputArgs, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"program", "--arg1=val1", "--arg2=val2"}, resultArgs)
+}
+
+func TestHandleLaunchAsTA_CmdArgsSuffix_EmptyValue(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+	setEnvFn = func(_, _ string) error { return nil }
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_collector_cmd_args"></param>
+		</stanza>
+	</configuration>
+</input>`
+
+	inputArgs := []string{"program"}
+	resultArgs, err := HandleLaunchAsTA(inputArgs, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err)
+	assert.Equal(t, inputArgs, resultArgs, "Expected args to be returned unchanged for empty cmd args value")
+}
+
+func TestHandleLaunchAsTA_CmdArgsSuffix_InvalidValue(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+	setEnvFn = func(_, _ string) error { return nil }
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_collector_cmd_args">--arg='unterminated</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	resultArgs, err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.Error(t, err)
+	assert.Nil(t, resultArgs, "Expected nil args on error")
+	assert.Contains(t, err.Error(), "launch as TA failed to parse cmd args from parameter 'splunk_collector_cmd_args'")
+}
+
+func TestHandleLaunchAsTA_CmdArgsSuffix_NotSetAsEnvVar(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_realm">us0</param>
+			<param name="splunk_collector_cmd_args">--config=/etc/otel/config.yaml</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	inputArgs := []string{"program"}
+	resultArgs, err := HandleLaunchAsTA(inputArgs, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"program", "--config=/etc/otel/config.yaml"}, resultArgs)
+	// The _cmd_args parameter must not appear as an env var
+	assert.NotContains(t, envVars, "SPLUNK_COLLECTOR_CMD_ARGS")
+	assert.Equal(t, "us0", envVars["SPLUNK_REALM"])
 }

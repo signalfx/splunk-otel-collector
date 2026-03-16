@@ -26,6 +26,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/google/shlex"
 	"github.com/shirou/gopsutil/v4/process"
 )
 
@@ -55,30 +56,32 @@ var (
 // HandleLaunchAsTA handles the launch of the collector as a Splunk TA modular input.
 // It checks if the collector is running in modular input mode and processes the input XML
 // to set environment variables from the configuration stanza.
-// Returns an error if the launch fails, ErrQueryMode if running in query mode,
-// or nil if not running in modular input mode or on success.
-func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string) error {
+// Returns the updated args with any command-line arguments parsed from "_cmd_args" suffixed
+// parameters appended, an error if the launch fails, or ErrQueryMode if running in query mode.
+// When not in modular input mode or when there are no "_cmd_args" parameters, the original
+// args are returned unchanged, so the caller can always use the returned args.
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string) ([]string, error) {
 	mode := isModularInputMode(args)
 	if mode == notModularInput {
-		return nil
+		return args, nil
 	}
 
 	if mode == introspectionMode {
 		// The caller is just expected to exit when receiving ErrQueryMode
 		if _, err := fmt.Fprintln(stdoutWriter, scheme); err != nil {
-			return fmt.Errorf("failed to write scheme to stdout: %w", err)
+			return nil, fmt.Errorf("failed to write scheme to stdout: %w", err)
 		}
-		return ErrQueryMode
+		return nil, ErrQueryMode
 	}
 
 	if mode == validationMode {
 		// The caller is just expected to exit when receiving ErrQueryMode
-		return ErrQueryMode
+		return nil, ErrQueryMode
 	}
 
 	input, err := ReadXML(stdin)
 	if err != nil {
-		return fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
+		return nil, fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
 	}
 
 	var configStanza Stanza
@@ -89,8 +92,9 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 		}
 	}
 
-	// First pass: build a map of parameters starting with "splunk_"
+	// First pass: build a map of parameters starting with "splunk_" and collect cmd args
 	modularInputEnvVars := make(map[string]string)
+	var cmdArgs []string
 	for _, param := range configStanza.Param {
 		paramName := strings.ToLower(param.Name)
 		if !strings.HasPrefix(paramName, "splunk_") {
@@ -104,9 +108,16 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 			var pairs map[string]string
 			pairs, err = parseEnvVarPairs(param.Value)
 			if err != nil {
-				return fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
+				return nil, fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
 			}
 			maps.Copy(modularInputEnvVars, pairs)
+		case strings.HasSuffix(paramName, "_cmd_args"):
+			var parsed []string
+			parsed, err = shlex.Split(param.Value)
+			if err != nil {
+				return nil, fmt.Errorf("launch as TA failed to parse cmd args from parameter '%s': %w", param.Name, err)
+			}
+			cmdArgs = append(cmdArgs, parsed...)
 		default:
 			modularInputEnvVars[strings.ToUpper(param.Name)] = param.Value
 		}
@@ -115,10 +126,10 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	// Second pass: set environment variables in dependency order
 	err = setEnvVarsInOrder(modularInputEnvVars, setEnvFn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return append(args, cmdArgs...), nil
 }
 
 func isModularInputMode(args []string) modularInputMode {

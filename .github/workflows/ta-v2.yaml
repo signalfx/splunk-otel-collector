@@ -109,6 +109,7 @@ jobs:
           mkdir -p ./build-out/Splunk_TA_OTel_Collector/local
           cp ./build-out/Splunk_TA_OTel_Collector/default/inputs.conf ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
           sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
+          sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
 
       - name: Run local container
         env:
@@ -148,6 +149,15 @@ jobs:
             echo "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
           else
             echo "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!"
+            exit 1
+          fi
+
+      - name: Check cmd args are used by collector process
+        run: |
+          if sudo grep -qP 'Splunk_TA_OTel_Collector.*"splunk_autodiscovery": "true"' ./local-test-logs/var/log/splunk/splunkd.log; then
+            echo "--discovery cmd arg is correctly reflected in the collector service."
+          else
+            echo "--discovery cmd arg is NOT reflected in the collector service!"
             exit 1
           fi
 
@@ -216,6 +226,8 @@ jobs:
                   "splunk_realm = us0"
               } elseif ($_ -match "^splunk_collector_env_vars\s*=\s*$") {
                   "splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value"
+              } elseif ($_ -match "^splunk_collector_cmd_args\s*=\s*$") {
+                  "splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s"
               } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
                   "[Splunk_TA_OTel_Collector://local_run]"
               } else {
@@ -352,6 +364,17 @@ jobs:
               Write-Host "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
           } else {
               Write-Host "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!" -ForegroundColor Red
+              exit 1
+          }
+
+      - name: Check cmd args are used by collector process
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          if (Select-String -Path $splunkdLog -Pattern 'Splunk_TA_OTel_Collector.*"splunk_autodiscovery": "true"' -Quiet) {
+              Write-Host "--discovery cmd arg is correctly reflected in the collector service."
+          } else {
+              Write-Host "--discovery cmd arg is NOT reflected in the collector service!" -ForegroundColor Red
               exit 1
           }
 

@@ -973,7 +973,7 @@ func TestParseEnvVarPairs_KeyCasePreserved(t *testing.T) {
 }
 
 func TestParseEnvVarPairs_PercentEncodedEquals(t *testing.T) {
-	// '=' in a value can be percent-encoded as %3D and will be decoded correctly
+	// '=' in a value may be percent-encoded as %3D and will be decoded correctly; literal '=' is also allowed
 	result, err := parseEnvVarPairs("KEY=val%3Dwithin")
 	require.NoError(t, err)
 	assert.Equal(t, map[string]string{"KEY": "val=within"}, result)

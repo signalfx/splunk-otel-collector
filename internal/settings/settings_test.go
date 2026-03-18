@@ -131,7 +131,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.one=val.one",
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
 	}, settings.ResolverURIs())
-	require.Len(t, settings.ConfMapConverterFactories(), 2)
+	require.Len(t, settings.ConfMapConverterFactories(), 3)
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
@@ -156,7 +156,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
-	require.Len(t, settings.ConfMapConverterFactories(), 4)
+	require.Len(t, settings.ConfMapConverterFactories(), 5)
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 

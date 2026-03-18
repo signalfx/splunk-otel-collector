@@ -3,7 +3,7 @@ type: "signalfxgatewayprometheusremotewrite"
 status:
   class: "receiver"
   stability:
-    development: ["metrics"]
+    deprecated: ["metrics"]
   distributions: ["splunk"]
   codeowners:
     active: ["hughesjj"]

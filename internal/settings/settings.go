@@ -208,6 +208,10 @@ func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 		configconverter.ConverterFactoryFromConverter(configconverter.NewOverwritePropertiesConverter(s.setProperties)),
 		configconverter.ConverterFactoryFromFunc(configconverter.SetupDiscovery),
 	}
+	confMapConverterFactories = append(
+		confMapConverterFactories,
+		configconverter.ConverterFactoryFromFunc(configconverter.WarnOnSFXGatewayPRWReceiver),
+	)
 	if !s.noConvertConfig {
 		confMapConverterFactories = append(
 			confMapConverterFactories,

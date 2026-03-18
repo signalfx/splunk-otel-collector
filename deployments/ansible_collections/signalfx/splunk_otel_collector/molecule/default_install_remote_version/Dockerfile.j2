@@ -1,6 +1,17 @@
-{% if item.image not in ["opensuse15", "centos9"] %}
+{% if item.image not in ["opensuse15", "centos9", "oraclelinux9", "oraclelinux10"] %}
+
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
+
+{% elif item.image == "oraclelinux9" %}
+
+FROM glillico/docker-oraclelinux9-ansible:latest
+
+{% elif item.image == "oraclelinux10" %}
+
+FROM glillico/docker-oraclelinux10-ansible:latest
+
 {% elif item.image == "centos9" %}
+
 FROM quay.io/centos/centos:stream9
 ENV container=docker
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial

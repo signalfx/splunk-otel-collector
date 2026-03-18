@@ -61,6 +61,16 @@ platforms:
       image: dokken/oraclelinux-8
       pid_one_command: /usr/lib/systemd/systemd
 
+  - name: oraclelinux-9
+    driver:
+      image: dokken/oraclelinux-9
+      pid_one_command: /usr/lib/systemd/systemd
+
+  - name: oraclelinux-10
+    driver:
+      image: dokken/oraclelinux-10
+      pid_one_command: /usr/lib/systemd/systemd
+
   - name: ubuntu-22.04
     driver:
       image: dokken/ubuntu-22.04

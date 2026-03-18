@@ -11,7 +11,7 @@ GIT_SHA=$(shell git rev-parse --short HEAD)
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
-FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*" -not -path "./third_party/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
@@ -41,6 +41,12 @@ SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
+OBI_VERSION?=v0.6.0
+OBI_DIR?=./third_party/opentelemetry-ebpf-instrumentation
+OBI_TARBALL_URL=https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/$(OBI_VERSION)/obi-$(OBI_VERSION)-source-generated.tar.gz
+OBI_TARBALL_CACHE=.local/obi-$(OBI_VERSION)-source-generated.tar.gz
+OBI_CHECKSUM_URL=https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download/$(OBI_VERSION)/SHA256SUMS
+OBI_STAMP=$(OBI_DIR)/.obi-$(OBI_VERSION)
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -257,8 +263,32 @@ generate-metrics:
 	go generate -tags mdatagen ./...
 	$(MAKE) fmt
 
+.PHONY: fetch-obi
+fetch-obi: $(OBI_STAMP)
+
+# Download and verify the OBI release tarball. The target filename is
+# version-keyed, so changing OBI_VERSION automatically triggers a re-download.
+$(OBI_TARBALL_CACHE):
+	mkdir -p .local
+	curl -fL -o "$@" "$(OBI_TARBALL_URL)"
+	@echo "Verifying OBI $(OBI_VERSION) tarball checksum..."
+	@if [ "$$(uname -s)" = "Linux" ]; then \
+		curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && sha256sum --check) || (rm -f "$@"; exit 1); \
+	else \
+		curl -fsSL "$(OBI_CHECKSUM_URL)" | grep "obi-$(OBI_VERSION)-source-generated.tar.gz" | (cd .local && shasum -a 256 --check) || (rm -f "$@"; exit 1); \
+	fi
+
+# Extract the verified tarball. The stamp filename is version-keyed, so
+# changing OBI_VERSION causes Make to treat this as a new missing target.
+$(OBI_STAMP): $(OBI_TARBALL_CACHE)
+	rm -rf "$(OBI_DIR)"
+	mkdir -p "$(OBI_DIR)"
+	tar xzf "$(OBI_TARBALL_CACHE)" --strip-components=1 -C "$(OBI_DIR)"
+	touch $@
+	@echo "OBI $(OBI_VERSION) source fetched and verified at $(OBI_DIR)"
+
 .PHONY: otelcol
-otelcol:
+otelcol: $(OBI_STAMP)
 	go generate ./...
 ifeq ($(COVER_TESTING), true)
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol

@@ -183,6 +183,9 @@ func TestDefaultComponents(t *testing.T) {
 		"sum",
 	}
 
+	// OBI receiver is only compiled on Linux amd64/arm64 (eBPF support).
+	expectedReceivers = append(expectedReceivers, obiReceiverNames...)
+
 	factories, err := Get()
 	require.NoError(t, err)
 

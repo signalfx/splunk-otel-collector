@@ -76,6 +76,7 @@ jobs:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
       - uses: actions/checkout@v5
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -403,6 +404,7 @@ jobs:
 
       - name: Check out the codebase.
         uses: actions/checkout@v5
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -426,6 +428,7 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+      - uses: ./.github/actions/fetch-obi
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA

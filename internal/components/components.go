@@ -189,7 +189,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	receivers, err := otelcol.MakeFactoryMap(
+	receiverList := []receiver.Factory{
 		activedirectorydsreceiver.NewFactory(),
 		apachereceiver.NewFactory(),
 		apachesparkreceiver.NewFactory(),
@@ -272,7 +272,9 @@ func Get() (otelcol.Factories, error) {
 		yanggrpcreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 		zookeeperreceiver.NewFactory(),
-	)
+	}
+	receiverList = append(receiverList, obiReceivers...)
+	receivers, err := otelcol.MakeFactoryMap(receiverList...)
 	if err != nil {
 		errs = append(errs, err)
 	}

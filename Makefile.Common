@@ -52,7 +52,7 @@ LINT=golangci-lint
 BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
-EXCLUDE_MODS=-not -path "./examples/*" -not -path "./packaging/technical-addon/*"
+EXCLUDE_MODS=-not -path "./examples/*" -not -path "./packaging/technical-addon/*" -not -path "./third_party/*"
 FIND_MOD_ARGS=-type f -name "go.mod"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))

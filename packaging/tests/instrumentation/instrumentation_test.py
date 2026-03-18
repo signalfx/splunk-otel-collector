@@ -49,12 +49,16 @@ PRELOAD_PATH = "/etc/ld.so.preload"
 
 JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
 CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
+JAVA_CONFIG_PATH = "/etc/opentelemetry/default_auto_instrumentation_env.conf"
+
 
 NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
 CUSTOM_NODE_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-node-test.conf"
+NODE_CONFIG_PATH = "/etc/opentelemetry/default_auto_instrumentation_env.conf"
 
 DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
 CUSTOM_DOTNET_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-dotnet-test.conf"
+DOTNET_CONFIG_PATH = "/etc/opentelemetry/default_auto_instrumentation_env.conf"
 
 INSTALLED_FILES = [
     JAVA_AGENT_PATH,

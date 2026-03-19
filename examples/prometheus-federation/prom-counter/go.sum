@@ -108,8 +108,8 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 go.opentelemetry.io/otel v1.0.0-RC1 h1:4CeoX93DNTWt8awGK9JmNXzF9j7TyOu9upscEdtcdXc=
 go.opentelemetry.io/otel v1.0.0-RC1/go.mod h1:x9tRa9HK4hSSq7jf2TKbqFbtt58/TGk0f9XiEYISI1I=
-go.opentelemetry.io/otel/exporters/metric/prometheus v0.21.0 h1:XvcDyI/229CHoZ3USFyChVwBYHroGTOgEcJ2Pvc8XNk=
-go.opentelemetry.io/otel/exporters/metric/prometheus v0.21.0/go.mod h1:hBPZqhLN4cgY/bgEbCOL2WDc7kR/g5DArE/kbEVib7U=
+go.opentelemetry.io/otel/exporters/prometheus v0.21.0 h1:rmwXVGdF3ewdmDn3xczbyZZc3ju/CB5ilYdeknTeJXk=
+go.opentelemetry.io/otel/exporters/prometheus v0.21.0/go.mod h1:cDOHiCcfKsQftYsjw1W2ZCDS3QRCZnEoy3VpGHir6jo=
 go.opentelemetry.io/otel/internal/metric v0.21.0 h1:gZlIBo5O51hZOOZz8vEcuRx/l5dnADadKfpT70AELoo=
 go.opentelemetry.io/otel/internal/metric v0.21.0/go.mod h1:iOfAaY2YycsXfYD4kaRSbLx2LKmfpKObWBEv9QK5zFo=
 go.opentelemetry.io/otel/metric v0.21.0 h1:ZtcJlHqVE4l8Su0WOLOd9fEPheJuYEiQ0wr9wv2p25I=

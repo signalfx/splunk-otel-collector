@@ -53,7 +53,7 @@ func runFromCmdLine(args []string) {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix, modularInputSchemeXML)
+	args, err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix, modularInputSchemeXML)
 	if err != nil {
 		if errors.Is(err, modularinput.ErrQueryMode) {
 			// Query modes (scheme/validate) do not write anything to stdout.

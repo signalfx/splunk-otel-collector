@@ -19,11 +19,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/google/shlex"
 	"github.com/shirou/gopsutil/v4/process"
 )
 
@@ -53,30 +56,32 @@ var (
 // HandleLaunchAsTA handles the launch of the collector as a Splunk TA modular input.
 // It checks if the collector is running in modular input mode and processes the input XML
 // to set environment variables from the configuration stanza.
-// Returns an error if the launch fails, ErrQueryMode if running in query mode,
-// or nil if not running in modular input mode or on success.
-func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string) error {
+// Returns the updated args with any command-line arguments parsed from "_cmd_args" suffixed
+// parameters appended, an error if the launch fails, or ErrQueryMode if running in query mode.
+// When not in modular input mode or when there are no "_cmd_args" parameters, the original
+// args are returned unchanged, so the caller can always use the returned args.
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string) ([]string, error) {
 	mode := isModularInputMode(args)
 	if mode == notModularInput {
-		return nil
+		return args, nil
 	}
 
 	if mode == introspectionMode {
 		// The caller is just expected to exit when receiving ErrQueryMode
 		if _, err := fmt.Fprintln(stdoutWriter, scheme); err != nil {
-			return fmt.Errorf("failed to write scheme to stdout: %w", err)
+			return nil, fmt.Errorf("failed to write scheme to stdout: %w", err)
 		}
-		return ErrQueryMode
+		return nil, ErrQueryMode
 	}
 
 	if mode == validationMode {
 		// The caller is just expected to exit when receiving ErrQueryMode
-		return ErrQueryMode
+		return nil, ErrQueryMode
 	}
 
 	input, err := ReadXML(stdin)
 	if err != nil {
-		return fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
+		return nil, fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
 	}
 
 	var configStanza Stanza
@@ -87,22 +92,44 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 		}
 	}
 
-	// First pass: build a map of parameters starting with "splunk_"
-	splunkEnvVars := make(map[string]string)
+	// First pass: build a map of parameters starting with "splunk_" and collect cmd args
+	modularInputEnvVars := make(map[string]string)
+	var cmdArgs []string
 	for _, param := range configStanza.Param {
-		if strings.HasPrefix(strings.ToLower(param.Name), "splunk_") {
-			envVarName := strings.ToUpper(param.Name)
-			splunkEnvVars[envVarName] = param.Value
+		paramName := strings.ToLower(param.Name)
+		if !strings.HasPrefix(paramName, "splunk_") {
+			continue
+		}
+
+		// Process special parameters
+		switch {
+		// TODO: to be refactored: the caller will specify which parameters should be parsed as env var pairs instead of using a naming convention
+		case strings.HasSuffix(paramName, "_env_vars"):
+			var pairs map[string]string
+			pairs, err = parseEnvVarPairs(param.Value)
+			if err != nil {
+				return nil, fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
+			}
+			maps.Copy(modularInputEnvVars, pairs)
+		case strings.HasSuffix(paramName, "_cmd_args"):
+			var parsed []string
+			parsed, err = shlex.Split(param.Value)
+			if err != nil {
+				return nil, fmt.Errorf("launch as TA failed to parse cmd args from parameter '%s': %w", param.Name, err)
+			}
+			cmdArgs = append(cmdArgs, parsed...)
+		default:
+			modularInputEnvVars[strings.ToUpper(param.Name)] = param.Value
 		}
 	}
 
 	// Second pass: set environment variables in dependency order
-	err = setEnvVarsInOrder(splunkEnvVars, setEnvFn)
+	err = setEnvVarsInOrder(modularInputEnvVars, setEnvFn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return append(args, cmdArgs...), nil
 }
 
 func isModularInputMode(args []string) modularInputMode {
@@ -211,4 +238,40 @@ func isArgScheme(args []string) bool {
 
 func isArgValidate(args []string) bool {
 	return len(args) == 2 && args[1] == "--validate-arguments"
+}
+
+// parseEnvVarPairs parses a comma-separated list of key=value pairs into a map of
+// environment variable names to their string values.
+// Commas in keys and values must be percent-encoded as %2C so they are not treated as pair
+// separators. '=' characters in keys must be percent-encoded as %3D so the first literal '='
+// in each pair can be used as the key/value separator. '=' characters in values may be
+// percent-encoded as %3D but do not need to be, because only the first '=' is treated as the
+// separator. Other characters may also be percent-encoded (e.g., non-ASCII characters).
+// Example input: "KEY1=value1,KEY2=value=2%2Cextra" → {"KEY1": "value1", "KEY2": "value=2,extra"}
+func parseEnvVarPairs(s string) (map[string]string, error) {
+	result := make(map[string]string)
+	if s == "" {
+		return result, nil
+	}
+	for pair := range strings.SplitSeq(s, ",") {
+		rawKey, rawVal, found := strings.Cut(pair, "=")
+		if !found {
+			return nil, fmt.Errorf("invalid key=value pair %q: missing '='", pair)
+		}
+
+		key, err := url.PathUnescape(rawKey)
+		if err != nil {
+			return nil, fmt.Errorf("invalid percent-encoding in key %q: %w", rawKey, err)
+		}
+		val, err := url.PathUnescape(rawVal)
+		if err != nil {
+			return nil, fmt.Errorf("invalid percent-encoding in value %q: %w", rawVal, err)
+		}
+
+		if key == "" {
+			return nil, fmt.Errorf("invalid key=value pair %q: key must not be empty", pair)
+		}
+		result[key] = val
+	}
+	return result, nil
 }

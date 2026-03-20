@@ -91,6 +91,8 @@ docker run -d --name $CONTAINER_NAME `
     --user ContainerAdministrator `
     -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector" `
     -v "${LOG_DIR}:C:\Program Files\SplunkUniversalForwarder\var\log\splunk" `
+    -p 8888:8888 `
+    -p 55679:55679 `
     "splunk-uf-windows:${IMAGE_TAG}"
 
 if ($LASTEXITCODE -ne 0) {

@@ -26,9 +26,31 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
 JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
-VERSION="${1:-}"
-JMX_METRIC_GATHERER_RELEASE="${2:-}"
-ARCH="${3:-}"
+VERSION=""
+JMX_METRIC_GATHERER_RELEASE=""
+ARCH=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --version)
+            VERSION="${2:-}"
+            shift 2
+            ;;
+        --jmx-metric-gatherer-release)
+            JMX_METRIC_GATHERER_RELEASE="${2:-}"
+            shift 2
+            ;;
+        --arch)
+            ARCH="${2:-}"
+            shift 2
+            ;;
+        *)
+            echo "Unknown flag: $1"
+            echo "Usage: $0 [--version <version>] [--jmx-metric-gatherer-release <release>] [--arch <arch>]"
+            exit 1
+            ;;
+    esac
+done
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"

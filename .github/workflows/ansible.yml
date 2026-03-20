@@ -130,6 +130,9 @@ jobs:
           - centos9
           - debian11
           - debian12
+          - debian13
+          - oraclelinux9
+          - oraclelinux10
           - ubuntu2204
           - ubuntu2404
 

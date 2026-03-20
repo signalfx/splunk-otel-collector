@@ -78,6 +78,8 @@ docker run -d --name "${CONTAINER_NAME}" \
     -p 8000:8000 \
     -p 8088:8088 \
     -p 8089:8089 \
+    -p 8888:8888 \
+    -p 55679:55679 \
     "splunk/splunk:${SPLUNK_VERSION}"
 
 echo ""

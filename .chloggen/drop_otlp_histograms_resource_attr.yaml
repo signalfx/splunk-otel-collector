@@ -1,0 +1,22 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: breaking
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: configconverter
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Remove `splunk_otlp_histograms` resource attribute config converter
+
+# One or more tracking issues related to the change
+issues: []
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  This config converter was being used to automatically add the boolean `splunk_otlp_histograms`
+  resource attribute to metrics that were being sent from the SignalFx exporter when the
+  `send_otlp_histograms` option was enabled. This resource attribute will no longer be added.
+  
+  If this functionality is still desired, users can use the resource attribute processor to add
+  this to any pipeline that is sending OTLP histograms to Splunk Observability Cloud.

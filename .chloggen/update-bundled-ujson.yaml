@@ -4,5 +4,5 @@ note: Update bundled Python `ujson` dependency to v5.12.0
 issues: [7843]
 subtext: |
   Addresses:
-  - CVE-2026-32874: https://github.com/signalfx/splunk-otel-collector/security/code-scanning/783
-  - CVE-2026-32875: https://github.com/signalfx/splunk-otel-collector/security/code-scanning/782
+  - [CVE-2026-32874](https://github.com/advisories/GHSA-wgvc-ghv9-3pmm)
+  - [CVE-2026-32875](https://github.com/advisories/GHSA-c8rr-9gxc-jprv)

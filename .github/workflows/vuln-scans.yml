@@ -4,7 +4,14 @@ on:
   push:
     branches:
       - main
+    tags:
+      - v.*.*.*
   pull_request:
+    types:
+      - labeled
+      - opened
+      - synchronize
+      - reopened
     paths:
       - '.github/workflows/vuln-scans.yml'
       - '.grype.yaml'
@@ -23,6 +30,7 @@ concurrency:
 jobs:
   anchore-fs-scan:
     runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || contains(github.event.pull_request.labels.*.name, 'run vulnerability scans')
     steps:
       - uses: actions/checkout@v5
       - uses: anchore/scan-action@v7
@@ -35,6 +43,7 @@ jobs:
 
   docker-otelcol:
     runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || contains(github.event.pull_request.labels.*.name, 'run vulnerability scans')
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
@@ -63,6 +72,7 @@ jobs:
           path: ./dist
 
   binaries-windows_amd64:
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || contains(github.event.pull_request.labels.*.name, 'run vulnerability scans')
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
@@ -152,6 +162,7 @@ jobs:
 
   check-snyk-token:
     runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || contains(github.event.pull_request.labels.*.name, 'run vulnerability scans')
     outputs:
       has-snyk-token: ${{ steps.snyk-token-check.outputs.defined }}
     steps:
@@ -231,6 +242,7 @@ jobs:
   govulncheck-run:
     # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.
     runs-on: macos-14-large
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || contains(github.event.pull_request.labels.*.name, 'run vulnerability scans')
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
@@ -256,6 +268,7 @@ jobs:
 
   govulncheck-categories:
     runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || contains(github.event.pull_request.labels.*.name, 'run vulnerability scans')
     outputs:
       matrix: ${{ steps.capture-packages.outputs.matrix }}
     steps:

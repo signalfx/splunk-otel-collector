@@ -26,7 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.34.1
+        # pinned to safe version per https://github.com/aquasecurity/trivy/discussions/10425
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           # EOL REFERENCE: https://github.com/aquasecurity/trivy/releases
           version: v0.69.3
@@ -103,7 +104,8 @@ jobs:
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.34.1
+        # pinned to safe version per https://github.com/aquasecurity/trivy/discussions/10425
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           version: v0.69.3
           scan-type: 'image'

@@ -17,7 +17,6 @@ on:
 
 env:
   GO_VERSION: 1.25.8
-  PR_VULN_SCAN_LABEL: run vulnerabilities scan
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}

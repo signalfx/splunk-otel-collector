@@ -21,23 +21,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  trivy-fs-scan:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v5
-      - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.34.1
-        with:
-          # EOL REFERENCE: https://github.com/aquasecurity/trivy/releases
-          version: v0.69.3
-          scan-type: 'fs'
-          scan-ref: '.'
-          skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
-          format: 'table'
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
-          ignore-unfixed: true
-
   anchore-fs-scan:
     runs-on: ubuntu-24.04
     steps:
@@ -86,32 +69,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
-
-  trivy-image-scan:
-    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
-    needs: docker-otelcol
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64" ]
-        FIPS: [ true, false ]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v7
-        with:
-          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
-          path: ./dist
-      - run: docker load -i ./dist/image.tar
-      - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.34.1
-        with:
-          version: v0.69.3
-          scan-type: 'image'
-          image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
-          format: 'table'
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
-          ignore-unfixed: true
 
   anchore-image-scan:
     runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}

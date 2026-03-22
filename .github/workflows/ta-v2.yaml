@@ -182,7 +182,7 @@ jobs:
 
       - name: Stop Splunk
         run: |
-          docker exec "$CONTAINER_NAME" sudo /opt/splunk/bin/splunk stop
+          docker exec -u splunk "$CONTAINER_NAME" /opt/splunk/bin/splunk stop
 
       - name: Check collector shutdown was recorded in splunkd.log
         run: |

@@ -12,28 +12,5 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Check all actions are SHA-pinned
-        run: |
-          # Find all `uses:` directives in .github/ YAML files.
-          # Lines starting with optional whitespace then `uses:` are actual directives;
-          # grep's ^ anchor excludes commented-out lines (which start with #).
-          # Then filter out:
-          #   - local references (uses: ./.github/...)
-          #   - already-pinned references (40 lowercase hex chars after @)
-          UNPINNED=$(grep -rn "^\s*uses:" .github/ \
-            --include="*.yml" \
-            --include="*.yaml" \
-            | grep "@" \
-            | grep -v 'uses:[[:space:]]*\.' \
-            | grep -v "@[0-9a-f]\{40\}")
-
-          if [ -n "$UNPINNED" ]; then
-            echo "The following actions are not pinned to a full commit SHA:"
-            echo ""
-            echo "$UNPINNED"
-            echo ""
-            echo "Pin each action to a full 40-character commit SHA, e.g.:"
-            echo "  uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5"
-            exit 1
-          fi
-
-          echo "All external actions are SHA-pinned."
+        shell: bash
+        run: ./.github/scripts/check-pinned-actions.sh

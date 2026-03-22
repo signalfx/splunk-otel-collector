@@ -773,6 +773,7 @@ build-tar:
 pack-ta-v2:
   extends:
     - .trigger-filter
+    - .go-cache
   stage: package
   needs:
     - job: sign-exe

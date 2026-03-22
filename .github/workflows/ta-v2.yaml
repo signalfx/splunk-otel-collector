@@ -69,6 +69,14 @@ jobs:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution/*.tgz
 
+      - name: Check no source files were modified
+        run: |
+          set -eo pipefail
+          if ! git diff --exit-code; then
+            echo "Source files were modified during the build. Please update the repository."
+            exit 1
+          fi
+
   ta-v2-smoke-test-linux:
     needs: ta-v2-build-packages
     runs-on: ubuntu-latest

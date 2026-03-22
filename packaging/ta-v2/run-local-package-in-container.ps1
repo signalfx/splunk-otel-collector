@@ -70,7 +70,7 @@ $updatedContent = $inputsContent | ForEach-Object {
         "splunk_access_token = F3K3TestT0Ken"
     } elseif ($_ -match "^splunk_realm\s*=\s*$") {
         "splunk_realm = us0"
-    } elseif ($_ -match "^splunk_collector_log_level\s*=\s*$") {
+    } elseif ($_ -match "^splunk_collector_log_level\s*=.*$") {
         "splunk_collector_log_level = info"
     } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
         "[Splunk_TA_OTel_Collector://local_run]"

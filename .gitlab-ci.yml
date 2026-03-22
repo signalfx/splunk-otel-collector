@@ -770,6 +770,26 @@ build-tar:
     paths:
       - dist/splunk-otel-collector*.tar.gz
 
+pack-ta-v2:
+  extends:
+    - .trigger-filter
+  stage: package
+  needs:
+    - job: sign-exe
+      artifacts: true
+    - job: compile
+      artifacts: true
+  script:
+    - |
+      mkdir -p packaging/ta-v2/assets/linux_x86_64/bin
+      cp bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_OTel_Collector
+      mkdir -p packaging/ta-v2/assets/windows_x86_64/bin
+      cp dist/signed/otelcol_windows_amd64.exe packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe
+    - cd packaging/ta-v2 && make all-packages
+  artifacts:
+    paths:
+      - packaging/ta-v2/out/distribution/
+
 build-msi:
   extends: .trigger-filter
   image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
@@ -1796,12 +1816,15 @@ github-release:
     - job: release-installers
       artifacts: false
       optional: true
+    - job: pack-ta-v2
+      artifacts: true
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
     - cp bin/otelcol-fips_linux_* dist/assets/
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
+    - cp packaging/ta-v2/out/distribution/* dist/assets/
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"

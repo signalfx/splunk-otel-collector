@@ -212,7 +212,6 @@ func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 		confMapConverterFactories = append(
 			confMapConverterFactories,
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),
-			configconverter.ConverterFactoryFromFunc(configconverter.AddOTLPHistogramAttr),
 		)
 	}
 	return confMapConverterFactories

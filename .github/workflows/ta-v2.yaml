@@ -30,7 +30,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -64,10 +64,18 @@ jobs:
           ./appinspect.sh ./out/distribution
 
       - name: Upload TA v2 artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution/*.tgz
+
+      - name: Check no source files were modified
+        run: |
+          set -eo pipefail
+          if ! git diff --exit-code; then
+            echo "Source files were modified during the build. Please update the repository."
+            exit 1
+          fi
 
   ta-v2-smoke-test-linux:
     needs: ta-v2-build-packages
@@ -86,10 +94,10 @@ jobs:
           - Splunk_TA_OTel_Collector_linux_x86_64.tgz
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Download TA v2 artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution
@@ -172,6 +180,19 @@ jobs:
             exit 1
           fi
 
+      - name: Stop Splunk
+        run: |
+          docker exec -u splunk "$CONTAINER_NAME" /opt/splunk/bin/splunk stop
+
+      - name: Check collector shutdown was recorded in splunkd.log
+        run: |
+          if sudo grep -qP 'Splunk_TA_OTel_Collector.*Shutdown' ./local-test-logs/var/log/splunk/splunkd.log; then
+            echo "Collector shutdown was recorded in splunkd.log."
+          else
+            echo "Collector shutdown was NOT recorded in splunkd.log!"
+            exit 1
+          fi
+
       - name: Show splunkd.log on failure
         if: failure()
         shell: bash
@@ -204,7 +225,7 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
 
       - name: Download TA v2 artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: ta-v2-packages
           path: ${{ github.workspace }}/packaging/ta-v2/out/distribution

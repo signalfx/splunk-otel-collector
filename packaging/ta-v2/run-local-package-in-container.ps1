@@ -70,6 +70,8 @@ $updatedContent = $inputsContent | ForEach-Object {
         "splunk_access_token = F3K3TestT0Ken"
     } elseif ($_ -match "^splunk_realm\s*=\s*$") {
         "splunk_realm = us0"
+    } elseif ($_ -match "^splunk_collector_log_level\s*=.*$") {
+        "splunk_collector_log_level = info"
     } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
         "[Splunk_TA_OTel_Collector://local_run]"
     } else {
@@ -91,6 +93,8 @@ docker run -d --name $CONTAINER_NAME `
     --user ContainerAdministrator `
     -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector" `
     -v "${LOG_DIR}:C:\Program Files\SplunkUniversalForwarder\var\log\splunk" `
+    -p 8888:8888 `
+    -p 55679:55679 `
     "splunk-uf-windows:${IMAGE_TAG}"
 
 if ($LASTEXITCODE -ne 0) {

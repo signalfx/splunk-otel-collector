@@ -30,7 +30,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -64,10 +64,18 @@ jobs:
           ./appinspect.sh ./out/distribution
 
       - name: Upload TA v2 artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution/*.tgz
+
+      - name: Check no source files were modified
+        run: |
+          set -eo pipefail
+          if ! git diff --exit-code; then
+            echo "Source files were modified during the build. Please update the repository."
+            exit 1
+          fi
 
   ta-v2-smoke-test-linux:
     needs: ta-v2-build-packages
@@ -86,10 +94,10 @@ jobs:
           - Splunk_TA_OTel_Collector_linux_x86_64.tgz
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Download TA v2 artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: ta-v2-packages
           path: packaging/ta-v2/out/distribution
@@ -101,6 +109,15 @@ jobs:
           mkdir -p ./build-out
           tar -xzf out/distribution/${{ matrix.package }} -C ./build-out
           find ./build-out -name "*"
+
+      - name: Configure env vars for smoke test
+        shell: bash
+        run: |
+          set -eo pipefail
+          mkdir -p ./build-out/Splunk_TA_OTel_Collector/local
+          cp ./build-out/Splunk_TA_OTel_Collector/default/inputs.conf ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
+          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
+          sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
 
       - name: Run local container
         env:
@@ -134,6 +151,24 @@ jobs:
           echo "$TA PID $otelcol_pid"
           echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
 
+      - name: Check env vars are set on collector process
+        run: |
+          if docker exec -i "$CONTAINER_NAME" curl -s http://localhost:8888/metrics | grep -q "ta_smoke_test=\"smoke_test_value\""; then
+            echo "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
+          else
+            echo "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!"
+            exit 1
+          fi
+
+      - name: Check cmd args are used by collector process
+        run: |
+          if sudo grep -qP 'Splunk_TA_OTel_Collector.*"splunk_autodiscovery": "true"' ./local-test-logs/var/log/splunk/splunkd.log; then
+            echo "--discovery cmd arg is correctly reflected in the collector service."
+          else
+            echo "--discovery cmd arg is NOT reflected in the collector service!"
+            exit 1
+          fi
+
       - name: Check if collector process is alive after 30 seconds
         run: |
           sleep 30
@@ -142,6 +177,19 @@ jobs:
             echo "$TA process ($otelcol_pid) was still running."
           else
             echo "$TA process ($otelcol_pid) was not running!"
+            exit 1
+          fi
+
+      - name: Stop Splunk
+        run: |
+          docker exec -u splunk "$CONTAINER_NAME" /opt/splunk/bin/splunk stop
+
+      - name: Check collector shutdown was recorded in splunkd.log
+        run: |
+          if sudo grep -qP 'Splunk_TA_OTel_Collector.*Shutdown' ./local-test-logs/var/log/splunk/splunkd.log; then
+            echo "Collector shutdown was recorded in splunkd.log."
+          else
+            echo "Collector shutdown was NOT recorded in splunkd.log!"
             exit 1
           fi
 
@@ -177,7 +225,7 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
 
       - name: Download TA v2 artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: ta-v2-packages
           path: ${{ github.workspace }}/packaging/ta-v2/out/distribution
@@ -197,6 +245,10 @@ jobs:
                   "splunk_access_token = F3K3TestT0Ken"
               } elseif ($_ -match "^splunk_realm\s*=\s*$") {
                   "splunk_realm = us0"
+              } elseif ($_ -match "^splunk_collector_env_vars\s*=\s*$") {
+                  "splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value"
+              } elseif ($_ -match "^splunk_collector_cmd_args\s*=\s*$") {
+                  "splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s"
               } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
                   "[Splunk_TA_OTel_Collector://local_run]"
               } else {
@@ -208,7 +260,7 @@ jobs:
           }
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
-      - name: Start Splunk UF
+      - name: Restart Splunk UF
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe restart
@@ -323,6 +375,28 @@ jobs:
               Start-Sleep -Seconds 1
               $elapsed += 1
               Write-Host -NoNewline "."
+          }
+
+      - name: Check env vars are set on collector process
+        shell: pwsh
+        run: |
+          $metrics = Invoke-WebRequest -Uri "http://localhost:8888/metrics" -UseBasicParsing
+          if ($metrics.Content -match 'ta_smoke_test="smoke_test_value"') {
+              Write-Host "OTEL_RESOURCE_ATTRIBUTES is correctly reflected in the collector service."
+          } else {
+              Write-Host "OTEL_RESOURCE_ATTRIBUTES is NOT reflected in the collector service!" -ForegroundColor Red
+              exit 1
+          }
+
+      - name: Check cmd args are used by collector process
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          if (Select-String -Path $splunkdLog -Pattern 'Splunk_TA_OTel_Collector.*"splunk_autodiscovery": "true"' -Quiet) {
+              Write-Host "--discovery cmd arg is correctly reflected in the collector service."
+          } else {
+              Write-Host "--discovery cmd arg is NOT reflected in the collector service!" -ForegroundColor Red
+              exit 1
           }
 
       - name: Check if Splunk_TA_OTel_Collector process is alive after 30 seconds

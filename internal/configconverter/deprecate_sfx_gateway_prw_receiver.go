@@ -27,8 +27,7 @@ const sfxGatewayPRWReceiverKey = "receivers::signalfxgatewayprometheusremotewrit
 // signalfxgatewayprometheusremotewrite receiver is present in the config.
 func WarnOnSFXGatewayPRWReceiver(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap.Get(sfxGatewayPRWReceiverKey) != nil {
-		log.Print("[DEPRECATED] 'signalfxgatewayprometheusremotewrite' receiver is deprecated, support is ending, and it will be removed in a future release. " +
-			"This will be a breaking change, so update your configuration accordingly.")
+		log.Print("'signalfxgatewayprometheusremotewrite' receiver is deprecated and will be removed in a future release. No migration path is provided.")
 	}
 	return nil
 }

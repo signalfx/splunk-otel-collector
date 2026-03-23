@@ -15,4 +15,4 @@ issues: [3670]
 # Use pipe (|) for multiline entries.
 subtext: |
   Support for the `signalfxgatewayprometheusremotewrite` receiver is ending and it will be removed in a future release.
-  This will be a breaking change, so users should update their configurations accordingly.
+  No migration path is provided.

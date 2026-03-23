@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,35 +35,30 @@ func TestWarnOnSFXGatewayPRWReceiver_Present(t *testing.T) {
 
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
-	t.Cleanup(func() { log.SetOutput(nil) })
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
 
 	err := WarnOnSFXGatewayPRWReceiver(context.Background(), cfgMap)
 	require.NoError(t, err)
-	assert.Contains(t, buf.String(), "[DEPRECATED]")
-	assert.Contains(t, buf.String(), "breaking change")
-	assert.NotContains(t, buf.String(), "migration guide")
-	assert.NotContains(t, buf.String(), "Please migrate")
+	assert.Contains(t, buf.String(), "signalfxgatewayprometheusremotewrite")
+	assert.Contains(t, buf.String(), "deprecated")
+	assert.Contains(t, buf.String(), "No migration path")
 }
 
 func TestWarnOnSFXGatewayPRWReceiver_Absent(t *testing.T) {
-	cfgMap := confmap.NewFromStringMap(map[string]any{
-		"receivers": map[string]any{
-			"prometheusremotewrite": map[string]any{},
-		},
-	})
+	for _, cfgMap := range []*confmap.Conf{
+		confmap.NewFromStringMap(map[string]any{
+			"receivers": map[string]any{
+				"prometheusremotewrite": map[string]any{},
+			},
+		}),
+		confmap.NewFromStringMap(map[string]any{}),
+	} {
+		var buf bytes.Buffer
+		log.SetOutput(&buf)
+		t.Cleanup(func() { log.SetOutput(os.Stderr) })
 
-	var buf bytes.Buffer
-	log.SetOutput(&buf)
-	t.Cleanup(func() { log.SetOutput(nil) })
-
-	err := WarnOnSFXGatewayPRWReceiver(context.Background(), cfgMap)
-	require.NoError(t, err)
-	assert.Empty(t, buf.String())
-}
-
-func TestWarnOnSFXGatewayPRWReceiver_EmptyConfig(t *testing.T) {
-	cfgMap := confmap.NewFromStringMap(map[string]any{})
-
-	err := WarnOnSFXGatewayPRWReceiver(context.Background(), cfgMap)
-	require.NoError(t, err)
+		err := WarnOnSFXGatewayPRWReceiver(context.Background(), cfgMap)
+		require.NoError(t, err)
+		assert.Empty(t, buf.String())
+	}
 }

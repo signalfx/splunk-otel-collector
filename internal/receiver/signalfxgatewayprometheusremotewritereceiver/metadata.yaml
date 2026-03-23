@@ -7,7 +7,7 @@ status:
   deprecation:
     metrics:
       date: "2026-03-18"
-      migration: "No supported migration path is provided. This ends support for the receiver, and its removal will be a breaking change. Update your configuration accordingly."
+      migration: "No migration path is provided. Support for this receiver is ending and it will be removed in a future release."
   distributions: ["splunk"]
   codeowners:
     active: ["hughesjj"]

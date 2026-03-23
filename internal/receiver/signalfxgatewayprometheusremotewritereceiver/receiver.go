@@ -60,7 +60,7 @@ func newReceiver(
 
 // Start starts an HTTP server that can process Prometheus Remote Write Requests
 func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
-	receiver.settings.Logger.Warn("[DEPRECATED] signalfxgatewayprometheusremotewrite receiver is deprecated, support is ending, and it will be removed in a future release. This will be a breaking change, so update your configuration accordingly.")
+	receiver.settings.Logger.Warn("signalfxgatewayprometheusremotewrite receiver is deprecated and will be removed in a future release. No migration path is provided.")
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
 	cfg := &serverConfig{
 		ServerConfig:      receiver.config.ServerConfig,

@@ -43,7 +43,7 @@ jobs:
         ARCH: [ "amd64", "arm64"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
 
@@ -54,7 +54,7 @@ jobs:
         run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
           path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Get matrix
         id: get-matrix
@@ -94,7 +94,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
@@ -107,18 +107,18 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist
 
       - name: Setup python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'

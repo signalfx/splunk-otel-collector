@@ -165,7 +165,7 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
   max interval even for large attempt counts.
 - (Contrib) `exporter/kafka`: Validate that `topic_from_metadata_key` is present in `include_metadata_keys` when configured, with clear config validation errors. ([#46711](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46711))
 - (Contrib) `exporter/kafka`: Add `MergeCtx` to preserve `include_metadata_keys` when batching is enabled. ([#46718](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46718))
-- (Contrib) `exporter/signalfx`: exporter/signalfxexporter: include inactive in memory total ([#46474](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46474))
+- (Contrib) `exporter/signalfx`: include inactive in memory total ([#46474](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46474))
 - (Contrib) `extension/bearertokenauth`: Fix bearer token auth rejecting custom headers in HTTP requests unless specified in canonical form ([#45697](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45697))
 - (Contrib) `extension/file_storage`: Fix nil pointer crash when bbolt reopen fails during on_rebound compaction ([#46489](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46489))
 - (Contrib) `extension/google_cloud_logentry_encoding`: Fix incorrect snake_case conversion for keys containing numbers (e.g., "k8s" becoming "k8_s") in Google Cloud log entries. ([#46571](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46571))

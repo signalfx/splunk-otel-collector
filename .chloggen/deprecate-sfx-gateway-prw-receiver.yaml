@@ -15,4 +15,4 @@ issues: [7340]
 # Use pipe (|) for multiline entries.
 subtext: |
   Support for the `signalfxgatewayprometheusremotewrite` receiver is ending and it will be removed in a future release.
-  No migration path is provided.
+  The closest functionality is the `prometheusremotewrite` receiver, which is now included in the Splunk distribution.

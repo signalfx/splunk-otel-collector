@@ -7,7 +7,7 @@ status:
   deprecation:
     metrics:
       date: "2026-03-18"
-      migration: "No migration path is provided. Support for this receiver is ending and it will be removed in a future release."
+      migration: "The closest functionality is the Prometheus Remote Write Receiver, which is now included in the Splunk distribution. Support for this receiver is ending and it will be removed in a future release."
   distributions: ["splunk"]
   codeowners:
     active: ["hughesjj"]

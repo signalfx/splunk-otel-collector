@@ -47,7 +47,6 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
 
 ### 🚩 Deprecations 🚩
 
-- (Contrib) `exporter/azure_blob`: Introduce new snake case compliant name `azure_blob` ([#46722](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46722))
 - (Contrib) `exporter/google_cloud_storage`: Introduce new snake case compliant name `google_cloud_storage` ([#46733](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46733))
 - (Contrib) `extension/google_cloud_logentry_encoding`: Introduce new snake case compliant name `google_cloud_logentry_encoding` ([#46778](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46778))
 - (Contrib) `receiver/azure_monitor`: Introduce new snake case compliant name `azure_monitor` ([#46730](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46730))

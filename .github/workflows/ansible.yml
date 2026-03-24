@@ -60,12 +60,9 @@ jobs:
 
   agent-bundle-windows:
     needs: lint
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS }}
+      ARCH: "amd64"
 
   msi-custom-actions:
     needs: lint
@@ -73,12 +70,8 @@ jobs:
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS }}
       ARCH: "amd64"
 
   lint:
@@ -89,10 +82,10 @@ jobs:
         working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.13'
 
@@ -105,7 +98,7 @@ jobs:
         run: yamllint .
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v26.1.1
+        uses: ansible/ansible-lint@7f6abc5ef97d0fb043a0f3d416dfbc74399fbda0 # v26.1.1
         with:
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"
@@ -137,18 +130,21 @@ jobs:
           - centos9
           - debian11
           - debian12
+          - debian13
+          - oraclelinux9
+          - oraclelinux10
           - ubuntu2204
           - ubuntu2404
 
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           path: /tmp
 
-      - uses: DamianReeves/write-file-action@v1.3
+      - uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
@@ -161,7 +157,7 @@ jobs:
             urllib3>=2
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -208,17 +204,17 @@ jobs:
           - custom_vars_install_old_version
     steps:
       - name: Free up disk space for vagrant box
-        uses: jlumbroso/free-disk-space@v1.3.1
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
 
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Make tmp directory for msi build artifact
         run: mkdir -p /tmp/msi-build
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: msi-build-windows-2025
+          name: msi-build-amd64
           path: /tmp/msi-build
       # Workaround for https://github.com/actions/runner-images/issues/13202
       - name: Unload KVM module (AMD)
@@ -240,7 +236,7 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install -y vagrant
 
-      - uses: DamianReeves/write-file-action@v1.3
+      - uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
@@ -252,7 +248,7 @@ jobs:
             pywinrm<=0.4.3
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -301,11 +297,11 @@ jobs:
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml
-        uses: cumulusds/get-yaml-paths-action@v1
+        uses: cumulusds/get-yaml-paths-action@9cffc368facb8b506c7fdd8ee4f365ab2206d12a # v1
         with:
           file: deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml
           version: version
@@ -315,7 +311,7 @@ jobs:
         run: echo "Fail to read version from galaxy.yml" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

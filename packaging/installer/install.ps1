@@ -156,7 +156,15 @@ param (
 
 New-Variable -Name UninstallWildcardRegPath  -Option Constant -Value "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
 New-Variable -Name CollectorServiceDisplayName -Option Constant -Value "Splunk OpenTelemetry Collector"
-$arch = "amd64"
+$archFromEnv = $env:PROCESSOR_ARCHITECTURE
+$arch = ""
+if ($archFromEnv -eq "ARM64") {
+    $arch = "arm64"
+} elseif ($archFromEnv -eq "AMD64") {
+    $arch = "amd64"
+} else {
+    throw "Unsupported architecture '$archFromEnv' only ARM64 and AMD64 are supported, run this script from the native architecture PowerShell."
+}
 $format = "msi"
 $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.signalfx.com"
@@ -551,7 +559,7 @@ if ($force_skip_verify_access_token) {
         # verify access token
         echo 'Verifying Access Token...'
         if (!(verify_access_token -access_token $access_token -ingest_url $ingest_url -insecure $insecure)) {
-            throw "Access token authentication failed. Verify that your access token is correct."
+            throw "Access token authentication failed. Verify that your access token is correct. If your access token is valid, you can skip validation by rerunning with -force_skip_verify_access_token `$true or setting the VERIFY_ACCESS_TOKEN=false environment variable."
         }
         else {
             echo '- Verified Access Token'

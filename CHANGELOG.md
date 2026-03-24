@@ -63,7 +63,6 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
   Downloads and verifies the `obi` binary from GitHub releases with SHA256 checksum validation.
   Performs preflight checks for architecture, kernel version (5.8+, or 4.18+ on RHEL-family),
   root privileges, and bpffs availability before installing.
-- (Splunk) `packaging`: Update Splunk OpenTelemetry Java agent to v2.26.0 ([#7341](https://github.com/signalfx/splunk-otel-collector/pull/7341))
 - (Splunk) `packaging`: Update Splunk OpenTelemetry Java agent to v2.26.1 ([#7355](https://github.com/signalfx/splunk-otel-collector/pull/7355))
 - (Splunk) `packaging`: Update Splunk OpenTelemetry Node.js agent to v4.4.0 ([#7317](https://github.com/signalfx/splunk-otel-collector/pull/7317))
 - (Contrib) `connector/spanmetrics`: Add support for W3C tracestate-based adjusted count in span metrics with stochastic rounding ([#45539](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45539))

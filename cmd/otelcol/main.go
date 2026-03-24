@@ -53,21 +53,27 @@ func runFromCmdLine(args []string) {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	args, err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix, modularInputSchemeXML)
+	args, taRunMode, err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix, modularInputSchemeXML, validateTAArguments)
 	if err != nil {
-		if errors.Is(err, modularinput.ErrQueryMode) {
-			// Query modes (scheme/validate) do not write anything to stdout.
-			os.Exit(0)
-		}
-		log.Fatalf("ERROR launching as TA modular input: %v", err)
+		log.Fatalf("ERROR checking launch as TA modular input: %v", err)
+	}
+	if taRunMode == modularinput.IntrospectionTARunMode {
+		// Introspection mode is used by Splunk to get the modular input scheme XML.
+		// modularinput.HandleLaunchAsTA will have already written the scheme XML to stdout, so just exit successfully.
+		os.Exit(0)
 	}
 
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
+		if taRunMode == modularinput.ValidationTARunMode {
+			modularinput.WriteValidationError(os.Stdout, err.Error())
+			os.Exit(1)
+		}
 		// Exit if --help flag was supplied and usage help was displayed.
 		if errors.Is(err, flag.ErrHelp) {
 			os.Exit(0)
 		}
+
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)
 	}
 
@@ -106,8 +112,20 @@ func runFromCmdLine(args []string) {
 	allArgs = append(allArgs, collectorSettings.ColCoreArgs()...)
 	os.Args = allArgs
 	if err = run(serviceSettings); err != nil {
+		if taRunMode == modularinput.ValidationTARunMode {
+			modularinput.WriteValidationError(os.Stdout, err.Error())
+			os.Exit(1)
+		}
 		log.Fatal(err)
 	}
+}
+
+// validateTAArguments validates the modular input parameters sent by Splunk
+// when running as a TA with the argument '--validate-arguments'.
+// It sets args[1] to "validate" so the collector runs in validate sub-command mode.
+func validateTAArguments(_ *modularinput.ValidationItems, args []string) ([]string, error) {
+	args[1] = "validate"
+	return args, nil
 }
 
 var otelcolCmdTestCtx context.Context // Use to control termination during tests.

@@ -15,7 +15,6 @@
 package modularinput
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -30,72 +29,100 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 )
 
-// modularInputMode represents the mode in which the modular input is running
-type modularInputMode int
+// TARunMode indicates the mode in which the TA modular input is running.
+type TARunMode int
 
 const (
-	// notModularInput indicates the executable is not running as a modular input
-	notModularInput modularInputMode = iota
-	// executionMode indicates the executable is running as a modular input with no other arguments
-	executionMode
-	// introspectionMode indicates the executable is running as a modular input with --scheme argument
-	introspectionMode
-	// validationMode indicates the executable is running as a modular input with --validate-arguments argument
-	validationMode
+	// NotTARunMode indicates the executable is not running as a TA modular input.
+	NotTARunMode TARunMode = iota
+	// ExecutionTARunMode indicates normal execution mode (no special arguments).
+	ExecutionTARunMode
+	// IntrospectionTARunMode indicates the executable was invoked with --scheme.
+	IntrospectionTARunMode
+	// ValidationTARunMode indicates the executable was invoked with --validate-arguments.
+	ValidationTARunMode
 )
 
 var (
-	ErrQueryMode = errors.New("modular input called in query mode")
-
 	// Function variables to facilitate testing
 	setEnvFn                           = os.Setenv
 	isParentProcessSplunkdFn           = isParentProcessSplunkd
 	stdoutWriter             io.Writer = os.Stdout
 )
 
+// ValidatorFunc is a function that validates the parameters of a modular input stanza.
+// It receives the parsed validation items from Splunk and the current args slice.
+// It should return the (possibly modified) args to use for the rest of the launch, along with
+// an error describing the validation failure, or nil if the parameters are valid.
+// On failure, the error message is written as XML to stdout before exiting.
+type ValidatorFunc func(items *ValidationItems, args []string) ([]string, error)
+
 // HandleLaunchAsTA handles the launch of the collector as a Splunk TA modular input.
 // It checks if the collector is running in modular input mode and processes the input XML
 // to set environment variables from the configuration stanza.
-// Returns the updated args with any command-line arguments parsed from "_cmd_args" suffixed
-// parameters appended, an error if the launch fails, or ErrQueryMode if running in query mode.
+// The optional validator is called in --validate-arguments mode; pass nil to skip validation.
+// Returns the updated args, the TARunMode indicating how the process was invoked, and any error.
 // When not in modular input mode or when there are no "_cmd_args" parameters, the original
 // args are returned unchanged, so the caller can always use the returned args.
-func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string) ([]string, error) {
-	mode := isModularInputMode(args)
-	if mode == notModularInput {
-		return args, nil
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string, validator ValidatorFunc) ([]string, TARunMode, error) {
+	mode := detectTARunMode(args)
+	if mode == NotTARunMode {
+		return args, NotTARunMode, nil
 	}
 
-	if mode == introspectionMode {
-		// The caller is just expected to exit when receiving ErrQueryMode
+	if mode == IntrospectionTARunMode {
 		if _, err := fmt.Fprintln(stdoutWriter, scheme); err != nil {
-			return nil, fmt.Errorf("failed to write scheme to stdout: %w", err)
+			return nil, IntrospectionTARunMode, fmt.Errorf("failed to write scheme to stdout: %w", err)
 		}
-		return nil, ErrQueryMode
+		return nil, IntrospectionTARunMode, nil
 	}
 
-	if mode == validationMode {
-		// The caller is just expected to exit when receiving ErrQueryMode
-		return nil, ErrQueryMode
-	}
+	var params []Param
+	if mode == ValidationTARunMode {
+		if validator != nil {
+			items, err := ReadValidationXML(stdin)
+			if err != nil {
+				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to read XML from stdin: %w", err)
+			}
+			args, err = validator(items, args)
+			if err != nil {
+				if writeErr := WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+					return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to write error response: %w", writeErr)
+				}
+			}
 
-	input, err := ReadXML(stdin)
-	if err != nil {
-		return nil, fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
-	}
+			params = make([]Param, 0, len(items.Item))
+			for _, item := range items.Item {
+				for _, param := range item.Param {
+					params = append(params, Param{Name: param.Name, Value: param.Value})
+				}
+			}
+		}
+	} else {
+		input, err := ReadXML(stdin)
+		if err != nil {
+			return nil, ExecutionTARunMode, fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
+		}
 
-	var configStanza Stanza
-	for _, stanza := range input.Configuration.Stanza {
-		if strings.HasPrefix(stanza.Name, configStanzaPrefix) {
-			configStanza = stanza
-			break
+		var configStanza Stanza
+		for _, stanza := range input.Configuration.Stanza {
+			if strings.HasPrefix(stanza.Name, configStanzaPrefix) {
+				configStanza = stanza
+				break
+			}
+		}
+
+		params = make([]Param, 0, len(configStanza.Param))
+		for _, param := range configStanza.Param {
+			params = append(params, Param{Name: param.Name, Value: param.Value})
 		}
 	}
 
 	// First pass: build a map of parameters starting with "splunk_" and collect cmd args
 	modularInputEnvVars := make(map[string]string)
 	var cmdArgs []string
-	for _, param := range configStanza.Param {
+	var err error
+	for _, param := range params {
 		paramName := strings.ToLower(param.Name)
 		if !strings.HasPrefix(paramName, "splunk_") {
 			continue
@@ -108,14 +135,14 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 			var pairs map[string]string
 			pairs, err = parseEnvVarPairs(param.Value)
 			if err != nil {
-				return nil, fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
+				return nil, mode, fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
 			}
 			maps.Copy(modularInputEnvVars, pairs)
 		case strings.HasSuffix(paramName, "_cmd_args"):
 			var parsed []string
 			parsed, err = shlex.Split(param.Value)
 			if err != nil {
-				return nil, fmt.Errorf("launch as TA failed to parse cmd args from parameter '%s': %w", param.Name, err)
+				return nil, mode, fmt.Errorf("launch as TA failed to parse cmd args from parameter '%s': %w", param.Name, err)
 			}
 			cmdArgs = append(cmdArgs, parsed...)
 		default:
@@ -124,19 +151,18 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	}
 
 	// Second pass: set environment variables in dependency order
-	err = setEnvVarsInOrder(modularInputEnvVars, setEnvFn)
-	if err != nil {
-		return nil, err
+	if err := setEnvVarsInOrder(modularInputEnvVars, setEnvFn); err != nil {
+		return nil, mode, err
 	}
 
-	return append(args, cmdArgs...), nil
+	return append(args, cmdArgs...), mode, nil
 }
 
-func isModularInputMode(args []string) modularInputMode {
+func detectTARunMode(args []string) TARunMode {
 	// SPLUNK_HOME must be defined if this is running as a modular input.
 	_, hasSplunkHome := os.LookupEnv("SPLUNK_HOME")
 	if !hasSplunkHome {
-		return notModularInput
+		return NotTARunMode
 	}
 
 	// TA v1 is a special case of the collector being launched as a modular input
@@ -145,24 +171,24 @@ func isModularInputMode(args []string) modularInputMode {
 	_, isTAv1Launch := os.LookupEnv("SPLUNK_OTEL_TA_HOME")
 	if isTAv1Launch {
 		// TA v1, let the scripts handle the TA specific behavior
-		return notModularInput
+		return NotTARunMode
 	}
 
 	// Check if the parent process is splunkd
 	if !isParentProcessSplunkdFn() {
-		return notModularInput
+		return NotTARunMode
 	}
 
 	// This is running as a modular input
 	if isArgScheme(args) {
-		return introspectionMode
+		return IntrospectionTARunMode
 	}
 
 	if isArgValidate(args) {
-		return validationMode
+		return ValidationTARunMode
 	}
 
-	return executionMode
+	return ExecutionTARunMode
 }
 
 // setEnvVarsInOrder sets environment variables in dependency order.

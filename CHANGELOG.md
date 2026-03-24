@@ -104,12 +104,6 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
   Added optional protobuf encoding for filelog checkpoint storage, providing ~7x faster decoding and 31% storage savings.
   Enable with feature gate: `--feature-gates=filelog.protobufCheckpointEncoding`
   The feature is in StageAlpha (disabled by default) and includes full backward compatibility with JSON checkpoints.
-- (Contrib) `processor/redaction`: Document audit trail attributes emitted when `summary` is set to `debug` or `info` ([#46648](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46648))
-  Adds an Audit Trail section to the README describing the diagnostic attributes
-  the processor appends to spans, log records, and metric datapoints, including
-  a worked example. Also fixes the example output to omit zero-count attributes
-  that are never emitted, and restores URL Sanitization and Span Name Sanitization
-  as top-level README sections.
 - (Contrib) `receiver/docker_stats`: Enables dynamic metric reaggregation in the Docker Stats receiver. This does not break existing configuration files. ([#45396](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45396))
 - (Contrib) `receiver/filelog`: Add `include_file_permissions` option ([#46504](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46504))
 - (Contrib) `receiver/haproxy`: Add `haproxy.server.state` resource attribute to expose server status (UP, DOWN, MAINT, etc.) ([#46799](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46799))

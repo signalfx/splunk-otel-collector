@@ -239,7 +239,7 @@ jobs:
   govulncheck-run:
     # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
-    runs-on: macos-14-large
+    runs-on: otel-arm64
     steps:
       - name: Checkout Repo
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5

@@ -85,7 +85,7 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
       headers:
         - key: X-API-Key
           value_file: /var/secrets/api-key
-- (Contrib) `internal/kafka`: This change adds support for authentication via OIDC to the Kafka client. ([#41872](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41872))
+- (Contrib) `internal/kafka`: This change adds support for authentication via OIDC to the Kafka client. ([#41873](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41873))
   It provides an implementation of SASL/OAUTHBEARER for Kafka components, by
   integrating with auth extensions that provide OAuth2 tokens, such as oauth2clientauth.
   Token acqusition/refresh/exchange is controlled by auth extensions.

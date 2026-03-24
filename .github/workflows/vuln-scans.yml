@@ -237,7 +237,7 @@ jobs:
           sarif_file: snyk.sarif
 
   govulncheck-run:
-    # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.
+    # Running on a large runner to reliably use scan mode as symbol without hitting OOM.
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: otel-arm64
     steps:

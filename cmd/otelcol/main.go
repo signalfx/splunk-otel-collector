@@ -22,6 +22,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -44,6 +45,13 @@ const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
 //go:embed ta_scheme.xml
 var modularInputSchemeXML string
 
+var (
+	// Function variables to facilitate testing
+	stdinReader  io.Reader = os.Stdin
+	stdoutWriter io.Writer = os.Stdout
+	exitFn                 = os.Exit
+)
+
 func main() {
 	runFromCmdLine(os.Args)
 }
@@ -53,25 +61,28 @@ func runFromCmdLine(args []string) {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	args, taRunMode, err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix, modularInputSchemeXML, validateTAArguments)
+	args, taRunMode, err := modularinput.HandleLaunchAsTA(args, stdinReader, modularinputStanzaPrefix, modularInputSchemeXML, validateTAArguments)
 	if err != nil {
 		log.Fatalf("ERROR checking launch as TA modular input: %v", err)
 	}
 	if taRunMode == modularinput.IntrospectionTARunMode {
 		// Introspection mode is used by Splunk to get the modular input scheme XML.
 		// modularinput.HandleLaunchAsTA will have already written the scheme XML to stdout, so just exit successfully.
-		os.Exit(0)
+		exitFn(0)
+		return
 	}
 
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
 		if taRunMode == modularinput.ValidationTARunMode {
-			modularinput.WriteValidationError(os.Stdout, err.Error())
-			os.Exit(1)
+			modularinput.WriteValidationError(stdoutWriter, err.Error())
+			exitFn(1)
+			return
 		}
 		// Exit if --help flag was supplied and usage help was displayed.
 		if errors.Is(err, flag.ErrHelp) {
-			os.Exit(0)
+			exitFn(0)
+			return
 		}
 
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)
@@ -113,8 +124,9 @@ func runFromCmdLine(args []string) {
 	os.Args = allArgs
 	if err = run(serviceSettings); err != nil {
 		if taRunMode == modularinput.ValidationTARunMode {
-			modularinput.WriteValidationError(os.Stdout, err.Error())
-			os.Exit(1)
+			modularinput.WriteValidationError(stdoutWriter, err.Error())
+			exitFn(1)
+			return
 		}
 		log.Fatal(err)
 	}

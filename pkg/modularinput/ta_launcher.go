@@ -174,9 +174,14 @@ func detectTARunMode(args []string) TARunMode {
 		return NotTARunMode
 	}
 
-	// Check if the parent process is splunkd
-	if !isParentProcessSplunkdFn() {
-		return NotTARunMode
+	// SPLUNK_TA_FORCE_MODULAR_INPUT bypasses the parent-process check.
+	// It is intended for testing only and must not be set in production.
+	_, forceModularInput := os.LookupEnv("SPLUNK_TA_FORCE_MODULAR_INPUT")
+	if !forceModularInput {
+		// Check if the parent process is splunkd
+		if !isParentProcessSplunkdFn() {
+			return NotTARunMode
+		}
 	}
 
 	// This is running as a modular input

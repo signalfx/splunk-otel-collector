@@ -23,7 +23,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-environment
 
       - name: Set CGO_ENABLED
@@ -60,7 +60,7 @@ jobs:
 
       - name: Uploading artifacts
         if: ${{ inputs.COVERAGE }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: unit-test-results-${{ inputs.OS }}
           path: ./unit-test-results-${{ inputs.OS }}

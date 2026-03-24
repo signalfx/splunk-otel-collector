@@ -60,21 +60,21 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup NuGet
-        uses: nuget/setup-nuget@v2.0.1
+        uses: nuget/setup-nuget@323ab0502cd38fdc493335025a96c8fdb0edc71f # v2.0.1
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
 
       # EOL REFERENCE: https://endoflife.date/dotnet
-      - uses: actions/setup-dotnet@v5.1.0
+      - uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
           dotnet-version: '10.0.x'
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: msi-build-amd64
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload expected traces file
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: expected-traces-dotnet-zeroconfig-e2e-tests
           path: tests/zeroconfig/windows/testdata/expected/*.yaml
@@ -113,10 +113,10 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: msi-build-${{ matrix.runner == 'otel-windows-arm' && 'arm64' || 'amd64' }}
           path: ./dist
@@ -143,10 +143,10 @@ jobs:
         MODE: [ "agent", "gateway" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: msi-build-${{ matrix.OS == 'windows-11-arm' && 'arm64' || 'amd64' }}
           path: ./dist
@@ -196,10 +196,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: msi-build-amd64
           path: ./dist
@@ -232,10 +232,10 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: msi-build-amd64
           path: ./dist
@@ -266,7 +266,7 @@ jobs:
           }
 
       - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist/*.nupkg
@@ -283,10 +283,10 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist
@@ -368,15 +368,15 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: agent-bundle-windows_amd64
           path: ./dist

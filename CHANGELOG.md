@@ -81,15 +81,18 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
 - (Contrib) `extension/headers_setter`: Add support for file-based credentials via `value_file` configuration option. Files are watched for changes and header values are automatically updated. ([#46473](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46473))
   This is useful for credentials that are rotated, such as Kubernetes secrets.
   Example configuration:
+  ```
     headers_setter:
       headers:
         - key: X-API-Key
           value_file: /var/secrets/api-key
+  ```
 - (Contrib) `internal/kafka`: This change adds support for authentication via OIDC to the Kafka client. ([#41873](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41873))
   It provides an implementation of SASL/OAUTHBEARER for Kafka components, by
   integrating with auth extensions that provide OAuth2 tokens, such as oauth2clientauth.
   Token acqusition/refresh/exchange is controlled by auth extensions.
   To use this, your configuration would be something like:
+  ```
   extensions:
     oauth2client:
       client_id_file: /path/to/client_id_file
@@ -100,6 +103,7 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
         sasl:
           mechanism: OAUTHBEARER
           oauthbearer_token_source: oauth2client
+  ```
 - (Contrib) `pkg/fileconsumer`: `filelog` receiver checkpoint storage now supports protobuf encoding behind a feature gate for improved performance and reduced storage usage ([#43266](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43266))
   Added optional protobuf encoding for filelog checkpoint storage, providing ~7x faster decoding and 31% storage savings.
   Enable with feature gate: `--feature-gates=filelog.protobufCheckpointEncoding`
@@ -119,7 +123,7 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
 - (Contrib) `receiver/hostmetrics`: Enable re-aggregation feature for the disk scraper by setting `reaggregation_enabled` and adding `requirement_level` to attributes. ([#46615](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46615))
 - (Contrib) `receiver/hostmetrics`: Enable re-aggregation feature for the network scraper by setting `reaggregation_enabled` and adding `requirement_level` to attributes. ([#46619](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46619))
 - (Contrib) `receiver/iis`: Enable re-aggregation and set requirement levels for attributes. ([#46360](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46360))
-- (Contrib) `receiver/kafka`: add kafka.topic, kafka.partition, kafka.offset to client metadata ([#45931](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45931))
+- (Contrib) `receiver/kafka`: add `kafka.topic`, `kafka.partition`, `kafka.offset` to client metadata ([#45931](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45931))
 - (Contrib) `receiver/kafkametrics`: Enable re-aggregation feature for kafkametrics receiver to support dynamic metric attribute configuration at runtime. ([#46362](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46362))
 - (Contrib) `receiver/mysql`: Enables dynamic metric reaggregation in the MySQL receiver. This does not break existing configuration files. ([#45396](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45396))
 - (Contrib) `receiver/oracledb`: Add `oracledb.procedure_execution_count` attribute to top query events for stored procedure execution tracking ([#46487](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46487))
@@ -151,11 +155,6 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
   ConsumeMetrics, ConsumeLogs, or ConsumeProfiles before the OTLP exporter
   initializes its gRPC clients could cause a nil pointer dereference panic.
   The push methods now return an error instead of panicking.
-- (Contrib) `exporter/elasticsearch`: Set `require_data_stream=true` for ECS mapping mode and improve guidance for Elasticsearch version compatibility. ([#46632](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46632))
-- (Contrib) `exporter/elasticsearch`: Fix retry exponential backoff overflow handling edge case ([#46178](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46178))
-  The retry delay growth now guards against duration overflow while preserving
-  exponential backoff with jitter, so retries cap correctly at the configured
-  max interval even for large attempt counts.
 - (Contrib) `exporter/kafka`: Validate that `topic_from_metadata_key` is present in `include_metadata_keys` when configured, with clear config validation errors. ([#46711](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46711))
 - (Contrib) `exporter/kafka`: Add `MergeCtx` to preserve `include_metadata_keys` when batching is enabled. ([#46718](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46718))
 - (Contrib) `exporter/signalfx`: include inactive in memory total ([#46474](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46474))
@@ -166,7 +165,7 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
   When `token_file` was configured, the file path string
   was assigned to `api.Config.Token` instead of `api.Config.TokenFile`,
   causing the consul API client to use the path as the authentication
-  token (always resulting in 403 Forbidden)."
+  token (always resulting in 403 Forbidden).
 - (Contrib) `processor/resourcedetection`: Fix collector panic on shutdown when the same processor is used in multiple pipelines with refresh_interval enabled. ([#46918](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46918))
 - (Contrib) `receiver/mysql`: Fixed incorrect JOIN condition in querySample.tmpl that was comparing thread.thread_id to processlist.id instead of the correct foreign key thread.processlist_id. ([#46548](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46548))
   The LEFT JOIN with information_schema.processlist was using an incorrect join condition that would fail to properly correlate rows between the performance_schema.threads and information_schema.processlist tables. The fix changes the join condition from `processlist.id = thread.thread_id` to `processlist.id = thread.processlist_id` to use the correct foreign key relationship.

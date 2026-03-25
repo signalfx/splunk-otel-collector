@@ -89,6 +89,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 				if writeErr := WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
 					return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to write error response: %w", writeErr)
 				}
+				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed: %w", err)
 			}
 
 			params = make([]Param, 0, len(items.Item))

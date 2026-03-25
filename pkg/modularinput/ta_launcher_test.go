@@ -1446,7 +1446,7 @@ func TestHandleLaunchAsTA_ValidationMode_InvalidParams(t *testing.T) {
 
 	args := []string{"program", "--validate-arguments"}
 	_, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>", validator)
-	require.NoError(t, err, "Expected no error even when validation fails (error is written to stdout XML)")
+	require.Error(t, err, "Expected error when validation fails")
 	assert.Contains(t, buf.String(), "splunk_access_token is required", "Expected error message in stdout XML")
 	assert.Contains(t, buf.String(), "<error>", "Expected XML error element in stdout")
 }

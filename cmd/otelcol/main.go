@@ -62,6 +62,10 @@ func runFromCmdLine(args []string) {
 
 	// Handle the cases of running as a TA
 	args, taRunMode, err := modularinput.HandleLaunchAsTA(args, stdinReader, modularinputStanzaPrefix, modularInputSchemeXML, validateTAArguments)
+	if taRunMode != modularinput.NotTARunMode {
+		log.SetFlags(0)
+		log.SetOutput(os.Stderr)
+	}
 	if err != nil {
 		log.Fatalf("ERROR checking launch as TA modular input: %v", err)
 	}
@@ -75,7 +79,9 @@ func runFromCmdLine(args []string) {
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
 		if taRunMode == modularinput.ValidationTARunMode {
-			modularinput.WriteValidationError(stdoutWriter, err.Error())
+			if writeErr := modularinput.WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				log.Printf("ERROR writing validation error: %v\n", writeErr)
+			}
 			exitFn(1)
 			return
 		}
@@ -124,7 +130,9 @@ func runFromCmdLine(args []string) {
 	os.Args = allArgs
 	if err = run(serviceSettings); err != nil {
 		if taRunMode == modularinput.ValidationTARunMode {
-			modularinput.WriteValidationError(stdoutWriter, err.Error())
+			if writeErr := modularinput.WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				log.Printf("ERROR writing validation error: %v\n", writeErr)
+			}
 			exitFn(1)
 			return
 		}

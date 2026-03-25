@@ -79,24 +79,28 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 
 	var params []Param
 	if mode == ValidationTARunMode {
-		if validator != nil {
-			items, err := ReadValidationXML(stdin)
-			if err != nil {
-				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to read XML from stdin: %w", err)
-			}
-			args, err = validator(items, args)
-			if err != nil {
-				if writeErr := WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
-					return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to write error response: %w", writeErr)
-				}
-				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed: %w", err)
-			}
+		if validator == nil {
+			// Caller didn't provided a validator, just return indicating that this is validation mode.
+			return args, ValidationTARunMode, nil
+		}
 
-			params = make([]Param, 0, len(items.Item))
-			for _, item := range items.Item {
-				for _, param := range item.Param {
-					params = append(params, Param{Name: param.Name, Value: param.Value})
-				}
+		items, err := ReadValidationXML(stdin)
+		if err != nil {
+			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to read XML from stdin: %w", err)
+		}
+
+		args, err = validator(items, args)
+		if err != nil {
+			if writeErr := WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to write error response: %w", writeErr)
+			}
+			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed: %w", err)
+		}
+
+		params = make([]Param, 0, len(items.Item))
+		for _, item := range items.Item {
+			for _, param := range item.Param {
+				params = append(params, Param{Name: param.Name, Value: param.Value})
 			}
 		}
 	} else {

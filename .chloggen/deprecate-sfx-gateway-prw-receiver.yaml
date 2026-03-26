@@ -1,16 +1,18 @@
 # One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
-change_type: enhancement
+change_type: deprecation
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: all
+component: receiver/signalfxgatewayprometheusremotewritereceiver
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add support for Debian 13 (Trixie)
+note: "This component is now deprecated and will be removed in a future release."
 
 # One or more tracking issues related to the change
-issues: [7318]
+issues: [7340]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
-subtext:
+subtext: |
+  Support for the `signalfxgatewayprometheusremotewrite` receiver is ending and it will be removed in a future release.
+  The closest functionality is the `prometheusremotewrite` receiver, which is now included in the Splunk distribution.

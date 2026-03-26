@@ -27,6 +27,14 @@
                 <required_on_edit>true</required_on_edit>
                 <required_on_create>true</required_on_create>
             </arg>
+            <arg name="splunk_collector_log_level" defaultValue="error">
+                <title>Splunk Collector Log Level</title>
+                <description>Specifies the log level to be used by the
+                    Splunk_TA_OTel_Collector</description>
+                <data_type>string</data_type>
+                <required_on_edit>false</required_on_edit>
+                <required_on_create>false</required_on_create>
+            </arg>
             <arg name="splunk_collector_env_vars" defaultValue="">
                 <title>Splunk Collector Environment Variables</title>
                 <description>Specifies the environment variables for the Splunk Collector.

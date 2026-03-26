@@ -2,27 +2,30 @@ name: msi-custom-actions
 
 on:
   workflow_call:
-    inputs:
-      OS:
-        required: true
-        type: string
 
 jobs:
   msi-custom-actions:
-    runs-on: ${{ inputs.OS }}
+    # WiX requires Windows, but what matters for the custom actions build is the
+    # .NET SDK version, that is being pinned via a dedicated step.
+    runs-on: windows-2025
     steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # tag: v5.1.0
+        with:
+          dotnet-version: 10.0.103
+
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Build Custom Actions
         working-directory: packaging/msi/SplunkCustomActions
         run: |
           dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
-          dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform=x64 -o ./bin/Release
+          dotnet build ./src/SplunkCustomActions.csproj -c Release -p:Platform="Any CPU" -o ./bin/Release
           mkdir "${{ github.workspace }}/dist"
           cp ./bin/Release/SplunkCustomActions.CA.dll "${{ github.workspace }}/dist/SplunkCustomActions.CA.dll"
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: msi-custom-actions
           path: ./dist/SplunkCustomActions.CA.dll

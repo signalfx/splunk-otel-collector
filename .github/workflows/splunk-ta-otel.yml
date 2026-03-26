@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.7
+  GO_VERSION: 1.25.8
   ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
   BUILD_DIR: "${{github.workspace}}/build"
   # Provide default values for non-manually triggered executions
@@ -43,7 +43,7 @@ jobs:
       ta_packaging_change: ${{ steps.filter.outputs.ta_packaging_change }}
       ta_workflow_change: ${{ steps.filter.outputs.ta_workflow_change }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
       - name: Get changed files
@@ -69,9 +69,34 @@ jobs:
             echo "ta_workflow_change=false" >> "$GITHUB_OUTPUT"
           fi
 
+  build-ta-with-current-collector:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/packaging/technical-addon
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: Build & Package TA
+        run: |
+          set -o pipefail
+          pushd ${{github.workspace}}
+          make -e bundle.d otelcol
+          GOOS=windows GOARCH=amd64 EXTENSION=.exe make -e otelcol
+          popd
+          PLATFORM=all make -e generate-technical-addon copy-local-build-to-ta package-ta
+
+      - name: Upload TA with current Collector
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: Splunk_TA_otel_current_collector
+          path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
+
   test:
     name: test
     runs-on: ubuntu-24.04
+    needs: [build-ta-with-current-collector]
     strategy:
       matrix:
         # see https://hub.docker.com/r/splunk/splunk/tags
@@ -80,17 +105,18 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-environment
 
+      - name: Download current Collector TA
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: Splunk_TA_otel_current_collector
+          path: ${{github.workspace}}/build/out/distribution
 
       - name: Build & Package TA
         run: |
           set -o pipefail
-          pushd ${{github.workspace}}
-          make -e bundle.d otelcol
-          popd
-          make -e generate-technical-addon copy-local-build-to-ta package-ta
           make -e smoketest-ta
 
   test-generator:
@@ -102,7 +128,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-environment
 
       - name: Test addon generator
@@ -120,26 +146,6 @@ jobs:
           set -o pipefail
           make -e lint
 
-  test-ta-linux-autoinstrumentation:
-    name: test-ta-linux-autoinstrumentation
-    runs-on: ubuntu-24.04
-    needs: [check_changes, test]
-    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
-    defaults:
-      run:
-        working-directory: ${{github.workspace}}/packaging/technical-addon
-    steps:
-        - name: Free up disk space for next step
-          uses: jlumbroso/free-disk-space@v1.3.1
-        - uses: actions/checkout@v5
-        - uses: ./.github/actions/setup-environment
-        - name: Test normal go code
-          run: |
-            pushd ${{github.workspace}}/instrumentation
-            make -e dist
-            popd
-            make -e test-ta-build-tools build-tas test
-
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab
     runs-on: ubuntu-24.04
@@ -151,7 +157,7 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -160,7 +166,7 @@ jobs:
           PLATFORM="all" make -e distribute-ta
 
       - name: Upload Collector TA
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
@@ -168,12 +174,12 @@ jobs:
 
   smoke-test-linux:
     runs-on: ubuntu-24.04
-    needs: [distribute-ta]
+    needs: [build-ta-with-current-collector]
     steps:
-      - name: Download Collector TA
-        uses: actions/download-artifact@v7
+      - name: Download current Collector TA
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: Splunk_TA_otel
+          name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution
 
       - name: Uncompress the Collector TA and prepare local configuration
@@ -260,7 +266,7 @@ jobs:
 
   smoke-test-windows:
     runs-on: otel-windows
-    needs: [distribute-ta]
+    needs: [build-ta-with-current-collector]
     steps:
       - name: Download the Splunk UF MSI
         shell: bash
@@ -270,10 +276,10 @@ jobs:
       - name: Install Splunk UF
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
-      - name: Download Collector TA
-        uses: actions/download-artifact@v7
+      - name: Download current Collector TA
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: Splunk_TA_otel
+          name: Splunk_TA_otel_current_collector
           path: ${{github.workspace}}/build/out/distribution
 
       - name: Stop Splunk UF
@@ -396,7 +402,7 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -419,7 +425,7 @@ jobs:
         PLATFORM: ["all"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -435,10 +441,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-environment
 
-      - uses: streetsidesoftware/cspell-action@v8
+      - uses: streetsidesoftware/cspell-action@9cd41bb518a24fefdafd9880cbab8f0ceba04d28 # v8
         with:
           config: ${{github.workspace}}/packaging/technical-addon/packaging-scripts/cspell/cspell.json
           root: ${{github.workspace}}/packaging/technical-addon/Splunk_TA_otel

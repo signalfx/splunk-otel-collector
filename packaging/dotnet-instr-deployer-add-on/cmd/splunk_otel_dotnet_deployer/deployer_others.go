@@ -19,7 +19,7 @@ package main
 import (
 	"os"
 
-	"github.com/splunk/splunk_otel_dotnet_deployer/internal/modularinput"
+	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
 func runDeployer(_ *modularinput.Input, _, _, _ *os.File) error {

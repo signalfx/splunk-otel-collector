@@ -1,6 +1,8 @@
 monitors:
   - monitorType: hana
     doc: |
+      **The HANA monitor is deprecated and will be removed on or after May 2026.
+      Please use the sqlquery receiver and the saphana receiver instead.**
       This monitor sends SQL queries to an SAP Hana database, emitting the results as metrics.
 
       ```yaml

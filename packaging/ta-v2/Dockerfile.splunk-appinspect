@@ -1,0 +1,4 @@
+FROM python
+RUN pip3 install splunk-appinspect
+
+CMD ["splunk-appinspect", "inspect", "--excluded-tags", "aarch64_compatibility", "/packages"]

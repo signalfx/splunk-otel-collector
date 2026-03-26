@@ -22,7 +22,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-}"
 REPO_DIR="${REPO_DIR:-}"
 WORK_DIR="${WORK_DIR:-}"
 VERSION="${VERSION:-}"
-OS="${OS:-}"
+ARCH="${ARCH:-}"
 
 if [ -z "$JMX_METRIC_GATHERER_RELEASE" ]; then
     echo "JMX_METRIC_GATHERER_RELEASE env var not set!" >&2
@@ -49,12 +49,12 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
-if [ -z "OS" ]; then
-    echo "OS env var not set!" >&2
+if [ -z "$ARCH" ]; then
+    echo "ARCH env var not set!" >&2
     exit 1
 fi
 
-"$SCRIPT_DIR/build.sh" --os "$OS" --output "$WORK_DIR/build/stage" --jmx-metric-gatherer "$JMX_METRIC_GATHERER_RELEASE" "${VERSION#v}"
+"$SCRIPT_DIR/build.sh" --arch "$ARCH" --output "$WORK_DIR/build/stage" --jmx-metric-gatherer "$JMX_METRIC_GATHERER_RELEASE" "${VERSION#v}"
 mkdir -p "$OUTPUT_DIR"
 echo "Copying MSI to $OUTPUT_DIR"
 cp "$WORK_DIR/build/stage"/*.msi "$OUTPUT_DIR"

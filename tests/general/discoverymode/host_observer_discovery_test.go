@@ -79,9 +79,13 @@ func TestHostObserver(t *testing.T) {
 		}
 		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
 			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
 			pmetrictest.IgnoreResourceAttributeValue("service.version"),
+			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service_name"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),

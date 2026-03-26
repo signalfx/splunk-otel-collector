@@ -9,12 +9,18 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: focal64
-    box: ubuntu/focal64
+  - name: jammy64
+    box: ubuntu/jammy64
   - name: centos9
     box: centos/stream9
   - name: bookworm64
     box: debian/bookworm64
+  - name: trixie64
+    box: debian/trixie64
+  - name: oraclelinux9
+    box: generic/oracle9
+  - name: oraclelinux10
+    box: oraclebase/oracle-10
 provisioner:
   env:
     ANSIBLE_ROLES_PATH: ../../roles

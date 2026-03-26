@@ -70,7 +70,7 @@ The distribution offers support for the following components.
 | [saphana](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/saphanareceiver)                                                    | [alpha]          |
 | [scripted_inputs](../internal/receiver//scriptedinputsreceiver)                                                                                                    | [in development] |
 | [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver)                                                  | [deprecated]     |
-| [signalfxgatewayprometheusremotewrite](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/signalfxgatewayprometheusremotewritereceiver) | [in development] |
+| [signalfxgatewayprometheusremotewrite](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/signalfxgatewayprometheusremotewritereceiver) | [deprecated]     |
 | [smartagent](../pkg/receiver/smartagentreceiver)                                                                                                                   | [beta]           |
 | [snmp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver)                                                          | [alpha]          |
 | [snowflake](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snowflakereceiver)                                                | [beta]           |
@@ -138,7 +138,6 @@ The distribution offers support for the following components.
 | [otlp_http](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                                  | [stable]     |
 | [prometheusremotewrite](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter) | [beta]       |
 | [pulsar](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/pulsarexporter)                               | [alpha]      |
-| [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)                                   | [deprecated] |
 | [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)                           | [beta]       |
 | [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter)                        | [beta]       |
 

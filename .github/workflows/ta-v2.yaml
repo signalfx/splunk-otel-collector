@@ -412,6 +412,21 @@ jobs:
               exit 1
           }
 
+      - name: Stop Splunk UF
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe stop
+
+      - name: Check collector shutdown was recorded in splunkd.log
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          if (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+              Write-Host "Collector shutdown was NOT recorded in splunkd.log!" -ForegroundColor Red
+              exit 1
+          }
+          Write-Host "Collector shutdown was recorded in splunkd.log."
+
       - name: Show splunkd.log on failure
         if: failure()
         shell: pwsh

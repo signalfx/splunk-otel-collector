@@ -1455,14 +1455,14 @@ release-rpms:
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
-        set -ex
-        for path in dist/signed/*${ARCH}.rpm; do
-          if [ ! -f "$path" ]; then
-            echo "$path not found!"
-            exit 1
-          fi
-          python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
-        done
+      set -ex
+      for path in dist/signed/*${ARCH}.rpm; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
+      done
     - test -f repomd.xml
   variables:
     ARTIFACT: repomd.xml

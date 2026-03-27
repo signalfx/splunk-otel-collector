@@ -109,9 +109,9 @@ manual_release_trigger:
 
 fossa:
   extends: .oss-scan
-  only:
-    - main
-    - schedules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   needs: []
 
 .docker-reader-role: &docker-reader-role |
@@ -174,7 +174,8 @@ fossa:
     - &no-schedules-condition
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
-    - if: $DRY_RUN
+    - &dry-run-condition
+      if: $DRY_RUN
       when: always
 
 .deploy-release:
@@ -259,9 +260,8 @@ fossa:
 
 .xray-scan-package:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
-    - if: $CI_COMMIT_BRANCH == "main"
+    - <<: *no-schedules-condition
+    - <<: *main-condition
   extends: .binary-scan
   variables:
     create_jira: "true"
@@ -270,8 +270,8 @@ fossa:
     - echo $ARTIFACT_PATH
 
 update-otel-deps:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
   needs: []
@@ -280,8 +280,8 @@ update-otel-deps:
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
 update-otel-deps-nightly:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
   needs: []
@@ -290,8 +290,8 @@ update-otel-deps-nightly:
     - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
 
 update-openjdk:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
   needs: []
@@ -301,8 +301,8 @@ update-openjdk:
     - .gitlab/update-openjdk.sh
 
 update-javaagent:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
   needs: []
@@ -312,8 +312,8 @@ update-javaagent:
     - .gitlab/update-javaagent.sh
 
 update-jmx-metrics-gatherer:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
   needs: []
@@ -323,8 +323,8 @@ update-jmx-metrics-gatherer:
     - .gitlab/update-jmx-metrics-gatherer.sh
 
 update-nodejs-agent:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
   needs: []
@@ -337,8 +337,8 @@ update-nodejs-agent:
     - .gitlab/update-nodejs-agent.sh
 
 update-dotnet-agent:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
   needs: []
@@ -436,10 +436,11 @@ libsplunk:
 
 agent-bundle-linux:
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - <<: *main-condition
     # - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - <<: *manual-release-condition
+    - <<: *dry-run-condition
   needs:
     - job: manual_release_trigger
       optional: true
@@ -1757,10 +1758,9 @@ sign-multiarch-manifest:
     - mv tags_to_sign_${MANIFEST}${FIPS} tags_to_sign
 
 xray-scan-docker:
-  only:
-    - main
-  except:
-    - schedules
+  rules:
+    - <<: *no-schedules-condition
+    - <<: *main-condition
   extends: .container-scan
   parallel:
     matrix:
@@ -1856,11 +1856,8 @@ github-release:
 
 .ansible:
   image: 'cimg/python:3.13'
-  only:
-    - /^ansible-v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - branches
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^ansible-v[0-9]+\.[0-9]+\.[0-9]+.*/
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
@@ -1903,11 +1900,8 @@ ansible-release:
 
 puppet-release:
   image: '${DOCKER_HUB_REPO}/ruby:2.6-buster'
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs: []
   before_script:
     - gem install bundler -v 2.4.22
@@ -1927,11 +1921,8 @@ puppet-release:
 
 chef-release:
   image: 'chef/chefworkstation:stable'
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^chef-v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^chef-v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs: []
   before_script:
     - mkdir -p ~/.chef
@@ -1948,11 +1939,8 @@ chef-release:
       fi
 
 .trigger-dotnet-instrumentation-deployer:
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
 
 build-dotnet-instrumentation-deployer:
   extends: .trigger-dotnet-instrumentation-deployer

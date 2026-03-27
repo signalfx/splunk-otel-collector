@@ -12,7 +12,7 @@ variables:
     description: "Version to release (must be in format v1.2.3)"
   DRY_RUN:
     value: ""
-    description: "Set to any non-empty value to skip all external publish steps (docker push, GitHub releases, Artifactory uploads, package registry pushes). Build, sign, and package jobs still run normally."
+    description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
   GO_VERSION: 1.25.8
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022

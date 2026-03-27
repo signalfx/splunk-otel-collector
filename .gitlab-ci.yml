@@ -178,7 +178,7 @@ fossa:
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - &dry-run-condition
-      if: $DRY_RUN
+      if: $DRY_RUN == "true" && ($CI_COMMIT_BRANCH != "main" && $RELEASE_VERSION == "")
       when: always
 
 .deploy-release:

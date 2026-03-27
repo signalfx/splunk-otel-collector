@@ -22,6 +22,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -44,6 +45,13 @@ const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
 //go:embed ta_scheme.xml
 var modularInputSchemeXML string
 
+var (
+	// Function variables to facilitate testing
+	stdinReader  io.Reader = os.Stdin
+	stdoutWriter io.Writer = os.Stdout
+	exitFn                 = os.Exit
+)
+
 func main() {
 	runFromCmdLine(os.Args)
 }
@@ -53,21 +61,36 @@ func runFromCmdLine(args []string) {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Handle the cases of running as a TA
-	args, err := modularinput.HandleLaunchAsTA(args, os.Stdin, modularinputStanzaPrefix, modularInputSchemeXML)
+	args, taRunMode, err := modularinput.HandleLaunchAsTA(args, stdinReader, modularinputStanzaPrefix, modularInputSchemeXML, validateTAArguments)
+	if taRunMode != modularinput.NotTARunMode {
+		log.SetFlags(0)
+		log.SetOutput(os.Stderr)
+	}
 	if err != nil {
-		if errors.Is(err, modularinput.ErrQueryMode) {
-			// Query modes (scheme/validate) do not write anything to stdout.
-			os.Exit(0)
-		}
-		log.Fatalf("ERROR launching as TA modular input: %v", err)
+		log.Fatalf("ERROR checking launch as TA modular input: %v", err)
+	}
+	if taRunMode == modularinput.IntrospectionTARunMode {
+		// Introspection mode is used by Splunk to get the modular input scheme XML.
+		// modularinput.HandleLaunchAsTA will have already written the scheme XML to stdout, so just exit successfully.
+		exitFn(0)
+		return
 	}
 
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
+		if taRunMode == modularinput.ValidationTARunMode {
+			if writeErr := modularinput.WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				log.Printf("ERROR writing validation error: %v\n", writeErr)
+			}
+			exitFn(1)
+			return
+		}
 		// Exit if --help flag was supplied and usage help was displayed.
 		if errors.Is(err, flag.ErrHelp) {
-			os.Exit(0)
+			exitFn(0)
+			return
 		}
+
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)
 	}
 
@@ -106,8 +129,23 @@ func runFromCmdLine(args []string) {
 	allArgs = append(allArgs, collectorSettings.ColCoreArgs()...)
 	os.Args = allArgs
 	if err = run(serviceSettings); err != nil {
+		if taRunMode == modularinput.ValidationTARunMode {
+			if writeErr := modularinput.WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				log.Printf("ERROR writing validation error: %v\n", writeErr)
+			}
+			exitFn(1)
+			return
+		}
 		log.Fatal(err)
 	}
+}
+
+// validateTAArguments validates the modular input parameters sent by Splunk
+// when running as a TA with the argument '--validate-arguments'.
+// It sets args[1] to "validate" so the collector runs in validate sub-command mode.
+func validateTAArguments(_ *modularinput.ValidationItems, args []string) ([]string, error) {
+	args[1] = "validate"
+	return args, nil
 }
 
 var otelcolCmdTestCtx context.Context // Use to control termination during tests.

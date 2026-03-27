@@ -1,9 +1,9 @@
 <scheme>
     <title>Splunk Add-on for OpenTelemetry Collector</title>
-    <description>Deploys the Splunk OpenTelemetry Collector as a modular input for the
-        Splunk Universal Forwarder</description>
+    <description>Deploys the Splunk OpenTelemetry Collector as a modular input for the Splunk Universal Forwarder</description>
     <streaming_mode>simple</streaming_mode>
     <use_single_instance>false</use_single_instance>
+    <use_external_validation>true</use_external_validation>
     <endpoint>
         <args>
             <arg name="splunk_access_token" defaultValue="">

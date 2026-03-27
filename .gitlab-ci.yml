@@ -1533,7 +1533,7 @@ release-installers:
   before_script:
     - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
-release-nupkg:
+build-nupkg:
   extends: .trigger-filter
   image: mcr.microsoft.com/windows/servercore:ltsc2022
   needs:
@@ -1566,7 +1566,7 @@ choco-release:
   needs:
     - job: manual_release_trigger
       optional: true
-    - job: release-nupkg
+    - job: build-nupkg
       artifacts: true
     - job: github-release
       artifacts: false
@@ -1774,7 +1774,7 @@ github-release:
       artifacts: true
     - job: release-debs
       artifacts: true
-    - job: release-nupkg
+    - job: build-nupkg
       artifacts: true
     - job: release-rpms
       artifacts: true

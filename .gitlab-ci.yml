@@ -113,6 +113,9 @@ fossa:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
   needs: []
+  variables:
+    jira_automation: "true"
+  # allow_failure: false
 
 .docker-reader-role: &docker-reader-role |
   creds-helper init

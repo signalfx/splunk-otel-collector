@@ -1010,8 +1010,7 @@ build-push-linux-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - |
-      make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -1061,8 +1060,7 @@ build-push-linux-fips-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - |
-      make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -1167,76 +1165,72 @@ build-push-windows-image:
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
-      if ($env:DRY_RUN) {
-        Write-Host "DRY_RUN: skipping docker push and manifest creation"
-      } else {
-        echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-      }
+      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       # DEPRECATED: Push image to the windows repo
-      if (-not $env:DRY_RUN) {
-        echo "Tagging and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG}"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      echo "Tagging and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG}"
+      docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker push ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+    - |
+      echo "Getting os.version from ${BASE_IMAGE}"
+      $os_version = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      echo "$os_version"
+    - |
+      echo "Creating and pushing ${IMAGE_NAME}:${IMAGE_TAG} manifest"
+      docker manifest rm ${IMAGE_NAME}:${IMAGE_TAG}
+      docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest push ${IMAGE_NAME}:${IMAGE_TAG} --purge
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+    - |
+      # DEPRECATED: Push manifest to the windows repo
+      echo "Creating and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG} manifest"
+      docker manifest rm ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      docker manifest create ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest push ${OLD_IMAGE_NAME}:${IMAGE_TAG} --purge
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+    - |
+      if ($LATEST_TAG) {
+        echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker push ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${IMAGE_NAME}:${LATEST_TAG}
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+        echo "Creating and pushing ${IMAGE_NAME}:${LATEST_TAG} manifest"
+        docker manifest rm ${IMAGE_NAME}:${LATEST_TAG}
+        docker manifest create ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+        docker manifest push ${IMAGE_NAME}:${LATEST_TAG} --purge
         if ($LASTEXITCODE -ne 0) { exit 1 }
       }
     - |
-      if (-not $env:DRY_RUN) {
-        echo "Getting os.version from ${BASE_IMAGE}"
-        $os_version = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
+      # DEPRECATED: Push latest tag to the windows repo
+      if ($LATEST_TAG) {
+        echo "Tagging and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG}"
+        docker tag ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        echo "$os_version"
-        echo "Creating and pushing ${IMAGE_NAME}:${IMAGE_TAG} manifest"
-        docker manifest rm ${IMAGE_NAME}:${IMAGE_TAG}
-        docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+        echo "Creating and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG} manifest"
+        docker manifest rm ${OLD_IMAGE_NAME}:${LATEST_TAG}
+        docker manifest create ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${IMAGE_NAME}:${IMAGE_TAG} --purge
+        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        # DEPRECATED: Push manifest to the windows repo
-        echo "Creating and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG} manifest"
-        docker manifest rm ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-        docker manifest create ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+        docker manifest push ${OLD_IMAGE_NAME}:${LATEST_TAG} --purge
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${OLD_IMAGE_NAME}:${IMAGE_TAG} --purge
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        if ($LATEST_TAG) {
-          echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
-          docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker push ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          echo "Creating and pushing ${IMAGE_NAME}:${LATEST_TAG} manifest"
-          docker manifest rm ${IMAGE_NAME}:${LATEST_TAG}
-          docker manifest create ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest push ${IMAGE_NAME}:${LATEST_TAG} --purge
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-        }
-        # DEPRECATED: Push latest tag to the windows repo
-        if ($LATEST_TAG) {
-          echo "Tagging and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG}"
-          docker tag ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker push ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          echo "Creating and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG} manifest"
-          docker manifest rm ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          docker manifest create ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest push ${OLD_IMAGE_NAME}:${LATEST_TAG} --purge
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-        }
       }
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
@@ -1306,76 +1300,72 @@ build-push-windows-fips-image:
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
-      if ($env:DRY_RUN) {
-        Write-Host "DRY_RUN: skipping docker push and manifest creation"
-      } else {
-        echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-      }
+      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       # DEPRECATED: Push image to the windows repo
-      if (-not $env:DRY_RUN) {
-        echo "Tagging and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG}"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      echo "Tagging and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG}"
+      docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker push ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+    - |
+      echo "Getting os.version from ${BASE_IMAGE}"
+      $os_version = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      echo "$os_version"
+    - |
+      echo "Creating and pushing ${IMAGE_NAME}:${IMAGE_TAG} manifest"
+      docker manifest rm ${IMAGE_NAME}:${IMAGE_TAG}
+      docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest push ${IMAGE_NAME}:${IMAGE_TAG} --purge
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+    - |
+      # DEPRECATED: Push manifest to the windows repo
+      echo "Creating and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG} manifest"
+      docker manifest rm ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      docker manifest create ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+      docker manifest push ${OLD_IMAGE_NAME}:${IMAGE_TAG} --purge
+      if ($LASTEXITCODE -ne 0) { exit 1 }
+    - |
+      if ($LATEST_TAG) {
+        echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker push ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${IMAGE_NAME}:${LATEST_TAG}
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+        echo "Creating and pushing ${IMAGE_NAME}:${LATEST_TAG} manifest"
+        docker manifest rm ${IMAGE_NAME}:${LATEST_TAG}
+        docker manifest create ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+        docker manifest push ${IMAGE_NAME}:${LATEST_TAG} --purge
         if ($LASTEXITCODE -ne 0) { exit 1 }
       }
     - |
-      if (-not $env:DRY_RUN) {
-        echo "Getting os.version from ${BASE_IMAGE}"
-        $os_version = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
+      # DEPRECATED: Push latest tag to the windows repo
+      if ($LATEST_TAG) {
+        echo "Tagging and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG}"
+        docker tag ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        echo "$os_version"
-        echo "Creating and pushing ${IMAGE_NAME}:${IMAGE_TAG} manifest"
-        docker manifest rm ${IMAGE_NAME}:${IMAGE_TAG}
-        docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
+        echo "Creating and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG} manifest"
+        docker manifest rm ${OLD_IMAGE_NAME}:${LATEST_TAG}
+        docker manifest create ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${IMAGE_NAME}:${IMAGE_TAG} --purge
+        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        # DEPRECATED: Push manifest to the windows repo
-        echo "Creating and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG} manifest"
-        docker manifest rm ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-        docker manifest create ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
+        docker manifest push ${OLD_IMAGE_NAME}:${LATEST_TAG} --purge
         if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${OLD_IMAGE_NAME}:${IMAGE_TAG} --purge
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        if ($LATEST_TAG) {
-          echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
-          docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker push ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          echo "Creating and pushing ${IMAGE_NAME}:${LATEST_TAG} manifest"
-          docker manifest rm ${IMAGE_NAME}:${LATEST_TAG}
-          docker manifest create ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest push ${IMAGE_NAME}:${LATEST_TAG} --purge
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-        }
-        # DEPRECATED: Push latest tag to the windows repo
-        if ($LATEST_TAG) {
-          echo "Tagging and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG}"
-          docker tag ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker push ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          echo "Creating and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG} manifest"
-          docker manifest rm ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          docker manifest create ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          docker manifest push ${OLD_IMAGE_NAME}:${LATEST_TAG} --purge
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-        }
       }
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags

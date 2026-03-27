@@ -1414,20 +1414,15 @@ release-debs:
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        set -ex
-        for path in dist/signed/*.deb; do
-          if [ ! -f "$path" ]; then
-            echo "$path not found!"
-            exit 1
-          fi
-          python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
-        done
-      else
-        echo "DRY_RUN: skipping Artifactory deb publish; creating placeholder Release file"
-        touch Release
-      fi
-    - if [[ -z "${DRY_RUN:-}" ]]; then test -f Release; fi
+      set -ex
+      for path in dist/signed/*.deb; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
+      done
+    - test -f Release
   variables:
     ARTIFACT: Release
     SIGN_TYPE: GPG
@@ -1435,7 +1430,7 @@ release-debs:
     - *get-artifactory-stage
     - |
       set -ex
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]] && [[ -z "${DRY_RUN:-}" ]]; then
+      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
         curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
       fi
   artifacts:
@@ -1460,7 +1455,6 @@ release-rpms:
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
         set -ex
         for path in dist/signed/*${ARCH}.rpm; do
           if [ ! -f "$path" ]; then
@@ -1469,11 +1463,7 @@ release-rpms:
           fi
           python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
         done
-      else
-        echo "DRY_RUN: skipping Artifactory rpm publish; creating placeholder repomd.xml"
-        touch repomd.xml
-      fi
-    - if [[ -z "${DRY_RUN:-}" ]]; then test -f repomd.xml; fi
+    - test -f repomd.xml
   variables:
     ARTIFACT: repomd.xml
     SIGN_TYPE: GPG
@@ -1482,7 +1472,7 @@ release-rpms:
     - *get-artifactory-stage
     - |
       set -ex
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]] && [[ -z "${DRY_RUN:-}" ]]; then
+      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
         curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
       fi
   artifacts:

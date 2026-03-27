@@ -1012,34 +1012,23 @@ build-push-linux-image:
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
     - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
-      else
-        echo "DRY_RUN: skipping docker push"
-      fi
+      make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        set -eo pipefail
-        json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
-        for arch in "amd64" "arm64" "ppc64le"; do
-          arch_tag="${IMAGE_TAG}-${arch}"
-          echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
-          echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" | tee ${arch}.json
-          docker buildx imagetools create --tag ${IMAGE_NAME}:${arch_tag} --file ${arch}.json
-          if [[ -n "$LATEST_TAG" ]]; then
-            latest_tag="${LATEST_TAG}-${arch}"
-            echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
-            docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
-          fi
-          echo "${IMAGE_NAME}:${arch_tag}" > tags_to_sign_${arch}
-        done
-      else
-        echo "DRY_RUN: skipping manifest creation, writing placeholder tag files"
-        for arch in "amd64" "arm64" "ppc64le"; do
-          echo "${IMAGE_NAME}:${IMAGE_TAG}-${arch}" > tags_to_sign_${arch}
-        done
-      fi
+      set -eo pipefail
+      json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
+      for arch in "amd64" "arm64" "ppc64le"; do
+        arch_tag="${IMAGE_TAG}-${arch}"
+        echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
+        echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" | tee ${arch}.json
+        docker buildx imagetools create --tag ${IMAGE_NAME}:${arch_tag} --file ${arch}.json
+        if [[ -n "$LATEST_TAG" ]]; then
+          latest_tag="${LATEST_TAG}-${arch}"
+          echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
+          docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
+        fi
+        echo "${IMAGE_NAME}:${arch_tag}" > tags_to_sign_${arch}
+      done
   artifacts:
     paths:
       - tags_to_sign_*
@@ -1074,34 +1063,23 @@ build-push-linux-fips-image:
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
     - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
-      else
-        echo "DRY_RUN: skipping docker push"
-      fi
+      make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        set -eo pipefail
-        json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
-        for arch in "amd64" "arm64"; do
-          arch_tag="${IMAGE_TAG}-${arch}"
-          echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
-          echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" | tee ${arch}.json
-          docker buildx imagetools create --tag ${IMAGE_NAME}:${arch_tag} --file ${arch}.json
-          if [[ -n "$LATEST_TAG" ]]; then
-            latest_tag="${LATEST_TAG}-${arch}"
-            echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
-            docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
-          fi
-          echo "${IMAGE_NAME}:${arch_tag}" > tags_to_sign_${arch}
-        done
-      else
-        echo "DRY_RUN: skipping manifest creation, writing placeholder tag files"
-        for arch in "amd64" "arm64"; do
-          echo "${IMAGE_NAME}:${IMAGE_TAG}-${arch}" > tags_to_sign_${arch}
-        done
-      fi
+      set -eo pipefail
+      json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
+      for arch in "amd64" "arm64"; do
+        arch_tag="${IMAGE_TAG}-${arch}"
+        echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
+        echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" | tee ${arch}.json
+        docker buildx imagetools create --tag ${IMAGE_NAME}:${arch_tag} --file ${arch}.json
+        if [[ -n "$LATEST_TAG" ]]; then
+          latest_tag="${LATEST_TAG}-${arch}"
+          echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
+          docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
+        fi
+        echo "${IMAGE_NAME}:${arch_tag}" > tags_to_sign_${arch}
+      done
   artifacts:
     paths:
       - tags_to_sign_*

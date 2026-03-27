@@ -568,11 +568,7 @@ collector-ta-release:
       make -e validate-release
       RELEASE_NOTES="$(TA_NAME=Splunk_TA_otel "$ADDONS_SOURCE_DIR/packaging-scripts/github-ta-release-notes.sh")"
       ls "$BUILD_DIR/out/distribution/"
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        ghr -draft -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Technical addon for the Splunk distribution of the OpenTelemetry Collector v$TA_VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" "$BUILD_DIR/out/distribution/Splunk_TA_otel-$TA_VERSION.tgz"
-      else
-        echo "DRY_RUN: skipping GitHub release for TA v$TA_VERSION"
-      fi
+      ghr -draft -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Technical addon for the Splunk distribution of the OpenTelemetry Collector v$TA_VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" "$BUILD_DIR/out/distribution/Splunk_TA_otel-$TA_VERSION.tgz"
 
 .instrumentation-deb-rpm:
   extends: .trigger-filter

@@ -1639,82 +1639,77 @@ push-multiarch-manifest:
         MANIFEST_NAME=$WIN_MANIFEST_NAME
       fi
     - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        set -e
-        if [[ "$MANIFEST" = "multiarch" ]]; then
-          # Update the linux multiarch manifest to include the windows images
-          echo "Updating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
-          docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
-            ${MANIFEST_NAME}:${MANIFEST_TAG} \
-            ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-            ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
-        else
-          # DEPRECATED: Create the windows multiarch manifest for the windows images
-          echo "Creating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
-          docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
-            ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-            ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
+      set -e
+      if [[ "$MANIFEST" = "multiarch" ]]; then
+        # Update the linux multiarch manifest to include the windows images
+        echo "Updating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
+        docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
+          ${MANIFEST_NAME}:${MANIFEST_TAG} \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
+      else
+        # DEPRECATED: Create the windows multiarch manifest for the windows images
+        echo "Creating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
+        docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
+      fi
+      if [[ -n "$LATEST_TAG" ]]; then
+        echo "Creating and pushing ${MANIFEST_NAME}:${LATEST_TAG} manifest"
+        docker buildx imagetools create --tag ${MANIFEST_NAME}:${LATEST_TAG} ${MANIFEST_NAME}:${MANIFEST_TAG}
+      fi
+      # Check the manifests
+      set -eo pipefail
+      for tag in $MANIFEST_TAG $LATEST_TAG; do
+        json=$( docker buildx imagetools inspect --raw ${MANIFEST_NAME}:${tag} )
+        echo "${MANIFEST_NAME}:${tag} manifest:"
+        echo "$json"
+        # Check number of images in the manifest
+        count=$( echo "$json" | jq -r ".manifests | length" )
+        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 5 ]]; then
+          exit 1
+        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 4 ]]; then
+          exit 1
+        elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 2 ]]; then
+          exit 1
         fi
-        if [[ -n "$LATEST_TAG" ]]; then
-          echo "Creating and pushing ${MANIFEST_NAME}:${LATEST_TAG} manifest"
-          docker buildx imagetools create --tag ${MANIFEST_NAME}:${LATEST_TAG} ${MANIFEST_NAME}:${MANIFEST_TAG}
-        fi
-        # Check the manifests
-        set -eo pipefail
-        for tag in $MANIFEST_TAG $LATEST_TAG; do
-          json=$( docker buildx imagetools inspect --raw ${MANIFEST_NAME}:${tag} )
-          echo "${MANIFEST_NAME}:${tag} manifest:"
-          echo "$json"
-          # Check number of images in the manifest
-          count=$( echo "$json" | jq -r ".manifests | length" )
-          if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 5 ]]; then
-            exit 1
-          elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 4 ]]; then
-            exit 1
-          elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 2 ]]; then
-            exit 1
-          fi
-          # Check the manifest for the linux images
-          if [[ "$MANIFEST" != "windows_multiarch" ]]; then
-            for arch in "amd64" "arm64" "ppc64le"; do
-              if [[ "$FIPS" != "" && "$arch" == "ppc64le" ]]; then
-                continue
-              fi
-              found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" )
-              if [[ -z "$found" ]]; then
-                echo "linux/${arch} not found in ${MANIFEST_NAME}:${tag}"
-                exit 1
-              fi
-            done
-          fi
-          # Check the manifest for the windows images
-          for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
-            os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
-            if [[ -z "$os_version" ]]; then
-              echo "Failed to get os.version from $base_image"
-              exit 1
+        # Check the manifest for the linux images
+        if [[ "$MANIFEST" != "windows_multiarch" ]]; then
+          for arch in "amd64" "arm64" "ppc64le"; do
+            if [[ "$FIPS" != "" && "$arch" == "ppc64le" ]]; then
+              continue
             fi
-            found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
+            found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" )
             if [[ -z "$found" ]]; then
-              echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
+              echo "linux/${arch} not found in ${MANIFEST_NAME}:${tag}"
               exit 1
             fi
           done
-        done
-        # Get the manifest digest
-        digest=$( docker buildx imagetools inspect --format '{{json .Manifest}}' ${MANIFEST_NAME}:${MANIFEST_TAG} | jq -r '.digest' )
-        if [[ ! "$digest" =~ ^sha256:[A-Fa-f0-9]{64}$ ]]; then
-          echo "Invalid digest for ${MANIFEST_NAME}:${MANIFEST_TAG}: $digest"
-          exit 1
         fi
-      else
-        echo "DRY_RUN: skipping multiarch manifest push"
-        digest="sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        # Check the manifest for the windows images
+        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
+          os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
+          if [[ -z "$os_version" ]]; then
+            echo "Failed to get os.version from $base_image"
+            exit 1
+          fi
+          found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
+          if [[ -z "$found" ]]; then
+            echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
+            exit 1
+          fi
+        done
+      done
+      # Get the manifest digest
+      digest=$( docker buildx imagetools inspect --format '{{json .Manifest}}' ${MANIFEST_NAME}:${MANIFEST_TAG} | jq -r '.digest' )
+      if [[ ! "$digest" =~ ^sha256:[A-Fa-f0-9]{64}$ ]]; then
+        echo "Invalid digest for ${MANIFEST_NAME}:${MANIFEST_TAG}: $digest"
+        exit 1
       fi
     - mkdir -p dist
     - echo "[${MANIFEST_NAME}@${digest}]" | tee dist/${MANIFEST}_digest.txt
     - echo "${MANIFEST_NAME}:${MANIFEST_TAG}" > tags_to_sign_${MANIFEST}${FIPS}
-    - if [[ -n "${DRY_RUN:-}" || "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" ]]; then exit 0; fi
+    - if [[ "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" ]]; then exit 0; fi
     # Push the multiarch manifest for the main branch to the docker-test artifactory repo for xray scanning
     # TODO: Add new job to trigger xray scanning for the manifest whenever it is supported
     - *docker-test-releaser-role

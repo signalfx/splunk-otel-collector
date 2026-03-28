@@ -1848,12 +1848,7 @@ ansible-release:
         exit 1
       fi
       echo "Publishing collection version: $COLLECTION_VERSION"
-    - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN}
-      else
-        echo "DRY_RUN: skipping Ansible Galaxy publish"
-      fi
+    - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN}
 
 puppet-release:
   image: '${DOCKER_HUB_REPO}/ruby:2.6-buster'
@@ -1866,12 +1861,7 @@ puppet-release:
     - bundle install
     - bundle exec rake module:clean
   script:
-    - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        bundle exec rake module:push
-      else
-        echo "DRY_RUN: skipping Puppet Forge publish"
-      fi
+    - bundle exec rake module:push
   artifacts:
     paths:
       - deployments/puppet/pkg/*.tar.gz
@@ -1888,12 +1878,7 @@ chef-release:
     - mkdir -p /tmp/cookbooks
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:
-    - |
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        knife supermarket share -o /tmp/cookbooks splunk_otel_collector
-      else
-        echo "DRY_RUN: skipping Chef Supermarket publish"
-      fi
+    - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
 
 .trigger-dotnet-instrumentation-deployer:
   rules:
@@ -1963,11 +1948,7 @@ dotnet-instrumentation-deployer-release:
         VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
         SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
         RELEASE_NOTES=$(echo -e "$VERSION_CHANGELOG\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
-        if [[ -z "${DRY_RUN:-}" ]]; then
-          ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
-        else
-          echo "DRY_RUN: skipping GitHub release for dotnet deployer v$VERSION"
-        fi
+        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
       else
         echo "Failed to get version from $CI_COMMIT_TAG"
         exit 1

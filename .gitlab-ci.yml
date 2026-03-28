@@ -1630,10 +1630,13 @@ push-multiarch-manifest:
           ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
           ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
       fi
+    - |
+      set -e
       if [[ -n "$LATEST_TAG" ]]; then
         echo "Creating and pushing ${MANIFEST_NAME}:${LATEST_TAG} manifest"
         docker buildx imagetools create --tag ${MANIFEST_NAME}:${LATEST_TAG} ${MANIFEST_NAME}:${MANIFEST_TAG}
       fi
+    - |
       # Check the manifests
       set -eo pipefail
       for tag in $MANIFEST_TAG $LATEST_TAG; do
@@ -1676,7 +1679,9 @@ push-multiarch-manifest:
           fi
         done
       done
+    - |
       # Get the manifest digest
+      set -eo pipefail
       digest=$( docker buildx imagetools inspect --format '{{json .Manifest}}' ${MANIFEST_NAME}:${MANIFEST_TAG} | jq -r '.digest' )
       if [[ ! "$digest" =~ ^sha256:[A-Fa-f0-9]{64}$ ]]; then
         echo "Invalid digest for ${MANIFEST_NAME}:${MANIFEST_TAG}: $digest"

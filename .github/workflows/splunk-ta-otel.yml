@@ -43,7 +43,7 @@ jobs:
       ta_packaging_change: ${{ steps.filter.outputs.ta_packaging_change }}
       ta_workflow_change: ${{ steps.filter.outputs.ta_workflow_change }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
       - name: Get changed files
@@ -75,7 +75,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -105,7 +105,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - name: Download current Collector TA
@@ -128,7 +128,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - name: Test addon generator
@@ -157,7 +157,7 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -402,7 +402,7 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -425,7 +425,7 @@ jobs:
         PLATFORM: ["all"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -441,7 +441,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - uses: streetsidesoftware/cspell-action@9cd41bb518a24fefdafd9880cbab8f0ceba04d28 # v8

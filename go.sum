@@ -175,8 +175,8 @@ github.com/ProtonMail/gopenpgp/v3 v3.2.1 h1:ohRlKL5YwyIkN5kk7uBvijiMsyA57mK0yBEJ
 github.com/ProtonMail/gopenpgp/v3 v3.2.1/go.mod h1:x7RduTo/0n/2PjTFRoEHApaxye/8PFbhoCquwfYBUGM=
 github.com/RoaringBitmap/roaring/v2 v2.8.0 h1:y1rdtixfXvaITKzkfiKvScI0hlBJHe9sfzJp8cgeM7w=
 github.com/RoaringBitmap/roaring/v2 v2.8.0/go.mod h1:FiJcsfkGje/nZBZgCu0ZxCPOKD/hVXDS2dXi7/eUFE0=
-github.com/SAP/go-hdb v1.15.2 h1:IwR5GnJGfef6lVFGKy2xDLHnXtMGZAFhMC798Ce2TfM=
-github.com/SAP/go-hdb v1.15.2/go.mod h1:B5yJ0qHcAkBxQQorbiRxgr2dpalPVOx9zSDgXo82fvI=
+github.com/SAP/go-hdb v1.16.2 h1:JEFwumHG/5qbBISYpTcR22e20nX4yYxZ5ZwhGNKskms=
+github.com/SAP/go-hdb v1.16.2/go.mod h1:LNpXz+MoCtka8RqefdbjwXXCXpqngFcsF3qpARsCR3U=
 github.com/Showmax/go-fqdn v1.0.0 h1:0rG5IbmVliNT5O19Mfuvna9LL7zlHyRfsSvBPZmF9tM=
 github.com/Showmax/go-fqdn v1.0.0/go.mod h1:SfrFBzmDCtCGrnHhoDjuvFnKsWjEQX/Q9ARZvOrJAko=
 github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDOSA=

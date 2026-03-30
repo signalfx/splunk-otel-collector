@@ -13,7 +13,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/vault v1.21.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.22.0
-	github.com/hashicorp/vault/api v1.22.0
+	github.com/hashicorp/vault/api v1.23.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.148.1-0.20260320061215-02f427266838
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.148.1-0.20260320061215-02f427266838
@@ -146,7 +146,7 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	go.etcd.io/etcd/client/v2 v2.305.27
+	go.etcd.io/etcd/client/v2 v2.305.28
 	go.opentelemetry.io/collector/component/componentstatus v0.148.1-0.20260320051400-372cc483b303
 	go.opentelemetry.io/collector/component/componenttest v0.148.1-0.20260320051400-372cc483b303
 	go.opentelemetry.io/collector/config/confighttp v0.148.1-0.20260320051400-372cc483b303

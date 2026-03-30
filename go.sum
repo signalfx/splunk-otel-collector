@@ -959,8 +959,8 @@ github.com/hashicorp/vault-plugin-auth-gcp v0.22.0/go.mod h1:6WhVeAZUu+67H4tkXsn
 github.com/hashicorp/vault-plugin-secrets-kv v0.25.0 h1:5Xx8Hub0nAoFLIHZ4d9tMpPG+MACHXLzed5i7hViKTk=
 github.com/hashicorp/vault-plugin-secrets-kv v0.25.0/go.mod h1:Xy3wQwAJxhVZweR2DXBrEgk1erkWKNrhYcuD4Gy4ACo=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=
-github.com/hashicorp/vault/api v1.22.0 h1:+HYFquE35/B74fHoIeXlZIP2YADVboaPjaSicHEZiH0=
-github.com/hashicorp/vault/api v1.22.0/go.mod h1:IUZA2cDvr4Ok3+NtK2Oq/r+lJeXkeCrHRmqdyWfpmGM=
+github.com/hashicorp/vault/api v1.23.0 h1:gXgluBsSECfRWTSW9niY2jwg2e9mMJc4WoHNv4g3h6A=
+github.com/hashicorp/vault/api v1.23.0/go.mod h1:zransKiB9ftp+kgY8ydjnvCU7Wk8i9L0DYWpXeMj9ko=
 github.com/hashicorp/vault/sdk v0.1.13/go.mod h1:B+hVj7TpuQY1Y/GPbCpffmgd+tSEwvhkWnjtSYCaS2M=
 github.com/hashicorp/vault/sdk v0.21.0 h1:3gDqdKLhHY2ekmCEE9EeesoNpgsReq2bo/SpMqvBYdw=
 github.com/hashicorp/vault/sdk v0.21.0/go.mod h1:BkJpVju7qe2cDe+T8gA84uFtRnNYQIPXkiJqqWGUYrc=
@@ -2105,8 +2105,8 @@ go.etcd.io/etcd/api/v3 v3.6.0/go.mod h1:Wt5yZqEmxgTNJGHob7mTVBJDZNXiHPtXTcPab37i
 go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/pkg/v3 v3.6.0 h1:nchnPqpuxvv3UuGGHaz0DQKYi5EIW5wOYsgUNRc365k=
 go.etcd.io/etcd/client/pkg/v3 v3.6.0/go.mod h1:Jv5SFWMnGvIBn8o3OaBq/PnT0jjsX8iNokAUessNjoA=
-go.etcd.io/etcd/client/v2 v2.305.27 h1:QQK6BKI5iRyLnpYclC5dVRpMW7No0YJQn8le2NyhMwI=
-go.etcd.io/etcd/client/v2 v2.305.27/go.mod h1:aq8RYTmtM+XXBHzitAzxtzdg0TQYgpbLtRYpvm1qsYk=
+go.etcd.io/etcd/client/v2 v2.305.28 h1:Fj2EBO76zQY3zyE2X4EaUXxE/JHz+h62d0AXOZVpNOA=
+go.etcd.io/etcd/client/v2 v2.305.28/go.mod h1:OIk78lkhyRUnH2A5kNwPUQFlnZGKmWxihUas/+JuRrI=
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
 go.mongodb.org/atlas v0.38.0 h1:zfwymq20GqivGwxPZfypfUDry+WwMGVui97z1d8V4bU=
 go.mongodb.org/atlas v0.38.0/go.mod h1:DJYtM+vsEpPEMSkQzJnFHrT0sP7ev6cseZc/GGjJYG8=

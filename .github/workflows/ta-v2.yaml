@@ -30,7 +30,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -94,7 +94,7 @@ jobs:
           - Splunk_TA_OTel_Collector_linux_x86_64.tgz
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download TA v2 artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -411,6 +411,21 @@ jobs:
               Write-Host "Splunk_TA_OTel_Collector process ($prev_otelcol_pid) was not running!"
               exit 1
           }
+
+      - name: Stop Splunk UF
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe stop
+
+      - name: Check collector shutdown was recorded in splunkd.log
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          if (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+              Write-Host "Collector shutdown was NOT recorded in splunkd.log!" -ForegroundColor Red
+              exit 1
+          }
+          Write-Host "Collector shutdown was recorded in splunkd.log."
 
       - name: Show splunkd.log on failure
         if: failure()

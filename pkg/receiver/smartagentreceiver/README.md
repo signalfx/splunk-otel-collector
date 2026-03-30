@@ -47,12 +47,6 @@ Example:
 
 ```yaml
 receivers:
-  smartagent/postgresql:
-    type: postgresql
-    host: mypostgresinstance
-    port: 5432
-    dimensionClients:
-      - signalfx  # references the SignalFx Exporter configured below
   smartagent/processlist:
     type: processlist
 
@@ -74,7 +68,6 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/postgresql
         - smartagent/kafka
       processors:
         - resourcedetection

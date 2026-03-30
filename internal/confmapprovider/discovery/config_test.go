@@ -210,58 +210,6 @@ var expectedConfig = Config{
 		},
 	},
 	ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{
-		component.MustNewIDWithName("smartagent", "postgresql"): {
-			Enabled: &flse,
-			Rule: map[component.ID]string{
-				component.MustNewID("docker_observer"): `type == "container" and port == 5432`,
-				component.MustNewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
-			},
-
-			Config: map[component.ID]map[string]any{
-				defaultType: {
-					"type":             "postgresql",
-					"connectionString": "sslmode=disable user={{.username}} password={{.password}}",
-					"params": map[any]any{
-						"username": "test_user",
-						"password": "test_password",
-					},
-					"masterDBName": "test_db",
-				},
-				component.MustNewID("docker_observer"): {
-					"params": map[any]any{
-						"password": "`labels[\"auth\"]`",
-					},
-				},
-			},
-			Entry: map[string]any{
-				"status": map[any]any{
-					"metrics": map[any]any{
-						"successful": []any{
-							map[any]any{
-								"strict":  "postgres_block_hit_ratio",
-								"message": "postgresql SA receiver working!",
-							},
-						},
-					},
-					"statements": map[any]any{
-						"failed": []any{
-							map[any]any{
-								"regexp":  ".* connect: connection refused",
-								"message": "container appears to not be accepting postgres connections",
-							},
-						},
-						"partial": []any{
-							map[any]any{
-								"regexp": ".*pq: password authentication failed for user.*",
-								"message": "Please ensure that your password is correctly specified " +
-									"in `splunk.discovery.receivers.smartagent/postgresql.config.params.username` and " +
-									"`splunk.discovery.receivers.smartagent/postgresql.config.params.password`",
-							},
-						},
-					},
-				},
-			},
-		},
 		component.MustNewID("redis"): {
 			Rule: map[component.ID]string{
 				component.MustNewID("docker_observer"): `type == "container" and port == 6379`,
@@ -311,8 +259,7 @@ var expectedConfig = Config{
 	},
 	DiscoveryProperties: PropertiesEntry{
 		Entry: map[string]any{
-			"splunk.discovery.receivers.smartagent/postgresql.config.params.unused_param": "param_value",
-			"splunk.discovery.extensions.docker_observer.config.timeout":                  "1s",
+			"splunk.discovery.extensions.docker_observer.config.timeout": "1s",
 		},
 	},
 }

@@ -11,7 +11,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/php"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/systemd"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/zookeeper"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/conviva"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/coredns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cpu"

@@ -27,7 +27,7 @@ jobs:
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
         with:
           severity-cutoff: "high"
@@ -45,7 +45,7 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up environment
         uses: ./.github/actions/setup-environment
       - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
@@ -87,7 +87,7 @@ jobs:
     env:
       GRYPE_PLATFORM: ${{ matrix.ARCH }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -119,7 +119,7 @@ jobs:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
@@ -185,7 +185,7 @@ jobs:
     needs: check-snyk-token
     if: ${{ (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) && needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@9adf32b1121593767fc3c057af55b55db032dc04 # master
         continue-on-error: true # To make sure that SARIF upload gets called
@@ -209,7 +209,7 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       # There is no snyk/snyk:docker image for arm64, so we need to use the
       # docker setup-qemu-action to run the scan
@@ -242,7 +242,7 @@ jobs:
     runs-on: otel-arm64
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - run: govulncheck --version
@@ -270,7 +270,7 @@ jobs:
       matrix: ${{ steps.capture-packages.outputs.matrix }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Setup Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
@@ -294,7 +294,7 @@ jobs:
       matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download govulncheck results artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7

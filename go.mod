@@ -13,7 +13,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/vault v1.21.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.1
-	github.com/hashicorp/vault/api v1.22.0
+	github.com/hashicorp/vault/api v1.23.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.148.1-0.20260320061215-02f427266838
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.148.1-0.20260320061215-02f427266838

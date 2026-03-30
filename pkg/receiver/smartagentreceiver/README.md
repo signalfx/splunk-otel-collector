@@ -68,7 +68,7 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/kafka
+        - smartagent/processlist
       processors:
         - resourcedetection
       exporters:

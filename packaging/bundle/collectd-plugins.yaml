@@ -4,10 +4,6 @@
   version: v4.2.0
   repo: signalfx/collectd-openstack
 
-- name: zookeeper
-  version: v0.1.4
-  repo: signalfx/collectd-zookeeper
-
 - name: systemd
   version: v1.1.0
   repo: signalfx/collectd-systemd

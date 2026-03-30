@@ -119,8 +119,9 @@ pytest -s --verbose -k "test_puppet_default and ubuntu-jammy and not instrumenta
 
 ### DEB Distros
 - `debian-bullseye`
-- `ubuntu-focal`
+- `debian-bookworm`
 - `ubuntu-jammy`
+- `ubuntu-noble`
 
 ### RPM Distros
 - `amazonlinux-2023`

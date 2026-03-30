@@ -128,31 +128,6 @@ resourceMetrics:
                       value:
                         stringValue: internal
               isMonotonic: true
-          - name: otelcol_exporter_send_failed_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: exporter
-                      value:
-                        stringValue: otlp_grpc
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: service_instance_id
-                      value:
-                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.134.0-31-g82f4c1df
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-              isMonotonic: true
           - gauge:
               dataPoints:
                 - asDouble: 1000

@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/otelcol-fips.yml'
+      - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
       - 'internal/**'
       - 'pkg/**'
@@ -23,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.7
+  GO_VERSION: 1.25.8
 
 jobs:
   otelcol-fips:
@@ -41,11 +42,11 @@ jobs:
     steps:
       # Building FIPs is flaky due to out of space issues.
       - name: Free up disk space for next step
-        uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v5
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -53,7 +54,7 @@ jobs:
         env:
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: otelcol-fips-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
           path: ./bin/*
@@ -66,7 +67,7 @@ jobs:
         FIPSMODE: [ "1", "0" ]
       fail-fast: false
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: otelcol-fips-windows-amd64
           path: ./bin
@@ -91,14 +92,14 @@ jobs:
         ARCH: [ amd64, arm64 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: otelcol-fips-linux-${{ matrix.ARCH }}
           path: ./bin
@@ -130,7 +131,7 @@ jobs:
             docker rm -f otelcol-fips
           done
       - run: docker save -o image.tar otelcol-fips:${{ matrix.ARCH }}
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: docker-otelcol-fips-${{ matrix.ARCH }}
           path: ./image.tar
@@ -143,10 +144,11 @@ jobs:
         WIN_VERSION: [ 2022, 2025 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v7
+      - uses: ./.github/actions/win-wait-for-docker
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: otelcol-fips-windows-amd64
           path: ./cmd/otelcol/fips/dist

@@ -93,5 +93,6 @@ func (m *Monitor) Configure(conf *Config) error {
 			"ServiceStates": serviceStates,
 		},
 	}
+	m.Logger().Warn("[NOTICE] The collectd/systemd monitor is deprecated and will be removed on or after April 2026. Please use the systemdreceiver instead.")
 	return m.PyMonitor.Configure(conf)
 }

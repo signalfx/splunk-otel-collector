@@ -185,6 +185,22 @@ func TestDefaultGatewayConfig(t *testing.T) {
 									"job_name": "otel-collector",
 									"metric_relabel_configs": []any{
 										map[string]any{
+											"source_labels": []any{"service_name"},
+											"target_label":  "service.name",
+										},
+										map[string]any{
+											"source_labels": []any{"service_instance_id"},
+											"target_label":  "service.instance.id",
+										},
+										map[string]any{
+											"source_labels": []any{"service_version"},
+											"target_label":  "service.version",
+										},
+										map[string]any{
+											"regex":  "service_name|service_instance_id|service_version",
+											"action": "labeldrop",
+										},
+										map[string]any{
 											"action":        "drop",
 											"regex":         "promhttp_metric_handler_errors.*",
 											"source_labels": []any{"__name__"},
@@ -433,6 +449,22 @@ func TestDefaultAgentConfig(t *testing.T) {
 									"job_name": "otel-collector",
 									"metric_relabel_configs": []any{
 										map[string]any{
+											"source_labels": []any{"service_name"},
+											"target_label":  "service.name",
+										},
+										map[string]any{
+											"source_labels": []any{"service_instance_id"},
+											"target_label":  "service.instance.id",
+										},
+										map[string]any{
+											"source_labels": []any{"service_version"},
+											"target_label":  "service.version",
+										},
+										map[string]any{
+											"regex":  "service_name|service_instance_id|service_version",
+											"action": "labeldrop",
+										},
+										map[string]any{
 											"action":        "drop",
 											"regex":         "promhttp_metric_handler_errors.*",
 											"source_labels": []any{"__name__"},
@@ -490,6 +522,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"exporters":  []any{"otlp_http/entities"},
 						},
+					},
+					"telemetry": map[string]any{
+						"logs": map[string]any{"level": "info"},
 					},
 				},
 			}, config)

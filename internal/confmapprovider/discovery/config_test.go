@@ -151,10 +151,7 @@ func TestDiscoveryPropertiesEntryPath(t *testing.T) {
 	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cprocessors%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
 }
 
-var (
-	tru  = true
-	flse = false
-)
+var tru = true
 
 var expectedConfig = Config{
 	Service: ServiceEntry{

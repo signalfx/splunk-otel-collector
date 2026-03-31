@@ -29,7 +29,7 @@
   ansible.builtin.set_fact:
     registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
     package_stage: release
-    win_base_url: https://dl.observability.splunkcloud.com
+    win_base_url: https://dl.signalfx.com
     win_use_proxy: "no"
     dotnet_options:
       COR_ENABLE_PROFILING: "1"

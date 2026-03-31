@@ -18,7 +18,7 @@ class splunk_otel_collector (
   $apt_repo_url            = 'https://splunk.jfrog.io/splunk/otel-collector-deb',
   $apt_repo                = 'main',
   $yum_repo_url            = "https://splunk.jfrog.io/splunk/otel-collector-rpm/${package_stage}/\$basearch",
-  $win_repo_url            = "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/${package_stage}",
+  $win_repo_url            = "https://dl.signalfx.com/splunk-otel-collector/msi/${package_stage}",
   $service_user            = 'splunk-otel-collector',  # linux only
   $service_group           = 'splunk-otel-collector',  # linux only
   $apt_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg',

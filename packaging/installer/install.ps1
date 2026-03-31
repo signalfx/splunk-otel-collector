@@ -89,7 +89,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -stage "test"
 .PARAMETER collector_msi_url
-    (OPTIONAL) Specify the URL to the Splunk OpenTelemetry Collector MSI package to install (default: "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi")
+    (OPTIONAL) Specify the URL to the Splunk OpenTelemetry Collector MSI package to install (default: "https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi")
     If specified, the -collector_version and -stage parameters will be ignored.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -collector_msi_url https://my.host/splunk-otel-collector-1.2.3-amd64.msi
@@ -167,7 +167,7 @@ if ($archFromEnv -eq "ARM64") {
 }
 $format = "msi"
 $service_name = "splunk-otel-collector"
-$signalfx_dl = "https://dl.observability.splunkcloud.com"
+$signalfx_dl = "https://dl.signalfx.com"
 try {
     Resolve-Path $env:PROGRAMFILES 2>&1>$null
     $installation_path = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector"

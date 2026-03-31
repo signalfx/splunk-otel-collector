@@ -7,7 +7,7 @@ default['splunk_otel_collector']['debian_gpg_key_url'] = "#{node['splunk_otel_co
 default['splunk_otel_collector']['rhel_repo_url'] = "#{node['splunk_otel_collector']['repo_base_url']}/otel-collector-rpm/#{node['splunk_otel_collector']['package_stage']}/$basearch/"
 default['splunk_otel_collector']['rhel_gpg_key_url'] = "#{node['splunk_otel_collector']['repo_base_url']}/otel-collector-rpm/splunk-B3CD4420.pub"
 
-default['splunk_otel_collector']['windows_repo_url'] = "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/#{node['splunk_otel_collector']['package_stage']}"
+default['splunk_otel_collector']['windows_repo_url'] = "https://dl.signalfx.com/splunk-otel-collector/msi/#{node['splunk_otel_collector']['package_stage']}"
 
 default['splunk_otel_collector']['service_name'] = 'splunk-otel-collector'
 

@@ -1,5 +1,4 @@
 config_sources:
-  # Include config source doesn't have any parameters.
   include:
   include/watch_files:
     watch_files: true

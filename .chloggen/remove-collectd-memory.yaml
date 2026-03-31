@@ -14,4 +14,6 @@ issues: [7376]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  There is no direct replacement for this monitor. Please consider using the hostmetrics receiver with the memory scraper for OpenTelemetry moving forward.
+  There is no direct replacement for this monitor. Please consider using the 
+  [hostmetrics receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/applications-hosts-and-servers/host-metrics-receiver)
+  with the memory scraper for OpenTelemetry moving forward.

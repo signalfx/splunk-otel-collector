@@ -157,4 +157,3 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	assert.Equal(t, "val2", val)
 	require.NoError(t, r.Close(context.Background()))
 }
-

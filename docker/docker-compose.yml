@@ -1,9 +1,8 @@
 services:
-  # Apache image for collectd-apache test
+  # Apache image for apache discovery test
   apache:
     image: quay.io/splunko11ytest/apache:latest
     profiles:
-      - smartagent
       - integration-test-apache-discovery
     build: ./apache
     ports:

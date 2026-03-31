@@ -26,7 +26,6 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
 )
 
@@ -34,30 +33,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	configs, err := confmaptest.LoadConf(path.Join(".", "testdata", "linux_config.yaml"))
 	require.NoError(t, err)
 
-	assert.Equal(t, 2, len(configs.ToStringMap()))
+	assert.Equal(t, 1, len(configs.ToStringMap()))
 
-	cm, err := configs.Sub(component.MustNewIDWithName(typeStr, "apache").String())
-	require.NoError(t, err)
-	apacheCfg := CreateDefaultConfig().(*Config)
-	err = cm.Unmarshal(&apacheCfg)
-	require.NoError(t, err)
-	require.Equal(t, &Config{
-		MonitorType: "collectd/apache",
-		monitorConfig: &apache.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/apache",
-				IntervalSeconds:     234,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			Host: "localhost",
-			Port: 6379,
-			URL:  "http://{{.Host}}:{{.Port}}/server-status?auto",
-		},
-		acceptsEndpoints: true,
-	}, apacheCfg)
-	require.NoError(t, apacheCfg.Validate())
-
-	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "memcached").String())
+	cm, err := configs.Sub(component.MustNewIDWithName(typeStr, "memcached").String())
 	require.NoError(t, err)
 	memcachedCfg := CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&memcachedCfg)

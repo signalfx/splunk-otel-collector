@@ -201,9 +201,6 @@ variables:
 splunk.discovery.receivers.prometheus_simple.config.labels::my_label: my_label_value
 splunk.discovery.receivers.prometheus_simple.enabled: true
 
-splunk.discovery.receivers.smartagent/postgresql.config.params::username: '${env:PG_USERNAME}'
-splunk.discovery.receivers.smartagent/postgresql.config.params::password: '${env:PG_PASSWORD}'
-
 # mapped property form
 splunk.discovery:
   extensions:

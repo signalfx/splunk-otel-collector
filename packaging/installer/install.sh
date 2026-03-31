@@ -1076,7 +1076,7 @@ Collector:
   -- <access_token>                     Use '--' if access_token starts with '-'.
   --api-url <url>                       Set the api endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://api.REALM.signalfx.com)
+                                        (default: https://api.REALM.splunkcloud.com)
   --beta                                Use the beta package repo instead of the primary.
   --collector-config <path>             Set the path to an existing custom config file for the collector service instead
                                         of the default config file provided by the collector package based on the
@@ -1092,12 +1092,12 @@ Collector:
   --hec-token <token>                   Set the HEC token if different than the specified access_token.
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com/v1/log)
+                                        (default: https://ingest.REALM.splunkcloud.com/v1/log)
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com)
+                                        (default: https://ingest.REALM.splunkcloud.com)
   --memory <memory size>                Total memory in MIB to allocate to the collector
                                         (default: "$default_memory_size")
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
@@ -1635,11 +1635,11 @@ parse_args_and_install() {
   fi
 
   if [ -z "$api_url" ]; then
-    api_url="https://api.${realm}.signalfx.com"
+    api_url="https://api.${realm}.splunkcloud.com"
   fi
 
   if [ -z "$ingest_url" ]; then
-    ingest_url="https://ingest.${realm}.signalfx.com"
+    ingest_url="https://ingest.${realm}.splunkcloud.com"
   fi
 
   if [ -z "$hec_token" ]; then

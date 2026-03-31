@@ -12,14 +12,14 @@
       <param name="interval">60</param>
       <param name="sourcetype">Splunk_TA_otel</param>
       <param name="splunk_access_token_file">$SPLUNK_OTEL_TA_HOME/local/access_token</param>
-      <param name="splunk_api_url">https://api.us0.signalfx.com</param>
+      <param name="splunk_api_url">https://api.us0.splunkcloud.com</param>
       <param name="splunk_bundle_dir">$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle</param>
       <param name="splunk_collectd_dir">$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd</param>
       <param name="splunk_config">$SPLUNK_OTEL_TA_HOME/configs/ta-agent-config.yaml</param>
-      <param name="splunk_ingest_url">https://ingest.us0.signalfx.com</param>
+      <param name="splunk_ingest_url">https://ingest.us0.splunkcloud.com</param>
       <param name="splunk_listen_interface">localhost</param>
       <param name="splunk_realm">us0</param>
-      <param name="splunk_trace_url">https://ingest.us0.signalfx.com/v2/trace</param>
+      <param name="splunk_trace_url">https://ingest.us0.splunkcloud.com/v2/trace</param>
       <param name="start_by_shell">false</param>
     </stanza>
   </configuration>

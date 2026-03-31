@@ -7,15 +7,15 @@ default['splunk_otel_collector']['debian_gpg_key_url'] = "#{node['splunk_otel_co
 default['splunk_otel_collector']['rhel_repo_url'] = "#{node['splunk_otel_collector']['repo_base_url']}/otel-collector-rpm/#{node['splunk_otel_collector']['package_stage']}/$basearch/"
 default['splunk_otel_collector']['rhel_gpg_key_url'] = "#{node['splunk_otel_collector']['repo_base_url']}/otel-collector-rpm/splunk-B3CD4420.pub"
 
-default['splunk_otel_collector']['windows_repo_url'] = "https://dl.signalfx.com/splunk-otel-collector/msi/#{node['splunk_otel_collector']['package_stage']}"
+default['splunk_otel_collector']['windows_repo_url'] = "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/#{node['splunk_otel_collector']['package_stage']}"
 
 default['splunk_otel_collector']['service_name'] = 'splunk-otel-collector'
 
 default['splunk_otel_collector']['splunk_access_token'] = nil
 default['splunk_otel_collector']['splunk_realm'] = 'us0'
 
-default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
-default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
+default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.splunkcloud.com"
+default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.splunkcloud.com"
 default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v1/log"
 default['splunk_otel_collector']['splunk_hec_token'] = node['splunk_otel_collector']['splunk_access_token'].to_s
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'

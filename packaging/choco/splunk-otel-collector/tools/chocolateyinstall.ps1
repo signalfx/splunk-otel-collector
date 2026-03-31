@@ -77,10 +77,10 @@ if ($access_token) {
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_REALM" "us0"
 $realm = $env_vars["SPLUNK_REALM"] # Cache the realm since it is used to build various default values.
 
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_INGEST_URL"         "https://ingest.$realm.signalfx.com"
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_API_URL"            "https://api.$realm.signalfx.com"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_INGEST_URL"         "https://ingest.$realm.splunkcloud.com"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_API_URL"            "https://api.$realm.splunkcloud.com"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_TOKEN"          $env_vars["SPLUNK_ACCESS_TOKEN"]
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_URL"            "https://ingest.$realm.signalfx.com/v1/log"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_URL"            "https://ingest.$realm.splunkcloud.com/v1/log"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_MEMORY_TOTAL_MIB"   "512"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_BUNDLE_DIR"         "$installation_path\agent-bundle"
 

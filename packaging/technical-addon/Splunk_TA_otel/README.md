@@ -100,7 +100,7 @@ You can find the log files in the `$SPLUNK_HOME/var/log/splunk/` folder.
 
 You can browse the metrics and traces collected by the add-on in  in Splunk Observability Cloud. See the [Splunk Observability Cloud documentation for more information](https://docs.splunk.com/Observability).
 
-If you're using the default configuration, you can search [metrics finder](https://docs.splunk.com/observability/en/metrics-and-metadata/metrics-finder-metadata-catalog.html#metrics-finder-and-metadata-catalog) for [`splunk.distribution:otel-ta`](https://app.signalfx.com/#/metrics?sources%5B%5D=splunk.distribution:otel-ta).
+If you're using the default configuration, you can search [metrics finder](https://docs.splunk.com/observability/en/metrics-and-metadata/metrics-finder-metadata-catalog.html#metrics-finder-and-metadata-catalog) for [`splunk.distribution:otel-ta`](https://app.splunkcloud.com/#/metrics?sources%5B%5D=splunk.distribution:otel-ta).
 
 *note*: if you're using your own configuration, *please* continue to include the telemetry in the configuration.
 

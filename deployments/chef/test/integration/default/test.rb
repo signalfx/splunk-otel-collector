@@ -1,7 +1,7 @@
 splunk_access_token = 'testing123'
 splunk_realm = 'test'
-splunk_api_url = "https://api.#{splunk_realm}.signalfx.com"
-splunk_ingest_url = "https://ingest.#{splunk_realm}.signalfx.com"
+splunk_api_url = "https://api.#{splunk_realm}.splunkcloud.com"
+splunk_ingest_url = "https://ingest.#{splunk_realm}.splunkcloud.com"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = splunk_access_token
 splunk_memory_total = '512'

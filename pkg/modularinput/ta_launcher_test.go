@@ -616,9 +616,9 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
 	<configuration>
 		<stanza name="test-stanza" app="test-app">
-			<param name="splunk_ingest_url">https://ingest.${SPLUNK_REALM}.signalfx.com</param>
+			<param name="splunk_ingest_url">https://ingest.${SPLUNK_REALM}.splunkcloud.com</param>
 			<param name="splunk_realm">us0</param>
-			<param name="splunk_api_url">https://api.${SPLUNK_REALM}.signalfx.com</param>
+			<param name="splunk_api_url">https://api.${SPLUNK_REALM}.splunkcloud.com</param>
 			<param name="splunk_access_token">secret123</param>
 		</stanza>
 	</configuration>
@@ -634,8 +634,8 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 	// Verify all variables are set
 	assert.Equal(t, "us0", envVars["SPLUNK_REALM"], "Expected SPLUNK_REALM to be set")
 	assert.Equal(t, "secret123", envVars["SPLUNK_ACCESS_TOKEN"], "Expected SPLUNK_ACCESS_TOKEN to be set")
-	assert.Equal(t, "https://ingest.us0.signalfx.com", envVars["SPLUNK_INGEST_URL"], "Expected SPLUNK_INGEST_URL to be expanded")
-	assert.Equal(t, "https://api.us0.signalfx.com", envVars["SPLUNK_API_URL"], "Expected SPLUNK_API_URL to be expanded")
+	assert.Equal(t, "https://ingest.us0.splunkcloud.com", envVars["SPLUNK_INGEST_URL"], "Expected SPLUNK_INGEST_URL to be expanded")
+	assert.Equal(t, "https://api.us0.splunkcloud.com", envVars["SPLUNK_API_URL"], "Expected SPLUNK_API_URL to be expanded")
 
 	// Verify ordering: variables without dependencies should be set first
 	// Find positions in setOrder
@@ -797,7 +797,7 @@ func TestSetEnvVarsInOrder_NoDependencies(t *testing.T) {
 func TestSetEnvVarsInOrder_WithDependencies(t *testing.T) {
 	envVars := map[string]string{
 		"SPLUNK_REALM":      "us0",
-		"SPLUNK_INGEST_URL": "https://ingest.${SPLUNK_REALM}.signalfx.com",
+		"SPLUNK_INGEST_URL": "https://ingest.${SPLUNK_REALM}.splunkcloud.com",
 	}
 
 	// Track environment variables set and their order
@@ -820,7 +820,7 @@ func TestSetEnvVarsInOrder_WithDependencies(t *testing.T) {
 
 	// Verify values
 	assert.Equal(t, "us0", setVars["SPLUNK_REALM"])
-	assert.Equal(t, "https://ingest.us0.signalfx.com", setVars["SPLUNK_INGEST_URL"])
+	assert.Equal(t, "https://ingest.us0.splunkcloud.com", setVars["SPLUNK_INGEST_URL"])
 }
 
 func TestSetEnvVarsInOrder_SetEnvError(t *testing.T) {

@@ -59,7 +59,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
 					"otlp_http": map[string]any{
-						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
+						"traces_endpoint": "https://ingest.not.real.splunkcloud.com/v2/trace/otlp",
 						"sending_queue": map[string]any{
 							"num_consumers": 32,
 						},
@@ -83,19 +83,19 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"sync_host_metadata": true,
 					},
 					"splunk_hec": map[string]any{
-						"endpoint":               "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":               "https://ingest.not.real.splunkcloud.com/v1/log",
 						"source":                 "otel",
 						"sourcetype":             "otel",
 						"token":                  "<redacted>",
 						"profiling_data_enabled": false,
 					},
 					"splunk_hec/profiling": map[string]any{
-						"endpoint":         "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":         "https://ingest.not.real.splunkcloud.com/v1/log",
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
 					"otlp_http/entities": map[string]any{
-						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
+						"logs_endpoint": "https://ingest.not.real.splunkcloud.com/v3/event",
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
@@ -120,7 +120,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 					"http_forwarder": map[string]any{
 						"egress": map[string]any{
-							"endpoint": "https://api.not.real.signalfx.com",
+							"endpoint": "https://api.not.real.splunkcloud.com",
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:6060", ip),
@@ -128,7 +128,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 					"http_forwarder/signalfx": map[string]any{
 						"egress": map[string]any{
-							"endpoint": "https://ingest.not.real.signalfx.com",
+							"endpoint": "https://ingest.not.real.splunkcloud.com",
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:9943", ip),
@@ -325,32 +325,32 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
-						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
+						"traces_endpoint": "https://ingest.not.real.splunkcloud.com/v2/trace/otlp",
 						"auth": map[string]any{
 							"authenticator": "<redacted>",
 						},
 					},
 					"signalfx": map[string]any{
 						"access_token":       "<redacted>",
-						"api_url":            "https://api.not.real.signalfx.com",
+						"api_url":            "https://api.not.real.splunkcloud.com",
 						"correlation":        nil,
-						"ingest_url":         "https://ingest.not.real.signalfx.com",
+						"ingest_url":         "https://ingest.not.real.splunkcloud.com",
 						"sync_host_metadata": true,
 					},
 					"splunk_hec": map[string]any{
-						"endpoint":               "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":               "https://ingest.not.real.splunkcloud.com/v1/log",
 						"source":                 "otel",
 						"sourcetype":             "otel",
 						"token":                  "<redacted>",
 						"profiling_data_enabled": false,
 					},
 					"splunk_hec/profiling": map[string]any{
-						"endpoint":         "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":         "https://ingest.not.real.splunkcloud.com/v1/log",
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
 					"otlp_http/entities": map[string]any{
-						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
+						"logs_endpoint": "https://ingest.not.real.splunkcloud.com/v3/event",
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
@@ -373,7 +373,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"health_check": map[string]any{"endpoint": fmt.Sprintf("%s:13133", ip)},
 					"http_forwarder": map[string]any{
 						"egress": map[string]any{
-							"endpoint": "https://api.not.real.signalfx.com",
+							"endpoint": "https://api.not.real.splunkcloud.com",
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:6060", ip),

@@ -45,17 +45,17 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -network_interface "127.0.0.1"
 .PARAMETER ingest_url
-    (OPTIONAL) Set the base ingest URL explicitly instead of the URL inferred from the specified realm (default: https://ingest.REALM.signalfx.com).
+    (OPTIONAL) Set the base ingest URL explicitly instead of the URL inferred from the specified realm (default: https://ingest.REALM.splunkcloud.com).
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -ingest_url "https://ingest.us1.signalfx.com"
+    .\install.ps1 -access_token "ACCESSTOKEN" -ingest_url "https://ingest.us1.splunkcloud.com"
 .PARAMETER api_url
-    (OPTIONAL) Set the base API URL explicitly instead of the URL inferred from the specified realm (default: https://api.REALM.signalfx.com).
+    (OPTIONAL) Set the base API URL explicitly instead of the URL inferred from the specified realm (default: https://api.REALM.splunkcloud.com).
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.signalfx.com"
+    .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.splunkcloud.com"
 .PARAMETER hec_url
-    (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.signalfx.com/v1/log).
+    (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.splunkcloud.com/v1/log).
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://ingest.us1.signalfx.com/v1/log"
+    .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://ingest.us1.splunkcloud.com/v1/log"
 .PARAMETER hec_token
     (OPTIONAL) Set the HEC token if different than the specified Splunk access_token.
     .EXAMPLE
@@ -89,7 +89,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -stage "test"
 .PARAMETER collector_msi_url
-    (OPTIONAL) Specify the URL to the Splunk OpenTelemetry Collector MSI package to install (default: "https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi")
+    (OPTIONAL) Specify the URL to the Splunk OpenTelemetry Collector MSI package to install (default: "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi")
     If specified, the -collector_version and -stage parameters will be ignored.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -collector_msi_url https://my.host/splunk-otel-collector-1.2.3-amd64.msi
@@ -167,7 +167,7 @@ if ($archFromEnv -eq "ARM64") {
 }
 $format = "msi"
 $service_name = "splunk-otel-collector"
-$signalfx_dl = "https://dl.signalfx.com"
+$signalfx_dl = "https://dl.observability.splunkcloud.com"
 try {
     Resolve-Path $env:PROGRAMFILES 2>&1>$null
     $installation_path = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector"
@@ -533,11 +533,11 @@ if ($with_dotnet_instrumentation) {
 }
 
 if ($ingest_url -eq "") {
-    $ingest_url = "https://ingest.$realm.signalfx.com"
+    $ingest_url = "https://ingest.$realm.splunkcloud.com"
 }
 
 if ($api_url -eq "") {
-    $api_url = "https://api.$realm.signalfx.com"
+    $api_url = "https://api.$realm.splunkcloud.com"
 }
 
 if ($hec_url -eq "") {

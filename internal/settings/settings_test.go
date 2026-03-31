@@ -267,10 +267,10 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	assert.Contains(t, set.envVarWarnings["SPLUNK_TRACE_URL"], `"SPLUNK_TRACE_URL" environment variable is deprecated`)
 
 	expectedEnvVars := [][]string{
-		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.signalfx.com", realm)},
-		{"SPLUNK_INGEST_URL", fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
-		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
-		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
+		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.splunkcloud.com", realm)},
+		{"SPLUNK_INGEST_URL", fmt.Sprintf("https://ingest.%s.splunkcloud.com", realm)},
+		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.splunkcloud.com/v2/trace", realm)},
+		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.splunkcloud.com/v1/log", realm)},
 	}
 	for _, v := range expectedEnvVars {
 		val, ok := os.LookupEnv(v[0])
@@ -283,18 +283,18 @@ func TestNoWarningsIfTraceURLSetExplicitly(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
 	t.Setenv("SPLUNK_REALM", "us1")
-	t.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.signalfx.com/v2/trace")
+	t.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.splunkcloud.com/v2/trace")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
 	assert.Empty(t, set.envVarWarnings)
 
 	val, ok := os.LookupEnv("SPLUNK_INGEST_URL")
 	assert.True(t, ok)
-	assert.Equal(t, "https://ingest.us1.signalfx.com", val)
+	assert.Equal(t, "https://ingest.us1.splunkcloud.com", val)
 
 	val, ok = os.LookupEnv("SPLUNK_TRACE_URL")
 	assert.True(t, ok)
-	assert.Equal(t, "https://ingest.trace-realm.signalfx.com/v2/trace", val)
+	assert.Equal(t, "https://ingest.trace-realm.splunkcloud.com/v2/trace", val)
 }
 
 func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
@@ -312,7 +312,7 @@ func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
 func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
-	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com/")
+	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.splunkcloud.com/")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
 	assert.Len(t, set.envVarWarnings, 1)
@@ -320,7 +320,7 @@ func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
 
 	val, ok := os.LookupEnv("SPLUNK_TRACE_URL")
 	assert.True(t, ok)
-	assert.Equal(t, "https://ingest.fake-realm.signalfx.com/v2/trace", val)
+	assert.Equal(t, "https://ingest.fake-realm.splunkcloud.com/v2/trace", val)
 }
 
 func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {

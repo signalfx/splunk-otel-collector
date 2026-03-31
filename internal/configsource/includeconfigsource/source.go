@@ -18,9 +18,6 @@ package includeconfigsource
 import (
 	"bytes"
 	"context"
-	"errors"
-	"fmt"
-	"os"
 	"text/template"
 
 	"github.com/fsnotify/fsnotify"
@@ -30,11 +27,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
-// Private error types to help with testability.
-type (
-	errFailedToDeleteFile struct{ error }
-)
-
 // includeConfigSource implements the configprovider.Session interface.
 type includeConfigSource struct {
 	*Config
@@ -42,14 +34,7 @@ type includeConfigSource struct {
 	watchedFiles map[string]struct{}
 }
 
-func newConfigSource(config *Config, logger *zap.Logger) (configsource.ConfigSource, error) {
-	if config.DeleteFiles && config.WatchFiles { // SA1019: deprecated DeleteFiles
-		return nil, errors.New(`cannot be configured with "delete_files" and "watch_files" at the same time`)
-	}
-	if config.DeleteFiles { // SA1019: deprecated DeleteFiles
-		logger.Warn("[NOTICE] delete_files is a deprecated setting and will be removed in a future release on or after April 2026")
-	}
-
+func newConfigSource(config *Config, _ *zap.Logger) (configsource.ConfigSource, error) {
 	return &includeConfigSource{
 		Config:       config,
 		watchedFiles: make(map[string]struct{}),
@@ -71,12 +56,6 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 	}
 	if err := tmpl.Execute(&buf, params); err != nil { //nolint:govet // intentional shadow
 		return nil, err
-	}
-
-	if is.DeleteFiles { // SA1019: deprecated DeleteFiles
-		if err := os.Remove(selector); err != nil { //nolint:govet // intentional shadow
-			return nil, &errFailedToDeleteFile{fmt.Errorf("failed to delete file %q as requested: %w", selector, err)}
-		}
 	}
 
 	if !is.WatchFiles || watcher == nil {

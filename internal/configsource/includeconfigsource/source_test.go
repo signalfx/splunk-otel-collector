@@ -19,7 +19,6 @@ import (
 	"context"
 	"os"
 	"path"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -159,56 +158,3 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, r.Close(context.Background()))
 }
 
-func TestIncludeConfigSourceDeleteFile(t *testing.T) {
-	s, err := newConfigSource(&Config{DeleteFiles: true}, zap.NewNop()) // SA1019: deprecated DeleteFiles
-	require.NoError(t, err)
-	require.NotNil(t, s)
-
-	// Copy test file
-	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
-	require.NoError(t, err)
-	dst := path.Join(t.TempDir(), "copy_scalar_data_file")
-	require.NoError(t, os.WriteFile(dst, contents, 0o600))
-
-	ctx := context.Background()
-	r, err := s.Retrieve(ctx, dst, nil, func(event *confmap.ChangeEvent) {
-		panic(event)
-	})
-	require.NoError(t, err)
-	require.NotNil(t, r)
-
-	val, err := r.AsRaw()
-	require.NoError(t, err)
-	assert.Equal(t, "42", val)
-
-	require.NoError(t, r.Close(context.Background()))
-}
-
-func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
-	if runtime.GOOS != "windows" {
-		// Locking the file is trivial on Windows, but not on *nix given the
-		// golang API, run the test only on Windows.
-		t.Skip("Windows only test")
-	}
-
-	s, err := newConfigSource(&Config{DeleteFiles: true}, zap.NewNop()) // SA1019: deprecated DeleteFiles
-	require.NoError(t, err)
-
-	// Copy test file
-	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
-	require.NoError(t, err)
-	dst := path.Join("testdata", "copy_scalar_data_file")
-	require.NoError(t, os.WriteFile(dst, contents, 0o600))
-	f, err := os.OpenFile(dst, os.O_RDWR, 0)
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		assert.NoError(t, f.Close())
-		assert.NoError(t, os.Remove(dst))
-	})
-
-	ctx := context.Background()
-	r, err := s.Retrieve(ctx, dst, nil, nil)
-	var targetErr *errFailedToDeleteFile
-	require.ErrorAs(t, err, &targetErr)
-	assert.Nil(t, r)
-}

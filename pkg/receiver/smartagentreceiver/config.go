@@ -40,7 +40,7 @@ var (
 
 	nonWindowsMonitors = map[string]bool{
 		"collectd/cpufreq": true, "collectd/custom": true,
-		"collectd/memcached": true, "collectd/memory": true,
+		"collectd/memcached": true,
 		"collectd/processes": true, "collectd/protocols": true,
 		"collectd/signalfx-metadata": true, "collectd/uptime": true,
 	}

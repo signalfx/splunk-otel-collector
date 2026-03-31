@@ -42,7 +42,6 @@ var (
 		"collectd/apache":  true,
 		"collectd/cpufreq": true, "collectd/custom": true,
 		"collectd/memcached": true, "collectd/memory": true,
-		"collectd/php-fpm":   true,
 		"collectd/processes": true, "collectd/protocols": true,
 		"collectd/signalfx-metadata": true, "collectd/uptime": true,
 	}

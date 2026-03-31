@@ -8,5 +8,3 @@ smartagent/memcached:
   host: localhost
   port: 5309
   intervalSeconds: 456
-smartagent/php:
-  type: collectd/php-fpm

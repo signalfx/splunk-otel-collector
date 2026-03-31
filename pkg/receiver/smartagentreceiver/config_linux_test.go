@@ -28,14 +28,13 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/php"
 )
 
 func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	configs, err := confmaptest.LoadConf(path.Join(".", "testdata", "linux_config.yaml"))
 	require.NoError(t, err)
 
-	assert.Equal(t, 3, len(configs.ToStringMap()))
+	assert.Equal(t, 2, len(configs.ToStringMap()))
 
 	cm, err := configs.Sub(component.MustNewIDWithName(typeStr, "apache").String())
 	require.NoError(t, err)
@@ -77,23 +76,4 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		acceptsEndpoints: true,
 	}, memcachedCfg)
 	require.NoError(t, memcachedCfg.Validate())
-
-	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "php").String())
-	require.NoError(t, err)
-	phpCfg := CreateDefaultConfig().(*Config)
-	err = cm.Unmarshal(&phpCfg)
-	require.NoError(t, err)
-	require.Equal(t, &Config{
-		MonitorType: "collectd/php-fpm",
-		monitorConfig: &php.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/php-fpm",
-				IntervalSeconds:     0,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			Path: "/status",
-		},
-		acceptsEndpoints: true,
-	}, phpCfg)
-	require.NoError(t, phpCfg.Validate())
 }

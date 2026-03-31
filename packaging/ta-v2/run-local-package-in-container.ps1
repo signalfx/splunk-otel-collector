@@ -72,8 +72,8 @@ $updatedContent = $inputsContent | ForEach-Object {
         "splunk_realm = us0"
     } elseif ($_ -match "^splunk_collector_log_level\s*=.*$") {
         "splunk_collector_log_level = info"
-    } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
-        "[Splunk_TA_OTel_Collector://local_run]"
+    } elseif ($_ -match "^\[Splunk_TA_otel.*\]\s*$") {
+        "[Splunk_TA_otel://local_run]"
     } else {
         $_
     }
@@ -91,7 +91,7 @@ Write-Host "  Log directory: $LOG_DIR"
 # Launch Splunk Universal Forwarder container
 docker run -d --name $CONTAINER_NAME `
     --user ContainerAdministrator `
-    -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector" `
+    -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_otel" `
     -v "${LOG_DIR}:C:\Program Files\SplunkUniversalForwarder\var\log\splunk" `
     -p 8888:8888 `
     -p 55679:55679 `
@@ -137,11 +137,11 @@ Write-Host ""
 # Wait for Splunk TA OTel Collector to be recorded on the log
 $timeout = 180
 $elapsed = 0
-Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
-while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+Write-Host -NoNewline "Waiting for Splunk_TA_otel to be recorded on splunkd.log: "
+while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel" -Quiet)) {
     if ($elapsed -ge $timeout) {
         Write-Host ""
-        Write-Host "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
+        Write-Host "Timeout: Splunk_TA_otel was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
         exit 1
     }
     Start-Sleep -Seconds 2
@@ -149,8 +149,8 @@ while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector"
     Write-Host -NoNewline "."
 }
 Write-Host ""
-Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
-Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
+Write-Host "Splunk_TA_otel in splunkd.log:"
+Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel" | ForEach-Object { $_.Line }
 
 Write-Host ""
 Write-Host ""
@@ -159,6 +159,6 @@ Write-Host "  View container logs: docker logs -f $CONTAINER_NAME"
 Write-Host "  Stop container: docker stop $CONTAINER_NAME"
 Write-Host "  Remove container: docker rm -f $CONTAINER_NAME"
 Write-Host "  View splunkd logs: Get-Content -Path '$splunkdLog' -Wait"
-Write-Host "  Grep Splunk_TA_OTel_Collector logs: Select-String -Path '$splunkdLog' -Pattern 'Splunk_TA_OTel_Collector'"
+Write-Host "  Grep Splunk_TA_otel logs: Select-String -Path '$splunkdLog' -Pattern 'Splunk_TA_otel'"
 Write-Host "  Docker exec shell: docker exec -it $CONTAINER_NAME powershell"
 Write-Host ""

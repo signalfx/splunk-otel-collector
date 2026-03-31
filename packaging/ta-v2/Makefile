@@ -18,7 +18,7 @@ else ifeq ($(TA_TARGET_OS),linux)
 	TAR_EXCLUDE_OPT ?= --exclude='*/windows_$(TA_ARCH)/*'
 endif
 
-MOD_INPUT_NAME := Splunk_TA_OTel_Collector
+MOD_INPUT_NAME := Splunk_TA_otel
 PKG_NAME := $(MOD_INPUT_NAME)$(TA_PLATFORM_SUFFIX)
 
 sync-configs:

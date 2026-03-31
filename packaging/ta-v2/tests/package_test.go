@@ -31,12 +31,12 @@ import (
 
 const (
 	distDir          = "../out/distribution"
-	modularInputName = "Splunk_TA_OTel_Collector"
-	multiOSTgz       = "Splunk_TA_OTel_Collector.tgz"
-	linuxTgz         = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
-	windowsTgz       = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
-	linuxBinPath     = "Splunk_TA_OTel_Collector/linux_x86_64/"
-	windowsBinPath   = "Splunk_TA_OTel_Collector/windows_x86_64/"
+	modularInputName = "Splunk_TA_otel"
+	multiOSTgz       = "Splunk_TA_otel.tgz"
+	linuxTgz         = "Splunk_TA_otel_linux_x86_64.tgz"
+	windowsTgz       = "Splunk_TA_otel_windows_x86_64.tgz"
+	linuxBinPath     = "Splunk_TA_otel/linux_x86_64/"
+	windowsBinPath   = "Splunk_TA_otel/windows_x86_64/"
 )
 
 // getFileSize returns the size of a file in bytes
@@ -198,12 +198,12 @@ func TestPackageMandatoryFiles(t *testing.T) {
 
 			addLinuxExecutable := pkgName != "Windows"
 			if addLinuxExecutable {
-				mandatoryPaths = append(mandatoryPaths, modularInputName+"/linux_x86_64/bin/Splunk_TA_OTel_Collector")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/linux_x86_64/bin/Splunk_TA_otel")
 			}
 
 			addWindowsExecutable := pkgName != "Linux"
 			if addWindowsExecutable {
-				mandatoryPaths = append(mandatoryPaths, modularInputName+"/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/windows_x86_64/bin/Splunk_TA_otel.exe")
 			}
 
 			contents := getTarContents(t, pkgPath)

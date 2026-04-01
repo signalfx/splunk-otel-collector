@@ -134,7 +134,7 @@ while (-not (Test-Path $splunkdLog)) {
 }
 Write-Host ""
 
-# Wait for Splunk TA OTel Collector to be recorded on the log
+# Wait for Splunk_TA_otel to be recorded in the log
 $timeout = 180
 $elapsed = 0
 Write-Host -NoNewline "Waiting for Splunk_TA_otel to be recorded on splunkd.log: "

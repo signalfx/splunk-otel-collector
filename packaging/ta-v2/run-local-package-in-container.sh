@@ -102,7 +102,7 @@ while [ ! -f "${LOG_DIR}/splunkd.log" ]; do
 done
 echo ""
 
-# Wait for Splunk TA OTel Collector to be recorded on the log
+# Wait for Splunk_TA_otel to be recorded in the log
 timeout=180
 elapsed=0
 echo -n "Waiting for Splunk_TA_otel to be recorded on splunkd.log: "

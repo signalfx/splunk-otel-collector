@@ -42,7 +42,6 @@ var (
 		"collectd/custom":            true,
 		"collectd/memcached":         true,
 		"collectd/signalfx-metadata": true,
-		"collectd/uptime":            true,
 	}
 )
 

@@ -2,7 +2,7 @@
 change_type: breaking
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: ntp
+component: smartagent/ntp
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
 note: This monitor is removed at the end of its deprecation period.

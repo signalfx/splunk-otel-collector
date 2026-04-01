@@ -41,7 +41,6 @@ var (
 	nonWindowsMonitors = map[string]bool{
 		"collectd/custom":            true,
 		"collectd/memcached":         true,
-		"collectd/protocols":         true,
 		"collectd/signalfx-metadata": true,
 		"collectd/uptime":            true,
 	}

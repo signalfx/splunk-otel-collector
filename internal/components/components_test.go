@@ -63,7 +63,7 @@ func TestDefaultComponents(t *testing.T) {
 		"discovery",
 		"docker_stats",
 		"elasticsearch",
-		"filelog",
+		"file_log",
 		"filestats",
 		"fluentforward",
 		"googlecloudpubsub",
@@ -134,6 +134,7 @@ func TestDefaultComponents(t *testing.T) {
 		"mongodbatlas":          "mongodb_atlas",
 		"azureblob":             "azure_blob",
 		"azuremonitor":          "azure_monitor",
+		"filelog":               "file_log",
 		"prometheusremotewrite": "prometheus_remote_write",
 		"yanggrpc":              "yang_grpc",
 	}

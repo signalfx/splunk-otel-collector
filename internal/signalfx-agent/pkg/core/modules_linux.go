@@ -12,7 +12,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/protocols"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/uptime"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/process"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/varnish"
 )

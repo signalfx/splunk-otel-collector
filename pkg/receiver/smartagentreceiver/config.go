@@ -43,7 +43,6 @@ var (
 		"collectd/memcached":         true,
 		"collectd/protocols":         true,
 		"collectd/signalfx-metadata": true,
-		"collectd/uptime":            true,
 	}
 )
 

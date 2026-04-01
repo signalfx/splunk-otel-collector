@@ -423,7 +423,7 @@ jobs:
         shell: pwsh
         run: |
           $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
-          if (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel" -Quiet)) {
+          if (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel.*Shutdown" -Quiet)) {
               Write-Host "Collector shutdown was NOT recorded in splunkd.log!" -ForegroundColor Red
               exit 1
           }

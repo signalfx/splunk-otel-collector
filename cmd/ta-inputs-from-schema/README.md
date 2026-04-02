@@ -25,7 +25,7 @@ go run ./cmd/ta-inputs-from-schema \
 go run ./cmd/ta-inputs-from-schema \
   -scheme cmd/otelcol/ta_scheme.xml \
   -global-settings cmd/ta-inputs-from-schema/testdata/global_settings.txt \
-  -name Splunk_TA_OTel_Collector \
+  -name Splunk_TA_otel \
   -assets packaging/ta-v2/assets
 ```
 
@@ -66,7 +66,7 @@ disabled=false
 start_by_shell=false
 interval = 0
 index = _internal
-sourcetype = Splunk_TA_OTel_Collector
+sourcetype = Splunk_TA_otel
 ```
 
 ## Output Files

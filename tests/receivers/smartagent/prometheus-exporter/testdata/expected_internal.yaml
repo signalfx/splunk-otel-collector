@@ -36,15 +36,6 @@ resourceMetrics:
                     - key: receiver
                       value:
                         stringValue: smartagent/prometheus-exporter
-                    - key: service_instance_id
-                      value:
-                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -112,15 +103,6 @@ resourceMetrics:
                     - key: receiver
                       value:
                         stringValue: smartagent/prometheus-exporter
-                    - key: service_instance_id
-                      value:
-                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -240,15 +222,6 @@ resourceMetrics:
                     - key: receiver
                       value:
                         stringValue: smartagent/prometheus-exporter
-                    - key: service_instance_id
-                      value:
-                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter

@@ -55,7 +55,7 @@ if grep -q "^splunk_access_token[[:space:]]*=[[:space:]]*$" "$ASSETS_DIR/local/i
     sed -i.bak 's/^splunk_access_token[[:space:]]*=[[:space:]]*$/splunk_access_token = F3K3TestT0Ken/' "$ASSETS_DIR/local/inputs.conf"
     sed -i.bak 's/^splunk_realm[[:space:]]*=[[:space:]]*$/splunk_realm = us0/' "$ASSETS_DIR/local/inputs.conf"
     sed -i.bak 's/^splunk_collector_log_level[[:space:]]*=.*$/splunk_collector_log_level = info/' "$ASSETS_DIR/local/inputs.conf"
-    sed -i.bak 's/^\[Splunk_TA_OTel_Collector.*\][[:space:]]*$/[Splunk_TA_OTel_Collector:\/\/local_run]/' "$ASSETS_DIR/local/inputs.conf"
+    sed -i.bak 's/^\[Splunk_TA_otel.*\][[:space:]]*$/[Splunk_TA_otel:\/\/local_run]/' "$ASSETS_DIR/local/inputs.conf"
     rm -f "$ASSETS_DIR/local/inputs.conf.bak"
 fi
 
@@ -74,7 +74,7 @@ docker run -d --name "${CONTAINER_NAME}" \
     -e SPLUNK_START_ARGS="--accept-license" \
     -e SPLUNK_GENERAL_TERMS="--accept-sgt-current-at-splunk-com" \
     -e SPLUNK_PASSWORD="${SPLUNK_PASSWORD}" \
-    -v "${ASSETS_DIR}":/opt/splunk/etc/apps/Splunk_TA_OTel_Collector \
+    -v "${ASSETS_DIR}":/opt/splunk/etc/apps/Splunk_TA_otel \
     -v "${LOG_DIR}":/opt/splunk/var/log/splunk \
     -p 8000:8000 \
     -p 8088:8088 \
@@ -102,13 +102,13 @@ while [ ! -f "${LOG_DIR}/splunkd.log" ]; do
 done
 echo ""
 
-# Wait for Splunk TA OTel Collector to be recorded on the log
+# Wait for Splunk_TA_otel to be recorded in the log
 timeout=180
 elapsed=0
-echo -n "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
-while ! grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log" > /dev/null 2>&1; do
+echo -n "Waiting for Splunk_TA_otel to be recorded on splunkd.log: "
+while ! grep Splunk_TA_otel "${LOG_DIR}/splunkd.log" > /dev/null 2>&1; do
     if [ "$elapsed" -ge "$timeout" ]; then
-        echo "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within ${timeout} seconds"
+        echo "Timeout: Splunk_TA_otel was not recorded on splunkd.log within ${timeout} seconds"
         exit 1
     fi
     sleep 2
@@ -116,8 +116,8 @@ while ! grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log" > /dev/null 2>&1;
     echo -n "."
 done
 echo ""
-echo "Splunk_TA_OTel_Collector in splunkd.log:"
-grep Splunk_TA_OTel_Collector "${LOG_DIR}/splunkd.log"
+echo "Splunk_TA_otel in splunkd.log:"
+grep Splunk_TA_otel "${LOG_DIR}/splunkd.log"
 
 echo ""
 echo "Splunk Web UI: http://localhost:8000"
@@ -133,6 +133,6 @@ echo "  View Splunk logs: docker logs -f ${CONTAINER_NAME}"
 echo "  Stop container: docker stop ${CONTAINER_NAME}"
 echo "  Remove container: docker rm -f ${CONTAINER_NAME}"
 echo "  View splunkd logs: tail -f ${LOG_DIR}/splunkd.log"
-echo "  Grep Splunk_TA_OTel_Collector logs: grep Splunk_TA_OTel_Collector \"${LOG_DIR}/splunkd.log\""
+echo "  Grep Splunk_TA_otel logs: grep Splunk_TA_otel \"${LOG_DIR}/splunkd.log\""
 echo "  Docker exec shell: docker exec -it -u root ${CONTAINER_NAME} /bin/bash"
 echo ""

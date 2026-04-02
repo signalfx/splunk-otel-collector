@@ -22,7 +22,7 @@ can use the following resources:
   new Docker container running splunk-uf-windows with the collector binaries
   mounted from a local assets directory to the appropriate Splunk apps location,
   and then monitors the container's splunkd.log file to verify that the
-  Splunk_TA_OTel_Collector application is successfully loaded and recorded.
+  Splunk_TA_otel application is successfully loaded and recorded.
 - [`windows-container-start-and-wait.ps1`](./windows-container-start-and-wait.ps1):
   A PowerShell script that starts the Splunk Universal Forwarder service inside
   the running container and waits for it to be fully operational before proceeding

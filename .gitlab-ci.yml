@@ -749,9 +749,9 @@ pack-ta-v2:
   script:
     - |
       mkdir -p packaging/ta-v2/assets/linux_x86_64/bin
-      cp bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_OTel_Collector
+      cp bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_otel
       mkdir -p packaging/ta-v2/assets/windows_x86_64/bin
-      cp dist/signed/otelcol_windows_amd64.exe packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe
+      cp dist/signed/otelcol_windows_amd64.exe packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_otel.exe
     - cd packaging/ta-v2 && make all-packages
   artifacts:
     paths:

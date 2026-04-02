@@ -40,7 +40,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
-const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
+const modularinputStanzaPrefix = "Splunk_TA_otel://"
 
 //go:embed ta_scheme.xml
 var modularInputSchemeXML string

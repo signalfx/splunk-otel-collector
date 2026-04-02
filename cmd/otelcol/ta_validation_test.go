@@ -30,7 +30,7 @@ const validationModeXML = `<items>
 	<server_uri>https://localhost:8089</server_uri>
 	<session_key>test_key</session_key>
 	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<item name="Splunk_TA_OTel_Collector://default">
+	<item name="Splunk_TA_otel://default">
 		<param name="splunk_realm">us0</param>
 		<param name="splunk_access_token">test_token</param>
 	</item>

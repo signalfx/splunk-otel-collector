@@ -33,7 +33,7 @@ and the [opentelemetry-collector-contrib v0.149.0](https://github.com/open-telem
 - (Splunk) `collectd/zookeeper`: This plugin is removed at the end of its deprecation period. ([#7359](https://github.com/signalfx/splunk-otel-collector/pull/7359))
   Please use the [zookeeper receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zookeeperreceiver) instead.
 - (Splunk) `includeconfigsource`: Remove the deprecated `delete_files` configuration option. ([#7374](https://github.com/signalfx/splunk-otel-collector/pull/7374))
-  The `delete_files` setting was deprecated on or after April 2026 and has now been removed.
+  The `delete_files` setting was deprecated in `v0.145.0` and has now been removed.
   Users relying on this option should remove it from their configuration.
 - (Splunk) `smartagent/ntp`: This monitor is removed at the end of its deprecation period. ([#7386](https://github.com/signalfx/splunk-otel-collector/pull/7386))
   Please use the [NTP receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver) instead.

@@ -131,8 +131,6 @@ and the [opentelemetry-collector-contrib v0.149.0](https://github.com/open-telem
   controls only whether the legacy `otel_scope_info` metric is ignored for scope attribute extraction.
   When the gate is disabled, both mechanisms coexist to support migration.
   See the specification change for motivation: https://github.com/open-telemetry/opentelemetry-specification/pull/4505
-- (Contrib) `receiver/pulsar`: This component does not support aix/ppc64. ([#47010](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47010))
-  Make the receiver explicitly panic if used in aix/ppc64 environments.
 - (Contrib) `receiver/sqlquery`: Add clickhouse support to sqlquery ([#47116](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47116))
 - (Contrib) `receiver/sqlquery`: Add `row_condition` to metric configuration for filtering result rows by column value ([#45862](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45862))
   Enables extracting individual metrics from pivot-style result sets where each row

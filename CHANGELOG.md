@@ -142,7 +142,6 @@ and the [opentelemetry-collector-contrib v0.149.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
-- (Core) `cmd/mdatagen`: Fix entity code generation so `extra_attributes` are emitted as resource attributes instead of entity descriptive attributes. ([#14778](https://github.com/open-telemetry/opentelemetry-collector/issues/14778))
 - (Contrib) `exporter/kafka`: Fixes the validation for `topic_from_metadata_key` to use partition keys. ([#46994](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/46994))
 - (Contrib) `exporter/kafka`: Fix topic routing for multi-resource batches when `topic_from_attribute` is set without resource-level partitioning ([#46872](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46872))
   Previously, when a batch contained multiple resources with different

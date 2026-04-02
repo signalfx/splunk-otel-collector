@@ -269,7 +269,7 @@ jobs:
       # Multiarch images require more disk space
       - name: Free up disk space for next step
         run: .github/workflows/scripts/free-disk-space.sh
-        if: matrix.PROFILE == 'integration' runner.os == 'Linux'
+        if: matrix.PROFILE == 'integration' && runner.os == 'Linux'
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0

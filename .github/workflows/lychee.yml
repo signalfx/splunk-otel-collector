@@ -14,6 +14,10 @@ on:
   schedule:
     - cron: "0 0 * * 1"
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   linkChecker:
     runs-on: ubuntu-24.04
@@ -29,8 +33,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Issue From File
         if: failure() && github.event_name == 'schedule'
-        uses: peter-evans/create-issue-from-file@fca9117c27cdc29c6c4db3b86c48e4115a786710 # v6
-        with:
-          title: Link Checker Report
-          content-filepath: ./lychee/out.md
-          labels: report, automated issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Link Checker Report" \
+            --body-file ./lychee/out.md \
+            --label report \
+            --label "automated issue"

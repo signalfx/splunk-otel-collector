@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -39,10 +41,10 @@ jobs:
         run: |
           set -eo pipefail
           make GOOS=linux GOARCH=amd64 otelcol
-          install -D bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_OTel_Collector
+          install -D bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_otel
 
           make GOOS=windows GOARCH=amd64 otelcol
-          install -D bin/otelcol_windows_amd64 packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe
+          install -D bin/otelcol_windows_amd64 packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_otel.exe
 
       - name: Package TA v2
         working-directory: packaging/ta-v2
@@ -85,13 +87,13 @@ jobs:
         working-directory: ./packaging/ta-v2
     env:
       CONTAINER_NAME: splunk-ta-otel-test
-      TA: Splunk_TA_OTel_Collector
+      TA: Splunk_TA_otel
     strategy:
       matrix:
         splunk_version: [8.2.0, 9.4.0, 10.2.0]
         package:
-          - Splunk_TA_OTel_Collector.tgz
-          - Splunk_TA_OTel_Collector_linux_x86_64.tgz
+          - Splunk_TA_otel.tgz
+          - Splunk_TA_otel_linux_x86_64.tgz
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -114,14 +116,14 @@ jobs:
         shell: bash
         run: |
           set -eo pipefail
-          mkdir -p ./build-out/Splunk_TA_OTel_Collector/local
-          cp ./build-out/Splunk_TA_OTel_Collector/default/inputs.conf ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
-          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
-          sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/Splunk_TA_OTel_Collector/local/inputs.conf
+          mkdir -p ./build-out/Splunk_TA_otel/local
+          cp ./build-out/Splunk_TA_otel/default/inputs.conf ./build-out/Splunk_TA_otel/local/inputs.conf
+          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/Splunk_TA_otel/local/inputs.conf
+          sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/Splunk_TA_otel/local/inputs.conf
 
       - name: Run local container
         env:
-          ASSETS_DIR: ./build-out/Splunk_TA_OTel_Collector
+          ASSETS_DIR: ./build-out/Splunk_TA_otel
           SPLUNK_VERSION: ${{ matrix.splunk_version }}
         run: |
           sudo -E ./run-local-package-in-container.sh
@@ -162,7 +164,7 @@ jobs:
 
       - name: Check cmd args are used by collector process
         run: |
-          if sudo grep -qP 'Splunk_TA_OTel_Collector.*"splunk_autodiscovery": "true"' ./local-test-logs/var/log/splunk/splunkd.log; then
+          if sudo grep -qP 'Splunk_TA_otel.*"splunk_autodiscovery": "true"' ./local-test-logs/var/log/splunk/splunkd.log; then
             echo "--discovery cmd arg is correctly reflected in the collector service."
           else
             echo "--discovery cmd arg is NOT reflected in the collector service!"
@@ -186,7 +188,7 @@ jobs:
 
       - name: Check collector shutdown was recorded in splunkd.log
         run: |
-          if sudo grep -qP 'Splunk_TA_OTel_Collector.*Shutdown' ./local-test-logs/var/log/splunk/splunkd.log; then
+          if sudo grep -qP 'Splunk_TA_otel.*Shutdown' ./local-test-logs/var/log/splunk/splunkd.log; then
             echo "Collector shutdown was recorded in splunkd.log."
           else
             echo "Collector shutdown was NOT recorded in splunkd.log!"
@@ -213,8 +215,8 @@ jobs:
           - version: 10.0.3
             build_hash: adbac1c8811c
         package:
-          - Splunk_TA_OTel_Collector.tgz
-          - Splunk_TA_OTel_Collector_windows_x86_64.tgz
+          - Splunk_TA_otel.tgz
+          - Splunk_TA_otel_windows_x86_64.tgz
     steps:
       - name: Download the Splunk UF MSI
         shell: bash
@@ -230,10 +232,10 @@ jobs:
           name: ta-v2-packages
           path: ${{ github.workspace }}/packaging/ta-v2/out/distribution
 
-      - name: Install Splunk_TA_OTel_Collector on the local Splunk UF
+      - name: Install Splunk_TA_otel on the local Splunk UF
         run: |
           tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/${{ matrix.package }}" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
-          $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector"
+          $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\Splunk_TA_otel"
           New-Item -ItemType Directory -Path "$modularInputDir\local" -Force | Out-Null
           $inputsConfPath = "$modularInputDir\local\inputs.conf"
           Copy-Item -Path "$modularInputDir\default\inputs.conf" -Destination $inputsConfPath -Force
@@ -249,8 +251,8 @@ jobs:
                   "splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value"
               } elseif ($_ -match "^splunk_collector_cmd_args\s*=\s*$") {
                   "splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s"
-              } elseif ($_ -match "^\[Splunk_TA_OTel_Collector.*\]\s*$") {
-                  "[Splunk_TA_OTel_Collector://local_run]"
+              } elseif ($_ -match "^\[Splunk_TA_otel.*\]\s*$") {
+                  "[Splunk_TA_otel://local_run]"
               } else {
                   $_
               }
@@ -296,11 +298,11 @@ jobs:
           $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
           $timeout = 300
           $elapsed = 0
-          Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
-          while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+          Write-Host -NoNewline "Waiting for Splunk_TA_otel to be recorded on splunkd.log: "
+          while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel" -Quiet)) {
               if ($elapsed -ge $timeout) {
                   Write-Host ""
-                  Write-Host "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
+                  Write-Host "Timeout: Splunk_TA_otel was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
                   exit 1
               }
               Start-Sleep -Seconds 2
@@ -308,10 +310,10 @@ jobs:
               Write-Host -NoNewline "."
           }
           Write-Host ""
-          Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
-          Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
+          Write-Host "Splunk_TA_otel in splunkd.log:"
+          Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel" | ForEach-Object { $_.Line }
 
-      - name: Get Splunk_TA_OTel_Collector PID
+      - name: Get Splunk_TA_otel PID
         id: get_pid
         shell: pwsh
         run: |
@@ -319,18 +321,18 @@ jobs:
           $timeout = 120
           $elapsed = 0
           $otelcol_pid = $null
-          Write-Host -NoNewline "Waiting for a single Splunk_TA_OTel_Collector process: "
+          Write-Host -NoNewline "Waiting for a single Splunk_TA_otel process: "
           # Sleep a bit so the introspection launch can terminate before we try to get the PID, otherwise we might get the wrong PID or two PIDs
           Start-Sleep -Seconds 5
           while ($elapsed -lt $timeout -and $null -eq $otelcol_pid) {
               try {
                   # splunkd may briefly launch two instances: one with --scheme for introspection
                   # and then the actual execution instance. Wait until only one remains.
-                  $procs = @(Get-Process -Name Splunk_TA_OTel_Collector -ErrorAction Stop)
+                  $procs = @(Get-Process -Name Splunk_TA_otel -ErrorAction Stop)
                   if ($procs.Count -eq 1) {
                       $otelcol_pid = $procs[0].Id
                       Write-Host ""
-                      Write-Host "Found Splunk_TA_OTel_Collector PID: $otelcol_pid"
+                      Write-Host "Found Splunk_TA_otel PID: $otelcol_pid"
                   }
               } catch {
                   # Process not found, continue waiting
@@ -343,7 +345,7 @@ jobs:
           }
           if ($null -eq $otelcol_pid) {
               Write-Host ""
-              Write-Host "Timeout: Could not find Splunk_TA_OTel_Collector process within $timeout seconds" -ForegroundColor Red
+              Write-Host "Timeout: Could not find Splunk_TA_otel process within $timeout seconds" -ForegroundColor Red
               exit 1
           }
           "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
@@ -392,23 +394,23 @@ jobs:
         shell: pwsh
         run: |
           $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
-          if (Select-String -Path $splunkdLog -Pattern 'Splunk_TA_OTel_Collector.*"splunk_autodiscovery": "true"' -Quiet) {
+          if (Select-String -Path $splunkdLog -Pattern 'Splunk_TA_otel.*"splunk_autodiscovery": "true"' -Quiet) {
               Write-Host "--discovery cmd arg is correctly reflected in the collector service."
           } else {
               Write-Host "--discovery cmd arg is NOT reflected in the collector service!" -ForegroundColor Red
               exit 1
           }
 
-      - name: Check if Splunk_TA_OTel_Collector process is alive after 30 seconds
+      - name: Check if Splunk_TA_otel process is alive after 30 seconds
         shell: pwsh
         run: |
           Start-Sleep -Seconds 30
           $prev_otelcol_pid = ${{ steps.get_pid.outputs.otelcol_pid }}
           $otelcol_pid = (Get-Process -Id $prev_otelcol_pid).Id
           if ($otelcol_pid) {
-              Write-Host "Splunk_TA_OTel_Collector process ($prev_otelcol_pid) was still running."
+              Write-Host "Splunk_TA_otel process ($prev_otelcol_pid) was still running."
           } else {
-              Write-Host "Splunk_TA_OTel_Collector process ($prev_otelcol_pid) was not running!"
+              Write-Host "Splunk_TA_otel process ($prev_otelcol_pid) was not running!"
               exit 1
           }
 

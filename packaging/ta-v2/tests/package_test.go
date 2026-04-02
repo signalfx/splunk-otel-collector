@@ -31,12 +31,12 @@ import (
 
 const (
 	distDir          = "../out/distribution"
-	modularInputName = "Splunk_TA_OTel_Collector"
-	multiOSTgz       = "Splunk_TA_OTel_Collector.tgz"
-	linuxTgz         = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
-	windowsTgz       = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
-	linuxBinPath     = "Splunk_TA_OTel_Collector/linux_x86_64/"
-	windowsBinPath   = "Splunk_TA_OTel_Collector/windows_x86_64/"
+	modularInputName = "Splunk_TA_otel"
+	multiOSTgz       = "Splunk_TA_otel.tgz"
+	linuxTgz         = "Splunk_TA_otel_linux_x86_64.tgz"
+	windowsTgz       = "Splunk_TA_otel_windows_x86_64.tgz"
+	linuxBinPath     = "Splunk_TA_otel/linux_x86_64/"
+	windowsBinPath   = "Splunk_TA_otel/windows_x86_64/"
 )
 
 // getFileSize returns the size of a file in bytes
@@ -96,6 +96,33 @@ func containsPath(paths []string, prefix string) bool {
 		}
 	}
 	return false
+}
+
+// getTarFileContent returns the content of a specific file in a tar.gz archive.
+// Returns empty string if the file is not found.
+func getTarFileContent(t *testing.T, tgzPath, targetPath string) string {
+	file, err := os.Open(tgzPath)
+	require.NoError(t, err, "Failed to open tgz file: %s", tgzPath)
+	defer file.Close()
+
+	gzr, err := gzip.NewReader(file)
+	require.NoError(t, err, "Failed to create gzip reader for: %s", tgzPath)
+	defer gzr.Close()
+
+	tr := tar.NewReader(gzr)
+	for {
+		header, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		require.NoError(t, err, "Failed to read tar entry")
+		if header.Name == targetPath {
+			content, readErr := io.ReadAll(tr)
+			require.NoError(t, readErr, "Failed to read file content: %s", targetPath)
+			return string(content)
+		}
+	}
+	return ""
 }
 
 func TestPackageSizes(t *testing.T) {
@@ -198,12 +225,12 @@ func TestPackageMandatoryFiles(t *testing.T) {
 
 			addLinuxExecutable := pkgName != "Windows"
 			if addLinuxExecutable {
-				mandatoryPaths = append(mandatoryPaths, modularInputName+"/linux_x86_64/bin/Splunk_TA_OTel_Collector")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/linux_x86_64/bin/Splunk_TA_otel")
 			}
 
 			addWindowsExecutable := pkgName != "Linux"
 			if addWindowsExecutable {
-				mandatoryPaths = append(mandatoryPaths, modularInputName+"/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe")
+				mandatoryPaths = append(mandatoryPaths, modularInputName+"/windows_x86_64/bin/Splunk_TA_otel.exe")
 			}
 
 			contents := getTarContents(t, pkgPath)
@@ -222,6 +249,34 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			for _, path := range contents {
 				assert.Contains(t, mandatoryPaths, path,
 					"%s package contains unexpected file: %s", pkgName, path)
+			}
+
+			// Check that the version in app.conf has the correct OS/arch suffix.
+			// The Makefile sets: version = <git-tag-without-v-prefix><platform-suffix>
+			// where platform-suffix uses dashes (e.g. -linux-x86-64) instead of underscores.
+			appConfContent := getTarFileContent(t, pkgPath, modularInputName+"/default/app.conf")
+			require.NotEmpty(t, appConfContent, "app.conf not found or empty in %s package", pkgName)
+			var appConfVersion string
+			for _, line := range strings.Split(appConfContent, "\n") {
+				trimmed := strings.TrimSpace(line)
+				if strings.HasPrefix(trimmed, "version") && strings.ContainsRune(trimmed, '=') {
+					parts := strings.SplitN(trimmed, "=", 2)
+					appConfVersion = strings.TrimSpace(parts[1])
+					break
+				}
+			}
+			require.NotEmpty(t, appConfVersion, "version not found in app.conf of %s package", pkgName)
+			switch pkgName {
+			case "Multi-OS":
+				assert.False(t,
+					strings.HasSuffix(appConfVersion, "-linux-x86-64") || strings.HasSuffix(appConfVersion, "-windows-x86-64"),
+					"Multi-OS app.conf version %q should not have OS/arch suffix", appConfVersion)
+			case "Linux":
+				assert.True(t, strings.HasSuffix(appConfVersion, "-linux-x86-64"),
+					"Linux app.conf version %q should end with '-linux-x86-64'", appConfVersion)
+			case "Windows":
+				assert.True(t, strings.HasSuffix(appConfVersion, "-windows-x86-64"),
+					"Windows app.conf version %q should end with '-windows-x86-64'", appConfVersion)
 			}
 		})
 	}

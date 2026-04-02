@@ -1,6 +1,6 @@
 # Splunk Technical Add-on for Splunk OpenTelemetry Collector
 
-The `Splunk_TA_OTel_Collector` is the replacement for the `Splunk_TA_OTel`.
+The `Splunk_TA_otel` is the replacement for the `Splunk_TA_OTel`.
 
 ## Installation
 

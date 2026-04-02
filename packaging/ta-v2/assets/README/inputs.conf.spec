@@ -1,4 +1,4 @@
-[Splunk_TA_OTel_Collector://<name>]
+[Splunk_TA_otel://<name>]
 
 splunk_access_token = <value>
 * Access token used to send data to Splunk Observability
@@ -9,11 +9,11 @@ splunk_realm = <value>
 * Default =
 
 splunk_config = <value>
-* Config file that will be used by the Splunk_TA_OTel_Collector
-* Default = $SPLUNK_HOME/etc/apps/Splunk_TA_OTel_Collector/configs/agent_config.yaml
+* Config file that will be used by the Splunk_TA_otel
+* Default = $SPLUNK_HOME/etc/apps/Splunk_TA_otel/configs/agent_config.yaml
 
 splunk_collector_log_level = <value>
-* Specifies the log level to be used by the Splunk_TA_OTel_Collector
+* Specifies the log level to be used by the Splunk_TA_otel
 * Default = error
 
 splunk_collector_env_vars = <value>

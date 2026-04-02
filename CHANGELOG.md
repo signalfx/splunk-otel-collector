@@ -39,6 +39,9 @@ and the [opentelemetry-collector-contrib v0.149.0](https://github.com/open-telem
   Please use the [NTP receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver) instead.
 - (Splunk) `smartagent/postgresql`: This monitor is removed at the end of its deprecation period. ([#7142](https://github.com/signalfx/splunk-otel-collector/pull/7142))
   Please use the [postgresql receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/postgresql-receiver) instead.
+- (Splunk) `collectd/protocols`: This plugin is removed at the end of its deprecation period. ([#7383](https://github.com/signalfx/splunk-otel-collector/pull/7383))
+  Please use the [hostmetrics receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/README.md)
+  with the [network scraper](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/networkscraper/) instead.
 - (Core) `pkg/service`: Remove `service_name`, `service_instance_id`, and `service_version` as constant labels on every internal metric datapoint. These attributes are already present in `target_info` and were being duplicated on each series for OpenCensus backwards compatibility. ([#14811](https://github.com/open-telemetry/opentelemetry-collector/pull/14811))
   Previously, the collector stamped every internal metric series (e.g. `otelcol_process_runtime_heap_alloc_bytes`)
   with `service_name`, `service_instance_id`, and `service_version` labels to match the old OpenCensus behavior.
@@ -91,6 +94,7 @@ and the [opentelemetry-collector-contrib v0.149.0](https://github.com/open-telem
 - (Contrib) `processor/resourcedetection`: Added IBM Cloud VPC resource detector to the Resource Detection Processor ([#46874](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46874))
 - (Contrib) `processor/resourcedetection`: Added IBM Cloud Classic resource detector to the Resource Detection Processor ([#46874](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46874))
 - (Contrib) `processor/tail_sampling`: Add `sampling_strategy` config with `trace-complete` and `span-ingest` modes for tail sampling decision timing and evaluation behavior. ([#46600](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46600))
+- (Contrib) `receiver/awslambda`: Enrich context with AWS Lambda receiver metadata for S3 logs ([#47046](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47046))
 - (Contrib) `receiver/azure_event_hub`: Add support for Azure Event Hubs distributed processing. This allows the receiver to automatically coordinate partition ownership and checkpointing across multiple collector instances via Azure Blob Storage. ([#46595](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46595))
 - (Contrib) `receiver/docker_stats`: Add TLS configuration support for connecting to the Docker daemon over HTTPS with client and server certificates. ([#33557](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33557))
   A new optional `tls` configuration block is available in `docker_stats` receiver config (and the
@@ -105,6 +109,7 @@ and the [opentelemetry-collector-contrib v0.149.0](https://github.com/open-telem
   When `stream_stats: true` is set, each container maintains a persistent open Docker stats
   stream instead of opening and closing a new connection on every scrape cycle. The scraper
   reads from the cached latest value, which reduces connection overhead.
+- (Contrib) `receiver/expvar`: Enable the re-aggregation feature for the expvar receiver ([#45396](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45396))
 - (Contrib) `receiver/file_log`: Add `max_log_size_behavior` config option to control oversized log entry behavior ([#44371](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44371))
   The new `max_log_size_behavior` setting controls what happens when a log entry exceeds `max_log_size`.
   - `split` (default): Splits oversized log entries into multiple log entries. This is the existing behavior.

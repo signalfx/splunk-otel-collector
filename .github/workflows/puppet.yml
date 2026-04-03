@@ -25,10 +25,7 @@ jobs:
 
       - name: Read version from metadata.json
         id: read-metadata-json
-        uses: notiz-dev/github-action-json-property@a5a9c668b16513c737c3e1f8956772c99c73f6e8 # release
-        with:
-          path: deployments/puppet/metadata.json
-          prop_path: version
+        run: echo "prop=$(jq -r '.version // empty' deployments/puppet/metadata.json)" >> "$GITHUB_OUTPUT"
 
       - name: Ensure version is read from metadata.json
         if: steps.read-metadata-json.outputs.prop == ''

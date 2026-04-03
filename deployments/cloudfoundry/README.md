@@ -7,7 +7,7 @@ This readme covers the following steps:
 - Releasing
 
 of a Tanzu tile of the [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector).
-The Tanzu tile uses the BOSH release to deploy the collector as a [loggregator firehose nozzle](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/nozzle.html).
+The Tanzu tile uses the BOSH release to deploy the collector as a [loggregator firehose nozzle](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/nozzle.html).
 
 A crucial step here is the testing and for that you will need to have access to a Tanzu environment and there are a few async tasks that can take some time because it needs approval from Broadcom/VMWare. Follow the steps outlined in the Tanzu ISV Partner Guide to register for a Broadcom Portal Account requesting access to the ISV dashboard. 
 
@@ -23,7 +23,7 @@ Before building and testing a tile, make sure you've updated your repo. Also not
 
 ## Install Dependencies
 
-1. Download the [Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html)
+1. Download the [Tile Generator](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/tile-generator.html)
   - Note that MacOS support was dropped for this tool, so an older version must be downloaded for darwin development. Version `14.0.6-dev.1` has been confirmed to be working.
   - Download the tile and pcf release assets from [Tile Generator v14.0.6](https://github.com/cf-platform-eng/tile-generator/releases/tag/v14.0.6-dev.1)
     -  you are looking for `tile_darwin-64bit` and `pcf_darwin-64bit`

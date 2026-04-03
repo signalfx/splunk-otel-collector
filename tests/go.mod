@@ -6,24 +6,24 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.6.0
 	github.com/google/uuid v1.6.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.149.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.149.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest v0.149.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.149.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.149.1-0.20260403024604-b41f28058ad1
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.149.1-0.20260403024604-b41f28058ad1
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest v0.149.1-0.20260403024604-b41f28058ad1
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.149.1-0.20260403024604-b41f28058ad1
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.41.0
-	go.opentelemetry.io/collector/component v1.55.0
-	go.opentelemetry.io/collector/component/componenttest v0.149.0
-	go.opentelemetry.io/collector/config/configgrpc v0.149.0
-	go.opentelemetry.io/collector/config/confignet v1.55.0
-	go.opentelemetry.io/collector/config/configoptional v1.55.0
-	go.opentelemetry.io/collector/confmap v1.55.0
-	go.opentelemetry.io/collector/consumer/consumertest v0.149.0
-	go.opentelemetry.io/collector/pdata v1.55.0
-	go.opentelemetry.io/collector/receiver v1.55.0
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.149.0
-	go.opentelemetry.io/collector/receiver/receivertest v0.149.0
+	go.opentelemetry.io/collector/component v1.55.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/component/componenttest v0.149.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/config/configgrpc v0.149.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/config/confignet v1.55.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/config/configoptional v1.55.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/confmap v1.55.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/consumer/consumertest v0.149.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/pdata v1.55.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/receiver v1.55.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.149.1-0.20260402195938-76ede073ee8e
+	go.opentelemetry.io/collector/receiver/receivertest v0.149.1-0.20260402195938-76ede073ee8e
 	go.opentelemetry.io/otel/metric v1.42.0
 	go.opentelemetry.io/otel/trace v1.42.0
 	go.uber.org/zap v1.27.1
@@ -70,7 +70,7 @@ require (
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
-	github.com/hashicorp/go-version v1.8.0 // indirect
+	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -84,6 +84,8 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.2.0 // indirect
+	github.com/moby/moby/api v1.54.0 // indirect
+	github.com/moby/moby/client v0.3.0 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
 	github.com/moby/sys/sequential v0.6.0 // indirect
 	github.com/moby/sys/user v0.4.0 // indirect
@@ -158,7 +160,7 @@ require (
 	golang.org/x/net v0.52.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/term v0.41.0 // indirect
-	golang.org/x/time v0.9.0 // indirect
+	golang.org/x/time v0.11.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
 	google.golang.org/grpc v1.79.3 // indirect

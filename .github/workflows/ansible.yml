@@ -303,10 +303,9 @@ jobs:
 
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml
-        uses: cumulusds/get-yaml-paths-action@9cffc368facb8b506c7fdd8ee4f365ab2206d12a # v1
-        with:
-          file: deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml
-          version: version
+        run: |
+          version=$(yq e -r '.version' deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       
       - name: Ensure version is fetched from galaxy.yml
         if: steps.read-galaxy-yaml.outputs.version == ''

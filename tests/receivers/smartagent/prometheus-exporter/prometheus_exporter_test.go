@@ -31,6 +31,7 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 			pmetrictest.IgnoreMetricsOrder(),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("transport"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricValues(
@@ -46,6 +47,7 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 				"otelcol_process_uptime",
 				"otelcol_receiver_accepted_metric_points",
 				"otelcol_receiver_failed_metric_points",
+				"otelcol_receiver_refused_metric_points",
 			),
 		),
 	)

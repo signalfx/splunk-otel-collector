@@ -54,7 +54,10 @@ jobs:
           - 5000:5000
     steps:
       # Multiarch images require more disk space
-      - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+      - name: Free up disk space for next step
+        run: ./scripts/free-disk-space.sh
+        if: runner.os == 'Linux'
+        continue-on-error: true
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
@@ -164,7 +167,10 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
       # Multiarch images require more disk space
-      - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+      - name: Free up disk space for next step
+        run: ./scripts/free-disk-space.sh
+        if: runner.os == 'Linux'
+        continue-on-error: true
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
@@ -261,11 +267,12 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
-      - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
-        if: matrix.PROFILE == 'integration' && matrix.RUNNER == 'ubuntu-24.04'
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+      - name: Free up disk space for next step
+        run: .github/workflows/scripts/free-disk-space.sh
+        if: matrix.PROFILE == 'integration' && runner.os == 'Linux'
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
@@ -366,7 +373,7 @@ jobs:
         COVER_TESTING: true
       steps:
         - name: Free up disk space for next step
-          uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+          run: ./scripts/free-disk-space.sh
           if: runner.os == 'Linux'
           continue-on-error: true
         - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -433,7 +440,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Free up disk space for next step
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        run: ./scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

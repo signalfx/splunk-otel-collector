@@ -204,7 +204,9 @@ jobs:
           - custom_vars_install_old_version
     steps:
       - name: Free up disk space for vagrant box
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        run: ./scripts/free-disk-space.sh
+        if: runner.os == 'Linux'
+        continue-on-error: true
 
       - name: Check out the codebase.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

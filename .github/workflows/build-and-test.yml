@@ -111,7 +111,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Free up disk space for next step
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        run: ./scripts/free-disk-space.sh
+        if: runner.os == 'Linux'
+        continue-on-error: true
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 

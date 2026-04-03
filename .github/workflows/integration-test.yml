@@ -267,12 +267,12 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
-      - name: Free up disk space for next step
-        run: pwd && ls -1 && ./scripts/free-disk-space.sh
-        if: matrix.PROFILE == 'integration' && runner.os == 'Linux'
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+      - name: Free up disk space for next step
+        run: .github/workflows/scripts/free-disk-space.sh
+        if: matrix.PROFILE == 'integration' && runner.os == 'Linux'
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)

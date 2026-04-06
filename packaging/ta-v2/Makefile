@@ -12,7 +12,9 @@ else
 endif
 
 DEFAULT_VERSION := $(shell git describe --match "v[0-9]*" HEAD)
-VERSION ?= $(DEFAULT_VERSION)$(subst _,-,$(TA_PLATFORM_SUFFIX))
+VERSION ?= $(DEFAULT_VERSION)
+# Always add the suffix to the version to differentiate packages built for different target OSes
+VERSION := $(VERSION)$(subst _,-,$(TA_PLATFORM_SUFFIX))
 
 # Set tar exclude options based on the target OS for packaging
 ifeq ($(TA_TARGET_OS),windows)

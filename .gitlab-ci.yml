@@ -752,7 +752,13 @@ pack-ta-v2:
       cp bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_otel
       mkdir -p packaging/ta-v2/assets/windows_x86_64/bin
       cp dist/signed/otelcol_windows_amd64.exe packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_otel.exe
-    - cd packaging/ta-v2 && make all-packages
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        cd packaging/ta-v2 && make all-packages VERSION=${VERSION_TAG}
+      else
+        cd packaging/ta-v2 && make all-packages
+      fi
   artifacts:
     paths:
       - packaging/ta-v2/out/distribution/

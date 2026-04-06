@@ -60,7 +60,7 @@ exporters:
     access_token: "${SIGNALFX_ACCESS_TOKEN}"
     realm: us1
   otlp_http:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.splunkcloud.com/v2/trace/otlp"
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 

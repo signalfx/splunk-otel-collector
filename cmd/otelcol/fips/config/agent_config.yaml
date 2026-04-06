@@ -3,10 +3,10 @@
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
-# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.splunkcloud.com
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
-# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.splunkcloud.com
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 
 extensions:

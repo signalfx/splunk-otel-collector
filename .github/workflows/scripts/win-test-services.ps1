@@ -4,8 +4,8 @@ param (
     [string]$realm = "test",
     [string]$memory = "512",
     [string]$with_msi_uninstall_comments = "",
-    [string]$api_url = "https://api.${realm}.splunkcloud.com",
-    [string]$ingest_url = "https://ingest.${realm}.splunkcloud.com",
+    [string]$api_url = "https://api.${realm}.observability.splunkcloud.com",
+    [string]$ingest_url = "https://ingest.${realm}.observability.splunkcloud.com",
     [string]$with_svc_args = ""
 )
 

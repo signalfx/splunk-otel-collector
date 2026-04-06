@@ -1,0 +1,36 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: breaking
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: core
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Replace default endpoint URLs from `*.signalfx.com` to `*.observability.splunkcloud.com` across all collector configurations, installers, and deployment templates.
+
+# One or more tracking issues related to the change
+issues: [4045]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  The default API and ingest endpoint URLs have been updated to use the `observability.splunkcloud.com` domain:
+  - `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
+  - `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
+  - `https://ingest.<realm>.signalfx.com/v2/trace` → `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
+  - `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
+
+  **Migration Notes — Proxy Configuration:**
+  If you have configured a proxy or firewall allowlist with rules for `*.signalfx.com`, you must update
+  those rules to allow traffic to `*.observability.splunkcloud.com` (or the specific realm-scoped hostnames
+  such as `api.<realm>.observability.splunkcloud.com` and `ingest.<realm>.observability.splunkcloud.com`).
+
+  Affected environment variables and their new default patterns (when `SPLUNK_REALM` is set):
+  - `SPLUNK_API_URL`: `https://api.<realm>.observability.splunkcloud.com`
+  - `SPLUNK_INGEST_URL`: `https://ingest.<realm>.observability.splunkcloud.com`
+  - `SPLUNK_TRACE_URL`: `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
+  - `SPLUNK_HEC_URL` (log ingest): `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
+
+  If you are explicitly setting these environment variables or config values to `*.signalfx.com` URLs,
+  no immediate action is required — the old endpoints will continue to work during a transition period.
+  However, it is recommended to update your configuration to use the new `*.observability.splunkcloud.com` endpoints.

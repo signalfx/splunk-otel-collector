@@ -110,7 +110,7 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 }
 
 func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
-	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.splunkcloud.com")
+	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.observability.splunkcloud.com")
 	t.Setenv("SPLUNK_ACCESS_TOKEN", "fake-token")
 
 	confmapProvider, err := New()
@@ -150,7 +150,7 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	oec, ok := conf.Exporters[component.MustNewIDWithName("otlp_http", "entities")].(*otlphttpexporter.Config)
 	require.True(t, ok)
 	expectedOtlpExporterConfig := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
-	expectedOtlpExporterConfig.LogsEndpoint = "https://ingest.fake-realm.splunkcloud.com/v3/event"
+	expectedOtlpExporterConfig.LogsEndpoint = "https://ingest.fake-realm.observability.splunkcloud.com/v3/event"
 	expectedOtlpExporterConfig.ClientConfig.Headers = configopaque.MapList{
 		{Name: "X-SF-Token", Value: "fake-token"},
 	}

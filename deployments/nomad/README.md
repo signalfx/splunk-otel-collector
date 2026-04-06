@@ -72,9 +72,9 @@ processors:
 exporters:
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
-    api_url: https://api.${SPLUNK_REALM}.splunkcloud.com
+    api_url: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
     correlation: null
-    ingest_url: https://ingest.${SPLUNK_REALM}.splunkcloud.com
+    ingest_url: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
     sync_host_metadata: true
   debug:
     verbosity: detailed

@@ -47,8 +47,8 @@
       <Property Id="SPLUNK_BUNDLE_DIR" Secure="yes" />
 
       <CustomAction Id="Set_SPLUNK_CONFIG" Property="SPLUNK_CONFIG" Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml" />
-      <CustomAction Id="Set_SPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].splunkcloud.com" />
-      <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].splunkcloud.com" />
+      <CustomAction Id="Set_SPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].observability.splunkcloud.com" />
+      <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].observability.splunkcloud.com" />
       <CustomAction Id="Set_SPLUNK_HEC_URL" Property="SPLUNK_HEC_URL" Value="[SPLUNK_INGEST_URL]/v1/log" />
       <CustomAction Id="Set_SPLUNK_BUNDLE_DIR" Property="SPLUNK_BUNDLE_DIR" Value="[INSTALLDIR]agent-bundle" />
 

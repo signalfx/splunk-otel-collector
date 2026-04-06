@@ -8,10 +8,10 @@
       SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml'
       SPLUNK_ACCESS_TOKEN: fake-token
       SPLUNK_REALM: fake-realm
-      SPLUNK_API_URL: https://api.fake-realm.splunkcloud.com
+      SPLUNK_API_URL: https://api.fake-realm.observability.splunkcloud.com
       SPLUNK_HEC_TOKEN: fake-token
-      SPLUNK_HEC_URL: https://ingest.fake-realm.splunkcloud.com/v1/log
-      SPLUNK_INGEST_URL: https://ingest.fake-realm.splunkcloud.com
+      SPLUNK_HEC_URL: https://ingest.fake-realm.observability.splunkcloud.com/v1/log
+      SPLUNK_INGEST_URL: https://ingest.fake-realm.observability.splunkcloud.com
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:

@@ -14,8 +14,8 @@ default['splunk_otel_collector']['service_name'] = 'splunk-otel-collector'
 default['splunk_otel_collector']['splunk_access_token'] = nil
 default['splunk_otel_collector']['splunk_realm'] = 'us0'
 
-default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.splunkcloud.com"
-default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.splunkcloud.com"
+default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.observability.splunkcloud.com"
+default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.observability.splunkcloud.com"
 default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v1/log"
 default['splunk_otel_collector']['splunk_hec_token'] = node['splunk_otel_collector']['splunk_access_token'].to_s
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'

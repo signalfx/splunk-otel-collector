@@ -1,12 +1,12 @@
 ---
 - name: Set default ingest url
   ansible.builtin.set_fact:
-    splunk_ingest_url: https://ingest.{{ splunk_realm }}.splunkcloud.com
+    splunk_ingest_url: https://ingest.{{ splunk_realm }}.observability.splunkcloud.com
   when: splunk_ingest_url is not defined or (splunk_ingest_url | trim) == ""
 
 - name: Set default api url
   ansible.builtin.set_fact:
-    splunk_api_url: https://api.{{ splunk_realm }}.splunkcloud.com
+    splunk_api_url: https://api.{{ splunk_realm }}.observability.splunkcloud.com
   when: splunk_api_url is not defined or (splunk_api_url | trim) == ""
 
 - name: Set default hec url

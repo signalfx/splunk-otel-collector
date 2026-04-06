@@ -379,10 +379,10 @@ func setDefaultEnvVars(s *Settings) error {
 	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {
-		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.splunkcloud.com", realm)
-		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.splunkcloud.com", realm)
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.splunkcloud.com/v2/trace", realm)
-		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.splunkcloud.com/v1/log", realm)
+		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.observability.splunkcloud.com", realm)
+		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com", realm)
+		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v2/trace", realm)
+		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v1/log", realm)
 	}
 
 	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {

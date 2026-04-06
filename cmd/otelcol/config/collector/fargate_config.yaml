@@ -13,7 +13,7 @@ extensions:
     ingress:
       endpoint: 0.0.0.0:6060
     egress:
-      endpoint: "https://api.${SPLUNK_REALM}.splunkcloud.com"
+      endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
   zpages:
     endpoint: 0.0.0.0:55679
     expvar:

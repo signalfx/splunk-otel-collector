@@ -168,8 +168,8 @@ def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMO
         elif mode == "gateway" and not container_file_exists(container, GATEWAY_CONFIG_PATH):
             config_path = AGENT_CONFIG_PATH
 
-    ingest_url = f"https://ingest.{SPLUNK_REALM}.splunkcloud.com"
-    api_url = f"https://api.{SPLUNK_REALM}.splunkcloud.com"
+    ingest_url = f"https://ingest.{SPLUNK_REALM}.observability.splunkcloud.com"
+    api_url = f"https://api.{SPLUNK_REALM}.observability.splunkcloud.com"
 
     verify_config_file(container, env_path, "SPLUNK_CONFIG", config_path)
     verify_config_file(container, env_path, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)

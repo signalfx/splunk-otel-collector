@@ -243,7 +243,7 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
 
 	installRealm := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_REALM", "us0")
-	ingestURL := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_INGEST_URL", "https://ingest."+installRealm+".splunkcloud.com")
+	ingestURL := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_INGEST_URL", "https://ingest."+installRealm+".observability.splunkcloud.com")
 	installMode, ok := msiProperties["SPLUNK_SETUP_COLLECTOR_MODE"]
 	if !ok {
 		installMode = "agent"
@@ -258,7 +258,7 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 		"SPLUNK_CONFIG":       configFileFullName,
 		"SPLUNK_ACCESS_TOKEN": msiProperties["SPLUNK_ACCESS_TOKEN"], // Required install property for a successful start of the service
 		"SPLUNK_REALM":        installRealm,
-		"SPLUNK_API_URL":      optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_API_URL", "https://api."+installRealm+".splunkcloud.com"),
+		"SPLUNK_API_URL":      optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_API_URL", "https://api."+installRealm+".observability.splunkcloud.com"),
 		"SPLUNK_INGEST_URL":   ingestURL,
 		"SPLUNK_HEC_URL":      ingestURL + "/v1/log",
 		"SPLUNK_HEC_TOKEN":    optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_HEC_TOKEN", msiProperties["SPLUNK_ACCESS_TOKEN"]),

@@ -755,10 +755,10 @@ pack-ta-v2:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG:-}" ]]; then
-        cd packaging/ta-v2 && make all-packages VERSION=${VERSION_TAG}
-      else
-        cd packaging/ta-v2 && make all-packages
+        export VERSION=${VERSION_TAG}
       fi
+      echo "VERSION is set to $VERSION"
+    - cd packaging/ta-v2 && make all-packages
   artifacts:
     paths:
       - packaging/ta-v2/out/distribution/

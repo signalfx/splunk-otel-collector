@@ -755,7 +755,7 @@ pack-ta-v2:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG:-}" ]]; then
-        export VERSION=${VERSION_TAG}
+        export VERSION="${VERSION_TAG}"
       fi
       echo "VERSION is set to $VERSION"
     - cd packaging/ta-v2 && make all-packages

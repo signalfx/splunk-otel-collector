@@ -11,8 +11,7 @@ else
 	TA_PLATFORM_SUFFIX ?=
 endif
 
-DEFAULT_VERSION := $(shell git describe --match "v[0-9]*" HEAD)
-VERSION ?= $(DEFAULT_VERSION)
+VERSION ?= $(shell git describe --match "v[0-9]*" HEAD)
 # Always add the suffix to the version to differentiate packages built for different target OSes
 VERSION := $(VERSION)$(subst _,-,$(TA_PLATFORM_SUFFIX))
 

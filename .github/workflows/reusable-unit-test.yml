@@ -71,5 +71,6 @@ jobs:
         with:
           fail_ci_if_error: true
           verbose: true
+          slug: signalfx/splunk-otel-collector
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

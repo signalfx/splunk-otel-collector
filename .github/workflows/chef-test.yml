@@ -22,7 +22,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CHEF_VERSION: "22.12.1024"
+  # EOL REFERENCE: https://endoflife.date/chef-workstation
+  CHEF_VERSION: "25.12.1102"
   CHEF_LICENSE: accept
 
 jobs:
@@ -58,30 +59,19 @@ jobs:
 
   agent-bundle-windows:
     needs: [ chef-lint-spec-test ]
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS }}
+      ARCH: "amd64"
 
   msi-custom-actions:
     needs: [ chef-lint-spec-test ]
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS }}
+      ARCH: "amd64"
 
   chef-lint-spec-test:
     name: chef-lint-spec-test
@@ -91,7 +81,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       
       - name: lint
         run: make lint
@@ -107,7 +97,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Get linux distros and suites
         id: get-linux-matrix
@@ -148,14 +138,14 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       
       - name: Run free-disk-space.sh
         run: ../../.github/workflows/scripts/free-disk-space.sh
         shell: bash
         continue-on-error: true
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: /tmp
 
@@ -174,19 +164,18 @@ jobs:
           mv "$rpm_path" ./files/soc.rpm
 
       - name: Install chef
-        uses: actionshub/chef-install@3.0.1
+        uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
         with:
           version: ${{ env.CHEF_VERSION }}
 
-      # Install of fluentd is failing on Debian 11, so we disable it for that distro.
-      - name: Set `with_fluentd` to false on Debian 11
-        if: matrix.DISTRO == 'debian-11'
+      - name: Patch kitchen-dokken Cmd type for Docker API compatibility
         run: |
-          yq eval '(.suites[] | select(.name=="custom_vars").attributes.splunk_otel_collector.with_fluentd) = false' -i kitchen.yml
+          DOKKEN_RB=$(find /opt/chef-workstation/embedded/lib/ruby/gems -name "dokken.rb" -path "*/kitchen/driver/dokken.rb")
+          sudo sed -i 's/"Cmd" => "true"/"Cmd" => ["true"]/' "$DOKKEN_RB"
 
-      - run: kitchen test ${{ matrix.DISTRO }}
+      - run: chef exec kitchen test ${{ matrix.DISTRO }}
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: ${{ matrix.DISTRO }}
@@ -203,11 +192,13 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: /tmp
+
+      - uses: ./.github/actions/win-wait-for-docker
 
       # Chef doesn't have an easy way to get names of files from unarchived packages
       # It's simpler to unarchive and move the built artifacts manually to the
@@ -222,12 +213,12 @@ jobs:
           mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef
-        uses: actionshub/chef-install@3.0.1
+        uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
         with:
           version: ${{ env.CHEF_VERSION }}
 
       - name: Install kitchen-docker
-        run: chef gem install kitchen-docker -v 2.12.0
+        run: chef gem install kitchen-docker
 
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
         run: |
@@ -239,7 +230,7 @@ jobs:
         env:
           KITCHEN_YAML: kitchen.windows.yml
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}

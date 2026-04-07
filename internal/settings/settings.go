@@ -83,9 +83,7 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
-var defaultFeatureGates = []string{
-	"-processor.resourcedetection.propagateerrors",
-}
+var defaultFeatureGates = []string{}
 
 type Settings struct {
 	discovery               *discovery.Provider
@@ -214,7 +212,6 @@ func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 		confMapConverterFactories = append(
 			confMapConverterFactories,
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),
-			configconverter.ConverterFactoryFromFunc(configconverter.AddOTLPHistogramAttr),
 		)
 	}
 	return confMapConverterFactories

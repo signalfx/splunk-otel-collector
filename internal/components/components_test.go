@@ -31,7 +31,7 @@ func TestDefaultComponents(t *testing.T) {
 		"docker_observer",
 		"ecs_observer",
 		"file_storage",
-		"googlecloudlogentry_encoding",
+		"google_cloud_logentry_encoding",
 		"headers_setter",
 		"health_check",
 		"host_observer",
@@ -52,18 +52,18 @@ func TestDefaultComponents(t *testing.T) {
 		"awscloudwatch",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
-		"azureblob",
+		"azure_blob",
 		"azure_event_hub",
-		"azuremonitor",
+		"azure_monitor",
 		"carbon",
 		"chrony",
-		"ciscoos",
+		"cisco_os",
 		"cloudfoundry",
 		"collectd",
 		"discovery",
 		"docker_stats",
 		"elasticsearch",
-		"filelog",
+		"file_log",
 		"filestats",
 		"fluentforward",
 		"googlecloudpubsub",
@@ -94,7 +94,7 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp",
 		"postgresql",
 		"prometheus",
-		"prometheusremotewrite",
+		"prometheus_remote_write",
 		"prometheus_simple",
 		"purefa",
 		"rabbitmq",
@@ -124,13 +124,19 @@ func TestDefaultComponents(t *testing.T) {
 		"wavefront",
 		"windowseventlog",
 		"windowsperfcounters",
-		"yanggrpc",
+		"windowsservice",
+		"yang_grpc",
 		"zipkin",
 		"zookeeper",
 	}
 	expectedReceiverAliases := map[string]string{
-		"azureeventhub": "azure_event_hub",
-		"mongodbatlas":  "mongodb_atlas",
+		"azureeventhub":         "azure_event_hub",
+		"mongodbatlas":          "mongodb_atlas",
+		"azureblob":             "azure_blob",
+		"azuremonitor":          "azure_monitor",
+		"filelog":               "file_log",
+		"prometheusremotewrite": "prometheus_remote_write",
+		"yanggrpc":              "yang_grpc",
 	}
 	expectedProcessors := []string{
 		"attributes",
@@ -138,7 +144,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cumulativetodelta",
 		"filter",
 		"groupbyattrs",
-		"k8sattributes",
+		"k8s_attributes",
 		"logstransform",
 		"memory_limiter",
 		"metricsgeneration",
@@ -152,11 +158,14 @@ func TestDefaultComponents(t *testing.T) {
 		"timestamp",
 		"transform",
 	}
+	expectedProcessorAliases := map[string]string{
+		"k8sattributes": "k8s_attributes",
+	}
 	expectedExporters := []string{
 		"awss3",
 		"debug",
 		"file",
-		"googlecloudstorage",
+		"google_cloud_storage",
 		"kafka",
 		"loadbalancing",
 		"nop",
@@ -164,13 +173,13 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp_http",
 		"prometheusremotewrite",
 		"pulsar",
-		"sapm",
 		"signalfx",
 		"splunk_hec",
 	}
 	expectedExporterAliases := map[string]string{
-		"otlp":     "otlp_grpc",
-		"otlphttp": "otlp_http",
+		"otlp":               "otlp_grpc",
+		"otlphttp":           "otlp_http",
+		"googlecloudstorage": "google_cloud_storage",
 	}
 	expectedConnectors := []string{
 		"count",
@@ -206,11 +215,16 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	procs := factories.Processors
-	assert.Len(t, procs, len(expectedProcessors))
+	assert.Len(t, procs, len(expectedProcessors)+len(expectedProcessorAliases))
 	for _, k := range expectedProcessors {
 		v, ok := procs[component.MustNewType(k)]
 		require.True(t, ok, "Missing expected processor "+k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedProcessorAliases {
+		v, ok := procs[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected processor alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	exps := factories.Exporters

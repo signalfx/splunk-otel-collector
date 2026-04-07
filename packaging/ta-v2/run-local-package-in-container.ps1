@@ -36,6 +36,13 @@ if (-not (Test-Path $ASSETS_DIR)) {
     exit 1
 }
 
+# Stop and remove existing container if it exists
+$existingContainer = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $CONTAINER_NAME }
+if ($existingContainer) {
+    Write-Host "Stopping and removing existing container: $CONTAINER_NAME"
+    docker rm -f $CONTAINER_NAME | Out-Null
+}
+
 # Clean up previous log directory if it exists
 if (Test-Path $LOG_DIR) {
     Write-Host "Cleaning up previous log directory at $LOG_DIR"
@@ -45,11 +52,34 @@ if (Test-Path $LOG_DIR) {
 # Create log directory
 New-Item -ItemType Directory -Path $LOG_DIR -Force | Out-Null
 
-# Stop and remove existing container if it exists
-$existingContainer = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $CONTAINER_NAME }
-if ($existingContainer) {
-    Write-Host "Stopping and removing existing container: $CONTAINER_NAME"
-    docker rm -f $CONTAINER_NAME | Out-Null
+# Add the config requirements, if not already present
+$inputsConfPath = Join-Path $ASSETS_DIR "local\inputs.conf"
+if (-not (Test-Path $inputsConfPath)) {
+    $localDir = Join-Path $ASSETS_DIR "local"
+    New-Item -ItemType Directory -Path $localDir -Force | Out-Null
+    $defaultInputsConf = Join-Path $ASSETS_DIR "default\inputs.conf"
+    Copy-Item -Path $defaultInputsConf -Destination $inputsConfPath
+}
+
+# Check if splunk_access_token is empty and set to test token if needed
+$inputsContent = Get-Content -Path $inputsConfPath
+$tokenLineFound = $false
+$updatedContent = $inputsContent | ForEach-Object {
+    if ($_ -match "^splunk_access_token\s*=\s*$") {
+        $tokenLineFound = $true
+        "splunk_access_token = F3K3TestT0Ken"
+    } elseif ($_ -match "^splunk_realm\s*=\s*$") {
+        "splunk_realm = us0"
+    } elseif ($_ -match "^splunk_collector_log_level\s*=.*$") {
+        "splunk_collector_log_level = info"
+    } elseif ($_ -match "^\[Splunk_TA_otel.*\]\s*$") {
+        "[Splunk_TA_otel://local_run]"
+    } else {
+        $_
+    }
+}
+if ($tokenLineFound) {
+    $updatedContent | Set-Content -Path $inputsConfPath
 }
 
 Write-Host "Launching Splunk Universal Forwarder container..."
@@ -61,8 +91,10 @@ Write-Host "  Log directory: $LOG_DIR"
 # Launch Splunk Universal Forwarder container
 docker run -d --name $CONTAINER_NAME `
     --user ContainerAdministrator `
-    -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_OTel_Collector" `
+    -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_otel" `
     -v "${LOG_DIR}:C:\Program Files\SplunkUniversalForwarder\var\log\splunk" `
+    -p 8888:8888 `
+    -p 55679:55679 `
     "splunk-uf-windows:${IMAGE_TAG}"
 
 if ($LASTEXITCODE -ne 0) {
@@ -102,14 +134,14 @@ while (-not (Test-Path $splunkdLog)) {
 }
 Write-Host ""
 
-# Wait for Splunk TA OTel Collector to be recorded on the log
+# Wait for Splunk_TA_otel to be recorded in the log
 $timeout = 180
 $elapsed = 0
-Write-Host -NoNewline "Waiting for Splunk_TA_OTel_Collector to be recorded on splunkd.log: "
-while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" -Quiet)) {
+Write-Host -NoNewline "Waiting for Splunk_TA_otel to be recorded on splunkd.log: "
+while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel" -Quiet)) {
     if ($elapsed -ge $timeout) {
         Write-Host ""
-        Write-Host "Timeout: Splunk_TA_OTel_Collector was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
+        Write-Host "Timeout: Splunk_TA_otel was not recorded on splunkd.log within $timeout seconds" -ForegroundColor Red
         exit 1
     }
     Start-Sleep -Seconds 2
@@ -117,8 +149,8 @@ while (-not (Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector"
     Write-Host -NoNewline "."
 }
 Write-Host ""
-Write-Host "Splunk_TA_OTel_Collector in splunkd.log:"
-Select-String -Path $splunkdLog -Pattern "Splunk_TA_OTel_Collector" | ForEach-Object { $_.Line }
+Write-Host "Splunk_TA_otel in splunkd.log:"
+Select-String -Path $splunkdLog -Pattern "Splunk_TA_otel" | ForEach-Object { $_.Line }
 
 Write-Host ""
 Write-Host ""
@@ -127,6 +159,6 @@ Write-Host "  View container logs: docker logs -f $CONTAINER_NAME"
 Write-Host "  Stop container: docker stop $CONTAINER_NAME"
 Write-Host "  Remove container: docker rm -f $CONTAINER_NAME"
 Write-Host "  View splunkd logs: Get-Content -Path '$splunkdLog' -Wait"
-Write-Host "  Grep Splunk_TA_OTel_Collector logs: Select-String -Path '$splunkdLog' -Pattern 'Splunk_TA_OTel_Collector'"
+Write-Host "  Grep Splunk_TA_otel logs: Select-String -Path '$splunkdLog' -Pattern 'Splunk_TA_otel'"
 Write-Host "  Docker exec shell: docker exec -it $CONTAINER_NAME powershell"
 Write-Host ""

@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/scripts/*.ps1'
       - '.github/workflows/win-package-test.yml'
+      - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
       - 'instrumentation/packaging/dotnet-agent-release.txt'
       - 'internal/**'
@@ -23,13 +24,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.7
+  GO_VERSION: 1.25.8
 
 jobs:
   cross-compile:
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-windows_amd64" ]
+        SYS_BINARIES: [ "binaries-windows_amd64", "binaries-windows_arm64" ]
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
@@ -37,51 +38,48 @@ jobs:
   agent-bundle-windows:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        ARCH: [ "amd64", "arm64" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS }}
+      ARCH: ${{ matrix.ARCH }}
 
   msi-custom-actions:
-    strategy:
-      matrix:
-        OS: [ "windows-2022" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        ARCH: [ "amd64", "arm64" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS }}
+      ARCH: ${{ matrix.ARCH }}
 
   dotnet-zeroconfig-e2e-test:
     runs-on: windows-2022 # windows-2022 comes preloaded with the Docker image used in the test
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup NuGet
-        uses: nuget/setup-nuget@v2.0.1
+        uses: nuget/setup-nuget@323ab0502cd38fdc493335025a96c8fdb0edc71f # v2.0.1
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
 
-      - uses: actions/setup-dotnet@v5.1.0
+      # EOL REFERENCE: https://endoflife.date/dotnet
+      - uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
-          dotnet-version: |
-            8.0.300
+          dotnet-version: '10.0.x'
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-windows-2025
+          name: msi-build-amd64
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
+
+      - uses: ./.github/actions/win-wait-for-docker
 
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
@@ -101,7 +99,7 @@ jobs:
 
       - name: Upload expected traces file
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: expected-traces-dotnet-zeroconfig-e2e-tests
           path: tests/zeroconfig/windows/testdata/expected/*.yaml
@@ -109,18 +107,18 @@ jobs:
   msi-test:
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
-    runs-on: otel-windows
+        runner: [ "otel-windows", "otel-windows-arm" ]
+    runs-on: ${{ matrix.runner }}
     needs: [msi-build]
     timeout-minutes: 40
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.runner == 'otel-windows-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Set the MSI_COLLECTOR_PATH environment variable
@@ -141,16 +139,16 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "windows-2022", "windows-2025", "windows-11-arm" ]
         MODE: [ "agent", "gateway" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.OS == 'windows-11-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Ensure required ports in the dynamic range are available
@@ -172,8 +170,13 @@ jobs:
           Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          if ("${{ matrix.OS }}" -ne "windows-11-arm") {
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          } else {
+            # The arm64 bundle does not include the python binaries since they are not used in the arm64 tests, so just check that the expected directory structure is created and the expected files are included
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\README.txt"
+          }
           # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
           $found_jmx = $false
           (Get-PSDrive -PSProvider FileSystem).Root | ForEach-Object {
@@ -193,12 +196,12 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
       - name: Ensure required ports in the dynamic range are available
         run: |
@@ -229,12 +232,12 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
 
       - name: Build Chocolatey
@@ -263,7 +266,7 @@ jobs:
           }
 
       - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist/*.nupkg
@@ -280,10 +283,10 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist
@@ -365,18 +368,20 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: agent-bundle-windows-${{ matrix.OS }}
+          name: agent-bundle-windows_amd64
           path: ./dist
+
+      - uses: ./.github/actions/win-wait-for-docker
 
       - name: Build docker image
         run: |

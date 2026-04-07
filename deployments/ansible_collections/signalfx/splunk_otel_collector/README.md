@@ -14,7 +14,6 @@ Observability Cloud](https://www.splunk.com/en_us/products/observability.html).
 
 ### Dependencies
 
-- Ansible 12.2.0+
 - Python 3.11+
 
 ### Linux
@@ -23,7 +22,8 @@ Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2023
 - CentOS / Red Hat: 9
-- Debian: 11, 12
+- Debian: 11, 12, 13
+- Oracle: 9, 10
 - Ubuntu: 22.04, 24.04
 
 ### Windows
@@ -94,6 +94,7 @@ if you see something that needs to be improved in this Ansible role.
   please submit a new Splunk Idea. Requires a Splunk.com login.
 - [Splunk Support](https://splunk.my.site.com/customer/s/need-help/create-case) - Ask any question or report any issue
   by opening a support case. Requires Splunk Support entitlement.
+- As Red Hat Ansible Certified Content, this collection is entitled to support through Ansible Automation Platform (AAP). Use the Create issue button on the top right corner of the Automation Hub Collection page for any defects, feature requests, or questions on usage.
 
 ## Release Notes
 

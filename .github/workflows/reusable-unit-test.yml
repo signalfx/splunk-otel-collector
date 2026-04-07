@@ -14,7 +14,7 @@ on:
         type: boolean
 
 env:
-  GO_VERSION: 1.25.7
+  GO_VERSION: 1.25.8
 
 jobs:
   unit-test:
@@ -23,7 +23,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/setup-environment
 
       - name: Set CGO_ENABLED
@@ -60,16 +60,17 @@ jobs:
 
       - name: Uploading artifacts
         if: ${{ inputs.COVERAGE }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: unit-test-results-${{ inputs.OS }}
           path: ./unit-test-results-${{ inputs.OS }}
 
       - name: Upload coverage report
         if: ${{ inputs.COVERAGE }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
           fail_ci_if_error: true
           verbose: true
+          slug: signalfx/splunk-otel-collector
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -3,7 +3,7 @@ name: msi-build
 on:
   workflow_call:
     inputs:
-      OS:
+      ARCH:
         required: true
         type: string
     outputs:
@@ -12,16 +12,16 @@ on:
         value: ${{ jobs.msi-build.outputs.version }}
 
 env:
-  GO_VERSION: 1.25.7
+  GO_VERSION: 1.25.8
 
 jobs:
   msi-build:
-    runs-on: ${{ inputs.OS }}
+    runs-on: ${{ inputs.ARCH == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
@@ -41,20 +41,20 @@ jobs:
       - name: Install Wix
         run: dotnet tool restore
 
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v7
+      - name: Downloading binaries-windows_${{ inputs.ARCH }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: binaries-windows_amd64
+          name: binaries-windows_${{ inputs.ARCH }}
           path: ./bin
 
       - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: agent-bundle-windows-${{ inputs.OS }}
+          name: agent-bundle-windows_${{ inputs.ARCH }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-custom-actions
           path: ./packaging/msi/SplunkCustomActions/bin/Release
@@ -66,10 +66,10 @@ jobs:
           VERSION="${{ steps.get-version.outputs.version }}"
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
-          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"
+          ./packaging/msi/build.sh --version "$VERSION" --jmx-metric-gatherer-release "$JMX_METRIC_GATHERER_RELEASE" --arch "${{ inputs.ARCH }}"
 
       - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: msi-build-${{ inputs.OS }}
+          name: msi-build-${{ inputs.ARCH }}
           path: ./dist/*.msi

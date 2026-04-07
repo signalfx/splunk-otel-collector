@@ -1,8 +1,0 @@
-- hosts: all:!orca_role_custom:!orca_role_testrunner
-  become: yes
-  tasks:
-  - name: Change timeout in splunk-ansible
-    replace:
-      path: /opt/ansible/roles/splunk_common/tasks/install_apps.yml
-      regexp: 'timeout: 90'
-      replace: 'timeout: 180'

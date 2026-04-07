@@ -10,10 +10,10 @@ Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023
 - CentOS / Red Hat: 8, 9
-- Oracle: 8, 9
-- Debian: 9, 10, 11
+- Oracle: 8, 9, 10
+- Debian: 11, 12
 - SUSE: 15
-- Ubuntu: 16.04, 18.04, 20.04, 22.04
+- Ubuntu: 22.04, 24.04
 
 ## Prerequisites
 

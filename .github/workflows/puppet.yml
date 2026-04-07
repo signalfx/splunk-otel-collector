@@ -21,14 +21,11 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read version from metadata.json
         id: read-metadata-json
-        uses: notiz-dev/github-action-json-property@a5a9c668b16513c737c3e1f8956772c99c73f6e8 # release
-        with:
-          path: deployments/puppet/metadata.json
-          prop_path: version
+        run: echo "prop=$(jq -r '.version // empty' deployments/puppet/metadata.json)" >> "$GITHUB_OUTPUT"
 
       - name: Ensure version is read from metadata.json
         if: steps.read-metadata-json.outputs.prop == ''

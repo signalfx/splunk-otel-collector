@@ -29,7 +29,7 @@ jobs:
       - name: Check out the codebase.
         # Technically it will be more precise for the license check to happen against the label matching the
         # Collector version, but that makes harder to track updates to scripts and so on.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Get the Collector version to be packaged
         run: |
@@ -98,7 +98,7 @@ jobs:
           echo "osdf_license_path=$osdf_license_path" >> "$GITHUB_ENV"
 
       - name: Uploading artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: tanzu-tile-publication-bundle
           path: |

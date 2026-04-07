@@ -164,14 +164,16 @@ jobs:
           mv "$rpm_path" ./files/soc.rpm
 
       - name: Install chef
-        uses: actionshub/chef-install@715f6ec56df078a1c7f23df9d1038136c9797b1b # 6.0.0
+        uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
         with:
           version: ${{ env.CHEF_VERSION }}
 
-      - run: sudo gem update
-      - run: sudo bundle install
+      - name: Patch kitchen-dokken Cmd type for Docker API compatibility
+        run: |
+          DOKKEN_RB=$(find /opt/chef-workstation/embedded/lib/ruby/gems -name "dokken.rb" -path "*/kitchen/driver/dokken.rb")
+          sudo sed -i 's/"Cmd" => "true"/"Cmd" => ["true"]/' "$DOKKEN_RB"
 
-      - run: kitchen test ${{ matrix.DISTRO }}
+      - run: chef exec kitchen test ${{ matrix.DISTRO }}
 
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
@@ -211,7 +213,7 @@ jobs:
           mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef
-        uses: actionshub/chef-install@715f6ec56df078a1c7f23df9d1038136c9797b1b # 6.0.0
+        uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
         with:
           version: ${{ env.CHEF_VERSION }}
 

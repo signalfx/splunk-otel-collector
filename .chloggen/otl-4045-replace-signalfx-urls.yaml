@@ -28,9 +28,20 @@ subtext: |
   Affected environment variables and their new default patterns (when `SPLUNK_REALM` is set):
   - `SPLUNK_API_URL`: `https://api.<realm>.observability.splunkcloud.com`
   - `SPLUNK_INGEST_URL`: `https://ingest.<realm>.observability.splunkcloud.com`
-  - `SPLUNK_TRACE_URL`: `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
+  - `SPLUNK_TRACE_URL`: `https://ingest.<realm>.observability.splunkcloud.com/v2/trace` (deprecated; prefer `SPLUNK_INGEST_URL` for trace path construction)
   - `SPLUNK_HEC_URL` (log ingest): `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
 
-  If you are explicitly setting these environment variables or config values to `*.signalfx.com` URLs,
-  no immediate action is required — the old endpoints will continue to work during a transition period.
-  However, it is recommended to update your configuration to use the new `*.observability.splunkcloud.com` endpoints.
+  **Using legacy `*.signalfx.com` endpoints:**
+  If you want to keep sending traffic to the previous SignalFx hostnames instead of the new defaults, set these
+  environment variables explicitly (replace `<realm>` with your Observability realm, e.g. `us0`):
+  - `SPLUNK_API_URL`: `https://api.<realm>.signalfx.com`
+  - `SPLUNK_INGEST_URL`: `https://ingest.<realm>.signalfx.com`
+  - `SPLUNK_TRACE_URL`: `https://ingest.<realm>.signalfx.com/v2/trace`
+  - `SPLUNK_HEC_URL`: `https://ingest.<realm>.signalfx.com/v1/log`
+
+  Default configs derive OTLP trace export from `SPLUNK_INGEST_URL` (e.g. `${SPLUNK_INGEST_URL}/v2/trace/otlp`); setting
+  `SPLUNK_INGEST_URL` to the legacy ingest base is therefore required for traces to use `*.signalfx.com` as well.
+
+  If you already set these variables to `*.signalfx.com` URLs in your deployment, no change is required — the legacy
+  endpoints remain available during the transition period. Splunk recommends moving to `*.observability.splunkcloud.com`
+  when your network and operational processes are ready.

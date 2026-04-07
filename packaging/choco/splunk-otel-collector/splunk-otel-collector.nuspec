@@ -30,7 +30,7 @@ See [Chocolatey Installation](https://github.com/signalfx/splunk-otel-collector/
     <authors>SignalFx</authors>
     <title>Splunk OpenTelemetry Collector</title>
     <projectUrl>https://www.splunk.com/en_us/observability.html</projectUrl>
-    <iconUrl>https://cdn.splunkcloud.com/favicon.ico</iconUrl>
+    <iconUrl>https://cdn.observability.splunkcloud.com/favicon.ico</iconUrl>
     <licenseUrl>https://github.com/signalfx/splunk-otel-collector/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/signalfx/splunk-otel-collector</projectSourceUrl>

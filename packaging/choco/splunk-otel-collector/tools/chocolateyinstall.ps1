@@ -77,6 +77,16 @@ if ($access_token) {
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_REALM" "us0"
 $realm = $env_vars["SPLUNK_REALM"] # Cache the realm since it is used to build various default values.
 
+# Migrate old signalfx.com URLs to observability.splunkcloud.com
+foreach ($url_var in @("SPLUNK_INGEST_URL", "SPLUNK_API_URL", "SPLUNK_HEC_URL")) {
+    if ($env_vars[$url_var] -match "\.signalfx\.com") {
+        $old_val = $env_vars[$url_var]
+        $new_val = $old_val -replace "\.signalfx\.com", ".observability.splunkcloud.com"
+        $env_vars[$url_var] = $new_val
+        Write-Host "Migrated $url_var from '$old_val' to '$new_val'"
+    }
+}
+
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_INGEST_URL"         "https://ingest.$realm.observability.splunkcloud.com"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_API_URL"            "https://api.$realm.observability.splunkcloud.com"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_TOKEN"          $env_vars["SPLUNK_ACCESS_TOKEN"]

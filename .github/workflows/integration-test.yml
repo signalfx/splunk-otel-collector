@@ -80,7 +80,7 @@ jobs:
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
         id: multiarch-otelcol-builder
         with:
           driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
@@ -247,7 +247,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
           verbose: true
           fail_ci_if_error: true
@@ -330,7 +330,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
           verbose: true
           fail_ci_if_error: true
@@ -406,7 +406,7 @@ jobs:
             CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
-          uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
+          uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
           with:
             verbose: true
             fail_ci_if_error: true
@@ -497,7 +497,7 @@ jobs:
           echo "=== Events ==="
           kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
           verbose: true
           fail_ci_if_error: true

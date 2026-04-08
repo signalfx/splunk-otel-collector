@@ -211,7 +211,7 @@ jobs:
         run: |
           pwd
           ls -al
-          ./.github/workflows/scripts/free-disk-space.sh
+          ../../../../.github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
 

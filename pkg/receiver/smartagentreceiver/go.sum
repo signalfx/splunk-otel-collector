@@ -687,8 +687,8 @@ github.com/signalfx/gohelpers v0.0.0-20151202220853-ac9f0e053f15 h1:fpg8nIesNCgM
 github.com/signalfx/gohelpers v0.0.0-20151202220853-ac9f0e053f15/go.mod h1:Zx1eNCg/RuM9/sBhW4qej5BN7uwxAYziXHvC7nTOcFg=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 h1:WsShHmu12ZztYPfh9b+I+VjYD1o8iOHhB67WZCMEEE8=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083/go.mod h1:adPDS6s7WaajdFBV9mQ7i0dKfQ8xiDnF9ZNETVPpp7c=
-github.com/signalfx/golib/v3 v3.4.1 h1:QMwtDH+LESPWDgDeG3hI9NIKu6BNGql90yaOak1ZWmU=
-github.com/signalfx/golib/v3 v3.4.1/go.mod h1:LQNW2fyW15zKhD0pIr1P8QJ6G7x7f+am0m+7OWUZNmo=
+github.com/signalfx/golib/v3 v3.4.4 h1:n00WkhhSOk6LRjfT4/6JdIDXk0FF4SEoh4TaLM4abWc=
+github.com/signalfx/golib/v3 v3.4.4/go.mod h1:LQNW2fyW15zKhD0pIr1P8QJ6G7x7f+am0m+7OWUZNmo=
 github.com/signalfx/ingest-protocols v0.4.1 h1:mvYB4YOQILloXmerCzrDam94Ng9ykyMDTduOL2x6gnE=
 github.com/signalfx/ingest-protocols v0.4.1/go.mod h1:PsnYoJOyt5+xT2VC35vWib1h+9mwhl/sOurnsH1Ius0=
 github.com/signalfx/sapm-proto v0.18.0 h1:7ABBw8ojT0FuBsFFVy/Luh603rDUhluf6SMxHULr7YM=

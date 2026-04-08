@@ -1606,7 +1606,7 @@ ta-v2-splunkbase-release:
         APP_ID=7125 TA_PACKAGES_PATH=packaging/ta-v2/out/distribution VERSION_TAG=${RELEASE_VERSION} ./.gitlab/publish-ta-v2-to-splunkbase.sh
       else
         echo "Skipping TA v2 release - not a stable release tag, manual release, or DRY_RUN is set"
-      }
+      fi
 
 push-multiarch-manifest:
   extends: .trigger-filter

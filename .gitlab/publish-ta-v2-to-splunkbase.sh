@@ -40,7 +40,7 @@ for package in "${packages[@]}"; do
         -F "filename=${file_name}" \
         -F "splunk_versions=${SPLUNK_VERSIONS}" \
         -F "visibility=false" \
-        -s)
+        -fSs)
 
     id=$(echo "$response" | jq -r '.id')
     if [ -z "$id" ] || [ "$id" = "null" ]; then
@@ -85,6 +85,19 @@ for id in "${ids[@]}"; do
             release_files+=("$release_file")
             break
         fi
+
+        case "$result" in
+            fail|failed|error)
+                error_details=$(echo "$response" | jq -r '
+                    .message.error? // .message.details? // .message? // .error? // .details? // empty
+                ' 2>/dev/null)
+                if [ -z "$error_details" ] || [ "$error_details" = "null" ]; then
+                    error_details="$response"
+                fi
+                echo "Validation failed for id ${id}: ${error_details}"
+                exit 1
+                ;;
+        esac
 
         sleep "$POLL_INTERVAL"
     done

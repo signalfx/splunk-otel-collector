@@ -52,13 +52,13 @@ for test_str in \
     'envvartest_given: Str(helloworld)' \
     'envvartest_GOMEMLIMIT: Str(512MiB)' \
     'envvartest_SPLUNK_ACCESS_TOKEN_FILE: Str(/opt/splunk/etc/apps/Splunk_TA_otel/local/access_token)' \
-    'envvartest_SPLUNK_API_URL: Str(https://api.us0.signalfx.com)' \
+    'envvartest_SPLUNK_API_URL: Str(https://api.us0.observability.splunkcloud.com)' \
     'envvartest_SPLUNK_BUNDLE_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle)' \
     'envvartest_SPLUNK_COLLECTD_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle/run/collectd)' \
     'envvartest_SPLUNK_CONFIG: Str(/opt/splunk/etc/apps/Splunk_TA_otel/configs/passthrough_env_vars.yaml)' \
     'envvartest_SPLUNK_GATEWAY_URL: Str(test_notused)' \
     'envvartest_SPLUNK_HEC_URL: Str(test_notused)' \
-    'envvartest_SPLUNK_INGEST_URL: Str(https://ingest.us0.signalfx.com)' \
+    'envvartest_SPLUNK_INGEST_URL: Str(https://ingest.us0.observability.splunkcloud.com)' \
     'envvartest_SPLUNK_LISTEN_INTERFACE: Str(localhost)' \
     'envvartest_SPLUNK_REALM: Str(us0)' \
 ; do

@@ -8,47 +8,18 @@ component: core
 note: Update default endpoint URLs in collector configs and Go runtime defaults from `*.signalfx.com` to `*.observability.splunkcloud.com`.
 
 # One or more tracking issues related to the change
-issues: [4045]
+issues: [7412]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  **Scope:** Collector YAML configuration files, Go runtime URL defaults, technical addon configs, and related tests.
-
   The default API and ingest endpoint URLs have been updated to use the `observability.splunkcloud.com` domain:
   - `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
   - `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
   - `https://ingest.<realm>.signalfx.com/v2/trace` → `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
   - `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
 
-  **Files changed:**
-
-  Collector YAML configs (`cmd/otelcol/config/collector/`):
-  - `agent_config.yaml` — updated SPLUNK_API_URL and SPLUNK_INGEST_URL comment examples
-  - `ecs_ec2_config.yaml` — updated http_forwarder egress endpoint
-  - `fargate_config.yaml` — updated http_forwarder egress endpoint
-  - `full_config_linux.yaml` — updated splunk_hec profiling endpoint and otlp grpc warning comment
-  - `gateway_config.yaml` — updated http_forwarder api and ingest egress endpoints
-  - `logs_config_linux.yaml` — updated SPLUNK_INGEST_URL comment example
-  - `otlp_config_linux.yaml` — updated otlphttp traces_endpoint and http_forwarder egress endpoint
-  - `upstream_agent_config.yaml` — updated SPLUNK_API_URL/SPLUNK_INGEST_URL examples and splunk_hec/profiling endpoint
-
-  FIPS collector configs (`cmd/otelcol/fips/config/`):
-  - `agent_config.yaml`, `ecs_ec2_config.yaml`, `fargate_config.yaml`, `gateway_config.yaml`, `otlp_config_linux.yaml`
-
-  Technical Addon configs (`packaging/technical-addon/Splunk_TA_otel/configs/`):
-  - `ta-agent-config.yaml`, `ta-agent-to-gateway-config.yaml`, `ta-gateway-config.yaml`
-
-  Go runtime (`internal/settings/settings.go`):
-  - Default URL construction from `SPLUNK_REALM` env var now produces `observability.splunkcloud.com` hostnames for
-    `SPLUNK_API_URL`, `SPLUNK_INGEST_URL`, `SPLUNK_TRACE_URL`, and `SPLUNK_HEC_URL`.
-
-  Test data and tests:
-  - `internal/settings/settings_test.go` — updated expected URL assertions (18 occurrences)
-  - `internal/configconverter/testdata/otlp_histograms_attr/` — updated 8 YAML testdata files
-  - `internal/confmapprovider/discovery/provider_test.go` — updated provider URL expectations
-  - `tests/general/default_config_test.go` — updated 26 URL assertions for agent and gateway config tests
 
   **Migration Notes — Proxy and Firewall Configuration:**
   If you have firewall rules or proxy allowlists scoped to `*.signalfx.com`, update them to also allow

@@ -2,10 +2,10 @@
 change_type: breaking
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: core
+component: installer
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Replace default endpoint URLs from `*.signalfx.com` to `*.observability.splunkcloud.com` across all collector configurations, installers, and deployment templates.
+note: Update installer scripts, packaging, and deployment tooling to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`.
 
 # One or more tracking issues related to the change
 issues: [4045]
@@ -14,34 +14,100 @@ issues: [4045]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  The default API and ingest endpoint URLs have been updated to use the `observability.splunkcloud.com` domain:
+  **Scope:** Linux/Windows installer scripts, Windows packaging (MSI, Chocolatey), deployment configuration
+  management tools (Ansible, Chef, Nomad, Puppet, Salt), Technical Addon inputs, and related tests.
+
+  The default API and ingest endpoint URLs produced by installers and deployment tools have been updated:
   - `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
   - `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
-  - `https://ingest.<realm>.signalfx.com/v2/trace` → `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
   - `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
 
-  **Migration Notes — Proxy Configuration:**
-  If you have configured a proxy or firewall allowlist with rules for `*.signalfx.com`, you must update
-  those rules to allow traffic to `*.observability.splunkcloud.com` (or the specific realm-scoped hostnames
-  such as `api.<realm>.observability.splunkcloud.com` and `ingest.<realm>.observability.splunkcloud.com`).
+  **Files changed:**
 
-  Affected environment variables and their new default patterns (when `SPLUNK_REALM` is set):
-  - `SPLUNK_API_URL`: `https://api.<realm>.observability.splunkcloud.com`
-  - `SPLUNK_INGEST_URL`: `https://ingest.<realm>.observability.splunkcloud.com`
-  - `SPLUNK_TRACE_URL`: `https://ingest.<realm>.observability.splunkcloud.com/v2/trace` (deprecated; prefer `SPLUNK_INGEST_URL` for trace path construction)
-  - `SPLUNK_HEC_URL` (log ingest): `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
+  Installer scripts (`packaging/installer/`):
+  - `install.sh` — updated default `api_url` and `ingest_url` construction from `$realm`, and help text examples
+  - `install.ps1` — updated default `$ingest_url`, `$api_url`, and `$hec_url` construction from `$realm`,
+    and all parameter description examples in comment block
 
-  **Using legacy `*.signalfx.com` endpoints:**
-  If you want to keep sending traffic to the previous SignalFx hostnames instead of the new defaults, set these
-  environment variables explicitly (replace `<realm>` with your Observability realm, e.g. `us0`):
-  - `SPLUNK_API_URL`: `https://api.<realm>.signalfx.com`
-  - `SPLUNK_INGEST_URL`: `https://ingest.<realm>.signalfx.com`
-  - `SPLUNK_TRACE_URL`: `https://ingest.<realm>.signalfx.com/v2/trace`
-  - `SPLUNK_HEC_URL`: `https://ingest.<realm>.signalfx.com/v1/log`
+  Windows packaging:
+  - `packaging/msi/splunk-otel-collector.wxs` — updated default ingest/API URL properties
+  - `packaging/choco/splunk-otel-collector/splunk-otel-collector.nuspec` — updated URL references in description
+  - `packaging/choco/splunk-otel-collector/tools/chocolateyinstall.ps1` — updated default URL parameters
+  - `packaging/choco/splunk-otel-collector/tools/VERIFICATION.txt` — updated verification URL
 
-  Default configs derive OTLP trace export from `SPLUNK_INGEST_URL` (e.g. `${SPLUNK_INGEST_URL}/v2/trace/otlp`); setting
-  `SPLUNK_INGEST_URL` to the legacy ingest base is therefore required for traces to use `*.signalfx.com` as well.
+  FPM packaging:
+  - `packaging/fpm/etc/otel/collector/splunk-otel-collector.conf.example` — updated example env var values
 
-  If you already set these variables to `*.signalfx.com` URLs in your deployment, no change is required — the legacy
-  endpoints remain available during the transition period. Splunk recommends moving to `*.observability.splunkcloud.com`
-  when your network and operational processes are ready.
+  Deployment tools — Ansible (`deployments/ansible_collections/signalfx/splunk_otel_collector/`):
+  - `roles/collector/templates/splunk-otel-collector.conf.j2` — updated default URL template values
+  - `roles/collector/tasks/win_configurable_vars.yml` — updated Windows default URL vars
+  - `roles/collector/README.md` — updated example URLs in documentation
+  - `molecule/default/verify.yml` — updated URL assertions in verify playbook
+  - `molecule/default/windows-verify.yml` — updated URL assertions
+  - `molecule/default_install_remote_version/verify.yml` — updated URL assertions
+  - `molecule/default_install_remote_version/windows-verify.yml` — updated URL assertions
+  - `molecule/with_instrumentation/windows-verify.yml` — updated URL assertions
+
+  Deployment tools — Chef (`deployments/chef/`):
+  - `attributes/default.rb` — updated default attribute URL values
+  - `test/integration/default/test.rb` — updated URL assertions in integration test
+  - `README.md` — updated example URLs in documentation
+
+  Deployment tools — Nomad (`deployments/nomad/`):
+  - `otel-agent.nomad` — updated env var URL defaults in job definition
+  - `otel-gateway.nomad` — updated env var URL defaults in job definition
+  - `README.md` — updated example URLs in documentation
+
+  Deployment tools — Puppet (`deployments/puppet/`):
+  - `manifests/init.pp` — updated default URL parameters
+  - `README.md` — updated example URLs in documentation
+
+  Deployment tools — Salt (`deployments/salt/`):
+  - `splunk-otel-collector/collector_config.sls` — updated URL defaults in state file
+  - `README.md` — updated example URLs in documentation
+
+  Technical Addon (`packaging/technical-addon/`):
+  - `Splunk_TA_otel/default/inputs.conf` — updated ingest/API URL stanza defaults
+  - `internal/modularinput/testdata/Splunk_TA_otel.inputs.xml` — updated URL test data
+  - `packaging-scripts/cicd-tests/envvars/envvartest.sh` — updated URL env var test values
+
+  GitHub Actions:
+  - `.github/workflows/scripts/win-test-services.ps1` — updated URL references used in Windows CI tests
+
+  Tests:
+  - `packaging/tests/installer_test.py` — updated expected ingest/API URL constants (lines 171–172)
+  - `packaging/tests/deployments/puppet/puppet_test.py` — updated expected URL constants (lines 51–52)
+  - `packaging/tests/deployments/salt/salt_test.py` — updated expected URL constants (lines 51–52)
+  - `tests/msi/msi_test.go` — updated expected URL assertions in `assertServiceConfiguration()`
+  - `pkg/modularinput/ta_launcher_test.go` — updated URL assertions in 4 test cases (57 tests pass)
+  - `pkg/modularinput/testdata/Splunk_TA_otel.inputs.xml` — updated URL values in testdata
+
+  Link checker:
+  - `.lychee.toml` — updated domain allowlist from `signalfx.com` to `observability.splunkcloud.com`
+
+  **Migration Notes — Proxy and Firewall Configuration:**
+  If you have firewall rules or proxy allowlists scoped to `*.signalfx.com`, update them to allow
+  `*.observability.splunkcloud.com`, or the specific realm-scoped hostnames:
+  - `api.<realm>.observability.splunkcloud.com`
+  - `ingest.<realm>.observability.splunkcloud.com`
+
+  **Keeping legacy `*.signalfx.com` endpoints:**
+  Pass explicit URL flags to the installer (replace `<realm>` with your realm, e.g. `us0`):
+
+  Linux (`install.sh`):
+  ```
+  --api-url https://api.<realm>.signalfx.com
+  --ingest-url https://ingest.<realm>.signalfx.com
+  --hec-url https://ingest.<realm>.signalfx.com/v1/log
+  ```
+
+  Windows (`install.ps1`):
+  ```
+  -api_url https://api.<realm>.signalfx.com
+  -ingest_url https://ingest.<realm>.signalfx.com
+  -hec_url https://ingest.<realm>.signalfx.com/v1/log
+  ```
+
+  If you already set `SPLUNK_API_URL`, `SPLUNK_INGEST_URL`, or `SPLUNK_HEC_URL` explicitly in your
+  deployment, no change is required — those values override the installer defaults. The legacy
+  `*.signalfx.com` endpoints remain available during the transition period.

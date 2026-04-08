@@ -45,7 +45,7 @@ jobs:
           fetch-depth: 0
       # Building FIPs is flaky due to out of space issues.
       - name: Free up disk space for next step
-        run: ./scripts/free-disk-space.sh
+        run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6

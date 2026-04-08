@@ -114,7 +114,7 @@ jobs:
       - uses: ./.github/actions/setup-environment
 
       - name: Free up disk space for next step
-        run: ./scripts/free-disk-space.sh
+        run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
 

@@ -1585,6 +1585,29 @@ choco-release:
         Write-Host "Skipping choco push - not a stable release tag, manual release, or DRY_RUN is set"
       }
 
+ta-v2-splunkbase-release:
+  extends: .trigger-filter
+  needs:
+    - job: manual_release_trigger
+      optional: true
+    - job: pack-ta-v2
+      artifacts: true
+    - job: github-release
+      artifacts: false
+  script:
+    - |
+      # Only push the TA v2 to Splunkbase for stable release tags or manual releases
+      should_release=false
+      if [[ "${RELEASE_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        should_release=true
+      fi
+      if [[ "$should_release" = true ]] && [[ -z "$DRY_RUN" ]]; then
+        echo "Releasing TA v2 to Splunkbase"
+        APP_ID=7125 TA_PACKAGES_PATH=packaging/ta-v2/out/distribution VERSION_TAG=${RELEASE_VERSION} ./.gitlab/publish-ta-v2-to-splunkbase.sh
+      else
+        echo "Skipping TA v2 release - not a stable release tag, manual release, or DRY_RUN is set"
+      fi
+
 push-multiarch-manifest:
   extends: .trigger-filter
   parallel:
@@ -1768,6 +1791,8 @@ github-release:
       artifacts: true
     - job: sign-agent-bundles
       artifacts: true
+    - job: sign-multiarch-manifest
+      artifacts: false
     - job: release-msi
       artifacts: false
       optional: true

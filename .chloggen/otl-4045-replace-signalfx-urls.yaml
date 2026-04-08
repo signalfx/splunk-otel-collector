@@ -8,82 +8,16 @@ component: installer
 note: Update installer scripts, packaging, and deployment tooling to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`.
 
 # One or more tracking issues related to the change
-issues: [4045]
+issues: [7413]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  **Scope:** Linux/Windows installer scripts, Windows packaging (MSI, Chocolatey), deployment configuration
-  management tools (Ansible, Chef, Nomad, Puppet, Salt), Technical Addon inputs, and related tests.
-
   The default API and ingest endpoint URLs produced by installers and deployment tools have been updated:
   - `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
   - `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
   - `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
-
-  **Files changed:**
-
-  Installer scripts (`packaging/installer/`):
-  - `install.sh` — updated default `api_url` and `ingest_url` construction from `$realm`, and help text examples
-  - `install.ps1` — updated default `$ingest_url`, `$api_url`, and `$hec_url` construction from `$realm`,
-    and all parameter description examples in comment block
-
-  Windows packaging:
-  - `packaging/msi/splunk-otel-collector.wxs` — updated default ingest/API URL properties
-  - `packaging/choco/splunk-otel-collector/splunk-otel-collector.nuspec` — updated URL references in description
-  - `packaging/choco/splunk-otel-collector/tools/chocolateyinstall.ps1` — updated default URL parameters
-  - `packaging/choco/splunk-otel-collector/tools/VERIFICATION.txt` — updated verification URL
-
-  FPM packaging:
-  - `packaging/fpm/etc/otel/collector/splunk-otel-collector.conf.example` — updated example env var values
-
-  Deployment tools — Ansible (`deployments/ansible_collections/signalfx/splunk_otel_collector/`):
-  - `roles/collector/templates/splunk-otel-collector.conf.j2` — updated default URL template values
-  - `roles/collector/tasks/win_configurable_vars.yml` — updated Windows default URL vars
-  - `roles/collector/README.md` — updated example URLs in documentation
-  - `molecule/default/verify.yml` — updated URL assertions in verify playbook
-  - `molecule/default/windows-verify.yml` — updated URL assertions
-  - `molecule/default_install_remote_version/verify.yml` — updated URL assertions
-  - `molecule/default_install_remote_version/windows-verify.yml` — updated URL assertions
-  - `molecule/with_instrumentation/windows-verify.yml` — updated URL assertions
-
-  Deployment tools — Chef (`deployments/chef/`):
-  - `attributes/default.rb` — updated default attribute URL values
-  - `test/integration/default/test.rb` — updated URL assertions in integration test
-  - `README.md` — updated example URLs in documentation
-
-  Deployment tools — Nomad (`deployments/nomad/`):
-  - `otel-agent.nomad` — updated env var URL defaults in job definition
-  - `otel-gateway.nomad` — updated env var URL defaults in job definition
-  - `README.md` — updated example URLs in documentation
-
-  Deployment tools — Puppet (`deployments/puppet/`):
-  - `manifests/init.pp` — updated default URL parameters
-  - `README.md` — updated example URLs in documentation
-
-  Deployment tools — Salt (`deployments/salt/`):
-  - `splunk-otel-collector/collector_config.sls` — updated URL defaults in state file
-  - `README.md` — updated example URLs in documentation
-
-  Technical Addon (`packaging/technical-addon/`):
-  - `Splunk_TA_otel/default/inputs.conf` — updated ingest/API URL stanza defaults
-  - `internal/modularinput/testdata/Splunk_TA_otel.inputs.xml` — updated URL test data
-  - `packaging-scripts/cicd-tests/envvars/envvartest.sh` — updated URL env var test values
-
-  GitHub Actions:
-  - `.github/workflows/scripts/win-test-services.ps1` — updated URL references used in Windows CI tests
-
-  Tests:
-  - `packaging/tests/installer_test.py` — updated expected ingest/API URL constants (lines 171–172)
-  - `packaging/tests/deployments/puppet/puppet_test.py` — updated expected URL constants (lines 51–52)
-  - `packaging/tests/deployments/salt/salt_test.py` — updated expected URL constants (lines 51–52)
-  - `tests/msi/msi_test.go` — updated expected URL assertions in `assertServiceConfiguration()`
-  - `pkg/modularinput/ta_launcher_test.go` — updated URL assertions in 4 test cases (57 tests pass)
-  - `pkg/modularinput/testdata/Splunk_TA_otel.inputs.xml` — updated URL values in testdata
-
-  Link checker:
-  - `.lychee.toml` — updated domain allowlist from `signalfx.com` to `observability.splunkcloud.com`
 
   **Migration Notes — Proxy and Firewall Configuration:**
   If you have firewall rules or proxy allowlists scoped to `*.signalfx.com`, update them to allow

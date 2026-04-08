@@ -203,13 +203,14 @@ jobs:
           - with_instrumentation
           - custom_vars_install_old_version
     steps:
+      
+      - name: Check out the codebase.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      
       - name: Free up disk space for vagrant box
         run: ./scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-
-      - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Make tmp directory for msi build artifact
         run: mkdir -p /tmp/msi-build

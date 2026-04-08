@@ -53,14 +53,14 @@ jobs:
         ports:
           - 5000:5000
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
       # Multiarch images require more disk space
       - name: Free up disk space for next step
         run: ./scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -166,14 +166,14 @@ jobs:
       COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
       # Multiarch images require more disk space
       - name: Free up disk space for next step
         run: ./scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
@@ -372,13 +372,13 @@ jobs:
       env:
         COVER_TESTING: true
       steps:
+        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+          with:
+            fetch-depth: 0
         - name: Free up disk space for next step
           run: ./scripts/free-disk-space.sh
           if: runner.os == 'Linux'
           continue-on-error: true
-        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-          with:
-            fetch-depth: 0
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull

@@ -210,7 +210,7 @@ jobs:
       - name: Free up disk space for vagrant box
         run: |
           pwd
-          ls -l
+          ls -al
           ./.github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true

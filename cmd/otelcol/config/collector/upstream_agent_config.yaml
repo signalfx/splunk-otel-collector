@@ -7,11 +7,11 @@
 # The following environment variables are required to be manually defined or
 # configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
-# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
-# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
 
 extensions:
   headers_setter:
@@ -162,7 +162,7 @@ exporters:
       authenticator: headers_setter
   splunk_hec/profiling:
     token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
+    endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v1/log"
     log_data_enabled: false
   # Send to gateway
   otlp_grpc/gateway:

@@ -12,6 +12,9 @@ df -h /
 # so let's delete the directory manually.
 echo "Deleting unused Android SDK and tools..."
 sudo rm -rf /usr/local/lib/android
+sudo rm -rf /usr/share/dotnet
+sudo rm -rf /usr/local/julia*
+sudo rm -rf /usr/share/swift
 
 echo "Available disk space after:"
 df -h /

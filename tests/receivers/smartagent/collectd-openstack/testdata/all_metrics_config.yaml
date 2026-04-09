@@ -1,0 +1,29 @@
+receivers:
+  smartagent/collectd_openstack:
+    type: collectd/openstack
+    authURL: "http://devstack/identity/v3"
+    username: "admin"
+    password: "secret"
+    projectName: "demo"
+    projectDomainID: "default"
+    userDomainID: "default"
+    requestBatchSize: 20
+    intervalSeconds: 10
+    extraMetrics: ["*"]
+
+processors:
+  batch:
+
+exporters:
+  otlp_grpc:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_openstack
+      processors: [batch]
+      exporters: [otlp_grpc]

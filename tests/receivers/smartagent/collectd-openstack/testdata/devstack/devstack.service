@@ -1,0 +1,13 @@
+[Unit]
+Description=devstack
+
+[Service]
+TimeoutStartSec=1800
+TimeoutStopSec=900
+Type=forking
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/start-devstack.sh
+ExecStop=/usr/local/bin/stop-devstack.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,1171 @@
+resourceMetrics:
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.maxTotalVolumeGigabytes
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.maxTotalVolumes
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.maxTotalSnapshots
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.totalGigabytesUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.totalVolumesUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.totalSnapshotsUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.maxTotalBackupGigabytes
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.totalBackupGigabytesUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.totalBackupsUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.limit.maxTotalBackups
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.snapshot.size
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.snapshot.count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.volume.size
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.cinder.volume.count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.floatingip.count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.network.count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.router.count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.securitygroup.count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.subnet.count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.disk_available_least
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.free_disk_gb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.free_ram_mb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.local_gb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.local_gb_used
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.memory_mb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.memory_mb_used
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.running_vms
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.vcpus
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.vcpus_used
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.current_workload
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxSecurityGroups
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalCores
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalFloatingIps
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalInstances
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalRAMSize
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalKeypairs
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxImageMeta
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.totalCoresUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.totalInstancesUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.totalFloatingIpsUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.totalRAMUsed
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.totalSecurityGroupsUsed
+          - name: counter.openstack.nova.server.rx
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: counter.openstack.nova.server.rx_packets
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: counter.openstack.nova.server.tx
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: counter.openstack.nova.server.tx_packets
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.server.memory
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.server.memory-actual
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.server.memory-rss
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.server.vda_read
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.server.vda_read_req
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.server.vda_write
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.server.vda_write_req
+          - name: counter.openstack.nova.server.cpu_time
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: devstack
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: plugin_instance
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.load_average
+        scope:
+          name: github.com/signalfx/signalfx-agent/pkg/monitors/collectd/openstack

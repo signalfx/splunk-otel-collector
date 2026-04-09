@@ -35,5 +35,5 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (mm *Monitor) Configure(conf *Config) error {
-	return mm.SetConfigurationAndRun(conf)
+	return mm.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("memcached"))
 }

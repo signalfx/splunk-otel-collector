@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |
+    ** The memcached monitor is deprecated and will be removed by end of April 2026.
+    Please use the memcached receiver instead.**
+    
     Monitors an instance of memcached using the [collectd memcached
     plugin](https://collectd.org/wiki/index.php/Plugin:memcached).  Requires
     Memcached 1.1 or later.

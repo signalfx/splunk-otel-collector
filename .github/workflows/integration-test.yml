@@ -174,6 +174,11 @@ jobs:
         run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
+      - name: Build devstack image
+        if: matrix.PROFILE == 'smartagent'
+        run: |
+          tests/receivers/smartagent/collectd-openstack/testdata/devstack/make-devstack-image.sh
+
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)

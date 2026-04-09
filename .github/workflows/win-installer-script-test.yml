@@ -44,3 +44,65 @@ jobs:
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
+
+  test-dl-url-and-token-verification:
+    # OTL-4176: Validate the dl.observability.splunkcloud.com endpoint is reachable and that
+    # the installer script proceeds through MSI download and reaches token verification.
+    # The token verification step is expected to fail with a fake token (that is the intent).
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Validate dl.observability.splunkcloud.com endpoint
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dlBase = "https://dl.observability.splunkcloud.com"
+          $latestUrl = "$dlBase/splunk-otel-collector/msi/release/latest.txt"
+          Write-Host "Fetching latest version from $latestUrl ..."
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          $version = (New-Object System.Net.WebClient).DownloadString($latestUrl).Trim()
+          Write-Host "Latest version: $version"
+          if ($version -notmatch '^\d+\.\d+\.\d+') {
+            throw "Unexpected response from $latestUrl : '$version'. Expected a semver version string."
+          }
+          Write-Host "dl.observability.splunkcloud.com is reachable and returned a valid version: $version"
+
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
+
+      - name: Install and validate token verification failure
+        # Runs the installer with a fake access token against a real realm (us0).
+        # VERIFY_ACCESS_TOKEN is not set to false, so token verification is attempted.
+        # The installer is expected to:
+        #   1. Download the MSI successfully from dl.observability.splunkcloud.com
+        #   2. Install the MSI
+        #   3. Fail at token verification (Access token authentication failed)
+        # Any failure before "Access token authentication failed" indicates a problem
+        # with the updated dl.observability.splunkcloud.com domain.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $output = & .\packaging\installer\install.ps1 -access_token "fakeinvalidtoken123" -realm "us0" 2>&1
+          $outputStr = $output -join "`n"
+          Write-Host "Installer output:`n$outputStr"
+          if ($LASTEXITCODE -eq 0) {
+            throw "Expected installer to fail at token verification but it succeeded unexpectedly."
+          }
+          $expectedTokenVerificationPrefix = "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token."
+          if (-not $outputStr.TrimStart().StartsWith($expectedTokenVerificationPrefix)) {
+            throw (
+              "Installer failed, but NOT at the expected token verification step.`n" +
+              "This may indicate a connectivity or download failure caused by the URL migration " +
+              "to dl.observability.splunkcloud.com.`n" +
+              "Output: $outputStr"
+            )
+          }
+          Write-Host "Test passed: installer reached token verification and failed as expected with a fake token."

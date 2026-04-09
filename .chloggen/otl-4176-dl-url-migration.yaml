@@ -1,0 +1,45 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: breaking
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: installer
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Replace default artifact download URLs from `dl.signalfx.com` to `dl.observability.splunkcloud.com` in installer scripts and deployment configurations.
+
+# One or more tracking issues related to the change
+issues: [4176]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  The default artifact download base URL has been updated across all installer scripts and deployment tooling:
+  - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+
+  Affected files and their specific URL changes:
+
+  **Pull (download) side:**
+  - `packaging/installer/install.ps1`: `$signalfx_dl` variable updated to `https://dl.observability.splunkcloud.com`
+    - MSI download: `https://dl.signalfx.com/splunk-otel-collector/msi/<stage>/<filename>` → `https://dl.observability.splunkcloud.com/...`
+    - Latest version lookup: `https://dl.signalfx.com/splunk-otel-collector/msi/<stage>/latest.txt` → `https://dl.observability.splunkcloud.com/...`
+  - `deployments/ansible_collections/.../roles/collector/tasks/vars.yml`: `win_base_url` updated
+  - `deployments/ansible_collections/.../molecule/custom_vars_install_old_version/windows-verify.yml`: hardcoded MSI download URL updated
+  - `deployments/chef/attributes/default.rb`: `windows_repo_url` attribute updated
+
+  **Push (release) side:**
+  - `packaging/release/helpers/release_args.py`: updated documentation comment; no functional change to push logic (artifacts continue to be uploaded to S3 directly)
+  - `packaging/tests/deployments/puppet/puppet_test.py`: `WIN_MSI_REPO_URL` default updated
+
+  **Tests added:**
+  - `packaging/tests/installer_test.py`: `test_installer_token_verification_with_dl_url` — runs `install.sh` with a real realm and a fake access token (token verification NOT skipped). Asserts the installer reaches the token verification step and fails there, confirming that package repos and the `observability.splunkcloud.com` domain are reachable.
+  - `.github/workflows/win-installer-script-test.yml`: new `test-dl-url-and-token-verification` job — (1) fetches `latest.txt` directly from `dl.observability.splunkcloud.com` and validates the response is a semver version string; (2) runs `install.ps1` with a fake token against realm `us0` and asserts the failure occurs at token verification (not at the MSI download step).
+
+  **Migration Notes — Proxy / Firewall Configuration:**
+  If you have configured a proxy or firewall allowlist with rules for `dl.signalfx.com`, you must update
+  those rules to allow traffic to `dl.observability.splunkcloud.com`.
+
+  **Using legacy `dl.signalfx.com` endpoints:**
+  The legacy `dl.signalfx.com` domain remains available during the transition period.
+  - For `install.ps1`: pass `-collector_msi_url https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi` to override the default.
+  - For Ansible/Chef/Puppet: override the `win_base_url` / `windows_repo_url` variable in your deployment configuration.

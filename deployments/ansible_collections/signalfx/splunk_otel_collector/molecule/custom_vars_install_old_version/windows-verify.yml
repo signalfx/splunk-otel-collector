@@ -37,7 +37,7 @@
 
     - name: Download splunk-otel-collector 0.97.0 MSI
       ansible.windows.win_get_url:
-        url: https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-0.97.0-amd64.msi
+        url: https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/release/splunk-otel-collector-0.97.0-amd64.msi
         dest: "{{ ansible_env.TEMP }}"
       register: otel_msi_package
 

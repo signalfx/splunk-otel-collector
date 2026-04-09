@@ -16,6 +16,7 @@ variables:
   GO_VERSION: 1.25.8
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
+  WIN_2025_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2025
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
     value: "https://github.com/signalfx/splunk-otel-collector/releases/download"
     description: 'URL to download artifacts from'
@@ -1111,7 +1112,7 @@ build-push-windows-image:
   extends: .trigger-filter
   parallel:
     matrix:
-      - WIN_VERSION: ["2019", "2022"]
+      - WIN_VERSION: ["2019", "2022", "2025"]
   needs:
     - job: sign-exe
       artifacts: true
@@ -1132,6 +1133,8 @@ build-push-windows-image:
     - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
+      } elseif ($env:WIN_VERSION -eq "2025") {
+        $BASE_IMAGE = $env:WIN_2025_BASE_IMAGE
       } else {
         $BASE_IMAGE = $env:WIN_2022_BASE_IMAGE
       }
@@ -1249,7 +1252,7 @@ build-push-windows-fips-image:
   extends: .trigger-filter
   parallel:
     matrix:
-      - WIN_VERSION: ["2019", "2022"]
+      - WIN_VERSION: ["2019", "2022", "2025"]
   needs:
     - job: sign-exe
       artifacts: true
@@ -1268,6 +1271,8 @@ build-push-windows-fips-image:
     - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
+      } elseif ($env:WIN_VERSION -eq "2025") {
+        $BASE_IMAGE = $env:WIN_2025_BASE_IMAGE
       } else {
         $BASE_IMAGE = $env:WIN_2022_BASE_IMAGE
       }
@@ -1384,7 +1389,7 @@ sign-windows-image:
   extends: .sign-docker
   parallel:
     matrix:
-      - WIN_VERSION: ["2019", "2022"]
+      - WIN_VERSION: ["2019", "2022", "2025"]
         FIPS: ["-fips", ""]
   needs:
     - build-push-windows-image
@@ -1651,13 +1656,15 @@ push-multiarch-manifest:
         docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
           ${MANIFEST_NAME}:${MANIFEST_TAG} \
           ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022 \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2025
       else
         # DEPRECATED: Create the windows multiarch manifest for the windows images
         echo "Creating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
         docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
           ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022 \
+          ${MANIFEST_NAME}:${MANIFEST_TAG}-2025
       fi
     - |
       set -e
@@ -1674,11 +1681,11 @@ push-multiarch-manifest:
         echo "$json"
         # Check number of images in the manifest
         count=$( echo "$json" | jq -r ".manifests | length" )
-        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 5 ]]; then
+        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 6 ]]; then
           exit 1
-        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 4 ]]; then
+        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 5 ]]; then
           exit 1
-        elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 2 ]]; then
+        elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 3 ]]; then
           exit 1
         fi
         # Check the manifest for the linux images
@@ -1695,7 +1702,7 @@ push-multiarch-manifest:
           done
         fi
         # Check the manifest for the windows images
-        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
+        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE" "$WIN_2025_BASE_IMAGE"; do
           os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
           if [[ -z "$os_version" ]]; then
             echo "Failed to get os.version from $base_image"

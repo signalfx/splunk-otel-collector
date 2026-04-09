@@ -226,16 +226,15 @@ jobs:
       # Workaround for https://github.com/actions/runner-images/issues/13202
       - name: Unload KVM module (AMD)
         run: |
-          # Check if KVM modules are loaded
-          lsmod | grep kvm
-          # Unload KVM modules if present (for Intel or AMD CPUs)
+          echo "=== Loaded KVM modules before unload ==="
+          lsmod | grep kvm || true
+          # Must unload dependent modules first, then the base kvm module
           sudo modprobe -r kvm_intel || true
           sudo modprobe -r kvm_amd || true
-          sudo rmmod kvm || true
-          # Verify KVM is unloaded
-          lsmod | grep kvm
+          sudo modprobe -r kvm || true
+          echo "=== Loaded KVM modules after unload ==="
+          lsmod | grep kvm || true
         continue-on-error: true
-
       - name: Install vagrant and virtualbox
         run: |
           sudo apt update && sudo apt install -y virtualbox

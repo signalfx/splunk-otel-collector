@@ -13,7 +13,6 @@ on:
       - 'Makefile'
       - 'Makefile.Common'
       - '!**.md'
-      - '!packaging/technical-addon/**'
 
 concurrency:
   group: linux-package-test-${{ github.event.pull_request.number || github.ref }}
@@ -145,11 +144,13 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [cross-compile, agent-bundle-linux]
     steps:
-      # Multiarch images require more disk space
-      - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
-
       - name: Check out the codebase.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Multiarch images require more disk space
+      - run: .github/workflows/scripts/free-disk-space.sh
+        if: runner.os == 'Linux'
+        continue-on-error: true
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store

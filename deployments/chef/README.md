@@ -66,16 +66,16 @@ required `splunk_access_token` attribute and some optional attributes:
   (**default:** `us0`)
 
 - `splunk_ingest_url`: Explicitly set the Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`, instead of the URL derived from the
+  `https://ingest.us0.observability.splunkcloud.com`, instead of the URL derived from the
   `splunk_realm` attribute. The `SPLUNK_INGEST_URL` environment variable will
   be set with this value for the Collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `splunk_api_url`: Explicitly set the Splunk API URL, e.g.
-  `https://api.us0.signalfx.com`, instead of the URL derived from `splunk_realm`
+  `https://api.us0.observability.splunkcloud.com`, instead of the URL derived from `splunk_realm`
   attribute. The `SPLUNK_API_URL` environment variable will be set with this
   value for the Collector service. (**default:**
-  `https://api.{{ splunk_realm }}.signalfx.com`)
+  `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `collector_version`: Version of the Collector package to install, e.g.
   `0.34.0`. (**default:** `latest`)

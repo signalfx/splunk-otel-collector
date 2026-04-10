@@ -1,0 +1,69 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: breaking
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: deployments
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Update Ansible, Chef, Nomad, Puppet, and Salt deployments to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`.
+
+# One or more tracking issues related to the change
+issues: [7413]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  Official documentation: https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide
+  The default API and ingest endpoint URLs in all mass-deployment tooling have been updated:
+  - `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
+  - `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
+  - `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
+
+  **Migration Notes — Proxy and Firewall Configuration:**
+  If you have firewall rules or proxy allowlists scoped to `*.signalfx.com`, update them to also
+  allow `*.observability.splunkcloud.com`, or the specific realm-scoped hostnames:
+  - `api.<realm>.observability.splunkcloud.com`
+  - `ingest.<realm>.observability.splunkcloud.com`
+
+  **Keeping legacy `*.signalfx.com` endpoints:**
+  All deployment tools continue to respect explicit URL overrides. Pass the legacy URL via the
+  appropriate variable for your tool (replace `<realm>` with your realm, e.g. `us0`):
+
+  Ansible:
+  ```yaml
+  splunk_api_url: "https://api.<realm>.signalfx.com"
+  splunk_ingest_url: "https://ingest.<realm>.signalfx.com"
+  splunk_hec_url: "https://ingest.<realm>.signalfx.com/v1/log"
+  ```
+
+  Chef:
+  ```ruby
+  node['splunk_otel_collector']['splunk_api_url'] = "https://api.<realm>.signalfx.com"
+  node['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.<realm>.signalfx.com"
+  ```
+
+  Puppet:
+  ```puppet
+  $splunk_api_url    = "https://api.<realm>.signalfx.com"
+  $splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
+  ```
+
+  Salt (pillar):
+  ```yaml
+  splunk-otel-collector:
+    splunk_api_url: "https://api.<realm>.signalfx.com"
+    splunk_ingest_url: "https://ingest.<realm>.signalfx.com"
+  ```
+
+  Nomad (environment variable):
+  ```hcl
+  env {
+    SPLUNK_API_URL    = "https://api.<realm>.signalfx.com"
+    SPLUNK_INGEST_URL = "https://ingest.<realm>.signalfx.com"
+  }
+  ```
+
+  If you are already setting these URL variables explicitly in your deployment, no change is
+  required — the explicit values override the new defaults. The legacy `*.signalfx.com`
+  endpoints remain available during the transition period.

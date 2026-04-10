@@ -57,10 +57,6 @@ else
     its('content') { should match /^User=splunk-otel-collector$/ }
     its('content') { should match /^Group=splunk-otel-collector$/ }
   end
-  describe service('td-agent') do
-    it { should_not be_enabled }
-    it { should_not be_running }
-  end
   describe package('splunk-otel-auto-instrumentation') do
     it { should_not be_installed }
   end

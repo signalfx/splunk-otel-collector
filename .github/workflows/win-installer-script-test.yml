@@ -90,14 +90,28 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Continue'
-          $output = & .\packaging\installer\install.ps1 -access_token "fakeinvalidtoken123" -realm "us0" 2>&1
-          $outputStr = $output -join "`n"
+          # install.ps1 ends this path with throw() from verify_access_token; that is a terminating
+          # error and would stop this step before assertions unless caught here. *>&1 merges all
+          # streams so host/info output is included in the transcript.
+          $outputLines = [System.Collections.Generic.List[string]]::new()
+          $installerThrew = $false
+          $thrownMessage = $null
+          try {
+            & .\packaging\installer\install.ps1 -access_token "fakeinvalidtoken123" -realm "us0" *>&1 | ForEach-Object {
+              [void]$outputLines.Add("$($_)")
+            }
+          } catch {
+            $installerThrew = $true
+            $thrownMessage = $_.Exception.Message
+            [void]$outputLines.Add($thrownMessage)
+          }
+          $outputStr = [string]::Join("`n", $outputLines)
           Write-Host "Installer output:`n$outputStr"
-          if ($LASTEXITCODE -eq 0) {
+          if (-not $installerThrew) {
             throw "Expected installer to fail at token verification but it succeeded unexpectedly."
           }
           $expectedTokenVerificationPrefix = "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token."
-          if (-not $outputStr.TrimStart().StartsWith($expectedTokenVerificationPrefix)) {
+          if (-not $thrownMessage.TrimStart().StartsWith($expectedTokenVerificationPrefix)) {
             throw (
               "Installer failed, but NOT at the expected token verification step.`n" +
               "This may indicate a connectivity or download failure caused by the URL migration " +
@@ -105,4 +119,5 @@ jobs:
               "Output: $outputStr"
             )
           }
+          $global:LASTEXITCODE = 0
           Write-Host "Test passed: installer reached token verification and failed as expected with a fake token."

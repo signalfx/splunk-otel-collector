@@ -306,6 +306,9 @@ jobs:
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
           $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }}"
+          # Default expected URLs reflect the new installer defaults (observability.splunkcloud.com).
+          $expected_api_url = "https://api.${{ env.realm }}.observability.splunkcloud.com"
+          $expected_ingest_url = "https://ingest.${{ env.realm }}.observability.splunkcloud.com"
           if ("${{ matrix.SCENARIO }}" -eq "install") {
             write-host "Installing $choco_file_name ..."
             choco install splunk-otel-collector -s=".\dist" --params="'$params'" -y
@@ -320,6 +323,16 @@ jobs:
               throw "choco install failed!"
             }
             $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            # Read the URLs written by the previous installation. The new installer preserves
+            # existing registry values without migration, so whatever the old version set must
+            # survive the upgrade unchanged — regardless of which domain it defaulted to.
+            $installed_env = @{}
+            foreach ($entry in $env_vars) {
+              $k, $v = $entry.Split("=", 2)
+              $installed_env[$k] = $v
+            }
+            $expected_api_url = $installed_env["SPLUNK_API_URL"]
+            $expected_ingest_url = $installed_env["SPLUNK_INGEST_URL"]
             $test_env_vars = @(
               "MY VAR WITH SPACES=my value",
               "GOOD_ENV_VAR_NAME=good value",
@@ -342,7 +355,7 @@ jobs:
             }
           }
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -api_url "$expected_api_url" -ingest_url "$expected_ingest_url"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
 
       - name: splunk-otel-collector logs

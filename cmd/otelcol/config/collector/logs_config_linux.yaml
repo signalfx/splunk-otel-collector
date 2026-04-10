@@ -27,14 +27,10 @@ receivers:
     include:
       # Core system & networking
       - /etc/*.conf
-      - /etc/resolv.conf
       - /etc/hosts
-      - /etc/hostname
-      - /etc/sysctl.conf
 
       # SSH & authentication
       - /etc/ssh/sshd_config
-      - /etc/pam.d/**
       - /etc/login.defs
 
       # Users & privileges (metadata only, not secrets)
@@ -42,6 +38,10 @@ receivers:
       - /etc/group
       - /etc/sudoers
       - /etc/sudoers.d/**
+
+      # Uncomment to monitor PAM configuration changes (useful for detecting auth policy
+      # modifications, but may contain sensitive auth policy details — review before enabling):
+      # - /etc/pam.d/**
 
       # # Package & service configuration
       # - /etc/apt/apt.conf.d/**

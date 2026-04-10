@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### 🛑 Breaking changes 🛑
+
+- Default API and ingest endpoint URLs now use `*.observability.splunkcloud.com` instead of
+  `*.signalfx.com` ([#7413](https://github.com/signalfx/splunk-otel-collector/pull/7413)):
+  - `splunk_api_url`: `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
+  - `splunk_ingest_url`: `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
+  - `splunk_hec_url`: `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
+
+  To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your playbook:
+  ```yaml
+  splunk_api_url: "https://api.<realm>.signalfx.com"
+  splunk_ingest_url: "https://ingest.<realm>.signalfx.com"
+  splunk_hec_url: "https://ingest.<realm>.signalfx.com/v1/log"
+  ```
+  If firewall or proxy allowlists are scoped to `*.signalfx.com`, update them to also allow
+  `*.observability.splunkcloud.com`. For more information, see the
+  [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide).
+
 ## ansible-v1.0.0
 
 ### 🛑 Breaking changes 🛑

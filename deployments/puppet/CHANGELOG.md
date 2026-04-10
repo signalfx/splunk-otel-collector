@@ -6,6 +6,22 @@
 
 - Puppet supported version is now >= v8.0.0 ([#7260](https://github.com/signalfx/splunk-otel-collector/pull/7260))
 
+- Default API and ingest endpoint URLs now use `*.observability.splunkcloud.com` instead of
+  `*.signalfx.com` ([#7413](https://github.com/signalfx/splunk-otel-collector/pull/7413)):
+  - `$splunk_api_url`: `https://api.${splunk_realm}.signalfx.com` → `https://api.${splunk_realm}.observability.splunkcloud.com`
+  - `$splunk_ingest_url`: `https://ingest.${splunk_realm}.signalfx.com` → `https://ingest.${splunk_realm}.observability.splunkcloud.com`
+  - `$splunk_hec_url` (derived from `$splunk_ingest_url`): `https://ingest.${splunk_realm}.signalfx.com/v1/log` → `https://ingest.${splunk_realm}.observability.splunkcloud.com/v1/log`
+
+  To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your manifest:
+  ```puppet
+  $splunk_api_url    = "https://api.<realm>.signalfx.com"
+  $splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
+  $splunk_hec_url    = "https://ingest.<realm>.signalfx.com/v1/log"
+  ```
+  If firewall or proxy allowlists are scoped to `*.signalfx.com`, update them to also allow
+  `*.observability.splunkcloud.com`. For more information, see the
+  [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide).
+
 ## puppet-v0.19.0
 
 ### 🛑 Breaking changes 🛑

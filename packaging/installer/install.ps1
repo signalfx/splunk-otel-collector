@@ -115,6 +115,11 @@
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ARPCOMMENTS=DO_NOT_UNINSTALL" 
+.PARAMETER with_logs
+    (OPTIONAL) Whether to use the logs collection configuration file instead of the default agent/gateway config (default: $false).
+    Ignored if -config_path is specified.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_logs $true
 .PARAMETER config_path
     (OPTIONAL) Specify a local path to an alternative configuration file for the Splunk OpenTelemetry Collector.
     If specified, the -mode parameter will be ignored.
@@ -144,6 +149,7 @@ param (
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
+    [bool]$with_logs = $false,
     [string]$config_path = "",
     [bool]$preserve_prev_default_config = $false,
     [string]$collector_msi_url = "",
@@ -183,6 +189,7 @@ try {
 $old_config_path = "$program_data_path\config.yaml"
 $agent_config_path = "$program_data_path\agent_config.yaml"
 $gateway_config_path = "$program_data_path\gateway_config.yaml"
+$logs_config_path = "$program_data_path\logs_config_windows.yaml"
 
 try {
     Resolve-Path $env:TEMP 2>&1>$null
@@ -611,9 +618,16 @@ if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_p
     echo "Copying default config.yaml to $old_config_path"
     Copy-Item "$installation_path\config.yaml" "$old_config_path"
 }
+if (!(Test-Path -Path "$logs_config_path") -And (Test-Path -Path "$installation_path\logs_config_windows.yaml")) {
+    echo "$logs_config_path not found"
+    echo "Copying default logs_config_windows.yaml to $logs_config_path"
+    Copy-Item "$installation_path\logs_config_windows.yaml" "$logs_config_path"
+}
 
 if ($config_path -Eq "") {
-    if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
+    if ($with_logs -And (Test-Path -Path "$logs_config_path")) {
+        $config_path = $logs_config_path
+    } elseif (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
         $config_path = $agent_config_path
     } elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
         $config_path = $gateway_config_path

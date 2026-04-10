@@ -61,6 +61,7 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
+logs_config_path="${collector_config_dir}/logs_config_linux.yaml"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
@@ -1118,6 +1119,9 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
+  --with-logs                           Use the logs collection config ($logs_config_path) instead of the
+                                        default agent/gateway config. Ignored if '--collector-config' is specified.
+  --without-logs                        Use the default agent/gateway config (default behavior).
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1398,6 +1402,7 @@ parse_args_and_install() {
   local service_user="$default_service_user"
   local uninstall="false"
   local mode="agent"
+  local with_logs="false"
   local collector_config_path=
   local skip_collector_repo="false"
   local with_instrumentation="false"
@@ -1426,6 +1431,12 @@ parse_args_and_install() {
       --collector-config)
         collector_config_path="$2"
         shift 1
+        ;;
+      --with-logs)
+        with_logs="true"
+        ;;
+      --without-logs)
+        with_logs="false"
         ;;
       --collector-version)
         collector_version="$2"
@@ -1830,8 +1841,11 @@ parse_args_and_install() {
   configure_service_owner "$service_user" "$service_group"
 
   if [ -z "$collector_config_path" ]; then
-    # custom config not provided; use the config provided by the collector package based on the --mode option
-    if [ "$mode" = "agent" ]; then
+    if [ "$with_logs" = "true" ]; then
+      # use the logs config if --with-logs is specified
+      collector_config_path="$logs_config_path"
+    elif [ "$mode" = "agent" ]; then
+      # custom config not provided; use the config provided by the collector package based on the --mode option
       if [ -f "$agent_config_path" ]; then
         # use the agent config if the installed package includes it
         collector_config_path="$agent_config_path"

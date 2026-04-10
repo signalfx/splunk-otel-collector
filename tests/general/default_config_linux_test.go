@@ -35,7 +35,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownHECReceiverSink()
 
-	path, err := filepath.Abs("../../cmd/otelcol/config/collector/logs_config_linux.yaml")
+	path, err := filepath.Abs("../../cmd/otelcol/config/collector/logs_config_linux.yaml.example")
 	require.NoError(t, err)
 
 	_, shutdown := tc.SplunkOtelCollectorProcess(path,

@@ -5,7 +5,7 @@ change_type: breaking
 component: installer
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Update installer scripts, packaging, and deployment tooling to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`.
+note: Update installer scripts and packaging to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`.
 
 # One or more tracking issues related to the change
 issues: [7413]
@@ -14,7 +14,7 @@ issues: [7413]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  The default API and ingest endpoint URLs produced by installers and deployment tools have been updated:
+  The default API and ingest endpoint URLs produced by the installer scripts and packaging have been updated:
   - `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
   - `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
   - `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`

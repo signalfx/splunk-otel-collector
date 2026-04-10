@@ -6,9 +6,9 @@
 
 {% set splunk_realm = salt['pillar.get']('splunk-otel-collector:splunk_realm', 'us0') %}
 
-{% set splunk_api_url = salt['pillar.get']('splunk-otel-collector:splunk_api_url', 'https://api.' + splunk_realm + '.observability.splunkcloud.com' ) %}
+{% set splunk_api_url = salt['pillar.get']('splunk-otel-collector:splunk_api_url', 'https://api.' + splunk_realm + '.signalfx.com' ) %}
 
-{% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.observability.splunkcloud.com') %}
+{% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.signalfx.com') %}
 
 {% set splunk_hec_url = salt['pillar.get']('splunk-otel-collector:splunk_hec_url', splunk_ingest_url + '/v1/log') %}
 

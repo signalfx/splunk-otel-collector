@@ -17,7 +17,6 @@ on:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
       - '!**.md'
-      - '!packaging/technical-addon/**'
   schedule:
     - cron: '0 0 * * 1,4' # Every Monday and Thrusday at midnight UTC
 

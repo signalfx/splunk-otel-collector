@@ -171,7 +171,7 @@ jobs:
 
       # Building multiarch container images requires qemu
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v7.0.0
@@ -240,7 +240,7 @@ jobs:
       # There are no GH runners for ppc64le, so use qemu
       - name: Set up QEMU
         if: ${{ matrix.ARCH == 'ppc64le' }}
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0

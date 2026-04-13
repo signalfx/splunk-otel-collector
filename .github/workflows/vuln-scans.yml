@@ -79,6 +79,8 @@ jobs:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   anchore-image-scan:
+    permissions:
+      actions: write # Required to download the image artifact from the docker-otelcol job
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: docker-otelcol

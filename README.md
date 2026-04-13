@@ -161,6 +161,99 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.150.0 to 0.151.0
+
+The default API and ingest endpoint URLs have been updated across **all components** from
+`*.signalfx.com` to `*.observability.splunkcloud.com`. See the
+[official domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide)
+for background.
+
+**URL changes applied across all components:**
+- `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
+- `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
+- `https://ingest.<realm>.signalfx.com/v2/trace` → `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
+- `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
+
+**Migration Notes — Proxy and Firewall Configuration:**
+If you have firewall rules or proxy allowlists scoped to `*.signalfx.com`, update them to also allow
+`*.observability.splunkcloud.com`, or the specific realm-scoped hostnames:
+- `api.<realm>.observability.splunkcloud.com`
+- `ingest.<realm>.observability.splunkcloud.com`
+
+If you already set `SPLUNK_API_URL`, `SPLUNK_INGEST_URL`, `SPLUNK_TRACE_URL`, or `SPLUNK_HEC_URL`
+explicitly in your deployment, no change is required — explicit values always override the defaults.
+The legacy `*.signalfx.com` endpoints remain available during the transition period.
+
+#### Collector configuration and environment variable defaults
+
+The default values compiled into the collector binary and all bundled YAML config files have been
+updated. To keep the legacy endpoints, set these environment variables explicitly (replace `<realm>`
+with your realm, e.g. `us0`):
+
+```
+SPLUNK_API_URL=https://api.<realm>.signalfx.com
+SPLUNK_INGEST_URL=https://ingest.<realm>.signalfx.com
+SPLUNK_TRACE_URL=https://ingest.<realm>.signalfx.com/v2/trace
+SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
+```
+
+#### Installer scripts
+
+Linux (`install.sh`):
+```
+--api-url https://api.<realm>.signalfx.com
+--ingest-url https://ingest.<realm>.signalfx.com
+--hec-url https://ingest.<realm>.signalfx.com/v1/log
+```
+
+Windows (`install.ps1`):
+```
+-api_url https://api.<realm>.signalfx.com
+-ingest_url https://ingest.<realm>.signalfx.com
+-hec_url https://ingest.<realm>.signalfx.com/v1/log
+```
+
+Chocolatey:
+```
+choco install splunk-otel-collector --params "'/SPLUNK_API_URL:https://api.<realm>.signalfx.com /SPLUNK_INGEST_URL:https://ingest.<realm>.signalfx.com /SPLUNK_HEC_URL:https://ingest.<realm>.signalfx.com/v1/log'"
+```
+
+#### Deployment tooling
+
+Ansible:
+```yaml
+splunk_api_url: "https://api.<realm>.signalfx.com"
+splunk_ingest_url: "https://ingest.<realm>.signalfx.com"
+splunk_hec_url: "https://ingest.<realm>.signalfx.com/v1/log"
+```
+
+Chef:
+```ruby
+node['splunk_otel_collector']['splunk_api_url'] = "https://api.<realm>.signalfx.com"
+node['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.<realm>.signalfx.com"
+```
+
+Puppet:
+```puppet
+$splunk_api_url    = "https://api.<realm>.signalfx.com"
+$splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
+```
+
+Salt (pillar):
+```yaml
+splunk-otel-collector:
+  splunk_api_url: "https://api.<realm>.signalfx.com"
+  splunk_ingest_url: "https://ingest.<realm>.signalfx.com"
+```
+
+Nomad (environment variable):
+```hcl
+env {
+  SPLUNK_API_URL    = "https://api.<realm>.signalfx.com"
+  SPLUNK_INGEST_URL = "https://ingest.<realm>.signalfx.com"
+}
+```
+
 ### From 0.117.0 to 0.118.0
 
 - The deprecated syntax for config source expansion is no longer supported. 

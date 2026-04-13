@@ -34,7 +34,7 @@
 
     - name: Assert SPLUNK_API_URL env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_INGEST_URL=https://api.fake-realm.observability.splunkcloud.com
+        line: SPLUNK_API_URL=https://api.fake-realm.observability.splunkcloud.com
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes

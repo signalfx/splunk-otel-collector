@@ -14,31 +14,6 @@ issues: [7412]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  The default API and ingest endpoint URLs have been updated to use the `observability.splunkcloud.com` domain:
-  - `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
-  - `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
-  - `https://ingest.<realm>.signalfx.com/v2/trace` → `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
-  - `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
-
-
-  **Migration Notes — Proxy and Firewall Configuration:**
-  If you have firewall rules or proxy allowlists scoped to `*.signalfx.com`, update them to also allow
-  `*.observability.splunkcloud.com`, or the specific realm-scoped hostnames:
-  - `api.<realm>.observability.splunkcloud.com`
-  - `ingest.<realm>.observability.splunkcloud.com`
-
-  **Affected environment variables and their new default patterns (when `SPLUNK_REALM` is set):**
-  - `SPLUNK_API_URL`: `https://api.<realm>.observability.splunkcloud.com`
-  - `SPLUNK_INGEST_URL`: `https://ingest.<realm>.observability.splunkcloud.com`
-  - `SPLUNK_TRACE_URL`: `https://ingest.<realm>.observability.splunkcloud.com/v2/trace`
-  - `SPLUNK_HEC_URL` (log ingest): `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
-
-  **Keeping legacy `*.signalfx.com` endpoints:**
-  Set these environment variables explicitly (replace `<realm>` with your realm, e.g. `us0`):
-  - `SPLUNK_API_URL=https://api.<realm>.signalfx.com`
-  - `SPLUNK_INGEST_URL=https://ingest.<realm>.signalfx.com`
-  - `SPLUNK_TRACE_URL=https://ingest.<realm>.signalfx.com/v2/trace`
-  - `SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log`
-
-  If you already set these variables to `*.signalfx.com` URLs in your deployment, no change is required —
-  the legacy endpoints remain available during the transition period.
+  For full migration details, proxy/firewall configuration notes, and per-tool instructions for
+  keeping legacy `*.signalfx.com` endpoints, see the
+  [0.150.0 → 0.151.0 upgrade guideline](../README.md#from-01500-to-01510) in README.md.

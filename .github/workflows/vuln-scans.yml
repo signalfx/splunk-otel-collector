@@ -23,6 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  actions: write
   security-events: write
 
 jobs:

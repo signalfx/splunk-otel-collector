@@ -22,6 +22,9 @@ concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  security-events: write
+
 jobs:
   anchore-fs-scan:
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}

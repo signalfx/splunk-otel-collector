@@ -255,7 +255,7 @@ jobs:
       - puppet-build-windows-msi-local-package
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-2025" ]
         # EOL REFERENCE: https://endoflife.date/puppet
         PUPPET_RELEASE: [ "8.10.0" ]
         TEST_CASE: [ "default", "custom_vars" ]

@@ -29,6 +29,7 @@ sync-configs:
 	@echo "Syncing configuration files ..."
 	@if [ ! -d ./assets/configs/ ]; then mkdir -p ./assets/configs/; fi
 	cp $(SRC_ROOT)/cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
+	cp $(SRC_ROOT)/cmd/otelcol/config/collector/gateway_config.yaml ./assets/configs/gateway_config.yaml
 
 .PHONY: ta-inputs-conf
 ta-inputs-conf:

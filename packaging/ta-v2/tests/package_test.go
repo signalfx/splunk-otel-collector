@@ -216,6 +216,7 @@ func TestPackageMandatoryFiles(t *testing.T) {
 
 			mandatoryPaths := []string{
 				modularInputName + "/configs/agent_config.yaml",
+				modularInputName + "/configs/gateway_config.yaml",
 				modularInputName + "/default/app.conf",
 				modularInputName + "/default/inputs.conf",
 				modularInputName + "/README/inputs.conf.spec",

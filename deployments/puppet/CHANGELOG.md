@@ -6,12 +6,18 @@
 
 - Puppet supported version is now >= v8.0.0 ([#7260](https://github.com/signalfx/splunk-otel-collector/pull/7260))
 
-- Default API and ingest endpoint URLs now use `*.observability.splunkcloud.com` instead of
-  `*.signalfx.com` ([#7413](https://github.com/signalfx/splunk-otel-collector/pull/7413)):
+- Default API and ingest endpoint URLs now use `*.observability.splunkcloud.com` instead of `*.signalfx.com`:
   - `$splunk_api_url`: `https://api.${splunk_realm}.signalfx.com` → `https://api.${splunk_realm}.observability.splunkcloud.com`
   - `$splunk_ingest_url`: `https://ingest.${splunk_realm}.signalfx.com` → `https://ingest.${splunk_realm}.observability.splunkcloud.com`
   - `$splunk_hec_url` (derived from `$splunk_ingest_url`): `https://ingest.${splunk_realm}.signalfx.com/v1/log` → `https://ingest.${splunk_realm}.observability.splunkcloud.com/v1/log`
-
+  
+  No immideate action is required. But it is recommended to use the new endpoints. For the upgrade of collector from pre-0.150.0 version, 
+  user have to explicitly set new endpoint in your manifest:
+  ```puppet
+  $splunk_api_url    = "https://api.<realm>.signalfx.com"
+  $splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
+  $splunk_hec_url    = "https://ingest.<realm>.signalfx.com/v1/log"
+  ```
   To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your manifest:
   ```puppet
   $splunk_api_url    = "https://api.<realm>.signalfx.com"

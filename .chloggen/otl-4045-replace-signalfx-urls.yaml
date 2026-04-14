@@ -2,13 +2,13 @@
 change_type: breaking
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: deployments
+component: installer
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Update Ansible, Chef, Nomad, Puppet, and Salt deployments to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`.
+note: Update installer scripts and packaging to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`.
 
 # One or more tracking issues related to the change
-issues: [7419]
+issues: [7413]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
@@ -16,4 +16,4 @@ issues: [7419]
 subtext: |
   For full migration details, proxy/firewall configuration notes, and per-tool instructions for
   keeping legacy `*.signalfx.com` endpoints, see the
-  [0.150.0 → 0.151.0 upgrade guideline](../README.md#from-01500-to-01510) in README.md.
+  [0.149.0 → 0.150.0 upgrade guideline](../README.md#from-01490-to-01500) in README.md.

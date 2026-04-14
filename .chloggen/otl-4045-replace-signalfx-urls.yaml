@@ -16,4 +16,4 @@ issues: [7413]
 subtext: |
   For full migration details, proxy/firewall configuration notes, and per-tool instructions for
   keeping legacy `*.signalfx.com` endpoints, see the
-  [0.149.0 → 0.150.0 upgrade guideline](../README.md#from-01500-to-01510) in README.md.
+  [0.149.0 → 0.150.0 upgrade guideline](../README.md#from-01490-to-01500) in README.md.

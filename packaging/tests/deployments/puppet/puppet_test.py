@@ -473,7 +473,7 @@ WIN_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.y
 WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure
 # Support for local MSI server for testing with locally built artifacts
 # Usage: LOCAL_MSI_SERVER=http://localhost:8000 WIN_COLLECTOR_VERSION=0.0.1-local pytest ...
-WIN_MSI_REPO_URL = os.environ.get("LOCAL_MSI_SERVER", "https://dl.signalfx.com/splunk-otel-collector/msi/release")
+WIN_MSI_REPO_URL = os.environ.get("LOCAL_MSI_SERVER", "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/release")
 
 # Windows-specific config template for custom vars test
 WIN_CUSTOM_VARS_CONFIG = string.Template(

@@ -197,6 +197,28 @@ SPLUNK_TRACE_URL=https://ingest.<realm>.signalfx.com/v2/trace
 SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
 ```
 
+#### Deployment tooling
+
+The default Windows MSI artifact download URL has been updated:
+- `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+
+To keep using the legacy `dl.signalfx.com` download URL:
+
+Ansible:
+```yaml
+win_base_url: "https://dl.signalfx.com"
+```
+
+Chef:
+```ruby
+node['splunk_otel_collector']['windows_repo_url'] = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+```
+
+Puppet:
+```puppet
+$win_repo_url = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+```
+
 ### From 0.117.0 to 0.118.0
 
 - The deprecated syntax for config source expansion is no longer supported. 

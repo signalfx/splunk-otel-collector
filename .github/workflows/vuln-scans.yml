@@ -242,6 +242,9 @@ jobs:
     # Running on a large runner to reliably use scan mode as symbol without hitting OOM.
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: otel-arm64
+    strategy:
+      matrix:
+        output: [ "sarif", "stdout" ]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -252,17 +255,20 @@ jobs:
         run: govulncheck --version 
 
       - name: Run `govulncheck` to generate SARIF files
+        if: ${{ matrix.output == 'sarif' }}
         env:
           GOVULN_OPTS: --format sarif --scan symbol
         run: ./.github/workflows/scripts/govulncheck-run.sh
 
       - name: Save govulncheck results as artifact
+        if: ${{ matrix.output == 'sarif' }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: govulncheck-results
           path: ./govulncheck/
 
       - name: Run `govulncheck` to fail the workflow if vulnerabilities are found
+        if: ${{ matrix.output == 'stdout' }}
         env:
           GOVULN_OPTS: --show verbose --scan symbol
         run: ./.github/workflows/scripts/govulncheck-run.sh

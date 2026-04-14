@@ -680,3 +680,52 @@ def test_installer_with_obi(distro, arch):
         assert not container_file_exists(container, OBI_BIN), \
             f"OBI binary was not removed from {OBI_BIN} after uninstall"
 
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_token_verification_with_dl_url(distro, arch):
+    """Validate that install.sh reaches token verification (does not fail earlier due to URL changes).
+
+    OTL-4176: After migrating from dl.signalfx.com to dl.observability.splunkcloud.com, this test
+    confirms the installer can pull packages and proceed through the full configuration workflow up
+    to the access token verification step, where it is expected to fail with a fake token.
+
+    A failure at token verification (vs. a download/connectivity error) proves that:
+    - Package repos are reachable and packages installed successfully
+    - The installer was able to configure itself using the updated observability.splunkcloud.com domain
+    - The token verification endpoint (ingest.us0.observability.splunkcloud.com) is reachable
+    """
+    install_cmd = f"sh -l /test/install.sh -- fakeinvalidtoken123 --realm us0"
+
+    print(f"Testing installer reaches token verification on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+
+        # Run WITHOUT VERIFY_ACCESS_TOKEN=false so token verification is attempted.
+        # Expected to fail at token verification (exit 1), not at an earlier download step.
+        exit_code, output = run_container_cmd(container, install_cmd, exit_code=None, timeout=INSTALLER_TIMEOUT)
+        output_str = output.decode("utf-8", errors="replace")
+
+        assert exit_code != 0, (
+            f"Expected installer to fail at token verification with a fake token, but it succeeded.\n"
+            f"Output:\n{output_str}"
+        )
+
+        # The failure message must be about token verification, not about a network/repo error.
+        # Any other failure indicates a problem with the updated domain or package repos.
+        assert any(phrase in output_str.lower() for phrase in (
+            "access token",
+            "could not be verified",
+            "authentication failed",
+        )), (
+            f"Installer failed, but NOT at the expected token verification step.\n"
+            f"This may indicate a connectivity or download failure caused by the URL migration "
+            f"to dl.observability.splunkcloud.com or ingest.us0.observability.splunkcloud.com.\n"
+            f"Output:\n{output_str}"
+        )
+

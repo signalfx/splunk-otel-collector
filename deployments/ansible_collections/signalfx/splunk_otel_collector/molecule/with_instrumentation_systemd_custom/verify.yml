@@ -112,6 +112,8 @@
         dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains SPLUNK_PROFILER_MEMORY_ENABLED
       ansible.builtin.lineinfile:

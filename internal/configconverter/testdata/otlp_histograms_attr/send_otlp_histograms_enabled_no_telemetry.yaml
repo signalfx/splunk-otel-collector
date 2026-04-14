@@ -4,7 +4,7 @@ receivers:
       cpu:
 exporters:
   otlp_grpc:
-    endpoint: "https://ingest.signalfx.com:443"
+    endpoint: "https://ingest.observability.splunkcloud.com:443"
     headers:
       "X-SF-Token": TOKEN
     sending_queue:

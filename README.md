@@ -197,6 +197,27 @@ SPLUNK_TRACE_URL=https://ingest.<realm>.signalfx.com/v2/trace
 SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
 ```
 
+#### Installer scripts
+
+Linux (`install.sh`):
+```
+--api-url https://api.<realm>.signalfx.com
+--ingest-url https://ingest.<realm>.signalfx.com
+--hec-url https://ingest.<realm>.signalfx.com/v1/log
+```
+
+Windows (`install.ps1`):
+```
+-api_url https://api.<realm>.signalfx.com
+-ingest_url https://ingest.<realm>.signalfx.com
+-hec_url https://ingest.<realm>.signalfx.com/v1/log
+```
+
+Chocolatey:
+```
+choco install splunk-otel-collector --params "'/SPLUNK_API_URL:https://api.<realm>.signalfx.com /SPLUNK_INGEST_URL:https://ingest.<realm>.signalfx.com /SPLUNK_HEC_URL:https://ingest.<realm>.signalfx.com/v1/log'"
+```
+
 ### From 0.117.0 to 0.118.0
 
 - The deprecated syntax for config source expansion is no longer supported. 

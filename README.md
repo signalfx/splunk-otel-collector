@@ -218,42 +218,6 @@ Chocolatey:
 choco install splunk-otel-collector --params "'/SPLUNK_API_URL:https://api.<realm>.signalfx.com /SPLUNK_INGEST_URL:https://ingest.<realm>.signalfx.com /SPLUNK_HEC_URL:https://ingest.<realm>.signalfx.com/v1/log'"
 ```
 
-#### Deployment tooling
-
-Ansible:
-```yaml
-splunk_api_url: "https://api.<realm>.signalfx.com"
-splunk_ingest_url: "https://ingest.<realm>.signalfx.com"
-splunk_hec_url: "https://ingest.<realm>.signalfx.com/v1/log"
-```
-
-Chef:
-```ruby
-node['splunk_otel_collector']['splunk_api_url'] = "https://api.<realm>.signalfx.com"
-node['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.<realm>.signalfx.com"
-```
-
-Puppet:
-```puppet
-$splunk_api_url    = "https://api.<realm>.signalfx.com"
-$splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
-```
-
-Salt (pillar):
-```yaml
-splunk-otel-collector:
-  splunk_api_url: "https://api.<realm>.signalfx.com"
-  splunk_ingest_url: "https://ingest.<realm>.signalfx.com"
-```
-
-Nomad (environment variable):
-```hcl
-env {
-  SPLUNK_API_URL    = "https://api.<realm>.signalfx.com"
-  SPLUNK_INGEST_URL = "https://ingest.<realm>.signalfx.com"
-}
-```
-
 ### From 0.117.0 to 0.118.0
 
 - The deprecated syntax for config source expansion is no longer supported. 

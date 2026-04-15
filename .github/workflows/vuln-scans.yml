@@ -64,7 +64,7 @@ jobs:
           DOCKER_BUILDKIT: '1'
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - run: mkdir -p dist && docker save -o dist/image.tar otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
@@ -262,7 +262,7 @@ jobs:
 
       - name: Save govulncheck results as artifact
         if: ${{ matrix.output == 'sarif' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: govulncheck-results
           path: ./govulncheck/

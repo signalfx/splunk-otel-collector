@@ -710,6 +710,16 @@ extensions:
 
 service:
   extensions: [health_check, file_storage/filelogs]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     logs:
       receivers:

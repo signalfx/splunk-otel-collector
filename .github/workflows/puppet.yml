@@ -21,21 +21,18 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read version from metadata.json
         id: read-metadata-json
-        uses: notiz-dev/github-action-json-property@release
-        with:
-          path: deployments/puppet/metadata.json
-          prop_path: version
+        run: echo "prop=$(jq -r '.version // empty' deployments/puppet/metadata.json)" >> "$GITHUB_OUTPUT"
 
       - name: Ensure version is read from metadata.json
         if: steps.read-metadata-json.outputs.prop == ''
         run: echo "Fail to read version from metadata.json" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

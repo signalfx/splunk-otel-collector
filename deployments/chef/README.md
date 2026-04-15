@@ -18,8 +18,8 @@ Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
 - CentOS / Red Hat: 8, 9
-- Oracle: 8, 9
-- Debian: 9, 10, 11
+- Oracle: 8, 9, 10
+- Debian: 11, 12, 13
 - SUSE: 15
 - Ubuntu: 22.04, 24.04
 
@@ -29,6 +29,7 @@ Currently, the following Windows versions are supported:
 
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
+- Windows Server 2025 64-bit
 
 On Windows, the collector is installed as a Windows service and its environment
 variables are set at the service scope, i.e.: they are only available to the

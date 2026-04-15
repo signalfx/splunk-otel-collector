@@ -17,7 +17,6 @@ on:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
       - '!**.md'
-      - '!packaging/technical-addon/**'
   schedule:
     - cron: '0 0 * * 1,4' # Every Monday and Thrusday at midnight UTC
 
@@ -82,10 +81,10 @@ jobs:
         working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.13'
 
@@ -98,7 +97,7 @@ jobs:
         run: yamllint .
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v26.1.1
+        uses: ansible/ansible-lint@8ba9595a4acd1b906eb75568b34f6ef592cd1528 # v26.3.0
         with:
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"
@@ -130,18 +129,21 @@ jobs:
           - centos9
           - debian11
           - debian12
+          - debian13
+          - oraclelinux9
+          - oraclelinux10
           - ubuntu2204
           - ubuntu2404
 
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: /tmp
 
-      - uses: DamianReeves/write-file-action@v1.3
+      - uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
@@ -154,7 +156,7 @@ jobs:
             urllib3>=2
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -200,16 +202,22 @@ jobs:
           - with_instrumentation
           - custom_vars_install_old_version
     steps:
-      - name: Free up disk space for vagrant box
-        uses: jlumbroso/free-disk-space@v1.3.1
-
+      
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      
+      - name: Free up disk space for vagrant box
+        run: |
+          pwd
+          ls -al
+          ../../../../.github/workflows/scripts/free-disk-space.sh
+        if: runner.os == 'Linux'
+        continue-on-error: true
 
       - name: Make tmp directory for msi build artifact
         run: mkdir -p /tmp/msi-build
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-build-amd64
           path: /tmp/msi-build
@@ -233,7 +241,7 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install -y vagrant
 
-      - uses: DamianReeves/write-file-action@v1.3
+      - uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
@@ -245,7 +253,7 @@ jobs:
             pywinrm<=0.4.3
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -294,21 +302,20 @@ jobs:
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml
-        uses: cumulusds/get-yaml-paths-action@v1
-        with:
-          file: deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml
-          version: version
+        run: |
+          version=$(yq e -r '.version' deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       
       - name: Ensure version is fetched from galaxy.yml
         if: steps.read-galaxy-yaml.outputs.version == ''
         run: echo "Fail to read version from galaxy.yml" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

@@ -56,7 +56,7 @@ def wait_for_container_cmd(container, cmd, timeout=DEFAULT_TIMEOUT):
 
 
 @contextmanager
-def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, buildargs=None, timeout=DEFAULT_TIMEOUT):
+def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, buildargs=None, timeout=DEFAULT_TIMEOUT, extra_volumes=None):
     client = docker.from_env()
 
     if not dockerfile:
@@ -88,11 +88,15 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
         docker.errors.BuildError,
     )
 
+    volumes = {"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "rw"}}
+    if extra_volumes:
+        volumes.update(extra_volumes)
+
     container = client.containers.create(
         image.id,
         detach=True,
         privileged=True,
-        volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "rw"}},
+        volumes=volumes,
         platform=f"linux/{arch}",
         cgroupns="host",
     )

@@ -166,7 +166,6 @@ function createTempDir {
     } else {
         New-Item -Path $TMPDIR -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/logs -ItemType Directory | Out-Null
-        New-Item -Path $TMPDIR/logs/td-agent -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/metrics -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/msi -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/zpages -ItemType Directory | Out-Null
@@ -224,26 +223,9 @@ function getStatus {
 function getLogs {
     Write-Output "INFO: Getting logs..."
     Get-EventLog -LogName Application -Source "splunk-otel-collector" -ErrorAction SilentlyContinue | Format-Table -auto -wrap > $TMPDIR/logs/splunk-otel-collector.log 2>&1
-    Get-EventLog -LogName Application -Source "td-agent" -ErrorAction SilentlyContinue | Format-Table -auto -wrap > $TMPDIR/logs/td-agent.log 2>&1
-    $LOGDIR="${env:SYSTEMDRIVE}\var\log\td-agent"
-    if (Test-Path -Path $LOGDIR) {
-        Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
-    } else {
-        Write-Output "WARN: $LOGDIR not found."
-    }
-    $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent\*.log"
-    if (Test-Path -Path $LOGDIR) {
-        Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
-    } else {
-        Write-Output "WARN: $LOGDIR not found."
-    }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.log")) {
         Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.log" -Value "Event splunk-otel-collector not exist."
         Write-Output "WARN: Event splunk-otel-collector not exist."
-    }
-    if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.log")) {
-        Set-Content -Path "$TMPDIR/logs/td-agent.log" -Value "Event td-agent not exist."
-        Write-Output "WARN: Event td-agent not exist."
     }
 }
 
@@ -323,7 +305,6 @@ function getHostInfo {
     Write-Output "INFO: Getting host information..."
     for ( $i = 0; $i -lt 3; $i++ ) {
         Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1
-        Get-Process -Name 'ruby' -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"} >> $TMPDIR/metrics/top.txt 2>&1
         Start-Sleep -s 2
     }
     if (-NOT (Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue)) {

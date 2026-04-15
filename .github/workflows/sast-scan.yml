@@ -1,7 +1,7 @@
 name: SAST Scan
 jobs:
   sast-scan:
-    uses: splunk/sast-scanning/.github/workflows/sast-scan.yml@main
+    uses: splunk/sast-scanning/.github/workflows/sast-scan.yml@1bf8bdda5041b89d691d44525b63745e9ba8e339 # main
     secrets: inherit #Ensures that this project is able to access Organization level secrets which are necessary to run Semgrep Scans.
     with:
       block_mode: "policy"

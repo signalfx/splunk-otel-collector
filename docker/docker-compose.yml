@@ -1,9 +1,8 @@
 services:
-  # Apache image for collectd-apache test
+  # Apache image for apache discovery test
   apache:
     image: quay.io/splunko11ytest/apache:latest
     profiles:
-      - smartagent
       - integration-test-apache-discovery
     build: ./apache
     ports:
@@ -98,92 +97,6 @@ services:
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     profiles:
       - integration-test-kafkametrics-discovery
-  kafka-broker:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: broker
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      JMX_PORT: 7099
-    ports:
-      - "7099:7099"
-      - "9092:9092"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/7099"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  kafka-consumer:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: consumer
-      KAFKA_BROKER: kafka-broker:9092
-      JMX_PORT: 9099
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    ports:
-      - "9099:9099"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/9099"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  kafka-producer:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: producer
-      KAFKA_BROKER: kafka-broker:9092
-      JMX_PORT: 8099
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    ports:
-      - "8099:8099"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/8099"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  kafka-topic-creator:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: create-topic
-      KAFKA_BROKER: kafka-broker:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
   kong:
     image: quay.io/splunko11ytest/kong:latest
     profiles:
@@ -231,7 +144,6 @@ services:
     build: ./redis_server
     ports:
       - "6379:6379"
-  # Kafka test, requires multiple Kafka containers and Zookeeper:
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.33.2
     profiles:
@@ -240,20 +152,3 @@ services:
       - "2112:2112"
     environment:
       PROMETHEUS_MONITORING_ENABLED: "true"
-  zookeeper:
-    image: zookeeper:3.5
-    profiles:
-      - smartagent
-    ports:
-      - "2181:2181"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/2181"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5

@@ -1,5 +1,6 @@
 deb:
   debian-bullseye: ["DISTRO_IMAGE=debian:bullseye"]
+  debian-bookworm: ["DISTRO_IMAGE=debian:bookworm"]
   ubuntu-jammy: ["DISTRO_IMAGE=ubuntu:22.04"]
   ubuntu-noble: ["DISTRO_IMAGE=ubuntu:24.04"]
 
@@ -9,3 +10,5 @@ rpm:
   centos-9: ["DISTRO_IMAGE=quay.io/centos/centos:stream9"]
   opensuse-15: ["DISTRO_IMAGE=opensuse/leap:15", "PKG_MGR=zypper"]
   oraclelinux-8: ["DISTRO_IMAGE=oraclelinux:8"]
+  oraclelinux-9: ["DISTRO_IMAGE=oraclelinux:9"]
+  oraclelinux-10: ["DISTRO_IMAGE=oraclelinux:10"]

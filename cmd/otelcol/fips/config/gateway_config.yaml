@@ -14,7 +14,7 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
   http_forwarder/signalfx:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
@@ -22,7 +22,7 @@ extensions:
       # Should be enabled to preserve incoming access token
       # include_metadata: true
     egress:
-      endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
   zpages:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
     expvar:
@@ -59,6 +59,14 @@ receivers:
         static_configs:
         - targets: ['0.0.0.0:8888']
         metric_relabel_configs:
+          - source_labels: [ service_name ]
+            target_label: service.name
+          - source_labels: [ service_instance_id ]
+            target_label: service.instance.id
+          - source_labels: [ service_version ]
+            target_label: service.version
+          - regex: service_name|service_instance_id|service_version
+            action: labeldrop
           - source_labels: [ __name__ ]
             regex: 'promhttp_metric_handler_errors.*'
             action: drop

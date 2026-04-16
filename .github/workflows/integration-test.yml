@@ -352,6 +352,7 @@ jobs:
           branch: stable/2025.1
           enabled_services: '-n-novnc,-etcd3'
           conf_overrides: |
+            HOST_IP=127.0.0.1
             IP_VERSION=4
             SERVICE_IP_VERSION=4
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6

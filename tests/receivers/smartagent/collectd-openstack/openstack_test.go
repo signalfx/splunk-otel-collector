@@ -25,9 +25,9 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
-	"go.opentelemetry.io/collector/pdata/pmetric"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )

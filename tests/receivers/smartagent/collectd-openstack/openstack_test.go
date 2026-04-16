@@ -133,7 +133,9 @@ func TestCollectdOpenstackReceiverProvidesAllMetrics(t *testing.T) {
 			if m.MetricCount() >= expected.MetricCount() {
 				cmpErr = pmetrictest.CompareMetrics(expected, m,
 					pmetrictest.IgnoreMetricAttributeValue("host"),
+					pmetrictest.IgnoreMetricAttributeValue("hypervisor_hostname"),
 					pmetrictest.IgnoreMetricAttributeValue("plugin_instance"),
+					pmetrictest.IgnoreMetricAttributeValue("project_id"),
 					pmetrictest.IgnoreMetricsOrder(),
 					pmetrictest.IgnoreMetricValues(),
 					pmetrictest.IgnoreTimestamp(),

@@ -80,7 +80,7 @@ processors:
 exporters:
   # Traces
   otlp_http:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     compression: gzip
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -107,7 +107,7 @@ extensions:
     ingress:
       endpoint: 0.0.0.0:6060
     egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
   zpages:
     endpoint: 0.0.0.0:55679
     expvar:
@@ -115,6 +115,16 @@ extensions:
 
 service:
   extensions: [headers_setter, health_check, http_forwarder, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]

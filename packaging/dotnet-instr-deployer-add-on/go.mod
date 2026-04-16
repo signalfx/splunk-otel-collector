@@ -1,6 +1,6 @@
 module github.com/splunk/splunk_otel_dotnet_deployer
 
-go 1.25.8
+go 1.25.9
 
 require github.com/signalfx/splunk-otel-collector v0.0.0
 
@@ -14,7 +14,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
 	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 )
 
 replace github.com/signalfx/splunk-otel-collector => ../..

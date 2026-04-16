@@ -1,0 +1,47 @@
+# Default configuration file for logs collection on Windows.
+#
+# If the collector is installed without the Windows installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
+# - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
+#
+# The following environment variables are optional:
+# - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory used to store file offsets for filelog receivers,
+#   allowing receivers to resume after a collector restart. Must be writable by the collector.
+#   default: C:\ProgramData\Splunk\OpenTelemetry Collector\filelogs
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+  file_storage/filelogs:
+    directory: "${env:SPLUNK_FILE_STORAGE_EXTENSION_PATH:-C:\\ProgramData\\Splunk\\OpenTelemetry Collector\\filelogs}"
+    compaction:
+      on_start: true
+      directory: "${env:TEMP:-C:\\Windows\\Temp}"
+    create_directory: true
+
+receivers:
+  # Add filelog receivers here.
+
+processors:
+  batch:
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+
+exporters:
+  splunk_hec:
+    token: "${SPLUNK_HEC_TOKEN}"
+    endpoint: "${SPLUNK_HEC_URL}"
+    source: "otel"
+    sourcetype: "otel"
+    profiling_data_enabled: false
+
+service:
+  extensions: [health_check, file_storage/filelogs]
+  pipelines:
+    logs:
+      receivers: []
+      processors: [memory_limiter, batch]
+      exporters: [splunk_hec]

@@ -182,21 +182,6 @@ receivers:
         field: resource["com.splunk.source"]
         value: journald
 
-  # syslog:
-  #   tcp:
-  #     listen_address: "0.0.0.0:514"
-  #   protocol: rfc5424
-  #   operators:
-  #     - type: add
-  #       field: resource["receiver"]
-  #       value: syslog
-  #     - type: add
-  #       field: resource["com.splunk.sourcetype"]
-  #       value: linux:syslog
-  #     - type: add
-  #       field: resource["com.splunk.source"]
-  #       value: syslog
-
 processors:
   memory_limiter:
     check_interval: 2s
@@ -239,27 +224,10 @@ service:
         - filelog/etc
         - filelog/logs
         - filelog/varlog_minimal
+#        - journald
       processors:
         - memory_limiter
         - resourcedetection
         - batch
       exporters:
         - splunk_hec/logs
-    logs/journald:
-      receivers:
-        - journald
-      processors:
-        - memory_limiter
-        - resourcedetection
-        - batch
-      exporters:
-        - splunk_hec/logs
-    # logs/syslog:
-    #   receivers:
-    #     - syslog
-    #   processors:
-    #     - memory_limiter
-    #     - resourcedetection
-    #     - batch
-    #   exporters:
-    #     - splunk_hec/logs

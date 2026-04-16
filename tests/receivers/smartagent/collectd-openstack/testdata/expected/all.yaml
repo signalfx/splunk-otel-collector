@@ -4,830 +4,1238 @@ resourceMetrics:
       - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asInt: "128"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
                     - key: system.type
                       value:
                         stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.neutron.floatingip.count
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
+                    - key: user_domain_name
                       value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.neutron.network.count
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.neutron.router.count
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.neutron.securitygroup.count
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.neutron.subnet.count
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.disk_available_least
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.free_disk_gb
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.free_ram_mb
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.local_gb
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.local_gb_used
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.memory_mb
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.memory_mb_used
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.running_vms
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.vcpus
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.vcpus_used
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.hypervisor.current_workload
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.maxSecurityGroups
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.maxTotalCores
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.maxTotalFloatingIps
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.maxTotalInstances
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.maxTotalRAMSize
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.maxTotalKeypairs
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
+                        stringValue: default
                   timeUnixNano: "1000000"
             name: gauge.openstack.nova.limit.maxImageMeta
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asInt: "-1"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxSecurityGroups
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "20"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalCores
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalFloatingIps
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "10"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalInstances
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "100"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalKeypairs
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "51200"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalRAMSize
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
             name: gauge.openstack.nova.limit.totalCoresUsed
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
                     - key: system.type
                       value:
                         stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.totalInstancesUsed
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
+                    - key: user_domain_name
                       value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
+                        stringValue: default
                   timeUnixNano: "1000000"
             name: gauge.openstack.nova.limit.totalFloatingIpsUsed
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.totalInstancesUsed
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
             name: gauge.openstack.nova.limit.totalRAMUsed
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
             name: gauge.openstack.nova.limit.totalSecurityGroupsUsed
-          - name: counter.openstack.nova.server.rx
-            sum:
-              aggregationTemporality: 2
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "2"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.network.count
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "2"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.subnet.count
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.router.count
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
               dataPoints:
                 - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_name
                       value:
                         stringValue: demo
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-              isMonotonic: true
-          - name: counter.openstack.nova.server.rx_packets
-            sum:
-              aggregationTemporality: 2
+            name: gauge.openstack.neutron.floatingip.count
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "2"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.neutron.securitygroup.count
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
               dataPoints:
                 - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-              isMonotonic: true
-          - name: counter.openstack.nova.server.tx
-            sum:
-              aggregationTemporality: 2
+            name: gauge.openstack.nova.hypervisor.current_workload
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "79"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host_ip
+                      value:
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.disk_available_least
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "144"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host_ip
+                      value:
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.free_disk_gb
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "15477"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host_ip
+                      value:
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.free_ram_mb
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "144"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host_ip
+                      value:
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.local_gb
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
               dataPoints:
                 - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-              isMonotonic: true
-          - name: counter.openstack.nova.server.tx_packets
-            sum:
-              aggregationTemporality: 2
+            name: gauge.openstack.nova.hypervisor.local_gb_used
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "15989"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host_ip
+                      value:
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.memory_mb
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "512"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host_ip
+                      value:
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.hypervisor.memory_mb_used
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
               dataPoints:
                 - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-              isMonotonic: true
+            name: gauge.openstack.nova.hypervisor.running_vms
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asInt: "4"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-            name: gauge.openstack.nova.server.memory
+            name: gauge.openstack.nova.hypervisor.vcpus
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asInt: "0"
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-            name: gauge.openstack.nova.server.memory-actual
+            name: gauge.openstack.nova.hypervisor.vcpus_used
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asDouble: 0.33
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-            name: gauge.openstack.nova.server.memory-rss
+            name: gauge.openstack.nova.hypervisor.load_average_1m
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asDouble: 1.39
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-            name: gauge.openstack.nova.server.vda_read
+            name: gauge.openstack.nova.hypervisor.load_average_5m
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
           - gauge:
               dataPoints:
-                - asDouble: 0
+                - asDouble: 1.01
                   attributes:
                     - key: dsname
                       value:
                         stringValue: value
-                    - key: host
+                    - key: host_ip
                       value:
-                        stringValue: devstack
+                        stringValue: 127.0.0.1
+                    - key: hypervisor_hostname
+                      value:
+                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                    - key: hypervisor_type
+                      value:
+                        stringValue: QEMU
+                    - key: hypervisor_version
+                      value:
+                        stringValue: "8002002"
+                    - key: id
+                      value:
+                        stringValue: "1"
                     - key: plugin
                       value:
                         stringValue: openstack
-                    - key: plugin_instance
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                    - key: project_name
                       value:
                         stringValue: demo
+                    - key: state
+                      value:
+                        stringValue: up
+                    - key: status
+                      value:
+                        stringValue: enabled
                     - key: system.type
                       value:
                         stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
                   timeUnixNano: "1000000"
-            name: gauge.openstack.nova.server.vda_read_req
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.server.vda_write
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: host
-                      value:
-                        stringValue: devstack
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: plugin_instance
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.server.vda_write_req
-        scope:
-          name: github.com/signalfx/signalfx-agent/pkg/monitors/collectd/openstack
+            name: gauge.openstack.nova.hypervisor.load_average_15m
+        scope: {}

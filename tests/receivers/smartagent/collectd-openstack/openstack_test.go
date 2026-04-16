@@ -49,7 +49,7 @@ func TestCollectdOpenstackReceiverProvidesDefaultMetrics(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var cmpErr error
+		cmpErr := errors.New("no comparison was made")
 		newIndex := len(tc.OTLPReceiverSink.AllMetrics()) - 1
 		for i := newIndex; i >= lastIndex; i-- {
 			m := tc.OTLPReceiverSink.AllMetrics()[i]
@@ -97,7 +97,7 @@ func TestCollectdOpenstackReceiverProvidesAllMetrics(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var cmpErr error
+		cmpErr := errors.New("no comparison was made")
 		newIndex := len(tc.OTLPReceiverSink.AllMetrics()) - 1
 		for i := newIndex; i >= lastIndex; i-- {
 			m := tc.OTLPReceiverSink.AllMetrics()[i]

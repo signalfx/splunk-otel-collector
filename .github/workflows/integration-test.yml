@@ -174,11 +174,6 @@ jobs:
         run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-      - name: Build devstack image
-        if: matrix.PROFILE == 'smartagent'
-        run: |
-          tests/receivers/smartagent/collectd-openstack/testdata/devstack/make-devstack-image.sh
-
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
@@ -341,6 +336,57 @@ jobs:
           fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  integration-test-openstack:
+    runs-on: ubuntu-24.04
+    needs: [ "agent-bundle-linux", "otelcol" ]
+    env:
+      TEST_OUTPUT: ${{ github.job }}.out
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Deploy devstack
+        uses: gophercloud/devstack-action@60ca1042045c0c9e3e001c64575d381654ffcba1 # v0.19
+        with:
+          branch: stable/2025.1
+          enabled_services: '-n-novnc,-etcd3'
+          conf_overrides: |
+            IP_VERSION=4
+            SERVICE_IP_VERSION=4
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: agent-bundle-linux-amd64
+          merge-multiple: true
+          path: ./dist
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: otelcol-amd64
+          path: ./bin
+      - run: sudo mkdir -p /usr/lib/splunk-otel-collector
+      - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
+      - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
+      - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
+      - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
+      - run: chmod a+x ./bin/*
+      - name: Run OpenStack Integration Test
+        run: |
+          set -o pipefail
+          make openstack-integration-test 2>&1 | tee "$TEST_OUTPUT"
+          exit_status=${PIPESTATUS[0]}
+          echo "Exit status: $exit_status"
+          exit "$exit_status"
+      - name: Upload Integration Test Output as Artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: always()
+        with:
+          name: ${{ env.TEST_OUTPUT }}
+          path: ${{ env.TEST_OUTPUT }}
+          retention-days: 5
 
   integration-test-discovery-matrix:
     runs-on: ubuntu-24.04

@@ -1,7 +1,7 @@
 receivers:
   smartagent/collectd_openstack:
     type: collectd/openstack
-    authURL: "http://devstack/identity/v3"
+    authURL: "http://localhost/identity/v3"
     username: "admin"
     password: "secret"
     projectName: "demo"

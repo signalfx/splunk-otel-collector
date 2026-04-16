@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build smartagent_integration
+//go:build openstack_integration
 
 package tests
 
@@ -29,57 +29,15 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-const (
-	openstackNetwork = "openstack"
-	devstackImage    = "devstack:latest"
-)
-
-// newDevstackContainer returns a container builder for a devstack OpenStack instance.
-// The devstack:latest image must be pre-built before running this test.
-// See testdata/devstack/make-devstack-image.sh for instructions.
-func newDevstackContainer() testutils.Container {
-	return testutils.NewContainer().
-		WithImage(devstackImage).
-		WithName("devstack").
-		WithNetworks(openstackNetwork).
-		WithPriviledged(true).
-		WithBinds(
-			"/lib/modules:/lib/modules:ro",
-			"/sys/fs/cgroup:/sys/fs/cgroup:ro",
-		).
-		WithEnvVar("container", "docker").
-		WithExposedPorts("80:80").
-		WithStartupTimeout(30*time.Minute).
-		WillWaitForPorts("80").
-		// devstack logs this when all OpenStack services are running
-		WillWaitForLogs("stack.sh completed")
-}
-
-// withOpenstackNetwork is a CollectorBuilder that connects the collector container
-// to the openstack Docker network so it can reach the devstack container by hostname.
-func withOpenstackNetwork(c testutils.Collector) testutils.Collector {
-	if cc, ok := c.(*testutils.CollectorContainer); ok {
-		cc.Container = cc.Container.WithNetworks(openstackNetwork)
-	}
-	return c
-}
-
 // TestCollectdOpenstackReceiverProvidesDefaultMetrics tests that the collectd/openstack monitor
-// emits all default metrics when connected to a live devstack OpenStack deployment.
-//
-// Prerequisites:
-//   - Build the devstack image once by running:
-//     tests/receivers/smartagent/collectd-openstack/testdata/devstack/make-devstack-image.sh
-//   - Set SPLUNK_OTEL_COLLECTOR_IMAGE to a valid collector image.
+// emits all default metrics when connected to a live devstack OpenStack deployment running on
+// the host machine (deployed via gophercloud/devstack-action in CI).
 func TestCollectdOpenstackReceiverProvidesDefaultMetrics(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	_, stop := tc.Containers(newDevstackContainer())
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector("default_metrics_config.yaml", withOpenstackNetwork)
+	_, shutdown := tc.SplunkOtelCollectorProcess("default_metrics_config.yaml")
 	defer shutdown()
 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "default.yaml"))
@@ -121,20 +79,13 @@ func TestCollectdOpenstackReceiverProvidesDefaultMetrics(t *testing.T) {
 
 // TestCollectdOpenstackReceiverProvidesAllMetrics tests that the collectd/openstack monitor
 // emits all metrics (including non-default ones) when extraMetrics is configured with a wildcard.
-//
-// Prerequisites:
-//   - Build the devstack image once by running:
-//     tests/receivers/smartagent/collectd-openstack/testdata/devstack/make-devstack-image.sh
-//   - Set SPLUNK_OTEL_COLLECTOR_IMAGE to a valid collector image.
+// Requires a live devstack OpenStack deployment running on the host machine.
 func TestCollectdOpenstackReceiverProvidesAllMetrics(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	_, stop := tc.Containers(newDevstackContainer())
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector("all_metrics_config.yaml", withOpenstackNetwork)
+	_, shutdown := tc.SplunkOtelCollectorProcess("all_metrics_config.yaml")
 	defer shutdown()
 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "all.yaml"))

@@ -518,7 +518,7 @@ if ($with_dotnet_instrumentation) {
         } catch {
             $err = $_.Exception.Message
             $message = "
-            An error occured when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
+            An error occurred when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
             $err
             "
             throw "$message"

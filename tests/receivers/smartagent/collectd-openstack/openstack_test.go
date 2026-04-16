@@ -18,17 +18,38 @@ package tests
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
+
+// dumpReceivedMetrics writes all metrics received during a test to a YAML file for debugging.
+func dumpReceivedMetrics(t *testing.T, tc *testutils.Testcase, filename string) {
+	t.Helper()
+	all := tc.OTLPReceiverSink.AllMetrics()
+	if len(all) == 0 {
+		t.Logf("dumpReceivedMetrics: no metrics were received at all")
+		return
+	}
+	// Merge all received batches into a single Metrics for easier inspection.
+	merged := pmetric.NewMetrics()
+	for _, m := range all {
+		m.ResourceMetrics().MoveAndAppendTo(merged.ResourceMetrics())
+	}
+	t.Logf("dumpReceivedMetrics: writing %d metric(s) from %d batch(es) to %s", merged.MetricCount(), len(all), filename)
+	if err := golden.WriteMetricsToFile(filename, merged); err != nil {
+		t.Logf("dumpReceivedMetrics: failed to write %s: %v", filename, err)
+	}
+}
 
 // TestCollectdOpenstackReceiverProvidesDefaultMetrics tests that the collectd/openstack monitor
 // emits all default metrics when connected to a live devstack OpenStack deployment running on
@@ -45,7 +66,7 @@ func TestCollectdOpenstackReceiverProvidesDefaultMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	lastIndex := 0
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+	ok := assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
@@ -76,6 +97,11 @@ func TestCollectdOpenstackReceiverProvidesDefaultMetrics(t *testing.T) {
 		lastIndex = newIndex
 		assert.NoError(tt, cmpErr)
 	}, 2*time.Minute, 5*time.Second)
+
+	if !ok {
+		t.Logf("expected %d metrics, largest batch had %d", expected.MetricCount(), largestBatchMetricCount(tc))
+		dumpReceivedMetrics(t, tc, fmt.Sprintf("testdata/received_%s.yaml", t.Name()))
+	}
 }
 
 // TestCollectdOpenstackReceiverProvidesAllMetrics tests that the collectd/openstack monitor
@@ -93,7 +119,7 @@ func TestCollectdOpenstackReceiverProvidesAllMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	lastIndex := 0
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+	ok := assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
@@ -124,4 +150,19 @@ func TestCollectdOpenstackReceiverProvidesAllMetrics(t *testing.T) {
 		lastIndex = newIndex
 		assert.NoError(tt, cmpErr)
 	}, 2*time.Minute, 5*time.Second)
+
+	if !ok {
+		t.Logf("expected %d metrics, largest batch had %d", expected.MetricCount(), largestBatchMetricCount(tc))
+		dumpReceivedMetrics(t, tc, fmt.Sprintf("testdata/received_%s.yaml", t.Name()))
+	}
+}
+
+func largestBatchMetricCount(tc *testutils.Testcase) int {
+	max := 0
+	for _, m := range tc.OTLPReceiverSink.AllMetrics() {
+		if c := m.MetricCount(); c > max {
+			max = c
+		}
+	}
+	return max
 }

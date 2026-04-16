@@ -89,21 +89,21 @@ receivers:
 
   # Matches TA stanza: [monitor:///root/.bash_history] and [monitor:///home/*/.bash_history]
   # Uncomment to enable (disabled by default, as in the TA).
-  # filelog/bash_history:
-  #   include:
-  #     - /root/.bash_history
-  #     - /home/*/.bash_history
-  #   start_at: beginning
-  #   storage: file_storage/filelogs
-  #   include_file_path: true
-  #   include_file_name: true
-  #   operators:
-  #     - from: attributes["log.file.path"]
-  #       to: resource["com.splunk.source"]
-  #       type: move
-  #     - from: attributes["log.file.name"]
-  #       to: resource["com.splunk.sourcetype"]
-  #       type: move
+  filelog/bash_history:
+     include:
+       - /root/.bash_history
+       - /home/*/.bash_history
+     start_at: beginning
+     storage: file_storage/filelogs
+     include_file_path: true
+     include_file_name: true
+     operators:
+       - from: attributes["log.file.path"]
+         to: resource["com.splunk.source"]
+         type: move
+       - from: attributes["log.file.name"]
+         to: resource["com.splunk.sourcetype"]
+         type: move
 
   journald:
     directory: /var/log/journal
@@ -183,8 +183,8 @@ service:
   pipelines:
     logs:
       receivers:
-#        - filelog/etc
         - filelog/varlog
+#        - filelog/etc
 #        - filelog/bash_history
 #        - journald
       processors:

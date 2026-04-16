@@ -23,42 +23,25 @@ extensions:
     create_directory: true
 
 receivers:
+  # Matches TA stanza: [monitor:///etc]
+  # whitelist=(\.(conf|cfg|ini|init|cf|cnf|profile|rc|rules|tab|login)$|(config|shrc|tab|policy)$|^ifcfg)
   filelog/etc:
     include:
-      # Core system & networking
       - /etc/*.conf
-      - /etc/hosts
-
-      # SSH & authentication
-      - /etc/ssh/sshd_config
-      - /etc/login.defs
-
-      # Users & privileges (metadata only, not secrets)
-      - /etc/passwd
-      - /etc/group
-      - /etc/sudoers
-      - /etc/sudoers.d/**
-
-      # Uncomment to monitor PAM configuration changes (useful for detecting auth policy
-      # modifications, but may contain sensitive auth policy details — review before enabling):
-      # - /etc/pam.d/**
-
-      # # Package & service configuration
-      # - /etc/apt/apt.conf.d/**
-      # - /etc/systemd/system/**
-      # - /etc/systemd/*.conf
-
-      # # Kernel & modules
-      # - /etc/modprobe.d/**
-      # - /etc/modules-load.d/**
-
-    exclude:
-      # Secrets / high-risk files
-      - /etc/shadow
-      - /etc/gshadow
-      - /etc/**/shadow*
-      - /etc/ssl/**
-      - /etc/pki/**
+      - /etc/*.cfg
+      - /etc/*.ini
+      - /etc/*.init
+      - /etc/*.cf
+      - /etc/*.cnf
+      - /etc/*.profile
+      - /etc/*.rc
+      - /etc/*.rules
+      - /etc/*.tab
+      - /etc/*.login
+      - /etc/*config
+      - /etc/*shrc
+      - /etc/*policy
+      - /etc/ifcfg*
     include_file_path: true
     include_file_name: true
     start_at: beginning
@@ -69,68 +52,29 @@ receivers:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
         type: move
-      - field: resource["com.splunk.sourcetype"]
-        value: etc:file
-        type: add
-
-  filelog/logs:
-    include:
-      - /var/log/auth.log
-      - /var/log/kern.log
-    include_file_path: true
-    include_file_name: true
-    start_at: beginning
-    storage: file_storage/filelogs
-    force_flush_period: 500ms
-    operators:
-      - from: attributes["log.file.path"]
-        to: resource["com.splunk.source"]
+      - from: attributes["log.file.name"]
+        to: resource["com.splunk.sourcetype"]
         type: move
-      - field: resource["com.splunk.sourcetype"]
-        value: log:file
-        type: add
-      - id: parser-log
-        type: regex_parser
-        regex: ^(?P<time>[A-Z][a-z]{2}\s+\d{1,2}\s\d{2}:\d{2}:\d{2})\s(?P<host>\S+)\s(?P<process>[^:]+):\s?(?P<boottime>\[[\d.]+\])?\s(?P<log>.*)$
-        # Uncomment and set 'location' to your local timezone to enable timestamp parsing.
-        # A list of valid timezones can be found at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-        # timestamp:
-        #   layout: "Jan _2 15:04:05"
-        #   layout_type: gotime
-        #   parse_from: attributes.time
-        #   location: "America/New_York"
 
-  filelog/varlog_minimal:
+  # Matches TA stanzas: [monitor:///var/log] and [monitor:///var/adm]
+  # whitelist=(\.log|log$|messages|secure|auth|mesg$|cron$|acpid$|\.out)
+  # blacklist=(lastlog|anaconda\.syslog)
+  filelog/varlog:
     include:
-      # Standard Ubuntu logs
-      - /var/log/daemon.log
-      - /var/log/user.log
-      - /var/log/cron.log
-
-      # Generic *.log files (top level)
       - /var/log/*.log
-
-      # Common subdirectories (one level deep)
-      - /var/log/*/*.log
-
-      # RHEL/CentOS specific
+      - /var/log/*log
       - /var/log/*messages*
       - /var/log/*secure*
-      - /var/log/*cron
-      - /var/log/*log
+      - /var/log/*auth*
       - /var/log/*mesg
+      - /var/log/*cron
       - /var/log/*acpid
-      - /var/adm/*.log*
-      - /var/adm/*log
+      - /var/log/*.out
+      - /var/adm/*.log
       - /var/adm/*messages*
-
     exclude:
-      # Binary or low-value logs
       - /var/log/lastlog
-      - /var/log/wtmp
-      - /var/log/btmp
       - /var/log/anaconda.syslog
-
     start_at: beginning
     storage: file_storage/filelogs
     include_file_path: true
@@ -139,9 +83,27 @@ receivers:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
         type: move
-      - field: resource["com.splunk.sourcetype"]
-        value: varlog:file
-        type: add
+      - from: attributes["log.file.name"]
+        to: resource["com.splunk.sourcetype"]
+        type: move
+
+  # Matches TA stanza: [monitor:///root/.bash_history] and [monitor:///home/*/.bash_history]
+  # Uncomment to enable (disabled by default, as in the TA).
+  # filelog/bash_history:
+  #   include:
+  #     - /root/.bash_history
+  #     - /home/*/.bash_history
+  #   start_at: beginning
+  #   storage: file_storage/filelogs
+  #   include_file_path: true
+  #   include_file_name: true
+  #   operators:
+  #     - from: attributes["log.file.path"]
+  #       to: resource["com.splunk.source"]
+  #       type: move
+  #     - from: attributes["log.file.name"]
+  #       to: resource["com.splunk.sourcetype"]
+  #       type: move
 
   journald:
     directory: /var/log/journal
@@ -221,9 +183,9 @@ service:
   pipelines:
     logs:
       receivers:
-        - filelog/etc
-        - filelog/logs
-        - filelog/varlog_minimal
+#        - filelog/etc
+        - filelog/varlog
+#        - filelog/bash_history
 #        - journald
       processors:
         - memory_limiter

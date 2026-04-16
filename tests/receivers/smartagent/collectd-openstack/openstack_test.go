@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 	"time"

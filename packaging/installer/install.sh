@@ -1123,9 +1123,6 @@ Collector:
   --with-logs                           Use the logs collection config ($logs_config_path) instead of the
                                         default agent/gateway config. Ignored if '--collector-config' is specified.
   --without-logs                        Use the default agent/gateway config (default behavior).
-  --with-journald                       Add the collector service user to the systemd-journal group to enable
-                                        reading the systemd journal. Requires the journald receiver to be enabled
-                                        in the collector config.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1407,7 +1404,6 @@ parse_args_and_install() {
   local uninstall="false"
   local mode="agent"
   local with_logs="false"
-  local with_journald="false"
   local collector_config_path=
   local skip_collector_repo="false"
   local with_instrumentation="false"
@@ -1442,9 +1438,6 @@ parse_args_and_install() {
         ;;
       --without-logs)
         with_logs="false"
-        ;;
-      --with-journald)
-        with_journald="false"
         ;;
       --collector-version)
         collector_version="$2"
@@ -1921,14 +1914,6 @@ parse_args_and_install() {
     mkdir -p "$logs_file_storage_path"
     chown -R $service_user:$service_group "$logs_file_storage_path"
     configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
-  fi
-
-  if [ "$with_journald" = "true" ]; then
-    if getent group systemd-journal >/dev/null 2>&1; then
-      usermod -aG systemd-journal $service_user
-    else
-      echo "WARNING: systemd-journal group not found; skipping journal access setup" >&2
-    fi
   fi
 
   if [ "$discovery" = "true" ]; then

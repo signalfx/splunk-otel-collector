@@ -32,18 +32,6 @@ go test -p 1 -tags=openstack_integration -v -timeout 10m -count 1 \
     ./receivers/smartagent/collectd-openstack/...
 ```
 
-## Updating golden (expected) metrics files
-
-If the set of metrics emitted by the plugin changes, regenerate the golden files by running
-the tests with the `UPDATE_EXPECTED=true` environment variable:
-
-```sh
-UPDATE_EXPECTED=true go test -p 1 -tags=openstack_integration -v -timeout 10m -count 1 \
-    ./receivers/smartagent/collectd-openstack/...
-```
-
-The updated files will be written to `testdata/expected/`.
-
 ## Test structure
 
 ```

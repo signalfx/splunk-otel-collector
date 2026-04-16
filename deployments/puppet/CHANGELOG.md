@@ -11,13 +11,8 @@
   - `$splunk_ingest_url`: `https://ingest.${splunk_realm}.signalfx.com` → `https://ingest.${splunk_realm}.observability.splunkcloud.com`
   - `$splunk_hec_url` (derived from `$splunk_ingest_url`): `https://ingest.${splunk_realm}.signalfx.com/v1/log` → `https://ingest.${splunk_realm}.observability.splunkcloud.com/v1/log`
   
-  No immideate action is required. But it is recommended to use the new endpoints. For the upgrade of collector from pre-0.150.0 version, 
-  user have to explicitly set new endpoint in your manifest:
-  ```puppet
-  $splunk_api_url    = "https://api.<realm>.signalfx.com"
-  $splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
-  $splunk_hec_url    = "https://ingest.<realm>.signalfx.com/v1/log"
-  ```
+  No immideate action is required. But it is recommended to use the new endpoints.
+  
   To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your manifest:
   ```puppet
   $splunk_api_url    = "https://api.<realm>.signalfx.com"

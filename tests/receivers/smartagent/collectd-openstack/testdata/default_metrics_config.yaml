@@ -9,6 +9,7 @@ receivers:
     userDomainID: "default"
     requestBatchSize: 20
     intervalSeconds: 10
+    httpTimeout: 30
 
 processors:
   batch:

@@ -62,6 +62,7 @@ collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
 logs_config_path="${collector_config_dir}/logs_config_linux.yaml"
+logs_file_storage_path="/var/lib/otelcol/filelogs"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
@@ -1907,6 +1908,12 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
     # ensure the collector service owner has access to the collectd dir
     chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
+  fi
+
+  if [ "$with_logs" = "true" ]; then
+    mkdir -p "$logs_file_storage_path"
+    chown -R $service_user:$service_group "$logs_file_storage_path"
+    configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
   fi
 
   if [ "$discovery" = "true" ]; then

@@ -152,19 +152,19 @@ func (container Container) WithEnvVar(key, value string) Container {
 func (container Container) WithExposedPorts(ports ...string) Container {
 	for _, port := range ports {
 		if hostPort, containerPort, ok := strings.Cut(port, ":"); ok {
+			parsedPort, err := dockernetwork.ParsePort(containerPort)
+			if err != nil {
+				// try appending /tcp if bare port number
+				parsedPort, err = dockernetwork.ParsePort(containerPort + "/tcp")
+				if err != nil {
+					panic(fmt.Sprintf("invalid exposed port mapping %q: invalid container port %q: %v", port, containerPort, err))
+				}
+			}
 			container.ExposedPorts = append(container.ExposedPorts, containerPort)
-			hp, cp := hostPort, containerPort
+			hp, p := hostPort, parsedPort
 			container = container.WithHostConfigModifier(func(hc *dockerContainer.HostConfig) {
 				if hc.PortBindings == nil {
 					hc.PortBindings = dockernetwork.PortMap{}
-				}
-				p, err := dockernetwork.ParsePort(cp)
-				if err != nil {
-					// try appending /tcp if bare port number
-					p, err = dockernetwork.ParsePort(cp + "/tcp")
-					if err != nil {
-						return
-					}
 				}
 				hc.PortBindings[p] = append(hc.PortBindings[p], dockernetwork.PortBinding{
 					HostIP:   netip.MustParseAddr("0.0.0.0"),

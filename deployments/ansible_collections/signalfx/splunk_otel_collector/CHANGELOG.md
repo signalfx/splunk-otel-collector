@@ -23,6 +23,16 @@
   splunk_hec_url: "https://ingest.<realm>.signalfx.com/v1/log"
   ```
   
+- The default Windows MSI artifact download URL has been updated:
+  - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+  
+  To keep using the legacy `dl.signalfx.com` download URL:
+  
+  Ansible:
+  ```yaml
+  win_base_url: "https://dl.signalfx.com"
+  ```
+
 ## ansible-v1.0.0
 
 ### 🛑 Breaking changes 🛑

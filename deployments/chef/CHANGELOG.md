@@ -21,6 +21,15 @@
   node['splunk_otel_collector']['splunk_api_url'] = "https://api.<realm>.signalfx.com"
   node['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.<realm>.signalfx.com"
   ```
+  
+- The default Windows MSI artifact download URL has been updated:
+  - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+  
+  To keep using the legacy `dl.signalfx.com` download URL:
+  Chef:
+  ```ruby
+  node['splunk_otel_collector']['windows_repo_url'] = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+  ```
 
 ## chef-v0.18.0
 

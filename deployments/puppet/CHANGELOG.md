@@ -25,6 +25,16 @@
   $splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
   $splunk_hec_url    = "https://ingest.<realm>.signalfx.com/v1/log"
   ```
+  
+- The default Windows MSI artifact download URL has been updated:
+  - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+  
+  To keep using the legacy `dl.signalfx.com` download URL:
+  
+  Puppet:
+  ```puppet
+  $win_repo_url = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+  ```
 
 ## puppet-v0.19.0
 

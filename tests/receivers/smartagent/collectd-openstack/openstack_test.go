@@ -94,6 +94,11 @@ func TestCollectdOpenstackReceiverProvidesDefaultMetrics(t *testing.T) {
 				if cmpErr == nil {
 					return
 				}
+				t.Logf("Batch %d had %d metrics but did not match expected: %v", i, m.MetricCount(), cmpErr)
+				filename := fmt.Sprintf("testdata/received_failed_batch_%s.yaml", time.Now().Format("20060102_150405"))
+				if err := golden.WriteMetricsToFile(filename, m); err != nil {
+					t.Logf("dumpBatchReceivedMetrics: failed to write %s: %v", filename, err)
+				}
 			}
 		}
 		lastIndex = newIndex
@@ -149,6 +154,7 @@ func TestCollectdOpenstackReceiverProvidesAllMetrics(t *testing.T) {
 				if cmpErr == nil {
 					return
 				}
+				t.Logf("Batch %d had %d metrics but did not match expected: %v", i, m.MetricCount(), cmpErr)
 			}
 		}
 		lastIndex = newIndex

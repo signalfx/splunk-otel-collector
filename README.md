@@ -197,26 +197,25 @@ SPLUNK_TRACE_URL=https://ingest.<realm>.signalfx.com/v2/trace
 SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
 ```
 
-#### Deployment tooling
+#### Installer scripts
 
-The default Windows MSI artifact download URL has been updated:
-- `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
-
-To keep using the legacy `dl.signalfx.com` download URL:
-
-Ansible:
-```yaml
-win_base_url: "https://dl.signalfx.com"
+Linux (`install.sh`):
+```
+--api-url https://api.<realm>.signalfx.com
+--ingest-url https://ingest.<realm>.signalfx.com
+--hec-url https://ingest.<realm>.signalfx.com/v1/log
 ```
 
-Chef:
-```ruby
-node['splunk_otel_collector']['windows_repo_url'] = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+Windows (`install.ps1`):
+```
+-api_url https://api.<realm>.signalfx.com
+-ingest_url https://ingest.<realm>.signalfx.com
+-hec_url https://ingest.<realm>.signalfx.com/v1/log
 ```
 
-Puppet:
-```puppet
-$win_repo_url = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+Chocolatey:
+```
+choco install splunk-otel-collector --params "'/SPLUNK_API_URL:https://api.<realm>.signalfx.com /SPLUNK_INGEST_URL:https://ingest.<realm>.signalfx.com /SPLUNK_HEC_URL:https://ingest.<realm>.signalfx.com/v1/log'"
 ```
 
 ### From 0.117.0 to 0.118.0

@@ -760,6 +760,18 @@ service:
   # Which extensions you want to enable
   extensions: [headers_setter, health_check, http_forwarder, zpages]
 
+  # Collector internal telemetry configuration
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
+
   # Pipelines are data source specific today
   # Every data source is made up of at least one receiver and one exporter
   # If processors are defined then order specified is the order applied

@@ -17,7 +17,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -48,7 +48,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -79,7 +79,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -91,6 +91,37 @@ resourceMetrics:
                         stringValue: default
                   timeUnixNano: "1000000"
             name: gauge.openstack.nova.limit.maxTotalCores
+        scope: {}
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: plugin
+                      value:
+                        stringValue: openstack
+                    - key: project_domain_name
+                      value:
+                        stringValue: default
+                    - key: project_id
+                      value:
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
+                    - key: project_name
+                      value:
+                        stringValue: demo
+                    - key: system.type
+                      value:
+                        stringValue: openstack
+                    - key: user_domain_name
+                      value:
+                        stringValue: default
+                  timeUnixNano: "1000000"
+            name: gauge.openstack.nova.limit.maxTotalFloatingIps
         scope: {}
   - resource: {}
     scopeMetrics:
@@ -110,7 +141,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -141,7 +172,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -172,7 +203,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -203,7 +234,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -234,7 +265,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -265,7 +296,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -296,7 +327,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -327,7 +358,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -495,7 +526,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -513,7 +544,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -537,7 +568,7 @@ resourceMetrics:
       - metrics:
           - gauge:
               dataPoints:
-                - asInt: "80"
+                - asInt: "77"
                   attributes:
                     - key: dsname
                       value:
@@ -547,7 +578,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -565,7 +596,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -599,7 +630,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -617,7 +648,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -641,7 +672,7 @@ resourceMetrics:
       - metrics:
           - gauge:
               dataPoints:
-                - asInt: "15477"
+                - asInt: "15481"
                   attributes:
                     - key: dsname
                       value:
@@ -651,7 +682,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -669,7 +700,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -703,7 +734,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -721,7 +752,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -755,7 +786,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -773,7 +804,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -797,7 +828,7 @@ resourceMetrics:
       - metrics:
           - gauge:
               dataPoints:
-                - asInt: "15989"
+                - asInt: "15993"
                   attributes:
                     - key: dsname
                       value:
@@ -807,7 +838,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -825,7 +856,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -859,7 +890,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -877,7 +908,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -911,7 +942,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -929,7 +960,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -963,7 +994,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -981,7 +1012,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -1015,7 +1046,7 @@ resourceMetrics:
                         stringValue: 127.0.0.1
                     - key: hypervisor_hostname
                       value:
-                        stringValue: runnervm35a4x.hi2r21gcwgxupkb2nksrvkgbob.yx.internal.cloudapp.net
+                        stringValue: runnervm35a4x.2jg14sdculmupitrshntvkvqfe.phxx.internal.cloudapp.net
                     - key: hypervisor_type
                       value:
                         stringValue: QEMU
@@ -1033,7 +1064,7 @@ resourceMetrics:
                         stringValue: default
                     - key: project_id
                       value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
+                        stringValue: c87fedb30d494c009efdfc290764aaf8
                     - key: project_name
                       value:
                         stringValue: demo
@@ -1051,35 +1082,4 @@ resourceMetrics:
                         stringValue: default
                   timeUnixNano: "1000000"
             name: gauge.openstack.nova.hypervisor.vcpus_used
-        scope: {}
-  - resource: {}
-    scopeMetrics:
-      - metrics:
-          - gauge:
-              dataPoints:
-                - asInt: "-1"
-                  attributes:
-                    - key: dsname
-                      value:
-                        stringValue: value
-                    - key: plugin
-                      value:
-                        stringValue: openstack
-                    - key: project_domain_name
-                      value:
-                        stringValue: default
-                    - key: project_id
-                      value:
-                        stringValue: 6b604ddc204c4ef2a6c9db451beca6b7
-                    - key: project_name
-                      value:
-                        stringValue: demo
-                    - key: system.type
-                      value:
-                        stringValue: openstack
-                    - key: user_domain_name
-                      value:
-                        stringValue: default
-                  timeUnixNano: "1000000"
-            name: gauge.openstack.nova.limit.maxTotalFloatingIps
         scope: {}

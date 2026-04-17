@@ -277,7 +277,7 @@ func getHostEndpoint(t *testing.T) string {
 		return "host.docker.internal"
 	}
 
-	client, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
+	client, err := docker.New(docker.FromEnv)
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

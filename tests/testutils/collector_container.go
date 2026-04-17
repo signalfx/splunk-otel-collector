@@ -333,7 +333,7 @@ func CollectorImageIsForArm(tb testing.TB) bool {
 	if image == "" {
 		return false
 	}
-	client, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
+	client, err := docker.New(docker.FromEnv)
 	require.NoError(tb, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

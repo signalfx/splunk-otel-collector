@@ -328,7 +328,7 @@ func (container *Container) Endpoint(ctx context.Context, s string) (string, err
 	return (*container.container).Endpoint(ctx, s)
 }
 
-func (container *Container) PortEndpoint(ctx context.Context, port string, s string) (string, error) {
+func (container *Container) PortEndpoint(ctx context.Context, port, s string) (string, error) {
 	if err := container.assertStarted("PortEndpoint"); err != nil {
 		return "", err
 	}

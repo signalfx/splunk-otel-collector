@@ -106,9 +106,9 @@ receivers:
          type: move
 
   # To use the journald receiver, the collector service user must have permission to read the journal.
-  # On systemd-based systems, add the user to the systemd-journal group:
-  #   sudo usermod -aG systemd-journal <service-user>
-  # Then restart the collector service for the change to take effect.
+  # Add the collector service user to the systemd-journal group and restart the service:
+  #   sudo usermod -aG systemd-journal splunk-otel-collector
+  #   sudo systemctl restart splunk-otel-collector
   journald:
     start_at: end
     units:

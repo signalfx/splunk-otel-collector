@@ -1643,7 +1643,12 @@ parse_args_and_install() {
   fi
 
   if [ -z "$access_token" ]; then
-    access_token=$(request_access_token)
+    if [ -n "$hec_token" ] && echo "$hec_url" | grep -q "/services/collector"; then
+      # Splunk Platform HEC endpoint; an o11y access token is not required
+      access_token="$hec_token"
+    else
+      access_token=$(request_access_token)
+    fi
   fi
 
   if [ -z "$api_url" ]; then
@@ -1774,7 +1779,10 @@ parse_args_and_install() {
   fi
   echo
 
-  if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
+  if echo "$hec_url" | grep -q "/services/collector"; then
+    # HEC URL points to Splunk Platform; skip o11y token verification
+    true
+  elif [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
     echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1

@@ -165,6 +165,16 @@ connectors:
 
 service:
   extensions: [headers_setter, health_check, http_forwarder, http_forwarder/signalfx, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]

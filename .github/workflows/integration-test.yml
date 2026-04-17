@@ -377,20 +377,13 @@ jobs:
       - name: Run OpenStack Integration Test
         run: |
           set -o pipefail
-          make openstack-integration-test 2>&1 | tee "$TEST_OUTPUT"
+          make openstack-integration-test 2>&1
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
           exit "$exit_status"
-      - name: Upload Integration Test Output as Artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: always()
-        with:
-          name: ${{ env.TEST_OUTPUT }}
-          path: ${{ env.TEST_OUTPUT }}
-          retention-days: 5
       - name: Upload Received Metrics as Artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: always()
+        if: failure()
         with:
           name: openstack-received-metrics
           path: tests/receivers/smartagent/collectd-openstack/testdata/received_*.yaml

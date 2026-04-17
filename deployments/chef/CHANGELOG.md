@@ -9,16 +9,18 @@
   - `splunk_ingest_url`: `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
   - `splunk_hec_url` (derived from `splunk_ingest_url`): `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
 
-  No immediate action is required. But it is recommended to use the new endpoints.
+  Re-running the cookbook for chef will apply the new defaults automatically. The legacy `*.signalfx.com` endpoints will continue to work, but adopting the new endpoints is recommended.
+  
+  If firewall or proxy allowlists are scoped to `*.signalfx.com`, update them
+  to also allow `*.observability.splunkcloud.com` **before** re-converging.
+  For more information, see the
+  [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide).
 
   To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your cookbook attributes:
   ```ruby
   node['splunk_otel_collector']['splunk_api_url'] = "https://api.<realm>.signalfx.com"
   node['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.<realm>.signalfx.com"
   ```
-  If firewall or proxy allowlists are scoped to `*.signalfx.com`, update them to also allow
-  `*.observability.splunkcloud.com`. For more information, see the
-  [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide).
 
 ## chef-v0.18.0
 

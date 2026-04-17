@@ -102,12 +102,13 @@ jobs:
     uses: ./.github/workflows/reusable-unit-test.yml
     with:
       OS: ${{ matrix.OS }}
-      COVERAGE: ${{ !matrix.TEST_RACE }} # No coverage when running with race
+      COVERAGE: ${{ !matrix.TEST_RACE && github.actor != 'dependabot[bot]' }} # No coverage when running with race or for dependabot PRs
       TEST_RACE: ${{ matrix.TEST_RACE }}
     secrets: inherit
 
   coverage:
     name: coverage
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

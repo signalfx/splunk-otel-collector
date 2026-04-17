@@ -1123,6 +1123,10 @@ Collector:
   --with-logs                           Use the logs collection config ($logs_config_path) instead of the
                                         default agent/gateway config. Ignored if '--collector-config' is specified.
   --without-logs                        Use the default agent/gateway config (default behavior).
+  --splunk-platform                     Configure the collector to send logs to Splunk Platform via HEC.
+                                        Skips Splunk Observability token verification and omits o11y-specific
+                                        environment variables (realm, ingest URL, API URL).
+                                        Requires '--hec-url' and '--hec-token'.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1404,6 +1408,7 @@ parse_args_and_install() {
   local uninstall="false"
   local mode="agent"
   local with_logs="false"
+  local splunk_platform="false"
   local collector_config_path=
   local skip_collector_repo="false"
   local with_instrumentation="false"
@@ -1438,6 +1443,9 @@ parse_args_and_install() {
         ;;
       --without-logs)
         with_logs="false"
+        ;;
+      --splunk-platform)
+        splunk_platform="false"
         ;;
       --collector-version)
         collector_version="$2"
@@ -1643,9 +1651,9 @@ parse_args_and_install() {
   fi
 
   if [ -z "$access_token" ]; then
-    if [ -n "$hec_token" ] && echo "$hec_url" | grep -q "/services/collector"; then
-      # Splunk Platform HEC endpoint; an o11y access token is not required
-      access_token="$hec_token"
+    if [ "$splunk_platform" = "true" ]; then
+      # Splunk Platform only mode; an o11y access token is not required
+      access_token="${hec_token:-dummy}"
     else
       access_token=$(request_access_token)
     fi
@@ -1779,8 +1787,8 @@ parse_args_and_install() {
   fi
   echo
 
-  if echo "$hec_url" | grep -q "/services/collector"; then
-    # HEC URL points to Splunk Platform; skip o11y token verification
+  if [ "$splunk_platform" = "true" ]; then
+    # Splunk Platform mode; skip o11y token verification
     true
   elif [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
@@ -1899,11 +1907,14 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   fi
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
-  configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
-  configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
-  configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
-  configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+  configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+  if [ "$splunk_platform" != "true" ]; then
+    configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
+    configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
+    configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
+    configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
+  fi
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"

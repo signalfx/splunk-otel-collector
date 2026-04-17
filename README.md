@@ -218,6 +218,17 @@ Chocolatey:
 choco install splunk-otel-collector --params "'/SPLUNK_API_URL:https://api.<realm>.signalfx.com /SPLUNK_INGEST_URL:https://ingest.<realm>.signalfx.com /SPLUNK_HEC_URL:https://ingest.<realm>.signalfx.com/v1/log'"
 ```
 
+The default Windows MSI artifact download URL has been updated:
+- `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+
+To keep using the legacy `dl.signalfx.com` download URL, pass `-collector_msi_url` explicitly to
+`install.ps1` (replace `<version>` with the collector version):
+
+Windows (`install.ps1`):
+```
+-collector_msi_url https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi
+```
+
 ### From 0.117.0 to 0.118.0
 
 - The deprecated syntax for config source expansion is no longer supported. 

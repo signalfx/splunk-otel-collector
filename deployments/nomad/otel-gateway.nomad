@@ -145,13 +145,13 @@ extensions:
     endpoint: 0.0.0.0:13133
   http_forwarder:
     egress:
-      endpoint: https://api.${SPLUNK_REALM}.signalfx.com
+      endpoint: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
   http_forwarder/signalfx:
     ingress:
       endpoint: 0.0.0.0:9943
       include_metadata: true
     egress:
-      endpoint: https://ingest.${SPLUNK_REALM}.signalfx.com
+      endpoint: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
   zpages: null
 receivers:
   jaeger:
@@ -190,12 +190,12 @@ processors:
 exporters:
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
-    api_url: https://api.${SPLUNK_REALM}.signalfx.com
-    ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
+    api_url: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
+    ingest_url: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
   debug:
     verbosity: detailed
   otlp_http:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 service:

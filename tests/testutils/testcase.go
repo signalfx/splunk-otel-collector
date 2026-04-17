@@ -95,8 +95,6 @@ func NewHECTestcase(tb testing.TB) *Testcase {
 
 func (t *Testcase) setOTLPEndpoint() {
 	otlpPort := GetAvailablePort(t)
-	// Bind the sink on all interfaces so containerized collectors can reach it via
-	// an explicit host address instead of relying on localhost resolution.
 	t.OTLPEndpoint = fmt.Sprintf("0.0.0.0:%d", otlpPort)
 	t.OTLPEndpointForCollector = fmt.Sprintf("127.0.0.1:%d", otlpPort)
 }

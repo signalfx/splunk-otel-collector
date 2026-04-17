@@ -3,7 +3,7 @@ service_type: envoy
 properties_tmpl: |
   enabled: true
   rule:
-    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)envoy"}) and not (command matches "splunk.discovery") and port == 9901
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)envoy"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)envoy" and not (command matches "splunk.discovery")
     k8s_observer: type == "port" and pod.name matches "(?i)envoy"
   config:

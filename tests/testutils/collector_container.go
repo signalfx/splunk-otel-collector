@@ -27,9 +27,9 @@ import (
 	"testing"
 	"time"
 
-	dockerContainer "github.com/docker/docker/api/types/container"
-	dockerMount "github.com/docker/docker/api/types/mount"
-	docker "github.com/docker/docker/client"
+	dockerContainer "github.com/moby/moby/api/types/container"
+	dockerMount "github.com/moby/moby/api/types/mount"
+	docker "github.com/moby/moby/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -333,9 +333,8 @@ func CollectorImageIsForArm(tb testing.TB) bool {
 	if image == "" {
 		return false
 	}
-	client, err := docker.NewClientWithOpts(docker.FromEnv)
+	client, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
 	require.NoError(tb, err)
-	client.NegotiateAPIVersion(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	var buf bytes.Buffer

@@ -26,11 +26,10 @@ import (
 	"testing"
 	"time"
 
-	dockerContainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	dockernetwork "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/go-connections/nat"
+	"github.com/moby/moby/api/pkg/stdcopy"
+	dockerContainer "github.com/moby/moby/api/types/container"
+	dockernetwork "github.com/moby/moby/api/types/network"
+	dockerClient "github.com/moby/moby/client"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
@@ -180,7 +179,7 @@ func (container Container) WithNetworkMode(mode string) Container {
 
 func (container Container) WillWaitForPorts(ports ...string) Container {
 	for _, port := range ports {
-		container.WaitingFor = append(container.WaitingFor, wait.ForListeningPort(nat.Port(port)))
+		container.WaitingFor = append(container.WaitingFor, wait.ForListeningPort(port))
 	}
 	return container
 }
@@ -329,7 +328,7 @@ func (container *Container) Endpoint(ctx context.Context, s string) (string, err
 	return (*container.container).Endpoint(ctx, s)
 }
 
-func (container *Container) PortEndpoint(ctx context.Context, port nat.Port, s string) (string, error) {
+func (container *Container) PortEndpoint(ctx context.Context, port string, s string) (string, error) {
 	if err := container.assertStarted("PortEndpoint"); err != nil {
 		return "", err
 	}
@@ -343,14 +342,14 @@ func (container *Container) Host(ctx context.Context) (string, error) {
 	return (*container.container).Host(ctx)
 }
 
-func (container *Container) MappedPort(ctx context.Context, port nat.Port) (nat.Port, error) {
+func (container *Container) MappedPort(ctx context.Context, port string) (dockernetwork.Port, error) {
 	if err := container.assertStarted("MappedPort"); err != nil {
-		return "", err
+		return dockernetwork.Port{}, err
 	}
 	return (*container.container).MappedPort(ctx, port)
 }
 
-func (container *Container) Ports(ctx context.Context) (nat.PortMap, error) {
+func (container *Container) Ports(ctx context.Context) (dockernetwork.PortMap, error) {
 	if err := container.assertStarted("Ports"); err != nil {
 		return nil, err
 	}
@@ -508,22 +507,19 @@ func (container *Container) createNetworksIfNecessary(ctx context.Context) error
 	// Check if the networks already exist, using any of the provided network names.
 	for _, networkName := range container.ContainerNetworks {
 		// Check if the network exists.
-		networks, err := client.NetworkList(ctx, dockernetwork.ListOptions{
-			Filters: filters.NewArgs(filters.KeyValuePair{
-				Key:   "name",
-				Value: networkName,
-			}),
+		networks, err := client.NetworkList(ctx, dockerClient.NetworkListOptions{
+			Filters: dockerClient.Filters{}.Add("name", networkName),
 		})
 		if err != nil {
 			return fmt.Errorf("failed to list networks: %w", err)
 		}
-		if len(networks) > 0 {
+		if len(networks.Items) > 0 {
 			// Network already exists.
 			continue
 		}
 
 		// Create the network if it doesn't exist.
-		_, err = client.NetworkCreate(ctx, networkName, dockernetwork.CreateOptions{
+		_, err = client.NetworkCreate(ctx, networkName, dockerClient.NetworkCreateOptions{
 			Driver:     "bridge",
 			Attachable: true,
 		})

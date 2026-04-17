@@ -8,10 +8,10 @@
       SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml'
       SPLUNK_ACCESS_TOKEN: fake-token
       SPLUNK_REALM: fake-realm
-      SPLUNK_API_URL: https://api.fake-realm.signalfx.com
+      SPLUNK_API_URL: https://api.fake-realm.observability.splunkcloud.com
       SPLUNK_HEC_TOKEN: fake-token
-      SPLUNK_HEC_URL: https://ingest.fake-realm.signalfx.com/v1/log
-      SPLUNK_INGEST_URL: https://ingest.fake-realm.signalfx.com
+      SPLUNK_HEC_URL: https://ingest.fake-realm.observability.splunkcloud.com/v1/log
+      SPLUNK_INGEST_URL: https://ingest.fake-realm.observability.splunkcloud.com
     iis_reg_values:
       COR_ENABLE_PROFILING: "1"
       COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"

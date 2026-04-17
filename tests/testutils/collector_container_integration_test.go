@@ -19,13 +19,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/netip"
 	"path"
 	"sort"
 	"strings"
 	"testing"
 	"time"
-
-	"net/netip"
 
 	dockernetwork "github.com/moby/moby/api/types/network"
 	"github.com/stretchr/testify/assert"

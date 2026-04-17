@@ -184,7 +184,7 @@ exporters:
 service:
   extensions: [health_check, file_storage/filelogs]
   pipelines:
-    logs:
+    logs/hec:
       receivers:
         - filelog/varlog
 #        - filelog/etc

@@ -1854,10 +1854,7 @@ parse_args_and_install() {
   configure_service_owner "$service_user" "$service_group"
 
   if [ -z "$collector_config_path" ]; then
-    if [ "$with_logs" = "true" ]; then
-      # use the logs config if --with-logs is specified
-      collector_config_path="$logs_config_path"
-    elif [ "$mode" = "agent" ]; then
+    if [ "$mode" = "agent" ]; then
       # custom config not provided; use the config provided by the collector package based on the --mode option
       if [ -f "$agent_config_path" ]; then
         # use the agent config if the installed package includes it
@@ -1931,8 +1928,15 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
   fi
 
+  local otelcol_options=
   if [ "$discovery" = "true" ]; then
-    configure_env_file "OTELCOL_OPTIONS" "--discovery" "$collector_env_path"
+    otelcol_options="--discovery"
+  fi
+  if [ "$with_logs" = "true" ]; then
+    otelcol_options="$otelcol_options --config $logs_config_path"
+  fi
+  if [ -n "$otelcol_options" ]; then
+    configure_env_file "OTELCOL_OPTIONS" "$otelcol_options" "$collector_env_path"
   fi
 
   # ensure the collector service owner has access to the config dir

@@ -61,7 +61,7 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
-logs_config_path="${collector_config_dir}/logs_config_linux.yaml"
+logs_config_path="${collector_config_dir}/hec_logs_config_linux.yaml"
 logs_file_storage_path="/var/lib/otelcol/filelogs"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
@@ -1122,7 +1122,6 @@ Collector:
   --test                                Use the test package repo instead of the primary.
   --with-logs                           Use the logs collection config ($logs_config_path) instead of the
                                         default agent/gateway config. Ignored if '--collector-config' is specified.
-  --without-logs                        Use the default agent/gateway config (default behavior).
   --splunk-platform                     Configure the collector to send logs to Splunk Platform via HEC.
                                         Skips Splunk Observability token verification and omits o11y-specific
                                         environment variables (realm, ingest URL, API URL).
@@ -1440,9 +1439,6 @@ parse_args_and_install() {
         ;;
       --with-logs)
         with_logs="true"
-        ;;
-      --without-logs)
-        with_logs="false"
         ;;
       --splunk-platform)
         splunk_platform="true"

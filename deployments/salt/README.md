@@ -53,13 +53,13 @@ splunk-otel-collector:
   `splunk_access_token`)
 
 - `splunk_ingest_url`: The Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`. The `SPLUNK_INGEST_URL` environment 
+  `https://ingest.us0.observability.splunkcloud.com`. The `SPLUNK_INGEST_URL` environment 
   variable will be set with this value for the collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
-- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`.
+- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.observability.splunkcloud.com`.
   The `SPLUNK_API_URL` environment variable will be set with this value for the
-  collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
+  collector service. (**default:** `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `collector_version`: Version of the collector package to install, e.g.
   `0.25.0`. (**default:** `latest`)

@@ -317,7 +317,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 
 	err = container.createNetworksIfNecessary(ctx)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	var started testcontainers.Container
@@ -523,6 +523,9 @@ func (container *Container) AssertExec(tb testing.TB, timeout time.Duration, cmd
 // Will create any networks that don't already exist on system.
 // Teardown/cleanup is handled by the testcontainers reaper.
 func (container *Container) createNetworksIfNecessary(ctx context.Context) error {
+	if len(container.ContainerNetworks) == 0 {
+		return nil
+	}
 	// Use the client to check if the networks already exist.
 	client, err := testcontainers.NewDockerClientWithOpts(ctx)
 	if err != nil {

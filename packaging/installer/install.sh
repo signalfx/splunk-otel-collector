@@ -1445,7 +1445,7 @@ parse_args_and_install() {
         with_logs="false"
         ;;
       --splunk-platform)
-        splunk_platform="false"
+        splunk_platform="true"
         ;;
       --collector-version)
         collector_version="$2"

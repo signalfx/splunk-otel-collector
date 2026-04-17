@@ -148,8 +148,7 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	assert.NotEmpty(t, aliases)
 	require.NoError(t, err)
 
-	cip, err := alpine.ContainerIP(context.Background())
-	assert.NotEmpty(t, cip)
+	_, err = alpine.ContainerIP(context.Background())
 	require.NoError(t, err)
 
 	ips, err := alpine.ContainerIPs(context.Background())

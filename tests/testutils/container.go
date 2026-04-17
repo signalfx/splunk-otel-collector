@@ -22,7 +22,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/netip"
 	"runtime/debug"
+	"strings"
 	"testing"
 	"time"
 
@@ -148,7 +150,31 @@ func (container Container) WithEnvVar(key, value string) Container {
 }
 
 func (container Container) WithExposedPorts(ports ...string) Container {
-	container.ExposedPorts = append(container.ExposedPorts, ports...)
+	for _, port := range ports {
+		if hostPort, containerPort, ok := strings.Cut(port, ":"); ok {
+			container.ExposedPorts = append(container.ExposedPorts, containerPort)
+			hp, cp := hostPort, containerPort
+			container = container.WithHostConfigModifier(func(hc *dockerContainer.HostConfig) {
+				if hc.PortBindings == nil {
+					hc.PortBindings = dockernetwork.PortMap{}
+				}
+				p, err := dockernetwork.ParsePort(cp)
+				if err != nil {
+					// try appending /tcp if bare port number
+					p, err = dockernetwork.ParsePort(cp + "/tcp")
+					if err != nil {
+						return
+					}
+				}
+				hc.PortBindings[p] = append(hc.PortBindings[p], dockernetwork.PortBinding{
+					HostIP:   netip.MustParseAddr("0.0.0.0"),
+					HostPort: hp,
+				})
+			})
+		} else {
+			container.ExposedPorts = append(container.ExposedPorts, port)
+		}
+	}
 	return container
 }
 

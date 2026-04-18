@@ -32,12 +32,12 @@ type portpair struct {
 	last  string
 }
 
-// getAvailableLocalAddress finds an available local port and returns an endpoint
-// describing it. The port is available for opening when this function returns
-// provided that there is no race by some other code to grab the same port
-// immediately.
+// getAvailableLocalAddress finds an available IPv4 local port and returns an
+// endpoint describing it. The port is available for opening when this function
+// returns provided that there is no race by some other code to grab the same
+// port immediately.
 func getAvailableLocalAddress(tb testing.TB) string {
-	ln, err := net.Listen("tcp", "localhost:0")
+	ln, err := net.Listen("tcp4", "127.0.0.1:0")
 	require.NoError(tb, err, "Failed to get a free local port")
 	// There is a possible race if something else takes this same port before
 	// the test uses it, however, that is unlikely in practice.

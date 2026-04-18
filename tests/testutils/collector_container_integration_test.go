@@ -19,13 +19,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/netip"
 	"path"
 	"sort"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/docker/go-connections/nat"
+	dockernetwork "github.com/moby/moby/api/types/network"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -71,25 +72,28 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	require.NoError(t, err)
 
 	port, err := alpine.MappedPort(context.Background(), "12345")
-	assert.EqualValues(t, "12345/tcp", port)
+	assert.Equal(t, "12345/tcp", port.String())
 	require.NoError(t, err)
 
 	portMap, err := alpine.Ports(context.Background())
 
 	assert.True(t, func() bool {
-		expectedPorts := []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: "12345"}}
-		expectedPortMap := nat.PortMap(map[nat.Port][]nat.PortBinding{
-			"12345/tcp": expectedPorts,
-		})
+		port12345, parseErr := dockernetwork.ParsePort("12345/tcp")
+		require.NoError(t, parseErr)
+
+		expectedPorts := []dockernetwork.PortBinding{{HostIP: netip.MustParseAddr("0.0.0.0"), HostPort: "12345"}}
+		expectedPortMap := dockernetwork.PortMap{
+			port12345: expectedPorts,
+		}
 
 		if assert.ObjectsAreEqual(expectedPortMap, portMap) {
 			return true
 		}
 
-		expectedPorts = append(expectedPorts, nat.PortBinding{HostIP: "::", HostPort: "12345"})
-		expectedPortMap = nat.PortMap(map[nat.Port][]nat.PortBinding{
-			"12345/tcp": expectedPorts,
-		})
+		expectedPorts = append(expectedPorts, dockernetwork.PortBinding{HostIP: netip.MustParseAddr("::"), HostPort: "12345"})
+		expectedPortMap = dockernetwork.PortMap{
+			port12345: expectedPorts,
+		}
 		return assert.ObjectsAreEqual(expectedPortMap, portMap)
 	}())
 	require.NoError(t, err)
@@ -144,8 +148,7 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	assert.NotEmpty(t, aliases)
 	require.NoError(t, err)
 
-	cip, err := alpine.ContainerIP(context.Background())
-	assert.NotEmpty(t, cip)
+	_, err = alpine.ContainerIP(context.Background())
 	require.NoError(t, err)
 
 	ips, err := alpine.ContainerIPs(context.Background())

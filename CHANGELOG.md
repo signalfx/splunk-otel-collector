@@ -69,9 +69,6 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
   Add support for RoundRobin and LeastBackup partitioning strategies, as well as custom partitioners
   provided by RecordPartitionerExtension implementations. Users can implement their own partitioning logic
   and plug it into the kafka exporter via the RecordPartitionerExtension interface.
-- (Contrib) `exporter/prometheus`: Exemplar support for exponential histograms in Prometheus exporter ([#47159](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47159))
-- (Contrib) `exporter/prometheus`: prevent panic on histogram with empty BucketCounts. ([#47351](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47351))
-  Guard BucketCounts access with a length check in convertDoubleHistogram to avoid index-out-of-range panic when a histogram has explicit bounds but no corresponding bucket counts.
 - (Contrib) `exporter/signalfx`: Add `dimension_client::strip_k8s_label_prefix` option to strip `k8s.<resource>.label.` prefix from dimension property updates. ([#47491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47491))
   The k8s cluster receiver now emits Kubernetes resource labels in entity events with the
   `k8s.<resource>.label.` prefix per OTel semantic conventions (e.g. `k8s.pod.label.app`).
@@ -95,9 +92,6 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
   The `set_semconv_span_name` function now recognizes semantic conventions 1.38.0, 1.39.0, and 1.40.0, allowing span names to be determined using the latest rules. Support for the `rpc.system.name` attribute (introduced in 1.39.0) has been added so span names can reflect the new RPC system conventions. Backward compatibility is preserved: the `rpc.system` attribute remains supported.
 - (Contrib) `receiver/active_directory_ds`: Enables dynamic metric reaggregation in the Active Directory Domain Services receiver. This does not break existing configuration files. ([#46346](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46346))
 - (Contrib) `receiver/apachespark`: Enable the re-aggregation feature for the apachespark receiver ([#46349](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46349))
-- (Contrib) `receiver/awss3`: add `tag_object_after_ingestion` flag to the s3 receiver so objects that have been processed can be identified ([#46078](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46078))
-  They will be tagged with `otel-collector:status=ingested`. Operators can use that tag to define bucket lifecycle policies.
-- (Contrib) `receiver/awss3`: add zstd decompression to the s3 receiver ([#46854](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46854))
 - (Contrib) `receiver/cloudfoundry`: Migrate cloudfoundry.resourceAttributes.allow feature gate registration from manual code to metadata.yaml for mdatagen code generation ([#46116](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46116))
 - (Contrib) `receiver/elasticsearch`: Enable dynamic attribute metric with attribute re-aggregation in configuration at runtime ([#46353](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46353))
 - (Contrib) `receiver/filestats`: Enable re-aggregation and set requirement levels for attributes. ([#46355](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46355))
@@ -126,13 +120,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
   The hardcoded list of valid S3 storage classes was missing GLACIER_IR, REDUCED_REDUNDANCY, and EXPRESS_ONEZONE.
   Replaced both StorageClass and ACL hardcoded validation maps with values from the AWS SDK s3types package
   to prevent this from going out of date again in the future.
-- (Contrib) `exporter/prometheus`: Fix Prometheus exporter default HTTP server behavior where keep-alives and server timeouts were not using the intended defaults. ([#47173](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47173))
-  This fixes default behavior where keep_alives_enabled was effectively false unless explicitly configured.
-- (Contrib) `exporter/prometheus`: Fix unbounded memory growth when metrics are no longer being scraped. ([#41123](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41123))
-  Expired metric families now get cleaned up even when no Prometheus scraper is actively collecting,
-  preventing memory from growing indefinitely.
 - (Contrib) `pkg/stanza`: Fix severity parser to work with JSON parser with `parse_ints: true` ([#47209](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47209))
-- (Contrib) `receiver/awss3`: Fix infinite loop and metric skew caused by SQS failing to parse and delete "s3:TestEvent" messages ([#47045](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47045))
 - (Contrib) `receiver/vcenter`: Fixes a nil pointer dereference panic in recordVMStats when scraping metrics from VMs with missing performance counters ([#46977](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46977))
 
 ## v0.149.0

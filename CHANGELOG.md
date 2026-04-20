@@ -15,11 +15,11 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
 - (Splunk) `core`: Update default endpoint URLs in collector configs and Go runtime defaults from `*.signalfx.com` to `*.observability.splunkcloud.com`. ([#7412](https://github.com/signalfx/splunk-otel-collector/pull/7412))
   For full migration details, proxy/firewall configuration notes, and per-tool instructions for
   keeping legacy `*.signalfx.com` endpoints, see the
-  [0.150.0 → 0.151.0 upgrade guideline](../README.md#from-01500-to-01510) in README.md.
+  [0.149.0 → 0.150.0 upgrade guideline](README.md#from-01490-to-01500) in README.md.
 - (Splunk) `installer`: Update installer scripts and packaging to use `*.observability.splunkcloud.com` URLs instead of `*.signalfx.com`. ([#7413](https://github.com/signalfx/splunk-otel-collector/pull/7413))
   For full migration details, proxy/firewall configuration notes, and per-tool instructions for
   keeping legacy `*.signalfx.com` endpoints, see the
-  [0.149.0 → 0.150.0 upgrade guideline](../README.md#from-01490-to-01500) in README.md.
+  [0.149.0 → 0.150.0 upgrade guideline](README.md#from-01490-to-01500) in README.md.
 
 - (Contrib) `pkg/ottl`: Return errors when OTTL context accessors receive values of the wrong type (part 2) ([#40198](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40198))
   Setters in OTTL contexts now validate that values are of the expected type and return
@@ -67,7 +67,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
 - (Contrib) `exporter/kafka`: Add `record_headers` configuration option to set static headers on outgoing records ([#47193](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47193))
 - (Contrib) `exporter/kafka`: Add support for partitioning kafka records ([#46931](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46931))
   Add support for RoundRobin and LeastBackup partitioning strategies, as well as custom partitioners
-  provided by RecordPartitionerExtension implementations. Users can implement their own partitioning logic 
+  provided by RecordPartitionerExtension implementations. Users can implement their own partitioning logic
   and plug it into the kafka exporter via the RecordPartitionerExtension interface.
 - (Contrib) `exporter/prometheus`: Exemplar support for exponential histograms in Prometheus exporter ([#47159](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47159))
 - (Contrib) `exporter/prometheus`: prevent panic on histogram with empty BucketCounts. ([#47351](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47351))
@@ -92,7 +92,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
   the processor.tailsamplingprocessor.tailstorageextension feature gate is enabled.
 - (Contrib) `processor/transform`: Add feature gate `processor.transform.defaultErrorModeIgnore` to change default error_mode to ignore ([#47231](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47231))
 - (Contrib) `processor/transform`: Add support for semantic conventions 1.38.0, 1.39.0, and 1.40.0 in the `set_semconv_span_name` function. ([#45911](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/45911))
-  The `set_semconv_span_name` function now recognizes semantic conventions 1.38.0, 1.39.0, and 1.40.0, allowing span  names to be determined using the latest rules. Support for the `rpc.system.name` attribute (introduced in 1.39.0) has been added so span names can reflect the new RPC system conventions. Backward compatibility is preserved: the  `rpc.system` attribute remains supported.
+  The `set_semconv_span_name` function now recognizes semantic conventions 1.38.0, 1.39.0, and 1.40.0, allowing span names to be determined using the latest rules. Support for the `rpc.system.name` attribute (introduced in 1.39.0) has been added so span names can reflect the new RPC system conventions. Backward compatibility is preserved: the `rpc.system` attribute remains supported.
 - (Contrib) `receiver/active_directory_ds`: Enables dynamic metric reaggregation in the Active Directory Domain Services receiver. This does not break existing configuration files. ([#46346](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46346))
 - (Contrib) `receiver/apachespark`: Enable the re-aggregation feature for the apachespark receiver ([#46349](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46349))
 - (Contrib) `receiver/awss3`: add `tag_object_after_ingestion` flag to the s3 receiver so objects that have been processed can be identified ([#46078](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46078))
@@ -102,7 +102,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
 - (Contrib) `receiver/elasticsearch`: Enable dynamic attribute metric with attribute re-aggregation in configuration at runtime ([#46353](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46353))
 - (Contrib) `receiver/filestats`: Enable re-aggregation and set requirement levels for attributes. ([#46355](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46355))
 - (Contrib) `receiver/googlecloudpubsub`: Add flow control configuration ([#44804](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44804))
-  Add flow control configuration, giving advanced users more control over the parameters of the streaming 
+  Add flow control configuration, giving advanced users more control over the parameters of the streaming
   pull control loop.
 - (Contrib) `receiver/k8s_cluster`: Emit entity references as part of metrics resources. ([#41080](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41080))
 - (Contrib) `receiver/k8sobjects`: Add `kube_api_qps` and `kube_api_burst` config options to control Kubernetes API request rate limits and prevent client-side throttling when watching or polling many resources ([#44484](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44484))
@@ -111,7 +111,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
 - (Contrib) `receiver/receiver_creator`: add support for profiling signal for receiver creator ([#46930](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46930))
 - (Contrib) `receiver/splunkenterprise`: Add custom search support to the Splunk Enterprise receiver ([#47124](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47124))
 - (Contrib) `receiver/windows_event_log`: Add `discover_domain_controllers` config flag to automatically discover and collect Security events from Active Directory domain controllers based on feature gate domainControllers.autodiscovery. ([#44156](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44156), [#44423](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44423))
-  When `discover_domain_controllers` in config  and `domainControllers.autodiscovery` feature gate is set `true` , the receiver queries LDAP Root DSE to
+  When `discover_domain_controllers` in config and `domainControllers.autodiscovery` feature gate is set `true`, the receiver queries LDAP Root DSE to
   discover the root domain path, enumerates all domain controllers in the Active Directory
   forest, and creates receiver for each domain controller.
   Falls back to the currently joined DC if the root DN cannot be determined.

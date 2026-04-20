@@ -102,7 +102,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
 - (Contrib) `receiver/k8sobjects`: Add `kube_api_qps` and `kube_api_burst` config options to control Kubernetes API request rate limits and prevent client-side throttling when watching or polling many resources ([#44484](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44484))
   The same fields are also available in `receiver/k8sevents` via the shared `internal/k8sconfig` package.
   Default values match the client-go defaults: `kube_api_qps=5`, `kube_api_burst=10`.
-- (Contrib) `receiver/receiver_creator`: add support for profiling signal for receiver creator ([#46930](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46930))
+- (Contrib) `receiver/receiver_creator`: Add support for profiling signal for receiver creator ([#46930](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46930))
 - (Contrib) `receiver/splunkenterprise`: Add custom search support to the Splunk Enterprise receiver ([#47124](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47124))
 - (Contrib) `receiver/windows_event_log`: Add `discover_domain_controllers` config flag to automatically discover and collect Security events from Active Directory domain controllers based on feature gate domainControllers.autodiscovery. ([#44156](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44156), [#44423](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/44423))
   When `discover_domain_controllers` in config and `domainControllers.autodiscovery` feature gate is set `true`, the receiver queries LDAP Root DSE to

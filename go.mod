@@ -138,7 +138,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.150.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.67.5
-	github.com/prometheus/prometheus v0.311.2-0.20260410083055-07c6232d159b
+	github.com/prometheus/prometheus v0.311.2
 	github.com/shirou/gopsutil/v4 v4.26.3
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.0.0-00010101000000-000000000000
@@ -260,6 +260,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.10 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
+	github.com/basgys/goxml2json v1.1.1-0.20231018121955-e66ee54ceaad // indirect
 	github.com/bboreham/go-loser v0.0.0-20230920113527-fcc2c21820a3 // indirect
 	github.com/bits-and-blooms/bitset v1.12.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -432,13 +433,13 @@ require (
 	github.com/opencontainers/runtime-spec v1.3.0 // indirect
 	github.com/orcaman/concurrent-map/v2 v2.0.1 // indirect
 	github.com/outcaste-io/ristretto v0.2.3 // indirect
-	github.com/outscale/osc-sdk-go/v2 v2.32.0 // indirect
 	github.com/ovh/go-ovh v1.9.0 // indirect
 	github.com/packethost/packngo v0.31.0 // indirect
 	github.com/paulmach/orb v0.12.0 // indirect
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0 // indirect
 	github.com/pb33f/jsonpath v0.8.2 // indirect
 	github.com/pb33f/libopenapi v0.34.4 // indirect
+	github.com/pb33f/libopenapi-validator v0.13.3 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.1 // indirect
 	github.com/petermattis/goid v0.0.0-20250721140440-ea1c0173183e // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -458,6 +459,7 @@ require (
 	github.com/redis/go-redis/v9 v9.18.0 // indirect
 	github.com/relvacode/iso8601 v1.7.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect

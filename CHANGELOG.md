@@ -80,7 +80,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
   The Coalesce converter accepts a list of values and returns the first one that is not nil.
   This simplifies common patterns where a canonical attribute must be resolved from multiple possible sources.
   Example: `set(attributes["user"], Coalesce([attributes["user.id"], attributes["enduser.id"], "unknown"]))`
-- (Contrib) `pkg/stanza`: Optimizing the performance of Windows Event log unmarshalling when raw = true ([#47164](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47164))
+- (Contrib) `pkg/stanza`: Optimize the performance of Windows Event log unmarshalling when raw = true ([#47164](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47164))
 - (Contrib) `pkg/stanza`: Add new scrape model for Windows event logs using an event-driven subscription instead of polling ([#47091](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47091))
 - (Contrib) `pkg/stanza`: Add `on_truncate` option to fileconsumer to control behavior when a file's stored offset exceeds its current size. ([#43693](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43693))
 - (Contrib) `processor/filter`: Add feature gate `processor.filter.defaultErrorModeIgnore` to change default error_mode to ignore ([#47232](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47232))
@@ -112,7 +112,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
-- (Core) `exporter/debug`: Guard from out of bounds profiles dictionary indices ([#14803](https://github.com/open-telemetry/opentelemetry-collector/issues/14803))
+- (Core) `exporter/debug`: Guard against out-of-bounds profiles dictionary indices ([#14803](https://github.com/open-telemetry/opentelemetry-collector/issues/14803))
 - (Core) `pkg/otelcol`: Fix missing default values in unredacted print-config command by introducing confmap.WithUnredacted MarshalOption. ([#14750](https://github.com/open-telemetry/opentelemetry-collector/issues/14750))
   Resolves an issue where the unredacted mode output omitted all default-valued options. By introducing a new MarshalOption to disable redaction directly at the confmap encoding level, the unredacted mode now preserves all component defaults natively without requiring post-processing.
 - (Core) `pkg/service`: Headers on the internal telemetry OTLP exporter are now redacted when the configuration is marshaled ([#14756](https://github.com/open-telemetry/opentelemetry-collector/pull/14756))

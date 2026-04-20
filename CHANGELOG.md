@@ -24,7 +24,7 @@ and the [opentelemetry-collector-contrib v0.150.0](https://github.com/open-telem
 - (Contrib) `pkg/ottl`: Return errors when OTTL context accessors receive values of the wrong type (part 2) ([#40198](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40198))
   Setters in OTTL contexts now validate that values are of the expected type and return
   descriptive errors when type mismatches occur. This is the continuation of work done in
-  \#43505, addressing remaining contexts: datapoint, profile, profilesample, resource, span,
+  [#43505](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43505), addressing remaining contexts: datapoint, profile, profilesample, resource, span,
   and spanevent.
   Changes include:
   - Slice setters (explicit_bounds, bucket_counts, positive.bucket_counts, negative.bucket_counts)

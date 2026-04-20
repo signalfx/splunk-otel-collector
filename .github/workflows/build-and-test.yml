@@ -91,7 +91,7 @@ jobs:
         shell: bash
 
   test:
-    name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE }}
+    name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE && github.actor != 'dependabot[bot]' }}
     strategy:
       matrix:
         OS: [ "ubuntu-24.04", "macos-14", "macos-15", "windows-2025", "windows-11-arm" ]
@@ -102,11 +102,12 @@ jobs:
     uses: ./.github/workflows/reusable-unit-test.yml
     with:
       OS: ${{ matrix.OS }}
-      COVERAGE: ${{ !matrix.TEST_RACE }} # No coverage when running with race
+      COVERAGE: ${{ !matrix.TEST_RACE && github.actor != 'dependabot[bot]' }} # No coverage when running with race or Dependabot-triggered PRs
       TEST_RACE: ${{ matrix.TEST_RACE }}
     secrets: inherit
 
   coverage:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     name: coverage
     runs-on: ubuntu-24.04
     steps:

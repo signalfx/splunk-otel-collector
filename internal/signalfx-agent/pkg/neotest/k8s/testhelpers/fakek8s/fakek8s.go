@@ -87,6 +87,12 @@ func NewFakeK8s() *FakeK8s {
 	r.HandleFunc(`/apis/batch/v1beta1/namespaces/{namespace}/{resource}/{name}`, f.handleGetResourceByName).Methods("GET")
 	r.HandleFunc("/apis/batch/v1beta1/namespaces/{namespace}/{resource}/{name}", f.handleDeleteResource).Methods("DELETE")
 
+	r.HandleFunc("/apis/autoscaling/v2/{resource}", f.handleListResource).Methods("GET")
+	r.HandleFunc("/apis/autoscaling/v2/namespaces/{namespace}/{resource}", f.handleListResource).Methods("GET")
+	r.HandleFunc("/apis/autoscaling/v2/namespaces/{namespace}/{resource}", f.handleCreateOrReplaceResource).Methods("POST")
+	r.HandleFunc(`/apis/autoscaling/v2/namespaces/{namespace}/{resource}/{name}`, f.handleGetResourceByName).Methods("GET")
+	r.HandleFunc("/apis/autoscaling/v2/namespaces/{namespace}/{resource}/{name}", f.handleDeleteResource).Methods("DELETE")
+
 	r.Use(loggingMiddleware)
 
 	f.router = r
@@ -259,6 +265,7 @@ func (f *FakeK8s) handleListResource(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Add("Content-Type", "application/json")
 
 	isWatch := strings.Contains(r.URL.RawQuery, "watch=true")
+	sendInitialEvents := strings.Contains(r.URL.RawQuery, "sendInitialEvents=true")
 	namespace := mux.Vars(r)["namespace"]
 	resKind := pluralNameToKind(mux.Vars(r)["resource"])
 
@@ -269,15 +276,53 @@ func (f *FakeK8s) handleListResource(rw http.ResponseWriter, r *http.Request) {
 		if namespace != "" {
 			panic("Watches within a single namespace aren't supported")
 		}
-		f.startWatcher(resKind, rw)
+		f.startWatcher(resKind, rw, sendInitialEvents)
 	} else {
 		f.sendList(resKind, namespace, rw)
 	}
 }
 
+// sendInitialEventsAndBookmark sends all existing resources of resKind as ADDED
+// watch events followed by a BOOKMARK event with the initial-events-end annotation.
+// This implements the sendInitialEvents=true watch semantics required by k8s.io/client-go v0.34+.
+func (f *FakeK8s) sendInitialEventsAndBookmark(resKind resourceKind, rw http.ResponseWriter) {
+	f.RLock()
+	defer f.RUnlock()
+
+	for _, ns := range f.resources[resKind] {
+		for _, obj := range ns {
+			buf := &bytes.Buffer{}
+			jsonSerializer := runtimejson.NewSerializer(runtimejson.DefaultMetaFactory, scheme.Scheme, scheme.Scheme, false)
+			innerEncoder := scheme.Codecs.WithoutConversion().EncoderForVersion(jsonSerializer, v1.SchemeGroupVersion)
+			encoder := restwatch.NewEncoder(streaming.NewEncoder(buf, innerEncoder), innerEncoder)
+			if err := encoder.Encode(&watch.Event{Type: watch.Added, Object: obj}); err != nil {
+				panic("could not encode initial watch event: " + err.Error())
+			}
+			_, _ = rw.Write(buf.Bytes())
+			_, _ = rw.Write([]byte("\n"))
+		}
+	}
+
+	tm := typeMeta(resKind)
+	bookmark, _ := json.Marshal(map[string]interface{}{
+		"type": "BOOKMARK",
+		"object": map[string]interface{}{
+			"apiVersion": tm.APIVersion,
+			"kind":       string(resKind),
+			"metadata": map[string]interface{}{
+				"resourceVersion": "1",
+				"annotations": map[string]string{
+					"k8s.io/initial-events-end": "true",
+				},
+			},
+		},
+	})
+	_, _ = rw.Write(append(bookmark, '\n'))
+}
+
 // Start a long running routine that will send everything received on the
 // `EventInput` channel as JSON back to the client
-func (f *FakeK8s) startWatcher(resKind resourceKind, rw http.ResponseWriter) {
+func (f *FakeK8s) startWatcher(resKind resourceKind, rw http.ResponseWriter, sendInitialEvents bool) {
 	f.subsMutex.Lock()
 
 	if f.subs[resKind] != nil {
@@ -300,6 +345,11 @@ func (f *FakeK8s) startWatcher(resKind resourceKind, rw http.ResponseWriter) {
 
 	f.subsMutex.Unlock()
 	rw.WriteHeader(200)
+
+	if sendInitialEvents {
+		f.sendInitialEventsAndBookmark(resKind, rw)
+		rw.(http.Flusher).Flush()
+	}
 
 	for {
 		select {
@@ -384,6 +434,8 @@ func pluralNameToKind(name string) resourceKind {
 		return "Job"
 	case "cronjobs":
 		return "CronJob"
+	case "horizontalpodautoscalers":
+		return "HorizontalPodAutoscaler"
 	default:
 		panic("Unknown resource type: " + name)
 	}
@@ -417,6 +469,8 @@ func typeMeta(rt resourceKind) metav1.TypeMeta {
 		return metav1.TypeMeta{Kind: "JobList", APIVersion: "batch/v1"}
 	case "CronJob":
 		return metav1.TypeMeta{Kind: "CronJobList", APIVersion: "batch/v1beta1"}
+	case "HorizontalPodAutoscaler":
+		return metav1.TypeMeta{Kind: "HorizontalPodAutoscalerList", APIVersion: "autoscaling/v2"}
 	default:
 		panic("Unknown resource type: " + string(rt))
 	}

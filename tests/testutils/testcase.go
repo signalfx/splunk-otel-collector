@@ -95,9 +95,8 @@ func NewHECTestcase(tb testing.TB) *Testcase {
 
 func (t *Testcase) setOTLPEndpoint() {
 	otlpPort := GetAvailablePort(t)
-	otlpHost := "localhost"
-	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
-	t.OTLPEndpointForCollector = t.OTLPEndpoint
+	t.OTLPEndpoint = fmt.Sprintf("0.0.0.0:%d", otlpPort)
+	t.OTLPEndpointForCollector = fmt.Sprintf("127.0.0.1:%d", otlpPort)
 }
 
 func (t *Testcase) setHECEndpoint() {

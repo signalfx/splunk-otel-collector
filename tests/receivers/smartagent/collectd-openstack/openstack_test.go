@@ -111,7 +111,7 @@ func TestCollectdOpenstackReceiver(t *testing.T) {
 
 			if !ok {
 				t.Logf("expected %d metrics, largest batch had %d", expected.MetricCount(), largestBatchMetricCount(testcase))
-				dumpReceivedMetrics(t, testcase, fmt.Sprintf("testdata/received_%s.yaml", t.Name()))
+				dumpReceivedMetrics(t, testcase, fmt.Sprintf("testdata/received_%s.yaml", tc.name))
 			}
 		})
 	}

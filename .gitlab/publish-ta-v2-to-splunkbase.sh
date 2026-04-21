@@ -50,7 +50,7 @@ for package in "${packages[@]}"; do
     fi
     echo "Uploaded ${file_name} with id: ${id}"
 
-    # Step 2: Poll until result is "pass" or timeout after 5 minutes
+    # Step 2: Poll until result is "pass" or timeout after 10 minutes
     echo "Step 2: Waiting for id ${id} to pass validation..."
     start_time=$(date +%s)
     release_file=""

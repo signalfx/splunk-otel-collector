@@ -143,17 +143,17 @@ jobs:
         with:
           path: /tmp
 
-      - uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
-        with:
-          path: "${{ github.workspace }}/requirements.txt"
-          contents: |
-            ${{ matrix.ansible }}
-            ansible-lint>=26.1.0
-            molecule>=25.5.0
-            molecule-plugins[docker]>=25.8.12
-            docker>=7.1.0
-            requests>=2.32.0
-            urllib3>=2
+      - name: Write requirements.txt
+        run: |
+          cat <<EOF > "${GITHUB_WORKSPACE}/requirements.txt"
+          ${{ matrix.ansible }}
+          ansible-lint>=26.1.0
+          molecule>=25.5.0
+          molecule-plugins[docker]>=25.8.12
+          docker>=7.1.0
+          requests>=2.32.0
+          urllib3>=2
+          EOF
 
       - name: Set up Python 3.
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
@@ -241,16 +241,16 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install -y vagrant
 
-      - uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
-        with:
-          path: "${{ github.workspace }}/requirements.txt"
-          contents: |
-            ${{ matrix.ansible }}
-            ansible-compat<=25.8.2
-            ansible-lint<=26.1.1
-            molecule<=25.1.0
-            molecule-plugins[vagrant]<=25.8.12
-            pywinrm<=0.4.3
+      - name: Write requirements.txt
+        run: |
+          cat <<EOF > "${GITHUB_WORKSPACE}/requirements.txt"
+          ${{ matrix.ansible }}
+          ansible-compat<=25.8.2
+          ansible-lint<=26.1.1
+          molecule<=25.1.0
+          molecule-plugins[vagrant]<=25.8.12
+          pywinrm<=0.4.3
+          EOF
 
       - name: Set up Python 3.
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6

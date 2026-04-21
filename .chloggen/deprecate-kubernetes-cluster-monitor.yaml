@@ -4,4 +4,4 @@ component: "smartagent/kubernetes-cluster"
 
 note: Deprecate the `kubernetes-cluster` and `openshift-cluster` smartagent monitors in favor of the `k8s_cluster` receiver.
 
-issues: []
+issues: [7470]

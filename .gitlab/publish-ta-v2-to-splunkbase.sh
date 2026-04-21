@@ -8,7 +8,7 @@
 #   TA_PACKAGES_PATH    - Path to the directory containing .tgz packages
 #   VERSION_TAG         - Version tag for release notes (e.g. v0.148.0)
 
-set -uo pipefail
+set -euo pipefail
 
 SPLUNK_VERSIONS="8.0,8.1,8.2,9.0,9.1,9.2,9.3,9.4,10.0,10.1,10.2,10.3,10.4"
 AUTH="srv-prod-gdi-otel:${SPLUNKBASE_PASSWORD}"
@@ -27,7 +27,11 @@ fi
 failed=0
 
 for package in "${packages[@]}"; do
-    abs_path=$(realpath "$package")
+    if ! abs_path=$(realpath "$package"); then
+        echo "Failed to resolve path for ${package}"
+        failed=1
+        continue
+    fi
     file_name=$(basename "$package")
 
     echo "--- Processing ${file_name} ---"
@@ -42,7 +46,11 @@ for package in "${packages[@]}"; do
         -F "visibility=false" \
         -fSs) || { echo "Upload request failed for ${file_name}"; failed=1; continue; }
 
-    id=$(echo "$response" | jq -r '.id')
+    if ! id=$(echo "$response" | jq -r '.id'); then
+        echo "Failed to parse upload response for ${file_name}: ${response}"
+        failed=1
+        continue
+    fi
     if [ -z "$id" ] || [ "$id" = "null" ]; then
         echo "Failed to get id from response: ${response}"
         failed=1
@@ -66,15 +74,27 @@ for package in "${packages[@]}"; do
             break
         fi
 
-        response=$(curl -u "${AUTH}" \
+        if ! response=$(curl -u "${AUTH}" \
             --request GET "https://splunkbase.splunk.com/api/v1/package/${id}/" \
-            -s)
+            -fSs); then
+            echo "Polling request failed for id ${id}"
+            validation_ok=0
+            break
+        fi
 
-        result=$(echo "$response" | jq -r '.result')
+        if ! result=$(echo "$response" | jq -r '.result'); then
+            echo "Failed to parse validation response for id ${id}: ${response}"
+            validation_ok=0
+            break
+        fi
         echo "  id ${id}: result=${result} (${elapsed}s elapsed)"
 
         if [ "$result" = "pass" ]; then
-            release_file=$(echo "$response" | jq -r '.message.release_file')
+            if ! release_file=$(echo "$response" | jq -r '.message.release_file'); then
+                echo "Failed to parse release_file for id ${id}: ${response}"
+                validation_ok=0
+                break
+            fi
             if [ -z "$release_file" ] || [ "$release_file" = "null" ]; then
                 echo "Failed to get release_file from response: ${response}"
                 validation_ok=0
@@ -86,9 +106,11 @@ for package in "${packages[@]}"; do
 
         case "$result" in
             fail|failed|error)
-                error_details=$(echo "$response" | jq -r '
+                if ! error_details=$(echo "$response" | jq -r '
                     .message.error? // .message.details? // .message? // .error? // .details? // empty
-                ' 2>/dev/null)
+                ' 2>/dev/null); then
+                    error_details="$response"
+                fi
                 if [ -z "$error_details" ] || [ "$error_details" = "null" ]; then
                     error_details="$response"
                 fi
@@ -111,6 +133,7 @@ for package in "${packages[@]}"; do
     curl -u "${AUTH}" \
         --request PUT "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/releases/${release_file}/" \
         --json "{\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}" \
+        -fSs \
         || { echo "Failed to update release notes for ${file_name}"; failed=1; continue; }
     echo ""
     echo "Updated release notes for ${file_name} (release_file: ${release_file})"

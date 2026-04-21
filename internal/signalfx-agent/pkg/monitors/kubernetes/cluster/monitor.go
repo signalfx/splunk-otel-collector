@@ -107,6 +107,7 @@ func init() {
 func (m *Monitor) Configure(config *Config) error {
 	var err error
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": distributionToMonitorType[m.distribution], "monitorID": config.MonitorID})
+	m.logger.Warn(fmt.Sprintf("[NOTICE] The %s monitor is deprecated and will be removed in a future release. Please use the k8s_cluster receiver instead.", distributionToMonitorType[m.distribution]))
 
 	m.config = config
 

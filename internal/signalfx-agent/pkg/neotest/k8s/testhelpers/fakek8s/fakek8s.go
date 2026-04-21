@@ -286,21 +286,26 @@ func (f *FakeK8s) handleListResource(rw http.ResponseWriter, r *http.Request) {
 // watch events followed by a BOOKMARK event with the initial-events-end annotation.
 // This implements the sendInitialEvents=true watch semantics required by k8s.io/client-go v0.34+.
 func (f *FakeK8s) sendInitialEventsAndBookmark(resKind resourceKind, rw http.ResponseWriter) {
-	f.RLock()
-	defer f.RUnlock()
+	var initialObjects []runtime.Object
 
+	f.RLock()
 	for _, ns := range f.resources[resKind] {
 		for _, obj := range ns {
-			buf := &bytes.Buffer{}
-			jsonSerializer := runtimejson.NewSerializer(runtimejson.DefaultMetaFactory, scheme.Scheme, scheme.Scheme, false)
-			innerEncoder := scheme.Codecs.WithoutConversion().EncoderForVersion(jsonSerializer, v1.SchemeGroupVersion)
-			encoder := restwatch.NewEncoder(streaming.NewEncoder(buf, innerEncoder), innerEncoder)
-			if err := encoder.Encode(&watch.Event{Type: watch.Added, Object: obj}); err != nil {
-				panic("could not encode initial watch event: " + err.Error())
-			}
-			_, _ = rw.Write(buf.Bytes())
-			_, _ = rw.Write([]byte("\n"))
+			initialObjects = append(initialObjects, obj)
 		}
+	}
+	f.RUnlock()
+
+	for _, obj := range initialObjects {
+		buf := &bytes.Buffer{}
+		jsonSerializer := runtimejson.NewSerializer(runtimejson.DefaultMetaFactory, scheme.Scheme, scheme.Scheme, false)
+		innerEncoder := scheme.Codecs.WithoutConversion().EncoderForVersion(jsonSerializer, v1.SchemeGroupVersion)
+		encoder := restwatch.NewEncoder(streaming.NewEncoder(buf, innerEncoder), innerEncoder)
+		if err := encoder.Encode(&watch.Event{Type: watch.Added, Object: obj}); err != nil {
+			panic("could not encode initial watch event: " + err.Error())
+		}
+		_, _ = rw.Write(buf.Bytes())
+		_, _ = rw.Write([]byte("\n"))
 	}
 
 	tm := typeMeta(resKind)

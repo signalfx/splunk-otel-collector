@@ -8,18 +8,13 @@
 #   TA_PACKAGES_PATH    - Path to the directory containing .tgz packages
 #   VERSION_TAG         - Version tag for release notes (e.g. v0.148.0)
 
-set -euo pipefail
+set -uo pipefail
 
 SPLUNK_VERSIONS="8.0,8.1,8.2,9.0,9.1,9.2,9.3,9.4,10.0,10.1,10.2,10.3,10.4"
 AUTH="srv-prod-gdi-otel:${SPLUNKBASE_PASSWORD}"
-MAX_WAIT_SECONDS=300
+MAX_WAIT_SECONDS=600
 POLL_INTERVAL=10
 
-declare -a ids=()
-declare -a release_files=()
-
-# Step 1: Upload each .tgz package and capture the returned id
-echo "Step 1: Uploading packages to Splunk Base..."
 shopt -s nullglob
 packages=("${TA_PACKAGES_PATH}"/*.tgz)
 shopt -u nullglob
@@ -29,35 +24,37 @@ if [ "${#packages[@]}" -eq 0 ]; then
     exit 1
 fi
 
+failed=0
+
 for package in "${packages[@]}"; do
     abs_path=$(realpath "$package")
     file_name=$(basename "$package")
 
-    echo "Uploading ${file_name}..."
+    echo "--- Processing ${file_name} ---"
+
+    # Step 1: Upload package and capture the returned id
+    echo "Step 1: Uploading ${file_name}..."
     response=$(curl -u "${AUTH}" \
         --request POST "https://splunkbase.splunk.com/api/v1/app/${APP_ID}/new_release" \
         -F "files[]=@${abs_path}" \
         -F "filename=${file_name}" \
         -F "splunk_versions=${SPLUNK_VERSIONS}" \
         -F "visibility=false" \
-        -fSs)
+        -fSs) || { echo "Upload request failed for ${file_name}"; failed=1; continue; }
 
     id=$(echo "$response" | jq -r '.id')
     if [ -z "$id" ] || [ "$id" = "null" ]; then
         echo "Failed to get id from response: ${response}"
-        exit 1
+        failed=1
+        continue
     fi
-
     echo "Uploaded ${file_name} with id: ${id}"
-    ids+=("$id")
-done
 
-# Step 2: Poll each id until result is "pass" or timeout after 5 minutes
-echo "Step 2: Waiting for package validation..."
-for id in "${ids[@]}"; do
-    echo "Waiting for id ${id} to pass validation..."
+    # Step 2: Poll until result is "pass" or timeout after 5 minutes
+    echo "Step 2: Waiting for id ${id} to pass validation..."
     start_time=$(date +%s)
     release_file=""
+    validation_ok=1
 
     while true; do
         current_time=$(date +%s)
@@ -65,7 +62,8 @@ for id in "${ids[@]}"; do
 
         if [ "$elapsed" -ge "$MAX_WAIT_SECONDS" ]; then
             echo "Timeout waiting for id ${id} after ${MAX_WAIT_SECONDS} seconds"
-            exit 1
+            validation_ok=0
+            break
         fi
 
         response=$(curl -u "${AUTH}" \
@@ -79,10 +77,10 @@ for id in "${ids[@]}"; do
             release_file=$(echo "$response" | jq -r '.message.release_file')
             if [ -z "$release_file" ] || [ "$release_file" = "null" ]; then
                 echo "Failed to get release_file from response: ${response}"
-                exit 1
+                validation_ok=0
+            else
+                echo "  id ${id}: passed, release_file=${release_file}"
             fi
-            echo "  id ${id}: passed, release_file=${release_file}"
-            release_files+=("$release_file")
             break
         fi
 
@@ -95,23 +93,33 @@ for id in "${ids[@]}"; do
                     error_details="$response"
                 fi
                 echo "Validation failed for id ${id}: ${error_details}"
-                exit 1
+                validation_ok=0
+                break
                 ;;
         esac
 
         sleep "$POLL_INTERVAL"
     done
-done
 
-# Step 3: Update release notes for each release_file
-echo "Step 3: Updating release notes..."
-for release_file in "${release_files[@]}"; do
-    echo "Updating release notes for release_file ${release_file}..."
+    if [ "$validation_ok" -eq 0 ]; then
+        failed=1
+        continue
+    fi
+
+    # Step 3: Update release notes
+    echo "Step 3: Updating release notes for release_file ${release_file}..."
     curl -u "${AUTH}" \
         --request PUT "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/releases/${release_file}/" \
-        --json "{\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}"
+        --json "{\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}" \
+        || { echo "Failed to update release notes for ${file_name}"; failed=1; continue; }
     echo ""
-    echo "Updated release notes for release_file ${release_file}"
+    echo "Updated release notes for ${file_name} (release_file: ${release_file})"
+    echo "--- Done with ${file_name} ---"
 done
+
+if [ "$failed" -ne 0 ]; then
+    echo "One or more packages failed to publish."
+    exit 1
+fi
 
 echo "Done!"

@@ -196,6 +196,10 @@ smartagent-integration-test-with-cover:
 openstack-integration-test:
 	@make integration-test-target TARGET='openstack_integration'
 
+.PHONY: openstack-receiver-integration-test
+openstack-receiver-integration-test:
+	@make integration-test-target TARGET='openstack_receiver_integration'
+
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
 	@make integration-test-target TARGET='discovery_integration_envoy_k8s'

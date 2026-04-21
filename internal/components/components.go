@@ -155,6 +155,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/openstackreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
@@ -233,6 +234,7 @@ func Get() (otelcol.Factories, error) {
 		mysqlreceiver.NewFactory(),
 		nginxreceiver.NewFactory(),
 		receiver.Factory(nopreceiver.NewFactory()),
+		openstackreceiver.NewFactory(),
 		ntpreceiver.NewFactory(),
 		oracledbreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),

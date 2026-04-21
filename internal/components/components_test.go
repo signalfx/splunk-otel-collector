@@ -90,6 +90,7 @@ func TestDefaultComponents(t *testing.T) {
 		"nginx",
 		"nop",
 		"ntp",
+		"openstack",
 		"oracledb",
 		"otlp",
 		"postgresql",

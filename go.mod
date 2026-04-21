@@ -11,6 +11,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
+	github.com/gophercloud/gophercloud/v2 v2.11.1
 	github.com/hashicorp/vault v1.21.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.22.0
 	github.com/hashicorp/vault/api v1.23.0
@@ -333,7 +334,6 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/pprof v0.0.0-20260302011040-a15ffb7f9dcc // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
-	github.com/gophercloud/gophercloud/v2 v2.11.1 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/gosnmp/gosnmp v1.43.2 // indirect
 	github.com/grafana/clusterurl v0.2.1 // indirect

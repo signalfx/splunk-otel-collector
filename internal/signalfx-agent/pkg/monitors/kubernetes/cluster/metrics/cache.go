@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"k8s.io/api/autoscaling/v2beta1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 
 	"github.com/davecgh/go-spew/spew"
 	quota "github.com/openshift/api/quota/v1"
@@ -105,7 +105,7 @@ func (dc *DatapointCache) HandleAdd(newObj runtime.Object) interface{} {
 		dps = datapointsForJob(o)
 	case *batchv1beta1.CronJob:
 		dps = datapointsForCronJob(o)
-	case *v2beta1.HorizontalPodAutoscaler:
+	case *autoscalingv2.HorizontalPodAutoscaler:
 		dps = datapointsForHpa(o, dc.logger)
 	default:
 		dc.logger.WithFields(log.Fields{

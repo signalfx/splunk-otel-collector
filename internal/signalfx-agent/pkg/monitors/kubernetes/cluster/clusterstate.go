@@ -8,7 +8,7 @@ import (
 	quotav1 "github.com/openshift/client-go/quota/clientset/versioned/typed/quota/v1"
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/autoscaling/v2beta1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
@@ -79,7 +79,7 @@ func (cs *State) Start() {
 		cs.beginSyncForType(ctx, &quota.ClusterResourceQuota{}, "clusterresourcequotas", v1.NamespaceAll,
 			cs.quotaClient.RESTClient())
 	}
-	hpaV2Beta1Client := cs.clientset.AutoscalingV2beta1().RESTClient()
+	hpaV2Client := cs.clientset.AutoscalingV2().RESTClient()
 
 	cs.beginSyncForType(ctx, &v1.Pod{}, "pods", cs.namespace, coreClient)
 	cs.beginSyncForType(ctx, &appsv1.DaemonSet{}, "daemonsets", cs.namespace, appsV1Client)
@@ -97,7 +97,7 @@ func (cs *State) Start() {
 		cs.beginSyncForType(ctx, &v1.Node{}, "nodes", "", coreClient)
 		cs.beginSyncForType(ctx, &v1.Namespace{}, "namespaces", "", coreClient)
 	}
-	cs.beginSyncForType(ctx, &v2beta1.HorizontalPodAutoscaler{}, "horizontalpodautoscalers", cs.namespace, hpaV2Beta1Client)
+	cs.beginSyncForType(ctx, &autoscalingv2.HorizontalPodAutoscaler{}, "horizontalpodautoscalers", cs.namespace, hpaV2Client)
 }
 
 func (cs *State) beginSyncForType(ctx context.Context, resType runtime.Object, resName, namespace string, client cache.Getter) {

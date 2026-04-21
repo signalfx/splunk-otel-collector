@@ -1,0 +1,164 @@
+name: "K8s Deployment Test"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      UPDATE_EXPECTED_RESULTS:
+        description: 'Set to true to regenerate golden files and upload them as a workflow artifact.'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+concurrency:
+  group: k8s-deployment-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: 1.26.2
+  CHART_REPO: signalfx/splunk-otel-collector-chart
+  K8S_KIND_VERSION: v1.33.7
+
+jobs:
+  agent-bundle-linux:
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
+    with:
+      ARCH: amd64
+
+  otelcol:
+    uses: ./.github/workflows/reusable-compile.yml
+    with:
+      SYS_BINARY: binaries-linux_amd64
+
+  docker-otelcol:
+    name: docker-otelcol
+    runs-on: ubuntu-24.04
+    needs: [ "agent-bundle-linux", "otelcol" ]
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-environment
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: agent-bundle-linux-amd64
+          merge-multiple: true
+          path: ./dist
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: binaries-linux_amd64
+          path: ./bin
+      - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        id: otelcol-builder
+        with:
+          driver: docker-container
+          driver-opts: network=host
+      - run: make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=amd64 IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
+        env:
+          MULTIARCH_OTELCOL_BUILDER: ${{ steps.otelcol-builder.outputs.name }}
+      - name: Save amd64 image archive
+        run: |
+          docker pull localhost:5000/otelcol:latest
+          mkdir -p docker-otelcol/amd64
+          docker save -o ./docker-otelcol/amd64/image.tar localhost:5000/otelcol:latest
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docker-otelcol-amd64
+          path: ./docker-otelcol/amd64
+
+  k8s-deployment-test:
+    name: k8s-deployment-test
+    runs-on: ubuntu-24.04
+    needs: [ "docker-otelcol" ]
+    env:
+      KUBECONFIG: /tmp/kube-config-splunk-otel-collector-k8s-deployment-testing
+      KUBE_TEST_ENV: kind
+      UPDATE_EXPECTED_RESULTS: ${{ github.event.inputs.UPDATE_EXPECTED_RESULTS || 'false' }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Checkout splunk-otel-collector-chart
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ env.CHART_REPO }}
+          path: splunk-otel-collector-chart
+
+      - uses: ./.github/actions/setup-environment
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: docker-otelcol-amd64
+          path: ./docker-otelcol/amd64
+
+      - name: Create kind cluster
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
+        with:
+          node_image: kindest/node:${{ env.K8S_KIND_VERSION }}
+          kubectl_version: ${{ env.K8S_KIND_VERSION }}
+          cluster_name: kind
+          kubeconfig: ${{ env.KUBECONFIG }}
+          config: ./.github/workflows/configs/kind-config.yaml
+
+      - name: Fix kubelet TLS server certificates
+        run: |
+          kubectl get csr -o=jsonpath='{range.items[?(@.spec.signerName=="kubernetes.io/kubelet-serving")]}{.metadata.name}{" "}{end}' \
+            | xargs kubectl certificate approve
+
+      - name: Load collector image into kind
+        run: |
+          docker load -i ./docker-otelcol/amd64/image.tar
+          CHART_APP_VERSION=$(grep "^appVersion:" splunk-otel-collector-chart/helm-charts/splunk-otel-collector/Chart.yaml | awk '{print $2}')
+          DEV_TAG="${CHART_APP_VERSION}-dev"
+          # Patch Chart.yaml so the chart's default image tag resolves to the dev-tagged image
+          sed -i "s/^appVersion: .*/appVersion: ${DEV_TAG}/" splunk-otel-collector-chart/helm-charts/splunk-otel-collector/Chart.yaml
+          docker tag localhost:5000/otelcol:latest "quay.io/signalfx/splunk-otel-collector:${DEV_TAG}"
+          kind load docker-image "quay.io/signalfx/splunk-otel-collector:${DEV_TAG}" --name kind
+
+      - name: Update chart dependencies
+        working-directory: splunk-otel-collector-chart
+        run: make dep-update
+
+      - name: Build and load chart test images into kind
+        working-directory: splunk-otel-collector-chart
+        run: make kind-build-test-images
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG }}
+
+      - name: Run k8s deployment functional tests
+        working-directory: splunk-otel-collector-chart
+        env:
+          K8S_VERSION: ${{ env.K8S_KIND_VERSION }}
+        run: |
+          TEARDOWN_BEFORE_SETUP=true \
+          UPDATE_EXPECTED_RESULTS=${{ env.UPDATE_EXPECTED_RESULTS }} \
+          SUITE=functional \
+          make functionaltest
+
+      - name: Upload updated golden files
+        if: always() && env.UPDATE_EXPECTED_RESULTS == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: updated_expected_results
+          path: splunk-otel-collector-chart/functional_tests/**/*.yaml
+          retention-days: 5
+
+      - name: Collect Kubernetes cluster debug info on failure
+        if: failure()
+        run: |
+          kubectl get pods -A
+          echo "=== otelcol logs (last 50 lines) ==="
+          kubectl get pod -A -l release=sock -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" \
+            | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --tail=50' || true
+          echo "=== Events ==="
+          kubectl get events -A --sort-by='.lastTimestamp' || true

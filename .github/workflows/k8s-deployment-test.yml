@@ -158,6 +158,7 @@ jobs:
         run: |
           kubectl get pods -A
           echo "=== otelcol logs (last 50 lines) ==="
+          # shellcheck disable=SC2016
           kubectl get pod -A -l release=sock -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" \
             | xargs -r -n2 sh -c 'kubectl logs -n "$0" "$1" --tail=50' || true
           echo "=== Events ==="

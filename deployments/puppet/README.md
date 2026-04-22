@@ -36,7 +36,7 @@ collector service and not to the entire machine.
 
 ### Installation methods
 
-This module can be downloaded and installed from [Splunk's JFrog artifactory instance](https://splunk.jfrog.io/ui/repos/tree/General/puppet-splunk).
+This module can be downloaded and installed from [Splunk's JFrog Artifactory instance](https://splunk.jfrog.io/ui/repos/tree/General/puppet-splunk).
 
 #### [Connect Puppet to Artifactory](https://docs.jfrog.com/artifactory/docs/puppet-repositories#connect-puppet-to-artifactory)
 
@@ -48,8 +48,8 @@ With authentication:
 module_repository=https://<USERNAME>:<TOKEN>@splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
 ```
 Where:
-    <USERNAME>: Your Artifactory username (optional)
-    <TOKEN>: Your Artifactory identity token (optional)
+- \<USERNAME\>: Your Artifactory username
+- \<TOKEN\>: Your Artifactory identity token
 
 Without authentication:
 ```

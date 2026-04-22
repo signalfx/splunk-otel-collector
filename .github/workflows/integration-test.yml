@@ -247,6 +247,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
           verbose: true
@@ -330,6 +331,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
           verbose: true
@@ -457,6 +459,7 @@ jobs:
             CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
+          if: ${{ github.actor != 'dependabot[bot]' }}
           uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
           with:
             verbose: true
@@ -548,6 +551,7 @@ jobs:
           echo "=== Events ==="
           kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
           verbose: true

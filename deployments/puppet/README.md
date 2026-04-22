@@ -55,12 +55,6 @@ Without authentication:
 module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
 ```
 
-### [Use the Puppet Command Line](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-the-puppet-command-line)
-
-```
-$ puppet module install --module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk signalfx-splunk_otel_collector
-```
-
 ### [Use r10k for Puppet](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-r10k-for-puppet)
 
 To configure r10k to fetch modules from Artifactory, add the following to your `r10k.yaml` file:
@@ -68,6 +62,12 @@ To configure r10k to fetch modules from Artifactory, add the following to your `
 ```
 forge:
   baseurl: https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
+```
+
+### [Use the Puppet Command Line](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-the-puppet-command-line)
+
+```
+$ puppet module install --module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk signalfx-splunk_otel_collector
 ```
 
 ## Configuration

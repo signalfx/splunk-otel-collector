@@ -32,13 +32,11 @@ On Windows, the collector is installed as a Windows service and its environment
 variables are set at the service scope, i.e.: they are only available to the
 collector service and not to the entire machine.
 
-## Installation and Configuration
-
-### Installation methods
+## Installation
 
 This module can be downloaded and installed from [Splunk's JFrog Artifactory instance](https://splunk.jfrog.io/ui/repos/tree/General/puppet-splunk).
 
-#### [Connect Puppet to Artifactory](https://docs.jfrog.com/artifactory/docs/puppet-repositories#connect-puppet-to-artifactory)
+### [Connect Puppet to Artifactory](https://docs.jfrog.com/artifactory/docs/puppet-repositories#connect-puppet-to-artifactory)
 
 Add the following snippet to your `puppet.conf` file:
 
@@ -57,13 +55,13 @@ Without authentication:
 module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
 ```
 
-#### [Use the Puppet Command Line](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-the-puppet-command-line)
+### [Use the Puppet Command Line](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-the-puppet-command-line)
 
 ```
 $ puppet module install --module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk signalfx-splunk_otel_collector
 ```
 
-#### [Use r10k for Puppet](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-r10k-for-puppet)
+### [Use r10k for Puppet](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-r10k-for-puppet)
 
 To configure r10k to fetch modules from Artifactory, add the following to your `r10k.yaml` file:
 
@@ -72,7 +70,7 @@ forge:
   baseurl: https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
 ```
 
-### Configuration
+## Configuration
 
 To use this module, include the `splunk_otel_collector` class in your
 manifests with the supported parameters (see the table below for descriptions

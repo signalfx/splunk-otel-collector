@@ -5,6 +5,8 @@ monitors:
     plugin_instance:
       description: This will contain the project id and name of the project given in the configuration.
   doc: |
+    **This monitor is deprecated and will be removed on or after May 2026.**
+    **Please use the [Prometheus receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver) instead.**
     Monitors [Openstack](https://www.openstack.org/) by using the [Openstack
     collectd Python plugin](https://github.com/signalfx/collectd-openstack),
     which collects metrics from Openstack instances.  This plugin is installed

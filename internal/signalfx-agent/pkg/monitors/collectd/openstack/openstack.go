@@ -101,5 +101,6 @@ func (m *Monitor) Configure(conf *Config) error {
 		},
 	}
 
+	m.Logger().Warn("[NOTICE] The collectd/openstack monitor is deprecated and will be removed on or after May 2026. Please use the Prometheus receiver instead.")
 	return m.PyMonitor.Configure(conf)
 }

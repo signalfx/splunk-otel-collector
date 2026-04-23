@@ -29,9 +29,8 @@ import (
 var (
 	_ Hook = (*TelemetryHook)(nil)
 
-	// Global hook instance needed by the extension
-	globalHook    *TelemetryHook
-	globalHookMux sync.RWMutex
+	// globalHook instance needed by the extension
+	globalHook *TelemetryHook
 )
 
 const (
@@ -67,15 +66,11 @@ func NewTelemetryHook() *TelemetryHook {
 
 // SetGlobalHook sets the global hook instance.
 func SetGlobalHook(hook *TelemetryHook) {
-	globalHookMux.Lock()
-	defer globalHookMux.Unlock()
 	globalHook = hook
 }
 
 // GetGlobalHook returns the global hook instance, or nil if not set.
 func GetGlobalHook() *TelemetryHook {
-	globalHookMux.RLock()
-	defer globalHookMux.RUnlock()
 	return globalHook
 }
 

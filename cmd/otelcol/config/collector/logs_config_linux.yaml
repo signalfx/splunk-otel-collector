@@ -15,7 +15,7 @@
 #   contain file offsets used by the file_log receivers. This allows the receivers
 #   to pick up where they left off in case of a collector restart. This directory
 #   must be writable by the collector.
-#   default: `/var/lib/otelcol/file_logs`
+#   default: `/var/lib/otelcol/filelogs`
 
 receivers:
   # Receivers for tailing and parsing log files coming from various services.

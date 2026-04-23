@@ -2,7 +2,7 @@
 # Custom collector config for test purposes
 
 receivers:
-  file_log:
+  filelog:
     include:
       - /var/log/app.log
   otlp:
@@ -35,6 +35,6 @@ service:
       processors: [memory_limiter]
       exporters: [debug/normal]
     logs:
-      receivers: [file_log, otlp]
+      receivers: [filelog, otlp]
       processors: [memory_limiter]
       exporters: [debug/detailed]

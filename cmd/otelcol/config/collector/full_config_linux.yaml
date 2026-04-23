@@ -328,7 +328,7 @@ receivers:
     sourcetype: who
 
   # Enables file_log receiver
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/file_logreceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
   file_log:
     include:
       - /Library/Logs/*
@@ -617,7 +617,7 @@ exporters:
   # Enables the otlp grpc exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
   # NOTE: These settings should be updated to the proper destination
-  # WARN: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com does NOT support gRPC at this time; use oltp_http exporter instead
+  # WARN: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com does NOT support gRPC at this time; use otlp_http exporter instead
   otlp_grpc:
     endpoint: otelcol2:4317
     auth:

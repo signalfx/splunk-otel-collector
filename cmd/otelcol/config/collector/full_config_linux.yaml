@@ -327,9 +327,9 @@ receivers:
     source: who
     sourcetype: who
 
-  # Enables filelog receiver
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
-  filelog:
+  # Enables file_log receiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/file_logreceiver
+  file_log:
     include:
       - /Library/Logs/*
       - /var/log/*.log*
@@ -617,7 +617,7 @@ exporters:
   # Enables the otlp grpc exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
   # NOTE: These settings should be updated to the proper destination
-  # WARN: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com does NOT support gRPC at this time; use otlphttp exporter instead
+  # WARN: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com does NOT support gRPC at this time; use oltp_http exporter instead
   otlp_grpc:
     endpoint: otelcol2:4317
     auth:
@@ -657,8 +657,8 @@ exporters:
       "another label": spaced value
     send_timestamps: true
 
-  # Enables the prometheus exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusexporter
+  # Enables the prometheus remote write exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter
   # NOTE: These settings should be updated to the proper destination
   prometheusremotewrite:
     endpoint: "http://some.url:9411/api/prom/push"

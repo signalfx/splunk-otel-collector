@@ -25,27 +25,31 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 )
 
-func TestInjectConfigSourceTelemetryExtension_NilConf(t *testing.T) {
-	err := InjectConfigSourceTelemetryExtension(context.Background(), nil)
+// serviceExtensionsFromConf is a test helper that extracts the service.extensions
+// list from a resolved confmap using the same getServiceExtensions helper used in
+// production, so the test exercises the same code path.
+func serviceExtensionsFromConf(t *testing.T, conf *confmap.Conf) []any {
+	t.Helper()
+	_, exts, err := getServiceExtensions(conf.ToStringMap())
 	require.NoError(t, err)
+	return exts
+}
+
+func TestInjectConfigSourceTelemetryExtension_NilConf(t *testing.T) {
+	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), nil))
 }
 
 func TestInjectConfigSourceTelemetryExtension_EmptyConf(t *testing.T) {
 	conf := confmap.NewFromStringMap(map[string]any{})
-	err := InjectConfigSourceTelemetryExtension(context.Background(), conf)
-	require.NoError(t, err)
+	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), conf))
 
 	out := conf.ToStringMap()
 
-	// Extension should be registered
 	extensions, ok := out["extensions"].(map[string]any)
 	require.True(t, ok)
 	assert.Contains(t, extensions, configsourcetelemetryextension.TypeStr)
 
-	// Service extensions list should contain our extension
-	service, ok := out["service"].(map[string]any)
-	require.True(t, ok)
-	serviceExtensions := toStringSlice(service["extensions"])
+	serviceExtensions := serviceExtensionsFromConf(t, conf)
 	assert.Contains(t, serviceExtensions, configsourcetelemetryextension.TypeStr)
 }
 
@@ -59,21 +63,16 @@ func TestInjectConfigSourceTelemetryExtension_ExistingExtensions(t *testing.T) {
 		},
 	})
 
-	err := InjectConfigSourceTelemetryExtension(context.Background(), conf)
-	require.NoError(t, err)
+	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), conf))
 
 	out := conf.ToStringMap()
 
-	// Both extensions should be present
 	extensions, ok := out["extensions"].(map[string]any)
 	require.True(t, ok)
 	assert.Contains(t, extensions, "health_check")
 	assert.Contains(t, extensions, configsourcetelemetryextension.TypeStr)
 
-	// Service extensions list should contain both
-	service, ok := out["service"].(map[string]any)
-	require.True(t, ok)
-	serviceExtensions := toStringSlice(service["extensions"])
+	serviceExtensions := serviceExtensionsFromConf(t, conf)
 	assert.Contains(t, serviceExtensions, "health_check")
 	assert.Contains(t, serviceExtensions, configsourcetelemetryextension.TypeStr)
 }
@@ -88,20 +87,34 @@ func TestInjectConfigSourceTelemetryExtension_AlreadyPresent(t *testing.T) {
 		},
 	})
 
-	err := InjectConfigSourceTelemetryExtension(context.Background(), conf)
-	require.NoError(t, err)
+	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), conf))
 
-	out := conf.ToStringMap()
-
-	// Should appear only once in service extensions
-	service, ok := out["service"].(map[string]any)
-	require.True(t, ok)
-	serviceExtensions := toStringSlice(service["extensions"])
+	serviceExtensions := serviceExtensionsFromConf(t, conf)
 	count := 0
 	for _, e := range serviceExtensions {
 		if e == configsourcetelemetryextension.TypeStr {
 			count++
 		}
 	}
-	assert.Equal(t, 1, count, "extension should appear exactly once")
+	assert.Equal(t, 1, count, "extension should appear exactly once in service.extensions")
+}
+
+func TestInjectConfigSourceTelemetryExtension_InvalidService(t *testing.T) {
+	conf := confmap.NewFromStringMap(map[string]any{
+		"service": "not-a-map",
+	})
+	err := InjectConfigSourceTelemetryExtension(context.Background(), conf)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "service is of unexpected form")
+}
+
+func TestInjectConfigSourceTelemetryExtension_InvalidExtensions(t *testing.T) {
+	// extensions is a string instead of a map — the old silent assertion would
+	// discard it and inject an empty map, hiding the user's config error.
+	conf := confmap.NewFromStringMap(map[string]any{
+		"extensions": "not-a-map",
+	})
+	err := InjectConfigSourceTelemetryExtension(context.Background(), conf)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "extensions is of unexpected form")
 }

@@ -5,7 +5,7 @@ change_type: enhancement
 component: configsourcetelemetry
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add internal metrics to keep track of used splunk custom config source.
+note: Add internal metrics to keep track of used Splunk custom config source.
 
 # One or more tracking issues related to the change
 issues: [7479]

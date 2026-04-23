@@ -16,6 +16,7 @@ package configconverter
 
 import (
 	"context"
+	"fmt"
 
 	"go.opentelemetry.io/collector/confmap"
 
@@ -24,7 +25,6 @@ import (
 
 // InjectConfigSourceTelemetryExtension is a confmap.Converter that automatically injects
 // the configsource_telemetry extension into the service config.
-// This ensures the extension always starts with the service lifecycle so the MeterProvider is always injected into the TelemetryHook.
 func InjectConfigSourceTelemetryExtension(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
@@ -32,61 +32,27 @@ func InjectConfigSourceTelemetryExtension(_ context.Context, in *confmap.Conf) e
 
 	out := in.ToStringMap()
 
-	// Ensure extensions section exists and contains our extension
-	extensions, _ := out["extensions"].(map[string]any)
-	if extensions == nil {
-		extensions = map[string]any{}
+	service, serviceExtensions, err := getServiceExtensions(out)
+	if err != nil {
+		return err
 	}
-	// Add the extension with an empty config if not already present
+
+	extensions := map[string]any{}
+	if raw, exists := out["extensions"]; exists && raw != nil {
+		var ok bool
+		if extensions, ok = raw.(map[string]any); !ok {
+			return fmt.Errorf("extensions is of unexpected form (%T): %v", raw, raw)
+		}
+	}
 	if _, exists := extensions[configsourcetelemetryextension.TypeStr]; !exists {
 		extensions[configsourcetelemetryextension.TypeStr] = map[string]any{}
 	}
 	out["extensions"] = extensions
 
-	// Ensure service section exists
-	service, _ := out["service"].(map[string]any)
-	if service == nil {
-		service = map[string]any{}
-	}
-
-	// Ensure service.extensions list exists and contains our extension
-	serviceExtensions := toStringSlice(service["extensions"])
-	if !containsExtension(serviceExtensions, configsourcetelemetryextension.TypeStr) {
-		serviceExtensions = append(serviceExtensions, configsourcetelemetryextension.TypeStr)
-	}
-	service["extensions"] = serviceExtensions
+	// Append the extension to service.extensions, deduplicating with appendUnique.
+	service["extensions"] = appendUnique(serviceExtensions, []any{configsourcetelemetryextension.TypeStr})
 	out["service"] = service
 
 	*in = *confmap.NewFromStringMap(out)
 	return nil
-}
-
-// containsExtension returns true if the extension name is already in the list.
-func containsExtension(extensions []string, name string) bool {
-	for _, e := range extensions {
-		if e == name {
-			return true
-		}
-	}
-	return false
-}
-
-// toStringSlice converts an interface{} to []string safely.
-func toStringSlice(v any) []string {
-	if v == nil {
-		return []string{}
-	}
-	switch val := v.(type) {
-	case []string:
-		return val
-	case []any:
-		result := make([]string, 0, len(val))
-		for _, item := range val {
-			if s, ok := item.(string); ok {
-				result = append(result, s)
-			}
-		}
-		return result
-	}
-	return []string{}
 }

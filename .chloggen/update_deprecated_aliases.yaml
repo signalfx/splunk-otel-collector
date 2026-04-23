@@ -15,3 +15,4 @@ issues: []
 # Use pipe (|) for multiline entries.
 subtext: |
   The `filelog` alias has been deprecated. Please update any existing references to `file_log`.
+  This is only relevant for users that have custom configuration dependent on the default config.

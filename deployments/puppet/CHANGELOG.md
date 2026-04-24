@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## puppet-v0.20.0
+
 ### 🛑 Breaking changes 🛑
 
 - Puppet supported version is now >= v8.0.0 ([#7260](https://github.com/signalfx/splunk-otel-collector/pull/7260))

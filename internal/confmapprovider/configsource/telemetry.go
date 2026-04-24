@@ -35,11 +35,10 @@ var (
 
 const (
 	meterName                    = "github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
-	configSourceUsageMetricName  = "otelcol_splunk_configsource_usage"
+	configSourceUsageMetricName  = "otelcol_splunk_config_source_usage"
 	configSourceTypeAttributeKey = "config_source_type"
 )
 
-// TelemetryHook tracks the usage of custom config sources and exposes them as OpenTelemetry metrics.
 type TelemetryHook struct {
 	usedSources       map[string]bool
 	telemetrySettings *component.TelemetrySettings
@@ -64,12 +63,10 @@ func NewTelemetryHook() *TelemetryHook {
 	return hook
 }
 
-// SetGlobalHook sets the global hook instance.
 func SetGlobalHook(hook *TelemetryHook) {
 	globalHook = hook
 }
 
-// GetGlobalHook returns the global hook instance, or nil if not set.
 func GetGlobalHook() *TelemetryHook {
 	return globalHook
 }
@@ -84,7 +81,6 @@ func (t *TelemetryHook) registerMetrics() error {
 
 	meter := t.telemetrySettings.MeterProvider.Meter(meterName)
 
-	// Register an observable gauge that reports which config sources are in use
 	var err error
 	_, err = meter.Int64ObservableGauge(
 		configSourceUsageMetricName,
@@ -113,7 +109,6 @@ func (t *TelemetryHook) SetTelemetrySettings(settings component.TelemetrySetting
 	}
 }
 
-// OnNew implements Hook, NoOp.
 func (t *TelemetryHook) OnNew() {}
 
 // OnRetrieve is called when a config source retrieves configuration.
@@ -143,7 +138,6 @@ func (t *TelemetryHook) OnRetrieve(scheme string, retrieved map[string]any) {
 	}
 }
 
-// OnShutdown implements Hook and clears tracked config sources.
 func (t *TelemetryHook) OnShutdown() {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
@@ -167,13 +161,12 @@ func (t *TelemetryHook) observeConfigSourceUsage(_ context.Context, observer met
 	return nil
 }
 
-// customConfigSources is the fixed set of config source types provided by this distribution.
 var customConfigSources = map[string]struct{}{
 	"env":       {},
+	"etcd2":     {},
 	"include":   {},
 	"vault":     {},
 	"zookeeper": {},
-	"etcd2":     {},
 }
 
 // isCustomConfigSource reports whether csType is one of the custom config sources

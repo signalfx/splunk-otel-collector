@@ -15,7 +15,6 @@
 package configconverter
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,9 +24,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 )
 
-// serviceExtensionsFromConf is a test helper that extracts the service.extensions
-// list from a resolved confmap using the same getServiceExtensions helper used in
-// production, so the test exercises the same code path.
 func serviceExtensionsFromConf(t *testing.T, conf *confmap.Conf) []any {
 	t.Helper()
 	_, exts, err := getServiceExtensions(conf.ToStringMap())
@@ -36,12 +32,12 @@ func serviceExtensionsFromConf(t *testing.T, conf *confmap.Conf) []any {
 }
 
 func TestInjectConfigSourceTelemetryExtension_NilConf(t *testing.T) {
-	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), nil))
+	require.NoError(t, InjectConfigSourceTelemetryExtension(t.Context(), nil))
 }
 
 func TestInjectConfigSourceTelemetryExtension_EmptyConf(t *testing.T) {
 	conf := confmap.NewFromStringMap(map[string]any{})
-	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), conf))
+	require.NoError(t, InjectConfigSourceTelemetryExtension(t.Context(), conf))
 
 	out := conf.ToStringMap()
 
@@ -63,7 +59,7 @@ func TestInjectConfigSourceTelemetryExtension_ExistingExtensions(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), conf))
+	require.NoError(t, InjectConfigSourceTelemetryExtension(t.Context(), conf))
 
 	out := conf.ToStringMap()
 
@@ -87,7 +83,7 @@ func TestInjectConfigSourceTelemetryExtension_AlreadyPresent(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, InjectConfigSourceTelemetryExtension(context.Background(), conf))
+	require.NoError(t, InjectConfigSourceTelemetryExtension(t.Context(), conf))
 
 	serviceExtensions := serviceExtensionsFromConf(t, conf)
 	count := 0
@@ -103,18 +99,16 @@ func TestInjectConfigSourceTelemetryExtension_InvalidService(t *testing.T) {
 	conf := confmap.NewFromStringMap(map[string]any{
 		"service": "not-a-map",
 	})
-	err := InjectConfigSourceTelemetryExtension(context.Background(), conf)
+	err := InjectConfigSourceTelemetryExtension(t.Context(), conf)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "service is of unexpected form")
 }
 
 func TestInjectConfigSourceTelemetryExtension_InvalidExtensions(t *testing.T) {
-	// extensions is a string instead of a map — the old silent assertion would
-	// discard it and inject an empty map, hiding the user's config error.
 	conf := confmap.NewFromStringMap(map[string]any{
 		"extensions": "not-a-map",
 	})
-	err := InjectConfigSourceTelemetryExtension(context.Background(), conf)
+	err := InjectConfigSourceTelemetryExtension(t.Context(), conf)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "extensions is of unexpected form")
 }

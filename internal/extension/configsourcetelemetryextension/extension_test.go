@@ -15,7 +15,6 @@
 package configsourcetelemetryextension
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,7 +49,7 @@ func TestCreateExtension(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 	settings := extensiontest.NewNopSettings(component.MustNewType(TypeStr))
 
-	ext, err := factory.Create(context.Background(), settings, cfg)
+	ext, err := factory.Create(t.Context(), settings, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 }
@@ -59,10 +58,9 @@ func TestExtension_Start(t *testing.T) {
 	reader := sdkmetric.NewManualReader()
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	defer func() {
-		require.NoError(t, provider.Shutdown(context.Background()))
+		require.NoError(t, provider.Shutdown(t.Context()))
 	}()
 
-	// Create the hook (which registers itself as global); restore global on exit.
 	hook := configsource.NewTelemetryHook()
 	defer configsource.SetGlobalHook(nil)
 
@@ -72,17 +70,17 @@ func TestExtension_Start(t *testing.T) {
 	settings := extensiontest.NewNopSettings(component.MustNewType(TypeStr))
 	settings.TelemetrySettings.MeterProvider = provider
 
-	ext, err := factory.Create(context.Background(), settings, factory.CreateDefaultConfig())
+	ext, err := factory.Create(t.Context(), settings, factory.CreateDefaultConfig())
 	require.NoError(t, err)
 
-	err = ext.Start(context.Background(), componenttest.NewNopHost())
+	err = ext.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
 	telSettings := hook.GetTelemetrySettings()
 	require.NotNil(t, telSettings)
 	assert.Equal(t, provider, telSettings.MeterProvider)
 
-	require.NoError(t, ext.Shutdown(context.Background()))
+	require.NoError(t, ext.Shutdown(t.Context()))
 }
 
 func TestExtension_StartWithNilHook(t *testing.T) {
@@ -91,26 +89,23 @@ func TestExtension_StartWithNilHook(t *testing.T) {
 	factory := NewFactory()
 	settings := extensiontest.NewNopSettings(component.MustNewType(TypeStr))
 
-	ext, err := factory.Create(context.Background(), settings, factory.CreateDefaultConfig())
+	ext, err := factory.Create(t.Context(), settings, factory.CreateDefaultConfig())
 	require.NoError(t, err)
 
-	require.NoError(t, ext.Start(context.Background(), componenttest.NewNopHost()))
-	require.NoError(t, ext.Shutdown(context.Background()))
+	require.NoError(t, ext.Start(t.Context(), componenttest.NewNopHost()))
+	require.NoError(t, ext.Shutdown(t.Context()))
 }
 
 func TestExtension_IntegrationWithMetrics(t *testing.T) {
 	reader := sdkmetric.NewManualReader()
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	defer func() {
-		require.NoError(t, provider.Shutdown(context.Background()))
+		require.NoError(t, provider.Shutdown(t.Context()))
 	}()
 
-	// Create the hook (registers as global); restore global on exit.
 	hook := configsource.NewTelemetryHook()
 	defer configsource.SetGlobalHook(nil)
 
-	// Simulate config sources being used before the extension starts —
-	// this mirrors the real-world flow where config is loaded before service startup.
 	hook.OnRetrieve("file", map[string]any{
 		"config_sources": map[string]any{
 			"vault": map[string]any{
@@ -123,20 +118,20 @@ func TestExtension_IntegrationWithMetrics(t *testing.T) {
 	settings := extensiontest.NewNopSettings(component.MustNewType(TypeStr))
 	settings.TelemetrySettings.MeterProvider = provider
 
-	ext, err := factory.Create(context.Background(), settings, factory.CreateDefaultConfig())
+	ext, err := factory.Create(t.Context(), settings, factory.CreateDefaultConfig())
 	require.NoError(t, err)
 
-	err = ext.Start(context.Background(), componenttest.NewNopHost())
+	err = ext.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
 	var rm metricdata.ResourceMetrics
-	require.NoError(t, reader.Collect(context.Background(), &rm))
+	require.NoError(t, reader.Collect(t.Context(), &rm))
 
 	found := false
 outer:
 	for _, sm := range rm.ScopeMetrics {
 		for _, m := range sm.Metrics {
-			if m.Name != "otelcol_splunk_configsource_usage" {
+			if m.Name != "otelcol_splunk_config_source_usage" {
 				continue
 			}
 			found = true
@@ -157,7 +152,7 @@ outer:
 			break outer
 		}
 	}
-	assert.True(t, found, "otelcol_splunk_configsource_usage metric should be present")
+	assert.True(t, found, "otelcol_splunk_config_source_usage metric should be present")
 
-	require.NoError(t, ext.Shutdown(context.Background()))
+	require.NoError(t, ext.Shutdown(t.Context()))
 }

@@ -24,8 +24,7 @@ import (
 )
 
 const (
-	// TypeStr is the type string for this extension
-	TypeStr = "configsource_telemetry"
+	TypeStr = "config_source_telemetry"
 )
 
 var _ extension.Extension = (*configSourceTelemetryExtension)(nil)
@@ -36,12 +35,9 @@ type configSourceTelemetryExtension struct {
 	telemetrySettings component.TelemetrySettings
 }
 
-// Start implements extension.Extension
 func (e *configSourceTelemetryExtension) Start(_ context.Context, _ component.Host) error {
-	// Get the global hook
 	hook := configsource.GetGlobalHook()
 
-	// Inject the TelemetrySettings into the hook
 	if hook != nil {
 		e.telemetrySettings.Logger.Info("Injecting TelemetrySettings into config source hook")
 		hook.SetTelemetrySettings(e.telemetrySettings)
@@ -51,12 +47,10 @@ func (e *configSourceTelemetryExtension) Start(_ context.Context, _ component.Ho
 	return nil
 }
 
-// Shutdown implements extension.Extension
 func (e *configSourceTelemetryExtension) Shutdown(_ context.Context) error {
 	return nil
 }
 
-// newConfigSourceTelemetryExtension creates a new instance of the extension
 func newConfigSourceTelemetryExtension(settings extension.Settings) *configSourceTelemetryExtension {
 	return &configSourceTelemetryExtension{
 		telemetrySettings: settings.TelemetrySettings,

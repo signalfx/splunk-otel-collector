@@ -16,7 +16,6 @@
 package configsource
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,7 +144,7 @@ func TestTelemetryHook_Metrics(t *testing.T) {
 	reader := sdkmetric.NewManualReader()
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	defer func() {
-		require.NoError(t, provider.Shutdown(context.Background()))
+		require.NoError(t, provider.Shutdown(t.Context()))
 	}()
 
 	hook := NewTelemetryHook()
@@ -161,12 +160,10 @@ func TestTelemetryHook_Metrics(t *testing.T) {
 		},
 	})
 
-	// Collect metrics
 	var rm metricdata.ResourceMetrics
-	err := reader.Collect(context.Background(), &rm)
+	err := reader.Collect(t.Context(), &rm)
 	require.NoError(t, err)
 
-	// Verify metrics were collected
 	require.NotEmpty(t, rm.ScopeMetrics)
 
 	var found bool
@@ -193,11 +190,9 @@ func TestTelemetryHook_Metrics(t *testing.T) {
 				}
 			}
 
-			// Only vault and include should appear — with value 1
 			assert.Equal(t, int64(1), reported["vault"], "vault should be reported as in use")
 			assert.Equal(t, int64(1), reported["include"], "include should be reported as in use")
 
-			// Unused sources must not appear as datapoints at all
 			assert.NotContains(t, reported, "zookeeper", "zookeeper should not have a datapoint")
 			assert.NotContains(t, reported, "etcd2", "etcd2 should not have a datapoint")
 			assert.NotContains(t, reported, "env", "env should not have a datapoint")
@@ -212,7 +207,6 @@ func TestTelemetryHook_Metrics(t *testing.T) {
 func TestTelemetryHook_OnShutdown(t *testing.T) {
 	hook := NewTelemetryHook()
 
-	// Add some config sources
 	hook.OnRetrieve("file", map[string]any{
 		"config_sources": map[string]any{
 			"vault": map[string]any{},
@@ -222,11 +216,20 @@ func TestTelemetryHook_OnShutdown(t *testing.T) {
 	usedSources := hook.GetUsedSources()
 	assert.True(t, usedSources["vault"])
 
-	// Shutdown should clear the sources
 	hook.OnShutdown()
 
 	usedSources = hook.GetUsedSources()
 	assert.Empty(t, usedSources)
+}
+
+func TestCustomConfigSources_MatchesFactories(t *testing.T) {
+	expected := make(map[string]struct{}, len(configSourceFactories))
+	for typ := range configSourceFactories {
+		expected[typ.String()] = struct{}{}
+	}
+
+	assert.Equal(t, expected, customConfigSources,
+		"customConfigSources must match configSourceFactories exactly; add the new factory type to both")
 }
 
 func TestIsCustomConfigSource(t *testing.T) {
@@ -256,20 +259,19 @@ func TestTelemetryHook_LazyRegistration(t *testing.T) {
 	reader := sdkmetric.NewManualReader()
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	defer func() {
-		require.NoError(t, provider.Shutdown(context.Background()))
+		require.NoError(t, provider.Shutdown(t.Context()))
 	}()
 
 	hook := NewTelemetryHook()
 
 	// No TelemetrySettings injected yet — collecting should yield nothing
 	var rm metricdata.ResourceMetrics
-	require.NoError(t, reader.Collect(context.Background(), &rm))
+	require.NoError(t, reader.Collect(t.Context(), &rm))
 	assert.Empty(t, rm.ScopeMetrics, "no metrics expected before TelemetrySettings is injected")
 
 	// Inject TelemetrySettings (as the extension does on Start)
 	hook.SetTelemetrySettings(component.TelemetrySettings{MeterProvider: provider})
 
-	// Simulate a config source so the gauge emits at least one datapoint
 	hook.OnRetrieve("file", map[string]any{
 		"config_sources": map[string]any{
 			"vault": map[string]any{},
@@ -277,6 +279,6 @@ func TestTelemetryHook_LazyRegistration(t *testing.T) {
 	})
 
 	rm = metricdata.ResourceMetrics{}
-	require.NoError(t, reader.Collect(context.Background(), &rm))
+	require.NoError(t, reader.Collect(t.Context(), &rm))
 	require.NotEmpty(t, rm.ScopeMetrics, "metric should be present after TelemetrySettings is injected and a config source is tracked")
 }

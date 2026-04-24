@@ -24,7 +24,7 @@ import (
 )
 
 // InjectConfigSourceTelemetryExtension is a confmap.Converter that automatically injects
-// the configsource_telemetry extension into the service config.
+// the config_source_telemetry extension into the service config.
 func InjectConfigSourceTelemetryExtension(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
@@ -49,7 +49,6 @@ func InjectConfigSourceTelemetryExtension(_ context.Context, in *confmap.Conf) e
 	}
 	out["extensions"] = extensions
 
-	// Append the extension to service.extensions, deduplicating with appendUnique.
 	service["extensions"] = appendUnique(serviceExtensions, []any{configsourcetelemetryextension.TypeStr})
 	out["service"] = service
 

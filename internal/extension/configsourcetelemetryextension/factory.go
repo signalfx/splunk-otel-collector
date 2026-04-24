@@ -21,7 +21,6 @@ import (
 	"go.opentelemetry.io/collector/extension"
 )
 
-// NewFactory creates a factory for the config source telemetry extension
 func NewFactory() extension.Factory {
 	return extension.NewFactory(
 		component.MustNewType(TypeStr),

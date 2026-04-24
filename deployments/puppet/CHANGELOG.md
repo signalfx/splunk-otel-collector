@@ -24,8 +24,7 @@
   For more information, see the
   [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide).
 
-
-To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your manifest:
+  To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your manifest:
   ```puppet
   $splunk_api_url    = "https://api.<realm>.signalfx.com"
   $splunk_ingest_url = "https://ingest.<realm>.signalfx.com"

@@ -11,7 +11,7 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat: 8, 9
 - Oracle: 8
 - Debian: 11, 12
-- SUSE: 15 d
+- SUSE: 15
 - Ubuntu: 22.04, 24.04
 
 > Note: `systemd` is required to be installed on the host for service

@@ -40,16 +40,6 @@ This module can be downloaded and installed from [Splunk's JFrog Artifactory ins
 
 Add the following snippet to your `puppet.conf` file:
 
-With authentication:
-```
-[main]
-module_repository=https://<USERNAME>:<TOKEN>@splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
-```
-Where:
-- \<USERNAME\>: Your Artifactory username
-- \<TOKEN\>: Your Artifactory identity token
-
-Without authentication:
 ```
 [main]
 module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk

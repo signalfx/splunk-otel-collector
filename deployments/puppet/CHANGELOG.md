@@ -2,7 +2,13 @@
 
 ## Unreleased
 
+## puppet-v0.20.0
+
 ### 🛑 Breaking changes 🛑
+
+- This Puppet Module is now being published in Splunk's JFrog Artifactory instance, and will no longer be
+  published to Puppet Forge. Please refer to the [module's README](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/puppet/README.md) for up to date information on how to install
+  and utilize this module.([#7486](https://github.com/signalfx/splunk-otel-collector/pull/7486))
 
 - Puppet supported version is now >= v8.0.0 ([#7260](https://github.com/signalfx/splunk-otel-collector/pull/7260))
 

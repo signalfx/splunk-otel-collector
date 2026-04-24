@@ -54,7 +54,7 @@ receivers:
           layout: '%d/%b/%Y:%H:%M:%S %z'
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Apache error log.
   # Configured using the ErrorLogFormat directive.
@@ -84,7 +84,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Apache Cassandra default log.
   # Configured in /etc/cassandra/logback.xml, SYSTEMLOG appender section.
@@ -111,7 +111,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Apache Cassandra debug log. Contains additional debugging information.
   # Configured in /etc/cassandra/logback.xml, DEBUGLOG appender section.
@@ -138,7 +138,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # This file is written if Cassandra process' standard output stream (stdout)
   # is redirected to a file.
@@ -146,7 +146,7 @@ receivers:
     include: [ "/var/log/cassandra/output.log" ]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Docker container logs.
   # If the default json-file logging driver is used, Docker will store container
@@ -168,7 +168,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Etcd versions 3.4 and prior are loging using the capnslog library.
   # (https://etcd.io/docs/v3.4/dev-internal/logging/).
@@ -200,7 +200,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Jetty default log.
   # By default, Jetty will log to standard error stream (stderr). To redirect
@@ -227,7 +227,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Jetty debug log.
   # Enabled with the jetty-debuglog module.
@@ -247,7 +247,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Jetty request logs.
   # Enabled with the jetty-requestlog module.
@@ -262,14 +262,14 @@ receivers:
           layout: '%d/%b/%Y:%H:%M:%S %z'
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Memcached.
   file_log/memcached:
     include: [ "/var/log/memcached.log" ]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # MongoDB v4.4 and later outputs all log messages in a structured JSON format.
   # See https://www.mongodb.com/docs/manual/reference/log-messages/
@@ -300,7 +300,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # MySQL server error log. Contains critical errors that occurred during the
   # server's operation, table corruption, start and stop information.
@@ -328,7 +328,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # MySQL general query log. Contains a log of every SQL query received from a
   # client, as well as each client connect and disconnect.
@@ -357,7 +357,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # MySQL slow query log. Contains a log of SQL queries that took a long time to perform.
   # Disabled by default. To enable, use the slow_query_log variable.
@@ -368,7 +368,7 @@ receivers:
       line_start_pattern: '^# Time: '
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Nginx access log.
   # By default, client requests are logged in the standard NCSA Common Log Format.
@@ -383,7 +383,7 @@ receivers:
           layout: '%d/%b/%Y:%H:%M:%S %z'
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Nginx error log.
   # See https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
@@ -410,7 +410,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # PostgreSQL server log.
   # See https://www.postgresql.org/docs/current/runtime-config-logging.html
@@ -430,7 +430,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # RabbitMQ broker node log.
   # See https://www.rabbitmq.com/logging.html
@@ -455,21 +455,21 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # RabbitMQ server startup log.
   file_log/rabbitmq-startup:
     include: [ "/var/log/rabbitmq/startup_log", "/var/log/rabbitmq/rabbitmq-server.log" ]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # RabbitMQ server startup error log.
   file_log/rabbitmq-startup_err:
     include: [ "/var/log/rabbitmq/startup_err", "/var/log/rabbitmq/rabbitmq-server.error.log" ]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Redis logging.
   # By default configured to log to a file (logfile directive in redis.conf).
@@ -513,7 +513,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Syslog and messages log files.
   # These are not in the RFC3164 format.
@@ -534,7 +534,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Apache Tomcat.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html
@@ -561,7 +561,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Apache Tomcat console output.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html#Console
@@ -583,7 +583,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Apache Tomcat access log.
   # Entries are in the standard NCSA Common Log Format.
@@ -599,7 +599,7 @@ receivers:
           layout: '%d/%b/%Y:%H:%M:%S %z'
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Zookeper log.
   # Configured in /etc/zookeeper/conf/log4j.properties
@@ -623,7 +623,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
   # Zookeeper tracefile.
   # Configured in /etc/zookeeper/conf/log4j.properties
@@ -647,7 +647,7 @@ receivers:
           - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    storage: file_storage/file_logs
+    storage: file_storage/filelogs
 
 
 processors:
@@ -698,7 +698,7 @@ extensions:
   # Storage extension for storing file_log checkpoints.
   # Checkpoints allow the receiver to pick up where it left off in the case of a
   # collector restart.
-  file_storage/file_logs:
+  file_storage/filelogs:
     # Location where checkpoint files are stored. This directory must be writable
     # by the collector.
     directory: "${SPLUNK_FILE_STORAGE_EXTENSION_PATH}"
@@ -709,7 +709,7 @@ extensions:
 
 
 service:
-  extensions: [health_check, file_storage/file_logs]
+  extensions: [health_check, file_storage/filelogs]
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}

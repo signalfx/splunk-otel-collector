@@ -1816,10 +1816,6 @@ puppet-release:
     - bundle exec rake module:clean
   script:
     - |
-      export BLACKSMITH_FORGE_URL=https://splunk.jfrog.io/artifactory/puppet-splunk
-      export BLACKSMITH_FORGE_TYPE=artifactory
-      export BLACKSMITH_FORGE_USERNAME="${ARTIFACTORY_USERNAME}"
-      export BLACKSMITH_FORGE_PASSWORD="${ARTIFACTORY_TOKEN}"
       bundle exec rake module:push
   artifacts:
     paths:

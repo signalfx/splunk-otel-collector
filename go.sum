@@ -2089,8 +2089,8 @@ github.com/valyala/fastjson v1.6.10 h1:/yjJg8jaVQdYR3arGxPE2X5z89xrlhS0eGXdv+ADT
 github.com/valyala/fastjson v1.6.10/go.mod h1:e6FubmQouUNP73jtMLmcbxS6ydWIpOfhz34TSfO3JaE=
 github.com/vjeantet/grok v1.0.1 h1:2rhIR7J4gThTgcZ1m2JY4TrJZNgjn985U28kT2wQrJ4=
 github.com/vjeantet/grok v1.0.1/go.mod h1:ax1aAchzC6/QMXMcyzHQGZWaW1l195+uMYIkCWPCNIo=
-github.com/vmware/govmomi v0.53.0 h1:e1bZCotAq7wm4xy95ePN2uoWwz28pNp/ewZZhpBY7/4=
-github.com/vmware/govmomi v0.53.0/go.mod h1:EWfuzPfxT5NV+aS2we02SLFdhvJkgeY7t7+TszgBSMY=
+github.com/vmware/govmomi v0.53.1 h1:6cNudrmbkYTp2onqSLTIsPwP2zj6Fkfb4ymNn7GO5dk=
+github.com/vmware/govmomi v0.53.1/go.mod h1:EWfuzPfxT5NV+aS2we02SLFdhvJkgeY7t7+TszgBSMY=
 github.com/vultr/govultr/v3 v3.28.1 h1:KR3LhppYARlBujY7+dcrE7YKL0Yo9qXL+msxykKQrLI=
 github.com/vultr/govultr/v3 v3.28.1/go.mod h1:2zyUw9yADQaGwKnwDesmIOlBNLrm7edsCfWHFJpWKf8=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=

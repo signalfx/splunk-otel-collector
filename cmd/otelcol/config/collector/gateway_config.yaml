@@ -23,6 +23,13 @@ extensions:
       # include_metadata: true
     egress:
       endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
+  opamp:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
     expvar:
@@ -156,7 +163,7 @@ connectors:
         pipelines: [logs/entities]
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/signalfx, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/signalfx, opamp, zpages]
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}

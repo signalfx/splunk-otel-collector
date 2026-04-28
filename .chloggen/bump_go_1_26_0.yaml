@@ -2,10 +2,10 @@
 change_type: enhancement
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: build
+component: all
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Bump Go version from 1.25.9 to 1.26.2
+note: Bump Go version from 1.25 to 1.26
 
 # One or more tracking issues related to the change
 issues: [7507]

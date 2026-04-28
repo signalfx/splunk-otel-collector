@@ -1095,6 +1095,9 @@ Collector:
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.signalfx.com/v1/log)
+  --hec-index <index>                   Set the Splunk index to send logs to when using '--with-logs'.
+                                        If not set, the default index configured on the HEC token will be used.
+                                        Only applicable when '--with-logs' is specified.
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
@@ -1395,6 +1398,7 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
+  local hec_index=
   local godebug=
   local ingest_url=
   local insecure=
@@ -1457,6 +1461,10 @@ parse_args_and_install() {
         ;;
       --hec-url)
         hec_url="$2"
+        shift 1
+        ;;
+      --hec-index)
+        hec_index="$2"
         shift 1
         ;;
       --godebug)
@@ -1926,6 +1934,9 @@ parse_args_and_install() {
     mkdir -p "$logs_file_storage_path"
     chown -R $service_user:$service_group "$logs_file_storage_path"
     configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
+    if [ -n "$hec_index" ]; then
+      configure_env_file "SPLUNK_HEC_INDEX" "$hec_index" "$collector_env_path"
+    fi
   fi
 
   local otelcol_options=

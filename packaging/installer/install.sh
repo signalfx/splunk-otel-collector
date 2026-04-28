@@ -1983,6 +1983,20 @@ must be restarted to apply the changes by running the following command as root:
 
 EOH
 
+  if [ "$with_logs" = "true" ]; then
+    cat <<EOH
+[NOTICE] Log collection has been enabled using $logs_config_path.
+
+Journald log collection is disabled by default. To enable it:
+  1. Uncomment the 'journald' receiver and 'logs/journald' pipeline in $logs_config_path.
+  2. Grant the collector service user permission to read the journal:
+
+       sudo usermod -aG systemd-journal $service_user
+       sudo systemctl restart splunk-otel-collector
+
+EOH
+  fi
+
   if [ -n "$sdks_to_enable" ]; then
     if [ -n "$sdks_enabled" ]; then
       if [ "$with_instrumentation" = "true" ]; then

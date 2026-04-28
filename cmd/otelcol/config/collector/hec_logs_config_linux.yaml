@@ -139,15 +139,13 @@ receivers:
       # - snapd
 
     operators:
-      - type: add
-        field: resource["receiver"]
-        value: journald
+      - type: copy
+        from: body["_SYSTEMD_UNIT"]
+        to: resource["com.splunk.source"]
+        if: 'body["_SYSTEMD_UNIT"] != nil'
       - type: add
         field: resource["com.splunk.sourcetype"]
         value: linux:journald
-      - type: add
-        field: resource["com.splunk.source"]
-        value: journald
 
 processors:
   memory_limiter:

@@ -381,7 +381,7 @@ func warnDeprecatedSignalfxURLs() {
 		deprecatedDomain  = "signalfx.com"
 		recommendedDomain = "observability.splunkcloud.com"
 	)
-	for _, envVar := range []string{APIURLEnvVar, IngestURLEnvVar} {
+	for _, envVar := range []string{APIURLEnvVar, IngestURLEnvVar, HecLogIngestURLEnvVar} {
 		if url, ok := os.LookupEnv(envVar); ok && strings.Contains(url, deprecatedDomain) {
 			logWarn("%s %q uses a deprecated %q endpoint. "+
 				"Please update to use a %q endpoint instead "+

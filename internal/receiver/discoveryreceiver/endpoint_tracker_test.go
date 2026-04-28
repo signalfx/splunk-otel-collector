@@ -569,7 +569,6 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 		stopCh:       make(chan struct{}),
 	}
 	et.start()
-	defer et.stop()
 
 	// Wait for obs.ListAndWatch called asynchronously in the et.start()
 	require.Eventually(t, func() bool {
@@ -608,16 +607,17 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, failed)
 	expectedLogs := expectedEvents.ConvertAndMoveToLogs()
-	waitChan := make(chan struct{})
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		logs := <-ch
-		if assert.NoError(c, plogtest.CompareLogs(expectedLogs, logs, plogtest.IgnoreTimestamp())) {
-			close(waitChan)
-		}
+		assert.NoError(c, plogtest.CompareLogs(expectedLogs, logs, plogtest.IgnoreTimestamp()))
 	}, 1*time.Second, 50*time.Millisecond)
 
-	// Ensure that entities are not emitted anymore
-	<-waitChan
+	// Stop the emit loop before checking the channel is idle, otherwise
+	// a tick can race between receiving the delete event and the assertion.
+	et.stop()
+	for len(ch) > 0 {
+		<-ch
+	}
 	assert.Empty(t, ch)
 }
 

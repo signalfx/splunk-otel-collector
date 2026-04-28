@@ -5,7 +5,7 @@ change_type: enhancement
 component: extensions/opamp
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add OpAMP extension to the default configuration and lock it behind a feature gate.
+note: Add OpAMP extension, opamp/splunk_o11y, to the default configuration and lock it behind a feature gate.
 
 # One or more tracking issues related to the change
 issues: [7508]

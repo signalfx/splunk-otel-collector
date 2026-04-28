@@ -14,7 +14,7 @@ extensions:
       endpoint: 0.0.0.0:6060
     egress:
       endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
-  opamp:
+  opamp/splunk_o11y:
     server:
       http:
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
@@ -115,7 +115,7 @@ exporters:
     log_data_enabled: false
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, opamp, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, opamp/splunk_o11y, zpages]
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}

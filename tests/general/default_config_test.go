@@ -135,7 +135,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:9943", ip),
 						},
 					},
-					"opamp": map[string]any{
+					"opamp/splunk_o11y": map[string]any{
 						"server": map[string]any{
 							"http": map[string]any{
 								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
@@ -395,7 +395,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
-					"opamp": map[string]any{
+					"opamp/splunk_o11y": map[string]any{
 						"server": map[string]any{
 							"http": map[string]any{
 								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",

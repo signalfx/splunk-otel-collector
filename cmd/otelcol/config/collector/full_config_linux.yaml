@@ -732,7 +732,7 @@ extensions:
   # Enables the opamp extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension
   # NOTE: It is very likely additional configuration is required
-  opamp:
+  opamp/splunk_o11y:
     server:
       http:
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
@@ -761,7 +761,7 @@ extensions:
 service:
 
   # Which extensions you want to enable
-  extensions: [headers_setter, health_check, http_forwarder, opamp, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, opamp/splunk_o11y, zpages]
 
   # Collector internal telemetry configuration
   telemetry:

@@ -43,27 +43,27 @@ func opampConf(extensions map[string]any, serviceExtensions []any) *confmap.Conf
 	})
 }
 
-func TestRemoveOpAMP_GateDisabled_OpAMPInServiceExtensions_IsRemoved(t *testing.T) {
+func TestRemoveOpAMP_GateDisabled_OpAMPInConfig_IsRemoved(t *testing.T) {
 	setOpAMPGate(t, false)
 
 	conf := opampConf(
 		map[string]any{
-			"opamp":        map[string]any{"server": "http://localhost:4320"},
-			"health_check": map[string]any{},
+			"opamp/splunk_o11y": map[string]any{"server": "http://localhost:4320"},
+			"health_check":      map[string]any{},
 		},
-		[]any{"opamp", "health_check"},
+		[]any{"opamp/splunk_o11y", "health_check"},
 	)
 
-	require.NoError(t, RemoveOpAMPIfFeatureGateDisabled(t.Context(), conf))
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf))
 
 	out := conf.ToStringMap()
 	extensions := out["extensions"].(map[string]any)
-	assert.Contains(t, extensions, "opamp")
+	assert.Contains(t, extensions, "opamp/splunk_o11y")
 	assert.Contains(t, extensions, "health_check")
 
 	_, serviceExts, err := getServiceExtensions(out)
 	require.NoError(t, err)
-	assert.NotContains(t, serviceExts, "opamp")
+	assert.NotContains(t, serviceExts, "opamp/splunk_o11y")
 	assert.Contains(t, serviceExts, "health_check")
 }
 
@@ -72,38 +72,47 @@ func TestRemoveOpAMP_GateDisabled_OpAMPDefinedButNotInService_NoOp(t *testing.T)
 
 	conf := opampConf(
 		map[string]any{
-			"opamp":        map[string]any{"server": "http://localhost:4320"},
-			"health_check": map[string]any{},
+			"opamp/splunk_o11y": map[string]any{"server": "http://localhost:4320"},
+			"health_check":      map[string]any{},
 		},
 		[]any{"health_check"},
 	)
 
 	original := conf.ToStringMap()
-	require.NoError(t, RemoveOpAMPIfFeatureGateDisabled(t.Context(), conf))
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf))
 	assert.Equal(t, original, conf.ToStringMap())
 }
 
-func TestRemoveOpAMP_GateDisabled_NamedOpAMPRemovedFromServiceExtensionsOnly(t *testing.T) {
+func TestRemoveOpAMP_GateDisabled_OtherOpAMPVariants_NotRemoved(t *testing.T) {
 	setOpAMPGate(t, false)
 
 	conf := opampConf(
 		map[string]any{
-			"opamp/prod":   map[string]any{"server": "http://localhost:4320"},
-			"health_check": map[string]any{},
+			"opamp":             map[string]any{"server": "http://localhost:4320"},
+			"opamp/custom":      map[string]any{"server": "http://localhost:4321"},
+			"opamp/splunk_o11y": map[string]any{"server": "http://localhost:4322"},
+			"health_check":      map[string]any{},
 		},
-		[]any{"opamp/prod", "health_check"},
+		[]any{"opamp", "opamp/custom", "opamp/splunk_o11y", "health_check"},
 	)
 
-	require.NoError(t, RemoveOpAMPIfFeatureGateDisabled(t.Context(), conf))
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf))
 
 	out := conf.ToStringMap()
 	extensions := out["extensions"].(map[string]any)
-	assert.Contains(t, extensions, "opamp/prod")
+	// opamp and opamp/custom should remain untouched
+	assert.Contains(t, extensions, "opamp")
+	assert.Contains(t, extensions, "opamp/custom")
+	// opamp/splunk_o11y should remain in extensions block (only service.extensions is modified)
+	assert.Contains(t, extensions, "opamp/splunk_o11y")
 	assert.Contains(t, extensions, "health_check")
 
 	_, serviceExts, err := getServiceExtensions(out)
 	require.NoError(t, err)
-	assert.NotContains(t, serviceExts, "opamp/prod")
+	// Only opamp/splunk_o11y should be removed from service.extensions
+	assert.Contains(t, serviceExts, "opamp")
+	assert.Contains(t, serviceExts, "opamp/custom")
+	assert.NotContains(t, serviceExts, "opamp/splunk_o11y")
 	assert.Contains(t, serviceExts, "health_check")
 }
 
@@ -116,13 +125,13 @@ func TestRemoveOpAMP_GateDisabled_OpAMPNotInConfig_NoOp(t *testing.T) {
 	)
 
 	original := conf.ToStringMap()
-	require.NoError(t, RemoveOpAMPIfFeatureGateDisabled(t.Context(), conf))
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf))
 	assert.Equal(t, original, conf.ToStringMap())
 }
 
 func TestRemoveOpAMP_GateDisabled_NilConf_NoOp(t *testing.T) {
 	setOpAMPGate(t, false)
-	require.NoError(t, RemoveOpAMPIfFeatureGateDisabled(t.Context(), nil))
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), nil))
 }
 
 func TestRemoveOpAMP_GateEnabled_OpAMPInConfig_Untouched(t *testing.T) {
@@ -130,14 +139,14 @@ func TestRemoveOpAMP_GateEnabled_OpAMPInConfig_Untouched(t *testing.T) {
 
 	conf := opampConf(
 		map[string]any{
-			"opamp":        map[string]any{"server": "http://localhost:4320"},
-			"health_check": map[string]any{},
+			"opamp/splunk_o11y": map[string]any{"server": "http://localhost:4320"},
+			"health_check":      map[string]any{},
 		},
-		[]any{"opamp", "health_check"},
+		[]any{"opamp/splunk_o11y", "health_check"},
 	)
 
 	original := conf.ToStringMap()
-	require.NoError(t, RemoveOpAMPIfFeatureGateDisabled(t.Context(), conf))
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf))
 	assert.Equal(t, original, conf.ToStringMap())
 }
 
@@ -154,7 +163,7 @@ func TestRemoveOpAMP_GateEnabled_OpAMPNotInConfig_LogsWarning(t *testing.T) {
 	log.SetOutput(&buf)
 	t.Cleanup(func() { log.SetOutput(os.Stderr) })
 
-	require.NoError(t, RemoveOpAMPIfFeatureGateDisabled(t.Context(), conf))
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf))
 
 	assert.Equal(t, original, conf.ToStringMap())
 	assert.Contains(t, buf.String(), opampFeatureGateID)
@@ -164,30 +173,49 @@ func TestRemoveOpAMP_GateDisabled_InvalidService_ReturnsError(t *testing.T) {
 	setOpAMPGate(t, false)
 
 	conf := confmap.NewFromStringMap(map[string]any{
-		"extensions": map[string]any{"opamp": map[string]any{}},
+		"extensions": map[string]any{"opamp/splunk_o11y": map[string]any{}},
 		"service":    "not-a-map",
 	})
 
-	err := RemoveOpAMPIfFeatureGateDisabled(t.Context(), conf)
+	err := RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "service is of unexpected form")
 }
 
-func TestIsOpAMPKey(t *testing.T) {
+func TestIsSplunkOpAMPExtension(t *testing.T) {
 	tests := []struct {
 		key      string
 		expected bool
 	}{
-		{"opamp", true},
-		{"opamp/prod", true},
-		{"opamp/staging", true},
+		{"opamp/splunk_o11y", true},
+		{"opamp", false},
+		{"opamp/prod", false},
+		{"opamp/custom", false},
+		{"opamp/staging", false},
 		{"opampextension", false},
 		{"health_check", false},
 		{"", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.key, func(t *testing.T) {
-			assert.Equal(t, tt.expected, isOpAMPKey(tt.key))
+			assert.Equal(t, tt.expected, isSplunkOpAMPExtension(tt.key))
 		})
 	}
+}
+
+func TestRemoveOpAMP_GateDisabled_BareOpAMP_NotRemoved(t *testing.T) {
+	setOpAMPGate(t, false)
+
+	conf := opampConf(
+		map[string]any{
+			"opamp":        map[string]any{"server": "http://localhost:4320"},
+			"health_check": map[string]any{},
+		},
+		[]any{"opamp", "health_check"},
+	)
+
+	original := conf.ToStringMap()
+	require.NoError(t, RemoveSplunkOpAMPIfFeatureGateDisabled(t.Context(), conf))
+
+	assert.Equal(t, original, conf.ToStringMap())
 }

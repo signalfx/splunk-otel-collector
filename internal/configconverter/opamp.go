@@ -23,19 +23,19 @@ import (
 )
 
 const (
-	opampFeatureGateID = "splunk.opamp.enabled"
-	opampExtensionKey  = "opamp"
+	opampFeatureGateID   = "splunk.opamp.enabled"
+	opampSplunkExtension = "opamp/splunk_o11y"
 )
 
 var opampFeatureGate = featuregate.GlobalRegistry().MustRegister(
 	opampFeatureGateID,
 	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the opamp extension is active. "+
-		"When disabled (default), the opamp extension is removed from the service.extensions configuration at startup, if it is present."),
+	featuregate.WithRegisterDescription("When enabled, the opamp/splunk_o11y extension is active. "+
+		"When disabled (default), the opamp/splunk_o11y extension is removed from the service.extensions configuration at startup, if it is present."),
 	featuregate.WithRegisterFromVersion("v0.151.0"),
 )
 
-func RemoveOpAMPIfFeatureGateDisabled(_ context.Context, in *confmap.Conf) error {
+func RemoveSplunkOpAMPIfFeatureGateDisabled(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
 	}
@@ -47,12 +47,12 @@ func RemoveOpAMPIfFeatureGateDisabled(_ context.Context, in *confmap.Conf) error
 		return err
 	}
 
-	opampInConfig := isOpAMPInServiceExtensions(serviceExtensions)
+	opampInConfig := isSplunkOpAMPInServiceExtensions(serviceExtensions)
 	gateEnabled := opampFeatureGate.IsEnabled()
 
 	if gateEnabled {
 		if !opampInConfig {
-			log.Printf("WARNING: Feature gate %q is enabled but the opamp extension is not enabled in the config", opampFeatureGateID)
+			log.Printf("WARNING: Feature gate %q is enabled but %q extension is not enabled in the config", opampFeatureGateID, opampSplunkExtension)
 		}
 		return nil
 	}
@@ -61,26 +61,26 @@ func RemoveOpAMPIfFeatureGateDisabled(_ context.Context, in *confmap.Conf) error
 		return nil
 	}
 
-	log.Printf("INFO: Feature gate %q is disabled: removing opamp extension from config", opampFeatureGateID)
-	removeOpAMP(service, serviceExtensions)
+	log.Printf("INFO: Feature gate %q is disabled: removing %q from service.extensions", opampFeatureGateID, opampSplunkExtension)
+	removeSplunkOpAMP(service, serviceExtensions)
 
 	*in = *confmap.NewFromStringMap(out)
 	return nil
 }
 
-func isOpAMPInServiceExtensions(serviceExtensions []any) bool {
+func isSplunkOpAMPInServiceExtensions(serviceExtensions []any) bool {
 	for _, e := range serviceExtensions {
-		if s, ok := e.(string); ok && isOpAMPKey(s) {
+		if s, ok := e.(string); ok && isSplunkOpAMPExtension(s) {
 			return true
 		}
 	}
 	return false
 }
 
-func removeOpAMP(service map[string]any, serviceExtensions []any) {
+func removeSplunkOpAMP(service map[string]any, serviceExtensions []any) {
 	filtered := make([]any, 0, len(serviceExtensions))
 	for _, e := range serviceExtensions {
-		if s, ok := e.(string); ok && isOpAMPKey(s) {
+		if s, ok := e.(string); ok && isSplunkOpAMPExtension(s) {
 			continue
 		}
 		filtered = append(filtered, e)
@@ -88,10 +88,6 @@ func removeOpAMP(service map[string]any, serviceExtensions []any) {
 	service["extensions"] = filtered
 }
 
-func isOpAMPKey(key string) bool {
-	if key == opampExtensionKey {
-		return true
-	}
-	prefix := opampExtensionKey + "/"
-	return len(key) > len(prefix) && key[:len(prefix)] == prefix
+func isSplunkOpAMPExtension(key string) bool {
+	return key == opampSplunkExtension
 }

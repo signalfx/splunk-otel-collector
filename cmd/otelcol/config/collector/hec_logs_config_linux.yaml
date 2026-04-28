@@ -54,9 +54,9 @@ receivers:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
         type: move
-      - from: attributes["log.file.name"]
-        to: resource["com.splunk.sourcetype"]
-        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:etc
 
   # Matches TA stanzas: [monitor:///var/log] and [monitor:///var/adm]
   # whitelist=(\.log|log$|messages|secure|auth|mesg$|cron$|acpid$|\.out)
@@ -85,9 +85,9 @@ receivers:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
         type: move
-      - from: attributes["log.file.name"]
-        to: resource["com.splunk.sourcetype"]
-        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:varlog
 
   # Matches TA stanza: [monitor:///root/.bash_history] and [monitor:///home/*/.bash_history]
   # Uncomment to enable (disabled by default, as in the TA).
@@ -103,9 +103,9 @@ receivers:
        - from: attributes["log.file.path"]
          to: resource["com.splunk.source"]
          type: move
-       - from: attributes["log.file.name"]
-         to: resource["com.splunk.sourcetype"]
-         type: move
+       - type: add
+         field: resource["com.splunk.sourcetype"]
+         value: linux:bash_history
 
   # To use the journald receiver, the collector service user must have permission to read the journal.
   # Add the collector service user to the systemd-journal group and restart the service:

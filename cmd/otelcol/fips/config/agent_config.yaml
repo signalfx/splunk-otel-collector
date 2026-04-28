@@ -28,8 +28,6 @@ extensions:
   opamp/splunk_o11y:
     server:
       http:
-        # Use instead when sending to gateway (assuming the gateway is running http_forwarder on port 6060)
-        #endpoint: "${SPLUNK_GATEWAY_URL}:6060/v1/opamp"
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
         polling_interval: 30s
         headers:

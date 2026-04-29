@@ -71,6 +71,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 
 	expectedConfig := map[string]any{
 		"extensions": map[string]any{
+			"config_source_telemetry": map[string]any{},
 			"zpages": map[string]any{
 				"expvar": map[string]any{
 					"enabled": true,
@@ -103,7 +104,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
-			"extensions": []any{"zpages"},
+			"extensions": []any{"zpages", "config_source_telemetry"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
 					"processors": []any{"resourcedetection"},

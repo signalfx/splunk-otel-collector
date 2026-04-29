@@ -1,4 +1,5 @@
 extensions:
+  config_source_telemetry: {}
   host_observer:
     refresh_interval: 1s
   zpages:
@@ -44,7 +45,7 @@ service:
                 without_scope_info: true
                 without_type_suffix: true
                 without_units: true
-  extensions: [zpages, host_observer]
+  extensions: [zpages, host_observer, config_source_telemetry]
   pipelines:
     metrics:
       receivers: [discovery/host_observer]

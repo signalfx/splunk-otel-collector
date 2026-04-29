@@ -1,18 +1,18 @@
 # One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
-change_type: breaking
+change_type: enhancement
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: deployments
+component: extensions/opamp
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Replace default Windows MSI artifact download URL from `dl.signalfx.com` to `dl.observability.splunkcloud.com` in Ansible, Chef, and Puppet deployment configurations.
+note: Add OpAMP extension, opamp/splunk_o11y, to the default configuration and lock it behind a feature gate.
 
 # One or more tracking issues related to the change
-issues: [7439]
+issues: [7508]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  For legacy `dl.signalfx.com` URL override instructions, see the
-  [0.149.0 → 0.150.0 upgrade guideline](../README.md#deployment-tooling) in README.md.
+  The OpAMP extension is included in the default configuration but disabled by default behind a feature gate.
+  Use the feature gate ID `splunk.opamp.enabled` to enable the OpAMP extension (e.g., `--feature-gates=+splunk.opamp.enabled`).  

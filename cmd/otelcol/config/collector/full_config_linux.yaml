@@ -130,14 +130,6 @@ receivers:
         static_configs:
         - targets: ['0.0.0.0:8888']
         metric_relabel_configs:
-          - source_labels: [ service_name ]
-            target_label: service.name
-          - source_labels: [ service_instance_id ]
-            target_label: service.instance.id
-          - source_labels: [ service_version ]
-            target_label: service.version
-          - regex: service_name|service_instance_id|service_version
-            action: labeldrop
           - source_labels: [ __name__ ]
             regex: 'promhttp_metric_handler_errors.*'
             action: drop
@@ -335,9 +327,9 @@ receivers:
     source: who
     sourcetype: who
 
-  # Enables filelog receiver
+  # Enables file_log receiver
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
-  filelog:
+  file_log:
     include:
       - /Library/Logs/*
       - /var/log/*.log*
@@ -625,7 +617,7 @@ exporters:
   # Enables the otlp grpc exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
   # NOTE: These settings should be updated to the proper destination
-  # WARN: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com does NOT support gRPC at this time; use otlphttp exporter instead
+  # WARN: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com does NOT support gRPC at this time; use otlp_http exporter instead
   otlp_grpc:
     endpoint: otelcol2:4317
     auth:
@@ -665,8 +657,8 @@ exporters:
       "another label": spaced value
     send_timestamps: true
 
-  # Enables the prometheus exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusexporter
+  # Enables the prometheus remote write exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter
   # NOTE: These settings should be updated to the proper destination
   prometheusremotewrite:
     endpoint: "http://some.url:9411/api/prom/push"
@@ -737,6 +729,17 @@ extensions:
   # NOTE: It is very likely additional configuration is required
   k8s_observer:
 
+  # Enables the opamp extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension
+  # NOTE: It is very likely additional configuration is required
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
+
   # Enables the pprof extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension
   pprof:
@@ -758,7 +761,7 @@ extensions:
 service:
 
   # Which extensions you want to enable
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, opamp/splunk_o11y, zpages]
 
   # Collector internal telemetry configuration
   telemetry:

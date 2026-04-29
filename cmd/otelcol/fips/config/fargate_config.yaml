@@ -14,6 +14,13 @@ extensions:
       endpoint: 0.0.0.0:6060
     egress:
       endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     endpoint: 0.0.0.0:55679
     expvar:
@@ -46,14 +53,6 @@ receivers:
           static_configs:
             - targets: ['0.0.0.0:8888']
           metric_relabel_configs:
-            - source_labels: [ service_name ]
-              target_label: service.name
-            - source_labels: [ service_instance_id ]
-              target_label: service.instance.id
-            - source_labels: [ service_version ]
-              target_label: service.version
-            - regex: service_name|service_instance_id|service_version
-              action: labeldrop
             - source_labels: [ __name__ ]
               regex: 'promhttp_metric_handler_errors.*'
               action: drop
@@ -116,7 +115,7 @@ exporters:
     log_data_enabled: false
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, opamp/splunk_o11y, zpages]
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}

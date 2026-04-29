@@ -1,17 +1,18 @@
 # One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
-change_type: deprecation
+change_type: breaking
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: smartagent/memcached
+component: config
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: The memcached monitor is deprecated.
+note: All default configuration references to `filelog` receiver have been updated to `file_log`
 
 # One or more tracking issues related to the change
-issues: [7414]
+issues: [7484]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  Please use the [memcached receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/memcachedreceiver) instead.
+  The `filelog` alias has been deprecated. Please update any existing references to `file_log`.
+  This is only relevant for users that have custom configuration dependent on the default config.

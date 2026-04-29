@@ -569,6 +569,9 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 		stopCh:       make(chan struct{}),
 	}
 	et.start()
+	var stopOnce sync.Once
+	stopET := func() { stopOnce.Do(et.stop) }
+	t.Cleanup(stopET)
 
 	// Wait for obs.ListAndWatch called asynchronously in the et.start()
 	require.Eventually(t, func() bool {
@@ -614,7 +617,7 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 
 	// Stop the emit loop before checking the channel is idle, otherwise
 	// a tick can race between receiving the delete event and the assertion.
-	et.stop()
+	stopET()
 	for len(ch) > 0 {
 		<-ch
 	}

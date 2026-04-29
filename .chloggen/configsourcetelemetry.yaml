@@ -1,0 +1,16 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: enhancement
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: configsourcetelemetry
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Add internal metrics to keep track of used Splunk custom config source.
+
+# One or more tracking issues related to the change
+issues: [7479]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: Introduce a new internal metric `otelcol_splunk_config_source_usage` to track the usage of the Splunk custom config source. This metric will be a gauge with a value of 1 when the Splunk custom config source is in use.

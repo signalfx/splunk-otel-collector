@@ -28,6 +28,7 @@ func TestDefaultComponents(t *testing.T) {
 		"ack",
 		"basicauth",
 		"bearertokenauth",
+		"config_source_telemetry",
 		"docker_observer",
 		"ecs_observer",
 		"file_storage",

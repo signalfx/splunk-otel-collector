@@ -27,6 +27,13 @@ extensions:
       endpoint: "${SPLUNK_API_URL}"
       # Use instead when sending to gateway
       #endpoint: "${SPLUNK_GATEWAY_URL}"
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   smartagent:
     bundleDir: "${SPLUNK_BUNDLE_DIR}"
     collectd:
@@ -85,14 +92,6 @@ receivers:
         static_configs:
         - targets: ["0.0.0.0:8888"]
         metric_relabel_configs:
-          - source_labels: [ service_name ]
-            target_label: service.name
-          - source_labels: [ service_instance_id ]
-            target_label: service.instance.id
-          - source_labels: [ service_version ]
-            target_label: service.version
-          - regex: service_name|service_instance_id|service_version
-            action: labeldrop
           - source_labels: [ __name__ ]
             regex: 'promhttp_metric_handler_errors.*'
             action: drop
@@ -202,7 +201,7 @@ service:
               prometheus:
                 host: '127.0.0.1'
                 port: 8888
-  extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
+  extensions: [headers_setter, health_check, http_forwarder, opamp/splunk_o11y, zpages, smartagent]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]

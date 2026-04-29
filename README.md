@@ -161,6 +161,19 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.150.0 to 0.151.0
+
+The default Windows MSI artifact download URL has been updated: [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide)
+- `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+
+To keep using the legacy `dl.signalfx.com` download URL, pass `-collector_msi_url` explicitly to
+`install.ps1` (replace `<version>` with the collector version):
+
+Windows (`install.ps1`):
+```
+-collector_msi_url https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi
+```
+
 ### From 0.149.0 to 0.150.0
 
 Default endpoint URLs have changed from *.signalfx.com to *.observability.splunkcloud.com. The legacy endpoints remaim functional but migrating to the new domain is highly recommended. See the domain transition guide for background.
@@ -230,17 +243,6 @@ Default endpoint URLs have changed from *.signalfx.com to *.observability.splunk
   `msiexec` (add these properties):
   
     SPLUNK_API_URL=https://api.<realm>.signalfx.com SPLUNK_INGEST_URL=https://ingest.<realm>.signalfx.com SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
-
-The default Windows MSI artifact download URL has been updated:
-- `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
-
-To keep using the legacy `dl.signalfx.com` download URL, pass `-collector_msi_url` explicitly to
-`install.ps1` (replace `<version>` with the collector version):
-
-Windows (`install.ps1`):
-```
--collector_msi_url https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi
-```
 
 ### From 0.117.0 to 0.118.0
 

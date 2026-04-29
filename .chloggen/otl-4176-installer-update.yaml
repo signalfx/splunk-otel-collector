@@ -15,4 +15,4 @@ issues: [7440]
 # Use pipe (|) for multiline entries.
 subtext: |
   For legacy `dl.signalfx.com` URL override instructions, see the
-  [0.149.0 → 0.150.0 upgrade guideline](../README.md#installer-scripts) in README.md.
+  [0.150.0 → 0.151.0 upgrade guideline] in README.md.

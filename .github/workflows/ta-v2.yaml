@@ -188,7 +188,7 @@ jobs:
 
       - name: Check collector shutdown was recorded in splunkd.log
         run: |
-          if sudo grep -qP 'Splunk_TA_otel.*Shutdown' ./local-test-logs/var/log/splunk/splunkd.log; then
+          if sudo grep -qPi 'Splunk_TA_otel.*shutdown' ./local-test-logs/var/log/splunk/splunkd.log; then
             echo "Collector shutdown was recorded in splunkd.log."
           else
             echo "Collector shutdown was NOT recorded in splunkd.log!"

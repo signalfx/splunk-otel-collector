@@ -134,9 +134,8 @@ func TestDefaultComponents(t *testing.T) {
 		"zookeeper",
 	}
 	expectedReceiverAliases := map[string]string{
-		"azureeventhub":         "azure_event_hub",
-		"mongodbatlas":          "mongodb_atlas",
 		"azureblob":             "azure_blob",
+		"azureeventhub":         "azure_event_hub",
 		"azuremonitor":          "azure_monitor",
 		"ciscoos":               "cisco_os",
 		"filelog":               "file_log",
@@ -145,6 +144,7 @@ func TestDefaultComponents(t *testing.T) {
 		"hostmetrics":           "host_metrics",
 		"httpcheck":             "http_check",
 		"k8sobjects":            "k8s_objects",
+		"mongodbatlas":          "mongodb_atlas",
 		"prometheusremotewrite": "prometheus_remote_write",
 		"sshcheck":              "ssh_check",
 		"tcplog":                "tcp_log",

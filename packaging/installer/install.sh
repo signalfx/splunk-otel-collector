@@ -1930,6 +1930,11 @@ parse_args_and_install() {
     chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
   fi
 
+  local otelcol_options=
+  if [ "$discovery" = "true" ]; then
+    otelcol_options="--discovery"
+  fi
+
   if [ "$with_logs" = "true" ]; then
     mkdir -p "$logs_file_storage_path"
     chown -R $service_user:$service_group "$logs_file_storage_path"
@@ -1937,15 +1942,9 @@ parse_args_and_install() {
     if [ -n "$hec_index" ]; then
       configure_env_file "SPLUNK_HEC_INDEX" "$hec_index" "$collector_env_path"
     fi
-  fi
-
-  local otelcol_options=
-  if [ "$discovery" = "true" ]; then
-    otelcol_options="--discovery"
-  fi
-  if [ "$with_logs" = "true" ]; then
     otelcol_options="$otelcol_options --config $logs_config_path"
   fi
+
   if [ -n "$otelcol_options" ]; then
     configure_env_file "OTELCOL_OPTIONS" "$otelcol_options" "$collector_env_path"
   fi

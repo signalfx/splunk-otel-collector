@@ -47,6 +47,9 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 				"otelcol_process_runtime_total_alloc_bytes",
 				"otelcol_process_runtime_total_sys_memory_bytes",
 				"otelcol_process_uptime",
+				"otelcol_receiver_accepted_metric_points",
+				"otelcol_receiver_failed_metric_points",
+				"otelcol_receiver_refused_metric_points",
 			),
 		),
 	)

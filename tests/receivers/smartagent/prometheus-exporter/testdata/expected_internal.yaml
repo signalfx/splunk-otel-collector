@@ -43,25 +43,6 @@ resourceMetrics:
                       value:
                         stringValue: prometheus-exporter
             name: otelcol_process_runtime_heap_alloc_bytes
-          - name: otelcol_receiver_refused_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: receiver
-                      value:
-                        stringValue: smartagent/prometheus-exporter
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-                    - key: transport
-                      value:
-                        stringValue: internal
-              isMonotonic: true
           - name: promhttp_metric_handler_errors_total
             sum:
               aggregationTemporality: 2
@@ -160,9 +141,12 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: server.address
+                    - key: server_address
                       value:
-                        stringValue: localhost
+                        stringValue: 0.0.0.0
+                    - key: server_port
+                      value:
+                        stringValue: "0"
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -178,44 +162,6 @@ resourceMetrics:
                       value:
                         stringValue: prometheus-exporter
             name: otelcol_process_memory_rss
-          - name: otelcol_receiver_failed_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: receiver
-                      value:
-                        stringValue: smartagent/prometheus-exporter
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-                    - key: transport
-                      value:
-                        stringValue: internal
-              isMonotonic: true
-          - name: otelcol_receiver_accepted_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 446
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: receiver
-                      value:
-                        stringValue: smartagent/prometheus-exporter
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-                    - key: transport
-                      value:
-                        stringValue: internal
-              isMonotonic: true
           - gauge:
               dataPoints:
                 - asDouble: 1

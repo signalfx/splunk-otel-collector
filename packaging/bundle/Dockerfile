@@ -14,7 +14,6 @@
 
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.30_7
-ARG MAVEN_VERSION=3.6.3
 ARG PYTHON_VERSION=3.13.12
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
@@ -33,11 +32,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 
 
-######## Java monitor dependencies and monitor jar compilation ########
+######## Java dependencies ########
 FROM base AS java
 
 ARG JDK_VERSION
-ARG MAVEN_VERSION
 
 RUN apt-get update && apt-get install -qq -y wget
 
@@ -65,21 +63,6 @@ RUN mkdir -p /opt/root/jre && \
     cp -rL ${JAVA_HOME}/bin /opt/root/jre/ && \
     cp -rL ${JAVA_HOME}/lib /opt/root/jre/ && \
     cp -rL ${JAVA_HOME}/conf /opt/root/jre/
-
-ENV MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
-
-RUN wget -nv -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
-    tar -C /tmp -xzf /tmp/maven.tar.gz && \
-    rm -f /tmp/maven.tar.gz
-
-ENV PATH=$PATH:/tmp/apache-maven-${MAVEN_VERSION}/bin
-
-COPY java/ /usr/src/agent-java/
-
-RUN cd /usr/src/agent-java/jmx &&\
-    mvn -V -q clean package
-
-RUN rm -rf /tmp/apache-maven*
 
 
 ######## Python bundle builder image ########
@@ -399,7 +382,6 @@ COPY --from=extra-packages /lib/*-linux-gnu/ld-* /bin/ld-linux.so
 
 # Java dependencies
 COPY --from=extra-packages /opt/root/jre/ /jre
-COPY --from=java /usr/src/agent-java/jmx/target/agent-jmx-monitor-1.0-SNAPSHOT.jar /lib/jmx-monitor.jar
 
 COPY --from=extra-packages /opt/root/lib/ /lib/
 COPY --from=extra-packages /opt/root/bin/ /bin/

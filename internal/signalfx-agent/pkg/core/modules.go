@@ -23,7 +23,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/hana"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/http"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/internalmetrics"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/jmx"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/load"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/logstash"

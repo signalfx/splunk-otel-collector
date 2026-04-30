@@ -732,6 +732,8 @@ extensions:
   # Enables the opamp extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension
   # NOTE: It is very likely additional configuration is required
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
     server:
       http:

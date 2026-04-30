@@ -46,6 +46,9 @@ func TestDefaultComponents(t *testing.T) {
 		"text_encoding",
 		"zpages",
 	}
+	expectedExtensionAliases := map[string]string{
+		"googlecloudlogentry_encoding": "google_cloud_logentry_encoding",
+	}
 	expectedReceivers := []string{
 		"active_directory_ds",
 		"apache",
@@ -65,11 +68,11 @@ func TestDefaultComponents(t *testing.T) {
 		"docker_stats",
 		"elasticsearch",
 		"file_log",
-		"filestats",
-		"fluentforward",
+		"file_stats",
+		"fluent_forward",
 		"googlecloudpubsub",
 		"haproxy",
-		"hostmetrics",
+		"host_metrics",
 		"http_check",
 		"icmpcheckreceiver",
 		"iis",
@@ -79,7 +82,7 @@ func TestDefaultComponents(t *testing.T) {
 		"journald",
 		"k8s_cluster",
 		"k8s_events",
-		"k8sobjects",
+		"k8s_objects",
 		"kafka",
 		"kafkametrics",
 		"kubeletstats",
@@ -113,7 +116,7 @@ func TestDefaultComponents(t *testing.T) {
 		"splunk_hec",
 		"sqlquery",
 		"sqlserver",
-		"sshcheck",
+		"ssh_check",
 		"statsd",
 		"syslog",
 		"systemd",
@@ -135,9 +138,15 @@ func TestDefaultComponents(t *testing.T) {
 		"mongodbatlas":          "mongodb_atlas",
 		"azureblob":             "azure_blob",
 		"azuremonitor":          "azure_monitor",
+		"ciscoos":               "cisco_os",
 		"filelog":               "file_log",
+		"filestats":             "file_stats",
+		"fluentforward":         "fluent_forward",
+		"hostmetrics":           "host_metrics",
 		"httpcheck":             "http_check",
+		"k8sobjects":            "k8s_objects",
 		"prometheusremotewrite": "prometheus_remote_write",
+		"sshcheck":              "ssh_check",
 		"tcplog":                "tcp_log",
 		"tlscheck":              "tls_check",
 		"udplog":                "udp_log",
@@ -191,19 +200,27 @@ func TestDefaultComponents(t *testing.T) {
 		"count",
 		"forward",
 		"routing",
-		"spanmetrics",
+		"span_metrics",
 		"sum",
+	}
+	expectedConnectorAliases := map[string]string{
+		"spanmetrics": "span_metrics",
 	}
 
 	factories, err := Get()
 	require.NoError(t, err)
 
 	exts := factories.Extensions
-	assert.Len(t, exts, len(expectedExtensions))
+	assert.Len(t, exts, len(expectedExtensions)+len(expectedExtensionAliases))
 	for _, k := range expectedExtensions {
 		v, ok := exts[component.MustNewType(k)]
 		assert.True(t, ok)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedExtensionAliases {
+		v, ok := exts[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected extension alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	recvs := factories.Receivers
@@ -247,10 +264,15 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	conns := factories.Connectors
-	assert.Len(t, conns, len(expectedConnectors))
+	assert.Len(t, conns, len(expectedConnectors)+len(expectedConnectorAliases))
 	for _, k := range expectedConnectors {
 		v, ok := conns[component.MustNewType(k)]
 		require.True(t, ok, "Missing expected connector "+k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedConnectorAliases {
+		v, ok := conns[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected connector alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 }

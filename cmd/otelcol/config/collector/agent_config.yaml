@@ -25,6 +25,8 @@ extensions:
       endpoint: "${SPLUNK_API_URL}"
       # Use instead when sending to gateway
       #endpoint: "${SPLUNK_GATEWAY_URL}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
     server:
       http:

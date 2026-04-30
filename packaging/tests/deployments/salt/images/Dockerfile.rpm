@@ -11,19 +11,23 @@ ENV NODE_VERSION=18.20.8
 ENV container=docker
 
 # config for centos
-RUN if [[ ${DISTRO_IMAGE} =~ "centos" ]] ; then \
-    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
-    echo 'fastestmirror=1' >> /etc/yum.conf; \
+RUN if echo "${DISTRO_IMAGE}" | grep -qi centos; then \
+      if [ -f /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial ]; then \
+        rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial; \
+      fi; \
+      if [ -f /etc/yum.conf ]; then \
+        echo 'fastestmirror=1' >> /etc/yum.conf; \
+      fi; \
     fi
 
 # config for centos8
-RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream8" ]] ; then \
+RUN if echo "${DISTRO_IMAGE}" | grep -q "centos:stream8"; then \
 	sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
 	sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*; \
 	fi
 
 # additional packages for suse
-RUN if [[ ${DISTRO_IMAGE} =~ "opensuse" ]] ; then \
+RUN if echo "${DISTRO_IMAGE}" | grep -q "opensuse"; then \
     ${PKG_MGR} install -y dbus-1 systemd-sysvinit gzip; \
 	fi
 

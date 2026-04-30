@@ -1,5 +1,1 @@
----
-
-- name: openstack
-  version: v4.2.0
-  repo: signalfx/collectd-openstack
+[]

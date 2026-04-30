@@ -127,7 +127,6 @@ pytest -s --verbose -k "test_puppet_default and ubuntu-jammy and not instrumenta
 - `amazonlinux-2023`
 - `centos-8`
 - `centos-9`
-- `centos-10`
 - `opensuse-15`
 - `oraclelinux-8`
 

@@ -27,6 +27,15 @@ extensions:
       endpoint: "${SPLUNK_API_URL}"
       # Use instead when sending to gateway
       #endpoint: "${SPLUNK_GATEWAY_URL}"
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        # Use instead when sending to gateway (assuming the gateway is running http_forwarder/signalfx on port 9943)
+        #endpoint: "${SPLUNK_GATEWAY_URL}:9943/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   smartagent:
     bundleDir: "${SPLUNK_BUNDLE_DIR}"
     collectd:
@@ -194,7 +203,7 @@ service:
               prometheus:
                 host: '127.0.0.1'
                 port: 8888
-  extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
+  extensions: [headers_setter, health_check, http_forwarder, opamp/splunk_o11y, zpages, smartagent]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]

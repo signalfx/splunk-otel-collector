@@ -161,13 +161,6 @@ parse_args_and_build() {
     cp "$agent_config" "${files_dir}/agent_config.yaml"
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
 
-    if [ -z "$skip_build_dir_removal" ]; then
-        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_${arch}.zip"
-        rm -f "${OUTPUT_DIR}/agent-bundle_windows_${arch}.zip"
-    else
-        echo "Skipping unzipping agent bundle"
-    fi
-
     jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
     if [ -f "${jmx_metrics_jar}" ]; then
         echo "JMX Metric Gatherer already downloaded"

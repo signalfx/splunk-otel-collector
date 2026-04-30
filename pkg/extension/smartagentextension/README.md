@@ -9,14 +9,12 @@ to the Splunk Distribution of OpenTelemetry Collector.
 As the Smart Agent Receiver doesn't provide 1:1 functional parity with the SignalFx Smart Agent in itself,
 only a subset of existing configuration fields are supported by the Smart Agent Extension:
 
-1. The `bundleDir` field refers to the path of a supported Smart Agent release bundle.  The
-x86_64/amd64 Splunk Distribution of OpenTelemetry Collector packages include the agent bundle, and their installers
-source its value via the `SPLUNK_BUNDLE_DIR` environment variable by default.
+1. The `bundleDir` field refers to the path of a supported Smart Agent release bundle when
+you need to provide one explicitly for legacy Smart Agent compatibility.
 1. The [`collectd`](https://docs.splunk.com/observability/en/gdi/opentelemetry/smart-agent-migration-monitors.html#smart-agent-extension)
 field refers to performance and debugging configurables for the collectd subprocess and associated mechanisms.
 If the Smart Agent Extension or this field are not configured, the Agent defaults will be inherited.
-This configuration object's `configDir` refers to the location for internal configuration files and is set to the value
-of the `SPLUNK_COLLECTD_DIR` environment variable by the default agent deployment mode config.
+This configuration object's `configDir` refers to the location for internal configuration files used by collectd-based monitors.
 1. `procPath` for host or mounted container procfs access (default `/proc`)
 1. `etcPath` for host or mounted container volume/filesystem etc content (default `/etc`)
 1. `varPath` for host or mounted container volume/filesystem var content (default `/var`)

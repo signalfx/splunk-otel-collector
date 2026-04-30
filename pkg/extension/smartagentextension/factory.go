@@ -18,7 +18,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -42,26 +41,7 @@ func NewFactory() extension.Factory {
 }
 
 var bundleDir = func() string {
-	dir := os.Getenv(constants.BundleDirEnvVar)
-	if dir == "" {
-		if runtime.GOOS == "windows" {
-			pfDir := os.Getenv("programfiles")
-			if pfDir == "" {
-				pfDir = "C:\\Program Files"
-			}
-			dir = filepath.Join(pfDir, "Splunk", "OpenTelemetry Collector", "agent-bundle")
-			if exePath, err := os.Executable(); err == nil {
-				if colocatedBundle, err := filepath.Abs(filepath.Join(filepath.Dir(exePath), "agent-bundle")); err == nil {
-					if info, err := os.Stat(colocatedBundle); err == nil && info.IsDir() {
-						dir = colocatedBundle
-					}
-				}
-			}
-		} else {
-			dir = "/usr/lib/splunk-otel-collector/agent-bundle"
-		}
-	}
-	return dir
+	return os.Getenv(constants.BundleDirEnvVar)
 }()
 
 func createDefaultConfig() component.Config {
@@ -73,7 +53,9 @@ func createDefaultConfig() component.Config {
 	}
 	cfg.BundleDir = bundleDir
 	cfg.Collectd.BundleDir = bundleDir
-	cfg.Collectd.ConfigDir = filepath.Join(bundleDir, "run", "collectd")
+	if bundleDir != "" {
+		cfg.Collectd.ConfigDir = filepath.Join(bundleDir, "run", "collectd")
+	}
 
 	return &Config{
 		Config: *cfg,

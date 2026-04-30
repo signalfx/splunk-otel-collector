@@ -55,7 +55,7 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	}
 	config.Collectd.BundleDir = config.BundleDir
 
-	if !configDirSet {
+	if !configDirSet && config.Collectd.BundleDir != "" {
 		config.Collectd.ConfigDir = filepath.Join(config.Collectd.BundleDir, "run", "collectd")
 	}
 

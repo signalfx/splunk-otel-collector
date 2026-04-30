@@ -406,12 +406,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 							},
 						},
 					},
-					"smartagent": map[string]any{
-						"bundleDir": "/usr/lib/splunk-otel-collector/agent-bundle",
-						"collectd": map[string]any{
-							"configDir": "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd",
-						},
-					},
 					"zpages": map[string]any{
 						"expvar": map[string]any{
 							"enabled": true,

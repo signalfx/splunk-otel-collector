@@ -39,8 +39,6 @@ SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
 JMX_METRIC_GATHERER_RELEASE_PATH="${FPM_DIR}/../jmx-metric-gatherer-release.txt"
-BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
-AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 
 PREINSTALL_PATH="$FPM_DIR/preinstall.sh"
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
@@ -79,7 +77,6 @@ download_jmx_metric_gatherer() {
 setup_files_and_permissions() {
     local otelcol="$1"
     local buildroot="$2"
-    local bundle_path="$3"
 
     create_user_group
 
@@ -100,13 +97,6 @@ setup_files_and_permissions() {
     cp -f "$SERVICE_REPO_PATH" "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chown root:root "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$SERVICE_INSTALL_PATH"
-
-    if [[ -n "$bundle_path" ]]; then
-        mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
-        tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
-    fi
 
     JMX_INSTALL_PATH="$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
     if [[ -e "$JMX_INSTALL_PATH" ]]; then

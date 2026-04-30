@@ -14,23 +14,6 @@ RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
 # used by jmx receiver to pass tmp properties. Nested to avoid inheriting existing tmp files.
 RUN chmod 755 /tmp/tmp
 
-FROM ${DOCKER_REPO}/alpine:3.17.0 AS agent-bundle
-ARG TARGETARCH
-COPY --from=otelcol /etc_passwd /etc_passwd
-RUN cat /etc_passwd >> /etc/passwd
-COPY --from=otelcol --chown=999 /splunk-otel-collector /usr/lib/splunk-otel-collector
-COPY --chown=999 dist/agent-bundle_linux_${TARGETARCH}.tar.gz /dist/
-USER splunk-otel-collector
-RUN if [[ "$TARGETARCH" = "amd64" || "$TARGETARCH" = "arm64" ]]; then \
-        tar -C /usr/lib/splunk-otel-collector -xzf /dist/agent-bundle_linux_${TARGETARCH}.tar.gz && \
-        # Absolute path of interpreter in smart agent dir is set in dependent binaries
-        # requiring the interpreter location not to change.
-        /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle; \
-    else \
-        mkdir -p /usr/lib/splunk-otel-collector/agent-bundle; \
-    fi
-RUN rm -f /dist/agent-bundle_linux_${TARGETARCH}.tar.gz
-
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS jmx
 ARG JMX_METRIC_GATHERER_RELEASE
 RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics.jar && \
@@ -44,10 +27,6 @@ COPY dist/collect-libs.sh /collect-libs.sh
 RUN /collect-libs.sh /opt/journalctl /bin/journalctl
 
 FROM scratch
-ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
-ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
-ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
-ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/jre/bin
 
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /etc_passwd /etc/passwd
@@ -55,7 +34,6 @@ COPY --from=otelcol --chown=999 /otelcol /
 COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
 COPY --from=otelcol --chown=999 /tmp/tmp /tmp
-COPY --from=agent-bundle --chown=999 /usr/lib/splunk-otel-collector /usr/lib/splunk-otel-collector
 COPY --from=jmx --chown=999 /tmp/opentelemetry-jmx-metrics.jar /opt/opentelemetry-java-contrib-jmx-metrics.jar
 
 COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl

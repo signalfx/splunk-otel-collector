@@ -35,14 +35,6 @@ jobs:
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
-  agent-bundle-windows:
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64" ]
-    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
-    with:
-      ARCH: ${{ matrix.ARCH }}
-
   msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
 
@@ -50,7 +42,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
-    needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
+    needs: [cross-compile, msi-custom-actions]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       ARCH: ${{ matrix.ARCH }}
@@ -170,13 +162,6 @@ jobs:
           Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
-          if ("${{ matrix.OS }}" -ne "windows-11-arm") {
-            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
-            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
-          } else {
-            # The arm64 bundle does not include the python binaries since they are not used in the arm64 tests, so just check that the expected directory structure is created and the expected files are included
-            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\README.txt"
-          }
           # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
           $found_jmx = $false
           (Get-PSDrive -PSProvider FileSystem).Root | ForEach-Object {
@@ -379,7 +364,7 @@ jobs:
 
   docker-otelcol:
     runs-on: ${{ matrix.OS }}
-    needs: [cross-compile, agent-bundle-windows]
+    needs: [cross-compile]
     strategy:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
@@ -393,18 +378,12 @@ jobs:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: agent-bundle-windows_amd64
-          path: ./dist
-
       - uses: ./.github/actions/win-wait-for-docker
 
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           if ("${{ matrix.OS }}" -eq "windows-2025") {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
           } else {
@@ -412,7 +391,6 @@ jobs:
           }
           docker build -t otelcol-windows --build-arg BASE_IMAGE=$base_image --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
-          Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
 
       - name: Run docker image
         run: |

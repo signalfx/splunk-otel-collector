@@ -434,65 +434,6 @@ libsplunk:
     paths:
       - instrumentation/dist/libsplunk_*.so
 
-agent-bundle-linux:
-  rules:
-    - <<: *main-condition
-    # - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - <<: *manual-release-condition
-    - <<: *dry-run-condition
-  needs:
-    - job: manual_release_trigger
-      optional: true
-  retry: 2
-  resource_group: agent-bundle-linux-${ARCH}
-  parallel:
-    matrix:
-      - ARCH: amd64
-        TAG: main
-      - ARCH: arm64
-        TAG: arm
-  tags:
-    - $TAG
-  id_tokens:  # http://go/gitlab-17
-    CI_JOB_JWT:
-      aud:
-        - $CICD_VAULT_ADDR
-        - $SIGNING_PRD_URL
-  script:
-    - *docker-reader-role
-    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
-    - PUSH_CACHE=yes make -C packaging/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
-  artifacts:
-    paths:
-      - dist/agent-bundle_linux_${ARCH}.tar.gz
-
-agent-bundle-windows:
-  extends: .trigger-filter
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
-  needs:
-    - job: manual_release_trigger
-      optional: true
-  parallel:
-    matrix:
-      - ARCH: [amd64, arm64]
-  tags:
-    - windows2022
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  cache:
-    key:
-      files:
-        - packaging/bundle/collectd-plugins.yaml
-        - packaging/bundle/scripts/requirements.txt
-    paths:
-      - .cache/pip
-  script:
-    - ./packaging/bundle/scripts/windows/make.ps1 bundle $ARCH
-  artifacts:
-    paths:
-      - dist/agent-bundle_windows_$ARCH.zip
-
 .instrumentation-deb-rpm:
   extends: .trigger-filter
   needs:
@@ -597,7 +538,6 @@ sign-osx:
 .build-tar-deb-rpm:
   needs:
     - compile
-    - agent-bundle-linux
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -691,7 +631,6 @@ build-msi:
   image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
   needs:
     - sign-exe
-    - agent-bundle-windows
     - msi-custom-actions-package
   parallel:
     matrix:
@@ -829,33 +768,6 @@ sign-msi:
     paths:
       - dist/signed/*.msi
 
-sign-agent-bundles:
-  extends:
-    - .trigger-filter
-    - .submit-signing-request
-  retry: 2
-  needs:
-    - agent-bundle-linux
-    - agent-bundle-windows
-  variables:
-    ARTIFACT: dist/packages.tar.gz
-    SIGN_TYPE: GPG
-    OPTIONS: archive
-    DOWNLOAD_DIR: dist/signed
-  before_script:
-    - pushd dist && tar -czvf packages.tar.gz *.tar.gz *.zip && popd
-  after_script:
-    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
-    - mv dist/*.tar.gz dist/signed/
-    - mv dist/*.zip dist/signed/
-    - rm dist/signed/packages.tar.gz
-  artifacts:
-    paths:
-      - dist/signed/*.tar.gz
-      - dist/signed/*.tar.gz.asc
-      - dist/signed/*.zip
-      - dist/signed/*.zip.asc
-
 sign-ps-installer:
   extends:
     - .trigger-filter
@@ -887,19 +799,16 @@ verify-signed-packages:
     - sign-rpms
     - sign-msi
     - sign-tar
-    - agent-bundle-linux
-    - agent-bundle-windows
-    - sign-agent-bundles
     - sign-ps-installer
   script:
     - |
       set -ex
-      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip dist/install.ps1; do
+      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/install.ps1; do
         if [[ ! -f dist/signed/$(basename $pkg) ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
-        if [[ "${pkg##*.}" =~ gz|zip ]] && [[ ! -f dist/signed/$(basename $pkg).asc ]]; then
+        if [[ "${pkg##*.}" =~ gz ]] && [[ ! -f dist/signed/$(basename $pkg).asc ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
@@ -909,8 +818,6 @@ build-push-linux-image:
   extends: .trigger-filter
   needs:
     - job: compile
-      artifacts: true
-    - job: agent-bundle-linux
       artifacts: true
   retry: 2
   id_tokens:  # http://go/gitlab-17
@@ -939,7 +846,7 @@ build-push-linux-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -989,7 +896,7 @@ build-push-linux-fips-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -1033,12 +940,10 @@ sign-linux-image:
 build-push-windows-image:
   extends: .trigger-filter
   parallel:
-    matrix:
+      matrix:
       - WIN_VERSION: ["2019", "2022"]
   needs:
     - job: sign-exe
-      artifacts: true
-    - job: agent-bundle-windows
       artifacts: true
   tags:
     - windows${WIN_VERSION}
@@ -1051,7 +956,6 @@ build-push-windows-image:
     - Install-Chocolatey
     - Install-DockerCli
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-    - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
     - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
@@ -1712,8 +1616,6 @@ github-release:
       artifacts: true
     - job: push-multiarch-manifest
       artifacts: true
-    - job: sign-agent-bundles
-      artifacts: true
     - job: sign-multiarch-manifest
       artifacts: false
     - job: release-msi
@@ -1734,17 +1636,6 @@ github-release:
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      # Rename agent bundles to include the version for all releases (include pre-releases)
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        VERSION="${VERSION_TAG#v}"
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz.asc
-        mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${VERSION}_windows_amd64.zip
-        mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${VERSION}_windows_amd64.zip.asc
-        # exclude the arm64 bundle from release assets
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz.asc
-      fi
       pushd dist/assets && shasum -a 256 * > checksums.txt && popd
       if [[ -z "${DRY_RUN:-}" ]]; then
         # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)

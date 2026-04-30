@@ -72,10 +72,6 @@
     (OPTIONAL) A system-wide "deployment.environment" set via the environment variable 'OTEL_RESOURCE_ATTRIBUTES' for the whole machine. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -deployment_env staging
-.PARAMETER bundle_dir
-    (OPTIONAL) The location of your Smart Agent bundle for monitor functionality (default: C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle)
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -bundle_dir "C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
 .PARAMETER insecure
     (OPTIONAL) If true then certificates will not be checked when downloading resources. Defaults to '$false'.
     .EXAMPLE
@@ -140,7 +136,6 @@ param (
     [bool]$insecure = $false,
     [string]$collector_version = "",
     [bool]$with_dotnet_instrumentation = $false,
-    [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
@@ -548,10 +543,6 @@ if ($hec_token -eq "") {
     $hec_token = "$access_token"
 }
 
-if ($bundle_dir -eq "") {
-    $bundle_dir = "$installation_path\agent-bundle"
-}
-
 if ($force_skip_verify_access_token) {
     echo 'Skipping Access Token verification'
 } else {   
@@ -629,7 +620,6 @@ if (!(Test-Path -Path "$config_path")) {
 $collector_env_vars = @{
     "SPLUNK_ACCESS_TOKEN"     = "$access_token";
     "SPLUNK_API_URL"          = "$api_url";
-    "SPLUNK_BUNDLE_DIR"       = "$bundle_dir";
     "SPLUNK_CONFIG"           = "$config_path";
     "SPLUNK_HEC_TOKEN"        = "$hec_token";
     "SPLUNK_HEC_URL"          = "$hec_url";

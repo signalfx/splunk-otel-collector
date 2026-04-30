@@ -41,8 +41,8 @@ make rpm-package ARCH=amd64 VERSION=0.0.1-local
 **Note**: If you already have binaries and bundles built, you can skip compilation:
 
 ```bash
-make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
-make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
+make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
+make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
 ```
 
 The packages will be created in `dist/`:
@@ -150,8 +150,8 @@ source venv/bin/activate
 pip install -r packaging/tests/requirements.txt
 
 # 2. Build packages (whenever code changes)
-make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
-make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
+make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
+make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
 
 # 3. Run a quick test
 pytest -s --verbose -k "test_puppet_default and ubuntu-jammy" \
@@ -220,4 +220,3 @@ pytest --timeout=600 packaging/tests/deployments/puppet/puppet_test.py
 ## Next Steps
 
 After validating locally, you can push to CI which will run the full test matrix automatically.
-

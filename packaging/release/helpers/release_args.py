@@ -115,7 +115,7 @@ def get_args_and_asset():
         required=False,
         help="""
             Only applicable if the --path option is specified for a MSI file.
-            By default, the latest.txt file on dl.signalfx.com is automatically updated with the version of the MSI.
+            By default, the latest.txt file on dl.observability.splunkcloud.com is automatically updated with the version of the MSI.
             If uploading an older version of the MSI, specify this option to skip this step.
         """,
     )

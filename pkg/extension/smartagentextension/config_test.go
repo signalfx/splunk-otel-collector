@@ -17,6 +17,7 @@ package smartagentextension
 import (
 	"context"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -165,7 +166,7 @@ func defaultConfig() Config {
 				IntervalSeconds:     10,
 				WriteServerIPAddr:   "127.9.8.7",
 				WriteServerPort:     0,
-				ConfigDir:           "/var/run/signalfx-agent/collectd",
+				ConfigDir:           filepath.Join(bundleDir, "run", "collectd"),
 				BundleDir:           bundleDir,
 			},
 		},

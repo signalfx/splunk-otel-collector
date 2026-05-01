@@ -39,7 +39,6 @@ var (
 	_ xconfmap.Validator  = (*Config)(nil)
 
 	nonWindowsMonitors = map[string]bool{
-		"collectd/custom":            true,
 		"collectd/memcached":         true,
 		"collectd/signalfx-metadata": true,
 	}

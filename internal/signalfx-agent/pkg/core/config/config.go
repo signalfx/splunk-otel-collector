@@ -80,15 +80,14 @@ type CollectdConfig struct {
 	// This is where the agent will write the collectd config files that it
 	// manages.  If you have secrets in those files, consider setting this to a
 	// path on a tmpfs mount.  The files in this directory should be considered
-	// transient -- there is no value in editing them by hand.  If you want to
-	// add your own collectd config, see the collectd/custom monitor.
+	// transient -- there is no value in editing them by hand.
 	ConfigDir string `yaml:"configDir" default:"/var/run/signalfx-agent/collectd"`
 
 	// The following are propagated from the top-level config
 	BundleDir string `yaml:"-"`
 	// Assigned by manager, not by user
 	InstanceName string `yaml:"-"`
-	// A hack to allow custom collectd to easily specify a single monitorID via
+	// A hack to allow collectd-based monitors to easily specify a single monitorID via
 	// query parameter
 	WriteServerQuery string          `yaml:"-"`
 	Logger           log.FieldLogger `yaml:"-"`

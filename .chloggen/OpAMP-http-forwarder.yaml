@@ -5,7 +5,7 @@ change_type: enhancement
 component: config
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add http_forwarder/splunk_o11y_ingest extension to default config
+note: Add http_forwarder/opamp_splunk_o11y extension to default config
 
 # One or more tracking issues related to the change
 issues: [7514]
@@ -14,7 +14,7 @@ issues: [7514]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  Added `http_forwarder/splunk_o11y_ingest` extension to default agent configs. 
+  Added `http_forwarder/opamp_splunk_o11y` extension to default agent and gateway configs. 
   This extension binds to port 4320 and forwards requests to Splunk Observability ingest.
   The extension is intended as an entry point for receiving OpAMP data from instrumentation agents that support OpAMP,
   such as the Splunk OpenTelemetry Java agent.

@@ -127,6 +127,14 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
+					"http_forwarder/opamp_splunk_o11y": map[string]any{
+						"egress": map[string]any{
+							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
+						},
+						"ingress": map[string]any{
+							"endpoint": fmt.Sprintf("%s:4320", ip),
+						},
+					},
 					"http_forwarder/signalfx": map[string]any{
 						"egress": map[string]any{
 							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
@@ -253,7 +261,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"level": "info",
 						},
 					},
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/signalfx", "zpages", "config_source_telemetry"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "http_forwarder/signalfx", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
@@ -395,7 +403,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
-					"http_forwarder/splunk_o11y_ingest": map[string]any{
+					"http_forwarder/opamp_splunk_o11y": map[string]any{
 						"egress": map[string]any{
 							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
 						},
@@ -509,7 +517,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/splunk_o11y_ingest", "zpages", "smartagent", "config_source_telemetry"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "smartagent", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},

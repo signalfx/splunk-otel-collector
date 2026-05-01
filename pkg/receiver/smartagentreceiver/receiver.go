@@ -34,7 +34,6 @@ import (
 
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 
@@ -63,7 +62,6 @@ var (
 	saConfig                 *saconfig.Config
 	nonWordCharacters        = regexp.MustCompile(`[^\w]+`)
 	logrusShim               *logrusToZap
-	configureCollectdOnce    sync.Once
 	configureEnvironmentOnce sync.Once
 	configureLogrusOnce      sync.Once
 )
@@ -201,13 +199,6 @@ func (r *receiver) createMonitor(monitorType string, host component.Host) (monit
 		setUpEnvironment()
 	})
 
-	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
-		configureCollectdOnce.Do(func() {
-			r.logger.Info("Configuring collectd")
-			err = collectd.ConfigureMainCollectd(&saConfig.Collectd)
-		})
-	}
-
 	return monitor, err
 }
 
@@ -224,8 +215,8 @@ func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]com
 	f := smartagentextension.NewFactory()
 	saConfig = &f.CreateDefaultConfig().(*smartagentextension.Config).Config
 
-	// Do a lookup for any smartagent extensions to pick up common collectd options
-	// to be applied across instances of the receiver.
+	// Do a lookup for any smartagent extensions to pick up global Smart Agent
+	// options to be applied across instances of the receiver.
 	var foundAtLeastOne bool
 	var multipleSAExtensions bool
 	var chosenExtension component.ID

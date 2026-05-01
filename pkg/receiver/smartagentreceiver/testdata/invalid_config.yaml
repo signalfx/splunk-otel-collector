@@ -1,7 +1,6 @@
 smartagent/negativeintervalseconds:
-  type: collectd/python
+  type: cpu
   intervalSeconds: -234
 smartagent/missingrequired:
-  type: collectd/fake
+  type: fake
   port: 5309
-

@@ -16,7 +16,6 @@ package smartagentextension
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/signalfx/defaults"
 	"go.opentelemetry.io/collector/confmap"
@@ -36,15 +35,6 @@ type Config struct {
 func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	allSettings := componentParser.ToStringMap()
 
-	configDirSet := false
-	if collectd, ok := allSettings["collectd"]; ok {
-		if collectdBlock, ok := collectd.(map[string]any); ok {
-			if _, ok := collectdBlock["configDir"]; ok {
-				configDirSet = true
-			}
-		}
-	}
-
 	config, err := smartAgentConfigFromSettingsMap(allSettings)
 	if err != nil {
 		return err
@@ -53,11 +43,6 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	if config.BundleDir == "" {
 		config.BundleDir = cfg.Config.BundleDir
 	}
-	config.Collectd.BundleDir = config.BundleDir
-
-	if !configDirSet && config.Collectd.BundleDir != "" {
-		config.Collectd.ConfigDir = filepath.Join(config.Collectd.BundleDir, "run", "collectd")
-	}
 
 	cfg.Config = *config
 	return nil
@@ -65,13 +50,6 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 
 func smartAgentConfigFromSettingsMap(settings map[string]any) (*saconfig.Config, error) {
 	var config saconfig.Config
-	var collectdSettings map[string]any
-	var ok bool
-	if collectdSettings, ok = settings["collectd"].(map[string]any); !ok {
-		collectdSettings = map[string]any{}
-	}
-
-	settings["collectd"] = collectdSettings
 
 	asBytes, err := yaml.Marshal(settings)
 	if err != nil {
@@ -88,11 +66,5 @@ func smartAgentConfigFromSettingsMap(settings map[string]any) (*saconfig.Config,
 		return nil, fmt.Errorf("failed setting config defaults: %w", err)
 	}
 
-	// The default on CollectdConfig is 0, use the default if this is the case.
-	if config.Collectd.IntervalSeconds == 0 {
-		config.Collectd.IntervalSeconds = defaultIntervalSeconds
-	}
-
-	config.Collectd.BundleDir = config.BundleDir
 	return &config, nil
 }

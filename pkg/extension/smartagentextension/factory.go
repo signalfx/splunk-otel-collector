@@ -17,7 +17,6 @@ package smartagentextension
 import (
 	"context"
 	"os"
-	"path/filepath"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -27,8 +26,7 @@ import (
 )
 
 const (
-	typeStr                    = "smartagent"
-	defaultIntervalSeconds int = 10
+	typeStr = "smartagent"
 )
 
 func NewFactory() extension.Factory {
@@ -52,10 +50,6 @@ func createDefaultConfig() component.Config {
 		cfg = &saconfig.Config{}
 	}
 	cfg.BundleDir = bundleDir
-	cfg.Collectd.BundleDir = bundleDir
-	if bundleDir != "" {
-		cfg.Collectd.ConfigDir = filepath.Join(bundleDir, "run", "collectd")
-	}
 
 	return &Config{
 		Config: *cfg,

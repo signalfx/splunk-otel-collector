@@ -197,7 +197,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 }
 
 func TestStripMonitorTypePrefix(t *testing.T) {
-	assert.Equal(t, "foo", stripMonitorTypePrefix("collectd/foo"))
+	assert.Equal(t, "foo", stripMonitorTypePrefix("legacy/foo"))
 	assert.Equal(t, "cpu", stripMonitorTypePrefix("cpu"))
 }
 
@@ -321,21 +321,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		}
 		return false
 	}())
-	require.Equal(t, saconfig.CollectdConfig{
-		Timeout:             10,
-		ReadThreads:         1,
-		WriteThreads:        4,
-		WriteQueueLimitHigh: 5,
-		WriteQueueLimitLow:  400000,
-		LogLevel:            "notice",
-		IntervalSeconds:     10,
-		WriteServerIPAddr:   "127.9.8.7",
-		WriteServerPort:     0,
-		ConfigDir:           filepath.Join("/opt", "run", "collectd"),
-		BundleDir:           "/opt/",
-		InstanceName:        "",
-		WriteServerQuery:    "",
-	}, saConfig.Collectd)
+	require.Equal(t, "/opt/", saConfig.BundleDir)
 
 	if runtime.GOOS == "windows" {
 		require.NotEqual(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))

@@ -27,7 +27,6 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/mailru/easyjson v0.9.1
 	github.com/mattn/go-xmlrpc v0.0.3
-	github.com/mitchellh/hashstructure v1.1.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.39.1
 	github.com/openshift/api v0.0.0-20260416105050-3c6b218b8a80

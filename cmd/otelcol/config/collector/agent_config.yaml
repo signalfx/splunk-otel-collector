@@ -27,14 +27,21 @@ extensions:
       endpoint: "${SPLUNK_API_URL}"
       # Use instead when sending to gateway
       #endpoint: "${SPLUNK_GATEWAY_URL}"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "${SPLUNK_INGEST_URL}"
+      # Use instead when sending to gateway
+      #endpoint: "${SPLUNK_GATEWAY_URL}:4320"
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
     server:
       http:
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
-        # Use instead when sending to gateway (assuming the gateway is running http_forwarder/signalfx on port 9943)
-        #endpoint: "${SPLUNK_GATEWAY_URL}:9943/v1/opamp"
+        # Use instead when sending to gateway (assuming the gateway is running http_forwarder/signalfx on port 4320)
+        #endpoint: "${SPLUNK_GATEWAY_URL}:4320/v1/opamp"
         polling_interval: 30s
         headers:
           X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
@@ -205,7 +212,7 @@ service:
               prometheus:
                 host: '127.0.0.1'
                 port: 8888
-  extensions: [headers_setter, health_check, http_forwarder, opamp/splunk_o11y, zpages, smartagent]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages, smartagent]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]

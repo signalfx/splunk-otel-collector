@@ -1,0 +1,17 @@
+service:
+  pipelines:
+    metrics:
+    traces:
+      exporters: [otlp_http]
+    traces/signalfx_exporter_first:
+      exporters: [otlp_http]
+    traces/signalfx_exporter_second:
+      exporters: [oltp_http]
+    traces/signalfx_exporter_middle:
+      exporters: [ oltp_http, zipkin]
+    traces/signalfx_exporter_first_alternate_name:
+      exporters: [otlp_http]
+    traces/signalfx_exporter_second_alternate_name:
+      exporters: [oltp_http,]
+    traces/signalfx_exporter_middle_alternate_name:
+      exporters: [ oltp_http, zipkin]

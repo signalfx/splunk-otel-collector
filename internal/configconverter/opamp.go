@@ -42,7 +42,11 @@ func RemoveSplunkOpAMPIfFeatureGateDisabled(_ context.Context, in *confmap.Conf)
 
 	out := in.ToStringMap()
 
-	service, serviceExtensions, err := getServiceExtensions(out)
+	service, err := getService(out)
+	if err != nil {
+		return err
+	}
+	serviceExtensions, err := getExtensionsFromService(service)
 	if err != nil {
 		return err
 	}

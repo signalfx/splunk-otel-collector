@@ -61,7 +61,9 @@ func TestRemoveOpAMP_GateDisabled_OpAMPInConfig_IsRemoved(t *testing.T) {
 	assert.Contains(t, extensions, "opamp/splunk_o11y")
 	assert.Contains(t, extensions, "health_check")
 
-	_, serviceExts, err := getServiceExtensions(out)
+	service, err := getService(out)
+	require.NoError(t, err)
+	serviceExts, err := getExtensionsFromService(service)
 	require.NoError(t, err)
 	assert.NotContains(t, serviceExts, "opamp/splunk_o11y")
 	assert.Contains(t, serviceExts, "health_check")
@@ -107,7 +109,9 @@ func TestRemoveOpAMP_GateDisabled_OtherOpAMPVariants_NotRemoved(t *testing.T) {
 	assert.Contains(t, extensions, "opamp/splunk_o11y")
 	assert.Contains(t, extensions, "health_check")
 
-	_, serviceExts, err := getServiceExtensions(out)
+	service, err := getService(out)
+	require.NoError(t, err)
+	serviceExts, err := getExtensionsFromService(service)
 	require.NoError(t, err)
 	// Only opamp/splunk_o11y should be removed from service.extensions
 	assert.Contains(t, serviceExts, "opamp")

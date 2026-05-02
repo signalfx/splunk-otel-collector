@@ -26,7 +26,9 @@ import (
 
 func serviceExtensionsFromConf(t *testing.T, conf *confmap.Conf) []any {
 	t.Helper()
-	_, exts, err := getServiceExtensions(conf.ToStringMap())
+	service, err := getService(conf.ToStringMap())
+	require.NoError(t, err)
+	exts, err := getExtensionsFromService(service)
 	require.NoError(t, err)
 	return exts
 }

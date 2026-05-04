@@ -107,7 +107,7 @@ func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- 
 		results, err := parser.fromPrometheusWriteRequestMetrics(req)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			sc.Reporter.OnDebugf("prometheus_translation", err)
+			sc.Reporter.OnDebugf("prometheus_translation: %v", err)
 			return
 		}
 		mc <- results

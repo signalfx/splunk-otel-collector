@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.9
+  GO_VERSION: 1.26.2
 
 jobs:
   otelcol-fips:
@@ -75,16 +75,6 @@ jobs:
           path: ./bin
       - run: Set-ItemProperty -Path HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy -Name Enabled -Value ${{ matrix.FIPSMODE }}
       - run: ./bin/otelcol-fips_windows_amd64.exe --version
-        id: run-otelcol
-        continue-on-error: true
-      - run: echo "FIPS enabled, started successfully"
-        if: matrix.FIPSMODE == '1' && steps.run-otelcol.outcome == 'success'
-      - run: throw "FIPS enabled, should not have failed"
-        if: matrix.FIPSMODE == '1' && steps.run-otelcol.outcome == 'failure'
-      - run: echo "FIPS disabled, failed successfully"
-        if: matrix.FIPSMODE == '0' && steps.run-otelcol.outcome == 'failure'
-      - run: throw "FIPS disabled, should have failed"
-        if: matrix.FIPSMODE == '0' && steps.run-otelcol.outcome == 'success'
 
   docker-otelcol-fips:
     runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}

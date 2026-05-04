@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/packaging/ta-v2/tests
 
-go 1.25.9
+go 1.26.2
 
 require github.com/stretchr/testify v1.11.1
 

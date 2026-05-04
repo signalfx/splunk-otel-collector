@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/tracing
 
-go 1.25.9
+go 1.26.2
 
 require (
 	go.opentelemetry.io/otel v1.43.0

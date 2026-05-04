@@ -1,4 +1,5 @@
 extensions:
+  config_source_telemetry: {}
   docker_observer:
     endpoint: "{{ .DockerEndpoint }}"
   zpages:
@@ -32,7 +33,7 @@ receivers:
         rule: type == "container" and labels['test.id'] == '{{ .TestID }}' and port == 9090
     watch_observers: [docker_observer]
 service:
-  extensions: [zpages, docker_observer]
+  extensions: [zpages, docker_observer, config_source_telemetry]
   pipelines:
     metrics:
       receivers: [discovery/docker_observer]

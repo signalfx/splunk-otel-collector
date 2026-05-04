@@ -25,21 +25,21 @@ import (
 func TestDropSignalFxTracesExporterIfFeatureGateEnabled(t *testing.T) {
 	tests := []struct {
 		name               string
-		featureGateEnabled bool
 		input              string
 		expected           string
+		featureGateEnabled bool
 	}{
 		{
 			name:               "feature_gate_enabled",
-			featureGateEnabled: true,
 			input:              "testdata/drop_signalfx_exporter_traces_pipelines/input_config.yaml",
 			expected:           "testdata/drop_signalfx_exporter_traces_pipelines/expected_config.yaml",
+			featureGateEnabled: true,
 		},
 		{
 			name:               "feature_gate_disabled",
-			featureGateEnabled: false,
 			input:              "testdata/drop_signalfx_exporter_traces_pipelines/input_config.yaml",
 			expected:           "testdata/drop_signalfx_exporter_traces_pipelines/input_config.yaml",
+			featureGateEnabled: false,
 		},
 	}
 

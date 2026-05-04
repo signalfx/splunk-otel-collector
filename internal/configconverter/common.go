@@ -99,11 +99,11 @@ func getExtensionsFromService(service map[string]any) ([]any, error) {
 }
 
 func isSignalFxExporter(exporter string) bool {
-	return strings.ToLower(exporter) == "signalfx" || strings.HasPrefix(strings.ToLower(exporter), "signalfx/")
+	return strings.EqualFold(exporter, "signalfx") || strings.HasPrefix(strings.ToLower(exporter), "signalfx/")
 }
 
 func isTracePipeline(pipeline string) bool {
-	return strings.ToLower(pipeline) == "traces" || strings.HasPrefix(strings.ToLower(pipeline), "traces/")
+	return strings.EqualFold(pipeline, "traces") || strings.HasPrefix(strings.ToLower(pipeline), "traces/")
 }
 
 func toAnySlice(s any) ([]any, error) {

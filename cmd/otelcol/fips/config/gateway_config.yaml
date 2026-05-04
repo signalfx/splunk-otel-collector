@@ -23,6 +23,13 @@ extensions:
       # include_metadata: true
     egress:
       endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
     server:
       http:
@@ -140,7 +147,7 @@ exporters:
     log_data_enabled: false
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/signalfx, opamp/splunk_o11y, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, http_forwarder/signalfx, opamp/splunk_o11y, zpages]
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}

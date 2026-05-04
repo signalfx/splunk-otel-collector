@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- The default Windows MSI artifact download URL has been updated:
+  - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+  
+  To keep using the legacy `dl.signalfx.com` download URL:
+  
+  Puppet:
+  ```puppet
+  $win_repo_url = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+  ```
+
 ## puppet-v0.20.0
 
 ### 🛑 Breaking changes 🛑

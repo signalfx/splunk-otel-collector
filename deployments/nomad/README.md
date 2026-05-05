@@ -53,7 +53,7 @@ extensions:
     endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu: null
@@ -91,7 +91,7 @@ service:
       - memory_limiter
       - batch
       receivers:
-      - hostmetrics
+      - host_metrics
 EOF
     destination = "local/config/otel-agent-config.yaml"
 }

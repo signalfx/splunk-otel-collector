@@ -43,7 +43,7 @@ exporters:
     tls:
       insecure: true
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: ${env:COLLECTION_INTERVAL}
     scrapers:
       cpu: null
@@ -61,7 +61,7 @@ service:
 			// deferring running service for exec
 			c := collector.WithEnv(
 				map[string]string{
-					"HOST_METRICS_RECEIVER": "hostmetrics",
+					"HOST_METRICS_RECEIVER": "host_metrics",
 					"SPLUNK_CONFIG":         "",
 					"SPLUNK_CONFIG_YAML":    config,
 				},

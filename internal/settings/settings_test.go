@@ -422,7 +422,7 @@ func TestUseConfigPathsFromEnvVar(t *testing.T) {
 
 func TestConfigPrecedence(t *testing.T) {
 	validConfig := `receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 1s
     scrapers:
       cpu:
@@ -432,7 +432,7 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics]
+      receivers: [host_metrics]
       exporters: [debug]`
 
 	tests := []struct {

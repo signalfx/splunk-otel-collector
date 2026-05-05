@@ -1,5 +1,5 @@
 receivers:
-    hostmetrics:
+    host_metrics:
       scrapers:
         cpu:
 
@@ -39,6 +39,6 @@ service:
     extensions: [pprof, zpages, health_check]
     pipelines:
       metrics:
-        receivers: [hostmetrics]
+        receivers: [host_metrics]
         processors: [batch, transform, groupbyattrs, transform/2]
         exporters: [debug]

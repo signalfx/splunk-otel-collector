@@ -72,7 +72,7 @@ func TestCoreValidateYamlProvider(t *testing.T) {
   debug:
     verbosity: detailed
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu:
@@ -82,7 +82,7 @@ service:
       exporters:
       - debug
       receivers:
-      - hostmetrics
+      - host_metrics
 `
 
 	c, shutdown := tc.SplunkOtelCollectorContainer(
@@ -119,7 +119,7 @@ func TestCoreValidateDetectsInvalidYamlProvider(t *testing.T) {
   notreal:
     endpoint: an-endpoint
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
 service:
@@ -128,7 +128,7 @@ service:
       exporters:
       - notreal
       receivers:
-      - hostmetrics
+      - host_metrics
 `
 
 	c, shutdown := tc.SplunkOtelCollectorContainer(

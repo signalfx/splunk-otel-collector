@@ -14,12 +14,10 @@ and the [opentelemetry-collector-contrib v0.151.0](https://github.com/open-telem
 
 - (Splunk) `installer`: Replace default Windows MSI artifact download URL from `dl.signalfx.com` to `dl.observability.splunkcloud.com` in installer scripts. ([#7440](https://github.com/signalfx/splunk-otel-collector/pull/7440))
   For legacy `dl.signalfx.com` URL override instructions, see the
-  [0.150.0 → 0.151.0 upgrade guideline] in README.md.
+  [0.150.0 → 0.151.0 upgrade guideline](README.md#from-01500-to-01510).
 - (Splunk) `config`: All default configuration references to `filelog` receiver have been updated to `file_log` ([#7484](https://github.com/signalfx/splunk-otel-collector/pull/7484))
   The `filelog` alias has been deprecated. Please update any existing references to `file_log`.
   This is only relevant for users that have custom configuration dependent on the default config.
-- (Core) `cmd/builder`: In the generated Collector source, the `replace` statements in the Go module will now use relative paths by default. ([#15097](https://github.com/open-telemetry/opentelemetry-collector/issues/15097))
-  We expect that this will not break existing use-cases where the generated collector is only used in an interim manner for builds. It enables the possibility of tracking the generated Collector code as a longer living artifact, allowing it to be run on any machine (whereas absolute paths will be different depending on the machine the Collector source is generated on.) We have added `dist::use_absolute_replace_paths` to go back to the absolute path behaviour in the case where there is an unforeseen use-case that requires absolute paths.
 - (Core) `pkg/confighttp`: Stabilize framedSnappy feature gate. ([#15096](https://github.com/open-telemetry/opentelemetry-collector/pull/15096))
 - (Contrib) `exporter/signalfx`: Default `api_url` and `ingest_url` values derived from `realm` now use `*.observability.splunkcloud.com` instead of `*.signalfx.com`. ([#47670](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47670))
   Explicit `api_url` and `ingest_url` settings are unchanged. Update network allowlists if they targeted only `*.signalfx.com`.
@@ -101,8 +99,6 @@ and the [opentelemetry-collector-contrib v0.151.0](https://github.com/open-telem
 - (Core) `pkg/config/confignet`: Add support for Windows Named Pipe (npipe) transport ([#15085](https://github.com/open-telemetry/opentelemetry-collector/issues/15085))
 - (Core) `pkg/service`: Emit a warning when using the old v0.2.0 declarative config format ([#15088](https://github.com/open-telemetry/opentelemetry-collector/pull/15088))
 - (Contrib) `exporter/awss3`: Add support for retry_on_failure ([#47592](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47592))
-- (Contrib) `exporter/azure_blob`: Add sending_queue and timeout support ([#47654](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47654))
-  The azureblobexporter now supports sending_queue (with persistent storage, batching, and consumer configuration) and timeout configuration, matching the awss3exporter pattern.
 - (Contrib) `exporter/prometheusremotewrite`: Add support for translation_strategy, which supports UnderscoreEscapingWithSuffixes, UnderscoreEscapingWithoutSuffixes, NoUTF8EscapingWithSuffixes, and NoTranslation. ([#33661](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33661))
 - (Contrib) `exporter/prometheusremotewrite`: Add support for exemplar labels when using PRW 2.0 ([#33661](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33661))
 - (Contrib) `exporter/signalfx`: Add support for PersistentVolume and PersistentVolumeClaim entity property updates. ([#47829](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47829))

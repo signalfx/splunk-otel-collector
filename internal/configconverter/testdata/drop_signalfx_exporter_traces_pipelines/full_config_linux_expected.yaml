@@ -194,9 +194,9 @@ receivers:
             - /home/*/.bash_history
         include_file_name: false
         include_file_path: true
-    fluentforward:
+    fluent_forward:
         endpoint: 0.0.0.0:8006
-    hostmetrics:
+    host_metrics:
         collection_interval: 10s
         scrapers:
             cpu: null
@@ -412,7 +412,7 @@ service:
                 - memory_limiter
                 - batch
             receivers:
-                - fluentforward
+                - fluent_forward
                 - otlp
                 - scripted_inputs/bandwidth
                 - scripted_inputs/cpu

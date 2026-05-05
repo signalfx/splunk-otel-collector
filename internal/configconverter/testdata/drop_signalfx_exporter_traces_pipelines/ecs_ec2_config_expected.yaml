@@ -75,9 +75,9 @@ processors:
         override: true
 receivers:
     awsecscontainermetrics: null
-    fluentforward:
+    fluent_forward:
         endpoint: 0.0.0.0:8006
-    hostmetrics:
+    host_metrics:
         collection_interval: 10s
         scrapers:
             cpu: null
@@ -137,7 +137,7 @@ service:
                 - resourcedetection
             receivers:
                 - otlp
-                - fluentforward
+                - fluent_forward
         metrics:
             exporters:
                 - signalfx
@@ -147,7 +147,7 @@ service:
                 - filter
                 - resourcedetection
             receivers:
-                - hostmetrics
+                - host_metrics
                 - otlp
                 - awsecscontainermetrics
         metrics/internal:

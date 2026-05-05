@@ -74,9 +74,9 @@ processors:
             - system
         override: true
 receivers:
-    fluentforward:
+    fluent_forward:
         endpoint: 127.0.0.1:8006
-    hostmetrics:
+    host_metrics:
         collection_interval: 10s
         scrapers:
             cpu: null
@@ -158,7 +158,7 @@ service:
                 - batch
                 - resourcedetection
             receivers:
-                - hostmetrics
+                - host_metrics
                 - otlp
         metrics/internal:
             exporters:

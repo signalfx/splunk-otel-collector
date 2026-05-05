@@ -36,11 +36,6 @@ RUN if [[ ${DISTRO_IMAGE} =~ "opensuse" ]] ; then \
 
 RUN ${PKG_MGR} install -y systemd procps python3-pip python3-devel gcc wget tar
 
-# fix nss-systemd breaking systemd-tmpfiles in centos10 containers (systemd 256+)
-RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
-    printf 'passwd: files\ngroup: files\nshadow: files\nhosts: files dns\n' > /etc/nsswitch.conf; \
-    fi
-
 RUN if [ ${PKG_MGR} != "zypper" ]; then \
 wget -O /etc/yum.repos.d/salt.repo -q https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.repo; fi
 RUN if [ ${PKG_MGR} == "dnf" ]; then dnf clean expire-cache; fi
@@ -53,6 +48,12 @@ RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v${NODE_VERSION}/node-v${
     mv /opt/node* /opt/node
 
 ENV PATH=/opt/node/bin:$PATH
+
+# mask systemd-userdbd so systemd-tmpfiles falls back to getpwnam()/files on centos10 (systemd 256+)
+RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
+    ln -sf /dev/null /etc/systemd/system/systemd-userdbd.socket && \
+    ln -sf /dev/null /etc/systemd/system/systemd-userdbd.service; \
+    fi
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
 	"systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

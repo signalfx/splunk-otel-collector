@@ -234,7 +234,7 @@ func TestIsSignalFxExporter(t *testing.T) {
 	}
 }
 
-func TestInvalidConfigs(t *testing.T) {
+func TestNoOpConfigs(t *testing.T) {
 	tests := []struct {
 		name          string
 		config        *confmap.Conf

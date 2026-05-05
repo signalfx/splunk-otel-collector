@@ -16,12 +16,11 @@ RUN if [[ ${DISTRO_IMAGE} =~ "centos" ]] && ! [[ ${DISTRO_IMAGE} =~ "centos:stre
     echo 'fastestmirror=1' >> /etc/yum.conf; \
     fi
 
-# config for centos10 (rpm binary not available; fix nss-systemd breaking systemd-tmpfiles in containers)
+# config for centos10 (rpm binary not available)
 RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
     curl -fsSL https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official \
         -o /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
-    dnf config-manager --save --setopt=gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
-    sed -i 's/^\(passwd\|group\|shadow\):.*$/\1: files/' /etc/nsswitch.conf; \
+    dnf config-manager --save --setopt=gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial; \
     fi
 
 # config for centos8
@@ -36,6 +35,11 @@ RUN if [[ ${DISTRO_IMAGE} =~ "opensuse" ]] ; then \
 	fi
 
 RUN ${PKG_MGR} install -y systemd procps python3-pip python3-devel gcc wget tar
+
+# fix nss-systemd breaking systemd-tmpfiles in centos10 containers (systemd 256+)
+RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
+    sed -i 's/^\(passwd\|group\|shadow\):.*$/\1: files/' /etc/nsswitch.conf; \
+    fi
 
 RUN if [ ${PKG_MGR} != "zypper" ]; then \
 wget -O /etc/yum.repos.d/salt.repo -q https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.repo; fi

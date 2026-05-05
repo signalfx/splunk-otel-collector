@@ -30,15 +30,15 @@ import (
 )
 
 const (
-	distDir           = "../out/distribution"
-	multiOSName       = "Splunk_TA_otel"
-	linuxName         = "Splunk_TA_otel_linux_x86_64"
-	windowsName       = "Splunk_TA_otel_windows_x86_64"
-	multiOSTgz        = multiOSName + ".tgz"
-	linuxTgz          = linuxName + ".tgz"
-	windowsTgz        = windowsName + ".tgz"
-	linuxBinSuffix    = "/linux_x86_64/"
-	windowsBinSuffix  = "/windows_x86_64/"
+	distDir       = "../out/distribution"
+	multiOSName   = "Splunk_TA_otel"
+	linuxName     = "Splunk_TA_otel_linux_x86_64"
+	windowsName   = "Splunk_TA_otel_windows_x86_64"
+	multiOSTgz    = multiOSName + ".tgz"
+	linuxTgz      = linuxName + ".tgz"
+	windowsTgz    = windowsName + ".tgz"
+	linuxBinDir   = "/linux_x86_64/"
+	windowsBinDir = "/windows_x86_64/"
 )
 
 // getFileSize returns the size of a file in bytes
@@ -164,14 +164,14 @@ func TestLinuxPackageContents(t *testing.T) {
 	contents := getTarContents(t, linuxPath)
 	t.Logf("Linux package contains %d entries", len(contents))
 
-	linuxBinPath := filepath.Join(linuxName, linuxBinSuffix)
-	windowsBinPath := filepath.Join(linuxName, windowsBinSuffix)
-
+	packageName := linuxName
 	// Linux package should contain linux binaries
+	linuxBinPath := filepath.Join(packageName, linuxBinDir)
 	assert.True(t, containsPath(contents, linuxBinPath),
 		"Linux package should contain %s folder", linuxBinPath)
 
 	// Linux package should NOT contain windows binaries
+	windowsBinPath := filepath.Join(packageName, windowsBinDir)
 	assert.False(t, containsPath(contents, windowsBinPath),
 		"Linux package should NOT contain %s folder", windowsBinPath)
 }
@@ -183,14 +183,15 @@ func TestWindowsPackageContents(t *testing.T) {
 	contents := getTarContents(t, windowsPath)
 	t.Logf("Windows package contains %d entries", len(contents))
 
-	linuxBinPath := filepath.Join(windowsName, linuxBinSuffix)
-	windowsBinPath := filepath.Join(windowsName, windowsBinSuffix)
+	packageName := windowsName
 
 	// Windows package should contain windows binaries
+	windowsBinPath := filepath.Join(packageName, windowsBinDir)
 	assert.True(t, containsPath(contents, windowsBinPath),
 		"Windows package should contain %s folder", windowsBinPath)
 
 	// Windows package should NOT contain linux binaries
+	linuxBinPath := filepath.Join(packageName, linuxBinDir)
 	assert.False(t, containsPath(contents, linuxBinPath),
 		"Windows package should NOT contain %s folder", linuxBinPath)
 }
@@ -202,13 +203,14 @@ func TestMultiOSPackageContents(t *testing.T) {
 	contents := getTarContents(t, multiOSPath)
 	t.Logf("Multi-OS package contains %d entries", len(contents))
 
-	linuxBinPath := filepath.Join(multiOSName, linuxBinSuffix)
-	windowsBinPath := filepath.Join(multiOSName, windowsBinSuffix)
+	packageName := multiOSName
 
 	// Multi-OS package should contain both linux and windows binaries
+	linuxBinPath := filepath.Join(packageName, linuxBinDir)
 	assert.True(t, containsPath(contents, linuxBinPath),
 		"Multi-OS package should contain %s folder", linuxBinPath)
 
+	windowsBinPath := filepath.Join(packageName, windowsBinDir)
 	assert.True(t, containsPath(contents, windowsBinPath),
 		"Multi-OS package should contain %s folder", windowsBinPath)
 }

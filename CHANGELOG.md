@@ -15,6 +15,9 @@ and the [opentelemetry-collector-contrib v0.151.0](https://github.com/open-telem
 - (Splunk) `installer`: Replace default Windows MSI artifact download URL from `dl.signalfx.com` to `dl.observability.splunkcloud.com` in installer scripts. ([#7440](https://github.com/signalfx/splunk-otel-collector/pull/7440))
   For legacy `dl.signalfx.com` URL override instructions, see the
   [0.150.0 → 0.151.0 upgrade guideline](README.md#from-01500-to-01510).
+- (Splunk) `config`: Update default configs to use canonical receiver names (`fluent_forward`, `host_metrics`) instead of legacy aliases (`fluentforward`, `hostmetrics`). ([#7522](https://github.com/signalfx/splunk-otel-collector/pull/7522))
+  The legacy aliases will be removed in a future release. Users relying on custom configs
+  with the old names should migrate to the canonical names before the aliases are removed.
 - (Splunk) `config`: All default configuration references to `filelog` receiver have been updated to `file_log` ([#7484](https://github.com/signalfx/splunk-otel-collector/pull/7484))
   The `filelog` alias has been deprecated. Please update any existing references to `file_log`.
   This is only relevant for users that have custom configuration dependent on the default config.

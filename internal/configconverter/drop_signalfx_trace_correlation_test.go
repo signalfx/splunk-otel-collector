@@ -236,8 +236,8 @@ func TestIsSignalFxExporter(t *testing.T) {
 
 func TestNoOpConfigs(t *testing.T) {
 	tests := []struct {
-		name          string
 		config        *confmap.Conf
+		name          string
 		errorExpected bool
 	}{
 		{

@@ -16,6 +16,7 @@ package configconverter
 
 import (
 	"context"
+	"log"
 
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/featuregate"
@@ -59,12 +60,14 @@ func DropSignalFxTracesExporterIfFeatureGateEnabled(_ context.Context, in *confm
 	return nil
 }
 
+// This function does not provide user-facing config validation. Any config validation
+// that fails will simply leaves the given object as-is.
 func removeSignalFxExportersFromTracePipelines(pipelines map[string]any) {
-	filteredPipelines := make(map[string]any, len(pipelines))
+	pipelinesToKeep := make(map[string]any, len(pipelines))
 
 	for pipelineName, rawPipeline := range pipelines {
 		if !isTracePipeline(pipelineName) {
-			filteredPipelines[pipelineName] = rawPipeline
+			pipelinesToKeep[pipelineName] = rawPipeline
 			continue
 		}
 
@@ -75,7 +78,7 @@ func removeSignalFxExportersFromTracePipelines(pipelines map[string]any) {
 
 		rawExporters, ok := pipeline["exporters"]
 		if !ok || rawExporters == nil {
-			filteredPipelines[pipelineName] = pipeline
+			pipelinesToKeep[pipelineName] = pipeline
 			continue
 		}
 
@@ -87,22 +90,29 @@ func removeSignalFxExportersFromTracePipelines(pipelines map[string]any) {
 		filtered := make([]any, 0, len(exporters))
 		for _, exporter := range exporters {
 			exporterName, ok := exporter.(string)
-			if !ok || isSignalFxExporter(exporterName) {
+			if !ok {
+				continue
+			}
+			exporterToDrop := isSignalFxExporter(exporterName)
+			if exporterToDrop {
+				log.Printf("DEPRECATION: The SignalFx exporter no longer needs to be in trace pipelines. "+
+					"Dropping '%s' exporter from '%s' pipeline", exporterName, pipelineName)
 				continue
 			}
 			filtered = append(filtered, exporter)
 		}
 
 		if len(filtered) == 0 {
+			log.Printf("INFO: The trace pipeline '%s' was removed as there no exporters remaining after config conversion.", pipelineName)
 			continue
 		}
 		pipeline["exporters"] = filtered
-		filteredPipelines[pipelineName] = pipeline
+		pipelinesToKeep[pipelineName] = pipeline
 	}
 	for pipelineName := range pipelines {
 		delete(pipelines, pipelineName)
 	}
-	for pipelineName, pipeline := range filteredPipelines {
+	for pipelineName, pipeline := range pipelinesToKeep {
 		pipelines[pipelineName] = pipeline
 	}
 }

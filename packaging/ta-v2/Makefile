@@ -70,6 +70,7 @@ pack: validate-target-os sync-configs ta-inputs-conf
 	sed -i.bak \
 		-e 's/^version[[:space:]]*=[[:space:]]*.*/version = $(patsubst v%,%,$(VERSION))/' \
 		-e 's/^id[[:space:]]*=[[:space:]]*.*/id = $(PKG_NAME)/' \
+		-e 's/^name[[:space:]]*=[[:space:]]*.*/name = $(PKG_NAME)/' \
 		$$tmpdir/$(PKG_NAME)/default/app.conf && \
 	rm -f $$tmpdir/$(PKG_NAME)/default/app.conf.bak && \
 	COPYFILE_DISABLE=1 tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \

@@ -73,6 +73,7 @@ func removeSignalFxExportersFromTracePipelines(pipelines map[string]any) {
 
 		pipeline, ok := rawPipeline.(map[string]any)
 		if !ok {
+			pipelinesToKeep[pipelineName] = rawPipeline
 			continue
 		}
 
@@ -84,6 +85,7 @@ func removeSignalFxExportersFromTracePipelines(pipelines map[string]any) {
 
 		exporters, err := toAnySlice(rawExporters)
 		if err != nil {
+			pipelinesToKeep[pipelineName] = rawPipeline
 			continue
 		}
 
@@ -103,7 +105,7 @@ func removeSignalFxExportersFromTracePipelines(pipelines map[string]any) {
 		}
 
 		if len(filtered) == 0 {
-			log.Printf("INFO: The trace pipeline '%s' was removed as there no exporters remaining after config conversion.", pipelineName)
+			log.Printf("INFO: The trace pipeline '%s' was removed as there are no exporters remaining after config conversion.", pipelineName)
 			continue
 		}
 		pipeline["exporters"] = filtered

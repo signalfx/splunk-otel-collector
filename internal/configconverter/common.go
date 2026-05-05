@@ -51,7 +51,9 @@ func ConverterFactoryFromConverter(conv confmap.Converter) confmap.ConverterFact
 func getMetricsPipelineAndReceivers(pipelines map[string]any) (map[string]any, []any, error) {
 	metricsPipeline := map[string]any{}
 	if mp, ok := pipelines["metrics"]; ok && mp != nil {
-		metricsPipeline = mp.(map[string]any)
+		if metricsPipeline, ok = mp.(map[string]any); !ok {
+			return nil, nil, fmt.Errorf("metrics pipeline is of unexpected form (%T): %v", mp, mp)
+		}
 	}
 	pipelines["metrics"] = metricsPipeline
 

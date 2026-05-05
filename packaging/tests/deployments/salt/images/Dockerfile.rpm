@@ -16,11 +16,12 @@ RUN if [[ ${DISTRO_IMAGE} =~ "centos" ]] && ! [[ ${DISTRO_IMAGE} =~ "centos:stre
     echo 'fastestmirror=1' >> /etc/yum.conf; \
     fi
 
-# config for centos10 (rpm binary not available)
+# config for centos10 (rpm binary not available; fix nss-systemd breaking systemd-tmpfiles in containers)
 RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
     curl -fsSL https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official \
         -o /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
-    dnf config-manager --save --setopt=gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial; \
+    dnf config-manager --save --setopt=gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
+    sed -i 's/^\(passwd\|group\|shadow\):.*$/\1: files/' /etc/nsswitch.conf; \
     fi
 
 # config for centos8

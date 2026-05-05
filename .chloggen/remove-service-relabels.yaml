@@ -1,7 +1,0 @@
-change_type: bug_fix
-
-component: config
-
-note: Remove redundant service attribute relabels from internal metrics scrape configs
-
-issues: [7481]

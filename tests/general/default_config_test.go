@@ -457,8 +457,8 @@ func TestDefaultAgentConfig(t *testing.T) {
 					},
 				},
 				"receivers": map[string]any{
-					"fluentforward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
-					"hostmetrics": map[string]any{
+					"fluent_forward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
+					"host_metrics": map[string]any{
 						"collection_interval": "10s",
 						"scrapers": map[string]any{
 							"cpu":        nil,
@@ -522,7 +522,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"fluentforward", "otlp"},
+							"receivers":  []any{"fluent_forward", "otlp"},
 						},
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
@@ -532,7 +532,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"hostmetrics", "otlp"},
+							"receivers":  []any{"host_metrics", "otlp"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},

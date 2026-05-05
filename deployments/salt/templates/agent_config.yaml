@@ -1,7 +1,7 @@
 # Custom collector config for test purposes
 
 receivers:
-  fluentforward:
+  fluent_forward:
     endpoint: 127.0.0.1:8006
   otlp:
     protocols:
@@ -39,6 +39,6 @@ service:
       processors: [memory_limiter]
       exporters: [logging/info]
     logs:
-      receivers: [fluentforward, otlp]
+      receivers: [fluent_forward, otlp]
       processors: [memory_limiter]
       exporters: [logging/debug]

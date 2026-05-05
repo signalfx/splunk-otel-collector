@@ -39,10 +39,10 @@ extensions:
       enabled: true
 
 receivers:
-  # The fluentforward receiver can be used to forward logs from the Docker fluentd logging driver.
-  fluentforward:
+  # The fluent_forward receiver can be used to forward logs from the Docker fluentd logging driver.
+  fluent_forward:
     endpoint: 0.0.0.0:8006
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu:
@@ -172,7 +172,7 @@ service:
         #- resource/add_environment
       exporters: [otlp_http, signalfx]
     metrics:
-      receivers: [hostmetrics, otlp, awsecscontainermetrics]
+      receivers: [host_metrics, otlp, awsecscontainermetrics]
       processors: [memory_limiter, batch, filter, resourcedetection]
       exporters: [signalfx]
     metrics/internal:
@@ -180,7 +180,7 @@ service:
       processors: [memory_limiter, batch, filter, resourcedetection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [otlp, fluentforward]
+      receivers: [otlp, fluent_forward]
       processors:
         - memory_limiter
         - batch

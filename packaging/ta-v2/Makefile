@@ -66,9 +66,12 @@ pack: validate-target-os sync-configs ta-inputs-conf
 	@tmpdir=$$(mktemp -d) && \
 	listfile=$$(mktemp) && \
 	tr -d '\r' < $(PKG_NAME).fileslist.txt > $$listfile && \
-	cp -rL ./assets/ $$tmpdir/$(MOD_INPUT_NAME) && \
-	sed -i.bak -e 's/^version[[:space:]]*=[[:space:]]*.*/version = $(patsubst v%,%,$(VERSION))/' $$tmpdir/$(MOD_INPUT_NAME)/default/app.conf && \
-	rm -f $$tmpdir/$(MOD_INPUT_NAME)/default/app.conf.bak && \
+	cp -rL ./assets/ $$tmpdir/$(PKG_NAME) && \
+	sed -i.bak \
+		-e 's/^version[[:space:]]*=[[:space:]]*.*/version = $(patsubst v%,%,$(VERSION))/' \
+		-e 's/^id[[:space:]]*=[[:space:]]*.*/id = $(PKG_NAME)/' \
+		$$tmpdir/$(PKG_NAME)/default/app.conf && \
+	rm -f $$tmpdir/$(PKG_NAME)/default/app.conf.bak && \
 	COPYFILE_DISABLE=1 tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
 	rm -rf $$tmpdir $$listfile
 

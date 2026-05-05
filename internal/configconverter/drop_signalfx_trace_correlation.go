@@ -75,6 +75,7 @@ func removeSignalFxExportersFromTracePipelines(pipelines map[string]any) {
 
 		rawExporters, ok := pipeline["exporters"]
 		if !ok || rawExporters == nil {
+			filteredPipelines[pipelineName] = pipeline
 			continue
 		}
 

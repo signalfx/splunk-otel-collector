@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/featuregate"
 )
@@ -142,9 +143,6 @@ func TestDropSignalFxTracesExporterIfFeatureGateEnabled(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.NoError(t, featuregate.GlobalRegistry().Set(dropTraceCorrelationPipelineFeatureGateID, tt.featureGateEnabled))
-			t.Cleanup(func() {
-				_ = featuregate.GlobalRegistry().Set(dropTraceCorrelationPipelineFeatureGateID, false)
-			})
 
 			cfgMap, err := confmaptest.LoadConf(tt.input)
 			require.NoError(t, err)
@@ -232,6 +230,95 @@ func TestIsSignalFxExporter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.Equal(t, tt.expected, isSignalFxExporter(tt.exporter))
+		})
+	}
+}
+
+func TestInvalidConfigs(t *testing.T) {
+	tests := []struct {
+		name          string
+		config        *confmap.Conf
+		errorExpected bool
+	}{
+		{
+			name: "nil",
+		},
+		{
+			name:          "empty",
+			config:        confmap.New(),
+			errorExpected: false,
+		},
+		{
+			name: "invalid_service",
+			config: confmap.NewFromStringMap(map[string]any{
+				"service": "not-a-map",
+			}),
+			errorExpected: true,
+		},
+		{
+			name: "invalid_pipelines",
+			config: confmap.NewFromStringMap(map[string]any{
+				"service": map[string]any{
+					"pipelines": "not-a-map",
+				},
+			}),
+			errorExpected: true,
+		},
+		{
+			name: "no_service",
+			config: confmap.NewFromStringMap(map[string]any{
+				"receivers": map[string]any{
+					"otlp": map[string]any{},
+				},
+			}),
+			errorExpected: false,
+		},
+		{
+			name: "no_traces_pipeline",
+			config: confmap.NewFromStringMap(map[string]any{
+				"service": map[string]any{
+					"pipelines": map[string]any{
+						"metrics": map[string]any{
+							"exporters": []any{"signalfx"},
+						},
+					},
+				},
+			}),
+			errorExpected: false,
+		},
+		{
+			name: "no_exporters",
+			config: confmap.NewFromStringMap(map[string]any{
+				"service": map[string]any{
+					"pipelines": map[string]any{
+						"traces": map[string]any{
+							"receivers": []any{"otlp"},
+						},
+					},
+				},
+			}),
+			errorExpected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.NoError(t, featuregate.GlobalRegistry().Set(dropTraceCorrelationPipelineFeatureGateID, true))
+
+			var original *confmap.Conf
+			config := tt.config
+			if config != nil {
+				original = confmap.NewFromStringMap(config.ToStringMap())
+				config = confmap.NewFromStringMap(config.ToStringMap())
+			}
+
+			err := DropSignalFxTracesExporterIfFeatureGateEnabled(t.Context(), config)
+			if tt.errorExpected {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, original, config)
 		})
 	}
 }

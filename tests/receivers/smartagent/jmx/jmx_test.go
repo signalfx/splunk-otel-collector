@@ -56,7 +56,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	f := otlpreceiver.NewFactory()
 	port := testutils.GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	c.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  fmt.Sprintf("localhost:%d", port),
 			Transport: "tcp",

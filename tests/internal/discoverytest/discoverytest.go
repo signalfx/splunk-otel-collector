@@ -58,7 +58,7 @@ const (
 func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 	f := otlpreceiver.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	cfg.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	cfg.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  endpoint,
 			Transport: "tcp",

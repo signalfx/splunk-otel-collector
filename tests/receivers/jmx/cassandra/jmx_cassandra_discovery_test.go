@@ -70,7 +70,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	port := 16745
 	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
 	endpoint := fmt.Sprintf("localhost:%d", port)
-	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	c.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  endpoint,
 			Transport: "tcp",

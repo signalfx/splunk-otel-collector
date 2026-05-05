@@ -10,17 +10,10 @@ ENV SALT_VERSION=latest
 ENV NODE_VERSION=18.20.8
 ENV container=docker
 
-# config for centos (stream8, stream9)
-RUN if [[ ${DISTRO_IMAGE} =~ "centos" ]] && ! [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
+# config for centos
+RUN if [[ ${DISTRO_IMAGE} =~ "centos" ]] ; then \
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
     echo 'fastestmirror=1' >> /etc/yum.conf; \
-    fi
-
-# config for centos10 (rpm binary not available)
-RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
-    curl -fsSL https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official \
-        -o /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
-    dnf config-manager --save --setopt=gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial; \
     fi
 
 # config for centos8
@@ -48,12 +41,6 @@ RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v${NODE_VERSION}/node-v${
     mv /opt/node* /opt/node
 
 ENV PATH=/opt/node/bin:$PATH
-
-# mask systemd-userdbd so systemd-tmpfiles falls back to getpwnam()/files on centos10 (systemd 256+)
-RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
-    ln -sf /dev/null /etc/systemd/system/systemd-userdbd.socket && \
-    ln -sf /dev/null /etc/systemd/system/systemd-userdbd.service; \
-    fi
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
 	"systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

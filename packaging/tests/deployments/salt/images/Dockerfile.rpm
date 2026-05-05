@@ -38,7 +38,7 @@ RUN ${PKG_MGR} install -y systemd procps python3-pip python3-devel gcc wget tar
 
 # fix nss-systemd breaking systemd-tmpfiles in centos10 containers (systemd 256+)
 RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream10" ]] ; then \
-    sed -i 's/^\(passwd\|group\|shadow\):.*$/\1: files/' /etc/nsswitch.conf; \
+    printf 'passwd: files\ngroup: files\nshadow: files\nhosts: files dns\n' > /etc/nsswitch.conf; \
     fi
 
 RUN if [ ${PKG_MGR} != "zypper" ]; then \

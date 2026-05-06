@@ -282,7 +282,7 @@ func TestPackageMandatoryFiles(t *testing.T) {
 				}
 			}
 			require.NotEmpty(t, appConfVersion, "version not found in app.conf of %s package", pkgName)
-			require.Regexp(t, `^\d+\.\d+\.\d+$`, appConfVersion)
+			require.Regexp(t, `^\d+\.\d+\.\d+(-[0-9]-[a-z0-9]+)?$`, appConfVersion)
 
 			// Check that the [package] id matches the package name.
 			var appConfPackageID string

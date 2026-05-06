@@ -1,5 +1,0 @@
-change_type: enhancement
-component: packaging
-note: Update Splunk OpenTelemetry .NET agent to v1.14.0
-issues: [7485]
-subtext: ""

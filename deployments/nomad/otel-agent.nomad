@@ -143,7 +143,7 @@ extensions:
     endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu: null
@@ -214,7 +214,7 @@ service:
       - batch
       - resourcedetection
       receivers:
-      - hostmetrics
+      - host_metrics
     metrics/agent:
       exporters:
       - debug

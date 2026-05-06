@@ -1095,9 +1095,10 @@ Collector:
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.signalfx.com/v1/log)
-  --hec-index <index>                   Set the Splunk index to send logs to when using '--with-logs'.
-                                        If not set, the default index configured on the HEC token will be used.
-                                        Only applicable when '--with-logs' is specified.
+  --splunk-logs-token <token>           Set the Splunk logs token.
+  --splunk-logs-url <url>               Set the Splunk logs endpoint URL.
+  --splunk-logs-index <index>           Set the Splunk index to send logs to.
+                                        If not set, the default index configured on the logs token will be used.
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
@@ -1123,12 +1124,6 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
-  --with-logs                           Use the logs collection config ($logs_config_path) instead of the
-                                        default agent/gateway config. Ignored if '--collector-config' is specified.
-  --splunk-platform                     Configure the collector to send logs to Splunk Platform via HEC.
-                                        Skips Splunk Observability token verification and omits o11y-specific
-                                        environment variables (realm, ingest URL, API URL).
-                                        Requires '--hec-url' and '--hec-token'.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1398,7 +1393,10 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
-  local hec_index=
+  local splunk_logs_token=
+  local splunk_logs_url=
+  local splunk_logs_index=
+  local with_logs="false"
   local godebug=
   local ingest_url=
   local insecure=
@@ -1410,8 +1408,6 @@ parse_args_and_install() {
   local service_user="$default_service_user"
   local uninstall="false"
   local mode="agent"
-  local with_logs="false"
-  local splunk_platform="false"
   local collector_config_path=
   local skip_collector_repo="false"
   local with_instrumentation="false"
@@ -1441,12 +1437,6 @@ parse_args_and_install() {
         collector_config_path="$2"
         shift 1
         ;;
-      --with-logs)
-        with_logs="true"
-        ;;
-      --splunk-platform)
-        splunk_platform="true"
-        ;;
       --collector-version)
         collector_version="$2"
         shift 1
@@ -1463,8 +1453,16 @@ parse_args_and_install() {
         hec_url="$2"
         shift 1
         ;;
-      --hec-index)
-        hec_index="$2"
+      --splunk-logs-token)
+        splunk_logs_token="$2"
+        shift 1
+        ;;
+      --splunk-logs-url)
+        splunk_logs_url="$2"
+        shift 1
+        ;;
+      --splunk-logs-index)
+        splunk_logs_index="$2"
         shift 1
         ;;
       --godebug)
@@ -1654,13 +1652,8 @@ parse_args_and_install() {
       exit 0
   fi
 
-  if [ -z "$access_token" ]; then
-    if [ "$splunk_platform" = "true" ]; then
-      # Splunk Platform only mode; an o11y access token is not required
-      access_token="${hec_token:-dummy}"
-    else
-      access_token=$(request_access_token)
-    fi
+  if [ -z "$access_token" ] && [ -n "$realm" ]; then
+    access_token=$(request_access_token)
   fi
 
   if [ -z "$api_url" ]; then
@@ -1677,6 +1670,11 @@ parse_args_and_install() {
 
   if [ -z "$hec_url" ]; then
     hec_url="${ingest_url}/v1/log"
+  fi
+
+  # Auto-enable logs collection when any splunk-logs-* option is provided
+  if [ -n "$splunk_logs_token" ] || [ -n "$splunk_logs_url" ] || [ -n "$splunk_logs_index" ]; then
+    with_logs="true"
   fi
 
   check_support
@@ -1791,10 +1789,7 @@ parse_args_and_install() {
   fi
   echo
 
-  if [ "$splunk_platform" = "true" ]; then
-    # Splunk Platform mode; skip o11y token verification
-    true
-  elif [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
+  if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
     echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1
@@ -1908,16 +1903,15 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   fi
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
-  if [ "$splunk_platform" != "true" ]; then
+  if [ -n "$access_token" ]; then
     configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
     configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
     configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
     configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   fi
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
   if [ -d "$collector_bundle_dir" ]; then
     configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
@@ -1938,9 +1932,11 @@ parse_args_and_install() {
   if [ "$with_logs" = "true" ]; then
     mkdir -p "$logs_file_storage_path"
     chown -R $service_user:$service_group "$logs_file_storage_path"
+      configure_env_file "SPLUNK_LOGS_URL" "$splunk_logs_url" "$collector_env_path"
+      configure_env_file "SPLUNK_LOGS_TOKEN" "$splunk_logs_token" "$collector_env_path"
     configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
-    if [ -n "$hec_index" ]; then
-      configure_env_file "SPLUNK_HEC_INDEX" "$hec_index" "$collector_env_path"
+    if [ -n "$splunk_logs_index" ]; then
+      configure_env_file "SPLUNK_LOGS_INDEX" "$splunk_logs_index" "$collector_env_path"
     fi
     otelcol_options="$otelcol_options --config $logs_config_path"
   fi

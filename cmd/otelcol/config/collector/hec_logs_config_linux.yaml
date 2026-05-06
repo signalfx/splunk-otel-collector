@@ -2,16 +2,16 @@
 #
 # If the collector is installed without the Linux installer script, the following
 # environment variables are required to be manually defined or configured below:
-# - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
-# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
+# - SPLUNK_LOGS_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_LOGS_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 #
 # The following environment variables are optional:
 # - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory used to store file offsets for filelog receivers,
 #   allowing receivers to resume after a collector restart. Must be writable by the collector.
 #   default: /var/lib/otelcol/filelogs
-# - SPLUNK_HEC_INDEX: Splunk index to send logs to. If not set, the default index configured
-#   on the HEC token will be used.
+# - SPLUNK_LOGS_INDEX: Splunk index to send logs to. If not set, the default index configured
+#   on the logs token will be used.
 
 extensions:
   health_check:
@@ -163,10 +163,10 @@ processors:
 
 exporters:
   splunk_hec/logs:
-    token: "${SPLUNK_HEC_TOKEN}"
-    endpoint: "${SPLUNK_HEC_URL}"
+    token: "${SPLUNK_LOGS_TOKEN}"
+    endpoint: "${SPLUNK_LOGS_URL}"
     source: "otel"
-    index: "${SPLUNK_HEC_INDEX}"
+    index: "${SPLUNK_LOGS_INDEX}"
     disable_compression: true
     timeout: 10s
     retry_on_failure:

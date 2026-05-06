@@ -97,7 +97,7 @@ jobs:
         run: yamllint .
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@8ba9595a4acd1b906eb75568b34f6ef592cd1528 # v26.3.0
+        uses: ansible/ansible-lint@5fac056c45595896c973fbde871f01f6cb14d74c # v26.4.0
         with:
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"

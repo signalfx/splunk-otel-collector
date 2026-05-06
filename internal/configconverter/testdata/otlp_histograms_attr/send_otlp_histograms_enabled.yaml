@@ -1,5 +1,5 @@
 receivers:
-  hostmetrics:
+  host_metrics:
     scrapers:
       cpu:
 exporters:
@@ -24,18 +24,18 @@ service:
   pipelines:
     metrics:
       receivers:
-        - hostmetrics
+        - host_metrics
       exporters:
         - otlp_grpc
         - signalfx
     metrics/signalfx:
       receivers:
-        - hostmetrics
+        - host_metrics
       exporters:
         - signalfx
     metrics/signalfx/histograms:
       receivers:
-        - hostmetrics
+        - host_metrics
       exporters:
         - signalfx/histograms
   telemetry:

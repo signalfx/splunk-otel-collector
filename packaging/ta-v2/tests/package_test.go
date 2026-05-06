@@ -269,9 +269,7 @@ func TestPackageMandatoryFiles(t *testing.T) {
 					"%s package contains unexpected file: %s", pkgName, path)
 			}
 
-			// Check that the version in app.conf has the correct OS/arch suffix.
-			// The Makefile sets: version = <git-tag-without-v-prefix><platform-suffix>
-			// where platform-suffix uses dashes (e.g. -linux-x86-64) instead of underscores.
+			// The Makefile sets: version = <git-tag-without-v-prefix>
 			appConfContent := getTarFileContent(t, pkgPath, filepath.Join(root, "default/app.conf"))
 			require.NotEmpty(t, appConfContent, "app.conf not found or empty in %s package", pkgName)
 			var appConfVersion string
@@ -284,6 +282,7 @@ func TestPackageMandatoryFiles(t *testing.T) {
 				}
 			}
 			require.NotEmpty(t, appConfVersion, "version not found in app.conf of %s package", pkgName)
+			require.Regexp(t, `^\d+\.\d+\.\d+$`, appConfVersion)
 
 			// Check that the [package] id matches the package name.
 			var appConfPackageID string
@@ -307,19 +306,6 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			}
 			assert.Equal(t, root, appConfPackageID,
 				"%s app.conf [package] id should be %q", pkgName, root)
-
-			switch pkgName {
-			case "Multi-OS":
-				assert.False(t,
-					strings.HasSuffix(appConfVersion, "-linux-x86-64") || strings.HasSuffix(appConfVersion, "-windows-x86-64"),
-					"Multi-OS app.conf version %q should not have OS/arch suffix", appConfVersion)
-			case "Linux":
-				assert.True(t, strings.HasSuffix(appConfVersion, "-linux-x86-64"),
-					"Linux app.conf version %q should end with '-linux-x86-64'", appConfVersion)
-			case "Windows":
-				assert.True(t, strings.HasSuffix(appConfVersion, "-windows-x86-64"),
-					"Windows app.conf version %q should end with '-windows-x86-64'", appConfVersion)
-			}
 		})
 	}
 }

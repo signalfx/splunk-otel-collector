@@ -1537,16 +1537,22 @@ ta-v2-splunkbase-release:
           app_id="${entry%%:*}"
           package="${entry#*:}"
           log=$(mktemp)
+          echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
           log_files[$app_id]="$log"
           APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" \
             ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
-          pids[$app_id]=$!
+          pid=$!
+          echo "Started publication process with PID $pid for app ID $app_id"
+          pids[$app_id]=$pid
         done
 
         overall_status=0
         for app_id in "${!pids[@]}"; do
           wait "${pids[$app_id]}" || overall_status=1
+          echo "Publication process for app ID $app_id completed with status ${overall_status}"
+          echo "*+*+*+*+* Logs for app ID $app_id *+*+*+*+*"
           cat "${log_files[$app_id]}"
+          echo "End of logs for app ID $app_id"
           rm -f "${log_files[$app_id]}"
         done
         exit "$overall_status"

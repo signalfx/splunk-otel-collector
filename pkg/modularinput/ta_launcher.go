@@ -303,7 +303,7 @@ func currentProcessExe() (string, error) {
 //
 //	$SPLUNK_HOME/etc/apps/<AppName>/<platform>/bin/<binary>
 //
-// so the app name is the directory two levels above the binary.
+// so the app name is the directory three levels above the binary.
 // Returns an empty string if the process image path cannot be determined or does
 // not have enough path components.
 func appNameFromExecutable() string {

@@ -9,9 +9,10 @@ SIMPLIFIED_BSD_NAME_STR = "Simplified BSD"
 NEW_BSD_NAME_STR = "New BSD"
 ISC_NAME_STR = "ISC"
 MIT_NAME_STR = "MIT"
+MIT_NO_ATTR_NAME_STR = "MIT"
 MPL_NAME_STR = "Mozilla Public License 2.0"
 
-LICENSE_LIST = [APACHE_NAME_STR, SIMPLIFIED_BSD_NAME_STR, NEW_BSD_NAME_STR, ISC_NAME_STR, MIT_NAME_STR, MPL_NAME_STR]
+LICENSE_LIST = [APACHE_NAME_STR, SIMPLIFIED_BSD_NAME_STR, NEW_BSD_NAME_STR, ISC_NAME_STR, MIT_NAME_STR, MIT_NO_ATTR_NAME_STR, MPL_NAME_STR]
 
 class License:
 	def __init__(self, name, primary_header, secondary_header):
@@ -28,7 +29,8 @@ SIMPLIFIED_BSD_LICENSE = License(SIMPLIFIED_BSD_NAME_STR, "SECTION 2: BSD 2-clau
 NEW_BSD_LICENSE = License(NEW_BSD_NAME_STR, "SECTION 3: BSD 3-clause \"New\" or \"Revised\" License", "--------------- SECTION 3: BSD 3-clause \"New\" or \"Revised\" License ----------\n\nBSD 3-clause \"New\" or \"Revised\" License is applicable to the following component(s).")
 ISC_LICENSE = License(ISC_NAME_STR, "SECTION 4: ISC License", "--------------- SECTION 4: ISC License ----------\n\nISC License is applicable to the following component(s).")
 MIT_LICENSE = License(MIT_NAME_STR, "SECTION 5: MIT License", "--------------- SECTION 5: MIT License ----------\n\nMIT License is applicable to the following component(s).")
-MPL_LICENSE = License(MPL_NAME_STR, "SECTION 6: Mozilla Public License 2.0", "--------------- SECTION 6: Mozilla Public License 2.0 ----------\n\nMozilla Public License 2.0 is applicable to the following component(s).")
+MIT_NO_ATTR_LICENSE = License(MIT_NO_ATTR_NAME_STR, "SECTION 6: MIT No Attribution License", "--------------- SECTION 6: MIT No Attribution License ----------\n\nMIT No Attribution License is applicable to the following component(s).")
+MPL_LICENSE = License(MPL_NAME_STR, "SECTION 7: Mozilla Public License 2.0", "--------------- SECTION 7: Mozilla Public License 2.0 ----------\n\nMozilla Public License 2.0 is applicable to the following component(s).")
 
 HEADER = """open_source_disclosures_Splunk OpenTelemetry Collector-COLLECTOR_VERSION.txt
 
@@ -329,6 +331,7 @@ VALID_LICENSES = {
 	NEW_BSD_NAME_STR: NEW_BSD_LICENSE,
 	ISC_NAME_STR: ISC_LICENSE,
 	MIT_NAME_STR: MIT_LICENSE,
+	MIT_NO_ATTR_NAME_STR: MIT_NO_ATTR_LICENSE,
 	MPL_NAME_STR: MPL_LICENSE,
 }
 

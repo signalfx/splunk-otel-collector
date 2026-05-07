@@ -21,6 +21,7 @@ import (
 	"maps"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -43,10 +44,20 @@ const (
 	ValidationTARunMode
 )
 
+const (
+	// EnvAppName is the environment variable set to the Splunk app name of the
+	// configuration stanza (the app attribute from the modular input XML).
+	EnvAppName = "SPLUNK_MODINPUT_APP_NAME"
+	// EnvStanzaName is the environment variable set to the full stanza name
+	// (e.g. "Splunk_TA_otel://default") from the modular input XML.
+	EnvStanzaName = "SPLUNK_MODINPUT_STANZA_NAME"
+)
+
 var (
 	// Function variables to facilitate testing
 	setEnvFn                           = os.Setenv
 	isParentProcessSplunkdFn           = isParentProcessSplunkd
+	currentProcessExeFn                = currentProcessExe
 	stdoutWriter             io.Writer = os.Stdout
 )
 
@@ -77,6 +88,8 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 		return nil, IntrospectionTARunMode, nil
 	}
 
+	modularInputEnvVars := make(map[string]string)
+	var configStanza Stanza
 	var params []Param
 	if mode == ValidationTARunMode {
 		if validator == nil {
@@ -97,6 +110,10 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed: %w", err)
 		}
 
+		if appName := appNameFromExecutable(); appName != "" {
+			modularInputEnvVars[EnvAppName] = appName
+		}
+
 		params = make([]Param, 0, len(items.Item))
 		for _, item := range items.Item {
 			for _, param := range item.Param {
@@ -109,9 +126,10 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 			return nil, ExecutionTARunMode, fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
 		}
 
-		var configStanza Stanza
 		for _, stanza := range input.Configuration.Stanza {
 			if strings.HasPrefix(stanza.Name, configStanzaPrefix) {
+				modularInputEnvVars[EnvAppName] = stanza.App
+				modularInputEnvVars[EnvStanzaName] = stanza.Name
 				configStanza = stanza
 				break
 			}
@@ -124,7 +142,6 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	}
 
 	// First pass: build a map of parameters starting with "splunk_" and collect cmd args
-	modularInputEnvVars := make(map[string]string)
 	var cmdArgs []string
 	var err error
 	for _, param := range params {
@@ -266,6 +283,41 @@ func isParentProcessSplunkd() bool {
 
 	// Check if parent process is splunkd (Linux) or splunkd.exe (Windows)
 	return parentName == "splunkd" || parentName == "splunkd.exe"
+}
+
+// currentProcessExe returns the path to the current process image using gopsutil.
+func currentProcessExe() (string, error) {
+	proc, err := process.NewProcess(int32(os.Getpid())) //nolint:gosec // disable G115
+	if err != nil {
+		return "", fmt.Errorf("unable to get current process: %w", err)
+	}
+	exe, err := proc.Exe()
+	if err != nil {
+		return "", fmt.Errorf("unable to get current process image path: %w", err)
+	}
+	return exe, nil
+}
+
+// appNameFromExecutable derives the Splunk app name from the current process image path.
+// Splunk installs modular input binaries at:
+//
+//	$SPLUNK_HOME/etc/apps/<AppName>/<platform>/bin/<binary>
+//
+// so the app name is the directory two levels above the binary.
+// Returns an empty string if the process image path cannot be determined or does
+// not have enough path components.
+func appNameFromExecutable() string {
+	execPath, err := currentProcessExeFn()
+	if err != nil {
+		log.Printf("ERROR %v\n", err)
+		return ""
+	}
+	// Walk up: bin → <platform> → <AppName>
+	appName := filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(execPath))))
+	if appName == "." || appName == "/" {
+		return ""
+	}
+	return appName
 }
 
 func isArgScheme(args []string) bool {

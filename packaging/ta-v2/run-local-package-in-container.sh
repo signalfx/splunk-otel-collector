@@ -17,6 +17,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+APP_NAME="${APP_NAME:-Splunk_TA_otel_linux_x86_64}"
 ASSETS_DIR="${ASSETS_DIR:-${SCRIPT_DIR}/assets}"
 LOG_DIR="${SCRIPT_DIR}/local-test-logs/var/log/splunk"
 CONTAINER_NAME="${CONTAINER_NAME:-splunk-ta-otel-test}"
@@ -74,7 +75,7 @@ docker run -d --name "${CONTAINER_NAME}" \
     -e SPLUNK_START_ARGS="--accept-license" \
     -e SPLUNK_GENERAL_TERMS="--accept-sgt-current-at-splunk-com" \
     -e SPLUNK_PASSWORD="${SPLUNK_PASSWORD}" \
-    -v "${ASSETS_DIR}":/opt/splunk/etc/apps/Splunk_TA_otel \
+    -v "${ASSETS_DIR}":/opt/splunk/etc/apps/${APP_NAME} \
     -v "${LOG_DIR}":/opt/splunk/var/log/splunk \
     -p 8000:8000 \
     -p 8088:8088 \

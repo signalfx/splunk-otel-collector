@@ -1760,10 +1760,15 @@ parse_args_and_install() {
   if [ -n "$listen_interface" ]; then
     echo "Listen network interface: $listen_interface"
   fi
-  echo "Realm: $realm"
-  echo "Ingest Endpoint: $ingest_url"
-  echo "API Endpoint: $api_url"
-  echo "HEC Endpoint: $hec_url"
+  if [ -n "$access_token" ]; then
+    echo "Realm: $realm"
+    echo "Ingest Endpoint: $ingest_url"
+    echo "API Endpoint: $api_url"
+    echo "HEC Endpoint: $hec_url"
+  fi
+  if [ -n "$splunk_logs_url" ]; then
+    echo "Logs Endpoint: $splunk_logs_url"
+  fi
   echo "GODEBUG: $godebug"
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
@@ -1789,7 +1794,7 @@ parse_args_and_install() {
   fi
   echo
 
-  if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
+  if [ -n "$access_token" ] && [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
     echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1

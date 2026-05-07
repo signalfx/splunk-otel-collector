@@ -1677,6 +1677,11 @@ parse_args_and_install() {
     with_logs="true"
   fi
 
+  if [ "$with_logs" = "true" ] && [ "$mode" = "gateway" ]; then
+    echo "[ERROR] Log collection (--splunk-logs-*) is not supported in gateway mode." >&2
+    exit 1
+  fi
+
   check_support
 
   # check auto instrumentation options

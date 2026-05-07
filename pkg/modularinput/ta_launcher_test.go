@@ -1609,7 +1609,7 @@ func TestAppNameFromExecutable(t *testing.T) {
 		},
 		{
 			name:     "too few path components",
-			execPath: "/bin/Splunk_TA_otel",
+			execPath: "/platform/bin/Splunk_TA_otel",
 			want:     "",
 		},
 	}

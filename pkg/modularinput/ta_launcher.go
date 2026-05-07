@@ -314,7 +314,7 @@ func appNameFromExecutable() string {
 	}
 	// Walk up: bin → <platform> → <AppName>
 	appName := filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(execPath))))
-	if appName == "." || appName == "/" {
+	if appName == "." || appName == string(filepath.Separator) {
 		return ""
 	}
 	return appName

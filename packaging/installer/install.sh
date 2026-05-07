@@ -1652,7 +1652,7 @@ parse_args_and_install() {
       exit 0
   fi
 
-  if [ -z "$access_token" ] && [ -n "$realm" ]; then
+  if [ -z "$access_token" ] && [ -z "$splunk_logs_url" ]; then
     access_token=$(request_access_token)
   fi
 

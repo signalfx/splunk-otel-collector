@@ -37,8 +37,8 @@ const (
 	multiOSTgz    = multiOSName + ".tgz"
 	linuxTgz      = linuxName + ".tgz"
 	windowsTgz    = windowsName + ".tgz"
-	linuxBinDir   = "/linux_x86_64/"
-	windowsBinDir = "/windows_x86_64/"
+	linuxBinDir   = "linux_x86_64"
+	windowsBinDir = "windows_x86_64"
 )
 
 // getFileSize returns the size of a file in bytes
@@ -232,23 +232,23 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			require.FileExists(t, pkgPath, "%s package not found", pkgName)
 
 			mandatoryPaths := []string{
-				filepath.Join(root, "configs/agent_config.yaml"),
-				filepath.Join(root, "configs/gateway_config.yaml"),
-				filepath.Join(root, "default/app.conf"),
-				filepath.Join(root, "default/inputs.conf"),
-				filepath.Join(root, "README/inputs.conf.spec"),
-				filepath.Join(root, "static/appIcon_2x.png"),
-				filepath.Join(root, "static/appIcon.png"),
+				filepath.Join(root, "configs", "agent_config.yaml"),
+				filepath.Join(root, "configs", "gateway_config.yaml"),
+				filepath.Join(root, "default", "app.conf"),
+				filepath.Join(root, "default", "inputs.conf"),
+				filepath.Join(root, "README", "inputs.conf.spec"),
+				filepath.Join(root, "static", "appIcon_2x.png"),
+				filepath.Join(root, "static", "appIcon.png"),
 			}
 
 			addLinuxExecutable := pkgName != "Windows"
 			if addLinuxExecutable {
-				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "linux_x86_64/bin/Splunk_TA_otel"))
+				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "linux_x86_64", "bin", "Splunk_TA_otel"))
 			}
 
 			addWindowsExecutable := pkgName != "Linux"
 			if addWindowsExecutable {
-				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "windows_x86_64/bin/Splunk_TA_otel.exe"))
+				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "windows_x86_64", "bin", "Splunk_TA_otel.exe"))
 			}
 
 			contents := getTarContents(t, pkgPath)
@@ -270,7 +270,7 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			}
 
 			// The Makefile sets: version = <git-tag-without-v-prefix>
-			appConfContent := getTarFileContent(t, pkgPath, filepath.Join(root, "default/app.conf"))
+			appConfContent := getTarFileContent(t, pkgPath, filepath.Join(root, "default", "app.conf"))
 			require.NotEmpty(t, appConfContent, "app.conf not found or empty in %s package", pkgName)
 			var appConfVersion string
 			for _, line := range strings.Split(appConfContent, "\n") {

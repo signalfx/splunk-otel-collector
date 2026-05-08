@@ -20,7 +20,7 @@
                 <required_on_edit>true</required_on_edit>
                 <required_on_create>true</required_on_create>
             </arg>
-            <arg name="splunk_config" defaultValue="$SPLUNK_HOME/etc/apps/Splunk_TA_otel/configs/agent_config.yaml">
+            <arg name="splunk_config" defaultValue="$SPLUNK_HOME/etc/apps/$SPLUNK_MODINPUT_APP_NAME/configs/agent_config.yaml">
                 <title>Splunk Config</title>
                 <description>Config file that will be used by the Splunk_TA_otel</description>
                 <data_type>string</data_type>

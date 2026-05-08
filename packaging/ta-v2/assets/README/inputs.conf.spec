@@ -10,7 +10,7 @@ splunk_realm = <value>
 
 splunk_config = <value>
 * Config file that will be used by the Splunk_TA_otel
-* Default = $SPLUNK_HOME/etc/apps/Splunk_TA_otel/configs/agent_config.yaml
+* Default = $SPLUNK_HOME/etc/apps/$SPLUNK_MODINPUT_APP_NAME/configs/agent_config.yaml
 
 splunk_collector_log_level = <value>
 * Specifies the log level to be used by the Splunk_TA_otel

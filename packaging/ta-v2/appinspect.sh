@@ -20,4 +20,15 @@ echo "Building Docker image from $SCRIPT_DIR/Dockerfile.splunk-appinspect..."
 docker build -t "$IMAGE_NAME" -f "$SCRIPT_DIR/Dockerfile.splunk-appinspect" "$SCRIPT_DIR"
 
 echo "Running appinspect on packages in $PACKAGES_PATH..."
+set +e
 docker run --rm -v "$PACKAGES_PATH:/packages:ro" "$IMAGE_NAME"
+exit_code=$?
+set -e
+echo "Appinspect exited with code $exit_code. See https://dev.splunk.com/enterprise/reference/appinspect/appinspectcliref for exit codes."
+if [ "$exit_code" -eq 101 ]; then
+    echo "Appinspect found issues in the packages."
+    exit 1
+else
+    echo "Appinspect passed with no issues."
+    exit 0
+fi

@@ -105,25 +105,30 @@ jobs:
           path: packaging/ta-v2/out/distribution
 
       - name: Extract package
+        id: extract
         shell: bash
         run: |
           set -eo pipefail
           mkdir -p ./build-out
           tar -xzf out/distribution/${{ matrix.package }} -C ./build-out
           find ./build-out -name "*"
+          app_name="${{ matrix.package }}"
+          app_name="${app_name%.tgz}"
+          echo "app_name=${app_name}" >> "$GITHUB_OUTPUT"
 
       - name: Configure env vars for smoke test
         shell: bash
         run: |
           set -eo pipefail
-          mkdir -p ./build-out/Splunk_TA_otel/local
-          cp ./build-out/Splunk_TA_otel/default/inputs.conf ./build-out/Splunk_TA_otel/local/inputs.conf
-          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/Splunk_TA_otel/local/inputs.conf
-          sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/Splunk_TA_otel/local/inputs.conf
+          APP_NAME="${{ steps.extract.outputs.app_name }}"
+          mkdir -p ./build-out/${APP_NAME}/local
+          cp ./build-out/${APP_NAME}/default/inputs.conf ./build-out/${APP_NAME}/local/inputs.conf
+          sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/${APP_NAME}/local/inputs.conf
+          sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/${APP_NAME}/local/inputs.conf
 
       - name: Run local container
         env:
-          ASSETS_DIR: ./build-out/Splunk_TA_otel
+          ASSETS_DIR: ./build-out/${{ steps.extract.outputs.app_name }}
           SPLUNK_VERSION: ${{ matrix.splunk_version }}
         run: |
           sudo -E ./run-local-package-in-container.sh
@@ -235,7 +240,8 @@ jobs:
       - name: Install Splunk_TA_otel on the local Splunk UF
         run: |
           tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/${{ matrix.package }}" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
-          $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\Splunk_TA_otel"
+          $appName = "${{ matrix.package }}" -replace '\.tgz$', ''
+          $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\$appName"
           New-Item -ItemType Directory -Path "$modularInputDir\local" -Force | Out-Null
           $inputsConfPath = "$modularInputDir\local\inputs.conf"
           Copy-Item -Path "$modularInputDir\default\inputs.conf" -Destination $inputsConfPath -Force

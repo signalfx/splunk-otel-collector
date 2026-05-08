@@ -286,6 +286,7 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			require.Regexp(t, `^\d+\.\d+\.\d+(-[0-9]+-[a-z0-9]+)?$`, appConfVersion)
 
 			// Check that the [package] id matches the package name.
+			const sectionHeaderSentinel = "["
 			var appConfPackageID string
 			inPackageSection := false
 			for _, line := range strings.Split(appConfContent, "\n") {
@@ -295,12 +296,14 @@ func TestPackageMandatoryFiles(t *testing.T) {
 					continue
 				}
 				if inPackageSection {
-					if strings.HasPrefix(trimmed, "[") {
+					normalized := strings.ReplaceAll(trimmed, " ", "")
+					if strings.HasPrefix(normalized, sectionHeaderSentinel) {
+						// We've reached the next section without finding an id, so stop looking for it
 						break
 					}
-					if strings.HasPrefix(trimmed, "id") && strings.ContainsRune(trimmed, '=') {
-						parts := strings.SplitN(trimmed, "=", 2)
-						appConfPackageID = strings.TrimSpace(parts[1])
+					parts := strings.SplitN(trimmed, "=", 2)
+					if len(parts) == 2 && parts[0] == "id" {
+						appConfPackageID = parts[1]
 						break
 					}
 				}

@@ -37,7 +37,7 @@ import (
 func TestRunFromCmdLine(t *testing.T) {
 	configFiles, err := filepath.Glob(filepath.Join("config", "collector", "*.yml"))
 	require.NoError(t, err)
-	require.Len(t, configFiles, 0, "Default configs must end with the extension `.yaml` rather than `.yml`. Please update accordingly.")
+	require.Empty(t, configFiles, "Default configs must end with the extension `.yaml` rather than `.yml`. Please update accordingly.")
 
 	configFiles, err = filepath.Glob(filepath.Join("config", "collector", "*.yaml"))
 	require.NoError(t, err)

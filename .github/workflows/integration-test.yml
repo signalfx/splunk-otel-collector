@@ -195,6 +195,10 @@ jobs:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v10.2.1
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+      - name: Add shell utilities to otelcol image for integration tests
+        run: |
+          printf 'FROM busybox:musl AS busybox\nFROM otelcol:latest\nCOPY --from=busybox /bin/sh /bin/sh\nCOPY --from=busybox /bin/echo /bin/echo\n' | \
+            docker buildx build --load --platform linux/${{ matrix.ARCH }} -t otelcol:latest -
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
       # Pre-build the telegraf-exec test image using buildx

@@ -378,6 +378,11 @@ jobs:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
         - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+        - name: Add Java if required by the discovery test configuration (e.g. for JMX tests)
+          if: matrix.SERVICE == 'jmx/cassandra'
+          run: |
+            printf 'FROM eclipse-temurin:17-jre-alpine AS java\nFROM otelcol:latest\nCOPY --from=java / /java/\nENV JAVA_HOME=/java PATH="/java/bin:${PATH}"\n' | \
+              docker buildx build --load --platform linux/${{ matrix.ARCH }} -t otelcol:latest -
         - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover

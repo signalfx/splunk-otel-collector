@@ -1078,7 +1078,7 @@ Collector:
   -- <access_token>                     Use '--' if access_token starts with '-'.
   --api-url <url>                       Set the api endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://api.REALM.signalfx.com)
+                                        (default: https://api.REALM.observability.splunkcloud.com)
   --beta                                Use the beta package repo instead of the primary.
   --collector-config <path>             Set the path to an existing custom config file for the collector service instead
                                         of the default config file provided by the collector package based on the
@@ -1094,7 +1094,7 @@ Collector:
   --hec-token <token>                   Set the HEC token if different than the specified access_token.
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com/v1/log)
+                                        (default: https://ingest.REALM.observability.splunkcloud.com/v1/log)
   --splunk-logs-token <token>           Set the Splunk logs token.
   --splunk-logs-url <url>               Set the Splunk logs endpoint URL.
   --splunk-logs-index <index>           Set the Splunk index to send logs to.
@@ -1103,7 +1103,7 @@ Collector:
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com)
+                                        (default: https://ingest.REALM.observability.splunkcloud.com)
   --memory <memory size>                Total memory in MIB to allocate to the collector
                                         (default: "$default_memory_size")
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
@@ -1657,11 +1657,11 @@ parse_args_and_install() {
   fi
 
   if [ -z "$api_url" ]; then
-    api_url="https://api.${realm}.signalfx.com"
+    api_url="https://api.${realm}.observability.splunkcloud.com"
   fi
 
   if [ -z "$ingest_url" ]; then
-    ingest_url="https://ingest.${realm}.signalfx.com"
+    ingest_url="https://ingest.${realm}.observability.splunkcloud.com"
   fi
 
   if [ -z "$hec_token" ]; then
@@ -1867,8 +1867,8 @@ parse_args_and_install() {
   configure_service_owner "$service_user" "$service_group"
 
   if [ -z "$collector_config_path" ]; then
+    # custom config not provided; use the config provided by the collector package based on the --mode option
     if [ "$mode" = "agent" ]; then
-      # custom config not provided; use the config provided by the collector package based on the --mode option
       if [ -f "$agent_config_path" ]; then
         # use the agent config if the installed package includes it
         collector_config_path="$agent_config_path"

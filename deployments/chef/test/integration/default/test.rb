@@ -1,7 +1,7 @@
 splunk_access_token = 'testing123'
 splunk_realm = 'test'
-splunk_api_url = "https://api.#{splunk_realm}.signalfx.com"
-splunk_ingest_url = "https://ingest.#{splunk_realm}.signalfx.com"
+splunk_api_url = "https://api.#{splunk_realm}.observability.splunkcloud.com"
+splunk_ingest_url = "https://ingest.#{splunk_realm}.observability.splunkcloud.com"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = splunk_access_token
 splunk_memory_total = '512'
@@ -56,10 +56,6 @@ else
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=splunk-otel-collector$/ }
     its('content') { should match /^Group=splunk-otel-collector$/ }
-  end
-  describe service('td-agent') do
-    it { should_not be_enabled }
-    it { should_not be_running }
   end
   describe package('splunk-otel-auto-instrumentation') do
     it { should_not be_installed }

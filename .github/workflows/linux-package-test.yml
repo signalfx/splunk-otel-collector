@@ -13,7 +13,6 @@ on:
       - 'Makefile'
       - 'Makefile.Common'
       - '!**.md'
-      - '!packaging/technical-addon/**'
 
 concurrency:
   group: linux-package-test-${{ github.event.pull_request.number || github.ref }}
@@ -23,7 +22,7 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.25.8
+  GO_VERSION: 1.26.2
 
 jobs:
   cross-compile:
@@ -155,7 +154,7 @@ jobs:
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4
+        uses: docker/setup-docker-action@b2189fbf2a6592b51fee7cdd93ee2bfaeba733db # v5.1.0
         with:
           daemon-config: |
             {
@@ -172,7 +171,7 @@ jobs:
 
       # Building multiarch container images requires qemu
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v7.0.0
@@ -211,7 +210,7 @@ jobs:
       - name: Save the multiarch image archive to be loaded by downstream jobs
         run: mkdir -p docker-otelcol && docker save -o ./docker-otelcol/image.tar otelcol:latest
 
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: otelcol
           path: ./docker-otelcol
@@ -229,7 +228,7 @@ jobs:
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4
+        uses: docker/setup-docker-action@b2189fbf2a6592b51fee7cdd93ee2bfaeba733db # v5.1.0
         with:
           daemon-config: |
             {
@@ -241,7 +240,7 @@ jobs:
       # There are no GH runners for ppc64le, so use qemu
       - name: Set up QEMU
         if: ${{ matrix.ARCH == 'ppc64le' }}
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0

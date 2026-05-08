@@ -12,7 +12,6 @@ on:
       - 'internal/**'
       - '!**.md'
       - 'packaging/**'
-      - '!packaging/technical-addon/**'
       - '!packaging/dotnet-instr-deployer-add-on/**'
 
 concurrency:
@@ -24,7 +23,7 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.25.8
+  GO_VERSION: 1.26.2
 
 jobs:
   cross-compile:
@@ -54,7 +53,7 @@ jobs:
         run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
           path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}

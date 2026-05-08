@@ -28,6 +28,7 @@ func TestDefaultComponents(t *testing.T) {
 		"ack",
 		"basicauth",
 		"bearertokenauth",
+		"config_source_telemetry",
 		"docker_observer",
 		"ecs_observer",
 		"file_storage",
@@ -44,6 +45,9 @@ func TestDefaultComponents(t *testing.T) {
 		"smartagent",
 		"text_encoding",
 		"zpages",
+	}
+	expectedExtensionAliases := map[string]string{
+		"googlecloudlogentry_encoding": "google_cloud_logentry_encoding",
 	}
 	expectedReceivers := []string{
 		"active_directory_ds",
@@ -64,12 +68,12 @@ func TestDefaultComponents(t *testing.T) {
 		"docker_stats",
 		"elasticsearch",
 		"file_log",
-		"filestats",
-		"fluentforward",
+		"file_stats",
+		"fluent_forward",
 		"googlecloudpubsub",
 		"haproxy",
-		"hostmetrics",
-		"httpcheck",
+		"host_metrics",
+		"http_check",
 		"icmpcheckreceiver",
 		"iis",
 		"influxdb",
@@ -78,7 +82,7 @@ func TestDefaultComponents(t *testing.T) {
 		"journald",
 		"k8s_cluster",
 		"k8s_events",
-		"k8sobjects",
+		"k8s_objects",
 		"kafka",
 		"kafkametrics",
 		"kubeletstats",
@@ -112,17 +116,17 @@ func TestDefaultComponents(t *testing.T) {
 		"splunk_hec",
 		"sqlquery",
 		"sqlserver",
-		"sshcheck",
+		"ssh_check",
 		"statsd",
 		"syslog",
 		"systemd",
 		"tcpcheck",
-		"tcplog",
-		"tlscheck",
-		"udplog",
+		"tcp_log",
+		"tls_check",
+		"udp_log",
 		"vcenter",
 		"wavefront",
-		"windowseventlog",
+		"windows_event_log",
 		"windowsperfcounters",
 		"windowsservice",
 		"yang_grpc",
@@ -130,12 +134,23 @@ func TestDefaultComponents(t *testing.T) {
 		"zookeeper",
 	}
 	expectedReceiverAliases := map[string]string{
-		"azureeventhub":         "azure_event_hub",
-		"mongodbatlas":          "mongodb_atlas",
 		"azureblob":             "azure_blob",
+		"azureeventhub":         "azure_event_hub",
 		"azuremonitor":          "azure_monitor",
+		"ciscoos":               "cisco_os",
 		"filelog":               "file_log",
+		"filestats":             "file_stats",
+		"fluentforward":         "fluent_forward",
+		"hostmetrics":           "host_metrics",
+		"httpcheck":             "http_check",
+		"k8sobjects":            "k8s_objects",
+		"mongodbatlas":          "mongodb_atlas",
 		"prometheusremotewrite": "prometheus_remote_write",
+		"sshcheck":              "ssh_check",
+		"tcplog":                "tcp_log",
+		"tlscheck":              "tls_check",
+		"udplog":                "udp_log",
+		"windowseventlog":       "windows_event_log",
 		"yanggrpc":              "yang_grpc",
 	}
 	expectedProcessors := []string{
@@ -185,19 +200,27 @@ func TestDefaultComponents(t *testing.T) {
 		"count",
 		"forward",
 		"routing",
-		"spanmetrics",
+		"span_metrics",
 		"sum",
+	}
+	expectedConnectorAliases := map[string]string{
+		"spanmetrics": "span_metrics",
 	}
 
 	factories, err := Get()
 	require.NoError(t, err)
 
 	exts := factories.Extensions
-	assert.Len(t, exts, len(expectedExtensions))
+	assert.Len(t, exts, len(expectedExtensions)+len(expectedExtensionAliases))
 	for _, k := range expectedExtensions {
 		v, ok := exts[component.MustNewType(k)]
 		assert.True(t, ok)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedExtensionAliases {
+		v, ok := exts[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected extension alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	recvs := factories.Receivers
@@ -241,10 +264,15 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	conns := factories.Connectors
-	assert.Len(t, conns, len(expectedConnectors))
+	assert.Len(t, conns, len(expectedConnectors)+len(expectedConnectorAliases))
 	for _, k := range expectedConnectors {
 		v, ok := conns[component.MustNewType(k)]
 		require.True(t, ok, "Missing expected connector "+k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedConnectorAliases {
+		v, ok := conns[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected connector alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 }

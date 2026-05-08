@@ -8,10 +8,10 @@ OpenTelemetry Collector.
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023
-- CentOS / Red Hat: 8, 9
-- Oracle: 8
+- CentOS / Red Hat: 8, 9, 10
+- Oracle: 7, 8, 9
 - Debian: 11, 12
-- SUSE: 15 d
+- SUSE: 15
 - Ubuntu: 22.04, 24.04
 
 > Note: `systemd` is required to be installed on the host for service
@@ -26,14 +26,41 @@ Currently, the following Windows versions are supported and requires PowerShell
 - Windows Server 2016 64-bit
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
+- Windows Server 2025 64-bit
 
 On Windows, the collector is installed as a Windows service and its environment
 variables are set at the service scope, i.e.: they are only available to the
 collector service and not to the entire machine.
 
-## Usage
+## Installation
 
-This module can be downloaded and installed from [Puppet Forge](https://forge.puppet.com/modules/signalfx/splunk_otel_collector).
+This module can be downloaded and installed from [Splunk's JFrog Artifactory instance](https://splunk.jfrog.io/ui/repos/tree/General/puppet-splunk).
+
+### [Connect Puppet to Artifactory](https://docs.jfrog.com/artifactory/docs/puppet-repositories#connect-puppet-to-artifactory)
+
+Add the following snippet to your `puppet.conf` file:
+
+```
+[main]
+module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
+```
+
+### [Use r10k for Puppet](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-r10k-for-puppet)
+
+To configure r10k to fetch modules from Artifactory, add the following to your `r10k.yaml` file:
+
+```
+forge:
+  baseurl: https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk
+```
+
+### [Use the Puppet Command Line](https://docs.jfrog.com/artifactory/docs/puppet-repositories#use-the-puppet-command-line)
+
+```
+$ puppet module install --module_repository=https://splunk.jfrog.io/artifactory/api/puppet/puppet-splunk signalfx-splunk_otel_collector
+```
+
+## Configuration
 
 To use this module, include the `splunk_otel_collector` class in your
 manifests with the supported parameters (see the table below for descriptions
@@ -59,8 +86,8 @@ This class accepts the following parameters:
 | `collector_version`                  | **Required on Windows**: Version of the collector package to install, e.g., `0.25.0`.  The version should correspond to [Github Releases](https://github.com/signalfx/splunk-otel-collector/releases) _without_ the preceding `v`.  **Note**: On Linux, the latest collector version will be installed if this parameter is not specified.                                                                                                                                                                                                                                                                                             | None                                                                                                                          |
 | `splunk_access_token`                | **Required**: The Splunk access token to authenticate requests.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | None                                                                                                                          |
 | `splunk_realm`                       | **Required**: Which realm to send the data to, e.g. `us0`.  The Splunk ingest and API URLs will be inferred by this value.  The `SPLUNK_REALM` environment variable will be set with this value for the collector service.                                                                                                                                                                                                                                                                                                                                                                                                             | None                                                                                                                          |
-| `splunk_ingest_url`                  | Set the Splunk ingest URL explicitly instead of the URL inferred by the `$splunk_realm` parameter.  The `SPLUNK_INGEST_URL` environment variable will be set with this value for the collector service.                                                                                                                                                                                                                                                                                                                                                                                                                                | `https://ingest.${splunk_realm}.signalfx.com`                                                                                 |
-| `splunk_api_url`                     | Set the Splunk API URL explicitly instead of the URL inferred by the `$splunk_realm` parameter.  The `SPLUNK_API_URL` environment variable will be set with this value for the collector service.                                                                                                                                                                                                                                                                                                                                                                                                                                      | `https://api.${splunk_realm}.signalfx.com`                                                                                    |
+| `splunk_ingest_url`                  | Set the Splunk ingest URL explicitly instead of the URL inferred by the `$splunk_realm` parameter.  The `SPLUNK_INGEST_URL` environment variable will be set with this value for the collector service.                                                                                                                                                                                                                                                                                                                                                                                                                                | `https://ingest.${splunk_realm}.observability.splunkcloud.com`                                                                                 |
+| `splunk_api_url`                     | Set the Splunk API URL explicitly instead of the URL inferred by the `$splunk_realm` parameter.  The `SPLUNK_API_URL` environment variable will be set with this value for the collector service.                                                                                                                                                                                                                                                                                                                                                                                                                                      | `https://api.${splunk_realm}.observability.splunkcloud.com`                                                                                    |
 | `splunk_hec_url`                     | Set the Splunk HEC endpoint URL explicitly instead of the URL inferred by the `$splunk_ingest_url` parameter.  The `SPLUNK_HEC_URL` environment variable will be set with this value for the collector service.                                                                                                                                                                                                                                                                                                                                                                                                                        | `${splunk_ingest_url}/v1/log`                                                                                                 |
 | `splunk_hec_token`                   | Set the Splunk HEC authentication token if different than `$splunk_access_token`.  The `SPLUNK_HEC_TOKEN` environment variable will be set with this value for the collector service.                                                                                                                                                                                                                                                                                                                                                                                                                                                  | `$splunk_access_token`                                                                                                        |
 | `splunk_bundle_dir`                  | The path to the [Smart Agent bundle directory](https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).  The default path is provided by the collector package.  If the specified path is changed from the default value, the path should be an existing directory on the node.  The `SPLUNK_BUNDLE_DIR` environment variable will be set to this value for the collector service.                                                                                                                                                                                                    | Linux: `/usr/lib/splunk-otel-collector/agent-bundle`<br>Windows: `%PROGRAMFILES%\Splunk\OpenTelemetry Collector\agent-bundle` |

@@ -13,6 +13,8 @@ platforms:
     box: ubuntu/jammy64
   - name: centos9
     box: centos/stream9
+  - name: centos10
+    box: centos/stream10
   - name: bookworm64
     box: debian/bookworm64
   - name: trixie64

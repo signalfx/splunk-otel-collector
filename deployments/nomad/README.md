@@ -53,7 +53,7 @@ extensions:
     endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu: null
@@ -72,9 +72,9 @@ processors:
 exporters:
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
-    api_url: https://api.${SPLUNK_REALM}.signalfx.com
+    api_url: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
     correlation: null
-    ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
+    ingest_url: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
     sync_host_metadata: true
   debug:
     verbosity: detailed
@@ -91,7 +91,7 @@ service:
       - memory_limiter
       - batch
       receivers:
-      - hostmetrics
+      - host_metrics
 EOF
     destination = "local/config/otel-agent-config.yaml"
 }

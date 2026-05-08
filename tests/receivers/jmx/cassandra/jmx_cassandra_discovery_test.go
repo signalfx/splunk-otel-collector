@@ -27,8 +27,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -70,7 +70,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	port := 16745
 	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
 	endpoint := fmt.Sprintf("localhost:%d", port)
-	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	c.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  endpoint,
 			Transport: "tcp",

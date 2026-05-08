@@ -18,17 +18,31 @@ extensions:
     ingress:
       endpoint: 0.0.0.0:6060
     egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "${SPLUNK_INGEST_URL}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     endpoint: 0.0.0.0:55679
     expvar:
       enabled: true
 
 receivers:
-  # The fluentforward receiver can be used to forward logs from the Docker fluentd logging driver.
-  fluentforward:
+  # The fluent_forward receiver can be used to forward logs from the Docker fluentd logging driver.
+  fluent_forward:
     endpoint: 0.0.0.0:8006
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu:
@@ -71,14 +85,6 @@ receivers:
           static_configs:
             - targets: ['0.0.0.0:8888']
           metric_relabel_configs:
-            - source_labels: [ service_name ]
-              target_label: service.name
-            - source_labels: [ service_instance_id ]
-              target_label: service.instance.id
-            - source_labels: [ service_version ]
-              target_label: service.version
-            - regex: service_name|service_instance_id|service_version
-              action: labeldrop
             - source_labels: [ __name__ ]
               regex: 'promhttp_metric_handler_errors.*'
               action: drop
@@ -91,7 +97,7 @@ receivers:
 processors:
   batch:
     metadata_keys:
-      - X-SF-Token  
+      - X-SF-Token
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # For more information about memory limiter, see
@@ -145,7 +151,17 @@ exporters:
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]
@@ -156,7 +172,7 @@ service:
         #- resource/add_environment
       exporters: [otlp_http, signalfx]
     metrics:
-      receivers: [hostmetrics, otlp, awsecscontainermetrics]
+      receivers: [host_metrics, otlp, awsecscontainermetrics]
       processors: [memory_limiter, batch, filter, resourcedetection]
       exporters: [signalfx]
     metrics/internal:
@@ -164,7 +180,7 @@ service:
       processors: [memory_limiter, batch, filter, resourcedetection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [otlp, fluentforward]
+      receivers: [otlp, fluent_forward]
       processors:
         - memory_limiter
         - batch

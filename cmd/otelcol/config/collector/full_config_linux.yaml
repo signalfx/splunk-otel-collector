@@ -485,24 +485,16 @@ processors:
   # Metrics
   #############################################################################
 
-  # Enables the filter processor with example settings
+  # Enables the filter processor with example settings.
+  # The list of conditions is OR-ed, if any condition is met the telemetry is dropped.
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor
   # NOTE: These settings need to be change when using this processor
   filter/1:
-    metrics:
-      include:
-        match_type: regexp
-        metric_names:
-          - prefix/.*
-          - prefix_.*
-        resource_attributes:
-          - Key: container.name
-            Value: app_container_1
-      exclude:
-        match_type: strict
-        metric_names:
-          - hello_world
-          - hello/world
+    error_mode: propagate
+    metric_conditions:
+      - resource.attributes["service.name"] == "my_service_name"
+      - resource.attributes["container.name"] != "app_container_1"
+      - IsMatch(metric.name, "unwanted.prefix.*")
 
   # Enables the metrics transform processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor
@@ -583,13 +575,14 @@ exporters:
     # Splunk index, optional name of the Splunk index targeted.
     index: "metrics"
     # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
-    max_connections: 200
+    max_idle_conns: 200
     # Whether to disable gzip compression over HTTP. Defaults to false.
     disable_compression: false
     # HTTP timeout when sending data. Defaults to 10s.
     timeout: 10s
-    # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
-    insecure_skip_verify: false
+    tls:
+      # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+      insecure_skip_verify: false
     # Profiling data should always be sent to Splunk Observability Cloud which is configured in the next section.
     profiling_data_enabled: false
 
@@ -605,14 +598,6 @@ exporters:
   #############################################################################
   # Traces
   #############################################################################
-
-  # Enables the jaeger exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter
-  # NOTE: These settings should be updated to the proper destination
-  jaeger:
-    endpoint: jaeger-all-in-one:14250
-    tls:
-      insecure: true
 
   # Enables the otlp grpc exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
@@ -634,28 +619,9 @@ exporters:
     auth:
       authenticator: headers_setter
 
-  # Enables the zipkin exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/zipkinexporter
-  # NOTE: These settings should be updated to the proper destination
-  zipkin:
-    endpoint: "http://some.url:9411/api/v2/spans"
-    tls:
-      insecure: true
-
   #############################################################################
   # Metrics
   #############################################################################
-
-  # Enables the prometheus exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusexporter
-  # NOTE: These settings should be updated prior to use
-  prometheus:
-    endpoint: "1.2.3.4:1234"
-    namespace: test-space
-    const_labels:
-      label1: value1
-      "another label": spaced value
-    send_timestamps: true
 
   # Enables the prometheus remote write exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter

@@ -1548,8 +1548,12 @@ ta-v2-splunkbase-release:
 
         overall_status=0
         for app_id in "${!pids[@]}"; do
-          wait "${pids[$app_id]}" || overall_status=1
-          echo "Publication process for app ID $app_id completed with status ${overall_status}"
+          wait "${pids[$app_id]}"
+          publish_status=$?
+          if [[ "$publish_status" -ne 0 ]]; then
+            overall_status=1
+          fi
+          echo "Publication process for app ID $app_id completed with status ${publish_status}"
           echo "*+*+*+*+* Logs for app ID $app_id *+*+*+*+*"
           cat "${log_files[$app_id]}"
           echo "End of logs for app ID $app_id"

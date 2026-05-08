@@ -511,7 +511,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "smartagent", "config_source_telemetry"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},

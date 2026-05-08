@@ -44,13 +44,13 @@ func TestRunFromCmdLine(t *testing.T) {
 	require.Len(t, configFiles, 8, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
 
 	tests := []struct {
+		extraEnvVars map[string]string
 		name         string
 		panicMsg     string
 		skipMsg      string
-		extraEnvVars map[string]string
 		args         []string
-		skipWindows  bool
 		timeout      time.Duration
+		skipWindows  bool
 		validateOnly bool
 	}{
 		{

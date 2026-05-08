@@ -1095,9 +1095,9 @@ Collector:
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.observability.splunkcloud.com/v1/log)
-  --splunk-logs-token <token>           Set the Splunk logs token.
-  --splunk-logs-url <url>               Set the Splunk logs endpoint URL.
-  --splunk-logs-index <index>           Set the Splunk index to send logs to.
+  --splunk-platform-token <token>           Set the Splunk logs token.
+  --splunk-platform-url <url>               Set the Splunk logs endpoint URL.
+  --splunk-platform-logs-index <index>           Set the Splunk index to send logs to.
                                         If not set, the default index configured on the logs token will be used.
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
@@ -1393,9 +1393,9 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
-  local splunk_logs_token=
-  local splunk_logs_url=
-  local splunk_logs_index=
+  local splunk_platform_token=
+  local splunk_platform_url=
+  local splunk_platform_logs_index=
   local with_logs="false"
   local godebug=
   local ingest_url=
@@ -1453,16 +1453,16 @@ parse_args_and_install() {
         hec_url="$2"
         shift 1
         ;;
-      --splunk-logs-token)
-        splunk_logs_token="$2"
+      --splunk-platform-token)
+        splunk_platform_token="$2"
         shift 1
         ;;
-      --splunk-logs-url)
-        splunk_logs_url="$2"
+      --splunk-platform-url)
+        splunk_platform_url="$2"
         shift 1
         ;;
-      --splunk-logs-index)
-        splunk_logs_index="$2"
+      --splunk-platform-logs-index)
+        splunk_platform_logs_index="$2"
         shift 1
         ;;
       --godebug)
@@ -1652,7 +1652,7 @@ parse_args_and_install() {
       exit 0
   fi
 
-  if [ -z "$access_token" ] && [ -z "$splunk_logs_url" ]; then
+  if [ -z "$access_token" ] && [ -z "$splunk_platform_url" ]; then
     access_token=$(request_access_token)
   fi
 
@@ -1673,7 +1673,7 @@ parse_args_and_install() {
   fi
 
   # Auto-enable logs collection when any splunk-logs-* option is provided
-  if [ -n "$splunk_logs_token" ] || [ -n "$splunk_logs_url" ] || [ -n "$splunk_logs_index" ]; then
+  if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_url" ] || [ -n "$splunk_platform_logs_index" ]; then
     with_logs="true"
   fi
 
@@ -1771,8 +1771,8 @@ parse_args_and_install() {
     echo "API Endpoint: $api_url"
     echo "HEC Endpoint: $hec_url"
   fi
-  if [ -n "$splunk_logs_url" ]; then
-    echo "Logs Endpoint: $splunk_logs_url"
+  if [ -n "$splunk_platform_url" ]; then
+    echo "Logs Endpoint: $splunk_platform_url"
   fi
   echo "GODEBUG: $godebug"
   if [ -n "$sdks_to_enable" ]; then
@@ -1942,11 +1942,11 @@ parse_args_and_install() {
   if [ "$with_logs" = "true" ]; then
     mkdir -p "$logs_file_storage_path"
     chown -R $service_user:$service_group "$logs_file_storage_path"
-      configure_env_file "SPLUNK_LOGS_URL" "$splunk_logs_url" "$collector_env_path"
-      configure_env_file "SPLUNK_LOGS_TOKEN" "$splunk_logs_token" "$collector_env_path"
+      configure_env_file "SPLUNK_LOGS_URL" "$splunk_platform_url" "$collector_env_path"
+      configure_env_file "SPLUNK_LOGS_TOKEN" "$splunk_platform_token" "$collector_env_path"
     configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
-    if [ -n "$splunk_logs_index" ]; then
-      configure_env_file "SPLUNK_LOGS_INDEX" "$splunk_logs_index" "$collector_env_path"
+    if [ -n "$splunk_platform_logs_index" ]; then
+      configure_env_file "SPLUNK_LOGS_INDEX" "$splunk_platform_logs_index" "$collector_env_path"
     fi
     otelcol_options="$otelcol_options --config $logs_config_path"
   fi

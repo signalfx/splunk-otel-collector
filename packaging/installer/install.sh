@@ -61,7 +61,7 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
-logs_config_path="${collector_config_dir}/hec_logs_config_linux.yaml"
+logs_config_path="${collector_config_dir}/splunk_logs_config_linux.yaml"
 logs_file_storage_path="/var/lib/otelcol/filelogs"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"

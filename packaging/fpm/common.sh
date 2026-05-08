@@ -35,8 +35,8 @@ AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml
 AGENT_CONFIG_INSTALL_PATH="/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/gateway_config.yaml"
 GATEWAY_CONFIG_INSTALL_PATH="/etc/otel/collector/gateway_config.yaml"
-LOGS_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/hec_logs_config_linux.yaml"
-LOGS_CONFIG_INSTALL_PATH="/etc/otel/collector/hec_logs_config_linux.yaml"
+LOGS_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/splunk_logs_config_linux.yaml"
+LOGS_CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_logs_config_linux.yaml"
 SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 

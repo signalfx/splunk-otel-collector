@@ -1526,7 +1526,40 @@ ta-v2-splunkbase-release:
       fi
       if [[ "$should_release" = true ]] && [[ -z "$DRY_RUN" ]]; then
         echo "Releasing TA v2 to Splunkbase"
-        APP_ID=7125 TA_PACKAGES_PATH=packaging/ta-v2/out/distribution VERSION_TAG=${RELEASE_VERSION} ./.gitlab/publish-ta-v2-to-splunkbase.sh
+        TA_DIR=packaging/ta-v2/out/distribution
+
+        declare -A log_files pids
+        for entry in \
+            "7125:${TA_DIR}/Splunk_TA_otel.tgz" \
+            "8968:${TA_DIR}/Splunk_TA_otel_linux_x86_64.tgz" \
+            "8969:${TA_DIR}/Splunk_TA_otel_windows_x86_64.tgz"
+        do
+          app_id="${entry%%:*}"
+          package="${entry#*:}"
+          log=$(mktemp)
+          echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
+          log_files[$app_id]="$log"
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" \
+            ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
+          pid=$!
+          echo "Started publication process with PID $pid for app ID $app_id"
+          pids[$app_id]=$pid
+        done
+
+        overall_status=0
+        for app_id in "${!pids[@]}"; do
+          wait "${pids[$app_id]}"
+          publish_status=$?
+          if [[ "$publish_status" -ne 0 ]]; then
+            overall_status=1
+          fi
+          echo "Publication process for app ID $app_id completed with status ${publish_status}"
+          echo "*+*+*+*+* Logs for app ID $app_id *+*+*+*+*"
+          cat "${log_files[$app_id]}"
+          echo "End of logs for app ID $app_id"
+          rm -f "${log_files[$app_id]}"
+        done
+        exit "$overall_status"
       else
         echo "Skipping TA v2 release - not a stable release tag, manual release, or DRY_RUN is set"
       fi

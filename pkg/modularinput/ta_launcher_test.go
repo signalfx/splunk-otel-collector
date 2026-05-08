@@ -19,6 +19,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -319,10 +320,9 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 		return true
 	}
 
-	// Track that setEnv is never called
-	setEnvCalled := false
-	setEnvFn = func(_, _ string) error {
-		setEnvCalled = true
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
 		return nil
 	}
 
@@ -346,7 +346,11 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	resultArgs, _, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>", nil)
 	require.NoError(t, err, "Expected no error with empty stanza")
 	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged with empty stanza")
-	assert.False(t, setEnvCalled, "Expected setEnv to not be called with empty stanza")
+	// The stanza matched, so the two stanza env vars are always set even with no splunk_ params.
+	assert.Equal(t, map[string]string{
+		EnvAppName:    "test-app",
+		EnvStanzaName: "test-stanza",
+	}, envVars)
 }
 
 func TestHandleLaunchAsTA_ReadError(t *testing.T) {
@@ -527,6 +531,83 @@ func (er *errorReader) Read(_ []byte) (n int, err error) {
 }
 
 var _ io.Reader = (*errorReader)(nil)
+
+func TestHandleLaunchAsTA_StanzaEnvVars(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="Splunk_TA_otel://default" app="Splunk_TA_otel">
+			<param name="splunk_realm">us0</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	_, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "Splunk_TA_otel", "<scheme></scheme>", nil)
+	require.NoError(t, err)
+
+	assert.Equal(t, "Splunk_TA_otel", envVars[EnvAppName])
+	assert.Equal(t, "Splunk_TA_otel://default", envVars[EnvStanzaName])
+}
+
+func TestHandleLaunchAsTA_StanzaEnvVars_NoMatchingStanza(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	// Stanza name does not match the prefix: neither env var is set.
+	xmlData := `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+		<stanza name="other-stanza://default" app="other-app">
+			<param name="splunk_realm">us0</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	_, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "Splunk_TA_otel", "<scheme></scheme>", nil)
+	require.NoError(t, err)
+
+	assert.NotContains(t, envVars, EnvAppName)
+	assert.NotContains(t, envVars, EnvStanzaName)
+}
 
 func TestHandleLaunchAsTA_TwoPassFiltering(t *testing.T) {
 	// Save original functions and restore after test
@@ -1506,4 +1587,95 @@ func TestHandleLaunchAsTA_ValidationMode_ValidatorReceivesItems(t *testing.T) {
 	require.Len(t, receivedItems.Item, 1)
 	assert.Equal(t, "test-stanza://default", receivedItems.Item[0].Name)
 	require.Len(t, receivedItems.Item[0].Param, 2)
+}
+
+func TestAppNameFromExecutable(t *testing.T) {
+	originalFn := currentProcessExeFn
+	defer func() { currentProcessExeFn = originalFn }()
+
+	tests := []struct {
+		name     string
+		execPath string
+		want     string
+	}{
+		{
+			name:     "multi OS path",
+			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:     "Splunk_TA_otel",
+		},
+		{
+			name:     "platform path",
+			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel_platform", "platform", "bin", "Splunk_TA_otel"),
+			want:     "Splunk_TA_otel_platform",
+		},
+		{
+			name:     "too few path components",
+			execPath: filepath.Join(string(filepath.Separator), "platform", "bin", "Splunk_TA_otel"),
+			want:     "",
+		},
+		{
+			name:     "only file path separator",
+			execPath: string(filepath.Separator),
+			want:     "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			currentProcessExeFn = func() (string, error) { return tt.execPath, nil }
+			assert.Equal(t, tt.want, appNameFromExecutable())
+		})
+	}
+}
+
+func TestAppNameFromExecutable_Error(t *testing.T) {
+	originalFn := currentProcessExeFn
+	defer func() { currentProcessExeFn = originalFn }()
+
+	currentProcessExeFn = func() (string, error) { return "", errors.New("process image path unavailable") }
+	assert.Empty(t, appNameFromExecutable())
+}
+
+func TestHandleLaunchAsTA_ValidationMode_SetsAppName(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	originalExecFn := currentProcessExeFn
+	originalStdout := stdoutWriter
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+		currentProcessExeFn = originalExecFn
+		stdoutWriter = originalStdout
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+	stdoutWriter = &bytes.Buffer{}
+	currentProcessExeFn = func() (string, error) {
+		return "/opt/splunk/etc/apps/Splunk_TA_otel/platform/bin/Splunk_TA_otel", nil
+	}
+
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<items>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<item name="Splunk_TA_otel://default">
+		<param name="splunk_realm">us0</param>
+	</item>
+</items>`
+
+	validator := func(_ *ValidationItems, args []string) ([]string, error) { return args, nil }
+	args := []string{"program", "--validate-arguments"}
+	_, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "Splunk_TA_otel", "<scheme></scheme>", validator)
+	require.NoError(t, err)
+
+	assert.Equal(t, "Splunk_TA_otel", envVars[EnvAppName])
+	assert.NotContains(t, envVars, EnvStanzaName, "stanza name is not available in validation mode")
 }

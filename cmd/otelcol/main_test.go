@@ -27,7 +27,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"testing"
 	"time"
 
@@ -44,24 +43,20 @@ func TestRunFromCmdLine(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, configFiles, 8, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
 
-	supportedAll := []string{"darwin", "linux", "windows"}
-	supportedUnix := []string{"darwin", "linux"}
-
 	tests := []struct {
 		name         string
 		panicMsg     string
 		skipMsg      string
 		extraEnvVars map[string]string
 		args         []string
-		supportedOS  []string
+		skipWindows  bool
 		timeout      time.Duration
 		validateOnly bool
 	}{
 		{
-			name:        "agent",
-			args:        []string{"otelcol", "--config=config/collector/agent_config.yaml"},
-			supportedOS: supportedAll,
-			timeout:     15 * time.Second,
+			name:    "agent",
+			args:    []string{"otelcol", "--config=config/collector/agent_config.yaml"},
+			timeout: 15 * time.Second,
 		},
 		{
 			name: "ecs_ec2",
@@ -69,7 +64,6 @@ func TestRunFromCmdLine(t *testing.T) {
 			extraEnvVars: map[string]string{
 				"ECS_CONTAINER_METADATA_URI_V4": "https://foo.com",
 			},
-			supportedOS:  supportedUnix,
 			timeout:      15 * time.Second,
 			validateOnly: true,
 		},
@@ -79,61 +73,56 @@ func TestRunFromCmdLine(t *testing.T) {
 			extraEnvVars: map[string]string{
 				"ECS_CONTAINER_METADATA_URI_V4": "https://foo.com",
 			},
-			supportedOS:  supportedUnix,
 			timeout:      15 * time.Second,
 			validateOnly: true,
 		},
 		{
 			name:         "full_linux",
 			args:         []string{"otelcol", "--config=config/collector/full_config_linux.yaml"},
-			supportedOS:  supportedUnix,
 			timeout:      15 * time.Second,
 			validateOnly: true,
+			skipWindows:  true,
 		},
 		{
-			name:        "gateway",
-			args:        []string{"otelcol", "--config=config/collector/gateway_config.yaml"},
-			supportedOS: supportedAll,
-			timeout:     15 * time.Second,
+			name:    "gateway",
+			args:    []string{"otelcol", "--config=config/collector/gateway_config.yaml"},
+			timeout: 15 * time.Second,
 		},
 		{
 			name:         "logs_linux",
 			args:         []string{"otelcol", "--config=config/collector/logs_config_linux.yaml"},
-			supportedOS:  supportedUnix,
 			timeout:      15 * time.Second,
 			validateOnly: true,
+			skipWindows:  true,
 		},
 		{
 			name:         "otlp_linux",
 			args:         []string{"otelcol", "--config=config/collector/otlp_config_linux.yaml"},
-			supportedOS:  supportedUnix,
 			timeout:      15 * time.Second,
 			validateOnly: true,
+			skipWindows:  true,
 		},
 		{
 			name:         "upstream_agent",
 			args:         []string{"otelcol", "--config=config/collector/upstream_agent_config.yaml"},
-			supportedOS:  supportedAll,
 			timeout:      15 * time.Second,
 			validateOnly: true,
 		},
 		{
-			name:        "default_discovery",
-			args:        []string{"otelcol", "--discovery", "--config=config/collector/agent_config.yaml"},
-			supportedOS: supportedUnix,
-			timeout:     30 * time.Second,
+			name:    "default_discovery",
+			args:    []string{"otelcol", "--discovery", "--config=config/collector/agent_config.yaml"},
+			timeout: 30 * time.Second,
 		},
 		// Running the discovery with --dry-run in CI is not desirable because of the use of os.Exit(0) to end the execution.
 		// That prevents the test from releasing resources like ports. The test needs to catch the panic to not fail the test,
 		// however, the resources won't be properly released for the remaining tests that may use the same resources.
 		// Skipping the test by default but keeping it around to deliberate runs on dev box.
 		{
-			name:        "dry-run_discovery",
-			args:        []string{"otelcol", "--discovery", "--dry-run", "--config=config/collector/agent_config.yaml"},
-			supportedOS: supportedUnix,
-			timeout:     30 * time.Second,
-			panicMsg:    "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
-			skipMsg:     "Skipping this test by default because --dry-run uses os.Exit(0) to end the execution",
+			name:     "dry-run_discovery",
+			args:     []string{"otelcol", "--discovery", "--dry-run", "--config=config/collector/agent_config.yaml"},
+			timeout:  30 * time.Second,
+			panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
+			skipMsg:  "Skipping this test by default because --dry-run uses os.Exit(0) to end the execution",
 		},
 	}
 
@@ -151,8 +140,8 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if !slices.Contains(tt.supportedOS, runtime.GOOS) {
-				t.Skipf("skipping test on %s; supported OSes: %v", runtime.GOOS, tt.supportedOS)
+			if tt.skipWindows && runtime.GOOS == "windows" {
+				t.Skip("skipping test on windows")
 			}
 
 			if tt.skipMsg != "" {

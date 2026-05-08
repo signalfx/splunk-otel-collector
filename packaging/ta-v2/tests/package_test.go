@@ -296,8 +296,8 @@ func TestPackageMandatoryFiles(t *testing.T) {
 					continue
 				}
 				if inPackageSection {
-					normalized := strings.ReplaceAll(trimmed, " ", "")
-					if strings.HasPrefix(normalized, sectionHeaderSentinel) {
+					trimmed := strings.ReplaceAll(trimmed, " ", "")
+					if strings.HasPrefix(trimmed, sectionHeaderSentinel) {
 						// We've reached the next section without finding an id, so stop looking for it
 						break
 					}

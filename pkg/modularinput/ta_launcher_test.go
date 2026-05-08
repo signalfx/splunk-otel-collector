@@ -19,6 +19,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -1599,17 +1600,22 @@ func TestAppNameFromExecutable(t *testing.T) {
 	}{
 		{
 			name:     "multi OS path",
-			execPath: "/opt/splunk/etc/apps/Splunk_TA_otel/platform/bin/Splunk_TA_otel",
+			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
 			want:     "Splunk_TA_otel",
 		},
 		{
 			name:     "platform path",
-			execPath: "/opt/splunk/etc/apps/Splunk_TA_otel_platform/platform/bin/Splunk_TA_otel",
+			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel_platform", "platform", "bin", "Splunk_TA_otel"),
 			want:     "Splunk_TA_otel_platform",
 		},
 		{
 			name:     "too few path components",
-			execPath: "/platform/bin/Splunk_TA_otel",
+			execPath: filepath.Join(string(filepath.Separator), "platform", "bin", "Splunk_TA_otel"),
+			want:     "",
+		},
+		{
+			name:     "only file path separator",
+			execPath: string(filepath.Separator),
 			want:     "",
 		},
 	}

@@ -568,8 +568,8 @@ func TestDefaultAgentConfig(t *testing.T) {
 
 			require.Eventually(t, func() bool {
 				for _, log := range tc.ObservedLogs.All() {
-					// confirm the smartagent extension's config has been sourced by receiver instance.
-					if strings.Contains(log.Message, "Smart Agent Config provider configured") {
+					// confirm all components were loaded successfully
+					if strings.Contains(log.Message, "Everything is ready. Begin running and processing data.") {
 						return true
 					}
 				}

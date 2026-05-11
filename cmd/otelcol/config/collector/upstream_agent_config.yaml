@@ -29,15 +29,29 @@ extensions:
       endpoint: "${SPLUNK_API_URL}"
       # Use instead when sending to gateway
       #endpoint: "${SPLUNK_GATEWAY_URL}"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "${SPLUNK_INGEST_URL}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     #endpoint: 0.0.0.0:55679
     expvar:
       enabled: true
 
 receivers:
-  fluentforward:
+  fluent_forward:
     endpoint: 127.0.0.1:8006
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu:
@@ -168,7 +182,7 @@ exporters:
     verbosity: detailed
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
@@ -193,7 +207,7 @@ service:
       #exporters: [otlp_grpc/gateway, signalfx]
     # Required for Splunk Infrastructure Monitoring
     metrics:
-      receivers: [hostmetrics, otlp]
+      receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway

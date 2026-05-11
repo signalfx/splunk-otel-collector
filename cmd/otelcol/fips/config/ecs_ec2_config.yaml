@@ -19,16 +19,30 @@ extensions:
       endpoint: 0.0.0.0:6060
     egress:
       endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "${SPLUNK_INGEST_URL}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     endpoint: 0.0.0.0:55679
     expvar:
       enabled: true
 
 receivers:
-  # The fluentforward receiver can be used to forward logs from the Docker fluentd logging driver.
-  fluentforward:
+  # The fluent_forward receiver can be used to forward logs from the Docker fluentd logging driver.
+  fluent_forward:
     endpoint: 0.0.0.0:8006
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu:
@@ -142,7 +156,7 @@ exporters:
     log_data_enabled: false
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
@@ -163,7 +177,7 @@ service:
         #- resource/add_environment
       exporters: [otlp_http, signalfx]
     metrics:
-      receivers: [hostmetrics, otlp]
+      receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, filter, resourcedetection]
       exporters: [signalfx]
     metrics/internal:
@@ -171,7 +185,7 @@ service:
       processors: [memory_limiter, batch, filter, resourcedetection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [otlp, fluentforward]
+      receivers: [otlp, fluent_forward]
       processors:
         - memory_limiter
         - batch

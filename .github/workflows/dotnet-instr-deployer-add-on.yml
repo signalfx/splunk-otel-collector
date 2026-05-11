@@ -23,7 +23,7 @@ on:
         default: '6b4ebe426ca6'
 
 env:
-  GO_VERSION: 1.25.9
+  GO_VERSION: 1.26.2
   # Provide default values for non-manually triggered executions
   splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
   splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}
@@ -53,7 +53,7 @@ jobs:
         run: make build-pack
 
       - name: Upload the .NET Instrumentation Deployer Add-On
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: splunk_otel_dotnet_deployer
           path: ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
@@ -109,7 +109,7 @@ jobs:
         run: echo "Fail to read version from app.conf" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

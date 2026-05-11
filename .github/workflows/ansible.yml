@@ -97,7 +97,7 @@ jobs:
         run: yamllint .
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@8ba9595a4acd1b906eb75568b34f6ef592cd1528 # v26.3.0
+        uses: ansible/ansible-lint@5fac056c45595896c973fbde871f01f6cb14d74c # v26.4.0
         with:
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"
@@ -127,6 +127,7 @@ jobs:
         distro:
           - amazonlinux2023
           - centos9
+          - centos10
           - debian11
           - debian12
           - debian13
@@ -315,7 +316,7 @@ jobs:
         run: echo "Fail to read version from galaxy.yml" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

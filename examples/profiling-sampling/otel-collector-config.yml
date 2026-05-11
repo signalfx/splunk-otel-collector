@@ -1,0 +1,41 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+exporters:
+  debug:
+    verbosity: detailed
+  nop:
+
+processors:
+  transform/add_uuid:
+    log_statements:
+      - set(log.attributes["uuid"], UUID())
+  transform/remove_uuid:
+    log_statements:
+      - delete_matching_keys(log.attributes, "uuid")
+  probabilistic_sampler:
+    sampling_percentage: 50
+    attribute_source: record
+    from_attribute: uuid
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [ health_check ]
+  pipelines:
+    logs/profiling:
+      receivers: [ otlp ]
+      processors: [ transform/add_uuid, probabilistic_sampler, transform/remove_uuid ]
+      exporters: [ debug ]
+    metrics:
+      receivers: [ otlp ]
+      exporters: [ nop ]
+    traces:
+      receivers: [ otlp ]
+      exporters: [ nop ]

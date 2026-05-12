@@ -330,6 +330,13 @@ jobs:
             $collector_property_vars += $test_collector_property_vars
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $collector_property_vars -type MultiString
             Start-Sleep 30
+            if ("${{ matrix.MODE}}" -eq "agent") {
+              # Temporary workaround until current code in the repository supports the same configuration as the latest officially released version.
+              Write-Host "Overwriting collector agent config since latest doesn't support the smartagent extension"
+              $dest_config_path = "${Env:ProgramData}\Splunk\OpenTelemetry Collector\agent_config.yaml"
+              $source_config_path = "${{ github.workspace }}\cmd\otelcol\config\collector\agent_config.yaml"
+              Copy-Item -Path $source_config_path -Destination $dest_config_path -Force
+            }
             write-host "Upgrading $choco_file_name ..."
             choco upgrade splunk-otel-collector -s=".\dist" -y
             if ($LASTEXITCODE -ne 0) {

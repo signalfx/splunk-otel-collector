@@ -25,7 +25,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lib/pq v1.12.3
-	github.com/mailru/easyjson v0.9.1
+	github.com/mailru/easyjson v0.9.2
 	github.com/mattn/go-xmlrpc v0.0.3
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.39.1
@@ -45,7 +45,7 @@ require (
 	github.com/snowflakedb/gosnowflake/v2 v2.0.1
 	github.com/stretchr/testify v1.11.1
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.53.0
+	github.com/vmware/govmomi v0.53.1
 	golang.org/x/net v0.52.0 // indirect
 	golang.org/x/sync v0.20.0
 	golang.org/x/sys v0.43.0

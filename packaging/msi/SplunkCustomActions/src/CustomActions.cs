@@ -35,9 +35,9 @@ public class CustomActions
         // If SPLUNK_SETUP_COLLECTOR_MODE is not one of the expected values, fail the check.
         var collectorMode = session["SPLUNK_SETUP_COLLECTOR_MODE"] ?? string.Empty;
         session.Log("Info: SPLUNK_SETUP_COLLECTOR_MODE=" + collectorMode);
-        if (collectorMode != "agent" && collectorMode != "gateway")
+        if (collectorMode != "agent" && collectorMode != "gateway" && collectorMode != 'logs_windows')
         {
-            LogAndShowError(session, "SPLUNK_SETUP_COLLECTOR_MODE must be either 'agent' or 'gateway'.");
+            LogAndShowError(session, "SPLUNK_SETUP_COLLECTOR_MODE must be either 'agent' or 'gateway' or logs_windows.");
             return ActionResult.Failure;
         }
 

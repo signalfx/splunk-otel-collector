@@ -115,7 +115,19 @@ exporters:
     index: otel
     tls:
       insecure_skip_verify: true
+
+extensions:
+  # Storage extension for storing file_log checkpoints.
+  # Checkpoints allow the receiver to pick up where it left off in the case of a
+  # collector restart.
+  file_storage/filelogs:
+    compaction:
+      on_start: true
+      directory: /tmp/
+    create_directory: true
+
 service:
+  extensions: [file_storage/filelogs]
   pipelines:
     logs/dhcp:
       receivers: [filelog/dhcp]

@@ -122,6 +122,7 @@ extensions:
   # Checkpoints allow the receiver to pick up where it left off in the case of a
   # collector restart.
   file_storage/filelogs:
+    directory: "%ProgramData%\Splunk\OpenTelemetry Collector\FileStorage"
     compaction:
       on_start: true
       directory: /tmp/

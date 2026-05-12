@@ -110,9 +110,10 @@ processors:
 
 exporters:
   splunk_hec:
-    endpoint: "https://localhost:8088/services/collector"
-    token: "896b5212-3ba8-4c9e-9ba8-a6f9423ff423"
+    endpoint: "${SPLUNK_HEC_URL}"
+    token: "${SPLUNK_HEC_TOKEN}"
     index: otel
+    # should not be skipped in final version
     tls:
       insecure_skip_verify: true
 

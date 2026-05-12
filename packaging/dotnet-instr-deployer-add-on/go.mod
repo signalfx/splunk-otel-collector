@@ -1,6 +1,6 @@
 module github.com/splunk/splunk_otel_dotnet_deployer
 
-go 1.26.2
+go 1.26.3
 
 require github.com/signalfx/splunk-otel-collector v0.0.0
 

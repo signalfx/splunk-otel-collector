@@ -103,6 +103,10 @@ receivers:
 
 processors:
   batch:
+  resourcedetection:
+    detectors: [ system, env ]
+    system:
+      hostname_sources: [ "os" ]
 
 exporters:
   splunk_hec:
@@ -115,30 +119,30 @@ service:
   pipelines:
     logs/dhcp:
       receivers: [filelog/dhcp]
-      processors: [batch]
+      processors: [batch, resourcedetection]
       exporters: [splunk_hec]
 
     logs/windowsupdate:
       receivers: [filelog/windowsupdate_legacy, filelog/windowsupdate_modern]
-      processors: [batch]
+      processors: [batch, resourcedetection]
       exporters: [splunk_hec]
 
     logs/netlogon:
       receivers: [filelog/netlogon]
-      processors: [batch]
+      processors: [batch, resourcedetection]
       exporters: [splunk_hec]
 
     logs/firewall:
       receivers: [filelog/firewall]
-      processors: [batch]
+      processors: [batch, resourcedetection]
       exporters: [splunk_hec]
 
     logs/dns_analytical:
       receivers: [filelog/dns_analytical]
-      processors: [batch]
+      processors: [batch, resourcedetection]
       exporters: [splunk_hec]
 
     logs/dns_debug:
       receivers: [filelog/dns_debug]
-      processors: [batch]
+      processors: [batch, resourcedetection]
       exporters: [splunk_hec]

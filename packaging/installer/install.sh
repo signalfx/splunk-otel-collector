@@ -1672,13 +1672,13 @@ parse_args_and_install() {
     hec_url="${ingest_url}/v1/log"
   fi
 
-  # Auto-enable logs collection when any splunk-logs-* option is provided
+  # Auto-enable logs collection when any splunk-platform-* option is provided
   if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_url" ] || [ -n "$splunk_platform_logs_index" ]; then
     with_logs="true"
   fi
 
   if [ "$with_logs" = "true" ] && [ "$mode" = "gateway" ]; then
-    echo "[ERROR] Log collection (--splunk-logs-*) is not supported in gateway mode." >&2
+    echo "[ERROR] Log collection (--splunk-platform-*) is not supported in gateway mode." >&2
     exit 1
   fi
 

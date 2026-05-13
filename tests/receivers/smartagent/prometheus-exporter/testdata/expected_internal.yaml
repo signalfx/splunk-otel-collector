@@ -239,4 +239,21 @@ resourceMetrics:
                       value:
                         stringValue: prometheus-exporter
             name: target_info
+          - name: otelcol_exporter_in_flight_requests
+            gauge:
+              dataPoints:
+                - asDouble: 3
+                  attributes:
+                    - key: data_type
+                      value:
+                        stringValue: metrics
+                    - key: exporter
+                      value:
+                        stringValue: otlp_grpc
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
         scope: {}

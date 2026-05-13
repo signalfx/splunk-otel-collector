@@ -244,6 +244,12 @@ resourceMetrics:
               dataPoints:
                 - asDouble: 3
                   attributes:
+                    - key: data_type
+                      value:
+                        stringValue: metrics
+                    - key: exporter
+                      value:
+                        stringValue: otlp_grpc
                     - key: foo
                       value:
                         stringValue: bar

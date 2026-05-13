@@ -1,3 +1,5 @@
+# AGENTS instructions
+
 ## PR descriptions
 
 Keep PR descriptions concise. Do not repeat yourself. Do not add unimportant or unrelated text.

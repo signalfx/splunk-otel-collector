@@ -9,7 +9,7 @@ receivers:
     # Refer to Oracle Go Driver go_ora documentation for full connection string options
     datasource: "oracle://otel:password@localhost:1521/XE"
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -22,4 +22,4 @@ service:
     metrics:
       receivers:
         - oracledb
-      exporters: [otlp]
+      exporters: [otlp_grpc]

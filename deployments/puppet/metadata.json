@@ -1,12 +1,12 @@
 {
   "name": "signalfx-splunk_otel_collector",
-  "version": "0.18.0",
+  "version": "0.20.0",
   "author": "Splunk, Inc.",
   "summary": "This module installs the Splunk OpenTelemetry Collector via distro packages and configures it.",
   "license": "Apache-2.0",
   "source": "https://github.com/signalfx/splunk-otel-collector",
   "project_page": "https://github.com/signalfx/splunk-otel-collector",
-  "issues_url": "https://github.com/signalfx/splunk-otel-collector/issues",
+  "issues_url": "https://ideas.splunk.com",
   "dependencies": [
     {
       "name": "puppetlabs/apt",
@@ -37,7 +37,8 @@
       "operatingsystem": "CentOS",
       "operatingsystemrelease": [
         "8",
-        "9"
+        "9",
+        "10"
       ]
     },
     {
@@ -53,7 +54,8 @@
       "operatingsystemrelease": [
         "7",
         "8",
-        "9"
+        "9",
+        "10"
       ]
     },
     {
@@ -66,10 +68,8 @@
     {
       "operatingsystem": "Ubuntu",
       "operatingsystemrelease": [
-        "16.04",
-        "18.04",
-        "20.04",
-        "22.04"
+        "22.04",
+        "24.04"
       ]
     },
     {
@@ -91,7 +91,7 @@
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">= 6.0.0"
+      "version_requirement": ">= 8.0.0"
     }
   ],
   "pdk-version": "1.4.1",

@@ -121,7 +121,6 @@ func (sinfo *sharedInfo) fetchNodeAndClusterMetadata(esClient ESStatsHTTPClient,
 
 	clusterName := nodeInfoOutput.ClusterName
 	sinfo.defaultDimensions, err = prepareDefaultDimensions(configuredClusterName, clusterName)
-
 	if err != nil {
 		return fmt.Errorf("failed to prepare plugin_instance dimension: %v", err)
 	}
@@ -184,7 +183,6 @@ func (m *Monitor) Configure(c *Config) error {
 	utils.RunOnInterval(m.ctx, func() {
 		// Fetch metadata from Elasticsearch nodes
 		err := shared.fetchNodeAndClusterMetadata(esClient, conf.Cluster)
-
 		// For any reason the monitor is not able to fetch cluster and node information upfront we capture that
 		// to ensure that the stats are not sent in with faulty dimensions. The monitor will try to fetch this
 		// information again every MetadataRefreshInterval seconds
@@ -248,7 +246,6 @@ func (m *Monitor) fetchNodeStats(esClient ESStatsHTTPClient, conf *Config, defau
 
 func (m *Monitor) fetchClusterStats(esClient ESStatsHTTPClient, conf *Config, defaultDimensions map[string]string) {
 	clusterStatsOutput, err := esClient.GetClusterStats()
-
 	if err != nil {
 		m.logger.WithError(err).Errorf("Failed to GET cluster stats")
 		return
@@ -259,7 +256,6 @@ func (m *Monitor) fetchClusterStats(esClient ESStatsHTTPClient, conf *Config, de
 
 func (m *Monitor) fetchIndexStats(esClient ESStatsHTTPClient, conf *Config, defaultDimensions map[string]string) {
 	indexStatsOutput, err := esClient.GetIndexStats()
-
 	if err != nil {
 		m.logger.WithError(err).Errorf("Failed to GET index stats")
 		return

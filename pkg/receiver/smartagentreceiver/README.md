@@ -47,12 +47,6 @@ Example:
 
 ```yaml
 receivers:
-  smartagent/postgresql:
-    type: postgresql
-    host: mypostgresinstance
-    port: 5432
-    dimensionClients:
-      - signalfx  # references the SignalFx Exporter configured below
   smartagent/processlist:
     type: processlist
 
@@ -65,8 +59,8 @@ exporters:
   signalfx:
     access_token: "${SIGNALFX_ACCESS_TOKEN}"
     realm: us1
-  otlphttp:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+  otlp_http:
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 
@@ -74,8 +68,7 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/postgresql
-        - smartagent/kafka
+        - smartagent/processlist
       processors:
         - resourcedetection
       exporters:
@@ -93,5 +86,5 @@ service:
       processors:
         - resourcedetection
       exporters:
-        - otlphttp
+        - otlp_http
 ```

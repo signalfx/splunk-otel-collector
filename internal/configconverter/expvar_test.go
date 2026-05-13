@@ -105,7 +105,7 @@ func TestExpvarConverter_Convert(t *testing.T) {
 	conf := confmap.NewFromStringMap(configData)
 	err := converter.Convert(context.Background(), conf)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, configData, converter.effective)
 }
 
@@ -115,7 +115,7 @@ func TestExpvarConverter_Convert_EmptyConfig(t *testing.T) {
 	conf := confmap.NewFromStringMap(map[string]any{})
 	err := converter.Convert(context.Background(), conf)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, converter.effective)
 }
 

@@ -46,6 +46,9 @@ get_distro_codename() {
       12)
         codename="bookworm"
         ;;
+      13)
+        codename="trixie"
+        ;;
       *)
         codename=""
         ;;
@@ -75,32 +78,26 @@ debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
 rpm_repo_base="${repo_base}/otel-collector-rpm"
 yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
 
-fluent_capng_c_version="0.2.2"
-fluent_config_dir="${collector_config_dir}/fluentd"
-fluent_config_path="${fluent_config_dir}/fluent.conf"
-fluent_plugin_systemd_version="1.0.1"
-journald_config_path="${fluent_config_dir}/conf.d/journald.conf"
-
-td_agent_repo_base="https://packages.treasuredata.com"
-td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
-
 default_stage="release"
 default_realm="us0"
 default_memory_size="512"
 default_listen_interface="0.0.0.0"
 
 default_collector_version="latest"
-default_td_agent_version="4.3.2"
 
 default_service_user="splunk-otel-collector"
 default_service_group="splunk-otel-collector"
 
 preload_path="/etc/ld.so.preload"
 default_instrumentation_version="latest"
+default_obi_version="v0.6.0"
 default_deployment_environment=""
 instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 systemd_instrumentation_config_path="/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
+default_obi_install_dir="/usr/local/bin"
+obi_repo_base="https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download"
+obi_github_latest_api="https://api.github.com/repos/open-telemetry/opentelemetry-ebpf-instrumentation/releases/latest"
 service_name=""
 enable_profiler="false"
 enable_profiler_memory="false"
@@ -126,13 +123,294 @@ repo_for_stage() {
   echo "$repo_url/$stage"
 }
 
+normalize_obi_version() {
+  local version="$1"
+
+  if [ "$version" = "latest" ]; then
+    echo "$version"
+  else
+    echo "$version" | sed -e 's/^v//'
+  fi
+}
+
+validate_obi_version() {
+  local version="$1"
+
+  case "$version" in
+    latest)
+      return 0
+      ;;
+  esac
+
+  # Allow only semver-like tags with optional leading 'v' and optional
+  # prerelease/build suffixes (e.g., 1.2.3, v1.2.3, 1.2.3-rc.1, v1.2.3+build.7).
+  if ! printf '%s\n' "$version" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+|-[0-9A-Za-z.-]+(\+[0-9A-Za-z.-]+)?)?$'; then
+    echo "[ERROR] Invalid OBI version '$version'. Expected 'latest' or a semver tag (for example: 0.6.0, v0.6.0, 0.6.0-rc.1)." >&2
+    exit 1
+  fi
+}
+
+resolve_obi_version() {
+  local version="$1"
+
+  if [ "$version" != "latest" ]; then
+    echo "v$( normalize_obi_version "$version" )"
+    return 0
+  fi
+
+  local api_response
+  if ! api_response="$( download_file_to_stdout "$obi_github_latest_api" )"; then
+    echo "[ERROR] Failed to download OBI release metadata from $obi_github_latest_api" >&2
+    exit 1
+  fi
+
+  local tag
+  tag="$( printf '%s\n' "$api_response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1 )"
+  if [ -z "$tag" ]; then
+    echo "[ERROR] Could not determine latest OBI version from $obi_github_latest_api" >&2
+    exit 1
+  fi
+
+  echo "$tag"
+}
+
+kernel_major_minor() {
+  local kernel_release
+  local kernel_version
+  kernel_release="$(uname -r)"
+  kernel_version="$( echo "$kernel_release" | cut -d '-' -f 1 )"
+  echo "$kernel_version" | awk -F. '{ printf "%d.%d", $1, $2 }'
+}
+
+kernel_at_least() {
+  local minimum="$1"
+  local current="$( kernel_major_minor )"
+  local current_major="$( echo "$current" | cut -d. -f1 )"
+  local current_minor="$( echo "$current" | cut -d. -f2 )"
+  local min_major="$( echo "$minimum" | cut -d. -f1 )"
+  local min_minor="$( echo "$minimum" | cut -d. -f2 )"
+
+  if [ "$current_major" -gt "$min_major" ]; then
+    return 0
+  fi
+  if [ "$current_major" -lt "$min_major" ]; then
+    return 1
+  fi
+  [ "$current_minor" -ge "$min_minor" ]
+}
+
+bpffs_mounted() {
+  awk '$2 == "/sys/fs/bpf" && $3 == "bpf" { found = 1 } END { exit !found }' /proc/mounts
+}
+
+ensure_bpffs_available() {
+  # Confirm kernel advertises bpf fs support.
+  if ! grep -qw bpf /proc/filesystems; then
+    echo "[ERROR] OBI requires kernel support for bpf fs, but 'bpf' was not found in /proc/filesystems." >&2
+    return 1
+  fi
+
+  if bpffs_mounted; then
+    return 0
+  fi
+
+  echo "[ERROR] OBI requires bpffs mounted at /sys/fs/bpf. You can mount it with: 'mount -t bpf bpf /sys/fs/bpf' (run as root), then rerun this installer." >&2
+  return 1
+}
+
+# Maps a raw uname -m value to the canonical OBI arch name (amd64 or arm64).
+# Unknown values are echoed unchanged so ensure_obi_supported_arch can reject them.
+normalize_obi_arch() {
+  local arch="$1"
+  case "$arch" in
+    x86_64)  echo "amd64" ;;
+    aarch64) echo "arm64" ;;
+    *)       echo "$arch" ;;
+  esac
+}
+
+# Exits with an error if arch is not a supported OBI architecture.
+ensure_obi_supported_arch() {
+  local arch="$1"
+  case "$arch" in
+    amd64|arm64) return 0 ;;
+    *)
+      echo "[ERROR] OBI is not supported on architecture '${arch}'. Supported architectures: amd64, arm64." >&2
+      return 1
+      ;;
+  esac
+}
+
+# Returns 0 if the running kernel meets OBI's minimum version requirement for
+# the current distro, 1 with an error otherwise.
+ensure_obi_supported_kernel() {
+  # RHEL-family kernels backport required eBPF features to 4.18.
+  local min_kernel="5.8"
+  case "$distro" in
+    amzn|centos|ol|rhel|rocky)
+      min_kernel="4.18"
+      ;;
+  esac
+
+  if ! kernel_at_least "$min_kernel"; then
+    echo "[ERROR] OBI requires Linux kernel ${min_kernel}+ on ${distro} (${distro_version}). Current kernel: $(uname -r)." >&2
+    return 1
+  fi
+}
+
+# Returns 0 if the eBPF capabilities required by OBI are available, 1 otherwise.
+ensure_bpf_enabled() {
+  if ! ensure_bpffs_available; then
+    return 1
+  fi
+
+  if command -v bpftool >/dev/null 2>&1; then
+    if ! bpftool feature probe kernel >/dev/null 2>&1; then
+      echo "[ERROR] OBI requires eBPF runtime features that could not be validated with bpftool." >&2
+      return 1
+    fi
+  else
+    echo "[NOTICE] bpftool is not installed; skipping detailed eBPF feature probe." >&2
+  fi
+}
+
+ensure_running_as_root() {
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "[ERROR] OBI installation requires root privileges." >&2
+    return 1
+  fi
+}
+
+# Validates that OBI can be installed in the current environment.
+# Exits with an error on any failure.
+preflight_obi() {
+  local desired_version="$1"
+  local arch
+
+  arch=$(normalize_obi_arch "$distro_arch")
+  ensure_obi_supported_arch "$arch" || exit 1
+  ensure_obi_supported_kernel || exit 1
+  ensure_running_as_root || exit 1
+  ensure_bpf_enabled || exit 1
+
+  if ! command -v tar >/dev/null 2>&1; then
+    echo "[ERROR] tar is required to install OBI" >&2
+    exit 1
+  fi
+
+  if ! command -v sha256sum >/dev/null 2>&1; then
+    echo "[ERROR] sha256sum is required to verify OBI downloads" >&2
+    exit 1
+  fi
+
+  validate_obi_version "$desired_version"
+
+  # Some minimal images (for example, openSUSE test images) ship tar without
+  # a gzip binary in PATH. Ensure gzip is available before extracting .tar.gz.
+  if ! command -v gzip >/dev/null 2>&1; then
+    echo "gzip is required to extract OBI archives and was not found; attempting to install it ..."
+    case "$distro" in
+      ubuntu|debian)
+        apt-get -y update
+        install_apt_package "gzip" "latest"
+        ;;
+      amzn|centos|ol|rhel|rocky|sles|opensuse*)
+        install_yum_package "gzip"
+        ;;
+      *)
+        echo "[ERROR] gzip is required to extract OBI archives, but package installation is unsupported on distro '$distro'." >&2
+        exit 1
+        ;;
+    esac
+  fi
+
+  if ! command -v gzip >/dev/null 2>&1; then
+    echo "[ERROR] gzip is required to extract OBI archives" >&2
+    exit 1
+  fi
+
+}
+
+# Downloads, verifies, and installs the OBI binary.
+# Expects preflight_obi() to have already been called.
+# $1: resolved version tag (e.g. "v0.7.1"), $2: install directory
+install_obi() {
+  local version_tag="$1"
+  local install_dir="$2"
+  local arch
+  local tar_name
+  local checksums_name="SHA256SUMS"
+  local download_base
+  local tmp_dir
+
+  arch=$(normalize_obi_arch "$distro_arch")
+  tar_name="obi-${version_tag}-linux-${arch}.tar.gz"
+  download_base="${obi_repo_base}/${version_tag}"
+  tmp_dir="$(mktemp -d /tmp/splunk-obi.XXXXXX)"
+  # Ensure temporary files are removed on both success and any early exit.
+  trap "rm -rf '$tmp_dir'" EXIT HUP INT TERM
+
+  echo "Installing OBI ${version_tag} (${arch}) ..."
+  echo "Downloading ${download_base}/${tar_name}"
+  if ! download_file_to_stdout "$download_base/$tar_name" > "$tmp_dir/$tar_name"; then
+    echo "[ERROR] Failed to download ${download_base}/${tar_name}" >&2
+    exit 1
+  fi
+
+  echo "Downloading ${download_base}/${checksums_name}"
+  if ! download_file_to_stdout "$download_base/$checksums_name" > "$tmp_dir/$checksums_name"; then
+    echo "[ERROR] Failed to download ${download_base}/${checksums_name}" >&2
+    exit 1
+  fi
+
+  echo "Verifying checksum for ${tar_name}"
+  if ! (cd "$tmp_dir" && \
+    expected_checksum="$(awk -v f="$tar_name" '$2 == f { print $1 }' "$checksums_name" || true)" && \
+    [ -n "$expected_checksum" ] && \
+    actual_checksum="$(sha256sum "$tar_name" | awk '{ print $1 }')" && \
+    [ "$expected_checksum" = "$actual_checksum" ]); then
+    echo "[ERROR] OBI checksum verification failed for ${tar_name}" >&2
+    exit 1
+  fi
+
+  # Safely extract only the expected 'obi' binary from the archive without
+  # allowing other files or paths inside the tarball to be created.
+  if ! (cd "$tmp_dir" && tar -xOzf "$tar_name" obi > "$tmp_dir/obi"); then
+    echo "[ERROR] Failed to extract expected binary (obi) from OBI archive" >&2
+    exit 1
+  fi
+
+  if [ ! -f "$tmp_dir/obi" ]; then
+    echo "[ERROR] OBI archive did not contain expected binary (obi)" >&2
+    exit 1
+  fi
+
+  mkdir -p -- "$install_dir"
+  command install -m 0755 -- "$tmp_dir/obi" "$install_dir/obi"
+
+  rm -rf "$tmp_dir"
+  trap - EXIT HUP INT TERM
+
+  echo "Installed OBI binaries to $install_dir"
+  "$install_dir/obi" --version || true
+}
+
+uninstall_obi() {
+  local install_dir="$1"
+
+  if [ -f "$install_dir/obi" ]; then
+    rm -f -- "$install_dir/obi"
+    echo "Removed OBI binary: $install_dir/obi"
+  fi
+}
+
 download_file_to_stdout() {
   local url=$1
 
   if command -v curl > /dev/null; then
-    curl -sSL $url
+    curl -fsSL -- "$url"
   elif command -v wget > /dev/null; then
-    wget -O - -o /dev/null $url
+    wget -O - -o /dev/null -- "$url"
   else
     echo "Either curl or wget must be installed to download $url" >&2
     exit 1
@@ -151,38 +429,56 @@ verify_access_token() {
   local access_token="$1"
   local ingest_url="$2"
   local insecure="$3"
+  local http_code
 
   if command -v curl > /dev/null; then
-    api_output=$(curl \
+    http_code=$(curl \
       -d '[]' \
       -H "X-Sf-Token: $access_token" \
       -H "Content-Type:application/json" \
       -X POST \
+      -w "%{http_code}" \
+      -o /dev/null \
+      -s \
       $([ "$insecure" = "true" ] && echo -n "--insecure") \
-      "$ingest_url"/v2/event 2>/dev/null)
+      "$ingest_url"/v2/event)
+    if [ $? -ne 0 ]; then
+      echo "Failed to verify access token: curl request failed" >&2
+      return 1
+    fi
   elif command -v wget > /dev/null; then
-    api_output=$(wget \
+    # --server-response prints HTTP headers to stderr
+    local wget_output
+    wget_output=$(wget \
       --header="Content-Type: application/json" \
       --header="X-Sf-Token: $access_token" \
       --post-data='[]' \
       $([ "$insecure" = "true" ] && echo -n "--no-check-certificate") \
-      -O - \
-      -o /dev/null \
-      "$ingest_url"/v2/event)
-    if [ $? -eq 5 ]; then
+      --server-response \
+      -O /dev/null \
+      "$ingest_url"/v2/event 2>&1)
+    local wget_exit=$?
+    if [ $wget_exit -eq 5 ]; then
       echo "TLS cert for Splunk ingest could not be verified, does your system have TLS certs installed?" >&2
-      exit 1
+      return 1
+    fi
+    # Extract HTTP status code from response headers (format: "  HTTP/1.1 200 OK")
+    http_code=$(echo "$wget_output" | grep -i "^[[:space:]]*HTTP/" | tail -1 | awk '{print $2}')
+    if [ -z "$http_code" ]; then
+      echo "Failed to verify access token: wget request failed" >&2
+      return 1
     fi
   else
     echo "Either curl or wget is required to verify the access token" >&2
-    exit 1
+    return 1
   fi
 
-  if [ "$api_output" = "\"OK\"" ]; then
-    true
+  # Check if status code is 200
+  if [ "$http_code" -eq 200 ]; then
+    return 0
   else
-    echo "$api_output"
-    false
+    echo "Access token verification failed with HTTP status code: $http_code" >&2
+    return 1
   fi
 }
 
@@ -206,18 +502,6 @@ install_collector_apt_repo() {
 
   download_debian_key "$debian_gpg_key_url" "/etc/apt/trusted.gpg.d/splunk.gpg"
   echo "deb $trusted_flag $deb_repo_base $stage main" > /etc/apt/sources.list.d/splunk-otel-collector.list
-}
-
-install_td_agent_apt_repo() {
-  local td_agent_version="$1"
-  local td_agent_major_version="$( echo $td_agent_version | cut -d '.' -f1 )"
-
-  if ! download_file_to_stdout "$td_agent_gpg_key_url" | apt-key add -; then
-    echo "Could not download Debian GPG key from $td_agent_gpg_key_url" >&2
-    exit 1
-  fi
-
-  echo "deb ${td_agent_repo_base}/${td_agent_major_version}/${distro}/${distro_codename} $distro_codename contrib" > /etc/apt/sources.list.d/td_agent.list
 }
 
 install_apt_package() {
@@ -256,28 +540,6 @@ enabled=1
 EOH
 }
 
-install_td_agent_yum_repo() {
-  local td_agent_version="$1"
-  local repo_path="${2:-/etc/yum.repos.d}"
-  local td_agent_major_version="$( echo $td_agent_version | cut -d '.' -f1 )"
-  local releasever="$( echo "$distro_version" | cut -d '.' -f1 )"
-
-  if [ "$distro" = "amzn" ]; then
-    distro="amazon"
-  else
-    distro="redhat"
-  fi
-
-  cat <<EOH > ${repo_path}/td_agent.repo
-[td_agent]
-name=TreasureData Repository
-baseurl=${td_agent_repo_base}/${td_agent_major_version}/${distro}/${releasever}/\$basearch
-gpgcheck=1
-gpgkey=$td_agent_gpg_key_url
-enabled=1
-EOH
-}
-
 install_yum_package() {
   local package_name="$1"
   local version="${2:-}"
@@ -301,22 +563,16 @@ install_yum_package() {
 }
 
 ensure_not_installed() {
-  local with_fluentd="$1"
-  local with_instrumentation="$2"
-  local with_systemd_instrumentation="$3"
-  local npm_path="$4"
+  local with_instrumentation="$1"
+  local with_systemd_instrumentation="$2"
+  local npm_path="$3"
+  local with_obi="${4:-false}"
+  local obi_install_dir="${5:-$default_obi_install_dir}"
   local otelcol_path=$( command -v otelcol 2>/dev/null || true )
-  local td_agent_path=$( command -v td-agent 2>/dev/null || true )
 
   if [ -n "$otelcol_path" ]; then
     echo "$otelcol_path already exists which implies that the collector is already installed." >&2
     echo "Please uninstall the collector, or try running this script with the '--uninstall' option." >&2
-    exit 1
-  fi
-
-  if [ "$with_fluentd" = "true" ] && [ -n "$td_agent_path" ]; then
-    echo "$td_agent_path already exists which implies that fluentd/td-agent is already installed." >&2
-    echo "Please uninstall fluentd/td-agent, or try running this script with the '--uninstall' option." >&2
     exit 1
   fi
 
@@ -336,6 +592,12 @@ ensure_not_installed() {
       echo "Please uninstall @splunk/otel, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
+  fi
+
+  if [ "$with_obi" = "true" ] && [ -e "$obi_install_dir/obi" ]; then
+    echo "$obi_install_dir/obi already exists which implies that OBI is already installed." >&2
+    echo "Please uninstall OBI, or try running this script with the '--uninstall --with-obi' option." >&2
+    exit 1
   fi
 }
 
@@ -382,59 +644,6 @@ EOH
   chown root:root $override_path
   chmod 644 $override_path
   systemctl daemon-reload
-}
-
-fluent_plugin_installed() {
-  local name="$1"
-
-  td-agent-gem list "$name" --exact | grep -q "$name"
-}
-
-install_fluent_plugin() {
-  local name="$1"
-  local version="${2:-}"
-
-  if [ -n "$version" ]; then
-    td-agent-gem install "$name" --version "$version"
-  else
-    td-agent-gem install "$name"
-  fi
-}
-
-configure_fluentd() {
-  local override_src_path="$fluent_config_dir/splunk-otel-collector.conf"
-  local override_dest_path="/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf"
-
-  if [ -f "$override_src_path" ]; then
-    systemctl stop td-agent
-    mkdir -p $(dirname $override_dest_path)
-    cp -f $override_src_path $override_dest_path
-    chown root:root $override_dest_path
-    chmod 644 $override_dest_path
-    systemctl daemon-reload
-
-    # ensure the td-agent user has access to the config dir
-    chown -R td-agent:td-agent "$fluent_config_dir"
-
-    # configure permissions/capabilities
-    if [ -f /opt/td-agent/bin/fluent-cap-ctl ]; then
-      if ! fluent_plugin_installed "capng_c"; then
-        install_fluent_plugin "capng_c" "$fluent_capng_c_version"
-      fi
-      /opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby
-    else
-      if getent group adm >/dev/null 2>&1; then
-        usermod -a -G adm td-agent
-      fi
-      if getent group systemd-journal 2>&1; then
-        usermod -a -G systemd-journal td-agent
-      fi
-    fi
-
-    if ! fluent_plugin_installed "fluent-plugin-systemd"; then
-      install_fluent_plugin "fluent-plugin-systemd" "$fluent_plugin_systemd_version"
-    fi
-  fi
 }
 
 backup_file() {
@@ -723,10 +932,8 @@ EOH
 install() {
   local stage="$1"
   local collector_version="$2"
-  local td_agent_version="$3"
-  local skip_collector_repo="$4"
-  local skip_fluentd_repo="$5"
-  local instrumentation_version="$6"
+  local skip_collector_repo="$3"
+  local instrumentation_version="$4"
 
   case "$distro" in
     ubuntu|debian)
@@ -741,16 +948,6 @@ install() {
       fi
       apt-get -y update
       install_apt_package "splunk-otel-collector" "$collector_version"
-      if [ -n "$td_agent_version" ]; then
-        td_agent_version="${td_agent_version}-1"
-        if [ "$skip_fluentd_repo" = "false" ]; then
-          install_td_agent_apt_repo "$td_agent_version"
-        fi
-        apt-get -y update
-        install_apt_package "td-agent" "$td_agent_version"
-        apt-get -y install build-essential libcap-ng0 libcap-ng-dev pkg-config
-        systemctl stop td-agent
-      fi
       if [ -n "$instrumentation_version" ]; then
         install_apt_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
       fi
@@ -765,21 +962,6 @@ install() {
         install_collector_yum_repo "$stage"
       fi
       install_yum_package "splunk-otel-collector" "$collector_version"
-      if [ -n "$td_agent_version" ]; then
-        if [ "$skip_fluentd_repo" = "false" ]; then
-          install_td_agent_yum_repo "$td_agent_version"
-        fi
-        install_yum_package "td-agent" "$td_agent_version"
-        if command -v yum >/dev/null 2>&1; then
-          yum group install -y 'Development Tools'
-        else
-          dnf group install -y 'Development Tools'
-        fi
-        for pkg in libcap-ng libcap-ng-devel pkgconfig; do
-          install_yum_package "$pkg" ""
-        done
-        systemctl stop td-agent
-      fi
       if [ -n "$instrumentation_version" ]; then
         install_yum_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
       fi
@@ -805,8 +987,10 @@ install() {
 
 uninstall() {
   local npm_path="$1"
+  local with_obi="$2"
+  local obi_install_dir="$3"
 
-  for agent in otelcol td-agent $instrumentation_so_path; do
+  for agent in otelcol $instrumentation_so_path; do
     if command -v $agent >/dev/null 2>&1; then
       pkg="$agent"
       if [ "$agent" = "otelcol" ]; then
@@ -829,7 +1013,7 @@ uninstall() {
               systemctl daemon-reload
             fi
           else
-            agent_path="$( command -v agent )"
+            agent_path="$( command -v "$agent" )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
@@ -855,7 +1039,7 @@ uninstall() {
               systemctl daemon-reload
             fi
           else
-            agent_path="$( command -v agent )"
+            agent_path="$( command -v "$agent" )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
@@ -873,6 +1057,10 @@ uninstall() {
     (cd $node_install_prefix && "$npm_path" uninstall --global=false @splunk/otel)
     echo "Successfully uninstalled the @splunk/otel npm package from $node_install_prefix"
   fi
+
+  if [ "$with_obi" = "true" ]; then
+    uninstall_obi "$obi_install_dir"
+  fi
 }
 
 usage() {
@@ -888,7 +1076,7 @@ Collector:
   -- <access_token>                     Use '--' if access_token starts with '-'.
   --api-url <url>                       Set the api endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://api.REALM.signalfx.com)
+                                        (default: https://api.REALM.observability.splunkcloud.com)
   --beta                                Use the beta package repo instead of the primary.
   --collector-config <path>             Set the path to an existing custom config file for the collector service instead
                                         of the default config file provided by the collector package based on the
@@ -904,12 +1092,12 @@ Collector:
   --hec-token <token>                   Set the HEC token if different than the specified access_token.
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com/v1/log)
+                                        (default: https://ingest.REALM.observability.splunkcloud.com/v1/log)
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com)
+                                        (default: https://ingest.REALM.observability.splunkcloud.com)
   --memory <memory size>                Total memory in MIB to allocate to the collector
                                         (default: "$default_memory_size")
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
@@ -930,15 +1118,6 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
-
-Fluentd [DEPRECATED]:
-  --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
-                                        (default: --without-fluentd)
-  --skip-fluentd-repo                   By default, a apt/yum repo definition file will be created to download the
-                                        fluentd deb/rpm package from $td_agent_repo_base.
-                                        Specify this option to skip this step and use a pre-configured repo on the
-                                        target system that provides the 'td-agent' deb/rpm package.
-                                        Only applicable if the '--with-fluentd' is also specified.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1010,9 +1189,25 @@ Auto Instrumentation:
                                         0.99.0.
                                         (default: $default_instrumentation_version)
 
+OBI (OpenTelemetry eBPF Instrumentation):
+  --with-obi                            Download and install the OBI standalone binary (obi).
+                                        OBI is Linux-only and requires x86_64/amd64 or arm64/aarch64,
+                                        root privileges, eBPF runtime support, and Linux kernel 5.8+
+                                        (or 4.18+ for RHEL-family distributions).
+                                        (default: --without-obi)
+  --without-obi                         Disable OBI installation.
+  --obi-version <version|latest>        OBI version to install from GitHub releases.
+                                        Values can be provided with or without the 'v' prefix.
+                                        (default: $default_obi_version)
+  --obi-install-dir <path>              Directory where OBI binaries will be installed.
+                                        (default: $default_obi_install_dir)
+
 Uninstall:
-  --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux, Fluentd, and Splunk
+  --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux and Splunk
                                         OpenTelemetry Auto Instrumentation packages, if installed.
+                                        To also remove OBI binaries installed with --with-obi,
+                                        include --with-obi and, if needed, --obi-install-dir <path>
+                                        so uninstall targets the correct OBI install location.
 
 EOH
 }
@@ -1028,7 +1223,7 @@ distro_is_supported() {
       ;;
     debian)
       case "$distro_codename" in
-        bookworm|bullseye)
+        bookworm|bullseye|trixie)
           return 0
           ;;
       esac
@@ -1049,7 +1244,7 @@ distro_is_supported() {
       ;;
     centos|ol|rhel|rocky)
       case "$distro_version" in
-        7*|8*|9*)
+        7*|8*|9*|10*)
           return 0
           ;;
       esac
@@ -1067,36 +1262,6 @@ arch_supported() {
       return 1
       ;;
   esac
-}
-
-fluentd_supported() {
-  case "$distro" in
-    amzn)
-      if [ "$distro_version" != "2" ]; then
-        return 1
-      fi
-      ;;
-    sles|opensuse*)
-      return 1
-      ;;
-    debian)
-      if [ "$distro_version" = "9" ] && [ "$distro_arch" = "aarch64" ]; then
-        return 1
-      elif [ "$distro_version" = "12" ]; then
-        return 1
-      fi
-      ;;
-    ubuntu)
-      if [ "$distro_version" = "16.04" ] && [ "$distro_arch" = "aarch64" ]; then
-        return 1
-      fi
-      if [ "$distro_version" = "24.04" ]; then
-        return 1
-      fi
-      ;;
-  esac
-
-  return 0
 }
 
 version_supported() {
@@ -1231,17 +1396,18 @@ parse_args_and_install() {
   local service_group="$default_service_group"
   local stage="$default_stage"
   local service_user="$default_service_user"
-  local td_agent_version="$default_td_agent_version"
   local uninstall="false"
   local mode="agent"
-  local with_fluentd="false"
   local collector_config_path=
   local skip_collector_repo="false"
-  local skip_fluentd_repo="false"
   local with_instrumentation="false"
   local with_systemd_instrumentation="false"
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
+  local with_obi="false"
+  local obi_version="$default_obi_version"
+  local obi_install_dir="$default_obi_install_dir"
+  local obi_version_tag=
   local discovery=
   local npm_path="npm"
   local node_package_installed="false"
@@ -1323,24 +1489,11 @@ parse_args_and_install() {
       --skip-collector-repo)
         skip_collector_repo="true"
         ;;
-      --skip-fluentd-repo)
-        skip_fluentd_repo="true"
-        ;;
       --test)
         stage="test"
         ;;
       --uninstall)
         uninstall="true"
-        ;;
-      --with-fluentd)
-        with_fluentd="true"
-        echo "[WARNING] Fluentd support has been deprecated and will be removed in a future release. Please use native OTel receivers instead (e.g. the filelog receiver)." >&2
-        if ! fluentd_supported; then
-          echo "[WARNING] Ignoring the --with-fluentd option since fluentd is currently not supported for ${distro}:${distro_version} ${distro_arch}." >&2
-        fi
-        ;;
-      --without-fluentd)
-        with_fluentd="false"
         ;;
       --with-instrumentation)
         with_instrumentation="true"
@@ -1388,6 +1541,20 @@ parse_args_and_install() {
         ;;
       --instrumentation-version)
         instrumentation_version="$2"
+        shift 1
+        ;;
+      --with-obi)
+        with_obi="true"
+        ;;
+      --without-obi)
+        with_obi="false"
+        ;;
+      --obi-version)
+        obi_version="$2"
+        shift 1
+        ;;
+      --obi-install-dir)
+        obi_install_dir="$2"
         shift 1
         ;;
       --deployment-environment)
@@ -1459,7 +1626,7 @@ parse_args_and_install() {
 
   if [ "$uninstall" = true ]; then
       check_support
-      uninstall "$npm_path"
+      uninstall "$npm_path" "$with_obi" "$obi_install_dir"
       exit 0
   fi
 
@@ -1468,11 +1635,11 @@ parse_args_and_install() {
   fi
 
   if [ -z "$api_url" ]; then
-    api_url="https://api.${realm}.signalfx.com"
+    api_url="https://api.${realm}.observability.splunkcloud.com"
   fi
 
   if [ -z "$ingest_url" ]; then
-    ingest_url="https://ingest.${realm}.signalfx.com"
+    ingest_url="https://ingest.${realm}.observability.splunkcloud.com"
   fi
 
   if [ -z "$hec_token" ]; then
@@ -1481,10 +1648,6 @@ parse_args_and_install() {
 
   if [ -z "$hec_url" ]; then
     hec_url="${ingest_url}/v1/log"
-  fi
-
-  if [ "$with_fluentd" != "true" ] || ! fluentd_supported; then
-    td_agent_version=""
   fi
 
   check_support
@@ -1557,7 +1720,12 @@ parse_args_and_install() {
     fi
   fi
 
-  ensure_not_installed "$with_fluentd" "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
+  if [ "$with_obi" = "true" ]; then
+    preflight_obi "$obi_version"
+    obi_version_tag="$( resolve_obi_version "$obi_version" )"
+  fi
+
+  ensure_not_installed "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path" "$with_obi" "$obi_install_dir"
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
   echo "Memory Size in MIB: $memory"
@@ -1570,9 +1738,6 @@ parse_args_and_install() {
   echo "API Endpoint: $api_url"
   echo "HEC Endpoint: $hec_url"
   echo "GODEBUG: $godebug"
-  if [ -n "$td_agent_version" ]; then
-    echo "TD Agent (Fluentd) Version: $td_agent_version"
-  fi
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
     echo "  Supported Auto Instrumentation SDK(s) to activate: $sdks_to_enable"
@@ -1599,10 +1764,15 @@ parse_args_and_install() {
 
   if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
+    echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1
   fi
 
-  install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo" "$instrumentation_version"
+  install "$stage" "$collector_version" "$skip_collector_repo" "$instrumentation_version"
+
+  if [ "$with_obi" = "true" ]; then
+    install_obi "$obi_version_tag" "$obi_install_dir"
+  fi
 
   if [ "$with_instrumentation" = "true" ]; then
     if item_in_list "java" "$sdks_to_enable"; then
@@ -1746,20 +1916,6 @@ parse_args_and_install() {
   systemctl daemon-reload
   systemctl restart splunk-otel-collector
 
-  if [ -n "$td_agent_version" ]; then
-    # only start fluentd with our custom config to avoid port conflicts within the default config
-    systemctl stop td-agent
-    if [ -f "$fluent_config_path" ]; then
-      configure_fluentd
-      systemctl restart td-agent
-    else
-      if [ -f /etc/td-agent/td-agent.conf ]; then
-        mv -f /etc/td-agent/td-agent.conf /etc/td-agent/td-agent.conf.bak
-      fi
-      systemctl disable td-agent
-    fi
-  fi
-
   echo
   cat <<EOH
 The Splunk OpenTelemetry Collector for Linux has been successfully installed.
@@ -1775,30 +1931,6 @@ must be restarted to apply the changes by running the following command as root:
   systemctl restart splunk-otel-collector
 
 EOH
-
-  if [ -n "$td_agent_version" ] && [ -f "$fluent_config_path" ]; then
-    cat <<EOH
-Fluentd has been installed and configured to forward log events to the Splunk OpenTelemetry Collector.
-By default, all log events with the @SPLUNK label will be forwarded to the collector.
-
-The main fluentd configuration file is located at $fluent_config_path.
-Custom input sources and configurations can be added to the ${fluent_config_dir}/conf.d/ directory.
-All files with the .conf extension in this directory will automatically be included by fluentd.
-
-Note: The fluentd service runs as the "td-agent" user.  When adding new input sources or configuration
-files to the ${fluent_config_dir}/conf.d/ directory, ensure that the "td-agent" user has permissions
-to access the new config files and the paths defined within.
-
-By default, fluentd has been configured to collect systemd journal log events from /var/log/journal.
-See $journald_config_path for the default source configuration.
-
-If the fluentd configuration is modified or new config files are added, the fluentd service must be
-restarted to apply the changes by running the following command as root:
-
-  systemctl restart td-agent
-
-EOH
-  fi
 
   if [ -n "$sdks_to_enable" ]; then
     if [ -n "$sdks_enabled" ]; then
@@ -1845,12 +1977,6 @@ EOH
 EOH
       fi
     fi
-  fi
-
-  if [ "$with_fluentd" = "true" ] && ! fluentd_supported; then
-    cat <<EOH >&2
-[WARNING] Fluentd was not installed since it is currently not supported for ${distro}:${distro_version} ${distro_arch}
-EOH
   fi
 
   if [ -z "$listen_interface" ] && [ "$mode" = "agent" ]; then

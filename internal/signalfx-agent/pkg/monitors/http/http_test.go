@@ -83,7 +83,7 @@ func (fo *fakeOutput) AddDatapointExclusionFilter(_ dpfilters.DatapointFilter) {
 }
 
 // AddExtraDimension implements types.FilteringOutput.
-func (fo *fakeOutput) AddExtraDimension(_ string, _ string) {
+func (fo *fakeOutput) AddExtraDimension(_, _ string) {
 	panic("unimplemented")
 }
 

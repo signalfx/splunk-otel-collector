@@ -1,0 +1,13 @@
+---
+- name: Converge scenario with the default configuration
+  hosts: all
+  become: yes
+  vars:
+    local_artifact_testing_enabled: true
+    splunk_access_token: fake-token
+    splunk_realm: fake-realm
+    start_service: false
+  tasks:
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      ansible.builtin.include_role:
+        name: "signalfx.splunk_otel_collector.collector"

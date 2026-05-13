@@ -17,11 +17,11 @@ https://www.splunk.com/en_us/products/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
-- CentOS / Red Hat: 8, 9
-- Oracle: 8, 9
-- Debian: 9, 10, 11
-- SUSE: 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
-- Ubuntu: 18.04, 20.04, 22.04
+- CentOS / Red Hat: 8, 9, 10
+- Oracle: 8, 9, 10
+- Debian: 11, 12, 13
+- SUSE: 15
+- Ubuntu: 22.04, 24.04
 
 ## Windows
 
@@ -29,6 +29,7 @@ Currently, the following Windows versions are supported:
 
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
+- Windows Server 2025 64-bit
 
 On Windows, the collector is installed as a Windows service and its environment
 variables are set at the service scope, i.e.: they are only available to the
@@ -66,16 +67,16 @@ required `splunk_access_token` attribute and some optional attributes:
   (**default:** `us0`)
 
 - `splunk_ingest_url`: Explicitly set the Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`, instead of the URL derived from the
+  `https://ingest.us0.observability.splunkcloud.com`, instead of the URL derived from the
   `splunk_realm` attribute. The `SPLUNK_INGEST_URL` environment variable will
   be set with this value for the Collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `splunk_api_url`: Explicitly set the Splunk API URL, e.g.
-  `https://api.us0.signalfx.com`, instead of the URL derived from `splunk_realm`
+  `https://api.us0.observability.splunkcloud.com`, instead of the URL derived from `splunk_realm`
   attribute. The `SPLUNK_API_URL` environment variable will be set with this
   value for the Collector service. (**default:**
-  `https://api.{{ splunk_realm }}.signalfx.com`)
+  `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `collector_version`: Version of the Collector package to install, e.g.
   `0.34.0`. (**default:** `latest`)
@@ -152,38 +153,6 @@ required `splunk_access_token` attribute and some optional attributes:
   collector service. On Linux the value will be set to the `OTELCOL_OPTIONS` environment
   variable for the collector service. On Windows, this option is only supported
   by versions `>= 0.127.0` (**default:** `''`).
-
-### Fluentd
-
-> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
-> Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information.
-
-- `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
-  collection. On Linux, the dependencies include [capng_c](
-  https://github.com/fluent-plugins-nursery/capng_c) for enabling
-  [Linux capabilities](https://docs.fluentd.org/deployment/linux-capability),
-  [fluent-plugin-systemd](
-  https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
-  journal log collection, and the required libraries/development tools.
-  (**default:** `false`)
-
-- `fluentd_version`: Version of the [td-agent](
-  https://www.fluentd.org/download) (Fluentd) package to install (**default:**
-  `4.3.1` for all Linux distros and Windows)
-
-- `fluentd_config_source`: Source path to the Fluentd config file. This file
-  will be copied to the `fluentd_config_dest` path on the node. See the
-  [source attribute](https://docs.chef.io/resources/remote_file/) of the file
-  resource for supported value types. The default source file is provided by
-  the Collector package. Only applicable if `with_fluentd` is set to true.
-  (**default:** `/etc/otel/collector/fluentd/fluent.conf` on Linux, 
-  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf` on Windows)
-
-- `fluentd_config_dest` (Linux only): Destination path to the Fluentd config
-  file on the node. Only applicable if `with_fluentd` is set to `true`.
-  **Note**: On Windows, the path will always be set to
-  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`. (**default:**
-  `/etc/otel/collector/fluentd/fluent.conf`)
 
 ### Auto Instrumentation on Linux
 

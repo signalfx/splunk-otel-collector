@@ -56,11 +56,11 @@ func TestSessionRetrieve(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			retrieved, err := source.Retrieve(context.Background(), c.key, nil, nil)
 			if c.expect != nil {
-				assert.NoError(t, err)
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.NoError(t, err)
+				require.NoError(t, retrieved.Close(context.Background()))
 				return
 			}
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Nil(t, retrieved)
 		})
 	}
@@ -94,26 +94,26 @@ func TestWatcher(t *testing.T) {
 			require.NoError(t, err)
 
 			val, err := retrieved.AsRaw()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, val)
 
 			assert.False(t, watcher.closed.Load())
 			switch {
 			case c.close:
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.NoError(t, retrieved.Close(context.Background()))
 				assert.Eventually(t, func() bool {
 					return watcher.closed.Load()
 				}, 2*time.Second, 10*time.Millisecond)
 			case c.err != nil:
 				watcher.errors <- c.err
 				ce := <-watchChannel
-				assert.ErrorIs(t, ce.Error, c.err)
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.ErrorIs(t, ce.Error, c.err)
+				require.NoError(t, retrieved.Close(context.Background()))
 			case c.result != "":
 				watcher.values <- c.result
 				ce := <-watchChannel
 				assert.NoError(t, ce.Error)
-				assert.NoError(t, retrieved.Close(context.Background()))
+				require.NoError(t, retrieved.Close(context.Background()))
 			}
 		})
 	}

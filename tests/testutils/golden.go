@@ -18,11 +18,15 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"testing"
 	"time"
+
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
@@ -79,8 +83,9 @@ func WithFileMounts(mounts map[string]string) MetricsCollectionTestOption {
 
 // RunMetricsCollectionTest runs a test that collects metrics using a collector container with provided configFile and
 // compares the result with the expected metrics defined in the file expectedFilePath.
-func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath string,
-	options ...MetricsCollectionTestOption) {
+func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
+	options ...MetricsCollectionTestOption,
+) {
 	opts := &metricCollectionTestOpts{}
 	for _, opt := range options {
 		opt(opts)
@@ -89,13 +94,13 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	f := otlpreceiver.NewFactory()
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	c.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  fmt.Sprintf("localhost:%d", port),
 			Transport: "tcp",
 		},
 	})
-	c.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
+	c.Protocols.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)
@@ -119,14 +124,14 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		WithLogger(logger).
 		WithEnv(map[string]string{
 			"GOCOVERDIR":    coverDest,
-			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"OTLP_ENDPOINT": net.JoinHostPort(dockerHost, strconv.FormatUint(uint64(port), 10)),
 		}).
 		WithEnv(opts.collectorEnvVars)
 	for k, v := range opts.fileMounts {
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
 			HostFilePath:      k,
 			ContainerFilePath: v,
-			FileMode:          0644,
+			FileMode:          0o644,
 		})
 	}
 
@@ -158,6 +163,22 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		}
 		index = newIndex
 		assert.NoError(tt, err)
+		if newIndex > 0 {
+			last := sink.AllMetrics()[newIndex-1]
+			t.Logf("=== Metric name diff (last batch) ===")
+			expectedNames := metricNames(expected)
+			actualNames := metricNames(last)
+			for n := range expectedNames {
+				if !actualNames[n] {
+					t.Logf("  MISSING in actual: %s", n)
+				}
+			}
+			for n := range actualNames {
+				if !expectedNames[n] {
+					t.Logf("  EXTRA in actual:   %s", n)
+				}
+			}
+		}
 	}, 30*time.Second, 1*time.Second)
 
 	// for dev purposes - set UPDATE_EXPECTED to update expected file after metrics have been collected
@@ -172,4 +193,29 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		require.NoError(t, os.MkdirAll(dir, 0o755))
 		require.NoError(t, golden.WriteMetrics(t, outputPath, actual))
 	}
+}
+
+func MaybeUpdateExpectedMetricsResults(t *testing.T, file string, metrics *pmetric.Metrics) {
+	if shouldUpdateExpectedResults() {
+		require.NoError(t, golden.WriteMetrics(t, file, *metrics))
+		t.Logf("Wrote updated expected metric results to %s", file)
+	}
+}
+
+var shouldUpdateExpectedResults = func() bool {
+	return os.Getenv("UPDATE_EXPECTED_RESULTS") == "true"
+}
+
+func metricNames(md pmetric.Metrics) map[string]bool {
+	names := map[string]bool{}
+	for i := 0; i < md.ResourceMetrics().Len(); i++ {
+		rm := md.ResourceMetrics().At(i)
+		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+			sm := rm.ScopeMetrics().At(j)
+			for k := 0; k < sm.Metrics().Len(); k++ {
+				names[sm.Metrics().At(k).Name()] = true
+			}
+		}
+	}
+	return names
 }

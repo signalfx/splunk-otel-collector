@@ -14,7 +14,6 @@ Stop-Service winnat
 
 # Only port in the dynamic range that is being, from time to time, reserved by other applications.
 netsh interface ip add excludedportrange protocol=tcp startport=55679 numberofports=1
-netsh interface ip add excludedportrange protocol=tcp startport=55554 numberofports=1
 
 Start-Service winnat
 

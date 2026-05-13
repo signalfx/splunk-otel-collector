@@ -16,7 +16,8 @@ func init() {
 
 	monitors.Register(&gitlabGitalyMonitorMetadata, func() interface{} {
 		return &pe.Monitor{ExtraDimensions: map[string]string{
-			"metric_source": "gitlab-gitaly"}}
+			"metric_source": "gitlab-gitaly",
+		}}
 	}, &pe.Config{})
 
 	monitors.Register(&gitlabSidekiqMonitorMetadata, func() interface{} {

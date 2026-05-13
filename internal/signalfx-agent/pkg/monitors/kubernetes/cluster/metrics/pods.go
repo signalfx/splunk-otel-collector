@@ -84,7 +84,7 @@ func dimensionForPod(pod *v1.Pod, sendUnsanitizedProperties bool) *atypes.Dimens
 	}
 }
 
-func dimensionForPodWorkload(pod *v1.Pod, workloadName string, workloadType string) *atypes.Dimension {
+func dimensionForPodWorkload(pod *v1.Pod, workloadName, workloadType string) *atypes.Dimension {
 	return &atypes.Dimension{
 		Name:  "kubernetes_pod_uid",
 		Value: string(pod.UID),

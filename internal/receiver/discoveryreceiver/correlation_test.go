@@ -180,7 +180,7 @@ func TestReaperLoop(t *testing.T) {
 	// repeat check once to ensure loop-driven removal
 	_, hasEndpoint := cStore.correlations.Load(endpointID)
 	require.True(t, hasEndpoint)
-	require.Equal(t, true, fetchedCorr.stale)
+	require.True(t, fetchedCorr.stale)
 
 	// confirm reaping occurs within interval
 	require.Eventually(t, func() bool {

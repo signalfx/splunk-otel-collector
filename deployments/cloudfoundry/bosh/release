@@ -43,17 +43,16 @@ UPLOAD_RELEASE=${UPLOAD_RELEASE:-1}
 # OS should match CF environment
 OS="linux_amd64"
 OTEL_BINARY="splunk_otel_collector"
-OTEL_BASE_URL="https://github.com/signalfx/splunk-otel-collector/releases"
 
 if [ $OTEL_VERSION = "latest" ]; then
-        OTEL_VERSION=$( wget -qO- --header="Accept: application/json" "${OTEL_BASE_URL}/latest" | jq -r '.tag_name' )
+        OTEL_VERSION=$( curl "https://api.github.com/repos/signalfx/splunk-otel-collector/tags" | jq -r '[.[].name | select(test("v[0-9]+\\.[0-9]+\\.[0-9]+$")) | sub("^v"; "")] | sort_by(split(".") | map(tonumber)) | last | "v" + .' )
         if [ -z "$OTEL_VERSION" ]; then
             echo "Failed to get tag_name for latest release from $OTEL_VERSION/latest" >&2
             exit 1
         fi
 fi
 
-OTEL_BINARY_DOWNLOAD_URL=${OTEL_BASE_URL}/download/${OTEL_VERSION}/otelcol_${OS}
+OTEL_BINARY_DOWNLOAD_URL=https://github.com/signalfx/splunk-otel-collector/releases/download/${OTEL_VERSION}/otelcol_${OS}
 
 # Download Splunk's distribution of the OpenTelemetry Collector
 wget -nv -O "$SCRIPT_DIR/$OTEL_BINARY" $OTEL_BINARY_DOWNLOAD_URL

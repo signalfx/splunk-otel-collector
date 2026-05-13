@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/scripts/*.ps1'
       - '.github/workflows/win-package-test.yml'
+      - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
       - 'instrumentation/packaging/dotnet-agent-release.txt'
       - 'internal/**'
@@ -15,6 +16,7 @@ on:
       - 'Makefile.Common'
       - 'packaging/msi/**'
       - 'tests/zeroconfig/windows/**'
+      - 'tests/msi/**'
       - '!**.md'
 
 concurrency:
@@ -22,13 +24,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.24.6
+  GO_VERSION: 1.26.3
 
 jobs:
   cross-compile:
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-windows_amd64" ]
+        SYS_BINARIES: [ "binaries-windows_amd64", "binaries-windows_arm64" ]
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
@@ -36,72 +38,87 @@ jobs:
   agent-bundle-windows:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        ARCH: [ "amd64", "arm64" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
-      OS: ${{ matrix.OS }}
+      ARCH: ${{ matrix.ARCH }}
 
   msi-custom-actions:
-    strategy:
-      matrix:
-        OS: [ "windows-2022" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
-    with:
-      OS: ${{ matrix.OS }}
 
   msi-build:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        ARCH: [ "amd64", "arm64" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
-      OS: ${{ matrix.OS }}
+      ARCH: ${{ matrix.ARCH }}
 
   dotnet-zeroconfig-e2e-test:
     runs-on: windows-2022 # windows-2022 comes preloaded with the Docker image used in the test
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup NuGet
-        uses: nuget/setup-nuget@v2.0.1
+        uses: nuget/setup-nuget@fd55a6f3b34392fa83fde1454582407d8c714123 # v4.0
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3.0.0
 
-      - uses: actions/setup-dotnet@v5.0.0
+      # EOL REFERENCE: https://endoflife.date/dotnet
+      - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
         with:
-          dotnet-version: |
-            8.0.300
+          dotnet-version: '10.0.x'
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-windows-2025
+          name: msi-build-amd64
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
+
+      - uses: ./.github/actions/win-wait-for-docker
 
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
         run: |
           .\run-tests.ps1
 
+      - name: Check for any differences in the sources
+        if: always()
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "One or more files were changed, this is not expected."
+            echo "Check for the job artifacts and verify if the changes to the expected traces files are expected."
+            echo "If the changes are expected, update the files in the tests/zeroconfig/windows/testdata/expected directory and push the changes."
+            exit 1
+          fi
+
+      - name: Upload expected traces file
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: expected-traces-dotnet-zeroconfig-e2e-tests
+          path: tests/zeroconfig/windows/testdata/expected/*.yaml
+
   msi-test:
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
-    runs-on: otel-windows
+        runner: [ "otel-windows", "otel-windows-arm" ]
+    runs-on: ${{ matrix.runner }}
     needs: [msi-build]
     timeout-minutes: 40
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.runner == 'otel-windows-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Set the MSI_COLLECTOR_PATH environment variable
@@ -112,8 +129,9 @@ jobs:
           "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Run the MSI tests
+        working-directory: tests/msi
         run: |
-          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
+          go test --tags=msi -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
 
   windows-install-script-test:
     runs-on: ${{ matrix.OS }}
@@ -121,17 +139,16 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "windows-2022", "windows-2025", "windows-11-arm" ]
         MODE: [ "agent", "gateway" ]
-        WITH_FLUENTD: [ "true", "false" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-${{ matrix.OS == 'windows-11-arm' && 'arm64' || 'amd64' }}
           path: ./dist
 
       - name: Ensure required ports in the dynamic range are available
@@ -149,12 +166,17 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
+          .\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}"
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
-          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
+          if ("${{ matrix.OS }}" -ne "windows-11-arm") {
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          } else {
+            # The arm64 bundle does not include the python binaries since they are not used in the arm64 tests, so just check that the expected directory structure is created and the expected files are included
+            Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\README.txt"
+          }
           # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
           $found_jmx = $false
           (Get-PSDrive -PSProvider FileSystem).Root | ForEach-Object {
@@ -165,10 +187,6 @@ jobs:
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
 
-      - name: fluentd logs
-        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
-        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
-
   windows-script-upgrade-test:
     strategy:
       matrix:
@@ -178,12 +196,12 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
       - name: Ensure required ports in the dynamic range are available
         run: |
@@ -202,8 +220,9 @@ jobs:
 
       - name: Run the script upgrade tests
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
+        working-directory: tests/windows-install-script
         run: |
-          go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
+          go test -v --tags=msi github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 
   choco-build:
     runs-on: ${{ matrix.OS }}
@@ -213,12 +232,12 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-amd64
           path: ./dist
 
       - name: Build Chocolatey
@@ -247,7 +266,7 @@ jobs:
           }
 
       - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist/*.nupkg
@@ -260,15 +279,14 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
-        WITH_FLUENTD: [ "true", "false" ]
         SCENARIO: [ "install", "upgrade" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist
@@ -287,7 +305,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
-          $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}"
+          $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }}"
+          # Default expected URLs reflect the new installer defaults (observability.splunkcloud.com).
+          $expected_api_url = "https://api.${{ env.realm }}.observability.splunkcloud.com"
+          $expected_ingest_url = "https://ingest.${{ env.realm }}.observability.splunkcloud.com"
           if ("${{ matrix.SCENARIO }}" -eq "install") {
             write-host "Installing $choco_file_name ..."
             choco install splunk-otel-collector -s=".\dist" --params="'$params'" -y
@@ -301,39 +322,49 @@ jobs:
             if ($LASTEXITCODE -ne 0) {
               throw "choco install failed!"
             }
-            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
-            $test_env_vars = @(
+            $collector_property_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            write-host "Collector property variables after install: $collector_property_vars"
+            # Read the URLs written by the previous installation. The new installer preserves
+            # existing registry values without migration, so whatever the old version set must
+            # survive the upgrade unchanged — regardless of which domain it defaulted to.
+            $previous_installer_properties = @{}
+            foreach ($entry in $collector_property_vars) {
+              $k, $v = $entry.Split("=", 2)
+              write-host "k: $k, v: $v"
+              $previous_installer_properties[$k] = $v
+            }
+            $expected_api_url = $previous_installer_properties["SPLUNK_API_URL"]
+            $expected_ingest_url = $previous_installer_properties["SPLUNK_INGEST_URL"]
+            write-host "Expected API URL: $expected_api_url"
+            write-host "Expected ingest URL: $expected_ingest_url"
+            $test_collector_property_vars = @(
               "MY VAR WITH SPACES=my value",
               "GOOD_ENV_VAR_NAME=good value",
               "GOOD_KEY_NEEDS_ESCAPING=`" that breaks MSI call if not escaped properly due to double-quote"
             )
-            $env_vars += $test_env_vars
-            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $env_vars -type MultiString
+            $collector_property_vars += $test_collector_property_vars
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $collector_property_vars -type MultiString
             Start-Sleep 30
             write-host "Upgrading $choco_file_name ..."
             choco upgrade splunk-otel-collector -s=".\dist" -y
             if ($LASTEXITCODE -ne 0) {
               throw "choco upgrade failed!"
             }
-            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
-            foreach ($test_env_var in $test_env_vars) {
-              if (!($env_vars -contains $test_env_var)) {
-                $env_vars
+            $collector_property_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            foreach ($test_env_var in $test_collector_property_vars) {
+              if (!($collector_property_vars -contains $test_env_var)) {
+                $collector_property_vars
                 throw "'$test_env_var' not found!"
               }
             }
           }
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -api_url "$expected_api_url" -ingest_url "$expected_ingest_url"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
 
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
-
-      - name: fluentd logs
-        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
-        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
       - name: Uninstall test
         run: |
@@ -354,25 +385,32 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: agent-bundle-windows-${{ matrix.OS }}
+          name: agent-bundle-windows_amd64
           path: ./dist
+
+      - uses: ./.github/actions/win-wait-for-docker
 
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          if ("${{ matrix.OS }}" -eq "windows-2025") {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
+          } else {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
+          }
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=$base_image --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
 

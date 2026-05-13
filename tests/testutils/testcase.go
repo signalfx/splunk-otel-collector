@@ -54,8 +54,8 @@ type Testcase struct {
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
 // with available endpoint and ObservedLogs.
-func NewTestcase(t testing.TB) *Testcase {
-	tc := Testcase{TB: t}
+func NewTestcase(tb testing.TB) *Testcase {
+	tc := Testcase{TB: tb}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
@@ -74,8 +74,8 @@ func NewTestcase(t testing.TB) *Testcase {
 
 // NewHECTestcase is the recommended constructor that will automatically configure a HECReceiverSink
 // with available endpoint and ObservedLogs.
-func NewHECTestcase(t testing.TB) *Testcase {
-	tc := Testcase{TB: t}
+func NewHECTestcase(tb testing.TB) *Testcase {
+	tc := Testcase{TB: tb}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
@@ -95,22 +95,21 @@ func NewHECTestcase(t testing.TB) *Testcase {
 
 func (t *Testcase) setOTLPEndpoint() {
 	otlpPort := GetAvailablePort(t)
-	otlpHost := "localhost"
-	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
-	t.OTLPEndpointForCollector = t.OTLPEndpoint
+	t.OTLPEndpoint = fmt.Sprintf("0.0.0.0:%d", otlpPort)
+	t.OTLPEndpointForCollector = fmt.Sprintf("127.0.0.1:%d", otlpPort)
 }
 
 func (t *Testcase) setHECEndpoint() {
 	hecPort := GetAvailablePort(t)
 	hecHost := "0.0.0.0"
 	t.HECEndpoint = fmt.Sprintf("%s:%d", hecHost, hecPort)
-	t.HECEndpointForCollector = fmt.Sprintf("http://%s", t.HECEndpoint)
+	t.HECEndpointForCollector = "http://" + t.HECEndpoint
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
 func (t *Testcase) Containers(builders ...Container) (containers []*Container, stop func()) {
-	for _, builder := range builders {
-		containers = append(containers, builder.Build())
+	for i := range builders {
+		containers = append(containers, builders[i].Build())
 	}
 
 	for _, container := range containers {
@@ -124,7 +123,7 @@ func (t *Testcase) Containers(builders ...Container) (containers []*Container, s
 		}
 	}
 
-	return
+	return containers, stop
 }
 
 // SplunkOtelCollector builds and starts a collector container or process using the desired config filename
@@ -140,10 +139,12 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	// TODO why does darwin need special business logic?  Is this a proxy to say "is local dev"? Regardless need why comment
 	if runtime.GOOS == "darwin" {
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
-		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		t.OTLPEndpointForCollector = "host.docker.internal:" + port
 
-		port = strings.Split(t.HECEndpointForCollector, ":")[1]
-		t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		if t.HECEndpointForCollector != "" {
+			port = strings.Split(t.HECEndpointForCollector, ":")[1]
+			t.HECEndpointForCollector = "host.docker.internal:" + port
+		}
 	}
 
 	var c Collector
@@ -231,8 +232,9 @@ func (t *Testcase) PrintLogsOnFailure() {
 		return
 	}
 	fmt.Printf("Logs: \n")
-	for _, statement := range t.ObservedLogs.All() {
-		fmt.Printf("%v\n", statement)
+	logs := t.ObservedLogs.All()
+	for i := range logs {
+		fmt.Printf("%v\n", logs[i])
 	}
 }
 

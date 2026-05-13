@@ -71,7 +71,7 @@ for arch in $archs; do
         fi
     fi
     if [ "$FIPS" != "true" ]; then
-        bins="otelcol_linux_${arch} migratecheckpoint_linux_${arch}"
+        bins="otelcol_linux_${arch}"
     else
         bins="otelcol-fips_linux_${arch}"
     fi

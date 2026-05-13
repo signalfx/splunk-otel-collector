@@ -18,20 +18,13 @@ package includeconfigsource
 import (
 	"bytes"
 	"context"
-	"errors"
-	"fmt"
-	"os"
 	"text/template"
 
 	"github.com/fsnotify/fsnotify"
 	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
-)
-
-// Private error types to help with testability.
-type (
-	errFailedToDeleteFile struct{ error }
 )
 
 // includeConfigSource implements the configprovider.Session interface.
@@ -41,11 +34,7 @@ type includeConfigSource struct {
 	watchedFiles map[string]struct{}
 }
 
-func newConfigSource(config *Config) (configsource.ConfigSource, error) {
-	if config.DeleteFiles && config.WatchFiles {
-		return nil, errors.New(`cannot be configured with "delete_files" and "watch_files" at the same time`)
-	}
-
+func newConfigSource(config *Config, _ *zap.Logger) (configsource.ConfigSource, error) {
 	return &includeConfigSource{
 		Config:       config,
 		watchedFiles: make(map[string]struct{}),
@@ -65,14 +54,8 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 	} else {
 		params = map[string]any{}
 	}
-	if err = tmpl.Execute(&buf, params); err != nil {
+	if err := tmpl.Execute(&buf, params); err != nil { //nolint:govet // intentional shadow
 		return nil, err
-	}
-
-	if is.DeleteFiles {
-		if err = os.Remove(selector); err != nil {
-			return nil, &errFailedToDeleteFile{fmt.Errorf("failed to delete file %q as requested: %w", selector, err)}
-		}
 	}
 
 	if !is.WatchFiles || watcher == nil {

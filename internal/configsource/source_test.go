@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path"
 	"testing"
 
@@ -141,7 +140,7 @@ func TestConfigSourceManagerResolveRemoveConfigSourceSection(t *testing.T) {
 
 	delete(cfg, "config_sources")
 	assert.Equal(t, cfg, res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerResolveErrors(t *testing.T) {
@@ -178,7 +177,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 			})
 			require.Error(t, err)
 			require.Nil(t, res)
-			assert.NoError(t, callClose(closeFunc))
+			assert.NoError(t, callClose(context.Background(), closeFunc))
 		})
 	}
 }
@@ -214,7 +213,7 @@ map:
 	})
 	require.NoError(t, err)
 	assert.Equal(t, expectedCfg, res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
@@ -242,7 +241,7 @@ func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerParamsHandling(t *testing.T) {
@@ -293,7 +292,7 @@ func TestConfigSourceManagerParamsHandling(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
@@ -327,7 +326,7 @@ func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
 
 	ce := <-watchCh
 	assert.NoError(t, ce.Error)
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
@@ -363,9 +362,9 @@ func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 	watchForUpdateCh <- errValueUpdated
 
 	ce := <-watchCh
-	assert.ErrorIs(t, ce.Error, errValueUpdated)
+	require.ErrorIs(t, ce.Error, errValueUpdated)
 	close(watchForUpdateCh)
-	assert.NoError(t, callClose(closeFunc))
+	assert.NoError(t, callClose(context.Background(), closeFunc))
 }
 
 func TestManagerExpandString(t *testing.T) {
@@ -385,14 +384,8 @@ func TestManagerExpandString(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, os.Setenv("envvar", "envvar_value"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("envvar"))
-	}()
-	require.NoError(t, os.Setenv("envvar_str_key", "str_key"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("envvar_str_key"))
-	}()
+	t.Setenv("envvar", "envvar_value")
+	t.Setenv("envvar_str_key", "str_key")
 
 	tests := []struct {
 		want    any
@@ -506,11 +499,10 @@ func TestManagerExpandString(t *testing.T) {
 			})
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				require.IsType(t, tt.wantErr, err)
 			} else {
 				require.NoError(t, err)
 			}
-			require.NoError(t, callClose(closeFunc))
+			require.NoError(t, callClose(ctx, closeFunc))
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -604,11 +596,11 @@ func Test_parseCfgSrc(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfgSrcName, selector, paramsConfigMap, err := parseCfgSrcInvocation(tt.str)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.cfgSrcName, cfgSrcName)
 			assert.Equal(t, tt.selector, selector)
 			var val any
@@ -620,11 +612,11 @@ func Test_parseCfgSrc(t *testing.T) {
 	}
 }
 
-func callClose(closeFunc confmap.CloseFunc) error {
+func callClose(ctx context.Context, closeFunc confmap.CloseFunc) error {
 	if closeFunc == nil {
 		return nil
 	}
-	return closeFunc(context.Background())
+	return closeFunc(ctx)
 }
 
 func TestConfigSourceBuild(t *testing.T) {
@@ -721,7 +713,7 @@ func (m *mockNilCfgSrcFactory) Type() component.Type {
 	return component.MustNewType("tstcfgsrc")
 }
 
-var _ (Factory) = (*mockNilCfgSrcFactory)(nil)
+var _ Factory = (*mockNilCfgSrcFactory)(nil)
 
 func (m *mockNilCfgSrcFactory) CreateDefaultConfig() Settings {
 	return &MockCfgSrcSettings{
@@ -847,7 +839,7 @@ func (c confmapProvider) Scheme() string {
 
 func (c confmapProvider) Retrieve(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	if c.shouldError {
-		return nil, fmt.Errorf("confmap provider error")
+		return nil, errors.New("confmap provider error")
 	}
 	return confmap.NewRetrieved("value from confmap provider")
 }

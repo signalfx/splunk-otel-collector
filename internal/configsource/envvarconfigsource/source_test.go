@@ -17,8 +17,9 @@ package envvarconfigsource
 
 import (
 	"context"
-	"os"
 	"testing"
+
+	"go.uber.org/zap"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -70,12 +71,15 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			selector: "FALLBACK_ENV_VAR",
 			expected: "fallback_env_var",
 		},
+		{
+			name:     "with_a_default_value",
+			defaults: map[string]any{},
+			selector: "FOO:-bar",
+			expected: "bar",
+		},
 	}
 
-	require.NoError(t, os.Setenv(testEnvVarName, testEnvVarValue))
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv(testEnvVarName))
-	})
+	t.Setenv(testEnvVarName, testEnvVarValue)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -86,13 +90,14 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 
 			source := &envVarConfigSource{
 				defaults: defaults,
+				logger:   zap.NewNop(),
 			}
 
 			ctx := context.Background()
 			r, err := source.Retrieve(ctx, tt.selector, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
+				require.Error(t, err)
 				assert.Nil(t, r)
-				require.IsType(t, tt.wantErr, err)
 				return
 			}
 			require.NoError(t, err)

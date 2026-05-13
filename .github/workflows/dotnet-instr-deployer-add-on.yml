@@ -23,7 +23,7 @@ on:
         default: '6b4ebe426ca6'
 
 env:
-  GO_VERSION: 1.24.6
+  GO_VERSION: 1.26.3
   # Provide default values for non-manually triggered executions
   splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
   splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}
@@ -35,10 +35,10 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -53,7 +53,7 @@ jobs:
         run: make build-pack
 
       - name: Upload the .NET Instrumentation Deployer Add-On
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: splunk_otel_dotnet_deployer
           path: ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
@@ -96,7 +96,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read version from app.conf
         id: read-app-conf
@@ -109,7 +109,7 @@ jobs:
         run: echo "Fail to read version from app.conf" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

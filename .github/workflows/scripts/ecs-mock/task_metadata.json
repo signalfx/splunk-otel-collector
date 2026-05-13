@@ -1,0 +1,35 @@
+{
+  "Cluster": "test-cluster",
+  "TaskARN": "arn:aws:ecs:us-east-1:123456789:task/test-cluster/abc123",
+  "Family": "test-task",
+  "Revision": "1",
+  "DesiredStatus": "RUNNING",
+  "KnownStatus": "RUNNING",
+  "LaunchType": "EC2",
+  "PullStartedAt": "2020-07-30T22:12:25.705983342Z",
+  "PullStoppedAt": "2020-07-30T22:12:29.827677602Z",
+  "AvailabilityZone": "us-east-1a",
+  "Containers": [
+    {
+      "DockerId": "abc123",
+      "Name": "main",
+      "DockerName": "ecs-test-1-main",
+      "Image": "nginx:latest",
+      "ImageID": "sha256:8cf1bfb43ff5d9b05af9b6b63983440f137c6a08320fa7592197c1474ef30241",
+      "DesiredStatus": "RUNNING",
+      "KnownStatus": "RUNNING",
+      "Type": "NORMAL",
+      "Labels": {
+        "com.amazonaws.ecs.cluster": "test-cluster",
+        "com.amazonaws.ecs.container-name": "nginx100",
+        "com.amazonaws.ecs.task-arn": "arn:aws:ecs:us-west-2:803860917211:task/test200/d22aaa11bf0e4ab19c2c940a1cbabbee",
+        "com.amazonaws.ecs.task-definition-family": "three-nginx",
+        "com.amazonaws.ecs.task-definition-version": "1"
+      },
+      "CreatedAt": "2020-07-30T22:12:29.837074927Z",
+      "StartedAt": "2020-07-30T22:12:31.138830877Z",
+      "Limits": { "CPU": 256, "Memory": 512 },
+      "Networks": [{ "NetworkMode": "awsvpc", "IPv4Addresses": ["172.31.0.2"] }]
+    }
+  ]
+}

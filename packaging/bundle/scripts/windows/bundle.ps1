@@ -18,8 +18,8 @@ $repoDir = "$scriptDir\..\..\..\.."
 . $scriptDir\common.ps1
 
 $BUILD_DIR="$repoDir\build"
-$PYTHON_VERSION="3.13.7"
-$PIP_VERSION="24.2"
+$PYTHON_VERSION="3.13.12"
+$PIP_VERSION="25.3"
 $NUGET_URL="https://aka.ms/nugetclidl"
 $NUGET_EXE="nuget.exe"
 
@@ -62,9 +62,20 @@ function download_nuget([string]$url=$NUGET_URL, [string]$outputDir=$BUILD_DIR) 
     download_file -url $url -outputDir $outputDir -fileName $NUGET_EXE
 }
 
-function install_python([string]$buildDir=$BUILD_DIR, [string]$pythonVersion=$PYTHON_VERSION, [string]$pipVersion=$PIP_VERSION) {
+function install_python(
+    [string]$buildDir=$BUILD_DIR,
+    [string]$pythonVersion=$PYTHON_VERSION,
+    [string]$pipVersion=$PIP_VERSION,
+    [string]$arch="amd64"
+) {
     $nugetPath = Resolve-Path -Path "$buildDir\$NUGET_EXE"
-    $installPath = "$buildDir\python.$pythonVersion"
+    $pythonPackageName = "python"
+    if ($arch -eq "arm64") {
+        $pythonPackageName = "pythonarm64"
+    } elseif ($arch -ne "amd64") {
+        throw "Unsupported architecture '$arch'. Expected 'amd64' or 'arm64'."
+    }
+    $installPath = "$buildDir\$pythonPackageName.$pythonVersion"
     $targetPath = "$buildDir\python"
 
     Remove-Item -Recurse -Force $installPath -ErrorAction Ignore
@@ -74,15 +85,25 @@ function install_python([string]$buildDir=$BUILD_DIR, [string]$pythonVersion=$PY
 
     if (((& $nugetPath sources list 2> $null) | Select-String "nuget.org") -Eq $null) {
         & $nugetPath sources add -name "nuget.org" -source "https://api.nuget.org/v3/index.json"
+        if ($lastexitcode -ne 0){ throw }
     }
 
-    & $nugetPath install python -Version $pythonVersion -OutputDirectory $buildDir
-    mv "$installPath\tools" $targetPath
-
+    & $nugetPath install $pythonPackageName -Version $pythonVersion -OutputDirectory $buildDir
+    if ($lastexitcode -ne 0){ throw }
+    # Recursively copy of installPath\tools to targetPath
+    New-Item -ItemType Directory -Path $targetPath -ErrorAction Stop
+    Copy-Item -Recurse -Path "$installPath\tools\*" -Destination $targetPath
     Remove-Item -Recurse -Force $installPath
 
     & $targetPath\python.exe -m pip install pip==$pipVersion --no-warn-script-location
+    if ($lastexitcode -ne 0){ throw }
+
     & $targetPath\python.exe -m ensurepip
+    if ($lastexitcode -ne 0){ throw }
+
+    # When running on Windows container it is necessary to explicitly install the system certificates.
+    & $targetPath\python.exe -m pip install --require-hashes -r "$scriptDir\pip-system-certs-requirements.txt"
+    if ($lastexitcode -ne 0){ throw }
 }
 
 # install sfxpython package from the local directory

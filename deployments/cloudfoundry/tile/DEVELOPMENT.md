@@ -2,17 +2,17 @@
 
 ## VMware Tanzu Tile Documentation
 
-[Tanzu Tile Introduction](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-basics.html)
+[Tanzu Tile Introduction](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/tile-basics.html)
 
-[How Tiles Work](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-structure.html)
+[How Tiles Work](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/tile-structure.html)
 
 ## Tile Software Dependencies
 
-[Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html) -
+[Tile Generator](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/tile-generator.html) -
 Note that MacOS support was dropped for this tool, so an older version must be downloaded for darwin development.
 Version `14.0.6-dev.1` has been confirmed to be work.
 
-[PCF CLI](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/pcf-command.html)
+[PCF CLI](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/pcf-command.html)
 
 ## Development Workflow
 
@@ -203,7 +203,7 @@ is currently unsupported due to metric name format changes.
     - Check logs to make sure no errors are showing up
     - Check metrics manually coming from Tanzu to see if they match charts.
       - Follow steps to
-      [Access Metrics Using the Firehose PLugin](https://docs.vmware.com/en/VMware-Tanzu-Application-Service/5.0/tas-for-vms/cli-plugin.html)
+      [Access Metrics Using the Firehose PLugin](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/elastic-application-runtime/10-2/eart/cli-plugin.html)
         - You can use the `hammer` login command instead of `cf login`
         - Example metric filter command:
         ```cf nozzle -no-filter | grep -i mem | grep -i percent```

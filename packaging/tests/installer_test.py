@@ -84,6 +84,29 @@ DOTNET_VARS = {
 
 INSTALLER_TIMEOUT = "30m"
 
+OBI_INSTALL_DIR = "/usr/local/bin"
+OBI_BIN = f"{OBI_INSTALL_DIR}/obi"
+OBI_VERSION = os.environ.get("OBI_VERSION", "v0.6.0")
+
+
+def bpffs_mounted_on_host():
+    """Return True if bpffs is mounted at /sys/fs/bpf on the test host.
+
+    OBI requires bpffs at runtime. These tests assume that /sys/fs/bpf is
+    mounted on the host and then made available inside the Docker container
+    (for example, via a bind mount configured elsewhere in the test harness).
+    Skip OBI tests when the test host doesn't meet this prerequisite.
+    """
+    try:
+        with open("/proc/mounts", encoding="utf-8") as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) >= 3 and parts[1] == "/sys/fs/bpf" and parts[2] == "bpf":
+                    return True
+    except OSError:
+        pass
+    return False
+
 
 def container_file_exists(container, path):
     return container.exec_run(f"test -f {path}").exit_code == 0
@@ -145,8 +168,8 @@ def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMO
         elif mode == "gateway" and not container_file_exists(container, GATEWAY_CONFIG_PATH):
             config_path = AGENT_CONFIG_PATH
 
-    ingest_url = f"https://ingest.{SPLUNK_REALM}.signalfx.com"
-    api_url = f"https://api.{SPLUNK_REALM}.signalfx.com"
+    ingest_url = f"https://ingest.{SPLUNK_REALM}.observability.splunkcloud.com"
+    api_url = f"https://api.{SPLUNK_REALM}.observability.splunkcloud.com"
 
     verify_config_file(container, env_path, "SPLUNK_CONFIG", config_path)
     verify_config_file(container, env_path, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
@@ -167,9 +190,6 @@ def verify_support_bundle(container):
     assert container_file_exists(container, "/tmp/splunk-support-bundle/config/agent_config.yaml")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/splunk-otel-collector.log")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/splunk-otel-collector.txt")
-    if container_file_exists(container, "/etc/otel/collector/fluentd/fluent.conf"):
-        assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/td-agent.log")
-        assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/td-agent.txt")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/collector-metrics.txt")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/df.txt")
     assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/free.txt")
@@ -183,7 +203,7 @@ def verify_uninstall(container, distro):
 
     run_container_cmd(container, f"sh -l {debug_flag} /test/install.sh --uninstall")
 
-    for pkg in ("splunk-otel-collector", "td-agent", "splunk-otel-auto-instrumentation"):
+    for pkg in ("splunk-otel-collector", "splunk-otel-auto-instrumentation"):
         assert not package_is_installed(container, distro, pkg), f"{pkg} was not uninstalled"
 
     # verify libsplunk.so was removed from /etc/ld.so.preload after uninstall
@@ -195,18 +215,6 @@ def verify_uninstall(container, distro):
     if container_file_exists(container, NODE_PACKAGE_PATH):
         # verify splunk-otel-js was uninstalled
         assert not node_package_installed(container)
-
-
-def fluentd_supported(distro, arch):
-    if "opensuse" in distro:
-        return False
-    elif distro == "amazonlinux-2023":
-        return False
-    elif distro == "debian-bookworm":
-        return False
-    elif distro == "ubuntu-noble":
-        return False
-    return True
 
 
 @pytest.mark.installer
@@ -231,10 +239,8 @@ def test_installer_default(distro, arch, mode):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
-            for pkg in ("td-agent", "splunk-otel-auto-instrumentation"):
-                assert not package_is_installed(container, distro, "td-agent"), f"{pkg} was installed"
-
-            assert container.exec_run("systemctl status td-agent").exit_code != 0
+            for pkg in ("splunk-otel-auto-instrumentation"):
+                assert not package_is_installed(container, distro, pkg), f"{pkg} was installed"
 
             # verify env file created with configured parameters
             verify_env_file(container, mode=mode)
@@ -265,7 +271,6 @@ def test_installer_custom(distro, arch):
 
     install_cmd = " ".join((
         get_installer_cmd(),
-        "--with-fluentd",
         "--listen-interface 10.0.0.1",
         "--memory 256",
         f"--service-user {service_owner} --service-group {service_owner}",
@@ -303,19 +308,10 @@ def test_installer_custom(distro, arch):
             config_owner = container.exec_run("stat -c '%U:%G' /etc/otel").output.decode("utf-8")
             assert config_owner.strip() == f"{service_owner}:{service_owner}"
 
-            if fluentd_supported(distro, arch):
-                assert package_is_installed(container, distro, "td-agent"), "td-agent was not installed"
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
-
             verify_uninstall(container, distro)
 
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            if fluentd_supported(distro, arch):
-                run_container_cmd(container, "journalctl -u td-agent --no-pager")
-                if container_file_exists(container, "/var/log/td-agent/td-agent.log"):
-                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
-
 
 def get_instrumentation_dockerfile(distro):
     if distro in INSTR_DEB_DISTROS:
@@ -638,3 +634,49 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
         verify_uninstall(container, distro)
 
         verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
+
+
+@pytest.mark.installer
+@pytest.mark.obi
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_with_obi(distro, arch):
+    if not bpffs_mounted_on_host():
+        pytest.skip("bpffs not mounted on test host at /sys/fs/bpf; required for OBI (run 'mount -t bpf bpf /sys/fs/bpf' on the host)")
+
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--with-obi",
+        f"--obi-version {OBI_VERSION}",
+    ))
+
+    print(f"Testing OBI installation on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch=arch, extra_volumes={"/sys/fs/bpf": {"bind": "/sys/fs/bpf", "mode": "rw"}}) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+        time.sleep(5)
+
+        # verify collector service is running (OBI install should not break it)
+        assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
+
+        # verify obi binary was installed at the expected path
+        assert container_file_exists(container, OBI_BIN), \
+            f"OBI binary not found at {OBI_BIN}"
+
+        # verify the binary is functional: obi --version may exit non-zero but must print version info
+        _, obi_version_output = run_container_cmd(container, f"{OBI_BIN} --version", exit_code=None)
+        assert re.search(r"\b\d+\.\d+\.\d+\b", obi_version_output.decode("utf-8")), \
+            f"OBI version output did not contain a version string: {obi_version_output!r}"
+
+        # uninstall with --with-obi and verify obi binary is removed
+        debug_flag = "-x" if DEBUG == "yes" else ""
+        run_container_cmd(container, f"sh -l {debug_flag} /test/install.sh --uninstall --with-obi")
+
+        assert not container_file_exists(container, OBI_BIN), \
+            f"OBI binary was not removed from {OBI_BIN} after uninstall"
+

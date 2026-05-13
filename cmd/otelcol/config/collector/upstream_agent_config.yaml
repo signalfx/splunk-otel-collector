@@ -7,11 +7,11 @@
 # The following environment variables are required to be manually defined or
 # configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
-# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
-# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
 
 extensions:
   headers_setter:
@@ -29,15 +29,29 @@ extensions:
       endpoint: "${SPLUNK_API_URL}"
       # Use instead when sending to gateway
       #endpoint: "${SPLUNK_GATEWAY_URL}"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "${SPLUNK_INGEST_URL}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     #endpoint: 0.0.0.0:55679
     expvar:
       enabled: true
 
 receivers:
-  fluentforward:
+  fluent_forward:
     endpoint: 127.0.0.1:8006
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu:
@@ -95,8 +109,6 @@ receivers:
           - source_labels: [ __name__ ]
             regex: 'otelcol_processor_batch_.*'
             action: drop
-  signalfx:
-    endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411
   nop:
@@ -135,7 +147,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -152,7 +164,7 @@ exporters:
     sync_host_metadata: true
     correlation:
   # Entities (applicable only if discovery mode is enabled)
-  otlphttp/entities:
+  otlp_http/entities:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
     # Use instead when sending to gateway
     # endpoint: http://${SPLUNK_GATEWAY_URL}:4318
@@ -162,10 +174,10 @@ exporters:
       authenticator: headers_setter
   splunk_hec/profiling:
     token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
+    endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v1/log"
     log_data_enabled: false
   # Send to gateway
-  otlp/gateway:
+  otlp_grpc/gateway:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
@@ -176,7 +188,17 @@ exporters:
     verbosity: detailed
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     # Required for Splunk APM
     traces:
@@ -186,35 +208,28 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlphttp, signalfx]
+      exporters: [otlp_http, signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway, signalfx]
+      #exporters: [otlp_grpc/gateway, signalfx]
     # Required for Splunk Infrastructure Monitoring
     metrics:
-      receivers: [hostmetrics, otlp, signalfx]
+      receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]
     # Required for Splunk APM and/or Infrastructure Monitoring
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
-    # Required for Splunk Infrastructure Monitoring
-    logs/signalfx:
-      receivers: [signalfx]
-      processors: [memory_limiter, batch]
-      exporters: [signalfx]
-      # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]
     logs/entities:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [otlphttp/entities]
+      exporters: [otlp_http/entities]
     # Required for profiling
     logs:
       receivers: [otlp]
@@ -225,4 +240,4 @@ service:
       #- resource/add_environment
       exporters: [splunk_hec/profiling]
       # Use instead when sending to gateway
-      #exporters: [otlp/gateway]
+      #exporters: [otlp_grpc/gateway]

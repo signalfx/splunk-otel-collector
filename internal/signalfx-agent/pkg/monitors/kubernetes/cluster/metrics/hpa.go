@@ -6,7 +6,7 @@ import (
 
 	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/autoscaling/v2beta1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/cluster/meta"
@@ -15,7 +15,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
-func datapointsForHpa(hpa *v2beta1.HorizontalPodAutoscaler, logger logrus.FieldLogger) []*datapoint.Datapoint {
+func datapointsForHpa(hpa *autoscalingv2.HorizontalPodAutoscaler, logger logrus.FieldLogger) []*datapoint.Datapoint {
 	dimensions := map[string]string{
 		"metric_source":        "kubernetes",
 		"kubernetes_namespace": hpa.Namespace,
@@ -51,7 +51,7 @@ func datapointsForHpa(hpa *v2beta1.HorizontalPodAutoscaler, logger logrus.FieldL
 	}, newStatusDatapoints(hpa, dimensions, logger)...)
 }
 
-func dimensionForHpa(hpa *v2beta1.HorizontalPodAutoscaler, sendUnsanitizedProperties bool) *types.Dimension {
+func dimensionForHpa(hpa *autoscalingv2.HorizontalPodAutoscaler, sendUnsanitizedProperties bool) *types.Dimension {
 	props, tags := k8sutils.PropsAndTagsFromLabels(hpa.Labels, sendUnsanitizedProperties)
 
 	for _, or := range hpa.OwnerReferences {
@@ -68,7 +68,7 @@ func dimensionForHpa(hpa *v2beta1.HorizontalPodAutoscaler, sendUnsanitizedProper
 	}
 }
 
-func newStatusDatapoints(hpa *v2beta1.HorizontalPodAutoscaler, dimensions map[string]string, logger logrus.FieldLogger) []*datapoint.Datapoint {
+func newStatusDatapoints(hpa *autoscalingv2.HorizontalPodAutoscaler, dimensions map[string]string, logger logrus.FieldLogger) []*datapoint.Datapoint {
 	dps := make([]*datapoint.Datapoint, 0)
 	for _, condition := range hpa.Status.Conditions {
 		metric, value, err := newStatusMetricValue(condition)
@@ -81,13 +81,13 @@ func newStatusDatapoints(hpa *v2beta1.HorizontalPodAutoscaler, dimensions map[st
 	return dps
 }
 
-func newStatusMetricValue(condition v2beta1.HorizontalPodAutoscalerCondition) (metric string, value datapoint.Value, err error) {
+func newStatusMetricValue(condition autoscalingv2.HorizontalPodAutoscalerCondition) (metric string, value datapoint.Value, err error) {
 	switch condition.Type {
-	case v2beta1.ScalingActive:
+	case autoscalingv2.ScalingActive:
 		metric = meta.KubernetesHpaStatusConditionScalingActive
-	case v2beta1.AbleToScale:
+	case autoscalingv2.AbleToScale:
 		metric = meta.KubernetesHpaStatusConditionAbleToScale
-	case v2beta1.ScalingLimited:
+	case autoscalingv2.ScalingLimited:
 		metric = meta.KubernetesHpaStatusConditionScalingLimited
 	default:
 		return "", nil, fmt.Errorf("invalid horizontal pod autoscaler condition type: %v", condition.Type)
@@ -102,5 +102,5 @@ func newStatusMetricValue(condition v2beta1.HorizontalPodAutoscalerCondition) (m
 	default:
 		return metric, nil, fmt.Errorf("invalid horizontal pod autoscaler condition status: %v", condition.Status)
 	}
-	return
+	return metric, value, err
 }

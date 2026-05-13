@@ -1,0 +1,42 @@
+---
+- name: "Install tar with apt"
+  ansible.builtin.apt:
+    name: tar
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: "Install tar with dnf"
+  ansible.builtin.dnf:
+    name: tar
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: "Install gzip and tar with zypper"
+  community.general.zypper:
+    name:
+      - gzip
+      - tar
+    update_cache: yes
+  when: ansible_os_family == "Suse"
+
+- name: "Download and extract nodejs"
+  ansible.builtin.unarchive:
+    src: https://nodejs.org/download/release/v18.20.8/node-v18.20.8-linux-x64.tar.gz
+    dest: /usr/local
+    remote_src: yes
+  register: result
+  retries: 5
+  delay: 60
+  until: result is not failed
+
+- name: "Create symlinks in /usr/bin"
+  ansible.builtin.file:
+    src: "/usr/local/node-v18.20.8-linux-x64/bin/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    state: link
+    mode: '755'
+  loop:
+    - corepack
+    - node
+    - npm
+    - npx

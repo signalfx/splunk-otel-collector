@@ -70,7 +70,8 @@ func (r *otelReporter) OnError(ctx context.Context, reason string, err error) {
 	// same client message/request. The time itself is not relevant.
 	span := trace.FromContext(ctx)
 	span.Annotate([]trace.Attribute{
-		trace.StringAttribute("error", err.Error())},
+		trace.StringAttribute("error", err.Error()),
+	},
 		reason,
 	)
 }

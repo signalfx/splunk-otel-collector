@@ -1,0 +1,20 @@
+{
+  "abc123": {
+    "read": "2020-07-31T00:00:00Z",
+    "preread": "2020-07-31T00:00:00Z",
+    "cpu_stats": {
+      "cpu_usage": { "total_usage": 0 },
+      "online_cpus": 1,
+      "throttling_data": {}
+    },
+    "precpu_stats": {
+      "cpu_usage": { "total_usage": 0 },
+      "online_cpus": 1,
+      "throttling_data": {}
+    },
+    "memory_stats": { "usage": 1024, "max_usage": 2048, "limit": 4096 },
+    "blkio_stats": {},
+    "network": {},
+    "networks": {}
+  }
+}

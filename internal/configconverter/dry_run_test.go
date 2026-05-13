@@ -41,7 +41,7 @@ func TestDryRun(t *testing.T) {
 	t.Cleanup(func() {
 		os.Stdout = origStdOut
 	})
-	stdout, err := os.CreateTemp("", "stdout")
+	stdout, err := os.CreateTemp(t.TempDir(), "stdout")
 	require.NoError(t, err)
 	require.NotNil(t, stdout)
 

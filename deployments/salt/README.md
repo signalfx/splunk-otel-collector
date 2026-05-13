@@ -8,12 +8,12 @@ Observability Cloud](https://www.splunk.com/en_us/products/observability.html).
 
 Currently, the following Linux distributions and versions are supported:
 
-- Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
-- CentOS / Red Hat: 8, 9
-- Oracle: 8, 9
-- Debian: 9, 10, 11
-- SUSE: 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with fluentd not currently supported.)
-- Ubuntu: 16.04, 18.04, 20.04, 22.04
+- Amazon Linux: 2, 2023
+- CentOS / Red Hat: 8, 9, 10
+- Oracle: 8, 9, 10
+- Debian: 11, 12
+- SUSE: 15
+- Ubuntu: 22.04, 24.04
 
 ## Prerequisites
 
@@ -53,13 +53,13 @@ splunk-otel-collector:
   `splunk_access_token`)
 
 - `splunk_ingest_url`: The Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`. The `SPLUNK_INGEST_URL` environment 
+  `https://ingest.us0.observability.splunkcloud.com`. The `SPLUNK_INGEST_URL` environment 
   variable will be set with this value for the collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
-- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`.
+- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.observability.splunkcloud.com`.
   The `SPLUNK_API_URL` environment variable will be set with this value for the
-  collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
+  collector service. (**default:** `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `collector_version`: Version of the collector package to install, e.g.
   `0.25.0`. (**default:** `latest`)
@@ -117,34 +117,6 @@ splunk-otel-collector:
   ```
   The variables/values will be added to the
   `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
-
-### Fluentd
-
-> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
-> Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information.
-
-- `install_fluentd`: Whether to install/manage fluentd and dependencies for log
-  collection. The dependencies include [capng_c](
-  https://github.com/fluent-plugins-nursery/capng_c) for enabling
-  [Linux capabilities](
-  https://docs.fluentd.org/deployment/linux-capability),
-  [fluent-plugin-systemd](
-  https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
-  journal log collection, and the required libraries/development tools.
-  (**default:** `False`)
-
-- `td_agent_version`: Version of [td-agent](
-  https://td-agent-package-browser.herokuapp.com/) (fluentd package) that will
-  be installed (**default:** `4.3.0`)
-
-- `splunk_fluentd_config`: Path to the fluentd config file on the remote host.
-  (**default:** `/etc/otel/collector/fluentd/fluent.conf`)
-
-- `splunk_fluentd_config_source`: Source path to a fluentd config file on your 
-  control host that will be uploaded and set in place of `splunk_fluentd_config` on
-  remote hosts. To use custom fluentd config add the config file into salt dir, 
-  e.g. `salt://templates/td_agent.conf` (**default:** `""` meaning 
-  that nothing will be copied and existing `splunk_fluentd_config` will be used)
 
 ### Auto Instrumentation (Linux Only)
 

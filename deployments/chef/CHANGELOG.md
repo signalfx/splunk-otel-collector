@@ -1,17 +1,48 @@
 # Changelog
 
 ## Unreleased
+  
+### 🛑 Breaking changes 🛑
+
+- The default Windows MSI artifact download URL has been updated:
+  - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+  
+  To keep using the legacy `dl.signalfx.com` download URL:
+  Chef:
+  ```ruby
+  node['splunk_otel_collector']['windows_repo_url'] = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+  ```
+
+- Default API and ingest endpoint URLs now use `*.observability.splunkcloud.com` instead of `*.signalfx.com`:
+  - `splunk_api_url`: `https://api.<realm>.signalfx.com` → `https://api.<realm>.observability.splunkcloud.com`
+  - `splunk_ingest_url`: `https://ingest.<realm>.signalfx.com` → `https://ingest.<realm>.observability.splunkcloud.com`
+  - `splunk_hec_url` (derived from `splunk_ingest_url`): `https://ingest.<realm>.signalfx.com/v1/log` → `https://ingest.<realm>.observability.splunkcloud.com/v1/log`
+
+  Re-running the cookbook for chef will apply the new defaults automatically. The legacy `*.signalfx.com` endpoints will continue to work, but adopting the new endpoints is recommended.
+  
+  If firewall or proxy allowlists are scoped to `*.signalfx.com`, update them
+  to also allow `*.observability.splunkcloud.com` **before** re-converging.
+  For more information, see the
+  [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide).
+
+  To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your cookbook attributes:
+  ```ruby
+  node['splunk_otel_collector']['splunk_api_url'] = "https://api.<realm>.signalfx.com"
+  node['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.<realm>.signalfx.com"
+  ```
+
+## chef-v0.18.0
+
+### 🛑 Breaking changes 🛑
+
+- Fluentd support has been removed ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+  Please refer to [documentation](../../docs/deprecations/fluentd-support.md) for more information.
 
 ### 💡 Enhancements 💡
 
 - Add support for the `collector_command_line_args` option to
   configure the command line arguments for the Splunk OpenTelemetry Collector
-  service. On Windows, this option is only supported by versions `>= 0.127.0`.
-
-### 🚩 Deprecations 🚩
-
-- Fluentd support has been deprecated and will be removed in a future release.
-  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+  service. On Windows, this option is only supported by versions `>= 0.127.0` ([#6416](https://github.com/signalfx/splunk-otel-collector/pull/6416))
 
 ## chef-v0.17.0
 

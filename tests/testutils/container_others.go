@@ -24,11 +24,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func GetDockerGID(t testing.TB) uint32 {
+func GetDockerGID(tb testing.TB) uint32 {
 	finfo, err := os.Stat("/var/run/docker.sock")
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	fsys := finfo.Sys()
 	stat, ok := fsys.(*syscall.Stat_t)
-	require.True(t, ok)
+	require.True(tb, ok)
 	return stat.Gid
 }

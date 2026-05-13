@@ -8,7 +8,7 @@ receivers:
             - targets: ['thttpd:80']
 
 exporters:
-    otlphttp:
+    otlp_http:
       metrics_endpoint: CHANGEME
       headers:
         "X-SF-Token": CHANGEME

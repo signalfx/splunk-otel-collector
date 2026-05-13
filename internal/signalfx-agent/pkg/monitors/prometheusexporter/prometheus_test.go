@@ -56,7 +56,7 @@ func TestConfigValidate(t *testing.T) {
 					t.Errorf("Expected error '%s', but got nil", tcc.expectedError.Error())
 				} else if err.Error() != tcc.expectedError.Error() {
 					t.Errorf("Expected error '%s', but got '%s'", tcc.expectedError.Error(), err.Error())
-					assert.EqualValues(t, "smartagentvalid", config.MonitorConfigCore().MonitorID)
+					assert.Equal(t, "smartagentvalid", config.MonitorConfigCore().MonitorID)
 				}
 			} else if err != nil {
 				t.Errorf("Expected no error, but got '%s'", err.Error())

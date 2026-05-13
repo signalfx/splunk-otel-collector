@@ -27,9 +27,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
-var (
-	jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-)
+var jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 
 func sampleCounterTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
@@ -45,6 +43,7 @@ func sampleCounterTs() []prompb.TimeSeries {
 		},
 	}
 }
+
 func sampleCounterWq() *prompb.WriteRequest {
 	return &prompb.WriteRequest{Timeseries: sampleCounterTs()}
 }
@@ -309,7 +308,7 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 }
 
 func getWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
-	var sampleWriteRequestsNoMetadata = []*prompb.WriteRequest{
+	sampleWriteRequestsNoMetadata := []*prompb.WriteRequest{
 		// Counter
 		sampleCounterWq(),
 		// Gauge
@@ -322,7 +321,7 @@ func getWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
 	return sampleWriteRequestsNoMetadata
 }
 
-func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedInvalid int64, expectedNans int64, expectedMissing int64) pmetric.Metrics {
+func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedInvalid, expectedNans, expectedMissing int64) pmetric.Metrics {
 	if metrics.ResourceMetrics().Len() == 0 {
 		metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 	}

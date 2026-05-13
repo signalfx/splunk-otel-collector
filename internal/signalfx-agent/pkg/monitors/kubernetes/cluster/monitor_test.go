@@ -11,6 +11,7 @@ import (
 	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,7 +46,6 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		// containers running in a real k8s env
 		os.Setenv("KUBERNETES_SERVICE_HOST", K8sURL.Hostname())
 		os.Setenv("KUBERNETES_SERVICE_PORT", K8sURL.Port())
-
 	})
 
 	doSetup := func(alwaysClusterReporter bool, thisPodName string) {
@@ -80,7 +80,7 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		return dps
 	}
 
-	expectIntMetric := func(dps []*datapoint.Datapoint, uidField, objUid string, metricName string, metricValue int) {
+	expectIntMetric := func(dps []*datapoint.Datapoint, uidField, objUid, metricName string, metricValue int) {
 		matched := false
 		for _, dp := range dps {
 			dims := dp.Dimensions
@@ -92,7 +92,7 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		gomega.Expect(matched).To(gomega.Equal(true), fmt.Sprintf("%s %s %d", objUid, metricName, metricValue))
 	}
 
-	expectIntMetricMissing := func(dps []*datapoint.Datapoint, uidField, objUid string, metricName string) {
+	expectIntMetricMissing := func(dps []*datapoint.Datapoint, uidField, objUid, metricName string) {
 		matched := false
 		for _, dp := range dps {
 			dims := dp.Dimensions
@@ -352,7 +352,6 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		dps = waitForDatapoints(6)
 
 		expectIntMetricMissing(dps, "kubernetes_pod_uid", "1234", "kubernetes.container_restart_count")
-
 	}, 5)
 
 	ginkgo.It("Sends unsanitized properties when enabled", func() {
@@ -518,6 +517,46 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 		expectIntMetric(dps, "kubernetes_uid", "efgh", "kubernetes.deployment.updated", 0)
 	})
 
+	ginkgo.It("Sends HPA metrics", func() {
+		fakeK8s.SetInitialList([]runtime.Object{
+			&autoscalingv2.HorizontalPodAutoscaler{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "HorizontalPodAutoscaler",
+					APIVersion: "autoscaling/v2",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-hpa",
+					UID:       "hpa-uid-1",
+					Namespace: "default",
+				},
+				Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
+					MaxReplicas: 10,
+					MinReplicas: intp(2),
+				},
+				Status: autoscalingv2.HorizontalPodAutoscalerStatus{
+					CurrentReplicas: 3,
+					DesiredReplicas: 5,
+					Conditions: []autoscalingv2.HorizontalPodAutoscalerCondition{
+						{Type: autoscalingv2.ScalingActive, Status: v1.ConditionTrue},
+						{Type: autoscalingv2.AbleToScale, Status: v1.ConditionTrue},
+						{Type: autoscalingv2.ScalingLimited, Status: v1.ConditionFalse},
+					},
+				},
+			},
+		})
+
+		doSetup(true, "")
+
+		dps := waitForDatapoints(7)
+
+		expectIntMetric(dps, "kubernetes_uid", "hpa-uid-1", "kubernetes.hpa.spec.max_replicas", 10)
+		expectIntMetric(dps, "kubernetes_uid", "hpa-uid-1", "kubernetes.hpa.spec.min_replicas", 2)
+		expectIntMetric(dps, "kubernetes_uid", "hpa-uid-1", "kubernetes.hpa.status.current_replicas", 3)
+		expectIntMetric(dps, "kubernetes_uid", "hpa-uid-1", "kubernetes.hpa.status.desired_replicas", 5)
+		expectIntMetric(dps, "kubernetes_uid", "hpa-uid-1", "kubernetes.hpa.status.condition.scaling_active", 1)
+		expectIntMetric(dps, "kubernetes_uid", "hpa-uid-1", "kubernetes.hpa.status.condition.able_to_scale", 1)
+		expectIntMetric(dps, "kubernetes_uid", "hpa-uid-1", "kubernetes.hpa.status.condition.scaling_limited", 0)
+	})
 })
 
 func TestKubernetes(t *testing.T) {

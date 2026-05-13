@@ -1,5 +1,4 @@
-//go:build !windows && !linux
-// +build !windows,!linux
+//go:build (!windows && !linux) || (windows && arm64)
 
 package vmem
 

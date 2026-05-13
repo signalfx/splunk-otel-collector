@@ -36,7 +36,7 @@ resourceMetrics:
             stringValue: "true"
     scopeMetrics:
       - metrics:
-          - description: Uptime of the process [alpha]
+          - description: Uptime of the process [Alpha]
             metadata:
               - key: prometheus.type
                 value:

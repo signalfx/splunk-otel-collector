@@ -6,7 +6,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/autoscaling/v2beta1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
@@ -33,7 +33,7 @@ type DimensionHandler struct {
 }
 
 // NewDimensionHandler creates a handler for dimension updates
-func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension bool, sendUnsanitizedProperties bool, logger log.FieldLogger) *DimensionHandler {
+func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension, sendUnsanitizedProperties bool, logger log.FieldLogger) *DimensionHandler {
 	return &DimensionHandler{
 		uidKindCache:              make(map[types.UID]string),
 		sendDimensionFunc:         sendDimensionFunc,
@@ -89,7 +89,7 @@ func (dh *DimensionHandler) HandleAdd(newObj runtime.Object) interface{} {
 	case *batchv1beta1.CronJob:
 		dh.sendDimensionFunc(dimensionForCronJob(o, dh.sendUnsanitizedProperties))
 		kind = "CronJob"
-	case *v2beta1.HorizontalPodAutoscaler:
+	case *autoscalingv2.HorizontalPodAutoscaler:
 		dh.sendDimensionFunc(dimensionForHpa(o, dh.sendUnsanitizedProperties))
 		kind = "HorizontalPodAutoscaler"
 	default:

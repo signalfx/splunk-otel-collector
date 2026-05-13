@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build windows
-// +build windows
 
 package main
 
@@ -25,7 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/splunk/splunk_otel_dotnet_deployer/internal/modularinput"
+	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
 const (

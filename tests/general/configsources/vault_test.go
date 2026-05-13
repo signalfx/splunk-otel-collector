@@ -75,7 +75,7 @@ func TestBasicSecretAccess(t *testing.T) {
 			})
 			if cc, ok := collector.(*testutils.CollectorContainer); ok {
 				cc.Container = cc.Container.
-					WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
+					WithExposedPorts("55679:55679"). // Required for tests that read the zpages.
 					WithNetworks("vault").
 					WithNetworkMode("bridge")
 				return cc
@@ -96,12 +96,19 @@ func TestBasicSecretAccess(t *testing.T) {
 			"resource": map[string]any{
 				"attributes": []any{
 					map[string]any{"action": "insert", "key": "expands-vault-path-value", "value": "string.value"},
-					map[string]any{"action": "insert", "key": "also-expands-vault-path-value", "value": 123.456}}}},
+					map[string]any{"action": "insert", "key": "also-expands-vault-path-value", "value": 123.456},
+				},
+			},
+		},
 		"receivers": map[string]any{"otlp/noop": map[string]any{"protocols": map[string]any{"http": any(nil)}}},
 		"service": map[string]any{
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
 					"exporters":  []any{"debug/noop"},
 					"processors": []any{"resource"},
-					"receivers":  []any{"otlp/noop"}}}}}, effective)
+					"receivers":  []any{"otlp/noop"},
+				},
+			},
+		},
+	}, effective)
 }

@@ -17,16 +17,20 @@ package configconverter
 import (
 	"context"
 	"expvar"
+	"strings"
 	"sync"
 
+	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 )
 
-var _ confmap.Converter = (*ExpvarConverter)(nil)
-var _ configsource.Hook = (*ExpvarConverter)(nil)
+var (
+	_ confmap.Converter = (*ExpvarConverter)(nil)
+	_ configsource.Hook = (*ExpvarConverter)(nil)
+)
 
 var (
 	expvarConverterInstance *ExpvarConverter
@@ -87,4 +91,51 @@ func (e *ExpvarConverter) Convert(_ context.Context, conf *confmap.Conf) error {
 	defer e.effectiveMutex.Unlock()
 	e.effective = conf.ToStringMap()
 	return nil
+}
+
+func simpleRedact(config map[string]any) map[string]any {
+	redactedConfig := make(map[string]any)
+	for k, v := range config {
+		switch value := v.(type) {
+		case string:
+			if shouldRedactKey(k) {
+				v = "<redacted>"
+			}
+		case map[string]any:
+			v = simpleRedact(value)
+		case map[any]any:
+			v = simpleRedact(cast.ToStringMap(value))
+		}
+
+		redactedConfig[k] = v
+	}
+
+	return redactedConfig
+}
+
+// shouldRedactKey applies a simple check to see if the contents of the given key
+// should be redacted or not.
+func shouldRedactKey(k string) bool {
+	keyFragments := []string{
+		"access",
+		"api_key",
+		"apikey",
+		"auth",
+		"credential",
+		"creds",
+		"login",
+		"password",
+		"pwd",
+		"token", // Any key containing "token" will be redacted
+		"user",
+	}
+
+	lowerCaseKey := strings.ToLower(k)
+	for _, fragment := range keyFragments {
+		if strings.Contains(lowerCaseKey, fragment) {
+			return true
+		}
+	}
+
+	return false
 }

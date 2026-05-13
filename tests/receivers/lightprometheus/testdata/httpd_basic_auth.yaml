@@ -5,7 +5,7 @@ receivers:
     collection_interval: 1s
     endpoint: "http://localhost:8001/metrics"
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -20,4 +20,4 @@ service:
   pipelines:
     metrics:
       receivers: [ lightprometheus/myjob ]
-      exporters: [ otlp ]
+      exporters: [ otlp_grpc ]

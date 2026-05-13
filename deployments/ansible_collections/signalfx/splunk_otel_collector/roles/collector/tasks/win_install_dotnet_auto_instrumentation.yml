@@ -1,0 +1,130 @@
+---
+- name: Get latest splunk-otel-dotnet release json
+  ansible.windows.win_uri:
+    url: "https://api.github.com/repos/signalfx/splunk-otel-dotnet/releases/latest"
+    return_content: yes
+    content_type: "application/json"
+    headers:
+      Authorization: "{{ splunk_dotnet_auto_instrumentation_github_token | default(omit) }}"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: latest_dotnet_release
+  when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_url
+
+- name: Set dotnet_download_url fact
+  ansible.builtin.set_fact:
+    dotnet_download_url: |-
+      {%- if splunk_dotnet_auto_instrumentation_url -%}
+      {{ splunk_dotnet_auto_instrumentation_url }}
+      {%- else -%}
+      {%- if splunk_dotnet_auto_instrumentation_version != "latest" -%}
+      {%- set version = splunk_dotnet_auto_instrumentation_version.lstrip("v") -%}
+      {{ base_url }}/v{{ version }}
+      {%- elif splunk_dotnet_auto_instrumentation_version == "latest" and latest_dotnet_release is defined -%}
+      {%- set version = latest_dotnet_release.json.tag_name.lstrip("v") -%}
+      {{ base_url }}/v{{ version }}
+      {%- endif -%}
+      {%- endif -%}
+  vars:
+    base_url: https://github.com/signalfx/splunk-otel-dotnet/releases/download
+
+- name: Download splunk-otel-dotnet install script
+  ansible.windows.win_get_url:
+    url: "{{ dotnet_download_url }}/Splunk.OTel.DotNet.psm1"
+    dest: "%TEMP%"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: splunk_dotnet_psm1
+
+- name: Download splunk-otel-dotnet bundle
+  ansible.windows.win_get_url:
+    url: "{{ dotnet_download_url }}/splunk-opentelemetry-dotnet-windows.zip"
+    dest: "%TEMP%"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: splunk_dotnet_zip
+
+- name: Install splunk-otel-dotnet
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1"
+      Install-OpenTelemetryCore -LocalPath "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip"
+      $w3svc = Get-Service -name "W3SVC" -ErrorAction SilentlyContinue
+      $was = Get-Service -name "WAS" -ErrorAction SilentlyContinue
+      if ($w3svc -And $was) { Register-OpenTelemetryForIIS }
+  tags: molecule-idempotence-notest
+
+- name: Get installed Splunk OpenTelemetry .NET version
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1" | Out-Null
+      Get-OpenTelemetryInstallVersion
+  register: splunk_otel_dotnet_version
+  tags: molecule-idempotence-notest
+
+- name: Create registry path
+  ansible.windows.win_regedit:
+    path: "{{ iis_registry_key }}"
+    state: present
+
+- name: Get IIS options list
+  ansible.builtin.set_fact:
+    options_list: |-
+      {%- set value = item.value -%}
+      {%- if (item.value | type_debug) == "bool" -%}
+        {%- set value = item.value | string | lower -%}
+      {%- endif -%}
+      {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
+        {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + splunk_otel_dotnet_version.output[0].lstrip("v") -%}
+        {%- set value = (item.value + "," + method) | trim(",") -%}
+      {%- endif -%}
+      {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: >
+    {{ dotnet_options | default({}) | combine(splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
+  tags: molecule-idempotence-notest
+
+- name: Set IIS registry value
+  ansible.windows.win_regedit:
+    path: "{{ iis_registry_key }}"
+    state: present
+    name: Environment
+    data: "{{ options_list | sort }}"
+    type: multistring
+  notify: "reset iis"
+  tags: molecule-idempotence-notest
+
+- name: Create registry path
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+  when: splunk_dotnet_auto_instrumentation_system_wide
+
+- name: Set system-wide registry value
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+    name: "{{ item.key }}"
+    data: |-
+      {%- set value = item.value -%}
+      {%- if (item.value | type_debug) == "bool" -%}
+        {%- set value = item.value | string | lower -%}
+      {%- endif -%}
+      {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
+        {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + splunk_otel_dotnet_version.output[0].lstrip("v") -%}
+        {%- set value = (item.value + "," + method) | trim(",") -%}
+      {%- endif -%}
+      {{ value | string }}
+    type: string
+  loop: >
+    {{ dotnet_options | default({}) | combine(splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
+  when: splunk_dotnet_auto_instrumentation_system_wide
+  notify: "reset iis"
+  tags: molecule-idempotence-notest

@@ -95,7 +95,7 @@ func downloadIstio(t *testing.T, version string) (string, string) {
 
 	istioctlPath := filepath.Join(absIstioDir, "bin", "istioctl")
 	require.FileExists(t, istioctlPath, "istioctl binary not found")
-	require.NoError(t, os.Chmod(istioctlPath, 0755), "failed to set executable permission for istioctl")
+	require.NoError(t, os.Chmod(istioctlPath, 0o755), "failed to set executable permission for istioctl")
 
 	t.Cleanup(func() {
 		os.RemoveAll(absIstioDir)
@@ -193,6 +193,7 @@ func hasIstioProxyContainer(pod corev1.Pod) bool {
 	}
 	return false
 }
+
 func runCommand(t *testing.T, command string) {
 	cmd := exec.Command("sh", "-c", command)
 	cmd.Stdout = os.Stdout
@@ -214,7 +215,6 @@ func patchResource(t *testing.T, clientset *kubernetes.Clientset, namespace, nam
 }
 
 func waitForDeploymentRollout(t *testing.T, clientset *kubernetes.Clientset, namespace, name string) {
-
 	err := wait.PollImmediate(5*time.Second, 5*time.Minute, func() (bool, error) {
 		deployment, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
@@ -232,7 +232,6 @@ func waitForDeploymentRollout(t *testing.T, clientset *kubernetes.Clientset, nam
 }
 
 func waitForPodsReady(t *testing.T, clientset *kubernetes.Clientset, namespace string) {
-
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	require.NoError(t, err)
 

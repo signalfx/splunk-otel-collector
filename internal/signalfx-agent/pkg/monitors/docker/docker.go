@@ -11,9 +11,8 @@ import (
 	"sync"
 	"time"
 
-	dtypes "github.com/docker/docker/api/types"
-	dcontainer "github.com/docker/docker/api/types/container"
-	docker "github.com/docker/docker/client"
+	dcontainer "github.com/moby/moby/api/types/container"
+	docker "github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
 
 	dockercommon "github.com/signalfx/signalfx-agent/pkg/core/common/docker"
@@ -24,8 +23,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
-
-const dockerAPIVersion = "v1.24"
 
 func init() {
 	monitors.Register(&monitorMetadata, func() interface{} { return &Monitor{} }, &Config{})
@@ -84,7 +81,7 @@ type Monitor struct {
 }
 
 type dockerContainer struct {
-	*dtypes.ContainerJSON
+	*dcontainer.InspectResponse
 	EnvMap map[string]string
 }
 
@@ -97,7 +94,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	defaultHeaders := map[string]string{"User-Agent": "signalfx-agent"}
 
 	var err error
-	m.client, err = docker.NewClientWithOpts(docker.WithHost(conf.DockerURL), docker.WithVersion(dockerAPIVersion), docker.WithHTTPHeaders(defaultHeaders))
+	m.client, err = docker.NewClientWithOpts(docker.WithHost(conf.DockerURL), docker.WithAPIVersionNegotiation(), docker.WithHTTPHeaders(defaultHeaders))
 	if err != nil {
 		return fmt.Errorf("could not create docker client: %w", err)
 	}
@@ -115,7 +112,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	containers := map[string]dockerContainer{}
 	isRegistered := false
 
-	changeHandler := func(oldState *dcontainer.InspectResponse, newState *dcontainer.InspectResponse) {
+	changeHandler := func(oldState, newState *dcontainer.InspectResponse) {
 		if oldState == nil && newState == nil {
 			return
 		}
@@ -137,8 +134,8 @@ func (m *Monitor) Configure(conf *Config) error {
 		}
 		m.logger.Infof("Monitoring docker container %s", id)
 		containers[id] = dockerContainer{
-			ContainerJSON: newState,
-			EnvMap:        parseContainerEnvSlice(newState.Config.Env),
+			InspectResponse: newState,
+			EnvMap:          parseContainerEnvSlice(newState.Config.Env),
 		}
 	}
 
@@ -157,7 +154,6 @@ func (m *Monitor) Configure(conf *Config) error {
 			go m.fetchStats(containers[id], conf.LabelsToDimensions, conf.EnvToDimensions, enhancedMetricsConfig)
 		}
 		lock.Unlock()
-
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 
 	return nil
@@ -167,9 +163,9 @@ func (m *Monitor) Configure(conf *Config) error {
 // parallel in individual goroutines.  This is much easier on CPU usage since
 // we aren't doing something every second across all containers, but only
 // something once every metric interval.
-func (m *Monitor) fetchStats(container dockerContainer, labelMap map[string]string, envMap map[string]string, enhancedMetricsConfig EnhancedMetricsConfig) {
+func (m *Monitor) fetchStats(container dockerContainer, labelMap, envMap map[string]string, enhancedMetricsConfig EnhancedMetricsConfig) {
 	ctx, cancel := context.WithTimeout(m.ctx, m.timeout)
-	stats, err := m.client.ContainerStats(ctx, container.ID, false)
+	stats, err := m.client.ContainerStats(ctx, container.ID, docker.ContainerStatsOptions{})
 	if err != nil {
 		cancel()
 		if isContainerNotFound(err) {
@@ -194,7 +190,7 @@ func (m *Monitor) fetchStats(container dockerContainer, labelMap map[string]stri
 		return
 	}
 
-	dps, err := ConvertStatsToMetrics(container.ContainerJSON, &parsed, enhancedMetricsConfig)
+	dps, err := ConvertStatsToMetrics(container.InspectResponse, &parsed, enhancedMetricsConfig)
 	cancel()
 	if err != nil {
 		m.logger.WithError(err).Errorf("Could not convert docker stats for container id %s", container.ID)
@@ -257,7 +253,6 @@ func (m *Monitor) Shutdown() {
 	if m.cancel != nil {
 		m.cancel()
 	}
-
 }
 
 // GetExtraMetrics returns additional metrics that should be allowed through.
@@ -289,5 +284,5 @@ func isContainerNotFound(err error) (notfound bool) {
 		notfound = true
 	}
 
-	return
+	return notfound
 }

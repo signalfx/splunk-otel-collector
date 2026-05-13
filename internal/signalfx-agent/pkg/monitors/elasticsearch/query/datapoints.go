@@ -132,7 +132,7 @@ func (dpC *dpCollector) recursivelyCollectDatapoints() []*datapoint.Datapoint {
 
 // Collects "doc_count" from a bucket as a SFx datapoint if a bucket aggregation
 // does not have sub metric aggregations
-func collectDocCountFromTerminalBucket(bucket *bucketResponse, aggName string, aggType string, dims map[string]string) []*datapoint.Datapoint {
+func collectDocCountFromTerminalBucket(bucket *bucketResponse, aggName, aggType string, dims map[string]string) []*datapoint.Datapoint {
 	dimsForBucket := utils.CloneStringMap(dims)
 	dimsForBucket["bucket_aggregation_type"] = aggType
 
@@ -147,7 +147,6 @@ func collectDocCountFromTerminalBucket(bucket *bucketResponse, aggName string, a
 
 // Collects datapoints from supported metric aggregations
 func (dpC *dpCollector) collectDatapointsFromMetricAggregation() []*datapoint.Datapoint {
-
 	out := make([]*datapoint.Datapoint, 0)
 
 	// Add metric aggregation name as a dimension
@@ -255,7 +254,6 @@ func (dpC *dpCollector) getDatapointsFromPercentiles(aggName string, aggRes *agg
 	// dimension on the datapoint
 	for k, v := range values {
 		p, err := strconv.ParseFloat(k, 64)
-
 		if err != nil {
 			dpC.logger.Warnf("Invalid percentile found: %s", k)
 			continue
@@ -289,7 +287,6 @@ func isTerminalBucket(b *bucketResponse) bool {
 
 // Collects a single datapoint from an interface, returns false if no datapoint can be derived
 func collectDatapoint(metricName string, value interface{}, dims map[string]string) (*datapoint.Datapoint, bool) {
-
 	out := datapoint.Datapoint{
 		Metric:     metricName,
 		Dimensions: dims,

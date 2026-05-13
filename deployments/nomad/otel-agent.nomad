@@ -5,7 +5,7 @@ job "otel-agent" {
   constraint {
     attribute = "${attr.nomad.version}"
     operator  = "semver"
-    value     = "< 1.9.8"
+    value     = "<= 1.11.2"
   }
 
   group "otel-agent" {
@@ -29,10 +29,6 @@ job "otel-agent" {
 
       port "zipkin" {
         to = 9411
-      }
-
-      port "signalfx" {
-        to = 9943
       }
 
       port "sfx_forwarder" {
@@ -89,12 +85,6 @@ job "otel-agent" {
 
     service {
       name = "otel-agent"
-      port = "signalfx"
-      tags = ["signalfx"]
-    }
-
-    service {
-      name = "otel-agent"
       port = "metrics"
       tags = ["metrics"]
     }
@@ -131,7 +121,6 @@ job "otel-agent" {
           "zipkin",
           "health_check",
           "zpages",
-          "signalfx",
           "sfx_forwarder",
         ]
       }
@@ -154,7 +143,7 @@ extensions:
     endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu: null
@@ -185,8 +174,6 @@ receivers:
         static_configs:
         - targets:
           - ${HOSTNAME}:8889
-  signalfx:
-    endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411
 processors:
@@ -203,14 +190,14 @@ processors:
 exporters:
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
-    api_url: https://api.${SPLUNK_REALM}.signalfx.com
+    api_url: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
     correlation: null
-    ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
+    ingest_url: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
     sync_host_metadata: true
   debug:
     verbosity: detailed
-  otlphttp:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+  otlp_http:
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 service:
@@ -227,8 +214,7 @@ service:
       - batch
       - resourcedetection
       receivers:
-      - hostmetrics
-      - signalfx
+      - host_metrics
     metrics/agent:
       exporters:
       - debug
@@ -242,7 +228,7 @@ service:
     traces:
       exporters:
       - debug
-      - otlphttp
+      - otlp_http
       - signalfx
       processors:
       - memory_limiter

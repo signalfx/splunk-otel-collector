@@ -15,6 +15,7 @@
 package discovery
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -237,7 +238,7 @@ func (PropertiesEntry) ErrorF(path string, err error) error {
 // files as they are discovered, determined by their parent directory and filename.
 func (c *Config) Load(configDPath string) error {
 	if c == nil {
-		return fmt.Errorf("config must not be nil to be loaded (use NewConfig())")
+		return errors.New("config must not be nil to be loaded (use NewConfig())")
 	}
 	return c.LoadFS(os.DirFS(configDPath))
 }
@@ -246,7 +247,7 @@ func (c *Config) Load(configDPath string) error {
 // determined by their parent directory and filename.
 func (c *Config) LoadFS(dirfs fs.FS) error {
 	if c == nil {
-		return fmt.Errorf("config must not be nil to be loaded (use NewConfig())")
+		return errors.New("config must not be nil to be loaded (use NewConfig())")
 	}
 	err := fs.WalkDir(dirfs, ".", func(path string, d fs.DirEntry, err error) error {
 		c.logger.Debug("loading component", zap.String("path", path), zap.String("DirEntry", fmt.Sprintf("%#v", d)), zap.Error(err))
@@ -421,7 +422,7 @@ func loadEntry[K keyType, V entryType](componentType string, fs fs.FS, path stri
 func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path string, dst *map[K]V) (componentID K, err error) {
 	if dst == nil {
 		err = fmt.Errorf("cannot load %s into nil entry", componentType)
-		return
+		return componentID, err
 	}
 
 	var unmarshalDst any = dst
@@ -439,7 +440,7 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 
 	if err = unmarshalYaml(fs, path, unmarshalDst); err != nil {
 		err = fmt.Errorf("failed unmarshalling component %s: %w", componentType, err)
-		return
+		return componentID, err
 	}
 
 	if componentType == typeService || componentType == typeDiscoveryProperties {
@@ -483,7 +484,7 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 		err = comp.ErrorF(
 			path, fmt.Errorf("must contain a single mapping of ComponentID to component but contained %v", cids),
 		)
-		return
+		return componentID, err
 	}
 	return componentIDs[0], nil
 }
@@ -517,11 +518,9 @@ func stringToKeyType[K keyType](s string, key K) (K, error) {
 			if s == discovery.NoType.String() {
 				componentIDK = discovery.NoType
 			} else {
-				var err error
 				componentIDK = component.ID{}
 				cIDK := componentIDK.(component.ID)
-				if err = (&cIDK).UnmarshalText([]byte(s)); err != nil {
-					// nolint:gocritic
+				if err := (&cIDK).UnmarshalText([]byte(s)); err != nil {
 					return *new(K), err // (gocritic suggestion not valid with type parameter)
 				}
 			}
@@ -557,7 +556,7 @@ var pathSeparatorForCharacterRange = func() string {
 	return string(os.PathSeparator)
 }()
 
-func mergeConfigWithBundle(userCfg *Config, bundleCfg *Config) error {
+func mergeConfigWithBundle(userCfg, bundleCfg *Config) error {
 	for obs, bundledObs := range bundleCfg.DiscoveryObservers {
 		userObs, ok := userCfg.DiscoveryObservers[obs]
 		if !ok {

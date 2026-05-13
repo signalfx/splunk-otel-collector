@@ -127,7 +127,8 @@ func TestHttpsClientSkipVerify(t *testing.T) {
 func TestHttpsClientWithAuth(t *testing.T) {
 	h := &HTTPConfig{
 		UseHTTPS: true, CACertPath: "test-certs/leaf.pem", ClientCertPath: "test-certs/client.pem",
-		ClientKeyPath: "test-certs/client.key"}
+		ClientKeyPath: "test-certs/client.key",
+	}
 	runServer(t, h, verify(t, h))
 }
 

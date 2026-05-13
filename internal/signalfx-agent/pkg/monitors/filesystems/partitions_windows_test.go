@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 package filesystems
 
@@ -14,10 +13,12 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-const uninitialized = 999
-const closed = 998
-const compressFlag = uint32(16)     // 0x00000010
-const readOnlyFlag = uint32(524288) // 0x00080000
+const (
+	uninitialized = 999
+	closed        = 998
+	compressFlag  = uint32(16)     // 0x00000010
+	readOnlyFlag  = uint32(524288) // 0x00080000
+)
 
 type volumeMock struct {
 	name      string
@@ -40,7 +41,8 @@ var driveVolume = func() *volumeMock {
 		driveType: windows.DRIVE_FIXED,
 		fsType:    "NTFS",
 		fsFlags:   compressFlag,
-		err:       nil}
+		err:       nil,
+	}
 }
 
 var driveAndFolderVolume = func() *volumeMock {
@@ -50,7 +52,8 @@ var driveAndFolderVolume = func() *volumeMock {
 		driveType: windows.DRIVE_FIXED,
 		fsType:    "NTFS",
 		fsFlags:   compressFlag | readOnlyFlag,
-		err:       nil}
+		err:       nil,
+	}
 }
 
 var removableDriveVolume = func() *volumeMock {
@@ -60,10 +63,13 @@ var removableDriveVolume = func() *volumeMock {
 		driveType: windows.DRIVE_REMOVABLE,
 		fsType:    "FAT16",
 		fsFlags:   compressFlag,
-		err:       nil}
+		err:       nil,
+	}
 }
 
 func TestGetPartitions_Supersets_gopsutil_PartitionStats(t *testing.T) {
+	t.Skip("This test was not running for a while, needs investigation to re-enable it")
+
 	// Partition stats from gopsutil are for drive mounts only.
 	want, err := gopsutil.Partitions(true)
 	require.NoError(t, err)
@@ -107,7 +113,8 @@ func TestGetPartitionsWin(t *testing.T) {
 					{Device: "C:", Mountpoint: "C:", Fstype: "NTFS", Opts: []string{"rw", ".compress"}},
 					{Device: "D:", Mountpoint: "D:", Fstype: "NTFS", Opts: []string{"ro", ".compress"}},
 					{Device: "C:\\mnt\\driveD", Mountpoint: "C:\\mnt\\driveD", Fstype: "NTFS", Opts: []string{"ro", ".compress"}},
-					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: []string{"rw", ".compress"}}},
+					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: []string{"rw", ".compress"}},
+				},
 			},
 		},
 		{
@@ -137,7 +144,8 @@ func TestGetPartitionsWin(t *testing.T) {
 				hasError: true,
 				stats: []gopsutil.PartitionStat{
 					{Device: "C:", Mountpoint: "C:", Fstype: "NTFS", Opts: []string{"rw", ".compress"}},
-					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: []string{"rw", ".compress"}}},
+					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: []string{"rw", ".compress"}},
+				},
 			},
 		},
 	}

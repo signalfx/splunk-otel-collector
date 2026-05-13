@@ -1,4 +1,4 @@
-FROM golang:1.24.6-bullseye
+FROM golang:1.26.3-bookworm
 
 WORKDIR /go/src/app
 

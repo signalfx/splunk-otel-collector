@@ -9,9 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var cpu pmetric.Metric
-var memory pmetric.Metric
-var disk pmetric.Metric
+var (
+	cpu    pmetric.Metric
+	memory pmetric.Metric
+	disk   pmetric.Metric
+)
 
 func init() {
 	cpu = pmetric.NewMetric()
@@ -24,6 +26,7 @@ func init() {
 	disk.SetName("disk.utilization")
 	disk.SetEmptyGauge()
 }
+
 func TestOverridableFilters(t *testing.T) {
 	t.Run("Exclude based on simple metric name", func(t *testing.T) {
 		f, _ := NewOverridable([]string{"cpu.utilization"}, nil)

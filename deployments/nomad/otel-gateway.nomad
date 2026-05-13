@@ -5,7 +5,7 @@ job "otel-gateway" {
   constraint {
     attribute = "${attr.nomad.version}"
     operator  = "semver"
-    value     = "< 1.9.8"
+    value     = "<= 1.11.2"
   }
 
   group "otel-gateway" {
@@ -145,7 +145,13 @@ extensions:
     endpoint: 0.0.0.0:13133
   http_forwarder:
     egress:
-      endpoint: https://api.${SPLUNK_REALM}.signalfx.com
+      endpoint: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
+  http_forwarder/signalfx:
+    ingress:
+      endpoint: 0.0.0.0:9943
+      include_metadata: true
+    egress:
+      endpoint: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
   zpages: null
 receivers:
   jaeger:
@@ -160,9 +166,6 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-  signalfx:
-    include_metadata: true
-    endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411
   prometheus/collector:
@@ -187,29 +190,21 @@ processors:
 exporters:
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
-    api_url: https://api.${SPLUNK_REALM}.signalfx.com
-    ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
+    api_url: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
+    ingest_url: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
   debug:
     verbosity: detailed
-  otlphttp:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+  otlp_http:
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 service:
   extensions:
   - health_check
   - http_forwarder
+  - http_forwarder/signalfx
   - zpages
   pipelines:
-    logs/signalfx-events:
-      exporters:
-      - signalfx
-      - debug
-      processors:
-      - memory_limiter
-      - batch
-      receivers:
-      - signalfx
     metrics:
       exporters:
       - signalfx
@@ -219,10 +214,9 @@ service:
       - batch
       receivers:
       - otlp
-      - signalfx
     traces:
       exporters:
-      - otlphttp
+      - otlp_http
       - debug
       processors:
       - memory_limiter

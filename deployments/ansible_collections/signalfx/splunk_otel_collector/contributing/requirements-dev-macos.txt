@@ -1,0 +1,6 @@
+ansible>=12.2.0
+ansible-compat==25.8.2
+ansible-lint==25.9.1
+molecule==25.1.0
+molecule-plugins[vagrant]==25.8.12
+pywinrm==0.4.3

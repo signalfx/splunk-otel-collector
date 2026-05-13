@@ -1,5 +1,4 @@
-//go:build !windows
-// +build !windows
+//go:build !windows || (windows && arm64)
 
 package winservices
 

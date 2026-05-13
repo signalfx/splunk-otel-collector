@@ -17,6 +17,7 @@ package discoveryreceiver
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
@@ -76,7 +77,8 @@ type notify struct {
 
 func newEndpointTracker(
 	observables map[component.ID]observer.Observable, config *Config, logger *zap.Logger,
-	pLogs chan plog.Logs, correlations *correlationStore) *endpointTracker {
+	pLogs chan plog.Logs, correlations *correlationStore,
+) *endpointTracker {
 	return &endpointTracker{
 		config:       config,
 		observables:  observables,
@@ -186,12 +188,12 @@ func (et *endpointTracker) receiverMatchingEndpoint(endpoint observer.Endpoint) 
 		return discovery.NoType
 	}
 	if len(receivers) > 1 {
-		var receiverNames string
+		var receiverNames strings.Builder
 		for _, receiverID := range receivers {
-			receiverNames += receiverID.String() + " "
+			receiverNames.WriteString(receiverID.String() + " ")
 		}
 		et.logger.Warn("endpoint matched multiple receivers, skipping", zap.String("endpoint",
-			string(endpoint.ID)), zap.String("receivers", receiverNames))
+			string(endpoint.ID)), zap.String("receivers", receiverNames.String()))
 		return discovery.NoType
 	}
 	return receivers[0]
@@ -239,7 +241,8 @@ func (n *notify) OnChange(changed []observer.Endpoint) {
 // entityEvents converts observer endpoints to entity state events excluding those
 // that don't have a discovery status attribute yet.
 func entityEvents(observerID component.ID, endpoints []observer.Endpoint, correlations *correlationStore,
-	ts time.Time, eventType experimentalmetricmetadata.EventType) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
+	ts time.Time, eventType experimentalmetricmetadata.EventType,
+) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
 	events := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
 		if endpoint.Details == nil {
@@ -347,7 +350,7 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 	return attrs, nil
 }
 
-func extractIdentifyingAttrs(from pcommon.Map, to pcommon.Map) {
+func extractIdentifyingAttrs(from, to pcommon.Map) {
 	for _, k := range identifyingAttrKeys {
 		if v, ok := from.Get(k); ok {
 			v.CopyTo(to.PutEmpty(k))

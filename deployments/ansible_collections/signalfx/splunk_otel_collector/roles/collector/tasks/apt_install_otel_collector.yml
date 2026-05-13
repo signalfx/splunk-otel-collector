@@ -1,0 +1,50 @@
+---
+# Install Splunk OpenTelemetry Collector from apt repository
+
+- name: Install apt dependencies for secure transport
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - gnupg
+      - xz-utils
+    state: present
+    update_cache: yes
+
+- name: Download an apt signing key for Splunk OpenTelemetry Collector
+  ansible.builtin.get_url:
+    url: "{{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg"
+    dest: /etc/apt/trusted.gpg.d/splunk.gpg
+    mode: '644'
+
+- name: Add Splunk OpenTelemetry Collector repo to apt source list
+  ansible.builtin.apt_repository:
+    repo: "deb {{ splunk_repo_base_url }}/otel-collector-deb release main"
+    filename: splunk-otel-collector.list
+    state: present
+  when: not (splunk_skip_repo | bool)
+
+- name: Install Splunk OpenTelemetry Collector via apt package manager
+  ansible.builtin.apt:
+    name: "splunk-otel-collector{% if splunk_otel_collector_version != 'latest' %}\
+      ={{ splunk_otel_collector_version }}{% endif %}"
+    state: "{% if splunk_otel_collector_version != 'latest' %}present{% else %}latest{% endif %}"
+    force: yes
+    update_cache: yes
+  notify:
+    - "restart splunk-otel-collector"
+  when: not local_artifact_testing_enabled
+
+- name: Copy Splunk OpenTelemetry Collector DEB artifact to remote machine
+  ansible.builtin.copy:
+    src: /tmp/deb-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
+    dest: /etc/otel/
+    mode: '644'
+  register: archive_contents
+  when: local_artifact_testing_enabled
+
+- name: Install Splunk OpenTelemetry Collector via local DEB artifact
+  ansible.builtin.apt:
+    deb: "{{ archive_contents.dest }}"
+  notify:
+    - "restart splunk-otel-collector"
+  when: local_artifact_testing_enabled

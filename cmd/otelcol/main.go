@@ -19,7 +19,10 @@ package main
 
 import (
 	"context"
+	_ "embed"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -34,6 +37,19 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
+	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
+)
+
+const modularinputStanzaPrefix = "Splunk_TA_otel://"
+
+//go:embed ta_scheme.xml
+var modularInputSchemeXML string
+
+var (
+	// Function variables to facilitate testing
+	stdinReader  io.Reader = os.Stdin
+	stdoutWriter io.Writer = os.Stdout
+	exitFn                 = os.Exit
 )
 
 func main() {
@@ -44,12 +60,37 @@ func runFromCmdLine(args []string) {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
+	// Handle the cases of running as a TA
+	args, taRunMode, err := modularinput.HandleLaunchAsTA(args, stdinReader, modularinputStanzaPrefix, modularInputSchemeXML, validateTAArguments)
+	if taRunMode != modularinput.NotTARunMode {
+		log.SetFlags(0)
+		log.SetOutput(os.Stderr)
+	}
+	if err != nil {
+		log.Fatalf("ERROR checking launch as TA modular input: %v", err)
+	}
+	if taRunMode == modularinput.IntrospectionTARunMode {
+		// Introspection mode is used by Splunk to get the modular input scheme XML.
+		// modularinput.HandleLaunchAsTA will have already written the scheme XML to stdout, so just exit successfully.
+		exitFn(0)
+		return
+	}
+
 	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
-		// Exit if --help flag was supplied and usage help was displayed.
-		if err == flag.ErrHelp {
-			os.Exit(0)
+		if taRunMode == modularinput.ValidationTARunMode {
+			if writeErr := modularinput.WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				log.Printf("ERROR writing validation error: %v\n", writeErr)
+			}
+			exitFn(1)
+			return
 		}
+		// Exit if --help flag was supplied and usage help was displayed.
+		if errors.Is(err, flag.ErrHelp) {
+			exitFn(0)
+			return
+		}
+
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)
 	}
 
@@ -58,17 +99,17 @@ func runFromCmdLine(args []string) {
 		Version: version.Version,
 	}
 
-	configServer := configconverter.NewConfigServer()
-
+	telemetryHook := configsource.NewTelemetryHook()
 	confMapConverterFactories := collectorSettings.ConfMapConverterFactories()
 	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun(), confMapConverterFactories)
 	expvarConverter := configconverter.GetExpvarConverter()
 	confMapConverterFactories = append(confMapConverterFactories,
 		configconverter.ConverterFactoryFromConverter(dryRun),
-		configconverter.ConverterFactoryFromConverter(configServer),
-		configconverter.ConverterFactoryFromConverter(expvarConverter))
+		configconverter.ConverterFactoryFromFunc(configconverter.InjectConfigSourceTelemetryExtension),
+		configconverter.ConverterFactoryFromFunc(configconverter.RemoveSplunkOpAMPIfFeatureGateDisabled),
+		configconverter.ConverterFactoryFromConverter(expvarConverter)) // `expvarConverter` must be last to expose the effective config correctly
 
-	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{configServer, expvarConverter, dryRun})
+	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{expvarConverter, dryRun, telemetryHook})
 
 	var providerFactories []confmap.ProviderFactory
 	for _, pf := range collectorSettings.ConfMapProviderFactories() {
@@ -91,8 +132,23 @@ func runFromCmdLine(args []string) {
 	allArgs = append(allArgs, collectorSettings.ColCoreArgs()...)
 	os.Args = allArgs
 	if err = run(serviceSettings); err != nil {
+		if taRunMode == modularinput.ValidationTARunMode {
+			if writeErr := modularinput.WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				log.Printf("ERROR writing validation error: %v\n", writeErr)
+			}
+			exitFn(1)
+			return
+		}
 		log.Fatal(err)
 	}
+}
+
+// validateTAArguments validates the modular input parameters sent by Splunk
+// when running as a TA with the argument '--validate-arguments'.
+// It sets args[1] to "validate" so the collector runs in validate sub-command mode.
+func validateTAArguments(_ *modularinput.ValidationItems, args []string) ([]string, error) {
+	args[1] = "validate"
+	return args, nil
 }
 
 var otelcolCmdTestCtx context.Context // Use to control termination during tests.

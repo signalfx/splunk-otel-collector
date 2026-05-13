@@ -69,7 +69,6 @@ func (reqBody *ElasticsearchQueryBody) getAggregationsMeta() (map[string]*Aggreg
 
 	for aggName, agg := range reqBody.Aggregations {
 		err := getAggregationsWithType(aggName, agg, aggsToType)
-
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +79,6 @@ func (reqBody *ElasticsearchQueryBody) getAggregationsMeta() (map[string]*Aggreg
 
 func getAggregationsWithType(aggName string, agg aggregationInfo, out map[string]string) error {
 	a, err := getAggregationType(agg)
-
 	if err != nil {
 		return err
 	}

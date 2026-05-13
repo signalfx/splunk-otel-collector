@@ -5,14 +5,14 @@
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
-# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 
 # The following environment variables are optional:
 
 # - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory that will be used to
-#   contain file offsets used by the filelog receivers. This allows the receivers
+#   contain file offsets used by the file_log receivers. This allows the receivers
 #   to pick up where they left off in case of a collector restart. This directory
 #   must be writable by the collector.
 #   default: `/var/lib/otelcol/filelogs`
@@ -37,14 +37,14 @@ receivers:
   # Attributes not listed will be removed from the log entry.
   # If the 'retain' operator is not used, then all attributes are kept.
   #
-  # For a filelog receiver to be enabled it must be listed in the 'service' block
+  # For a file_log receiver to be enabled it must be listed in the 'service' block
   # at the end of this file.
 
   # Apache access log.
   # Configured using the LogFormat directive.
   # By default, date and time are in the 'day/Month/year:hour:minute:second zone' format.
   # See https://httpd.apache.org/docs/current/mod/mod_log_config.html#logformat
-  filelog/apache-access:
+  file_log/apache-access:
     include: [ "/var/log/apache*/access.log", "/var/log/apache*/access_log", "/var/log/httpd/access.log", "/var/log/httpd/access_log" ]
     operators:
       - type: regex_parser
@@ -60,7 +60,7 @@ receivers:
   # Configured using the ErrorLogFormat directive.
   # By default, date and time are in the locale-specific representation (%c in strftime).
   # See https://httpd.apache.org/docs/current/mod/core.html#errorlogformat
-  filelog/apache-error:
+  file_log/apache-error:
     include: [ "/var/log/apache*/error.log", "/var/log/apache*/error_log", "/var/log/httpd/error.log", "/var/log/httpd/error_log" ]
     operators:
       - type: regex_parser
@@ -90,7 +90,7 @@ receivers:
   # Configured in /etc/cassandra/logback.xml, SYSTEMLOG appender section.
   # Default date and time format is ISO-8601 (year-month-day hour:minute:second).
   # See https://cassandra.apache.org/doc/latest/cassandra/troubleshooting/reading_logs.html
-  filelog/cassandra:
+  file_log/cassandra:
     include: [ "/var/log/cassandra/cassandra.log", "/var/log/cassandra/system.log" ]
     multiline:
       line_start_pattern: '^[A-Z]+\s+\[[\w:]+\]\s\d'
@@ -117,7 +117,7 @@ receivers:
   # Configured in /etc/cassandra/logback.xml, DEBUGLOG appender section.
   # Default date and time format is ISO-8601 (year-month-day hour:minute:second).
   # See https://cassandra.apache.org/doc/latest/cassandra/troubleshooting/reading_logs.html
-  filelog/cassandra-debug:
+  file_log/cassandra-debug:
     include: [ "/var/log/cassandra/debug.log" ]
     multiline:
       line_start_pattern: '^[A-Z]+\s+\[[\w:]+\]\s\d'
@@ -142,7 +142,7 @@ receivers:
 
   # This file is written if Cassandra process' standard output stream (stdout)
   # is redirected to a file.
-  filelog/cassandra-output:
+  file_log/cassandra-output:
     include: [ "/var/log/cassandra/output.log" ]
     include_file_name: false
     include_file_path: true
@@ -152,7 +152,7 @@ receivers:
   # If the default json-file logging driver is used, Docker will store container
   # stdout and stderr output on the host filesystem as JSON files.
   # See https://docs.docker.com/config/containers/logging/configure
-  filelog/docker:
+  file_log/docker:
     include: [ "/var/lib/docker/containers/*/*-json.log" ]
     operators:
       - type: json_parser
@@ -174,7 +174,7 @@ receivers:
   # (https://etcd.io/docs/v3.4/dev-internal/logging/).
   # Versions 3.5 and later are logging using the zap library
   # (https://etcd.io/docs/v3.5/dev-internal/logging/).
-  filelog/etcd:
+  file_log/etcd:
     include: [ "/var/log/etcd.log" ]
     operators:
       - type: regex_parser
@@ -209,7 +209,7 @@ receivers:
   # (default is /var/log/jetty9/).
   # See https://eclipse.dev/jetty/documentation/jetty-9/index.html#configuring-logging
   # for more information on Jetty9 logging.
-  filelog/jetty9:
+  file_log/jetty9:
     include: [ "/var/log/jetty9/*.jetty.log" ]
     operators:
       - type: regex_parser
@@ -231,7 +231,7 @@ receivers:
 
   # Jetty debug log.
   # Enabled with the jetty-debuglog module.
-  filelog/jetty9-debug:
+  file_log/jetty9-debug:
     include: [ "/var/log/jetty9/*.debug.log" ]
     operators:
       - type: regex_parser
@@ -252,7 +252,7 @@ receivers:
   # Jetty request logs.
   # Enabled with the jetty-requestlog module.
   # Request logs are in standard NCSA Common Log Format.
-  filelog/jetty9-request:
+  file_log/jetty9-request:
     include: [ "/var/log/jetty9/*.request.log" ]
     operators:
       - type: regex_parser
@@ -265,7 +265,7 @@ receivers:
     storage: file_storage/filelogs
 
   # Memcached.
-  filelog/memcached:
+  file_log/memcached:
     include: [ "/var/log/memcached.log" ]
     include_file_name: false
     include_file_path: true
@@ -273,7 +273,7 @@ receivers:
 
   # MongoDB v4.4 and later outputs all log messages in a structured JSON format.
   # See https://www.mongodb.com/docs/manual/reference/log-messages/
-  filelog/mongodb:
+  file_log/mongodb:
     include: [ "/var/log/mongodb/*.log" ]
     operators:
       - type: json_parser
@@ -307,7 +307,7 @@ receivers:
   # When running under Systemd, error logging goes to journald. To enable
   # logging to a file, use the log_error variable.
   # See https://mariadb.com/kb/en/error-log/
-  filelog/mysql-error:
+  file_log/mysql-error:
     include: [ "/var/log/mysql/error.log" ]
     multiline:
       # e.g. "2023-10-09 13:40:48 0 [Note] ..."
@@ -334,7 +334,7 @@ receivers:
   # client, as well as each client connect and disconnect.
   # Disabled by default. To enable, use the general_log_file variable.
   # See https://mariadb.com/kb/en/general-query-log/
-  filelog/mysql-query:
+  file_log/mysql-query:
     include: [ "/var/log/mysql.log", "/var/log/mysql/mysql.log" ]
     multiline:
       line_start_pattern: '^\d{6} [\d:.]+'
@@ -362,7 +362,7 @@ receivers:
   # MySQL slow query log. Contains a log of SQL queries that took a long time to perform.
   # Disabled by default. To enable, use the slow_query_log variable.
   # See https://mariadb.com/kb/en/slow-query-log/
-  filelog/mysql-slow_query:
+  file_log/mysql-slow_query:
     include: [ "/var/log/mysql/mysql-slow.log", "/var/log/mysql/mariadb-slow.log" ]
     multiline:
       line_start_pattern: '^# Time: '
@@ -373,7 +373,7 @@ receivers:
   # Nginx access log.
   # By default, client requests are logged in the standard NCSA Common Log Format.
   # See https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
-  filelog/nginx-access:
+  file_log/nginx-access:
     include: [ "/var/log/nginx/access.log" ]
     operators:
       - type: regex_parser
@@ -387,7 +387,7 @@ receivers:
 
   # Nginx error log.
   # See https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
-  filelog/nginx-error:
+  file_log/nginx-error:
     include: [ "/var/log/nginx/error.log" ]
     operators:
       - type: regex_parser
@@ -414,7 +414,7 @@ receivers:
 
   # PostgreSQL server log.
   # See https://www.postgresql.org/docs/current/runtime-config-logging.html
-  filelog/postgresql:
+  file_log/postgresql:
     include: [ "/var/log/postgres*/*.log", "/var/log/pgsql/*.log" ]
     operators:
       - type: regex_parser
@@ -434,7 +434,7 @@ receivers:
 
   # RabbitMQ broker node log.
   # See https://www.rabbitmq.com/logging.html
-  filelog/rabbitmq:
+  file_log/rabbitmq:
     include: [ "/var/log/rabbitmq/rabbit@*.log" ]
     multiline:
       # e.g. "2023-10-16 13:00:19.461 [debug] <0.289.0> ..."
@@ -458,14 +458,14 @@ receivers:
     storage: file_storage/filelogs
 
   # RabbitMQ server startup log.
-  filelog/rabbitmq-startup:
+  file_log/rabbitmq-startup:
     include: [ "/var/log/rabbitmq/startup_log", "/var/log/rabbitmq/rabbitmq-server.log" ]
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
 
   # RabbitMQ server startup error log.
-  filelog/rabbitmq-startup_err:
+  file_log/rabbitmq-startup_err:
     include: [ "/var/log/rabbitmq/startup_err", "/var/log/rabbitmq/rabbitmq-server.error.log" ]
     include_file_name: false
     include_file_path: true
@@ -473,7 +473,7 @@ receivers:
 
   # Redis logging.
   # By default configured to log to a file (logfile directive in redis.conf).
-  filelog/redis:
+  file_log/redis:
     include: [ "/var/log/redis*.log", "/var/log/redis/*.log"]
     operators:
       - type: router
@@ -517,7 +517,7 @@ receivers:
 
   # Syslog and messages log files.
   # These are not in the RFC3164 format.
-  filelog/syslog:
+  file_log/syslog:
     include: [ "/var/log/syslog", "/var/log/messages"]
     operators:
       - type: regex_parser
@@ -538,7 +538,7 @@ receivers:
 
   # Apache Tomcat.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html
-  filelog/tomcat:
+  file_log/tomcat:
     include: [ "/var/log/tomcat*/catalina.*.log", "/var/log/tomcat*/localhost.*.log" ]
     multiline:
       # e.g. "11-Oct-2023 12:55:33.425 INFO [Thread-3] ..."
@@ -565,7 +565,7 @@ receivers:
 
   # Apache Tomcat console output.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html#Console
-  filelog/tomcat-out:
+  file_log/tomcat-out:
     include: [ "/var/log/tomcat*/catalina.out" ]
     operators:
       - type: regex_parser
@@ -589,7 +589,7 @@ receivers:
   # Entries are in the standard NCSA Common Log Format.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html#Access_logging and
   # https://tomcat.apache.org/tomcat-9.0-doc/config/valve.html#Access_Logging
-  filelog/tomcat-localhost_access_log:
+  file_log/tomcat-localhost_access_log:
     include: [ "/var/log/tomcat*/localhost_access_log.*.txt" ]
     operators:
       - type: regex_parser
@@ -603,7 +603,7 @@ receivers:
 
   # Zookeper log.
   # Configured in /etc/zookeeper/conf/log4j.properties
-  filelog/zookeeper:
+  file_log/zookeeper:
     include: [ "/var/log/zookeeper/zookeeper.log" ]
     operators:
       - type: regex_parser
@@ -627,7 +627,7 @@ receivers:
 
   # Zookeeper tracefile.
   # Configured in /etc/zookeeper/conf/log4j.properties
-  filelog/zookeeper-trace:
+  file_log/zookeeper-trace:
     include: [ "/var/log/zookeeper/zookeeper_trace.log" ]
     operators:
       - type: regex_parser
@@ -695,7 +695,7 @@ extensions:
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
 
-  # Storage extension for storing filelog checkpoints.
+  # Storage extension for storing file_log checkpoints.
   # Checkpoints allow the receiver to pick up where it left off in the case of a
   # collector restart.
   file_storage/filelogs:
@@ -710,35 +710,45 @@ extensions:
 
 service:
   extensions: [health_check, file_storage/filelogs]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     logs:
       receivers:
-        #- filelog/apache-access
-        #- filelog/apache-error
-        #- filelog/cassandra
-        #- filelog/cassandra-debug
-        #- filelog/cassandra-output
-        #- filelog/docker
-        #- filelog/etcd
-        #- filelog/jetty9
-        #- filelog/jetty9-debug
-        #- filelog/jetty9-request
-        #- filelog/mongodb
-        #- filelog/mysql-error
-        #- filelog/mysql-query
-        #- filelog/mysql-slow_query
-        #- filelog/nginx-access
-        #- filelog/nginx-error
-        #- filelog/postgresql
-        #- filelog/rabbitmq
-        #- filelog/rabbitmq-startup
-        #- filelog/rabbitmq-startup_err
-        #- filelog/redis
-        - filelog/syslog
-        #- filelog/tomcat
-        #- filelog/tomcat-out
-        #- filelog/tomcat-localhost_access_log
-        #- filelog/zookeeper
-        #- filelog/zookeeper-trace
+        #- file_log/apache-access
+        #- file_log/apache-error
+        #- file_log/cassandra
+        #- file_log/cassandra-debug
+        #- file_log/cassandra-output
+        #- file_log/docker
+        #- file_log/etcd
+        #- file_log/jetty9
+        #- file_log/jetty9-debug
+        #- file_log/jetty9-request
+        #- file_log/mongodb
+        #- file_log/mysql-error
+        #- file_log/mysql-query
+        #- file_log/mysql-slow_query
+        #- file_log/nginx-access
+        #- file_log/nginx-error
+        #- file_log/postgresql
+        #- file_log/rabbitmq
+        #- file_log/rabbitmq-startup
+        #- file_log/rabbitmq-startup_err
+        #- file_log/redis
+        - file_log/syslog
+        #- file_log/tomcat
+        #- file_log/tomcat-out
+        #- file_log/tomcat-localhost_access_log
+        #- file_log/zookeeper
+        #- file_log/zookeeper-trace
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]

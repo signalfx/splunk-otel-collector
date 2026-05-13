@@ -8,7 +8,7 @@ The Splunk OpenTelemetry Collector for HashiCorp Nomad is an orchestrator deploy
 
 To run the job files you need:
 
-- Access to a Nomad cluster (**version 1.6.2 to 1.9.7**)
+- Access to a Nomad cluster (**version 1.9 to 1.11**)
 - (Optional) Access to a Consul cluster - **Attention**: _the `*.nomad` examples provided
   in this repository assume that Consul is being used._
 
@@ -53,7 +53,7 @@ extensions:
     endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu: null
@@ -72,9 +72,9 @@ processors:
 exporters:
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
-    api_url: https://api.${SPLUNK_REALM}.signalfx.com
+    api_url: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
     correlation: null
-    ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
+    ingest_url: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
     sync_host_metadata: true
   debug:
     verbosity: detailed
@@ -91,8 +91,7 @@ service:
       - memory_limiter
       - batch
       receivers:
-      - hostmetrics
-      - signalfx
+      - host_metrics
 EOF
     destination = "local/config/otel-agent-config.yaml"
 }

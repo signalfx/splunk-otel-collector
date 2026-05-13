@@ -1,5 +1,5 @@
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -10,4 +10,4 @@ service:
       level: debug
   pipelines:
     metrics:
-      exporters: [otlp]
+      exporters: [otlp_grpc]

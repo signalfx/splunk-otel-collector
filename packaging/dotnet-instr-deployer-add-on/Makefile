@@ -27,15 +27,10 @@ build: ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
 pack:
 	@echo "Packing add-on ..."
 	@if [ ! -d ./out/distribution/ ]; then mkdir -p ./out/distribution/; fi
-	@tar -C ./assets/  --transform='s,^,$(MOD_INPUT_NAME)/,' -hcz -f ./out/distribution/$(MOD_INPUT_NAME).tgz .
+	@tar -C ./assets/ --transform='s,^,$(MOD_INPUT_NAME)/,' -hcz -f ./out/distribution/$(MOD_INPUT_NAME).tgz .
 
 .PHONY: clean
 clean:
 	@echo "Cleaning..."
 	@if [ -f ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe ]; then rm -rf ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe; fi
 	@if [ -f ../out/distribution/ ]; then rm -rf ./out/distribution/; fi
-
-.PHONY: gotest
-gotest:
-	@echo "Running golang tests..."
-	@go test $${GOTEST_OPTS:- -v -race} ./...

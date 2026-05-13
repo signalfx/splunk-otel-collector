@@ -1,12 +1,14 @@
 # Light Prometheus Receiver
 
-| Status                   |               |
-| ------------------------ |---------------|
-| Stability                | [development] |
-| Supported pipeline types | metrics       |
-| Distributions            | splunk        |
+| Status                   |              |
+| ------------------------ |--------------|
+| Stability                | [deprecated] |
+| Supported pipeline types | metrics      |
+| Distributions            | splunk       |
 
-[development]: https://github.com/open-telemetry/opentelemetry-collector#development
+[deprecated]: https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md#deprecated
+
+:warning: Please use the [Prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver) or [Simple Prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver) receiver instead.
 
 ## Overview
 
@@ -14,8 +16,6 @@ Light Prometheus Receiver is a component that can scrape Prometheus metrics from
 convert them to OTLP metrics. It is intended to be used as a replacement for the [Simple Prometheus 
 Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver)
 as it is more efficient and has a smaller memory footprint.
-
-The receiver is under active development which means that configuration interface can change.
 
 ## Configuration
 

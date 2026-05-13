@@ -17,7 +17,7 @@ package zookeeperconfigsource
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/go-zookeeper/zk"
 )
@@ -44,7 +44,7 @@ func (m *mockConnection) GetW(key string) ([]byte, *zk.Stat, <-chan zk.Event, er
 		m.watcherCh = make(chan zk.Event)
 		return []byte(value), &zk.Stat{}, m.watcherCh, nil
 	}
-	return nil, nil, nil, fmt.Errorf("value not found")
+	return nil, nil, nil, errors.New("value not found")
 }
 
 func (m *mockConnection) Close() {

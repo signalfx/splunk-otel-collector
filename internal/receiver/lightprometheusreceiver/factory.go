@@ -30,7 +30,7 @@ func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		component.MustNewType(typeStr),
 		createDefaultConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelDevelopment),
+		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelDeprecated),
 	)
 }
 
@@ -53,6 +53,6 @@ func createMetricsReceiver(
 		&c.ControllerConfig,
 		params,
 		consumer,
-		scraperhelper.AddScraper(component.MustNewType(typeStr), scraper),
+		scraperhelper.AddMetricsScraper(component.MustNewType(typeStr), scraper),
 	)
 }

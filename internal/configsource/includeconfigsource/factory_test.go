@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 )
@@ -42,28 +43,12 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 			},
 		},
 		{
-			name:   "delete_files",
-			config: Config{DeleteFiles: true},
-			expected: &includeConfigSource{
-				Config:       &Config{DeleteFiles: true},
-				watchedFiles: make(map[string]struct{}),
-			},
-		},
-		{
 			name:   "watch_files",
 			config: Config{WatchFiles: true},
 			expected: &includeConfigSource{
 				Config:       &Config{WatchFiles: true},
 				watchedFiles: make(map[string]struct{}),
 			},
-		},
-		{
-			name: "err_on_delete_and_watch",
-			config: Config{
-				DeleteFiles: true,
-				WatchFiles:  true,
-			},
-			wantErr: true,
 		},
 	}
 
@@ -72,12 +57,12 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 			tt := tt
 			actual, err := factory.CreateConfigSource(context.Background(), &tt.config, zap.NewNop())
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, actual)
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, actual)
 			assert.Equal(t, tt.expected, actual)
 		})

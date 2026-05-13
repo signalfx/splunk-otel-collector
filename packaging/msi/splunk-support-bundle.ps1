@@ -166,7 +166,6 @@ function createTempDir {
     } else {
         New-Item -Path $TMPDIR -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/logs -ItemType Directory | Out-Null
-        New-Item -Path $TMPDIR/logs/td-agent -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/metrics -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/msi -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/zpages -ItemType Directory | Out-Null
@@ -196,26 +195,6 @@ function getConfig {
     } else {
         Copy-Item -Path "$CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
-    $FLUENTD_CONFDIR="${env:SYSTEMDRIVE}\opt\td-agent\etc\td-agent"
-    if (-NOT (Test-Path -Path $FLUENTD_CONFDIR)) {
-        Write-Output "WARN: Could not find directory ($FLUENTD_CONFDIR)."
-    } else {
-        Copy-Item -Path "$FLUENTD_CONFDIR" -Destination "$TMPDIR/config" -Recurse
-    }
-    # Also need to get config in memory as dynamic config may modify stored config
-    # It's possible user has disabled collecting in memory config
-    try {
-        $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55554)
-        if ($connection.Connected) {
-            (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/initial").Content > $TMPDIR/config/initial.yaml 2>&1
-            (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/effective").Content > $TMPDIR/config/effective.yaml 2>&1
-        } else { 
-            Write-Output "WARN: localhost:55554 unavailable so in memory configuration not collected"
-        }
-    }
-    catch {
-        "ERROR: localhost:55554 could not be resolved."
-    }
 }
 
 #######################################
@@ -228,14 +207,9 @@ function getConfig {
 function getStatus {
     Write-Output "INFO: Getting status..."
     Get-Service splunk-otel-collector -ErrorAction SilentlyContinue > $TMPDIR/logs/splunk-otel-collector.txt 2>&1
-    Get-Service fluentdwinsvc -ErrorAction SilentlyContinue > $TMPDIR/logs/td-agent.txt 2>&1
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt")) {
         Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt" -Value "Service splunk-otel-collector not exist."
         Write-Output "WARN: Service splunk-otel-collector not exist."
-    }
-    if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.txt")) {
-        Set-Content -Path "$TMPDIR/logs/td-agent.txt" -Value "Service td-agent not exist."
-        Write-Output "WARN: Service td-agent not exist."
     }
 }
 
@@ -249,26 +223,9 @@ function getStatus {
 function getLogs {
     Write-Output "INFO: Getting logs..."
     Get-EventLog -LogName Application -Source "splunk-otel-collector" -ErrorAction SilentlyContinue | Format-Table -auto -wrap > $TMPDIR/logs/splunk-otel-collector.log 2>&1
-    Get-EventLog -LogName Application -Source "td-agent" -ErrorAction SilentlyContinue | Format-Table -auto -wrap > $TMPDIR/logs/td-agent.log 2>&1
-    $LOGDIR="${env:SYSTEMDRIVE}\var\log\td-agent"
-    if (Test-Path -Path $LOGDIR) {
-        Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
-    } else {
-        Write-Output "WARN: $LOGDIR not found."
-    }
-    $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent\*.log"
-    if (Test-Path -Path $LOGDIR) {
-        Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
-    } else {
-        Write-Output "WARN: $LOGDIR not found."
-    }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.log")) {
         Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.log" -Value "Event splunk-otel-collector not exist."
         Write-Output "WARN: Event splunk-otel-collector not exist."
-    }
-    if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.log")) {
-        Set-Content -Path "$TMPDIR/logs/td-agent.log" -Value "Event td-agent not exist."
-        Write-Output "WARN: Event td-agent not exist."
     }
 }
 
@@ -348,16 +305,11 @@ function getHostInfo {
     Write-Output "INFO: Getting host information..."
     for ( $i = 0; $i -lt 3; $i++ ) {
         Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1
-        Get-Process -Name 'ruby' -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"} >> $TMPDIR/metrics/top.txt 2>&1
         Start-Sleep -s 2
     }
     if (-NOT (Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find otelcol PIDs"
         Write-Output "      Get-Process will not be collected for otelcol";
-    }
-    if (-NOT (Get-Process -Name 'ruby' -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"})) {
-        Write-Output "WARN: Unable to find fluentd (ruby) PIDs"
-        Write-Output "      Get-Process will not be collected for fluentd (ruby)";
     }
     Get-PSDrive > $TMPDIR/metrics/df.txt 2>&1
     

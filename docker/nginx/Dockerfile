@@ -1,4 +1,4 @@
-FROM nginx:1.29.1
+FROM nginx:1.29.8
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY status.conf /etc/nginx/conf.d/status.conf

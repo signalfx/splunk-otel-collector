@@ -1,7 +1,7 @@
 receivers:
-  hostmetrics: ${file:./testdata/file_with_config_content}
+  host_metrics: ${file:./testdata/file_with_config_content}
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: ${env:OTLP_ENDPOINT}
     tls:
       insecure: true
@@ -9,5 +9,5 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics]
-      exporters: [otlp]
+      receivers: [host_metrics]
+      exporters: [otlp_grpc]

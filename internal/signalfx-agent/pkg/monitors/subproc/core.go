@@ -72,7 +72,6 @@ func New() *MonitorCore {
 		cancel:     cancel,
 		configCond: sync.Cond{L: &sync.Mutex{}},
 	}
-
 }
 
 // Logger returns the logger that should be used
@@ -201,7 +200,8 @@ type MessageHandler interface {
 // get datapoints/events out of the subprocess, the exact format of the data is
 // left up to the users of this core.
 func (mc *MonitorCore) ConfigureInSubproc(config config.MonitorCustomConfig,
-	runtimeConfig *RuntimeConfig, handler MessageHandler) error {
+	runtimeConfig *RuntimeConfig, handler MessageHandler,
+) error {
 	if mc.handler != nil {
 		panic("ConfigureInSubproc should only be called once")
 	}

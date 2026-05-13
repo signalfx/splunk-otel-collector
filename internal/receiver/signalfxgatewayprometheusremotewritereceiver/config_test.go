@@ -29,8 +29,8 @@ import (
 func TestValidateConfigAndDefaults(t *testing.T) {
 	// Remember to change the README.md if any of these change in config
 	cfg := createDefaultConfig().(*Config)
-	assert.NoError(t, cfg.Validate())
-	assert.Equal(t, "localhost:19291", cfg.ServerConfig.Endpoint)
+	require.NoError(t, cfg.Validate())
+	assert.Equal(t, "localhost:19291", cfg.ServerConfig.NetAddr.Endpoint)
 	assert.Equal(t, "/metrics", cfg.ListenPath)
 	assert.Equal(t, 100, cfg.BufferSize)
 }
@@ -39,11 +39,10 @@ func TestLoadConfigFromFactory(t *testing.T) {
 	cfg := NewFactory().CreateDefaultConfig()
 	require.NotNil(t, cfg)
 	assert.NotEmpty(t, cfg)
-	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
+	require.NoError(t, componenttest.CheckConfigStruct(cfg))
 }
 
 func TestParseConfig(t *testing.T) {
-
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
 	conf, err := confmaptest.LoadConf("internal/testdata/otel-collector-config.yaml")
 	require.NoError(t, err)
@@ -58,5 +57,4 @@ func TestParseConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, sub)
 	require.NoError(t, sub.Unmarshal(&config))
-
 }

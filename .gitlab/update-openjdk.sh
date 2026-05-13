@@ -30,7 +30,8 @@ create_collector_pr() {
   if [[ -n "$tag" ]]; then
     version=$( echo "$tag" | sed 's|^jdk-\(.*\)|\1|' | tr '+' '_' )
     if [[ -n "$version" ]]; then
-      local assets=$(gh release view --repo "${jdk_repo}" --json assets --jq '.assets[].name')
+      local assets
+      assets=$(gh release view --repo "${jdk_repo}" --json assets --jq '.assets[].name')
       local any_updates=no
       if [[ $assets == *"linux"* ]]; then
         echo ">>> Updating openjdk version to $version for linux..."
@@ -54,17 +55,8 @@ create_collector_pr() {
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then
-    make chlog-new
-    git commit -S -am "$message"
-    git push -f "$repo_url" "$branch"
-    echo ">>> Creating the PR ..."
-    gh pr create \
-      --draft \
-      --repo "$repo" \
-      --title "$message" \
-      --body "$message" \
-      --base main \
-      --head "$branch"
+    create_pr_with_changelog "$repo" "$repo_url" "$branch" "$message" \
+      "update-openjdk-${version}" "packaging" "Update bundled OpenJDK to ${version}"
   fi
 }
 

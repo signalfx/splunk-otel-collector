@@ -8,7 +8,7 @@ processors:
     keys:
       - exe
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -19,4 +19,4 @@ service:
       receivers:
         - smartagent/telegraf_procstat
       processors: [batch, groupbyattrs]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

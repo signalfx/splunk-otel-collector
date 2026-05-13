@@ -1,6 +1,7 @@
 package processlist
 
 import (
+	"runtime"
 	"testing"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func TestEscapedCharacters(t *testing.T) {
-	var m = Monitor{
+	m := Monitor{
 		lastCPUCounts: make(map[procKey]time.Duration),
 	}
 	top := &TopProcess{
@@ -21,6 +22,8 @@ func TestEscapedCharacters(t *testing.T) {
 	}
 	encodedVal := m.encodeProcess(top, 10*time.Second)
 	expectedVal := "\"200\":[\"test'with nested'quotes\",0,\"0\",0,0,0,\"running\",0.00,0.00,\"00:00.00\",\"echo test with line break \\n character\"]"
-	assert.Equal(t, encodedVal, expectedVal)
-
+	if runtime.GOOS == "windows" {
+		expectedVal = "\"200\":[\"test'with nested'quotes\",0,\"0\",0,0,0,\"running\",NaN,0.00,\"00:00.00\",\"echo test with line break \\n character\"]"
+	}
+	assert.Equal(t, expectedVal, encodedVal)
 }

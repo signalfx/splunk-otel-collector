@@ -19,9 +19,11 @@ package tests
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -49,17 +51,16 @@ import (
 )
 
 func TestEnvoyK8sObserver(t *testing.T) {
-
 	f := otlpreceiver.NewFactory()
 	port := testutils.GetAvailablePort(t)
 	otlpReceiverConfig := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	otlpReceiverConfig.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	otlpReceiverConfig.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  fmt.Sprintf("0.0.0.0:%d", port),
 			Transport: "tcp",
 		},
 	})
-	otlpReceiverConfig.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
+	otlpReceiverConfig.Protocols.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), otlpReceiverConfig, sink)
 	require.NoError(t, err)
@@ -110,7 +111,7 @@ func TestEnvoyK8sObserver(t *testing.T) {
 	// Collector:
 	stream, err = os.ReadFile(filepath.Join("testdata", "k8s", "collector.yaml"))
 	require.NoError(t, err)
-	streamStr := strings.Replace(string(stream), "$OTLP_ENDPOINT", fmt.Sprintf("%s:%d", dockerHost, port), 1)
+	streamStr := strings.Replace(string(stream), "$OTLP_ENDPOINT", net.JoinHostPort(dockerHost, strconv.FormatUint(uint64(port), 10)), 1)
 	collectorDeployment, _, err := decode([]byte(streamStr), nil, nil)
 	require.NoError(t, err)
 

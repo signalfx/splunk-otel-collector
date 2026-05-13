@@ -1,0 +1,15 @@
+---
+- name: Converge scenario with auto-instrumentation installation
+  hosts: all
+  become: yes
+  vars:
+    local_artifact_testing_enabled: true
+    splunk_access_token: fake-token
+    splunk_realm: fake-realm
+    install_splunk_otel_auto_instrumentation: true
+  tasks:
+    - name: "Install nodejs for tests"
+      ansible.builtin.import_tasks: ../shared/install_nodejs.yml
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      ansible.builtin.include_role:
+        name: "signalfx.splunk_otel_collector.collector"

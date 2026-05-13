@@ -16,6 +16,7 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/collector/component"
@@ -65,7 +66,7 @@ func (otlp OTLPReceiverSink) WithEndpoint(endpoint string) OTLPReceiverSink {
 // Build will create, configure, and start an OTLPReceiver with GRPC listener and associated metric and log sinks
 func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	if otlp.Endpoint == "" {
-		return nil, fmt.Errorf("must provide an Endpoint for OTLPReceiverSink")
+		return nil, errors.New("must provide an Endpoint for OTLPReceiverSink")
 	}
 	otlp.Logger = zap.NewNop()
 	otlp.Host = componenttest.NewNopHost()
@@ -76,13 +77,13 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 
 	otlpFactory := otlpreceiver.NewFactory()
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
-	otlpConfig.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	otlpConfig.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  otlp.Endpoint,
 			Transport: "tcp",
 		},
 	})
-	otlpConfig.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
+	otlpConfig.Protocols.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 
 	params := receiver.Settings{
 		ID: component.MustNewID(typeStr),

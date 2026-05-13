@@ -122,12 +122,14 @@ receivers:
     endpoint: https://$DATABRICKS_CLUSTER_HOSTNAME/driver-proxy-api/o/0/$DB_CLUSTER_ID/40001
     auth:
       authenticator: bearertokenauth
-  # TODO: Identify any additional scrapers that are necessary and useful
-  hostmetrics:
+  # TODO: Identify any additional scrapers that are necessary and useful.
+  host_metrics:
     scrapers:
       cpu:
       memory:
       network:
+      filesystem:
+      disk:
 
 processors:
   batch:
@@ -156,7 +158,7 @@ service:
   extensions: [bearertokenauth]
   pipelines:
     metrics:
-      receivers: [hostmetrics$OPTIONAL_SPARK_RECEIVER]
+      receivers: [host_metrics$OPTIONAL_SPARK_RECEIVER]
       processors: [batch, resourcedetection, resource]
       exporters: [signalfx]
 "

@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-func GetDockerGID(t testing.TB) uint32 {
-	t.Skip("windows acl not yet supported")
+func GetDockerGID(tb testing.TB) uint32 {
+	tb.Skip("windows acl not yet supported")
 	return 0
 }

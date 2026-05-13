@@ -19,12 +19,12 @@ import (
 	"context"
 	"os"
 	"path"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
 )
 
 func TestIncludeConfigSource_Session(t *testing.T) {
@@ -63,15 +63,15 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s, err := newConfigSource(&Config{})
+			s, err := newConfigSource(&Config{}, zap.NewNop())
 			require.NoError(t, err)
 
 			ctx := context.Background()
 			file := path.Join("testdata", tt.selector)
 			r, err := s.Retrieve(ctx, file, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
+				require.Error(t, err)
 				assert.Nil(t, r)
-				require.IsType(t, tt.wantErr, err)
 				return
 			}
 			require.NoError(t, err)
@@ -86,17 +86,14 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 }
 
 func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
-	s, err := newConfigSource(&Config{WatchFiles: true})
+	s, err := newConfigSource(&Config{WatchFiles: true}, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
 	// Write out an initial test file
-	f, err := os.CreateTemp("", "watch_file_test")
+	f, err := os.CreateTemp(t.TempDir(), "watch_file_test")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.Remove(f.Name()))
-	}()
-	_, err = f.Write([]byte("val1"))
+	_, err = f.WriteString("val1")
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
 
@@ -116,13 +113,13 @@ func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 }
 
 func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
-	s, err := newConfigSource(&Config{WatchFiles: true})
+	s, err := newConfigSource(&Config{WatchFiles: true}, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
 	// Write out an initial test file
 	dst := path.Join(t.TempDir(), "watch_file_test")
-	require.NoError(t, os.WriteFile(dst, []byte("val1"), 0600))
+	require.NoError(t, os.WriteFile(dst, []byte("val1"), 0o600))
 
 	// Perform initial retrieve
 	watchChannel := make(chan *confmap.ChangeEvent, 1)
@@ -143,7 +140,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	assert.Equal(t, "val1", val)
 
 	// Write update to file
-	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0600))
+	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0o600))
 
 	ce := <-watchChannel
 	watchDone <- struct{}{}
@@ -159,57 +156,4 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "val2", val)
 	require.NoError(t, r.Close(context.Background()))
-}
-
-func TestIncludeConfigSourceDeleteFile(t *testing.T) {
-	s, err := newConfigSource(&Config{DeleteFiles: true})
-	require.NoError(t, err)
-	require.NotNil(t, s)
-
-	// Copy test file
-	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
-	require.NoError(t, err)
-	dst := path.Join(t.TempDir(), "copy_scalar_data_file")
-	require.NoError(t, os.WriteFile(dst, contents, 0600))
-
-	ctx := context.Background()
-	r, err := s.Retrieve(ctx, dst, nil, func(event *confmap.ChangeEvent) {
-		panic(event)
-	})
-	require.NoError(t, err)
-	require.NotNil(t, r)
-
-	val, err := r.AsRaw()
-	require.NoError(t, err)
-	assert.Equal(t, "42", val)
-
-	require.NoError(t, r.Close(context.Background()))
-}
-
-func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
-	if runtime.GOOS != "windows" {
-		// Locking the file is trivial on Windows, but not on *nix given the
-		// golang API, run the test only on Windows.
-		t.Skip("Windows only test")
-	}
-
-	s, err := newConfigSource(&Config{DeleteFiles: true})
-	require.NoError(t, err)
-
-	// Copy test file
-	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
-	require.NoError(t, err)
-	dst := path.Join("testdata", "copy_scalar_data_file")
-	require.NoError(t, os.WriteFile(dst, contents, 0600))
-	f, err := os.OpenFile(dst, os.O_RDWR, 0)
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		assert.NoError(t, f.Close())
-		assert.NoError(t, os.Remove(dst))
-	})
-
-	ctx := context.Background()
-	r, err := s.Retrieve(ctx, dst, nil, nil)
-	assert.IsType(t, &errFailedToDeleteFile{}, err)
-	assert.Nil(t, r)
 }

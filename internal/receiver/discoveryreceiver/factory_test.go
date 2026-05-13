@@ -30,7 +30,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	assert.NotNil(t, cfg, "failed to create default config")
-	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
+	require.NoError(t, componenttest.CheckConfigStruct(cfg))
 	require.Equal(t, &Config{
 		EmbedReceiverConfig: false,
 		CorrelationTTL:      10 * time.Minute,
@@ -43,7 +43,7 @@ func TestLogsReceiver(t *testing.T) {
 
 	params := receivertest.NewNopSettings(factory.Type())
 	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, receiver)
 	require.NoError(t, receiver.Start(context.Background(), newMdatagenNopHost()))
 	require.NoError(t, receiver.Shutdown(context.Background()))
@@ -71,6 +71,6 @@ func TestTracesReceiver(t *testing.T) {
 	params := receivertest.NewNopSettings(factory.Type())
 	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
-	assert.EqualError(t, err, "telemetry type is not supported")
+	require.EqualError(t, err, "telemetry type is not supported")
 	assert.Nil(t, receiver)
 }

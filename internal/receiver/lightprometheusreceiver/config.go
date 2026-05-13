@@ -43,7 +43,6 @@ func createDefaultConfig() component.Config {
 			URLScheme:         ResourceAttributeConfig{Enabled: false},
 		},
 	}
-
 }
 
 // ResourceAttributeConfig provides configuration for a resource attribute.

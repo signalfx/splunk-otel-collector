@@ -102,6 +102,7 @@ func TestReceiverEntryPaths(t *testing.T) {
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator)))
 }
+
 func TestDiscoveryObserverEntryPaths(t *testing.T) {
 	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
@@ -150,10 +151,7 @@ func TestDiscoveryPropertiesEntryPath(t *testing.T) {
 	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cprocessors%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
 }
 
-var (
-	tru  = true
-	flse = false
-)
+var tru = true
 
 var expectedConfig = Config{
 	Service: ServiceEntry{
@@ -209,66 +207,13 @@ var expectedConfig = Config{
 		},
 	},
 	ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{
-		component.MustNewIDWithName("smartagent", "postgresql"): {
-			Enabled: &flse,
-			Rule: map[component.ID]string{
-				component.MustNewID("docker_observer"): `type == "container" and port == 5432`,
-				component.MustNewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
-			},
-
-			Config: map[component.ID]map[string]any{
-				defaultType: {
-					"type":             "postgresql",
-					"connectionString": "sslmode=disable user={{.username}} password={{.password}}",
-					"params": map[any]any{
-						"username": "test_user",
-						"password": "test_password",
-					},
-					"masterDBName": "test_db",
-				},
-				component.MustNewID("docker_observer"): {
-					"params": map[any]any{
-						"password": "`labels[\"auth\"]`",
-					},
-				},
-			},
-			Entry: map[string]any{
-				"status": map[any]any{
-					"metrics": map[any]any{
-						"successful": []any{
-							map[any]any{
-								"strict":  "postgres_block_hit_ratio",
-								"message": "postgresql SA receiver working!",
-							},
-						},
-					},
-					"statements": map[any]any{
-						"failed": []any{
-							map[any]any{
-								"regexp":  ".* connect: connection refused",
-								"message": "container appears to not be accepting postgres connections",
-							},
-						},
-						"partial": []any{
-							map[any]any{
-								"regexp": ".*pq: password authentication failed for user.*",
-								"message": "Please ensure that your password is correctly specified " +
-									"in `splunk.discovery.receivers.smartagent/postgresql.config.params.username` and " +
-									"`splunk.discovery.receivers.smartagent/postgresql.config.params.password`",
-							},
-						},
-					},
-				},
-			},
-		},
-		component.MustNewIDWithName("smartagent", "collectd/redis"): {
+		component.MustNewID("redis"): {
 			Rule: map[component.ID]string{
 				component.MustNewID("docker_observer"): `type == "container" and port == 6379`,
 			},
 
 			Config: map[component.ID]map[string]any{
 				defaultType: {
-					"type": "collectd/redis",
 					"auth": "password",
 				},
 				component.MustNewID("docker_observer"): {
@@ -281,7 +226,7 @@ var expectedConfig = Config{
 						"successful": []any{
 							map[any]any{
 								"regexp":  ".*",
-								"message": "smartagent/collectd-redis receiver successful metric status",
+								"message": "redis receiver successful metric status",
 							},
 						},
 					},
@@ -300,8 +245,8 @@ var expectedConfig = Config{
 							map[any]any{
 								"regexp": "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$",
 								"message": "Please ensure that your redis password is correctly specified in " +
-									"`splunk.discovery.receivers.smartagent/collectd/redis.config.auth` or via the " +
-									"`SPLUNK_DISCOVERY_RECEIVERS_SMARTAGENT_COLLECTD_REDIS_CONFIG_AUTH` environment variable.",
+									"`splunk.discovery.receivers.redis/redis.config.auth` or via the " +
+									"`SPLUNK_DISCOVERY_RECEIVERS_REDIS_CONFIG_AUTH` environment variable.",
 							},
 						},
 					},
@@ -311,8 +256,7 @@ var expectedConfig = Config{
 	},
 	DiscoveryProperties: PropertiesEntry{
 		Entry: map[string]any{
-			"splunk.discovery.receivers.smartagent/postgresql.config.params.unused_param": "param_value",
-			"splunk.discovery.extensions.docker_observer.config.timeout":                  "1s",
+			"splunk.discovery.extensions.docker_observer.config.timeout": "1s",
 		},
 	},
 }
@@ -352,10 +296,13 @@ var expectedServiceConfig = map[string]any{
 		"extensions": []any{"zpages"},
 		"pipelines": map[string]any{
 			"metrics": map[string]any{
-				"exporters": []any{"debug"}}},
+				"exporters": []any{"debug"},
+			},
+		},
 		"telemetry": map[string]any{
 			"logs": map[string]any{
-				"level": "debug"},
+				"level": "debug",
+			},
 		},
 	},
 }

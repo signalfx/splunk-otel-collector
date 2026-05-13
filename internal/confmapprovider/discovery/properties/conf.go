@@ -81,7 +81,7 @@ func LoadConf(raw map[string]any) (properties *confmap.Conf, warning, fatal erro
 		for cid, ent := range entry.entry {
 			prefix := fmt.Sprintf("splunk.discovery.%s.%s", entry.typ, cid)
 			if ent.Enabled != nil {
-				props = append(props, propTuple{key: fmt.Sprintf("%s.enabled", prefix), value: *ent.Enabled})
+				props = append(props, propTuple{key: prefix + ".enabled", value: *ent.Enabled})
 			}
 
 			if ent.Config != nil {

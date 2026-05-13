@@ -32,7 +32,7 @@ spec:
               mountPath: /opt/config
           env:
             - name: OTLP_ENDPOINT
-              value: $OTLP_ENDPOINT
+              value: "$OTLP_ENDPOINT"
             - name: SPLUNK_DISCOVERY_DURATION
               value: 20s
             - name: SPLUNK_DISCOVERY_LOG_LEVEL

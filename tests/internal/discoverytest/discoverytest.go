@@ -18,18 +18,22 @@ package discoverytest
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
-	docker "github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
+	docker "github.com/moby/moby/client"
 	k8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -54,7 +58,7 @@ const (
 func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 	f := otlpreceiver.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	cfg.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	cfg.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  endpoint,
 			Transport: "tcp",
@@ -69,7 +73,8 @@ func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 	})
 	return sink
 }
-func Run(t *testing.T, receiverName string, configFilePath string, logMessageToAssert string) {
+
+func Run(t *testing.T, receiverName, configFilePath, logMessageToAssert string) {
 	port := 16745
 	endpoint := fmt.Sprintf("localhost:%d", port)
 	sink := setupReceiver(t, endpoint)
@@ -143,8 +148,8 @@ func Run(t *testing.T, receiverName string, configFilePath string, logMessageToA
 				}
 			}
 		}
-		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
-		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", receiverName)
+		assert.Positive(tt, seenMessageAttr, "Did not see message '%s'", logMessageToAssert)
+		assert.Positive(tt, seenReceiverTypeAttr, "Did not see expected type '%s'", receiverName)
 	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", receiverName)
 
 	t.Cleanup(func() {
@@ -190,12 +195,12 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string, setDiscov
 		}
 	})
 
-	var extraDiscoveryArgs string
+	var extraDiscoveryArgs strings.Builder
 	for _, arg := range setDiscoveryArgs {
-		extraDiscoveryArgs += fmt.Sprintf("            - --set=%s\n", arg)
+		extraDiscoveryArgs.WriteString(fmt.Sprintf("            - --set=%s\n", arg))
 	}
 
-	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs}, fmt.Sprintf("%s:%d", dockerHost, port))
+	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, net.JoinHostPort(dockerHost, strconv.Itoa(port)))
 	t.Cleanup(func() {
 		if skipTearDown {
 			return
@@ -257,9 +262,9 @@ func getDockerGID() (string, error) {
 	fsys := finfo.Sys()
 	stat, ok := fsys.(*syscall.Stat_t)
 	if !ok {
-		return "", fmt.Errorf("OS error occurred while trying to get GID ")
+		return "", errors.New("OS error occurred while trying to get GID ")
 	}
-	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	dockerGID := strconv.FormatUint(uint64(stat.Gid), 10)
 	return dockerGID, nil
 }
 
@@ -272,17 +277,29 @@ func getHostEndpoint(t *testing.T) string {
 		return "host.docker.internal"
 	}
 
-	client, err := docker.NewClientWithOpts(docker.FromEnv)
+	client, err := docker.New(docker.FromEnv)
 	require.NoError(t, err)
-	client.NegotiateAPIVersion(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	network, err := client.NetworkInspect(ctx, "kind", network.InspectOptions{})
+	nw, err := client.NetworkInspect(ctx, "kind", docker.NetworkInspectOptions{})
 	require.NoError(t, err)
-	for _, ipam := range network.IPAM.Config {
-		if ipam.Gateway != "" {
-			return ipam.Gateway
+
+	// Prefer IPv4 gateways
+	var fallback string
+	for _, ipam := range nw.Network.IPAM.Config {
+		if !ipam.Gateway.IsValid() {
+			continue
 		}
+		gwStr := ipam.Gateway.String()
+		if ip := net.ParseIP(gwStr); ip != nil && ip.To4() != nil {
+			return gwStr
+		}
+		if fallback == "" {
+			fallback = gwStr
+		}
+	}
+	if fallback != "" {
+		return fallback
 	}
 	require.Fail(t, "failed to find host endpoint")
 	return ""

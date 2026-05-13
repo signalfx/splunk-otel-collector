@@ -7,6 +7,9 @@ resourceMetrics:
         - key: oracledb.instance.name
           value:
             stringValue: localhost:1521/XE
+        - key: service.instance.id
+          value:
+            stringValue: docker-desktop:1521/XE
     scopeMetrics:
       - metrics:
           - description: Cumulative CPU time, in seconds

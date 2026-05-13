@@ -33,7 +33,7 @@ func TestGetAvailablePort(t *testing.T) {
 	portStr := strconv.Itoa(int(GetAvailablePort(t)))
 	require.NotEqual(t, "", portStr)
 
-	testEndpointAvailable(t, "localhost:"+portStr)
+	testEndpointAvailable(t, "127.0.0.1:"+portStr)
 }
 
 func testEndpointAvailable(t *testing.T, endpoint string) {
@@ -61,8 +61,7 @@ Start Port    End Port
 
 * - Administered port exclusions.`
 
-	exclusionsText := `
-
+	exclusionsText := `?/
 Start Port    End Port
 ----------    --------
      49697       49796
@@ -70,9 +69,9 @@ Start Port    End Port
 
 * - Administered port exclusions.
 `
-	exclusions := createExclusionsList(exclusionsText, t)
+	exclusions := createExclusionsList(t, exclusionsText)
 	require.Equal(t, len(exclusions), 2)
 
-	emptyExclusions := createExclusionsList(emptyExclusionsText, t)
+	emptyExclusions := createExclusionsList(t, emptyExclusionsText)
 	require.Equal(t, len(emptyExclusions), 0)
 }

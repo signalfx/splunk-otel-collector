@@ -48,14 +48,13 @@ const (
 	ListenInterfaceEnvVar          = "SPLUNK_LISTEN_INTERFACE"
 	GoMemLimitEnvVar               = "GOMEMLIMIT"
 	GoGCEnvVar                     = "GOGC"
-	// nolint:gosec
+	//nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
 	MemLimitMiBEnvVar = "SPLUNK_MEMORY_LIMIT_MIB"
 	MemTotalEnvVar    = "SPLUNK_MEMORY_TOTAL_MIB"
 	RealmEnvVar       = "SPLUNK_REALM"
-	// nolint:gosec
-	TokenEnvVar = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
+	TokenEnvVar       = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
 
 	// Deprecated: SPLUNK_TRACE_URL env var is deprecated, SPLUNK_REALM or SPLUNK_INGEST_URL should be used instead.
 	TraceIngestURLEnvVar = "SPLUNK_TRACE_URL"
@@ -124,11 +123,11 @@ func New(args []string) (*Settings, error) {
 		return s, nil
 	}
 
-	if err = checkRuntimeParams(s); err != nil {
+	if err := checkRuntimeParams(s); err != nil {
 		return nil, err
 	}
 
-	if err = setDefaultEnvVars(s); err != nil {
+	if err := setDefaultEnvVars(s); err != nil {
 		return nil, err
 	}
 
@@ -139,7 +138,7 @@ func New(args []string) (*Settings, error) {
 func (s *Settings) ResolverURIs() []string {
 	var configPaths []string
 	if configPaths = s.configPaths.value; len(configPaths) == 0 {
-		if configEnvVal := os.Getenv(ConfigEnvVar); len(configEnvVal) != 0 {
+		if configEnvVal := os.Getenv(ConfigEnvVar); configEnvVal != "" {
 			configPaths = []string{"file:" + configEnvVal}
 		}
 	}
@@ -213,7 +212,6 @@ func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 		confMapConverterFactories = append(
 			confMapConverterFactories,
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),
-			configconverter.ConverterFactoryFromFunc(configconverter.AddOTLPHistogramAttr),
 		)
 	}
 	return confMapConverterFactories
@@ -306,7 +304,7 @@ func parseSetOptionArguments(arguments []string) (setProperties, discoveryProper
 			setProperties = append(setProperties, arg)
 		}
 	}
-	return
+	return setProperties, discoveryProperties
 }
 
 // flagSetToArgs takes slices of core service flag names and arguments and returns a slice of corresponding command line
@@ -381,15 +379,15 @@ func setDefaultEnvVars(s *Settings) error {
 	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {
-		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.signalfx.com", realm)
-		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com", realm)
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)
-		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)
+		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.observability.splunkcloud.com", realm)
+		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com", realm)
+		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v2/trace", realm)
+		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v1/log", realm)
 	}
 
 	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {
 		ingestURL = strings.TrimSuffix(ingestURL, "/")
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("%s/v2/trace", ingestURL)
+		defaultEnvVars[TraceIngestURLEnvVar] = ingestURL + "/v2/trace"
 	}
 
 	if token, ok := os.LookupEnv(TokenEnvVar); ok {
@@ -437,7 +435,7 @@ func setDefaultFeatureGates(flagSet *flag.FlagSet) {
 		if strings.HasPrefix(fg, "+") || strings.HasPrefix(fg, "-") {
 			bareGate = fg[1:]
 		}
-		if !arrVal.contains(bareGate) && !arrVal.contains(fmt.Sprintf("-%s", bareGate)) && !arrVal.contains(fmt.Sprintf("+%s", bareGate)) {
+		if !arrVal.contains(bareGate) && !arrVal.contains("-"+bareGate) && !arrVal.contains("+"+bareGate) {
 			arrVal.value = append(arrVal.value, fg)
 		}
 		fgFlag.Changed = true
@@ -491,7 +489,7 @@ func checkConfig(settings *Settings) error {
 			return err
 		}
 		settings.configPaths.Set(defaultConfigPath)
-		if err = confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value); err != nil {
+		if err := confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value); err != nil {
 			return err
 		}
 		logInfo("Set config to %v", defaultConfigPath)
@@ -502,10 +500,10 @@ func checkConfig(settings *Settings) error {
 func getExistingDefaultConfigPath() (path string, err error) {
 	if _, err = os.Stat(DefaultGatewayConfig); err == nil {
 		path = DefaultGatewayConfig
-		return
+		return path, err
 	}
 	err = fmt.Errorf("unable to find the default configuration file %s", DefaultGatewayConfig)
-	return
+	return path, err
 }
 
 func envVarAsInt(env string) int {
@@ -613,7 +611,7 @@ func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {
 			DefaultOTLPLinuxConfig:
 			requiredEnvVars := []string{RealmEnvVar, TokenEnvVar}
 			for _, v := range requiredEnvVars {
-				if len(os.Getenv(v)) == 0 {
+				if os.Getenv(v) == "" {
 					logError("Usage: %s=12345 %s=us0 %s", TokenEnvVar, RealmEnvVar, os.Args[0])
 					return fmt.Errorf("ERROR: Missing required environment variable %s with default config path %s", v, path)
 				}
@@ -681,7 +679,7 @@ func (s *stringPointerFlagValue) String() string {
 // SPDX-License-Identifier: Apache-2.0
 var uriRegexp = regexp.MustCompile(`(?s:^(?P<Scheme>[A-Za-z][A-Za-z0-9+.-]+):(?P<OpaqueValue>.*)$)`)
 
-func parseURI(uri string) (scheme string, location string, isURI bool) {
+func parseURI(uri string) (scheme, location string, isURI bool) {
 	submatches := uriRegexp.FindStringSubmatch(uri)
 	if len(submatches) != 3 {
 		return "", "", false

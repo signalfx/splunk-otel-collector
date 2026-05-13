@@ -52,6 +52,7 @@ type stdoutOperator struct {
 
 // Start will start generating log entries.
 func (i *stdoutOperator) Start(_ operator.Persister) error {
+	i.logger.Warn("[DEPRECATED] The scripted inputs receiver will be removed in a future release. Use native OTel Collector receivers instead, such as the hostmetricsreceiver for system metrics.")
 
 	ctx, cancelAll := context.WithCancel(context.Background())
 	i.cancelAll = cancelAll
@@ -107,7 +108,9 @@ func (i *stdoutOperator) beginCycle(ctx context.Context) error {
 
 		case <-ctx.Done():
 			i.logger.Warn("Script didn't complete within configured interval.", zap.String("script_name", i.cfg.ScriptName))
-			err := commander.Stop(context.Background())
+			stopCtx, stopCancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+			defer stopCancel()
+			err := commander.Stop(stopCtx)
 			if err != nil {
 				return
 			}

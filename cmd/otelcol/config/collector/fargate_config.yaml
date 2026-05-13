@@ -13,7 +13,21 @@ extensions:
     ingress:
       endpoint: 0.0.0.0:6060
     egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "${SPLUNK_INGEST_URL}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     endpoint: 0.0.0.0:55679
     expvar:
@@ -52,11 +66,6 @@ receivers:
             - source_labels: [ __name__ ]
               regex: 'otelcol_processor_batch_.*'
               action: drop
-  signalfx:
-    endpoint: 0.0.0.0:9943
-    # Whether to propagate the client metadata from the incoming requests to the downstream consumers
-    # Should be enabled to preserve incoming access token and use instead of exporter token
-    #include_metadata: true
   zipkin:
     endpoint: 0.0.0.0:9411
   awsecscontainermetrics:
@@ -88,7 +97,7 @@ processors:
 
 exporters:
   # Traces
-  otlphttp:
+  otlp_http:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -113,7 +122,17 @@ exporters:
     log_data_enabled: false
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]
@@ -122,9 +141,9 @@ service:
         - batch
         - resourcedetection
         #- resource/add_environment
-      exporters: [otlphttp, signalfx]
+      exporters: [otlp_http, signalfx]
     metrics:
-      receivers: [otlp, signalfx, awsecscontainermetrics, prometheus/internal]
+      receivers: [otlp, awsecscontainermetrics, prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
     logs:

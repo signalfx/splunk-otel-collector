@@ -1,0 +1,29 @@
+---
+# molecule config based on vagrant and virtualbox for local usage on any OS
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./molecule/requirements.yml
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+platforms:
+  - name: jammy64
+    box: ubuntu/jammy64
+  - name: centos9
+    box: centos/stream9
+  - name: centos10
+    box: centos/stream10
+  - name: bookworm64
+    box: debian/bookworm64
+  - name: trixie64
+    box: debian/trixie64
+  - name: oraclelinux9
+    box: generic/oracle9
+  - name: oraclelinux10
+    box: oraclebase/oracle-10
+provisioner:
+  env:
+    ANSIBLE_ROLES_PATH: ../../roles
+  name: ansible

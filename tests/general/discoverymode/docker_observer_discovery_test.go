@@ -131,7 +131,7 @@ func TestDockerObserver(t *testing.T) {
 	expectedDryRunFile := filepath.Join("testdata", "expected", "docker-observer-dry-run-config-expected.yaml")
 	expectedDryRun := readConfigFromYamlTmplFile(t, expectedDryRunFile, nil)
 	_, out, _ := cc.Container.AssertExec(t, 3*time.Minute,
-		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
+		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=true \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \

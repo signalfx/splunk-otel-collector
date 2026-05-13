@@ -8,6 +8,12 @@ updates:
     directories:
       - "**/*"
     groups:
+      kubernetes:
+        patterns:
+          - "k8s.io/api"
+          - "k8s.io/apimachinery"
+          - "k8s.io/client-go"
+          - "k8s.io/kubelet"
       otelcol:
         patterns:
           - "go.opentelemetry.io/collector*"
@@ -18,9 +24,6 @@ updates:
       testify:
         patterns:
         - "github.com/stretchr/testify"
-    ignore:
-      - dependency-name: "github.com/openshift/*"
-        versions: ["v3.9.0+incompatible"]
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
@@ -44,5 +47,10 @@ updates:
     directories:
       - "/packaging/msi/**/*"
       - "/tests/zeroconfig/windows/**/*"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "maven"
+    directories:
+      - "/packaging/bundle/java/jmx"
     schedule:
       interval: "weekly"

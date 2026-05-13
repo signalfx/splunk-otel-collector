@@ -109,7 +109,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	return nil
 }
 
-func gatherProcessMetrics(fs *procfs.FS, processNameFilter filter.StringFilter, executableFilter filter.StringFilter) ([]*datapoint.Datapoint, error) {
+func gatherProcessMetrics(fs *procfs.FS, processNameFilter, executableFilter filter.StringFilter) ([]*datapoint.Datapoint, error) {
 	procs, err := fs.AllProcs()
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func gatherProcessMetrics(fs *procfs.FS, processNameFilter filter.StringFilter, 
 	return dps, nil
 }
 
-func matchesFilter(proc *procfs.Proc, nameFilter filter.StringFilter, execFilter filter.StringFilter) bool {
+func matchesFilter(proc *procfs.Proc, nameFilter, execFilter filter.StringFilter) bool {
 	if nameFilter != nil {
 		comm, err := proc.Comm()
 		if err == nil {

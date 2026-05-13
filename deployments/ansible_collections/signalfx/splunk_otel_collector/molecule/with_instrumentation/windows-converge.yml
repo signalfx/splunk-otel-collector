@@ -1,0 +1,14 @@
+---
+- name: Converge scenario with dotnet instrumentation on Windows
+  hosts: all
+  become: no
+  vars:
+    local_artifact_testing_enabled: true
+    splunk_access_token: fake-token
+    splunk_realm: fake-realm
+    install_splunk_dotnet_auto_instrumentation: true
+    splunk_dotnet_auto_instrumentation_github_token: ${GITHUB_TOKEN}
+  tasks:
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      ansible.builtin.include_role:
+        name: "signalfx.splunk_otel_collector.collector"

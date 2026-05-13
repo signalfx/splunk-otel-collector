@@ -86,10 +86,12 @@ func (m *_MockServiceMonitor) Configure(conf *DynamicConfig) error {
 	return nil
 }
 
-type Static1 struct{ _MockMonitor }
-type Static2 struct{ _MockMonitor }
-type Dynamic1 struct{ _MockServiceMonitor }
-type Dynamic2 struct{ _MockServiceMonitor }
+type (
+	Static1  struct{ _MockMonitor }
+	Static2  struct{ _MockMonitor }
+	Dynamic1 struct{ _MockServiceMonitor }
+	Dynamic2 struct{ _MockServiceMonitor }
+)
 
 func RegisterFakeMonitors() func() map[types.MonitorID]MockMonitor {
 	instances := map[types.MonitorID]MockMonitor{}

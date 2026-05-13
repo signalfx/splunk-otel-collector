@@ -8,6 +8,8 @@ on:
     paths:
       - 'deployments/nomad/**'
       - '.github/workflows/nomad.yml'
+      - 'internal/components/**'
+      - 'cmd/otelcol/**'
       - '!**.md'
 
 permissions:
@@ -17,6 +19,9 @@ defaults:
   run:
     working-directory: 'deployments/nomad'
 
+env:
+  GO_VERSION: 1.26.3
+
 jobs:
 
   test:
@@ -25,16 +30,32 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        nomad: [ "1.7.7-1", "1.9.7-1" ]
+        # EOL REFERENCE: https://endoflife.date/nomad
+        nomad: [ "1.9.7-1", "1.11.2-1" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Build Docker image from local changes
+        run: |
+          cd ${{github.workspace}}
+          make docker-otelcol SKIP_COMPILE=false IMAGE_NAME=splunk-otel-collector-local IMAGE_TAG=test
+        env:
+          ARCH: amd64
+
+      - name: Verify Docker image
+        run: |
+          docker images | grep splunk-otel-collector
+          docker tag splunk-otel-collector-local:test splunk-otel-collector:local-test
 
       - name: Install Nomad and Consul.
         run: |
-          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update
           sudo apt install nomad=${{ matrix.nomad }}
           sudo apt-get install consul
@@ -128,10 +149,13 @@ jobs:
           until nc -w 10 127.0.0.1 4646; do sleep 1; done
       - name: Prepare deployment
         run: |
-          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-agent.nomad
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/token-12345/g' otel-agent.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-agent.nomad
-          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-gateway.nomad
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/token-12345/g' otel-gateway.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-gateway.nomad
+          # Use locally built Docker image instead of pulling from registry
+          sed -i 's|image = "quay.io/signalfx/splunk-otel-collector:latest"|image = "splunk-otel-collector:local-test"|g' otel-agent.nomad
+          sed -i 's|image = "quay.io/signalfx/splunk-otel-collector:latest"|image = "splunk-otel-collector:local-test"|g' otel-gateway.nomad
 
       - name: Deploy gateway with Nomad
         run: |

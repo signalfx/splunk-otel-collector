@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// go:build windows
+//go:build windows
 
 package settings
 
@@ -28,17 +28,23 @@ import (
 
 func TestSetDefaultEnvVarsSetsInterfaceFromConfigOptionWithProgramData(t *testing.T) {
 	pd := os.Getenv("ProgramData")
+	if pd == "" {
+		// DefaultAgentConfigWindows variable in settings.go line 76 gets initialized with the value of ProgramData env var.
+		// If ProgramData is not set, we need to set a default value for the test to pass. More better way to do this is to
+		// modify the cleanEnv function to avoid removing the ProgramData env var.
+		pd = "C:\\ProgramData"
+		t.Setenv("ProgramData", pd)
+	}
 	for _, tc := range []struct{ config, expectedIP string }{
 		{filepath.Join(pd, "Splunk", "OpenTelemetry Collector", "agent_config.yaml"), "127.0.0.1"},
 		{fmt.Sprintf("file:%s", filepath.Join(pd, "Splunk", "OpenTelemetry Collector", "agent_config.yaml")), "127.0.0.1"},
 		{"\\some-other-config.yaml", "0.0.0.0"},
 		{"file:\\some-other-config.yaml", "0.0.0.0"},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
 			t.Cleanup(clearEnv(t))
-			os.Setenv("SPLUNK_REALM", "noop")
-			os.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
+			t.Setenv("SPLUNK_REALM", "noop")
+			t.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
 			s, err := parseArgs([]string{"--config", tc.config})
 			require.NoError(t, err)
 			require.NoError(t, setDefaultEnvVars(s))

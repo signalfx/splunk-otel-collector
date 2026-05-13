@@ -16,7 +16,6 @@
 package components
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,10 +28,11 @@ func TestDefaultComponents(t *testing.T) {
 		"ack",
 		"basicauth",
 		"bearertokenauth",
+		"config_source_telemetry",
 		"docker_observer",
 		"ecs_observer",
-		"ecs_task_observer",
 		"file_storage",
+		"google_cloud_logentry_encoding",
 		"headers_setter",
 		"health_check",
 		"host_observer",
@@ -43,7 +43,11 @@ func TestDefaultComponents(t *testing.T) {
 		"opamp",
 		"pprof",
 		"smartagent",
+		"text_encoding",
 		"zpages",
+	}
+	expectedExtensionAliases := map[string]string{
+		"googlecloudlogentry_encoding": "google_cloud_logentry_encoding",
 	}
 	expectedReceivers := []string{
 		"active_directory_ds",
@@ -52,23 +56,25 @@ func TestDefaultComponents(t *testing.T) {
 		"awscloudwatch",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
-		"azureblob",
-		"azureeventhub",
-		"azuremonitor",
+		"azure_blob",
+		"azure_event_hub",
+		"azure_monitor",
 		"carbon",
 		"chrony",
+		"cisco_os",
 		"cloudfoundry",
 		"collectd",
 		"discovery",
 		"docker_stats",
 		"elasticsearch",
-		"filelog",
-		"filestats",
-		"fluentforward",
+		"file_log",
+		"file_stats",
+		"fluent_forward",
 		"googlecloudpubsub",
 		"haproxy",
-		"hostmetrics",
-		"httpcheck",
+		"host_metrics",
+		"http_check",
+		"icmpcheckreceiver",
 		"iis",
 		"influxdb",
 		"jaeger",
@@ -76,13 +82,14 @@ func TestDefaultComponents(t *testing.T) {
 		"journald",
 		"k8s_cluster",
 		"k8s_events",
-		"k8sobjects",
+		"k8s_objects",
 		"kafka",
 		"kafkametrics",
 		"kubeletstats",
 		"lightprometheus",
+		"memcached",
 		"mongodb",
-		"mongodbatlas",
+		"mongodb_atlas",
 		"mysql",
 		"nginx",
 		"nop",
@@ -91,12 +98,13 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp",
 		"postgresql",
 		"prometheus",
-		"prometheusremotewrite",
+		"prometheus_remote_write",
 		"prometheus_simple",
 		"purefa",
 		"rabbitmq",
 		"receiver_creator",
 		"redis",
+		"saphana",
 		"scripted_inputs",
 		"signalfx",
 		"signalfxgatewayprometheusremotewrite",
@@ -108,19 +116,42 @@ func TestDefaultComponents(t *testing.T) {
 		"splunk_hec",
 		"sqlquery",
 		"sqlserver",
-		"sshcheck",
+		"ssh_check",
 		"statsd",
 		"syslog",
+		"systemd",
 		"tcpcheck",
-		"tcplog",
-		"tlscheck",
-		"udplog",
+		"tcp_log",
+		"tls_check",
+		"udp_log",
 		"vcenter",
 		"wavefront",
-		"windowseventlog",
+		"windows_event_log",
 		"windowsperfcounters",
+		"windowsservice",
+		"yang_grpc",
 		"zipkin",
 		"zookeeper",
+	}
+	expectedReceiverAliases := map[string]string{
+		"azureblob":             "azure_blob",
+		"azureeventhub":         "azure_event_hub",
+		"azuremonitor":          "azure_monitor",
+		"ciscoos":               "cisco_os",
+		"filelog":               "file_log",
+		"filestats":             "file_stats",
+		"fluentforward":         "fluent_forward",
+		"hostmetrics":           "host_metrics",
+		"httpcheck":             "http_check",
+		"k8sobjects":            "k8s_objects",
+		"mongodbatlas":          "mongodb_atlas",
+		"prometheusremotewrite": "prometheus_remote_write",
+		"sshcheck":              "ssh_check",
+		"tcplog":                "tcp_log",
+		"tlscheck":              "tls_check",
+		"udplog":                "udp_log",
+		"windowseventlog":       "windows_event_log",
+		"yanggrpc":              "yang_grpc",
 	}
 	expectedProcessors := []string{
 		"attributes",
@@ -128,7 +159,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cumulativetodelta",
 		"filter",
 		"groupbyattrs",
-		"k8sattributes",
+		"k8s_attributes",
 		"logstransform",
 		"memory_limiter",
 		"metricsgeneration",
@@ -142,68 +173,106 @@ func TestDefaultComponents(t *testing.T) {
 		"timestamp",
 		"transform",
 	}
+	expectedProcessorAliases := map[string]string{
+		"k8sattributes": "k8s_attributes",
+	}
 	expectedExporters := []string{
 		"awss3",
 		"debug",
 		"file",
+		"google_cloud_storage",
 		"kafka",
 		"loadbalancing",
 		"nop",
-		"otlp",
-		"otlphttp",
+		"otlp_grpc",
+		"otlp_http",
+		"prometheusremotewrite",
 		"pulsar",
-		"sapm",
 		"signalfx",
 		"splunk_hec",
+	}
+	expectedExporterAliases := map[string]string{
+		"otlp":               "otlp_grpc",
+		"otlphttp":           "otlp_http",
+		"googlecloudstorage": "google_cloud_storage",
 	}
 	expectedConnectors := []string{
 		"count",
 		"forward",
 		"routing",
-		"spanmetrics",
+		"span_metrics",
 		"sum",
+	}
+	expectedConnectorAliases := map[string]string{
+		"spanmetrics": "span_metrics",
 	}
 
 	factories, err := Get()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	exts := factories.Extensions
-	assert.Len(t, exts, len(expectedExtensions))
+	assert.Len(t, exts, len(expectedExtensions)+len(expectedExtensionAliases))
 	for _, k := range expectedExtensions {
 		v, ok := exts[component.MustNewType(k)]
 		assert.True(t, ok)
 		assert.Equal(t, k, v.Type().String())
 	}
+	for alias, actual := range expectedExtensionAliases {
+		v, ok := exts[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected extension alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
+	}
 
 	recvs := factories.Receivers
-	assert.Len(t, recvs, len(expectedReceivers))
+	assert.Len(t, recvs, len(expectedReceivers)+len(expectedReceiverAliases))
+
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok, k)
 		assert.Equal(t, k, v.Type().String())
 	}
+	for alias, actual := range expectedReceiverAliases {
+		v, ok := recvs[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected exporter alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
+	}
 
 	procs := factories.Processors
-	assert.Len(t, procs, len(expectedProcessors))
+	assert.Len(t, procs, len(expectedProcessors)+len(expectedProcessorAliases))
 	for _, k := range expectedProcessors {
 		v, ok := procs[component.MustNewType(k)]
-		require.True(t, ok, fmt.Sprintf("Missing expected processor %s", k))
+		require.True(t, ok, "Missing expected processor "+k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedProcessorAliases {
+		v, ok := procs[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected processor alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 
 	exps := factories.Exporters
-	assert.Len(t, exps, len(expectedExporters))
+	assert.Len(t, exps, len(expectedExporters)+len(expectedExporterAliases))
 	for _, k := range expectedExporters {
 		v, ok := exps[component.MustNewType(k)]
 		require.True(t, ok)
 		assert.Equal(t, k, v.Type().String())
 	}
+	for alias, actual := range expectedExporterAliases {
+		v, ok := exps[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected exporter alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
+	}
 
 	conns := factories.Connectors
-	assert.Len(t, conns, len(expectedConnectors))
+	assert.Len(t, conns, len(expectedConnectors)+len(expectedConnectorAliases))
 	for _, k := range expectedConnectors {
 		v, ok := conns[component.MustNewType(k)]
-		require.True(t, ok, fmt.Sprintf("Missing expected connector %s", k))
+		require.True(t, ok, "Missing expected connector "+k)
 		assert.Equal(t, k, v.Type().String())
+	}
+	for alias, actual := range expectedConnectorAliases {
+		v, ok := conns[component.MustNewType(alias)]
+		require.True(t, ok, "Missing expected connector alias "+alias)
+		assert.Equal(t, actual, v.Type().String())
 	}
 }

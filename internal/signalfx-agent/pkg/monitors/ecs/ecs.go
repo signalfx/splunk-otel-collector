@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	dcontainer "github.com/docker/docker/api/types/container"
+	dcontainer "github.com/moby/moby/api/types/container"
 	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/signalfx/golib/v3/sfxclient" //nolint:staticcheck // SA1019: deprecated package still in use
 	log "github.com/sirupsen/logrus"
@@ -157,7 +157,6 @@ func (m *Monitor) fetchContainer(dockerID string) (ecs.Container, error) {
 
 func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetricsConfig) {
 	body, err := getMetadata(m.client, m.conf.StatsEndpoint)
-
 	if err != nil {
 		m.logger.WithError(err).Error("Failed to read ECS stats")
 		return
@@ -188,10 +187,8 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 		}
 
 		containerJSON := &dcontainer.InspectResponse{
-			ContainerJSONBase: &dcontainer.ContainerJSONBase{
-				ID:   dockerID,
-				Name: container.Name,
-			},
+			ID:   dockerID,
+			Name: container.Name,
 			Config: &dcontainer.Config{
 				Image:    container.Image,
 				Hostname: container.Networks[0].IPAddresses[0],
@@ -199,7 +196,6 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 		}
 		containerStat := stats[dockerID]
 		dps, err := dmonitor.ConvertStatsToMetrics(containerJSON, &containerStat, enhancedMetricsConfig)
-
 		if err != nil {
 			m.logger.WithError(err).Errorf("Could not convert docker stats for container id %s", dockerID)
 			return
@@ -333,7 +329,7 @@ func getTaskLimitMetrics(container ecs.Container, enhancedMetricsConfig dmonitor
 	return taskLimitDps
 }
 
-func getURI(endpoint string, resourceID string) string {
+func getURI(endpoint, resourceID string) string {
 	queryIdx := strings.Index(endpoint, "?")
 	if queryIdx == -1 {
 		return fmt.Sprintf("%s/%s", endpoint, resourceID)

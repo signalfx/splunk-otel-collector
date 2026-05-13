@@ -1,15 +1,3 @@
-smartagent/haproxy:
-  dimensionClients: [nop/one, nop/two]
-  type: haproxy
-  intervalSeconds: 123
-  username: SomeUser
-  password: secret
-smartagent/redis:
-  dimensionClients: []
-  type: collectd/redis
-  host: localhost
-  port: 6379
-  intervalSeconds: 234
 smartagent/etcd:
   type: etcd
   host: localhost

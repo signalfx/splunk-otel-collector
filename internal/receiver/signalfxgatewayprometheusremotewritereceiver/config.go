@@ -32,7 +32,7 @@ type Config struct {
 
 func (c *Config) Validate() error {
 	var errs []error
-	if c.ServerConfig.Endpoint == "" {
+	if c.ServerConfig.NetAddr.Endpoint == "" {
 		errs = append(errs, errors.New("endpoint must not be empty"))
 	}
 	if c.BufferSize < 0 {

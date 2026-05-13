@@ -17,6 +17,7 @@
 package testutils
 
 import (
+	"runtime"
 	"testing"
 	"time"
 
@@ -104,6 +105,9 @@ func TestStartAndShutdownInvalidWithoutBuilding(t *testing.T) {
 }
 
 func TestCollectorProcessWithInvalidPaths(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on Windows: invalid executable path handling differs on Windows")
+	}
 	logCore, logObserver := observer.New(zap.DebugLevel)
 	logger := zap.New(logCore)
 	collector, err := NewCollectorProcess().WithPath("nototel").WithConfigPath("notaconfig").WithLogger(logger).Build()

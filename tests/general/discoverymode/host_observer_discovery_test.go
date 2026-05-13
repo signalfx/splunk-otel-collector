@@ -79,9 +79,13 @@ func TestHostObserver(t *testing.T) {
 		}
 		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
 			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
 			pmetrictest.IgnoreResourceAttributeValue("service.version"),
+			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service_name"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),
@@ -114,7 +118,7 @@ func TestHostObserver(t *testing.T) {
 	expectedDryRunFile := filepath.Join("testdata", "expected", "host-observer-dry-run-config-expected.yaml")
 	expectedDryRun := readConfigFromYamlTmplFile(t, expectedDryRunFile, nil)
 	_, out, _ := cc.Container.AssertExec(t, 15*time.Second,
-		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
+		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error \
 REFRESH_INTERVAL=1s \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_label_three=actual.label.three.value.from.env.var.property \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \

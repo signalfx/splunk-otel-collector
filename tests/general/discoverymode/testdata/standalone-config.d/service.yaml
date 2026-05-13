@@ -1,6 +1,6 @@
 pipelines:
   metrics:
     receivers:
-      - hostmetrics
+      - host_metrics
     exporters:
-      - otlp
+      - otlp_grpc

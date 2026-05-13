@@ -12,7 +12,7 @@ receivers:
       dataType: integer
 
 exporters:
-  otlp:
+  otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
@@ -21,4 +21,4 @@ service:
   pipelines:
     metrics:
       receivers: [smartagent/exec]
-      exporters: [otlp]
+      exporters: [otlp_grpc]

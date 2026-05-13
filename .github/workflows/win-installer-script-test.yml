@@ -22,11 +22,10 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
-        WITH_FLUENTD: [ "true", "false" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Ensure required ports in the dynamic range are available
         run: |
@@ -37,15 +36,88 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -mode "${{ matrix.MODE }}" -memory "256" -with_fluentd $${{ matrix.WITH_FLUENTD }} -msi_public_properties "ARPCOMMENTS=`"Installed via install.ps1`" COLLECTOR_SVC_ARGS=`"--discovery --set=processors.batch.timeout=10s`""
+          .\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -mode "${{ matrix.MODE }}" -memory "256" -msi_public_properties "ARPCOMMENTS=`"Installed via install.ps1`" COLLECTOR_SVC_ARGS=`"--discovery --set=processors.batch.timeout=10s`""
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "testing123" -realm "test" -memory "256" -with_fluentd "${{ matrix.WITH_FLUENTD }}" -with_msi_uninstall_comments "Installed via install.ps1" -with_svc_args "--discovery --set=processors.batch.timeout=10s"
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "testing123" -realm "test" -memory "256" -with_msi_uninstall_comments "Installed via install.ps1" -with_svc_args "--discovery --set=processors.batch.timeout=10s"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
 
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
 
-      - name: fluentd logs
-        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
-        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
+  test-dl-url-and-token-verification:
+    # OTL-4176: Validate the dl.observability.splunkcloud.com endpoint is reachable and that
+    # the installer script proceeds through MSI download and reaches token verification.
+    # The token verification step is expected to fail with a fake token (that is the intent).
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Validate dl.observability.splunkcloud.com endpoint
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dlBase = "https://dl.observability.splunkcloud.com"
+          $latestUrl = "$dlBase/splunk-otel-collector/msi/release/latest.txt"
+          Write-Host "Fetching latest version from $latestUrl ..."
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          $version = (New-Object System.Net.WebClient).DownloadString($latestUrl).Trim()
+          Write-Host "Latest version: $version"
+          if ($version -notmatch '^\d+\.\d+\.\d+') {
+            throw "Unexpected response from $latestUrl : '$version'. Expected a semver version string."
+          }
+          Write-Host "dl.observability.splunkcloud.com is reachable and returned a valid version: $version"
+
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
+
+      - name: Install and validate token verification failure
+        # Runs the installer with a fake access token against a real realm (us0).
+        # VERIFY_ACCESS_TOKEN is not set to false, so token verification is attempted.
+        # The installer is expected to:
+        #   1. Download the MSI successfully from dl.observability.splunkcloud.com
+        #   2. Install the MSI
+        #   3. Fail at token verification (Access token authentication failed)
+        # Any failure before "Access token authentication failed" indicates a problem
+        # with the updated dl.observability.splunkcloud.com domain.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          # install.ps1 ends this path with throw() from verify_access_token; that is a terminating
+          # error and would stop this step before assertions unless caught here. *>&1 merges all
+          # streams so host/info output is included in the transcript.
+          $outputLines = [System.Collections.Generic.List[string]]::new()
+          $installerThrew = $false
+          $thrownMessage = $null
+          try {
+            & .\packaging\installer\install.ps1 -access_token "fakeinvalidtoken123" -realm "us0" *>&1 | ForEach-Object {
+              [void]$outputLines.Add("$($_)")
+            }
+          } catch {
+            $installerThrew = $true
+            $thrownMessage = $_.Exception.Message
+            [void]$outputLines.Add($thrownMessage)
+          }
+          $outputStr = [string]::Join("`n", $outputLines)
+          Write-Host "Installer output:`n$outputStr"
+          if (-not $installerThrew) {
+            throw "Expected installer to fail at token verification but it succeeded unexpectedly."
+          }
+          $expectedTokenVerificationPrefix = "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token."
+          if (-not $thrownMessage.TrimStart().StartsWith($expectedTokenVerificationPrefix)) {
+            throw (
+              "Installer failed, but NOT at the expected token verification step.`n" +
+              "This may indicate a connectivity or download failure caused by the URL migration " +
+              "to dl.observability.splunkcloud.com.`n" +
+              "Output: $outputStr"
+            )
+          }
+          $global:LASTEXITCODE = 0
+          Write-Host "Test passed: installer reached token verification and failed as expected with a fake token."

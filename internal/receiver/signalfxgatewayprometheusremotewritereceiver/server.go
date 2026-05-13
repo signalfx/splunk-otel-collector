@@ -51,13 +51,13 @@ func newPrometheusRemoteWriteServer(ctx context.Context, config *serverConfig) (
 	mx := mux.NewRouter()
 	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
-	mx.Host(config.ServerConfig.Endpoint)
-	server, err := config.ServerConfig.ToServer(ctx, config.Host, config.TelemetrySettings, mx,
+	mx.Host(config.ServerConfig.NetAddr.Endpoint)
+	server, err := config.ServerConfig.ToServer(ctx, config.Host.GetExtensions(), config.TelemetrySettings, mx,
 		// ensure we support the snappy Content-Encoding, but leave it to the prometheus remotewrite lib to decompress.
 		confighttp.WithDecoder("snappy", func(body io.ReadCloser) (io.ReadCloser, error) {
 			return body, nil
 		}))
-	server.Addr = config.ServerConfig.Endpoint
+	server.Addr = config.ServerConfig.NetAddr.Endpoint
 	if err != nil {
 		return nil, err
 	}
@@ -105,9 +105,9 @@ func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- 
 			return
 		}
 		results, err := parser.fromPrometheusWriteRequestMetrics(req)
-		if nil != err {
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			sc.Reporter.OnDebugf("prometheus_translation", err)
+			sc.Reporter.OnDebugf("prometheus_translation: %v", err)
 			return
 		}
 		mc <- results

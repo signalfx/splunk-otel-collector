@@ -1,0 +1,56 @@
+---
+- name: Verify scenario with the default configuration
+  hosts: all
+  gather_facts: true
+  become: no
+  vars:
+    collector_reg_values:
+      SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml'
+      SPLUNK_ACCESS_TOKEN: fake-token
+      SPLUNK_REALM: fake-realm
+      SPLUNK_API_URL: https://api.fake-realm.observability.splunkcloud.com
+      SPLUNK_HEC_TOKEN: fake-token
+      SPLUNK_HEC_URL: https://ingest.fake-realm.observability.splunkcloud.com/v1/log
+      SPLUNK_INGEST_URL: https://ingest.fake-realm.observability.splunkcloud.com
+  tasks:
+    - name: Download latest splunk-otel-collector install script
+      ansible.windows.win_get_url:
+        url: https://dl.observability.splunkcloud.com/splunk-otel-collector.ps1
+        dest: "{{ ansible_env.TEMP }}\\splunk-otel-collector.ps1"
+      register: otel_install_script
+
+    - name: Get downloaded install script metadata
+      ansible.windows.win_stat:
+        path: "{{ otel_install_script.dest }}"
+      register: otel_install_script_stat
+
+    - name: Get downloaded install script content
+      ansible.builtin.slurp:
+        src: "{{ otel_install_script.dest }}"
+      register: otel_install_script_content
+
+    - name: Assert latest install script was downloaded from new bucket
+      ansible.builtin.assert:
+        that:
+          - otel_install_script_stat.stat.exists
+          - otel_install_script_stat.stat.size > 0
+          - "'dl.observability.splunkcloud.com' in (otel_install_script_content.content | b64decode)"
+          - "'collector_msi_url' in (otel_install_script_content.content | b64decode)"
+
+    - name: Check splunk-otel-collector service
+      ansible.windows.win_service:
+        name: splunk-otel-collector
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Get splunk-otel-collector service env vars
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+        name: Environment
+      register: collector_env
+
+    - name: Verify splunk-otel-collector service env vars
+      ansible.builtin.assert:
+        that: (item.key + '=' + (item.value | string)) in collector_env.value
+      loop: "{{ collector_reg_values | dict2items }}"

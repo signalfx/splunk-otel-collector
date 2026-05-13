@@ -2,16 +2,59 @@
 
 ## Unreleased
 
-### 🚩 Deprecations 🚩
+### 🛑 Breaking changes 🛑
 
-- Fluentd support has been deprecated and will be removed in a future release.
-  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+- The default Windows MSI artifact download URL has been updated:
+  - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+  
+  To keep using the legacy `dl.signalfx.com` download URL:
+  
+  Puppet:
+  ```puppet
+  $win_repo_url = "https://dl.signalfx.com/splunk-otel-collector/msi/release"
+  ```
+
+## puppet-v0.20.0
+
+### 🛑 Breaking changes 🛑
+
+- This Puppet Module is now being published in Splunk's JFrog Artifactory instance, and will no longer be
+  published to Puppet Forge. Please refer to the [module's README](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/puppet/README.md) for up to date information on how to install
+  and utilize this module.([#7486](https://github.com/signalfx/splunk-otel-collector/pull/7486))
+
+- Puppet supported version is now >= v8.0.0 ([#7260](https://github.com/signalfx/splunk-otel-collector/pull/7260))
+
+- Default API and ingest endpoint URLs now use `*.observability.splunkcloud.com` instead of `*.signalfx.com`:
+  - `$splunk_api_url`: `https://api.${splunk_realm}.signalfx.com` → `https://api.${splunk_realm}.observability.splunkcloud.com`
+  - `$splunk_ingest_url`: `https://ingest.${splunk_realm}.signalfx.com` → `https://ingest.${splunk_realm}.observability.splunkcloud.com`
+  - `$splunk_hec_url` (derived from `$splunk_ingest_url`): `https://ingest.${splunk_realm}.signalfx.com/v1/log` → `https://ingest.${splunk_realm}.observability.splunkcloud.com/v1/log`
+
+  Re-running the manifest for puppet will apply the new defaults automatically. The legacy `*.signalfx.com` endpoints will continue to work, but adopting the new endpoints is recommended.
+
+  If firewall or proxy allowlists are scoped to `*.signalfx.com`, update them
+  to also allow `*.observability.splunkcloud.com` **before** re-converging.
+  For more information, see the
+  [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide).
+
+  To retain the legacy `*.signalfx.com` endpoints, set them explicitly in your manifest:
+  ```puppet
+  $splunk_api_url    = "https://api.<realm>.signalfx.com"
+  $splunk_ingest_url = "https://ingest.<realm>.signalfx.com"
+  $splunk_hec_url    = "https://ingest.<realm>.signalfx.com/v1/log"
+  ```
+
+## puppet-v0.19.0
+
+### 🛑 Breaking changes 🛑
+
+- Fluentd support has been removed. ([#7109](https://github.com/signalfx/splunk-otel-collector/pull/7109))
+  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information
 
 ### 💡 Enhancements 💡
 
 - Add support for the `collector_command_line_args` option to
   configure the command line arguments for the Splunk OpenTelemetry Collector
-  service. On Windows, this option is only supported by versions `>= 0.127.0`.
+  service. On Windows, this option is only supported by versions `>= 0.127.0`. ([#6415](https://github.com/signalfx/splunk-otel-collector/pull/6415))
 
 ## puppet-v0.18.0
 

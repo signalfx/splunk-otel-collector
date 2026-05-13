@@ -102,7 +102,7 @@ func configureSQLMonitor(output types.Output, monCfg config.MonitorConfig, connS
 		DBDriver:         "hdb",
 		Queries:          queries(maxExpensiveQueries),
 		LogQueries:       logQueries,
-	})
+	}, "[NOTICE] The hana monitor is deprecated and will removed on or after May 2026. Please use the saphana and sqlquery receivers instead.")
 }
 
 func (m *Monitor) Shutdown() {

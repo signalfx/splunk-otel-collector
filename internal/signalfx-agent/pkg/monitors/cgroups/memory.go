@@ -64,7 +64,6 @@ func (m *Monitor) getMemoryMetrics(controllerPath string, pathFilter filter.Stri
 			}
 			dps = append(dps, fileDPs...)
 		}
-
 	})
 
 	return dps

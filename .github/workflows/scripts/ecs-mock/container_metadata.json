@@ -1,0 +1,19 @@
+{
+  "DockerId": "abc123",
+  "Name": "main",
+  "DockerName": "ecs-test-1-main",
+  "Image": "test:latest",
+  "ImageID": "sha256:abc",
+  "DesiredStatus": "RUNNING",
+  "KnownStatus": "RUNNING",
+  "Type": "NORMAL",
+  "Labels": {
+    "com.amazonaws.ecs.cluster": "test-cluster",
+    "com.amazonaws.ecs.container-name": "main",
+    "com.amazonaws.ecs.task-arn": "arn:aws:ecs:us-east-1:123456789:task/test-cluster/abc123",
+    "com.amazonaws.ecs.task-definition-family": "test-task",
+    "com.amazonaws.ecs.task-definition-version": "1"
+  },
+  "Limits": { "CPU": 256, "Memory": 512 },
+  "Networks": [{ "NetworkMode": "awsvpc", "IPv4Addresses": ["172.31.0.2"] }]
+}

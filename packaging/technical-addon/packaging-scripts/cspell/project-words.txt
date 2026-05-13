@@ -1,9 +1,0 @@
-collectd
-opentelemetry
-otel
-otelcol
-otlp
-resourcedetection
-signalfx
-splunkbase
-splunkforwarder

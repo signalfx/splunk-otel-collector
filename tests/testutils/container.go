@@ -19,18 +19,19 @@ package testutils
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"net/netip"
 	"runtime/debug"
+	"strings"
 	"testing"
 	"time"
 
-	dockerContainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	dockernetwork "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/go-connections/nat"
-	"github.com/stretchr/testify/assert"
+	"github.com/moby/moby/api/pkg/stdcopy"
+	dockerContainer "github.com/moby/moby/api/types/container"
+	dockernetwork "github.com/moby/moby/api/types/network"
+	dockerClient "github.com/moby/moby/client"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
@@ -149,7 +150,31 @@ func (container Container) WithEnvVar(key, value string) Container {
 }
 
 func (container Container) WithExposedPorts(ports ...string) Container {
-	container.ExposedPorts = append(container.ExposedPorts, ports...)
+	for _, port := range ports {
+		if hostPort, containerPort, ok := strings.Cut(port, ":"); ok {
+			parsedPort, err := dockernetwork.ParsePort(containerPort)
+			if err != nil {
+				// try appending /tcp if bare port number
+				parsedPort, err = dockernetwork.ParsePort(containerPort + "/tcp")
+				if err != nil {
+					panic(fmt.Sprintf("invalid exposed port mapping %q: invalid container port %q: %v", port, containerPort, err))
+				}
+			}
+			container.ExposedPorts = append(container.ExposedPorts, containerPort)
+			hp, p := hostPort, parsedPort
+			container = container.WithHostConfigModifier(func(hc *dockerContainer.HostConfig) {
+				if hc.PortBindings == nil {
+					hc.PortBindings = dockernetwork.PortMap{}
+				}
+				hc.PortBindings[p] = append(hc.PortBindings[p], dockernetwork.PortBinding{
+					HostIP:   netip.MustParseAddr("0.0.0.0"),
+					HostPort: hp,
+				})
+			})
+		} else {
+			container.ExposedPorts = append(container.ExposedPorts, port)
+		}
+	}
 	return container
 }
 
@@ -180,7 +205,7 @@ func (container Container) WithNetworkMode(mode string) Container {
 
 func (container Container) WillWaitForPorts(ports ...string) Container {
 	for _, port := range ports {
-		container.WaitingFor = append(container.WaitingFor, wait.ForListeningPort(nat.Port(port)))
+		container.WaitingFor = append(container.WaitingFor, wait.ForListeningPort(port))
 	}
 	return container
 }
@@ -282,7 +307,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 	}()
 
 	if container.req == nil {
-		return fmt.Errorf("cannot start a container that hasn't been built")
+		return errors.New("cannot start a container that hasn't been built")
 	}
 
 	req := testcontainers.GenericContainerRequest{
@@ -290,15 +315,15 @@ func (container *Container) Start(ctx context.Context) (err error) {
 		Started:          true,
 	}
 
-	err = container.createNetworksIfNecessary()
+	err = container.createNetworksIfNecessary(ctx)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	var started testcontainers.Container
 	started, err = testcontainers.GenericContainer(ctx, req)
 	container.container = &started
-	return
+	return err
 }
 
 func (container *Container) assertStarted(operation string) error {
@@ -329,7 +354,7 @@ func (container *Container) Endpoint(ctx context.Context, s string) (string, err
 	return (*container.container).Endpoint(ctx, s)
 }
 
-func (container *Container) PortEndpoint(ctx context.Context, port nat.Port, s string) (string, error) {
+func (container *Container) PortEndpoint(ctx context.Context, port, s string) (string, error) {
 	if err := container.assertStarted("PortEndpoint"); err != nil {
 		return "", err
 	}
@@ -343,14 +368,14 @@ func (container *Container) Host(ctx context.Context) (string, error) {
 	return (*container.container).Host(ctx)
 }
 
-func (container *Container) MappedPort(ctx context.Context, port nat.Port) (nat.Port, error) {
+func (container *Container) MappedPort(ctx context.Context, port string) (dockernetwork.Port, error) {
 	if err := container.assertStarted("MappedPort"); err != nil {
-		return "", err
+		return dockernetwork.Port{}, err
 	}
 	return (*container.container).MappedPort(ctx, port)
 }
 
-func (container *Container) Ports(ctx context.Context) (nat.PortMap, error) {
+func (container *Container) Ports(ctx context.Context) (dockernetwork.PortMap, error) {
 	if err := container.assertStarted("Ports"); err != nil {
 		return nil, err
 	}
@@ -440,14 +465,14 @@ func (container *Container) ContainerIPs(ctx context.Context) ([]string, error) 
 	return (*container.container).ContainerIPs(ctx)
 }
 
-func (container *Container) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
+func (container *Container) CopyDirToContainer(ctx context.Context, hostDirPath, containerParentPath string, fileMode int64) error {
 	if err := container.assertStarted("CopyDirToContainer"); err != nil {
 		return err
 	}
 	return (*container.container).CopyDirToContainer(ctx, hostDirPath, containerParentPath, fileMode)
 }
 
-func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePath string, containerFilePath string, fileMode int64) error {
+func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePath, containerFilePath string, fileMode int64) error {
 	if err := container.assertStarted("CopyFileToContainer"); err != nil {
 		return err
 	}
@@ -481,25 +506,26 @@ func (container *Container) CopyFileFromContainer(ctx context.Context, filePath 
 
 // AssertExec will assert that the exec'ed command completes within the specified timeout, returning
 // the return code and demuxed stdout and stderr
-func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd ...string) (rc int, stdout, stderr string) {
+func (container *Container) AssertExec(tb testing.TB, timeout time.Duration, cmd ...string) (rc int, stdout, stderr string) {
 	var err error
 	var reader io.Reader
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	rc, reader, err = container.Exec(ctx, cmd)
-	assert.NoError(t, err)
-	require.NotNil(t, reader)
+	require.NoError(tb, err)
+	require.NotNil(tb, reader)
 	var sout, serr bytes.Buffer
 	_, err = stdcopy.StdCopy(&sout, &serr, reader)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	return rc, sout.String(), serr.String()
 }
 
 // Will create any networks that don't already exist on system.
 // Teardown/cleanup is handled by the testcontainers reaper.
-func (container *Container) createNetworksIfNecessary() error {
-	ctx := context.Background()
-
+func (container *Container) createNetworksIfNecessary(ctx context.Context) error {
+	if len(container.ContainerNetworks) == 0 {
+		return nil
+	}
 	// Use the client to check if the networks already exist.
 	client, err := testcontainers.NewDockerClientWithOpts(ctx)
 	if err != nil {
@@ -510,22 +536,19 @@ func (container *Container) createNetworksIfNecessary() error {
 	// Check if the networks already exist, using any of the provided network names.
 	for _, networkName := range container.ContainerNetworks {
 		// Check if the network exists.
-		networks, err := client.NetworkList(ctx, dockernetwork.ListOptions{
-			Filters: filters.NewArgs(filters.KeyValuePair{
-				Key:   "name",
-				Value: networkName,
-			}),
+		networks, err := client.NetworkList(ctx, dockerClient.NetworkListOptions{
+			Filters: dockerClient.Filters{}.Add("name", networkName),
 		})
 		if err != nil {
 			return fmt.Errorf("failed to list networks: %w", err)
 		}
-		if len(networks) > 0 {
+		if len(networks.Items) > 0 {
 			// Network already exists.
 			continue
 		}
 
 		// Create the network if it doesn't exist.
-		_, err = client.NetworkCreate(ctx, networkName, dockernetwork.CreateOptions{
+		_, err = client.NetworkCreate(ctx, networkName, dockerClient.NetworkCreateOptions{
 			Driver:     "bridge",
 			Attachable: true,
 		})

@@ -6,7 +6,7 @@ metadata:
 data:
   config.yaml: |
     exporters:
-      otlp:
+      otlp_grpc:
         endpoint: "${env:OTLP_ENDPOINT}"
         tls:
           insecure: true
@@ -17,5 +17,5 @@ data:
           level: debug
       pipelines:
         metrics:
-          exporters: [otlp]
+          exporters: [otlp_grpc]
   

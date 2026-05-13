@@ -57,41 +57,42 @@ type sfxToPDataTestCase struct {
 
 func TestSFxSpansToPDataTraces(t *testing.T) {
 	tests := []sfxToPDataTestCase{
-		{func(t *testing.T) []*trace.Span {
-			localEndpoint := trace.Endpoint{
-				ServiceName: &serviceName,
-				Ipv4:        &loopback,
-				Port:        &oneHundredInt32,
-			}
+		{
+			func(t *testing.T) []*trace.Span {
+				localEndpoint := trace.Endpoint{
+					ServiceName: &serviceName,
+					Ipv4:        &loopback,
+					Port:        &oneHundredInt32,
+				}
 
-			remoteEndpoint := trace.Endpoint{
-				ServiceName: &anotherServiceName,
-				Ipv4:        &linkLocal,
-				Port:        &twoHundredInt32,
-			}
+				remoteEndpoint := trace.Endpoint{
+					ServiceName: &anotherServiceName,
+					Ipv4:        &linkLocal,
+					Port:        &twoHundredInt32,
+				}
 
-			span := newSFxSpan(
-				t,
-				"some operation name",
-				"server",
-				"0123456789abcdef0123456789abcdef",
-				"0123456789abcdef",
-				"123456789abcdef0",
-				&oneInt64, &twoInt64,
-				&tru, &tru,
-				map[string]string{
-					"some tag":    "some tag value",
-					"another tag": "another tag value",
-				},
-				map[*int64]string{
-					&oneInt64: "some annotation",
-					&twoInt64: "another annotation",
-				},
-				&localEndpoint, &remoteEndpoint,
-				"127.0.0.1",
-			)
-			return []*trace.Span{&span}
-		},
+				span := newSFxSpan(
+					t,
+					"some operation name",
+					"server",
+					"0123456789abcdef0123456789abcdef",
+					"0123456789abcdef",
+					"123456789abcdef0",
+					&oneInt64, &twoInt64,
+					&tru, &tru,
+					map[string]string{
+						"some tag":    "some tag value",
+						"another tag": "another tag value",
+					},
+					map[*int64]string{
+						&oneInt64: "some annotation",
+						&twoInt64: "another annotation",
+					},
+					&localEndpoint, &remoteEndpoint,
+					"127.0.0.1",
+				)
+				return []*trace.Span{&span}
+			},
 			func(t *testing.T) ptrace.Traces {
 				traces := newPDataSpan(
 					t,
@@ -121,26 +122,27 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 			},
 			"fully populated span",
 		},
-		{func(t *testing.T) []*trace.Span {
-			span := newSFxSpan(
-				t,
-				"some operation name",
-				"client",
-				"0",
-				"1",
-				"",
-				&oneInt64, &twoInt64,
-				&flse, &flse,
-				map[string]string{
-					"some tag": "some tag value",
-				},
-				map[*int64]string{
-					&oneInt64: "some annotation",
-				},
-				nil, nil, "",
-			)
-			return []*trace.Span{&span}
-		},
+		{
+			func(t *testing.T) []*trace.Span {
+				span := newSFxSpan(
+					t,
+					"some operation name",
+					"client",
+					"0",
+					"1",
+					"",
+					&oneInt64, &twoInt64,
+					&flse, &flse,
+					map[string]string{
+						"some tag": "some tag value",
+					},
+					map[*int64]string{
+						&oneInt64: "some annotation",
+					},
+					nil, nil, "",
+				)
+				return []*trace.Span{&span}
+			},
 			func(t *testing.T) ptrace.Traces {
 				traces := newPDataSpan(
 					t,
@@ -163,41 +165,42 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 			},
 			"missing endpoints with zero ids",
 		},
-		{func(t *testing.T) []*trace.Span {
-			localEndpoint := trace.Endpoint{
-				ServiceName: &serviceName,
-				Ipv6:        &loopbackIPv6,
-				Port:        &oneHundredInt32,
-			}
+		{
+			func(t *testing.T) []*trace.Span {
+				localEndpoint := trace.Endpoint{
+					ServiceName: &serviceName,
+					Ipv6:        &loopbackIPv6,
+					Port:        &oneHundredInt32,
+				}
 
-			remoteEndpoint := trace.Endpoint{
-				ServiceName: &anotherServiceName,
-				Ipv6:        &linkLocalIPv6,
-				Port:        &twoHundredInt32,
-			}
+				remoteEndpoint := trace.Endpoint{
+					ServiceName: &anotherServiceName,
+					Ipv6:        &linkLocalIPv6,
+					Port:        &twoHundredInt32,
+				}
 
-			span := newSFxSpan(
-				t,
-				"some operation name",
-				"consumer",
-				"0123456789abcdef",
-				"12345678",
-				"23456789",
-				&oneInt64, &twoInt64,
-				nil, nil,
-				map[string]string{
-					"some tag":    "some tag value",
-					"another tag": "another tag value",
-				},
-				map[*int64]string{
-					&oneInt64: "some annotation",
-					&twoInt64: "another annotation",
-				},
-				&localEndpoint, &remoteEndpoint,
-				"127.0.0.1",
-			)
-			return []*trace.Span{&span}
-		},
+				span := newSFxSpan(
+					t,
+					"some operation name",
+					"consumer",
+					"0123456789abcdef",
+					"12345678",
+					"23456789",
+					&oneInt64, &twoInt64,
+					nil, nil,
+					map[string]string{
+						"some tag":    "some tag value",
+						"another tag": "another tag value",
+					},
+					map[*int64]string{
+						&oneInt64: "some annotation",
+						&twoInt64: "another annotation",
+					},
+					&localEndpoint, &remoteEndpoint,
+					"127.0.0.1",
+				)
+				return []*trace.Span{&span}
+			},
 			func(t *testing.T) ptrace.Traces {
 				traces := newPDataSpan(
 					t,

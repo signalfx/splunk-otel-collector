@@ -13,12 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This test is flaky w/ data race validation enabled. The issue is that monitors do not guarantee
+// that no more data is going to be sent after shutdown is called. This can cause data races with
+// processors and exporters that have been shut down. See https://github.com/signalfx/splunk-otel-collector/pull/7265.
+// The build directive below should be removed once the monitors are not supported anymore.
+//go:build !race
+
 package main
 
 import (
 	"context"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
@@ -28,12 +35,23 @@ import (
 )
 
 func TestRunFromCmdLine(t *testing.T) {
+	configFiles, err := filepath.Glob(filepath.Join("config", "collector", "*.yml"))
+	require.NoError(t, err)
+	require.Empty(t, configFiles, "Default configs must end with the extension `.yaml` rather than `.yml`. Please update accordingly.")
+
+	configFiles, err = filepath.Glob(filepath.Join("config", "collector", "*.yaml"))
+	require.NoError(t, err)
+	require.Len(t, configFiles, 8, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
+
 	tests := []struct {
-		name     string
-		panicMsg string
-		skipMsg  string
-		args     []string
-		timeout  time.Duration
+		extraEnvVars map[string]string
+		name         string
+		panicMsg     string
+		skipMsg      string
+		args         []string
+		timeout      time.Duration
+		skipWindows  bool
+		validateOnly bool
 	}{
 		{
 			name:    "agent",
@@ -41,9 +59,54 @@ func TestRunFromCmdLine(t *testing.T) {
 			timeout: 15 * time.Second,
 		},
 		{
+			name: "ecs_ec2",
+			args: []string{"otelcol", "--config=config/collector/ecs_ec2_config.yaml"},
+			extraEnvVars: map[string]string{
+				"ECS_CONTAINER_METADATA_URI_V4": "https://foo.com",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name: "fargate",
+			args: []string{"otelcol", "--config=config/collector/fargate_config.yaml"},
+			extraEnvVars: map[string]string{
+				"ECS_CONTAINER_METADATA_URI_V4": "https://foo.com",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name:         "full_linux",
+			args:         []string{"otelcol", "--config=config/collector/full_config_linux.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			// scripted_inputs receiver is not supported on Windows, config validation fails when it's included.
+			// This can be removed when scripted_inputs is removed.
+			skipWindows: true,
+		},
+		{
 			name:    "gateway",
 			args:    []string{"otelcol", "--config=config/collector/gateway_config.yaml"},
 			timeout: 15 * time.Second,
+		},
+		{
+			name:         "logs_linux",
+			args:         []string{"otelcol", "--config=config/collector/logs_config_linux.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name:         "otlp_linux",
+			args:         []string{"otelcol", "--config=config/collector/otlp_config_linux.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name:         "upstream_agent",
+			args:         []string{"otelcol", "--config=config/collector/upstream_agent_config.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
 		},
 		{
 			name:    "default_discovery",
@@ -65,21 +128,28 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	// Set execution environment
 	requiredEnvVars := map[string]string{
+		"NO_WINDOWS_SERVICE":      "true", // Avoid using the Windows service manager
 		"SPLUNK_ACCESS_TOKEN":     "access_token",
 		"SPLUNK_HEC_TOKEN":        "hec_token",
 		"SPLUNK_REALM":            "test_realm",
 		"SPLUNK_LISTEN_INTERFACE": "127.0.0.1",
-		"NO_WINDOWS_SERVICE":      "true", // Avoid using the Windows service manager
 	}
 	for key, value := range requiredEnvVars {
-		os.Setenv(key, value)
-		defer os.Unsetenv(key)
+		t.Setenv(key, value)
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.skipWindows && runtime.GOOS == "windows" {
+				t.Skip("skipping test on windows")
+			}
+
 			if tt.skipMsg != "" {
 				t.Skip(tt.skipMsg)
+			}
+
+			for key, value := range tt.extraEnvVars {
+				t.Setenv(key, value)
 			}
 
 			// GH darwin runners don't have docker installed, skip discovery tests on them
@@ -93,21 +163,26 @@ func TestRunFromCmdLine(t *testing.T) {
 			testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
-			otelcolCmdTestCtx = testCtx
+			otelcolCmdTestCtx = testCtx //nolint:fatcontext
+
 			defer func() {
-				otelcolCmdTestCtx = nil
+				otelcolCmdTestCtx = nil //nolint:fatcontext
 			}()
 
-			// Wait for the ConfigServer to be down after the test.
-			defer waitForPort(t, "55554")
+			defer waitForPort(t, "55679")
+
+			args := append([]string{}, tt.args...)
+			if tt.validateOnly {
+				args = append(args, "validate")
+			}
 
 			if tt.panicMsg != "" {
-				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
+				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(args) })
 				return
 			}
 
-			waitForPort(t, "55554")
-			runFromCmdLine(tt.args)
+			waitForPort(t, "55679")
+			runFromCmdLine(args)
 		})
 	}
 }

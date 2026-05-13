@@ -100,7 +100,7 @@ and the [opentelemetry-collector-contrib v0.152.0](https://github.com/open-telem
   grpclog verbosity with zap severity, so V(2) returns true whenever WARN is
   enabled and these messages emit at WARN. Wrap the installed grpclog.LoggerV2
   with a corrected V() that compares against a fixed verbosity threshold,
-  matching grpclog's intended semantics. See uber-go/zap#1544.
+  matching grpclog's intended semantics. See [uber-go/zap#1544](https://github.com/uber-go/zap/issues/1544).
 - (Core) `pkg/pdata`: `pcommon.Value.AsString` no longer HTML-escapes `<`, `>`, and `&` inside `ValueTypeMap` and `ValueTypeSlice` values, matching the behavior already used for `ValueTypeStr`. ([#14662](https://github.com/open-telemetry/opentelemetry-collector/issues/14662))
 - (Core) `pkg/service`: Fix Prometheus config defaults mismatch when host is explicitly set in telemetry configuration. ([#13867](https://github.com/open-telemetry/opentelemetry-collector/issues/13867))
   When users explicitly configured the telemetry metrics section (e.g. to change the host),
@@ -115,7 +115,7 @@ and the [opentelemetry-collector-contrib v0.152.0](https://github.com/open-telem
   Previously:
   - the `service.instance.id` reported in the AgentDescription was based on the OpAMP instance UID
   - the instance UID was typically set based on the `service.instance.id` from the Collector resource attributes
-  - it could be overriden using the `instance_uid` configuration of the OpAMP extension
+  - it could be overridden using the `instance_uid` configuration of the OpAMP extension
   This meant that the reported `service.instance.id` did not always match the Collector resource attributes,
   which is a problem for correlation, and that server implementations got used to the typical case of
   `service.instance.id` and `instance_uid` matching, despite there being no guarantee of this.
@@ -2328,7 +2328,7 @@ and the [opentelemetry-collector-contrib v0.132.0](https://github.com/open-telem
   The timing metrics added to the receiver now include durations for dns lookup, tcp connection, tls handshake, request, and response.
 - (Contrib) `receiver/k8sobjects`: Introduces `include_initial_state` for watch mode, so the existing state of watched objects emitted as log events. ([#41536](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41536))
 - (Contrib) `receiver/kafka`, `exporter/kafka`: Allow to configure the metdata refresh interval when using the franz-go client. ([#41088](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41088))
-- (Contrib) `receiver/mysql`: Add 'mysql.page_size' metric ([#41572](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41572))
+- (Contrib) `receiver/mysql`: Add `mysql.page_size` metric ([#41572](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41572))
 - (Contrib) `receiver/oracledb`: Add options and child_address into oracle plan ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37478))
   Adding options and child_address into oracle plan to enhance the details
 - (Contrib) `receiver/oracledb`: Moving child_address from plan details to attributes in top N query collection. ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37478))

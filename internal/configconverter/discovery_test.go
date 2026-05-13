@@ -322,6 +322,116 @@ func TestContinuousDiscoveryWithEntitiesPipeline(t *testing.T) {
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
+// TestDiscoveryLegacyResourceMigration verifies that legacy inline-map entries
+// in service.telemetry.resource are migrated to the v0.3 attributes list and
+// sorted deterministically, while schema_url is left in place.
+func TestDiscoveryLegacyResourceMigration(t *testing.T) {
+	in := confFromYaml(t, `service:
+  receivers/splunk.discovery: [recv/one]
+  pipelines:
+    metrics:
+      receivers: []
+      processors: []
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      schema_url: https://opentelemetry.io/schemas/1.40.0
+      zzz-attr: last
+      aaa-attr: first
+`)
+
+	expected := confFromYaml(t, `service:
+  pipelines:
+    metrics:
+      receivers: [recv/one]
+      processors: []
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      schema_url: https://opentelemetry.io/schemas/1.40.0
+      attributes:
+        - name: aaa-attr
+          value: first
+        - name: zzz-attr
+          value: last
+        - name: splunk_autodiscovery
+          value: "true"
+`)
+
+	require.NoError(t, SetupDiscovery(context.Background(), in))
+	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
+}
+
+// TestDiscoveryExistingV3AttributesPreserved verifies that when
+// service.telemetry.resource already uses the v0.3 attributes list, the
+// existing entries are preserved and splunk_autodiscovery is appended.
+func TestDiscoveryExistingV3AttributesPreserved(t *testing.T) {
+	in := confFromYaml(t, `service:
+  receivers/splunk.discovery: [recv/one]
+  pipelines:
+    metrics:
+      receivers: []
+      processors: []
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: otelcol.service.mode
+          value: agent
+        - name: deployment.environment.name
+          value: staging
+`)
+
+	expected := confFromYaml(t, `service:
+  pipelines:
+    metrics:
+      receivers: [recv/one]
+      processors: []
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: otelcol.service.mode
+          value: agent
+        - name: deployment.environment.name
+          value: staging
+        - name: splunk_autodiscovery
+          value: "true"
+`)
+
+	require.NoError(t, SetupDiscovery(context.Background(), in))
+	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
+}
+
+// TestDiscoveryNoExistingTelemetry verifies that when service.telemetry is
+// absent entirely, it is created and splunk_autodiscovery is inserted.
+func TestDiscoveryNoExistingTelemetry(t *testing.T) {
+	in := confFromYaml(t, `service:
+  receivers/splunk.discovery: [recv/one]
+  pipelines:
+    metrics:
+      receivers: []
+      processors: []
+      exporters: [exp/one]
+`)
+
+	expected := confFromYaml(t, `service:
+  pipelines:
+    metrics:
+      receivers: [recv/one]
+      processors: []
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
+`)
+
+	require.NoError(t, SetupDiscovery(context.Background(), in))
+	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
+}
+
 func confFromYaml(tb testing.TB, content string) *confmap.Conf {
 	var conf map[string]any
 	if err := yaml.Unmarshal([]byte(content), &conf); err != nil {

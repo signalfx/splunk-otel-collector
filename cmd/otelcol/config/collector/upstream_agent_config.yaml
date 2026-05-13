@@ -37,6 +37,10 @@ extensions:
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
+    agent_description:
+      # Include the Collector's resource attributes (e.g. host.name, cloud.*)
+      # as OpAMP non-identifying attributes.
+      include_resource_attributes: true
     server:
       http:
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"

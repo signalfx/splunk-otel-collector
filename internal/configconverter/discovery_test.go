@@ -55,8 +55,11 @@ func TestDiscovery(t *testing.T) {
       exporters: [exp/six, exp/seven, exp/eight]
   telemetry:
     resource:
-      my-resource: test
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: my-resource
+          value: test
+        - name: splunk_autodiscovery
+          value: "true"
 `)
 
 	require.NoError(t, SetupDiscovery(context.Background(), in))
@@ -121,7 +124,9 @@ func TestDiscoveryExtensionsOnly(t *testing.T) {
       exporters: [exp/six, exp/seven, exp/eight]
   telemetry:
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
 `)
 
 	require.NoError(t, SetupDiscovery(context.Background(), in))
@@ -155,7 +160,9 @@ func TestDiscoveryEmptyExtensions(t *testing.T) {
       exporters: [exp/six, exp/seven, exp/eight]
   telemetry:
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
 `)
 
 	require.NoError(t, SetupDiscovery(context.Background(), in))
@@ -188,7 +195,9 @@ func TestDiscoveryReceiversOnly(t *testing.T) {
       exporters: [exp/six, exp/seven, exp/eight]
   telemetry:
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
 `)
 
 	require.NoError(t, SetupDiscovery(context.Background(), in))
@@ -219,7 +228,9 @@ func TestDiscoveryEmptyReceivers(t *testing.T) {
       exporters: [exp/six, exp/seven, exp/eight]
   telemetry:
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
 `)
 
 	require.NoError(t, SetupDiscovery(context.Background(), in))
@@ -259,7 +270,9 @@ func TestContinuousDiscoveryNoEntitiesPipeline(t *testing.T) {
       exporters: [exp/six]
   telemetry:
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
 `)
 
 	require.NoError(t, SetupDiscovery(context.Background(), in))
@@ -300,7 +313,9 @@ func TestContinuousDiscoveryWithEntitiesPipeline(t *testing.T) {
       exporters: [exp/three]
   telemetry:
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
 `)
 
 	require.NoError(t, SetupDiscovery(context.Background(), in))

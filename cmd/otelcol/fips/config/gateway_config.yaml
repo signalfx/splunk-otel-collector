@@ -31,6 +31,10 @@ extensions:
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
+    agent_description:
+      # Include the Collector's resource attributes (e.g. otelcol.service.mode,
+      # host.name, cloud.*) as OpAMP non-identifying attributes.
+      include_resource_attributes: true
     server:
       http:
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
@@ -151,6 +155,13 @@ service:
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    # Resource attributes attached to the Collector's internal telemetry. These
+    # are also exposed via OpAMP when the opamp/splunk_o11y extension is enabled
+    # with agent_description.include_resource_attributes set to true.
+    resource:
+      attributes:
+        - name: otelcol.service.mode
+          value: gateway
     metrics:
       readers:
         - pull:

@@ -17,6 +17,7 @@ package configconverter
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"go.opentelemetry.io/collector/confmap"
@@ -82,20 +83,61 @@ func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 	return nil
 }
 
+// setAutoDiscoveryResourceAttribute appends the splunk_autodiscovery resource
+// attribute to service.telemetry.resource using the declarative v0.3 attributes
+// list shape, e.g.:
+//
+//	service:
+//	  telemetry:
+//	    resource:
+//	      attributes:
+//	        - name: splunk_autodiscovery
+//	          value: "true"
+//
+// If a user has pre-populated service.telemetry.resource using the legacy
+// inline-map form (e.g. "service.telemetry.resource.foo: bar"), the existing
+// entries are migrated into the attributes list so we never produce a
+// mixed-shape resource block.
 func setAutoDiscoveryResourceAttribute(service map[string]any) {
-	telemetry := map[string]any{}
-	if tel, ok := service["telemetry"]; ok {
-		telemetry = tel.(map[string]any)
+	telemetry, _ := service["telemetry"].(map[string]any)
+	if telemetry == nil {
+		telemetry = map[string]any{}
+		service["telemetry"] = telemetry
 	}
-	service["telemetry"] = telemetry
 
-	resAttrs := map[string]any{}
-	if ra, ok := telemetry["resource"]; ok {
-		resAttrs = ra.(map[string]any)
+	resource, _ := telemetry["resource"].(map[string]any)
+	if resource == nil {
+		resource = map[string]any{}
+		telemetry["resource"] = resource
 	}
-	telemetry["resource"] = resAttrs
 
-	resAttrs["splunk_autodiscovery"] = "true"
+	attrs, _ := resource["attributes"].([]any)
+
+	// Migrate any legacy inline-map entries (keys other than the declarative
+	// schema fields) into the attributes list so the result is uniformly v0.3.
+	// Sort the keys so the resulting attributes list is deterministic.
+	legacyKeys := make([]string, 0, len(resource))
+	for k := range resource {
+		switch k {
+		case "attributes", "schema_url", "detectors":
+			continue
+		}
+		legacyKeys = append(legacyKeys, k)
+	}
+	sort.Strings(legacyKeys)
+	for _, k := range legacyKeys {
+		attrs = append(attrs, map[string]any{
+			"name":  k,
+			"value": resource[k],
+		})
+		delete(resource, k)
+	}
+
+	attrs = append(attrs, map[string]any{
+		"name":  "splunk_autodiscovery",
+		"value": "true",
+	})
+	resource["attributes"] = attrs
 }
 
 func getServiceExtensions(out map[string]any) (map[string]any, []any, error) {

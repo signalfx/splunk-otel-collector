@@ -37,7 +37,7 @@ and the [opentelemetry-collector-contrib v0.152.0](https://github.com/open-telem
   This UpDownCounter increments in startOp and decrements in endOp, allowing operators to monitor
   concurrent export activity and detect when an exporter is saturating its worker pool.
 - (Contrib) `exporter/file`: Allow usage of append mode with zstd compression ([#44382](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44382))
-- (Contrib) `exporter/kafka`: Allow record_headers to accept multiple headers with the same key. ([#48092](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48092))
+- (Contrib) `exporter/kafka`: Allow `record_headers` to accept multiple headers with the same key. ([#48092](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48092))
 - (Contrib) `exporter/loadbalancing`: Add stable attribute routing key encoding for traces and metrics in the loadbalancing exporter ([#46094](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46094), [#46095](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46095))
   Routing keys now encode attributes as `name=value|` segments, including explicit markers for missing attributes.
   Non-string attribute values are deterministically stringified and used consistently across traces and metrics.
@@ -83,7 +83,7 @@ and the [opentelemetry-collector-contrib v0.152.0](https://github.com/open-telem
   broker disconnect. Growth is bounded by 2 × number-of-brokers.
 - (Contrib) `receiver/kubelet_stats`: Add optional system container metrics (cpu.time, cpu.usage, memory.working_set) to kubeletstats receiver. ([#3531](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/3531))
 - (Contrib) `receiver/memcached`: Enables dynamic metric reaggregation in the Memcached receiver. This does not break existing configuration files. ([#46364](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/46364))
-- (Contrib) `receiver/mysql`: Added 'mysql.query_plan' to query sample records collected ([#47413](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47413))
+- (Contrib) `receiver/mysql`: Added `mysql.query_plan` to query sample records collected ([#47413](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47413))
 - (Contrib) `receiver/mysql`: Fix the query hash generation for MySQL queries when the query is not explainable. ([#48059](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48059))
 - (Contrib) `receiver/prometheus_remote_write`: Add debug logging when dropping histograms with invalid schema values ([#48027](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48027))
 - (Contrib) `receiver/sqlserver`: Adds idle blocking sessions to `db.server.query_sample` by appending sleeping blocker rows (with `sqlserver.command=IDLE_BLOCKER`) when blocker session IDs are missing from active requests. ([#47120](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47120))
@@ -2327,7 +2327,7 @@ and the [opentelemetry-collector-contrib v0.132.0](https://github.com/open-telem
 - (Contrib) `receiver/httpcheck`: Add detailed timing metrics ([#41379](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41379))
   The timing metrics added to the receiver now include durations for dns lookup, tcp connection, tls handshake, request, and response.
 - (Contrib) `receiver/k8sobjects`: Introduces `include_initial_state` for watch mode, so the existing state of watched objects emitted as log events. ([#41536](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41536))
-- (Contrib) `receiver/kafka`, `exporter/kafka`: Allow to configure the metdata refresh interval when using the franz-go client. ([#41088](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41088))
+- (Contrib) `receiver/kafka`, `exporter/kafka`: Allow to configure the metadata refresh interval when using the franz-go client. ([#41088](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41088))
 - (Contrib) `receiver/mysql`: Add `mysql.page_size` metric ([#41572](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41572))
 - (Contrib) `receiver/oracledb`: Add options and child_address into oracle plan ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37478))
   Adding options and child_address into oracle plan to enhance the details

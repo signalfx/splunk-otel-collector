@@ -119,14 +119,14 @@ var receiverMetaMap = map[string]ReceiverMeta{
 			},
 		},
 	},
-	"kafkametrics": {
+	"kafka_metrics": {
 		ServiceType: "kafka",
 		Status: Status{
 			Metrics: []Match{
 				{
 					Status:  "successful",
 					Strict:  "kafka.brokers",
-					Message: "kafkametrics receiver is working!",
+					Message: "kafka_metrics receiver is working!",
 				},
 			},
 			Statements: []Match{

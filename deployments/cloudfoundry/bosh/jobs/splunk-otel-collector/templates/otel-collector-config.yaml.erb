@@ -3,7 +3,7 @@
 <% else %>
 ---
 receivers:
-  cloudfoundry:
+  cloud_foundry:
     rlp_gateway:
       endpoint: <%= p('cloudfoundry.rlp_gateway.endpoint') %>
       <% if_p('cloudfoundry.rlp_gateway.shard_id') do |shard_id| %>

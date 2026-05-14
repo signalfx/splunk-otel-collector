@@ -53,25 +53,25 @@ require (
 	github.com/antonmedv/expr v1.15.5 // indirect
 	github.com/apache/arrow-go/v18 v18.4.0 // indirect
 	github.com/apache/thrift v0.23.1-0.20260429145742-d2acd3c49e58 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.38.1 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.9 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.41.7 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.10 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.29.16 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.69 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.31 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.15 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.35 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.35 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.23 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.16 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.24 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.15 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.23 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.23 // indirect
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.100.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.25.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.21 // indirect
-	github.com/aws/smithy-go v1.25.0 // indirect
+	github.com/aws/smithy-go v1.25.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect

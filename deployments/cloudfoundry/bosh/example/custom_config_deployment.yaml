@@ -27,7 +27,7 @@ instance_groups:
           otel:
             config_yaml: |
               receivers:
-                cloudfoundry:
+                cloud_foundry:
                   rlp_gateway:
                     endpoint: "https://log-stream.sys.<TAS environment name>.cf-app.com"
                   uaa:
@@ -47,7 +47,7 @@ instance_groups:
               service:
                 pipelines:
                   metrics:
-                    receivers: [ cloudfoundry ]
+                    receivers: [ cloud_foundry ]
                     processors: [ resourcedetection ]
                     exporters: [ signalfx ]
 

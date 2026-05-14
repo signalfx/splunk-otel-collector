@@ -93,10 +93,10 @@ receivers:
   # NOTE: It is very likely additional configuration is required
   k8s_cluster:
 
-  # Enables the kubeletstats receiver with default settings
+  # Enables the kubelet_stats receiver with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver
   # NOTE: It is very likely additional configuration is required
-  kubeletstats:
+  kubelet_stats:
     auth_type: "serviceAccount"
     insecure_skip_verify: true
 
@@ -499,7 +499,7 @@ processors:
   # Enables the metrics transform processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor
   # NOTE: This processor settings need to be change when using this processor
-  #transforms:
+  #metrics_transform:
   #
   #  ### SPECIFY WHICH METRIC(S) TO MATCH
   #  # include specifies the metric name used to determine which metric(s) to operate on

@@ -6,7 +6,7 @@
 # Please note that any changes made to this file will need to be reconciled during  #
 # upgrades of the Collector.                                                        #
 #####################################################################################
-# kafkametrics:
+# kafka_metrics:
 #   enabled: true
 #   rule:
 #     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka.*"}) and not (command matches "splunk.discovery")

@@ -61,6 +61,8 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
+logs_config_path="${collector_config_dir}/splunk_logs_config_linux.yaml"
+logs_file_storage_path="/var/lib/otelcol/filelogs"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
@@ -1093,6 +1095,10 @@ Collector:
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.observability.splunkcloud.com/v1/log)
+  --splunk-platform-token <token>           Set the Splunk logs token.
+  --splunk-platform-url <url>               Set the Splunk logs endpoint URL.
+  --splunk-platform-logs-index <index>           Set the Splunk index to send logs to.
+                                        If not set, the default index configured on the logs token will be used.
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
@@ -1387,6 +1393,10 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
+  local splunk_platform_token=
+  local splunk_platform_url=
+  local splunk_platform_logs_index=
+  local with_logs="false"
   local godebug=
   local ingest_url=
   local insecure=
@@ -1441,6 +1451,18 @@ parse_args_and_install() {
         ;;
       --hec-url)
         hec_url="$2"
+        shift 1
+        ;;
+      --splunk-platform-token)
+        splunk_platform_token="$2"
+        shift 1
+        ;;
+      --splunk-platform-url)
+        splunk_platform_url="$2"
+        shift 1
+        ;;
+      --splunk-platform-logs-index)
+        splunk_platform_logs_index="$2"
         shift 1
         ;;
       --godebug)
@@ -1630,7 +1652,7 @@ parse_args_and_install() {
       exit 0
   fi
 
-  if [ -z "$access_token" ]; then
+  if [ -z "$access_token" ] && [ -z "$splunk_platform_url" ]; then
     access_token=$(request_access_token)
   fi
 
@@ -1648,6 +1670,16 @@ parse_args_and_install() {
 
   if [ -z "$hec_url" ]; then
     hec_url="${ingest_url}/v1/log"
+  fi
+
+  # Auto-enable logs collection when any splunk-platform-* option is provided
+  if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_url" ] || [ -n "$splunk_platform_logs_index" ]; then
+    with_logs="true"
+  fi
+
+  if [ "$with_logs" = "true" ] && [ "$mode" = "gateway" ]; then
+    echo "[ERROR] Log collection (--splunk-platform-*) is not supported in gateway mode." >&2
+    exit 1
   fi
 
   check_support
@@ -1733,10 +1765,15 @@ parse_args_and_install() {
   if [ -n "$listen_interface" ]; then
     echo "Listen network interface: $listen_interface"
   fi
-  echo "Realm: $realm"
-  echo "Ingest Endpoint: $ingest_url"
-  echo "API Endpoint: $api_url"
-  echo "HEC Endpoint: $hec_url"
+  if [ -n "$access_token" ]; then
+    echo "Realm: $realm"
+    echo "Ingest Endpoint: $ingest_url"
+    echo "API Endpoint: $api_url"
+    echo "HEC Endpoint: $hec_url"
+  fi
+  if [ -n "$splunk_platform_url" ]; then
+    echo "Logs Endpoint: $splunk_platform_url"
+  fi
   echo "GODEBUG: $godebug"
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
@@ -1762,7 +1799,7 @@ parse_args_and_install() {
   fi
   echo
 
-  if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
+  if [ -n "$access_token" ] && [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
     echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1
@@ -1876,13 +1913,15 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   fi
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
-  configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
-  configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
-  configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
-  configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+  if [ -n "$access_token" ]; then
+    configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
+    configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
+    configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
+    configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+  fi
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
   if [ -d "$collector_bundle_dir" ]; then
     configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
@@ -1895,8 +1934,26 @@ parse_args_and_install() {
     chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
   fi
 
+  local otelcol_options=
   if [ "$discovery" = "true" ]; then
-    configure_env_file "OTELCOL_OPTIONS" "--discovery" "$collector_env_path"
+    otelcol_options="--discovery"
+  fi
+
+  if [ "$with_logs" = "true" ]; then
+    mkdir -p "$logs_file_storage_path"
+    chown -R $service_user:$service_group "$logs_file_storage_path"
+    chmod 700 "$logs_file_storage_path"
+      configure_env_file "SPLUNK_PLATFORM_URL" "$splunk_platform_url" "$collector_env_path"
+      configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
+    configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
+    if [ -n "$splunk_platform_logs_index" ]; then
+      configure_env_file "SPLUNK_PLATFORM_LOGS_INDEX" "$splunk_platform_logs_index" "$collector_env_path"
+    fi
+    otelcol_options="$otelcol_options --config $logs_config_path"
+  fi
+
+  if [ -n "$otelcol_options" ]; then
+    configure_env_file "OTELCOL_OPTIONS" "$otelcol_options" "$collector_env_path"
   fi
 
   # ensure the collector service owner has access to the config dir
@@ -1931,6 +1988,20 @@ must be restarted to apply the changes by running the following command as root:
   systemctl restart splunk-otel-collector
 
 EOH
+
+  if [ "$with_logs" = "true" ]; then
+    cat <<EOH
+[NOTICE] Log collection has been enabled using $logs_config_path.
+
+Journald log collection is disabled by default. To enable it:
+  1. Uncomment the 'journald' receiver and 'logs/journald' pipeline in $logs_config_path.
+  2. Grant the collector service user permission to read the journal:
+
+       sudo usermod -aG systemd-journal $service_user
+       sudo systemctl restart splunk-otel-collector
+
+EOH
+  fi
 
   if [ -n "$sdks_to_enable" ]; then
     if [ -n "$sdks_enabled" ]; then

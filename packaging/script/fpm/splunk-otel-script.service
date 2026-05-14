@@ -1,0 +1,15 @@
+[Unit]
+Description=Splunk OpenTelemetry Scripting
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/otel/script/splunk-otel-script.conf
+ExecStart=python3 /usr/lib/splunk-otel-script/cron.py
+KillMode=mixed
+Restart=on-failure
+Type=simple
+User=splunk-otel-collector
+Group=splunk-otel-collector
+
+[Install]
+WantedBy=multi-user.target

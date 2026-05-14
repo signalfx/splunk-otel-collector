@@ -161,6 +161,89 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.150.0 to 0.151.0
+
+The default Windows MSI artifact download URL has been updated: [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide)
+- `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+
+To keep using the legacy `dl.signalfx.com` download URL, pass `-collector_msi_url` explicitly to
+`install.ps1` (replace `<version>` with the collector version):
+
+Windows (`install.ps1`):
+```
+-collector_msi_url https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi
+```
+
+### From 0.149.0 to 0.150.0
+
+Default endpoint URLs have changed from *.signalfx.com to *.observability.splunkcloud.com. The legacy endpoints remaim functional but migrating to the new domain is highly recommended. See the domain transition guide for background.
+
+| Variable | Old default | New default |
+| --- | --- | --- |
+| `SPLUNK_API_URL` | `https://api.<realm>.signalfx.com` | `https://api.<realm>.observability.splunkcloud.com` |
+| `SPLUNK_INGEST_URL` | `https://ingest.<realm>.signalfx.com` | `https://ingest.<realm>.observability.splunkcloud.com` |
+| `SPLUNK_TRACE_URL` | `https://ingest.<realm>.signalfx.com/v2/trace` | `https://ingest.<realm>.observability.splunkcloud.com/v2/trace` |
+| `SPLUNK_HEC_URL` | `https://ingest.<realm>.signalfx.com/v1/log` | `https://ingest.<realm>.observability.splunkcloud.com/v1/log` |
+
+    Note: If you have firewall rules or proxy allowlists scoped to *.signalfx.com, add
+    *.observability.splunkcloud.com (or the realm-specific hostnames
+    api.<realm>.observability.splunkcloud.com and ingest.<realm>.observability.splunkcloud.com)
+    before switching.
+
+###  Package manager upgrade (apt, yum, choco upgrade)
+
+  Your existing environment configuration is preserved. The collector continues
+  to use the endpoints you previously configured.
+  
+  When you are ready to migrate, replace <realm> with your realm (e.g. us0):
+  
+  **Linux**: Edit `/etc/otel/collector/splunk-otel-collector.conf:`
+  
+    SPLUNK_API_URL=https://api.<realm>.observability.splunkcloud.com
+    SPLUNK_INGEST_URL=https://ingest.<realm>.observability.splunkcloud.com
+    SPLUNK_HEC_URL=https://ingest.<realm>.observability.splunkcloud.com/v1/log
+  
+  Then restart the service: `sudo systemctl restart splunk-otel-collector`
+  
+  **Windows**: Update the `Environment` value in the registry at
+  `HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector` with the
+  same URLs, then restart the service.
+  
+  `SPLUNK_TRACE_URL` is derived automatically from `SPLUNK_INGEST_URL` at runtime
+  unless you have explicitly set it. If you have, update it as well.
+  
+  ### MSI upgrade (Windows)
+  
+  Upgrading via `msiexec` applies the new `*.observability.splunkcloud.com`
+  defaults. To keep the legacy endpoints, pass them as MSI properties:
+  
+    msiexec /i <path\to\msi> SPLUNK_API_URL=https://api.<realm>.signalfx.com SPLUNK_INGEST_URL=https://ingest.<realm>.signalfx.com SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
+  
+  ### New installation
+  
+  New installations default to `*.observability.splunkcloud.com`. If your
+  environment requires the legacy endpoints, pass them explicitly:
+  
+  `install.sh` (add these flags):
+  
+    --api-url https://api.<realm>.signalfx.com \
+    --ingest-url https://ingest.<realm>.signalfx.com \
+    --hec-url https://ingest.<realm>.signalfx.com/v1/log
+  
+  `install.ps1` (add these flags):
+  
+    -api_url https://api.<realm>.signalfx.com `
+    -ingest_url https://ingest.<realm>.signalfx.com `
+    -hec_url https://ingest.<realm>.signalfx.com/v1/log
+  
+  Chocolatey (add these params):
+  
+    choco install splunk-otel-collector --params "'/SPLUNK_API_URL:https://api.<realm>.signalfx.com /SPLUNK_INGEST_URL:https://ingest.<realm>.signalfx.com /SPLUNK_HEC_URL:https://ingest.<realm>.signalfx.com/v1/log'"
+    
+  `msiexec` (add these properties):
+  
+    SPLUNK_API_URL=https://api.<realm>.signalfx.com SPLUNK_INGEST_URL=https://ingest.<realm>.signalfx.com SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
+
 ### From 0.117.0 to 0.118.0
 
 - The deprecated syntax for config source expansion is no longer supported. 

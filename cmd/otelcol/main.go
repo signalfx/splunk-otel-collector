@@ -40,7 +40,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
-const modularinputStanzaPrefix = "Splunk_TA_OTel_Collector://"
+const modularinputStanzaPrefix = "Splunk_TA_otel://"
 
 //go:embed ta_scheme.xml
 var modularInputSchemeXML string
@@ -99,14 +99,17 @@ func runFromCmdLine(args []string) {
 		Version: version.Version,
 	}
 
+	telemetryHook := configsource.NewTelemetryHook()
 	confMapConverterFactories := collectorSettings.ConfMapConverterFactories()
 	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun(), confMapConverterFactories)
 	expvarConverter := configconverter.GetExpvarConverter()
 	confMapConverterFactories = append(confMapConverterFactories,
 		configconverter.ConverterFactoryFromConverter(dryRun),
-		configconverter.ConverterFactoryFromConverter(expvarConverter))
+		configconverter.ConverterFactoryFromFunc(configconverter.InjectConfigSourceTelemetryExtension),
+		configconverter.ConverterFactoryFromFunc(configconverter.RemoveSplunkOpAMPIfFeatureGateDisabled),
+		configconverter.ConverterFactoryFromConverter(expvarConverter)) // `expvarConverter` must be last to expose the effective config correctly
 
-	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{expvarConverter, dryRun})
+	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{expvarConverter, dryRun, telemetryHook})
 
 	var providerFactories []confmap.ProviderFactory
 	for _, pf := range collectorSettings.ConfMapProviderFactories() {

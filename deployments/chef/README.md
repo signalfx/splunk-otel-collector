@@ -17,7 +17,7 @@ https://www.splunk.com/en_us/products/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
-- CentOS / Red Hat: 8, 9
+- CentOS / Red Hat: 8, 9, 10
 - Oracle: 8, 9, 10
 - Debian: 11, 12, 13
 - SUSE: 15
@@ -29,6 +29,7 @@ Currently, the following Windows versions are supported:
 
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
+- Windows Server 2025 64-bit
 
 On Windows, the collector is installed as a Windows service and its environment
 variables are set at the service scope, i.e.: they are only available to the
@@ -66,16 +67,16 @@ required `splunk_access_token` attribute and some optional attributes:
   (**default:** `us0`)
 
 - `splunk_ingest_url`: Explicitly set the Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`, instead of the URL derived from the
+  `https://ingest.us0.observability.splunkcloud.com`, instead of the URL derived from the
   `splunk_realm` attribute. The `SPLUNK_INGEST_URL` environment variable will
   be set with this value for the Collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `splunk_api_url`: Explicitly set the Splunk API URL, e.g.
-  `https://api.us0.signalfx.com`, instead of the URL derived from `splunk_realm`
+  `https://api.us0.observability.splunkcloud.com`, instead of the URL derived from `splunk_realm`
   attribute. The `SPLUNK_API_URL` environment variable will be set with this
   value for the Collector service. (**default:**
-  `https://api.{{ splunk_realm }}.signalfx.com`)
+  `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `collector_version`: Version of the Collector package to install, e.g.
   `0.34.0`. (**default:** `latest`)

@@ -1,12 +1,5 @@
-smartagent/apache:
-  type: collectd/apache
-  host: localhost
-  port: 6379
-  intervalSeconds: 234
 smartagent/memcached:
   type: collectd/memcached
   host: localhost
   port: 5309
   intervalSeconds: 456
-smartagent/php:
-  type: collectd/php-fpm

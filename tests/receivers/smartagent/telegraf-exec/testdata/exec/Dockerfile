@@ -1,9 +1,11 @@
 ARG SPLUNK_OTEL_COLLECTOR_IMAGE
-ARG IMAGE_PLATFORM
 
-FROM --platform=${IMAGE_PLATFORM} golang:1.25.8 as golang
+FROM golang:1.26.3 AS golang
+ARG IMAGE_PLATFORM
 COPY telegraf-exec.go /opt/telegraf-exec.go
-RUN go build -o /opt/telegraf-exec /opt/telegraf-exec.go
+RUN cd /opt && go mod init telegraf-exec && go mod tidy && \
+    GOOS=linux GOARCH=$(echo ${IMAGE_PLATFORM} | cut -d/ -f2) CGO_ENABLED=0 \
+    go build -o /opt/telegraf-exec /opt/telegraf-exec.go
 
 FROM ${SPLUNK_OTEL_COLLECTOR_IMAGE}
 COPY config.yaml /etc/config.yaml

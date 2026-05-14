@@ -11,6 +11,8 @@ else
 	TA_PLATFORM_SUFFIX ?=
 endif
 
+VERSION ?= $(shell git describe --match "v[0-9]*" HEAD)
+
 # Set tar exclude options based on the target OS for packaging
 ifeq ($(TA_TARGET_OS),windows)
 	TAR_EXCLUDE_OPT ?= --exclude='*/linux_$(TA_ARCH)/*'
@@ -18,13 +20,14 @@ else ifeq ($(TA_TARGET_OS),linux)
 	TAR_EXCLUDE_OPT ?= --exclude='*/windows_$(TA_ARCH)/*'
 endif
 
-MOD_INPUT_NAME := Splunk_TA_OTel_Collector
+MOD_INPUT_NAME := Splunk_TA_otel
 PKG_NAME := $(MOD_INPUT_NAME)$(TA_PLATFORM_SUFFIX)
 
 sync-configs:
 	@echo "Syncing configuration files ..."
 	@if [ ! -d ./assets/configs/ ]; then mkdir -p ./assets/configs/; fi
 	cp $(SRC_ROOT)/cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
+	cp $(SRC_ROOT)/cmd/otelcol/config/collector/gateway_config.yaml ./assets/configs/gateway_config.yaml
 
 .PHONY: ta-inputs-conf
 ta-inputs-conf:
@@ -61,7 +64,13 @@ pack: validate-target-os sync-configs ta-inputs-conf
 	@tmpdir=$$(mktemp -d) && \
 	listfile=$$(mktemp) && \
 	tr -d '\r' < $(PKG_NAME).fileslist.txt > $$listfile && \
-	cp -rL ./assets/ $$tmpdir/$(MOD_INPUT_NAME) && \
+	cp -rL ./assets/ $$tmpdir/$(PKG_NAME) && \
+	sed -i.bak \
+		-e 's/^version[[:space:]]*=[[:space:]]*.*/version = $(patsubst v%,%,$(VERSION))/' \
+		-e 's/^id[[:space:]]*=[[:space:]]*.*/id = $(PKG_NAME)/' \
+		-e 's/^name[[:space:]]*=[[:space:]]*.*/name = $(PKG_NAME)/' \
+		$$tmpdir/$(PKG_NAME)/default/app.conf && \
+	rm -f $$tmpdir/$(PKG_NAME)/default/app.conf.bak && \
 	COPYFILE_DISABLE=1 tar -czf ./out/distribution/$(PKG_NAME).tgz --no-recursion -C $$tmpdir -T $$listfile && \
 	rm -rf $$tmpdir $$listfile
 

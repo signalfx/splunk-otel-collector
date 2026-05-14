@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.8
+  GO_VERSION: 1.26.3
 
 jobs:
   cross-compile:
@@ -60,21 +60,21 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup NuGet
-        uses: nuget/setup-nuget@323ab0502cd38fdc493335025a96c8fdb0edc71f # v2.0.1
+        uses: nuget/setup-nuget@fd55a6f3b34392fa83fde1454582407d8c714123 # v4.0
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3.0.0
 
       # EOL REFERENCE: https://endoflife.date/dotnet
-      - uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+      - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
         with:
           dotnet-version: '10.0.x'
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-build-amd64
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload expected traces file
         if: failure()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: expected-traces-dotnet-zeroconfig-e2e-tests
           path: tests/zeroconfig/windows/testdata/expected/*.yaml
@@ -113,10 +113,10 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-build-${{ matrix.runner == 'otel-windows-arm' && 'arm64' || 'amd64' }}
           path: ./dist
@@ -143,10 +143,10 @@ jobs:
         MODE: [ "agent", "gateway" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-build-${{ matrix.OS == 'windows-11-arm' && 'arm64' || 'amd64' }}
           path: ./dist
@@ -196,10 +196,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-build-amd64
           path: ./dist
@@ -232,10 +232,10 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading msi build
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-build-amd64
           path: ./dist
@@ -266,7 +266,7 @@ jobs:
           }
 
       - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist/*.nupkg
@@ -283,10 +283,10 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading choco build
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist
@@ -306,6 +306,9 @@ jobs:
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
           $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }}"
+          # Default expected URLs reflect the new installer defaults (observability.splunkcloud.com).
+          $expected_api_url = "https://api.${{ env.realm }}.observability.splunkcloud.com"
+          $expected_ingest_url = "https://ingest.${{ env.realm }}.observability.splunkcloud.com"
           if ("${{ matrix.SCENARIO }}" -eq "install") {
             write-host "Installing $choco_file_name ..."
             choco install splunk-otel-collector -s=".\dist" --params="'$params'" -y
@@ -319,30 +322,44 @@ jobs:
             if ($LASTEXITCODE -ne 0) {
               throw "choco install failed!"
             }
-            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
-            $test_env_vars = @(
+            $collector_property_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            write-host "Collector property variables after install: $collector_property_vars"
+            # Read the URLs written by the previous installation. The new installer preserves
+            # existing registry values without migration, so whatever the old version set must
+            # survive the upgrade unchanged — regardless of which domain it defaulted to.
+            $previous_installer_properties = @{}
+            foreach ($entry in $collector_property_vars) {
+              $k, $v = $entry.Split("=", 2)
+              write-host "k: $k, v: $v"
+              $previous_installer_properties[$k] = $v
+            }
+            $expected_api_url = $previous_installer_properties["SPLUNK_API_URL"]
+            $expected_ingest_url = $previous_installer_properties["SPLUNK_INGEST_URL"]
+            write-host "Expected API URL: $expected_api_url"
+            write-host "Expected ingest URL: $expected_ingest_url"
+            $test_collector_property_vars = @(
               "MY VAR WITH SPACES=my value",
               "GOOD_ENV_VAR_NAME=good value",
               "GOOD_KEY_NEEDS_ESCAPING=`" that breaks MSI call if not escaped properly due to double-quote"
             )
-            $env_vars += $test_env_vars
-            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $env_vars -type MultiString
+            $collector_property_vars += $test_collector_property_vars
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $collector_property_vars -type MultiString
             Start-Sleep 30
             write-host "Upgrading $choco_file_name ..."
             choco upgrade splunk-otel-collector -s=".\dist" -y
             if ($LASTEXITCODE -ne 0) {
               throw "choco upgrade failed!"
             }
-            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
-            foreach ($test_env_var in $test_env_vars) {
-              if (!($env_vars -contains $test_env_var)) {
-                $env_vars
+            $collector_property_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            foreach ($test_env_var in $test_collector_property_vars) {
+              if (!($collector_property_vars -contains $test_env_var)) {
+                $collector_property_vars
                 throw "'$test_env_var' not found!"
               }
             }
           }
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -api_url "$expected_api_url" -ingest_url "$expected_ingest_url"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
 
       - name: splunk-otel-collector logs
@@ -368,15 +385,15 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: agent-bundle-windows_amd64
           path: ./dist
@@ -388,7 +405,12 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          if ("${{ matrix.OS }}" -eq "windows-2025") {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
+          } else {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
+          }
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=$base_image --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
 

@@ -30,13 +30,15 @@ import (
 )
 
 const (
-	distDir          = "../out/distribution"
-	modularInputName = "Splunk_TA_OTel_Collector"
-	multiOSTgz       = "Splunk_TA_OTel_Collector.tgz"
-	linuxTgz         = "Splunk_TA_OTel_Collector_linux_x86_64.tgz"
-	windowsTgz       = "Splunk_TA_OTel_Collector_windows_x86_64.tgz"
-	linuxBinPath     = "Splunk_TA_OTel_Collector/linux_x86_64/"
-	windowsBinPath   = "Splunk_TA_OTel_Collector/windows_x86_64/"
+	distDir       = "../out/distribution"
+	multiOSName   = "Splunk_TA_otel"
+	linuxName     = "Splunk_TA_otel_linux_x86_64"
+	windowsName   = "Splunk_TA_otel_windows_x86_64"
+	multiOSTgz    = multiOSName + ".tgz"
+	linuxTgz      = linuxName + ".tgz"
+	windowsTgz    = windowsName + ".tgz"
+	linuxBinDir   = "linux_x86_64"
+	windowsBinDir = "windows_x86_64"
 )
 
 // getFileSize returns the size of a file in bytes
@@ -98,6 +100,33 @@ func containsPath(paths []string, prefix string) bool {
 	return false
 }
 
+// getTarFileContent returns the content of a specific file in a tar.gz archive.
+// Returns empty string if the file is not found.
+func getTarFileContent(t *testing.T, tgzPath, targetPath string) string {
+	file, err := os.Open(tgzPath)
+	require.NoError(t, err, "Failed to open tgz file: %s", tgzPath)
+	defer file.Close()
+
+	gzr, err := gzip.NewReader(file)
+	require.NoError(t, err, "Failed to create gzip reader for: %s", tgzPath)
+	defer gzr.Close()
+
+	tr := tar.NewReader(gzr)
+	for {
+		header, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		require.NoError(t, err, "Failed to read tar entry")
+		if header.Name == targetPath {
+			content, readErr := io.ReadAll(tr)
+			require.NoError(t, readErr, "Failed to read file content: %s", targetPath)
+			return string(content)
+		}
+	}
+	return ""
+}
+
 func TestPackageSizes(t *testing.T) {
 	multiOSPath := filepath.Join(distDir, multiOSTgz)
 	linuxPath := filepath.Join(distDir, linuxTgz)
@@ -135,11 +164,14 @@ func TestLinuxPackageContents(t *testing.T) {
 	contents := getTarContents(t, linuxPath)
 	t.Logf("Linux package contains %d entries", len(contents))
 
+	packageName := linuxName
 	// Linux package should contain linux binaries
+	linuxBinPath := filepath.Join(packageName, linuxBinDir)
 	assert.True(t, containsPath(contents, linuxBinPath),
 		"Linux package should contain %s folder", linuxBinPath)
 
 	// Linux package should NOT contain windows binaries
+	windowsBinPath := filepath.Join(packageName, windowsBinDir)
 	assert.False(t, containsPath(contents, windowsBinPath),
 		"Linux package should NOT contain %s folder", windowsBinPath)
 }
@@ -151,11 +183,15 @@ func TestWindowsPackageContents(t *testing.T) {
 	contents := getTarContents(t, windowsPath)
 	t.Logf("Windows package contains %d entries", len(contents))
 
+	packageName := windowsName
+
 	// Windows package should contain windows binaries
+	windowsBinPath := filepath.Join(packageName, windowsBinDir)
 	assert.True(t, containsPath(contents, windowsBinPath),
 		"Windows package should contain %s folder", windowsBinPath)
 
 	// Windows package should NOT contain linux binaries
+	linuxBinPath := filepath.Join(packageName, linuxBinDir)
 	assert.False(t, containsPath(contents, linuxBinPath),
 		"Windows package should NOT contain %s folder", linuxBinPath)
 }
@@ -167,43 +203,52 @@ func TestMultiOSPackageContents(t *testing.T) {
 	contents := getTarContents(t, multiOSPath)
 	t.Logf("Multi-OS package contains %d entries", len(contents))
 
+	packageName := multiOSName
+
 	// Multi-OS package should contain both linux and windows binaries
+	linuxBinPath := filepath.Join(packageName, linuxBinDir)
 	assert.True(t, containsPath(contents, linuxBinPath),
 		"Multi-OS package should contain %s folder", linuxBinPath)
 
+	windowsBinPath := filepath.Join(packageName, windowsBinDir)
 	assert.True(t, containsPath(contents, windowsBinPath),
 		"Multi-OS package should contain %s folder", windowsBinPath)
 }
 
 func TestPackageMandatoryFiles(t *testing.T) {
-	packages := map[string]string{
-		"Multi-OS": multiOSTgz,
-		"Linux":    linuxTgz,
-		"Windows":  windowsTgz,
+	packages := map[string]struct {
+		tgz  string
+		root string
+	}{
+		"Multi-OS": {multiOSTgz, multiOSName},
+		"Linux":    {linuxTgz, linuxName},
+		"Windows":  {windowsTgz, windowsName},
 	}
 
-	for pkgName, pkgFile := range packages {
-		pkgPath := filepath.Join(distDir, pkgFile)
+	for pkgName, pkg := range packages {
+		pkgPath := filepath.Join(distDir, pkg.tgz)
+		root := pkg.root
 		t.Run(pkgName, func(t *testing.T) {
 			require.FileExists(t, pkgPath, "%s package not found", pkgName)
 
 			mandatoryPaths := []string{
-				modularInputName + "/configs/agent_config.yaml",
-				modularInputName + "/default/app.conf",
-				modularInputName + "/default/inputs.conf",
-				modularInputName + "/README/inputs.conf.spec",
-				modularInputName + "/static/appIcon_2x.png",
-				modularInputName + "/static/appIcon.png",
+				filepath.Join(root, "configs", "agent_config.yaml"),
+				filepath.Join(root, "configs", "gateway_config.yaml"),
+				filepath.Join(root, "default", "app.conf"),
+				filepath.Join(root, "default", "inputs.conf"),
+				filepath.Join(root, "README", "inputs.conf.spec"),
+				filepath.Join(root, "static", "appIcon_2x.png"),
+				filepath.Join(root, "static", "appIcon.png"),
 			}
 
 			addLinuxExecutable := pkgName != "Windows"
 			if addLinuxExecutable {
-				mandatoryPaths = append(mandatoryPaths, modularInputName+"/linux_x86_64/bin/Splunk_TA_OTel_Collector")
+				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "linux_x86_64", "bin", "Splunk_TA_otel"))
 			}
 
 			addWindowsExecutable := pkgName != "Linux"
 			if addWindowsExecutable {
-				mandatoryPaths = append(mandatoryPaths, modularInputName+"/windows_x86_64/bin/Splunk_TA_OTel_Collector.exe")
+				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "windows_x86_64", "bin", "Splunk_TA_otel.exe"))
 			}
 
 			contents := getTarContents(t, pkgPath)
@@ -223,6 +268,48 @@ func TestPackageMandatoryFiles(t *testing.T) {
 				assert.Contains(t, mandatoryPaths, path,
 					"%s package contains unexpected file: %s", pkgName, path)
 			}
+
+			// The Makefile sets: version = <git-tag-without-v-prefix>
+			appConfContent := getTarFileContent(t, pkgPath, filepath.Join(root, "default", "app.conf"))
+			require.NotEmpty(t, appConfContent, "app.conf not found or empty in %s package", pkgName)
+			var appConfVersion string
+			for _, line := range strings.Split(appConfContent, "\n") {
+				trimmed := strings.TrimSpace(line)
+				if strings.HasPrefix(trimmed, "version") && strings.ContainsRune(trimmed, '=') {
+					parts := strings.SplitN(trimmed, "=", 2)
+					appConfVersion = strings.TrimSpace(parts[1])
+					break
+				}
+			}
+			require.NotEmpty(t, appConfVersion, "version not found in app.conf of %s package", pkgName)
+			// Example of expected version formats: "1.2.3", "1.2.3-4-16-gabcdef0"
+			require.Regexp(t, `^\d+\.\d+\.\d+(-[0-9]+-[a-z0-9]+)?$`, appConfVersion)
+
+			// Check that the [package] id matches the package name.
+			const sectionHeaderSentinel = "["
+			var appConfPackageID string
+			inPackageSection := false
+			for _, line := range strings.Split(appConfContent, "\n") {
+				trimmed := strings.TrimSpace(line)
+				if trimmed == "[package]" {
+					inPackageSection = true
+					continue
+				}
+				if inPackageSection {
+					trimmed := strings.ReplaceAll(trimmed, " ", "")
+					if strings.HasPrefix(trimmed, sectionHeaderSentinel) {
+						// We've reached the next section without finding an id, so stop looking for it
+						break
+					}
+					parts := strings.SplitN(trimmed, "=", 2)
+					if len(parts) == 2 && parts[0] == "id" {
+						appConfPackageID = parts[1]
+						break
+					}
+				}
+			}
+			assert.Equal(t, root, appConfPackageID,
+				"%s app.conf [package] id should be %q", pkgName, root)
 		})
 	}
 }

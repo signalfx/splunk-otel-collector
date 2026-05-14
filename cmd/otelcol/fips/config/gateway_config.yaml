@@ -14,7 +14,7 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
   http_forwarder/signalfx:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
@@ -22,7 +22,21 @@ extensions:
       # Should be enabled to preserve incoming access token
       # include_metadata: true
     egress:
-      endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
     expvar:
@@ -59,14 +73,6 @@ receivers:
         static_configs:
         - targets: ['0.0.0.0:8888']
         metric_relabel_configs:
-          - source_labels: [ service_name ]
-            target_label: service.name
-          - source_labels: [ service_instance_id ]
-            target_label: service.instance.id
-          - source_labels: [ service_version ]
-            target_label: service.version
-          - regex: service_name|service_instance_id|service_version
-            action: labeldrop
           - source_labels: [ __name__ ]
             regex: 'promhttp_metric_handler_errors.*'
             action: drop
@@ -141,7 +147,17 @@ exporters:
     log_data_enabled: false
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/signalfx, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, http_forwarder/signalfx, opamp/splunk_o11y, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]

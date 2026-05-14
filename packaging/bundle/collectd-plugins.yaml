@@ -3,7 +3,3 @@
 - name: openstack
   version: v4.2.0
   repo: signalfx/collectd-openstack
-
-- name: systemd
-  version: v1.1.0
-  repo: signalfx/collectd-systemd

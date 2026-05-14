@@ -1,0 +1,204 @@
+connectors:
+    routing/logs:
+        default_pipelines:
+            - logs
+        table:
+            - condition: instrumentation_scope.attributes["otel.entity.event_as_log"] == true
+              context: log
+              pipelines:
+                - logs/entities
+exporters:
+    otlp_http:
+        auth:
+            authenticator: headers_setter
+        headers:
+            X-SF-Token: ${SPLUNK_ACCESS_TOKEN}
+        sending_queue:
+            num_consumers: 32
+        traces_endpoint: ${SPLUNK_INGEST_URL}/v2/trace/otlp
+    otlp_http/entities:
+        auth:
+            authenticator: headers_setter
+        headers:
+            X-SF-Token: ${SPLUNK_ACCESS_TOKEN}
+        logs_endpoint: ${SPLUNK_INGEST_URL}/v3/event
+    signalfx:
+        access_token: ${SPLUNK_ACCESS_TOKEN}
+        realm: ${SPLUNK_REALM}
+        sending_queue:
+            num_consumers: 32
+    signalfx/internal:
+        access_token: ${SPLUNK_ACCESS_TOKEN}
+        realm: ${SPLUNK_REALM}
+        sync_host_metadata: true
+    splunk_hec:
+        endpoint: ${SPLUNK_HEC_URL}
+        profiling_data_enabled: false
+        source: otel
+        sourcetype: otel
+        token: ${SPLUNK_HEC_TOKEN}
+    splunk_hec/profiling:
+        endpoint: ${SPLUNK_INGEST_URL}/v1/log
+        log_data_enabled: false
+        token: ${SPLUNK_ACCESS_TOKEN}
+extensions:
+    headers_setter:
+        headers:
+            - action: upsert
+              default_value: ${SPLUNK_ACCESS_TOKEN}
+              from_context: X-SF-TOKEN
+              key: X-SF-TOKEN
+    health_check:
+        endpoint: ${SPLUNK_LISTEN_INTERFACE}:13133
+    http_forwarder:
+        egress:
+            endpoint: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
+        ingress:
+            endpoint: ${SPLUNK_LISTEN_INTERFACE}:6060
+    http_forwarder/opamp_splunk_o11y:
+        egress:
+            endpoint: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
+        ingress:
+            endpoint: ${SPLUNK_LISTEN_INTERFACE}:4320
+    http_forwarder/signalfx:
+        egress:
+            endpoint: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
+        ingress:
+            endpoint: ${SPLUNK_LISTEN_INTERFACE}:9943
+    opamp/splunk_o11y:
+        server:
+            http:
+                endpoint: ${SPLUNK_INGEST_URL}/v1/opamp
+                headers:
+                    X-SF-Token: ${SPLUNK_ACCESS_TOKEN}
+                polling_interval: 30s
+    zpages:
+        endpoint: ${SPLUNK_LISTEN_INTERFACE}:55679
+        expvar:
+            enabled: true
+processors:
+    batch:
+        metadata_keys:
+            - X-SF-Token
+    memory_limiter:
+        check_interval: 2s
+        limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+    resource/add_mode:
+        attributes:
+            - action: insert
+              key: otelcol.service.mode
+              value: gateway
+    resourcedetection/internal:
+        detectors:
+            - gcp
+            - ecs
+            - ec2
+            - azure
+            - system
+        override: true
+receivers:
+    jaeger:
+        protocols:
+            grpc:
+                endpoint: ${SPLUNK_LISTEN_INTERFACE}:14250
+            thrift_binary:
+                endpoint: ${SPLUNK_LISTEN_INTERFACE}:6832
+            thrift_compact:
+                endpoint: ${SPLUNK_LISTEN_INTERFACE}:6831
+            thrift_http:
+                endpoint: ${SPLUNK_LISTEN_INTERFACE}:14268
+    otlp:
+        protocols:
+            grpc:
+                endpoint: ${SPLUNK_LISTEN_INTERFACE}:4317
+            http:
+                endpoint: ${SPLUNK_LISTEN_INTERFACE}:4318
+    prometheus/internal:
+        config:
+            scrape_configs:
+                - job_name: otel-collector
+                  metric_relabel_configs:
+                    - action: drop
+                      regex: promhttp_metric_handler_errors.*
+                      source_labels:
+                        - __name__
+                    - action: drop
+                      regex: otelcol_processor_batch_.*
+                      source_labels:
+                        - __name__
+                  scrape_interval: 10s
+                  static_configs:
+                    - targets:
+                        - 0.0.0.0:8888
+    zipkin:
+        endpoint: ${SPLUNK_LISTEN_INTERFACE}:9411
+service:
+    extensions:
+        - headers_setter
+        - health_check
+        - http_forwarder
+        - http_forwarder/opamp_splunk_o11y
+        - http_forwarder/signalfx
+        - opamp/splunk_o11y
+        - zpages
+    pipelines:
+        logs:
+            exporters:
+                - splunk_hec
+                - splunk_hec/profiling
+            processors:
+                - memory_limiter
+                - batch
+            receivers:
+                - routing/logs
+        logs/entities:
+            exporters:
+                - otlp_http/entities
+            processors:
+                - memory_limiter
+                - batch
+            receivers:
+                - routing/logs
+        logs/split:
+            exporters:
+                - routing/logs
+            receivers:
+                - otlp
+        metrics:
+            exporters:
+                - signalfx
+            processors:
+                - memory_limiter
+                - batch
+            receivers:
+                - otlp
+        metrics/internal:
+            exporters:
+                - signalfx/internal
+            processors:
+                - memory_limiter
+                - batch
+                - resourcedetection/internal
+                - resource/add_mode
+            receivers:
+                - prometheus/internal
+        traces:
+            exporters:
+                - otlp_http
+            processors:
+                - memory_limiter
+                - batch
+            receivers:
+                - jaeger
+                - otlp
+                - zipkin
+    telemetry:
+        logs:
+            level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+        metrics:
+            readers:
+                - pull:
+                    exporter:
+                        prometheus:
+                            host: 127.0.0.1
+                            port: 8888

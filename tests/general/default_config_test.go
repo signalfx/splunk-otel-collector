@@ -540,7 +540,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"otlp_http", "signalfx"},
+							"exporters":  []any{"otlp_http"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},

@@ -1,0 +1,593 @@
+exporters:
+    splunk_hec:
+        endpoint: ${SPLUNK_HEC_URL}
+        profiling_data_enabled: false
+        source: otel
+        sourcetype: otel
+        token: ${SPLUNK_HEC_TOKEN}
+    splunk_hec/profiling:
+        endpoint: ${SPLUNK_INGEST_URL}/v1/log
+        log_data_enabled: false
+        token: ${SPLUNK_ACCESS_TOKEN}
+extensions:
+    file_storage/filelogs:
+        compaction:
+            directory: /tmp/
+            on_start: true
+        create_directory: true
+        directory: ${SPLUNK_FILE_STORAGE_EXTENSION_PATH}
+    health_check:
+        endpoint: ${SPLUNK_LISTEN_INTERFACE}:13133
+processors:
+    batch:
+        metadata_keys:
+            - X-SF-Token
+    memory_limiter:
+        check_interval: 2s
+        limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+receivers:
+    file_log/apache-access:
+        include:
+            - /var/log/apache*/access.log
+            - /var/log/apache*/access_log
+            - /var/log/httpd/access.log
+            - /var/log/httpd/access_log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+) "(?P<referer>.+)" "(?P<agent>.+)"$
+              timestamp:
+                layout: '%d/%b/%Y:%H:%M:%S %z'
+                parse_from: attributes.time
+              type: regex_parser
+        storage: file_storage/filelogs
+    file_log/apache-error:
+        include:
+            - /var/log/apache*/error.log
+            - /var/log/apache*/error_log
+            - /var/log/httpd/error.log
+            - /var/log/httpd/error_log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^\[(?P<time>.+?)\] \[(?P<module>\w+):(?P<level>\w+)\] \[pid (?P<pid>\d+):tid (?P<tid>\d+)\] (?P<log>.*)$
+              severity:
+                mapping:
+                    error2: crit
+                    error3: alert
+                    fatal: emerg
+                    info2: notice
+                parse_from: attributes.level
+              timestamp:
+                layout: '%c'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.module
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/cassandra:
+        include:
+            - /var/log/cassandra/cassandra.log
+            - /var/log/cassandra/system.log
+        include_file_name: false
+        include_file_path: true
+        multiline:
+            line_start_pattern: ^[A-Z]+\s+\[[\w:]+\]\s\d
+        operators:
+            - regex: ^(?P<level>\w+) +\[(?P<thread>[\w:]+)\] (?P<time>.+) (?P<source_file>\S+):(?P<source_line>\d+) - (?P<log>[\s\S]*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.thread
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/cassandra-debug:
+        include:
+            - /var/log/cassandra/debug.log
+        include_file_name: false
+        include_file_path: true
+        multiline:
+            line_start_pattern: ^[A-Z]+\s+\[[\w:]+\]\s\d
+        operators:
+            - regex: ^(?P<level>\w+) +\[(?P<thread>[\w:]+)\] (?P<time>.+) (?P<source_file>\S+):(?P<source_line>\d+) - (?P<log>[\s\S]*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.thread
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/cassandra-output:
+        include:
+            - /var/log/cassandra/output.log
+        include_file_name: false
+        include_file_path: true
+        storage: file_storage/filelogs
+    file_log/docker:
+        include:
+            - /var/lib/docker/containers/*/*-json.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - timestamp:
+                layout: '%Y-%m-%dT%H:%M:%S.%fZ'
+                parse_from: attributes.time
+              type: json_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.stream
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/etcd:
+        include:
+            - /var/log/etcd.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<time>.+?) (?P<level>\w) \| (?P<log>.*)$
+              severity:
+                mapping:
+                    debug: D
+                    error: E
+                    fatal: C
+                    info: I
+                    info2: "N"
+                    trace: T
+                    warning: W
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/jetty9:
+        include:
+            - /var/log/jetty9/*.jetty.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: '^(?P<time>[\d-]{10} [\d:.]{12}):(?P<level>\w+):(?P<class>[\w.]+):(?P<thread>[\w:]+?): (?P<log>.*)$'
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S.%L'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/jetty9-debug:
+        include:
+            - /var/log/jetty9/*.debug.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<time>\d{2}:\d{2}:\d{2}\.\d{3}):(?P<log>.*)$
+              timestamp:
+                layout: '%H:%M:%S.%L'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/jetty9-request:
+        include:
+            - /var/log/jetty9/*.request.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+)$
+              timestamp:
+                layout: '%d/%b/%Y:%H:%M:%S %z'
+                parse_from: attributes.time
+              type: regex_parser
+        storage: file_storage/filelogs
+    file_log/memcached:
+        include:
+            - /var/log/memcached.log
+        include_file_name: false
+        include_file_path: true
+        storage: file_storage/filelogs
+    file_log/mongodb:
+        include:
+            - /var/log/mongodb/*.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - severity:
+                mapping:
+                    debug: D1
+                    debug2: D2
+                    debug3: D3
+                    debug4: D4
+                    error: E
+                    fatal: F
+                    info: I
+                    warning: W
+                parse_from: attributes.s
+              timestamp:
+                layout: '%Y-%m-%dT%H:%M:%S.%L%z'
+                parse_from: attributes.t.$$date
+              type: json_parser
+            - from: attributes.msg
+              to: body
+              type: move
+            - fields:
+                - attributes.ctx
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/mysql-error:
+        include:
+            - /var/log/mysql/error.log
+        include_file_name: false
+        include_file_path: true
+        multiline:
+            line_start_pattern: ^[\w-]+ [\d:.]+ \w+ \[\w+\]
+        operators:
+            - regex: ^(?P<time>.+?) \d+ \[(?P<level>\w+)\] (?P<log>[\s\S]*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/mysql-query:
+        include:
+            - /var/log/mysql.log
+            - /var/log/mysql/mysql.log
+        include_file_name: false
+        include_file_path: true
+        multiline:
+            line_start_pattern: ^\d{6} [\d:.]+
+        operators:
+            - routes:
+                - expr: body matches "^\\d+"
+                  output: parse_query_log
+              type: router
+            - id: parse_query_log
+              regex: ^(?P<time>\d{6} [\d:.]+)\s+(?P<log>[\s\S]*)$
+              timestamp:
+                layout: '%y%m%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/mysql-slow_query:
+        include:
+            - /var/log/mysql/mysql-slow.log
+            - /var/log/mysql/mariadb-slow.log
+        include_file_name: false
+        include_file_path: true
+        multiline:
+            line_start_pattern: '^# Time: '
+        storage: file_storage/filelogs
+    file_log/nginx-access:
+        include:
+            - /var/log/nginx/access.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+) "(?P<referer>.+)" "(?P<agent>.+)"$
+              timestamp:
+                layout: '%d/%b/%Y:%H:%M:%S %z'
+                parse_from: attributes.time
+              type: regex_parser
+        storage: file_storage/filelogs
+    file_log/nginx-error:
+        include:
+            - /var/log/nginx/error.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: '^(?P<time>.+?) \[(?P<level>\w+)\] (?P<pid>\d+)#(?P<tid>\d+): (?P<log>.*)$'
+              severity:
+                mapping:
+                    error2: crit
+                    error3: alert
+                    fatal: emerg
+                    info2: notice
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y/%m/%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/postgresql:
+        include:
+            - /var/log/postgres*/*.log
+            - /var/log/pgsql/*.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<time>.+?) \[(?P<pid>\d+)\] (?P<log>.*)$
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S.%L %Z'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/rabbitmq:
+        include:
+            - /var/log/rabbitmq/rabbit@*.log
+        include_file_name: false
+        include_file_path: true
+        multiline:
+            line_start_pattern: ^[\w-]+ [\d:.]+ \[\w+\]
+        operators:
+            - regex: ^(?P<time>.+?) \[(?P<level>\w+)\] <(?P<erlang_pid>[\d.]+)> (?P<log>[\s\S]*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S.%L'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/rabbitmq-startup:
+        include:
+            - /var/log/rabbitmq/startup_log
+            - /var/log/rabbitmq/rabbitmq-server.log
+        include_file_name: false
+        include_file_path: true
+        storage: file_storage/filelogs
+    file_log/rabbitmq-startup_err:
+        include:
+            - /var/log/rabbitmq/startup_err
+            - /var/log/rabbitmq/rabbitmq-server.error.log
+        include_file_name: false
+        include_file_path: true
+        storage: file_storage/filelogs
+    file_log/redis:
+        include:
+            - /var/log/redis*.log
+            - /var/log/redis/*.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - routes:
+                - expr: body matches "^[0-9]+:[\\w-]+ \\([0-9]+\\) .*$"
+                  output: parse_handler_log
+                - expr: body matches "^[0-9]+:[A-Z] .*$"
+                  output: parse_server_log
+              type: router
+            - id: parse_server_log
+              output: move_log
+              regex: ^(?P<pid>\d+):(?P<role>\S*) (?P<time>.+?) (?P<level>.) (?P<log>.*)$
+              severity:
+                mapping:
+                    debug: .
+                    info: '*'
+                    info2: '-'
+                    warning: '#'
+                parse_from: attributes.level
+              timestamp:
+                layout: '%d %b %Y %H:%M:%S.%L'
+                parse_from: attributes.time
+              type: regex_parser
+            - id: parse_handler_log
+              regex: ^(?P<pid>\d+):(?P<role>\S*) \((?P<time>\d+)\) (?P<log>.*)$
+              timestamp:
+                layout: s
+                layout_type: epoch
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              id: move_log
+              to: body
+              type: move
+            - fields:
+                - attributes.role
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/syslog:
+        include:
+            - /var/log/syslog
+            - /var/log/messages
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: '^(?P<time>.+?) (?P<hostname>\S+) (?P<program>[^ :\[]+)\[?(?P<pid>\d+)?\]?: (?P<log>.*)$'
+              timestamp:
+                layout: '%b %e %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.program
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/tomcat:
+        include:
+            - /var/log/tomcat*/catalina.*.log
+            - /var/log/tomcat*/localhost.*.log
+        include_file_name: false
+        include_file_path: true
+        multiline:
+            line_start_pattern: ^[\w-]+ [\d:.]+ \w+ \[[\w:-]+\]
+        operators:
+            - regex: ^(?P<time>.+?) (?P<level>\w+) \[(?P<thread>[\w:-]+)\] (?P<function>\S+) (?P<log>[\s\S]*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%d-%b-%Y %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.thread
+                - attributes.function
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/tomcat-localhost_access_log:
+        include:
+            - /var/log/tomcat*/localhost_access_log.*.txt
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+)$
+              timestamp:
+                layout: '%d/%b/%Y:%H:%M:%S %z'
+                parse_from: attributes.time
+              type: regex_parser
+        storage: file_storage/filelogs
+    file_log/tomcat-out:
+        include:
+            - /var/log/tomcat*/catalina.out
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^\[(?P<time>.+?)\] \[(?P<level>\w+)\] (?P<log>.*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/zookeeper:
+        include:
+            - /var/log/zookeeper/zookeeper.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<time>.+?) - (?P<level>\w+) +\[(?P<thread>[\w:]+?):(?P<class>\w+)@(?P<line>\d+|\?)\] - (?P<log>.*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.thread
+                - attributes.class
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+    file_log/zookeeper-trace:
+        include:
+            - /var/log/zookeeper/zookeeper_trace.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+            - regex: ^(?P<time>.+?) - (?P<level>\w+) +\[(?P<thread>[\w:]+?):(?P<class>\w+)@(?P<line>\d+|\?)\]\[(?P<context>.+?)?\] - (?P<log>.*)$
+              severity:
+                parse_from: attributes.level
+              timestamp:
+                layout: '%Y-%m-%d %H:%M:%S'
+                parse_from: attributes.time
+              type: regex_parser
+            - from: attributes.log
+              to: body
+              type: move
+            - fields:
+                - attributes.thread
+                - attributes.class
+                - attributes["log.file.path"]
+              type: retain
+        storage: file_storage/filelogs
+service:
+    extensions:
+        - health_check
+        - file_storage/filelogs
+    pipelines:
+        logs:
+            exporters:
+                - splunk_hec
+                - splunk_hec/profiling
+            processors:
+                - memory_limiter
+                - batch
+            receivers:
+                - file_log/syslog
+    telemetry:
+        logs:
+            level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+        metrics:
+            readers:
+                - pull:
+                    exporter:
+                        prometheus:
+                            host: 127.0.0.1
+                            port: 8888

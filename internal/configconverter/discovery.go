@@ -34,7 +34,11 @@ func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 	}
 
 	out := in.ToStringMap()
-	service, serviceExtensions, err := getServiceExtensions(out)
+	service, err := getService(out)
+	if err != nil {
+		return err
+	}
+	serviceExtensions, err := getExtensionsFromService(service)
 	if err != nil {
 		return err
 	}
@@ -98,24 +102,6 @@ func setAutoDiscoveryResourceAttribute(service map[string]any) {
 	resAttrs["splunk_autodiscovery"] = "true"
 }
 
-func getServiceExtensions(out map[string]any) (map[string]any, []any, error) {
-	service := map[string]any{}
-	var serviceExtensions []any
-	if s, hasService := out["service"]; hasService && s != nil {
-		var ok bool
-		if service, ok = s.(map[string]any); !ok {
-			return nil, nil, fmt.Errorf("service is of unexpected form (%T): %v", s, s)
-		}
-		if ses, hasExtensions := service["extensions"]; hasExtensions && ses != nil {
-			var err error
-			if serviceExtensions, err = toAnySlice(ses); err != nil {
-				return nil, nil, fmt.Errorf("cannot determine service extensions: %w", err)
-			}
-		}
-	}
-	return service, serviceExtensions, nil
-}
-
 func getDiscoExtensions(service map[string]any) (bool, []any, error) {
 	var isSet bool
 	var extensions []any
@@ -142,23 +128,6 @@ func getDiscoReceivers(service map[string]any) (bool, []any, error) {
 		}
 	}
 	return isSet, receivers, nil
-}
-
-func getMetricsPipelineAndReceivers(pipelines map[string]any) (map[string]any, []any, error) {
-	metricsPipeline := map[string]any{}
-	if mp, ok := pipelines["metrics"]; ok && mp != nil {
-		metricsPipeline = mp.(map[string]any)
-	}
-	pipelines["metrics"] = metricsPipeline
-
-	var metricsReceivers []any
-	if mr, ok := metricsPipeline["receivers"]; ok && mr != nil {
-		var err error
-		if metricsReceivers, err = toAnySlice(mr); err != nil {
-			return nil, nil, fmt.Errorf("cannot determine metrics pipeline receivers: %w", err)
-		}
-	}
-	return metricsPipeline, metricsReceivers, nil
 }
 
 func setEntitiesPipelineReceivers(pipelines map[string]any, discoReceivers []any) {
@@ -191,19 +160,4 @@ func appendUnique(serviceComponents, discoComponents []any) []any {
 		}
 	}
 	return serviceComponents
-}
-
-func toAnySlice(s any) ([]any, error) {
-	var out []any
-	switch v := s.(type) {
-	case []any:
-		out = v
-	case []string:
-		for _, i := range v {
-			out = append(out, i)
-		}
-	default:
-		return nil, fmt.Errorf("unexpected form %T", s)
-	}
-	return out, nil
 }

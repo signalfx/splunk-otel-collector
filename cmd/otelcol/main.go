@@ -107,6 +107,7 @@ func runFromCmdLine(args []string) {
 		configconverter.ConverterFactoryFromConverter(dryRun),
 		configconverter.ConverterFactoryFromFunc(configconverter.InjectConfigSourceTelemetryExtension),
 		configconverter.ConverterFactoryFromFunc(configconverter.RemoveSplunkOpAMPIfFeatureGateDisabled),
+		configconverter.ConverterFactoryFromFunc(configconverter.DropSignalFxTracesExporterIfFeatureGateEnabled),
 		configconverter.ConverterFactoryFromConverter(expvarConverter)) // `expvarConverter` must be last to expose the effective config correctly
 
 	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{expvarConverter, dryRun, telemetryHook})

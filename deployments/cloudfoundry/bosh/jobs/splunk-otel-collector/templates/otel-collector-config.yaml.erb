@@ -45,7 +45,7 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [cloudfoundry]
+      receivers: [cloud_foundry]
       processors: [resource]
       exporters: [signalfx]
 <% end %>

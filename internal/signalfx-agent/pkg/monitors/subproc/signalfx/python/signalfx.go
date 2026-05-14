@@ -1,6 +1,6 @@
-// Package python contains a subproc implementation that works better with
-// SignalFx datapoint than the collectd/python monitor, the latter being
-// constrained to the collectd python interface.
+// Package python contains a subproc implementation that works with the
+// SignalFx datapoint protocol directly instead of the legacy collectd-style
+// Python monitor interface.
 package python
 
 import (

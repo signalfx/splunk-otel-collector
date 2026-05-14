@@ -6,8 +6,6 @@ class splunk_otel_collector (
   $splunk_api_url          = "https://api.${splunk_realm}.observability.splunkcloud.com",
   $splunk_hec_url          = "${splunk_ingest_url}/v1/log",
   $splunk_hec_token        = $splunk_access_token,
-  $splunk_bundle_dir       = $splunk_otel_collector::params::splunk_bundle_dir,
-  $splunk_collectd_dir     = $splunk_otel_collector::params::splunk_collectd_dir,
   $splunk_memory_total_mib = '512',
   $splunk_listen_interface = '',
   $collector_command_line_args = '',

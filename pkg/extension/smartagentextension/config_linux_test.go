@@ -48,5 +48,5 @@ func TestBundleDirDefault(t *testing.T) {
 	saConfigProvider, ok := ext.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
-	require.Equal(t, "/usr/lib/splunk-otel-collector/agent-bundle", saConfigProvider.SmartAgentConfig().BundleDir)
+	require.Empty(t, saConfigProvider.SmartAgentConfig().BundleDir)
 }

@@ -17,7 +17,6 @@ package smartagentextension
 import (
 	"context"
 	"path"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -58,21 +57,12 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, componenttest.CheckConfigStruct(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
-		c.BundleDir = "/opt/bin/collectd/"
+		c.BundleDir = "/opt/bin/agent/"
 		c.ProcPath = "/my_proc"
 		c.EtcPath = "/my_etc"
 		c.VarPath = "/my_var"
 		c.RunPath = "/my_run"
 		c.SysPath = "/my_sys"
-		c.Collectd.ReadThreads = 1
-		c.Collectd.WriteThreads = 4
-		c.Collectd.WriteQueueLimitHigh = 5
-		c.Collectd.WriteQueueLimitLow = 1
-		c.Collectd.IntervalSeconds = 5
-		c.Collectd.WriteServerIPAddr = "10.100.12.1"
-		c.Collectd.WriteServerPort = 9090
-		c.Collectd.ConfigDir = "/etc/"
-		c.Collectd.BundleDir = "/opt/bin/collectd/"
 		return &c
 	}(), allSettingsConfig)
 
@@ -87,11 +77,6 @@ func TestLoadConfig(t *testing.T) {
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
 		c.BundleDir = "/opt/"
-		c.Collectd.ReadThreads = 1
-		c.Collectd.WriteThreads = 4
-		c.Collectd.WriteQueueLimitHigh = 5
-		c.Collectd.ConfigDir = "/var/run/signalfx-agent/collectd"
-		c.Collectd.BundleDir = "/opt/"
 		return &c
 	}(), partialSettingsConfig)
 }
@@ -119,22 +104,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	saConfigProvider, ok := ext.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
-	require.Equal(t, func() saconfig.CollectdConfig {
-		return saconfig.CollectdConfig{
-			Timeout:             40,
-			LogLevel:            "notice",
-			ReadThreads:         1,
-			WriteThreads:        4,
-			WriteQueueLimitHigh: 5,
-			WriteQueueLimitLow:  1,
-			IntervalSeconds:     5,
-			WriteServerIPAddr:   "10.100.12.1",
-			WriteServerPort:     9090,
-			BundleDir:           "/opt/bin/collectd/",
-			ConfigDir:           "/etc/",
-		}
-	}(), saConfigProvider.SmartAgentConfig().Collectd)
-	require.Equal(t, "/opt/bin/collectd/", saConfigProvider.SmartAgentConfig().BundleDir)
+	require.Equal(t, "/opt/bin/agent/", saConfigProvider.SmartAgentConfig().BundleDir)
 }
 
 func TestLoadInvalidConfig(t *testing.T) {
@@ -156,19 +126,6 @@ func defaultConfig() Config {
 			VarPath:   "/var",
 			RunPath:   "/run",
 			SysPath:   "/sys",
-			Collectd: saconfig.CollectdConfig{
-				Timeout:             40,
-				LogLevel:            "notice",
-				ReadThreads:         5,
-				WriteThreads:        2,
-				WriteQueueLimitHigh: 500000,
-				WriteQueueLimitLow:  400000,
-				IntervalSeconds:     10,
-				WriteServerIPAddr:   "127.9.8.7",
-				WriteServerPort:     0,
-				ConfigDir:           filepath.Join(bundleDir, "run", "collectd"),
-				BundleDir:           bundleDir,
-			},
 		},
 	}
 }

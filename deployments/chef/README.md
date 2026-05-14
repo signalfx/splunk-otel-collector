@@ -116,24 +116,6 @@ required `splunk_access_token` attribute and some optional attributes:
 - `package_stage`: The Collector package repository stage to use.  Can be
   `release`, `beta`, or `test`. (**default:** `release`)
 
-- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
-  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
-  The default path is provided by the Collector package. If the specified path
-  is changed from the default value, the path should be an existing directory
-  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the Collector service. (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle` on Windows)
-
-- `splunk_collectd_dir`: The path to the collectd config directory for the
-  Smart Agent bundle. The default path is provided by the Collector package.
-  If the specified path is changed from the default value, the path should be
-  an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the Collector service.
-  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`
-  on Windows)
-
 - `collector_additional_env_vars`: Hash of additional environment variables
   from the collector configuration file for the collector service
   (**default:** `{}`).

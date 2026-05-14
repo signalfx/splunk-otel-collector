@@ -13,15 +13,6 @@ concurrency:
 env:
   GO_VERSION: 1.26.3
 jobs:
-  agent-bundle-linux:
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64" ]
-      fail-fast: false
-    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
-    with:
-      ARCH: ${{ matrix.ARCH }}
-
   otelcol:
     runs-on: ubuntu-24.04
     strategy:
@@ -45,7 +36,7 @@ jobs:
   docker-otelcol:
     name: docker-otelcol
     runs-on: ubuntu-24.04
-    needs: [ "agent-bundle-linux", "otelcol" ]
+    needs: [ "otelcol" ]
     services:
       # Start a local registry for pushing the multiarch manifest and images
       registry:
@@ -67,11 +58,6 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: agent-bundle-linux-*
-          merge-multiple: true
-          path: ./dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
           pattern: otelcol-*
           merge-multiple: true
           path: ./bin
@@ -85,7 +71,7 @@ jobs:
         with:
           driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
           driver-opts: network=host  # Required for the builder to push to the local registry service
-      - run: make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
+      - run: make docker-otelcol SKIP_COMPILE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
         env:
           MULTIARCH_OTELCOL_BUILDER: ${{ steps.multiarch-otelcol-builder.outputs.name }}  # Use the builder created by the docker/setup-buildx-action step
       - name: Save image archive for each platform to be loaded by downstream jobs
@@ -209,6 +195,10 @@ jobs:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v10.2.1
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+      - name: Add shell utilities to otelcol image for integration tests
+        run: |
+          printf 'FROM busybox:musl AS busybox\nFROM otelcol:latest\nCOPY --from=busybox /bin/sh /bin/sh\nCOPY --from=busybox /bin/echo /bin/echo\n' | \
+            docker buildx build --load --platform linux/${{ matrix.ARCH }} -t otelcol:latest -
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
       # Pre-build the telegraf-exec test image using buildx
@@ -257,7 +247,7 @@ jobs:
 
   integration-test-binary:
     runs-on: ${{ matrix.RUNNER }}
-    needs: [ "agent-bundle-linux", "otelcol" ]
+    needs: [ "otelcol" ]
     strategy:
       matrix:
         RUNNER: [ "ubuntu-22.04", "ubuntu-24.04" ]
@@ -291,15 +281,6 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          pattern: agent-bundle-linux-amd64
-          merge-multiple: true
-          path: ./dist
-      - run: sudo mkdir -p /usr/lib/splunk-otel-collector
-      - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
-      - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
-      - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: otelcol-amd64
@@ -338,57 +319,6 @@ jobs:
           fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  integration-test-openstack:
-    runs-on: ubuntu-24.04
-    needs: [ "agent-bundle-linux", "otelcol" ]
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-      - name: Deploy devstack
-        uses: gophercloud/devstack-action@60ca1042045c0c9e3e001c64575d381654ffcba1 # v0.19
-        with:
-          branch: stable/2025.1
-          enabled_services: '-n-novnc,-etcd3'
-          conf_overrides: |
-            HOST_IP=127.0.0.1
-            IP_VERSION=4
-            SERVICE_IP_VERSION=4
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          pattern: agent-bundle-linux-amd64
-          merge-multiple: true
-          path: ./dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: otelcol-amd64
-          path: ./bin
-      - run: sudo mkdir -p /usr/lib/splunk-otel-collector
-      - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
-      - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
-      - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-      - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
-      - run: chmod a+x ./bin/*
-      - name: Run OpenStack Integration Test
-        run: |
-          set -o pipefail
-          make openstack-integration-test 2>&1
-          exit_status=${PIPESTATUS[0]}
-          echo "Exit status: $exit_status"
-          exit "$exit_status"
-      - name: Upload Received Metrics as Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
-        with:
-          name: openstack-received-metrics
-          path: tests/receivers/smartagent/collectd-openstack/testdata/received_*.yaml
-          if-no-files-found: ignore
-          retention-days: 5
 
   integration-test-discovery-matrix:
     runs-on: ubuntu-24.04
@@ -448,6 +378,11 @@ jobs:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
         - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+        - name: Add Java if required by the discovery test configuration (e.g. for JMX tests)
+          if: matrix.SERVICE == 'jmx/cassandra'
+          run: |
+            docker buildx build --load --platform linux/${{ matrix.ARCH }} -t otelcol:latest \
+              -f ./tests/receivers/jmx/cassandra/Dockerfile .
         - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover

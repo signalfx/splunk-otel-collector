@@ -64,8 +64,6 @@ gateway_config_path="${collector_config_dir}/gateway_config.yaml"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
-collector_bundle_dir="/usr/lib/splunk-otel-collector/agent-bundle"
-collectd_config_dir="${collector_bundle_dir}/run/collectd"
 distro="$( get_distro )"
 distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
@@ -1884,16 +1882,6 @@ parse_args_and_install() {
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
-  if [ -d "$collector_bundle_dir" ]; then
-    configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
-    # ensure the collector service owner has access to the bundle dir
-    chown -R $service_user:$service_group "$(dirname $collector_bundle_dir)"
-  fi
-  if [ -d "$collectd_config_dir" ]; then
-    configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
-    # ensure the collector service owner has access to the collectd dir
-    chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
-  fi
 
   if [ "$discovery" = "true" ]; then
     configure_env_file "OTELCOL_OPTIONS" "--discovery" "$collector_env_path"

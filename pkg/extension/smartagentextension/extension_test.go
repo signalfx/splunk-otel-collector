@@ -32,10 +32,6 @@ func TestExtensionLifecycle(t *testing.T) {
 	cfg := &Config{
 		Config: config.Config{
 			BundleDir: "/bundle/",
-			Collectd: config.CollectdConfig{
-				Timeout:   10,
-				ConfigDir: "/config/",
-			},
 		},
 	}
 

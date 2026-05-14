@@ -87,23 +87,6 @@ $> ansible-playbook playbook.yaml -e start_service=false
   config, e.g. `./custom_collector_config.yaml`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_otel_collector_config` will be used)
 
-- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
-  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
-  The default path is provided by the collector package. If the specified path
-  is changed from the default value, the path should be an existing directory
-  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the collector service. (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle` on Linux, **default:** 
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle` on Windows)
-
-- `splunk_collectd_dir`: The path to the collectd config directory for the
-  Smart Agent bundle. The default path is provided by the collector package.
-  If the specified path is changed from the default value, the path should be
-  an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the collector service.
-  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  **default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd` on Windows)
-
 - `splunk_service_user` and `splunk_service_group` (Linux only): Set the user/group
   ownership for the collector service. The user/group will be created if they
   do not exist. (**default:** `splunk-otel-collector`)

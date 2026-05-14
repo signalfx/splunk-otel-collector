@@ -422,12 +422,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 							},
 						},
 					},
-					"smartagent": map[string]any{
-						"bundleDir": "/usr/lib/splunk-otel-collector/agent-bundle",
-						"collectd": map[string]any{
-							"configDir": "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd",
-						},
-					},
 					"zpages": map[string]any{
 						"expvar": map[string]any{
 							"enabled": true,
@@ -517,7 +511,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "smartagent", "config_source_telemetry"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
@@ -574,8 +568,8 @@ func TestDefaultAgentConfig(t *testing.T) {
 
 			require.Eventually(t, func() bool {
 				for _, log := range tc.ObservedLogs.All() {
-					// confirm the smartagent extension's config has been sourced by receiver instance.
-					if strings.Contains(log.Message, "Smart Agent Config provider configured") {
+					// confirm all components were loaded successfully
+					if strings.Contains(log.Message, "Everything is ready. Begin running and processing data.") {
 						return true
 					}
 				}

@@ -19,12 +19,6 @@ COPY config/collector/ecs_ec2_config.yaml ./
 
 WORKDIR "C:\\Program Files\Splunk\OpenTelemetry Collector"
 
-# Copy and extract the agent bundle
-COPY agent-bundle_windows_amd64.zip ./agent-bundle_windows_amd64.zip
-RUN Add-Type -AssemblyName System.IO.Compression.FileSystem ;\
-    [System.IO.Compression.ZipFile]::ExtractToDirectory('agent-bundle_windows_amd64.zip', '.')
-RUN Remove-Item agent-bundle_windows_amd64.zip -force
-
 # Download JMX Metric Gatherer
 ARG JMX_METRIC_GATHERER_RELEASE
 RUN New-Item -Path "C:\\" -Name "opt" -ItemType "directory"
@@ -43,7 +37,6 @@ RUN setx /M PATH $(${Env:PATH} + \";${Env:JAVA_PATH}\")
 # update otel-java/autoconfigure defaults to prevent undesired telemetry
 
 # Setting environment variables
-ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
 ENV SPLUNK_CONFIG="C:\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml"
 
 ENTRYPOINT [ "otelcol.exe" ]

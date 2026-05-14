@@ -24,16 +24,8 @@ if command -v setcap >/dev/null 2>&1; then
     setcap CAP_SYS_PTRACE,CAP_DAC_READ_SEARCH=+eip /usr/bin/otelcol
 fi
 
-if [ -f /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter ]; then
-    /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-fi
-
 if [ -d /etc/otel/collector ]; then
     chown -R splunk-otel-collector:splunk-otel-collector /etc/otel/collector
-fi
-
-if [ -d /usr/lib/splunk-otel-collector ]; then
-    chown -R splunk-otel-collector:splunk-otel-collector /usr/lib/splunk-otel-collector
 fi
 
 if command -v systemctl >/dev/null 2>&1; then

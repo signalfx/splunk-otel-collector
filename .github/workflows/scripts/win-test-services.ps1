@@ -46,7 +46,6 @@ $expected_svc_env_vars = @{
   "SPLUNK_INGEST_URL"       = "$ingest_url";
   "SPLUNK_HEC_URL"          = "${ingest_url}/v1/log";
   "SPLUNK_HEC_TOKEN"        = "$access_token";
-  "SPLUNK_BUNDLE_DIR"       = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector\agent-bundle";
 }
 
 if (![string]::IsNullOrWhitespace($memory)) {

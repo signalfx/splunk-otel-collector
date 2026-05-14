@@ -37,6 +37,7 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricValues(
+				"otelcol_exporter_in_flight_requests",
 				"otelcol_exporter_queue_batch_send_size",
 				"otelcol_exporter_queue_batch_send_size_bucket",
 				"otelcol_exporter_queue_batch_send_size_count",

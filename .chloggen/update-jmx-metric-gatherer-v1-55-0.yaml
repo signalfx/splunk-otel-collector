@@ -1,5 +1,0 @@
-change_type: enhancement
-component: packaging
-note: Update JMX metrics gatherer to v1.55.0
-issues: [7447]
-subtext: null

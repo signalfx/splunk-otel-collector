@@ -1,4 +1,87 @@
 receivers:
+  windowseventlog:
+    channel: Application
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+    # Excludes events from providers whose metadata DLL is not accessible
+    # to the collector process (e.g. Tenable Nessus Agent).
+    # Remove entries below if you want to collect those events despite the error.
+    exclude_providers:
+      - "Tenable Nessus Agent"
+
+  windowseventlog/security:
+    channel: Security
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+    # NOTE: Splunk blacklists the following with a message-body regex condition:
+    #   EventCode 4662 where Object Type != groupPolicyContainer
+    #   EventCode 566  where Object Type != groupPolicyContainer
+    # The exclude_events filter below drops ALL 4662/566 events — it cannot
+    # replicate the groupPolicyContainer exception. Use a filterprocessor
+    # with OTTL if you need conditional filtering.
+    #
+    # exclude_events:
+    #   - event_ids: [4662, 566]
+
+  windowseventlog/system:
+    channel: System
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
+  windowseventlog/printservice:
+    channel: Microsoft-Windows-PrintService/Operational
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
+  # --- Disabled in inputs.conf -------------------------------------------
+
+  # ForwardedEvents exists but is disabled — enable on WEF collectors only
+  # windowseventlog/forwardedevents:
+  #   channel: ForwardedEvents
+  #   start_at: beginning
+  #   raw: true
+
+  # DC-only channels — will silently no-op on non-DC machines due to ignore_channel_errors
+  windowseventlog/dfs_replication:
+    channel: DFS Replication
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
+  windowseventlog/directory_service:
+    channel: Directory Service
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
+  windowseventlog/file_replication:
+    channel: File Replication Service
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
+  windowseventlog/dns_server:
+    channel: DNS Server
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
+  windowseventlog/key_management:
+    channel: Key Management Service
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
+  windowseventlog/defender:
+    channel: Microsoft-Windows-Windows Defender/Operational
+    start_at: beginning
+    raw: true
+    ignore_channel_errors: true
+
   filelog/dhcp:
     include:
       - 'C:\Windows\System32\DHCP\DhcpSrvLog*'
@@ -104,6 +187,16 @@ service:
   pipelines:
     logs:
       receivers:
+        - windowseventlog
+        - windowseventlog/security
+        - windowseventlog/system
+        - windowseventlog/printservice
+        - windowseventlog/dfs_replication
+        - windowseventlog/directory_service
+        - windowseventlog/file_replication
+        - windowseventlog/dns_server
+        - windowseventlog/key_management
+        - windowseventlog/defender
         - filelog/dhcp
         - filelog/windowsupdate_legacy
         - filelog/netlogon

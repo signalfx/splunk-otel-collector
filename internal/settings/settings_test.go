@@ -693,6 +693,197 @@ func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {
 	require.Equal(t, path, nonDefaultPath)
 }
 
+// Unit tests for warnDeprecatedSignalfxURLs
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenURLsNotSet(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsAPIURLTriggersWarning(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	warnDeprecatedSignalfxURLs()
+
+	output := logBuf.String()
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.NotContains(t, output, IngestURLEnvVar)
+}
+
+func TestWarnDeprecatedSignalfxURLsIngestURLTriggersWarning(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+	warnDeprecatedSignalfxURLs()
+
+	output := logBuf.String()
+	assert.Contains(t, output, IngestURLEnvVar)
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.NotContains(t, output, APIURLEnvVar)
+}
+
+func TestWarnDeprecatedSignalfxURLsBothURLsTriggerWarning(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+	warnDeprecatedSignalfxURLs()
+
+	output := logBuf.String()
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, IngestURLEnvVar)
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningForRecommendedDomain(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.observability.splunkcloud.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.observability.splunkcloud.com")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenAPIURLEmpty(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// SPLUNK_API_URL is explicitly set but to an empty string (ok=true, url="").
+	t.Setenv(APIURLEnvVar, "")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenIngestURLEmpty(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// SPLUNK_INGEST_URL is explicitly set but to an empty string (ok=true, url="").
+	t.Setenv(IngestURLEnvVar, "")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenOnlyAPIURLSetToRecommended(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// Only SPLUNK_API_URL is set; SPLUNK_INGEST_URL is absent.
+	t.Setenv(APIURLEnvVar, "https://api.us0.observability.splunkcloud.com")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenOnlyIngestURLSetToRecommended(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// Only SPLUNK_INGEST_URL is set; SPLUNK_API_URL is absent.
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.observability.splunkcloud.com")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+// Functional test: verifies the deprecation warning is logged end-to-end through setDefaultEnvVars.
+func TestDeprecatedSignalfxURLsWarningLoggedViaSetDefaultEnvVars(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+	require.NoError(t, setDefaultEnvVars(newSettings()))
+
+	output := logBuf.String()
+	assert.Contains(t, output, "deprecated")
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, IngestURLEnvVar)
+}
+
+// Functional test: verifies the deprecation warning is logged through the full New() collector
+// startup path when signalfx.com endpoints are configured.
+func TestDeprecatedSignalfxURLsWarningLoggedViaNew(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+
+	_, err := New([]string{})
+	require.NoError(t, err)
+
+	output := logBuf.String()
+	assert.Contains(t, output, "deprecated")
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, IngestURLEnvVar)
+}
+
 // to satisfy Settings generation
 func setRequiredEnvVars(t *testing.T) func() {
 	cleanup := clearEnv(t)

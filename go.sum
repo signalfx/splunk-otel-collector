@@ -2123,8 +2123,8 @@ go.etcd.io/etcd/api/v3 v3.6.6/go.mod h1:f/om26iXl2wSkcTA1zGQv8reJRSLVdoEBsi4JdfM
 go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/pkg/v3 v3.6.6 h1:uoqgzSOv2H9KlIF5O1Lsd8sW+eMLuV6wzE3q5GJGQNs=
 go.etcd.io/etcd/client/pkg/v3 v3.6.6/go.mod h1:YngfUVmvsvOJ2rRgStIyHsKtOt9SZI2aBJrZiWJhCbI=
-go.etcd.io/etcd/client/v2 v2.305.29 h1:+kh12p0fTZYoQZ3r6HtUQDXMt9m5TPvounG4FTQ7MIU=
-go.etcd.io/etcd/client/v2 v2.305.29/go.mod h1:fnA7a+n4s5D9iHGDSe5wLtMKio7hZ/zIX3QBLHeStM0=
+go.etcd.io/etcd/client/v2 v2.305.30 h1:K/bQAjoY68dMzaXz91NjE7tNB6rDfG2MDV6GFhtIzIA=
+go.etcd.io/etcd/client/v2 v2.305.30/go.mod h1:SSf99etNYabqXoARHtG6fIPkAwwsT8IBP32pvpVind8=
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
 go.mongodb.org/atlas v0.38.0 h1:zfwymq20GqivGwxPZfypfUDry+WwMGVui97z1d8V4bU=
 go.mongodb.org/atlas v0.38.0/go.mod h1:DJYtM+vsEpPEMSkQzJnFHrT0sP7ev6cseZc/GGjJYG8=

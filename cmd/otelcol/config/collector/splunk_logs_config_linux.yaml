@@ -4,14 +4,13 @@
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_PLATFORM_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_PLATFORM_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
+# - SPLUNK_PLATFORM_LOGS_INDEX: Splunk index to send logs to
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 #
 # The following environment variables are optional:
 # - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory used to store file offsets for filelog receivers,
 #   allowing receivers to resume after a collector restart. Must be writable by the collector.
 #   default: /var/lib/otelcol/filelogs
-# - SPLUNK_PLATFORM_LOGS_INDEX: Splunk index to send logs to. If not set, the default index configured
-#   on the logs token will be used.
 
 extensions:
   health_check:

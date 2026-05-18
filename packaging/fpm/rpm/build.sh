@@ -68,6 +68,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --config-files "$AGENT_CONFIG_INSTALL_PATH" \
     --config-files "$GATEWAY_CONFIG_INSTALL_PATH" \
     --config-files "$LOGS_CONFIG_INSTALL_PATH" \
+    --config-files "$METRICS_CONFIG_INSTALL_PATH" \
     "$buildroot/"=/
 
 rpm -qpli "${OUTPUT_DIR}/${PKG_NAME}-${VERSION}*.${ARCH}.rpm"

@@ -62,6 +62,7 @@ sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --config-files "$AGENT_CONFIG_INSTALL_PATH" \
     --config-files "$GATEWAY_CONFIG_INSTALL_PATH" \
     --config-files "$LOGS_CONFIG_INSTALL_PATH" \
+    --config-files "$METRICS_CONFIG_INSTALL_PATH" \
     "$buildroot/"=/
 
 dpkg -c "${OUTPUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"

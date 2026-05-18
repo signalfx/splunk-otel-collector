@@ -1124,8 +1124,8 @@ Collector:
 Splunk Platform:
   --splunk-platform-token <token>       Set the HEC token for sending data to Splunk Platform.
   --splunk-platform-url <url>           Set the Splunk Platform HEC endpoint URL.
-  --splunk-platform-logs-index <index>  Set the Splunk index to send logs to. Enables log collection.
-                                        If not set, the default index configured on the HEC token will be used.
+  --splunk-platform-logs-index <index>  Set the Splunk index to send logs to. This option enables Splunk Platform
+                                        log collection and must be specified when configuring logs via this installer.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the

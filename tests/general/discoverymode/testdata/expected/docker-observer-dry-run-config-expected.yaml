@@ -42,4 +42,6 @@ service:
     metrics:
       level: none
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"

@@ -33,7 +33,9 @@ receivers:
 service:
   telemetry:
     resource:
-      splunk_autodiscovery: "true"
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
     metrics:
       level: normal
       readers:

@@ -948,7 +948,6 @@ install() {
         install_collector_apt_repo "$stage"
       fi
       apt-get -y update
-      apt-get -y install libcap2-bin
       install_apt_package "splunk-otel-collector" "$collector_version"
       if [ -n "$instrumentation_version" ]; then
         install_apt_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
@@ -1124,8 +1123,9 @@ Collector:
 Splunk Platform:
   --splunk-platform-token <token>       Set the HEC token for sending data to Splunk Platform.
   --splunk-platform-url <url>           Set the Splunk Platform HEC endpoint URL.
-  --splunk-platform-metrics-index <index>  Set the Splunk index to send metrics to. Enables metrics collection.
-                                        If not set, the default index configured on the HEC token will be used.
+  --splunk-platform-metrics-index <index>  Set the Splunk index to send metrics to. This option enables Splunk Platform
+                                        metrics collection and must be specified when configuring metrics via this
+                                        installer.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1677,6 +1677,18 @@ parse_args_and_install() {
   if [ -n "$splunk_platform_metrics_index" ]; then
     with_metrics="true"
   fi
+
+  if [ "$with_metrics" = "true" ]; then
+    if [ -z "$splunk_platform_token" ]; then
+      echo "[ERROR] --splunk-platform-token is required when --splunk-platform-metrics-index is set." >&2
+      exit 1
+    fi
+    if [ -z "$splunk_platform_url" ]; then
+      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-metrics-index is set." >&2
+      exit 1
+    fi
+  fi
+
   check_support
 
   # check auto instrumentation options
@@ -1907,7 +1919,6 @@ parse_args_and_install() {
   if [ -n "$listen_interface" ]; then
     configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   fi
-  configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   if [ -n "$access_token" ]; then
     configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
     configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
@@ -1915,6 +1926,7 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+    configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   fi
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
@@ -1939,6 +1951,10 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
     configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
     otelcol_options="$otelcol_options --config $metrics_config_path"
+  fi
+
+  if [ -n "$access_token" ] && [ "$with_metrics" = "true" ]; then
+    otelcol_options="$otelcol_options --config $collector_config_path --feature-gates=confmap.enableMergeAppendOption"
   fi
 
   if [ -n "$otelcol_options" ]; then

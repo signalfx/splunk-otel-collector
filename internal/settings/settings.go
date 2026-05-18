@@ -206,6 +206,7 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 	confMapConverterFactories := []confmap.ConverterFactory{
 		configconverter.ConverterFactoryFromConverter(configconverter.NewOverwritePropertiesConverter(s.setProperties)),
+		configconverter.ConverterFactoryFromFunc(configconverter.MigrateTelemetryResourceAttributes),
 		configconverter.ConverterFactoryFromFunc(configconverter.SetupDiscovery),
 	}
 	if !s.noConvertConfig {

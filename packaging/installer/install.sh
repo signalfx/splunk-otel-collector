@@ -1934,11 +1934,9 @@ parse_args_and_install() {
     otelcol_options="--discovery"
   fi
 
-  if [ "$with_logs" = "true" ] || [ "$with_metrics" = "true" ]; then
+  if [ "$with_metrics" = "true" ]; then
     configure_env_file "SPLUNK_PLATFORM_URL" "$splunk_platform_url" "$collector_env_path"
     configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
-  fi
-  if [ "$with_metrics" = "true" ]; then
     configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
     otelcol_options="$otelcol_options --config $metrics_config_path"
   fi

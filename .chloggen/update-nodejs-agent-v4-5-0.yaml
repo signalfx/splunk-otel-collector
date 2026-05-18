@@ -1,5 +1,0 @@
-change_type: enhancement
-component: packaging
-note: Update Splunk OpenTelemetry Node.js agent to v4.5.0
-issues: [7448]
-subtext: null

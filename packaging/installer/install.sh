@@ -61,6 +61,7 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
+metrics_config_path="${collector_config_dir}/splunk_metrics_config_linux.yaml"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
@@ -947,6 +948,7 @@ install() {
         install_collector_apt_repo "$stage"
       fi
       apt-get -y update
+      apt-get -y install libcap2-bin
       install_apt_package "splunk-otel-collector" "$collector_version"
       if [ -n "$instrumentation_version" ]; then
         install_apt_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
@@ -1118,6 +1120,12 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
+
+Splunk Platform:
+  --splunk-platform-token <token>       Set the HEC token for sending data to Splunk Platform.
+  --splunk-platform-url <url>           Set the Splunk Platform HEC endpoint URL.
+  --splunk-platform-metrics-index <index>  Set the Splunk index to send metrics to. Enables metrics collection.
+                                        If not set, the default index configured on the HEC token will be used.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1387,6 +1395,10 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
+  local splunk_platform_token=
+  local splunk_platform_url=
+  local splunk_platform_metrics_index=
+  local with_metrics="false"
   local godebug=
   local ingest_url=
   local insecure=
@@ -1441,6 +1453,18 @@ parse_args_and_install() {
         ;;
       --hec-url)
         hec_url="$2"
+        shift 1
+        ;;
+      --splunk-platform-token)
+        splunk_platform_token="$2"
+        shift 1
+        ;;
+      --splunk-platform-url)
+        splunk_platform_url="$2"
+        shift 1
+        ;;
+      --splunk-platform-metrics-index)
+        splunk_platform_metrics_index="$2"
         shift 1
         ;;
       --godebug)
@@ -1630,7 +1654,7 @@ parse_args_and_install() {
       exit 0
   fi
 
-  if [ -z "$access_token" ]; then
+  if [ -z "$access_token" ] && [ -z "$splunk_platform_url" ]; then
     access_token=$(request_access_token)
   fi
 
@@ -1650,6 +1674,9 @@ parse_args_and_install() {
     hec_url="${ingest_url}/v1/log"
   fi
 
+  if [ -n "$splunk_platform_metrics_index" ]; then
+    with_metrics="true"
+  fi
   check_support
 
   # check auto instrumentation options
@@ -1733,10 +1760,15 @@ parse_args_and_install() {
   if [ -n "$listen_interface" ]; then
     echo "Listen network interface: $listen_interface"
   fi
-  echo "Realm: $realm"
-  echo "Ingest Endpoint: $ingest_url"
-  echo "API Endpoint: $api_url"
-  echo "HEC Endpoint: $hec_url"
+  if [ -n "$access_token" ]; then
+    echo "Realm: $realm"
+    echo "Ingest Endpoint: $ingest_url"
+    echo "API Endpoint: $api_url"
+    echo "HEC Endpoint: $hec_url"
+  fi
+  if [ -n "$splunk_platform_url" ]; then
+    echo "Splunk Platform Endpoint: $splunk_platform_url"
+  fi
   echo "GODEBUG: $godebug"
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
@@ -1762,7 +1794,7 @@ parse_args_and_install() {
   fi
   echo
 
-  if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
+  if [ -n "$access_token" ] && [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
     echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1
@@ -1876,13 +1908,15 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   fi
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
-  configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
-  configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
-  configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
-  configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+  if [ -n "$access_token" ]; then
+    configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
+    configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
+    configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
+    configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+  fi
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
   if [ -d "$collector_bundle_dir" ]; then
     configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
@@ -1895,8 +1929,22 @@ parse_args_and_install() {
     chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
   fi
 
+  local otelcol_options=
   if [ "$discovery" = "true" ]; then
-    configure_env_file "OTELCOL_OPTIONS" "--discovery" "$collector_env_path"
+    otelcol_options="--discovery"
+  fi
+
+  if [ "$with_logs" = "true" ] || [ "$with_metrics" = "true" ]; then
+    configure_env_file "SPLUNK_PLATFORM_URL" "$splunk_platform_url" "$collector_env_path"
+    configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
+  fi
+  if [ "$with_metrics" = "true" ]; then
+    configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
+    otelcol_options="$otelcol_options --config $metrics_config_path"
+  fi
+
+  if [ -n "$otelcol_options" ]; then
+    configure_env_file "OTELCOL_OPTIONS" "$otelcol_options" "$collector_env_path"
   fi
 
   # ensure the collector service owner has access to the config dir
@@ -1931,6 +1979,13 @@ must be restarted to apply the changes by running the following command as root:
   systemctl restart splunk-otel-collector
 
 EOH
+
+  if [ "$with_metrics" = "true" ]; then
+    cat <<EOH
+[NOTICE] Host metrics collection has been enabled using $metrics_config_path.
+
+EOH
+  fi
 
   if [ -n "$sdks_to_enable" ]; then
     if [ -n "$sdks_enabled" ]; then

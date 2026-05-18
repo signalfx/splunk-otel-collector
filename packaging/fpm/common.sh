@@ -94,6 +94,7 @@ setup_files_and_permissions() {
     cp -r "$CONFIG_DIR_REPO_PATH" "$buildroot/$CONFIG_DIR_INSTALL_PATH"
     cp -f "$AGENT_CONFIG_REPO_PATH" "$buildroot/$AGENT_CONFIG_INSTALL_PATH"
     cp -f "$GATEWAY_CONFIG_REPO_PATH" "$buildroot/$GATEWAY_CONFIG_INSTALL_PATH"
+    cp -f "$METRICS_CONFIG_REPO_PATH" "$buildroot/$METRICS_CONFIG_INSTALL_PATH"
     sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/etc/otel"
     sudo chmod -R 755 "$buildroot/etc/otel"
     sudo chmod 600 "$buildroot/etc/otel/collector/$SERVICE_NAME.conf.example"

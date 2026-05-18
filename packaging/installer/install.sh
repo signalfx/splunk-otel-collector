@@ -1687,6 +1687,10 @@ parse_args_and_install() {
       echo "[ERROR] --splunk-platform-url is required when --splunk-platform-metrics-index is set." >&2
       exit 1
     fi
+    if [ "$mode" = "gateway" ]; then
+      echo "[ERROR] Metrics collection (--splunk-platform-metrics-index) is not supported in gateway mode." >&2
+      exit 1
+    fi
   fi
 
   check_support

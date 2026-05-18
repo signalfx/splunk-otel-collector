@@ -1,5 +1,0 @@
-smartagent/memcached:
-  type: collectd/memcached
-  host: localhost
-  port: 5309
-  intervalSeconds: 456

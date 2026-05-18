@@ -792,9 +792,8 @@ processors:
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
   resourcedetection:
-    detectors: [system, env]
-    system:
-      hostname_sources: ["os"]
+    detectors: [gcp, ecs, ec2, azure, system]
+    override: true
 
 exporters:
   splunk_hec/logs:

@@ -1674,14 +1674,25 @@ parse_args_and_install() {
     hec_url="${ingest_url}/v1/log"
   fi
 
-  # Auto-enable logs collection when any splunk-platform-* option is provided
+  # Log collection is enabled when --splunk-platform-logs-index is provided.
+  # --splunk-platform-token and --splunk-platform-url are required alongside it.
   if [ -n "$splunk_platform_logs_index" ]; then
     with_logs="true"
   fi
 
-  if [ "$with_logs" = "true" ] && [ "$mode" = "gateway" ]; then
-    echo "[ERROR] Log collection (--splunk-platform-*) is not supported in gateway mode." >&2
-    exit 1
+  if [ "$with_logs" = "true" ]; then
+    if [ -z "$splunk_platform_token" ]; then
+      echo "[ERROR] --splunk-platform-token is required when --splunk-platform-logs-index is set." >&2
+      exit 1
+    fi
+    if [ -z "$splunk_platform_url" ]; then
+      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-logs-index is set." >&2
+      exit 1
+    fi
+    if [ "$mode" = "gateway" ]; then
+      echo "[ERROR] Log collection (--splunk-platform-logs-index) is not supported in gateway mode." >&2
+      exit 1
+    fi
   fi
 
   check_support
@@ -1914,7 +1925,6 @@ parse_args_and_install() {
   if [ -n "$listen_interface" ]; then
     configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   fi
-  configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   if [ -n "$access_token" ]; then
     configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
     configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
@@ -1922,6 +1932,7 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+    configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   fi
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
@@ -2012,9 +2023,7 @@ EOH
 
   if [ "$with_logs" = "true" ]; then
     cat <<EOH
-[NOTICE] Log collection has been enabled using $logs_config_path.
-
-Journald log collection is disabled by default. To enable it:
+[NOTICE] Journald log collection is disabled by default. To enable it:
   1. Uncomment the 'journald' entry in the 'logs/hec' pipeline in $logs_config_path.
   2. Grant the collector service user permission to read the journal:
 

@@ -1967,24 +1967,34 @@ parse_args_and_install() {
   fi
 
   if [ "$with_logs" = "true" ] || [ "$with_metrics" = "true" ]; then
+    configure_env_file "SPLUNK_PLATFORM_URL" "$splunk_platform_url" "$collector_env_path"
+    configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
+  fi
+
+  if [ "$with_logs" = "true" ]; then
     mkdir -p "$logs_file_storage_path"
     chown -R $service_user:$service_group "$logs_file_storage_path"
     chmod 700 "$logs_file_storage_path"
-    configure_env_file "SPLUNK_PLATFORM_URL" "$splunk_platform_url" "$collector_env_path"
-    configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
     configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
     if [ -n "$splunk_platform_logs_index" ]; then
       configure_env_file "SPLUNK_PLATFORM_LOGS_INDEX" "$splunk_platform_logs_index" "$collector_env_path"
-      otelcol_options="$otelcol_options --config $logs_config_path"
     fi
-    if [ -n "$splunk_platform_metrics_index" ]; then
-      configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
-      otelcol_options="$otelcol_options --config $metrics_config_path"
-    fi
+    otelcol_options="$otelcol_options --config $logs_config_path"
   fi
 
+  if [ "$with_metrics" = "true" ]; then
+    configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
+    otelcol_options="$otelcol_options --config $metrics_config_path"
+  fi
+
+  # When --config flags are used, SPLUNK_CONFIG is ignored by the collector. If o11y is also
+  # enabled, explicitly include the agent config so both pipelines are loaded.
+  # Multiple --config files require the mergeAppend feature gate so that service.extensions
+  # is union-merged rather than replaced by the last config file.
   if [ -n "$access_token" ] && ( [ "$with_logs" = "true" ] || [ "$with_metrics" = "true" ] ); then
     otelcol_options="$otelcol_options --config $collector_config_path --feature-gates=confmap.enableMergeAppendOption"
+  elif [ "$with_logs" = "true" ] && [ "$with_metrics" = "true" ]; then
+    otelcol_options="$otelcol_options --feature-gates=confmap.enableMergeAppendOption"
   fi
 
   if [ -n "$otelcol_options" ]; then

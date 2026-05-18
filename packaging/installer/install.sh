@@ -1095,10 +1095,6 @@ Collector:
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.observability.splunkcloud.com/v1/log)
-  --splunk-platform-token <token>           Set the Splunk logs token.
-  --splunk-platform-url <url>               Set the Splunk logs endpoint URL.
-  --splunk-platform-logs-index <index>           Set the Splunk index to send logs to.
-                                        If not set, the default index configured on the logs token will be used.
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
@@ -1124,6 +1120,12 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
+
+Splunk Platform:
+  --splunk-platform-token <token>       Set the HEC token for sending data to Splunk Platform.
+  --splunk-platform-url <url>           Set the Splunk Platform HEC endpoint URL.
+  --splunk-platform-logs-index <index>  Set the Splunk index to send logs to. Enables log collection.
+                                        If not set, the default index configured on the HEC token will be used.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -1673,7 +1675,7 @@ parse_args_and_install() {
   fi
 
   # Auto-enable logs collection when any splunk-platform-* option is provided
-  if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_url" ] || [ -n "$splunk_platform_logs_index" ]; then
+  if [ -n "$splunk_platform_logs_index" ]; then
     with_logs="true"
   fi
 
@@ -1772,7 +1774,7 @@ parse_args_and_install() {
     echo "HEC Endpoint: $hec_url"
   fi
   if [ -n "$splunk_platform_url" ]; then
-    echo "Logs Endpoint: $splunk_platform_url"
+    echo "Splunk Platform Endpoint: $splunk_platform_url"
   fi
   echo "GODEBUG: $godebug"
   if [ -n "$sdks_to_enable" ]; then

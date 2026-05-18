@@ -106,7 +106,6 @@ func TestDefaultComponents(t *testing.T) {
 		"redis",
 		"saphana",
 		"scripted_inputs",
-		"signalfx",
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
 		"snmp",

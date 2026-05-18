@@ -1,6 +1,6 @@
 module github.com/docker/docker/api
 
-go 1.26.2
+go 1.26.3
 
 require github.com/moby/moby/api v1.54.2
 

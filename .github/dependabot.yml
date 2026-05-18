@@ -8,6 +8,12 @@ updates:
     directories:
       - "**/*"
     groups:
+      kubernetes:
+        patterns:
+          - "k8s.io/api"
+          - "k8s.io/apimachinery"
+          - "k8s.io/client-go"
+          - "k8s.io/kubelet"
       otelcol:
         patterns:
           - "go.opentelemetry.io/collector*"

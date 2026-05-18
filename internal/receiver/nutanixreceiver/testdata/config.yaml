@@ -1,0 +1,20 @@
+nutanix:
+  endpoint: https://prism.example.com:9440
+  username: readonly
+  password: secret
+  collection_interval: 10s
+  initial_delay: 1s
+  timeout: 5s
+  tls:
+    insecure_skip_verify: true
+  metrics:
+    clusters:
+      enabled: true
+    hosts:
+      enabled: true
+    storage_containers:
+      enabled: true
+    vms:
+      enabled: true
+    volume_groups:
+      enabled: true

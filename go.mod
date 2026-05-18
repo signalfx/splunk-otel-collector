@@ -15,6 +15,10 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.22.0
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/knadh/koanf v1.5.0
+	github.com/nutanix-cloud-native/prism-go-client v0.7.2
+	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.2.1
+	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.2.1
+	github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 v4.2.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.152.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.152.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.152.0
@@ -393,6 +397,10 @@ require (
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/nginx/nginx-prometheus-exporter v1.5.1 // indirect
+	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.2.1 // indirect
+	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.0.1 // indirect
+	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.2.1 // indirect
+	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.2.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/onsi/ginkgo/v2 v2.28.0 // indirect
 	github.com/open-telemetry/opamp-go v0.23.0 // indirect

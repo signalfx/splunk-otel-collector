@@ -1954,6 +1954,10 @@ parse_args_and_install() {
     otelcol_options="$otelcol_options --config $logs_config_path"
   fi
 
+  if [ -n "$access_token" ] && [ "$with_logs" = "true" ]; then
+    otelcol_options="$otelcol_options --config $collector_config_path --feature-gates=confmap.enableMergeAppendOption"
+  fi
+
   if [ -n "$otelcol_options" ]; then
     configure_env_file "OTELCOL_OPTIONS" "$otelcol_options" "$collector_env_path"
   fi
@@ -1981,11 +1985,26 @@ The Splunk OpenTelemetry Collector for Linux has been successfully installed.
 
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 
-The collector's main configuration file is located at $collector_config_path,
-and the environment file is located at $collector_env_path.
+Configuration files:
+  Environment file: $collector_env_path
+EOH
 
-If either $collector_config_path or $collector_env_path are modified, the collector service
-must be restarted to apply the changes by running the following command as root:
+  if [ -n "$access_token" ]; then
+    cat <<EOH
+  Collector config: $collector_config_path
+EOH
+  fi
+
+  if [ "$with_logs" = "true" ]; then
+    cat <<EOH
+  Splunk Platform logs config:   $logs_config_path
+EOH
+  fi
+
+  cat <<EOH
+
+You can modify any of the above configuration files to customize the collector's behavior.
+To apply changes, restart the collector:
 
   systemctl restart splunk-otel-collector
 

@@ -124,15 +124,15 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
 `,
 		},
 		{
-			name: "mixed_values",
+			name: "multiple_string_values",
 			input: `service:
   telemetry:
     resource:
       service.name: my-collector
       service.version: 1.0.0
       host.name: collector-host
-      numeric.value: 42
-      boolean.value: true
+      deployment.environment: production
+      cluster.name: main-cluster
 `,
 			customAssertion: func(t *testing.T, in, _ *confmap.Conf) {
 				inMap := in.ToStringMap()
@@ -150,11 +150,11 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
 				}
 
 				require.Equal(t, map[string]any{
-					"service.name":    "my-collector",
-					"service.version": "1.0.0",
-					"host.name":       "collector-host",
-					"numeric.value":   42,
-					"boolean.value":   true,
+					"service.name":           "my-collector",
+					"service.version":        "1.0.0",
+					"host.name":              "collector-host",
+					"deployment.environment": "production",
+					"cluster.name":           "main-cluster",
 				}, actualAttrs)
 			},
 		},
@@ -387,6 +387,76 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
 	}
 }
 
+func TestMigrateTelemetryResourceAttributesNonStringValues(t *testing.T) {
+	tests := []struct {
+		input       string
+		name        string
+		expectedKey string
+	}{
+		{
+			name: "numeric_value_returns_error",
+			input: `service:
+  telemetry:
+    resource:
+      service.name: my-collector
+      numeric.value: 42
+`,
+			expectedKey: "service.telemetry.resource.numeric.value",
+		},
+		{
+			name: "boolean_value_returns_error",
+			input: `service:
+  telemetry:
+    resource:
+      service.name: my-collector
+      boolean.value: true
+`,
+			expectedKey: "service.telemetry.resource.boolean.value",
+		},
+		{
+			name: "float_value_returns_error",
+			input: `service:
+  telemetry:
+    resource:
+      service.name: my-collector
+      float.value: 3.14
+`,
+			expectedKey: "service.telemetry.resource.float.value",
+		},
+		{
+			name: "map_value_returns_error",
+			input: `service:
+  telemetry:
+    resource:
+      service.name: my-collector
+      map.value:
+        nested: key
+`,
+			expectedKey: "service.telemetry.resource.map.value",
+		},
+		{
+			name: "array_value_returns_error",
+			input: `service:
+  telemetry:
+    resource:
+      service.name: my-collector
+      array.value: [one, two, three]
+`,
+			expectedKey: "service.telemetry.resource.array.value",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in := confFromYaml(t, tt.input)
+			err := MigrateTelemetryResourceAttributes(t.Context(), in)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "has unsupported non-string value")
+			require.Contains(t, err.Error(), tt.expectedKey)
+		})
+	}
+}
+
 func TestMigrateTelemetryResourceAttributesWarnings(t *testing.T) {
 	tests := []struct {
 		input           string
@@ -455,7 +525,7 @@ func TestMigrateTelemetryResourceAttributesWarnings(t *testing.T) {
 
 func TestAddDeclarativeTelemetryResourceAttribute(t *testing.T) {
 	tests := []struct {
-		attrValue any
+		attrValue string
 		service   map[string]any
 		validate  func(t *testing.T, service map[string]any)
 		name      string
@@ -561,7 +631,7 @@ func TestAddDeclarativeTelemetryResourceAttribute(t *testing.T) {
 
 func TestAddDeclarativeTelemetryResourceAttribute_MalformedData(t *testing.T) {
 	tests := []struct {
-		attrValue any
+		attrValue string
 		service   map[string]any
 		validate  func(t *testing.T, service map[string]any)
 		name      string

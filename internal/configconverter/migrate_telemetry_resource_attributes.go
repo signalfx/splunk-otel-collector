@@ -88,9 +88,14 @@ func MigrateTelemetryResourceAttributes(_ context.Context, cfgMap *confmap.Conf)
 
 	attributes := make([]any, 0, len(legacyKeys))
 	for _, name := range legacyKeys {
+		rawValue := resource[name]
+		value, ok := rawValue.(string)
+		if !ok {
+			return fmt.Errorf("service.telemetry.resource.%s has unsupported non-string value (%T): %v", name, rawValue, rawValue)
+		}
 		attributes = append(attributes, map[string]any{
 			"name":  name,
-			"value": resource[name],
+			"value": value,
 		})
 		delete(resource, name)
 	}
@@ -101,7 +106,7 @@ func MigrateTelemetryResourceAttributes(_ context.Context, cfgMap *confmap.Conf)
 	return nil
 }
 
-func AddDeclarativeTelemetryResourceAttribute(service map[string]any, name string, value any) {
+func AddDeclarativeTelemetryResourceAttribute(service map[string]any, name, value string) {
 	telemetry := map[string]any{}
 	if tel, ok := service["telemetry"]; ok && tel != nil {
 		var telOk bool

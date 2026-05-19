@@ -29,6 +29,8 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
+OPAMPSUPERVISOR_INSTALL_PATH="/usr/bin/opampsupervisor"
+LAUNCHER_INSTALL_PATH="/usr/bin/splunk-otel-collector-launcher"
 CONFIG_DIR_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/config.d.linux"
 CONFIG_DIR_INSTALL_PATH="/etc/otel/collector/config.d"
 AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
@@ -80,6 +82,8 @@ setup_files_and_permissions() {
     local otelcol="$1"
     local buildroot="$2"
     local bundle_path="$3"
+    local launcher="$4"
+    local opampsupervisor="$5"
 
     create_user_group
 
@@ -87,6 +91,14 @@ setup_files_and_permissions() {
     cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+
+    cp -f "$launcher" "$buildroot/$LAUNCHER_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$LAUNCHER_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$LAUNCHER_INSTALL_PATH"
+
+    cp -f "$opampsupervisor" "$buildroot/$OPAMPSUPERVISOR_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$OPAMPSUPERVISOR_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$OPAMPSUPERVISOR_INSTALL_PATH"
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
     cp -r "$CONFIG_DIR_REPO_PATH" "$buildroot/$CONFIG_DIR_INSTALL_PATH"

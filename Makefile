@@ -10,6 +10,7 @@ VERSION?=${DEFAULT_VERSION}
 GIT_SHA=$(shell git rev-parse --short HEAD)
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
+OPAMPSUPERVISOR_VERSION?=v0.151.0
 
 FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
@@ -275,6 +276,25 @@ else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
 
+.PHONY: splunk-otel-collector-launcher
+splunk-otel-collector-launcher:
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/splunk-otel-collector-launcher_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/splunk-otel-collector-launcher
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\splunk-otel-collector-launcher$(EXTENSION) .\bin\splunk-otel-collector-launcher_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) splunk-otel-collector-launcher_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/splunk-otel-collector-launcher$(EXTENSION)
+endif
+
+.PHONY: opampsupervisor
+opampsupervisor:
+	GO111MODULE=on go mod download github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor@$(OPAMPSUPERVISOR_VERSION)
+	cd "$$(go env GOMODCACHE)/github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor@$(OPAMPSUPERVISOR_VERSION)" && GO111MODULE=on CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -trimpath -o "$(CURDIR)/bin/opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)" .
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\opampsupervisor$(EXTENSION) .\bin\opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/opampsupervisor$(EXTENSION)
+endif
+
 
 .PHONY: add-tag
 add-tag:
@@ -306,18 +326,26 @@ binaries-darwin_arm64:
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux   GOARCH=amd64 $(MAKE) splunk-otel-collector-launcher
+	GOOS=linux   GOARCH=amd64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
+	GOOS=linux   GOARCH=arm64 $(MAKE) splunk-otel-collector-launcher
+	GOOS=linux   GOARCH=arm64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) splunk-otel-collector-launcher
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
 
 .PHONY: binaries-windows_arm64
 binaries-windows_arm64:
 	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) splunk-otel-collector-launcher
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:

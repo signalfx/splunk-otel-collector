@@ -40,6 +40,10 @@
     (OPTIONAL) Configure the collector service to run in "agent" or "gateway" mode (default: "agent").
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -mode "gateway"
+.PARAMETER with_supervisor
+    (OPTIONAL) Configure the collector service to run through the OpAMP Supervisor while preserving the same service name and service-scoped environment.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_supervisor $true
 .PARAMETER network_interface
     (OPTIONAL) The network interface the collector receivers listen on. (default: "127.0.0.1" for agent mode and "0.0.0.0" otherwise)
     .EXAMPLE
@@ -131,6 +135,7 @@ param (
     [string]$realm = "us0",
     [string]$memory = "512",
     [ValidateSet('agent','gateway')][string]$mode = "agent",
+    [bool]$with_supervisor = $false,
     [string]$network_interface = "",
     [string]$ingest_url = "",
     [string]$api_url = "",
@@ -635,6 +640,7 @@ $collector_env_vars = @{
     "SPLUNK_HEC_URL"          = "$hec_url";
     "SPLUNK_INGEST_URL"       = "$ingest_url";
     "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
+    "SPLUNK_OTEL_SUPERVISOR_ENABLED" = "$($with_supervisor.ToString().ToLowerInvariant())";
     "SPLUNK_REALM"            = "$realm";
 }
 

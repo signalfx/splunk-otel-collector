@@ -187,6 +187,12 @@ receivers:
         timestamp:
           parse_from: attributes.time
           layout: '%d/%b/%Y:%H:%M:%S %z'
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:apache-access
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
@@ -213,6 +219,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:apache-error
       - type: retain
         fields:
           - attributes.module
@@ -240,6 +252,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:cassandra
       - type: retain
         fields:
           - attributes.thread
@@ -267,6 +285,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:cassandra-debug
       - type: retain
         fields:
           - attributes.thread
@@ -282,6 +306,13 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    operators:
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:cassandra-output
 
   # Docker container logs.
   # If the default json-file logging driver is used, Docker will store container
@@ -297,6 +328,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:docker
       - type: retain
         fields:
           - attributes.stream
@@ -330,6 +367,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:etcd
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -357,6 +400,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:jetty9
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -377,6 +426,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:jetty9-debug
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -395,6 +450,12 @@ receivers:
         timestamp:
           parse_from: attributes.time
           layout: '%d/%b/%Y:%H:%M:%S %z'
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:jetty9-request
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
@@ -405,6 +466,13 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    operators:
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:memcached
 
   # MongoDB v4.4 and later outputs all log messages in a structured JSON format.
   # See https://www.mongodb.com/docs/manual/reference/log-messages/
@@ -429,6 +497,12 @@ receivers:
       - type: move
         from: attributes.msg
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:mongodb
       - type: retain
         fields:
           - attributes.ctx
@@ -458,6 +532,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:mysql-error
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -487,6 +567,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:mysql-query
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -504,6 +590,13 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    operators:
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:mysql-slow_query
 
   # Nginx access log.
   # By default, client requests are logged in the standard NCSA Common Log Format.
@@ -516,6 +609,12 @@ receivers:
         timestamp:
           parse_from: attributes.time
           layout: '%d/%b/%Y:%H:%M:%S %z'
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:nginx-access
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
@@ -540,6 +639,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:nginx-error
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -560,6 +665,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:postgresql
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -585,6 +696,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:rabbitmq
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -598,6 +715,13 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    operators:
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:rabbitmq-startup
 
   # RabbitMQ server startup error log.
   file_log/rabbitmq-startup_err:
@@ -605,6 +729,13 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    operators:
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:rabbitmq-startup_err
 
   # Redis logging.
   # By default configured to log to a file (logfile directive in redis.conf).
@@ -642,6 +773,12 @@ receivers:
         id: move_log
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:redis
       - type: retain
         fields:
           - attributes.role
@@ -663,6 +800,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:syslog
       - type: retain
         fields:
           - attributes.program
@@ -689,6 +832,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:tomcat
       - type: retain
         fields:
           - attributes.thread
@@ -713,6 +862,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:tomcat-out
       - type: retain
         fields:
           - attributes["log.file.path"]
@@ -732,6 +887,12 @@ receivers:
         timestamp:
           parse_from: attributes.time
           layout: '%d/%b/%Y:%H:%M:%S %z'
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:tomcat-localhost_access_log
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
@@ -751,6 +912,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:zookeeper
       - type: retain
         fields:
           - attributes.thread
@@ -775,6 +942,12 @@ receivers:
       - type: move
         from: attributes.log
         to: body
+      - from: attributes["log.file.path"]
+        to: resource["com.splunk.source"]
+        type: move
+      - type: add
+        field: resource["com.splunk.sourcetype"]
+        value: linux:zookeeper-trace
       - type: retain
         fields:
           - attributes.thread

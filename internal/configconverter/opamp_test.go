@@ -204,6 +204,20 @@ func TestRemoveOpAMP_GateDisabled_InvalidExtensions_ReturnsError(t *testing.T) {
 	assert.Contains(t, err.Error(), "extensions is of unexpected form")
 }
 
+func TestGetExtensionsMissingOrNil_ReturnsEmptyMap(t *testing.T) {
+	tests := map[string]map[string]any{
+		"missing": {},
+		"nil":     {"extensions": nil},
+	}
+	for name, out := range tests {
+		t.Run(name, func(t *testing.T) {
+			extensions, err := getExtensions(out)
+			require.NoError(t, err)
+			assert.Empty(t, extensions)
+		})
+	}
+}
+
 func TestIsSplunkOpAMPExtension(t *testing.T) {
 	tests := []struct {
 		key      string

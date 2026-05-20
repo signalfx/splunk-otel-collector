@@ -154,7 +154,7 @@ def test_collector_package_install(distro, arch):
             run_container_cmd(container, f"test -d {COLLECTOR_STATE_DIR}")
             run_container_cmd(container, f"test ! -d {COLLECTOR_STATE_DIR}/supervisor")
             run_container_cmd(container, f"grep -q '# Set to true to enable OpAMP Supervisor.' {ENV_PATH}.example")
-            run_container_cmd(container, f"! grep -q 'direct collector mode' {ENV_PATH}.example")
+            run_container_cmd(container, f"grep -q 'direct collector mode' {ENV_PATH}.example", exit_code=1)
 
             # verify service is not running after install without config file
             time.sleep(5)

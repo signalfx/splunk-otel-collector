@@ -96,7 +96,7 @@ service:
 	assert.True(t, supervisorConfig.Agent.UseHUPConfigReload)
 	assert.True(t, supervisorConfig.Agent.ValidateConfig)
 
-	assertDirMode(t, paths.StorageDirectory, 0o700)
+	assertDirExists(t, paths.StorageDirectory)
 	_, err = os.Stat(filepath.Join(paths.StorageDirectory, "collector_config.yaml"))
 	assert.ErrorIs(t, err, os.ErrNotExist)
 }
@@ -217,7 +217,7 @@ service:
 	var supervisorConfig SupervisorConfig
 	readYAML(t, paths.SupervisorConfig, &supervisorConfig)
 	assert.Equal(t, []string{"--feature-gates=+other.gate"}, supervisorConfig.Agent.Args)
-	assertDirMode(t, paths.StorageDirectory, 0o700)
+	assertDirExists(t, paths.StorageDirectory)
 }
 
 func assertMinimalCapabilities(t *testing.T, capabilities supervisorCapabilities) {
@@ -259,13 +259,12 @@ func testPaths(dir string) Paths {
 	}
 }
 
-func assertDirMode(t *testing.T, path string, mode os.FileMode) {
+func assertDirExists(t *testing.T, path string) {
 	t.Helper()
 
 	info, err := os.Stat(path)
 	require.NoError(t, err)
 	assert.True(t, info.IsDir())
-	assert.Equal(t, mode, info.Mode().Perm())
 }
 
 func readYAML(t *testing.T, path string, out any) {

@@ -7,7 +7,7 @@ require (
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.58.0
-	go.opentelemetry.io/collector/component/componenttest v0.152.0
+	go.opentelemetry.io/collector/component/componenttest v0.152.1
 	go.opentelemetry.io/collector/confmap v1.58.0
 	go.opentelemetry.io/collector/extension v1.58.0
 	gopkg.in/yaml.v2 v2.4.0

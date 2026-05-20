@@ -9,7 +9,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/build-tools/chloggen v0.26.0
-	go.opentelemetry.io/collector/cmd/mdatagen v0.152.0
+	go.opentelemetry.io/collector/cmd/mdatagen v0.152.1
 	golang.org/x/tools v0.44.0
 	golang.org/x/vuln v1.1.4
 	mvdan.cc/gofumpt v0.9.2
@@ -223,8 +223,8 @@ require (
 	go.opentelemetry.io/collector/confmap v1.58.0 // indirect
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.58.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.58.0 // indirect
-	go.opentelemetry.io/collector/filter v0.152.0 // indirect
-	go.opentelemetry.io/collector/internal/schemagen v0.152.0 // indirect
+	go.opentelemetry.io/collector/filter v0.152.1 // indirect
+	go.opentelemetry.io/collector/internal/schemagen v0.152.1 // indirect
 	go.opentelemetry.io/collector/pdata v1.58.0 // indirect
 	go.opentelemetry.io/otel v1.43.0 // indirect
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect

@@ -6,14 +6,15 @@ COPY Main.java .
 RUN javac Main.java && \
     jar cfe Main.jar Main Main.class
 
-COPY zeroconfig.conf /etc/splunk/zeroconfig/java.conf
+COPY injector.conf /etc/opentelemetry/injector.conf
 
 CMD java -jar Main.jar
 
 ENV OTEL_SERVICE_NAME=iknowmyownservicename
 
 ENV ANOTHER_VAR=foo
+ENV SPLUNK_METRICS_ENABLED=true
 
-COPY libsplunk.so /usr/lib/splunk-instrumentation/libsplunk.so
+COPY libotelinject.so /usr/lib/splunk-instrumentation/libotelinject.so
 
-RUN echo /usr/lib/splunk-instrumentation/libsplunk.so >> /etc/ld.so.preload
+RUN echo /usr/lib/splunk-instrumentation/libotelinject.so >> /etc/ld.so.preload

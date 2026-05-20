@@ -15,13 +15,14 @@ FROM mcr.microsoft.com/dotnet/runtime:8.0
 WORKDIR /app
 COPY --from=build /app .
 
-COPY zeroconfig.conf /etc/splunk/zeroconfig/dotnet.conf
+COPY injector.conf /etc/opentelemetry/injector.conf
 
-COPY libsplunk.so /usr/lib/splunk-instrumentation/libsplunk.so
+COPY libotelinject.so /usr/lib/splunk-instrumentation/libotelinject.so
 ENV OTEL_SERVICE_NAME iknowmyownservicename
 
 ENV ANOTHER_VAR foo
+ENV SPLUNK_METRICS_ENABLED true
 
-RUN echo /usr/lib/splunk-instrumentation/libsplunk.so >> /etc/ld.so.preload
+RUN echo /usr/lib/splunk-instrumentation/libotelinject.so >> /etc/ld.so.preload
 
 CMD dotnet dotnetapp.dll

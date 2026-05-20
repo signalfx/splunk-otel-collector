@@ -3,12 +3,14 @@ FROM $BASE
 
 COPY index.js .
 
-RUN mkdir -p /etc/splunk/zeroconfig
+RUN mkdir -p /etc/opentelemetry
 
-COPY zeroconfig.conf /etc/splunk/zeroconfig/node.conf
+COPY injector.conf /etc/opentelemetry/injector.conf
 
 CMD node index.js
 
-COPY libsplunk.so /usr/lib/splunk-instrumentation/libsplunk.so
+ENV SPLUNK_METRICS_ENABLED=true
 
-RUN echo /usr/lib/splunk-instrumentation/libsplunk.so >> /etc/ld.so.preload
+COPY libotelinject.so /usr/lib/splunk-instrumentation/libotelinject.so
+
+RUN echo /usr/lib/splunk-instrumentation/libotelinject.so >> /etc/ld.so.preload

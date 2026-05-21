@@ -52,8 +52,8 @@ NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
 DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
 DOTNET_AGENT_ARM64_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-arm64/OpenTelemetry.AutoInstrumentation.Native.so"
 
-INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector.conf"
-TEST_ENV_PATH = "/etc/opentelemetry/test-env.conf"
+INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
+TEST_ENV_PATH = "/etc/opentelemetry/injector/test-env.conf"
 
 # Custom config fixtures — use all_auto_instrumentation_agents_env_path to set OTEL_* vars
 CUSTOM_INJECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "test-injector.conf"

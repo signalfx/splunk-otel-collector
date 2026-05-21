@@ -28,7 +28,7 @@ INSTALL_DIR="/usr/lib/splunk-instrumentation"
 LIBOTELINJECT_INSTALL_PATH="${INSTALL_DIR}/libotelinject.so"
 JAVA_AGENT_INSTALL_PATH="${INSTALL_DIR}/splunk-otel-javaagent.jar"
 CONFIG_DIR_REPO_PATH="${FPM_DIR}/etc/opentelemetry"
-CONFIG_DIR_INSTALL_PATH="/etc/opentelemetry"
+CONFIG_DIR_INSTALL_PATH="/etc/opentelemetry/injector"
 
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
 JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/"

@@ -34,9 +34,3 @@ endif
 	docker build -t instrumentation-fpm packaging/fpm
 	docker run --rm -v $(CURDIR)/../:/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) instrumentation-fpm
 
-.PHONY: tests
-tests: test-java test-nodejs test-dotnet
-
-.PHONY: test-dotnet-java-nodejs
-test-%: dist
-	(cd tests/$* && ARCH=$(ARCH) ./test.sh)

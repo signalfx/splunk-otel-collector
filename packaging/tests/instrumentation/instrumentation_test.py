@@ -116,7 +116,7 @@ def install_package(container, distro, path, arch="amd64"):
         run_container_cmd(container, f"dpkg -i {path}")
     else:
         run_container_cmd(container, f"rpm -ivh {path}")
-
+    run_container_cmd(container, "bash -c 'find / -name injector.conf'", user='root')
     for path in INSTALLED_FILES:
         assert container_file_exists(container, path), f"{path} not found"
 

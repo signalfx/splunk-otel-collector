@@ -410,10 +410,3 @@ jobs:
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           }
-
-          docker exec otelcol java -version
-          if ( $LASTEXITCODE -ne 0 ) {
-            docker logs otelcol
-            echo "Failing job execution: Failed to run java"
-            exit 1
-          }

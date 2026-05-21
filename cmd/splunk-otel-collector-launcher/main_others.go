@@ -17,7 +17,7 @@
 package main
 
 import (
-	"syscall"
+	"golang.org/x/sys/unix"
 
 	"github.com/signalfx/splunk-otel-collector/internal/supervisor/launcher"
 )
@@ -29,5 +29,5 @@ func run(args, env []string, paths launcher.Paths) error {
 	if err != nil {
 		return err
 	}
-	return syscall.Exec(cmd.Path, append([]string{cmd.Path}, cmd.Args...), cmd.Env) //nolint:gosec
+	return unix.Exec(cmd.Path, append([]string{cmd.Path}, cmd.Args...), cmd.Env)
 }

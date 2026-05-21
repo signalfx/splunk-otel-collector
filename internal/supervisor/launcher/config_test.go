@@ -16,7 +16,6 @@ package launcher
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -73,15 +72,12 @@ service:
 `), 0o600))
 
 	paths := testPaths(dir)
-	args, configFiles, err := PrepareSupervisor(
+	err := PrepareSupervisor(
 		[]string{"--feature-gates=+splunk.opamp.enabled,+other.gate"},
 		map[string]string{CollectorConfigEnvVar: configPath, IngestURLEnvVar: "https://ingest.example"},
 		paths,
 	)
 	require.NoError(t, err)
-
-	assert.Equal(t, []string{"--feature-gates=+other.gate"}, args)
-	assert.Equal(t, []string{configPath}, configFiles)
 
 	var supervisorConfig SupervisorConfig
 	readYAML(t, paths.SupervisorConfig, &supervisorConfig)
@@ -91,7 +87,10 @@ service:
 	assert.Contains(t, readFile(t, paths.SupervisorConfig), "X-SF-Token: ${SPLUNK_ACCESS_TOKEN}")
 	assertMinimalCapabilities(t, supervisorConfig.Capabilities)
 	assertMinimalCapabilitiesYAML(t, paths.SupervisorConfig)
-	assert.Equal(t, []string{configPath}, supervisorConfig.Agent.ConfigFiles)
+	assert.Equal(t, []string{collectorConfigEnvRef}, supervisorConfig.Agent.ConfigFiles)
+	assert.Equal(t, []string{"--feature-gates=+other.gate"}, supervisorConfig.Agent.Args)
+	assert.Contains(t, readFile(t, paths.SupervisorConfig), collectorConfigEnvRef)
+	assert.NotContains(t, readFile(t, paths.SupervisorConfig), configPath)
 	assert.True(t, supervisorConfig.Agent.PassthroughLogs)
 	assert.True(t, supervisorConfig.Agent.UseHUPConfigReload)
 	assert.True(t, supervisorConfig.Agent.ValidateConfig)
@@ -112,7 +111,7 @@ service:
 `), 0o600))
 
 	paths := testPaths(dir)
-	_, _, err := PrepareSupervisor(nil, map[string]string{
+	err := PrepareSupervisor(nil, map[string]string{
 		CollectorConfigEnvVar: configPath,
 		IngestURLEnvVar:       "ingest.example/",
 	}, paths)
@@ -131,7 +130,7 @@ func TestPrepareSupervisorDerivesEndpointFromGatewayURL(t *testing.T) {
 	require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
 
 	paths := testPaths(dir)
-	_, _, err := PrepareSupervisor(nil, map[string]string{
+	err := PrepareSupervisor(nil, map[string]string{
 		CollectorConfigEnvVar: configPath,
 		GatewayURLEnvVar:      "http://gateway.example",
 		IngestURLEnvVar:       "https://ingest.example",
@@ -150,7 +149,7 @@ func TestPrepareSupervisorOmitsHUPConfigReloadWhenDisabled(t *testing.T) {
 
 	paths := testPaths(dir)
 	paths.UseHUPConfigReload = false
-	_, _, err := PrepareSupervisor(nil, map[string]string{
+	err := PrepareSupervisor(nil, map[string]string{
 		CollectorConfigEnvVar: configPath,
 		IngestURLEnvVar:       "https://ingest.example",
 	}, paths)
@@ -164,7 +163,7 @@ func TestPrepareSupervisorOmitsHUPConfigReloadWhenDisabled(t *testing.T) {
 }
 
 func TestPrepareSupervisorRequiresConfigPath(t *testing.T) {
-	_, _, err := PrepareSupervisor(nil, map[string]string{IngestURLEnvVar: "https://ingest.example"}, testPaths(t.TempDir()))
+	err := PrepareSupervisor(nil, map[string]string{IngestURLEnvVar: "https://ingest.example"}, testPaths(t.TempDir()))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), CollectorConfigEnvVar)
 }
@@ -183,9 +182,6 @@ func TestPrepareCommandDirectMode(t *testing.T) {
 }
 
 func TestPrepareCommandSupervisorMode(t *testing.T) {
-	truePath, err := exec.LookPath("true")
-	require.NoError(t, err)
-
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "collector.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(`
@@ -196,7 +192,7 @@ service:
 `), 0o600))
 
 	paths := testPaths(dir)
-	paths.CollectorExecutable = truePath
+	paths.CollectorExecutable = filepath.Join(dir, "missing-otelcol")
 
 	env := []string{
 		SupervisorEnabledEnvVar + "=true",
@@ -217,6 +213,8 @@ service:
 	var supervisorConfig SupervisorConfig
 	readYAML(t, paths.SupervisorConfig, &supervisorConfig)
 	assert.Equal(t, []string{"--feature-gates=+other.gate"}, supervisorConfig.Agent.Args)
+	assert.Equal(t, []string{collectorConfigEnvRef}, supervisorConfig.Agent.ConfigFiles)
+	assert.Equal(t, paths.CollectorExecutable, supervisorConfig.Agent.Executable)
 	assertDirExists(t, paths.StorageDirectory)
 }
 

@@ -30,8 +30,9 @@ const (
 	GatewayURLEnvVar      = "SPLUNK_GATEWAY_URL"
 	IngestURLEnvVar       = "SPLUNK_INGEST_URL"
 
-	opampSplunkExtension = "opamp/splunk_o11y"
-	opampFeatureGate     = "splunk.opamp.enabled"
+	opampSplunkExtension  = "opamp/splunk_o11y"
+	opampFeatureGate      = "splunk.opamp.enabled"
+	collectorConfigEnvRef = "${" + CollectorConfigEnvVar + "}"
 )
 
 // Paths contains package installation paths and supervisor state paths.
@@ -96,9 +97,8 @@ func SupervisorEnabled(env map[string]string) bool {
 }
 
 // PrepareCommand builds the command the launcher should run. In direct mode this
-// is the collector, while supervisor mode first renders supervisor config and
-// validates the local collector config before returning the opampsupervisor
-// command.
+// is the collector, while supervisor mode renders supervisor config before
+// returning the opampsupervisor command.
 func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 	env := environToMap(environ)
 	if !SupervisorEnabled(env) {
@@ -109,12 +109,7 @@ func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 		}, nil
 	}
 
-	agentArgs, configFiles, err := PrepareSupervisor(args, env, paths)
-	if err != nil {
-		return Command{}, err
-	}
-
-	if err := validateCollectorConfig(paths.CollectorExecutable, agentArgs, configFiles, environ); err != nil {
+	if err := PrepareSupervisor(args, env, paths); err != nil {
 		return Command{}, err
 	}
 
@@ -126,27 +121,27 @@ func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 }
 
 // PrepareSupervisor renders supervisor config from the package-managed
-// SPLUNK_CONFIG path and current collector args.
-func PrepareSupervisor(args []string, env map[string]string, paths Paths) ([]string, []string, error) {
+// SPLUNK_CONFIG value and current collector args.
+func PrepareSupervisor(args []string, env map[string]string, paths Paths) error {
 	agentArgs := filterSupervisorAgentArgs(args)
 
 	configPath := strings.TrimSpace(env[CollectorConfigEnvVar])
 	if configPath == "" {
-		return nil, nil, fmt.Errorf("%s must be set in supervisor mode", CollectorConfigEnvVar)
+		return fmt.Errorf("%s must be set in supervisor mode", CollectorConfigEnvVar)
 	}
 
 	config, err := loadConfigFile(configPath)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	server, err := supervisorServerFromConfig(config, env)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	if err := prepareSupervisorStorageDir(paths); err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	supervisorConfig := SupervisorConfig{
@@ -163,7 +158,7 @@ func PrepareSupervisor(args []string, env map[string]string, paths Paths) ([]str
 		Storage: supervisorStorage{Directory: paths.StorageDirectory},
 		Agent: supervisorAgent{
 			Executable:         paths.CollectorExecutable,
-			ConfigFiles:        []string{configPath},
+			ConfigFiles:        []string{collectorConfigEnvRef},
 			Args:               agentArgs,
 			PassthroughLogs:    true,
 			UseHUPConfigReload: paths.UseHUPConfigReload,
@@ -171,10 +166,10 @@ func PrepareSupervisor(args []string, env map[string]string, paths Paths) ([]str
 		},
 	}
 	if err := writeYAML(paths.SupervisorConfig, supervisorConfig, 0o600); err != nil {
-		return nil, nil, err
+		return err
 	}
 
-	return agentArgs, []string{configPath}, nil
+	return nil
 }
 
 // loadConfigFile reads a collector config into a generic map so direct OpAMP

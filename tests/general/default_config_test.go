@@ -144,6 +144,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 					},
 					"opamp/splunk_o11y": map[string]any{
+						"agent_description": map[string]any{
+							"include_resource_attributes": true,
+						},
 						"server": map[string]any{
 							"http": map[string]any{
 								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
@@ -172,15 +175,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					"resourcedetection/internal": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
-					},
-					"resource/add_mode": map[string]any{
-						"attributes": []any{
-							map[string]any{
-								"action": "insert",
-								"value":  "gateway",
-								"key":    "otelcol.service.mode",
-							},
-						},
 					},
 				},
 				"receivers": map[string]any{
@@ -243,6 +237,14 @@ func TestDefaultGatewayConfig(t *testing.T) {
 				},
 				"service": map[string]any{
 					"telemetry": map[string]any{
+						"resource": map[string]any{
+							"attributes": []any{
+								map[string]any{
+									"name":  "otelcol.service.mode",
+									"value": "gateway",
+								},
+							},
+						},
 						"metrics": map[string]any{
 							"readers": []any{
 								map[string]any{
@@ -284,7 +286,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal", "resource/add_mode"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
@@ -412,6 +414,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 					},
 					"opamp/splunk_o11y": map[string]any{
+						"agent_description": map[string]any{
+							"include_resource_attributes": true,
+						},
 						"server": map[string]any{
 							"http": map[string]any{
 								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
@@ -445,15 +450,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"resourcedetection": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
-					},
-					"resource/add_mode": map[string]any{
-						"attributes": []any{
-							map[string]any{
-								"action": "insert",
-								"value":  "agent",
-								"key":    "otelcol.service.mode",
-							},
-						},
 					},
 				},
 				"receivers": map[string]any{
@@ -536,7 +532,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection", "resource/add_mode"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
@@ -551,6 +547,14 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 					},
 					"telemetry": map[string]any{
+						"resource": map[string]any{
+							"attributes": []any{
+								map[string]any{
+									"name":  "otelcol.service.mode",
+									"value": "agent",
+								},
+							},
+						},
 						"metrics": map[string]any{
 							"readers": []any{
 								map[string]any{

@@ -15,7 +15,9 @@
 package launcher
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -97,8 +99,8 @@ func SupervisorEnabled(env map[string]string) bool {
 }
 
 // PrepareCommand builds the command the launcher should run. In direct mode this
-// is the collector, while supervisor mode renders supervisor config before
-// returning the opampsupervisor command.
+// is the collector, while supervisor mode ensures supervisor config exists
+// before returning the opampsupervisor command.
 func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 	env := environToMap(environ)
 	if !SupervisorEnabled(env) {
@@ -120,9 +122,22 @@ func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 	}, nil
 }
 
-// PrepareSupervisor renders supervisor config from the package-managed
-// SPLUNK_CONFIG value and current collector args.
+// PrepareSupervisor creates the supervisor directory and writes the initial
+// supervisor config only when it does not already exist. Existing supervisor
+// config is user-editable and is preserved across launcher restarts.
 func PrepareSupervisor(args []string, env map[string]string, paths Paths) error {
+	if err := prepareSupervisorStorageDir(paths); err != nil {
+		return err
+	}
+
+	_, err := os.Stat(paths.SupervisorConfig)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("stat supervisor config %q: %w", paths.SupervisorConfig, err)
+	}
+
 	agentArgs := filterSupervisorAgentArgs(args)
 
 	configPath := strings.TrimSpace(env[CollectorConfigEnvVar])
@@ -137,10 +152,6 @@ func PrepareSupervisor(args []string, env map[string]string, paths Paths) error 
 
 	server, err := supervisorServerFromConfig(config, env)
 	if err != nil {
-		return err
-	}
-
-	if err := prepareSupervisorStorageDir(paths); err != nil {
 		return err
 	}
 
@@ -255,11 +266,14 @@ func derivedOpAMPEndpoint(env map[string]string) string {
 	return ""
 }
 
-// prepareSupervisorStorageDir creates the launcher-owned supervisor state
-// directory before supervisor persistence files are used.
+// prepareSupervisorStorageDir creates the supervisor directory before config
+// generation or supervisor persistence files are used.
 func prepareSupervisorStorageDir(paths Paths) error {
-	if err := os.MkdirAll(paths.StorageDirectory, 0o700); err != nil {
-		return fmt.Errorf("create supervisor storage directory %q: %w", paths.StorageDirectory, err)
+	if err := os.MkdirAll(paths.StorageDirectory, 0o755); err != nil {
+		return fmt.Errorf("create supervisor directory %q: %w", paths.StorageDirectory, err)
+	}
+	if err := os.Chmod(paths.StorageDirectory, 0o755); err != nil {
+		return fmt.Errorf("set supervisor directory permissions %q: %w", paths.StorageDirectory, err)
 	}
 	return nil
 }

@@ -34,7 +34,7 @@ func TestDefaultPathsWindowsFallbacksAlignWithInstaller(t *testing.T) {
 
 	assert.Equal(t, filepath.Join(installDir, "otelcol.exe"), paths.CollectorExecutable)
 	assert.Equal(t, filepath.Join(installDir, "opampsupervisor.exe"), paths.SupervisorExecutable)
-	assert.Equal(t, filepath.Join(`\ProgramData`, "Splunk", "OpenTelemetry Collector", "supervisor.yaml"), paths.SupervisorConfig)
+	assert.Equal(t, filepath.Join(stateDir, "supervisor_config.yaml"), paths.SupervisorConfig)
 	assert.Equal(t, stateDir, paths.StorageDirectory)
 	assert.False(t, paths.UseHUPConfigReload)
 }

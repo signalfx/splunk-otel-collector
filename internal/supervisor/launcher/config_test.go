@@ -162,6 +162,23 @@ func TestPrepareSupervisorOmitsHUPConfigReloadWhenDisabled(t *testing.T) {
 	assert.NotContains(t, readFile(t, paths.SupervisorConfig), "use_hup_config_reload")
 }
 
+func TestPrepareSupervisorPreservesExistingConfig(t *testing.T) {
+	dir := t.TempDir()
+	paths := testPaths(dir)
+	require.NoError(t, os.MkdirAll(paths.StorageDirectory, 0o755))
+	require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte("user: edited\n"), 0o600))
+
+	err := PrepareSupervisor(
+		[]string{"--feature-gates=+splunk.opamp.enabled"},
+		map[string]string{IngestURLEnvVar: "https://ingest.example"},
+		paths,
+	)
+	require.NoError(t, err)
+
+	assert.Equal(t, "user: edited\n", readFile(t, paths.SupervisorConfig))
+	assertDirExists(t, paths.StorageDirectory)
+}
+
 func TestPrepareSupervisorRequiresConfigPath(t *testing.T) {
 	err := PrepareSupervisor(nil, map[string]string{IngestURLEnvVar: "https://ingest.example"}, testPaths(t.TempDir()))
 	require.Error(t, err)
@@ -251,8 +268,8 @@ func testPaths(dir string) Paths {
 	return Paths{
 		CollectorExecutable:  "otelcol",
 		SupervisorExecutable: "opampsupervisor",
-		SupervisorConfig:     filepath.Join(dir, "supervisor.yaml"),
 		StorageDirectory:     filepath.Join(dir, "supervisor"),
+		SupervisorConfig:     filepath.Join(dir, "supervisor", "supervisor_config.yaml"),
 		UseHUPConfigReload:   true,
 	}
 }

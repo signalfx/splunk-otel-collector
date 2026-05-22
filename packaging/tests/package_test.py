@@ -43,6 +43,8 @@ AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 BUNDLE_DIR = "/usr/lib/splunk-otel-collector/agent-bundle"
 COLLECTOR_STATE_DIR = "/var/lib/otelcol"
+SUPERVISOR_DIR = "/etc/otel/collector/supervisor"
+SUPERVISOR_CONFIG_PATH = f"{SUPERVISOR_DIR}/supervisor_config.yaml"
 
 def get_package(distro, name, path, arch):
     pkg_paths = []
@@ -221,9 +223,10 @@ def test_collector_package_supervisor_brownfield_switch(distro):
             run_container_cmd(container, f"systemctl restart {SERVICE_NAME}")
             assert wait_for(lambda: service_is_running(container, SERVICE_NAME, SERVICE_OWNER, SUPERVISOR_PROC), timeout=20)
             assert wait_for(lambda: process_is_running(container, SERVICE_PROC), timeout=20)
-            run_container_cmd(container, "test -f /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, f"grep -q '{AGENT_CONFIG_PATH}' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, f"! test -f {COLLECTOR_STATE_DIR}/supervisor/collector_config.yaml")
+            run_container_cmd(container, f"test -d {SUPERVISOR_DIR}")
+            run_container_cmd(container, f"test -f {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q SPLUNK_CONFIG {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"test -d {COLLECTOR_STATE_DIR}/supervisor", exit_code=1)
 
             run_container_cmd(container, f"sed -i 's/^SPLUNK_OTEL_SUPERVISOR_ENABLED=.*/SPLUNK_OTEL_SUPERVISOR_ENABLED=false/' {ENV_PATH}")
             run_container_cmd(container, f"systemctl restart {SERVICE_NAME}")
@@ -258,18 +261,18 @@ def test_collector_package_supervisor_brownfield_preserves_opamp_endpoint(distro
             run_container_cmd(container, f"systemctl start {SERVICE_NAME}")
 
             assert wait_for(lambda: service_is_running(container, SERVICE_NAME, SERVICE_OWNER, SUPERVISOR_PROC), timeout=20)
-            run_container_cmd(container, "grep -q 'https://direct.example/v1/opamp' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'X-SF-Token: ${SPLUNK_ACCESS_TOKEN}' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'accepts_remote_config: true' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'reports_remote_config: true' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'reports_available_components: true' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'reports_own_metrics: false' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'reports_heartbeat: false' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'passthrough_logs: true' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "grep -q 'use_hup_config_reload: true' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, f"grep -q '{AGENT_CONFIG_PATH}' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, "! grep -q 'splunk.opamp.enabled' /etc/otel/collector/supervisor.yaml")
-            run_container_cmd(container, f"! test -f {COLLECTOR_STATE_DIR}/supervisor/collector_config.yaml")
+            run_container_cmd(container, f"grep -q 'https://direct.example/v1/opamp' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'X-SF-Token: ${{SPLUNK_ACCESS_TOKEN}}' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'accepts_remote_config: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_remote_config: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_available_components: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_own_metrics: false' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_heartbeat: false' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'passthrough_logs: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'use_hup_config_reload: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q SPLUNK_CONFIG {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'splunk.opamp.enabled' {SUPERVISOR_CONFIG_PATH}", exit_code=1)
+            run_container_cmd(container, f"test -d {COLLECTOR_STATE_DIR}/supervisor", exit_code=1)
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 

@@ -66,7 +66,6 @@ collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
 collector_bundle_dir="/usr/lib/splunk-otel-collector/agent-bundle"
 collectd_config_dir="${collector_bundle_dir}/run/collectd"
-collector_state_dir="/var/lib/otelcol"
 distro="$( get_distro )"
 distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
@@ -1902,14 +1901,6 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
     # ensure the collector service owner has access to the collectd dir
     chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
-  fi
-  if [ "$with_supervisor" = "true" ]; then
-    mkdir -p "$collector_state_dir"
-  fi
-  if [ -d "$collector_state_dir" ]; then
-    # ensure the collector service owner can write generated supervisor state
-    chown $service_user:$service_group "$collector_state_dir"
-    chmod 755 "$collector_state_dir"
   fi
 
   if [ "$discovery" = "true" ]; then

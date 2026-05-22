@@ -57,7 +57,6 @@ OLD_SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
 AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
-COLLECTOR_STATE_DIR = "/var/lib/otelcol"
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 JAVA_TOOL_OPTIONS = f"-javaagent:{JAVA_AGENT_PATH}"
@@ -264,7 +263,7 @@ def test_installer_default(distro, arch, mode):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-def test_installer_with_supervisor_prepares_state_dir(distro):
+def test_installer_with_supervisor_sets_env(distro):
     install_cmd = f"{get_installer_cmd()} --with-supervisor"
 
     print(f"Testing supervisor installation on {distro} from {STAGE} stage ...")
@@ -274,10 +273,6 @@ def test_installer_with_supervisor_prepares_state_dir(distro):
         try:
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OTEL_SUPERVISOR_ENABLED", "true")
-            run_container_cmd(container, f"test -d {COLLECTOR_STATE_DIR}")
-
-            state_owner = container.exec_run(f"stat -c '%U:%G' {COLLECTOR_STATE_DIR}").output.decode("utf-8")
-            assert state_owner.strip() == f"{SERVICE_OWNER}:{SERVICE_OWNER}"
 
             verify_uninstall(container, distro)
 

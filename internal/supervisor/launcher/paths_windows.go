@@ -37,7 +37,7 @@ func DefaultPaths() Paths {
 	return Paths{
 		CollectorExecutable:  filepath.Join(installDir, "otelcol.exe"),
 		SupervisorExecutable: filepath.Join(installDir, "opampsupervisor.exe"),
-		SupervisorConfig:     filepath.Join(programData, "Splunk", "OpenTelemetry Collector", "supervisor.yaml"),
+		SupervisorConfig:     filepath.Join(stateDir, "supervisor_config.yaml"),
 		StorageDirectory:     stateDir,
 		UseHUPConfigReload:   false,
 	}

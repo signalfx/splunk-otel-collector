@@ -25,6 +25,7 @@ PKG_LICENSE="Apache 2.0"
 PKG_URL="https://github.com/signalfx/splunk-otel-collector"
 
 INSTALL_DIR="/usr/lib/splunk-instrumentation"
+INSTRUMENTATION_CONFIG_YAML_PATH="${INSTALL_DIR}/config.yaml"
 LIBOTELINJECT_INSTALL_PATH="${INSTALL_DIR}/libotelinject.so"
 JAVA_AGENT_INSTALL_PATH="${INSTALL_DIR}/splunk-otel-javaagent.jar"
 CONFIG_DIR_REPO_PATH="${FPM_DIR}/etc/opentelemetry"
@@ -106,10 +107,15 @@ download_dotnet_agent() {
 setup_files_and_permissions() {
     local arch="$1"
     local buildroot="$2"
+    local instrumentation_config_yaml="$REPO_DIR/instrumentation/packaging/fpm/instrumentation.yaml"
     local libotelinject="$REPO_DIR/instrumentation/dist/libotelinject_${arch}.so"
     local java_agent_release="$(cat "$JAVA_AGENT_RELEASE_PATH")"
     local nodejs_agent_release="$(cat "$NODEJS_AGENT_RELEASE_PATH")"
     local dotnet_agent_release="$(cat "$DOTNET_AGENT_RELEASE_PATH")"
+
+    mkdir -p "$buildroot/$(dirname $INSTRUMENTATION_CONFIG_YAML_PATH)"
+    cp -f "$instrumentation_config_yaml" "$buildroot/$INSTRUMENTATION_CONFIG_YAML_PATH"
+    sudo chmod 644 "$buildroot/$INSTRUMENTATION_CONFIG_YAML_PATH"
 
     mkdir -p "$buildroot/$(dirname $LIBOTELINJECT_INSTALL_PATH)"
     cp -f "$libotelinject" "$buildroot/$LIBOTELINJECT_INSTALL_PATH"

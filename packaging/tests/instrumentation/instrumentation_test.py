@@ -53,6 +53,7 @@ DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoI
 DOTNET_AGENT_ARM64_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-arm64/OpenTelemetry.AutoInstrumentation.Native.so"
 
 INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
+INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
 TEST_ENV_PATH = "/etc/opentelemetry/injector/test-env.conf"
 
 # Custom config fixtures — use all_auto_instrumentation_agents_env_path to set OTEL_* vars
@@ -66,6 +67,7 @@ INSTALLED_FILES = [
     NODE_AGENT_PATH,
     LIBOTELINJECT_PATH,
     INJECTOR_CONFIG_PATH,
+    INJECTOR_DEFAULT_ENV_PATH,
 ]
 
 TOMCAT_PIDFILE = "/usr/local/tomcat/temp/tomcat.pid"
@@ -76,6 +78,7 @@ TOMCAT_ENV = {
     "CATALINA_BASE": "/usr/local/tomcat",
     "CATALINA_OPTS": "-Xms512M -Xmx1024M -server -XX:+UseParallelGC",
     "JAVA_OPTS": "-Djava.awt.headless=true",
+    "OTEL_INJECTOR_LOG_LEVEL": "debug",
 }
 
 EXPRESS_PIDFILE = "/opt/express/express.pid"
@@ -116,7 +119,10 @@ def install_package(container, distro, path, arch="amd64"):
         run_container_cmd(container, f"dpkg -i {path}")
     else:
         run_container_cmd(container, f"rpm -ivh {path}")
+
     run_container_cmd(container, "bash -c 'find / -name injector.conf'", user='root')
+    run_container_cmd(container, "bash -c 'find /usr/lib/splunk-instrumentation'", user='root')
+
     for path in INSTALLED_FILES:
         assert container_file_exists(container, path), f"{path} not found"
 

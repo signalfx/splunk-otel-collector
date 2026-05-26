@@ -235,7 +235,15 @@ def verify_app_instrumentation(container, app, attributes, otelcol_path=None, ti
     start_app(container, app)
 
     # check the collector output stream for attributes
-    verify_attributes(stream, attributes, timeout=timeout)
+    try:
+        verify_attributes(stream, attributes, timeout=timeout)
+    except AssertionError:
+        if app == "tomcat":
+            code, logs = container.exec_run("cat /usr/local/tomcat/logs/catalina.out")
+            if code == 0:
+                print("=== Tomcat catalina.out ===")
+                print(logs.decode("utf-8"))
+        raise
 
 
 @pytest.mark.parametrize(

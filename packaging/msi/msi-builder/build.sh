@@ -40,6 +40,8 @@ Description:
 
 OPTIONS:
     --otelcol PATH                    Absolute path to the otelcol exe.
+    --launcher PATH                   Absolute path to the launcher exe.
+    --opampsupervisor PATH            Absolute path to the opampsupervisor exe.
     --agent-config PATH               Absolute path to the agent config.
                                       Defaults to '$AGENT_CONFIG'.
     --gateway-config PATH             Absolute path to the gateway config.
@@ -60,6 +62,8 @@ EOH
 
 parse_args_and_build() {
     local otelcol=""
+    local launcher=""
+    local opampsupervisor=""
     local agent_config="$AGENT_CONFIG"
     local gateway_config="$GATEWAY_CONFIG"
     local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
@@ -78,6 +82,14 @@ parse_args_and_build() {
                 ;;
             --otelcol)
                 otelcol="$2"
+                shift 1
+                ;;
+            --launcher)
+                launcher="$2"
+                shift 1
+                ;;
+            --opampsupervisor)
+                opampsupervisor="$2"
                 shift 1
                 ;;
             --agent-config)
@@ -144,6 +156,12 @@ parse_args_and_build() {
     if [[ -z "$otelcol" ]]; then
         otelcol="${REPO_DIR}/bin/otelcol_windows_${msiarch}.exe"
     fi
+    if [[ -z "$launcher" ]]; then
+        launcher="${REPO_DIR}/bin/splunk-otel-collector-launcher_windows_${msiarch}.exe"
+    fi
+    if [[ -z "$opampsupervisor" ]]; then
+        opampsupervisor="${REPO_DIR}/bin/opampsupervisor_windows_${msiarch}.exe"
+    fi
 
     build_dir="${WORK_DIR}/build"
     files_dir="${build_dir}/msi"
@@ -188,6 +206,8 @@ parse_args_and_build() {
         -bindpath "${files_dir}" \
         -d Version="${version}" \
         -d Otelcol="${otelcol}" \
+        -d Launcher="${launcher}" \
+        -d OpAMPSupervisor="${opampsupervisor}" \
         -d JmxMetricsJar="${jmx_metrics_jar}" \
         -d FilesDir="${files_dir}"
 

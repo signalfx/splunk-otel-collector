@@ -37,10 +37,14 @@ PKG_DIR = REPO_DIR / "dist"
 SERVICE_NAME = "splunk-otel-collector"
 SERVICE_OWNER = "splunk-otel-collector"
 SERVICE_PROC = "otelcol"
+SUPERVISOR_PROC = "opampsupervisor"
 ENV_PATH = "/etc/otel/collector/splunk-otel-collector.conf"
 AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 BUNDLE_DIR = "/usr/lib/splunk-otel-collector/agent-bundle"
+COLLECTOR_STATE_DIR = "/var/lib/otelcol"
+SUPERVISOR_DIR = "/etc/otel/collector/supervisor"
+SUPERVISOR_CONFIG_PATH = f"{SUPERVISOR_DIR}/supervisor_config.yaml"
 
 def get_package(distro, name, path, arch):
     pkg_paths = []
@@ -69,6 +73,27 @@ def get_libcap_command(container):
     else:
         return "zypper install -y libcap-progs"
 
+
+def process_is_running(container, process):
+    cmd = f"""sh -ec 'pgrep -a -u {SERVICE_OWNER} -f {process}'"""
+    pgrep_code, _ = run_container_cmd(container, cmd, exit_code=None)
+    return pgrep_code == 0
+
+
+def install_local_package(container, distro, pkg_base):
+    if distro in DEB_DISTROS:
+        run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
+    elif distro in RPM_DISTROS:
+        run_container_cmd(container, f"rpm -i /test/{pkg_base}")
+
+
+def install_libcap(container, distro):
+    if distro in RPM_DISTROS:
+        run_container_cmd(container, get_libcap_command(container))
+    else:
+        run_container_cmd(container, "apt-get update")
+        run_container_cmd(container, "apt-get install -y libcap2-bin")
+
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.tar) for distro in TAR_DISTROS]
@@ -91,6 +116,8 @@ def test_tar_collector_package_install(distro, arch):
         run_container_cmd(container, f"{bundle_dir}/agent-bundle/bin/python --version")
         run_container_cmd(container, f"test -d {bundle_dir}/bin")
         run_container_cmd(container, f"test -f {bundle_dir}/bin/otelcol")
+        run_container_cmd(container, f"test -f {bundle_dir}/bin/splunk-otel-collector-launcher")
+        run_container_cmd(container, f"test -f {bundle_dir}/bin/opampsupervisor")
         run_container_cmd(container, f"test -f {bundle_dir}/opt/opentelemetry-java-contrib-jmx-metrics.jar")
         run_container_cmd(container, f"test -f {bundle_dir}/config/agent_config.yaml")
         run_container_cmd(container, f"test -f {bundle_dir}/config/gateway_config.yaml")
@@ -108,29 +135,28 @@ def test_collector_package_install(distro, arch):
 
     with run_distro_container(distro, arch) as container:
         # install setcap dependency
-        if distro in RPM_DISTROS:
-            run_container_cmd(container, get_libcap_command(container))
-        else:
-            run_container_cmd(container, "apt-get update")
-            run_container_cmd(container, "apt-get install -y libcap2-bin")
+        install_libcap(container, distro)
 
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
         try:
             # install package
-            if distro in DEB_DISTROS:
-                run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
-            elif distro in RPM_DISTROS:
-                run_container_cmd(container, f"rpm -i /test/{pkg_base}")
+            install_local_package(container, distro, pkg_base)
 
             run_container_cmd(container, f"test -d {BUNDLE_DIR}")
             run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
             run_container_cmd(container, f"{BUNDLE_DIR}/jre/bin/java -version")
             run_container_cmd(container, f"{BUNDLE_DIR}/bin/python --version")
             run_container_cmd(container, f"test -d {BUNDLE_DIR}/collectd-python")
+            run_container_cmd(container, "test -x /usr/bin/splunk-otel-collector-launcher")
+            run_container_cmd(container, "test -x /usr/bin/opampsupervisor")
 
             run_container_cmd(container, f"test -f {AGENT_CONFIG_PATH}")
             run_container_cmd(container, f"test -f {GATEWAY_CONFIG_PATH}")
+            run_container_cmd(container, f"test -d {COLLECTOR_STATE_DIR}")
+            run_container_cmd(container, f"test ! -d {COLLECTOR_STATE_DIR}/supervisor")
+            run_container_cmd(container, f"grep -q '# Set to true to enable OpAMP Supervisor.' {ENV_PATH}.example")
+            run_container_cmd(container, f"grep -q 'direct collector mode' {ENV_PATH}.example", exit_code=1)
 
             # verify service is not running after install without config file
             time.sleep(5)
@@ -169,6 +195,86 @@ def test_collector_package_install(distro, arch):
 
         # verify config file is not removed
         run_container_cmd(container, f"test -f {ENV_PATH}")
+
+
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+def test_collector_package_supervisor_brownfield_switch(distro):
+    arch = "amd64"
+    pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
+    assert pkg_path, f"{PKG_NAME} {arch} package not found in {PKG_DIR}"
+    pkg_base = os.path.basename(pkg_path)
+
+    with run_distro_container(distro, arch) as container:
+        install_libcap(container, distro)
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+
+        try:
+            install_local_package(container, distro, pkg_base)
+            run_container_cmd(container, f"cp -f {ENV_PATH}.example {ENV_PATH}")
+            run_container_cmd(container, f"systemctl start {SERVICE_NAME}")
+            assert wait_for(lambda: service_is_running(container, SERVICE_NAME, SERVICE_OWNER, SERVICE_PROC))
+            assert not process_is_running(container, SUPERVISOR_PROC)
+
+            run_container_cmd(container, f"sed -i 's/^SPLUNK_OTEL_SUPERVISOR_ENABLED=.*/SPLUNK_OTEL_SUPERVISOR_ENABLED=true/' {ENV_PATH}")
+            run_container_cmd(container, f"systemctl restart {SERVICE_NAME}")
+            assert wait_for(lambda: service_is_running(container, SERVICE_NAME, SERVICE_OWNER, SUPERVISOR_PROC), timeout=20)
+            assert wait_for(lambda: process_is_running(container, SERVICE_PROC), timeout=20)
+            run_container_cmd(container, f"test -d {SUPERVISOR_DIR}")
+            run_container_cmd(container, f"test -f {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q SPLUNK_CONFIG {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"test -d {COLLECTOR_STATE_DIR}/supervisor", exit_code=1)
+
+            run_container_cmd(container, f"sed -i 's/^SPLUNK_OTEL_SUPERVISOR_ENABLED=.*/SPLUNK_OTEL_SUPERVISOR_ENABLED=false/' {ENV_PATH}")
+            run_container_cmd(container, f"systemctl restart {SERVICE_NAME}")
+            assert wait_for(lambda: service_is_running(container, SERVICE_NAME, SERVICE_OWNER, SERVICE_PROC), timeout=20)
+            assert not process_is_running(container, SUPERVISOR_PROC)
+        finally:
+            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+
+
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+def test_collector_package_supervisor_brownfield_preserves_opamp_endpoint(distro):
+    arch = "amd64"
+    pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
+    assert pkg_path, f"{PKG_NAME} {arch} package not found in {PKG_DIR}"
+    pkg_base = os.path.basename(pkg_path)
+
+    with run_distro_container(distro, arch) as container:
+        install_libcap(container, distro)
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+
+        try:
+            install_local_package(container, distro, pkg_base)
+            run_container_cmd(container, f"cp -f {ENV_PATH}.example {ENV_PATH}")
+            run_container_cmd(container, f"sed -i 's|^SPLUNK_INGEST_URL=.*|SPLUNK_INGEST_URL=http://127.0.0.1:4321|' {ENV_PATH}")
+            run_container_cmd(container, f"sed -i 's|endpoint: \"${{SPLUNK_INGEST_URL}}/v1/opamp\"|endpoint: \"https://direct.example/v1/opamp\"|' {AGENT_CONFIG_PATH}")
+            run_container_cmd(container, f"sed -i 's|^OTELCOL_OPTIONS=.*|OTELCOL_OPTIONS=--feature-gates=+splunk.opamp.enabled|' {ENV_PATH}")
+            run_container_cmd(container, f"sed -i 's/^SPLUNK_OTEL_SUPERVISOR_ENABLED=.*/SPLUNK_OTEL_SUPERVISOR_ENABLED=true/' {ENV_PATH}")
+            run_container_cmd(container, f"systemctl start {SERVICE_NAME}")
+
+            assert wait_for(lambda: service_is_running(container, SERVICE_NAME, SERVICE_OWNER, SUPERVISOR_PROC), timeout=20)
+            run_container_cmd(container, f"grep -q 'https://direct.example/v1/opamp' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'X-SF-Token: ${{SPLUNK_ACCESS_TOKEN}}' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'accepts_remote_config: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_remote_config: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_available_components: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_own_metrics: false' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'reports_heartbeat: false' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'passthrough_logs: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'use_hup_config_reload: true' {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q SPLUNK_CONFIG {SUPERVISOR_CONFIG_PATH}")
+            run_container_cmd(container, f"grep -q 'splunk.opamp.enabled' {SUPERVISOR_CONFIG_PATH}", exit_code=1)
+            run_container_cmd(container, f"test -d {COLLECTOR_STATE_DIR}/supervisor", exit_code=1)
+        finally:
+            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
 
 @pytest.mark.parametrize(

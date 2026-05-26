@@ -24,12 +24,16 @@ ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
 BUNDLE_BASE_DIR="/splunk-otel-collector"
 OTELCOL_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/otelcol"
+LAUNCHER_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/splunk-otel-collector-launcher"
+OPAMPSUPERVISOR_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/opampsupervisor"
 
 tar_setup_files_and_permissions() {
     local otelcol="$1"
     local config_folder="$2"
     local buildroot="$3"
     local bundle_path="$4"
+    local launcher="$5"
+    local opampsupervisor="$6"
 
     create_user_group
 
@@ -37,6 +41,14 @@ tar_setup_files_and_permissions() {
     cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+
+    cp -f "$launcher" "$buildroot/$LAUNCHER_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$LAUNCHER_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$LAUNCHER_INSTALL_PATH"
+
+    cp -f "$opampsupervisor" "$buildroot/$OPAMPSUPERVISOR_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$OPAMPSUPERVISOR_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$OPAMPSUPERVISOR_INSTALL_PATH"
 
     mkdir -p "$buildroot/$BUNDLE_BASE_DIR/config"
     cp "$config_folder/gateway_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
@@ -65,12 +77,14 @@ fi
 VERSION="${VERSION#v}"
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
+launcher_path="$REPO_DIR/bin/splunk-otel-collector-launcher_linux_${ARCH}"
+opampsupervisor_path="$REPO_DIR/bin/opampsupervisor_linux_${ARCH}"
 config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
 agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
-tar_setup_files_and_permissions "$otelcol_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
+tar_setup_files_and_permissions "$otelcol_path" "$config_folder_path" "$buildroot" "$agent_bundle_path" "$launcher_path" "$opampsupervisor_path"
 
 mkdir -p "$OUTPUT_DIR"
 

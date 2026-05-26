@@ -143,17 +143,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:9943", ip),
 						},
 					},
-					"opamp/splunk_o11y": map[string]any{
-						"server": map[string]any{
-							"http": map[string]any{
-								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
-								"headers": map[string]any{
-									"X-SF-Token": "<redacted>",
-								},
-								"polling_interval": "30s",
-							},
-						},
-					},
 					"zpages": map[string]any{
 						"endpoint": fmt.Sprintf("%s:55679", ip),
 						"expvar": map[string]any{
@@ -409,17 +398,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:4320", ip),
-						},
-					},
-					"opamp/splunk_o11y": map[string]any{
-						"server": map[string]any{
-							"http": map[string]any{
-								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
-								"headers": map[string]any{
-									"X-SF-Token": "<redacted>",
-								},
-								"polling_interval": "30s",
-							},
 						},
 					},
 					"smartagent": map[string]any{

@@ -1102,6 +1102,9 @@ Collector:
                                         (default: "$default_memory_size")
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
                                         (default: "agent")
+  --with-supervisor                     Configure the splunk-otel-collector service to start through the OpAMP
+                                        supervisor. The service name and config/env paths remain unchanged.
+                                        (default: false)
   --listen-interface <ip>               network interface the collector receivers listen on.
                                         (default: "127.0.0.1" for agent mode and "0.0.0.0" otherwise)
   --realm <us0|us1|eu0|...>             The Splunk realm to use. The ingest, api, trace, and HEC endpoint URLs will
@@ -1405,6 +1408,7 @@ parse_args_and_install() {
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
   local with_obi="false"
+  local with_supervisor="false"
   local obi_version="$default_obi_version"
   local obi_install_dir="$default_obi_install_dir"
   local obi_version_tag=
@@ -1469,6 +1473,9 @@ parse_args_and_install() {
             ;;
         esac
         shift 1
+        ;;
+      --with-supervisor)
+        with_supervisor="true"
         ;;
       --listen-interface)
         listen_interface="$2"
@@ -1884,6 +1891,7 @@ parse_args_and_install() {
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
+  configure_env_file "SPLUNK_OTEL_SUPERVISOR_ENABLED" "$with_supervisor" "$collector_env_path"
   if [ -d "$collector_bundle_dir" ]; then
     configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
     # ensure the collector service owner has access to the bundle dir

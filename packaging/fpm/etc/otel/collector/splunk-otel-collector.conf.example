@@ -15,6 +15,9 @@
 # Run `/usr/bin/otelcol --help` to see all available options.
 OTELCOL_OPTIONS=""
 
+# Set to true to enable OpAMP Supervisor.
+SPLUNK_OTEL_SUPERVISOR_ENABLED=false
+
 
 # Path to the config file for the collector.
 # Required, unless the OTELCOL_OPTIONS environment variable above includes the '--config <path to config file>' option.

@@ -36,6 +36,10 @@ if [ -d /usr/lib/splunk-otel-collector ]; then
     chown -R splunk-otel-collector:splunk-otel-collector /usr/lib/splunk-otel-collector
 fi
 
+mkdir -p /var/lib/otelcol
+chown splunk-otel-collector:splunk-otel-collector /var/lib/otelcol
+chmod 755 /var/lib/otelcol
+
 if command -v systemctl >/dev/null 2>&1; then
     systemctl daemon-reload
     systemctl enable splunk-otel-collector.service

@@ -90,6 +90,13 @@ func TestMSI(t *testing.T) {
 				"SPLUNK_ACCESS_TOKEN":     "fakeToken",
 			},
 		},
+		{
+			name: "supervisor-enabled",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":            "fakeToken",
+				"SPLUNK_OTEL_SUPERVISOR_ENABLED": "true",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -255,14 +262,15 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", configFileName))
 
 	expectedEnvVars := map[string]string{
-		"SPLUNK_CONFIG":       configFileFullName,
-		"SPLUNK_ACCESS_TOKEN": msiProperties["SPLUNK_ACCESS_TOKEN"], // Required install property for a successful start of the service
-		"SPLUNK_REALM":        installRealm,
-		"SPLUNK_API_URL":      optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_API_URL", "https://api."+installRealm+".observability.splunkcloud.com"),
-		"SPLUNK_INGEST_URL":   ingestURL,
-		"SPLUNK_HEC_URL":      ingestURL + "/v1/log",
-		"SPLUNK_HEC_TOKEN":    optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_HEC_TOKEN", msiProperties["SPLUNK_ACCESS_TOKEN"]),
-		"SPLUNK_BUNDLE_DIR":   filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", "agent-bundle"),
+		"SPLUNK_CONFIG":                  configFileFullName,
+		"SPLUNK_ACCESS_TOKEN":            msiProperties["SPLUNK_ACCESS_TOKEN"], // Required install property for a successful start of the service
+		"SPLUNK_REALM":                   installRealm,
+		"SPLUNK_API_URL":                 optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_API_URL", "https://api."+installRealm+".observability.splunkcloud.com"),
+		"SPLUNK_INGEST_URL":              ingestURL,
+		"SPLUNK_HEC_URL":                 ingestURL + "/v1/log",
+		"SPLUNK_HEC_TOKEN":               optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_HEC_TOKEN", msiProperties["SPLUNK_ACCESS_TOKEN"]),
+		"SPLUNK_BUNDLE_DIR":              filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", "agent-bundle"),
+		"SPLUNK_OTEL_SUPERVISOR_ENABLED": optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_OTEL_SUPERVISOR_ENABLED", "false"),
 	}
 	if memoryTotalMib, ok := msiProperties["SPLUNK_MEMORY_TOTAL_MIB"]; ok {
 		expectedEnvVars["SPLUNK_MEMORY_TOTAL_MIB"] = memoryTotalMib
@@ -323,7 +331,7 @@ func expectedServiceCommand(t *testing.T, collectorServiceArgs string) string {
 	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
 
 	collectorDir := filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector")
-	collectorExe := filepath.Join(collectorDir, "otelcol") + ".exe"
+	collectorExe := filepath.Join(collectorDir, "splunk-otel-collector-launcher") + ".exe"
 
 	if collectorServiceArgs == "" {
 		return quotedIfRequired(collectorExe)

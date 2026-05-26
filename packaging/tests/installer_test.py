@@ -263,6 +263,29 @@ def test_installer_default(distro, arch, mode):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
+def test_installer_with_supervisor_sets_env(distro):
+    install_cmd = f"{get_installer_cmd()} --with-supervisor"
+
+    print(f"Testing supervisor installation on {distro} from {STAGE} stage ...")
+    with run_distro_container(distro, "amd64") as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+
+        try:
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OTEL_SUPERVISOR_ENABLED", "true")
+
+            verify_uninstall(container, distro)
+
+        finally:
+            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_installer_custom(distro, arch):
     collector_version = "0.126.0"
@@ -679,4 +702,3 @@ def test_installer_with_obi(distro, arch):
 
         assert not container_file_exists(container, OBI_BIN), \
             f"OBI binary was not removed from {OBI_BIN} after uninstall"
-

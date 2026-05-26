@@ -1,7 +1,6 @@
 package processlist
 
 import (
-	"runtime"
 	"testing"
 	"time"
 
@@ -20,10 +19,8 @@ func TestEscapedCharacters(t *testing.T) {
 		Command:     "echo test with line break \n character",
 		ProcessID:   200,
 	}
+	m.lastCPUCounts[top.key()] = 0
 	encodedVal := m.encodeProcess(top, 10*time.Second)
 	expectedVal := "\"200\":[\"test'with nested'quotes\",0,\"0\",0,0,0,\"running\",0.00,0.00,\"00:00.00\",\"echo test with line break \\n character\"]"
-	if runtime.GOOS == "windows" {
-		expectedVal = "\"200\":[\"test'with nested'quotes\",0,\"0\",0,0,0,\"running\",NaN,0.00,\"00:00.00\",\"echo test with line break \\n character\"]"
-	}
 	assert.Equal(t, expectedVal, encodedVal)
 }

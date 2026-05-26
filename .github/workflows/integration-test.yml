@@ -80,7 +80,7 @@ jobs:
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v10.2.1
-      - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
         id: multiarch-otelcol-builder
         with:
           driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
@@ -248,7 +248,7 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
         with:
           verbose: true
           fail_ci_if_error: true
@@ -332,7 +332,7 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
         with:
           verbose: true
           fail_ci_if_error: true
@@ -460,7 +460,7 @@ jobs:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
           if: ${{ github.actor != 'dependabot[bot]' }}
-          uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+          uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
           with:
             verbose: true
             fail_ci_if_error: true
@@ -552,7 +552,7 @@ jobs:
           kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
         with:
           verbose: true
           fail_ci_if_error: true

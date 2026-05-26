@@ -170,15 +170,16 @@ func TestDefaultComponents(t *testing.T) {
 		"probabilistic_sampler",
 		"redaction",
 		"resource",
-		"resourcedetection",
+		"resource_detection",
 		"span",
 		"tail_sampling",
 		"timestamp",
 		"transform",
 	}
 	expectedProcessorAliases := map[string]string{
-		"k8sattributes":    "k8s_attributes",
-		"metricstransform": "metrics_transform",
+		"k8sattributes":     "k8s_attributes",
+		"metricstransform":  "metrics_transform",
+		"resourcedetection": "resource_detection",
 	}
 	expectedExporters := []string{
 		"awss3",
@@ -186,7 +187,7 @@ func TestDefaultComponents(t *testing.T) {
 		"file",
 		"google_cloud_storage",
 		"kafka",
-		"loadbalancing",
+		"load_balancing",
 		"nop",
 		"otlp_grpc",
 		"otlp_http",
@@ -196,6 +197,7 @@ func TestDefaultComponents(t *testing.T) {
 		"splunk_hec",
 	}
 	expectedExporterAliases := map[string]string{
+		"loadbalancing":      "load_balancing",
 		"otlp":               "otlp_grpc",
 		"otlphttp":           "otlp_http",
 		"googlecloudstorage": "google_cloud_storage",

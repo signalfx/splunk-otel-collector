@@ -22,8 +22,8 @@ func DefaultPaths() Paths {
 	return Paths{
 		CollectorExecutable:  "/usr/bin/otelcol",
 		SupervisorExecutable: "/usr/bin/opampsupervisor",
-		SupervisorConfig:     "/etc/otel/collector/supervisor/supervisor_config.yaml",
-		StorageDirectory:     "/etc/otel/collector/supervisor",
+		SupervisorConfig:     "/etc/otel/collector/supervisor_config.yaml",
+		StorageDirectory:     "/var/lib/otelcol/supervisor",
 		UseHUPConfigReload:   true,
 	}
 }

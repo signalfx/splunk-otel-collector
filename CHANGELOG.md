@@ -62,9 +62,7 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
   - The shape of the existing internal telemetry resource is preserved; resource attributes set
     by the `resourcedetection` processor are not migrated in this change.
 - (Splunk) `packaging`: Update Splunk OpenTelemetry Java agent to v2.28.0 ([#7587](https://github.com/signalfx/splunk-otel-collector/pull/7587))
-- (Splunk) `packaging`: Update JMX metrics gatherer to v1.56.0 ([#7548](https://github.com/signalfx/splunk-otel-collector/pull/7548))
 - (Splunk) `packaging`: Update JMX metrics gatherer to v1.57.0 ([#7579](https://github.com/signalfx/splunk-otel-collector/pull/7579))
-- (Splunk) `packaging`: Update Splunk OpenTelemetry Node.js agent to v4.7.1 ([#7549](https://github.com/signalfx/splunk-otel-collector/pull/7549))
 - (Splunk) `packaging`: Update Splunk OpenTelemetry Node.js agent to v4.7.2 ([#7562](https://github.com/signalfx/splunk-otel-collector/pull/7562))
 - (Splunk) `telemetry/resource`: Add a configuration converter to migrate legacy v0.2.0 telemetry resource configuration to the v0.3.0 declarative format. ([#7559](https://github.com/signalfx/splunk-otel-collector/pull/7559))
   This change adds a configuration converter to migrate legacy v0.2.0 telemetry resource configuration to the v0.3.0 declarative format.
@@ -72,6 +70,8 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
   The converter will run at startup and update your running config if needed.
   If your `service::telemetry::resource` configuration is still using the old config format,
   a warning message will be logged to make sure you update your persistent config.
+- (Core) `pkg/exporterhelper`: Add otelcol_exporter_in_flight_requests metric to track the number of export requests currently in-flight per exporter. ([#15009](https://github.com/open-telemetry/opentelemetry-collector/issues/15009))
+  This UpDownCounter increments in startOp and decrements in endOp, allowing operators to monitor concurrent export activity and detect when an exporter is saturating its worker pool.
 - (Contrib) `connector/count`: Support OTTL path context names in `conditions`. ([#48316](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48316))
   Conditions for spans, span events, metrics, data points, logs, and profiles can now use
   context-prefixed paths (e.g. `span.attributes["env"]`, `resource.attributes["host"]`,
@@ -173,17 +173,26 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
   either the config option or the feature gate is set. This configuration option should be treated 
   as experimental until the feature gate has been promoted from alpha stability.
 - (Contrib) `receiver/windowsservice`: Advancement of windows service receiver from development to alpha ([#48176](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48176))
-- (Core) `pkg/exporterhelper`: Add otelcol_exporter_in_flight_requests metric to track the number of export requests currently in-flight per exporter. ([#15009](https://github.com/open-telemetry/opentelemetry-collector/issues/15009))
-  This UpDownCounter increments in startOp and decrements in endOp, allowing operators to monitor concurrent export activity and detect when an exporter is saturating its worker pool. 
 
 ### 🧰 Bug fixes 🧰
-
+- (Core) `pkg/config/configgrpc`: Fix memory corruption and fatal error in Snappy ([#15237](https://github.com/open-telemetry/opentelemetry-collector/issues/15237), [#15320](https://github.com/open-telemetry/opentelemetry-collector/issues/15320))
+- (Core) `pkg/confighttp`: Close the original request body after reading block-format Content-Encoding: snappy requests. ([#15262](https://github.com/open-telemetry/opentelemetry-collector/issues/15262))
+- (Core) `pkg/confighttp`: Recover from panics in decompression libraries, return HTTP 400 instead of 500. ([#13228](https://github.com/open-telemetry/opentelemetry-collector/issues/13228))
+- (Core) `pkg/confighttp`: Enforce `max_request_body_size` on `Content-Encoding: snappy` requests before the decoded buffer is allocated. ([#15252](https://github.com/open-telemetry/opentelemetry-collector/issues/15252))
+- (Core) `pkg/otelcol`: Stop emitting verbose gRPC transport messages at WARN during normal client disconnect. ([#5169](https://github.com/open-telemetry/opentelemetry-collector/issues/5169))
+- (Core) `pkg/service`: Fix Prometheus config defaults mismatch when host is explicitly set in telemetry configuration. ([#13867](https://github.com/open-telemetry/opentelemetry-collector/issues/13867))
+  When users explicitly configured the telemetry metrics section (e.g. to change the host),
+  the Prometheus exporter boolean fields (WithoutScopeInfo, WithoutUnits, WithoutTypeSuffix)
+  defaulted to nil/false instead of true, causing metric name format changes compared to the
+  implicit default configuration. This fix applies the correct defaults during config unmarshaling.
+- (Core) `pkg/service`: Return noop tracer provider when no trace processors are defined ([#15135](https://github.com/open-telemetry/opentelemetry-collector/issues/15135))
+- (Core) `pkg/pdata`: `pcommon.Value.AsString` no longer HTML-escapes `<`, `>`, and `&` inside `ValueTypeMap` and `ValueTypeSlice` values, matching the behavior already used for `ValueTypeStr` ([#14662](https://github.com/open-telemetry/opentelemetry-collector/issues/14662))
 - (Contrib) `pkg/translator/splunk`: Propagate the OTLP log record `EventName` field into the Splunk HEC event under the configured `otel_to_hec_fields/name` key (default `otel.log.name`). ([#48048](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48048))
 - (Contrib) `processor/k8s_attributes`: Preserve an upstream-set container.image.tags resource attribute when processor.k8sattributes.EmitV1K8sConventions is enabled, matching the behavior of container.image.tag and container.image.repo_digests. ([#45869](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45869))
 - (Contrib) `processor/k8s_attributes`: Re-enable otelcol.k8s.pod.association metric with low-cardinality pod_identifier attribute. The attribute now encodes the association source type/name (e.g. "connection", "resource_attribute/k8s.pod.ip") rather than actual pod identifier values, preventing unbounded metric time series growth. ([#47669](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47669))
 - (Contrib) `receiver/azure_blob`: Delete blobs only upon successful processing ([#48211](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48211))
   Blobs that fail to be processed will now remain in the container and will be retried on the next poll. Users with consistently failing pipelines may see container growth or duplicate emissions on retry.
-- (Contrib) `receiver/azure_monitor`: fix(azuremonitorreceiver): prevent duplicate sample timestamps in batch scraper ([#47938](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47938))
+- (Contrib) `receiver/azure_monitor`: prevent duplicate sample timestamps in batch scraper ([#47938](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47938))
 - (Contrib) `receiver/iis`: The IIS receiver was failing to start when a disabled metric was not present in the system ([#48609](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48609))
   The IIS receiver was attempting to create watchers for all metrics, even those that were disabled.
   This was causing the receiver to fail to start if any of the disabled metrics were not present in the system,
@@ -205,18 +214,6 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
 - (Contrib) `receiver/syslog`: Support days with leading zeros in RFC 3164 syslogs ([#47665](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47665))
 - (Contrib) `receiver/yang_grpc`: Fix setting metric attributes from context bag. ([#48568](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48568))
 - (Contrib) `scraper/zookeeper`: Fix zk_avg_latency metric being silently dropped on Zookeeper 3.7+ where the value is reported as a float. ([#47320](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47320))
-- (Core) `pkg/config/configgrpc`: Fix memory corruption and fatal error in Snappy ([#15237](https://github.com/open-telemetry/opentelemetry-collector/issues/15237), [#15320](https://github.com/open-telemetry/opentelemetry-collector/issues/15320))
-- (Core) `pkg/confighttp`: Close the original request body after reading block-format Content-Encoding: snappy requests. ([#15262](https://github.com/open-telemetry/opentelemetry-collector/issues/15262))
-- (Core) `pkg/confighttp`: Recover from panics in decompression libraries, return HTTP 400 instead of 500. ([#13228](https://github.com/open-telemetry/opentelemetry-collector/issues/13228))
-- (Core) `pkg/confighttp`: Enforce `max_request_body_size` on `Content-Encoding: snappy` requests before the decoded buffer is allocated. ([#15252](https://github.com/open-telemetry/opentelemetry-collector/issues/15252))
-- (Core) `pkg/otelcol`: Stop emitting verbose gRPC transport messages at WARN during normal client disconnect. ([#5169](https://github.com/open-telemetry/opentelemetry-collector/issues/5169))
-- (Core) `pkg/service`: Fix Prometheus config defaults mismatch when host is explicitly set in telemetry configuration. ([#13867](https://github.com/open-telemetry/opentelemetry-collector/issues/13867))
-  When users explicitly configured the telemetry metrics section (e.g. to change the host),
-  the Prometheus exporter boolean fields (WithoutScopeInfo, WithoutUnits, WithoutTypeSuffix)
-  defaulted to nil/false instead of true, causing metric name format changes compared to the
-  implicit default configuration. This fix applies the correct defaults during config unmarshaling.
-- (Core) `pkg/service`: Return noop tracer provider when no trace processors are defined ([#15135](https://github.com/open-telemetry/opentelemetry-collector/issues/15135))
-- (Core) `pkg/pdata`: `pcommon.Value.AsString` no longer HTML-escapes `<`, `>`, and `&` inside `ValueTypeMap` and `ValueTypeSlice` values, matching the behavior already used for `ValueTypeStr` ([#14662](https://github.com/open-telemetry/opentelemetry-collector/issues/14662))
 
 ## v0.152.0
 

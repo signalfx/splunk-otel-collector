@@ -173,6 +173,8 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
   either the config option or the feature gate is set. This configuration option should be treated 
   as experimental until the feature gate has been promoted from alpha stability.
 - (Contrib) `receiver/windowsservice`: Advancement of windows service receiver from development to alpha ([#48176](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48176))
+- (Core) `pkg/exporterhelper`: Add otelcol_exporter_in_flight_requests metric to track the number of export requests currently in-flight per exporter. ([#15009](https://github.com/open-telemetry/opentelemetry-collector/issues/15009))
+  This UpDownCounter increments in startOp and decrements in endOp, allowing operators to monitor concurrent export activity and detect when an exporter is saturating its worker pool. 
 
 ### 🧰 Bug fixes 🧰
 
@@ -203,6 +205,18 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
 - (Contrib) `receiver/syslog`: Support days with leading zeros in RFC 3164 syslogs ([#47665](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/47665))
 - (Contrib) `receiver/yang_grpc`: Fix setting metric attributes from context bag. ([#48568](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48568))
 - (Contrib) `scraper/zookeeper`: Fix zk_avg_latency metric being silently dropped on Zookeeper 3.7+ where the value is reported as a float. ([#47320](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47320))
+- (Core) `pkg/config/configgrpc`: Fix memory corruption and fatal error in Snappy ([#15237](https://github.com/open-telemetry/opentelemetry-collector/issues/15237), [#15320](https://github.com/open-telemetry/opentelemetry-collector/issues/15320))
+- (Core) `pkg/confighttp`: Close the original request body after reading block-format Content-Encoding: snappy requests. ([#15262](https://github.com/open-telemetry/opentelemetry-collector/issues/15262))
+- (Core) `pkg/confighttp`: Recover from panics in decompression libraries, return HTTP 400 instead of 500. ([#13228](https://github.com/open-telemetry/opentelemetry-collector/issues/13228))
+- (Core) `pkg/confighttp`: Enforce `max_request_body_size` on `Content-Encoding: snappy` requests before the decoded buffer is allocated. ([#15252](https://github.com/open-telemetry/opentelemetry-collector/issues/15252))
+- (Core) `pkg/otelcol`: Stop emitting verbose gRPC transport messages at WARN during normal client disconnect. ([#5169](https://github.com/open-telemetry/opentelemetry-collector/issues/5169))
+- (Core) `pkg/service`: Fix Prometheus config defaults mismatch when host is explicitly set in telemetry configuration. ([#13867](https://github.com/open-telemetry/opentelemetry-collector/issues/13867))
+  When users explicitly configured the telemetry metrics section (e.g. to change the host),
+  the Prometheus exporter boolean fields (WithoutScopeInfo, WithoutUnits, WithoutTypeSuffix)
+  defaulted to nil/false instead of true, causing metric name format changes compared to the
+  implicit default configuration. This fix applies the correct defaults during config unmarshaling.
+- (Core) `pkg/service`: Return noop tracer provider when no trace processors are defined ([#15135](https://github.com/open-telemetry/opentelemetry-collector/issues/15135))
+- (Core) `pkg/pdata`: `pcommon.Value.AsString` no longer HTML-escapes `<`, `>`, and `&` inside `ValueTypeMap` and `ValueTypeSlice` values, matching the behavior already used for `ValueTypeStr` ([#14662](https://github.com/open-telemetry/opentelemetry-collector/issues/14662))
 
 ## v0.152.0
 

@@ -40,11 +40,13 @@
       <!-- SPLUNK_*_URL properties required to start the collector -->
       <Property Id="SPLUNK_REALM" Value="us0" Secure="yes" />
 
-      <Property Id="SPLUNK_CONFIG" Secure="yes" />
       <Property Id="SPLUNK_API_URL" Secure="yes" />
       <Property Id="SPLUNK_INGEST_URL" Secure="yes" />
       <Property Id="SPLUNK_HEC_URL" Secure="yes" />
-      <CustomAction Id="Set_SPLUNK_CONFIG" Property="SPLUNK_CONFIG" Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml" />
+      <Property Id="SPLUNK_PLATFORM_LOGS_INDEX" Secure="yes" />
+
+      <CustomAction Id="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml&quot;" />
+      <CustomAction Id="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\splunk_logs_windows_config.yaml&quot;" />
       <CustomAction Id="Set_SPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].observability.splunkcloud.com" />
       <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].observability.splunkcloud.com" />
       <CustomAction Id="Set_SPLUNK_HEC_URL" Property="SPLUNK_HEC_URL" Value="[SPLUNK_INGEST_URL]/v1/log" />
@@ -52,7 +54,8 @@
       <InstallExecuteSequence>
          <Custom Action="CheckLaunchConditions" After="LaunchConditions" />
          <Custom Action="Set_SPLUNK_HEC_TOKEN" After="LaunchConditions" Condition="NOT SPLUNK_HEC_TOKEN" />
-         <Custom Action="Set_SPLUNK_CONFIG" After="LaunchConditions" Condition="NOT SPLUNK_CONFIG" />
+         <Custom Action="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" After="CheckLaunchConditions" Condition="SPLUNK_ACCESS_TOKEN" />
+         <Custom Action="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" After="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_LOGS_INDEX" />
          <Custom Action="Set_SPLUNK_API_URL" After="LaunchConditions" Condition="NOT SPLUNK_API_URL" />
          <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions" Condition="NOT SPLUNK_INGEST_URL" />
          <!-- The properties below depend on another properties and should be run only after all other properties are set -->
@@ -74,11 +77,11 @@
             <RegistryValue Type="multiString" Name="Environment">
                <MultiStringValue Value="SPLUNK_ACCESS_TOKEN=[SPLUNK_ACCESS_TOKEN]" />
                <MultiStringValue Value="SPLUNK_API_URL=[SPLUNK_API_URL]" />
-               <MultiStringValue Value="SPLUNK_CONFIG=[SPLUNK_CONFIG]" />
                <MultiStringValue Value="SPLUNK_HEC_TOKEN=[SPLUNK_HEC_TOKEN]" />
                <MultiStringValue Value="SPLUNK_HEC_URL=[SPLUNK_HEC_URL]" />
                <MultiStringValue Value="SPLUNK_INGEST_URL=[SPLUNK_INGEST_URL]" />
                <MultiStringValue Value="SPLUNK_REALM=[SPLUNK_REALM]" />
+               <MultiStringValue Value="SPLUNK_PLATFORM_LOGS_INDEX=[SPLUNK_PLATFORM_LOGS_INDEX]" />
             </RegistryValue>
          </RegistryKey>
       </Component>

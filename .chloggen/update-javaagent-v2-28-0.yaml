@@ -1,5 +1,0 @@
-change_type: enhancement
-component: packaging
-note: Update Splunk OpenTelemetry Java agent to v2.28.0
-issues: [7587]
-subtext: null

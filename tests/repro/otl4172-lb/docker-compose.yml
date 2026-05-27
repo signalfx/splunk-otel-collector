@@ -1,0 +1,102 @@
+services:
+  # OpenTelemetry Collector with delayed OTLP receiver startup
+  otelcollector:
+    image: alpine:3.20
+    container_name: otelcollector
+    command: ["/bin/sh", "/start-collector.sh"]
+    environment:
+      COLLECTOR_BIN: /otelcontribcol
+
+    volumes:
+      - ./otel-collector-delayed-config.yaml:/etc/otel-collector-delayed-config.yaml
+      - ./bin/otelcol:/otelcontribcol
+      - ./start-collector.sh:/start-collector.sh
+
+    ports:
+      - "13133:13133" # Collector health check
+      - "14317:4317" # Direct OTLP gRPC for delay validation
+      - "14318:4318" # Direct OTLP HTTP for delay validation
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:13133"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+    # Logging to see the delay in action
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # HAProxy Load Balancer for OTLP receiver
+  haproxy:
+    image: haproxy:2.8-alpine
+    container_name: haproxy
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      otelcollector:
+        condition: service_started
+    ports:
+      - "4317:4317"    # OTLP gRPC (exposed via haproxy)
+      - "4318:4318"    # OTLP HTTP (exposed via haproxy)
+      - "8404:8404"    # HAProxy Stats
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8404/stats"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Telemetry generator that sends traces through HAProxy
+  telemetrygen:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    container_name: telemetrygen
+    command:
+      - traces
+      - --otlp-endpoint=haproxy:4317
+      - --otlp-insecure
+      - --duration=30s
+      - --rate=10
+      - --batch-size=1
+      - --timeout=1s
+      - --allow-export-failures
+    depends_on:
+      haproxy:
+        condition: service_healthy
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://haproxy:4318"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Telemetry generator that sends traces through HAProxy using OTLP/HTTP
+  telemetrygen-http:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    container_name: telemetrygen-http
+    command:
+      - traces
+      - --otlp-http
+      - --otlp-endpoint=haproxy:4318
+      - --otlp-insecure
+      - --duration=30s
+      - --rate=10
+      - --batch-size=1
+      - --timeout=1s
+      - --allow-export-failures
+    depends_on:
+      haproxy:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

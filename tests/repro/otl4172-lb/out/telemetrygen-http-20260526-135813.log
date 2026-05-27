@@ -1,0 +1,5 @@
+2026-05-26T20:58:19.240547924Z 2026-05-26T20:58:19.240Z	INFO	traces/traces.go:41	starting HTTP exporter
+2026-05-26T20:58:19.240597257Z 2026-05-26T20:58:19.240Z	INFO	traces/traces.go:125	generation of traces is limited	{"per-second": 10}
+2026-05-26T20:58:49.343914049Z 2026-05-26T20:58:49.342Z	INFO	traces/worker.go:180	traces generated	{"worker": 0, "traces": 151}
+2026-05-26T20:58:49.343927007Z 2026-05-26T20:58:49.343Z	INFO	traces/traces.go:75	stop the batch span processor
+2026-05-26T20:58:49.346652299Z 2026-05-26T20:58:49.346Z	INFO	traces/traces.go:65	stopping the exporter

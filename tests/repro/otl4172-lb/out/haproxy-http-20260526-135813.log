@@ -1,0 +1,51 @@
+2026-05-26T20:58:13.682580754Z [NOTICE]   (1) : New worker (8) forked
+2026-05-26T20:58:13.682605546Z [NOTICE]   (1) : Loading success.
+2026-05-26T20:58:13.696925671Z [WARNING]  (8) : Server collector_otlp_http/otelcollector is DOWN, reason: Layer4 connection problem, info: "Connection refused", check duration: 0ms. 0 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+2026-05-26T20:58:13.696943879Z [ALERT]    (8) : backend 'collector_otlp_http' has no server available!
+2026-05-26T20:58:13.696927296Z Server collector_otlp_http/otelcollector is DOWN, reason: Layer4 connection problem, info: "Connection refused", check duration: 0ms. 0 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+2026-05-26T20:58:13.696946379Z backend collector_otlp_http has no server available!
+2026-05-26T20:58:14.165824546Z [WARNING]  (8) : Server collector_otlp_grpc/otelcollector is DOWN, reason: Layer4 connection problem, info: "Connection refused at initial connection step of tcp-check", check duration: 0ms. 0 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+2026-05-26T20:58:14.165891713Z [ALERT]    (8) : backend 'collector_otlp_grpc' has no server available!
+2026-05-26T20:58:14.165905088Z Server collector_otlp_grpc/otelcollector is DOWN, reason: Layer4 connection problem, info: "Connection refused at initial connection step of tcp-check", check duration: 0ms. 0 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+2026-05-26T20:58:14.165908463Z backend collector_otlp_grpc has no server available!
+2026-05-26T20:58:18.680121507Z Connect from 127.0.0.1:40304 to 127.0.0.1:8404 (stats/HTTP)
+2026-05-26T20:58:20.248170841Z 172.20.0.5:41068 [26/May/2026:20:58:20.247] otlp_http_in collector_otlp_http/<NOSRV> 0/-1/-1/-1/0 503 217 - - SC-- 1/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:20.254147841Z Connect from 172.20.0.4:42260 to 172.20.0.3:4317 (otlp_grpc_in/TCP)
+2026-05-26T20:58:21.256626883Z Connect from 172.20.0.4:42270 to 172.20.0.3:4317 (otlp_grpc_in/TCP)
+2026-05-26T20:58:22.554536342Z Connect from 172.20.0.4:42278 to 172.20.0.3:4317 (otlp_grpc_in/TCP)
+2026-05-26T20:58:23.722257259Z Connect from 127.0.0.1:40306 to 127.0.0.1:8404 (stats/HTTP)
+2026-05-26T20:58:24.222795885Z [WARNING]  (8) : Server collector_otlp_grpc/otelcollector is UP, reason: Layer4 check passed, check duration: 0ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+2026-05-26T20:58:24.222796010Z Server collector_otlp_grpc/otelcollector is UP, reason: Layer4 check passed, check duration: 0ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+2026-05-26T20:58:24.749025385Z [WARNING]  (8) : Server collector_otlp_http/otelcollector is UP, reason: Layer4 check passed, check duration: 0ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+2026-05-26T20:58:24.749028051Z Server collector_otlp_http/otelcollector is UP, reason: Layer4 check passed, check duration: 0ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+2026-05-26T20:58:25.214780968Z Connect from 172.20.0.4:42290 to 172.20.0.3:4317 (otlp_grpc_in/TCP)
+2026-05-26T20:58:25.901303302Z 172.20.0.5:41068 [26/May/2026:20:58:25.896] otlp_http_in collector_otlp_http/otelcollector 0/0/0/4/4 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:26.908047094Z 172.20.0.5:41068 [26/May/2026:20:58:26.905] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:27.910210303Z 172.20.0.5:41068 [26/May/2026:20:58:27.908] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:28.755594012Z Connect from 127.0.0.1:53104 to 127.0.0.1:8404 (stats/HTTP)
+2026-05-26T20:58:28.915535303Z 172.20.0.5:41068 [26/May/2026:20:58:28.913] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:29.917877262Z 172.20.0.5:41068 [26/May/2026:20:58:29.915] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:30.921237179Z 172.20.0.5:41068 [26/May/2026:20:58:30.919] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:31.923573180Z 172.20.0.5:41068 [26/May/2026:20:58:31.921] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:32.927215680Z 172.20.0.5:41068 [26/May/2026:20:58:32.925] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:33.795547958Z Connect from 127.0.0.1:53114 to 127.0.0.1:8404 (stats/HTTP)
+2026-05-26T20:58:33.926726333Z 172.20.0.5:41068 [26/May/2026:20:58:33.925] otlp_http_in collector_otlp_http/otelcollector 0/0/0/0/0 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:34.932533042Z 172.20.0.5:41068 [26/May/2026:20:58:34.930] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:35.936413417Z 172.20.0.5:41068 [26/May/2026:20:58:35.934] otlp_http_in collector_otlp_http/otelcollector 0/0/0/0/0 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:36.936681210Z 172.20.0.5:41068 [26/May/2026:20:58:36.934] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:37.939628252Z 172.20.0.5:41068 [26/May/2026:20:58:37.937] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:38.840765419Z Connect from 127.0.0.1:60404 to 127.0.0.1:8404 (stats/HTTP)
+2026-05-26T20:58:38.941520711Z 172.20.0.5:41068 [26/May/2026:20:58:38.940] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:39.943564503Z 172.20.0.5:41068 [26/May/2026:20:58:39.942] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:40.946541878Z 172.20.0.5:41068 [26/May/2026:20:58:40.945] otlp_http_in collector_otlp_http/otelcollector 0/0/0/0/0 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:41.948845170Z 172.20.0.5:41068 [26/May/2026:20:58:41.947] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:42.947556671Z 172.20.0.5:41068 [26/May/2026:20:58:42.945] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:43.880769380Z Connect from 127.0.0.1:60416 to 127.0.0.1:8404 (stats/HTTP)
+2026-05-26T20:58:43.948292880Z 172.20.0.5:41068 [26/May/2026:20:58:43.947] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:44.951163088Z 172.20.0.5:41068 [26/May/2026:20:58:44.949] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:45.951281589Z 172.20.0.5:41068 [26/May/2026:20:58:45.949] otlp_http_in collector_otlp_http/otelcollector 0/0/0/0/0 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:46.952154381Z 172.20.0.5:41068 [26/May/2026:20:58:46.949] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:47.953290007Z 172.20.0.5:41068 [26/May/2026:20:58:47.951] otlp_http_in collector_otlp_http/otelcollector 0/0/0/1/1 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:48.903392674Z Connect from 127.0.0.1:54070 to 127.0.0.1:8404 (stats/HTTP)
+2026-05-26T20:58:48.953439840Z 172.20.0.5:41068 [26/May/2026:20:58:48.952] otlp_http_in collector_otlp_http/otelcollector 0/0/0/0/0 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"
+2026-05-26T20:58:49.346161382Z 172.20.0.5:41068 [26/May/2026:20:58:49.343] otlp_http_in collector_otlp_http/otelcollector 0/0/0/2/2 200 118 - - ---- 2/1/0/0/0 0/0 "POST /v1/traces HTTP/1.1"

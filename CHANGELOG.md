@@ -38,6 +38,7 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
 - (Contrib) `receiver/jaeger`: Remove stable gate receiver.jaeger.DisableRemoteSampling ([#48616](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48616))
 
 ### 🚩 Deprecations 🚩
+
 - (Contrib) `exporter/load_balancing`: Rename the `loadbalancing` exporter to `load_balancing`. The old `loadbalancing` type remains available as a deprecated alias. ([#45339](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45339))
 - (Contrib) `pkg/kafka/configkafka`: Deprecate Kafka client config fields that became no-ops after the migration to franz-go. ([#48260](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48260))
   - `resolve_canonical_bootstrap_servers_only`: franz-go has no direct equivalent
@@ -108,8 +109,6 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
   `spans_per_second` tokens. A trace whose span count equals `spans_per_second` can now be sampled (the previous
   strict `<` comparison meant `spans_per_second: 1` would never sample).
   Set `burst_capacity` explicitly to match the previous per-second cap if needed.
-- (Contrib) `provider/s3`: Add support for Amazon S3-compatible services (e.g. MinIO) using path-style endpoints and insecure HTTP URIs. ([#47595](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47595))
-  - Hosts with non-Amazon DNS suffixes are now treated as path-style endpoints (`s3://host/bucket/key`) instead of virtual-hosted-style.
 - (Contrib) `receiver/awscloudwatch`: Add metrics support to the AWS CloudWatch receiver. ([#47330](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47330))
 - (Contrib) `receiver/file_log`: Improves file-reading efficiency by evicting previously read data from the OS page cache. ([#48273](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48273))
   Clears the cache on Linux; acts as a no-op on unsupported platforms.
@@ -177,10 +176,6 @@ and the [opentelemetry-collector-contrib v0.153.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
-- (Contrib) `connector/service_graph`: Fix client-side exponential histograms being emitted with a zero timestamp, causing backends like Grafana Cloud Mimir to reject them. ([#48049](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48049))
-  collectClientLatencyMetrics omitted SetTimestamp on the exponential-histogram data point, so the
-  zero-value timestamp leaked through. The server-side function and the client-side explicit-bucket
-  branch were already correct.
 - (Contrib) `pkg/translator/splunk`: Propagate the OTLP log record `EventName` field into the Splunk HEC event under the configured `otel_to_hec_fields/name` key (default `otel.log.name`). ([#48048](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48048))
 - (Contrib) `processor/k8s_attributes`: Preserve an upstream-set container.image.tags resource attribute when processor.k8sattributes.EmitV1K8sConventions is enabled, matching the behavior of container.image.tag and container.image.repo_digests. ([#45869](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/45869))
 - (Contrib) `processor/k8s_attributes`: Re-enable otelcol.k8s.pod.association metric with low-cardinality pod_identifier attribute. The attribute now encodes the association source type/name (e.g. "connection", "resource_attribute/k8s.pod.ip") rather than actual pod identifier values, preventing unbounded metric time series growth. ([#47669](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47669))

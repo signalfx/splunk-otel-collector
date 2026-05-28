@@ -1,5 +1,5 @@
 receivers:
-  cloudfoundry:
+  cloud_foundry:
     rlp_gateway:
       endpoint: ${RLP_GATEWAY_ENDPOINT}
       shard_id: ${RLP_GATEWAY_SHARD_ID}
@@ -26,6 +26,6 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [cloudfoundry]
+      receivers: [cloud_foundry]
       processors: [resourcedetection]
       exporters: [signalfx]

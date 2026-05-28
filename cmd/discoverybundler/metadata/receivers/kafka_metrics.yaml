@@ -1,4 +1,4 @@
-receiver_id: kafkametrics
+receiver_id: kafka_metrics
 service_type: kafka
 properties_tmpl: |
   enabled: true
@@ -18,7 +18,7 @@ status:
   metrics:
     - status: successful
       strict: kafka.brokers
-      message: kafkametrics receiver is working!
+      message: kafka_metrics receiver is working!
   statements:
     - status: failed
       regexp: 'connect: network is unreachable'

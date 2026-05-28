@@ -86,20 +86,31 @@ download_nodejs_agent() {
 download_dotnet_agent() {
     local tag="$1"
     local arch="$2"
-    local dest="$3"
+    local libc="$3"
+    local dest="$4"
     local pkg
     case "$arch" in
-        arm64) pkg="splunk-opentelemetry-dotnet-linux-glibc-arm64.zip" ;;
-        *)     pkg="splunk-opentelemetry-dotnet-linux-glibc-x64.zip" ;;
+        arm64)
+            case "$libc" in
+                musl) pkg="splunk-opentelemetry-dotnet-linux-musl-arm64.zip" ;;
+                *)    pkg="splunk-opentelemetry-dotnet-linux-glibc-arm64.zip" ;;
+            esac
+            ;;
+        *)
+            case "$libc" in
+                musl) pkg="splunk-opentelemetry-dotnet-linux-musl-x64.zip" ;;
+                *)    pkg="splunk-opentelemetry-dotnet-linux-glibc-x64.zip" ;;
+            esac
+            ;;
     esac
     local dl_url="$DOTNET_AGENT_RELEASE_URL/download/$tag/$pkg"
 
     echo "Downloading $dl_url ..."
     curl -sfL "$dl_url" -o /tmp/$pkg
 
-    echo "Extracting $pkg to $dest ..."
-    mkdir -p "$dest"
-    unzip -d $dest /tmp/$pkg
+    echo "Extracting $pkg to $dest/$libc ..."
+    mkdir -p "$dest/$libc"
+    unzip -d "$dest/$libc" /tmp/$pkg
     rm -f /tmp/$pkg
 }
 
@@ -121,7 +132,8 @@ setup_files_and_permissions() {
     download_nodejs_agent "$nodejs_agent_release" "${buildroot}/${NODEJS_AGENT_INSTALL_PATH}"
     sudo chmod 755 "$buildroot/$NODEJS_AGENT_INSTALL_PATH"
 
-    download_dotnet_agent "$dotnet_agent_release" "$arch" "${buildroot}/${DOTNET_AGENT_INSTALL_DIR}"
+    download_dotnet_agent "$dotnet_agent_release" "$arch" "glibc" "${buildroot}/${DOTNET_AGENT_INSTALL_DIR}"
+    download_dotnet_agent "$dotnet_agent_release" "$arch" "musl" "${buildroot}/${DOTNET_AGENT_INSTALL_DIR}"
     sudo chmod -R 755 "$buildroot/$DOTNET_AGENT_INSTALL_DIR"
 
     mkdir -p  "$buildroot/$CONFIG_DIR_INSTALL_PATH"

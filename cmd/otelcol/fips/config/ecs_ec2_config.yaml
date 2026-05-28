@@ -178,7 +178,7 @@ service:
         - batch
         - resourcedetection
         #- resource/add_environment
-      exporters: [otlp_http, signalfx]
+      exporters: [otlp_http]
     metrics:
       receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, filter, resourcedetection]

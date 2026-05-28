@@ -224,9 +224,9 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlp_http, signalfx]
+      exporters: [otlp_http]
       # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway, signalfx]
+      #exporters: [otlp_grpc/gateway]
     metrics:
       receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]

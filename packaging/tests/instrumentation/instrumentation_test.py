@@ -54,7 +54,6 @@ DOTNET_AGENT_ARM64_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-arm64/OpenTelemet
 
 INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
 INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
-TEST_ENV_PATH = "/etc/opentelemetry/injector/test-env.conf"
 
 # Custom config fixtures — use all_auto_instrumentation_agents_env_path to set OTEL_* vars
 CUSTOM_INJECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "test-injector.conf"
@@ -289,9 +288,8 @@ def test_tomcat_instrumentation(distro, arch):
             r"deployment\.environment": rf"Str\(deployment_environment_from_java\)",
         }
 
-        # overwrite injector.conf to enable env var injection, copy per-language env vars
-        copy_file_into_container(container, CUSTOM_INJECTOR_CONFIG_PATH, INJECTOR_CONFIG_PATH)
-        copy_file_into_container(container, CUSTOM_JAVA_ENV_PATH, TEST_ENV_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_JAVA_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
@@ -349,9 +347,8 @@ def test_express_instrumentation(distro, arch):
             r"deployment\.environment": rf"Str\(deployment_environment_from_node\)",
         }
 
-        # overwrite injector.conf to enable env var injection, copy per-language env vars
-        copy_file_into_container(container, CUSTOM_INJECTOR_CONFIG_PATH, INJECTOR_CONFIG_PATH)
-        copy_file_into_container(container, CUSTOM_NODE_ENV_PATH, TEST_ENV_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_NODE_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
@@ -400,9 +397,8 @@ def test_dotnet_instrumentation(distro, arch):
             r"deployment\.environment": rf"Str\(deployment_environment_from_dotnet\)",
         }
 
-        # overwrite injector.conf to enable env var injection, copy per-language env vars
-        copy_file_into_container(container, CUSTOM_INJECTOR_CONFIG_PATH, INJECTOR_CONFIG_PATH)
-        copy_file_into_container(container, CUSTOM_DOTNET_ENV_PATH, TEST_ENV_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_DOTNET_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)

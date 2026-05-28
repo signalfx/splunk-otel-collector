@@ -2,7 +2,7 @@
 #                               Do not edit manually!                                        #
 # All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
 ##############################################################################################
-kafkametrics:
+kafka_metrics:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka.*"}) and not (command matches "splunk.discovery")

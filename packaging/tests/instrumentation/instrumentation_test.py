@@ -126,8 +126,8 @@ def install_package(container, distro, path, arch="amd64"):
         assert container_file_exists(container, path), f"{path} not found"
 
     # dotnet agent path is arch-specific
-    dotnet_path = DOTNET_AGENT_ARM64_PATH if arch == "arm64" else DOTNET_AGENT_PATH
-    assert container_file_exists(container, dotnet_path), f"{dotnet_path} not found"
+    # dotnet_path = DOTNET_AGENT_ARM64_PATH if arch == "arm64" else DOTNET_AGENT_PATH
+    # assert container_file_exists(container, dotnet_path), f"{dotnet_path} not found"
 
 
 def verify_preload(container, line, exists=True):

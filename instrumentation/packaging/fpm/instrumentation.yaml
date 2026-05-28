@@ -1,6 +1,0 @@
-distribution:
-  splunk:
-    profiling:
-      always_on:
-        cpu_profiler:
-        memory_profiler:

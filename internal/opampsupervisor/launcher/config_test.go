@@ -40,7 +40,7 @@ func TestSupervisorEnabled(t *testing.T) {
 }
 
 func TestPrepareCommandDirectMode(t *testing.T) {
-	paths := testPaths(t.TempDir())
+	paths := testPaths(t, t.TempDir())
 	env := []string{"A=B"}
 	cmd, err := PrepareCommand([]string{"--discovery"}, env, paths)
 	require.NoError(t, err)
@@ -62,7 +62,7 @@ service:
   extensions: [health_check]
 `), 0o600))
 
-	paths := testPaths(dir)
+	paths := testPaths(t, dir)
 	paths.CollectorExecutable = filepath.Join(dir, "test-otelcol")
 
 	env := []string{
@@ -83,7 +83,7 @@ service:
 }
 
 func TestPrepareCommandSupervisorModeErrors(t *testing.T) {
-	_, err := PrepareCommand(nil, []string{SupervisorEnabledEnvVar + "=true"}, testPaths(t.TempDir()))
+	_, err := PrepareCommand(nil, []string{SupervisorEnabledEnvVar + "=true"}, testPaths(t, t.TempDir()))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), CollectorConfigEnvVar)
 }
@@ -107,7 +107,7 @@ service:
   extensions: [health_check, opamp/splunk_o11y]
 `), 0o600))
 
-	paths := testPaths(dir)
+	paths := testPaths(t, dir)
 	err := PrepareSupervisor(
 		[]string{"--feature-gates=+splunk.opamp.enabled,+other.gate"},
 		map[string]string{CollectorConfigEnvVar: configPath, IngestURLEnvVar: "https://ingest.example"},
@@ -130,16 +130,11 @@ service:
 	assert.True(t, supervisorConfig.Agent.PassthroughLogs)
 	assert.True(t, supervisorConfig.Agent.UseHUPConfigReload)
 	assert.True(t, supervisorConfig.Agent.ValidateConfig)
-
-	assertDirExists(t, paths.StorageDirectory)
-	_, err = os.Stat(filepath.Join(paths.StorageDirectory, "collector_config.yaml"))
-	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func TestPrepareSupervisorPreservesExistingConfig(t *testing.T) {
 	dir := t.TempDir()
-	paths := testPaths(dir)
-	require.NoError(t, os.MkdirAll(paths.StorageDirectory, 0o755))
+	paths := testPaths(t, dir)
 	require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte("user: edited\n"), 0o600))
 
 	err := PrepareSupervisor(
@@ -150,7 +145,6 @@ func TestPrepareSupervisorPreservesExistingConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "user: edited\n", readFile(t, paths.SupervisorConfig))
-	assertDirExists(t, paths.StorageDirectory)
 }
 
 func TestPrepareSupervisorReturnsErrors(t *testing.T) {
@@ -163,13 +157,6 @@ func TestPrepareSupervisorReturnsErrors(t *testing.T) {
 				return map[string]string{IngestURLEnvVar: "https://ingest.example"}
 			},
 			wantErr: CollectorConfigEnvVar,
-		},
-		"Storage directory creation": {
-			setup: func(t *testing.T, _ string, paths Paths) map[string]string {
-				require.NoError(t, os.WriteFile(paths.StorageDirectory, []byte("not a directory"), 0o600))
-				return map[string]string{IngestURLEnvVar: "https://ingest.example"}
-			},
-			wantErr: "create supervisor directory",
 		},
 		"Collector config read": {
 			setup: func(_ *testing.T, dir string, _ Paths) map[string]string {
@@ -204,7 +191,7 @@ func TestPrepareSupervisorReturnsErrors(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			dir := t.TempDir()
-			paths := testPaths(dir)
+			paths := testPaths(t, dir)
 			err := PrepareSupervisor(nil, tt.setup(t, dir, paths), paths)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
@@ -212,12 +199,12 @@ func TestPrepareSupervisorReturnsErrors(t *testing.T) {
 	}
 }
 
-func TestLoadConfigFileEmptyConfigReturnsEmptyMap(t *testing.T) {
+func TestLoadCollectorConfigFileEmptyConfigReturnsEmptyMap(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "collector.yaml")
 	require.NoError(t, os.WriteFile(configPath, nil, 0o600))
 
-	config, err := loadConfigFile(configPath)
+	config, err := loadCollectorConfigFile(configPath)
 	require.NoError(t, err)
 	assert.Empty(t, config)
 }
@@ -357,7 +344,13 @@ func TestWriteYAMLErrors(t *testing.T) {
 				require.NoError(t, os.WriteFile(parentPath, []byte("not a directory"), 0o600))
 				return filepath.Join(parentPath, "config.yaml"), map[string]any{}
 			},
-			wantErr: "create directory",
+			wantErr: "write",
+		},
+		"Parent path is missing": {
+			setup: func(_ *testing.T, dir string) (string, any) {
+				return filepath.Join(dir, "missing", "config.yaml"), map[string]any{}
+			},
+			wantErr: "write",
 		},
 		"Marshal failure": {
 			setup: func(_ *testing.T, dir string) (string, any) {
@@ -370,7 +363,7 @@ func TestWriteYAMLErrors(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			path, value := tt.setup(t, t.TempDir())
-			err := writeYAML(path, value, 0o600)
+			err := writeYAML(path, value)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
@@ -406,22 +399,18 @@ func assertMinimalCapabilitiesYAML(t *testing.T, path string) {
 	}, capabilities)
 }
 
-func testPaths(dir string) Paths {
+func testPaths(t *testing.T, dir string) Paths {
+	t.Helper()
+
+	supervisorConfig := filepath.Join(dir, "config", "supervisor_config.yaml")
+	require.NoError(t, os.MkdirAll(filepath.Dir(supervisorConfig), 0o700))
 	return Paths{
 		CollectorExecutable:  "otelcol",
 		SupervisorExecutable: "opampsupervisor",
 		StorageDirectory:     filepath.Join(dir, "supervisor"),
-		SupervisorConfig:     filepath.Join(dir, "supervisor", "supervisor_config.yaml"),
+		SupervisorConfig:     supervisorConfig,
 		UseHUPConfigReload:   true,
 	}
-}
-
-func assertDirExists(t *testing.T, path string) {
-	t.Helper()
-
-	info, err := os.Stat(path)
-	require.NoError(t, err)
-	assert.True(t, info.IsDir())
 }
 
 func readYAML(t *testing.T, path string, out any) {

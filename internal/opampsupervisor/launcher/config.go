@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -122,14 +121,10 @@ func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 	}, nil
 }
 
-// PrepareSupervisor creates the supervisor directory and writes the initial
-// supervisor config only when it does not already exist. Existing supervisor
-// config is user-editable and is preserved across launcher restarts.
+// PrepareSupervisor writes the initial supervisor config only when it does not
+// already exist. Existing supervisor config is user-editable and is preserved
+// across launcher restarts.
 func PrepareSupervisor(args []string, env map[string]string, paths Paths) error {
-	if err := prepareSupervisorStorageDir(paths); err != nil {
-		return err
-	}
-
 	_, err := os.Stat(paths.SupervisorConfig)
 	if err == nil {
 		return nil
@@ -145,12 +140,12 @@ func PrepareSupervisor(args []string, env map[string]string, paths Paths) error 
 		return fmt.Errorf("%s must be set in supervisor mode", CollectorConfigEnvVar)
 	}
 
-	config, err := loadConfigFile(configPath)
+	collectorConfig, err := loadCollectorConfigFile(configPath)
 	if err != nil {
 		return err
 	}
 
-	server, err := supervisorServerFromConfig(config, env)
+	server, err := supervisorServerFromConfig(collectorConfig, env)
 	if err != nil {
 		return err
 	}
@@ -176,16 +171,17 @@ func PrepareSupervisor(args []string, env map[string]string, paths Paths) error 
 			ValidateConfig:     true,
 		},
 	}
-	if err := writeYAML(paths.SupervisorConfig, supervisorConfig, 0o600); err != nil {
+	if err := writeYAML(paths.SupervisorConfig, supervisorConfig); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// loadConfigFile reads a collector config into a generic map so direct OpAMP
-// settings can be copied into the generated supervisor config when present.
-func loadConfigFile(path string) (map[string]any, error) {
+// loadCollectorConfigFile reads a collector config into a generic map so direct
+// OpAMP settings can be copied into the generated supervisor config when
+// present.
+func loadCollectorConfigFile(path string) (map[string]any, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read collector config %q: %w", path, err)
@@ -266,18 +262,6 @@ func derivedOpAMPEndpoint(env map[string]string) string {
 	return ""
 }
 
-// prepareSupervisorStorageDir creates the supervisor directory before config
-// generation or supervisor persistence files are used.
-func prepareSupervisorStorageDir(paths Paths) error {
-	if err := os.MkdirAll(paths.StorageDirectory, 0o755); err != nil {
-		return fmt.Errorf("create supervisor directory %q: %w", paths.StorageDirectory, err)
-	}
-	if err := os.Chmod(paths.StorageDirectory, 0o755); err != nil {
-		return fmt.Errorf("set supervisor directory permissions %q: %w", paths.StorageDirectory, err)
-	}
-	return nil
-}
-
 // filterSupervisorAgentArgs removes only the direct Splunk OpAMP feature gate
 // and preserves other collector args for the child agent.
 func filterSupervisorAgentArgs(args []string) []string {
@@ -328,17 +312,13 @@ func filterFeatureGateValue(value string) (string, bool) {
 	return strings.Join(kept, ","), len(kept) > 0
 }
 
-// writeYAML writes generated config files with their parent directories created
-// for package-managed state paths.
-func writeYAML(path string, value any, perm os.FileMode) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("create directory for %q: %w", path, err)
-	}
+// writeYAML writes generated config files to package-managed config paths.
+func writeYAML(path string, value any) error {
 	bytes, err := yaml.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("marshal %q: %w", path, err)
 	}
-	if err := os.WriteFile(path, bytes, perm); err != nil {
+	if err := os.WriteFile(path, bytes, 0o600); err != nil {
 		return fmt.Errorf("write %q: %w", path, err)
 	}
 	return nil

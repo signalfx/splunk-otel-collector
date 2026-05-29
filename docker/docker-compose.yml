@@ -96,7 +96,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     profiles:
-      - integration-test-kafkametrics-discovery
+      - integration-test-kafka-metrics-discovery
   kong:
     image: quay.io/splunko11ytest/kong:latest
     profiles:

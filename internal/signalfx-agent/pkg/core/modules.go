@@ -39,7 +39,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheus/velero"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/sql"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/subproc/signalfx/java"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/supervisor"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/dns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"

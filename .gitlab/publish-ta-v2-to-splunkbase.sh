@@ -121,9 +121,20 @@ fi
 echo "Step 3: Updating release notes for release_file ${release_file}..."
 curl -u "${AUTH}" \
     --request PUT "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/releases/${release_file}/" \
-    --json "{\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}" \
+    --json "{\"public\":true,\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}" \
     -fSs \
     || { echo "Failed to update release notes for ${file_name}"; exit 1; }
 echo ""
 echo "Updated release notes for ${file_name} (release_file: ${release_file})"
+
+# Step 4: Make the latest release the default version for the app
+echo "Step 4: Setting release_file ${release_file} as default version for app ${APP_ID}..."
+curl -u "${AUTH}" \
+    --request PATCH "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/" \
+    --json "{\"latest_release\": ${release_file}}" \
+    -fSs \
+    || { echo "Failed to set default version for ${file_name}"; exit 1; }
+echo ""
+echo "Set ${release_file} as default version for app ${APP_ID}"
+
 echo "--- Done with ${file_name} ---"

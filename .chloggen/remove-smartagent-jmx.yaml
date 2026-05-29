@@ -16,5 +16,5 @@ issues: [7513]
 subtext: |
   The `jmx` Smart Agent monitor has been removed along with the bundled Java runtime it required.
   Users should migrate to the `jmx` receiver from opentelemetry-collector-contrib for equivalent JMX
-  metrics collection. The user should also ensure that a compatible Java runtime is installed on the
+  metrics collection. Users should also ensure that a compatible Java runtime is installed on the
   host.

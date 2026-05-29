@@ -79,6 +79,40 @@ service:
 
 	assert.Equal(t, paths.SupervisorExecutable, cmd.Path)
 	assert.Equal(t, []string{"--config", paths.SupervisorConfig}, cmd.Args)
+	assert.Equal(t, append(append([]string{}, env...), ListenInterfaceEnvVar+"="+defaultListenInterface), cmd.Env)
+}
+
+func TestPrepareCommandSupervisorModeDefaultAgentListenInterface(t *testing.T) {
+	dir := t.TempDir()
+	paths := testPaths(t, dir)
+	require.NoError(t, os.WriteFile(paths.DefaultAgentConfig, []byte(`service: {}`), 0o600))
+
+	env := []string{
+		SupervisorEnabledEnvVar + "=true",
+		CollectorConfigEnvVar + "=" + paths.DefaultAgentConfig,
+		IngestURLEnvVar + "=https://ingest.example",
+	}
+	cmd, err := PrepareCommand(nil, env, paths)
+	require.NoError(t, err)
+
+	assert.Equal(t, append(append([]string{}, env...), ListenInterfaceEnvVar+"="+defaultAgentListenInterface), cmd.Env)
+}
+
+func TestPrepareCommandSupervisorModePreservesExplicitListenInterface(t *testing.T) {
+	dir := t.TempDir()
+	configPath := filepath.Join(dir, "collector.yaml")
+	require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
+
+	paths := testPaths(t, dir)
+	env := []string{
+		SupervisorEnabledEnvVar + "=true",
+		CollectorConfigEnvVar + "=" + configPath,
+		IngestURLEnvVar + "=https://ingest.example",
+		ListenInterfaceEnvVar + "=127.0.0.2",
+	}
+	cmd, err := PrepareCommand(nil, env, paths)
+	require.NoError(t, err)
+
 	assert.Equal(t, env, cmd.Env)
 }
 
@@ -94,6 +128,8 @@ func TestPrepareSupervisorUsesConfiguredOpAMPEndpointAndOriginalCollectorConfig(
 	require.NoError(t, os.WriteFile(configPath, []byte(`
 extensions:
   health_check: {}
+  http_forwarder/opamp_splunk_o11y: {}
+  opamp/custom: {}
   opamp/splunk_o11y:
     server:
       http:
@@ -104,12 +140,15 @@ extensions:
         tls:
           insecure_skip_verify: true
 service:
-  extensions: [health_check, opamp/splunk_o11y]
+  extensions: [health_check, opamp/splunk_o11y, http_forwarder/opamp_splunk_o11y, opamp/custom]
 `), 0o600))
 
 	paths := testPaths(t, dir)
 	err := PrepareSupervisor(
-		[]string{"--feature-gates=+splunk.opamp.enabled,+other.gate"},
+		[]string{
+			"--feature-gates=+splunk.opamp.enabled,+other.gate",
+			"--set=processors.batch.timeout=2s",
+		},
 		map[string]string{CollectorConfigEnvVar: configPath, IngestURLEnvVar: "https://ingest.example"},
 		paths,
 	)
@@ -123,28 +162,61 @@ service:
 	assert.Contains(t, readFile(t, paths.SupervisorConfig), "X-SF-Token: ${SPLUNK_ACCESS_TOKEN}")
 	assertMinimalCapabilities(t, supervisorConfig.Capabilities)
 	assertMinimalCapabilitiesYAML(t, paths.SupervisorConfig)
-	assert.Equal(t, []string{collectorConfigEnvRef}, supervisorConfig.Agent.ConfigFiles)
-	assert.Equal(t, []string{"--feature-gates=+other.gate"}, supervisorConfig.Agent.Args)
-	assert.Contains(t, readFile(t, paths.SupervisorConfig), collectorConfigEnvRef)
+	assert.Equal(t, []string{paths.GeneratedCollectorConfig}, supervisorConfig.Agent.ConfigFiles)
+	assert.Equal(t, []string{
+		"--feature-gates=+splunk.opamp.enabled,+other.gate",
+		"--set=processors.batch.timeout=2s",
+	}, supervisorConfig.Agent.Args)
+	assert.Contains(t, readFile(t, paths.SupervisorConfig), paths.GeneratedCollectorConfig)
 	assert.NotContains(t, readFile(t, paths.SupervisorConfig), configPath)
+	assert.Nil(t, supervisorConfig.Agent.Env)
+	assert.NotContains(t, readFile(t, paths.SupervisorConfig), "\nenv:")
 	assert.True(t, supervisorConfig.Agent.PassthroughLogs)
 	assert.True(t, supervisorConfig.Agent.UseHUPConfigReload)
 	assert.True(t, supervisorConfig.Agent.ValidateConfig)
+
+	var generatedConfig map[string]any
+	readYAML(t, paths.GeneratedCollectorConfig, &generatedConfig)
+	extensions := generatedConfig["extensions"].(map[string]any)
+	assert.Contains(t, extensions, "health_check")
+	assert.Contains(t, extensions, "http_forwarder/opamp_splunk_o11y")
+	assert.Contains(t, extensions, "opamp/custom")
+	assert.NotContains(t, extensions, opampSplunkExtension)
+
+	service := generatedConfig["service"].(map[string]any)
+	assert.Equal(t, []any{
+		"health_check",
+		"http_forwarder/opamp_splunk_o11y",
+		"opamp/custom",
+	}, service["extensions"])
 }
 
-func TestPrepareSupervisorPreservesExistingConfig(t *testing.T) {
+func TestPrepareCommandPreservesExistingConfigAndRecomputesEnv(t *testing.T) {
 	dir := t.TempDir()
 	paths := testPaths(t, dir)
 	require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte("user: edited\n"), 0o600))
+	require.NoError(t, os.WriteFile(paths.GeneratedCollectorConfig, []byte("old: generated\n"), 0o600))
 
-	err := PrepareSupervisor(
-		[]string{"--feature-gates=+splunk.opamp.enabled"},
-		map[string]string{IngestURLEnvVar: "https://ingest.example"},
-		paths,
-	)
+	configPath := filepath.Join(dir, "collector.yaml")
+	require.NoError(t, os.WriteFile(configPath, []byte(`
+extensions:
+  health_check: {}
+  opamp/splunk_o11y: {}
+service:
+  extensions: [opamp/splunk_o11y, health_check]
+`), 0o600))
+
+	env := []string{
+		SupervisorEnabledEnvVar + "=true",
+		CollectorConfigEnvVar + "=" + configPath,
+	}
+	cmd, err := PrepareCommand([]string{"--feature-gates=+splunk.opamp.enabled"}, env, paths)
 	require.NoError(t, err)
 
 	assert.Equal(t, "user: edited\n", readFile(t, paths.SupervisorConfig))
+	assert.NotContains(t, readFile(t, paths.GeneratedCollectorConfig), opampSplunkExtension)
+	assert.Contains(t, readFile(t, paths.GeneratedCollectorConfig), "health_check")
+	assert.Equal(t, append(append([]string{}, env...), ListenInterfaceEnvVar+"="+defaultListenInterface), cmd.Env)
 }
 
 func TestPrepareSupervisorReturnsErrors(t *testing.T) {
@@ -207,6 +279,78 @@ func TestLoadCollectorConfigFileEmptyConfigReturnsEmptyMap(t *testing.T) {
 	config, err := loadCollectorConfigFile(configPath)
 	require.NoError(t, err)
 	assert.Empty(t, config)
+}
+
+func TestSupervisorCommandEnv(t *testing.T) {
+	defaultAgentConfig := "/etc/otel/collector/agent_config.yaml"
+	tests := map[string]struct {
+		configPath string
+		env        []string
+		want       []string
+	}{
+		"linux agent config": {
+			configPath: defaultAgentConfig,
+			want: []string{
+				CollectorConfigEnvVar + "=" + defaultAgentConfig,
+				ListenInterfaceEnvVar + "=" + defaultAgentListenInterface,
+			},
+		},
+		"linux agent config cleaned path": {
+			configPath: "/etc/otel/collector/./agent_config.yaml",
+			want: []string{
+				CollectorConfigEnvVar + "=/etc/otel/collector/./agent_config.yaml",
+				ListenInterfaceEnvVar + "=" + defaultAgentListenInterface,
+			},
+		},
+		"linux gateway config": {
+			configPath: "/etc/otel/collector/gateway_config.yaml",
+			want: []string{
+				CollectorConfigEnvVar + "=/etc/otel/collector/gateway_config.yaml",
+				ListenInterfaceEnvVar + "=" + defaultListenInterface,
+			},
+		},
+		"custom config": {
+			configPath: "/etc/otel/collector/custom.yaml",
+			want: []string{
+				CollectorConfigEnvVar + "=/etc/otel/collector/custom.yaml",
+				ListenInterfaceEnvVar + "=" + defaultListenInterface,
+			},
+		},
+		"existing listen interface": {
+			configPath: defaultAgentConfig,
+			env: []string{
+				CollectorConfigEnvVar + "=" + defaultAgentConfig,
+				ListenInterfaceEnvVar + "=127.0.0.2",
+			},
+			want: []string{
+				CollectorConfigEnvVar + "=" + defaultAgentConfig,
+				ListenInterfaceEnvVar + "=127.0.0.2",
+			},
+		},
+		"existing empty listen interface": {
+			configPath: defaultAgentConfig,
+			env: []string{
+				CollectorConfigEnvVar + "=" + defaultAgentConfig,
+				ListenInterfaceEnvVar + "=",
+			},
+			want: []string{
+				CollectorConfigEnvVar + "=" + defaultAgentConfig,
+				ListenInterfaceEnvVar + "=",
+			},
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			environ := tt.env
+			if environ == nil {
+				environ = []string{CollectorConfigEnvVar + "=" + tt.configPath}
+			}
+			assert.Equal(t, tt.want, supervisorCommandEnv(environ, environToMap(environ), Paths{
+				DefaultAgentConfig: defaultAgentConfig,
+			}))
+		})
+	}
 }
 
 func TestSupervisorServerFromConfigDerivesFallbackEndpoint(t *testing.T) {
@@ -281,44 +425,6 @@ func TestConfiguredOpAMPServerErrors(t *testing.T) {
 	}
 }
 
-func TestFilterSupervisorAgentArgs(t *testing.T) {
-	tests := map[string]struct {
-		args []string
-		want []string
-	}{
-		"Remove opamp feature gate with equals": {
-			args: []string{
-				"--feature-gates=+splunk.opamp.enabled,-other.gate,",
-				"--set=processors.batch.timeout=2s",
-			},
-			want: []string{
-				"--feature-gates=-other.gate",
-				"--set=processors.batch.timeout=2s",
-			},
-		},
-		"Remove opamp feature gate with space": {
-			args: []string{
-				"--set=processors.batch.timeout", "2s",
-				"--feature-gates", "+splunk.opamp.enabled,+test.gate",
-			},
-			want: []string{
-				"--set=processors.batch.timeout", "2s",
-				"--feature-gates", "+test.gate",
-			},
-		},
-		"Preserves malformed feature gates arg": {
-			args: []string{"--feature-gates"},
-			want: []string{"--feature-gates"},
-		},
-	}
-
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tt.want, filterSupervisorAgentArgs(tt.args))
-		})
-	}
-}
-
 func TestAsMap(t *testing.T) {
 	value, ok := asMap(map[any]any{"key": "value"})
 	require.True(t, ok)
@@ -329,6 +435,16 @@ func TestAsMap(t *testing.T) {
 	assert.Nil(t, value)
 
 	value, ok = asMap("invalid")
+	assert.False(t, ok)
+	assert.Nil(t, value)
+}
+
+func TestAsSlice(t *testing.T) {
+	value, ok := asSlice([]string{"health_check", opampSplunkExtension})
+	require.True(t, ok)
+	assert.Equal(t, []any{"health_check", opampSplunkExtension}, value)
+
+	value, ok = asSlice("invalid")
 	assert.False(t, ok)
 	assert.Nil(t, value)
 }
@@ -405,11 +521,13 @@ func testPaths(t *testing.T, dir string) Paths {
 	supervisorConfig := filepath.Join(dir, "config", "supervisor_config.yaml")
 	require.NoError(t, os.MkdirAll(filepath.Dir(supervisorConfig), 0o700))
 	return Paths{
-		CollectorExecutable:  "otelcol",
-		SupervisorExecutable: "opampsupervisor",
-		StorageDirectory:     filepath.Join(dir, "supervisor"),
-		SupervisorConfig:     supervisorConfig,
-		UseHUPConfigReload:   true,
+		CollectorExecutable:      "otelcol",
+		SupervisorExecutable:     "opampsupervisor",
+		StorageDirectory:         filepath.Join(dir, "supervisor"),
+		SupervisorConfig:         supervisorConfig,
+		GeneratedCollectorConfig: filepath.Join(filepath.Dir(supervisorConfig), "collector_config.yaml"),
+		DefaultAgentConfig:       filepath.Join(dir, "agent_config.yaml"),
+		UseHUPConfigReload:       true,
 	}
 }
 

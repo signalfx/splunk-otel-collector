@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -30,19 +31,22 @@ const (
 	CollectorConfigEnvVar = "SPLUNK_CONFIG"
 	GatewayURLEnvVar      = "SPLUNK_GATEWAY_URL"
 	IngestURLEnvVar       = "SPLUNK_INGEST_URL"
+	ListenInterfaceEnvVar = "SPLUNK_LISTEN_INTERFACE"
 
-	opampSplunkExtension  = "opamp/splunk_o11y"
-	opampFeatureGate      = "splunk.opamp.enabled"
-	collectorConfigEnvRef = "${" + CollectorConfigEnvVar + "}"
+	defaultAgentListenInterface = "127.0.0.1"
+	defaultListenInterface      = "0.0.0.0"
+	opampSplunkExtension        = "opamp/splunk_o11y"
 )
 
-// Paths contains package installation paths and supervisor state paths.
+// Paths contains package installation, supervisor config, and state paths.
 type Paths struct {
-	CollectorExecutable  string
-	SupervisorExecutable string
-	SupervisorConfig     string
-	StorageDirectory     string
-	UseHUPConfigReload   bool
+	CollectorExecutable      string
+	SupervisorExecutable     string
+	SupervisorConfig         string
+	GeneratedCollectorConfig string
+	StorageDirectory         string
+	DefaultAgentConfig       string
+	UseHUPConfigReload       bool
 }
 
 // Command is the executable, arguments, and environment the launcher should run.
@@ -117,32 +121,35 @@ func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 	return Command{
 		Path: paths.SupervisorExecutable,
 		Args: []string{"--config", paths.SupervisorConfig},
-		Env:  environ,
+		Env:  supervisorCommandEnv(environ, env, paths),
 	}, nil
 }
 
-// PrepareSupervisor writes the initial supervisor config only when it does not
-// already exist. Existing supervisor config is user-editable and is preserved
+// PrepareSupervisor refreshes the launcher-managed collector config on every
+// supervisor start and writes the initial supervisor config only when it does
+// not already exist. Existing supervisor config is user-editable and preserved
 // across launcher restarts.
 func PrepareSupervisor(args []string, env map[string]string, paths Paths) error {
-	_, err := os.Stat(paths.SupervisorConfig)
+	collectorConfigPath := strings.TrimSpace(env[CollectorConfigEnvVar])
+	if collectorConfigPath == "" {
+		return fmt.Errorf("%s must be set in supervisor mode", CollectorConfigEnvVar)
+	}
+
+	collectorConfig, err := loadCollectorConfigFile(collectorConfigPath)
+	if err != nil {
+		return err
+	}
+
+	if writeErr := writeYAML(paths.GeneratedCollectorConfig, sanitizedCollectorConfig(collectorConfig)); writeErr != nil {
+		return writeErr
+	}
+
+	_, err = os.Stat(paths.SupervisorConfig)
 	if err == nil {
 		return nil
 	}
 	if !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("stat supervisor config %q: %w", paths.SupervisorConfig, err)
-	}
-
-	agentArgs := filterSupervisorAgentArgs(args)
-
-	configPath := strings.TrimSpace(env[CollectorConfigEnvVar])
-	if configPath == "" {
-		return fmt.Errorf("%s must be set in supervisor mode", CollectorConfigEnvVar)
-	}
-
-	collectorConfig, err := loadCollectorConfigFile(configPath)
-	if err != nil {
-		return err
 	}
 
 	server, err := supervisorServerFromConfig(collectorConfig, env)
@@ -164,18 +171,78 @@ func PrepareSupervisor(args []string, env map[string]string, paths Paths) error 
 		Storage: supervisorStorage{Directory: paths.StorageDirectory},
 		Agent: supervisorAgent{
 			Executable:         paths.CollectorExecutable,
-			ConfigFiles:        []string{collectorConfigEnvRef},
-			Args:               agentArgs,
+			ConfigFiles:        []string{paths.GeneratedCollectorConfig},
+			Args:               args,
 			PassthroughLogs:    true,
 			UseHUPConfigReload: paths.UseHUPConfigReload,
 			ValidateConfig:     true,
 		},
 	}
-	if err := writeYAML(paths.SupervisorConfig, supervisorConfig); err != nil {
-		return err
+	if writeErr := writeYAML(paths.SupervisorConfig, supervisorConfig); writeErr != nil {
+		return writeErr
 	}
 
 	return nil
+}
+
+// supervisorCommandEnv preserves the collector's package default listen
+// interface behavior when supervisor starts the collector from generated config.
+func supervisorCommandEnv(environ []string, env map[string]string, paths Paths) []string {
+	if _, ok := env[ListenInterfaceEnvVar]; ok {
+		return environ
+	}
+	collectorConfigPath := strings.TrimSpace(env[CollectorConfigEnvVar])
+	if collectorConfigPath == "" {
+		return environ
+	}
+	listenInterface := defaultListenInterfaceForConfig(collectorConfigPath, paths.DefaultAgentConfig)
+	return append(environ, ListenInterfaceEnvVar+"="+listenInterface)
+}
+
+func defaultListenInterfaceForConfig(configPath, defaultAgentConfig string) string {
+	if filepath.Clean(configPath) == filepath.Clean(defaultAgentConfig) {
+		return defaultAgentListenInterface
+	}
+	return defaultListenInterface
+}
+
+// sanitizedCollectorConfig returns the collector config used as supervisor's
+// local base config, with only the direct Splunk OpAMP extension removed.
+func sanitizedCollectorConfig(config map[string]any) map[string]any {
+	out := cloneYAMLMap(config)
+	removeSplunkOpAMPFromExtensions(out)
+	removeSplunkOpAMPFromServiceExtensions(out)
+	return out
+}
+
+func removeSplunkOpAMPFromExtensions(config map[string]any) {
+	extensions, ok := asMap(config["extensions"])
+	if !ok {
+		return
+	}
+	delete(extensions, opampSplunkExtension)
+	config["extensions"] = extensions
+}
+
+func removeSplunkOpAMPFromServiceExtensions(config map[string]any) {
+	service, ok := asMap(config["service"])
+	if !ok {
+		return
+	}
+	serviceExtensions, ok := asSlice(service["extensions"])
+	if !ok {
+		return
+	}
+
+	filtered := make([]any, 0, len(serviceExtensions))
+	for _, extension := range serviceExtensions {
+		if name, ok := extension.(string); ok && name == opampSplunkExtension {
+			continue
+		}
+		filtered = append(filtered, extension)
+	}
+	service["extensions"] = filtered
+	config["service"] = service
 }
 
 // loadCollectorConfigFile reads a collector config into a generic map so direct
@@ -262,56 +329,6 @@ func derivedOpAMPEndpoint(env map[string]string) string {
 	return ""
 }
 
-// filterSupervisorAgentArgs removes only the direct Splunk OpAMP feature gate
-// and preserves other collector args for the child agent.
-func filterSupervisorAgentArgs(args []string) []string {
-	var out []string
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-
-		if arg == "--feature-gates" {
-			if i+1 < len(args) {
-				filtered, keep := filterFeatureGateValue(args[i+1])
-				if keep {
-					out = append(out, arg, filtered)
-				}
-				i++
-			} else {
-				out = append(out, arg)
-			}
-			continue
-		}
-		if strings.HasPrefix(arg, "--feature-gates=") {
-			filtered, keep := filterFeatureGateValue(strings.TrimPrefix(arg, "--feature-gates="))
-			if keep {
-				out = append(out, "--feature-gates="+filtered)
-			}
-			continue
-		}
-
-		out = append(out, arg)
-	}
-	return out
-}
-
-// filterFeatureGateValue drops only the direct Splunk OpAMP feature gate so
-// other collector feature gates continue to flow to the child collector.
-func filterFeatureGateValue(value string) (string, bool) {
-	var kept []string
-	for _, item := range strings.Split(value, ",") {
-		trimmed := strings.TrimSpace(item)
-		if trimmed == "" {
-			continue
-		}
-		gate := strings.TrimLeft(trimmed, "+-")
-		if gate == opampFeatureGate {
-			continue
-		}
-		kept = append(kept, trimmed)
-	}
-	return strings.Join(kept, ","), len(kept) > 0
-}
-
 // writeYAML writes generated config files to package-managed config paths.
 func writeYAML(path string, value any) error {
 	bytes, err := yaml.Marshal(value)
@@ -342,6 +359,44 @@ func asMap(value any) (map[string]any, bool) {
 		return out, true
 	default:
 		return nil, false
+	}
+}
+
+func asSlice(value any) ([]any, bool) {
+	switch typed := value.(type) {
+	case []any:
+		return typed, true
+	case []string:
+		out := make([]any, len(typed))
+		for i, value := range typed {
+			out[i] = value
+		}
+		return out, true
+	default:
+		return nil, false
+	}
+}
+
+func cloneYAMLMap(in map[string]any) map[string]any {
+	out := make(map[string]any, len(in))
+	for key, value := range in {
+		out[key] = cloneYAMLValue(value)
+	}
+	return out
+}
+
+func cloneYAMLValue(value any) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		return cloneYAMLMap(typed)
+	case []any:
+		out := make([]any, len(typed))
+		for i, item := range typed {
+			out[i] = cloneYAMLValue(item)
+		}
+		return out
+	default:
+		return value
 	}
 }
 

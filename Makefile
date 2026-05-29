@@ -39,7 +39,6 @@ MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
-BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test

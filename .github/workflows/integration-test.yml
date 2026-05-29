@@ -287,6 +287,12 @@ jobs:
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
+      - run: |
+          if ! command -v setcap >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y libcap2-bin
+          fi
+          sudo setcap CAP_DAC_READ_SEARCH=+eip ./bin/otelcol_linux_amd64
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail

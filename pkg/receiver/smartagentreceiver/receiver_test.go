@@ -319,7 +319,6 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	require.Equal(t, "/etc", hostfs.HostEtc())
 }
 
-
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "extension_config.yaml"))
 	require.NoError(t, err)

@@ -2,7 +2,6 @@
 // agent components.
 package config
 
-
 // Config is the top level config struct for configurations that are common to all platforms
 type Config struct {
 	// This exists purely to give the user a place to put common yaml values to

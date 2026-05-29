@@ -5,8 +5,7 @@ change_type: breaking
 component: smartagentextension
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Remove `collectd` configuration block and `bundleDir` default from the Smart Agent Extension.
-
+note: Remove `collectd` configuration block and `bundleDir` from the Smart Agent Extension.
 # One or more tracking issues related to the change
 issues: [7513]
 

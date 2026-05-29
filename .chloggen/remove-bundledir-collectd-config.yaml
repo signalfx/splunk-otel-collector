@@ -14,7 +14,6 @@ issues: [7513]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  The `collectd` configuration block (including `configDir`, `logLevel`, `intervalSeconds`, etc.)
+  The `collectd` configuration block (including `bundleDir`, `configDir`, `logLevel`, `intervalSeconds`, etc.)
   has been removed from the Smart Agent Extension as the collectd subprocess no longer exists.
-  The `bundleDir` field is retained for explicit legacy Smart Agent compatibility but no longer
-  defaults to `SPLUNK_BUNDLE_DIR`. Configurations referencing the `collectd` block must be updated.
+  Configurations referencing the `collectd` block must be updated.

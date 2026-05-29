@@ -181,7 +181,6 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 		"http_forwarder",
 		"http_forwarder/opamp_splunk_o11y",
 		"zpages",
-		"smartagent",
 		"config_source_telemetry",
 		"file_storage/filelogs",
 	}, serviceExtensions)

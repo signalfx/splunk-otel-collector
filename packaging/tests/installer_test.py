@@ -680,3 +680,110 @@ def test_installer_with_obi(distro, arch):
         assert not container_file_exists(container, OBI_BIN), \
             f"OBI binary was not removed from {OBI_BIN} after uninstall"
 
+
+SPLUNK_PLATFORM_TOKEN = os.environ.get("SPLUNK_PLATFORM_TOKEN", "test-hec-token")
+SPLUNK_PLATFORM_URL = os.environ.get("SPLUNK_PLATFORM_URL", "https://splunk.example.com:8088/services/collector")
+SPLUNK_PLATFORM_LOGS_INDEX = "test-logs-index"
+
+
+def get_platform_installer_cmd():
+    """Return an installer command for Splunk Platform mode (no o11y token/realm)."""
+    debug_flag = "-x" if DEBUG == "yes" else ""
+    install_cmd = f"sh -l {debug_flag} /test/install.sh"
+
+    if LOCAL_COLLECTOR_PACKAGE:
+        install_cmd = f"{install_cmd} --collector-version /test/collector.pkg --skip-collector-repo"
+    elif VERSION != "latest":
+        install_cmd = f"{install_cmd} --collector-version {VERSION.lstrip('v')}"
+
+    if STAGE != "release":
+        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
+        install_cmd = f"{install_cmd} --{STAGE}"
+
+    return install_cmd
+
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_splunk_platform_logs_gateway_mode(distro, arch):
+    """Verify installer rejects log collection in gateway mode."""
+    install_cmd = " ".join((
+        get_platform_installer_cmd(),
+        f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",
+        f"--splunk-platform-url {SPLUNK_PLATFORM_URL}",
+        f"--splunk-platform-logs-index {SPLUNK_PLATFORM_LOGS_INDEX}",
+        "--mode gateway",
+    ))
+
+    print(f"Testing Splunk Platform logs gateway rejection on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, "apt-get install -y libcap2-bin")
+
+        _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
+        assert "not supported in gateway mode" in output.decode("utf-8"), \
+            f"Expected gateway mode error message, got: {output.decode('utf-8')}"
+
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_splunk_platform_logs_missing_token(distro, arch):
+    """Verify installer errors when --splunk-platform-token is missing."""
+    install_cmd = " ".join((
+        get_platform_installer_cmd(),
+        f"--splunk-platform-url {SPLUNK_PLATFORM_URL}",
+        f"--splunk-platform-logs-index {SPLUNK_PLATFORM_LOGS_INDEX}",
+    ))
+
+    print(f"Testing Splunk Platform logs missing token on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, "apt-get install -y libcap2-bin")
+
+        _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
+        assert "--splunk-platform-token is required" in output.decode("utf-8"), \
+            f"Expected missing token error message, got: {output.decode('utf-8')}"
+
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_splunk_platform_logs_missing_url(distro, arch):
+    """Verify installer errors when --splunk-platform-token is provided without --splunk-platform-url."""
+    install_cmd = " ".join((
+        get_platform_installer_cmd(),
+        f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",
+        f"--splunk-platform-logs-index {SPLUNK_PLATFORM_LOGS_INDEX}",
+    ))
+
+    print(f"Testing Splunk Platform logs missing url on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, "apt-get install -y libcap2-bin")
+
+        _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
+        assert "--splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index is set" in output.decode("utf-8"), \
+            f"Expected missing url error message, got: {output.decode('utf-8')}"

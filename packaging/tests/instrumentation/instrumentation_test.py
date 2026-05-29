@@ -77,12 +77,13 @@ TOMCAT_ENV = {
     "CATALINA_BASE": "/usr/local/tomcat",
     "CATALINA_OPTS": "-Xms512M -Xmx1024M -server -XX:+UseParallelGC",
     "JAVA_OPTS": "-Djava.awt.headless=true",
-    "OTEL_INJECTOR_LOG_LEVEL": "debug",
 }
 
 EXPRESS_PIDFILE = "/opt/express/express.pid"
 DOTNET_PIDFILE = "/opt/dotnet/dotnet.pid"
-
+DOTNET_ENV = {
+        "OTEL_INJECTOR_LOG_LEVEL": "debug",
+}
 
 def get_dockerfile(distro):
     if distro in DEB_DISTROS:
@@ -157,6 +158,7 @@ def start_app(container, app, timeout=300):
             f"bash -c '/opt/dotnet-sdk/dotnet /opt/dotnet/myWebApp.dll & echo $! > {DOTNET_PIDFILE}'",
             user='dotnet:dotnet',
             workdir="/opt/dotnet",
+            env=DOTNET_ENV,
         )
 
     if app == "tomcat":

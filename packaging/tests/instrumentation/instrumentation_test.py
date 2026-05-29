@@ -120,9 +120,6 @@ def install_package(container, distro, path, arch="amd64"):
     else:
         run_container_cmd(container, f"rpm -ivh {path}")
 
-    run_container_cmd(container, "bash -c 'find / -name injector.conf'", user='root')
-    run_container_cmd(container, "bash -c 'find /usr/lib/splunk-instrumentation'", user='root')
-
     for path in INSTALLED_FILES:
         assert container_file_exists(container, path), f"{path} not found"
 
@@ -329,6 +326,8 @@ def test_express_instrumentation(distro, arch):
         # install splunk-otel-js to /usr/lib/splunk-instrumentation/splunk-otel-js
         run_container_cmd(container, f"mkdir -p {LIB_DIR}/splunk-otel-js")
         run_container_cmd(container, f"bash -l -c 'cd {LIB_DIR}/splunk-otel-js && npm install {NODE_AGENT_PATH}'")
+        run_container_cmd(container, "bash -c 'find / -name injector.conf'", user='root')
+        run_container_cmd(container, "bash -c 'find /usr/lib/splunk-instrumentation'", user='root')
 
         # attributes from default config
         attributes = {

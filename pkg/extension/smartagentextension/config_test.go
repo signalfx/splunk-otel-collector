@@ -57,7 +57,6 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, componenttest.CheckConfigStruct(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
-		c.BundleDir = "/opt/bin/agent/"
 		c.ProcPath = "/my_proc"
 		c.EtcPath = "/my_etc"
 		c.VarPath = "/my_var"
@@ -76,7 +75,6 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, componenttest.CheckConfigStruct(partialSettingsConfig))
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
-		c.BundleDir = "/opt/"
 		return &c
 	}(), partialSettingsConfig)
 }
@@ -104,7 +102,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	saConfigProvider, ok := ext.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
-	require.Equal(t, "/opt/bin/agent/", saConfigProvider.SmartAgentConfig().BundleDir)
+	require.Equal(t, "/my_proc", saConfigProvider.SmartAgentConfig().ProcPath)
 }
 
 func TestLoadInvalidConfig(t *testing.T) {
@@ -120,12 +118,11 @@ func TestLoadInvalidConfig(t *testing.T) {
 func defaultConfig() Config {
 	return Config{
 		Config: saconfig.Config{
-			BundleDir: bundleDir,
-			ProcPath:  "/proc",
-			EtcPath:   "/etc",
-			VarPath:   "/var",
-			RunPath:   "/run",
-			SysPath:   "/sys",
+			ProcPath: "/proc",
+			EtcPath:  "/etc",
+			VarPath:  "/var",
+			RunPath:  "/run",
+			SysPath:  "/sys",
 		},
 	}
 }

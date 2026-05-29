@@ -1,4 +1,4 @@
 smartagent/partial_settings:
-  bundleDir: /opt/
+  procPath: /proc
 smartagent/extra:
-  bundleDir: /opt/
+  procPath: /proc

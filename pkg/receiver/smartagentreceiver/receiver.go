@@ -17,11 +17,8 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
-	"runtime"
 	"strings"
 	"sync"
 
@@ -126,7 +123,6 @@ func (r *receiver) Start(_ context.Context, host component.Host) error {
 	}
 
 	configCore.ProcPath = saConfig.ProcPath
-	configCore.BundleDir = saConfig.BundleDir
 
 	return saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
 }
@@ -246,12 +242,6 @@ func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]com
 }
 
 func setUpEnvironment() {
-	if runtime.GOOS != "windows" && saConfig.BundleDir != "" {
-		if _, ok := os.LookupEnv("JAVA_HOME"); !ok {
-			os.Setenv("JAVA_HOME", filepath.Join(saConfig.BundleDir, "jre"))
-		}
-	}
-
 	hostfs.SetEnvMap(common.EnvMap{
 		common.HostProcEnvKey: saConfig.ProcPath,
 		common.HostEtcEnvKey:  saConfig.EtcPath,

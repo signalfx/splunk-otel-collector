@@ -2,17 +2,9 @@
 // agent components.
 package config
 
-import (
-	"path/filepath"
-	"runtime"
-)
 
 // Config is the top level config struct for configurations that are common to all platforms
 type Config struct {
-	// Path to the directory holding bundled monitor dependencies. This will
-	// normally be derived automatically. Overrides the envvar
-	// SIGNALFX_BUNDLE_DIR if set.
-	BundleDir string `yaml:"bundleDir"`
 	// This exists purely to give the user a place to put common yaml values to
 	// reference in other parts of the config file.
 	Scratch interface{} `yaml:"scratch" neverLog:"omit"`
@@ -31,16 +23,6 @@ type Config struct {
 	// Path to the host's `/sys` directory.
 	// This is useful for containerized environments.
 	SysPath string `yaml:"sysPath" default:"/sys"`
-}
-
-// BundlePythonHomeEnvvar returns an envvar string that sets the PYTHONHOME envvar to
-// the bundled Python runtime.  It is in a form that is ready to append to
-// cmd.Env.
-func BundlePythonHomeEnvvar(bundleDir string) string {
-	if runtime.GOOS == "windows" {
-		return "PYTHONHOME=" + filepath.Join(bundleDir, "python")
-	}
-	return "PYTHONHOME=" + bundleDir
 }
 
 // AdditionalConfig is the type that should be used for any "catch-all" config

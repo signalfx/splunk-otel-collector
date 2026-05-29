@@ -40,10 +40,6 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 		return err
 	}
 
-	if config.BundleDir == "" {
-		config.BundleDir = cfg.Config.BundleDir
-	}
-
 	cfg.Config = *config
 	return nil
 }

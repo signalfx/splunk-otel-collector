@@ -135,7 +135,6 @@ type MonitorConfig struct {
 	// so that diagnostics can output it.
 	ValidationError string          `yaml:"-" json:"-" hash:"ignore"`
 	MonitorID       types.MonitorID `yaml:"-" hash:"ignore"`
-	BundleDir       string          `yaml:"-" json:"-"`
 }
 
 // Validate ensures the config is correct beyond what basic YAML parsing

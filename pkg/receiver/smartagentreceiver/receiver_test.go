@@ -17,10 +17,7 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
-	"os"
 	"path"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -53,14 +50,8 @@ import (
 )
 
 func cleanUp() func() {
-	jh := "JAVA_HOME"
-	existing, ok := os.LookupEnv(jh)
-	os.Unsetenv(jh)
 	return func() {
 		configureEnvironmentOnce = sync.Once{}
-		if ok {
-			os.Setenv(jh, existing)
-		}
 	}
 }
 
@@ -321,14 +312,6 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		}
 		return false
 	}())
-	require.Equal(t, "/opt/", saConfig.BundleDir)
-
-	if runtime.GOOS == "windows" {
-		require.NotEqual(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
-	} else {
-		require.Equal(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
-	}
-
 	require.Equal(t, "/proc", hostfs.HostProc())
 	require.Equal(t, "/sys", hostfs.HostSys())
 	require.Equal(t, "/run", hostfs.HostRun())
@@ -336,21 +319,6 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	require.Equal(t, "/etc", hostfs.HostEtc())
 }
 
-func TestJavaHomeRespected(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("non-windows only")
-	}
-	t.Cleanup(cleanUp())
-	os.Setenv("JAVA_HOME", "/existing/java/home")
-	cfg := newConfig("cpu", 1)
-	rcs := newReceiverCreateSettings("valid", t)
-	r := newReceiver(rcs, cfg)
-
-	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
-	require.NoError(t, r.Shutdown(context.Background()))
-
-	require.Equal(t, "/existing/java/home", os.Getenv("JAVA_HOME"))
-}
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "extension_config.yaml"))

@@ -16,12 +16,10 @@ package smartagentextension
 
 import (
 	"context"
-	"os"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 )
 
@@ -38,10 +36,6 @@ func NewFactory() extension.Factory {
 	)
 }
 
-var bundleDir = func() string {
-	return os.Getenv(constants.BundleDirEnvVar)
-}()
-
 func createDefaultConfig() component.Config {
 	cfg, _ := smartAgentConfigFromSettingsMap(map[string]any{})
 	if cfg == nil {
@@ -49,7 +43,6 @@ func createDefaultConfig() component.Config {
 		// so zero value is adequate
 		cfg = &saconfig.Config{}
 	}
-	cfg.BundleDir = bundleDir
 
 	return &Config{
 		Config: *cfg,

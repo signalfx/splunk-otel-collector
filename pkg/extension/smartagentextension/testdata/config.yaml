@@ -1,10 +1,9 @@
 smartagent/default_settings:
 smartagent/all_settings:
-  bundleDir: /opt/bin/agent/
   procPath: /my_proc
   etcPath: /my_etc
   varPath: /my_var
   runPath: /my_run
   sysPath: /my_sys
 smartagent/partial_settings:
-  bundleDir: /opt/
+  procPath: /proc

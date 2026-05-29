@@ -2,16 +2,16 @@
 change_type: breaking
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: receiver/signalfx
+component: config
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Remove the deprecated signalfx receiver from the distribution.
+note: Update deprecated receiver alias from `kubeletstats` to `kubelet_stats` in default configs
 
 # One or more tracking issues related to the change
-issues: [7560]
+issues: [7556]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  Please use the OTLP receiver instead.
+  All collector configurations need to be updated to use the `kubelet_stats` alias.

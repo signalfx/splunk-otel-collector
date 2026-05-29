@@ -24,7 +24,7 @@ BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/int
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
-BUILD_JMX_GATHERER_HASH=-X github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver.MetricsGathererHash=889b32f2875e6d1816f1fd8baa0dfb6c80002ad7fd382e4679e1c92d97ffa999
+BUILD_JMX_GATHERER_HASH=-X github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver.MetricsGathererHash=1dc26f7561e4cfed632b37ce14d3e9853026d683f6c43c1e4228095213201f9f
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_JMX_GATHERER_HASH}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION) ${BUILD_JMX_GATHERER_HASH}"
 CGO_ENABLED?=0
@@ -119,13 +119,13 @@ integration-test-mysql-discovery:
 integration-test-mysql-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_mysql'
 
-.PHONY: integration-test-kafkametrics-discovery
-integration-test-kafkametrics-discovery:
-	@make integration-test-target TARGET='discovery_integration_kafkametrics'
+.PHONY: integration-test-kafka-metrics-discovery
+integration-test-kafka-metrics-discovery:
+	@make integration-test-target TARGET='discovery_integration_kafka_metrics'
 
-.PHONY: integration-test-kafkametrics-discovery-with-cover
-integration-test-kafkametrics-discovery-with-cover:
-	@make integration-test-cover-target TARGET='discovery_integration_kafkametrics'
+.PHONY: integration-test-kafka-metrics-discovery-with-cover
+integration-test-kafka-metrics-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_kafka_metrics'
 
 .PHONY: integration-test-jmx/cassandra-discovery
 integration-test-jmx/cassandra-discovery:

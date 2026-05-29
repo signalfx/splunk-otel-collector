@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build discovery_integration_kafkametrics
+//go:build discovery_integration_kafka_metrics
 
 package tests
 
@@ -31,8 +31,8 @@ func TestIntegrationKafkaMetricsAutoDiscovery(t *testing.T) {
 		logMessageToAssert string
 	}{
 		"Successful Discovery test": {
-			configFileName:     "docker_observer_without_ssl_kafkametrics_config.yaml",
-			logMessageToAssert: `kafkametrics receiver is working!`,
+			configFileName:     "docker_observer_without_ssl_kafka_metrics_config.yaml",
+			logMessageToAssert: `kafka_metrics receiver is working!`,
 		},
 	}
 
@@ -40,7 +40,7 @@ func TestIntegrationKafkaMetricsAutoDiscovery(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", test.configFileName))
 			require.NoError(t, err)
-			discoverytest.Run(t, "kafkametrics", otelConfigPath, test.logMessageToAssert)
+			discoverytest.Run(t, "kafka_metrics", otelConfigPath, test.logMessageToAssert)
 		})
 	}
 }

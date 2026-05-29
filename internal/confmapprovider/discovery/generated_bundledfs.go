@@ -25,7 +25,7 @@ import "embed"
 //go:embed bundle.d/receivers/envoy.discovery.yaml
 //go:embed bundle.d/receivers/istio.discovery.yaml
 //go:embed bundle.d/receivers/jmx-cassandra.discovery.yaml
-//go:embed bundle.d/receivers/kafkametrics.discovery.yaml
+//go:embed bundle.d/receivers/kafka_metrics.discovery.yaml
 //go:embed bundle.d/receivers/mongodb.discovery.yaml
 //go:embed bundle.d/receivers/mysql.discovery.yaml
 //go:embed bundle.d/receivers/nginx.discovery.yaml

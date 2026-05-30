@@ -41,14 +41,6 @@ start_service: true
 # Disable setting the official Splunk Debian or RPM repository.
 splunk_skip_repo: false
 
-# Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle".
-# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle".
-splunk_bundle_dir: ""
-
-# Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd".
-# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd".
-splunk_collectd_dir: ""
-
 # Configure otel collector service to use a proxy
 splunk_otel_collector_proxy_http: ""
 splunk_otel_collector_proxy_https: ""

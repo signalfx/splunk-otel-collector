@@ -12,7 +12,6 @@ on:
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
       - 'packaging/msi/**'
-      - 'packaging/bundle/**'
       - '!**.md'
   pull_request:
     paths:
@@ -22,7 +21,6 @@ on:
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
       - 'packaging/msi/**'
-      - 'packaging/bundle/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 3,6' # Every Wednesday and Saturday at midnight UTC
@@ -89,18 +87,11 @@ jobs:
     with:
       SYS_BINARY: binaries-linux_amd64
 
-  # Build Linux agent bundle for package building
-  puppet-build-linux-agent-bundle:
-    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
-    with:
-      ARCH: amd64
-
   # Use reusable workflow for DEB package
   puppet-build-deb-local-package:
     uses: ./.github/workflows/reusable-build-package.yml
     needs:
       - puppet-build-linux-binary
-      - puppet-build-linux-agent-bundle
     with:
       SYS_PACKAGE: deb
       ARCH: amd64
@@ -110,7 +101,6 @@ jobs:
     uses: ./.github/workflows/reusable-build-package.yml
     needs:
       - puppet-build-linux-binary
-      - puppet-build-linux-agent-bundle
     with:
       SYS_PACKAGE: rpm
       ARCH: amd64
@@ -228,11 +218,6 @@ jobs:
     with:
       SYS_BINARY: binaries-windows_amd64
 
-  puppet-build-windows-agent-bundle:
-    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
-    with:
-      ARCH: amd64
-
   puppet-build-windows-msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
 
@@ -241,7 +226,6 @@ jobs:
     uses: ./.github/workflows/reusable-msi-build.yml
     needs:
       - puppet-build-windows-binary
-      - puppet-build-windows-agent-bundle
       - puppet-build-windows-msi-custom-actions
     with:
       ARCH: amd64

@@ -41,17 +41,11 @@ if platform_family?('windows')
   default['splunk_otel_collector']['collector_config_dest'] = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
   default['splunk_otel_collector']['collector_version_file'] = "#{collector_install_dir}\\collector_version.txt"
 
-  default['splunk_otel_collector']['splunk_bundle_dir'] = "#{collector_install_dir}\\agent-bundle"
-  default['splunk_otel_collector']['splunk_collectd_dir'] = "#{node['splunk_otel_collector']['splunk_bundle_dir']}\\run\\collectd"
-
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['collector_version'] = 'latest'
 
   default['splunk_otel_collector']['collector_config_source'] = 'file:///etc/otel/collector/agent_config.yaml'
   default['splunk_otel_collector']['collector_config_dest'] = '/etc/otel/collector/agent_config.yaml'
-
-  default['splunk_otel_collector']['splunk_bundle_dir'] = '/usr/lib/splunk-otel-collector/agent-bundle'
-  default['splunk_otel_collector']['splunk_collectd_dir'] = "#{node['splunk_otel_collector']['splunk_bundle_dir']}/run/collectd"
 
   default['splunk_otel_collector']['user'] = 'splunk-otel-collector'
   default['splunk_otel_collector']['group'] = 'splunk-otel-collector'

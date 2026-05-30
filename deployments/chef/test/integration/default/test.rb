@@ -12,14 +12,10 @@ describe service('splunk-otel-collector') do
 end
 
 if os[:family] == 'windows'
-  bundle_dir = "#{ENV['ProgramFiles']}\\Splunk\\OpenTelemetry Collector\\agent-bundle"
-  collectd_dir = "#{bundle_dir}\\run\\collectd"
   config_path = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
   collector_env_vars = [
     { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token },
     { name: 'SPLUNK_API_URL', type: :string, data: splunk_api_url },
-    { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: bundle_dir },
-    { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: collectd_dir },
     { name: 'SPLUNK_CONFIG', type: :string, data: config_path },
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
@@ -37,14 +33,10 @@ if os[:family] == 'windows'
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
 else
-  bundle_dir = '/usr/lib/splunk-otel-collector/agent-bundle'
-  collectd_dir = "#{bundle_dir}/run/collectd"
   config_path = '/etc/otel/collector/agent_config.yaml'
   describe file('/etc/otel/collector/splunk-otel-collector.conf') do
     its('content') { should match /^SPLUNK_ACCESS_TOKEN=#{splunk_access_token}$/ }
     its('content') { should match /^SPLUNK_API_URL=#{splunk_api_url}$/ }
-    its('content') { should match /^SPLUNK_BUNDLE_DIR=#{bundle_dir}$/ }
-    its('content') { should match /^SPLUNK_COLLECTD_DIR=#{collectd_dir}$/ }
     its('content') { should match /^SPLUNK_CONFIG=#{config_path}$/ }
     its('content') { should match /^SPLUNK_HEC_TOKEN=#{splunk_hec_token}$/ }
     its('content') { should match /^SPLUNK_HEC_URL=#{splunk_hec_url}$/ }

@@ -32,13 +32,6 @@ SPLUNK_LISTEN_INTERFACE=<%= node['splunk_otel_collector']['splunk_listen_interfa
 GOMEMLIMIT=<%= node['splunk_otel_collector']['gomemlimit'] %>
 <% end -%>
 
-# The path to the Smart Agent bundle.
-SPLUNK_BUNDLE_DIR=<%= node['splunk_otel_collector']['splunk_bundle_dir'] %>
-
-# The path to the collectd config directory for the Smart Agent.
-# This directory must be read/writable by the collector process.
-SPLUNK_COLLECTD_DIR=<%= node['splunk_otel_collector']['splunk_collectd_dir'] %>
-
 <% unless node['splunk_otel_collector']['collector_command_line_args'].to_s.strip.empty? -%>
 # Additional command line arguments for the collector.
 OTELCOL_OPTIONS=<%= node['splunk_otel_collector']['collector_command_line_args'] %>

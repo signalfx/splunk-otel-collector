@@ -262,7 +262,6 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 		"SPLUNK_INGEST_URL":   ingestURL,
 		"SPLUNK_HEC_URL":      ingestURL + "/v1/log",
 		"SPLUNK_HEC_TOKEN":    optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_HEC_TOKEN", msiProperties["SPLUNK_ACCESS_TOKEN"]),
-		"SPLUNK_BUNDLE_DIR":   filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", "agent-bundle"),
 	}
 	if memoryTotalMib, ok := msiProperties["SPLUNK_MEMORY_TOTAL_MIB"]; ok {
 		expectedEnvVars["SPLUNK_MEMORY_TOTAL_MIB"] = memoryTotalMib

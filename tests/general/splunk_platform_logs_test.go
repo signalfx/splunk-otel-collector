@@ -87,7 +87,6 @@ func TestSplunkPlatformLogsEffectiveConfig(t *testing.T) {
 	require.Contains(t, extensions, "health_check")
 	require.Contains(t, extensions, "zpages")
 	require.Contains(t, extensions, "file_storage/filelogs")
-	require.NotContains(t, extensions, "smartagent")
 	require.NotContains(t, extensions, "headers_setter")
 
 	// Extensions in the service block match.
@@ -169,7 +168,7 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 
 	// Both configs' extensions are present in the merged service extensions list.
 	// agent_config.yaml declares: headers_setter, health_check, http_forwarder,
-	// http_forwarder/opamp_splunk_o11y, zpages, smartagent (opamp/splunk_o11y is
+	// http_forwarder/opamp_splunk_o11y, zpages (opamp/splunk_o11y is
 	// removed at startup unless --feature-gates=+splunk.opamp.enabled; config_source_telemetry
 	// is injected by the collector itself).
 	// splunk_logs_config_linux.yaml adds: file_storage/filelogs.
@@ -181,7 +180,6 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 		"http_forwarder",
 		"http_forwarder/opamp_splunk_o11y",
 		"zpages",
-		"smartagent",
 		"config_source_telemetry",
 		"file_storage/filelogs",
 	}, serviceExtensions)
@@ -190,7 +188,6 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 	extensions, ok := config["extensions"].(map[string]any)
 	require.True(t, ok)
 	require.Contains(t, extensions, "health_check")
-	require.Contains(t, extensions, "smartagent")
 	require.Contains(t, extensions, "headers_setter")
 	require.Contains(t, extensions, "http_forwarder")
 	require.Contains(t, extensions, "http_forwarder/opamp_splunk_o11y")

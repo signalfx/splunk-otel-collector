@@ -5,7 +5,7 @@ monitors:
     This monitor reports etcd server metrics under the `/metrics` path on its
     client port and optionally on locations given by `--listen-metrics-urls`.
     Note that this monitor collects metrics solely from the prometheus endpoint,
-    unlike the `collectd/etcd` monitor which collects  metrics from the `/stats`
+    unlike the legacy etcd monitor which collects metrics from the `/stats`
     endpoint.
 
     An example configuration for this monitor:

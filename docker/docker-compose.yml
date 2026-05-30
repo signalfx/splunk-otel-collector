@@ -7,14 +7,6 @@ services:
     build: ./apache
     ports:
       - "18080:80"
-  # Cassandra image for smartagent/jmx test:
-  cassandra:
-    image: quay.io/splunko11ytest/cassandra:latest
-    profiles:
-      - smartagent
-    build: ./cassandra
-    ports:
-      - "7199:7199"
   # Cassandra  without auth
   cassandra-jmx-noauth:
     profiles:

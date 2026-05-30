@@ -29,7 +29,6 @@ tar_setup_files_and_permissions() {
     local otelcol="$1"
     local config_folder="$2"
     local buildroot="$3"
-    local bundle_path="$4"
 
     create_user_group
 
@@ -50,13 +49,6 @@ tar_setup_files_and_permissions() {
         sudo chmod 755 "$JMX_INSTALL_PATH"
     fi
 
-    if [[ -n "$bundle_path" ]]; then
-        mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
-        tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chown -R root:root "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
-    fi
-
 }
 
 if [[ -z "$VERSION" ]]; then
@@ -66,11 +58,10 @@ VERSION="${VERSION#v}"
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
 config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
-agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
-tar_setup_files_and_permissions "$otelcol_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
+tar_setup_files_and_permissions "$otelcol_path" "$config_folder_path" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 

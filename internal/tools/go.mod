@@ -11,7 +11,7 @@ require (
 	go.opentelemetry.io/build-tools/chloggen v0.26.0
 	go.opentelemetry.io/collector/cmd/mdatagen v0.153.0
 	golang.org/x/tools v0.45.0
-	golang.org/x/vuln v1.1.4
+	golang.org/x/vuln v1.3.0
 	mvdan.cc/gofumpt v0.9.2
 )
 

@@ -19,15 +19,14 @@ require (
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
-	github.com/gogo/protobuf v1.3.2
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lib/pq v1.12.3
-	github.com/mailru/easyjson v0.9.2
+	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3
-	github.com/mitchellh/hashstructure v1.1.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.39.1
 	github.com/openshift/api v0.0.0-20260416105050-3c6b218b8a80
@@ -38,7 +37,7 @@ require (
 	github.com/prometheus/common v0.67.5
 	github.com/prometheus/procfs v0.20.1
 	github.com/shirou/gopsutil/v3 v3.24.5
-	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
+	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.4.4
 	github.com/signalfx/ingest-protocols v0.4.1

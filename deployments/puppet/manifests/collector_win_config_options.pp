@@ -3,8 +3,6 @@ class splunk_otel_collector::collector_win_config_options {
     $base_env_vars = {
         'SPLUNK_ACCESS_TOKEN' => $splunk_otel_collector::splunk_access_token,
         'SPLUNK_API_URL' => $splunk_otel_collector::splunk_api_url,
-        'SPLUNK_BUNDLE_DIR' => $splunk_otel_collector::splunk_bundle_dir,
-        'SPLUNK_COLLECTD_DIR' => $splunk_otel_collector::splunk_collectd_dir,
         'SPLUNK_CONFIG' => $splunk_otel_collector::collector_config_dest,
         'SPLUNK_HEC_TOKEN' => $splunk_otel_collector::splunk_hec_token,
         'SPLUNK_HEC_URL' => $splunk_otel_collector::splunk_hec_url,

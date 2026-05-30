@@ -6,8 +6,6 @@ package core
 import (
 	// Import everything that isn't referenced anywhere else
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cloudfoundry"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/openstack"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/conviva"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/coredns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
@@ -24,7 +22,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/hana"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/http"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/internalmetrics"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/jmx"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/load"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/logstash"
@@ -42,8 +39,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheus/velero"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/sql"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/subproc/signalfx/java"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/subproc/signalfx/python"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/supervisor"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/dns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"

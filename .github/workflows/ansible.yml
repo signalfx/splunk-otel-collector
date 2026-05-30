@@ -36,17 +36,8 @@ jobs:
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
-  agent-bundle-linux:
-    strategy:
-      matrix:
-        ARCH: [ "amd64" ]
-      fail-fast: false
-    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
-    with:
-      ARCH: ${{ matrix.ARCH }}
-
   build-package:
-    needs: [ cross-compile, agent-bundle-linux ]
+    needs: [ cross-compile ]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
@@ -57,18 +48,12 @@ jobs:
       SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
       ARCH: ${{ matrix.ARCH }}
 
-  agent-bundle-windows:
-    needs: lint
-    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
-    with:
-      ARCH: "amd64"
-
   msi-custom-actions:
     needs: lint
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
 
   msi-build:
-    needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
+    needs: [ cross-compile, msi-custom-actions ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       ARCH: "amd64"

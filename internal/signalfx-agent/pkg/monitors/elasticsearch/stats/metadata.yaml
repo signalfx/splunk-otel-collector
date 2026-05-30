@@ -1,7 +1,7 @@
 monitors:
 - dimensions:
     plugin_instance:
-      description: Name of the Elasticsearch cluster. For compatibility with collectd/elasticsearch
+      description: Name of the Elasticsearch cluster. For compatibility with the legacy Elasticsearch monitor
         built-in content
     cluster:
       description: Name of Elasticsearch the cluster.
@@ -964,5 +964,4 @@ monitors:
       type: gauge
       group: indices/search
   properties:
-
 

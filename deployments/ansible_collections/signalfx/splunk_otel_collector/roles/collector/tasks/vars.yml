@@ -7,18 +7,6 @@
       {%- else -%}
         /etc/otel/collector/agent_config.yaml
       {%- endif -%}
-    splunk_bundle_dir: |-
-      {%- if splunk_bundle_dir -%}
-        {{ splunk_bundle_dir }}
-      {%- else -%}
-        /usr/lib/splunk-otel-collector/agent-bundle
-      {%- endif -%}
-    splunk_collectd_dir: |-
-      {%- if splunk_collectd_dir -%}
-        {{ splunk_collectd_dir }}
-      {%- else -%}
-        /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
-      {%- endif -%}
   when: ansible_os_family != "Windows"
 
 - name: Set configurable defaults for Windows
@@ -48,10 +36,6 @@
       SPLUNK_ACCESS_TOKEN: "{{ splunk_access_token }}"
       SPLUNK_API_URL: "{{ splunk_api_url }}"
       GOMEMLIMIT: "{{ gomemlimit if gomemlimit != '' else omit }}"
-      SPLUNK_BUNDLE_DIR: >-
-        {{ splunk_bundle_dir if splunk_bundle_dir != '' else
-        '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle' }}
-      SPLUNK_COLLECTD_DIR: "{{ splunk_collectd_dir if splunk_collectd_dir != '' else omit }}"
       SPLUNK_CONFIG: >-
         {{ splunk_otel_collector_config if splunk_otel_collector_config != '' else
         '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml' }}

@@ -49,8 +49,6 @@ SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.observability.splunkcloud.com"
 SPLUNK_SERVICE_USER = "splunk-otel-collector"
 SPLUNK_SERVICE_GROUP = "splunk-otel-collector"
 SPLUNK_MEMORY_TOTAL_MIB = 512
-SPLUNK_BUNDLE_DIR = "/usr/lib/splunk-otel-collector/agent-bundle"
-SPLUNK_COLLECTD_DIR = f"{SPLUNK_BUNDLE_DIR}/run/collectd"
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
@@ -139,8 +137,6 @@ def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_URL", f"{ingest_url}/v1/log")
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_TOKEN", hec_token)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_MEMORY_TOTAL_MIB", SPLUNK_MEMORY_TOTAL_MIB)
-    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_BUNDLE_DIR", SPLUNK_BUNDLE_DIR)
-    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_COLLECTD_DIR", SPLUNK_COLLECTD_DIR)
     if listen_interface:
         verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", listen_interface)
     else:

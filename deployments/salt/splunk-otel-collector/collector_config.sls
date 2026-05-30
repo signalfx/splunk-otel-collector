@@ -16,10 +16,6 @@
 
 {% set splunk_otel_collector_config = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_config', '/etc/otel/collector/agent_config.yaml') %}
 
-{% set splunk_collectd_dir = salt['pillar.get']('splunk-otel-collector:splunk_collectd_dir', '/usr/lib/splunk-otel-collector/agent-bundle/run/collectd') %}
-
-{% set splunk_bundle_dir = salt['pillar.get']('splunk-otel-collector:splunk_bundle_dir', '/usr/lib/splunk-otel-collector/agent-bundle') %}
-
 {% set splunk_memory_total_mib = salt['pillar.get']('splunk-otel-collector:splunk_memory_total_mib', '512') %}
 
 {% set gomemlimit = salt['pillar.get']('splunk-otel-collector:gomemlimit', '') %}
@@ -46,8 +42,6 @@
         {% if splunk_listen_interface -%}
         SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}
         {% endif -%}
-        SPLUNK_BUNDLE_DIR={{ splunk_bundle_dir }}
-        SPLUNK_COLLECTD_DIR={{ splunk_collectd_dir }}
 {% for key, value in collector_additional_env_vars.items() %}
         {{ key }}={{ value }}
 {% endfor %}

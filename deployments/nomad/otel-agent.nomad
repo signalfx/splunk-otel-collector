@@ -229,7 +229,6 @@ service:
       exporters:
       - debug
       - otlp_http
-      - signalfx
       processors:
       - memory_limiter
       - batch

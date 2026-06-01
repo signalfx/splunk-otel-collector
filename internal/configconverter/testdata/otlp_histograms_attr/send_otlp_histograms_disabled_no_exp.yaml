@@ -28,11 +28,6 @@ service:
       exporters:
         - otlp_grpc
         - signalfx
-    traces/signalfx:
-      receivers:
-        - otlp
-      exporters:
-        - signalfx
   telemetry:
     resource:
       resattr1: val1

@@ -270,7 +270,7 @@ Default endpoint URLs have changed from *.signalfx.com to *.observability.splunk
     service:
       pipelines:
         traces:
-          exporters: [otlphttp, signalfx]
+          exporters: [otlphttp]
     ```
 
 

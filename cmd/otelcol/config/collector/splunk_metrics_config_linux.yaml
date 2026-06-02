@@ -1,0 +1,86 @@
+# Default configuration file for metrics collection on Linux, sending to Splunk Platform via HEC.
+#
+# If the collector is installed without the Linux installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_PLATFORM_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_PLATFORM_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
+# - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
+#
+# The following environment variables are optional:
+# - SPLUNK_PLATFORM_METRICS_INDEX: Splunk index to send metrics to. If not set, the default index
+#   configured on the HEC token will be used.
+
+extensions:
+  health_check:
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
+  zpages:
+    expvar:
+      enabled: true
+
+receivers:
+
+  host_metrics/platform:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+      disk:
+      filesystem:
+      memory:
+      network:
+      # System load average metrics https://en.wikipedia.org/wiki/Load_(computing)
+      load:
+      # Paging/Swap space utilization and I/O metrics
+      paging:
+      # Aggregated system process count metrics
+      processes:
+      # System processes metrics, disabled by default
+      # process:
+
+processors:
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+
+  resourcedetection:
+    detectors: [gcp, ecs, ec2, azure, system]
+    override: true
+
+exporters:
+  splunk_hec/metrics:
+    token: "${SPLUNK_PLATFORM_TOKEN}"
+    endpoint: "${SPLUNK_PLATFORM_URL}"
+    index: "${SPLUNK_PLATFORM_METRICS_INDEX}"
+    log_data_enabled: false
+    disable_compression: true
+    use_multi_metric_format: true
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_elapsed_time: 300s
+      max_interval: 30s
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 10000
+      batch:
+    tls:
+      insecure_skip_verify: false
+
+service:
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
+  extensions: [health_check, zpages]
+  pipelines:
+    metrics/platform:
+      receivers: [host_metrics/platform]
+      processors: [memory_limiter, resourcedetection]
+      exporters: [splunk_hec/metrics]

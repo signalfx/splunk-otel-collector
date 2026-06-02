@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
@@ -35,13 +36,15 @@ const (
 )
 
 // To be used as a builder whose Build() method provides the actual instance capable of starting the HEC receiver
-// providing received metrics to test cases.
+// providing received logs and metrics to test cases.
 type HECReceiverSink struct {
-	Host         component.Host
-	logsReceiver *receiver.Logs
-	logsSink     *consumertest.LogsSink
-	Logger       *zap.Logger
-	Endpoint     string
+	Host            component.Host
+	logsReceiver    *receiver.Logs
+	logsSink        *consumertest.LogsSink
+	metricsReceiver *receiver.Metrics
+	metricsSink     *consumertest.MetricsSink
+	Logger          *zap.Logger
+	Endpoint        string
 }
 
 func NewHECReceiverSink() HECReceiverSink {
@@ -54,7 +57,7 @@ func (hec HECReceiverSink) WithEndpoint(endpoint string) HECReceiverSink {
 	return hec
 }
 
-// Build will create, configure, and start an HECReceiver with GRPC listener and associated metric and log sinks
+// Build will create and configure an HECReceiver with associated log and metric sinks.
 func (hec HECReceiverSink) Build() (*HECReceiverSink, error) {
 	if hec.Endpoint == "" {
 		return nil, errors.New("must provide an Endpoint for HECReceiverSink")
@@ -63,6 +66,7 @@ func (hec HECReceiverSink) Build() (*HECReceiverSink, error) {
 	hec.Host = componenttest.NewNopHost()
 
 	hec.logsSink = new(consumertest.LogsSink)
+	hec.metricsSink = new(consumertest.MetricsSink)
 
 	hecFactory := splunkhecreceiver.NewFactory()
 	hecConfig := hecFactory.CreateDefaultConfig().(*splunkhecreceiver.Config)
@@ -83,11 +87,17 @@ func (hec HECReceiverSink) Build() (*HECReceiverSink, error) {
 	}
 	hec.logsReceiver = &logsReceiver
 
+	metricsReceiver, err := hecFactory.CreateMetrics(context.Background(), params, hecConfig, hec.metricsSink)
+	if err != nil {
+		return nil, err
+	}
+	hec.metricsReceiver = &metricsReceiver
+
 	return &hec, nil
 }
 
 func (hec *HECReceiverSink) assertBuilt(operation string) error {
-	if hec.logsReceiver == nil || hec.logsSink == nil {
+	if hec.logsReceiver == nil || hec.logsSink == nil || hec.metricsReceiver == nil || hec.metricsSink == nil {
 		return fmt.Errorf("cannot invoke %s() on an HECReceiverSink that hasn't been built", operation)
 	}
 	return nil
@@ -97,14 +107,21 @@ func (hec *HECReceiverSink) Start() error {
 	if err := hec.assertBuilt("Start"); err != nil {
 		return err
 	}
-	return (*hec.logsReceiver).Start(context.Background(), hec.Host)
+	logsErr := (*hec.logsReceiver).Start(context.Background(), hec.Host)
+	metricsErr := (*hec.metricsReceiver).Start(context.Background(), hec.Host)
+	if logsErr != nil || metricsErr != nil {
+		return errors.Join(logsErr, metricsErr)
+	}
+	return nil
 }
 
 func (hec *HECReceiverSink) Shutdown() error {
 	if err := hec.assertBuilt("Shutdown"); err != nil {
 		return err
 	}
-	return (*hec.logsReceiver).Shutdown(context.Background())
+	logsErr := (*hec.logsReceiver).Shutdown(context.Background())
+	metricsErr := (*hec.metricsReceiver).Shutdown(context.Background())
+	return errors.Join(logsErr, metricsErr)
 }
 
 func (hec *HECReceiverSink) LogRecordCount() int {
@@ -119,4 +136,18 @@ func (hec *HECReceiverSink) AllLogs() []plog.Logs {
 		return nil
 	}
 	return hec.logsSink.AllLogs()
+}
+
+func (hec *HECReceiverSink) AllMetrics() []pmetric.Metrics {
+	if err := hec.assertBuilt("AllMetrics"); err != nil {
+		return nil
+	}
+	return hec.metricsSink.AllMetrics()
+}
+
+func (hec *HECReceiverSink) DataPointCount() int {
+	if err := hec.assertBuilt("DataPointCount"); err != nil {
+		return 0
+	}
+	return hec.metricsSink.DataPointCount()
 }

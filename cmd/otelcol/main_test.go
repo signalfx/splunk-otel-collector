@@ -149,6 +149,18 @@ func TestRunFromCmdLine(t *testing.T) {
 			skipWindows:  true,
 		},
 		{
+			name: "splunk_metrics_linux",
+			args: []string{"otelcol", "--config=config/collector/splunk_metrics_config_linux.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN":         "test-token",
+				"SPLUNK_PLATFORM_URL":           "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "metrics",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
 			name:    "default_discovery",
 			args:    []string{"otelcol", "--discovery", "--config=config/collector/agent_config.yaml"},
 			timeout: 30 * time.Second,

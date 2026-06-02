@@ -55,8 +55,7 @@ DOTNET_AGENT_ARM64_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-arm64/OpenTelemet
 INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
 INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
 
-# Custom config fixtures — use all_auto_instrumentation_agents_env_path to set OTEL_* vars
-CUSTOM_INJECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "test-injector.conf"
+# Custom config fixtures — overwrite default env var, copy per-language env vars
 CUSTOM_JAVA_ENV_PATH = TESTS_DIR / "instrumentation" / "test-java-env.conf"
 CUSTOM_NODE_ENV_PATH = TESTS_DIR / "instrumentation" / "test-node-env.conf"
 CUSTOM_DOTNET_ENV_PATH = TESTS_DIR / "instrumentation" / "test-dotnet-env.conf"
@@ -82,7 +81,7 @@ TOMCAT_ENV = {
 EXPRESS_PIDFILE = "/opt/express/express.pid"
 DOTNET_PIDFILE = "/opt/dotnet/dotnet.pid"
 DOTNET_ENV = {
-        "OTEL_INJECTOR_LOG_LEVEL": "debug",
+    "OTEL_INJECTOR_LOG_LEVEL": "debug",
 }
 
 def get_dockerfile(distro):

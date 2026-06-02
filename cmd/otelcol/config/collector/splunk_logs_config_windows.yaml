@@ -9,6 +9,7 @@ receivers:
     # Remove entries below if you want to collect those events despite the error.
     exclude_providers:
       - "XENAGENT"
+      - "Tenable Nessus Agent"
 
   windows_event_log/security:
     channel: Security
@@ -147,19 +148,19 @@ receivers:
   #   Workaround: use a scheduled task to periodically copy dns.log to a
   #   staging path, then monitor that path with filelog.
 
-  filelog/dns_debug:
-    include:
-      - '${env:SystemDrive}\dns_log_copy\dns.log'
-    start_at: beginning
-    include_file_path: true
-    operators:
-      - type: move
-        from: attributes["log.file.path"]
-        to: resource["com.splunk.source"]
-      - type: add
-        field: resource["com.splunk.sourcetype"]
-        value: MSAD:NT6:DNS
-    storage: file_storage/filelogs
+  #  filelog/dns_debug:
+  #    include:
+  #      - '${env:SystemDrive}\dns_log_copy\dns.log'
+  #    start_at: beginning
+  #    include_file_path: true
+  #    operators:
+  #      - type: move
+  #        from: attributes["log.file.path"]
+  #        to: resource["com.splunk.source"]
+  #      - type: add
+  #        field: resource["com.splunk.sourcetype"]
+  #        value: MSAD:NT6:DNS
+  #    storage: file_storage/filelogs
 
 processors:
   batch:
@@ -243,10 +244,9 @@ processors:
 
 exporters:
   splunk_hec/logs:
-    endpoint: "${SPLUNK_HEC_URL}"
-    token: "${SPLUNK_HEC_TOKEN}"
+    endpoint: "${SPLUNK_PLATFORM_URL}"
+    token: "${SPLUNK_PLATFORM_TOKEN}"
     source: "otel"
-    sourcetype: "otel"
     index: "${SPLUNK_PLATFORM_LOGS_INDEX}"
 
 extensions:
@@ -318,9 +318,5 @@ service:
       exporters: [splunk_hec/logs]
     logs/firewall:
       receivers: [filelog/firewall]
-      processors: [batch, resourcedetection]
-      exporters: [splunk_hec/logs]
-    logs/dns_debug:
-      receivers: [filelog/dns_debug]
       processors: [batch, resourcedetection]
       exporters: [splunk_hec/logs]

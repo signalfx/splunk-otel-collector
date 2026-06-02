@@ -24,7 +24,7 @@ PROJECT_DIR=${PROJECT_DIR:-"${REPO_DIR}"}
 MSI_SRC_DIR=${MSI_SRC_DIR:-"${REPO_DIR}/packaging/msi"}
 WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
 AGENT_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
-SPLUNK_LOGS_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/splunk_logs_windows_config.yaml"
+SPLUNK_LOGS_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/splunk_logs_config_windows.yaml"
 GATEWAY_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
 SUPPORT_BUNDLE_SCRIPT=${SUPPORT_BUNDLE_SCRIPT:-"${MSI_SRC_DIR}/splunk-support-bundle.ps1"}
 SPLUNK_ICON="${MSI_SRC_DIR}/splunk.ico"
@@ -161,7 +161,7 @@ parse_args_and_build() {
     mkdir -p "${files_dir}"
     cp "$support_bundle" "${files_dir}/splunk-support-bundle.ps1"
     cp "$agent_config" "${files_dir}/agent_config.yaml"
-    cp "$splunk_logs_config" "${files_dir}/splunk_logs_windows_config.yaml"
+    cp "$splunk_logs_config" "${files_dir}/splunk_logs_config_windows.yaml"
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
 
     jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"

@@ -1451,7 +1451,7 @@ parse_args_and_install() {
         ;;
       --hec-url)
         hec_url="$2"
-        echo "[DEPRECATED]: The parameter '--hec-url' is deprecated and will be removed in September 2026."
+        echo "[DEPRECATED]: The parameter '--hec-url' is deprecated and will be removed in September 2026." >&2
         shift 1
         ;;
       --splunk-platform-token)

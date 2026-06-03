@@ -912,7 +912,7 @@ and the [opentelemetry-collector-contrib v0.148.0](https://github.com/open-telem
   The span metrics connector now supports extracting sampling information from W3C tracestate 
   to generate extrapolated span metrics with adjusted counts. This enables accurate metric 
   aggregation for sampled traces by computing stochastic-rounded adjusted counts based on 
-  the sampling threshold (`ot.th` field) in the tracestate. Key features include:
+  the sampling threshold (`ot.th` field) in the tracestate. Key features include: <!-- codespell:ignore ot -->
   - Stochastic rounding for fractional adjusted counts using integer-only operations
   - Single-entry cache for consecutive identical tracestates (4% overhead in benchmarks)
   - Support for mixed-mode services where some spans have tracestate and others don't
@@ -3787,7 +3787,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `googlecloudpubsubreceiver`: Turn noisy `warn` log about Pub/Sub servers into `debug`, and turn the reset count into a metric ([#37571](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37571))
   The receiver uses the Google Cloud Pub/Sub StreamingPull API and keeps a open connection. The Pub/Sub servers
   recurrently close the connection after a time period to avoid a long-running sticky connection. Before the
-  receiver logged `warn` log lines everytime this happened. These log lines are moved to debug so that fleets with
+  receiver logged `warn` log lines every time this happened. These log lines are moved to debug so that fleets with
   lots of collectors with the receiver don't span logs at warn level. To keep track of the resets, whenever a
   connection reset happens a `otelcol_receiver_googlecloudpubsub_stream_restarts` metric is increased by one.
 

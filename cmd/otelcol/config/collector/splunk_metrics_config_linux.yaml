@@ -49,7 +49,9 @@ exporters:
   splunk_hec/metrics:
     token: "${SPLUNK_PLATFORM_TOKEN}"
     endpoint: "${SPLUNK_PLATFORM_URL}"
+    source: "otel"
     index: "${SPLUNK_PLATFORM_METRICS_INDEX}"
+    splunk_app_name: "splunk-otel-collector"
     log_data_enabled: false
     disable_compression: true
     use_multi_metric_format: true

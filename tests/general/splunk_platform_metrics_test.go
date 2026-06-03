@@ -191,15 +191,6 @@ func TestSplunkPlatformMetricsWithO11yEffectiveConfig(t *testing.T) {
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 			"override":  true,
 		},
-		"resource/add_mode": map[string]any{
-			"attributes": []any{
-				map[string]any{
-					"action": "insert",
-					"value":  "agent",
-					"key":    "otelcol.service.mode",
-				},
-			},
-		},
 	}, processors)
 }
 

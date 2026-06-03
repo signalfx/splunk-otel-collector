@@ -1,8 +1,9 @@
 [files]
 extend-exclude = [
+  "docker/httpd_basicauth/httpd.conf"
   "internal/signalfx-agent/*",
   "*.sum",
-  "*.mod"
+  "*.mod",
 ]
 
 [default.extend-words]
@@ -11,8 +12,8 @@ AKS = "AKS"
 facter = "facter"
 Hashi = "Hashi"
 nam = "nam"
+ot = "ot"
 retransmited = "retransmited"
-speling_module = "speling_module"
 tha = "tha"
 wqs = "wqs"
 

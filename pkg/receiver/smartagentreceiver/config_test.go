@@ -350,7 +350,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	require.NoError(t, err)
 	k8sVolumesCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&k8sVolumesCfg))
-	tru := true
+	trueBool := true
 	require.Equal(t, &Config{
 		MonitorType: "kubernetes-volumes",
 		monitorConfig: &volumes.Config{
@@ -361,7 +361,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			KubeletAPI: kubelet.APIConfig{
 				URL:        "https://192.168.99.103:10250",
 				AuthType:   "serviceAccount",
-				SkipVerify: &tru,
+				SkipVerify: &trueBool,
 			},
 			KubernetesAPI: &kubernetes.APIConfig{
 				AuthType:   "serviceAccount",

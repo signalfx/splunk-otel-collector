@@ -28,7 +28,7 @@ if [ "$KERNEL" = "Linux" ] ; then
 	# shellcheck disable=SC2016
 	SECTION_IP='inIP && /outgoing packets dropped/ {IPdropped=$1}'
 	# shellcheck disable=SC2016
-	SECTION_TCP='inTCP && /segments retransmited/ {TCPrexmits=$1} inTCP && /Detected reordering/ {TCPreorder=$3} inTCP && /[0-9] segments received$/ {TCPpktRecv=$1} inTCP && /segments send out/ {TCPpktSent=$1}'
+	SECTION_TCP='inTCP && /segments retransmited/ {TCPrexmits=$1} inTCP && /Detected reordering/ {TCPreorder=$3} inTCP && /[0-9] segments received$/ {TCPpktRecv=$1} inTCP && /segments send out/ {TCPpktSent=$1}' # codespell:ignore retransmited
 	# shellcheck disable=SC2016
 	SECTION_UDP='inUDP && /packets received/ {UDPpktRecv=$1} inUDP && /packets sent/ {UDPpktSent=$1} inUDP && /packet receive errors/ {UDPpktLost=$1} inUDP && /packets to unknown port received/ {UDPunkPort=$1}'
 elif [ "$KERNEL" = "SunOS" ] ; then
@@ -64,7 +64,7 @@ elif [ "$KERNEL" = "HP-UX" ] ; then
 	# shellcheck disable=SC2016
     SECTION_IP='inIP && /fragments dropped/ {IPdropped=$1}'
 	# shellcheck disable=SC2016
-    SECTION_TCP='inTCP && /retransmited$/ {TCPrexmits=$1} inTCP && /out of order/ {TCPreorder=$1} inTCP && /[0-9] packets received$/ {TCPpktRecv=$1} inTCP && /[0-9] packets sent$/ {TCPpktSent=$1}'
+    SECTION_TCP='inTCP && /retransmited$/ {TCPrexmits=$1} inTCP && /out of order/ {TCPreorder=$1} inTCP && /[0-9] packets received$/ {TCPpktRecv=$1} inTCP && /[0-9] packets sent$/ {TCPpktSent=$1}' # codespell:ignore retransmited
 	# shellcheck disable=SC2016
     SECTION_UDP='inUDP && /packets received/ {UDPpktRecv=$1} inUDP && /packets sent/ {UDPpktSent=$1} inUDP && /packet receive errors/ {UDPpktLost=$1} inUDP && /packets to unknown port received/ {UDPunkPort=$1}'
  elif [ "$KERNEL" = "FreeBSD" ] ; then

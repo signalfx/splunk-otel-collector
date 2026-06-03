@@ -1,6 +1,6 @@
 [files]
 extend-exclude = [
-  "docker/httpd_basicauth/httpd.conf"
+  "docker/httpd_basicauth/httpd.conf",
   "internal/signalfx-agent/*",
   "*.sum",
   "*.mod",

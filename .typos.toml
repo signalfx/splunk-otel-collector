@@ -19,5 +19,5 @@ wqs = "wqs"
 [default]
 extend-ignore-re = [
     # Ignore lines that are purposely ignored
-    "^(?!.*codespell:ignore).*$"
+    "^.*codespell:ignore.*$"
 ]

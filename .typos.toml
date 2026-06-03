@@ -13,7 +13,7 @@ extend-ignore-re = [
 ]
 
 [default.extend-words]
-# Don't correct these words as they're covered by spellcheck
+# Don't correct these words, they're valid in certain contexts
 AKS = "AKS"
 facter = "facter"
 Hashi = "Hashi"

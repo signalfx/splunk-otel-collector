@@ -43,7 +43,7 @@ cd splunk-otel-collector/deployments/cloudfoundry/tile
 ```
 $ ./make-latest-tile
 ```
-This creates a file with a `.pivotal` extension in the product directory, which is the tile packaged as a compressed file. Additionally, it creates 2 files named `tile-history.yml` and `tile.yml`. The `tile-history.yml` file has the version of the the tile you will be releasing.
+This creates a file with a `.pivotal` extension in the product directory, which is the tile packaged as a compressed file. Additionally, it creates 2 files named `tile-history.yml` and `tile.yml`. The `tile-history.yml` file has the version of the tile you will be releasing.
 
 ## Configuring the Tile in the Tanzu Environment
 

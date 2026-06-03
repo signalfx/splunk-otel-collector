@@ -1,0 +1,6 @@
+[files]
+extend-exclude = [
+  "internal/signalfx-agent/*",
+  "*.sum",
+  "*.mod"
+]

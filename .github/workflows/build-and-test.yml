@@ -69,6 +69,7 @@ jobs:
         with:
           check_filenames: true
           config: ./.codespellrc
+          ignore_words_list: AKS
           skip: "./internal/signalfx-agent,*.sum"
       - name: Spell check - crate-ci/typos
         uses: crate-ci/typos@44e2070e6017f834bf069503acb35ca0ca0b75f2 # v1.47.1

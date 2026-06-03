@@ -1662,10 +1662,13 @@ parse_args_and_install() {
       exit 0
   fi
 
-  # Log collection is enabled when --splunk-platform-url is provided.
-  # --splunk-platform-token is required alongside it.
-  # --splunk-platform-logs-index is optional; if omitted, the index defaults to whatever is
-  # configured on the HEC token.
+  # When --splunk-platform-url is provided, the following rules determine what is collected:
+  # - If only --splunk-platform-metrics-index is set: only metrics collection is enabled.
+  # - If neither index is set: log collection is enabled by default.
+  # - If both indexes are set: both logs and metrics collection are enabled.
+  # --splunk-platform-token is required alongside --splunk-platform-url.
+  # --splunk-platform-logs-index is optional when logs are enabled; if omitted, the index
+  # defaults to whatever is configured on the HEC token.
   # Validate before prompting for access token to avoid blocking on interactive input.
   if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_logs_index" ] || [ -n "$splunk_platform_metrics_index" ]; then
     if [ -z "$splunk_platform_url" ]; then
@@ -1686,7 +1689,8 @@ parse_args_and_install() {
     if [ -n "$splunk_platform_metrics_index" ]; then
       with_metrics="true"
     fi
-    if [ -n "$splunk_platform_logs_index" ]; then
+    # Enable logs by default unless only metrics index was specified.
+    if [ -n "$splunk_platform_logs_index" ] || [ -z "$splunk_platform_metrics_index" ]; then
       with_logs="true"
     fi
   fi

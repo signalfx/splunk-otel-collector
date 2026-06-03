@@ -785,3 +785,31 @@ def test_installer_splunk_platform_logs_missing_url(distro, arch):
         _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
         assert "--splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index or --splunk-platform-metrics-index is set" in output.decode("utf-8"), \
             f"Expected missing url error message, got: {output.decode('utf-8')}"
+
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_splunk_platform_metrics_missing_url(distro, arch):
+    """Verify installer errors when --splunk-metrics-token is provided without --splunk-platform-url."""
+    install_cmd = " ".join((
+        get_platform_installer_cmd(),
+        f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",
+        f"--splunk-platform-metrics-index {SPLUNK_PLATFORM_LOGS_INDEX}",
+    ))
+
+    print(f"Testing Splunk Platform metrics missing url on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, "apt-get install -y libcap2-bin")
+
+        _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
+        assert "--splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index or --splunk-platform-metrics-index is set" in output.decode("utf-8"), \
+            f"Expected missing url error message, got: {output.decode('utf-8')}"

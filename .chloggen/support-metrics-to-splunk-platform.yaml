@@ -5,7 +5,7 @@ change_type: enhancement
 component: installer
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add Splunk Platform log collection support to the Linux installer script.
+note: Add Splunk Platform metrics collection support to the Linux installer script.
 
 # One or more tracking issues related to the change
 issues: [7575]

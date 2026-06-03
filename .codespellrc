@@ -1,0 +1,2 @@
+[codespell]
+skip = internal/signalfx-agent,*.sum

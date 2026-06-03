@@ -107,21 +107,14 @@ func (hec *HECReceiverSink) Start() error {
 	if err := hec.assertBuilt("Start"); err != nil {
 		return err
 	}
-	logsErr := (*hec.logsReceiver).Start(context.Background(), hec.Host)
-	metricsErr := (*hec.metricsReceiver).Start(context.Background(), hec.Host)
-	if logsErr != nil || metricsErr != nil {
-		return errors.Join(logsErr, metricsErr)
-	}
-	return nil
+	return (*hec.logsReceiver).Start(context.Background(), hec.Host)
 }
 
 func (hec *HECReceiverSink) Shutdown() error {
 	if err := hec.assertBuilt("Shutdown"); err != nil {
 		return err
 	}
-	logsErr := (*hec.logsReceiver).Shutdown(context.Background())
-	metricsErr := (*hec.metricsReceiver).Shutdown(context.Background())
-	return errors.Join(logsErr, metricsErr)
+	return (*hec.logsReceiver).Shutdown(context.Background())
 }
 
 func (hec *HECReceiverSink) LogRecordCount() int {

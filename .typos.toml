@@ -20,3 +20,4 @@ wqs = "wqs"
 extend-ignore-re = [
     # Ignore lines that are purposely ignored
     "^(?!.*codespell:ignore).*$"
+]

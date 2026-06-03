@@ -4,3 +4,12 @@ extend-exclude = [
   "*.sum",
   "*.mod"
 ]
+
+[default.extend-words]
+# Don't correct these words as they're covered by spellcheck
+tha = "tha"
+wqs = "wqs"
+nam = "nam"
+retransmited = "retransmited"
+AKS = "AKS"
+Hashi = "Hashi"

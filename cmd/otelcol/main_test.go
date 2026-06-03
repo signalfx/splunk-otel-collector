@@ -41,7 +41,7 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	configFiles, err = filepath.Glob(filepath.Join("config", "collector", "*.yaml"))
 	require.NoError(t, err)
-	require.Len(t, configFiles, 9, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
+	require.Len(t, configFiles, 10, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
 
 	tests := []struct {
 		extraEnvVars map[string]string

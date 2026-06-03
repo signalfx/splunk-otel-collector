@@ -682,6 +682,7 @@ def test_installer_with_obi(distro, arch):
 SPLUNK_PLATFORM_TOKEN = os.environ.get("SPLUNK_PLATFORM_TOKEN", "test-hec-token")
 SPLUNK_PLATFORM_URL = os.environ.get("SPLUNK_PLATFORM_URL", "https://splunk.example.com:8088/services/collector")
 SPLUNK_PLATFORM_LOGS_INDEX = "test-logs-index"
+SPLUNK_PLATFORM_METRICS_INDEX = "test-metrics-index"
 
 
 def get_platform_installer_cmd():
@@ -767,7 +768,7 @@ def test_installer_splunk_platform_logs_missing_token(distro, arch):
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_installer_splunk_platform_logs_missing_url(distro, arch):
-    """Verify installer errors when --splunk-platform-token is provided without --splunk-platform-url."""
+    """Verify installer errors when --splunk-platform-token and --splunk-platform-logs-index is provided without --splunk-platform-url."""
     install_cmd = " ".join((
         get_platform_installer_cmd(),
         f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",
@@ -795,11 +796,11 @@ def test_installer_splunk_platform_logs_missing_url(distro, arch):
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_installer_splunk_platform_metrics_missing_url(distro, arch):
-    """Verify installer errors when --splunk-metrics-token is provided without --splunk-platform-url."""
+    """Verify installer errors when --splunk-platform-token and --splunk-platform-metrics-index is provided without --splunk-platform-url."""
     install_cmd = " ".join((
         get_platform_installer_cmd(),
         f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",
-        f"--splunk-platform-metrics-index {SPLUNK_PLATFORM_LOGS_INDEX}",
+        f"--splunk-platform-metrics-index {SPLUNK_PLATFORM_METRICS_INDEX}",
     ))
 
     print(f"Testing Splunk Platform metrics missing url on {distro} ({arch}) ...")

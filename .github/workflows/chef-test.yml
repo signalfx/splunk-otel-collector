@@ -149,7 +149,7 @@ jobs:
           mv "$rpm_path" ./files/soc.rpm
 
       - name: Install chef
-        uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
+        uses: actionshub/chef-install@f3b35943a257c25f3ca69e3b773fa4e0e99b58d6 # 6.0.0
         with:
           version: ${{ env.CHEF_VERSION }}
 
@@ -198,7 +198,7 @@ jobs:
           mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef
-        uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
+        uses: actionshub/chef-install@f3b35943a257c25f3ca69e3b773fa4e0e99b58d6 # 6.0.0
         with:
           version: ${{ env.CHEF_VERSION }}
 

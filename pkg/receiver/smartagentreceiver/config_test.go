@@ -228,7 +228,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	elasticCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&elasticCfg))
-	tru := true
+	trueBool := true
 	require.Equal(t, &Config{
 		MonitorType: "elasticsearch",
 		Endpoint:    "elastic:567",
@@ -243,11 +243,11 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			},
 			Host:                           "elastic",
 			Port:                           "567",
-			EnableIndexStats:               &tru,
+			EnableIndexStats:               &trueBool,
 			IndexStatsIntervalSeconds:      60,
-			IndexStatsMasterOnly:           &tru,
-			EnableClusterHealth:            &tru,
-			ClusterHealthStatsMasterOnly:   &tru,
+			IndexStatsMasterOnly:           &trueBool,
+			EnableClusterHealth:            &trueBool,
+			ClusterHealthStatsMasterOnly:   &trueBool,
 			ThreadPools:                    []string{"search", "index"},
 			MetadataRefreshIntervalSeconds: 30,
 		},

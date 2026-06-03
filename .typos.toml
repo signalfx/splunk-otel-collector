@@ -7,9 +7,10 @@ extend-exclude = [
 
 [default.extend-words]
 # Don't correct these words as they're covered by spellcheck
-tha = "tha"
-wqs = "wqs"
+AKS = "AKS"
+facter = "facter"
+Hashi = "Hashi"
 nam = "nam"
 retransmited = "retransmited"
-AKS = "AKS"
-Hashi = "Hashi"
+tha = "tha"
+wqs = "wqs"

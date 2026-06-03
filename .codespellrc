@@ -1,2 +1,2 @@
 [codespell]
-skip = internal/signalfx-agent
+skip = ./internal/signalfx-agent

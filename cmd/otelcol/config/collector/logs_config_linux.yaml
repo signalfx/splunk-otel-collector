@@ -601,7 +601,7 @@ receivers:
     include_file_path: true
     storage: file_storage/filelogs
 
-  # Zookeper log.
+  # ZooKeeper log.
   # Configured in /etc/zookeeper/conf/log4j.properties
   file_log/zookeeper:
     include: [ "/var/log/zookeeper/zookeeper.log" ]

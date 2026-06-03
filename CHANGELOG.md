@@ -3752,7 +3752,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
     - `googlecloudpubsub` receiver:
       - `receiver_googlecloudpubsub_stream_restarts` -> `receiver.googlecloudpubsub.stream_restarts`
 
-- (Contrib) `activedirectorydsreceiver`: Fixed typo in the attribute `distingushed_names`, renaming it to `distinguished_names`. ([#37606](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37606))
+- (Contrib) `activedirectorydsreceiver`: Fixed typo in the attribute `distinguished_names`, renaming it to `distinguished_names`. ([#37606](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37606))
 - (Contrib) `receiver/hostmetrics`: Remove receiver.hostmetrics.normalizeProcessCPUUtilization feature gate ([#34763](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34763))
 - (Contrib) `tailsamplingprocessor`: Fix the decision timer metric to capture longer latencies beyond 50ms. ([#37722](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37722))
   This changes the unit of the decision timer metric from microseconds to milliseconds.
@@ -5339,7 +5339,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
     [#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684), and [#4691](https://github.com/signalfx/splunk-otel-collector/pull/4691))
 - (Core) `telemetry`: Distributed internal metrics across different levels. ([#7890](https://github.com/open-telemetry/opentelemetry-collector/pull/7890))
   The internal metrics levels are updated along with reported metrics:
-  - The default level is changed from `basic` to `normal`, which can be overridden with `service::telmetry::metrics::level` configuration.
+  - The default level is changed from `basic` to `normal`, which can be overridden with `service::telemetry::metrics::level` configuration.
   - Batch processor metrics are updated to be reported starting from `normal` level:
     - `processor_batch_batch_send_size`
     - `processor_batch_metadata_cardinality`
@@ -5598,7 +5598,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Splunk) Bump setuptools in /internal/signalfx-agent/bundle/script([#4330](https://github.com/signalfx/splunk-otel-collector/pull/4403))
 - (Splunk) Rocky Linux installation support ([#4398](https://github.com/signalfx/splunk-otel-collector/pull/4398 ))
 - (Splunk) Add a test to check what we choose to redact ([#4406](https://github.com/signalfx/splunk-otel-collector/pull/4406))
-- (Splunk) Fixed high alert vulnerabity ([#4407](https://github.com/signalfx/splunk-otel-collector/pull/4407))
+- (Splunk) Fixed high alert vulnerability ([#4407](https://github.com/signalfx/splunk-otel-collector/pull/4407))
 - (Splunk) Update pgproto to 2.3.3  ([#4409](https://github.com/signalfx/splunk-otel-collector/pull/4409))****
 
 ## v0.95.0
@@ -5719,7 +5719,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `pkg/ottl`: Fix parsing of string escapes in OTTL ([#23238](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/23238))
 - (Contrib) `pkg/stanza`: Recombine operator should always recombine partial logs ([#30797](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30797))
   Previously, certain circumstances could result in partial logs being emitted without any
-  recombiniation. This could occur when using `is_first_entry`, if the first partial log from
+  recombination. This could occur when using `is_first_entry`, if the first partial log from
   a source was emitted before a matching "start of log" indicator was found. This could also
   occur when the collector was shutting down.
 

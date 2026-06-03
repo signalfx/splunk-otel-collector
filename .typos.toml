@@ -12,5 +12,11 @@ facter = "facter"
 Hashi = "Hashi"
 nam = "nam"
 retransmited = "retransmited"
+speling_module = "speling_module"
 tha = "tha"
 wqs = "wqs"
+
+[default]
+extend-ignore-re = [
+    # Ignore lines that are purposely ignored
+    "^(?!.*codespell:ignore).*$"

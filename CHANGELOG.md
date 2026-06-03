@@ -7351,7 +7351,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 🧰 Bug fixes 🧰
 
 - Fix evaluating env variables in ecs ec2 configs (#930)
-- Correct certifi CA bundle removal from Smart Agent bundle (#933)
+- Correct certificate CA bundle removal from Smart Agent bundle (#933)
 - Fix evaluating env variables in fargate config (#935)
 
 ## v0.38.0

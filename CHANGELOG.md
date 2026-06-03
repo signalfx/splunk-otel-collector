@@ -2209,7 +2209,7 @@ and the [opentelemetry-collector-contrib v0.137.0](https://github.com/open-telem
 - (Contrib) `processor/resourcedetection`: Add support for DigitalOcean in resourcedetectionprocessor ([#42803](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42803))
 - (Contrib) `processor/resourcedetection`: Add support for upcloud in resourcedetectionprocessor ([#42801](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42801))
 - (Contrib) `receiver/kafka`: Add support for disabling KIP-320 (truncation detection via leader epoch) for Franz-Go ([#42226](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42226))
-- (Contrib) `haproxyreceiver`: Add support for act, weight, ctime, qtime, rtime, bck and slim metrics from HAProxy ([#42829](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42829))
+- (Contrib) `haproxyreceiver`: Add support for act, weight, ctime, qtime, rtime, bck and slim metrics from HAProxy ([#42829](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42829)) <!-- codespell:ignore bck -->
 - (Contrib) `hostmetricsreceiver`: Add useMemAvailable feature gate to use the MemAvailable kernel's statistic to compute the "used" memory usage ([#42221](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42221))
 - (Contrib) `receiver/kafkareceiver`: Use franz-go client for Kafka receiver as default, promoting the receiver.kafkareceiver.UseFranzGo feature gate to Beta. ([#42155](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42155))
 - (Contrib) `oracledbreceiver`: Add `service.instance.id` resource attribute ([#42402](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42402))

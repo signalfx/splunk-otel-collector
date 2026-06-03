@@ -11,11 +11,6 @@ extend-exclude = [
 AKS = "AKS"
 facter = "facter"
 Hashi = "Hashi"
-nam = "nam"
-ot = "ot"
-retransmited = "retransmited"
-tha = "tha"
-wqs = "wqs"
 
 [default]
 extend-ignore-re = [

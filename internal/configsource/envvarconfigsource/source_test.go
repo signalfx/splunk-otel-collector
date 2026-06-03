@@ -54,7 +54,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 		{
 			name: "invalid_param",
 			params: map[string]any{
-				"unknow_params_field": true,
+				"unknown_params_field": true,
 			},
 			wantErr: &errInvalidRetrieveParams{},
 		},

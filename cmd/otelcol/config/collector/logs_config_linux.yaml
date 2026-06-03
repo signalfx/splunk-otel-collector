@@ -170,7 +170,7 @@ receivers:
     include_file_path: true
     storage: file_storage/filelogs
 
-  # Etcd versions 3.4 and prior are loging using the capnslog library.
+  # Etcd versions 3.4 and prior are logging using the capnslog library.
   # (https://etcd.io/docs/v3.4/dev-internal/logging/).
   # Versions 3.5 and later are logging using the zap library
   # (https://etcd.io/docs/v3.5/dev-internal/logging/).

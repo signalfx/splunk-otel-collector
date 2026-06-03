@@ -14,7 +14,7 @@
 
 # The following comment block acts as usage for powershell scripts
 # you can view it by passing the script as an argument to the cmdlet 'Get-Help'
-# To view the paremeter documentation invoke Get-Help with the option '-Detailed'
+# To view the parameter documentation invoke Get-Help with the option '-Detailed'
 # ex. PS C:\> Get-Help "<path to script>\install.ps1" -Detailed
 
 <#
@@ -513,7 +513,7 @@ if ($with_dotnet_instrumentation) {
         } catch {
             $err = $_.Exception.Message
             $message = "
-            An error occured when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
+            An error occurred when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
             $err
             "
             throw "$message"

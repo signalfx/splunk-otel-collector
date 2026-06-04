@@ -120,7 +120,6 @@ func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.Chang
 	if err != nil {
 		return false, uint32(windows.ERROR_EVENTLOG_CANT_START)
 	}
-	}
 	defer func() {
 		_ = elog.Close()
 	}()
@@ -155,6 +154,7 @@ func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.Chang
 			}
 			status <- svc.Status{State: svc.Stopped}
 			return false, 0
+		case request, ok := <-requests:
 			if !ok {
 				return false, 0
 			}

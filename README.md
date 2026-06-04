@@ -227,14 +227,12 @@ Default endpoint URLs have changed from *.signalfx.com to *.observability.splunk
   `install.sh` (add these flags):
   
     --api-url https://api.<realm>.signalfx.com \
-    --ingest-url https://ingest.<realm>.signalfx.com \
-    --hec-url https://ingest.<realm>.signalfx.com/v1/log
+    --ingest-url https://ingest.<realm>.signalfx.com
   
   `install.ps1` (add these flags):
   
     -api_url https://api.<realm>.signalfx.com `
-    -ingest_url https://ingest.<realm>.signalfx.com `
-    -hec_url https://ingest.<realm>.signalfx.com/v1/log
+    -ingest_url https://ingest.<realm>.signalfx.com
   
   Chocolatey (add these params):
   

@@ -53,7 +53,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.observability.splunkcloud.com"
 .PARAMETER hec_url
-    (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.observability.splunkcloud.com/v1/log).
+    (DEPRECATED) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.observability.splunkcloud.com/v1/log).
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://ingest.us1.observability.splunkcloud.com/v1/log"
 .PARAMETER hec_token
@@ -537,6 +537,9 @@ if ($api_url -eq "") {
 
 if ($hec_url -eq "") {
     $hec_url = "$ingest_url/v1/log"
+}
+else {
+    Write-Warning "[DEPRECATED] The parameter '-hec_url' is deprecated and will be removed in September 2026."
 }
 
 if ($hec_token -eq "") {

@@ -48,11 +48,20 @@ var (
 // and falls back to interactive mode for command-line runs.
 func run(args, env []string, paths launcher.Paths) error {
 	// Allocate a console so it can later deliver CTRL_BREAK_EVENT to a child process group.
-	if err := allocConsole(); err != nil && !errors.Is(err, windows.ERROR_ACCESS_DENIED) {
-		return fmt.Errorf("alloc console: %w", err)
+	// Only free the console if we allocated it successfully; otherwise we may detach
+	// an existing interactive console and lose stderr output.
+	consoleAllocated := false
+	if err := allocConsole(); err != nil {
+		if !errors.Is(err, windows.ERROR_ACCESS_DENIED) {
+			return fmt.Errorf("alloc console: %w", err)
+		}
+	} else {
+		consoleAllocated = true
 	}
 	defer func() {
-		_ = freeConsole()
+		if consoleAllocated {
+			_ = freeConsole()
+		}
 	}()
 
 	if err := svc.Run("", &serviceHandler{args: args, env: env, paths: paths}); err != nil {
@@ -102,13 +111,15 @@ type serviceHandler struct {
 func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.ChangeRequest, status chan<- svc.Status) (bool, uint32) {
 	const accepts = svc.AcceptStop | svc.AcceptShutdown
 
-	if len(serviceArgs) == 0 {
-		return false, uint32(windows.ERROR_INVALID_SERVICENAME)
+	source := "splunk-otel-collector"
+	if len(serviceArgs) > 0 && serviceArgs[0] != "" {
+		source = serviceArgs[0]
 	}
 
-	elog, err := eventlog.Open(serviceArgs[0])
+	elog, err := eventlog.Open(source)
 	if err != nil {
 		return false, uint32(windows.ERROR_EVENTLOG_CANT_START)
+	}
 	}
 	defer func() {
 		_ = elog.Close()
@@ -139,10 +150,11 @@ func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.Chang
 			}
 			if result.waitErr != nil {
 				_ = elog.Error(3, fmt.Sprintf("child process exited with an error: %v", result.waitErr))
+				status <- svc.Status{State: svc.Stopped}
 				return false, uint32(windows.ERROR_EXCEPTION_IN_SERVICE)
 			}
+			status <- svc.Status{State: svc.Stopped}
 			return false, 0
-		case request, ok := <-requests:
 			if !ok {
 				return false, 0
 			}

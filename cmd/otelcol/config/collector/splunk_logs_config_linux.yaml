@@ -120,7 +120,7 @@ receivers:
       # Default baseline units (portable across Debian/Ubuntu and RHEL-family).
       # Keep only units relevant to your environment.
       # Add/remove entries as needed; non-existent units are ignored.
-      
+
       # Core
       - systemd-journald.service
 

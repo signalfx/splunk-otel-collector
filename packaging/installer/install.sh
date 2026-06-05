@@ -1091,7 +1091,7 @@ Collector:
                                         (default: "$default_collector_version")
   --discovery                           Enable discovery mode on collector startup (disabled by default).
   --hec-token <token>                   Set the HEC token if different than the specified access_token.
-  --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
+  --hec-url <url>                       [DEPRECATED] Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.observability.splunkcloud.com/v1/log)
   --godebug <value>                     Set values for the GODEBUG environment variable.
@@ -1457,6 +1457,7 @@ parse_args_and_install() {
         ;;
       --hec-url)
         hec_url="$2"
+        echo "[DEPRECATED]: The parameter '--hec-url' is deprecated and will be removed in September 2026." >&2
         shift 1
         ;;
       --splunk-platform-token)

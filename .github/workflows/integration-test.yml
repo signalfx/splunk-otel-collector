@@ -62,7 +62,7 @@ jobs:
           merge-multiple: true
           path: ./bin
       # Building multiarch container images requires qemu
-      - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v10.2.1
@@ -189,7 +189,7 @@ jobs:
       # Here is the list of "services" (see above) that don't support arm64:
       # On profile integration: oracle
       # On profile smartagent: httpd
-      - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}

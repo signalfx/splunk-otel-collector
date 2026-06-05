@@ -117,29 +117,20 @@ receivers:
   journald:
     start_at: end
     units:
-      # --- CORE ---
-      - systemd
-      - systemd-journald
+      # Default baseline units (portable across Debian/Ubuntu and RHEL-family).
+      # Keep only units relevant to your environment.
+      # Add/remove entries as needed; non-existent units are ignored.
+      
+      # Core
+      - systemd-journald.service
 
-      # --- AUTHENTICATION ---
-      - sshd
-      - sudo
+      # SSH (Debian/Ubuntu + RHEL-family)
+      - ssh.service
+      - sshd.service
 
-      # --- CRON ---
-      - cron
-
-      # Uncomment to enable additional units:
-      # - ssh
-      # - systemd-logind
-      # - polkit
-      # - dbus
-      # - NetworkManager
-      # - systemd-networkd
-      # - systemd-resolved
-      # - systemd-timesyncd
-      # - unattended-upgrades
-      # - apt-daily
-      # - snapd
+      # Cron (Debian/Ubuntu + RHEL-family)
+      - cron.service
+      - crond.service
 
     operators:
       - type: copy

@@ -388,9 +388,9 @@ func flattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
 }
 
 func TestBasicNoMd(t *testing.T) {
-	wqs := getWriteRequestsOfAllTypesWithoutMetadata()
-	require.NotNil(t, wqs)
-	for _, wq := range wqs {
+	wqs := getWriteRequestsOfAllTypesWithoutMetadata() // codespell:ignore wqs
+	require.NotNil(t, wqs)                             // codespell:ignore wqs
+	for _, wq := range wqs {                           // codespell:ignore wqs
 		for _, ts := range wq.Timeseries {
 			require.NotNil(t, ts)
 			assert.NotEmpty(t, ts.Labels)

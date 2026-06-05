@@ -227,7 +227,7 @@ func (container Container) WithUser(user string) Container {
 	return container
 }
 
-func (container Container) WithPriviledged(privileged bool) Container {
+func (container Container) WithPrivileged(privileged bool) Container {
 	container.Privileged = privileged
 	return container
 }

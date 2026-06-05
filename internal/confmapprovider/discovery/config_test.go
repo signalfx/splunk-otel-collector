@@ -151,7 +151,7 @@ func TestDiscoveryPropertiesEntryPath(t *testing.T) {
 	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cprocessors%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
 }
 
-var tru = true
+var trueBool = true
 
 var expectedConfig = Config{
 	Service: ServiceEntry{
@@ -182,7 +182,7 @@ var expectedConfig = Config{
 	},
 	DiscoveryObservers: map[component.ID]ObserverEntry{
 		component.MustNewID("docker_observer"): {
-			Enabled: &tru,
+			Enabled: &trueBool,
 			Config: Entry{
 				"endpoint": "tcp://debian:54321",
 				"timeout":  "2s",

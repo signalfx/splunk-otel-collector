@@ -60,6 +60,21 @@ jobs:
             exit 1
           fi
 
+  spellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Spell check - codespell
+        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 #v2.2
+        with:
+          check_filenames: true
+          ignore_words_list: AKS
+          skip: "./internal/signalfx-agent,*.sum,*.mod"
+      - name: Spell check - crate-ci/typos
+        uses: crate-ci/typos@44e2070e6017f834bf069503acb35ca0ca0b75f2 # v1.47.1
+        with:
+          config: ./.typos.toml
+
   lint:
     name: lint
     runs-on: ubuntu-24.04

@@ -76,7 +76,7 @@ func Test_newMetricAttributesProcessor_Histogram(t *testing.T) {
 	require.Equal(t, now.Add(1*time.Hour), result.Histogram().DataPoints().At(0).StartTimestamp().AsTime())
 }
 
-func Test_newMetricAttributesProcessor_ExponentionalHistogram(t *testing.T) {
+func Test_newMetricAttributesProcessor_ExponentialHistogram(t *testing.T) {
 	now := time.Now().UTC()
 	metrics := pmetric.NewMetrics()
 	m := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()

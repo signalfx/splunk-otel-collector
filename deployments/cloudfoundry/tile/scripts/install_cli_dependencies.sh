@@ -11,7 +11,7 @@ brew install wget
 brew install cloudfoundry/tap/bosh-cli
 
 # Pre-req: Navigate to https://github.com/cf-platform-eng/tile-generator
-# Download the tile and pcf release asssets, these will need to be an old version on MacOS, darwin support was dropped
+# Download the tile and pcf release assets, these will need to be an old version on MacOS, darwin support was dropped
 chmod +x ~/Downloads/tile_darwin-64bit
 chmod +x ~/Downloads/pcf_darwin-64bit
 mv ~/Downloads/pcf_darwin-64bit /usr/local/bin/pcf

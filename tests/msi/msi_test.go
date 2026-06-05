@@ -117,7 +117,7 @@ func TestCollectorReconfiguration(t *testing.T) {
 			name: "second-install",
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
-				"SPLUNK_ACCESS_TOKEN":         "2ndInstall",
+				"SPLUNK_ACCESS_TOKEN":         "2ndInstall", // codespell:ignore nd
 				"SPLUNK_REALM":                "2nd",
 				"SPLUNK_MEMORY_TOTAL_MIB":     "256",
 				"GODEBUG":                     "fips140=on",

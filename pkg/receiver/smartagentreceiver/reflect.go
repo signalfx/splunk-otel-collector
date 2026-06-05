@@ -79,7 +79,7 @@ func setStructField(strukt any, fieldName string, value any, fieldType reflect.T
 	if valuePtr != nil {
 		fieldValue := *valuePtr
 		if !fieldValue.IsValid() {
-			return false, fmt.Errorf("canot set invalid field value: %v", fieldValue)
+			return false, fmt.Errorf("cannot set invalid field value: %v", fieldValue)
 		}
 		if !(onlyIfZero && !fieldValue.IsZero()) {
 			fieldValue.Set(reflect.ValueOf(value))

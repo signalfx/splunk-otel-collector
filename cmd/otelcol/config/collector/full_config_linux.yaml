@@ -391,7 +391,7 @@ processors:
     metadata_keys:
       - X-SF-Token
 
-  # Enables the resouce processor with default settings
+  # Enables the resource processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor
   # NOTE: These settings need to be change when using this processor
   resource:

@@ -98,7 +98,7 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.NotEqual(t, builder, withUser)
 	assert.Empty(t, builder.User)
 
-	withPrivileged := builder.WithPriviledged(true)
+	withPrivileged := builder.WithPrivileged(true)
 	assert.True(t, withPrivileged.Privileged)
 	assert.NotEqual(t, builder, withPrivileged)
 	assert.False(t, builder.Privileged)

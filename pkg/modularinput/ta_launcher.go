@@ -48,6 +48,10 @@ const (
 	// EnvAppName is the environment variable set to the Splunk app name of the
 	// configuration stanza (the app attribute from the modular input XML).
 	EnvAppName = "SPLUNK_MODINPUT_APP_NAME"
+	// EnvAppBaseDir is the environment variable set to the base directory of the modular
+	// input. This is derived from the directory of the executable and can be used to
+	// locate other files in the app (e.g. default configuration files).
+	EnvBaseDirName = "SPLUNK_MODINPUT_BASE_DIR_NAME"
 	// EnvStanzaName is the environment variable set to the full stanza name
 	// (e.g. "Splunk_TA_otel://default") from the modular input XML.
 	EnvStanzaName = "SPLUNK_MODINPUT_STANZA_NAME"
@@ -89,6 +93,10 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	}
 
 	modularInputEnvVars := make(map[string]string)
+	if appName := appNameFromExecutable(); appName != "" {
+		modularInputEnvVars[EnvBaseDirName] = appName
+	}
+
 	var configStanza Stanza
 	var params []Param
 	if mode == ValidationTARunMode {
@@ -108,10 +116,6 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to write error response: %w", writeErr)
 			}
 			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed: %w", err)
-		}
-
-		if appName := appNameFromExecutable(); appName != "" {
-			modularInputEnvVars[EnvAppName] = appName
 		}
 
 		params = make([]Param, 0, len(items.Item))
@@ -287,15 +291,7 @@ func isParentProcessSplunkd() bool {
 
 // currentProcessExe returns the path to the current process image using gopsutil.
 func currentProcessExe() (string, error) {
-	proc, err := process.NewProcess(int32(os.Getpid())) //nolint:gosec // disable G115
-	if err != nil {
-		return "", fmt.Errorf("unable to get current process: %w", err)
-	}
-	exe, err := proc.Exe()
-	if err != nil {
-		return "", fmt.Errorf("unable to get current process image path: %w", err)
-	}
-	return exe, nil
+	return os.Executable()
 }
 
 // appNameFromExecutable derives the Splunk app name from the current process image path.

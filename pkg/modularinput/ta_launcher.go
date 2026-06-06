@@ -48,9 +48,9 @@ const (
 	// EnvAppName is the environment variable set to the Splunk app name of the
 	// configuration stanza (the app attribute from the modular input XML).
 	EnvAppName = "SPLUNK_MODINPUT_APP_NAME"
-	// EnvAppBaseDir is the environment variable set to the base directory of the modular
-	// input. This is derived from the directory of the executable and can be used to
-	// locate other files in the app (e.g. default configuration files).
+	// EnvBaseDirName is the environment variable set to the Splunk app base directory name of the modular
+	// input. This is derived from the executable path and can be used to locate other files in the app
+	// (e.g. default configuration files).
 	EnvBaseDirName = "SPLUNK_MODINPUT_BASE_DIR_NAME"
 	// EnvStanzaName is the environment variable set to the full stanza name
 	// (e.g. "Splunk_TA_otel://default") from the modular input XML.
@@ -289,7 +289,7 @@ func isParentProcessSplunkd() bool {
 	return parentName == "splunkd" || parentName == "splunkd.exe"
 }
 
-// currentProcessExe returns the path to the current process image using gopsutil.
+// currentProcessExe returns the path to the current process image.
 func currentProcessExe() (string, error) {
 	return os.Executable()
 }

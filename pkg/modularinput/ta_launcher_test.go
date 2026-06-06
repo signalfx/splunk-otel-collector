@@ -322,7 +322,9 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 		return true
 	}
 	// Force a deterministic EnvBaseDirName for the test
-	currentProcessExeFn = func() (string, error) { return "test-base-dir/platform/bin/test-binary", nil }
+	currentProcessExeFn = func() (string, error) {
+		return "/opt/splunk/etc/apps/test-base-dir/platform/bin/test-binary", nil
+	}
 
 	envVars := make(map[string]string)
 	setEnvFn = func(key, value string) error {
@@ -1599,33 +1601,68 @@ func TestAppNameFromExecutable(t *testing.T) {
 	defer func() { currentProcessExeFn = originalFn }()
 
 	tests := []struct {
-		name     string
-		execPath string
-		want     string
+		name       string
+		splunkHome string
+		execPath   string
+		want       string
 	}{
 		{
-			name:     "multi OS path",
-			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
-			want:     "Splunk_TA_otel",
+			name:       "valid path",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel",
 		},
 		{
-			name:     "platform path",
-			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel_platform", "platform", "bin", "Splunk_TA_otel"),
-			want:     "Splunk_TA_otel_platform",
+			name:       "valid path with different app name",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel_platform", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel_platform",
 		},
 		{
-			name:     "too few path components",
-			execPath: filepath.Join(string(filepath.Separator), "platform", "bin", "Splunk_TA_otel"),
-			want:     "",
+			name:       "no SPLUNK_HOME",
+			splunkHome: "",
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
 		},
 		{
-			name:     "only file path separator",
-			execPath: string(filepath.Separator),
-			want:     "",
+			name:       "path under SPLUNK_HOME but not etc/apps",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "var", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel",
+		},
+		{
+			name:       "path not under SPLUNK_HOME",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "usr", "local", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
+		},
+		{
+			name:       "bin not parent directory",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "lib", "Splunk_TA_otel"),
+			want:       "",
+		},
+		{
+			name:       "too few path components",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
+		},
+		{
+			name:       "only file path separator",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   string(filepath.Separator),
+			want:       "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.splunkHome != "" {
+				t.Setenv("SPLUNK_HOME", tt.splunkHome)
+			} else {
+				t.Setenv("SPLUNK_HOME", "")
+				os.Unsetenv("SPLUNK_HOME") //nolint:errcheck // best-effort unset for test
+			}
 			currentProcessExeFn = func() (string, error) { return tt.execPath, nil }
 			assert.Equal(t, tt.want, appNameFromExecutable())
 		})

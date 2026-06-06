@@ -300,19 +300,37 @@ func currentProcessExe() (string, error) {
 //	$SPLUNK_HOME/etc/apps/<AppName>/<platform>/bin/<binary>
 //
 // so the app name is the directory three levels above the binary.
-// Returns an empty string if the process image path cannot be determined or does
-// not have enough path components.
+// Returns an empty string if the process image path cannot be determined, does not have
+// enough path components, or is not under $SPLUNK_HOME.
 func appNameFromExecutable() string {
 	execPath, err := currentProcessExeFn()
 	if err != nil {
 		log.Printf("ERROR %v\n", err)
 		return ""
 	}
+
+	splunkHome, ok := os.LookupEnv("SPLUNK_HOME")
+	if !ok || splunkHome == "" {
+		return ""
+	}
+
 	// Walk up: bin → <platform> → <AppName>
-	appName := filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(execPath))))
+	binDir := filepath.Dir(execPath)
+	if filepath.Base(binDir) != "bin" {
+		return ""
+	}
+	appDir := filepath.Dir(filepath.Dir(binDir))
+	appName := filepath.Base(appDir)
 	if appName == "." || appName == string(filepath.Separator) {
 		return ""
 	}
+
+	// Ensure the walk-up landed somewhere under $SPLUNK_HOME.
+	splunkHomeClean := filepath.Clean(splunkHome) + string(filepath.Separator)
+	if !strings.HasPrefix(filepath.Clean(appDir)+string(filepath.Separator), splunkHomeClean) {
+		return ""
+	}
+
 	return appName
 }
 

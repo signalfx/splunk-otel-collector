@@ -56,7 +56,7 @@ if [ "$KERNEL" = "Linux" ] ; then
             echo "$CURRENT_TIME" > "$SEEK_FILE" # Checkpoint+
 
     else   # Added this condition to get error logs
-        echo "error occured while running 'service auditd status' command in rlog.sh script. Output : $(service auditd status). Command exited with exit code $?" 1>&2
+        echo "error occurred while running 'service auditd status' command in rlog.sh script. Output : $(service auditd status). Command exited with exit code $?" 1>&2
     fi
     # remove temporary error redirection file if it exists
     # shellcheck disable=SC2086

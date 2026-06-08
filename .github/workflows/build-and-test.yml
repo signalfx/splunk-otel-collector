@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 
 jobs:
   tidy:
@@ -59,6 +59,21 @@ jobs:
             echo "Generated code is out of date. Run 'make generate-metrics' and push the changes."
             exit 1
           fi
+
+  spellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Spell check - codespell
+        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 #v2.2
+        with:
+          check_filenames: true
+          ignore_words_list: AKS
+          skip: "./internal/signalfx-agent,*.sum,*.mod"
+      - name: Spell check - crate-ci/typos
+        uses: crate-ci/typos@44e2070e6017f834bf069503acb35ca0ca0b75f2 # v1.47.1
+        with:
+          config: ./.typos.toml
 
   lint:
     name: lint
@@ -123,7 +138,7 @@ jobs:
         run: COVER_TESTING=true make gotest-with-codecov
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           fail_ci_if_error: true
           verbose: true

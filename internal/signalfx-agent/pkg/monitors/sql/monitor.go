@@ -9,7 +9,6 @@ import (
 	"time"
 
 	// Imports to get sql driver registered
-	_ "github.com/SAP/go-hdb/driver"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 

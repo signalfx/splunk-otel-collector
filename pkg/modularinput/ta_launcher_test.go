@@ -1677,7 +1677,7 @@ func TestAppNameFromExecutable_Error(t *testing.T) {
 	assert.Empty(t, appNameFromExecutable())
 }
 
-func TestHandleLaunchAsTA_ValidationMode_SetsAppName(t *testing.T) {
+func TestHandleLaunchAsTA_ValidationMode_NoAppName_SetBaseDirName(t *testing.T) {
 	originalIsParentFn := isParentProcessSplunkdFn
 	originalSetEnvFn := setEnvFn
 	originalExecFn := currentProcessExeFn

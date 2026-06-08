@@ -352,7 +352,7 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	resultArgs, _, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>", nil)
 	require.NoError(t, err, "Expected no error with empty stanza")
 	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged with empty stanza")
-	// The stanza matched, so the two stanza env vars are always set even with no splunk_ params.
+	// The stanza matched, so the stanza env vars are set even with no splunk_ params; EnvBaseDirName is also derived from the executable path.
 	assert.Equal(t, map[string]string{
 		EnvAppName:     "test-app",
 		EnvBaseDirName: "test-base-dir",

@@ -93,8 +93,8 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	}
 
 	modularInputEnvVars := make(map[string]string)
-	if appName := appNameFromExecutable(); appName != "" {
-		modularInputEnvVars[EnvBaseDirName] = appName
+	if baseDirName := appNameFromExecutable(); baseDirName != "" {
+		modularInputEnvVars[EnvBaseDirName] = baseDirName
 	}
 
 	var configStanza Stanza

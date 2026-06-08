@@ -80,7 +80,7 @@ func runInteractive(args, env []string, paths launcher.Paths) error {
 	if err != nil {
 		return err
 	}
-	child, err := startChild(cmdSpec, true, nil)
+	child, err := startChild(cmdSpec, nil)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.Chang
 		return false, uint32(windows.ERROR_EXCEPTION_IN_SERVICE)
 	}
 
-	child, err := startChild(cmdSpec, false, elog)
+	child, err := startChild(cmdSpec, elog)
 	if err != nil {
 		_ = elog.Error(3, fmt.Sprintf("failed to start child process: %v", err))
 		return false, uint32(windows.ERROR_EXCEPTION_IN_SERVICE)
@@ -219,15 +219,12 @@ type childProcess struct {
 }
 
 // startChild launches the selected binary in its own process group. Interactive
-// runs inherit console stdio; service runs bridge child stdout/stderr to Event
-// Log through the provided event log handle.
-func startChild(cmdSpec launcher.Command, interactive bool, elog windowsEventLog) (*childProcess, error) {
+// runs inherit console stdout/stderr; service runs bridge child stdout/stderr
+// to Event Log through the provided event log handle.
+func startChild(cmdSpec launcher.Command, elog windowsEventLog) (*childProcess, error) {
 	cmd := exec.Command(cmdSpec.Path, cmdSpec.Args...)
 	cmd.Env = cmdSpec.Env
 	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: windows.CREATE_NEW_PROCESS_GROUP}
-	if interactive {
-		cmd.Stdin = os.Stdin
-	}
 
 	var outputDone <-chan error
 	var outputClosers []io.ReadCloser

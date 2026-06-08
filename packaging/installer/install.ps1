@@ -14,7 +14,7 @@
 
 # The following comment block acts as usage for powershell scripts
 # you can view it by passing the script as an argument to the cmdlet 'Get-Help'
-# To view the paremeter documentation invoke Get-Help with the option '-Detailed'
+# To view the parameter documentation invoke Get-Help with the option '-Detailed'
 # ex. PS C:\> Get-Help "<path to script>\install.ps1" -Detailed
 
 <#
@@ -53,7 +53,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.observability.splunkcloud.com"
 .PARAMETER hec_url
-    (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.observability.splunkcloud.com/v1/log).
+    (DEPRECATED) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.observability.splunkcloud.com/v1/log).
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://ingest.us1.observability.splunkcloud.com/v1/log"
 .PARAMETER hec_token
@@ -513,7 +513,7 @@ if ($with_dotnet_instrumentation) {
         } catch {
             $err = $_.Exception.Message
             $message = "
-            An error occured when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
+            An error occurred when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
             $err
             "
             throw "$message"
@@ -537,6 +537,9 @@ if ($api_url -eq "") {
 
 if ($hec_url -eq "") {
     $hec_url = "$ingest_url/v1/log"
+}
+else {
+    Write-Warning "[DEPRECATED] The parameter '-hec_url' is deprecated and will be removed in September 2026."
 }
 
 if ($hec_token -eq "") {

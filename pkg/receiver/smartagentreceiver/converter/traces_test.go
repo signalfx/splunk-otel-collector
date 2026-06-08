@@ -35,8 +35,8 @@ import (
 )
 
 var (
-	flse                     = false
-	tru                      = true
+	falseBool                = false
+	trueBool                 = true
 	oneInt64           int64 = 1
 	twoInt64           int64 = 2
 	oneHundredInt32    int32 = 100
@@ -79,7 +79,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0123456789abcdef",
 					"123456789abcdef0",
 					&oneInt64, &twoInt64,
-					&tru, &tru,
+					&trueBool, &trueBool,
 					map[string]string{
 						"some tag":    "some tag value",
 						"another tag": "another tag value",
@@ -132,7 +132,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"1",
 					"",
 					&oneInt64, &twoInt64,
-					&flse, &flse,
+					&falseBool, &falseBool,
 					map[string]string{
 						"some tag": "some tag value",
 					},
@@ -266,7 +266,7 @@ func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
 			"0123456789abcdef",
 			"123456789abcdef0",
 			&oneInt64, &twoInt64,
-			&tru, &tru,
+			&trueBool, &trueBool,
 			map[string]string{
 				"some tag":    "some tag value",
 				"another tag": "another tag value",
@@ -286,7 +286,7 @@ func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
 			"0123456789abcdef",
 			"123456789abcdef0",
 			&oneInt64, &twoInt64,
-			&tru, &tru,
+			&trueBool, &trueBool,
 			map[string]string{
 				"some tag":    "some tag value",
 				"another tag": "another tag value",

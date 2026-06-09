@@ -52,6 +52,7 @@ func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
 	installCollector(t, oldCollectorVersion, "")
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
+	verifySingleDotnetResourceAttribute(t)
 	legacySvcVersion := getCurrentServiceVersion(t)
 	require.Equal(t, oldCollectorVersion, legacySvcVersion)
 
@@ -60,6 +61,7 @@ func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
 	installCollector(t, "", msiInstallerPath)
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
+	verifySingleDotnetResourceAttribute(t)
 	latestSvcVersion := getCurrentServiceVersion(t)
 	require.NotEqual(t, oldCollectorVersion, latestSvcVersion)
 	requireNoPendingFileOperations(t)
@@ -72,6 +74,7 @@ func installCollector(t *testing.T, version, msiPath string) {
 		"-ExecutionPolicy", "Bypass",
 		"-File", getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
 		"-access_token", "fake-token",
+		"-with_dotnet_instrumentation", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var, which we verify in the test.
 	}
 
 	if version != "" {
@@ -138,6 +141,33 @@ func getCurrentServiceVersion(t *testing.T) string {
 
 	require.Fail(t, "Failed to find service version in registry")
 	return ""
+}
+
+func verifySingleDotnetResourceAttribute(t *testing.T) {
+	envKey, err := registry.OpenKey(
+		registry.LOCAL_MACHINE,
+		`SYSTEM\CurrentControlSet\Control\Session Manager\Environment`,
+		registry.QUERY_VALUE,
+	)
+	require.NoError(t, err)
+	defer envKey.Close()
+
+	otelResourceAttributes, _, err := envKey.GetStringValue("OTEL_RESOURCE_ATTRIBUTES")
+	require.NoError(t, err, "OTEL_RESOURCE_ATTRIBUTES machine-wide environment variable not found")
+
+	const expectedPrefix = "splunk.zc.method=splunk-otel-dotnet-"
+	count := 0
+	for _, attribute := range strings.Split(otelResourceAttributes, ",") {
+		trimmed := strings.TrimSpace(attribute)
+		if strings.HasPrefix(trimmed, expectedPrefix) && len(trimmed) > len(expectedPrefix) {
+			count++
+		}
+	}
+
+	require.Equal(t, 1, count,
+		"OTEL_RESOURCE_ATTRIBUTES should contain exactly one '%s<version>' entry, got %d in %q",
+		expectedPrefix, count, otelResourceAttributes,
+	)
 }
 
 func requireNoPendingFileOperations(t *testing.T) {

@@ -93,7 +93,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	}
 
 	modularInputEnvVars := make(map[string]string)
-	if baseDirName := appNameFromExecutable(); baseDirName != "" {
+	if baseDirName := baseDirNameFromExecutable(); baseDirName != "" {
 		modularInputEnvVars[EnvBaseDirName] = baseDirName
 	}
 
@@ -294,7 +294,7 @@ func currentProcessExe() (string, error) {
 	return os.Executable()
 }
 
-// appNameFromExecutable derives the Splunk app name from the current process image path.
+// baseDirNameFromExecutable derives the Splunk app name from the current process image path.
 // Splunk installs modular input binaries at:
 //
 //	$SPLUNK_HOME/etc/apps/<AppName>/<platform>/bin/<binary>
@@ -302,7 +302,7 @@ func currentProcessExe() (string, error) {
 // so the app name is the directory three levels above the binary.
 // Returns an empty string if the process image path cannot be determined, does not have
 // enough path components, or is not under $SPLUNK_HOME.
-func appNameFromExecutable() string {
+func baseDirNameFromExecutable() string {
 	execPath, err := currentProcessExeFn()
 	if err != nil {
 		log.Printf("ERROR %v\n", err)

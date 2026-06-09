@@ -1664,7 +1664,7 @@ func TestAppNameFromExecutable(t *testing.T) {
 				os.Unsetenv("SPLUNK_HOME") //nolint:errcheck // best-effort unset for test
 			}
 			currentProcessExeFn = func() (string, error) { return tt.execPath, nil }
-			assert.Equal(t, tt.want, appNameFromExecutable())
+			assert.Equal(t, tt.want, baseDirNameFromExecutable())
 		})
 	}
 }
@@ -1674,7 +1674,7 @@ func TestAppNameFromExecutable_Error(t *testing.T) {
 	defer func() { currentProcessExeFn = originalFn }()
 
 	currentProcessExeFn = func() (string, error) { return "", errors.New("process image path unavailable") }
-	assert.Empty(t, appNameFromExecutable())
+	assert.Empty(t, baseDirNameFromExecutable())
 }
 
 func TestHandleLaunchAsTA_ValidationMode_NoAppName_SetBaseDirName(t *testing.T) {

@@ -198,7 +198,17 @@ jobs:
         shell: cmd
         run: setx OTEL_RESOURCE_ATTRIBUTES some.otel.attrib=some.value,splunk.zc.method=splunk-otel-dotnet-v1.9.0 /M
 
-      - name: Run the script upgrade tests
+      - name: Set the MSI_COLLECTOR_PATH and INSTALL_SCRIPT_PATH environment variable
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          Test-Path $msi_path
+          "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $ps1_path = Resolve-Path .\packaging\installer\install.ps1
+          Test-Path $ps1_path
+          "INSTALL_SCRIPT_PATH=$ps1_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          - name: Run the script upgrade tests
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
         working-directory: tests/windows-install-script
         run: |

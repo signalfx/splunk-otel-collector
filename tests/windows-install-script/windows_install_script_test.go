@@ -74,7 +74,7 @@ func installCollector(t *testing.T, version, msiPath string) {
 		"-ExecutionPolicy", "Bypass",
 		"-File", getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
 		"-access_token", "fake-token",
-		"-with_dotnet_instrumentation", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var, which we verify in the test.
+		"-with_dotnet_instrumentation", "$true", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var, which we verify in the test.
 	}
 
 	if version != "" {

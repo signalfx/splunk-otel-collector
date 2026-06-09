@@ -40,7 +40,7 @@ const (
 	serviceDisplayName = "Splunk OpenTelemetry Collector"
 )
 
-func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
+func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	t.Setenv("VERIFY_ACCESS_TOKEN", "false")
 
 	requireNoPendingFileOperations(t)
@@ -53,7 +53,7 @@ func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
 	installCollector(t, oldCollectorVersion, "")
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
-	verifySingleDotnetResourceAttribute(t)
+	verifyZeroConfigResourceAttributeCount(t, 1)
 	legacySvcVersion := getCurrentServiceVersion(t)
 	require.Equal(t, oldCollectorVersion, legacySvcVersion)
 
@@ -65,10 +65,13 @@ func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
 	installCollector(t, "", msiInstallerPath)
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
-	verifySingleDotnetResourceAttribute(t)
+	verifyZeroConfigResourceAttributeCount(t, 1)
 	latestSvcVersion := getCurrentServiceVersion(t)
 	require.NotEqual(t, oldCollectorVersion, latestSvcVersion)
 	requireNoPendingFileOperations(t)
+
+	uninstallCollector(t)
+	verifyZeroConfigResourceAttributeCount(t, 0)
 }
 
 func installCollector(t *testing.T, version, msiPath string) {
@@ -95,6 +98,20 @@ func installCollector(t *testing.T, version, msiPath string) {
 	output, err := cmd.CombinedOutput()
 	t.Logf("Install output: %s", string(output))
 	require.NoError(t, err, "Failed to install collector (version:%q msiPath:%q)", version, msiPath)
+}
+
+func uninstallCollector(t *testing.T) {
+	args := []string{
+		"-ExecutionPolicy", "Bypass",
+		"-Command", "& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
+		"-uninstall_collector", "1", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var with the Zero-Code attribute.
+	}
+
+	cmd := exec.Command("powershell.exe", args...)
+
+	output, err := cmd.CombinedOutput()
+	t.Logf("Uninstall output: %s", string(output))
+	require.NoError(t, err, "Failed to uninstall collector")
 }
 
 func verifyServiceExists(t *testing.T, scm *mgr.Mgr) {
@@ -148,7 +165,7 @@ func getCurrentServiceVersion(t *testing.T) string {
 	return ""
 }
 
-func verifySingleDotnetResourceAttribute(t *testing.T) {
+func verifyZeroConfigResourceAttributeCount(t *testing.T, expectedCount int) {
 	envKey, err := registry.OpenKey(
 		registry.LOCAL_MACHINE,
 		`SYSTEM\CurrentControlSet\Control\Session Manager\Environment`,
@@ -171,9 +188,9 @@ func verifySingleDotnetResourceAttribute(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, 1, count,
-		"OTEL_RESOURCE_ATTRIBUTES should contain exactly one '%s<version>' entry, got %d in %q",
-		expectedPrefix, count, otelResourceAttributes,
+	require.Equal(t, expectedCount, count,
+		"OTEL_RESOURCE_ATTRIBUTES didn't contain the expected count of zero-code attributes, got %d in %q",
+		count, otelResourceAttributes,
 	)
 }
 

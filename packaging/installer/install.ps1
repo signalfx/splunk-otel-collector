@@ -120,6 +120,10 @@
    (OPTIONAL) Preserve the default configuration files, located at `$Env:ProgramData\Splunk\OpenTelemetry Collector`, of previous version when upgrading the collector. By default it is $false since version changes can include breaking configuration changes.
    .EXAMPLE
     .\install.ps1 -preserve_prev_default_config $true
+.PARAMETER uninstall_collector
+    (OPTIONAL) Uninstalls the Splunk OpenTelemetry Collector if it is already installed and then exits the script.
+    .EXAMPLE
+    .\install.ps1 -uninstall_collector $true
 #>
 
 param (
@@ -146,6 +150,7 @@ param (
     [string]$dotnet_auto_zip_path = "",
     [bool]$force_skip_verify_access_token = $false,
     [string]$deployment_env = "",
+    [bool]$uninstall_collector = $false,
     [bool]$UNIT_TEST = $false
 )
 
@@ -437,6 +442,33 @@ function uninstall_msi([string]$product_name) {
     Write-Host "- Done"
 }
 
+# Remove splunk.zc.method value from OTEL_RESOURCE_ATTRIBUTES environment variable
+function remove_splunk_zc_method_from_env() {
+    try {
+        $envVarPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        $otelResourceAttrs = Get-ItemProperty -Path $envVarPath -Name "OTEL_RESOURCE_ATTRIBUTES" -ErrorAction SilentlyContinue
+        
+        if ($otelResourceAttrs) {
+            $currentValue = $otelResourceAttrs.OTEL_RESOURCE_ATTRIBUTES
+            # Remove the splunk.zc.method=splunk-otel-dotnet-* pattern from the comma-delimited list
+            # This regex matches the pattern and any surrounding commas, handling edge cases
+            $newValue = $currentValue -replace 'splunk\.zc\.method=splunk-otel-dotnet-[^,]*,?', '' -replace ',+$', '' -replace '^,+', '' -replace ',+', ','
+            
+            if ([string]::IsNullOrEmpty($newValue)) {
+                # If the result is empty, remove the environment variable entirely
+                Write-Host "Removing OTEL_RESOURCE_ATTRIBUTES environment variable"
+                Remove-ItemProperty -Path $envVarPath -Name "OTEL_RESOURCE_ATTRIBUTES" -ErrorAction SilentlyContinue
+            } else {
+                # Update the environment variable with the new value
+                Write-Host "Updating OTEL_RESOURCE_ATTRIBUTES environment variable"
+                Set-ItemProperty -Path $envVarPath -Name "OTEL_RESOURCE_ATTRIBUTES" -Value $newValue
+            }
+        }
+    } catch {
+        Write-Warning "An error occurred while removing splunk.zc.method from OTEL_RESOURCE_ATTRIBUTES: $($_.Exception.Message)"
+    }
+}
+
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
 # check administrator status
@@ -454,10 +486,10 @@ check_policy
 if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
     Write-Host "The $service_name service is already installed. Checking installation for automatic update."
 
-    $uninstall_collector = $true
+    $uninstall_collector_using_msi = $true
     $collector_sids = get_msi_installation_sids -product_name $CollectorServiceDisplayName
     if ($collector_sids.Count -eq 0) {
-        $uninstall_collector = $false
+        $uninstall_collector_using_msi = $false
         Write-Warning "The $service_name service exists but it is not on the Windows installation database."
     }
     else {
@@ -481,8 +513,9 @@ if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
 
     Write-Host "Stopping $service_name service..."
     stop_service -name "$service_name"
-    if ($uninstall_collector) {
+    if ($uninstall_collector_using_msi) {
         uninstall_msi -product_name $CollectorServiceDisplayName
+        # make it fail to check test code remove_splunk_zc_method_from_env
     }
     if (-not $preserve_prev_default_config) {
         $default_config_files = @("agent_config.yaml", "gateway_config.yaml")
@@ -492,6 +525,11 @@ if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
             Remove-Item -Path $target
         }
     }
+}
+
+if ($uninstall_collector) {
+    Write-Host "Uninstall is complete."
+    exit 0
 }
 
 # create a temporary directory
@@ -524,7 +562,6 @@ if ($with_dotnet_instrumentation) {
         echo "Using Local PSM1 file and ArgumentList values: $dotnet_psm1_path -ArgumentList $dotnet_auto_zip_path"
         Import-Module $dotnet_autoinstr_path -ArgumentList $dotnet_auto_zip_path
     }
-    
 }
 
 if ($ingest_url -eq "") {
@@ -667,7 +704,7 @@ if ($deployment_env -ne "") {
 
 if ($with_dotnet_instrumentation) {
     echo "Installing Splunk Distribution of OpenTelemetry .NET..."
-    $currentInstallVersion = Get-OpenTelemetryInstallVersion
+    $currentInstallVersion = Get-SplunkOpenTelemetryForDotNetVersion
     if ($currentInstallVersion) {
         throw "The Splunk Distribution of OpenTelemetry .NET is already installed. Stop all instrumented applications and uninstall it and then rerun this script."
     }
@@ -675,7 +712,7 @@ if ($with_dotnet_instrumentation) {
     # If the variable dotnet_auto_zip_path is an empty string, then the Installer will download the .NET Instrumentation from the default repository.
     Install-OpenTelemetryCore -LocalPath $dotnet_auto_zip_path
 
-    $installed_version = Get-OpenTelemetryInstallVersion
+    $installed_version = Get-SplunkOpenTelemetryForDotNetVersion
     if ($otel_resource_attributes -ne "") {
         $otel_resource_attributes += ","
     }

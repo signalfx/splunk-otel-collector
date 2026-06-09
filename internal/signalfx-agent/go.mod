@@ -1,6 +1,6 @@
 module github.com/signalfx/signalfx-agent
 
-go 1.26.3
+go 1.26.4
 
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
@@ -10,7 +10,6 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/SAP/go-hdb v1.16.6
 	github.com/antonmedv/expr v1.15.5
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -22,7 +21,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
-	github.com/jackc/pgx/v4 v4.18.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lib/pq v1.12.3
 	github.com/mailru/easyjson v0.9.2 // indirect
@@ -32,7 +30,6 @@ require (
 	github.com/openshift/api v0.0.0-20260416105050-3c6b218b8a80
 	github.com/openshift/client-go v0.0.0-20260416131737-a19e91702ab5
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.67.5
 	github.com/prometheus/procfs v0.20.1
@@ -77,6 +74,8 @@ require (
 	github.com/microsoft/go-mssqldb v1.9.8
 	go.opentelemetry.io/collector/pdata v1.59.0
 )
+
+require github.com/satori/go.uuid v1.2.0 // indirect
 
 require (
 	code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3 // indirect
@@ -147,13 +146,6 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
-	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.14.3 // indirect
-	github.com/jackc/pgio v1.0.0 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgtype v1.14.2 // indirect
 	github.com/jaegertracing/jaeger-idl v0.6.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect

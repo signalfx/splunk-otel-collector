@@ -9,7 +9,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/build-tools/chloggen v0.26.0
-	go.opentelemetry.io/collector/cmd/mdatagen v0.153.0
+	go.opentelemetry.io/collector/cmd/mdatagen v0.154.0
 	golang.org/x/tools v0.45.0
 	golang.org/x/vuln v1.3.0
 	mvdan.cc/gofumpt v0.9.2
@@ -124,7 +124,7 @@ require (
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
 	github.com/knadh/koanf v1.5.0 // indirect
-	github.com/knadh/koanf/v2 v2.3.4 // indirect
+	github.com/knadh/koanf/v2 v2.3.5 // indirect
 	github.com/kulti/thelper v0.7.1 // indirect
 	github.com/kunwardeep/paralleltest v1.0.15 // indirect
 	github.com/lasiar/canonicalheader v1.1.2 // indirect
@@ -219,16 +219,16 @@ require (
 	go-simpler.org/sloglint v0.11.1 // indirect
 	go.augendre.info/arangolint v0.3.1 // indirect
 	go.augendre.info/fatcontext v0.9.0 // indirect
-	go.opentelemetry.io/collector/component v1.59.0 // indirect
-	go.opentelemetry.io/collector/confmap v1.59.0 // indirect
-	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.59.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.59.0 // indirect
-	go.opentelemetry.io/collector/filter v0.153.0 // indirect
-	go.opentelemetry.io/collector/internal/schemagen v0.153.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.59.0 // indirect
-	go.opentelemetry.io/otel v1.43.0 // indirect
-	go.opentelemetry.io/otel/metric v1.43.0 // indirect
-	go.opentelemetry.io/otel/trace v1.43.0 // indirect
+	go.opentelemetry.io/collector/component v1.60.0 // indirect
+	go.opentelemetry.io/collector/confmap v1.60.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.60.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.60.0 // indirect
+	go.opentelemetry.io/collector/filter v0.154.0 // indirect
+	go.opentelemetry.io/collector/internal/schemagen v0.154.0 // indirect
+	go.opentelemetry.io/collector/pdata v1.60.0 // indirect
+	go.opentelemetry.io/otel v1.44.0 // indirect
+	go.opentelemetry.io/otel/metric v1.44.0 // indirect
+	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect

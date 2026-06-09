@@ -25,7 +25,7 @@ import (
 type IAMAuthentication struct {
 	// AWSAccessKeyID is the AWS access key ID.
 	AWSAccessKeyID *string `mapstructure:"aws_access_key_id"`
-	// AWSSecretAccessKey it the AWS secret access key.
+	// AWSSecretAccessKey is the AWS secret access key.
 	AWSSecretAccessKey *string `mapstructure:"aws_secret_access_key"`
 	// AWSSecurityToken is the AWS security token for temporary credentials.
 	AWSSecurityToken *string `mapstructure:"aws_security_token"`

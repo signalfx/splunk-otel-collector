@@ -60,7 +60,7 @@ ARGS_FORMAT='BEGIN {OFS = "    ";} # specify output field separator
     }
     else
     {
-        # If arguments exist, then append all with underscore delimeter, else specify <noArgs>
+        # If arguments exist, then append all with underscore delimiter, else specify <noArgs>
         if ($(command_column+1) != "")
         {
             args = $(command_column+1);

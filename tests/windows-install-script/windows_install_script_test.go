@@ -78,7 +78,8 @@ func installCollector(t *testing.T, version, msiPath string) {
 		"-ExecutionPolicy", "Bypass",
 		"-Command", "& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
 		"-access_token", "fake-token",
-		"-with_dotnet_instrumentation", "1", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var, which we verify in the test.
+		"-with_dotnet_instrumentation", "1", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var with the Zero-Code attribute.
+		"-deployment_env", "test", // This forces another attribute to be set in OTEL_RESOURCE_ATTRIBUTES so the environment variable can't be totally removed by the install script.
 	}
 
 	if version != "" {
@@ -158,12 +159,14 @@ func verifySingleDotnetResourceAttribute(t *testing.T) {
 
 	otelResourceAttributes, _, err := envKey.GetStringValue("OTEL_RESOURCE_ATTRIBUTES")
 	require.NoError(t, err, "OTEL_RESOURCE_ATTRIBUTES machine-wide environment variable not found")
+	require.NotEmpty(t, otelResourceAttributes, "OTEL_RESOURCE_ATTRIBUTES should not be empty")
+	t.Logf("OTEL_RESOURCE_ATTRIBUTES: %q", otelResourceAttributes)
 
 	const expectedPrefix = "splunk.zc.method=splunk-otel-dotnet-"
 	count := 0
 	for _, attribute := range strings.Split(otelResourceAttributes, ",") {
 		trimmed := strings.TrimSpace(attribute)
-		if strings.HasPrefix(trimmed, expectedPrefix) && len(trimmed) > len(expectedPrefix) {
+		if len(trimmed) > len(expectedPrefix) && strings.HasPrefix(trimmed, expectedPrefix) {
 			count++
 		}
 	}

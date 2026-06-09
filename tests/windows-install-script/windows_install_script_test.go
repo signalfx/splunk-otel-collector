@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -55,6 +56,9 @@ func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
 	verifySingleDotnetResourceAttribute(t)
 	legacySvcVersion := getCurrentServiceVersion(t)
 	require.Equal(t, oldCollectorVersion, legacySvcVersion)
+
+	// Uninstall the .NET instrumentation, so the upgrade is not blocked by the install.ps1 script
+	uninstallDotnetInstrumentation(t)
 
 	msiInstallerPath := getFilePathFromEnvVar(t, "MSI_COLLECTOR_PATH")
 	t.Logf(" *** Installing collector from %q", msiInstallerPath)
@@ -197,4 +201,17 @@ func getFilePathFromEnvVar(t *testing.T, envVar string) string {
 		filePath = "\"" + filePath + "\""
 	}
 	return filePath
+}
+
+func uninstallDotnetInstrumentation(t *testing.T) {
+	args := []string{
+		"-ExecutionPolicy", "Bypass",
+		"-File", filepath.Join("testdata", "Uninstall-SplunkDotnetInstrumentation.ps1"),
+	}
+
+	cmd := exec.Command("powershell.exe", args...)
+
+	output, err := cmd.CombinedOutput()
+	t.Logf("Uninstall Splunk .NET instrumentation output:\n%s", string(output))
+	require.NoError(t, err, "Failed to uninstall .NET instrumentation")
 }

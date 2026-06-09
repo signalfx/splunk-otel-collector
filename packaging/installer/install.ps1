@@ -19,11 +19,11 @@
 
 <#
 .SYNOPSIS
-    Installs the Splunk OpenTelemetry Collector from the package repos.
+    Installs or uninstalls the Splunk OpenTelemetry Collector.
 .DESCRIPTION
-    Installs the Splunk OpenTelemetry Collector from the package repos. If access_token is not
-    provided, it will be prompted for on the console. If you want to view full documentation
-    execute Get-Help with the parameter "-Full".
+    Installs or uninstalls the Splunk OpenTelemetry Collector. If access_token is not
+    provided, it will be prompted for on the console. Use uninstall_collector to remove the collector. 
+    If you want to view full documentation execute Get-Help with the parameter "-Full".
 .PARAMETER access_token
     The token used to send metric data to Splunk.
     .EXAMPLE
@@ -126,21 +126,27 @@
     .\install.ps1 -uninstall_collector $true
 #>
 
-param (
-    [parameter(Mandatory=$true)][string]$access_token = "",
+[CmdletBinding(DefaultParameterSetName = "Install")]
+param(
+    [Parameter(ParameterSetName = "Uninstall", Mandatory = $false)]
+    [switch]$uninstall_collector,
+
+    [Parameter(ParameterSetName = "Install", Mandatory = $true)]
+    [string]$access_token = "",
+
     [string]$realm = "us0",
     [string]$memory = "512",
-    [ValidateSet('agent','gateway')][string]$mode = "agent",
+    [ValidateSet('agent', 'gateway')][string]$mode = "agent",
     [string]$network_interface = "",
     [string]$ingest_url = "",
     [string]$api_url = "",
     [string]$hec_url = "",
     [string]$hec_token = "",
-    [string]$godebug= "",
+    [string]$godebug = "",
     [bool]$insecure = $false,
     [string]$collector_version = "",
     [bool]$with_dotnet_instrumentation = $false,
-    [ValidateSet('test','beta','release')][string]$stage = "release",
+    [ValidateSet('test', 'beta', 'release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
     [string]$config_path = "",
@@ -150,7 +156,6 @@ param (
     [string]$dotnet_auto_zip_path = "",
     [bool]$force_skip_verify_access_token = $false,
     [string]$deployment_env = "",
-    [bool]$uninstall_collector = $false,
     [bool]$UNIT_TEST = $false
 )
 
@@ -160,9 +165,11 @@ $archFromEnv = $env:PROCESSOR_ARCHITECTURE
 $arch = ""
 if ($archFromEnv -eq "ARM64") {
     $arch = "arm64"
-} elseif ($archFromEnv -eq "AMD64") {
+}
+elseif ($archFromEnv -eq "AMD64") {
     $arch = "amd64"
-} else {
+}
+else {
     throw "Unsupported architecture '$archFromEnv' only ARM64 and AMD64 are supported, run this script from the native architecture PowerShell."
 }
 $format = "msi"
@@ -171,13 +178,15 @@ $signalfx_dl = "https://dl.observability.splunkcloud.com"
 try {
     Resolve-Path $env:PROGRAMFILES 2>&1>$null
     $installation_path = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector"
-} catch {
+}
+catch {
     $installation_path = "\Program Files\Splunk\OpenTelemetry Collector"
 }
 try {
     Resolve-Path $env:PROGRAMDATA 2>&1>$null
     $program_data_path = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector"
-} catch {
+}
+catch {
     $program_data_path = "\ProgramData\Splunk\OpenTelemetry Collector"
 }
 $old_config_path = "$program_data_path\config.yaml"
@@ -187,13 +196,14 @@ $gateway_config_path = "$program_data_path\gateway_config.yaml"
 try {
     Resolve-Path $env:TEMP 2>&1>$null
     $tempdir = "${env:TEMP}\Splunk\OpenTelemetry Collector"
-} catch {
+}
+catch {
     $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 }
 
 # check that we're not running with a restricted execution policy
 function check_policy() {
-    $executionPolicy  = (Get-ExecutionPolicy)
+    $executionPolicy = (Get-ExecutionPolicy)
     $executionRestricted = ($executionPolicy -eq "Restricted")
     if ($executionRestricted) {
         throw @"
@@ -216,12 +226,13 @@ function check_if_admin() {
 }
 
 # get latest package tag given a stage and format
-function get_latest([string]$stage=$stage,[string]$format=$format) {
+function get_latest([string]$stage = $stage, [string]$format = $format) {
     $latest_url = "$signalfx_dl/splunk-otel-collector/$format/$stage/latest.txt"
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $latest = (New-Object System.Net.WebClient).DownloadString($latest_url).Trim()
-    } catch {
+    }
+    catch {
         $err = $_.Exception.Message
         $message = "
         An error occurred while fetching the latest package version $latest_url
@@ -233,13 +244,13 @@ function get_latest([string]$stage=$stage,[string]$format=$format) {
 }
 
 # builds the filename for the package
-function get_filename([string]$tag="",[string]$format=$format,[string]$arch=$arch) {
+function get_filename([string]$tag = "", [string]$format = $format, [string]$arch = $arch) {
     $filename = "splunk-otel-collector-$tag-$arch.$format"
     return $filename
 }
 
 # builds the url for the package
-function get_url([string]$stage="", [string]$format=$format, [string]$filename="") {
+function get_url([string]$stage = "", [string]$format = $format, [string]$filename = "") {
     return "$signalfx_dl/splunk-otel-collector/$format/$stage/$filename"
 }
 
@@ -248,7 +259,8 @@ function download_file([string]$url, [string]$outputDir, [string]$fileName) {
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         (New-Object System.Net.WebClient).DownloadFile($url, "$outputDir\$fileName")
-    } catch {
+    }
+    catch {
         $err = $_.Exception.Message
         $message = "
         An error occurred while downloading $url
@@ -259,24 +271,25 @@ function download_file([string]$url, [string]$outputDir, [string]$fileName) {
 }
 
 # ensure a file exists and raise an exception if it doesn't
-function ensure_file_exists([string]$path="C:\") {
-    if (!(Test-Path -Path "$path")){
+function ensure_file_exists([string]$path = "C:\") {
+    if (!(Test-Path -Path "$path")) {
         throw "Cannot find the path '$path'"
     }
 }
 
 # verify a Splunk access token
-function verify_access_token([string]$access_token="", [string]$ingest_url=$INGEST_URL, [bool]$insecure=$INSECURE) {
+function verify_access_token([string]$access_token = "", [string]$ingest_url = $INGEST_URL, [bool]$insecure = $INSECURE) {
     if ($insecure) {
         # turn off certificate validation
-        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true} ;
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true } ;
     }
     $url = "$ingest_url/v2/event"
     echo $url
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $resp = Invoke-WebRequest -Uri $url -Method POST -ContentType "application/json" -Headers @{"X-Sf-Token"="$access_token"} -Body "[]" -UseBasicParsing
-    } catch {
+        $resp = Invoke-WebRequest -Uri $url -Method POST -ContentType "application/json" -Headers @{"X-Sf-Token" = "$access_token" } -Body "[]" -UseBasicParsing
+    }
+    catch {
         $err = $_.Exception.Message
         $message = "
         Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token.
@@ -286,13 +299,14 @@ function verify_access_token([string]$access_token="", [string]$ingest_url=$INGE
     }
     if (!($resp.StatusCode -Eq 200)) {
         return $false
-    } else {
+    }
+    else {
         return $true
     }
 }
 
 # create the temp directory if it doesn't exist
-function create_temp_dir($tempdir=$tempdir) {
+function create_temp_dir($tempdir = $tempdir) {
     if ((Test-Path -Path "$tempdir")) {
         Remove-Item -Recurse -Force "$tempdir"
     }
@@ -304,7 +318,7 @@ function get_service_log_path([string]$name) {
 }
 
 # start the service if it's not already running
-function start_service([string]$name, [string]$config_path=$null, [int]$timeout=60) {
+function start_service([string]$name, [string]$config_path = $null, [int]$timeout = 60) {
     $svc = Get-Service -Name $name
     if ($svc.Status -eq "Running") {
         return
@@ -319,7 +333,8 @@ function start_service([string]$name, [string]$config_path=$null, [int]$timeout=
             $svc.Start()
         }
         $svc.WaitForStatus("Running", [TimeSpan]::FromSeconds($timeout))
-    } catch {
+    }
+    catch {
         $err = $_.Exception.Message
         $log_path = get_service_log_path -name "$name"
         Write-Warning "An error occurred while trying to start the $name service:"
@@ -330,7 +345,7 @@ function start_service([string]$name, [string]$config_path=$null, [int]$timeout=
 }
 
 # stop the service
-function stop_service([string]$name, [int]$max_attempts=3, [int]$timeout=60) {
+function stop_service([string]$name, [int]$max_attempts = 3, [int]$timeout = 60) {
     $svc = Get-Service -Name "$name"
     if ($svc.Status -eq "Stopped") {
         return
@@ -339,7 +354,8 @@ function stop_service([string]$name, [int]$max_attempts=3, [int]$timeout=60) {
     try {
         $svc.Stop()
         $svc.WaitForStatus("Stopped", [TimeSpan]::FromSeconds($timeout))
-    } catch {
+    }
+    catch {
         $err = $_.Exception.Message
         $log_path = get_service_log_path -name "$name"
         Write-Warning "An error occurred while trying to stop the $name service:"
@@ -350,7 +366,7 @@ function stop_service([string]$name, [int]$max_attempts=3, [int]$timeout=60) {
 }
 
 # download collector package from repo
-function download_collector_package([string]$collector_version=$collector_version, [string]$tempdir=$tempdir, [string]$stage=$stage, [string]$arch=$arch, [string]$format=$format) {
+function download_collector_package([string]$collector_version = $collector_version, [string]$tempdir = $tempdir, [string]$stage = $stage, [string]$arch = $arch, [string]$format = $format) {
     # get the filename to download
     $filename = get_filename -tag $collector_version -format $format -arch $arch
 
@@ -371,10 +387,10 @@ function get_msi_installation_sids([string]$product_name) {
     $sids = [string[]]@()
 
     $uninstallEntry = Get-ItemProperty $UninstallWildcardRegPath -ErrorAction SilentlyContinue | 
-        Where-Object { $_.DisplayName -eq $product_name }
+    Where-Object { $_.DisplayName -eq $product_name }
     if ($uninstallEntry) {
         $userInstalls = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties' -ErrorAction SilentlyContinue |
-            Where-Object { $_.DisplayName -eq $product_name }
+        Where-Object { $_.DisplayName -eq $product_name }
         foreach ($user in $userInstalls) {
             # Not all entries are valid user SIDS, e.g.: some are SIDs with suffixes like "_Classes"
             # We only want the SIDs.
@@ -418,7 +434,8 @@ function install_msi([string]$path) {
             ForEach ($event in $events) {
                 ($event | Select -ExpandProperty Message | Out-String).TrimEnd() | Write-Host
             }
-        } catch {
+        }
+        catch {
             Write-Warning "Please check the Windows Event Viewer for more details."
             continue
         }
@@ -430,7 +447,7 @@ function install_msi([string]$path) {
 function uninstall_msi([string]$product_name) {
     Write-Host "Uninstalling $product_name ..."
     $uninstall_entry = Get-ItemProperty $UninstallWildcardRegPath -ErrorAction SilentlyContinue | 
-        Where-Object { $_.DisplayName -eq $product_name } | Select-Object -First 1
+    Where-Object { $_.DisplayName -eq $product_name } | Select-Object -First 1
     if (-not $uninstall_entry) {
         throw "Failed to find the uninstall registry entry for $product_name"
     }
@@ -458,13 +475,15 @@ function remove_splunk_zc_method_from_env() {
                 # If the result is empty, remove the environment variable entirely
                 Write-Host "Removing OTEL_RESOURCE_ATTRIBUTES environment variable"
                 Remove-ItemProperty -Path $envVarPath -Name "OTEL_RESOURCE_ATTRIBUTES" -ErrorAction SilentlyContinue
-            } else {
+            }
+            else {
                 # Update the environment variable with the new value
                 Write-Host "Updating OTEL_RESOURCE_ATTRIBUTES environment variable"
                 Set-ItemProperty -Path $envVarPath -Name "OTEL_RESOURCE_ATTRIBUTES" -Value $newValue
             }
         }
-    } catch {
+    }
+    catch {
         Write-Warning "An error occurred while removing splunk.zc.method from OTEL_RESOURCE_ATTRIBUTES: $($_.Exception.Message)"
     }
 }
@@ -474,8 +493,9 @@ $ErrorActionPreference = 'Stop'; # stop on all errors
 # check administrator status
 echo 'Checking if running as Administrator...'
 if (!(check_if_admin)) {
-    throw 'Installer is running without Administrator rights. Installation failed.'
-} else {
+    throw 'This script requires Administrator rights. Operation failed.'
+}
+else {
     echo '- Running as Administrator'
 }
 
@@ -483,8 +503,16 @@ if (!(check_if_admin)) {
 echo 'Checking execution policy'
 check_policy
 
-if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
-    Write-Host "The $service_name service is already installed. Checking installation for automatic update."
+if (-not (Get-Service -Name $service_name -ErrorAction SilentlyContinue)) {
+    if ($uninstall_collector) {
+        Write-Host "The $service_name service is not installed, nothing to uninstall."
+        exit 0
+    }
+}
+else {
+    if (-not $uninstall_collector) {
+        Write-Host "The $service_name service is already installed. Checking installation for automatic update."
+    }
 
     $uninstall_collector_using_msi = $true
     $collector_sids = get_msi_installation_sids -product_name $CollectorServiceDisplayName
@@ -528,7 +556,7 @@ if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
 }
 
 if ($uninstall_collector) {
-    Write-Host "Uninstall is complete."
+    Write-Host "Uninstall is done."
     exit 0
 }
 
@@ -548,7 +576,8 @@ if ($with_dotnet_instrumentation) {
         try {
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
-        } catch {
+        }
+        catch {
             $err = $_.Exception.Message
             $message = "
             An error occured when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
@@ -557,7 +586,8 @@ if ($with_dotnet_instrumentation) {
             throw "$message"
         }
         Import-Module $dotnet_autoinstr_path
-    } else {
+    }
+    else {
         $dotnet_autoinstr_path = $dotnet_psm1_path
         echo "Using Local PSM1 file and ArgumentList values: $dotnet_psm1_path -ArgumentList $dotnet_auto_zip_path"
         Import-Module $dotnet_autoinstr_path -ArgumentList $dotnet_auto_zip_path
@@ -585,7 +615,8 @@ if ($hec_token -eq "") {
 
 if ($force_skip_verify_access_token) {
     echo 'Skipping Access Token verification'
-} else {   
+}
+else {   
     if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
         # verify access token
         echo 'Verifying Access Token...'
@@ -603,7 +634,8 @@ if ($collector_msi_url) {
     echo "Downloading $collector_msi_url..."
     download_file -url "$collector_msi_url" -outputDir "$tempdir" -fileName "$collector_msi_name"
     $msi_path = (Join-Path "$tempdir" "$collector_msi_name")
-} elseif ($msi_path -Eq "") {
+}
+elseif ($msi_path -Eq "") {
     # determine package version to fetch
     if ($collector_version -Eq "") {
         echo 'Determining latest release...'
@@ -616,7 +648,8 @@ if ($collector_msi_url) {
 
     $msi_path = get_filename -tag $collector_version -format $format -arch $arch
     $msi_path = (Join-Path "$tempdir" "$msi_path")
-} else {
+}
+else {
     $msi_path = Resolve-Path "$msi_path"
     if (!(Test-Path -Path "$msi_path")) {
         throw "$msi_path not found!"
@@ -646,9 +679,11 @@ if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_p
 if ($config_path -Eq "") {
     if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
         $config_path = $agent_config_path
-    } elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
+    }
+    elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
         $config_path = $gateway_config_path
-    } elseif (Test-Path -Path "$old_config_path") {
+    }
+    elseif (Test-Path -Path "$old_config_path") {
         $config_path = $old_config_path
     }
 }
@@ -698,7 +733,8 @@ $otel_resource_attributes = ""
 if ($deployment_env -ne "") {
     echo "Setting deployment environment to $deployment_env"
     $otel_resource_attributes = "deployment.environment=$deployment_env"
-} else {
+}
+else {
     echo "Deployment environment was not specified. Unless otherwise defined, will appear as 'unknown' in the UI."
 }
 
@@ -724,7 +760,8 @@ if ($otel_resource_attributes -ne "") {
     $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
     try {
         update_registry -path "$regkey" -name "OTEL_RESOURCE_ATTRIBUTES" -value "$otel_resource_attributes"
-    } catch {
+    }
+    catch {
         Write-Warning "Failed to set OTEL_RESOURCE_ATTRIBUTES environment variable."
         continue
     }

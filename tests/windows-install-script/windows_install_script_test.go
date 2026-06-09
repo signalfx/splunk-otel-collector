@@ -72,7 +72,7 @@ func installCollector(t *testing.T, version, msiPath string) {
 	require.False(t, version != "" && msiPath != "", "Only one of version or msiPath should be provided")
 	args := []string{
 		"-ExecutionPolicy", "Bypass",
-		"-Command", "\"& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
+		"-Command", "& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
 		"-access_token", "fake-token",
 		"-with_dotnet_instrumentation", "1", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var, which we verify in the test.
 	}
@@ -84,7 +84,7 @@ func installCollector(t *testing.T, version, msiPath string) {
 	} else {
 		require.Fail(t, "Either version or msiPath must be provided")
 	}
-	args = append(args, "\"")
+
 	cmd := exec.Command("powershell.exe", args...)
 
 	output, err := cmd.CombinedOutput()

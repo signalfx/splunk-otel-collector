@@ -208,7 +208,7 @@ jobs:
           Test-Path $ps1_path
           "INSTALL_SCRIPT_PATH=$ps1_path" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-          - name: Run the script upgrade tests
+      - name: Run the script upgrade tests
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
         working-directory: tests/windows-install-script
         run: |

@@ -17,6 +17,7 @@ on:
       - 'packaging/msi/**'
       - 'tests/zeroconfig/windows/**'
       - 'tests/msi/**'
+      - 'tests/windows-install-script/**'
       - '!**.md'
 
 concurrency:

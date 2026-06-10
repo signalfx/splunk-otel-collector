@@ -526,13 +526,14 @@ else {
             throw "The $CollectorServiceDisplayName is already installed for multiple users (SIDs: $sids_list). Uninstall the collector and remove remaining users installations from the registry."
         }
 
+        $installationSid = $collector_sids[0]
         # "S-1-5-18" is the SID for the Local System account, which is used for machine-wide installations.
-        if ("S-1-5-18" -ne $collector_sids[0]) {
+        if ("S-1-5-18" -ne $installationSid) {
             # not a machine wide installation, check if it is the same user
             $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
             $currentUserSID = $currentUser.User.Value
-            if ($currentUserSID -ne $collector_sids[0]) {
-                $sid = New-Object System.Security.Principal.SecurityIdentifier($userSid)
+            if ($currentUserSID -ne $installationSid) {
+                $sid = New-Object System.Security.Principal.SecurityIdentifier($installationSid)
                 $user = $sid.Translate([System.Security.Principal.NTAccount])
                 throw "The $CollectorServiceDisplayName was last installed by '${user.Value}' it must be updated or uninstalled by the same user." 
             }

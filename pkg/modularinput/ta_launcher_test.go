@@ -275,10 +275,9 @@ func TestHandleLaunchAsTA_StanzaNotFound(t *testing.T) {
 		return true
 	}
 
-	// Track that setEnv is never called
-	setEnvCalled := false
-	setEnvFn = func(_, _ string) error {
-		setEnvCalled = true
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
 		return nil
 	}
 
@@ -303,21 +302,28 @@ func TestHandleLaunchAsTA_StanzaNotFound(t *testing.T) {
 	resultArgs, _, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>", nil)
 	require.NoError(t, err, "Expected no error when stanza not found")
 	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged when stanza not found")
-	assert.False(t, setEnvCalled, "Expected setEnv to not be called when stanza not found")
+	assert.NotContains(t, envVars, EnvAppName, "Expected EnvAppName to not be set when stanza not found")
+	assert.NotContains(t, envVars, EnvStanzaName, "Expected EnvStanzaName to not be set when stanza not found")
 }
 
 func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	// Save original functions and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn
 	originalSetEnvFn := setEnvFn
+	originalExecFn := currentProcessExeFn
 	defer func() {
 		isParentProcessSplunkdFn = originalIsParentFn
 		setEnvFn = originalSetEnvFn
+		currentProcessExeFn = originalExecFn
 	}()
 
 	// Mock parent process check to return true
 	isParentProcessSplunkdFn = func() bool {
 		return true
+	}
+	// Force a deterministic EnvBaseDirName for the test
+	currentProcessExeFn = func() (string, error) {
+		return "/opt/splunk/etc/apps/test-base-dir/platform/bin/test-binary", nil
 	}
 
 	envVars := make(map[string]string)
@@ -346,10 +352,11 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	resultArgs, _, err := HandleLaunchAsTA(args, reader, "test-stanza", "<scheme></scheme>", nil)
 	require.NoError(t, err, "Expected no error with empty stanza")
 	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged with empty stanza")
-	// The stanza matched, so the two stanza env vars are always set even with no splunk_ params.
+	// The stanza matched, so the stanza env vars are set even with no splunk_ params; EnvBaseDirName is also derived from the executable path.
 	assert.Equal(t, map[string]string{
-		EnvAppName:    "test-app",
-		EnvStanzaName: "test-stanza",
+		EnvAppName:     "test-app",
+		EnvBaseDirName: "test-base-dir",
+		EnvStanzaName:  "test-stanza",
 	}, envVars)
 }
 
@@ -1001,10 +1008,9 @@ func TestHandleLaunchAsTA_StanzaPrefixNoMatch(t *testing.T) {
 		return true
 	}
 
-	// Track that setEnv is never called
-	setEnvCalled := false
-	setEnvFn = func(_, _ string) error {
-		setEnvCalled = true
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
 		return nil
 	}
 
@@ -1030,7 +1036,8 @@ func TestHandleLaunchAsTA_StanzaPrefixNoMatch(t *testing.T) {
 	resultArgs, _, err := HandleLaunchAsTA(args, reader, "nonexistent://", "<scheme></scheme>", nil)
 	require.NoError(t, err, "Expected no error when prefix doesn't match")
 	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged when prefix doesn't match")
-	assert.False(t, setEnvCalled, "Expected setEnv to not be called when prefix doesn't match")
+	assert.NotContains(t, envVars, EnvAppName, "Expected EnvAppName to not be set when prefix doesn't match")
+	assert.NotContains(t, envVars, EnvStanzaName, "Expected EnvStanzaName to not be set when prefix doesn't match")
 }
 
 func TestParseEnvVarPairs_Empty(t *testing.T) {
@@ -1594,48 +1601,101 @@ func TestAppNameFromExecutable(t *testing.T) {
 	defer func() { currentProcessExeFn = originalFn }()
 
 	tests := []struct {
-		name     string
-		execPath string
-		want     string
+		name       string
+		splunkHome string
+		execPath   string
+		want       string
 	}{
 		{
-			name:     "multi OS path",
-			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
-			want:     "Splunk_TA_otel",
+			name:       "valid path",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel",
 		},
 		{
-			name:     "platform path",
-			execPath: filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel_platform", "platform", "bin", "Splunk_TA_otel"),
-			want:     "Splunk_TA_otel_platform",
+			name:       "valid path with different app name",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel_platform", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel_platform",
 		},
 		{
-			name:     "too few path components",
-			execPath: filepath.Join(string(filepath.Separator), "platform", "bin", "Splunk_TA_otel"),
-			want:     "",
+			name:       "no SPLUNK_HOME",
+			splunkHome: "",
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
 		},
 		{
-			name:     "only file path separator",
-			execPath: string(filepath.Separator),
-			want:     "",
+			name:       "path under SPLUNK_HOME but not etc/apps",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "var", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel",
+		},
+		{
+			name:       "path not under SPLUNK_HOME",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "usr", "local", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
+		},
+		{
+			name:       "bin not parent directory",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "etc", "apps", "Splunk_TA_otel", "platform", "lib", "Splunk_TA_otel"),
+			want:       "",
+		},
+		{
+			name:       "too few path components",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
+		},
+		{
+			name:       "only file path separator",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   string(filepath.Separator),
+			want:       "",
+		},
+		{
+			name:       "SPLUNK_HOME is root path",
+			splunkHome: string(filepath.Separator),
+			execPath:   filepath.Join(string(filepath.Separator), "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel",
+		},
+		{
+			name:       "both are root path",
+			splunkHome: string(filepath.Separator),
+			execPath:   string(filepath.Separator),
+			want:       "",
+		},
+		{
+			name:       "same path",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.splunkHome != "" {
+				t.Setenv("SPLUNK_HOME", tt.splunkHome)
+			} else {
+				t.Setenv("SPLUNK_HOME", "")
+				os.Unsetenv("SPLUNK_HOME") //nolint:errcheck // best-effort unset for test
+			}
 			currentProcessExeFn = func() (string, error) { return tt.execPath, nil }
-			assert.Equal(t, tt.want, appNameFromExecutable())
+			assert.Equal(t, tt.want, baseDirNameFromExecutable())
 		})
 	}
 }
 
-func TestAppNameFromExecutable_Error(t *testing.T) {
+func TestBaseDirameFromExecutable_Error(t *testing.T) {
 	originalFn := currentProcessExeFn
 	defer func() { currentProcessExeFn = originalFn }()
 
 	currentProcessExeFn = func() (string, error) { return "", errors.New("process image path unavailable") }
-	assert.Empty(t, appNameFromExecutable())
+	assert.Empty(t, baseDirNameFromExecutable())
 }
 
-func TestHandleLaunchAsTA_ValidationMode_SetsAppName(t *testing.T) {
+func TestHandleLaunchAsTA_ValidationMode_NoAppName_SetBaseDirName(t *testing.T) {
 	originalIsParentFn := isParentProcessSplunkdFn
 	originalSetEnvFn := setEnvFn
 	originalExecFn := currentProcessExeFn
@@ -1676,6 +1736,7 @@ func TestHandleLaunchAsTA_ValidationMode_SetsAppName(t *testing.T) {
 	_, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "Splunk_TA_otel", "<scheme></scheme>", validator)
 	require.NoError(t, err)
 
-	assert.Equal(t, "Splunk_TA_otel", envVars[EnvAppName])
+	assert.Equal(t, "Splunk_TA_otel", envVars[EnvBaseDirName])
+	assert.NotContains(t, envVars, EnvAppName, "app name from stanza is not available in validation mode")
 	assert.NotContains(t, envVars, EnvStanzaName, "stanza name is not available in validation mode")
 }

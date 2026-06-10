@@ -133,7 +133,7 @@ func TestDefaultComponents(t *testing.T) {
 		"zookeeper",
 	}
 	expectedReceiverAliases := map[string]string{
-		"apache_spark":          "apache_spark",
+		"apachespark":           "apache_spark",
 		"azureblob":             "azure_blob",
 		"azureeventhub":         "azure_event_hub",
 		"azuremonitor":          "azure_monitor",

@@ -326,8 +326,16 @@ func baseDirNameFromExecutable() string {
 	}
 
 	// Ensure the walk-up landed somewhere under $SPLUNK_HOME.
-	splunkHomeClean := filepath.Clean(splunkHome) + string(filepath.Separator)
-	if !strings.HasPrefix(filepath.Clean(appDir)+string(filepath.Separator), splunkHomeClean) {
+	// Use Clean to normalize the paths and add a trailing separator to
+	// ensure the we are comparing directory paths and not prefixes of other paths.
+	splunkHomeClean := filepath.Clean(splunkHome)
+	if splunkHomeClean != string(filepath.Separator) {
+		// The cleaned path is NOT just the separator, i.e. the root directory.
+		// It is safe to append the ending separator
+		splunkHomeClean += string(filepath.Separator)
+	}
+	appDirClean := filepath.Clean(appDir) + string(filepath.Separator)
+	if !strings.HasPrefix(appDirClean, splunkHomeClean) || len(appDirClean) == len(splunkHomeClean) {
 		return ""
 	}
 

@@ -1654,6 +1654,24 @@ func TestAppNameFromExecutable(t *testing.T) {
 			execPath:   string(filepath.Separator),
 			want:       "",
 		},
+		{
+			name:       "SPLUNK_HOME is root path",
+			splunkHome: string(filepath.Separator),
+			execPath:   filepath.Join(string(filepath.Separator), "etc", "apps", "Splunk_TA_otel", "platform", "bin", "Splunk_TA_otel"),
+			want:       "Splunk_TA_otel",
+		},
+		{
+			name:       "both are root path",
+			splunkHome: string(filepath.Separator),
+			execPath:   string(filepath.Separator),
+			want:       "",
+		},
+		{
+			name:       "same path",
+			splunkHome: filepath.Join(string(filepath.Separator), "opt", "splunk"),
+			execPath:   filepath.Join(string(filepath.Separator), "opt", "splunk", "platform", "bin", "Splunk_TA_otel"),
+			want:       "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1669,7 +1687,7 @@ func TestAppNameFromExecutable(t *testing.T) {
 	}
 }
 
-func TestAppNameFromExecutable_Error(t *testing.T) {
+func TestBaseDirameFromExecutable_Error(t *testing.T) {
 	originalFn := currentProcessExeFn
 	defer func() { currentProcessExeFn = originalFn }()
 

@@ -194,10 +194,6 @@ jobs:
           $ErrorActionPreference = 'Continue'
           & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
-      - name: Set the OTEL_RESOURCE_ATTRIBUTES with pre-existing values and "splunk.zc.method"
-        shell: cmd
-        run: setx OTEL_RESOURCE_ATTRIBUTES some.otel.attrib=some.value,splunk.zc.method=splunk-otel-dotnet-v1.9.0 /M
-
       - name: Set the MSI_COLLECTOR_PATH and INSTALL_SCRIPT_PATH environment variable
         run: |
           $ErrorActionPreference = 'Stop'

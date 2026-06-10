@@ -543,7 +543,7 @@ else {
     stop_service -name "$service_name"
     if ($uninstall_collector_using_msi) {
         uninstall_msi -product_name $CollectorServiceDisplayName
-        # make it fail to check test code remove_splunk_zc_method_from_env
+        remove_splunk_zc_method_from_env
     }
     if (-not $preserve_prev_default_config) {
         $default_config_files = @("agent_config.yaml", "gateway_config.yaml")

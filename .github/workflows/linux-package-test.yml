@@ -278,6 +278,8 @@ jobs:
                 docker_args+=(--network ecs-mock-net -e ECS_CONTAINER_METADATA_URI_V4=http://ecs-mock) ;;
               splunk_logs_config_linux.yaml)
                 docker_args+=(-e SPLUNK_PLATFORM_TOKEN=fake-token -e SPLUNK_PLATFORM_URL=https://fake-hec.splunkcloud.com/services/collector -e SPLUNK_PLATFORM_LOGS_INDEX=fake-index -e SPLUNK_LISTEN_INTERFACE=127.0.0.1 -e SPLUNK_FILE_STORAGE_EXTENSION_PATH=/tmp/filelogs) ;;
+              splunk_metrics_config_linux.yaml)
+                docker_args+=(-e SPLUNK_PLATFORM_TOKEN=fake-token -e SPLUNK_PLATFORM_URL=http://fake-hec.splunkcloud.com/services/collector -e SPLUNK_PLATFORM_METRICS_INDEX=fake-index -e SPLUNK_LISTEN_INTERFACE=127.0.0.1) ;;
             esac
             # TODO: set fake-token back to 12345 once https://github.com/open-telemetry/opentelemetry-collector/issues/10937 is resolved
             docker_args+=(-e "SPLUNK_CONFIG=/etc/otel/collector/${config}" -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest)

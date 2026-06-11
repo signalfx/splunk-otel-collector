@@ -1,0 +1,14 @@
+---
+- name: Receive and log all OTel signals
+  hosts: all
+  sources:
+    - cisco.splunk_otel_collector.otlp:
+        port: 4318
+  rules:
+    - name: Log every incoming event
+      condition: event.signal_type is defined
+      action:
+        debug:
+          msg: >-
+            Received {{ event.signal_type }} from
+            {{ event.resource.get('host.name', 'unknown') }}

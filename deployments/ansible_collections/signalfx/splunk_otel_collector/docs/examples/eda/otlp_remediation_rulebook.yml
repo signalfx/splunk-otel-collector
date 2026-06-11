@@ -1,0 +1,39 @@
+---
+- name: OTel-driven auto-remediation
+  hosts: "{{ event.resource['host.name'] }}"
+  sources:
+    - cisco.splunk_otel_collector.otlp:
+        port: 4318
+        signal_types: [logs, traces]
+        severity_min: ERROR
+        resource_filters:
+          deployment.environment.name: "production"
+        token: "{{ lookup('env', 'EDA_AUTH_TOKEN') }}"
+        certfile: /etc/otel/certs/server.pem
+        keyfile: /etc/otel/certs/server-key.pem
+  rules:
+    - name: Restart failing service on error log
+      condition: >-
+        event.signal_type == "log"
+        and event.log.severity_number >= 17
+        and event.resource["service.name"] is defined
+      action:
+        run_playbook:
+          name: remediate_service.yml
+          extra_vars:
+            target_service: "{{ event.resource['service.name'] }}"
+            error_body: "{{ event.log.body }}"
+            host_id: "{{ event.resource['host.id'] }}"
+
+    - name: Investigate failed spans
+      condition: >-
+        event.signal_type == "trace"
+        and event.span.status_code == 2
+      action:
+        run_playbook:
+          name: investigate_span_failure.yml
+          extra_vars:
+            service: "{{ event.resource['service.name'] }}"
+            trace_id: "{{ event.span.trace_id }}"
+            span_name: "{{ event.span.name }}"
+            error: "{{ event.span.status_message }}"

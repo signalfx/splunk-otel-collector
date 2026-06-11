@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/signalfx/splunk-otel-collector/extensions/eda/plugins/event_source/schemas/otlp.json",
+  "title": "cisco.splunk_otel_collector.otlp",
+  "description": "Receive OpenTelemetry signals via OTLP/HTTP protocol.",
+  "type": "object",
+  "properties": {
+    "host": {
+      "type": "string",
+      "default": "0.0.0.0",
+      "description": "The hostname or IP address to bind the HTTP server to."
+    },
+    "port": {
+      "type": "integer",
+      "default": 4318,
+      "description": "The TCP port to listen on."
+    },
+    "signal_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["traces", "metrics", "logs"]
+      },
+      "default": ["traces", "metrics", "logs"],
+      "description": "Signal types to accept."
+    },
+    "severity_min": {
+      "type": "string",
+      "enum": ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"],
+      "description": "Minimum log severity level to accept."
+    },
+    "resource_filters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Resource attribute regex patterns. All must match."
+    },
+    "certfile": {
+      "type": "string",
+      "description": "Path to TLS certificate file."
+    },
+    "keyfile": {
+      "type": "string",
+      "description": "Path to TLS private key file."
+    },
+    "cafile": {
+      "type": "string",
+      "description": "Path to CA certificate file for mTLS."
+    },
+    "token": {
+      "type": "string",
+      "description": "Bearer token for authentication."
+    }
+  },
+  "required": ["port"],
+  "additionalProperties": false
+}

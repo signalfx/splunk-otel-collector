@@ -1,7 +1,9 @@
 # Changelog
 
+## Unreleased
+
 ## chef-v0.19.0
-  
+
 ### 🛑 Breaking changes 🛑
 
 - The default Windows MSI artifact download URL has been updated:

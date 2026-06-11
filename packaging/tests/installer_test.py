@@ -768,7 +768,7 @@ def test_installer_splunk_platform_logs_missing_token(distro, arch):
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_installer_splunk_platform_logs_missing_url(distro, arch):
-    """Verify installer errors when --splunk-platform-token and --splunk-platform-logs-index is provided without --splunk-platform-url."""
+    """Verify installer errors when --splunk-platform-token and --splunk-platform-logs-index are provided without --splunk-platform-url."""
     install_cmd = " ".join((
         get_platform_installer_cmd(),
         f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",

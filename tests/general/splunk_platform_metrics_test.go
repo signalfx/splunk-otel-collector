@@ -65,7 +65,7 @@ func TestSplunkPlatformMetricsEffectiveConfig(t *testing.T) {
 
 	metricsPlatform, ok := pipelines["metrics/platform"].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, []any{"host_metrics/platform"}, metricsPlatform["receivers"])
+	require.Equal(t, []any{"host_metrics"}, metricsPlatform["receivers"])
 	require.Equal(t, []any{"memory_limiter", "resourcedetection"}, metricsPlatform["processors"])
 	require.Equal(t, []any{"splunk_hec/metrics"}, metricsPlatform["exporters"])
 
@@ -151,7 +151,7 @@ func TestSplunkPlatformMetricsWithO11yEffectiveConfig(t *testing.T) {
 
 	metricsPlatform, ok := pipelines["metrics/platform"].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, []any{"host_metrics/platform"}, metricsPlatform["receivers"])
+	require.Equal(t, []any{"host_metrics"}, metricsPlatform["receivers"])
 	require.Equal(t, []any{"splunk_hec/metrics"}, metricsPlatform["exporters"])
 
 	// splunk_hec/metrics exporter is present in the merged config.
@@ -275,7 +275,7 @@ func TestSplunkPlatformMetricsWithO11yDataFlow(t *testing.T) {
 	)
 	defer shutdown()
 
-	// Verify platform metrics flow: host_metrics/platform data points arrive at the HEC sink.
+	// Verify platform metrics flow: host_metrics data points arrive at the HEC sink.
 	assertHostMetricsReceived(t, hecSink)
 
 	// Verify o11y metrics flow: host_metrics (system.cpu.time) arrives at the OTLP sink.

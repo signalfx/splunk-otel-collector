@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## puppet-v0.21.0
 
 ### 🛑 Breaking changes 🛑
 

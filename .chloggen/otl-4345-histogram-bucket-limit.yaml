@@ -1,0 +1,24 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: enhancement
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: config
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Add `transform/limit_histogram_buckets` processor to default agent metrics pipeline to cap histograms to 31 explicit bounds (32 total buckets).
+
+# One or more tracking issues related to the change
+issues: [7646]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  The SignalFx backend supports a maximum of 32 buckets per histogram, which corresponds to
+  31 explicit boundary values (ExplicitBounds). Histograms with more (e.g. gRPC call-duration
+  metrics emit 40+ explicit bounds by default) were silently dropped at ingest. The new processor
+  uses `merge_histogram_buckets(31, method="limit_buckets")` — where `31` is the max number of
+  explicit bounds — from the `transformprocessor` to merge adjacent buckets until the boundary
+  count is within the backend limit, preserving the total count and sum. This is applied before
+  the `batch` processor in the `metrics` pipeline of both the standard and FIPS agent configs.
+  Requires opentelemetry-collector-contrib v0.154.0 or later.

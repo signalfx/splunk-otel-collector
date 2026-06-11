@@ -93,6 +93,212 @@ def _extract_body(body_obj: dict | None) -> Any:
     return _extract_any_value(body_obj)
 
 
+def _parse_metric_data_points(metric: dict) -> tuple[str, list[dict]]:
+    """
+    Extract metric type and data points from OTLP metric.
+
+    Args:
+        metric: OTLP metric object
+
+    Returns:
+        Tuple of (type_name, data_points_list)
+    """
+    # Determine metric type
+    metric_types = [
+        "gauge",
+        "sum",
+        "histogram",
+        "exponentialHistogram",
+        "summary",
+    ]
+
+    type_name = ""
+    metric_data = {}
+
+    for mtype in metric_types:
+        if mtype in metric:
+            # Normalize exponentialHistogram to snake_case
+            type_name = (
+                "exponential_histogram"
+                if mtype == "exponentialHistogram"
+                else mtype
+            )
+            metric_data = metric[mtype]
+            break
+
+    if not type_name:
+        return ("", [])
+
+    # Extract data points
+    data_points = []
+    for dp in metric_data.get("dataPoints", []):
+        point = {
+            "attributes": extract_resource_attributes(dp.get("attributes", [])),
+            "start_time": nanos_to_iso(dp.get("startTimeUnixNano", "0")),
+            "time": nanos_to_iso(dp.get("timeUnixNano", "0")),
+        }
+
+        # Extract value (asDouble or asInt)
+        if "asDouble" in dp:
+            point["value"] = dp["asDouble"]
+        elif "asInt" in dp:
+            point["value"] = int(dp["asInt"])
+
+        # For histograms, add bucket data
+        if type_name in ("histogram", "exponential_histogram"):
+            if "count" in dp:
+                point["count"] = int(dp["count"])
+            if "sum" in dp:
+                point["sum"] = dp["sum"]
+            if "bucketCounts" in dp:
+                point["bucket_counts"] = [int(c) for c in dp["bucketCounts"]]
+            if "explicitBounds" in dp:
+                point["explicit_bounds"] = dp["explicitBounds"]
+
+        data_points.append(point)
+
+    return (type_name, data_points)
+
+
+def parse_metrics_json(payload: dict) -> list[dict]:
+    """
+    Parse OTLP ExportMetricsServiceRequest JSON into EDA events.
+
+    Each metric becomes one event with structure:
+    {
+        "signal_type": "metric",
+        "resource": {extracted resource attributes},
+        "metric": {
+            "name": str,
+            "type": str,
+            "unit": str,
+            "data_points": [...],
+        },
+        "meta": {
+            "endpoint": "v1/metrics",
+            "hosts": str (from resource["host.name"], fallback "localhost"),
+        },
+    }
+
+    Args:
+        payload: OTLP ExportMetricsServiceRequest as dict
+
+    Returns:
+        List of EDA event dictionaries
+    """
+    events = []
+
+    for resource_metric in payload.get("resourceMetrics", []):
+        resource_attrs = extract_resource_attributes(
+            resource_metric.get("resource", {}).get("attributes", [])
+        )
+
+        # Extract host name for meta.hosts
+        host_name = resource_attrs.get("host.name", "localhost")
+
+        for scope_metric in resource_metric.get("scopeMetrics", []):
+            for metric in scope_metric.get("metrics", []):
+                # Parse metric data points
+                metric_type, data_points = _parse_metric_data_points(metric)
+
+                # Build event
+                event = {
+                    "signal_type": "metric",
+                    "resource": resource_attrs,
+                    "metric": {
+                        "name": metric.get("name", ""),
+                        "type": metric_type,
+                        "unit": metric.get("unit", ""),
+                        "data_points": data_points,
+                    },
+                    "meta": {
+                        "endpoint": "v1/metrics",
+                        "hosts": host_name,
+                    },
+                }
+                events.append(event)
+
+    return events
+
+
+def parse_traces_json(payload: dict) -> list[dict]:
+    """
+    Parse OTLP ExportTraceServiceRequest JSON into EDA events.
+
+    Each span becomes one event with structure:
+    {
+        "signal_type": "trace",
+        "resource": {extracted resource attributes},
+        "span": {
+            "trace_id": str,
+            "span_id": str,
+            "parent_span_id": str,
+            "name": str,
+            "kind": int,
+            "start_time": str,
+            "end_time": str,
+            "status_code": int,
+            "status_message": str,
+            "attributes": dict,
+        },
+        "meta": {
+            "endpoint": "v1/traces",
+            "hosts": str (from resource["host.name"], fallback "localhost"),
+        },
+    }
+
+    Args:
+        payload: OTLP ExportTraceServiceRequest as dict
+
+    Returns:
+        List of EDA event dictionaries
+    """
+    events = []
+
+    for resource_span in payload.get("resourceSpans", []):
+        resource_attrs = extract_resource_attributes(
+            resource_span.get("resource", {}).get("attributes", [])
+        )
+
+        # Extract host name for meta.hosts
+        host_name = resource_attrs.get("host.name", "localhost")
+
+        for scope_span in resource_span.get("scopeSpans", []):
+            for span in scope_span.get("spans", []):
+                # Extract span attributes
+                span_attrs = extract_resource_attributes(span.get("attributes", []))
+
+                # Extract status
+                status = span.get("status", {})
+
+                # Build event
+                event = {
+                    "signal_type": "trace",
+                    "resource": resource_attrs,
+                    "span": {
+                        "trace_id": span.get("traceId", ""),
+                        "span_id": span.get("spanId", ""),
+                        "parent_span_id": span.get("parentSpanId", ""),
+                        "name": span.get("name", ""),
+                        "kind": span.get("kind", 0),
+                        "start_time": nanos_to_iso(
+                            span.get("startTimeUnixNano", "0")
+                        ),
+                        "end_time": nanos_to_iso(span.get("endTimeUnixNano", "0")),
+                        "status_code": status.get("code", 0),
+                        "status_message": status.get("message", ""),
+                        "attributes": span_attrs,
+                    },
+                    "meta": {
+                        "endpoint": "v1/traces",
+                        "hosts": host_name,
+                    },
+                }
+                events.append(event)
+
+    return events
+
+
 def parse_logs_json(payload: dict) -> list[dict]:
     """
     Parse OTLP ExportLogsServiceRequest JSON into EDA events.

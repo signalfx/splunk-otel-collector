@@ -2,7 +2,10 @@
 
 ## Unreleased
 
+## ansible-v1.1.0
+
 ### 🛑 Breaking changes 🛑
+
 - The default Windows MSI artifact download URL has been updated:
   - `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
   

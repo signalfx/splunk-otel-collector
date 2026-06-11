@@ -294,7 +294,7 @@ jobs:
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml
         run: |
-          version=$(yq e -r '.version' deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml)
+          version=$(yq e -r '.version' galaxy.yml)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
       
       - name: Ensure version is fetched from galaxy.yml

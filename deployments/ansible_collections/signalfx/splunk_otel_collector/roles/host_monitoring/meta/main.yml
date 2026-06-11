@@ -1,0 +1,25 @@
+---
+# Copyright Splunk Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+galaxy_info:
+  role_name: host_monitoring
+  author: Cisco/Splunk OpenTelemetry Team
+  description: Configure OTel Collector for host metrics and log collection
+  license: Apache-2.0
+  min_ansible_version: "2.14"
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+
+dependencies: []

@@ -1,0 +1,36 @@
+---
+# Copyright Splunk Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Path to OTel collector configuration file
+otel_app_config_path: /etc/otel/collector/agent_config.yaml
+
+# Gateway OTLP endpoint URL (required)
+otel_app_gateway: ""
+
+# OTLP receiver listen addresses
+otel_app_listen_grpc: "0.0.0.0:4317"
+otel_app_listen_http: "0.0.0.0:4318"
+
+# Signal types to configure (traces, metrics, logs)
+otel_app_signal_types:
+  - traces
+  - metrics
+  - logs
+
+# Sampling ratio (1.0 = no sampling, 0.1 = 10%)
+otel_app_sampling_ratio: 1.0
+
+# Memory limiter settings
+otel_app_memory_limit_mib: 512
+otel_app_memory_spike_limit_mib: 128
+
+# Batch processor timeout
+otel_app_batch_timeout: "5s"
+
+# Optional TLS configuration
+otel_app_tls_cert: ""
+otel_app_tls_key: ""
+
+# Restart collector after configuration
+otel_app_restart_collector: true

@@ -1,0 +1,57 @@
+---
+# Copyright Splunk Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - otel_app_gateway | length > 0
+      - otel_app_signal_types | length > 0
+    fail_msg: "otel_app_gateway must be set and otel_app_signal_types must not be empty"
+
+- name: Configure application telemetry pipelines
+  loop: "{{ otel_app_signal_types }}"
+  loop_control:
+    loop_var: signal_type
+  signalfx.splunk_otel_collector.otel_collector_pipeline:
+    config_path: "{{ otel_app_config_path }}"
+    pipeline_name: "{{ signal_type }}/app"
+    receivers:
+      - type: otlp
+        config:
+          protocols:
+            grpc:
+              endpoint: "{{ otel_app_listen_grpc }}"
+            http:
+              endpoint: "{{ otel_app_listen_http }}"
+    processors: "{{ _processors }}"
+    exporters:
+      - type: otlphttp
+        config:
+          endpoint: "{{ otel_app_gateway }}"
+          tls:
+            insecure: "{{ otel_app_tls_cert | length == 0 }}"
+            cert_file: "{{ otel_app_tls_cert if otel_app_tls_cert else omit }}"
+            key_file: "{{ otel_app_tls_key if otel_app_tls_key else omit }}"
+    state: present
+  vars:
+    _base_processors:
+      - type: memory_limiter
+        config:
+          check_interval: 1s
+          limit_mib: "{{ otel_app_memory_limit_mib }}"
+          spike_limit_mib: "{{ otel_app_memory_spike_limit_mib }}"
+      - type: batch
+        config:
+          timeout: "{{ otel_app_batch_timeout }}"
+    _sampling_processor:
+      - type: probabilistic_sampler
+        config:
+          sampling_percentage: "{{ (otel_app_sampling_ratio * 100) | int }}"
+    _processors: "{{ _base_processors + (_sampling_processor if (otel_app_sampling_ratio < 1.0 and signal_type == 'traces') else []) }}"
+
+- name: Restart collector service
+  when: otel_app_restart_collector
+  ansible.builtin.service:
+    name: otel-collector
+    state: restarted

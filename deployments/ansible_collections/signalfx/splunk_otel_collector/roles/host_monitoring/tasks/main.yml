@@ -1,0 +1,94 @@
+---
+# Copyright Splunk Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - otel_host_monitoring_gateway | length > 0
+    fail_msg: "otel_host_monitoring_gateway must be set to the gateway OTLP endpoint URL"
+
+- name: Configure host metrics pipeline
+  when: otel_host_monitoring_metrics
+  signalfx.splunk_otel_collector.otel_collector_pipeline:
+    config_path: "{{ otel_host_monitoring_config_path }}"
+    pipeline_name: metrics/host
+    receivers:
+      - type: hostmetrics
+        config:
+          collection_interval: 10s
+          scrapers:
+            cpu: {}
+            memory: {}
+            disk: {}
+            network: {}
+            filesystem: {}
+    processors:
+      - type: resourcedetection
+        config:
+          detectors:
+            - system
+      - type: memory_limiter
+        config:
+          check_interval: 1s
+          limit_mib: "{{ otel_host_monitoring_memory_limit_mib }}"
+          spike_limit_mib: "{{ otel_host_monitoring_memory_spike_limit_mib }}"
+      - type: batch
+        config:
+          timeout: "{{ otel_host_monitoring_batch_timeout }}"
+    exporters:
+      - type: otlphttp
+        config:
+          endpoint: "{{ otel_host_monitoring_gateway }}"
+          tls:
+            insecure: "{{ otel_host_monitoring_tls_cert | length == 0 }}"
+            cert_file: "{{ otel_host_monitoring_tls_cert if otel_host_monitoring_tls_cert else omit }}"
+            key_file: "{{ otel_host_monitoring_tls_key if otel_host_monitoring_tls_key else omit }}"
+    state: present
+
+- name: Configure host logs pipeline
+  when: otel_host_monitoring_log_paths | length > 0
+  signalfx.splunk_otel_collector.otel_collector_pipeline:
+    config_path: "{{ otel_host_monitoring_config_path }}"
+    pipeline_name: logs/host
+    receivers: "{{ _log_receivers }}"
+    processors:
+      - type: resourcedetection
+        config:
+          detectors:
+            - system
+      - type: memory_limiter
+        config:
+          check_interval: 1s
+          limit_mib: "{{ otel_host_monitoring_memory_limit_mib }}"
+          spike_limit_mib: "{{ otel_host_monitoring_memory_spike_limit_mib }}"
+      - type: batch
+        config:
+          timeout: "{{ otel_host_monitoring_batch_timeout }}"
+    exporters:
+      - type: otlphttp
+        config:
+          endpoint: "{{ otel_host_monitoring_gateway }}"
+          tls:
+            insecure: "{{ otel_host_monitoring_tls_cert | length == 0 }}"
+            cert_file: "{{ otel_host_monitoring_tls_cert if otel_host_monitoring_tls_cert else omit }}"
+            key_file: "{{ otel_host_monitoring_tls_key if otel_host_monitoring_tls_key else omit }}"
+    state: present
+  vars:
+    _filelog_receiver:
+      - type: filelog
+        config:
+          include: "{{ otel_host_monitoring_log_paths }}"
+    _syslog_receiver:
+      - type: syslog
+        config:
+          tcp:
+            listen_address: "{{ otel_host_monitoring_syslog_listen }}"
+          protocol: "{{ otel_host_monitoring_syslog_protocol }}"
+    _log_receivers: "{{ _filelog_receiver + (_syslog_receiver if otel_host_monitoring_syslog_enabled else []) }}"
+
+- name: Restart collector service
+  when: otel_host_monitoring_restart_collector
+  ansible.builtin.service:
+    name: otel-collector
+    state: restarted

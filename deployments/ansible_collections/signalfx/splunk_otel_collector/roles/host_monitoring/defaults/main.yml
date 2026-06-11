@@ -1,0 +1,40 @@
+---
+# Copyright Splunk Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Path to OTel collector configuration file
+otel_host_monitoring_config_path: /etc/otel/collector/agent_config.yaml
+
+# Gateway OTLP endpoint URL (required)
+otel_host_monitoring_gateway: ""
+
+# Enable host metrics collection
+otel_host_monitoring_metrics: true
+
+# Log file paths to monitor
+otel_host_monitoring_log_paths:
+  - /var/log/syslog
+  - /var/log/messages
+
+# Enable syslog receiver
+otel_host_monitoring_syslog_enabled: true
+
+# Syslog protocol (rfc3164 or rfc5424)
+otel_host_monitoring_syslog_protocol: rfc5424
+
+# Syslog listen address
+otel_host_monitoring_syslog_listen: "0.0.0.0:514"
+
+# Memory limiter settings
+otel_host_monitoring_memory_limit_mib: 256
+otel_host_monitoring_memory_spike_limit_mib: 64
+
+# Batch processor timeout
+otel_host_monitoring_batch_timeout: "5s"
+
+# Optional TLS configuration
+otel_host_monitoring_tls_cert: ""
+otel_host_monitoring_tls_key: ""
+
+# Restart collector after configuration
+otel_host_monitoring_restart_collector: true

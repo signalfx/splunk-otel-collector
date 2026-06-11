@@ -1,0 +1,16 @@
+---
+# handlers file for gateway role
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen:
+    - restart gateway collector
+
+- name: Restart gateway collector
+  ansible.builtin.service:
+    name: "{{ otel_gateway_service_name }}"
+    state: restarted
+  listen: "restart gateway collector"
+  when:
+    - start_gateway_service

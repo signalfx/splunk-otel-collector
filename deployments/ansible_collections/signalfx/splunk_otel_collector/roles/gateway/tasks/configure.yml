@@ -1,0 +1,28 @@
+---
+# Configuration tasks for gateway role
+
+- name: Ensure gateway configuration directory exists
+  ansible.builtin.file:
+    path: "{{ otel_gateway_config_path | dirname }}"
+    state: directory
+    owner: "{{ otel_gateway_user }}"
+    group: "{{ otel_gateway_group }}"
+    mode: '0755'
+
+- name: Template gateway collector configuration
+  ansible.builtin.template:
+    src: gateway_config.yaml.j2
+    dest: "{{ otel_gateway_config_path }}"
+    owner: "{{ otel_gateway_user }}"
+    group: "{{ otel_gateway_group }}"
+    mode: '0644'
+  notify: restart gateway collector
+
+- name: Template gateway environment file
+  ansible.builtin.template:
+    src: gateway.conf.j2
+    dest: "{{ otel_gateway_env_file }}"
+    owner: "{{ otel_gateway_user }}"
+    group: "{{ otel_gateway_group }}"
+    mode: '0600'
+  notify: restart gateway collector

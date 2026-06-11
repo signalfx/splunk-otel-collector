@@ -1,0 +1,73 @@
+---
+# Installation tasks for gateway role
+
+- name: Set repository base URL
+  ansible.builtin.set_fact:
+    splunk_repo_base_url: https://splunk.jfrog.io/splunk
+
+- name: Add Splunk repository (Debian)
+  ansible.builtin.apt_repository:
+    repo: "deb {{ splunk_repo_base_url }}/deb debian main"
+    state: present
+    filename: splunk-otel-collector
+  when: ansible_os_family == "Debian"
+
+- name: Add Splunk repository GPG key (Debian)
+  ansible.builtin.apt_key:
+    url: "{{ splunk_repo_base_url }}/deb/splunk-B3CD4420.gpg"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Splunk repository (RedHat)
+  ansible.builtin.yum_repository:
+    name: splunk-otel-collector
+    description: Splunk OpenTelemetry Collector Repository
+    baseurl: "{{ splunk_repo_base_url }}/rpm/release/$releasever/$basearch"
+    gpgcheck: true
+    gpgkey: "{{ splunk_repo_base_url }}/rpm/splunk-B3CD4420.pub"
+    enabled: true
+  when: ansible_os_family == "RedHat"
+
+- name: Add Splunk repository (Suse)
+  community.general.zypper_repository:
+    name: splunk-otel-collector
+    description: Splunk OpenTelemetry Collector Repository
+    repo: "{{ splunk_repo_base_url }}/rpm/release/{{ ansible_distribution_version }}/{{ ansible_architecture }}"
+    state: present
+    auto_import_keys: true
+  when: ansible_os_family == "Suse"
+
+- name: Install Splunk OpenTelemetry Collector package (Debian)
+  ansible.builtin.apt:
+    name: "{{ otel_gateway_package_name }}{% if otel_gateway_version != 'latest' %}={{ otel_gateway_version }}{% endif %}"
+    state: "{% if otel_gateway_version == 'latest' %}latest{% else %}present{% endif %}"
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Install Splunk OpenTelemetry Collector package (RedHat)
+  ansible.builtin.yum:
+    name: "{{ otel_gateway_package_name }}{% if otel_gateway_version != 'latest' %}-{{ otel_gateway_version }}{% endif %}"
+    state: "{% if otel_gateway_version == 'latest' %}latest{% else %}present{% endif %}"
+    update_cache: true
+  when: ansible_os_family == "RedHat"
+
+- name: Install Splunk OpenTelemetry Collector package (Suse)
+  community.general.zypper:
+    name: "{{ otel_gateway_package_name }}{% if otel_gateway_version != 'latest' %}={{ otel_gateway_version }}{% endif %}"
+    state: "{% if otel_gateway_version == 'latest' %}latest{% else %}present{% endif %}"
+    update_cache: true
+  when: ansible_os_family == "Suse"
+
+- name: Ensure gateway user exists
+  ansible.builtin.user:
+    name: "{{ otel_gateway_user }}"
+    system: true
+    create_home: false
+    shell: /sbin/nologin
+    state: present
+
+- name: Ensure gateway group exists
+  ansible.builtin.group:
+    name: "{{ otel_gateway_group }}"
+    system: true
+    state: present

@@ -1,0 +1,32 @@
+---
+galaxy_info:
+  role_name: gateway
+  author: Cisco/Splunk OpenTelemetry Team
+  description: Deploy OpenTelemetry Collector in gateway mode for centralized aggregation
+  company: Cisco/Splunk
+
+  issue_tracker_url: https://github.com/signalfx/splunk-otel-collector/issues
+
+  license: Apache-2.0
+
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+    - name: Ubuntu
+      versions:
+        - "20.04"
+        - "22.04"
+        - "24.04"
+    - name: Debian
+      versions:
+        - "11"
+        - "12"
+    - name: opensuse
+      versions:
+        - "15"
+
+dependencies: []

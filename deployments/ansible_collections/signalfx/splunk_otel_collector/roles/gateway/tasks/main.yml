@@ -1,0 +1,23 @@
+---
+# Main tasks file for gateway role
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - otel_gateway_exporters is defined
+      - otel_gateway_exporters | length > 0
+    fail_msg: "At least one exporter must be configured in otel_gateway_exporters"
+
+- name: Make sure host OS is supported
+  ansible.builtin.assert:
+    that: ansible_os_family in ["Debian", "RedHat", "Suse"]
+    fail_msg: "{{ ansible_os_family }} OS family currently is not supported for gateway role"
+
+- name: Include installation tasks
+  ansible.builtin.include_tasks: install.yml
+
+- name: Include configuration tasks
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Include service tasks
+  ansible.builtin.include_tasks: service.yml

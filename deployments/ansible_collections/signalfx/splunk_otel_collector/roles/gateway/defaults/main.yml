@@ -1,0 +1,49 @@
+---
+# Gateway deployment configuration
+
+# Package configuration
+otel_gateway_package_name: splunk-otel-collector
+otel_gateway_version: latest
+
+# Configuration paths
+otel_gateway_config_path: /etc/otel/collector/gateway_config.yaml
+otel_gateway_service_name: splunk-otel-collector-gateway
+otel_gateway_env_file: /etc/otel/collector/gateway.conf
+
+# Network configuration
+otel_gateway_listen_host: "0.0.0.0"
+otel_gateway_otlp_http_port: 4318
+otel_gateway_otlp_grpc_port: 4317
+otel_gateway_health_port: 13133
+
+# TLS configuration
+otel_gateway_tls_enabled: false
+otel_gateway_tls_cert: ""
+otel_gateway_tls_key: ""
+otel_gateway_tls_ca: ""
+
+# Resource limits
+otel_gateway_memory_limit_mib: 2048
+otel_gateway_memory_spike_limit_mib: 512
+otel_gateway_batch_timeout: "5s"
+otel_gateway_batch_send_size: 8192
+
+# Exporters configuration
+# At least one exporter must be configured
+otel_gateway_exporters: []
+# Example:
+#   - name: otlphttp
+#     endpoint: "https://backend:4318"
+#   - name: splunk_hec
+#     endpoint: "https://splunk:8088/services/collector"
+#     token: "{{ splunk_hec_token }}"
+
+# Service user/group
+otel_gateway_user: splunk-otel-collector
+otel_gateway_group: splunk-otel-collector
+
+# Service control
+start_gateway_service: true
+
+# Additional environment variables
+otel_gateway_additional_env_vars: {}

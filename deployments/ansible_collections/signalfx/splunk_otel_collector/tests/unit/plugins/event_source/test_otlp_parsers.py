@@ -2,14 +2,29 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
+from google.protobuf.json_format import Parse
+from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
+    ExportLogsServiceRequest,
+)
+from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import (
+    ExportMetricsServiceRequest,
+)
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
+    ExportTraceServiceRequest,
+)
 
 from extensions.eda.plugins.event_source._otlp_parsers import (
     extract_resource_attributes,
     nanos_to_iso,
     parse_logs_json,
+    parse_logs_proto,
     parse_metrics_json,
+    parse_metrics_proto,
     parse_traces_json,
+    parse_traces_proto,
 )
 from .conftest import SAMPLE_LOG_JSON, SAMPLE_METRIC_JSON, SAMPLE_TRACE_JSON
 
@@ -306,3 +321,87 @@ def test_parse_traces_json_empty():
     payload = {"resourceSpans": []}
     result = parse_traces_json(payload)
     assert result == []
+
+
+def test_parse_logs_proto():
+    """Test parsing a log record from OTLP protobuf."""
+    # Create protobuf message from JSON
+    proto_msg = Parse(json.dumps(SAMPLE_LOG_JSON), ExportLogsServiceRequest())
+    proto_bytes = proto_msg.SerializeToString()
+
+    # Parse protobuf bytes
+    result = parse_logs_proto(proto_bytes)
+
+    assert len(result) == 1
+    event = result[0]
+
+    # Check signal type
+    assert event["signal_type"] == "log"
+
+    # Check resource attributes
+    assert event["resource"]["host.name"] == "web-01"
+
+    # Check log data
+    assert event["log"]["severity_text"] == "ERROR"
+    assert event["log"]["severity_number"] == 17
+    assert event["log"]["body"] == "Connection refused to upstream"
+
+    # Check metadata
+    assert event["meta"]["endpoint"] == "v1/logs"
+    assert event["meta"]["hosts"] == "web-01"
+
+
+def test_parse_metrics_proto():
+    """Test parsing a histogram metric from OTLP protobuf."""
+    # Create protobuf message from JSON
+    proto_msg = Parse(json.dumps(SAMPLE_METRIC_JSON), ExportMetricsServiceRequest())
+    proto_bytes = proto_msg.SerializeToString()
+
+    # Parse protobuf bytes
+    result = parse_metrics_proto(proto_bytes)
+
+    assert len(result) == 1
+    event = result[0]
+
+    # Check signal type
+    assert event["signal_type"] == "metric"
+
+    # Check resource attributes
+    assert event["resource"]["host.name"] == "web-01"
+
+    # Check metric data
+    metric = event["metric"]
+    assert metric["name"] == "http.server.request.duration"
+    assert metric["type"] == "histogram"
+
+    # Check metadata
+    assert event["meta"]["endpoint"] == "v1/metrics"
+    assert event["meta"]["hosts"] == "web-01"
+
+
+def test_parse_traces_proto():
+    """Test parsing a span from OTLP protobuf."""
+    # Create protobuf message from JSON
+    proto_msg = Parse(json.dumps(SAMPLE_TRACE_JSON), ExportTraceServiceRequest())
+    proto_bytes = proto_msg.SerializeToString()
+
+    # Parse protobuf bytes
+    result = parse_traces_proto(proto_bytes)
+
+    assert len(result) == 1
+    event = result[0]
+
+    # Check signal type
+    assert event["signal_type"] == "trace"
+
+    # Check resource attributes
+    assert event["resource"]["host.name"] == "web-01"
+
+    # Check span data
+    span = event["span"]
+    assert span["trace_id"] == "abcdef1234567890abcdef1234567890"
+    assert span["name"] == "HTTP GET /api/users"
+
+    # Check metadata
+    assert event["meta"]["endpoint"] == "v1/traces"
+    assert event["meta"]["hosts"] == "web-01"

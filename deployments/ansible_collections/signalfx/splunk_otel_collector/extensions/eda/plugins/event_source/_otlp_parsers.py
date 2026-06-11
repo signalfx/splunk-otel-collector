@@ -5,6 +5,17 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+from google.protobuf.json_format import MessageToDict
+from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
+    ExportLogsServiceRequest,
+)
+from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import (
+    ExportMetricsServiceRequest,
+)
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
+    ExportTraceServiceRequest,
+)
+
 
 def extract_resource_attributes(attrs: list[dict]) -> dict[str, Any]:
     """
@@ -364,3 +375,63 @@ def parse_logs_json(payload: dict) -> list[dict]:
                 events.append(event)
 
     return events
+
+
+def parse_logs_proto(data: bytes) -> list[dict]:
+    """
+    Parse OTLP ExportLogsServiceRequest protobuf into EDA events.
+
+    Deserializes protobuf bytes, converts to dict, then reuses JSON parser.
+
+    Args:
+        data: Serialized ExportLogsServiceRequest protobuf bytes
+
+    Returns:
+        List of EDA event dictionaries
+    """
+    msg = ExportLogsServiceRequest()
+    msg.ParseFromString(data)
+    payload_dict = MessageToDict(
+        msg, preserving_proto_field_name=False, use_integers_for_enums=True
+    )
+    return parse_logs_json(payload_dict)
+
+
+def parse_metrics_proto(data: bytes) -> list[dict]:
+    """
+    Parse OTLP ExportMetricsServiceRequest protobuf into EDA events.
+
+    Deserializes protobuf bytes, converts to dict, then reuses JSON parser.
+
+    Args:
+        data: Serialized ExportMetricsServiceRequest protobuf bytes
+
+    Returns:
+        List of EDA event dictionaries
+    """
+    msg = ExportMetricsServiceRequest()
+    msg.ParseFromString(data)
+    payload_dict = MessageToDict(
+        msg, preserving_proto_field_name=False, use_integers_for_enums=True
+    )
+    return parse_metrics_json(payload_dict)
+
+
+def parse_traces_proto(data: bytes) -> list[dict]:
+    """
+    Parse OTLP ExportTraceServiceRequest protobuf into EDA events.
+
+    Deserializes protobuf bytes, converts to dict, then reuses JSON parser.
+
+    Args:
+        data: Serialized ExportTraceServiceRequest protobuf bytes
+
+    Returns:
+        List of EDA event dictionaries
+    """
+    msg = ExportTraceServiceRequest()
+    msg.ParseFromString(data)
+    payload_dict = MessageToDict(
+        msg, preserving_proto_field_name=False, use_integers_for_enums=True
+    )
+    return parse_traces_json(payload_dict)

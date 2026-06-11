@@ -303,4 +303,5 @@ func assertHostMetricsReceived(t *testing.T, sink *testutils.HECReceiverSink) {
 	require.Eventually(t, func() bool {
 		return sink.DataPointCount() > 0
 	}, 60*time.Second, 500*time.Millisecond)
+	assert.NotEmpty(t, sink.AllMetrics())
 }

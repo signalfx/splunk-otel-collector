@@ -225,9 +225,11 @@ async def _handle_otlp(request: web.Request) -> web.Response:
     except Exception:
         return web.Response(status=400, text="Bad Request")
 
-    # Decompress if gzip
+    # Decompress if gzip (check both header and magic bytes)
     content_encoding = request.headers.get("Content-Encoding", "")
-    if content_encoding == "gzip":
+    is_gzipped = content_encoding == "gzip" or (len(body) >= 2 and body[:2] == b'\x1f\x8b')
+
+    if is_gzipped:
         try:
             body = gzip.decompress(body)
         except Exception:

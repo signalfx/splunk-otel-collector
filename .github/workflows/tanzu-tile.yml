@@ -10,6 +10,7 @@ on:
       - main
   pull_request:
     paths:
+      - '.github/workflows/tanzu-tile.yml'
       - 'deployments/cloudfoundry/bosh/**'
       - 'deployments/cloudfoundry/tile/**'
 

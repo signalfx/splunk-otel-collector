@@ -67,6 +67,7 @@ jobs:
       - name: Install BOSH CLI
         shell: bash
         run: |
+          brew install bubblewrap
           brew trust cloudfoundry/tap
           brew install cloudfoundry/tap/bosh-cli
           bosh -v

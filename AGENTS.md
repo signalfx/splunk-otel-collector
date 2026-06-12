@@ -1,5 +1,13 @@
 # AGENTS instructions
 
+## AI-assisted contributions
+
+Follow the AI-assisted contribution policy in
+[CONTRIBUTING.md](CONTRIBUTING.md#ai-assisted-contributions). In particular: never post boilerplate or auto-generated replies to review comments
+(including to automated reviewers like Copilot) — address feedback in code or respond in
+your own words. Disclose significant AI assistance with an `Assisted-by:` commit message
+trailer, never `Co-authored-by:` (it breaks EasyCLA).
+
 ## PR descriptions
 
 Keep PR descriptions concise. Do not repeat yourself. Do not add unimportant or unrelated text.

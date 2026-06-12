@@ -279,16 +279,6 @@ update-otel-deps:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
-update-otel-deps-nightly:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
-
 update-javaagent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"

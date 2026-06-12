@@ -68,7 +68,6 @@ jobs:
         shell: bash
         run: |
           export HOMEBREW_NO_SANDBOX_LINUX=1
-          brew install bubblewrap
           brew trust cloudfoundry/tap
           brew install cloudfoundry/tap/bosh-cli
           bosh -v

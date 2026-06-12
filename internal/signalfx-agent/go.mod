@@ -72,7 +72,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
 	github.com/microsoft/go-mssqldb v1.9.8
-	go.opentelemetry.io/collector/pdata v1.60.0
+	go.opentelemetry.io/collector/pdata v1.60.1-0.20260611154946-8ae0933981eb
 )
 
 require github.com/satori/go.uuid v1.2.0 // indirect

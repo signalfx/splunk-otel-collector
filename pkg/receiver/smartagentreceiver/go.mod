@@ -3,9 +3,9 @@ module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 go 1.26.4
 
 require (
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.154.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.154.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.154.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.154.1-0.20260612030934-699a7669a8fe
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.154.1-0.20260612030934-699a7669a8fe
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.154.1-0.20260612030934-699a7669a8fe
 	github.com/openzipkin/zipkin-go v0.4.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -14,20 +14,20 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
-	go.opentelemetry.io/collector/component v1.60.0
-	go.opentelemetry.io/collector/component/componenttest v0.154.0
-	go.opentelemetry.io/collector/confmap v1.60.0
-	go.opentelemetry.io/collector/confmap/xconfmap v0.154.0
-	go.opentelemetry.io/collector/consumer v1.60.0
-	go.opentelemetry.io/collector/consumer/consumertest v0.154.0
-	go.opentelemetry.io/collector/exporter v1.60.0
-	go.opentelemetry.io/collector/exporter/exportertest v0.154.0
-	go.opentelemetry.io/collector/extension v1.60.0
-	go.opentelemetry.io/collector/extension/extensiontest v0.154.0
-	go.opentelemetry.io/collector/pdata v1.60.0
-	go.opentelemetry.io/collector/pipeline v1.60.0
-	go.opentelemetry.io/collector/receiver v1.60.0
-	go.opentelemetry.io/collector/receiver/receiverhelper v0.154.0
+	go.opentelemetry.io/collector/component v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/component/componenttest v0.154.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/confmap v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/confmap/xconfmap v0.154.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/consumer v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/consumer/consumertest v0.154.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/exporter v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/exporter/exportertest v0.154.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/extension v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/extension/extensiontest v0.154.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/pdata v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/pipeline v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/receiver v1.60.1-0.20260611154946-8ae0933981eb
+	go.opentelemetry.io/collector/receiver/receiverhelper v0.154.1-0.20260611154946-8ae0933981eb
 	go.opentelemetry.io/otel/metric v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	go.uber.org/zap v1.28.0

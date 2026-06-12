@@ -14,7 +14,7 @@ config_sources:
     # endpoint is the Etcd2 server addresses. Config source will try to connect to
     # these endpoints to access an Etcd2 cluster.
     endpoints: [http://localhost:2379]
-    # auth is a optional section used to indicate the authentication method to be used.
+    # auth is an optional section used to indicate the authentication method to be used.
     # currently only username and password is supported.
     auth:
       # username is the etcd2 username used to identify the etcd2 user. 

@@ -614,7 +614,7 @@ func getTokenName(s string) (string, int) {
 	}
 
 	if firstNameSepIdx != -1 && (i >= len(s) || s[i] != configSourceNameDelimChar) {
-		// Found a second non alpha-numeric character before the end of the string
+		// Found a second non alphanumeric character before the end of the string
 		// but it is not the config source delimiter. Use the name until the first
 		// name delimiter.
 		return s[:firstNameSepIdx], firstNameSepIdx

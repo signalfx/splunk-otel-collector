@@ -78,7 +78,7 @@ function setCurrentEnvironmentForManualRun() {
 #######################################
 # Sets or modifies a single environment variable at the service scope level.
 # This can be used for any environment variable, not just those specific to Splunk
-# and OpenTelemtry, it can be used to setup go runtime environment variables that
+# and OpenTelemetry, it can be used to setup go runtime environment variables that
 # will only affect the collector service.
 # If the passed value is $null the environment variable will be removed.
 #  - GLOBALS: $SVC_REGISTRY_KEY

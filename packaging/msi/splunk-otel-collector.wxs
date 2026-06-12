@@ -21,7 +21,7 @@
       <!-- Load the Splunk custom actions -->
       <Binary Id="SplunkCustomActionsDll" SourceFile="$(sys.SOURCEFILEDIR)/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll" />
       <CustomAction Id="CheckLaunchConditions" DllEntry="CheckLaunchConditions" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
-      <CustomAction Id="AddOptionalConfigurationsCustomActionData" Property="AddOptionalConfigurations" Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB]" />
+      <CustomAction Id="AddOptionalConfigurationsCustomActionData" Property="AddOptionalConfigurations" Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB];SPLUNK_PLATFORM_URL=[SPLUNK_PLATFORM_URL];SPLUNK_PLATFORM_TOKEN=[SPLUNK_PLATFORM_TOKEN];SPLUNK_PLATFORM_LOGS_INDEX=[SPLUNK_PLATFORM_LOGS_INDEX]" />
       <CustomAction Id="AddOptionalConfigurations" DllEntry="AddOptionalConfigurations" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
 
       <!-- Following name convention for this property to match upstream -->
@@ -44,7 +44,18 @@
       <Property Id="SPLUNK_API_URL" Secure="yes" />
       <Property Id="SPLUNK_INGEST_URL" Secure="yes" />
       <Property Id="SPLUNK_HEC_URL" Secure="yes" />
-      <CustomAction Id="Set_SPLUNK_CONFIG" Property="SPLUNK_CONFIG" Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml" />
+      <Property Id="SPLUNK_PLATFORM_URL" Secure="yes" />
+      <Property Id="SPLUNK_PLATFORM_TOKEN" Secure="yes" />
+      <Property Id="SPLUNK_PLATFORM_LOGS_INDEX" Secure="yes" />
+
+      <Launch Condition="NOT SPLUNK_PLATFORM_URL OR SPLUNK_PLATFORM_TOKEN" Message="SPLUNK_PLATFORM_TOKEN is required when SPLUNK_PLATFORM_URL is set." />
+      <Launch Condition="NOT SPLUNK_PLATFORM_TOKEN OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_TOKEN is set." />
+
+      <CustomAction Id="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="--config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml&quot;" />
+      <CustomAction Id="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml&quot;" />
+      <CustomAction Id="SetLogsConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="--config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml&quot;" />
+      <CustomAction Id="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml&quot;" />
+      <CustomAction Id="AppendMergeOptionTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --feature-gates=confmap.enableMergeAppendOption" />
       <CustomAction Id="Set_SPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].observability.splunkcloud.com" />
       <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].observability.splunkcloud.com" />
       <CustomAction Id="Set_SPLUNK_HEC_URL" Property="SPLUNK_HEC_URL" Value="[SPLUNK_INGEST_URL]/v1/log" />
@@ -52,7 +63,12 @@
       <InstallExecuteSequence>
          <Custom Action="CheckLaunchConditions" After="LaunchConditions" />
          <Custom Action="Set_SPLUNK_HEC_TOKEN" After="LaunchConditions" Condition="NOT SPLUNK_HEC_TOKEN" />
-         <Custom Action="Set_SPLUNK_CONFIG" After="LaunchConditions" Condition="NOT SPLUNK_CONFIG" />
+         <Custom Action="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" After="CheckLaunchConditions" Condition="SPLUNK_ACCESS_TOKEN AND NOT SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
+         <Custom Action="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" After="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_ACCESS_TOKEN AND NOT SPLUNK_CONFIG AND NOT COLLECTOR_SVC_ARGS" />
+         <Custom Action="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" After="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
+         <Custom Action="SetLogsConfigTo_COLLECTOR_SVC_ARGS" After="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND NOT COLLECTOR_SVC_ARGS" />
+         <!-- TODO Change below after metrics are added -->
+         <Custom Action="AppendMergeOptionTo_COLLECTOR_SVC_ARGS" After="SetLogsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_ACCESS_TOKEN AND SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
          <Custom Action="Set_SPLUNK_API_URL" After="LaunchConditions" Condition="NOT SPLUNK_API_URL" />
          <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions" Condition="NOT SPLUNK_INGEST_URL" />
          <!-- The properties below depend on another properties and should be run only after all other properties are set -->
@@ -74,7 +90,6 @@
             <RegistryValue Type="multiString" Name="Environment">
                <MultiStringValue Value="SPLUNK_ACCESS_TOKEN=[SPLUNK_ACCESS_TOKEN]" />
                <MultiStringValue Value="SPLUNK_API_URL=[SPLUNK_API_URL]" />
-               <MultiStringValue Value="SPLUNK_CONFIG=[SPLUNK_CONFIG]" />
                <MultiStringValue Value="SPLUNK_HEC_TOKEN=[SPLUNK_HEC_TOKEN]" />
                <MultiStringValue Value="SPLUNK_HEC_URL=[SPLUNK_HEC_URL]" />
                <MultiStringValue Value="SPLUNK_INGEST_URL=[SPLUNK_INGEST_URL]" />
@@ -84,8 +99,8 @@
       </Component>
 
       <Feature Id="SplunkOtelCollector" Level="1">
-         <ComponentRef Id="ApplicationComponent" />
          <Feature Id="SplunkCollectorConfiguration" Level="1">
+            <ComponentRef Id="ApplicationComponent" />
             <ComponentRef Id="RegistryComponent" />
          </Feature>
          <ComponentRef Id="JmxMetricsJarComponent" />
@@ -104,8 +119,8 @@
       </Property>
 
       <!-- Copy the default agent config file to ProgramData if it does not already exist -->
-      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]*_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
-      <CustomAction Id="DeleteProgramFilesConfig" ExeCommand="cmd /c del /q &quot;[INSTALLDIR]*config.yaml&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="ignore" />
+      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]*_config*.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
+      <CustomAction Id="DeleteProgramFilesConfig" ExeCommand="cmd /c del /q &quot;[INSTALLDIR]*config*.yaml&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="ignore" />
 
       <ComponentGroup Id="AssortedFiles">
          <Files Directory="INSTALLDIR" Include="$(var.FilesDir)\**" />

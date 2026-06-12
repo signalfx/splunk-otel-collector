@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 jobs:
   otelcol:
     runs-on: ubuntu-24.04
@@ -19,7 +19,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -44,7 +44,7 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -118,7 +118,7 @@ jobs:
       fail-fast: false
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -152,7 +152,7 @@ jobs:
       COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -238,7 +238,7 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true
@@ -258,7 +258,7 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -319,7 +319,7 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true
@@ -361,7 +361,7 @@ jobs:
       env:
         COVER_TESTING: true
       steps:
-        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
           with:
             fetch-depth: 0
         - name: Free up disk space for next step
@@ -401,7 +401,7 @@ jobs:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
           if: ${{ github.actor != 'dependabot[bot]' }}
-          uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+          uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
           with:
             verbose: true
             fail_ci_if_error: true
@@ -434,7 +434,7 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -493,7 +493,7 @@ jobs:
           kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true

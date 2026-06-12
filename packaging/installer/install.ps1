@@ -123,7 +123,7 @@
 .PARAMETER uninstall_collector
     (OPTIONAL) Uninstalls the Splunk OpenTelemetry Collector if it is already installed and then exits the script.
     .EXAMPLE
-    .\install.ps1 -uninstall_collector $true
+    .\install.ps1 -uninstall_collector
 #>
 
 [CmdletBinding(DefaultParameterSetName = "Install")]
@@ -505,6 +505,7 @@ check_policy
 
 if (-not (Get-Service -Name $service_name -ErrorAction SilentlyContinue)) {
     if ($uninstall_collector) {
+        remove_splunk_zc_method_from_env
         Write-Host "The $service_name service is not installed, nothing to uninstall."
         exit 0
     }

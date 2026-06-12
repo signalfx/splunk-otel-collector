@@ -104,7 +104,7 @@ func uninstallCollector(t *testing.T) {
 	args := []string{
 		"-ExecutionPolicy", "Bypass",
 		"-Command", "& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
-		"-uninstall_collector", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var with the Zero-Code attribute.
+		"-uninstall_collector", // Uninstall the collector and clean up any Splunk .NET zero-code resource attribute from OTEL_RESOURCE_ATTRIBUTES.
 	}
 
 	cmd := exec.Command("powershell.exe", args...)

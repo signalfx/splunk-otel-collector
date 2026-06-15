@@ -449,7 +449,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"metric_statements": []any{
 							map[string]any{
 								"context":    "datapoint",
-								"statements": []any{`merge_histogram_buckets(31, method="limit_buckets")`},
+								"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
 							},
 						},
 					},

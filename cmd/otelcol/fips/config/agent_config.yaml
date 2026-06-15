@@ -131,15 +131,16 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
-  # Cap histograms to 31 explicit bounds (32 total buckets) before sending to the
+  # Cap histograms to 32 total buckets (31 explicit bounds) before sending to the
   # SignalFx backend. The backend supports a maximum of 32 buckets (31 explicit
   # bounds); histograms with more (e.g. gRPC call-duration metrics with 40+) are
-  # otherwise dropped at ingest.
+  # otherwise dropped at ingest. The argument to merge_histogram_buckets is the
+  # maximum number of buckets (not bounds), so 32 yields at most 31 explicit bounds.
   transform/limit_histogram_buckets:
     metric_statements:
       - context: datapoint
         statements:
-          - merge_histogram_buckets(31, method="limit_buckets")
+          - merge_histogram_buckets(32, method="limit_buckets")
 
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.

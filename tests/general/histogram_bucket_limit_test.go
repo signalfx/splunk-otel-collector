@@ -38,8 +38,9 @@ const (
 	// sent to the collector (40 > 31, intentionally triggering the limit).
 	inputBounds = 40
 
-	// maxAllowedBounds mirrors the SignalFx backend limit configured in
-	// agent_config.yaml via merge_histogram_buckets(31, method="limit_buckets").
+	// maxAllowedBounds mirrors the SignalFx backend limit: 32 buckets = 31
+	// explicit bounds. The config uses merge_histogram_buckets(32, method="limit_buckets")
+	// where 32 is the maximum number of *buckets*, yielding at most 31 explicit bounds.
 	maxAllowedBounds = 31
 
 	// testMetricName is used to identify the synthetic histogram in the sink.

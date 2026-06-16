@@ -25,7 +25,7 @@ DEFAULT_ARTIFACTORY_USERNAME = "otel-collector"
 DEFAULT_TIMEOUT = 1200
 # After the repo metadata first changes following our upload, require it to stay
 # unchanged for this many seconds before treating it as settled.
-METADATA_SETTLE_DELAY = 30
+METADATA_SETTLE_DELAY = 90
 
 # Package/Release
 REPO_DIR = Path(__file__).parent.parent.parent.parent.resolve()

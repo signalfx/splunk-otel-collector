@@ -136,7 +136,7 @@ def get_args_and_asset():
     )
     parser.add_argument(
         "--sync-calculate-metadata",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=os.environ.get("ARTIFACTORY_SYNC_CALCULATE", "").lower() in ("1", "true", "yes"),
         required=False,
         help="""

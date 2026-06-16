@@ -185,7 +185,7 @@ def wait_for_artifactory_metadata(
     # during the window, adopt the new value and keep waiting.
     while True:
         elapsed = int(time.time() - start_time)
-        assert elapsed < timeout, (
+        assert elapsed + settle_delay <= timeout, (
             f"Timed out after {elapsed}s waiting for {url} to settle "
             f"(last seen MD5: {last_md5})"
         )
@@ -194,7 +194,7 @@ def wait_for_artifactory_metadata(
         new_md5 = get_md5_from_artifactory(url, user, token)
         if new_md5 and str(new_md5).lower() == str(last_md5).lower():
             print(
-                f"Metadata settled after {elapsed}s "
+                f"Metadata settled after {int(time.time() - start_time)}s "
                 f"(unchanged for {settle_delay}s, MD5: {new_md5})"
             )
             return

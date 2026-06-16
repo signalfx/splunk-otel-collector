@@ -1288,6 +1288,7 @@ verify-signed-metadata:
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
   before_script:
     - apt update && apt install -y curl gnupg
   script:
@@ -1296,17 +1297,24 @@ verify-signed-metadata:
       set -exo pipefail
 
       export GNUPGHOME="$(mktemp -d)"
+      trap 'rm -rf "$GNUPGHOME"' EXIT
       gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
       gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      # Confirm the key served at the published URL is the one we expect.
+      gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
+        || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
 
       verify_detached() {
         local data_url="$1" sig_url="$2" name="$3" local_sig="${4:-}"
         echo "Verifying live signature for ${name} ..."
         curl -fsSL "$data_url" -o "metadata.${name}"
         curl -fsSL "$sig_url" -o "metadata.${name}.asc"
-        # The published signature must validate against the live
-        # metadata Artifactory is serving (catches the async-regeneration race).
-        gpg --verify "metadata.${name}.asc" "metadata.${name}"
+        # The published signature must validate against the live metadata
+        # Artifactory is serving (catches the async-regeneration race)
+        gpg --status-fd=1 --verify "metadata.${name}.asc" "metadata.${name}" \
+          | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+          || { echo "Signature for ${name} did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
         # The published signature is the one this pipeline uploaded (catches a failed upload or a stale/cached .asc)
         if [ -n "$local_sig" ]; then
           diff "metadata.${name}.asc" "$local_sig"

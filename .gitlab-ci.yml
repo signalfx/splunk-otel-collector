@@ -1285,15 +1285,41 @@ verify-signed-metadata:
     - release-debs
     - release-rpms
   retry: 2
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
   before_script:
-    - apt update && apt install -y curl
+    - apt update && apt install -y curl gnupg
   script:
     - *get-artifactory-stage
     - |
       set -exo pipefail
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg | diff - signed/Release.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/x86_64/repodata/repomd.xml.asc | diff - signed/x86_64/repomd.xml.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/aarch64/repodata/repomd.xml.asc | diff - signed/aarch64/repomd.xml.asc
+
+      export GNUPGHOME="$(mktemp -d)"
+      gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
+      gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      verify_detached() {
+        local data_url="$1" sig_url="$2" name="$3" local_sig="${4:-}"
+        echo "Verifying live signature for ${name} ..."
+        curl -fsSL "$data_url" -o "metadata.${name}"
+        curl -fsSL "$sig_url" -o "metadata.${name}.asc"
+        # The published signature must validate against the live
+        # metadata Artifactory is serving (catches the async-regeneration race).
+        gpg --verify "metadata.${name}.asc" "metadata.${name}"
+        # The published signature is the one this pipeline uploaded (catches a failed upload or a stale/cached .asc)
+        if [ -n "$local_sig" ]; then
+          diff "metadata.${name}.asc" "$local_sig"
+        fi
+      }
+
+      deb_base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
+      verify_detached "${deb_base}/Release" "${deb_base}/Release.gpg" "deb-Release" "signed/Release.asc"
+
+      for arch in x86_64 aarch64; do
+        rpm_base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${arch}/repodata"
+        verify_detached "${rpm_base}/repomd.xml" "${rpm_base}/repomd.xml.asc" "rpm-${arch}-repomd.xml" "signed/${arch}/repomd.xml.asc"
+      done
 
 # only upload the msi to S3 for stable release tags
 release-msi:

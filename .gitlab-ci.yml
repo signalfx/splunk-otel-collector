@@ -1301,7 +1301,6 @@ verify-signed-metadata:
       gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
       gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
 
-      # Confirm the key served at the published URL is the one we expect.
       gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
         || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
 

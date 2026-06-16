@@ -12,7 +12,7 @@ and the [opentelemetry-collector-contrib v0.154.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
-- (Splunk) Fix GPG signatures for Linux RPM repositories.
+- (Splunk) Fix GPG signatures for Linux repositories.
 
 ## v0.154.1
 

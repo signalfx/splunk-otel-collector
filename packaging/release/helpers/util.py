@@ -166,8 +166,8 @@ def wait_for_artifactory_metadata(
         if new_md5 and str(orig_md5).lower() != str(new_md5).lower():
             last_md5 = new_md5
             print(
-                f"Metadata updated after {elapsed}s (new MD5: {new_md5}); "
-                f"reconfirming it has settled ..."
+                f"Metadata updated after {int(time.time() - start_time)}s "
+                f"(new MD5: {new_md5}); reconfirming it has settled ..."
             )
             break
 
@@ -190,6 +190,7 @@ def wait_for_artifactory_metadata(
             f"(last seen MD5: {last_md5})"
         )
 
+        print(f"Waiting {settle_delay}s to confirm the metadata has settled ...")
         time.sleep(settle_delay)
         new_md5 = get_md5_from_artifactory(url, user, token)
         if new_md5 and str(new_md5).lower() == str(last_md5).lower():

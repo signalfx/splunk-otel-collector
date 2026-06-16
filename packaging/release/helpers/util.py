@@ -33,6 +33,7 @@ from .constants import (
     DEFAULT_TIMEOUT,
     EXTENSIONS,
     INSTALLER_SCRIPTS,
+    METADATA_SETTLE_DELAY,
     PACKAGE_NAME,
     REPO_DIR,
     S3_BUCKET,
@@ -135,10 +136,24 @@ def get_md5_from_artifactory(url, user, token):
     return md5
 
 
-def wait_for_artifactory_metadata(url, orig_md5, user, token, timeout=DEFAULT_TIMEOUT):
+def trigger_metadata_calculation(calculate_url, user, token, timeout=DEFAULT_TIMEOUT):
+    # Explicitly ask Artifactory to (re)calculate the repo metadata and block
+    # until it finishes (async=0).
+    print(f"Triggering synchronous metadata calculation: {calculate_url}")
+    resp = requests.post(calculate_url, auth=(user, token), timeout=timeout)
+    print(f"Calculation response: {resp.status_code} {resp.text.strip()}")
+    resp.raise_for_status()
+
+
+def wait_for_artifactory_metadata(
+    url, orig_md5, user, token, timeout=DEFAULT_TIMEOUT, settle_delay=METADATA_SETTLE_DELAY
+):
     print(f"Waiting for {url} to be updated (original MD5: {orig_md5}) ...")
 
     start_time = time.time()
+
+    # wait for the metadata to change from the pre-upload snapshot.
+    last_md5 = orig_md5
     while True:
         elapsed = int(time.time() - start_time)
         assert elapsed < timeout, (
@@ -149,13 +164,47 @@ def wait_for_artifactory_metadata(url, orig_md5, user, token, timeout=DEFAULT_TI
         new_md5 = get_md5_from_artifactory(url, user, token)
 
         if new_md5 and str(orig_md5).lower() != str(new_md5).lower():
-            print(f"Metadata updated after {elapsed}s (new MD5: {new_md5})")
+            last_md5 = new_md5
+            print(
+                f"Metadata updated after {int(time.time() - start_time)}s "
+                f"(new MD5: {new_md5}); reconfirming it has settled ..."
+            )
             break
 
         if elapsed > 0 and elapsed % 60 == 0:
             print(f"  Still waiting after {elapsed}s (MD5 unchanged: {new_md5}) ...")
 
         time.sleep(5)
+
+    # Require the metadata to stay unchanged across a settle window
+    # before treating it as final. Artifactory recalculates metadata
+    # asynchronously and may run more than one calculation pass for a batch, so
+    # returning on the first change can capture an intermediate snapshot that a
+    # later pass overwrites whose detached signature would no longer match the
+    # published metadata and break repo_gpgcheck for clients. If it changes again
+    # during the window, adopt the new value and keep waiting.
+    while True:
+        elapsed = int(time.time() - start_time)
+        assert elapsed + settle_delay <= timeout, (
+            f"Timed out after {elapsed}s waiting for {url} to settle "
+            f"(last seen MD5: {last_md5})"
+        )
+
+        print(f"Waiting {settle_delay}s to confirm the metadata has settled ...")
+        time.sleep(settle_delay)
+        new_md5 = get_md5_from_artifactory(url, user, token)
+        if new_md5 and str(new_md5).lower() == str(last_md5).lower():
+            print(
+                f"Metadata settled after {int(time.time() - start_time)}s "
+                f"(unchanged for {settle_delay}s, MD5: {new_md5})"
+            )
+            return
+        print(
+            f"Metadata changed again during settle window "
+            f"(MD5 {last_md5} -> {new_md5}); reconfirming ..."
+        )
+        last_md5 = new_md5
+
 
 def upload_package_to_artifactory(
     path,
@@ -166,6 +215,7 @@ def upload_package_to_artifactory(
     metadata_url,
     sign_metadata=True,
     timeout=DEFAULT_TIMEOUT,
+    calculate_url=None,
 ):
     local_md5 = get_checksum(path, hashlib.md5())
     clean_url = dest_url.split(";")[0]
@@ -193,6 +243,8 @@ def upload_package_to_artifactory(
 
     if sign_metadata:
         if content_changed:
+            if calculate_url:
+                trigger_metadata_calculation(calculate_url, user, token, timeout=timeout)
             wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
         else:
             print(
@@ -223,6 +275,10 @@ def release_deb_to_artifactory(asset, args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
+    calculate_url = None
+    if getattr(args, "sync_calculate_metadata", False):
+        calculate_url = f"{ARTIFACTORY_API_URL}/deb/reindex/{ARTIFACTORY_DEB_REPO}?async=0"
+
     upload_package_to_artifactory(
         asset.path,
         dest_url,
@@ -232,6 +288,7 @@ def release_deb_to_artifactory(asset, args):
         metadata_url,
         sign_metadata=True,
         timeout=args.timeout,
+        calculate_url=calculate_url,
     )
 
 
@@ -253,6 +310,10 @@ def release_rpm_to_artifactory(asset, args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
+    calculate_url = None
+    if getattr(args, "sync_calculate_metadata", False):
+        calculate_url = f"{ARTIFACTORY_API_URL}/yum/{ARTIFACTORY_RPM_REPO}/{args.stage}/{arch}?async=0"
+
     upload_package_to_artifactory(
         asset.path,
         dest_url,
@@ -262,6 +323,7 @@ def release_rpm_to_artifactory(asset, args):
         metadata_url,
         sign_metadata=True,
         timeout=args.timeout,
+        calculate_url=calculate_url,
     )
 
 

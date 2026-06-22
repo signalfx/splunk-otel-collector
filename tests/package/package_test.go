@@ -31,6 +31,7 @@ import (
 	dockerContainer "github.com/moby/moby/api/types/container"
 	dockerClient "github.com/moby/moby/client"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -237,6 +238,7 @@ func runDistroContainer(t *testing.T, packageType, distro, arch string) *testuti
 	platform := "linux/" + arch
 	parsedPlatform, err := platforms.Parse(platform)
 	require.NoError(t, err)
+	startupTimeout := 5 * time.Minute
 
 	container := testutils.NewContainer().
 		WithContext(root).
@@ -252,7 +254,11 @@ func runDistroContainer(t *testing.T, packageType, distro, arch string) *testuti
 		WithHostConfigModifier(func(hostConfig *dockerContainer.HostConfig) {
 			hostConfig.CgroupnsMode = dockerContainer.CgroupnsModeHost
 		}).
-		WithStartupTimeout(5 * time.Minute)
+		WithStartupTimeout(startupTimeout)
+
+	container.WaitingFor = append(container.WaitingFor,
+		wait.ForExec([]string{"systemctl", "show-environment"}).WithStartupTimeout(startupTimeout),
+	)
 
 	built := container.Build()
 	require.NoError(t, built.Start(context.Background()))

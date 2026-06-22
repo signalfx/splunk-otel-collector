@@ -26,6 +26,7 @@ import (
 	"time"
 	"unsafe"
 
+	dockerClient "github.com/moby/moby/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -51,6 +52,11 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.NotEqual(t, builder, withImage)
 	assert.Empty(t, builder.Image)
 
+	withImagePlatform := builder.WithImagePlatform("linux/arm64")
+	assert.Equal(t, "linux/arm64", withImagePlatform.ImagePlatform)
+	assert.NotEqual(t, builder, withImagePlatform)
+	assert.Empty(t, builder.ImagePlatform)
+
 	withDockerfile := builder.WithDockerfile("some-dockerfile")
 	assert.Equal(t, "some-dockerfile", withDockerfile.Dockerfile.Dockerfile)
 	assert.NotEqual(t, builder, withDockerfile)
@@ -66,6 +72,21 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.Equal(t, &val, withBuildArgs.Dockerfile.BuildArgs["BUILD_ARG"])
 	assert.NotEqual(t, builder, withBuildArgs)
 	assert.Empty(t, builder.Dockerfile.BuildArgs)
+
+	modifierCalled := false
+	modifier := func(options *dockerClient.ImageBuildOptions) {
+		modifierCalled = true
+		options.PullParent = true
+	}
+	withDockerfileBuildOptionsModifier := builder.WithDockerfileBuildOptionsModifier(modifier)
+	require.NotNil(t, withDockerfileBuildOptionsModifier.Dockerfile.BuildOptionsModifier)
+	assert.NotEqual(t, builder, withDockerfileBuildOptionsModifier)
+	assert.Nil(t, builder.Dockerfile.BuildOptionsModifier)
+
+	var buildOptions dockerClient.ImageBuildOptions
+	withDockerfileBuildOptionsModifier.Dockerfile.BuildOptionsModifier(&buildOptions)
+	assert.True(t, modifierCalled)
+	assert.True(t, buildOptions.PullParent)
 
 	contextArchive := noopReader{}
 	withContextArchive := builder.WithContextArchive(contextArchive)
@@ -255,11 +276,22 @@ func TestWaitingForLogsBuilderMethod(t *testing.T) {
 }
 
 func TestBuildMethod(t *testing.T) {
-	builder := NewContainer().WithImage("some-image")
+	builder := NewContainer().
+		WithImage("some-image").
+		WithImagePlatform("linux/arm64").
+		WithDockerfileBuildOptionsModifier(func(options *dockerClient.ImageBuildOptions) {
+			options.PullParent = true
+		})
 	container := builder.Build()
 	assert.NotEqual(t, *container, builder)
 	assert.NotNil(t, container.req)
 	assert.Equal(t, "some-image", container.req.Image)
+	assert.Equal(t, "linux/arm64", container.req.ImagePlatform)
+	require.NotNil(t, container.req.BuildOptionsModifier)
+
+	var buildOptions dockerClient.ImageBuildOptions
+	container.req.BuildOptionsModifier(&buildOptions)
+	assert.True(t, buildOptions.PullParent)
 	assert.Nil(t, builder.req)
 }
 

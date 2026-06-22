@@ -2,16 +2,8 @@
 
 ## Setup
 
-1. Install Docker, Python 3, [pip](https://pip.pypa.io/en/stable/installing/),
-   and [virtualenv](https://virtualenv.pypa.io/en/latest/) on your workstation.
-1. Install the required dependencies with pip in virtualenv on your workstation:
-   ```
-   virtualenv venv
-   source venv/bin/activate
-   pip install -r packaging/tests/requirements.txt
-   ```
-1. Check [pytest.org](https://pytest.org) or run `pytest --help` to see the
-   available pytest options.
+Install Docker on your workstation. Package tests are Go tests and do not require
+the Python virtualenv used by the installer tests.
 
 ## Running tests
 
@@ -27,6 +19,10 @@
    [here](../fpm/tar/README.md) for how to build the packages.
 1. To run the installer tests, execute the following commands:
    ```
+   virtualenv venv
    source venv/bin/activate  # if not already in virtualenv
+   pip install -r packaging/tests/requirements.txt
    pytest [PYTEST_OPTIONS] packaging/tests/installer_test.py
    ```
+   Installer tests still use pytest. Check [pytest.org](https://pytest.org) or
+   run `pytest --help` to see the available pytest options.

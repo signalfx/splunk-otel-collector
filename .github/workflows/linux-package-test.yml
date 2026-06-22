@@ -10,6 +10,10 @@ on:
       - '.github/workflows/scripts/ecs-mock/**'
       - 'cmd/otelcol/**'
       - 'internal/**'
+      - 'packaging/installer/**'
+      - 'packaging/tests/images/**'
+      - 'tests/package/**'
+      - 'tests/testutils/**'
       - 'Makefile'
       - 'Makefile.Common'
       - '!**.md'
@@ -19,9 +23,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.13'
-  PIP_VERSION: '24.2'
-  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
   GO_VERSION: 1.26.4
 
 jobs:
@@ -95,41 +96,31 @@ jobs:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
 
-      - name: Setup python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
-
-      - name: Install pytest
-        run: |
-          if which pip; then
-              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
-          else
-              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
-          fi
-          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
-        id: pytest
+        id: go-test
         continue-on-error: true
         run: |
-          distro="${{ matrix.DISTRO }}"
-          python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
-            -k "$distro and ${{ matrix.ARCH }}" \
-            packaging/tests/package_test.py
+          cd tests
+          PACKAGE_TEST_TYPE="${{ env.SYS_PACKAGE }}" \
+          PACKAGE_TEST_DISTRO="${{ matrix.DISTRO }}" \
+          PACKAGE_TEST_ARCH="${{ matrix.ARCH }}" \
+          go test -tags package_integration -v -timeout 25m -count 1 ./package
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ steps.pytest.outcome == 'failure' }}
+        if: ${{ steps.go-test.outcome == 'failure' }}
         run: |
-          distro="${{ matrix.DISTRO }}"
-          python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
-            -k "$distro and ${{ matrix.ARCH }}" \
-            --last-failed \
-            packaging/tests/package_test.py
+          cd tests
+          PACKAGE_TEST_TYPE="${{ env.SYS_PACKAGE }}" \
+          PACKAGE_TEST_DISTRO="${{ matrix.DISTRO }}" \
+          PACKAGE_TEST_ARCH="${{ matrix.ARCH }}" \
+          go test -tags package_integration -v -timeout 25m -count 1 ./package
 
   docker-otelcol:
     runs-on: ubuntu-24.04

@@ -256,8 +256,12 @@ func runDistroContainer(t *testing.T, packageType, distro, arch string) *testuti
 		}).
 		WithStartupTimeout(startupTimeout)
 
+	// The Python package tests started the container without a Docker wait strategy,
+	// then retried systemctl below. testcontainers requires at least one strategy
+	// because the local wrapper builds wait.ForAll, so use a no-op strategy here
+	// and keep the real readiness probe in waitForSystemd.
 	container.WaitingFor = append(container.WaitingFor,
-		wait.ForExec([]string{"systemctl", "show-environment"}).WithStartupTimeout(startupTimeout),
+		wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(startupTimeout),
 	)
 
 	built := container.Build()
@@ -277,8 +281,11 @@ func waitForSystemd(t *testing.T, container *testutils.Container, arch string) {
 		timeout = 30 * time.Second
 	}
 	require.Eventually(t, func() bool {
-		rc, _, _ := exec(t, container, time.Minute, "systemctl show-environment")
-		return rc == 0
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+
+		rc, _, err := container.Exec(ctx, []string{"sh", "-c", "systemctl show-environment"})
+		return err == nil && rc == 0
 	}, timeout, time.Second)
 }
 

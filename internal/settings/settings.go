@@ -26,6 +26,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
@@ -193,6 +195,8 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 		// Upstream providers
 		&warningProviderFactory{ProviderFactory: envprovider.NewFactory(), warnings: s.envVarWarnings},
 		fileprovider.NewFactory(),
+		secretsmanagerprovider.NewFactory(),
+		googlesecretmanagerprovider.NewFactory(),
 
 		// Custom providers
 		s.discovery.PropertyProviderFactory(),

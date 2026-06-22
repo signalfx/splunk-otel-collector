@@ -89,7 +89,7 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.NotNil(t, settings)
 
 	confMapProviderFactories := settings.ConfMapProviderFactories()
-	require.Len(t, confMapProviderFactories, 6)
+	require.Len(t, confMapProviderFactories, 8)
 
 	schemas := make([]string, 0, len(confMapProviderFactories))
 	for _, provider := range confMapProviderFactories {
@@ -99,6 +99,8 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.Contains(t, schemas, settings.discovery.ConfigDScheme())
 	require.Contains(t, schemas, settings.discovery.DiscoveryModeScheme())
 	require.Contains(t, schemas, settings.discovery.PropertiesFileScheme())
+	require.Contains(t, schemas, "secretsmanager")
+	require.Contains(t, schemas, "googlesecretmanager")
 }
 
 func TestNewSettingsNoConvertConfig(t *testing.T) {

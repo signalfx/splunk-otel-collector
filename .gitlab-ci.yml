@@ -326,16 +326,6 @@ update-dotnet-agent:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
 
-check-mass-deployments-release:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/check-mass-deployments-release.sh
-
 tidy-dependabot-pr:
   rules:
     - if: ($CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/) && ($CI_COMMIT_AUTHOR =~ /^dependabot.*/) && (($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_PIPELINE_SOURCE == "push"))

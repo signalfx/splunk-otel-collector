@@ -2,7 +2,7 @@
 
 ## Setup
 
-Install Docker on your workstation. Package tests are Go tests and do not require
+Install Docker and Go on your workstation. Package tests are Go tests and do not require
 the Python virtualenv used by the installer tests.
 
 ## Running tests

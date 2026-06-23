@@ -12,6 +12,8 @@ on:
       - 'internal/**'
       - 'packaging/installer/**'
       - 'packaging/tests/images/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
       - 'tests/package/**'
       - 'tests/testutils/**'
       - 'Makefile'

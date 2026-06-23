@@ -26,6 +26,7 @@ import (
 	"time"
 	"unsafe"
 
+	dockerContainer "github.com/moby/moby/api/types/container"
 	dockerClient "github.com/moby/moby/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -279,6 +280,7 @@ func TestBuildMethod(t *testing.T) {
 	builder := NewContainer().
 		WithImage("some-image").
 		WithImagePlatform("linux/arm64").
+		WithPrivileged(true).
 		WithDockerfileBuildOptionsModifier(func(options *dockerClient.ImageBuildOptions) {
 			options.PullParent = true
 		})
@@ -292,6 +294,11 @@ func TestBuildMethod(t *testing.T) {
 	var buildOptions dockerClient.ImageBuildOptions
 	container.req.BuildOptionsModifier(&buildOptions)
 	assert.True(t, buildOptions.PullParent)
+
+	require.NotNil(t, container.req.HostConfigModifier)
+	hostConfig := dockerContainer.HostConfig{}
+	container.req.HostConfigModifier(&hostConfig)
+	assert.True(t, hostConfig.Privileged)
 	assert.Nil(t, builder.req)
 }
 

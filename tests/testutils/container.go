@@ -272,6 +272,7 @@ func (container Container) Build() *Container {
 	container.HostConfigModifiers = append(container.HostConfigModifiers, func(hc *dockerContainer.HostConfig) {
 		hc.Binds = container.Binds
 		hc.NetworkMode = networkMode
+		hc.Privileged = container.Privileged
 	})
 
 	var startupTimeout time.Duration

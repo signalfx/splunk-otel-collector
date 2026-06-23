@@ -134,6 +134,18 @@ def get_args_and_asset():
         required=False,
         help="Never prompt when overwriting existing files.",
     )
+    parser.add_argument(
+        "--sync-calculate-metadata",
+        action=argparse.BooleanOptionalAction,
+        default=os.environ.get("ARTIFACTORY_SYNC_CALCULATE", "").lower() in ("1", "true", "yes"),
+        required=False,
+        help="""
+            For deb/rpm uploads, explicitly trigger Artifactory's metadata
+            calculation synchronously (async=0) after upload and before signing,
+            instead of relying only on the asynchronous auto-calculation.
+            Defaults to the ARTIFACTORY_SYNC_CALCULATE env var if truthy.
+        """,
+    )
 
     add_artifactory_args(parser)
 

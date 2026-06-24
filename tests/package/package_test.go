@@ -363,7 +363,7 @@ func serviceIsRunning(t *testing.T, container *testutils.Container) bool {
 	t.Helper()
 	systemctlCode, _, _ := exec(t, container, time.Minute, "systemctl status "+serviceName)
 	pgrepCode, _, _ := exec(t, container, time.Minute, "pgrep -a -u "+serviceOwner+" -f "+serviceProcess)
-	return systemctlCode|pgrepCode == 0
+	return systemctlCode == 0 && pgrepCode == 0
 }
 
 func logJournal(t *testing.T, container *testutils.Container) {

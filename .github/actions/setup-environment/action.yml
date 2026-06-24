@@ -4,6 +4,13 @@ description: 'setup go environment'
 runs:
   using: "composite"
   steps:
+    - name: Configure private Go module access
+      shell: bash
+      run: |
+        git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+        echo "GOPRIVATE=github.com/signalfx/splunk-otel-collector-components" >> "$GITHUB_ENV"
+        echo "GONOSUMDB=github.com/signalfx/splunk-otel-collector-components" >> "$GITHUB_ENV"
+
     - name: Set up Go
       uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
       with:

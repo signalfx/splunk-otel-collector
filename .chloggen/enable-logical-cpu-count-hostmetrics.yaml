@@ -1,0 +1,6 @@
+change_type: bug_fix
+component: config
+note: "Include user-enabled `system.cpu.logical.count` for SignalFx default translation rules"
+issues: [7691]
+subtext: |
+  This preserves user-enabled logical CPU count metrics when the SignalFx exporter default filters would otherwise drop them.

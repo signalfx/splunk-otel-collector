@@ -90,17 +90,17 @@ process_deployment() {
 }
 
 create_mass_deployments_pr() {
-if [[ "$CREATE_PR" == "true" ]]; then
-  echo ">>> Cloning the $REPO repository ..."
-  git clone "$REPO_URL" collector-mirror
-  cd collector-mirror
+  if [[ "$CREATE_PR" == "true" ]]; then
+    echo ">>> Cloning the $REPO repository ..."
+    git clone "$REPO_URL" collector-mirror
+    cd collector-mirror
 
-  setup_branch "$BRANCH" "$REPO_URL"
-fi
+    setup_branch "$BRANCH" "$REPO_URL"
+  fi
 
   local changed_deployments=()
 
-  for descriptor in "${SCRIPT_DIR}/mass-deployments/"*.sh; do
+  for descriptor in ".gitlab/mass-deployments/"*.sh; do
     process_deployment "$descriptor"
   done
 

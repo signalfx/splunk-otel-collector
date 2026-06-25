@@ -1,6 +1,7 @@
-DEPLOYMENT_NAME="Puppet"
-DEPLOYMENT_CHANGELOG="deployments/puppet/CHANGELOG.md"
-DEPLOYMENT_PREFIX="puppet"
+# shellcheck shell=bash
+export DEPLOYMENT_NAME="Puppet"
+export DEPLOYMENT_CHANGELOG="deployments/puppet/CHANGELOG.md"
+export DEPLOYMENT_PREFIX="puppet"
 
 update_version_file() {
   local new_version="$1"

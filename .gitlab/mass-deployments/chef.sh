@@ -1,6 +1,7 @@
-DEPLOYMENT_NAME="Chef"
-DEPLOYMENT_CHANGELOG="deployments/chef/CHANGELOG.md"
-DEPLOYMENT_PREFIX="chef"
+# shellcheck shell=bash
+export DEPLOYMENT_NAME="Chef"
+export DEPLOYMENT_CHANGELOG="deployments/chef/CHANGELOG.md"
+export DEPLOYMENT_PREFIX="chef"
 
 update_version_file() {
   local new_version="$1"

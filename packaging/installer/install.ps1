@@ -123,6 +123,11 @@
 #>
 
 param (
+[CmdletBinding(DefaultParameterSetName = "Install")]
+param(
+    [Parameter(ParameterSetName = "Uninstall", Mandatory = $false)]
+    [switch]$uninstall_collector,
+    [Parameter(ParameterSetName = "Install", Mandatory = $false)]
     [string]$access_token = "",
     [string]$realm = "us0",
     [string]$memory = "512",

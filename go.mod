@@ -15,6 +15,8 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/knadh/koanf v1.5.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider v0.154.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.154.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.154.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.154.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.154.0
@@ -185,7 +187,7 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/sys v0.45.0
+	golang.org/x/sys v0.46.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -204,6 +206,7 @@ require (
 	cloud.google.com/go/iam v1.11.0 // indirect
 	cloud.google.com/go/monitoring v1.29.0 // indirect
 	cloud.google.com/go/pubsub/v2 v2.6.0 // indirect
+	cloud.google.com/go/secretmanager v1.20.0 // indirect
 	cloud.google.com/go/storage v1.62.1 // indirect
 	collectd.org v0.6.0 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
@@ -253,6 +256,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.52.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.54.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/rds v1.118.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.42.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.40.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.1.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.31.0 // indirect
@@ -283,7 +287,6 @@ require (
 	github.com/digitalocean/go-metadata v0.0.0-20250129100319-e3650a3df44b // indirect
 	github.com/digitalocean/godo v1.193.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker/api v0.0.0-00010101000000-000000000000 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/edsrzf/mmap-go v1.2.1-0.20241212181136-fad1cd13edbd // indirect
@@ -301,6 +304,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.13 // indirect
 	github.com/go-openapi/analysis v0.25.0 // indirect
@@ -364,7 +368,7 @@ require (
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.3.7 // indirect
 	github.com/itchyny/timefmt-go v0.1.8 // indirect
-	github.com/jackc/pgx/v5 v5.9.1 // indirect
+	github.com/jackc/pgx/v5 v5.9.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jaegertracing/jaeger-idl v0.9.0 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
@@ -498,7 +502,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.etcd.io/bbolt v1.4.3 // indirect
-	go.mongodb.org/mongo-driver/v2 v2.3.1 // indirect
+	go.mongodb.org/mongo-driver/v2 v2.4.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/collector/client v1.60.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v1.60.0 // indirect
@@ -751,7 +755,6 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
-	github.com/signalfx/ingest-protocols v0.4.1 // indirect
 	github.com/signalfx/sapm-proto v0.18.0 // indirect
 	github.com/sijms/go-ora/v2 v2.9.0 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
@@ -788,9 +791,9 @@ require (
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/term v0.43.0 // indirect
-	golang.org/x/text v0.37.0
+	golang.org/x/text v0.38.0
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
@@ -827,10 +830,3 @@ replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed
 )
-
-// Docker Engine 29 moved the old github.com/docker/docker module to github.com/moby/moby/v2.
-// v2.0.0-beta.8 is the module version resolved from the docker-v29.3.1 tag.
-replace github.com/docker/docker => github.com/moby/moby/v2 v2.0.0-beta.8
-
-// pulsar-client-go tests still import the old API path; keep a narrow alias shim.
-replace github.com/docker/docker/api => ./internal/dockerapi_compat

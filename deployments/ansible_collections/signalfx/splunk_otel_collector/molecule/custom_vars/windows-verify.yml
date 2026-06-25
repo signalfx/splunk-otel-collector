@@ -5,7 +5,6 @@
   become: no
   vars:
     collector_reg_values:
-      SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\custom_config.yml'
       SPLUNK_INGEST_URL: https://fake-splunk-ingest.com
       SPLUNK_API_URL: https://fake-splunk-api.com
       SPLUNK_HEC_URL: https://fake-splunk-hec.com
@@ -71,7 +70,8 @@
         name: ImagePath
       register: collector_imagepath
 
-    - name: Assert service ImagePath ends with the splunk_otel_collector_command_line_args value used in the playbook
+    - name: Assert service ImagePath contains the custom command line args and the SPLUNK_CONFIG --config value
       ansible.builtin.assert:
         that:
-          - collector_imagepath.value.endswith("--discovery --set=processors.batch.timeout=10s")
+          - "'--discovery --set=processors.batch.timeout=10s' in collector_imagepath.value"
+          - "'custom_config.yml' in collector_imagepath.value"

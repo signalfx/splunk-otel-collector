@@ -100,6 +100,15 @@ func TestMSI(t *testing.T) {
 				"SPLUNK_SETUP_COLLECTOR_MODE": "agent",
 			},
 		},
+		{
+			// Mirrors how the Puppet/Ansible modules install the MSI: SPLUNK_CONFIG is
+			// passed as a property. The service must still start with the given config.
+			name: "splunk-config",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN": "fakeToken",
+				"SPLUNK_CONFIG":       `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -217,6 +226,25 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 				"SPLUNK_PLATFORM_TOKEN": "platformToken",
 			},
 			expectedArgs: strings.Join([]string{defaultConfigArg, logsConfigArg, mergeAppendFeatureGateArg}, " "),
+		},
+		{
+			// SPLUNK_CONFIG (set by the Puppet/Ansible modules) must be
+			// honored and take precedence over the default config.
+			name: "splunk-config-overrides-default",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN": "fakeToken",
+				"SPLUNK_CONFIG":       `C:\custom\config.yaml`,
+			},
+			expectedArgs: `--config "C:\custom\config.yaml"`,
+		},
+		{
+			name: "splunk-config-with-user-svc-args",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN": "fakeToken",
+				"COLLECTOR_SVC_ARGS":  "--feature-gates=foo",
+				"SPLUNK_CONFIG":       `C:\custom\config.yaml`,
+			},
+			expectedArgs: `--feature-gates=foo --config "C:\custom\config.yaml"`,
 		},
 	}
 
@@ -497,8 +525,8 @@ func expectedCollectorServiceArgs(t *testing.T, msiProperties map[string]string)
 	collectorServiceArgs = strings.Trim(collectorServiceArgs, "\"")
 	collectorServiceArgs = strings.ReplaceAll(collectorServiceArgs, "\"\"", "\"")
 
-	if _, ok := msiProperties["SPLUNK_CONFIG"]; ok {
-		return collectorServiceArgs
+	if splunkConfig, ok := msiProperties["SPLUNK_CONFIG"]; ok {
+		return appendServiceArg(collectorServiceArgs, `--config "`+splunkConfig+`"`)
 	}
 
 	if msiProperties["SPLUNK_ACCESS_TOKEN"] != "" {

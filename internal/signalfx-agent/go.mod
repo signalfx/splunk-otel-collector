@@ -37,7 +37,6 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.4.4
-	github.com/signalfx/ingest-protocols v0.4.1
 	github.com/sirupsen/logrus v1.9.4
 	github.com/snowflakedb/gosnowflake/v2 v2.0.1
 	github.com/stretchr/testify v1.11.1
@@ -45,7 +44,7 @@ require (
 	github.com/vmware/govmomi v0.53.1
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0
-	golang.org/x/sys v0.45.0
+	golang.org/x/sys v0.46.0
 	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/grpc v1.81.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0

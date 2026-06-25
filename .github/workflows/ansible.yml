@@ -10,12 +10,14 @@ on:
     paths:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml'
+      - 'packaging/msi/**'
     branches:
       - main
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
+      - 'packaging/msi/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 1,4' # Every Monday and Thrusday at midnight UTC

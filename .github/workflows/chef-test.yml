@@ -8,11 +8,13 @@ on:
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - 'packaging/msi/**'
       - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - 'packaging/msi/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 2,5' # Every Tuesday and Friday at midnight UTC

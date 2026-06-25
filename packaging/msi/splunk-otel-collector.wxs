@@ -56,6 +56,8 @@
       <CustomAction Id="SetLogsConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="--config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml&quot;" />
       <CustomAction Id="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml&quot;" />
       <CustomAction Id="AppendMergeOptionTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --feature-gates=confmap.enableMergeAppendOption" />
+      <CustomAction Id="SetSplunkConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="--config &quot;[SPLUNK_CONFIG]&quot;" />
+      <CustomAction Id="AppendSplunkConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --config &quot;[SPLUNK_CONFIG]&quot;" />
       <CustomAction Id="Set_SPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].observability.splunkcloud.com" />
       <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].observability.splunkcloud.com" />
       <CustomAction Id="Set_SPLUNK_HEC_URL" Property="SPLUNK_HEC_URL" Value="[SPLUNK_INGEST_URL]/v1/log" />
@@ -69,6 +71,8 @@
          <Custom Action="SetLogsConfigTo_COLLECTOR_SVC_ARGS" After="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND NOT COLLECTOR_SVC_ARGS" />
          <!-- TODO Change below after metrics are added -->
          <Custom Action="AppendMergeOptionTo_COLLECTOR_SVC_ARGS" After="SetLogsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_ACCESS_TOKEN AND SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
+         <Custom Action="AppendSplunkConfigTo_COLLECTOR_SVC_ARGS" After="AppendMergeOptionTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
+         <Custom Action="SetSplunkConfigTo_COLLECTOR_SVC_ARGS" After="AppendSplunkConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_CONFIG AND NOT COLLECTOR_SVC_ARGS" />
          <Custom Action="Set_SPLUNK_API_URL" After="LaunchConditions" Condition="NOT SPLUNK_API_URL" />
          <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions" Condition="NOT SPLUNK_INGEST_URL" />
          <!-- The properties below depend on another properties and should be run only after all other properties are set -->

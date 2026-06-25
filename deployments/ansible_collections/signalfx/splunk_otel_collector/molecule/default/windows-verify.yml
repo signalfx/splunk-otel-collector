@@ -5,7 +5,6 @@
   become: no
   vars:
     collector_reg_values:
-      SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml'
       SPLUNK_ACCESS_TOKEN: fake-token
       SPLUNK_REALM: fake-realm
       SPLUNK_API_URL: https://api.fake-realm.observability.splunkcloud.com
@@ -30,3 +29,15 @@
       ansible.builtin.assert:
         that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"
+
+    - name: Get splunk-otel-collector service ImagePath
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+        name: ImagePath
+      register: collector_imagepath
+
+    - name: Assert the default config is passed to the collector service via --config
+      ansible.builtin.assert:
+        that:
+          - "'--config' in collector_imagepath.value"
+          - "'agent_config.yaml' in collector_imagepath.value"

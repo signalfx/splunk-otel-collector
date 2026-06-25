@@ -279,16 +279,6 @@ update-otel-deps:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
-update-otel-deps-nightly:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
-
 update-javaagent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -1295,15 +1285,72 @@ verify-signed-metadata:
     - release-debs
     - release-rpms
   retry: 2
+  parallel:
+    matrix:
+      - TARGET: deb
+      - TARGET: rpm
+        ARCH: x86_64
+      - TARGET: rpm
+        ARCH: aarch64
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
   before_script:
-    - apt update && apt install -y curl
+    - apt update && apt install -y curl gnupg
   script:
     - *get-artifactory-stage
     - |
       set -exo pipefail
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg | diff - signed/Release.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/x86_64/repodata/repomd.xml.asc | diff - signed/x86_64/repomd.xml.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/aarch64/repodata/repomd.xml.asc | diff - signed/aarch64/repomd.xml.asc
+
+      export GNUPGHOME="$(mktemp -d)"
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
+      gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
+        || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
+
+      # Resolve this matrix target's live metadata URL, its detached signature
+      # URL, and the signature this pipeline produced (from the release job
+      # artifacts).
+      case "$TARGET" in
+        deb)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
+          data_url="${base}/Release"
+          sig_url="${base}/Release.gpg"
+          name="deb-Release"
+          local_sig="signed/Release.asc"
+          ;;
+        rpm)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata"
+          data_url="${base}/repomd.xml"
+          sig_url="${base}/repomd.xml.asc"
+          name="rpm-${ARCH}-repomd.xml"
+          local_sig="signed/${ARCH}/repomd.xml.asc"
+          ;;
+        *)
+          echo "Unknown TARGET '${TARGET}'"; exit 1
+          ;;
+      esac
+
+      echo "Verifying live signature for ${name} ..."
+      curl -fsSL "$data_url" -o "metadata.${name}"
+      curl -fsSL "$sig_url" -o "metadata.${name}.asc"
+
+      # The published signature must validate against the live metadata
+      # Artifactory is serving (catches the async-regeneration race).
+      gpg --status-fd=1 --verify "metadata.${name}.asc" "metadata.${name}" \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Signature for ${name} did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+      # The published signature is the one this pipeline uploaded (catches a
+      # failed upload or a stale/cached .asc).
+      if [ -n "$local_sig" ]; then
+        diff "metadata.${name}.asc" "$local_sig"
+      fi
+
+      echo "Signature OK for ${name}"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1631,6 +1678,8 @@ github-release:
       artifacts: true
     - job: release-rpms
       artifacts: true
+    - job: verify-signed-metadata
+      artifacts: false
     - job: sign-msi
       artifacts: true
     - job: sign-tar
@@ -1722,6 +1771,7 @@ puppet-release:
     - if: $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs: []
   before_script:
+    - gem update --system 3.2.3
     - gem install bundler -v 2.4.22
     - cd deployments/puppet
     - bundle install

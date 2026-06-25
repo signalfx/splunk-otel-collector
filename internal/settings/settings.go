@@ -26,6 +26,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
@@ -193,6 +195,8 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 		// Upstream providers
 		&warningProviderFactory{ProviderFactory: envprovider.NewFactory(), warnings: s.envVarWarnings},
 		fileprovider.NewFactory(),
+		secretsmanagerprovider.NewFactory(),
+		googlesecretmanagerprovider.NewFactory(),
 
 		// Custom providers
 		s.discovery.PropertyProviderFactory(),
@@ -374,6 +378,25 @@ func checkRuntimeParams(settings *Settings) error {
 	return nil
 }
 
+// warnDeprecatedSignalfxURLs logs a deprecation warning when SPLUNK_API_URL or SPLUNK_INGEST_URL
+// contains a deprecated signalfx.com hostname. The recommended replacement endpoints use
+// observability.splunkcloud.com instead.
+func warnDeprecatedSignalfxURLs() {
+	const (
+		deprecatedDomain  = "signalfx.com"
+		recommendedDomain = "observability.splunkcloud.com"
+	)
+	for _, envVar := range []string{APIURLEnvVar, IngestURLEnvVar, HecLogIngestURLEnvVar} {
+		if url, ok := os.LookupEnv(envVar); ok && strings.Contains(url, deprecatedDomain) {
+			logWarn("%s %q uses a deprecated %q endpoint. "+
+				"Please update to use a %q endpoint instead "+
+				"(e.g. https://api.<realm>.%s or https://ingest.<realm>.%s).",
+				envVar, url, deprecatedDomain, recommendedDomain,
+				recommendedDomain, recommendedDomain)
+		}
+	}
+}
+
 func setDefaultEnvVars(s *Settings) error {
 	defaultEnvVars := map[string]string{
 		ListenInterfaceEnvVar: defaultListenAddr(s),
@@ -416,6 +439,7 @@ func setDefaultEnvVars(s *Settings) error {
 			}
 		}
 	}
+	warnDeprecatedSignalfxURLs()
 	return nil
 }
 

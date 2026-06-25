@@ -48,6 +48,10 @@ const (
 	// EnvAppName is the environment variable set to the Splunk app name of the
 	// configuration stanza (the app attribute from the modular input XML).
 	EnvAppName = "SPLUNK_MODINPUT_APP_NAME"
+	// EnvBaseDirName is the environment variable set to the Splunk app base directory name of the modular
+	// input. This is derived from the executable path and can be used to locate other files in the app
+	// (e.g. default configuration files).
+	EnvBaseDirName = "SPLUNK_MODINPUT_BASE_DIR_NAME"
 	// EnvStanzaName is the environment variable set to the full stanza name
 	// (e.g. "Splunk_TA_otel://default") from the modular input XML.
 	EnvStanzaName = "SPLUNK_MODINPUT_STANZA_NAME"
@@ -89,6 +93,10 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 	}
 
 	modularInputEnvVars := make(map[string]string)
+	if baseDirName := baseDirNameFromExecutable(); baseDirName != "" {
+		modularInputEnvVars[EnvBaseDirName] = baseDirName
+	}
+
 	var configStanza Stanza
 	var params []Param
 	if mode == ValidationTARunMode {
@@ -108,10 +116,6 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to write error response: %w", writeErr)
 			}
 			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed: %w", err)
-		}
-
-		if appName := appNameFromExecutable(); appName != "" {
-			modularInputEnvVars[EnvAppName] = appName
 		}
 
 		params = make([]Param, 0, len(items.Item))
@@ -285,38 +289,56 @@ func isParentProcessSplunkd() bool {
 	return parentName == "splunkd" || parentName == "splunkd.exe"
 }
 
-// currentProcessExe returns the path to the current process image using gopsutil.
+// currentProcessExe returns the path to the current process image.
 func currentProcessExe() (string, error) {
-	proc, err := process.NewProcess(int32(os.Getpid())) //nolint:gosec // disable G115
-	if err != nil {
-		return "", fmt.Errorf("unable to get current process: %w", err)
-	}
-	exe, err := proc.Exe()
-	if err != nil {
-		return "", fmt.Errorf("unable to get current process image path: %w", err)
-	}
-	return exe, nil
+	return os.Executable()
 }
 
-// appNameFromExecutable derives the Splunk app name from the current process image path.
+// baseDirNameFromExecutable derives the Splunk app name from the current process image path.
 // Splunk installs modular input binaries at:
 //
 //	$SPLUNK_HOME/etc/apps/<AppName>/<platform>/bin/<binary>
 //
 // so the app name is the directory three levels above the binary.
-// Returns an empty string if the process image path cannot be determined or does
-// not have enough path components.
-func appNameFromExecutable() string {
+// Returns an empty string if the process image path cannot be determined, does not have
+// enough path components, or is not under $SPLUNK_HOME.
+func baseDirNameFromExecutable() string {
 	execPath, err := currentProcessExeFn()
 	if err != nil {
 		log.Printf("ERROR %v\n", err)
 		return ""
 	}
+
+	splunkHome, ok := os.LookupEnv("SPLUNK_HOME")
+	if !ok || splunkHome == "" {
+		return ""
+	}
+
 	// Walk up: bin → <platform> → <AppName>
-	appName := filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(execPath))))
+	binDir := filepath.Dir(execPath)
+	if filepath.Base(binDir) != "bin" {
+		return ""
+	}
+	appDir := filepath.Dir(filepath.Dir(binDir))
+	appName := filepath.Base(appDir)
 	if appName == "." || appName == string(filepath.Separator) {
 		return ""
 	}
+
+	// Ensure the walk-up landed somewhere under $SPLUNK_HOME.
+	// Use Clean to normalize the paths and add a trailing separator to
+	// ensure the we are comparing directory paths and not prefixes of other paths.
+	splunkHomeClean := filepath.Clean(splunkHome)
+	if splunkHomeClean != string(filepath.Separator) {
+		// The cleaned path is NOT just the separator, i.e. the root directory.
+		// It is safe to append the ending separator
+		splunkHomeClean += string(filepath.Separator)
+	}
+	appDirClean := filepath.Clean(appDir) + string(filepath.Separator)
+	if !strings.HasPrefix(appDirClean, splunkHomeClean) || len(appDirClean) == len(splunkHomeClean) {
+		return ""
+	}
+
 	return appName
 }
 

@@ -123,7 +123,7 @@
 #>
 
 param (
-    [parameter(Mandatory=$true)][string]$access_token = "",
+    [string]$access_token = "",
     [string]$realm = "us0",
     [string]$memory = "512",
     [ValidateSet('agent','gateway')][string]$mode = "agent",
@@ -388,18 +388,56 @@ function update_registry([string]$path, [string]$name, [string]$value) {
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
 }
 
-function set_service_environment([string]$service_name, [hashtable]$env_vars) {
-    # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
-    # 'Environment' REG_MULTI_SZ value.
-    [string []] $multi_sz_value = ($env_vars.Keys | ForEach-Object { "$_=$($env_vars[$_])" } | Sort-Object)
-
-    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
-    if (Test-Path $target_service_reg_key) {
-        Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
+function add_msi_public_property([string]$properties, [string]$name, [string]$value) {
+    if ([string]::IsNullOrEmpty($value) -Or $properties -match "(^|\s)$([regex]::Escape($name))=") {
+        return $properties
     }
-    else {
+
+    $property = "$name=$value"
+    if ([string]::IsNullOrWhiteSpace($properties)) {
+        return $property
+    }
+
+    return "$properties $property"
+}
+
+function set_service_environment([string]$service_name, [hashtable]$env_vars) {
+    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
+    if (!(Test-Path $target_service_reg_key)) {
         throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
     }
+
+    $merged_env_vars = @{}
+    [string[]] $preserved_env_entries = @()
+    $existing_env_value = Get-ItemPropertyValue -Path $target_service_reg_key -Name "Environment" -ErrorAction SilentlyContinue
+
+    if ($null -ne $existing_env_value) {
+        [string[]] $existing_env_vars = $existing_env_value
+        foreach ($entry in $existing_env_vars) {
+            $separator_index = $entry.IndexOf("=")
+            if ($separator_index -gt 0) {
+                $key = $entry.Substring(0, $separator_index)
+                $value = $entry.Substring($separator_index + 1)
+                $merged_env_vars[$key] = $value
+            }
+            else {
+                $preserved_env_entries += $entry
+            }
+        }
+    }
+
+    foreach ($key in $env_vars.Keys) {
+        if ($merged_env_vars.ContainsKey($key)) {
+            $merged_env_vars.Remove($key)
+        }
+        $merged_env_vars[$key] = "$($env_vars[$key])"
+    }
+
+    # Transform the merged environment to an array of strings so Set-ItemProperty correctly creates
+    # the 'Environment' REG_MULTI_SZ value without deleting unrelated entries.
+    [string[]] $merged_env_entries = ($merged_env_vars.Keys | ForEach-Object { "$_=$($merged_env_vars[$_])" } | Sort-Object)
+    [string[]] $multi_sz_value = $preserved_env_entries + $merged_env_entries
+    Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
 }
 
 function install_msi([string]$path) {
@@ -542,11 +580,13 @@ else {
     Write-Warning "[DEPRECATED] The parameter '-hec_url' is deprecated and will be removed in September 2026."
 }
 
-if ($hec_token -eq "") {
+if ($hec_token -eq "" -And $PSBoundParameters.ContainsKey("access_token")) {
     $hec_token = "$access_token"
 }
 
-if ($force_skip_verify_access_token) {
+if (!$PSBoundParameters.ContainsKey("access_token")) {
+    echo 'Skipping Access Token verification because access_token was not provided'
+} elseif ($force_skip_verify_access_token) {
     echo 'Skipping Access Token verification'
 } else {   
     if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
@@ -586,6 +626,10 @@ if ($collector_msi_url) {
     }
 }
 
+if ($PSBoundParameters.ContainsKey("access_token")) {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_ACCESS_TOKEN" -value $access_token
+}
+
 install_msi -path "$msi_path"
 
 # copy the default configs to $program_data_path
@@ -621,14 +665,20 @@ if (!(Test-Path -Path "$config_path")) {
 }
 
 $collector_env_vars = @{
-    "SPLUNK_ACCESS_TOKEN"     = "$access_token";
     "SPLUNK_API_URL"          = "$api_url";
     "SPLUNK_CONFIG"           = "$config_path";
-    "SPLUNK_HEC_TOKEN"        = "$hec_token";
     "SPLUNK_HEC_URL"          = "$hec_url";
     "SPLUNK_INGEST_URL"       = "$ingest_url";
     "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
     "SPLUNK_REALM"            = "$realm";
+}
+
+if ($PSBoundParameters.ContainsKey("access_token")) {
+    $collector_env_vars.Add("SPLUNK_ACCESS_TOKEN", "$access_token")
+}
+
+if ($hec_token -Ne "") {
+    $collector_env_vars.Add("SPLUNK_HEC_TOKEN", "$hec_token")
 }
 
 if ($network_interface -Ne "") {

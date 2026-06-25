@@ -369,7 +369,7 @@ require (
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.3.7 // indirect
 	github.com/itchyny/timefmt-go v0.1.8 // indirect
-	github.com/jackc/pgx/v5 v5.9.1 // indirect
+	github.com/jackc/pgx/v5 v5.9.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jaegertracing/jaeger-idl v0.9.0 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect

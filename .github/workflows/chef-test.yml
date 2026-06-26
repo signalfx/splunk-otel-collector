@@ -8,11 +8,13 @@ on:
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - 'packaging/msi/**'
       - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - 'packaging/msi/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 2,5' # Every Tuesday and Friday at midnight UTC
@@ -66,7 +68,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       
       - name: lint
         run: make lint
@@ -82,7 +84,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get linux distros and suites
         id: get-linux-matrix
@@ -123,7 +125,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       
       - name: Run free-disk-space.sh
         run: .github/workflows/scripts/free-disk-space.sh
@@ -177,7 +179,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:

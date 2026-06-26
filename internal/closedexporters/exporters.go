@@ -17,4 +17,4 @@
 // This is a PoC demonstrating private Go module dependency integration.
 package closedexporters
 
-import _ "github.com/signalfx/splunk-otel-collector-components"
+import _ "github.com/signalfx/splunk-otel-collector-components" // Validate that CI can resolve closed-source components.

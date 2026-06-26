@@ -35,6 +35,7 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
+    secrets: inherit
 
   build-package:
     needs: [ cross-compile ]

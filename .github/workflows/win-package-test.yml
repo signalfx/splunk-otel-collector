@@ -35,6 +35,7 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
+    secrets: inherit
 
   msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml

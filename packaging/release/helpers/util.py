@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import gzip
 import hashlib
 import os
 import re
@@ -136,11 +137,17 @@ def get_md5_from_artifactory(url, user, token):
     return md5
 
 
-def trigger_metadata_calculation(calculate_url, user, token, timeout=DEFAULT_TIMEOUT):
-    # Explicitly ask Artifactory to (re)calculate the repo metadata and block
-    # until it finishes (async=0).
-    print(f"Triggering synchronous metadata calculation: {calculate_url}")
-    resp = requests.post(calculate_url, auth=(user, token), timeout=timeout)
+def trigger_metadata_calculation(calculate_url, user, token, sync=False, timeout=DEFAULT_TIMEOUT):
+    # Nudge Artifactory to (re)calculate the repo metadata.
+    #
+    # async=1: enqueues an asynchronous pass and returns before calculation
+    # completes.
+    # async=0 (sync=True): asks Artifactory to block until the calc completes.
+    sep = "&" if "?" in calculate_url else "?"
+    url = f"{calculate_url}{sep}async={'0' if sync else '1'}"
+    mode = "sync async=0" if sync else "async=1"
+    print(f"Triggering metadata calculation ({mode}): {url}")
+    resp = requests.post(url, auth=(user, token), timeout=timeout)
     print(f"Calculation response: {resp.status_code} {resp.text.strip()}")
     resp.raise_for_status()
 
@@ -206,6 +213,53 @@ def wait_for_artifactory_metadata(
         last_md5 = new_md5
 
 
+def rpm_package_in_metadata(stage, arch, package_name, user, token):
+    # Return True/False if package_name (the rpm filename) is listed in the live
+    # repodata primary.xml, or None if it can't be determined.
+    repomd_url = f"{ARTIFACTORY_RPM_REPO_URL}/{stage}/{arch}/repodata/repomd.xml"
+    resp = requests.get(repomd_url, auth=(user, token))
+    if resp.status_code != 200:
+        return None
+    match = re.search(r'href="(repodata/[^"]*primary\.xml\.gz)"', resp.text)
+    if not match:
+        return None
+    primary_url = f"{ARTIFACTORY_RPM_REPO_URL}/{stage}/{arch}/{match.group(1)}"
+    resp = requests.get(primary_url, auth=(user, token))
+    if resp.status_code != 200:
+        return None
+    try:
+        primary = gzip.decompress(resp.content).decode("utf-8", "replace")
+    except OSError:
+        return None
+    # primary.xml lists each package as <location href="<filename>.rpm"/>
+    return f'href="{package_name}"' in primary
+
+
+def deb_package_in_metadata(stage, arch, package_name, user, token):
+    # Return True/False if package_name (the .deb filename) is listed in the live
+    # Packages index for this distribution/arch, or None if it can't be
+    # determined.
+    base = f"{ARTIFACTORY_DEB_REPO_URL}/dists/{stage}/main/binary-{arch}"
+    text = None
+    resp = requests.get(f"{base}/Packages.gz", auth=(user, token))
+    if resp.status_code == 200:
+        try:
+            text = gzip.decompress(resp.content).decode("utf-8", "replace")
+        except OSError:
+            text = None
+    if text is None:
+        resp = requests.get(f"{base}/Packages", auth=(user, token))
+        if resp.status_code == 200:
+            text = resp.text
+    if text is None:
+        return None
+    # Packages lists each entry as "Filename: pool/<stage>/<arch>/<file>.deb"
+    return any(
+        line.startswith("Filename:") and line.strip().endswith(package_name)
+        for line in text.splitlines()
+    )
+
+
 def upload_package_to_artifactory(
     path,
     dest_url,
@@ -216,6 +270,8 @@ def upload_package_to_artifactory(
     sign_metadata=True,
     timeout=DEFAULT_TIMEOUT,
     calculate_url=None,
+    package_present_check=None,
+    sync_calculate=False,
 ):
     local_md5 = get_checksum(path, hashlib.md5())
     clean_url = dest_url.split(";")[0]
@@ -242,15 +298,42 @@ def upload_package_to_artifactory(
     upload_file_to_artifactory(path, dest_url, user, token)
 
     if sign_metadata:
-        if content_changed:
+        do_wait = content_changed
+        if not content_changed:
+            # The uploaded bytes already exist in the repo, but that does NOT
+            # guarantee the published metadata references them: a prior attempt
+            # (or retry) may have uploaded the package while its metadata
+            # calculation never completed, leaving a stale index that we'd
+            # otherwise sign as-is. Only skip the wait when the package is
+            # actually present in the live metadata.
+            present = package_present_check() if package_present_check else None
+            if present is False:
+                print(
+                    "Upload content is identical to the existing file, but the "
+                    "package is NOT present in the live repo metadata — the index "
+                    "is stale. Forcing metadata regeneration before signing."
+                )
+                do_wait = True
+            elif present is True:
+                print(
+                    "Upload content is identical and the package is already present "
+                    "in the live repo metadata — skipping metadata wait."
+                )
+            else:
+                print(
+                    "Upload content is identical to existing file and metadata "
+                    "presence could not be confirmed — skipping metadata wait."
+                )
+        if do_wait:
+            # Always nudge the calc before waiting so we are not at the mercy of
+            # auto-calc's debounce. sync_calculate selects a blocking async=0 calc
+            # over the async=1 trigger; either way the settle wait below is the
+            # guard.
             if calculate_url:
-                trigger_metadata_calculation(calculate_url, user, token, timeout=timeout)
+                trigger_metadata_calculation(
+                    calculate_url, user, token, sync=sync_calculate, timeout=timeout
+                )
             wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
-        else:
-            print(
-                "Upload content is identical to existing file. "
-                "Repo metadata will not be regenerated — skipping metadata wait."
-            )
         dest = os.path.join(REPO_DIR, os.path.basename(metadata_url))
         download_file(metadata_url, dest, user, token)
 
@@ -275,9 +358,7 @@ def release_deb_to_artifactory(asset, args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
-    calculate_url = None
-    if getattr(args, "sync_calculate_metadata", False):
-        calculate_url = f"{ARTIFACTORY_API_URL}/deb/reindex/{ARTIFACTORY_DEB_REPO}?async=0"
+    calculate_url = f"{ARTIFACTORY_API_URL}/deb/reindex/{ARTIFACTORY_DEB_REPO}"
 
     upload_package_to_artifactory(
         asset.path,
@@ -289,6 +370,10 @@ def release_deb_to_artifactory(asset, args):
         sign_metadata=True,
         timeout=args.timeout,
         calculate_url=calculate_url,
+        package_present_check=lambda: deb_package_in_metadata(
+            args.stage, arch, asset.name, user, token
+        ),
+        sync_calculate=getattr(args, "sync_calculate_metadata", False),
     )
 
 
@@ -310,9 +395,7 @@ def release_rpm_to_artifactory(asset, args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
-    calculate_url = None
-    if getattr(args, "sync_calculate_metadata", False):
-        calculate_url = f"{ARTIFACTORY_API_URL}/yum/{ARTIFACTORY_RPM_REPO}/{args.stage}/{arch}?async=0"
+    calculate_url = f"{ARTIFACTORY_API_URL}/yum/{ARTIFACTORY_RPM_REPO}/{args.stage}/{arch}"
 
     upload_package_to_artifactory(
         asset.path,
@@ -324,6 +407,10 @@ def release_rpm_to_artifactory(asset, args):
         sign_metadata=True,
         timeout=args.timeout,
         calculate_url=calculate_url,
+        package_present_check=lambda: rpm_package_in_metadata(
+            args.stage, arch, asset.name, user, token
+        ),
+        sync_calculate=getattr(args, "sync_calculate_metadata", False),
     )
 
 

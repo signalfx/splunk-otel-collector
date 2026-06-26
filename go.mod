@@ -287,7 +287,6 @@ require (
 	github.com/digitalocean/go-metadata v0.0.0-20250129100319-e3650a3df44b // indirect
 	github.com/digitalocean/godo v1.193.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker/api v0.0.0-00010101000000-000000000000 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/edsrzf/mmap-go v1.2.1-0.20241212181136-fad1cd13edbd // indirect
@@ -369,7 +368,7 @@ require (
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.3.7 // indirect
 	github.com/itchyny/timefmt-go v0.1.8 // indirect
-	github.com/jackc/pgx/v5 v5.9.1 // indirect
+	github.com/jackc/pgx/v5 v5.9.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jaegertracing/jaeger-idl v0.9.0 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
@@ -831,10 +830,3 @@ replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed
 )
-
-// Docker Engine 29 moved the old github.com/docker/docker module to github.com/moby/moby/v2.
-// v2.0.0-beta.8 is the module version resolved from the docker-v29.3.1 tag.
-replace github.com/docker/docker => github.com/moby/moby/v2 v2.0.0-beta.8
-
-// pulsar-client-go tests still import the old API path; keep a narrow alias shim.
-replace github.com/docker/docker/api => ./internal/dockerapi_compat

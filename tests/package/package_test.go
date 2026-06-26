@@ -281,7 +281,7 @@ func waitForSystemd(t *testing.T, container *testutils.Container, arch string) {
 		timeout = 30 * time.Second
 	}
 	require.Eventually(t, func() bool {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		rc, _, err := container.Exec(ctx, []string{"sh", "-c", "systemctl show-environment"})

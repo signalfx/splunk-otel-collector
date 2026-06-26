@@ -29,6 +29,7 @@ fi
 # Returns 0 when the ## Unreleased section contains at least one non-blank line.
 has_unreleased_content() {
   local changelog="$1"
+  [[ -f "$changelog" ]] || { echo "ERROR: changelog not found: $changelog" >&2; exit 1; }
   awk '/^## Unreleased/{found=1; next} found && /^## /{exit} found && /[^[:space:]]/{print}' "$changelog" | grep -q .
 }
 

@@ -26,6 +26,7 @@ func DefaultPaths() Paths {
 		GeneratedCollectorConfig: "/etc/otel/collector/supervisor/collector_config.yaml",
 		StorageDirectory:         "/var/lib/otelcol/supervisor",
 		DefaultAgentConfig:       "/etc/otel/collector/agent_config.yaml",
+		ConfigApplyTimeout:       "1m",
 		UseHUPConfigReload:       true,
 	}
 }

@@ -156,21 +156,27 @@ service:
 
 	var supervisorConfig SupervisorConfig
 	readYAML(t, paths.SupervisorConfig, &supervisorConfig)
+	supervisorYAML := readFile(t, paths.SupervisorConfig)
+
 	assert.Equal(t, "https://custom.example/v1/opamp", supervisorConfig.Server.Endpoint)
 	assert.Equal(t, map[string]any{"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"}, supervisorConfig.Server.Headers)
 	assert.Equal(t, map[string]any{"insecure_skip_verify": true}, supervisorConfig.Server.TLS)
-	assert.Contains(t, readFile(t, paths.SupervisorConfig), "X-SF-Token: ${SPLUNK_ACCESS_TOKEN}")
+	assert.Contains(t, supervisorYAML, "X-SF-Token: ${SPLUNK_ACCESS_TOKEN}")
 	assertMinimalCapabilities(t, supervisorConfig.Capabilities)
 	assertMinimalCapabilitiesYAML(t, paths.SupervisorConfig)
+	assert.True(t, supervisorConfig.Agent.Description.IncludeResourceAttributes)
+	assert.Equal(t, paths.ConfigApplyTimeout, supervisorConfig.Agent.ConfigApplyTimeout)
+	assert.Contains(t, supervisorYAML, "include_resource_attributes: true")
+	assert.Contains(t, supervisorYAML, "config_apply_timeout: "+paths.ConfigApplyTimeout)
 	assert.Equal(t, []string{paths.GeneratedCollectorConfig}, supervisorConfig.Agent.ConfigFiles)
 	assert.Equal(t, []string{
 		"--feature-gates=+splunk.opamp.enabled,+other.gate",
 		"--set=processors.batch.timeout=2s",
 	}, supervisorConfig.Agent.Args)
-	assert.Contains(t, readFile(t, paths.SupervisorConfig), paths.GeneratedCollectorConfig)
-	assert.NotContains(t, readFile(t, paths.SupervisorConfig), configPath)
+	assert.Contains(t, supervisorYAML, paths.GeneratedCollectorConfig)
+	assert.NotContains(t, supervisorYAML, configPath)
 	assert.Nil(t, supervisorConfig.Agent.Env)
-	assert.NotContains(t, readFile(t, paths.SupervisorConfig), "\nenv:")
+	assert.NotContains(t, supervisorYAML, "\nenv:")
 	assert.True(t, supervisorConfig.Agent.PassthroughLogs)
 	assert.True(t, supervisorConfig.Agent.UseHUPConfigReload)
 	assert.True(t, supervisorConfig.Agent.ValidateConfig)
@@ -527,6 +533,7 @@ func testPaths(t *testing.T, dir string) Paths {
 		SupervisorConfig:         supervisorConfig,
 		GeneratedCollectorConfig: filepath.Join(filepath.Dir(supervisorConfig), "collector_config.yaml"),
 		DefaultAgentConfig:       filepath.Join(dir, "agent_config.yaml"),
+		ConfigApplyTimeout:       "1m",
 		UseHUPConfigReload:       true,
 	}
 }

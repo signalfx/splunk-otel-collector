@@ -1248,6 +1248,7 @@ release-rpms:
     - job: sign-rpms
       artifacts: true
   retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt

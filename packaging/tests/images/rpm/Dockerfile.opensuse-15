@@ -1,6 +1,6 @@
 # A opensuse15 image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM opensuse/leap:15
+FROM opensuse/leap:16
 
 ENV container=docker
 

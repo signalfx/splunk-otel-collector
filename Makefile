@@ -24,7 +24,7 @@ BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/int
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
-BUILD_JMX_GATHERER_HASH=-X github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver.MetricsGathererHash=af32d2c1be2f8e4b675f48161ffdb4a4d08cabfd1620a723a7534c7e19cc0a18
+BUILD_JMX_GATHERER_HASH=-X github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver.MetricsGathererHash=e934a3788da32002dedb4c3f122d900648ba3ad5c9dceaf4d58709caa4d1e547
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_JMX_GATHERER_HASH}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION) ${BUILD_JMX_GATHERER_HASH}"
 CGO_ENABLED?=0
@@ -39,14 +39,12 @@ MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
-BUNDLE_SUPPORTED_ARCHS := amd64 arm64
-SKIP_BUNDLE=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
 # for local docker build testing or
 # SPLUNK_OTEL_COLLECTOR_IMAGE='' make -e otelcol integration-test
-# for local binary testing (agent-bundle configuration required)
+# for local binary testing
 export SPLUNK_OTEL_COLLECTOR_IMAGE?=otelcol:latest
 
 # Docker repository used.
@@ -120,13 +118,13 @@ integration-test-mysql-discovery:
 integration-test-mysql-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_mysql'
 
-.PHONY: integration-test-kafkametrics-discovery
-integration-test-kafkametrics-discovery:
-	@make integration-test-target TARGET='discovery_integration_kafkametrics'
+.PHONY: integration-test-kafka-metrics-discovery
+integration-test-kafka-metrics-discovery:
+	@make integration-test-target TARGET='discovery_integration_kafka_metrics'
 
-.PHONY: integration-test-kafkametrics-discovery-with-cover
-integration-test-kafkametrics-discovery-with-cover:
-	@make integration-test-cover-target TARGET='discovery_integration_kafkametrics'
+.PHONY: integration-test-kafka-metrics-discovery-with-cover
+integration-test-kafka-metrics-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_kafka_metrics'
 
 .PHONY: integration-test-jmx/cassandra-discovery
 integration-test-jmx/cassandra-discovery:
@@ -191,10 +189,6 @@ smartagent-integration-test:
 .PHONY: smartagent-integration-test-with-cover
 smartagent-integration-test-with-cover:
 	@make integration-test-cover-target TARGET='smartagent_integration'
-
-.PHONY: openstack-integration-test
-openstack-integration-test:
-	@make integration-test-target TARGET='openstack_integration'
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
@@ -290,7 +284,7 @@ delete-tag:
 
 .PHONY: docker-otelcol
 docker-otelcol:
-	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) SKIP_BUNDLE=$(SKIP_BUNDLE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./packaging/docker-otelcol.sh
+	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64
@@ -327,11 +321,6 @@ binaries-linux_ppc64le:
 %-package:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)
-endif
-ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
-ifneq ($(SKIP_BUNDLE), true)
-	$(MAKE) -C packaging/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
-endif
 endif
 	docker build -t otelcol-fpm packaging/fpm
 	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm

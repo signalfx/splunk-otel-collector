@@ -144,6 +144,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 					},
 					"opamp/splunk_o11y": map[string]any{
+						"agent_description": map[string]any{
+							"include_resource_attributes": true,
+						},
 						"server": map[string]any{
 							"http": map[string]any{
 								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
@@ -172,15 +175,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					"resourcedetection/internal": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
-					},
-					"resource/add_mode": map[string]any{
-						"attributes": []any{
-							map[string]any{
-								"action": "insert",
-								"value":  "gateway",
-								"key":    "otelcol.service.mode",
-							},
-						},
 					},
 				},
 				"receivers": map[string]any{
@@ -243,6 +237,14 @@ func TestDefaultGatewayConfig(t *testing.T) {
 				},
 				"service": map[string]any{
 					"telemetry": map[string]any{
+						"resource": map[string]any{
+							"attributes": []any{
+								map[string]any{
+									"name":  "otelcol.service.mode",
+									"value": "gateway",
+								},
+							},
+						},
 						"metrics": map[string]any{
 							"readers": []any{
 								map[string]any{
@@ -284,7 +286,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal", "resource/add_mode"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
@@ -412,6 +414,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 					},
 					"opamp/splunk_o11y": map[string]any{
+						"agent_description": map[string]any{
+							"include_resource_attributes": true,
+						},
 						"server": map[string]any{
 							"http": map[string]any{
 								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
@@ -420,12 +425,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 								},
 								"polling_interval": "30s",
 							},
-						},
-					},
-					"smartagent": map[string]any{
-						"bundleDir": "/usr/lib/splunk-otel-collector/agent-bundle",
-						"collectd": map[string]any{
-							"configDir": "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd",
 						},
 					},
 					"zpages": map[string]any{
@@ -445,15 +444,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"resourcedetection": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
-					},
-					"resource/add_mode": map[string]any{
-						"attributes": []any{
-							map[string]any{
-								"action": "insert",
-								"value":  "agent",
-								"key":    "otelcol.service.mode",
-							},
-						},
 					},
 				},
 				"receivers": map[string]any{
@@ -517,7 +507,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "smartagent", "config_source_telemetry"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
@@ -536,11 +526,11 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection", "resource/add_mode"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"otlp_http", "signalfx"},
+							"exporters":  []any{"otlp_http"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},
@@ -551,6 +541,14 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 					},
 					"telemetry": map[string]any{
+						"resource": map[string]any{
+							"attributes": []any{
+								map[string]any{
+									"name":  "otelcol.service.mode",
+									"value": "agent",
+								},
+							},
+						},
 						"metrics": map[string]any{
 							"readers": []any{
 								map[string]any{
@@ -574,8 +572,8 @@ func TestDefaultAgentConfig(t *testing.T) {
 
 			require.Eventually(t, func() bool {
 				for _, log := range tc.ObservedLogs.All() {
-					// confirm the smartagent extension's config has been sourced by receiver instance.
-					if strings.Contains(log.Message, "Smart Agent Config provider configured") {
+					// confirm all components were loaded successfully
+					if strings.Contains(log.Message, "Everything is ready. Begin running and processing data.") {
 						return true
 					}
 				}

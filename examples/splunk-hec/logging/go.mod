@@ -1,8 +1,8 @@
 module github.com/signalfx/splunk-otel-collector/examples/splunk-hec/logging
 
-go 1.26.3
+go 1.26.4
 
-require go.uber.org/zap v1.27.1
+require go.uber.org/zap v1.28.0
 
 require (
 	github.com/stretchr/testify v1.11.1 // indirect

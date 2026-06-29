@@ -17,6 +17,7 @@ package nutanixreceiver
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -85,12 +86,110 @@ func TestScraper(t *testing.T) {
 	}), 0.001)
 }
 
+func TestScraperSkipsUnsupportedEntityStats(t *testing.T) {
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = "prism.example.com"
+	cfg.Username = "readonly"
+	cfg.Password = "secret"
+
+	client := newFakeNutanixClient()
+	client.clusters = append(client.clusters, nutanixCluster{
+		ID:   "pc-cluster",
+		Name: "prism-central",
+	})
+	client.clusterStatsErrors = map[string]error{
+		"pc-cluster": errors.New(`{"code":"CLU-10008","errorGroup":"CLUSTERMGMT_SERVICE_NOT_SUPPORTED_ENTITY_ERROR"}`),
+	}
+
+	s := newScraper(receivertest.NewNopSettings(receivertest.NopType), cfg)
+	s.client = client
+	s.startTime = pcommon.NewTimestampFromTime(time.Now())
+
+	md, err := s.scrape(context.Background())
+	require.NoError(t, err)
+
+	require.InDelta(t, 42.0, findGaugeValue(t, md, "nutanix.cluster.stat", map[string]string{
+		"nutanix.cluster.name": "cluster-a",
+		"nutanix.stat.name":    "controllerNumIops",
+	}), 0.001)
+	require.True(t, hasGaugeDataPoint(md, "nutanix.cluster.info", map[string]string{
+		"nutanix.cluster.name": "prism-central",
+	}))
+	require.False(t, hasGaugeDataPoint(md, "nutanix.cluster.stat", map[string]string{
+		"nutanix.cluster.name": "prism-central",
+	}))
+}
+
+func TestScraperReturnsClusterStatsError(t *testing.T) {
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = "prism.example.com"
+	cfg.Username = "readonly"
+	cfg.Password = "secret"
+
+	client := newFakeNutanixClient()
+	client.clusterStatsErrors = map[string]error{
+		"cluster-1": errors.New("boom"),
+	}
+
+	s := newScraper(receivertest.NewNopSettings(receivertest.NopType), cfg)
+	s.client = client
+	s.startTime = pcommon.NewTimestampFromTime(time.Now())
+
+	_, err := s.scrape(context.Background())
+	require.ErrorContains(t, err, `failed to get cluster stats for "cluster-1"`)
+	require.ErrorContains(t, err, "boom")
+}
+
+func TestScraperSkipsInvalidVMStatsSelect(t *testing.T) {
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = "prism.example.com"
+	cfg.Username = "readonly"
+	cfg.Password = "secret"
+
+	client := newFakeNutanixClient()
+	client.vmStatsError = errors.New(`{"code":"VMM-30102","errorGroup":"VM_INVALID_ARGUMENT","argumentsMap":{"argument_key":"$select","argument_value":"EMPTY"}}`)
+
+	s := newScraper(receivertest.NewNopSettings(receivertest.NopType), cfg)
+	s.client = client
+	s.startTime = pcommon.NewTimestampFromTime(time.Now())
+
+	md, err := s.scrape(context.Background())
+	require.NoError(t, err)
+
+	require.InDelta(t, 2.0, findGaugeValue(t, md, "nutanix.vm.count", map[string]string{
+		"nutanix.cluster.name": "cluster-a",
+	}), 0.001)
+	require.False(t, hasGaugeDataPoint(md, "nutanix.vm.stat", map[string]string{
+		"nutanix.vm.name": "vm-a",
+	}))
+}
+
+func TestScraperReturnsVMStatsError(t *testing.T) {
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = "prism.example.com"
+	cfg.Username = "readonly"
+	cfg.Password = "secret"
+
+	client := newFakeNutanixClient()
+	client.vmStatsError = errors.New("boom")
+
+	s := newScraper(receivertest.NewNopSettings(receivertest.NopType), cfg)
+	s.client = client
+	s.startTime = pcommon.NewTimestampFromTime(time.Now())
+
+	_, err := s.scrape(context.Background())
+	require.ErrorContains(t, err, "failed to list vm stats")
+	require.ErrorContains(t, err, "boom")
+}
+
 type fakeNutanixClient struct {
-	clusters          []nutanixCluster
-	hosts             []nutanixHost
-	storageContainers []nutanixStorageContainer
-	vms               []nutanixVM
-	volumeGroups      []nutanixVolumeGroup
+	clusters           []nutanixCluster
+	hosts              []nutanixHost
+	storageContainers  []nutanixStorageContainer
+	vms                []nutanixVM
+	volumeGroups       []nutanixVolumeGroup
+	clusterStatsErrors map[string]error
+	vmStatsError       error
 }
 
 func newFakeNutanixClient() *fakeNutanixClient {
@@ -175,6 +274,9 @@ func (f *fakeNutanixClient) listVolumeGroups(context.Context) ([]nutanixVolumeGr
 }
 
 func (f *fakeNutanixClient) getClusterStats(_ context.Context, cluster nutanixCluster) ([]metricStat, error) {
+	if err := f.clusterStatsErrors[cluster.ID]; err != nil {
+		return nil, err
+	}
 	return cluster.Stats, nil
 }
 
@@ -187,9 +289,12 @@ func (f *fakeNutanixClient) getStorageContainerStats(_ context.Context, storageC
 }
 
 func (f *fakeNutanixClient) listVMStats(context.Context) (map[string][]metricStat, error) {
+	if f.vmStatsError != nil {
+		return nil, f.vmStatsError
+	}
 	stats := map[string][]metricStat{}
-	for _, vm := range f.vms {
-		stats[vm.ID] = vm.Stats
+	for i := range f.vms {
+		stats[f.vms[i].ID] = f.vms[i].Stats
 	}
 	return stats, nil
 }
@@ -200,6 +305,19 @@ func (f *fakeNutanixClient) getVolumeGroupStats(_ context.Context, volumeGroup n
 
 func findGaugeValue(t *testing.T, md pmetric.Metrics, metricName string, attrs map[string]string) float64 {
 	t.Helper()
+	if value, ok := findGaugeValueForAttrs(md, metricName, attrs); ok {
+		return value
+	}
+	t.Fatalf("metric %q with attributes %v not found", metricName, attrs)
+	return 0
+}
+
+func hasGaugeDataPoint(md pmetric.Metrics, metricName string, attrs map[string]string) bool {
+	_, ok := findGaugeValueForAttrs(md, metricName, attrs)
+	return ok
+}
+
+func findGaugeValueForAttrs(md pmetric.Metrics, metricName string, attrs map[string]string) (float64, bool) {
 	for i := 0; i < md.ResourceMetrics().Len(); i++ {
 		rm := md.ResourceMetrics().At(i)
 		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
@@ -212,14 +330,13 @@ func findGaugeValue(t *testing.T, md pmetric.Metrics, metricName string, attrs m
 				for l := 0; l < metric.Gauge().DataPoints().Len(); l++ {
 					dp := metric.Gauge().DataPoints().At(l)
 					if hasAttrs(dp, attrs) {
-						return dp.DoubleValue()
+						return dp.DoubleValue(), true
 					}
 				}
 			}
 		}
 	}
-	t.Fatalf("metric %q with attributes %v not found", metricName, attrs)
-	return 0
+	return 0, false
 }
 
 func hasAttrs(dp pmetric.NumberDataPoint, attrs map[string]string) bool {

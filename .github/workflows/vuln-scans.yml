@@ -16,7 +16,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -30,7 +30,7 @@ jobs:
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
         with:
           severity-cutoff: "high"
@@ -48,21 +48,13 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Set up environment
         uses: ./.github/actions/setup-environment
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        id: bundle-cache
-        with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}-${{ hashFiles('packaging/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-${{ matrix.FIPS == true && '-fips' || '' }}
       - run: |
           make docker-otelcol ARCH=${{ matrix.ARCH }} FIPS="${{ matrix.FIPS }}"
         env:
           DOCKER_BUILDKIT: '1'
-          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - run: mkdir -p dist && docker save -o dist/image.tar otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -105,7 +97,7 @@ jobs:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
@@ -121,22 +113,16 @@ jobs:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: binaries-windows_amd64
           path: ./bin
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle amd64
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           if ("${{ matrix.OS }}" -eq "windows-2025") {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
           } else {
@@ -144,7 +130,6 @@ jobs:
           }
           docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
-          Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
       - uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
         id: anchore-scan
         with:
@@ -155,7 +140,7 @@ jobs:
           image: "otelcol-windows:latest"
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
@@ -187,7 +172,7 @@ jobs:
     needs: check-snyk-token
     if: ${{ (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) && needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@9adf32b1121593767fc3c057af55b55db032dc04 # master
         continue-on-error: true # To make sure that SARIF upload gets called
@@ -197,7 +182,7 @@ jobs:
           command: code test
           args: --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           sarif_file: snyk.sarif
 
@@ -211,11 +196,11 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       # There is no snyk/snyk:docker image for arm64, so we need to use the
       # docker setup-qemu-action to run the scan
-      - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
@@ -234,7 +219,7 @@ jobs:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --exclude-app-vulns --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           sarif_file: snyk.sarif
 
@@ -247,7 +232,7 @@ jobs:
         output: [ "sarif", "stdout" ]
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
 
       - name: Echo `govulncheck` version
@@ -280,7 +265,7 @@ jobs:
       matrix: ${{ steps.capture-packages.outputs.matrix }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
@@ -304,7 +289,7 @@ jobs:
       matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Download govulncheck results artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -314,6 +299,6 @@ jobs:
 
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           sarif_file: ./govulncheck/${{ matrix.category }}.sarif

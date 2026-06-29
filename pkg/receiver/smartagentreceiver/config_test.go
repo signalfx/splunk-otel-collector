@@ -29,7 +29,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/volumes"
@@ -43,14 +43,13 @@ import (
 type fakeConfig struct {
 	EnhancedMetrics        *bool `yaml:"enhancedMetrics"`
 	saconfig.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-	python.CommonConfig    `yaml:",inline"`
 	Host                   string `yaml:"host" validate:"required"`
 	Port                   uint16 `yaml:"port" validate:"required"`
 }
 
 func init() {
 	monitors.Register(&monitors.Metadata{
-		MonitorType: "collectd/fake",
+		MonitorType: "fake",
 	},
 		nil,
 		&fakeConfig{},
@@ -142,7 +141,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 	err = cm.Unmarshal(&unexpected)
 	require.Error(t, err)
 	require.ErrorContains(t, err,
-		"failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type python.Config")
+		"failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found")
 }
 
 func TestLoadInvalidConfigs(t *testing.T) {
@@ -157,15 +156,15 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	negativeIntervalCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&negativeIntervalCfg))
 	require.Equal(t, &Config{
-		MonitorType: "collectd/python",
-		monitorConfig: &python.Config{
+		MonitorType: "cpu",
+		monitorConfig: &cpu.Config{
 			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/python",
+				Type:                "cpu",
 				IntervalSeconds:     -234,
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 		},
-		acceptsEndpoints: true,
+		acceptsEndpoints: false,
 	}, negativeIntervalCfg)
 	err = negativeIntervalCfg.Validate()
 	require.Error(t, err)
@@ -176,10 +175,10 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	missingRequiredCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&missingRequiredCfg))
 	require.Equal(t, &Config{
-		MonitorType: "collectd/fake",
+		MonitorType: "fake",
 		monitorConfig: &fakeConfig{
 			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/fake",
+				Type:                "fake",
 				IntervalSeconds:     0,
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
@@ -229,7 +228,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	elasticCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&elasticCfg))
-	tru := true
+	trueBool := true
 	require.Equal(t, &Config{
 		MonitorType: "elasticsearch",
 		Endpoint:    "elastic:567",
@@ -244,11 +243,11 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			},
 			Host:                           "elastic",
 			Port:                           "567",
-			EnableIndexStats:               &tru,
+			EnableIndexStats:               &trueBool,
 			IndexStatsIntervalSeconds:      60,
-			IndexStatsMasterOnly:           &tru,
-			EnableClusterHealth:            &tru,
-			ClusterHealthStatsMasterOnly:   &tru,
+			IndexStatsMasterOnly:           &trueBool,
+			EnableClusterHealth:            &trueBool,
+			ClusterHealthStatsMasterOnly:   &trueBool,
 			ThreadPools:                    []string{"search", "index"},
 			MetadataRefreshIntervalSeconds: 30,
 		},
@@ -351,7 +350,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	require.NoError(t, err)
 	k8sVolumesCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&k8sVolumesCfg))
-	tru := true
+	trueBool := true
 	require.Equal(t, &Config{
 		MonitorType: "kubernetes-volumes",
 		monitorConfig: &volumes.Config{
@@ -362,7 +361,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			KubeletAPI: kubelet.APIConfig{
 				URL:        "https://192.168.99.103:10250",
 				AuthType:   "serviceAccount",
-				SkipVerify: &tru,
+				SkipVerify: &trueBool,
 			},
 			KubernetesAPI: &kubernetes.APIConfig{
 				AuthType:   "serviceAccount",

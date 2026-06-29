@@ -10,6 +10,12 @@ on:
       - '.github/workflows/scripts/ecs-mock/**'
       - 'cmd/otelcol/**'
       - 'internal/**'
+      - 'packaging/installer/**'
+      - 'packaging/tests/images/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
+      - 'tests/package/**'
+      - 'tests/testutils/**'
       - 'Makefile'
       - 'Makefile.Common'
       - '!**.md'
@@ -19,10 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.13'
-  PIP_VERSION: '24.2'
-  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 
 jobs:
   cross-compile:
@@ -33,17 +36,8 @@ jobs:
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
-  agent-bundle-linux:
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64" ]
-      fail-fast: false
-    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
-    with:
-      ARCH: ${{ matrix.ARCH }}
-
   build-package:
-    needs: [cross-compile, agent-bundle-linux]
+    needs: [cross-compile]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm", "tar" ]
@@ -58,7 +52,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get matrix
         id: get-matrix
@@ -86,7 +80,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
@@ -104,48 +98,38 @@ jobs:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
 
-      - name: Setup python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
-
-      - name: Install pytest
-        run: |
-          if which pip; then
-              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
-          else
-              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
-          fi
-          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
-        id: pytest
+        id: go-test
         continue-on-error: true
         run: |
-          distro="${{ matrix.DISTRO }}"
-          python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
-            -k "$distro and ${{ matrix.ARCH }}" \
-            packaging/tests/package_test.py
+          cd tests
+          PACKAGE_TEST_TYPE="${{ env.SYS_PACKAGE }}" \
+          PACKAGE_TEST_DISTRO="${{ matrix.DISTRO }}" \
+          PACKAGE_TEST_ARCH="${{ matrix.ARCH }}" \
+          go test -tags package_integration -v -timeout 25m -count 1 ./package
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ steps.pytest.outcome == 'failure' }}
+        if: ${{ steps.go-test.outcome == 'failure' }}
         run: |
-          distro="${{ matrix.DISTRO }}"
-          python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
-            -k "$distro and ${{ matrix.ARCH }}" \
-            --last-failed \
-            packaging/tests/package_test.py
+          cd tests
+          PACKAGE_TEST_TYPE="${{ env.SYS_PACKAGE }}" \
+          PACKAGE_TEST_DISTRO="${{ matrix.DISTRO }}" \
+          PACKAGE_TEST_ARCH="${{ matrix.ARCH }}" \
+          go test -tags package_integration -v -timeout 25m -count 1 ./package
 
   docker-otelcol:
     runs-on: ubuntu-24.04
-    needs: [cross-compile, agent-bundle-linux]
+    needs: [cross-compile]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       # Multiarch images require more disk space
       - run: .github/workflows/scripts/free-disk-space.sh
@@ -154,7 +138,7 @@ jobs:
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@b2189fbf2a6592b51fee7cdd93ee2bfaeba733db # v5.1.0
+        uses: docker/setup-docker-action@0234bb73ccb40f0c430b795634f9247e2b5c2d23 # v5.2.0
         with:
           daemon-config: |
             {
@@ -171,7 +155,7 @@ jobs:
 
       # Building multiarch container images requires qemu
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v7.0.0
@@ -194,18 +178,8 @@ jobs:
           name: binaries-linux_ppc64le
           path: ./bin
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: agent-bundle-linux-amd64
-          path: ./dist
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: agent-bundle-linux-arm64
-          path: ./dist
-
       - name: Build the multiarch docker image
-        run: make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le
+        run: make docker-otelcol SKIP_COMPILE=true ARCH=amd64,arm64,ppc64le
 
       - name: Save the multiarch image archive to be loaded by downstream jobs
         run: mkdir -p docker-otelcol && docker save -o ./docker-otelcol/image.tar otelcol:latest
@@ -224,11 +198,11 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@b2189fbf2a6592b51fee7cdd93ee2bfaeba733db # v5.1.0
+        uses: docker/setup-docker-action@0234bb73ccb40f0c430b795634f9247e2b5c2d23 # v5.2.0
         with:
           daemon-config: |
             {
@@ -240,7 +214,7 @@ jobs:
       # There are no GH runners for ppc64le, so use qemu
       - name: Set up QEMU
         if: ${{ matrix.ARCH == 'ppc64le' }}
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
@@ -295,6 +269,10 @@ jobs:
             case "$config" in
               ecs_ec2_config.yaml|fargate_config.yaml)
                 docker_args+=(--network ecs-mock-net -e ECS_CONTAINER_METADATA_URI_V4=http://ecs-mock) ;;
+              splunk_logs_config_linux.yaml)
+                docker_args+=(-e SPLUNK_PLATFORM_TOKEN=fake-token -e SPLUNK_PLATFORM_URL=https://fake-hec.splunkcloud.com/services/collector -e SPLUNK_PLATFORM_LOGS_INDEX=fake-index -e SPLUNK_LISTEN_INTERFACE=127.0.0.1 -e SPLUNK_FILE_STORAGE_EXTENSION_PATH=/tmp/filelogs) ;;
+              splunk_metrics_config_linux.yaml)
+                docker_args+=(-e SPLUNK_PLATFORM_TOKEN=fake-token -e SPLUNK_PLATFORM_URL=http://fake-hec.splunkcloud.com/services/collector -e SPLUNK_PLATFORM_METRICS_INDEX=fake-index -e SPLUNK_LISTEN_INTERFACE=127.0.0.1) ;;
             esac
             # TODO: set fake-token back to 12345 once https://github.com/open-telemetry/opentelemetry-collector/issues/10937 is resolved
             docker_args+=(-e "SPLUNK_CONFIG=/etc/otel/collector/${config}" -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest)
@@ -320,19 +298,4 @@ jobs:
           # ensure journalctl can run with the collected libraries
           docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           docker exec otelcol /bin/journalctl
-          docker rm -f otelcol
-
-      - name: Check python and java
-        if: ${{ matrix.ARCH != 'ppc64le' }}
-        run: |
-          # ensure python and java can run with the collected libraries
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
-          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/bin/python --version
-          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
-          # ensure collectd-python plugins were installed
-          docker exec otelcol sh -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
-          if [[ "$(docker exec otelcol ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ | wc -l)" -eq 0 ]]; then
-            echo "/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ is empty!" >&2
-            exit 1
-          fi
           docker rm -f otelcol

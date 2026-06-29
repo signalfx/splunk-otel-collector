@@ -17,8 +17,10 @@ package nutanixreceiver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -57,7 +59,7 @@ func (s *scraper) start(context.Context, component.Host) error {
 
 func (s *scraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 	if s.client == nil {
-		return pmetric.NewMetrics(), fmt.Errorf("nutanix client is not initialized")
+		return pmetric.NewMetrics(), errors.New("nutanix client is not initialized")
 	}
 
 	snapshot, err := s.fetchSnapshot(ctx)
@@ -80,10 +82,14 @@ func (s *scraper) fetchSnapshot(ctx context.Context) (prismSnapshot, error) {
 			return snapshot, fmt.Errorf("failed to list clusters: %w", err)
 		}
 		for i := range snapshot.clusters {
-			snapshot.clusters[i].Stats, err = s.client.getClusterStats(ctx, snapshot.clusters[i])
-			if err != nil {
-				return snapshot, fmt.Errorf("failed to get cluster stats for %q: %w", snapshot.clusters[i].ID, err)
+			stats, statsErr := s.client.getClusterStats(ctx, snapshot.clusters[i])
+			if statsErr != nil {
+				if isSkippableStatsError(statsErr) {
+					continue
+				}
+				return snapshot, fmt.Errorf("failed to get cluster stats for %q: %w", snapshot.clusters[i].ID, statsErr)
 			}
+			snapshot.clusters[i].Stats = stats
 		}
 	}
 
@@ -94,10 +100,14 @@ func (s *scraper) fetchSnapshot(ctx context.Context) (prismSnapshot, error) {
 		}
 		if s.cfg.Metrics.Hosts.Enabled {
 			for i := range snapshot.hosts {
-				snapshot.hosts[i].Stats, err = s.client.getHostStats(ctx, snapshot.hosts[i])
-				if err != nil {
-					return snapshot, fmt.Errorf("failed to get host stats for %q: %w", snapshot.hosts[i].ID, err)
+				stats, statsErr := s.client.getHostStats(ctx, snapshot.hosts[i])
+				if statsErr != nil {
+					if isSkippableStatsError(statsErr) {
+						continue
+					}
+					return snapshot, fmt.Errorf("failed to get host stats for %q: %w", snapshot.hosts[i].ID, statsErr)
 				}
+				snapshot.hosts[i].Stats = stats
 			}
 		}
 	}
@@ -108,10 +118,14 @@ func (s *scraper) fetchSnapshot(ctx context.Context) (prismSnapshot, error) {
 			return snapshot, fmt.Errorf("failed to list storage containers: %w", err)
 		}
 		for i := range snapshot.storageContainers {
-			snapshot.storageContainers[i].Stats, err = s.client.getStorageContainerStats(ctx, snapshot.storageContainers[i])
-			if err != nil {
-				return snapshot, fmt.Errorf("failed to get storage container stats for %q: %w", snapshot.storageContainers[i].ID, err)
+			stats, statsErr := s.client.getStorageContainerStats(ctx, snapshot.storageContainers[i])
+			if statsErr != nil {
+				if isSkippableStatsError(statsErr) {
+					continue
+				}
+				return snapshot, fmt.Errorf("failed to get storage container stats for %q: %w", snapshot.storageContainers[i].ID, statsErr)
 			}
+			snapshot.storageContainers[i].Stats = stats
 		}
 	}
 
@@ -121,9 +135,13 @@ func (s *scraper) fetchSnapshot(ctx context.Context) (prismSnapshot, error) {
 			return snapshot, fmt.Errorf("failed to list vms: %w", err)
 		}
 		if s.cfg.Metrics.VMs.Enabled {
-			statsByVM, err := s.client.listVMStats(ctx)
-			if err != nil {
-				return snapshot, fmt.Errorf("failed to list vm stats: %w", err)
+			statsByVM, statsErr := s.client.listVMStats(ctx)
+			if statsErr != nil {
+				if isSkippableStatsError(statsErr) {
+					statsByVM = map[string][]metricStat{}
+				} else {
+					return snapshot, fmt.Errorf("failed to list vm stats: %w", statsErr)
+				}
 			}
 			for i := range snapshot.vms {
 				snapshot.vms[i].Stats = statsByVM[snapshot.vms[i].ID]
@@ -138,15 +156,30 @@ func (s *scraper) fetchSnapshot(ctx context.Context) (prismSnapshot, error) {
 		}
 		if s.cfg.Metrics.VolumeGroups.Enabled {
 			for i := range snapshot.volumeGroups {
-				snapshot.volumeGroups[i].Stats, err = s.client.getVolumeGroupStats(ctx, snapshot.volumeGroups[i])
-				if err != nil {
-					return snapshot, fmt.Errorf("failed to get volume group stats for %q: %w", snapshot.volumeGroups[i].ID, err)
+				stats, statsErr := s.client.getVolumeGroupStats(ctx, snapshot.volumeGroups[i])
+				if statsErr != nil {
+					if isSkippableStatsError(statsErr) {
+						continue
+					}
+					return snapshot, fmt.Errorf("failed to get volume group stats for %q: %w", snapshot.volumeGroups[i].ID, statsErr)
 				}
+				snapshot.volumeGroups[i].Stats = stats
 			}
 		}
 	}
 
 	return snapshot, nil
+}
+
+func isSkippableStatsError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "CLU-10008") ||
+		strings.Contains(msg, "CLUSTERMGMT_SERVICE_NOT_SUPPORTED_ENTITY_ERROR") ||
+		strings.Contains(msg, "VMM-30102") ||
+		strings.Contains(msg, "VM_INVALID_ARGUMENT")
 }
 
 type metricBuilder struct {
@@ -224,9 +257,9 @@ func (b *metricBuilder) addStorageContainerMetrics(storageContainers []nutanixSt
 }
 
 func (b *metricBuilder) addVMStats(vms []nutanixVM) {
-	for _, vm := range vms {
-		attrs := vmAttrs(vm)
-		b.addEntityStats("nutanix.vm.stat", "Nutanix VM Prism v4 statistic", attrs, vm.Stats)
+	for i := range vms {
+		attrs := vmAttrs(vms[i])
+		b.addEntityStats("nutanix.vm.stat", "Nutanix VM Prism v4 statistic", attrs, vms[i].Stats)
 	}
 }
 
@@ -362,9 +395,9 @@ func filterVMsByCluster(vms []nutanixVM, cluster nutanixCluster) []nutanixVM {
 		return vms
 	}
 	var filtered []nutanixVM
-	for _, vm := range vms {
-		if vm.ClusterID == "" || vm.ClusterID == cluster.ID {
-			filtered = append(filtered, vm)
+	for i := range vms {
+		if vms[i].ClusterID == "" || vms[i].ClusterID == cluster.ID {
+			filtered = append(filtered, vms[i])
 		}
 	}
 	return filtered
@@ -375,9 +408,9 @@ func filterPoweredOnVMsByHost(vms []nutanixVM, host nutanixHost) []nutanixVM {
 		return nil
 	}
 	var filtered []nutanixVM
-	for _, vm := range vms {
-		if vm.HostID == host.ID && vm.PowerState == "on" {
-			filtered = append(filtered, vm)
+	for i := range vms {
+		if vms[i].HostID == host.ID && vms[i].PowerState == "on" {
+			filtered = append(filtered, vms[i])
 		}
 	}
 	return filtered
@@ -398,8 +431,8 @@ func filterVolumeGroupsByCluster(volumeGroups []nutanixVolumeGroup, cluster nuta
 
 func countVMsByPowerState(vms []nutanixVM, powerState string) int {
 	count := 0
-	for _, vm := range vms {
-		if vm.PowerState == powerState {
+	for i := range vms {
+		if vms[i].PowerState == powerState {
 			count++
 		}
 	}
@@ -408,24 +441,24 @@ func countVMsByPowerState(vms []nutanixVM, powerState string) int {
 
 func sumVMVCPUs(vms []nutanixVM) float64 {
 	var total float64
-	for _, vm := range vms {
-		total += float64(vm.NumSockets * vm.NumCoresPerSocket)
+	for i := range vms {
+		total += float64(vms[i].NumSockets * vms[i].NumCoresPerSocket)
 	}
 	return total
 }
 
 func sumVMMemoryBytes(vms []nutanixVM) float64 {
 	var total float64
-	for _, vm := range vms {
-		total += float64(vm.MemoryBytes)
+	for i := range vms {
+		total += float64(vms[i].MemoryBytes)
 	}
 	return total
 }
 
 func countVMDisks(vms []nutanixVM, bus string) int {
 	count := 0
-	for _, vm := range vms {
-		for _, diskBus := range vm.DiskBuses {
+	for i := range vms {
+		for _, diskBus := range vms[i].DiskBuses {
 			if bus == "" || diskBus == bus {
 				count++
 			}
@@ -436,8 +469,8 @@ func countVMDisks(vms []nutanixVM, bus string) int {
 
 func countVMNICs(vms []nutanixVM) int {
 	count := 0
-	for _, vm := range vms {
-		count += vm.NICCount
+	for i := range vms {
+		count += vms[i].NICCount
 	}
 	return count
 }

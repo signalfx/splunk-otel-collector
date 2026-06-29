@@ -157,7 +157,7 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 
 	err = alpine.CopyFileToContainer(
 		context.Background(), path.Join(".", "testdata", "file_to_transfer"),
-		"/tmp/afile", 655,
+		"/tmp/afile", 655, // codespell:ignore afile
 	)
 	require.NoError(t, err)
 

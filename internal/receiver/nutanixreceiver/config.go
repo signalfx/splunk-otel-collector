@@ -17,7 +17,6 @@ package nutanixreceiver
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -47,14 +46,14 @@ type MetricsConfig struct {
 }
 
 type Config struct {
-	scraperhelper.ControllerConfig `mapstructure:",squash"`
-
 	Endpoint string              `mapstructure:"endpoint"`
-	Port     int                 `mapstructure:"port"`
 	Username string              `mapstructure:"username"`
 	Password configopaque.String `mapstructure:"password"`
-	TLS      TLSConfig           `mapstructure:"tls"`
-	Metrics  MetricsConfig       `mapstructure:"metrics"`
+
+	scraperhelper.ControllerConfig `mapstructure:",squash"`
+	Metrics                        MetricsConfig `mapstructure:"metrics"`
+	TLS                            TLSConfig     `mapstructure:"tls"`
+	Port                           int           `mapstructure:"port"`
 }
 
 func createDefaultConfig() component.Config {
@@ -89,7 +88,7 @@ func (cfg *Config) Validate() error {
 		return errors.New(`"password" is required`)
 	}
 	if cfg.Port < 1 || cfg.Port > 65535 {
-		return fmt.Errorf(`"port" must be between 1 and 65535`)
+		return errors.New(`"port" must be between 1 and 65535`)
 	}
 	if !cfg.Metrics.Clusters.Enabled &&
 		!cfg.Metrics.Hosts.Enabled &&

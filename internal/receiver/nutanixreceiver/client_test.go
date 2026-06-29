@@ -25,8 +25,8 @@ func TestNormalizeEndpoint(t *testing.T) {
 	tests := []struct {
 		name     string
 		endpoint string
-		port     int
 		want     string
+		port     int
 	}{
 		{
 			name:     "host only",

@@ -4,8 +4,6 @@
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
-# - SPLUNK_BUNDLE_DIR: The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector/agent-bundle
-# - SPLUNK_COLLECTD_DIR: The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
@@ -37,6 +35,9 @@ extensions:
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
+    agent_description:
+      # Include the Collector's resource attributes as OpAMP non-identifying attributes.
+      include_resource_attributes: true
     server:
       http:
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
@@ -45,10 +46,6 @@ extensions:
         polling_interval: 30s
         headers:
           X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
-  smartagent:
-    bundleDir: "${SPLUNK_BUNDLE_DIR}"
-    collectd:
-      configDir: "${SPLUNK_COLLECTD_DIR}"
   zpages:
     #endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
     expvar:
@@ -146,13 +143,6 @@ processors:
         #value: staging/production/...
         #key: deployment.environment
 
-  # The following processor is used to add "otelcol.service.mode" attribute to the internal metrics
-  resource/add_mode:
-    attributes:
-      - action: insert
-        value: "agent"
-        key: otelcol.service.mode
-
 exporters:
   # Traces
   otlp_http:
@@ -205,6 +195,13 @@ service:
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    # Resource attributes attached to the Collector's internal telemetry. These
+    # are also exposed via OpAMP when the opamp/splunk_o11y extension is enabled
+    # with agent_description.include_resource_attributes set to true.
+    resource:
+      attributes:
+        - name: otelcol.service.mode
+          value: agent
     metrics:
       readers:
         - pull:
@@ -212,7 +209,7 @@ service:
               prometheus:
                 host: '127.0.0.1'
                 port: 8888
-  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages, smartagent]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]
@@ -221,9 +218,9 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlp_http, signalfx]
+      exporters: [otlp_http]
       # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway, signalfx]
+      #exporters: [otlp_grpc/gateway]
     metrics:
       receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
@@ -232,7 +229,7 @@ service:
       #exporters: [otlp_grpc/gateway]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection, resource/add_mode]
+      processors: [memory_limiter, batch, resourcedetection]
       # When sending to gateway, at least one metrics pipeline needs
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]

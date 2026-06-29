@@ -93,10 +93,10 @@ receivers:
   # NOTE: It is very likely additional configuration is required
   k8s_cluster:
 
-  # Enables the kubeletstats receiver with default settings
+  # Enables the kubelet_stats receiver with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver
   # NOTE: It is very likely additional configuration is required
-  kubeletstats:
+  kubelet_stats:
     auth_type: "serviceAccount"
     insecure_skip_verify: true
 
@@ -391,7 +391,7 @@ processors:
     metadata_keys:
       - X-SF-Token
 
-  # Enables the resouce processor with default settings
+  # Enables the resource processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor
   # NOTE: These settings need to be change when using this processor
   resource:
@@ -499,7 +499,7 @@ processors:
   # Enables the metrics transform processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor
   # NOTE: This processor settings need to be change when using this processor
-  #transforms:
+  #metrics_transform:
   #
   #  ### SPECIFY WHICH METRIC(S) TO MATCH
   #  # include specifies the metric name used to determine which metric(s) to operate on
@@ -706,6 +706,9 @@ extensions:
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
+    agent_description:
+      # Include the Collector's resource attributes as OpAMP non-identifying attributes.
+      include_resource_attributes: true
     server:
       http:
         endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v1/opamp"
@@ -760,7 +763,7 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [otlp_http, signalfx]
+      exporters: [otlp_http]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]

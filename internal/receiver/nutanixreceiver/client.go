@@ -152,8 +152,8 @@ func (c *prismClient) listClusters(ctx context.Context) ([]nutanixCluster, error
 		return nil, err
 	}
 	result := make([]nutanixCluster, 0, len(clusters))
-	for _, cluster := range clusters {
-		result = append(result, clusterFromV4(cluster))
+	for i := range clusters {
+		result = append(result, clusterFromV4(clusters[i]))
 	}
 	return result, nil
 }
@@ -167,8 +167,8 @@ func (c *prismClient) listHosts(ctx context.Context) ([]nutanixHost, error) {
 		return nil, err
 	}
 	result := make([]nutanixHost, 0, len(hosts))
-	for _, host := range hosts {
-		result = append(result, hostFromV4(host))
+	for i := range hosts {
+		result = append(result, hostFromV4(hosts[i]))
 	}
 	return result, nil
 }
@@ -182,8 +182,8 @@ func (c *prismClient) listStorageContainers(ctx context.Context) ([]nutanixStora
 		return nil, err
 	}
 	result := make([]nutanixStorageContainer, 0, len(containers))
-	for _, container := range containers {
-		result = append(result, storageContainerFromV4(container))
+	for i := range containers {
+		result = append(result, storageContainerFromV4(containers[i]))
 	}
 	return result, nil
 }
@@ -197,8 +197,8 @@ func (c *prismClient) listVMs(ctx context.Context) ([]nutanixVM, error) {
 		return nil, err
 	}
 	result := make([]nutanixVM, 0, len(vms))
-	for _, vm := range vms {
-		result = append(result, vmFromV4(vm))
+	for i := range vms {
+		result = append(result, vmFromV4(vms[i]))
 	}
 	return result, nil
 }
@@ -212,8 +212,8 @@ func (c *prismClient) listVolumeGroups(ctx context.Context) ([]nutanixVolumeGrou
 		return nil, err
 	}
 	result := make([]nutanixVolumeGroup, 0, len(volumeGroups))
-	for _, volumeGroup := range volumeGroups {
-		result = append(result, volumeGroupFromV4(volumeGroup))
+	for i := range volumeGroups {
+		result = append(result, volumeGroupFromV4(volumeGroups[i]))
 	}
 	return result, nil
 }

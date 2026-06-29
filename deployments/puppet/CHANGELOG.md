@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## puppet-v0.21.0
+
 ### 🛑 Breaking changes 🛑
 
 - The default Windows MSI artifact download URL has been updated:

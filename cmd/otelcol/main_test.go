@@ -41,17 +41,18 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	configFiles, err = filepath.Glob(filepath.Join("config", "collector", "*.yaml"))
 	require.NoError(t, err)
-	require.Len(t, configFiles, 8, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
+	require.Len(t, configFiles, 11, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
 
 	tests := []struct {
-		extraEnvVars map[string]string
-		name         string
-		panicMsg     string
-		skipMsg      string
-		args         []string
-		timeout      time.Duration
-		skipWindows  bool
-		validateOnly bool
+		extraEnvVars   map[string]string
+		name           string
+		panicMsg       string
+		skipMsg        string
+		args           []string
+		timeout        time.Duration
+		skipNonWindows bool
+		skipWindows    bool
+		validateOnly   bool
 	}{
 		{
 			name:    "agent",
@@ -109,6 +110,58 @@ func TestRunFromCmdLine(t *testing.T) {
 			validateOnly: true,
 		},
 		{
+			name: "splunk_logs_linux",
+			args: []string{"otelcol", "--config=config/collector/splunk_logs_config_linux.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
+			name: "splunk_logs_linux_no_index",
+			args: []string{"otelcol", "--config=config/collector/splunk_logs_config_linux.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN": "test-token",
+				"SPLUNK_PLATFORM_URL":   "https://localhost:8088/services/collector",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
+			name: "agent_plus_splunk_logs_linux",
+			args: []string{
+				"otelcol",
+				"--feature-gates=confmap.enableMergeAppendOption",
+				"--config=config/collector/agent_config.yaml",
+				"--config=config/collector/splunk_logs_config_linux.yaml",
+			},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
+			name: "splunk_metrics_linux",
+			args: []string{"otelcol", "--config=config/collector/splunk_metrics_config_linux.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN":         "test-token",
+				"SPLUNK_PLATFORM_URL":           "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "metrics",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
 			name:    "default_discovery",
 			args:    []string{"otelcol", "--discovery", "--config=config/collector/agent_config.yaml"},
 			timeout: 30 * time.Second,
@@ -123,6 +176,35 @@ func TestRunFromCmdLine(t *testing.T) {
 			timeout:  30 * time.Second,
 			panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
 			skipMsg:  "Skipping this test by default because --dry-run uses os.Exit(0) to end the execution",
+		},
+		{
+			name: "splunk_logs_windows",
+			args: []string{"otelcol", "--config=config/collector/splunk_logs_config_windows.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:        15 * time.Second,
+			skipNonWindows: true,
+			validateOnly:   true,
+		},
+		{
+			name: "agent_plus_splunk_logs_windows",
+			args: []string{
+				"otelcol",
+				"--config=config/collector/agent_config.yaml",
+				"--config=config/collector/splunk_logs_config_windows.yaml",
+				"--feature-gates=confmap.enableMergeAppendOption",
+			},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:        15 * time.Second,
+			skipNonWindows: true,
+			validateOnly:   true,
 		},
 	}
 
@@ -142,6 +224,9 @@ func TestRunFromCmdLine(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.skipWindows && runtime.GOOS == "windows" {
 				t.Skip("skipping test on windows")
+			}
+			if tt.skipNonWindows && runtime.GOOS != "windows" {
+				t.Skip("skipping test on non-windows")
 			}
 
 			if tt.skipMsg != "" {

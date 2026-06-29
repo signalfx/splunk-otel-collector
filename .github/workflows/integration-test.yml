@@ -11,24 +11,15 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 jobs:
-  agent-bundle-linux:
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64" ]
-      fail-fast: false
-    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
-    with:
-      ARCH: ${{ matrix.ARCH }}
-
   otelcol:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -45,7 +36,7 @@ jobs:
   docker-otelcol:
     name: docker-otelcol
     runs-on: ubuntu-24.04
-    needs: [ "agent-bundle-linux", "otelcol" ]
+    needs: [ "otelcol" ]
     services:
       # Start a local registry for pushing the multiarch manifest and images
       registry:
@@ -53,7 +44,7 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -67,25 +58,20 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: agent-bundle-linux-*
-          merge-multiple: true
-          path: ./dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
           pattern: otelcol-*
           merge-multiple: true
           path: ./bin
       # Building multiarch container images requires qemu
-      - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v10.2.1
-      - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
         id: multiarch-otelcol-builder
         with:
           driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
           driver-opts: network=host  # Required for the builder to push to the local registry service
-      - run: make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
+      - run: make docker-otelcol SKIP_COMPILE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
         env:
           MULTIARCH_OTELCOL_BUILDER: ${{ steps.multiarch-otelcol-builder.outputs.name }}  # Use the builder created by the docker/setup-buildx-action step
       - name: Save image archive for each platform to be loaded by downstream jobs
@@ -132,7 +118,7 @@ jobs:
       fail-fast: false
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -166,7 +152,7 @@ jobs:
       COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -203,12 +189,16 @@ jobs:
       # Here is the list of "services" (see above) that don't support arm64:
       # On profile integration: oracle
       # On profile smartagent: httpd
-      - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v10.2.1
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+      - name: Add shell utilities to otelcol image for integration tests
+        run: |
+          printf 'FROM busybox:musl AS busybox\nFROM otelcol:latest\nCOPY --from=busybox /bin/sh /bin/sh\nCOPY --from=busybox /bin/echo /bin/echo\n' | \
+            docker buildx build --load --platform linux/${{ matrix.ARCH }} -t otelcol:latest -
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
       # Pre-build the telegraf-exec test image using buildx
@@ -248,7 +238,7 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true
@@ -257,7 +247,7 @@ jobs:
 
   integration-test-binary:
     runs-on: ${{ matrix.RUNNER }}
-    needs: [ "agent-bundle-linux", "otelcol" ]
+    needs: [ "otelcol" ]
     strategy:
       matrix:
         RUNNER: [ "ubuntu-22.04", "ubuntu-24.04" ]
@@ -268,7 +258,7 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -293,19 +283,16 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: agent-bundle-linux-amd64
-          merge-multiple: true
-          path: ./dist
-      - run: sudo mkdir -p /usr/lib/splunk-otel-collector
-      - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
-      - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
-      - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
           name: otelcol-amd64
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
+      - run: |
+          if ! command -v setcap >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y libcap2-bin
+          fi
+          sudo setcap CAP_DAC_READ_SEARCH=+eip ./bin/otelcol_linux_amd64
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail
@@ -332,63 +319,12 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  integration-test-openstack:
-    runs-on: ubuntu-24.04
-    needs: [ "agent-bundle-linux", "otelcol" ]
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-      - name: Deploy devstack
-        uses: gophercloud/devstack-action@60ca1042045c0c9e3e001c64575d381654ffcba1 # v0.19
-        with:
-          branch: stable/2025.1
-          enabled_services: '-n-novnc,-etcd3'
-          conf_overrides: |
-            HOST_IP=127.0.0.1
-            IP_VERSION=4
-            SERVICE_IP_VERSION=4
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          pattern: agent-bundle-linux-amd64
-          merge-multiple: true
-          path: ./dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: otelcol-amd64
-          path: ./bin
-      - run: sudo mkdir -p /usr/lib/splunk-otel-collector
-      - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
-      - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
-      - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-      - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
-      - run: chmod a+x ./bin/*
-      - name: Run OpenStack Integration Test
-        run: |
-          set -o pipefail
-          make openstack-integration-test 2>&1
-          exit_status=${PIPESTATUS[0]}
-          echo "Exit status: $exit_status"
-          exit "$exit_status"
-      - name: Upload Received Metrics as Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
-        with:
-          name: openstack-received-metrics
-          path: tests/receivers/smartagent/collectd-openstack/testdata/received_*.yaml
-          if-no-files-found: ignore
-          retention-days: 5
 
   integration-test-discovery-matrix:
     runs-on: ubuntu-24.04
@@ -399,11 +335,12 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
+          for service in "apache" "jmx/cassandra" "kafka-metrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
+                # go.mongodb.org/mongo-driver/v2 requires MongoDB 4.2 or newer.
                 # tests for mongo "6.0" and "7.0" are flaky, skipping for now
-                for mongodb_version in "4.0" "4.4" "5.0"; do
+                for mongodb_version in "4.4" "5.0"; do
                   includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\", \"MONGODB_VERSION\": \"${mongodb_version}\"}"
                 done
               elif [[ ("$service" != "jmx/cassandra" && "$service" != "oracledb") || "arm64" != "$arch" ]]; then
@@ -425,7 +362,7 @@ jobs:
       env:
         COVER_TESTING: true
       steps:
-        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
           with:
             fetch-depth: 0
         - name: Free up disk space for next step
@@ -448,6 +385,11 @@ jobs:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
         - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+        - name: Add Java if required by the discovery test configuration (e.g. for JMX tests)
+          if: matrix.SERVICE == 'jmx/cassandra'
+          run: |
+            docker buildx build --load --platform linux/${{ matrix.ARCH }} -t otelcol:latest \
+              -f ./tests/receivers/jmx/cassandra/Dockerfile .
         - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover
@@ -460,7 +402,7 @@ jobs:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
           if: ${{ github.actor != 'dependabot[bot]' }}
-          uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+          uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
           with:
             verbose: true
             fail_ci_if_error: true
@@ -493,7 +435,7 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -552,7 +494,7 @@ jobs:
           kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true

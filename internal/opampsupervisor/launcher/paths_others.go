@@ -1,0 +1,31 @@
+// Copyright Splunk Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//go:build !windows
+
+package launcher
+
+// DefaultPaths returns the installed collector, supervisor, and state
+// locations used by the package-managed service on Linux packages.
+func DefaultPaths() Paths {
+	return Paths{
+		CollectorExecutable:      "/usr/bin/otelcol",
+		SupervisorExecutable:     "/usr/bin/opampsupervisor",
+		SupervisorConfig:         "/etc/otel/collector/supervisor/supervisor_config.yaml",
+		GeneratedCollectorConfig: "/etc/otel/collector/supervisor/collector_config.yaml",
+		StorageDirectory:         "/var/lib/otelcol/supervisor",
+		DefaultAgentConfig:       "/etc/otel/collector/agent_config.yaml",
+		UseHUPConfigReload:       true,
+	}
+}

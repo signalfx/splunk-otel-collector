@@ -37,6 +37,9 @@ extensions:
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
+    agent_description:
+      # Include the Collector's resource attributes as OpAMP non-identifying attributes.
+      include_resource_attributes: true
     server:
       http:
         endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
@@ -202,9 +205,9 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [otlp_http, signalfx]
+      exporters: [otlp_http]
       # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway, signalfx]
+      #exporters: [otlp_grpc/gateway]
     # Required for Splunk Infrastructure Monitoring
     metrics:
       receivers: [host_metrics, otlp]

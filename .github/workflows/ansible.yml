@@ -10,12 +10,14 @@ on:
     paths:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml'
+      - 'packaging/msi/**'
     branches:
       - main
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
+      - 'packaging/msi/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 1,4' # Every Monday and Thrusday at midnight UTC
@@ -36,17 +38,8 @@ jobs:
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
-  agent-bundle-linux:
-    strategy:
-      matrix:
-        ARCH: [ "amd64" ]
-      fail-fast: false
-    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
-    with:
-      ARCH: ${{ matrix.ARCH }}
-
   build-package:
-    needs: [ cross-compile, agent-bundle-linux ]
+    needs: [ cross-compile ]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
@@ -57,18 +50,12 @@ jobs:
       SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
       ARCH: ${{ matrix.ARCH }}
 
-  agent-bundle-windows:
-    needs: lint
-    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
-    with:
-      ARCH: "amd64"
-
   msi-custom-actions:
     needs: lint
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
 
   msi-build:
-    needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
+    needs: [ cross-compile, msi-custom-actions ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       ARCH: "amd64"
@@ -81,7 +68,7 @@ jobs:
         working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Python 3.
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
@@ -138,7 +125,7 @@ jobs:
 
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -205,7 +192,7 @@ jobs:
     steps:
       
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       
       - name: Free up disk space for vagrant box
         run: |
@@ -238,6 +225,7 @@ jobs:
       - name: Install vagrant and virtualbox
         run: |
           sudo apt update && sudo apt install -y virtualbox
+          sudo modprobe vboxdrv
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install -y vagrant
@@ -303,12 +291,12 @@ jobs:
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml
         run: |
-          version=$(yq e -r '.version' deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml)
+          version=$(yq e -r '.version' galaxy.yml)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
       
       - name: Ensure version is fetched from galaxy.yml

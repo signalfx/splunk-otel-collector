@@ -24,6 +24,7 @@ PROJECT_DIR=${PROJECT_DIR:-"${REPO_DIR}"}
 MSI_SRC_DIR=${MSI_SRC_DIR:-"${REPO_DIR}/packaging/msi"}
 WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
 AGENT_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
+SPLUNK_LOGS_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/splunk_logs_config_windows.yaml"
 GATEWAY_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
 SUPPORT_BUNDLE_SCRIPT=${SUPPORT_BUNDLE_SCRIPT:-"${MSI_SRC_DIR}/splunk-support-bundle.ps1"}
 SPLUNK_ICON="${MSI_SRC_DIR}/splunk.ico"
@@ -62,6 +63,7 @@ parse_args_and_build() {
     local otelcol=""
     local agent_config="$AGENT_CONFIG"
     local gateway_config="$GATEWAY_CONFIG"
+    local splunk_logs_config="$SPLUNK_LOGS_CONFIG"
     local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
     local jmx_metric_gatherer_release="$JMX_METRIC_GATHERER_RELEASE"
     local splunk_icon="$SPLUNK_ICON"
@@ -159,14 +161,8 @@ parse_args_and_build() {
     mkdir -p "${files_dir}"
     cp "$support_bundle" "${files_dir}/splunk-support-bundle.ps1"
     cp "$agent_config" "${files_dir}/agent_config.yaml"
+    cp "$splunk_logs_config" "${files_dir}/splunk_logs_config_windows.yaml"
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
-
-    if [ -z "$skip_build_dir_removal" ]; then
-        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_${arch}.zip"
-        rm -f "${OUTPUT_DIR}/agent-bundle_windows_${arch}.zip"
-    else
-        echo "Skipping unzipping agent bundle"
-    fi
 
     jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
     if [ -f "${jmx_metrics_jar}" ]; then

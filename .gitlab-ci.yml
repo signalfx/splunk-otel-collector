@@ -13,7 +13,7 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -279,27 +279,6 @@ update-otel-deps:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
-update-otel-deps-nightly:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
-
-update-openjdk:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-yq.sh
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-openjdk.sh
-
 update-javaagent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -346,6 +325,16 @@ update-dotnet-agent:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
+
+check-mass-deployments-release:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/check-mass-deployments-release.sh
 
 tidy-dependabot-pr:
   rules:
@@ -433,65 +422,6 @@ libsplunk:
   artifacts:
     paths:
       - instrumentation/dist/libsplunk_*.so
-
-agent-bundle-linux:
-  rules:
-    - <<: *main-condition
-    # - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - <<: *manual-release-condition
-    - <<: *dry-run-condition
-  needs:
-    - job: manual_release_trigger
-      optional: true
-  retry: 2
-  resource_group: agent-bundle-linux-${ARCH}
-  parallel:
-    matrix:
-      - ARCH: amd64
-        TAG: main
-      - ARCH: arm64
-        TAG: arm
-  tags:
-    - $TAG
-  id_tokens:  # http://go/gitlab-17
-    CI_JOB_JWT:
-      aud:
-        - $CICD_VAULT_ADDR
-        - $SIGNING_PRD_URL
-  script:
-    - *docker-reader-role
-    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
-    - PUSH_CACHE=yes make -C packaging/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
-  artifacts:
-    paths:
-      - dist/agent-bundle_linux_${ARCH}.tar.gz
-
-agent-bundle-windows:
-  extends: .trigger-filter
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
-  needs:
-    - job: manual_release_trigger
-      optional: true
-  parallel:
-    matrix:
-      - ARCH: [amd64, arm64]
-  tags:
-    - windows2022
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  cache:
-    key:
-      files:
-        - packaging/bundle/collectd-plugins.yaml
-        - packaging/bundle/scripts/requirements.txt
-    paths:
-      - .cache/pip
-  script:
-    - ./packaging/bundle/scripts/windows/make.ps1 bundle $ARCH
-  artifacts:
-    paths:
-      - dist/agent-bundle_windows_$ARCH.zip
 
 .instrumentation-deb-rpm:
   extends: .trigger-filter
@@ -597,7 +527,6 @@ sign-osx:
 .build-tar-deb-rpm:
   needs:
     - compile
-    - agent-bundle-linux
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -691,7 +620,6 @@ build-msi:
   image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
   needs:
     - sign-exe
-    - agent-bundle-windows
     - msi-custom-actions-package
   parallel:
     matrix:
@@ -829,33 +757,6 @@ sign-msi:
     paths:
       - dist/signed/*.msi
 
-sign-agent-bundles:
-  extends:
-    - .trigger-filter
-    - .submit-signing-request
-  retry: 2
-  needs:
-    - agent-bundle-linux
-    - agent-bundle-windows
-  variables:
-    ARTIFACT: dist/packages.tar.gz
-    SIGN_TYPE: GPG
-    OPTIONS: archive
-    DOWNLOAD_DIR: dist/signed
-  before_script:
-    - pushd dist && tar -czvf packages.tar.gz *.tar.gz *.zip && popd
-  after_script:
-    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
-    - mv dist/*.tar.gz dist/signed/
-    - mv dist/*.zip dist/signed/
-    - rm dist/signed/packages.tar.gz
-  artifacts:
-    paths:
-      - dist/signed/*.tar.gz
-      - dist/signed/*.tar.gz.asc
-      - dist/signed/*.zip
-      - dist/signed/*.zip.asc
-
 sign-ps-installer:
   extends:
     - .trigger-filter
@@ -887,19 +788,16 @@ verify-signed-packages:
     - sign-rpms
     - sign-msi
     - sign-tar
-    - agent-bundle-linux
-    - agent-bundle-windows
-    - sign-agent-bundles
     - sign-ps-installer
   script:
     - |
       set -ex
-      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip dist/install.ps1; do
+      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/install.ps1; do
         if [[ ! -f dist/signed/$(basename $pkg) ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
-        if [[ "${pkg##*.}" =~ gz|zip ]] && [[ ! -f dist/signed/$(basename $pkg).asc ]]; then
+        if [[ "${pkg##*.}" =~ gz ]] && [[ ! -f dist/signed/$(basename $pkg).asc ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
@@ -909,8 +807,6 @@ build-push-linux-image:
   extends: .trigger-filter
   needs:
     - job: compile
-      artifacts: true
-    - job: agent-bundle-linux
       artifacts: true
   retry: 2
   id_tokens:  # http://go/gitlab-17
@@ -939,7 +835,7 @@ build-push-linux-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -989,7 +885,7 @@ build-push-linux-fips-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -1033,12 +929,10 @@ sign-linux-image:
 build-push-windows-image:
   extends: .trigger-filter
   parallel:
-    matrix:
+      matrix:
       - WIN_VERSION: ["2019", "2022"]
   needs:
     - job: sign-exe
-      artifacts: true
-    - job: agent-bundle-windows
       artifacts: true
   tags:
     - windows${WIN_VERSION}
@@ -1051,7 +945,6 @@ build-push-windows-image:
     - Install-Chocolatey
     - Install-DockerCli
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-    - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
     - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
@@ -1344,9 +1237,10 @@ release-debs:
   after_script:
     - *get-artifactory-stage
     - |
-      set -ex
+      set +x
+      set -euo pipefail
       if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
       fi
   artifacts:
     paths:
@@ -1364,20 +1258,27 @@ release-rpms:
   needs:
     - job: sign-rpms
       artifacts: true
-  retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
       set -ex
-      for path in dist/signed/*${ARCH}.rpm; do
+      shopt -s nullglob
+      rpm_paths=(dist/signed/*"${ARCH}".rpm)
+      shopt -u nullglob
+      if [ "${#rpm_paths[@]}" -lt 2 ]; then
+        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
+        exit 1
+      fi
+      for path in "${rpm_paths[@]}"; do
         if [ ! -f "$path" ]; then
           echo "$path not found!"
           exit 1
         fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
       done
+      python3 packaging/release/release.py --force --stage=${STAGE} --paths "${rpm_paths[@]}"
     - test -f repomd.xml
   variables:
     ARTIFACT: repomd.xml
@@ -1386,9 +1287,10 @@ release-rpms:
   after_script:
     - *get-artifactory-stage
     - |
-      set -ex
+      set +x
+      set -euo pipefail
       if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
+        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T "signed/${ARCH}/repomd.xml.asc"
       fi
   artifacts:
     paths:
@@ -1396,21 +1298,145 @@ release-rpms:
       - signed/${ARCH}/repomd.xml.asc
 
 # since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
-verify-signed-metadata:
+.verify-metadata:
   extends: .trigger-filter
-  needs:
-    - release-debs
-    - release-rpms
-  retry: 2
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
   before_script:
-    - apt update && apt install -y curl
+    - apt update && apt install -y curl gnupg
   script:
     - *get-artifactory-stage
     - |
       set -exo pipefail
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg | diff - signed/Release.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/x86_64/repodata/repomd.xml.asc | diff - signed/x86_64/repomd.xml.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/aarch64/repodata/repomd.xml.asc | diff - signed/aarch64/repomd.xml.asc
+
+      export GNUPGHOME="$(mktemp -d)"
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
+      gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
+        || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
+
+      # Resolve this target's live metadata URL, its detached signature URL, and
+      # the signature this pipeline produced (from the release job artifacts).
+      case "$TARGET" in
+        deb)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
+          data_url="${base}/Release"
+          sig_url="${base}/Release.gpg"
+          name="deb-Release"
+          local_sig="signed/Release.asc"
+          ;;
+        rpm)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata"
+          data_url="${base}/repomd.xml"
+          sig_url="${base}/repomd.xml.asc"
+          name="rpm-${ARCH}-repomd.xml"
+          local_sig="signed/${ARCH}/repomd.xml.asc"
+          ;;
+        *)
+          echo "Unknown TARGET '${TARGET}'"; exit 1
+          ;;
+      esac
+
+      echo "Verifying live signature for ${name} ..."
+      curl -fsSL "$data_url" -o "metadata.${name}"
+      curl -fsSL "$sig_url" -o "metadata.${name}.asc"
+
+      # The published signature must validate against the live metadata
+      # Artifactory is serving (catches the async-regeneration race).
+      gpg --status-fd=1 --verify "metadata.${name}.asc" "metadata.${name}" \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Signature for ${name} did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+      # The published signature is the one this pipeline uploaded (catches a
+      # failed upload or a stale/cached .asc).
+      if [ -n "$local_sig" ]; then
+        diff "metadata.${name}.asc" "$local_sig"
+      fi
+
+      echo "Signature OK for ${name}"
+
+# verify the deb repo metadata signature; only needs the deb release artifacts.
+verify-deb-metadata:
+  extends: .verify-metadata
+  needs:
+    - release-debs
+  variables:
+    TARGET: deb
+
+# verify the rpm repo metadata signatures per-arch; only needs the rpm release artifacts.
+verify-rpm-metadata:
+  extends: .verify-metadata
+  needs:
+    - release-rpms
+  parallel:
+    matrix:
+      - TARGET: rpm
+        ARCH: [x86_64, aarch64]
+
+verify-rpm-install:
+  extends: .trigger-filter
+  image: quay.io/rockylinux/rockylinux:9
+  needs:
+    - job: release-rpms
+      artifacts: true
+    - job: verify-rpm-metadata
+      artifacts: false
+  variables:
+    ARCH: x86_64
+  script:
+    - *get-artifactory-stage
+    - |
+      set -euxo pipefail
+
+      shopt -s nullglob
+      rpm_paths=(dist/signed/*"${ARCH}".rpm)
+      shopt -u nullglob
+      if [ "${#rpm_paths[@]}" -lt 2 ]; then
+        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
+        exit 1
+      fi
+
+      collector_nevra=""
+      instrumentation_nevra=""
+      instrumentation_rpm=""
+      for path in "${rpm_paths[@]}"; do
+        nevra="$(rpm -qp --queryformat '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}' "$path")"
+        case "$nevra" in
+          splunk-otel-collector-*) collector_nevra="$nevra" ;;
+          splunk-otel-auto-instrumentation-*)
+            instrumentation_nevra="$nevra"
+            instrumentation_rpm="$(basename "$path")"
+            ;;
+        esac
+      done
+      test -n "$collector_nevra"
+      test -n "$instrumentation_nevra"
+      test -n "$instrumentation_rpm"
+
+      printf '%s\n' \
+        '[splunk-otel-collector]' \
+        'name=Splunk OpenTelemetry Collector Repository' \
+        "baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/\$basearch" \
+        'gpgcheck=1' \
+        'repo_gpgcheck=1' \
+        'gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub' \
+        'enabled=1' \
+        > /etc/yum.repos.d/splunk-otel-collector.repo
+
+      dnf clean all
+      dnf -y --disablerepo='*' --enablerepo=splunk-otel-collector makecache
+      dnf -y install "$collector_nevra" "$instrumentation_nevra"
+      rpm -q "$collector_nevra" "$instrumentation_nevra"
+
+      # Direct rpm URL installs bypass repo_gpgcheck, but some users install this way.
+      instrumentation_url="https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/${ARCH}/${instrumentation_rpm}"
+      rpm -e splunk-otel-auto-instrumentation
+      rpm -ivh "$instrumentation_url"
+      rpm -q "$instrumentation_nevra"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1531,8 +1557,8 @@ ta-v2-splunkbase-release:
         declare -A log_files pids
         for entry in \
             "7125:${TA_DIR}/Splunk_TA_otel.tgz" \
-            "8968:${TA_DIR}/Splunk_TA_otel_linux_x86_64.tgz" \
-            "8969:${TA_DIR}/Splunk_TA_otel_windows_x86_64.tgz"
+            "8698:${TA_DIR}/Splunk_TA_otel_linux_x86_64.tgz" \
+            "8699:${TA_DIR}/Splunk_TA_otel_windows_x86_64.tgz"
         do
           app_id="${entry%%:*}"
           package="${entry#*:}"
@@ -1548,8 +1574,7 @@ ta-v2-splunkbase-release:
 
         overall_status=0
         for app_id in "${!pids[@]}"; do
-          wait "${pids[$app_id]}"
-          publish_status=$?
+          wait "${pids[$app_id]}" && publish_status=0 || publish_status=$?
           if [[ "$publish_status" -ne 0 ]]; then
             overall_status=1
           fi
@@ -1739,13 +1764,17 @@ github-release:
       artifacts: true
     - job: release-rpms
       artifacts: true
+    - job: verify-deb-metadata
+      artifacts: false
+    - job: verify-rpm-metadata
+      artifacts: false
+    - job: verify-rpm-install
+      artifacts: false
     - job: sign-msi
       artifacts: true
     - job: sign-tar
       artifacts: true
     - job: push-multiarch-manifest
-      artifacts: true
-    - job: sign-agent-bundles
       artifacts: true
     - job: sign-multiarch-manifest
       artifacts: false
@@ -1767,17 +1796,6 @@ github-release:
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      # Rename agent bundles to include the version for all releases (include pre-releases)
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        VERSION="${VERSION_TAG#v}"
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz.asc
-        mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${VERSION}_windows_amd64.zip
-        mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${VERSION}_windows_amd64.zip.asc
-        # exclude the arm64 bundle from release assets
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz.asc
-      fi
       pushd dist/assets && shasum -a 256 * > checksums.txt && popd
       if [[ -z "${DRY_RUN:-}" ]]; then
         # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
@@ -1843,6 +1861,7 @@ puppet-release:
     - if: $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs: []
   before_script:
+    - gem update --system 3.2.3
     - gem install bundler -v 2.4.22
     - cd deployments/puppet
     - bundle install

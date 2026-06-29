@@ -53,12 +53,12 @@ type nutanixVM struct {
 	ClusterID         string
 	HostID            string
 	PowerState        string
+	DiskBuses         []string
+	Stats             []metricStat
+	MemoryBytes       int64
 	NumSockets        int
 	NumCoresPerSocket int
-	MemoryBytes       int64
-	DiskBuses         []string
 	NICCount          int
-	Stats             []metricStat
 }
 
 type nutanixVolumeGroup struct {

@@ -48,6 +48,8 @@ receivers:
       - /var/log/anaconda.syslog
     start_at: beginning
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
     include_file_path: true
     include_file_name: true
     operators:
@@ -82,6 +84,8 @@ receivers:
     include_file_name: true
     start_at: beginning
     force_flush_period: 500ms
+    retry_on_failure:
+      enabled: true
     multiline:
       line_start_pattern: '^THIS_PATTERN_WILL_NEVER_MATCH_ANYTHING$'
     operators:
@@ -100,6 +104,8 @@ receivers:
       - /home/*/.bash_history
     start_at: beginning
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
     include_file_path: true
     include_file_name: true
     operators:
@@ -190,6 +196,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Apache error log.
   # Configured using the ErrorLogFormat directive.
@@ -226,6 +234,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Apache Cassandra default log.
   # Configured in /etc/cassandra/logback.xml, SYSTEMLOG appender section.
@@ -259,6 +269,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Apache Cassandra debug log. Contains additional debugging information.
   # Configured in /etc/cassandra/logback.xml, DEBUGLOG appender section.
@@ -292,6 +304,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # This file is written if Cassandra process' standard output stream (stdout)
   # is redirected to a file.
@@ -300,6 +314,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
     operators:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
@@ -335,6 +351,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Etcd versions 3.4 and prior are logging using the capnslog library.
   # (https://etcd.io/docs/v3.4/dev-internal/logging/).
@@ -373,6 +391,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Jetty default log.
   # By default, Jetty will log to standard error stream (stderr). To redirect
@@ -406,6 +426,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Jetty debug log.
   # Enabled with the jetty-debuglog module.
@@ -432,6 +454,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Jetty request logs.
   # Enabled with the jetty-requestlog module.
@@ -453,6 +477,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Memcached.
   file_log/memcached:
@@ -460,6 +486,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
     operators:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
@@ -504,6 +532,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # MySQL server error log. Contains critical errors that occurred during the
   # server's operation, table corruption, start and stop information.
@@ -538,6 +568,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # MySQL general query log. Contains a log of every SQL query received from a
   # client, as well as each client connect and disconnect.
@@ -573,6 +605,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # MySQL slow query log. Contains a log of SQL queries that took a long time to perform.
   # Disabled by default. To enable, use the slow_query_log variable.
@@ -584,6 +618,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
     operators:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
@@ -612,6 +648,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Nginx error log.
   # See https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
@@ -645,6 +683,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # PostgreSQL server log.
   # See https://www.postgresql.org/docs/current/runtime-config-logging.html
@@ -671,6 +711,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # RabbitMQ broker node log.
   # See https://www.rabbitmq.com/logging.html
@@ -702,6 +744,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # RabbitMQ server startup log.
   file_log/rabbitmq-startup:
@@ -709,6 +753,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
     operators:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
@@ -723,6 +769,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
     operators:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
@@ -780,6 +828,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Syslog and messages log files.
   # These are not in the RFC3164 format.
@@ -807,6 +857,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Apache Tomcat.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html
@@ -840,6 +892,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Apache Tomcat console output.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html#Console
@@ -868,6 +922,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Apache Tomcat access log.
   # Entries are in the standard NCSA Common Log Format.
@@ -890,6 +946,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Zookeeper log.
   # Configured in /etc/zookeeper/conf/log4j.properties
@@ -920,6 +978,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   # Zookeeper tracefile.
   # Configured in /etc/zookeeper/conf/log4j.properties
@@ -950,6 +1010,8 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    retry_on_failure:
+      enabled: true
 
   #######################################
 

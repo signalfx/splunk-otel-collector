@@ -15,7 +15,7 @@ variables:
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
   RUN_RPM_METADATA_REPAIR:
     value: "false"
-    description: "Set to 'true' on a manual main pipeline to re-sign the current release RPM repo metadata."
+    description: "Set to 'true' on a manual main web pipeline to re-sign the current release RPM repo metadata."
   GO_VERSION: 1.26.4
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -102,6 +102,8 @@ manual_release_trigger:
 
       echo "Manual release triggered for version $RELEASE_VERSION"
   rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true"'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'
       when: on_success
   allow_failure: false
@@ -1313,7 +1315,7 @@ sign-release-rpm-metadata:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   before_script:
     - apt update && apt install -y curl
     - |
@@ -1342,7 +1344,7 @@ publish-release-rpm-metadata-signature:
     - job: sign-release-rpm-metadata
       artifacts: true
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
@@ -1380,7 +1382,7 @@ verify-release-rpm-metadata-signature:
   needs:
     - publish-release-rpm-metadata-signature
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
@@ -1473,6 +1475,26 @@ verify-deb-metadata:
   variables:
     TARGET: deb
 
+verify-deb-install:
+  extends: .trigger-filter
+  image: ubuntu:22.04
+  needs:
+    - job: release-debs
+      artifacts: true
+    - job: verify-deb-metadata
+      artifacts: false
+  variables:
+    ARCH: amd64
+    DEBIAN_FRONTEND: noninteractive
+  script:
+    - *get-artifactory-stage
+    - |
+      set -euxo pipefail
+      shopt -s nullglob
+      deb_paths=(dist/signed/*_"${ARCH}".deb)
+      shopt -u nullglob
+      packaging/release/verify-deb-install.sh "${deb_paths[@]}"
+
 # verify the rpm repo metadata signatures per-arch; only needs the rpm release artifacts.
 verify-rpm-metadata:
   extends: .verify-metadata
@@ -1497,52 +1519,10 @@ verify-rpm-install:
     - *get-artifactory-stage
     - |
       set -euxo pipefail
-
       shopt -s nullglob
       rpm_paths=(dist/signed/*"${ARCH}".rpm)
       shopt -u nullglob
-      if [ "${#rpm_paths[@]}" -lt 2 ]; then
-        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
-        exit 1
-      fi
-
-      collector_nevra=""
-      instrumentation_nevra=""
-      instrumentation_rpm=""
-      for path in "${rpm_paths[@]}"; do
-        nevra="$(rpm -qp --queryformat '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}' "$path")"
-        case "$nevra" in
-          splunk-otel-collector-*) collector_nevra="$nevra" ;;
-          splunk-otel-auto-instrumentation-*)
-            instrumentation_nevra="$nevra"
-            instrumentation_rpm="$(basename "$path")"
-            ;;
-        esac
-      done
-      test -n "$collector_nevra"
-      test -n "$instrumentation_nevra"
-      test -n "$instrumentation_rpm"
-
-      printf '%s\n' \
-        '[splunk-otel-collector]' \
-        'name=Splunk OpenTelemetry Collector Repository' \
-        "baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/\$basearch" \
-        'gpgcheck=1' \
-        'repo_gpgcheck=1' \
-        'gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub' \
-        'enabled=1' \
-        > /etc/yum.repos.d/splunk-otel-collector.repo
-
-      dnf clean all
-      dnf -y --disablerepo='*' --enablerepo=splunk-otel-collector makecache
-      dnf -y install "$collector_nevra" "$instrumentation_nevra"
-      rpm -q "$collector_nevra" "$instrumentation_nevra"
-
-      # Direct rpm URL installs bypass repo_gpgcheck, but some users install this way.
-      instrumentation_url="https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/${ARCH}/${instrumentation_rpm}"
-      rpm -e splunk-otel-auto-instrumentation
-      rpm -ivh "$instrumentation_url"
-      rpm -q "$instrumentation_nevra"
+      packaging/release/verify-rpm-install.sh "${rpm_paths[@]}"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1873,6 +1853,8 @@ github-release:
     - job: release-rpms
       artifacts: true
     - job: verify-deb-metadata
+      artifacts: false
+    - job: verify-deb-install
       artifacts: false
     - job: verify-rpm-metadata
       artifacts: false

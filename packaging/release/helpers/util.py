@@ -430,7 +430,9 @@ def release_deb_to_artifactory(asset, args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
-    calculate_url = f"{ARTIFACTORY_API_URL}/deb/reindex/{ARTIFACTORY_DEB_REPO}"
+    calculate_url = None
+    if getattr(args, "sync_calculate_metadata", False):
+        calculate_url = f"{ARTIFACTORY_API_URL}/deb/reindex/{ARTIFACTORY_DEB_REPO}?async=0"
 
     upload_package_to_artifactory(
         asset.path,

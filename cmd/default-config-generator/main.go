@@ -1,34 +1,68 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
-const agentConfigGatewayDisabledPath = "../otelcol/config/collector/agent_config.yaml"
-const agentConfigGatewayEnabledPath = "../otelcol/config/collector/agent_to_gateway_config.yaml"
-const agentConfigSourcePath = "./agent_config_source.yaml"
-const blockEndMarker = "# <---->"
-const gatewayDisabledMarker = "# <-- gateway disabled -->"
-const gatewayEnabledMarker = "# <-- gateway enabled -->"
 const generatedCommentMarker = "# <-- generated comment -->"
-const leadingLineBreakCharacters = "\r\n"
+const generatedCommentEndMarker = "# <-- generated comment end -->"
+
+const gatewayDisabledMarker = "# <-- gateway disabled -->"
+const gatewayDisabledEndMarker = "# <-- gateway disabled end -->"
+
+const gatewayEnabledMarker = "# <-- gateway enabled -->"
+const gatewayEnabledEndMarker = "# <-- gateway enabled end -->"
+
 const lineBreak = "\n"
 
-type configGenerator struct {
-	configSourcePath     string
+type generateConfig struct {
+	destinationPath         string
+	generatedConfigContents *bytes.Buffer
+	startMarker             string
+	endMarker               string
+	insideMarker            bool
+}
+
+func (cfg *generateConfig) AppendGeneratedConfigContents(line string) {
+	cfg.generatedConfigContents.WriteString(line + lineBreak)
+}
+
+func (cfg *generateConfig) writeGeneratedConfigFile() error {
+	return os.WriteFile(cfg.destinationPath, cfg.generatedConfigContents.Bytes(), 0o644)
+}
+
+type sourceTemplate struct {
+	generateConfigs      []*generateConfig
+	sourceTemplatePath   string
 	sourceConfigContents string
 }
 
-func newConfigGenerator(configSourcePath string) *configGenerator {
-	return &configGenerator{
-		configSourcePath: configSourcePath,
+func getAgentSourceTemplate() sourceTemplate {
+	return sourceTemplate{
+		generateConfigs: []*generateConfig{
+			{
+				destinationPath:         filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),
+				endMarker:               gatewayDisabledEndMarker,
+				startMarker:             gatewayDisabledMarker,
+				generatedConfigContents: bytes.NewBuffer(make([]byte, 0)),
+			},
+			{
+				destinationPath:         filepath.Join("..", "otelcol", "config", "collector", "agent_to_gateway_config.yaml"),
+				endMarker:               gatewayEnabledEndMarker,
+				startMarker:             gatewayEnabledMarker,
+				generatedConfigContents: bytes.NewBuffer(make([]byte, 0)),
+			},
+		},
+		sourceTemplatePath: filepath.Join("config_templates", "agent_config_source.yaml.tmpl"),
 	}
 }
 
-func (generator *configGenerator) loadSourceConfigFile() error {
-	source, err := os.ReadFile(generator.configSourcePath)
+func (generator *sourceTemplate) loadSourceConfigFile() error {
+	source, err := os.ReadFile(generator.sourceTemplatePath)
 	if err != nil {
 		return err
 	}
@@ -36,104 +70,107 @@ func (generator *configGenerator) loadSourceConfigFile() error {
 	return nil
 }
 
-func (generator *configGenerator) writeGeneratedConfigFile(generatedConfig []byte, filePath string) error {
-	return os.WriteFile(filePath, generatedConfig, 0644)
-}
-
-func (generator *configGenerator) convertSourceConfig(gatewayEnabled bool) ([]byte, error) {
-	var configFileContents strings.Builder
-	insideGatewayDisabledOnlyBlock := false
-	insideGatewayOnlyBlock := false
+func (generator *sourceTemplate) convertTemplate() {
 	insideCommentBlock := false
-
 	for _, line := range strings.Split(generator.sourceConfigContents, lineBreak) {
-		// Need to keep track of whether the current line is in a specialized block
-		if strings.Contains(line, blockEndMarker) {
-			// Nesting specialized blocks is not allowed, any ending marker means all special sections are over.
-			insideGatewayDisabledOnlyBlock = false
-			insideGatewayOnlyBlock = false
+		if strings.Contains(line, generatedCommentEndMarker) {
+			// Everything inside of comments is disregarded, can safely reset all status markers
+			// when comment is finished
+			for _, config := range generator.generateConfigs {
+				config.insideMarker = false
+			}
 			insideCommentBlock = false
 			continue
 		}
-		if strings.Contains(line, gatewayDisabledMarker) {
-			insideGatewayDisabledOnlyBlock = true
+		if insideCommentBlock {
 			continue
 		}
-		if strings.Contains(line, gatewayEnabledMarker) {
-			insideGatewayOnlyBlock = true
-			continue
-		}
+
+		// Track start of special blocks
 		if strings.Contains(line, generatedCommentMarker) {
 			insideCommentBlock = true
 			continue
 		}
 
-		// Cases where we can skip the current line
-		if insideCommentBlock {
-			continue
+		lineContainsStartMarker := false
+		for _, config := range generator.generateConfigs {
+			if strings.Contains(line, config.startMarker) {
+				config.insideMarker = true
+				lineContainsStartMarker = true
+				break
+			}
 		}
-		if gatewayEnabled && insideGatewayDisabledOnlyBlock {
-			continue
-		}
-		if !gatewayEnabled && insideGatewayOnlyBlock {
+		if lineContainsStartMarker {
 			continue
 		}
 
-		configFileContents.WriteString(line + lineBreak)
+		// Track end of special blocks
+		lineContainsEndMarker := false
+		for _, config := range generator.generateConfigs {
+			if strings.Contains(line, config.endMarker) {
+				config.insideMarker = false
+				lineContainsEndMarker = true
+				break
+			}
+		}
+		if lineContainsEndMarker {
+			continue
+		}
+
+		inSpecializedBlock := false
+		for _, config := range generator.generateConfigs {
+			if config.insideMarker {
+				inSpecializedBlock = true
+				config.AppendGeneratedConfigContents(line)
+				// Enforce only being in one special block at a time
+				break
+			}
+		}
+		if inSpecializedBlock {
+			continue
+		}
+
+		for _, config := range generator.generateConfigs {
+			config.AppendGeneratedConfigContents(line)
+		}
 	}
-
-	return []byte(configFileContents.String()), nil
 }
 
-func (generator *configGenerator) validateMatchingConfigMarkers() error {
-	if generator.sourceConfigContents == "" {
-		return fmt.Errorf("no config source defined")
-	}
-	markupEndCount := 0
-	markupStartCount := 0
-	for _, line := range strings.Split(generator.sourceConfigContents, lineBreak) {
-		if strings.Contains(line, blockEndMarker) {
-			markupEndCount++
-		} else if strings.Contains(line, gatewayDisabledMarker) ||
-			strings.Contains(line, gatewayEnabledMarker) ||
-			strings.Contains(line, generatedCommentMarker) {
-			markupStartCount++
+func (generator *sourceTemplate) writeAllGeneratedConfigFiles() error {
+	for _, config := range generator.generateConfigs {
+		if err := config.writeGeneratedConfigFile(); err != nil {
+			return err
 		}
-	}
-	if markupStartCount != markupEndCount {
-		return fmt.Errorf("Mismatch count of marker start blocks and marker end blocks: %d != %d", markupStartCount, markupEndCount)
 	}
 	return nil
 }
 
-func (generator *configGenerator) validateSourceConfigFile() error {
+func (generator *sourceTemplate) validateMatchingConfigMarkers() error {
+	return nil
+}
+
+func (generator *sourceTemplate) validateSourceConfigFile() error {
 	return generator.validateMatchingConfigMarkers()
 }
 
 func main() {
-	generator := newConfigGenerator(agentConfigSourcePath)
-	err := generator.loadSourceConfigFile()
+	agentTemplate := getAgentSourceTemplate()
+
+	err := agentTemplate.loadSourceConfigFile()
 	if err != nil {
 		fmt.Printf("Error loading source config file: %v\n", err)
 		os.Exit(1)
 	}
-	err = generator.validateSourceConfigFile()
+	err = agentTemplate.validateSourceConfigFile()
 	if err != nil {
 		fmt.Printf("Error validating source config file: %v\n", err)
 		os.Exit(1)
 	}
 
-	agentWithoutGateway, err := generator.convertSourceConfig(false)
+	agentTemplate.convertTemplate()
+	err = agentTemplate.writeAllGeneratedConfigFiles()
 	if err != nil {
-		fmt.Printf("Error generating agent without gateway config file: %v\n", err)
+		fmt.Printf("Error writing all generated config files: %v\n", err)
 		os.Exit(1)
 	}
-	generator.writeGeneratedConfigFile(agentWithoutGateway, agentConfigGatewayDisabledPath)
-
-	agentToGateway, err := generator.convertSourceConfig(true)
-	if err != nil {
-		fmt.Printf("Error generating agent to gateway config file: %v\n", err)
-		os.Exit(1)
-	}
-	generator.writeGeneratedConfigFile(agentToGateway, agentConfigGatewayEnabledPath)
 }

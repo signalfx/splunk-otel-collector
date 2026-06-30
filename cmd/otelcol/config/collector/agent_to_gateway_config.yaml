@@ -1,24 +1,3 @@
-# <-- generated comment -->
-# This file is being used to generate two config files:
-#   1. agent_config.yaml: An agent config used without a gateway
-#   2. agent_to_gateway_config.yaml: An agent config used with a gateway
-#
-# How it works:
-# Specialized blocks are used to determine which comments can be dropped, or which
-# functionality is only valid for the agent to gateway or agent without gateway scenarios.
-#
-# Specialized block format:
-# <-- gateway enabled -->
-# <-- gateway disabled -->
-# <-- generated comment -->
-
-# Note: Nesting blocks is not supported
-# Run `make generate-configs` to ensure both configurations have been generated
-
-# <---->
-# <---->
-# <---->
-# <---->
 # Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
 
 # If the collector is installed without the Linux/Windows installer script, the following
@@ -43,12 +22,7 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
-      # <-- gateway disabled -->
-      endpoint: "${SPLUNK_API_URL}"
-      # <---->
-      # <-- gateway enabled -->
       endpoint: "${SPLUNK_GATEWAY_URL}"
-      # <---->
 
   http_forwarder/opamp_splunk_o11y:
     ingress:

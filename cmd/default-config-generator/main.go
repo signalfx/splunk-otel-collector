@@ -33,7 +33,7 @@ const gatewayEnabledEndMarker = "# <-- gateway enabled end -->"
 
 const lineBreak = "\n"
 
-type generateConfig struct {
+type configToGenerate struct {
 	destinationPath         string
 	generatedConfigContents *bytes.Buffer
 	startMarker             string
@@ -41,23 +41,23 @@ type generateConfig struct {
 	insideMarker            bool
 }
 
-func (cfg *generateConfig) AppendGeneratedConfigContents(line string) {
+func (cfg *configToGenerate) AppendGeneratedConfigContents(line string) {
 	cfg.generatedConfigContents.WriteString(line + lineBreak)
 }
 
-func (cfg *generateConfig) writeGeneratedConfigFile() error {
+func (cfg *configToGenerate) writeGeneratedConfigFile() error {
 	return os.WriteFile(cfg.destinationPath, cfg.generatedConfigContents.Bytes(), 0o644)
 }
 
 type sourceTemplate struct {
-	generateConfigs      []*generateConfig
-	sourceTemplatePath   string
-	sourceConfigContents string
+	generateConfigs        []*configToGenerate
+	sourceTemplatePath     string
+	sourceTemplateContents string
 }
 
 func getAgentSourceTemplate() sourceTemplate {
 	return sourceTemplate{
-		generateConfigs: []*generateConfig{
+		generateConfigs: []*configToGenerate{
 			{
 				destinationPath:         filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),
 				endMarker:               gatewayDisabledEndMarker,
@@ -80,13 +80,13 @@ func (generator *sourceTemplate) loadSourceConfigFile() error {
 	if err != nil {
 		return err
 	}
-	generator.sourceConfigContents = string(source)
+	generator.sourceTemplateContents = string(source)
 	return nil
 }
 
 func (generator *sourceTemplate) convertTemplate() {
 	insideCommentBlock := false
-	for _, line := range strings.Split(generator.sourceConfigContents, lineBreak) {
+	for _, line := range strings.Split(generator.sourceTemplateContents, lineBreak) {
 		if strings.Contains(line, generatedCommentEndMarker) {
 			// Everything inside of comments is disregarded, can safely reset all status markers
 			// when comment is finished
@@ -136,8 +136,7 @@ func (generator *sourceTemplate) convertTemplate() {
 			if config.insideMarker {
 				inSpecializedBlock = true
 				config.AppendGeneratedConfigContents(line)
-				// Enforce only being in one special block at a time
-				break
+				break // Enforce only being in one special block at a time
 			}
 		}
 		if inSpecializedBlock {
@@ -159,12 +158,12 @@ func (generator *sourceTemplate) writeAllGeneratedConfigFiles() error {
 	return nil
 }
 
-func (generator *sourceTemplate) validateMatchingConfigMarkers() error {
-	return nil
-}
-
 func (generator *sourceTemplate) validateSourceConfigFile() error {
-	return generator.validateMatchingConfigMarkers()
+	if generator.sourceTemplatePath == "" {
+		return fmt.Errorf("source template is empty")
+	}
+
+	return nil
 }
 
 func main() {

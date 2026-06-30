@@ -1,4 +1,5 @@
 # Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+# This agent configuration file is meant to be used when sending telemetry to a gateway.
 
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:

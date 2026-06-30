@@ -1026,8 +1026,8 @@ processors:
 
 exporters:
   splunk_hec/logs:
-    token: "${SPLUNK_PLATFORM_TOKEN}"
     endpoint: "${SPLUNK_PLATFORM_URL}"
+    token: "${SPLUNK_PLATFORM_TOKEN}"
     source: "otel"
     index: "${SPLUNK_PLATFORM_LOGS_INDEX}"
     splunk_app_name: "splunk-otel-collector"

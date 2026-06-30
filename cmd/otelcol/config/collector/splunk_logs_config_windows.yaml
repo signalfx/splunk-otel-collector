@@ -248,6 +248,23 @@ exporters:
     token: "${SPLUNK_PLATFORM_TOKEN}"
     source: "otel"
     index: "${SPLUNK_PLATFORM_LOGS_INDEX}"
+    splunk_app_name: "splunk-otel-collector"
+    disable_compression: true
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_elapsed_time: 300s
+      max_interval: 30s
+    sending_queue:
+      enabled: true
+      block_on_overflow: true
+      num_consumers: 10
+      queue_size: 10000
+      batch:
+        enabled: true
+    tls:
+      insecure_skip_verify: false
 
 extensions:
   file_storage/filelogs:

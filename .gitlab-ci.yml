@@ -13,7 +13,10 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
-  GO_VERSION: 1.26.3
+  RUN_RPM_METADATA_REPAIR:
+    value: "false"
+    description: "Set to 'true' on a manual main pipeline to re-sign the current release RPM repo metadata."
+  GO_VERSION: 1.26.4
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -107,6 +110,8 @@ manual_release_trigger:
 fossa:
   extends: .oss-scan
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
   needs: []
@@ -164,6 +169,8 @@ fossa:
 
 .trigger-filter:
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
     # commenting out the original commit-tag trigger condition for collector release
@@ -260,6 +267,8 @@ fossa:
 
 .xray-scan-package:
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - <<: *no-schedules-condition
     - <<: *main-condition
   extends: .binary-scan
@@ -278,16 +287,6 @@ update-otel-deps:
   script:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
-
-update-otel-deps-nightly:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
 
 update-javaagent:
   rules:
@@ -335,6 +334,16 @@ update-dotnet-agent:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
+
+check-mass-deployments-release:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/check-mass-deployments-release.sh
 
 tidy-dependabot-pr:
   rules:
@@ -1288,6 +1297,102 @@ release-rpms:
       - dist/signed/*${ARCH}.rpm
       - signed/${ARCH}/repomd.xml.asc
 
+sign-release-rpm-metadata:
+  extends: .submit-signing-request
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+  before_script:
+    - apt update && apt install -y curl
+    - |
+      set -eo pipefail
+      mkdir -p "repair/${ARCH}"
+      curl -fsSL "https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml" \
+        -o "repair/${ARCH}/repomd.xml"
+      test -s "repair/${ARCH}/repomd.xml"
+      sha256sum "repair/${ARCH}/repomd.xml" | tee "repair/${ARCH}/repomd.xml.sha256"
+  variables:
+    ARTIFACT: repair/${ARCH}/repomd.xml
+    SIGN_TYPE: GPG
+    DOWNLOAD_DIR: signed/${ARCH}
+  artifacts:
+    paths:
+      - repair/${ARCH}/repomd.xml
+      - repair/${ARCH}/repomd.xml.sha256
+      - signed/${ARCH}/repomd.xml.asc
+
+publish-release-rpm-metadata-signature:
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  resource_group: artifactory-rpm
+  needs:
+    - job: sign-release-rpm-metadata
+      artifacts: true
+  rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
+  script:
+    - apt update && apt install -y curl gnupg
+    - |
+      set -euo pipefail
+
+      signed_repomd="repair/${ARCH}/repomd.xml"
+      local_sig="signed/${ARCH}/repomd.xml.asc"
+      data_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml"
+      sig_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml.asc"
+
+      test -s "$signed_repomd"
+      test -s "$local_sig"
+
+      curl -fsSL "$data_url" -o live-repomd.xml
+      cmp -s "$signed_repomd" live-repomd.xml \
+        || { echo "Live repomd.xml changed after signing; not uploading signature."; exit 1; }
+
+      GNUPGHOME="$(mktemp -d)"
+      export GNUPGHOME
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "$SPLUNK_RPM_GPG_KEY_URL")
+      gpg --status-fd=1 --verify "$local_sig" "$signed_repomd" \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Signed metadata did not validate with the published Splunk GPG key."; exit 1; }
+
+      curl -fsS -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "$sig_url" -T "$local_sig"
+
+verify-release-rpm-metadata-signature:
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  needs:
+    - publish-release-rpm-metadata-signature
+  rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
+  script:
+    - apt update && apt install -y curl gnupg
+    - |
+      set -euo pipefail
+
+      data_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml"
+      sig_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml.asc"
+
+      curl -fsSL "$data_url" -o live-repomd.xml
+      curl -fsSL "$sig_url" -o live-repomd.xml.asc
+
+      GNUPGHOME="$(mktemp -d)"
+      export GNUPGHOME
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "$SPLUNK_RPM_GPG_KEY_URL")
+      gpg --status-fd=1 --verify live-repomd.xml.asc live-repomd.xml \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Published RPM metadata signature did not validate."; exit 1; }
+
 # since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
 verify-signed-metadata:
   extends: .trigger-filter
@@ -1295,15 +1400,72 @@ verify-signed-metadata:
     - release-debs
     - release-rpms
   retry: 2
+  parallel:
+    matrix:
+      - TARGET: deb
+      - TARGET: rpm
+        ARCH: x86_64
+      - TARGET: rpm
+        ARCH: aarch64
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
   before_script:
-    - apt update && apt install -y curl
+    - apt update && apt install -y curl gnupg
   script:
     - *get-artifactory-stage
     - |
       set -exo pipefail
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg | diff - signed/Release.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/x86_64/repodata/repomd.xml.asc | diff - signed/x86_64/repomd.xml.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/aarch64/repodata/repomd.xml.asc | diff - signed/aarch64/repomd.xml.asc
+
+      export GNUPGHOME="$(mktemp -d)"
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
+      gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
+        || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
+
+      # Resolve this matrix target's live metadata URL, its detached signature
+      # URL, and the signature this pipeline produced (from the release job
+      # artifacts).
+      case "$TARGET" in
+        deb)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
+          data_url="${base}/Release"
+          sig_url="${base}/Release.gpg"
+          name="deb-Release"
+          local_sig="signed/Release.asc"
+          ;;
+        rpm)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata"
+          data_url="${base}/repomd.xml"
+          sig_url="${base}/repomd.xml.asc"
+          name="rpm-${ARCH}-repomd.xml"
+          local_sig="signed/${ARCH}/repomd.xml.asc"
+          ;;
+        *)
+          echo "Unknown TARGET '${TARGET}'"; exit 1
+          ;;
+      esac
+
+      echo "Verifying live signature for ${name} ..."
+      curl -fsSL "$data_url" -o "metadata.${name}"
+      curl -fsSL "$sig_url" -o "metadata.${name}.asc"
+
+      # The published signature must validate against the live metadata
+      # Artifactory is serving (catches the async-regeneration race).
+      gpg --status-fd=1 --verify "metadata.${name}.asc" "metadata.${name}" \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Signature for ${name} did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+      # The published signature is the one this pipeline uploaded (catches a
+      # failed upload or a stale/cached .asc).
+      if [ -n "$local_sig" ]; then
+        diff "metadata.${name}.asc" "$local_sig"
+      fi
+
+      echo "Signature OK for ${name}"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1593,6 +1755,8 @@ sign-multiarch-manifest:
 
 xray-scan-docker:
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - <<: *no-schedules-condition
     - <<: *main-condition
   extends: .container-scan
@@ -1631,6 +1795,8 @@ github-release:
       artifacts: true
     - job: release-rpms
       artifacts: true
+    - job: verify-signed-metadata
+      artifacts: false
     - job: sign-msi
       artifacts: true
     - job: sign-tar
@@ -1722,6 +1888,7 @@ puppet-release:
     - if: $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs: []
   before_script:
+    - gem update --system 3.2.3
     - gem install bundler -v 2.4.22
     - cd deployments/puppet
     - bundle install

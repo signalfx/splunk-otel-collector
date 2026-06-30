@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 jobs:
   otelcol:
     runs-on: ubuntu-24.04
@@ -19,10 +19,10 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -44,7 +44,7 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -52,7 +52,7 @@ jobs:
         run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -118,10 +118,10 @@ jobs:
       fail-fast: false
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -152,7 +152,7 @@ jobs:
       COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -173,7 +173,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -238,7 +238,7 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true
@@ -258,7 +258,7 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -277,7 +277,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -319,7 +319,7 @@ jobs:
           retention-days: 5
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true
@@ -338,8 +338,9 @@ jobs:
           for service in "apache" "jmx/cassandra" "kafka-metrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
+                # go.mongodb.org/mongo-driver/v2 requires MongoDB 4.2 or newer.
                 # tests for mongo "6.0" and "7.0" are flaky, skipping for now
-                for mongodb_version in "4.0" "4.4" "5.0"; do
+                for mongodb_version in "4.4" "5.0"; do
                   includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\", \"MONGODB_VERSION\": \"${mongodb_version}\"}"
                 done
               elif [[ ("$service" != "jmx/cassandra" && "$service" != "oracledb") || "arm64" != "$arch" ]]; then
@@ -361,7 +362,7 @@ jobs:
       env:
         COVER_TESTING: true
       steps:
-        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
           with:
             fetch-depth: 0
         - name: Free up disk space for next step
@@ -371,7 +372,7 @@ jobs:
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull
-        - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
           with:
             go-version: ${{ env.GO_VERSION }}
             cache-dependency-path: '**/go.sum'
@@ -401,7 +402,7 @@ jobs:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
           if: ${{ github.actor != 'dependabot[bot]' }}
-          uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+          uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
           with:
             verbose: true
             fail_ci_if_error: true
@@ -434,7 +435,7 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -454,7 +455,7 @@ jobs:
           for f in k8s/${{ matrix.SERVICE }}/*.sh; do
             bash "$f" 
           done
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -493,7 +494,7 @@ jobs:
           kubectl get events -n test --sort-by='.lastTimestamp' || true
       - name: Upload coverage report
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           verbose: true
           fail_ci_if_error: true

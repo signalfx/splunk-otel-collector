@@ -12,14 +12,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 
 jobs:
   tidy:
     name: tidy
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
 
       - name: tidy
@@ -34,7 +34,7 @@ jobs:
     name: gofmt
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
 
       - name: gofmt
@@ -49,7 +49,7 @@ jobs:
     name: generate-metrics
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
 
       - name: generate-metrics
@@ -60,16 +60,31 @@ jobs:
             exit 1
           fi
 
+  spellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Spell check - codespell
+        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 #v2.2
+        with:
+          check_filenames: true
+          ignore_words_list: AKS
+          skip: "./internal/signalfx-agent,*.sum,*.mod"
+      - name: Spell check - crate-ci/typos
+        uses: crate-ci/typos@37bb98842b0d8c4ffebdb75301a13db0267cef89 # v1.47.2
+        with:
+          config: ./.typos.toml
+
   lint:
     name: lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
         with:
           path: ${{ env.GOLANGCI_LINT_CACHE }}
           key: golangci-lint-${{ hashFiles('**/.golangci.yml', '**/*.go', '**/go.sum') }}
@@ -81,7 +96,7 @@ jobs:
   actionlint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Download actionlint
         id: get_actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/0933c14/scripts/download-actionlint.bash) # v1.7.10
@@ -111,7 +126,7 @@ jobs:
     name: coverage
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
 
       - name: Free up disk space for next step
@@ -123,7 +138,7 @@ jobs:
         run: COVER_TESTING=true make gotest-with-codecov
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # 6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           fail_ci_if_error: true
           verbose: true
@@ -142,7 +157,7 @@ jobs:
     # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
 
       - name: dockerd test

@@ -53,6 +53,7 @@ type Container struct {
 	Dockerfile           testcontainers.FromDockerfile
 	User                 string
 	Image                string
+	ImagePlatform        string
 	ContainerName        string
 	ContainerNetworkMode string
 	Entrypoint           []string
@@ -81,6 +82,11 @@ func (container Container) WithImage(image string) Container {
 	return container
 }
 
+func (container Container) WithImagePlatform(platform string) Container {
+	container.ImagePlatform = platform
+	return container
+}
+
 func (container Container) WithDockerfile(dockerfile string) Container {
 	container.Dockerfile.Dockerfile = dockerfile
 	return container
@@ -93,6 +99,11 @@ func (container Container) WithContext(path string) Container {
 
 func (container Container) WithBuildArgs(args map[string]*string) Container {
 	container.Dockerfile.BuildArgs = args
+	return container
+}
+
+func (container Container) WithDockerfileBuildOptionsModifier(modifier func(*dockerClient.ImageBuildOptions)) Container {
+	container.Dockerfile.BuildOptionsModifier = modifier
 	return container
 }
 
@@ -227,7 +238,7 @@ func (container Container) WithUser(user string) Container {
 	return container
 }
 
-func (container Container) WithPriviledged(privileged bool) Container {
+func (container Container) WithPrivileged(privileged bool) Container {
 	container.Privileged = privileged
 	return container
 }
@@ -261,6 +272,7 @@ func (container Container) Build() *Container {
 	container.HostConfigModifiers = append(container.HostConfigModifiers, func(hc *dockerContainer.HostConfig) {
 		hc.Binds = container.Binds
 		hc.NetworkMode = networkMode
+		hc.Privileged = container.Privileged
 	})
 
 	var startupTimeout time.Duration
@@ -282,6 +294,7 @@ func (container Container) Build() *Container {
 	container.req = &testcontainers.ContainerRequest{
 		User:               container.User,
 		Image:              container.Image,
+		ImagePlatform:      container.ImagePlatform,
 		FromDockerfile:     container.Dockerfile,
 		Cmd:                container.Cmd,
 		Entrypoint:         container.Entrypoint,

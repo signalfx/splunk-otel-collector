@@ -23,7 +23,7 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.26.3
+  GO_VERSION: 1.26.4
 
 jobs:
   cross-compile:
@@ -42,7 +42,7 @@ jobs:
         ARCH: [ "amd64", "arm64"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
 
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get matrix
         id: get-matrix
@@ -88,7 +88,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
@@ -112,7 +112,7 @@ jobs:
           path: ./instrumentation/dist
 
       - name: Setup python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'

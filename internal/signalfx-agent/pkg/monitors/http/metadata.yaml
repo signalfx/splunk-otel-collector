@@ -28,7 +28,7 @@ monitors:
       * request type like `GET` or `POST` are defined from `method`. [See go 
       doc](https://golang.org/src/net/http/method.go) for full list of 
       available methods.
-      * basic authentification could be done from `username` and `password`
+      * basic authentication could be done from `username` and `password`
       configuration options.
       * request headers could be defined with `httpHeaders`. It could be 
       useful to override the `host` header.

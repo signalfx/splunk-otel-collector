@@ -981,8 +981,10 @@ exporters:
       block_on_overflow: true
       num_consumers: 10
       queue_size: 10000
+      sizer: items
       batch:
-        enabled: true
+        flush_timeout: 200ms
+        min_size: 2048
     tls:
       insecure_skip_verify: false
 

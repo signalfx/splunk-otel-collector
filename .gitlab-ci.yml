@@ -15,7 +15,7 @@ variables:
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
   RUN_RPM_METADATA_REPAIR:
     value: "false"
-    description: "Set to 'true' on a manual main pipeline to re-sign the current release RPM repo metadata."
+    description: "Set to 'true' on a manual main web pipeline to re-sign the current release RPM repo metadata."
   GO_VERSION: 1.26.4
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -102,6 +102,8 @@ manual_release_trigger:
 
       echo "Manual release triggered for version $RELEASE_VERSION"
   rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true"'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'
       when: on_success
   allow_failure: false
@@ -1246,9 +1248,10 @@ release-debs:
   after_script:
     - *get-artifactory-stage
     - |
-      set -ex
+      set +x
+      set -euo pipefail
       if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
       fi
   artifacts:
     paths:
@@ -1266,31 +1269,40 @@ release-rpms:
   needs:
     - job: sign-rpms
       artifacts: true
-  retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
       set -ex
-      for path in dist/signed/*${ARCH}.rpm; do
+      shopt -s nullglob
+      rpm_paths=(dist/signed/*"${ARCH}".rpm)
+      shopt -u nullglob
+      if [ "${#rpm_paths[@]}" -lt 2 ]; then
+        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
+        exit 1
+      fi
+      for path in "${rpm_paths[@]}"; do
         if [ ! -f "$path" ]; then
           echo "$path not found!"
           exit 1
         fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
       done
+      python3 packaging/release/release.py --force --stage="${STAGE}" --timeout="${ARTIFACTORY_RELEASE_TIMEOUT}" --paths "${rpm_paths[@]}"
     - test -f repomd.xml
   variables:
     ARTIFACT: repomd.xml
     SIGN_TYPE: GPG
     DOWNLOAD_DIR: signed/${ARCH}
+    ARTIFACTORY_RELEASE_TIMEOUT: "6000"
   after_script:
     - *get-artifactory-stage
     - |
-      set -ex
+      set +x
+      set -euo pipefail
       if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
+        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T "signed/${ARCH}/repomd.xml.asc"
       fi
   artifacts:
     paths:
@@ -1303,7 +1315,7 @@ sign-release-rpm-metadata:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   before_script:
     - apt update && apt install -y curl
     - |
@@ -1332,7 +1344,7 @@ publish-release-rpm-metadata-signature:
     - job: sign-release-rpm-metadata
       artifacts: true
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
@@ -1370,7 +1382,7 @@ verify-release-rpm-metadata-signature:
   needs:
     - publish-release-rpm-metadata-signature
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
@@ -1394,19 +1406,8 @@ verify-release-rpm-metadata-signature:
         || { echo "Published RPM metadata signature did not validate."; exit 1; }
 
 # since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
-verify-signed-metadata:
+.verify-metadata:
   extends: .trigger-filter
-  needs:
-    - release-debs
-    - release-rpms
-  retry: 2
-  parallel:
-    matrix:
-      - TARGET: deb
-      - TARGET: rpm
-        ARCH: x86_64
-      - TARGET: rpm
-        ARCH: aarch64
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
@@ -1426,9 +1427,8 @@ verify-signed-metadata:
       gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
         || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
 
-      # Resolve this matrix target's live metadata URL, its detached signature
-      # URL, and the signature this pipeline produced (from the release job
-      # artifacts).
+      # Resolve this target's live metadata URL, its detached signature URL, and
+      # the signature this pipeline produced (from the release job artifacts).
       case "$TARGET" in
         deb)
           base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
@@ -1466,6 +1466,63 @@ verify-signed-metadata:
       fi
 
       echo "Signature OK for ${name}"
+
+# verify the deb repo metadata signature; only needs the deb release artifacts.
+verify-deb-metadata:
+  extends: .verify-metadata
+  needs:
+    - release-debs
+  variables:
+    TARGET: deb
+
+verify-deb-install:
+  extends: .trigger-filter
+  image: ubuntu:22.04
+  needs:
+    - job: release-debs
+      artifacts: true
+    - job: verify-deb-metadata
+      artifacts: false
+  variables:
+    ARCH: amd64
+    DEBIAN_FRONTEND: noninteractive
+  script:
+    - *get-artifactory-stage
+    - |
+      set -euxo pipefail
+      shopt -s nullglob
+      deb_paths=(dist/signed/*_"${ARCH}".deb)
+      shopt -u nullglob
+      packaging/release/verify-deb-install.sh "${deb_paths[@]}"
+
+# verify the rpm repo metadata signatures per-arch; only needs the rpm release artifacts.
+verify-rpm-metadata:
+  extends: .verify-metadata
+  needs:
+    - release-rpms
+  parallel:
+    matrix:
+      - TARGET: rpm
+        ARCH: [x86_64, aarch64]
+
+verify-rpm-install:
+  extends: .trigger-filter
+  image: quay.io/rockylinux/rockylinux:9
+  needs:
+    - job: release-rpms
+      artifacts: true
+    - job: verify-rpm-metadata
+      artifacts: false
+  variables:
+    ARCH: x86_64
+  script:
+    - *get-artifactory-stage
+    - |
+      set -euxo pipefail
+      shopt -s nullglob
+      rpm_paths=(dist/signed/*"${ARCH}".rpm)
+      shopt -u nullglob
+      packaging/release/verify-rpm-install.sh "${rpm_paths[@]}"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1795,7 +1852,13 @@ github-release:
       artifacts: true
     - job: release-rpms
       artifacts: true
-    - job: verify-signed-metadata
+    - job: verify-deb-metadata
+      artifacts: false
+    - job: verify-deb-install
+      artifacts: false
+    - job: verify-rpm-metadata
+      artifacts: false
+    - job: verify-rpm-install
       artifacts: false
     - job: sign-msi
       artifacts: true

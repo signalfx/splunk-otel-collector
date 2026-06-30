@@ -21,6 +21,7 @@ from helpers.util import (
     release_deb_to_artifactory,
     release_installers_to_s3,
     release_msi_to_s3,
+    release_rpms_to_artifactory,
     release_rpm_to_artifactory,
 )
 
@@ -30,14 +31,20 @@ def main():
 
     if asset:
         print(f"Releasing the following asset to the '{args.stage}' stage:")
-        print(asset.path)
+        if isinstance(asset, list):
+            for item in asset:
+                print(item.path)
+        else:
+            print(asset.path)
 
         if not args.force:
             resp = input("Continue? [y/N]: ")
             if resp.lower() not in ("y", "yes"):
                 sys.exit(1)
 
-        if asset.component == "deb":
+        if isinstance(asset, list):
+            release_rpms_to_artifactory(asset, args)
+        elif asset.component == "deb":
             # Release deb to artifactory
             release_deb_to_artifactory(asset, args)
         elif asset.component == "rpm":

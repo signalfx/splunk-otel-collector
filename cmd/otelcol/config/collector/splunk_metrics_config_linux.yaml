@@ -68,7 +68,6 @@ exporters:
       sizer: items
       batch:
         flush_timeout: 200ms
-        min_size: 2048
     tls:
       insecure_skip_verify: false
 

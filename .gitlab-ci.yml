@@ -1307,7 +1307,7 @@ sign-release-rpm-metadata:
   before_script:
     - apt update && apt install -y curl
     - |
-      set -euo pipefail
+      set -eo pipefail
       mkdir -p "repair/${ARCH}"
       curl -fsSL "https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml" \
         -o "repair/${ARCH}/repomd.xml"

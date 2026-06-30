@@ -65,7 +65,10 @@ exporters:
       enabled: true
       num_consumers: 10
       queue_size: 10000
+      sizer: items
       batch:
+        flush_timeout: 200ms
+        min_size: 2048
     tls:
       insecure_skip_verify: false
 

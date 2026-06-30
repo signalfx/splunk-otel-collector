@@ -95,19 +95,7 @@ def get_args_and_asset():
         help=f"""
             Sign/release a local file.
             Only files with {EXTENSIONS} extensions or is named 'otelcol_darwin_*' are supported.
-            Required if neither --paths nor --installers is specified.
-        """,
-    )
-    parser.add_argument(
-        "--paths",
-        type=str,
-        nargs="+",
-        default=None,
-        metavar="PATH",
-        required=False,
-        help="""
-            Sign/release multiple local files as one batch.
-            Currently only RPM batches are supported.
+            Required if the --installers option is not specified.
         """,
     )
     parser.add_argument(
@@ -117,7 +105,7 @@ def get_args_and_asset():
         required=False,
         help="""
             Release the installer scripts to S3.
-            Required if neither --path nor --paths is specified.
+            Required if the --path option is not specified.
         """,
     )
     parser.add_argument(
@@ -149,14 +137,13 @@ def get_args_and_asset():
     parser.add_argument(
         "--sync-calculate-metadata",
         action=argparse.BooleanOptionalAction,
-        default=os.environ.get("ARTIFACTORY_SYNC_CALCULATE", "").lower()
-        in ("1", "true", "yes"),
+        default=os.environ.get("ARTIFACTORY_SYNC_CALCULATE", "").lower() in ("1", "true", "yes"),
         required=False,
         help="""
-            For deb uploads, explicitly trigger Artifactory's metadata calculation
-            synchronously after upload and before signing. RPM uploads always
-            trigger synchronous YUM metadata calculation before signing.
-            Defaults to the ARTIFACTORY_SYNC_CALCULATE env var if truthy for debs.
+            For deb/rpm uploads, explicitly trigger Artifactory's metadata
+            calculation synchronously (async=0) after upload and before signing,
+            instead of relying only on the asynchronous auto-calculation.
+            Defaults to the ARTIFACTORY_SYNC_CALCULATE env var if truthy.
         """,
     )
 
@@ -164,23 +151,13 @@ def get_args_and_asset():
 
     args = parser.parse_args()
 
-    assert (
-        args.path or args.paths or args.installers
-    ), "Either --path, --paths, or --installers must be specified"
-    assert not (
-        args.path and args.paths
-    ), "Only one of --path or --paths may be specified"
+    assert args.path or args.installers, "Either --path or --installers must be specified"
 
     asset = None
     if args.path:
         asset = get_asset(args.path)
-    elif args.paths:
-        asset = [get_asset(path) for path in args.paths]
-        assert all(a.component == "rpm" for a in asset), "Only RPM batches are supported"
 
-    if isinstance(asset, list):
-        check_artifactory_args(args)
-    elif asset and asset.component in ("deb", "rpm"):
+    if asset and asset.component in ("deb", "rpm"):
         check_artifactory_args(args)
 
     return args, asset

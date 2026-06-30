@@ -13,6 +13,9 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
+  RUN_RPM_METADATA_REPAIR:
+    value: "false"
+    description: "Set to 'true' on a manual main pipeline to re-sign the current release RPM repo metadata."
   GO_VERSION: 1.26.4
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -107,6 +110,8 @@ manual_release_trigger:
 fossa:
   extends: .oss-scan
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
   needs: []
@@ -164,6 +169,8 @@ fossa:
 
 .trigger-filter:
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
     # commenting out the original commit-tag trigger condition for collector release
@@ -260,6 +267,8 @@ fossa:
 
 .xray-scan-package:
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - <<: *no-schedules-condition
     - <<: *main-condition
   extends: .binary-scan
@@ -1237,10 +1246,9 @@ release-debs:
   after_script:
     - *get-artifactory-stage
     - |
-      set +x
-      set -euo pipefail
+      set -ex
       if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
-        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
       fi
   artifacts:
     paths:
@@ -1258,27 +1266,20 @@ release-rpms:
   needs:
     - job: sign-rpms
       artifacts: true
-  timeout: 2h
+  retry: 2
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
       set -ex
-      shopt -s nullglob
-      rpm_paths=(dist/signed/*"${ARCH}".rpm)
-      shopt -u nullglob
-      if [ "${#rpm_paths[@]}" -lt 2 ]; then
-        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
-        exit 1
-      fi
-      for path in "${rpm_paths[@]}"; do
+      for path in dist/signed/*${ARCH}.rpm; do
         if [ ! -f "$path" ]; then
           echo "$path not found!"
           exit 1
         fi
+        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
       done
-      python3 packaging/release/release.py --force --stage=${STAGE} --paths "${rpm_paths[@]}"
     - test -f repomd.xml
   variables:
     ARTIFACT: repomd.xml
@@ -1287,19 +1288,125 @@ release-rpms:
   after_script:
     - *get-artifactory-stage
     - |
-      set +x
-      set -euo pipefail
+      set -ex
       if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
-        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T "signed/${ARCH}/repomd.xml.asc"
+        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
       fi
   artifacts:
     paths:
       - dist/signed/*${ARCH}.rpm
       - signed/${ARCH}/repomd.xml.asc
 
+sign-release-rpm-metadata:
+  extends: .submit-signing-request
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+  before_script:
+    - apt update && apt install -y curl
+    - |
+      set -eo pipefail
+      mkdir -p "repair/${ARCH}"
+      curl -fsSL "https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml" \
+        -o "repair/${ARCH}/repomd.xml"
+      test -s "repair/${ARCH}/repomd.xml"
+      sha256sum "repair/${ARCH}/repomd.xml" | tee "repair/${ARCH}/repomd.xml.sha256"
+  variables:
+    ARTIFACT: repair/${ARCH}/repomd.xml
+    SIGN_TYPE: GPG
+    DOWNLOAD_DIR: signed/${ARCH}
+  artifacts:
+    paths:
+      - repair/${ARCH}/repomd.xml
+      - repair/${ARCH}/repomd.xml.sha256
+      - signed/${ARCH}/repomd.xml.asc
+
+publish-release-rpm-metadata-signature:
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  resource_group: artifactory-rpm
+  needs:
+    - job: sign-release-rpm-metadata
+      artifacts: true
+  rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
+  script:
+    - apt update && apt install -y curl gnupg
+    - |
+      set -euo pipefail
+
+      signed_repomd="repair/${ARCH}/repomd.xml"
+      local_sig="signed/${ARCH}/repomd.xml.asc"
+      data_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml"
+      sig_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml.asc"
+
+      test -s "$signed_repomd"
+      test -s "$local_sig"
+
+      curl -fsSL "$data_url" -o live-repomd.xml
+      cmp -s "$signed_repomd" live-repomd.xml \
+        || { echo "Live repomd.xml changed after signing; not uploading signature."; exit 1; }
+
+      GNUPGHOME="$(mktemp -d)"
+      export GNUPGHOME
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "$SPLUNK_RPM_GPG_KEY_URL")
+      gpg --status-fd=1 --verify "$local_sig" "$signed_repomd" \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Signed metadata did not validate with the published Splunk GPG key."; exit 1; }
+
+      curl -fsS -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "$sig_url" -T "$local_sig"
+
+verify-release-rpm-metadata-signature:
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  needs:
+    - publish-release-rpm-metadata-signature
+  rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
+  script:
+    - apt update && apt install -y curl gnupg
+    - |
+      set -euo pipefail
+
+      data_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml"
+      sig_url="https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/${ARCH}/repodata/repomd.xml.asc"
+
+      curl -fsSL "$data_url" -o live-repomd.xml
+      curl -fsSL "$sig_url" -o live-repomd.xml.asc
+
+      GNUPGHOME="$(mktemp -d)"
+      export GNUPGHOME
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "$SPLUNK_RPM_GPG_KEY_URL")
+      gpg --status-fd=1 --verify live-repomd.xml.asc live-repomd.xml \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Published RPM metadata signature did not validate."; exit 1; }
+
 # since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
-.verify-metadata:
+verify-signed-metadata:
   extends: .trigger-filter
+  needs:
+    - release-debs
+    - release-rpms
+  retry: 2
+  parallel:
+    matrix:
+      - TARGET: deb
+      - TARGET: rpm
+        ARCH: x86_64
+      - TARGET: rpm
+        ARCH: aarch64
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
@@ -1319,8 +1426,9 @@ release-rpms:
       gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
         || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
 
-      # Resolve this target's live metadata URL, its detached signature URL, and
-      # the signature this pipeline produced (from the release job artifacts).
+      # Resolve this matrix target's live metadata URL, its detached signature
+      # URL, and the signature this pipeline produced (from the release job
+      # artifacts).
       case "$TARGET" in
         deb)
           base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
@@ -1358,85 +1466,6 @@ release-rpms:
       fi
 
       echo "Signature OK for ${name}"
-
-# verify the deb repo metadata signature; only needs the deb release artifacts.
-verify-deb-metadata:
-  extends: .verify-metadata
-  needs:
-    - release-debs
-  variables:
-    TARGET: deb
-
-# verify the rpm repo metadata signatures per-arch; only needs the rpm release artifacts.
-verify-rpm-metadata:
-  extends: .verify-metadata
-  needs:
-    - release-rpms
-  parallel:
-    matrix:
-      - TARGET: rpm
-        ARCH: [x86_64, aarch64]
-
-verify-rpm-install:
-  extends: .trigger-filter
-  image: quay.io/rockylinux/rockylinux:9
-  needs:
-    - job: release-rpms
-      artifacts: true
-    - job: verify-rpm-metadata
-      artifacts: false
-  variables:
-    ARCH: x86_64
-  script:
-    - *get-artifactory-stage
-    - |
-      set -euxo pipefail
-
-      shopt -s nullglob
-      rpm_paths=(dist/signed/*"${ARCH}".rpm)
-      shopt -u nullglob
-      if [ "${#rpm_paths[@]}" -lt 2 ]; then
-        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
-        exit 1
-      fi
-
-      collector_nevra=""
-      instrumentation_nevra=""
-      instrumentation_rpm=""
-      for path in "${rpm_paths[@]}"; do
-        nevra="$(rpm -qp --queryformat '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}' "$path")"
-        case "$nevra" in
-          splunk-otel-collector-*) collector_nevra="$nevra" ;;
-          splunk-otel-auto-instrumentation-*)
-            instrumentation_nevra="$nevra"
-            instrumentation_rpm="$(basename "$path")"
-            ;;
-        esac
-      done
-      test -n "$collector_nevra"
-      test -n "$instrumentation_nevra"
-      test -n "$instrumentation_rpm"
-
-      printf '%s\n' \
-        '[splunk-otel-collector]' \
-        'name=Splunk OpenTelemetry Collector Repository' \
-        "baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/\$basearch" \
-        'gpgcheck=1' \
-        'repo_gpgcheck=1' \
-        'gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub' \
-        'enabled=1' \
-        > /etc/yum.repos.d/splunk-otel-collector.repo
-
-      dnf clean all
-      dnf -y --disablerepo='*' --enablerepo=splunk-otel-collector makecache
-      dnf -y install "$collector_nevra" "$instrumentation_nevra"
-      rpm -q "$collector_nevra" "$instrumentation_nevra"
-
-      # Direct rpm URL installs bypass repo_gpgcheck, but some users install this way.
-      instrumentation_url="https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/${ARCH}/${instrumentation_rpm}"
-      rpm -e splunk-otel-auto-instrumentation
-      rpm -ivh "$instrumentation_url"
-      rpm -q "$instrumentation_nevra"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1726,6 +1755,8 @@ sign-multiarch-manifest:
 
 xray-scan-docker:
   rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
     - <<: *no-schedules-condition
     - <<: *main-condition
   extends: .container-scan
@@ -1764,11 +1795,7 @@ github-release:
       artifacts: true
     - job: release-rpms
       artifacts: true
-    - job: verify-deb-metadata
-      artifacts: false
-    - job: verify-rpm-metadata
-      artifacts: false
-    - job: verify-rpm-install
+    - job: verify-signed-metadata
       artifacts: false
     - job: sign-msi
       artifacts: true

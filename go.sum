@@ -1889,10 +1889,8 @@ github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d h1:pASiJ
 github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d/go.mod h1:/c4ZEpdE+tBRXMLLLgGsSI8jApnAphH8OMK7M+w5TXw=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 h1:WsShHmu12ZztYPfh9b+I+VjYD1o8iOHhB67WZCMEEE8=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083/go.mod h1:adPDS6s7WaajdFBV9mQ7i0dKfQ8xiDnF9ZNETVPpp7c=
-github.com/signalfx/golib/v3 v3.4.4 h1:n00WkhhSOk6LRjfT4/6JdIDXk0FF4SEoh4TaLM4abWc=
-github.com/signalfx/golib/v3 v3.4.4/go.mod h1:LQNW2fyW15zKhD0pIr1P8QJ6G7x7f+am0m+7OWUZNmo=
-github.com/signalfx/sapm-proto v0.18.0 h1:7ABBw8ojT0FuBsFFVy/Luh603rDUhluf6SMxHULr7YM=
-github.com/signalfx/sapm-proto v0.18.0/go.mod h1:9781XTS+l1v7RfSjUNMeW9vMqVnl/rMvxuTu3GO/l54=
+github.com/signalfx/golib/v3 v3.5.0 h1:QkhT8P/iMkTRg7Zec+w8iLEQzzCEIfHHz/A4NJgLQyg=
+github.com/signalfx/golib/v3 v3.5.0/go.mod h1:yze2t+zCjUjUdtSPEmCyg2UDU7jCyIqJV++eprc9OeE=
 github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed h1:UnMojeBM2skhiZm8Iol3RBQpUHWvAkt993NxWhiV/70=
 github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
 github.com/sijms/go-ora/v2 v2.9.0 h1:+iQbUeTeCOFMb5BsOMgUhV8KWyrv9yjKpcK4x7+MFrg=

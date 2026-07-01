@@ -99,6 +99,17 @@ def get_args_and_asset():
         """,
     )
     parser.add_argument(
+        "--paths",
+        type=str,
+        nargs="+",
+        default=None,
+        metavar="PATH",
+        required=False,
+        help=f"""
+            Sign/release a batch of local files. Only supported for deb/rpm packages.
+        """,
+    )
+    parser.add_argument(
         "--installers",
         action="store_true",
         default=False,
@@ -125,7 +136,7 @@ def get_args_and_asset():
         default=DEFAULT_TIMEOUT,
         metavar="TIMEOUT",
         required=False,
-        help=f"Signing request timeout in seconds. Defaults to {DEFAULT_TIMEOUT}.",
+        help=f"Artifactory metadata wait timeout in seconds. Defaults to {DEFAULT_TIMEOUT}.",
     )
     parser.add_argument(
         "--force",
@@ -134,30 +145,28 @@ def get_args_and_asset():
         required=False,
         help="Never prompt when overwriting existing files.",
     )
-    parser.add_argument(
-        "--sync-calculate-metadata",
-        action=argparse.BooleanOptionalAction,
-        default=os.environ.get("ARTIFACTORY_SYNC_CALCULATE", "").lower() in ("1", "true", "yes"),
-        required=False,
-        help="""
-            For deb/rpm uploads, explicitly trigger Artifactory's metadata
-            calculation synchronously (async=0) after upload and before signing,
-            instead of relying only on the asynchronous auto-calculation.
-            Defaults to the ARTIFACTORY_SYNC_CALCULATE env var if truthy.
-        """,
-    )
-
     add_artifactory_args(parser)
 
     args = parser.parse_args()
 
-    assert args.path or args.installers, "Either --path or --installers must be specified"
+    assert args.path or args.paths or args.installers, "Either --path, --paths, or --installers must be specified"
+    assert not (args.path and args.paths), "Only one of --path or --paths may be specified"
 
     asset = None
+    args.assets = []
     if args.path:
         asset = get_asset(args.path)
+        args.assets = [asset]
+    elif args.paths:
+        args.assets = [get_asset(path) for path in args.paths]
+        components = {asset.component for asset in args.assets}
+        assert len(components) == 1, f"All --paths assets must have the same component: {components}"
+        component = next(iter(components))
+        assert component in ("deb", "rpm"), "--paths is only supported for deb/rpm packages"
+        if len(args.assets) == 1:
+            asset = args.assets[0]
 
-    if asset and asset.component in ("deb", "rpm"):
+    if any(asset.component in ("deb", "rpm") for asset in args.assets):
         check_artifactory_args(args)
 
     return args, asset

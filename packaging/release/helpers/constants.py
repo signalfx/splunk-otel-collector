@@ -22,10 +22,7 @@ ARTIFACTORY_DEB_REPO_URL = f"{ARTIFACTORY_URL}/{ARTIFACTORY_DEB_REPO}"
 ARTIFACTORY_RPM_REPO = "otel-collector-rpm"
 ARTIFACTORY_RPM_REPO_URL = f"{ARTIFACTORY_URL}/{ARTIFACTORY_RPM_REPO}"
 DEFAULT_ARTIFACTORY_USERNAME = "otel-collector"
-DEFAULT_TIMEOUT = 1200
-# After the repo metadata first changes following our upload, require it to stay
-# unchanged for this many seconds before treating it as settled.
-METADATA_SETTLE_DELAY = 60
+DEFAULT_TIMEOUT = 5400
 
 # Package/Release
 REPO_DIR = Path(__file__).parent.parent.parent.parent.resolve()

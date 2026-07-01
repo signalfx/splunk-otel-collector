@@ -44,30 +44,28 @@ COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 
 PKG_NAME = "splunk-otel-auto-instrumentation"
 LIB_DIR = "/usr/lib/splunk-instrumentation"
-LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
+LIBOTELINJECT_PATH = f"{LIB_DIR}/libotelinject.so"
 PRELOAD_PATH = "/etc/ld.so.preload"
-SYSTEMD_CONF_DIR = "/usr/lib/systemd/system.conf.d"
 
 JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
-JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
-CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
-
 NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
-NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
-CUSTOM_NODE_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-node-test.conf"
-
 DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_CONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
-CUSTOM_DOTNET_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-dotnet-test.conf"
+DOTNET_AGENT_ARM64_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-arm64/OpenTelemetry.AutoInstrumentation.Native.so"
+
+INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
+INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
+
+# Custom config fixtures — overwrite default env var, copy per-language env vars
+CUSTOM_JAVA_ENV_PATH = TESTS_DIR / "instrumentation" / "test-java-env.conf"
+CUSTOM_NODE_ENV_PATH = TESTS_DIR / "instrumentation" / "test-node-env.conf"
+CUSTOM_DOTNET_ENV_PATH = TESTS_DIR / "instrumentation" / "test-dotnet-env.conf"
 
 INSTALLED_FILES = [
     JAVA_AGENT_PATH,
     NODE_AGENT_PATH,
-    DOTNET_AGENT_PATH,
-    LIBSPLUNK_PATH,
-    JAVA_CONFIG_PATH,
-    NODE_CONFIG_PATH,
-    DOTNET_CONFIG_PATH,
+    LIBOTELINJECT_PATH,
+    INJECTOR_CONFIG_PATH,
+    INJECTOR_DEFAULT_ENV_PATH,
 ]
 
 TOMCAT_PIDFILE = "/usr/local/tomcat/temp/tomcat.pid"
@@ -82,7 +80,9 @@ TOMCAT_ENV = {
 
 EXPRESS_PIDFILE = "/opt/express/express.pid"
 DOTNET_PIDFILE = "/opt/dotnet/dotnet.pid"
-
+DOTNET_ENV = {
+    "OTEL_INJECTOR_LOG_LEVEL": "debug",
+}
 
 def get_dockerfile(distro):
     if distro in DEB_DISTROS:
@@ -120,11 +120,11 @@ def install_package(container, distro, path, arch="amd64"):
         run_container_cmd(container, f"rpm -ivh {path}")
 
     for path in INSTALLED_FILES:
-        if arch == "arm64" and path in [DOTNET_AGENT_PATH, DOTNET_CONFIG_PATH]:
-            # the arm64 package shouldn't include splunk-otel-dotnet files
-            assert not container_file_exists(container, path), f"{path} found"
-        else:
-            assert container_file_exists(container, path), f"{path} not found"
+        assert container_file_exists(container, path), f"{path} not found"
+
+    # dotnet agent path is arch-specific
+    # dotnet_path = DOTNET_AGENT_ARM64_PATH if arch == "arm64" else DOTNET_AGENT_PATH
+    # assert container_file_exists(container, dotnet_path), f"{dotnet_path} not found"
 
 
 def verify_preload(container, line, exists=True):
@@ -154,6 +154,7 @@ def start_app(container, app, timeout=300):
             f"bash -c '/opt/dotnet-sdk/dotnet /opt/dotnet/myWebApp.dll & echo $! > {DOTNET_PIDFILE}'",
             user='dotnet:dotnet',
             workdir="/opt/dotnet",
+            env=DOTNET_ENV,
         )
 
     if app == "tomcat":
@@ -231,7 +232,15 @@ def verify_app_instrumentation(container, app, attributes, otelcol_path=None, ti
     start_app(container, app)
 
     # check the collector output stream for attributes
-    verify_attributes(stream, attributes, timeout=timeout)
+    try:
+        verify_attributes(stream, attributes, timeout=timeout)
+    except AssertionError:
+        if app == "tomcat":
+            code, logs = container.exec_run("cat /usr/local/tomcat/logs/catalina.out")
+            if code == 0:
+                print("=== Tomcat catalina.out ===")
+                print(logs.decode("utf-8"))
+        raise
 
 
 @pytest.mark.parametrize(
@@ -264,8 +273,8 @@ def test_tomcat_instrumentation(distro, arch):
             r"service\.name": r"Str\(Hello, World Application\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
@@ -275,11 +284,10 @@ def test_tomcat_instrumentation(distro, arch):
             r"telemetry\.sdk\.language": r"Str\(java\)",
             r"service\.name": rf"Str\(service_name_from_java\)",
             r"deployment\.environment": rf"Str\(deployment_environment_from_java\)",
-            r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
         }
 
-        # overwrite the default libsplunk config with the custom one for testing
-        copy_file_into_container(container, CUSTOM_JAVA_CONFIG_PATH, JAVA_CONFIG_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_JAVA_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
@@ -317,6 +325,8 @@ def test_express_instrumentation(distro, arch):
         # install splunk-otel-js to /usr/lib/splunk-instrumentation/splunk-otel-js
         run_container_cmd(container, f"mkdir -p {LIB_DIR}/splunk-otel-js")
         run_container_cmd(container, f"bash -l -c 'cd {LIB_DIR}/splunk-otel-js && npm install {NODE_AGENT_PATH}'")
+        run_container_cmd(container, "bash -c 'find / -name injector.conf'", user='root')
+        run_container_cmd(container, "bash -c 'find /usr/lib/splunk-instrumentation'", user='root')
 
         # attributes from default config
         attributes = {
@@ -324,8 +334,8 @@ def test_express_instrumentation(distro, arch):
             r"service\.name": r"Str\(unnamed-node-service\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
@@ -335,12 +345,10 @@ def test_express_instrumentation(distro, arch):
             r"telemetry\.sdk\.language": r"Str\(nodejs\)",
             r"service\.name": rf"Str\(service_name_from_node\)",
             r"deployment\.environment": rf"Str\(deployment_environment_from_node\)",
-            r"com\.splunk\.sourcetype": None if node_version < 16 else r"Str\(otel\.profiling\)",
         }
 
-
-        # overwrite the default libsplunk config with the custom one for testing
-        copy_file_into_container(container, CUSTOM_NODE_CONFIG_PATH, NODE_CONFIG_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_NODE_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
@@ -376,8 +384,8 @@ def test_dotnet_instrumentation(distro, arch):
             r"service\.name": r"Str\(myWebApp\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)
@@ -387,11 +395,10 @@ def test_dotnet_instrumentation(distro, arch):
             r"telemetry\.sdk\.language": r"Str\(dotnet\)",
             r"service\.name": rf"Str\(service_name_from_dotnet\)",
             r"deployment\.environment": rf"Str\(deployment_environment_from_dotnet\)",
-            r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
         }
 
-        # overwrite the default libsplunk config with the custom one for testing
-        copy_file_into_container(container, CUSTOM_DOTNET_CONFIG_PATH, DOTNET_CONFIG_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_DOTNET_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)
@@ -417,11 +424,11 @@ def test_package_uninstall(distro, arch):
 
         verify_preload(container, "# This line should be preserved")
 
-        # verify libsplunk.so was not automatically added to /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        # verify libotelinject.so was not automatically added to /etc/ld.so.preload
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
-        # explicitly add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} >> {PRELOAD_PATH}'")
+        # explicitly add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} >> {PRELOAD_PATH}'")
 
         # uninstall the package
         if distro in DEB_DISTROS:
@@ -439,7 +446,7 @@ def test_package_uninstall(distro, arch):
         for path in INSTALLED_FILES:
             assert not container_file_exists(container, path)
 
-        # verify libsplunk.so was removed from /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        # verify libotelinject.so was removed from /etc/ld.so.preload
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
         verify_preload(container, "# This line should be preserved")

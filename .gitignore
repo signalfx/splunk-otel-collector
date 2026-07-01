@@ -50,6 +50,7 @@ deployments/heroku/test/node_modules
 /instrumentation/dist/
 /instrumentation/obj/
 /instrumentation/so/
+/instrumentation/build/
 /instrumentation/tests/dotnet/libsplunk.so
 /instrumentation/tests/dotnet/obj/
 /instrumentation/tests/java/libsplunk.so

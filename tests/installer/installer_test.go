@@ -523,32 +523,35 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 	// testcontainers requires at least one wait strategy; use a no-op here
 	// since the real readiness check is the require.Eventually loop below.
 	container.WaitingFor = append(container.WaitingFor,
-		wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(30*time.Second),
+		wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(5*time.Minute),
 	)
-	const maxBuildAttempts = 3
-	var built *testutils.Container
-	var startErr error
-	for attempt := range maxBuildAttempts {
-		built = container.Build()
-		startErr = built.Start(context.Background())
-		if startErr == nil {
-			break
-		}
-		if attempt < maxBuildAttempts-1 {
-			t.Logf("container start attempt %d failed: %v, retrying...", attempt+1, startErr)
-			time.Sleep(5 * time.Second)
-		}
-	}
-	require.NoError(t, startErr)
 
-	built.restart()
-	require.Eventually(t, func() bool {
-		return execStatus(t, built, "systemctl show-environment") == 0
-	}, 30*time.Second, 5*time.Second)
+	built := container.Build()
+	require.NoError(t, built.Start(context.Background()))
+	t.Cleanup(func() {
+		require.NoError(t, built.Terminate(context.Background()))
+	})
+
+	waitForSystemd(t, built, arch)
 
 	return built, func() {
 		assert.NoError(t, built.Terminate(context.Background()))
 	}
+}
+
+func waitForSystemd(t *testing.T, container *testutils.Container, arch string) {
+	t.Helper()
+	timeout := 10 * time.Second
+	if arch != "amd64" {
+		timeout = 30 * time.Second
+	}
+	require.Eventually(t, func() bool {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		rc, _, err := container.Exec(ctx, []string{"sh", "-c", "systemctl show-environment"})
+		return err == nil && rc == 0
+	}, timeout, time.Second)
 }
 
 func installerCmd(t *testing.T) string {

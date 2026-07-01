@@ -526,9 +526,22 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 	container.WaitingFor = append(container.WaitingFor,
 		wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(startupTimeout),
 	)
-	built := container.Build()
+	const maxBuildAttempts = 3
+	var built *testutils.Container
+	var startErr error
+	for attempt := range maxBuildAttempts {
+		built = container.Build()
+		startErr = built.Start(context.Background())
+		if startErr == nil {
+			break
+		}
+		if attempt < maxBuildAttempts-1 {
+			t.Logf("container start attempt %d failed: %v, retrying...", attempt+1, startErr)
+			time.Sleep(5 * time.Second)
+		}
+	}
+	require.NoError(t, startErr)
 
-	require.NoError(t, built.Start(context.Background()))
 	require.Eventually(t, func() bool {
 		return execStatus(t, built, "systemctl show-environment") == 0
 	}, startupTimeout, time.Second)

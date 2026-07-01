@@ -16,6 +16,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -46,7 +47,7 @@ func (cfg *configToGenerate) AppendGeneratedConfigContents(line string) {
 }
 
 func (cfg *configToGenerate) writeGeneratedConfigFile() error {
-	return os.WriteFile(cfg.destinationPath, cfg.generatedConfigContents.Bytes(), 0o644)
+	return os.WriteFile(cfg.destinationPath, cfg.generatedConfigContents.Bytes(), 0o444)
 }
 
 type sourceTemplate struct {
@@ -160,7 +161,7 @@ func (generator *sourceTemplate) writeAllGeneratedConfigFiles() error {
 
 func (generator *sourceTemplate) validateSourceConfigFile() error {
 	if generator.sourceTemplatePath == "" {
-		return fmt.Errorf("source template is empty")
+		return errors.New("source template is empty")
 	}
 
 	return nil

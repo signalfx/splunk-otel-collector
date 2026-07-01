@@ -506,7 +506,6 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 		args[key] = ptr(value)
 	}
 
-	startupTimeout := startupTimeoutForArch(arch)
 	container := testutils.NewContainer().
 		WithContext(distro.contextDir).
 		WithDockerfile(distro.dockerfilePath).
@@ -524,7 +523,7 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 	// testcontainers requires at least one wait strategy; use a no-op here
 	// since the real readiness check is the require.Eventually loop below.
 	container.WaitingFor = append(container.WaitingFor,
-		wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(startupTimeout),
+		wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(30*time.Second),
 	)
 	const maxBuildAttempts = 3
 	var built *testutils.Container
@@ -542,20 +541,14 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 	}
 	require.NoError(t, startErr)
 
+	built.restart()
 	require.Eventually(t, func() bool {
 		return execStatus(t, built, "systemctl show-environment") == 0
-	}, startupTimeout, time.Second)
+	}, 30*time.Second, 5*time.Second)
 
 	return built, func() {
 		assert.NoError(t, built.Terminate(context.Background()))
 	}
-}
-
-func startupTimeoutForArch(arch string) time.Duration {
-	if arch == "amd64" {
-		return 10 * time.Second
-	}
-	return 30 * time.Second
 }
 
 func installerCmd(t *testing.T) string {

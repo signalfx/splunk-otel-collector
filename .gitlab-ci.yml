@@ -16,6 +16,9 @@ variables:
   RUN_RPM_METADATA_REPAIR:
     value: "false"
     description: "Set to 'true' on a manual main pipeline to re-sign the current release RPM repo metadata."
+  RUN_DEB_METADATA_REPAIR:
+    value: "false"
+    description: "Set to 'true' on a manual main pipeline to re-sign the current release DEB repo metadata."
   GO_VERSION: 1.26.4
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -102,6 +105,8 @@ manual_release_trigger:
 
       echo "Manual release triggered for version $RELEASE_VERSION"
   rules:
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" || $RUN_DEB_METADATA_REPAIR == "true"'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'
       when: on_success
   allow_failure: false
@@ -110,7 +115,7 @@ manual_release_trigger:
 fossa:
   extends: .oss-scan
   rules:
-    - if: $RUN_RPM_METADATA_REPAIR == "true"
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" || $RUN_DEB_METADATA_REPAIR == "true"'
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -169,7 +174,7 @@ fossa:
 
 .trigger-filter:
   rules:
-    - if: $RUN_RPM_METADATA_REPAIR == "true"
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" || $RUN_DEB_METADATA_REPAIR == "true"'
       when: never
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
@@ -267,7 +272,7 @@ fossa:
 
 .xray-scan-package:
   rules:
-    - if: $RUN_RPM_METADATA_REPAIR == "true"
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" || $RUN_DEB_METADATA_REPAIR == "true"'
       when: never
     - <<: *no-schedules-condition
     - <<: *main-condition
@@ -1297,13 +1302,100 @@ release-rpms:
       - dist/signed/*${ARCH}.rpm
       - signed/${ARCH}/repomd.xml.asc
 
+sign-release-deb-metadata:
+  extends: .submit-signing-request
+  rules:
+    - if: '$RUN_DEB_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+  before_script:
+    - apt update && apt install -y curl
+    - |
+      set -eo pipefail
+      mkdir -p repair/deb
+      curl -fsSL "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release" \
+        -o repair/deb/Release
+      test -s repair/deb/Release
+      sha256sum repair/deb/Release | tee repair/deb/Release.sha256
+  variables:
+    ARTIFACT: repair/deb/Release
+    SIGN_TYPE: GPG
+    DOWNLOAD_DIR: signed
+  artifacts:
+    paths:
+      - repair/deb/Release
+      - repair/deb/Release.sha256
+      - signed/Release.asc
+
+publish-release-deb-metadata-signature:
+  resource_group: artifactory-deb
+  needs:
+    - job: sign-release-deb-metadata
+      artifacts: true
+  rules:
+    - if: '$RUN_DEB_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+  variables:
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
+  script:
+    - apt update && apt install -y curl gnupg
+    - |
+      set -euo pipefail
+
+      signed_release="repair/deb/Release"
+      local_sig="signed/Release.asc"
+      data_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release"
+      sig_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release.gpg"
+
+      test -s "$signed_release"
+      test -s "$local_sig"
+
+      curl -fsSL "$data_url" -o live-Release
+      cmp -s "$signed_release" live-Release \
+        || { echo "Live DEB Release metadata changed after signing; not uploading signature."; exit 1; }
+
+      GNUPGHOME="$(mktemp -d)"
+      export GNUPGHOME
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "$SPLUNK_DEB_GPG_KEY_URL")
+      gpg --status-fd=1 --verify "$local_sig" "$signed_release" \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Signed DEB metadata did not validate with the published Splunk GPG key."; exit 1; }
+
+      curl -fsS -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "$sig_url" -T "$local_sig"
+
+verify-release-deb-metadata-signature:
+  needs:
+    - publish-release-deb-metadata-signature
+  rules:
+    - if: '$RUN_DEB_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+  variables:
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
+  script:
+    - apt update && apt install -y curl gnupg
+    - |
+      set -euo pipefail
+
+      data_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release"
+      sig_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release.gpg"
+
+      curl -fsSL "$data_url" -o live-Release
+      curl -fsSL "$sig_url" -o live-Release.gpg
+
+      GNUPGHOME="$(mktemp -d)"
+      export GNUPGHOME
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "$SPLUNK_DEB_GPG_KEY_URL")
+      gpg --status-fd=1 --verify live-Release.gpg live-Release \
+        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+        || { echo "Published DEB metadata signature did not validate."; exit 1; }
+
 sign-release-rpm-metadata:
   extends: .submit-signing-request
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   before_script:
     - apt update && apt install -y curl
     - |
@@ -1332,7 +1424,7 @@ publish-release-rpm-metadata-signature:
     - job: sign-release-rpm-metadata
       artifacts: true
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
@@ -1370,7 +1462,7 @@ verify-release-rpm-metadata-signature:
   needs:
     - publish-release-rpm-metadata-signature
   rules:
-    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
@@ -1755,7 +1847,7 @@ sign-multiarch-manifest:
 
 xray-scan-docker:
   rules:
-    - if: $RUN_RPM_METADATA_REPAIR == "true"
+    - if: '$RUN_RPM_METADATA_REPAIR == "true" || $RUN_DEB_METADATA_REPAIR == "true"'
       when: never
     - <<: *no-schedules-condition
     - <<: *main-condition

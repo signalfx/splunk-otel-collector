@@ -36,6 +36,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/exec"
+	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -502,6 +503,7 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 		args[key] = ptr(value)
 	}
 
+	startupTimeout := startupTimeoutForArch(arch)
 	container := testutils.NewContainer().
 		WithContext(distro.contextDir).
 		WithDockerfile(distro.dockerfilePath).
@@ -515,16 +517,21 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 		WithBinds(append([]string{"/sys/fs/cgroup:/sys/fs/cgroup:rw"}, extraBinds...)...).
 		WithHostConfigModifier(func(hc *dockerContainer.HostConfig) {
 			hc.CgroupnsMode = dockerContainer.CgroupnsModeHost
-		}).
-		Build()
+		})
+	// testcontainers requires at least one wait strategy; use a no-op here
+	// since the real readiness check is the require.Eventually loop below.
+	container.WaitingFor = append(container.WaitingFor,
+		wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(startupTimeout),
+	)
+	built := container.Build()
 
-	require.NoError(t, container.Start(context.Background()))
+	require.NoError(t, built.Start(context.Background()))
 	require.Eventually(t, func() bool {
-		return execStatus(t, container, "systemctl show-environment") == 0
-	}, startupTimeoutForArch(arch), time.Second)
+		return execStatus(t, built, "systemctl show-environment") == 0
+	}, startupTimeout, time.Second)
 
-	return container, func() {
-		assert.NoError(t, container.Terminate(context.Background()))
+	return built, func() {
+		assert.NoError(t, built.Terminate(context.Background()))
 	}
 }
 

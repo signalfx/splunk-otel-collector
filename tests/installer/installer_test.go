@@ -468,9 +468,12 @@ func packageDistros(t *testing.T) []distro {
 }
 
 func instrumentationDistros(t *testing.T) []distro {
+	// The instrumentation Dockerfiles use `COPY instrumentation/setup-*.sh`,
+	// so the build context must be packaging/tests (the parent), not packaging/tests/instrumentation.
+	contextDir := filepath.Join(repoRoot(t), "packaging", "tests")
 	return append(
-		distrosFrom(t, filepath.Join(repoRoot(t), "packaging", "tests", "instrumentation"), filepath.Join("images", "deb"), debDistro),
-		distrosFrom(t, filepath.Join(repoRoot(t), "packaging", "tests", "instrumentation"), filepath.Join("images", "rpm"), rpmDistro)...,
+		distrosFrom(t, contextDir, filepath.Join("instrumentation", "images", "deb"), debDistro),
+		distrosFrom(t, contextDir, filepath.Join("instrumentation", "images", "rpm"), rpmDistro)...,
 	)
 }
 

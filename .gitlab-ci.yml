@@ -16,6 +16,9 @@ variables:
   RUN_RPM_METADATA_REPAIR:
     value: "false"
     description: "Set to 'true' on a manual main pipeline to re-sign the current release RPM repo metadata."
+  RUN_RPM_RELEASE:
+    value: "false"
+    description: "Set to 'true' to publish signed RPMs to the RPM repo."
   GO_VERSION: 1.26.4
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -1259,6 +1262,15 @@ release-rpms:
   extends:
     - .trigger-filter
     - .submit-signing-request
+  rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
+    - if: $RUN_RPM_RELEASE != "true"
+      when: never
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
@@ -1396,9 +1408,19 @@ verify-release-rpm-metadata-signature:
 # since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
 verify-signed-metadata:
   extends: .trigger-filter
+  rules:
+    - if: $RUN_RPM_METADATA_REPAIR == "true"
+      when: never
+    - if: '$TARGET == "rpm" && $RUN_RPM_RELEASE != "true"'
+      when: never
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   needs:
     - release-debs
-    - release-rpms
+    - job: release-rpms
+      optional: true
   retry: 2
   parallel:
     matrix:
@@ -1793,10 +1815,11 @@ github-release:
       artifacts: true
     - job: build-nupkg
       artifacts: true
-    - job: release-rpms
+    - job: sign-rpms
       artifacts: true
     - job: verify-signed-metadata
       artifacts: false
+      optional: true
     - job: sign-msi
       artifacts: true
     - job: sign-tar

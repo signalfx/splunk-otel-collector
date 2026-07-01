@@ -1229,14 +1229,13 @@ release-debs:
   script:
     - |
       set -ex
-      shopt -s nullglob
-      paths=(dist/signed/*.deb)
-      shopt -u nullglob
-      if [ "${#paths[@]}" -eq 0 ]; then
-        echo "No signed debs found!"
-        exit 1
-      fi
-      python3 packaging/release/release.py --force --stage=${STAGE} --paths "${paths[@]}"
+      for path in dist/signed/*.deb; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --path="$path"
+      done
   artifacts:
     paths:
       - dist/signed/*.deb
@@ -1265,19 +1264,19 @@ release-rpms:
   script:
     - |
       set -ex
-      shopt -s nullglob
-      paths=(dist/signed/*${ARCH}.rpm)
-      shopt -u nullglob
-      if [ "${#paths[@]}" -eq 0 ]; then
-        echo "No signed rpms found for ${ARCH}!"
-        exit 1
-      fi
-      python3 packaging/release/release.py --force --stage=${STAGE} --paths "${paths[@]}"
+      for path in dist/signed/*${ARCH}.rpm; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --path="$path"
+      done
   artifacts:
     paths:
       - dist/signed/*${ARCH}.rpm
 
-verify-package-installs:
+# Verify Artifactory-generated repo metadata signatures after package publish.
+verify-signed-metadata:
   extends: .trigger-filter
   rules:
     - *main-condition
@@ -1292,30 +1291,62 @@ verify-package-installs:
       artifacts: false
       optional: true
   retry: 2
-  timeout: 1h
+  parallel:
+    matrix:
+      - TARGET: deb
+      - TARGET: rpm
+        ARCH: x86_64
+      - TARGET: rpm
+        ARCH: aarch64
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
+  before_script:
+    - apt update && apt install -y curl gnupg
   script:
     - *get-artifactory-stage
-    - docker version
-    - docker run --rm --platform linux/amd64 ubuntu:22.04 uname -m
-    - docker run --rm --platform linux/arm64 ubuntu:22.04 uname -m
     - |
       set -euo pipefail
-      for platform in linux/amd64 linux/arm64; do
-        echo "Verifying DEB install on ${platform} ..."
-        docker run --rm --platform "${platform}" \
-          -e STAGE="${STAGE}" \
-          -e SPLUNK_DEB_GPG_KEY_URL="https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg" \
-          -e SPLUNK_GPG_FINGERPRINT="58C33310B7A354C1279DB6695EFA01EDB3CD4420" \
-          ubuntu:22.04 bash -s < packaging/release/verify-deb-install.sh
-      done
-      for platform in linux/amd64 linux/arm64; do
-        echo "Verifying RPM install on ${platform} ..."
-        docker run --rm --platform "${platform}" \
-          -e STAGE="${STAGE}" \
-          -e SPLUNK_RPM_GPG_KEY_URL="https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub" \
-          -e SPLUNK_GPG_FINGERPRINT="58C33310B7A354C1279DB6695EFA01EDB3CD4420" \
-          quay.io/rockylinux/rockylinux:9 bash -s < packaging/release/verify-rpm-install.sh
-      done
+
+      export GNUPGHOME="$(mktemp -d)"
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
+      gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
+        || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
+
+      case "$TARGET" in
+        deb)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
+          curl -fsSL "${base}/Release" -o metadata.deb-Release
+          curl -fsSL "${base}/Release.gpg" -o metadata.deb-Release.gpg
+          curl -fsSL "${base}/InRelease" -o metadata.deb-InRelease
+
+          gpg --status-fd=1 --verify metadata.deb-Release.gpg metadata.deb-Release \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB Release.gpg did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+          gpg --status-fd=1 --verify metadata.deb-InRelease \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB InRelease did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+          ;;
+        rpm)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata"
+          curl -fsSL "${base}/repomd.xml" -o "metadata.rpm-${ARCH}-repomd.xml"
+          curl -fsSL "${base}/repomd.xml.asc" -o "metadata.rpm-${ARCH}-repomd.xml.asc"
+
+          gpg --status-fd=1 --verify "metadata.rpm-${ARCH}-repomd.xml.asc" "metadata.rpm-${ARCH}-repomd.xml" \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "RPM ${ARCH} repomd.xml.asc did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+          ;;
+        *)
+          echo "Unknown TARGET '${TARGET}'"; exit 1
+          ;;
+      esac
+
+      echo "Metadata signature OK for ${TARGET}${ARCH:+-${ARCH}}"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1643,7 +1674,7 @@ github-release:
       artifacts: true
     - job: sign-rpms
       artifacts: true
-    - job: verify-package-installs
+    - job: verify-signed-metadata
       artifacts: false
       optional: true
     - job: sign-msi

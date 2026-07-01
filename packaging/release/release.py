@@ -18,37 +18,17 @@ import sys
 
 from helpers.release_args import get_args_and_asset
 from helpers.util import (
-    release_debs_to_artifactory,
     release_deb_to_artifactory,
     release_installers_to_s3,
     release_msi_to_s3,
-    release_rpms_to_artifactory,
     release_rpm_to_artifactory,
 )
 
 
 def main():
     args, asset = get_args_and_asset()
-    assets = getattr(args, "assets", [])
 
-    if len(assets) > 1:
-        print(f"Releasing the following assets to the '{args.stage}' stage:")
-        for asset in assets:
-            print(asset.path)
-
-        if not args.force:
-            resp = input("Continue? [y/N]: ")
-            if resp.lower() not in ("y", "yes"):
-                sys.exit(1)
-
-        component = assets[0].component
-        if component == "deb":
-            release_debs_to_artifactory(assets, args)
-        elif component == "rpm":
-            release_rpms_to_artifactory(assets, args)
-        else:
-            raise AssertionError(f"Batch release is not supported for {component}")
-    elif asset:
+    if asset:
         print(f"Releasing the following asset to the '{args.stage}' stage:")
         print(asset.path)
 

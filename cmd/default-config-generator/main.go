@@ -23,23 +23,18 @@ import (
 	"strings"
 )
 
-const generatedCommentMarker = "# <-- generated comment -->"
-const generatedCommentEndMarker = "# <-- generated comment end -->"
-
-const gatewayDisabledMarker = "# <-- gateway disabled -->"
-const gatewayDisabledEndMarker = "# <-- gateway disabled end -->"
-
-const gatewayEnabledMarker = "# <-- gateway enabled -->"
-const gatewayEnabledEndMarker = "# <-- gateway enabled end -->"
-
-const lineBreak = "\n"
+const (
+	generatedCommentMarker    = "# <-- generated comment -->"
+	generatedCommentEndMarker = "# <-- generated comment end -->"
+	lineBreak                 = "\n"
+)
 
 type configToGenerate struct {
 	destinationPath         string
-	generatedConfigContents *bytes.Buffer
 	startMarker             string
 	endMarker               string
 	insideMarker            bool
+	generatedConfigContents *bytes.Buffer
 }
 
 func (cfg *configToGenerate) AppendGeneratedConfigContents(line string) {
@@ -61,14 +56,14 @@ func getAgentSourceTemplate() sourceTemplate {
 		generateConfigs: []*configToGenerate{
 			{
 				destinationPath:         filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),
-				endMarker:               gatewayDisabledEndMarker,
-				startMarker:             gatewayDisabledMarker,
+				startMarker:             "# <-- gateway disabled -->",
+				endMarker:               "# <-- gateway disabled end -->",
 				generatedConfigContents: bytes.NewBuffer(make([]byte, 0)),
 			},
 			{
 				destinationPath:         filepath.Join("..", "otelcol", "config", "collector", "agent_to_gateway_config.yaml"),
-				endMarker:               gatewayEnabledEndMarker,
-				startMarker:             gatewayEnabledMarker,
+				startMarker:             "# <-- gateway enabled -->",
+				endMarker:               "# <-- gateway enabled end -->",
 				generatedConfigContents: bytes.NewBuffer(make([]byte, 0)),
 			},
 		},

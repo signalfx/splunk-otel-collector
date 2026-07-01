@@ -3,7 +3,7 @@
 ## Setup
 
 Install Docker and Go on your workstation. Package tests are Go tests and do not require
-the Python virtualenv used by the installer tests.
+the Python virtualenv used by deployment tests.
 
 ## Running tests
 
@@ -19,10 +19,6 @@ the Python virtualenv used by the installer tests.
    [here](../fpm/tar/README.md) for how to build the packages.
 1. To run the installer tests, execute the following commands:
    ```
-   virtualenv venv
-   source venv/bin/activate  # if not already in virtualenv
-   pip install -r packaging/tests/requirements.txt
-   pytest [PYTEST_OPTIONS] packaging/tests/installer_test.py
+   cd tests
+   go test -tags integration ./installer
    ```
-   Installer tests still use pytest. Check [pytest.org](https://pytest.org) or
-   run `pytest --help` to see the available pytest options.

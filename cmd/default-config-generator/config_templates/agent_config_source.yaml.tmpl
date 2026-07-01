@@ -1,5 +1,15 @@
+# <-- generated comment -->
+# This file is being used to generate two config files:
+#   1. agent_config.yaml: An agent config used without a gateway
+#   2. agent_to_gateway_config.yaml: An agent config used with a gateway
+# <-- generated comment end -->
 # Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+# <-- gateway disabled -->
 # This agent configuration file is meant to be used without a gateway.
+# <-- gateway disabled end -->
+# <-- gateway enabled -->
+# This agent configuration file is meant to be used when sending telemetry to a gateway.
+# <-- gateway enabled end -->
 
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:
@@ -23,7 +33,12 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
+      # <-- gateway disabled -->
       endpoint: "${SPLUNK_API_URL}"
+      # <-- gateway disabled end -->
+      # <-- gateway enabled -->
+      endpoint: "${SPLUNK_GATEWAY_URL}"
+      # <-- gateway enabled end -->
 
   http_forwarder/opamp_splunk_o11y:
     ingress:

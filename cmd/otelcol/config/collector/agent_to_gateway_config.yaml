@@ -1,5 +1,5 @@
 # Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
-# This agent configuration file is meant to be used without a gateway.
+# This agent configuration file is meant to be used when sending telemetry to a gateway.
 
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:
@@ -23,7 +23,7 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
-      endpoint: "${SPLUNK_API_URL}"
+      endpoint: "${SPLUNK_GATEWAY_URL}"
 
   http_forwarder/opamp_splunk_o11y:
     ingress:

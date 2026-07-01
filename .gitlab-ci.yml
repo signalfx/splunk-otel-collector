@@ -1251,9 +1251,17 @@ release-debs:
   after_script:
     - *get-artifactory-stage
     - |
-      set -ex
+      set -e
       if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+        sig_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg"
+        inrelease_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/InRelease"
+
+        curl -fsS -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "$sig_url" -T signed/Release.asc
+        delete_status="$(curl -sS -o /dev/null -w "%{http_code}" -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X DELETE "$inrelease_url")"
+        case "$delete_status" in
+          200|202|204|404) ;;
+          *) echo "Failed to delete stale InRelease: HTTP ${delete_status}"; exit 1 ;;
+        esac
       fi
   artifacts:
     paths:
@@ -1344,6 +1352,7 @@ publish-release-deb-metadata-signature:
       local_sig="signed/Release.asc"
       data_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release"
       sig_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release.gpg"
+      inrelease_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/InRelease"
 
       test -s "$signed_release"
       test -s "$local_sig"
@@ -1361,6 +1370,11 @@ publish-release-deb-metadata-signature:
         || { echo "Signed DEB metadata did not validate with the published Splunk GPG key."; exit 1; }
 
       curl -fsS -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "$sig_url" -T "$local_sig"
+      delete_status="$(curl -sS -o /dev/null -w "%{http_code}" -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X DELETE "$inrelease_url")"
+      case "$delete_status" in
+        200|202|204|404) ;;
+        *) echo "Failed to delete stale InRelease: HTTP ${delete_status}"; exit 1 ;;
+      esac
 
 verify-release-deb-metadata-signature:
   needs:
@@ -1377,6 +1391,7 @@ verify-release-deb-metadata-signature:
 
       data_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release"
       sig_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/Release.gpg"
+      inrelease_url="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/release/InRelease"
 
       curl -fsSL "$data_url" -o live-Release
       curl -fsSL "$sig_url" -o live-Release.gpg
@@ -1388,6 +1403,20 @@ verify-release-deb-metadata-signature:
       gpg --status-fd=1 --verify live-Release.gpg live-Release \
         | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
         || { echo "Published DEB metadata signature did not validate."; exit 1; }
+      inrelease_status="$(curl -sS -o live-InRelease -w "%{http_code}" "$inrelease_url")"
+      case "$inrelease_status" in
+        200)
+          gpg --status-fd=1 --verify live-InRelease \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "Published DEB InRelease did not validate with the expected key."; exit 1; }
+          ;;
+        404)
+          echo "No InRelease present; apt will use Release + Release.gpg."
+          ;;
+        *)
+          echo "Could not check InRelease: HTTP ${inrelease_status}"; exit 1
+          ;;
+      esac
 
 sign-release-rpm-metadata:
   extends: .submit-signing-request
@@ -1526,6 +1555,7 @@ verify-signed-metadata:
           base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
           data_url="${base}/Release"
           sig_url="${base}/Release.gpg"
+          inrelease_url="${base}/InRelease"
           name="deb-Release"
           local_sig="signed/Release.asc"
           ;;
@@ -1550,6 +1580,23 @@ verify-signed-metadata:
       gpg --status-fd=1 --verify "metadata.${name}.asc" "metadata.${name}" \
         | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
         || { echo "Signature for ${name} did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+      if [ "$TARGET" = "deb" ]; then
+        inrelease_status="$(curl -sS -o "metadata.${name}.InRelease" -w "%{http_code}" "$inrelease_url")"
+        case "$inrelease_status" in
+          200)
+            gpg --status-fd=1 --verify "metadata.${name}.InRelease" \
+              | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+              || { echo "InRelease for ${name} did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+            ;;
+          404)
+            echo "No InRelease present for ${name}; apt will use Release + Release.gpg."
+            ;;
+          *)
+            echo "Could not check InRelease for ${name}: HTTP ${inrelease_status}"; exit 1
+            ;;
+        esac
+      fi
 
       # The published signature is the one this pipeline uploaded (catches a
       # failed upload or a stale/cached .asc).

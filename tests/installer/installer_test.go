@@ -103,8 +103,7 @@ func TestInstallerDefault(t *testing.T) {
 			for _, mode := range []string{"agent", "gateway"} {
 				distro, arch, mode := distro, arch, mode
 				t.Run(fmt.Sprintf("%s/%s/%s", distro.name, arch, mode), func(t *testing.T) {
-					container, shutdown := runDistroContainer(t, distro, arch, nil, nil)
-					defer shutdown()
+					container := runDistroContainer(t, distro, arch, nil, nil)
 					defer journalctl(t, container)
 
 					copyInstaller(t, container)
@@ -140,8 +139,7 @@ func TestInstallerCustom(t *testing.T) {
 		for _, arch := range []string{"amd64", "arm64"} {
 			distro, arch := distro, arch
 			t.Run(fmt.Sprintf("%s/%s", distro.name, arch), func(t *testing.T) {
-				container, shutdown := runDistroContainer(t, distro, arch, nil, nil)
-				defer shutdown()
+				container := runDistroContainer(t, distro, arch, nil, nil)
 				defer journalctl(t, container)
 
 				require.NoError(t, container.CopyFileToContainer(context.Background(), filepath.Join(repoRoot(t), "packaging", "tests", "custom-config.yaml"), customConfig, 0o644))
@@ -192,8 +190,7 @@ func TestInstallerWithInstrumentationDefault(t *testing.T) {
 					if arch == "arm64" && distro.name == "centos-7" {
 						nodeVersion = "v14"
 					}
-					container, shutdown := runDistroContainer(t, distro, arch, map[string]string{"NODE_VERSION": nodeVersion}, nil)
-					defer shutdown()
+					container := runDistroContainer(t, distro, arch, map[string]string{"NODE_VERSION": nodeVersion}, nil)
 
 					copyInstaller(t, container)
 					runContainerCmd(t, container, `sh -c 'echo "# This line should be preserved" >> `+preloadPath+`'`, runOptions{})
@@ -256,8 +253,7 @@ func TestInstallerWithInstrumentationCustom(t *testing.T) {
 						if arch == "arm64" && distro.name == "centos-7" {
 							nodeVersion = "v14"
 						}
-						container, shutdown := runDistroContainer(t, distro, arch, map[string]string{"NODE_VERSION": nodeVersion}, nil)
-						defer shutdown()
+						container := runDistroContainer(t, distro, arch, map[string]string{"NODE_VERSION": nodeVersion}, nil)
 
 						copyInstaller(t, container)
 						runContainerCmd(t, container, `sh -c 'echo "# This line should be preserved" >> `+preloadPath+`'`, runOptions{})
@@ -347,8 +343,7 @@ func TestInstallerWithOBI(t *testing.T) {
 		for _, arch := range []string{"amd64", "arm64"} {
 			distro, arch := distro, arch
 			t.Run(fmt.Sprintf("%s/%s", distro.name, arch), func(t *testing.T) {
-				container, shutdown := runDistroContainer(t, distro, arch, nil, []string{"/sys/fs/bpf:/sys/fs/bpf:rw"})
-				defer shutdown()
+				container := runDistroContainer(t, distro, arch, nil, []string{"/sys/fs/bpf:/sys/fs/bpf:rw"})
 
 				copyInstaller(t, container)
 				runContainerCmd(t, container, installerCmd(t)+" --with-obi --obi-version "+envOrDefault("OBI_VERSION", obiVersionDefault), runOptions{env: verifyTokenEnv(), timeout: installerTimeout})
@@ -417,8 +412,7 @@ func TestInstallerSplunkPlatformValidation(t *testing.T) {
 			for _, arch := range []string{"amd64", "arm64"} {
 				tc, distro, arch := tc, distro, arch
 				t.Run(fmt.Sprintf("%s/%s/%s", tc.name, distro.name, arch), func(t *testing.T) {
-					container, shutdown := runDistroContainer(t, distro, arch, nil, nil)
-					defer shutdown()
+					container := runDistroContainer(t, distro, arch, nil, nil)
 
 					copyInstaller(t, container)
 					copyLocalCollectorPackageForPlatformTest(t, container, distro.kind)
@@ -498,7 +492,7 @@ func distrosFrom(t *testing.T, contextDir, dockerfileDir string, kind distroKind
 	return distros
 }
 
-func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[string]string, extraBinds []string) (*testutils.Container, func()) {
+func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[string]string, extraBinds []string) *testutils.Container {
 	t.Helper()
 
 	args := map[string]*string{"TARGETARCH": ptr(arch)}
@@ -534,9 +528,7 @@ func runDistroContainer(t *testing.T, distro distro, arch string, buildArgs map[
 
 	waitForSystemd(t, built, arch)
 
-	return built, func() {
-		assert.NoError(t, built.Terminate(context.Background()))
-	}
+	return built
 }
 
 func waitForSystemd(t *testing.T, container *testutils.Container, arch string) {

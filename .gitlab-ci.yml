@@ -1307,7 +1307,7 @@ verify-signed-metadata:
   script:
     - *get-artifactory-stage
     - |
-      set -euo pipefail
+      set -exo pipefail
 
       export GNUPGHOME="$(mktemp -d)"
       trap 'rm -rf "$GNUPGHOME"' EXIT

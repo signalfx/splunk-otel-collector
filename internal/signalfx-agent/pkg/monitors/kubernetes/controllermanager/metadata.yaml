@@ -1,5 +1,8 @@
 monitors:
 - doc: |
+    **This plugin is deprecated and will be removed by the end of April 2026.
+    Please use the Prometheus receiver instead.**
+
     Exports Prometheus metrics from the [kube-controller-manager]
     (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/).
     The monitor queries path `/metrics` by default when no path is configured. The monitor converts

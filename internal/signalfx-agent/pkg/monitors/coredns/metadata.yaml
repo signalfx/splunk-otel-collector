@@ -2,6 +2,9 @@ monitors:
 - monitorType: coredns
   dimensions:
   doc: |-
+      **This plugin is deprecated and will be removed by the end of April 2026.
+      Please use the Prometheus receiver instead.**
+
       This monitor scrapes prometheus metrics exposed by CoreDNS. The default port for these metrics
       are exposed on port 9153, at the /metrics path. For more information about CoreDNS prometheus
       metrics, check out their [documentation](https://coredns.io/plugins/metrics/).

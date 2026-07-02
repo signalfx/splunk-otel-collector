@@ -1,0 +1,328 @@
+receivers:
+  windowsperfcounters/cpu:
+    collection_interval: 10s
+    perfcounters:
+      - object: Processor
+        instances: ["*"]
+        counters:
+          - name: "% Processor Time"
+          - name: "% User Time"
+          - name: "% Privileged Time"
+          - name: "Interrupts/sec"
+          - name: "% DPC Time"
+          - name: "% Interrupt Time"
+          - name: "DPCs Queued/sec"
+          - name: "DPC Rate"
+          - name: "% Idle Time"
+          - name: "% C1 Time"
+          - name: "% C2 Time"
+          - name: "% C3 Time"
+          - name: "C1 Transitions/sec"
+          - name: "C2 Transitions/sec"
+          - name: "C3 Transitions/sec"
+  windowsperfcounters/processor_information:
+    collection_interval: 10s
+    perfcounters:
+      - object: Processor Information
+        instances: ["*"]
+        counters:
+          - name: "% Processor Time"
+          - name: "Processor Frequency"
+  windowsperfcounters/logical_disk:
+    collection_interval: 10s
+    perfcounters:
+      - object: LogicalDisk
+        instances: ["*"]
+        counters:
+          - name: "% Free Space"
+          - name: "Free Megabytes"
+          - name: "Current Disk Queue Length"
+          - name: "% Disk Time"
+          - name: "Avg. Disk Queue Length"
+          - name: "% Disk Read Time"
+          - name: "Avg. Disk Read Queue Length"
+          - name: "% Disk Write Time"
+          - name: "Avg. Disk Write Queue Length"
+          - name: "Avg. Disk sec/Transfer"
+          - name: "Avg. Disk sec/Read"
+          - name: "Avg. Disk sec/Write"
+          - name: "Disk Transfers/sec"
+          - name: "Disk Reads/sec"
+          - name: "Disk Writes/sec"
+          - name: "Disk Bytes/sec"
+          - name: "Disk Read Bytes/sec"
+          - name: "Disk Write Bytes/sec"
+          - name: "% Idle Time"
+  windowsperfcounters/physical_disk:
+    collection_interval: 10s
+    perfcounters:
+      - object: PhysicalDisk
+        instances: ["*"]
+        counters:
+          - name: "Current Disk Queue Length"
+          - name: "% Disk Time"
+          - name: "Disk Transfers/sec"
+          - name: "Disk Reads/sec"
+          - name: "Disk Writes/sec"
+          - name: "Disk Bytes/sec"
+          - name: "Disk Read Bytes/sec"
+          - name: "Disk Write Bytes/sec"
+          - name: "% Idle Time"
+  windowsperfcounters/memory:
+    collection_interval: 10s
+    perfcounters:
+      - object: Memory
+        counters:
+          - name: "Page Faults/sec"
+          - name: "Available Bytes"
+          - name: "Committed Bytes"
+          - name: "Commit Limit"
+          - name: "Pages/sec"
+          - name: "Pages Input/sec"
+          - name: "Page Reads/sec"
+          - name: "Pages Output/sec"
+          - name: "Pool Paged Bytes"
+          - name: "Pool Nonpaged Bytes"
+          - name: "Page Writes/sec"
+          - name: "Available KBytes"
+          - name: "Available MBytes"
+  windowsperfcounters/network:
+    collection_interval: 10s
+    perfcounters:
+      - object: Network Interface
+        instances: ["*"]
+        counters:
+          - name: "Bytes Total/sec"
+          - name: "Packets/sec"
+          - name: "Packets Received/sec"
+          - name: "Packets Sent/sec"
+          - name: "Current Bandwidth"
+          - name: "Bytes Received/sec"
+          - name: "Bytes Sent/sec"
+          - name: "Packets Received Discarded"
+          - name: "Packets Received Errors"
+          - name: "Packets Outbound Discarded"
+          - name: "Packets Outbound Errors"
+          - name: "Output Queue Length"
+  windowsperfcounters/process:
+    collection_interval: 10s
+    perfcounters:
+      - object: Process
+        instances: ["*"]
+        counters:
+          - name: "% Processor Time"
+          - name: "% User Time"
+          - name: "% Privileged Time"
+          - name: "Virtual Bytes"
+          - name: "Working Set"
+          - name: "Page File Bytes"
+          - name: "Private Bytes"
+          - name: "Thread Count"
+          - name: "ID Process"
+          - name: "IO Read Operations/sec"
+          - name: "IO Write Operations/sec"
+          - name: "IO Read Bytes/sec"
+          - name: "IO Write Bytes/sec"
+  windowsperfcounters/system:
+    collection_interval: 10s
+    perfcounters:
+      - object: System
+        counters:
+          - name: "File Read Operations/sec"
+          - name: "File Write Operations/sec"
+          - name: "Context Switches/sec"
+          - name: "System Calls/sec"
+          - name: "System Up Time"
+          - name: "Processor Queue Length"
+          - name: "Processes"
+          - name: "Threads"
+  windowsperfcounters/dfs_replicated_folders:
+    collection_interval: 30s
+    perfcounters:
+      - object: DFS Replicated Folders
+        instances: ["*"]
+        counters:
+          - name: "Bandwidth Savings Using DFS Replication"
+          - name: "RDC Bytes Received"
+          - name: "Total Files Received"
+          - name: "Conflict Files Generated"
+          - name: "Staging Files Generated"
+          - name: "Updates Dropped"
+  windowsperfcounters/ntds:
+    collection_interval: 10s
+    perfcounters:
+      - object: NTDS
+        counters:
+          - name: "DRA Inbound Objects/sec"
+          - name: "DRA Outbound Objects/sec"
+          - name: "LDAP Client Sessions"
+          - name: "LDAP Searches/sec"
+          - name: "LDAP Writes/sec"
+          - name: "LDAP Successful Binds/sec"
+          - name: "LDAP Bind Time"
+          - name: "DS Directory Reads/sec"
+          - name: "DS Directory Writes/sec"
+          - name: "DS Directory Searches/sec"
+          - name: "DRA Pending Replication Synchronizations"
+  windowsperfcounters/dns:
+    collection_interval: 10s
+    perfcounters:
+      - object: DNS
+        counters:
+          - name: "Total Query Received"
+          - name: "Total Query Received/sec"
+          - name: "UDP Query Received/sec"
+          - name: "TCP Query Received/sec"
+          - name: "Total Response Sent/sec"
+          - name: "Recursive Queries/sec"
+          - name: "Recursive Query Failure/sec"
+          - name: "Dynamic Update Received/sec"
+          - name: "Dynamic Update Rejected"
+          - name: "Zone Transfer Request Received"
+          - name: "Zone Transfer Success"
+          - name: "Zone Transfer Failure"
+
+
+processors:
+  batch:
+  resource_detection:
+    detectors: [ system, env ]
+    system:
+      hostname_sources: [ "os" ]
+  transform/perfcounters_cpu:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:CPU")
+          - set(attributes["com.splunk.source"], "PerfmonMk:CPU")
+  transform/perfcounters_processor_information:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:ProcessorInformation")
+          - set(attributes["com.splunk.source"], "PerfmonMk:ProcessorInformation")
+  transform/perfcounters_logical_disk:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:LogicalDisk")
+          - set(attributes["com.splunk.source"], "PerfmonMk:LogicalDisk")
+  transform/perfcounters_physical_disk:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:PhysicalDisk")
+          - set(attributes["com.splunk.source"], "PerfmonMk:PhysicalDisk")
+  transform/perfcounters_memory:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:Memory")
+          - set(attributes["com.splunk.source"], "PerfmonMk:Memory")
+  transform/perfcounters_network:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:Network")
+          - set(attributes["com.splunk.source"], "PerfmonMk:Network")
+  transform/perfcounters_process:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:Process")
+          - set(attributes["com.splunk.source"], "PerfmonMk:Process")
+  transform/perfcounters_system:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:System")
+          - set(attributes["com.splunk.source"], "PerfmonMk:System")
+  transform/perfcounters_dfs_replicated_folders:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:DFS_Replicated_Folders")
+          - set(attributes["com.splunk.source"], "PerfmonMk:DFS_Replicated_Folders")
+  transform/perfcounters_ntds:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:NTDS")
+          - set(attributes["com.splunk.source"], "PerfmonMk:NTDS")
+  transform/perfcounters_dns:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["com.splunk.sourcetype"], "PerfmonMk:DNS")
+          - set(attributes["com.splunk.source"], "PerfmonMk:DNS")
+
+exporters:
+  splunk_hec/metrics:
+    endpoint: "${SPLUNK_PLATFORM_URL}"
+    token: "${SPLUNK_PLATFORM_TOKEN}"
+    source: "otel"
+    index: "${SPLUNK_PLATFORM_METRICS_INDEX}"
+    splunk_app_name: "splunk-otel-collector"
+    log_data_enabled: false
+    disable_compression: true
+    use_multi_metric_format: true
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_elapsed_time: 300s
+      max_interval: 30s
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 10000
+      batch:
+    tls:
+      insecure_skip_verify: false
+
+service:
+  pipelines:
+    metrics/cpu:
+      receivers: [windowsperfcounters/cpu]
+      processors: [transform/perfcounters_cpu, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/processor_information:
+      receivers: [windowsperfcounters/processor_information]
+      processors: [transform/perfcounters_processor_information, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/logical_disk:
+      receivers: [windowsperfcounters/logical_disk]
+      processors: [transform/perfcounters_logical_disk, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/physical_disk:
+      receivers: [windowsperfcounters/physical_disk]
+      processors: [transform/perfcounters_physical_disk, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/memory:
+      receivers: [windowsperfcounters/memory]
+      processors: [transform/perfcounters_memory, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/network:
+      receivers: [windowsperfcounters/network]
+      processors: [transform/perfcounters_network, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/process:
+      receivers: [windowsperfcounters/process]
+      processors: [transform/perfcounters_process, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/system:
+      receivers: [windowsperfcounters/system]
+      processors: [transform/perfcounters_system, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/dfs_replicated_folders:
+      receivers: [windowsperfcounters/dfs_replicated_folders]
+      processors: [transform/perfcounters_dfs_replicated_folders, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/ntds:
+      receivers: [windowsperfcounters/ntds]
+      processors: [transform/perfcounters_ntds, batch, resource_detection]
+      exporters: [splunk_hec/metrics]
+    metrics/dns:
+      receivers: [windowsperfcounters/dns]
+      processors: [transform/perfcounters_dns, batch, resource_detection]
+      exporters: [splunk_hec/metrics]

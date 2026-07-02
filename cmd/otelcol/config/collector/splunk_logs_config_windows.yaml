@@ -84,7 +84,7 @@ receivers:
     raw: true
     ignore_channel_errors: true
 
-  filelog/dhcp:
+  file_log/dhcp:
     include:
       - '${env:SystemRoot}\System32\DHCP\DhcpSrvLog*'
     start_at: beginning
@@ -98,7 +98,7 @@ receivers:
         value: DhcpSrvLog
     storage: file_storage/filelogs
 
-  filelog/windowsupdate_legacy:
+  file_log/windowsupdate_legacy:
     # For Windows 8 / Server 2008R2 / Server 2012 / Server 2012R2
     include:
       - '${env:SystemRoot}\WindowsUpdate.log'
@@ -113,7 +113,7 @@ receivers:
         value: WindowsUpdateLog
     storage: file_storage/filelogs
 
-  filelog/netlogon:
+  file_log/netlogon:
     include:
       - '${env:SystemRoot}\debug\netlogon.log'
     start_at: beginning
@@ -127,7 +127,7 @@ receivers:
         value: MSAD:NT6:Netlogon
     storage: file_storage/filelogs
 
-  filelog/firewall:
+  file_log/firewall:
     include:
       - '${env:SystemRoot}\System32\LogFiles\Firewall\*'
     start_at: beginning
@@ -146,9 +146,9 @@ receivers:
   #   The live DNS debug log is held open with an exclusive lock by the DNS
   #   service. filelogreceiver cannot reliably read exclusively locked files.
   #   Workaround: use a scheduled task to periodically copy dns.log to a
-  #   staging path, then monitor that path with filelog.
+  #   staging path, then monitor that path with file_log.
 
-  #  filelog/dns_debug:
+  #  file_log/dns_debug:
   #    include:
   #      - '${env:SystemDrive}\dns_log_copy\dns.log'
   #    start_at: beginning
@@ -164,7 +164,7 @@ receivers:
 
 processors:
   batch:
-  resourcedetection:
+  resource_detection:
     detectors: [ system, env ]
     system:
       hostname_sources: [ "os" ]
@@ -248,6 +248,23 @@ exporters:
     token: "${SPLUNK_PLATFORM_TOKEN}"
     source: "otel"
     index: "${SPLUNK_PLATFORM_LOGS_INDEX}"
+    splunk_app_name: "splunk-otel-collector"
+    disable_compression: true
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_elapsed_time: 300s
+      max_interval: 30s
+    sending_queue:
+      enabled: true
+      block_on_overflow: true
+      num_consumers: 10
+      queue_size: 10000
+      batch:
+        enabled: true
+    tls:
+      insecure_skip_verify: false
 
 extensions:
   file_storage/filelogs:
@@ -262,61 +279,61 @@ service:
   pipelines:
     logs/application:
       receivers: [windows_event_log]
-      processors: [transform/application, batch, resourcedetection]
+      processors: [transform/application, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/security:
       receivers: [windows_event_log/security]
-      processors: [transform/security, batch, resourcedetection]
+      processors: [transform/security, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/system:
       receivers: [windows_event_log/system]
-      processors: [transform/system, batch, resourcedetection]
+      processors: [transform/system, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/printservice:
       receivers: [windows_event_log/printservice]
-      processors: [transform/printservice, batch, resourcedetection]
+      processors: [transform/printservice, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/forwardedevents:
       receivers: [windows_event_log/forwardedevents]
-      processors: [transform/forwardedevents, batch, resourcedetection]
+      processors: [transform/forwardedevents, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/dfs_replication:
       receivers: [windows_event_log/dfs_replication]
-      processors: [transform/dfs_replication, batch, resourcedetection]
+      processors: [transform/dfs_replication, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/directory_service:
       receivers: [windows_event_log/directory_service]
-      processors: [transform/directory_service, batch, resourcedetection]
+      processors: [transform/directory_service, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/file_replication:
       receivers: [windows_event_log/file_replication]
-      processors: [transform/file_replication, batch, resourcedetection]
+      processors: [transform/file_replication, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/dns_server:
       receivers: [windows_event_log/dns_server]
-      processors: [transform/dns_server, batch, resourcedetection]
+      processors: [transform/dns_server, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/key_management:
       receivers: [windows_event_log/key_management]
-      processors: [transform/key_management, batch, resourcedetection]
+      processors: [transform/key_management, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/defender:
       receivers: [windows_event_log/defender]
-      processors: [transform/defender, batch, resourcedetection]
+      processors: [transform/defender, batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/dhcp:
-      receivers: [filelog/dhcp]
-      processors: [batch, resourcedetection]
+      receivers: [file_log/dhcp]
+      processors: [batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/windowsupdate:
-      receivers: [filelog/windowsupdate_legacy]
-      processors: [batch, resourcedetection]
+      receivers: [file_log/windowsupdate_legacy]
+      processors: [batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/netlogon:
-      receivers: [filelog/netlogon]
-      processors: [batch, resourcedetection]
+      receivers: [file_log/netlogon]
+      processors: [batch, resource_detection]
       exporters: [splunk_hec/logs]
     logs/firewall:
-      receivers: [filelog/firewall]
-      processors: [batch, resourcedetection]
+      receivers: [file_log/firewall]
+      processors: [batch, resource_detection]
       exporters: [splunk_hec/logs]

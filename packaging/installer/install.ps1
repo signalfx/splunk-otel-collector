@@ -635,6 +635,12 @@ elseif ($msi_path -Eq "") {
         echo 'Determining latest release...'
         $collector_version = get_latest -stage $stage -format $format
         echo "- Latest release is $collector_version"
+    } else {
+        $min_version = [version]"0.128.0"
+        $parsed_version = $collector_version -replace '^v', ''
+        if ([version]$parsed_version -lt $min_version) {
+            throw "The minimum supported version is '$min_version', but '$collector_version' was requested."
+        }
     }
 
     # download the collector package with the specified collector_version or latest

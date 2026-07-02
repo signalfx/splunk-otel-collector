@@ -187,6 +187,7 @@ and the [opentelemetry-collector-contrib v0.155.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
+- (Splunk) `installer`: Fix Windows installation script to not overwrite custom properties passed to the MSI ([#7700](https://github.com/signalfx/splunk-otel-collector/pull/7700/))
 - (Splunk) `installer`: Fix the Windows MSI so the collector service starts when `SPLUNK_CONFIG` is provided as an install property. ([#7701](https://github.com/signalfx/splunk-otel-collector/pull/7701))
   Since v0.154.0, tooling that passes `SPLUNK_CONFIG` as an MSI property (e.g. the Puppet and Ansible
   modules) produced a service with no config, so it failed to start. The MSI now routes a supplied

@@ -13,29 +13,28 @@
 # limitations under the License.
 
 import hashlib
+import gzip
 import os
 import re
 import sys
 import tempfile
 import time
+import urllib.parse
+import xml.etree.ElementTree as ET
 
 import boto3
 import requests
 
 from .constants import (
     ARTIFACTORY_API_URL,
-    ARTIFACTORY_DEB_REPO,
     ARTIFACTORY_DEB_REPO_URL,
-    ARTIFACTORY_RPM_REPO,
     ARTIFACTORY_RPM_REPO_URL,
     ARTIFACTORY_URL,
     CLOUDFRONT_DISTRIBUTION_ID,
     DEFAULT_TIMEOUT,
     EXTENSIONS,
     INSTALLER_SCRIPTS,
-    METADATA_SETTLE_DELAY,
     PACKAGE_NAME,
-    REPO_DIR,
     S3_BUCKET,
     S3_MSI_BASE_DIR,
 )
@@ -113,6 +112,13 @@ def download_file(url, dest, user=None, token=None):
         fd.write(resp.content)
 
 
+def get_url_bytes(url, user=None, token=None):
+    auth = (user, token) if user and token else None
+    resp = requests.get(url, auth=auth, timeout=60)
+    assert resp.status_code == 200, f"download failed:\n{resp.reason}\n{resp.text}"
+    return resp.content
+
+
 def delete_artifactory_file(url, user, token):
     print(f"deleting {url} ...")
 
@@ -136,74 +142,187 @@ def get_md5_from_artifactory(url, user, token):
     return md5
 
 
-def trigger_metadata_calculation(calculate_url, user, token, timeout=DEFAULT_TIMEOUT):
-    # Explicitly ask Artifactory to (re)calculate the repo metadata and block
-    # until it finishes (async=0).
-    print(f"Triggering synchronous metadata calculation: {calculate_url}")
-    resp = requests.post(calculate_url, auth=(user, token), timeout=timeout)
-    print(f"Calculation response: {resp.status_code} {resp.text.strip()}")
-    resp.raise_for_status()
+def verify_bytes_checksum(data, checksum_type, expected_checksum, expected_size=None):
+    if expected_size is not None:
+        assert len(data) == int(expected_size), (
+            f"size mismatch: expected {expected_size}, got {len(data)}"
+        )
+    hash_name = checksum_type.replace("-", "")
+    if hash_name == "sha":
+        hash_name = "sha1"
+    digest = hashlib.new(hash_name)
+    digest.update(data)
+    actual_checksum = digest.hexdigest().lower()
+    assert actual_checksum == expected_checksum.lower(), (
+        f"{checksum_type} mismatch: expected {expected_checksum}, got {actual_checksum}"
+    )
 
 
-def wait_for_artifactory_metadata(
-    url, orig_md5, user, token, timeout=DEFAULT_TIMEOUT, settle_delay=METADATA_SETTLE_DELAY
-):
-    print(f"Waiting for {url} to be updated (original MD5: {orig_md5}) ...")
+def get_deb_package_info(asset):
+    match = re.match(r"(?P<name>.+)_(?P<version>[^_]+)_(?P<arch>amd64|arm64)\.deb$", asset.name)
+    assert match, f"Failed to get deb package info from {asset.path}!"
+    return match.groupdict()
 
+
+def get_rpm_package_info(asset):
+    match = re.match(
+        r"(?P<name>.+)-(?P<version>[0-9][^-]*)-(?P<release>[^-]+)\.(?P<arch>x86_64|aarch64)\.rpm$",
+        asset.name,
+    )
+    assert match, f"Failed to get rpm package info from {asset.path}!"
+    return match.groupdict()
+
+
+def parse_deb_release_sha256(release_text):
+    entries = {}
+    in_sha256 = False
+    for line in release_text.splitlines():
+        if line == "SHA256:":
+            in_sha256 = True
+            continue
+        if re.match(r"^[A-Za-z0-9-]+:", line):
+            in_sha256 = False
+        if in_sha256 and line.startswith(" "):
+            checksum, size, path = line.split()
+            entries[path] = (checksum, int(size))
+    return entries
+
+
+def parse_deb_packages(packages_text):
+    packages = []
+    current = {}
+    for line in packages_text.splitlines():
+        if not line:
+            if current:
+                packages.append(current)
+                current = {}
+            continue
+        if line[0].isspace() or ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        current[key] = value.strip()
+    if current:
+        packages.append(current)
+    return packages
+
+
+def get_deb_packages_from_metadata(stage, arch, user, token):
+    release_url = f"{ARTIFACTORY_DEB_REPO_URL}/dists/{stage}/Release"
+    release_text = get_url_bytes(release_url, user, token).decode("utf-8")
+    checksums = parse_deb_release_sha256(release_text)
+
+    for packages_path in (f"main/binary-{arch}/Packages", f"main/binary-{arch}/Packages.gz"):
+        if packages_path not in checksums:
+            continue
+        packages_url = f"{ARTIFACTORY_DEB_REPO_URL}/dists/{stage}/{packages_path}"
+        packages_bytes = get_url_bytes(packages_url, user, token)
+        checksum, size = checksums[packages_path]
+        verify_bytes_checksum(packages_bytes, "sha256", checksum, size)
+        if packages_path.endswith(".gz"):
+            packages_bytes = gzip.decompress(packages_bytes)
+        return parse_deb_packages(packages_bytes.decode("utf-8"))
+
+    raise AssertionError(f"No Packages metadata found in Release for {stage}/{arch}")
+
+
+def get_rpm_packages_from_metadata(stage, arch, user, token):
+    repomd_url = f"{ARTIFACTORY_RPM_REPO_URL}/{stage}/{arch}/repodata/repomd.xml"
+    repomd_bytes = get_url_bytes(repomd_url, user, token)
+    repo_ns = "{http://linux.duke.edu/metadata/repo}"
+    common_ns = "{http://linux.duke.edu/metadata/common}"
+
+    repomd = ET.fromstring(repomd_bytes)
+    primary = None
+    for data in repomd.findall(f"{repo_ns}data"):
+        if data.attrib.get("type") == "primary":
+            primary = data
+            break
+    assert primary is not None, f"primary metadata not found in {repomd_url}"
+
+    checksum = primary.find(f"{repo_ns}checksum")
+    location = primary.find(f"{repo_ns}location")
+    assert checksum is not None and location is not None, f"primary checksum/location missing in {repomd_url}"
+
+    repo_root_url = repomd_url.rsplit("/repodata/repomd.xml", 1)[0] + "/"
+    primary_url = urllib.parse.urljoin(repo_root_url, location.attrib["href"])
+    primary_bytes = get_url_bytes(primary_url, user, token)
+    verify_bytes_checksum(primary_bytes, checksum.attrib["type"], checksum.text)
+    if primary_url.endswith(".gz"):
+        primary_bytes = gzip.decompress(primary_bytes)
+
+    primary_xml = ET.fromstring(primary_bytes)
+    packages = []
+    for package in primary_xml.findall(f"{common_ns}package"):
+        version = package.find(f"{common_ns}version")
+        packages.append(
+            {
+                "name": package.findtext(f"{common_ns}name"),
+                "arch": package.findtext(f"{common_ns}arch"),
+                "version": version.attrib.get("ver") if version is not None else None,
+                "release": version.attrib.get("rel") if version is not None else None,
+            }
+        )
+    return packages
+
+
+def wait_for_packages_in_metadata(package_type, expected_packages, stage, user, token, timeout=DEFAULT_TIMEOUT):
+    print(
+        f"Waiting for {len(expected_packages)} {package_type} package(s) "
+        f"to appear in {stage} repo metadata ..."
+    )
     start_time = time.time()
+    last_log = -60
 
-    # wait for the metadata to change from the pre-upload snapshot.
-    last_md5 = orig_md5
     while True:
         elapsed = int(time.time() - start_time)
         assert elapsed < timeout, (
-            f"Timed out after {elapsed}s waiting for {url} to be updated "
-            f"(MD5 still {orig_md5})"
+            f"Timed out after {elapsed}s waiting for {package_type} metadata "
+            f"to reference: {expected_packages}"
         )
 
-        new_md5 = get_md5_from_artifactory(url, user, token)
+        try:
+            missing = get_missing_packages_from_metadata(package_type, expected_packages, stage, user, token)
+        except Exception as err:
+            missing = [f"metadata not ready: {err}"]
 
-        if new_md5 and str(orig_md5).lower() != str(new_md5).lower():
-            last_md5 = new_md5
-            print(
-                f"Metadata updated after {int(time.time() - start_time)}s "
-                f"(new MD5: {new_md5}); reconfirming it has settled ..."
-            )
-            break
-
-        if elapsed > 0 and elapsed % 60 == 0:
-            print(f"  Still waiting after {elapsed}s (MD5 unchanged: {new_md5}) ...")
-
-        time.sleep(5)
-
-    # Require the metadata to stay unchanged across a settle window
-    # before treating it as final. Artifactory recalculates metadata
-    # asynchronously and may run more than one calculation pass for a batch, so
-    # returning on the first change can capture an intermediate snapshot that a
-    # later pass overwrites whose detached signature would no longer match the
-    # published metadata and break repo_gpgcheck for clients. If it changes again
-    # during the window, adopt the new value and keep waiting.
-    while True:
-        elapsed = int(time.time() - start_time)
-        assert elapsed + settle_delay <= timeout, (
-            f"Timed out after {elapsed}s waiting for {url} to settle "
-            f"(last seen MD5: {last_md5})"
-        )
-
-        print(f"Waiting {settle_delay}s to confirm the metadata has settled ...")
-        time.sleep(settle_delay)
-        new_md5 = get_md5_from_artifactory(url, user, token)
-        if new_md5 and str(new_md5).lower() == str(last_md5).lower():
-            print(
-                f"Metadata settled after {int(time.time() - start_time)}s "
-                f"(unchanged for {settle_delay}s, MD5: {new_md5})"
-            )
+        if not missing:
+            print(f"All expected {package_type} package(s) are present in repo metadata.")
             return
-        print(
-            f"Metadata changed again during settle window "
-            f"(MD5 {last_md5} -> {new_md5}); reconfirming ..."
-        )
-        last_md5 = new_md5
+
+        if elapsed - last_log >= 60:
+            print(f"  Still waiting after {elapsed}s. Missing: {missing}")
+            last_log = elapsed
+        time.sleep(10)
+
+
+def get_missing_packages_from_metadata(package_type, expected_packages, stage, user, token):
+    missing = []
+    for arch in sorted({package["arch"] for package in expected_packages}):
+        expected_for_arch = [package for package in expected_packages if package["arch"] == arch]
+        if package_type == "deb":
+            live_packages = get_deb_packages_from_metadata(stage, arch, user, token)
+            for expected in expected_for_arch:
+                if not any(
+                    package.get("Package") == expected["name"]
+                    and package.get("Version") == expected["version"]
+                    and package.get("Architecture") == expected["arch"]
+                    for package in live_packages
+                ):
+                    missing.append(expected)
+        elif package_type == "rpm":
+            live_packages = get_rpm_packages_from_metadata(stage, arch, user, token)
+            for expected in expected_for_arch:
+                if not any(
+                    package.get("name") == expected["name"]
+                    and package.get("version") == expected["version"]
+                    and package.get("release") == expected["release"]
+                    and package.get("arch") == expected["arch"]
+                    for package in live_packages
+                ):
+                    missing.append(expected)
+        else:
+            raise AssertionError(f"Unsupported package metadata type: {package_type}")
+    return missing
 
 
 def upload_package_to_artifactory(
@@ -211,11 +330,6 @@ def upload_package_to_artifactory(
     dest_url,
     user,
     token,
-    metadata_api_url,
-    metadata_url,
-    sign_metadata=True,
-    timeout=DEFAULT_TIMEOUT,
-    calculate_url=None,
 ):
     local_md5 = get_checksum(path, hashlib.md5())
     clean_url = dest_url.split(";")[0]
@@ -234,38 +348,17 @@ def upload_package_to_artifactory(
     content_changed = pre_upload_md5 is None or pre_upload_md5.lower() != local_md5.lower()
     print(f"Content changed:               {content_changed}")
 
-    orig_md5 = None
-    if sign_metadata:
-        orig_md5 = get_md5_from_artifactory(metadata_api_url, user, token)
-        print(f"Pre-upload metadata MD5:       {orig_md5}")
-
     upload_file_to_artifactory(path, dest_url, user, token)
 
-    if sign_metadata:
-        if content_changed:
-            if calculate_url:
-                trigger_metadata_calculation(calculate_url, user, token, timeout=timeout)
-            wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
-        else:
-            print(
-                "Upload content is identical to existing file. "
-                "Repo metadata will not be regenerated — skipping metadata wait."
-            )
-        dest = os.path.join(REPO_DIR, os.path.basename(metadata_url))
-        download_file(metadata_url, dest, user, token)
 
-
-def release_deb_to_artifactory(asset, args):
+def release_deb_to_artifactory(asset, args, wait_for_metadata=True):
 
     user = args.artifactory_user
     token = args.artifactory_token
 
-    match = re.match(r".*_(amd64|arm64)\.deb$", asset.name)
-    assert match, f"Failed to get arch from {asset.path}!"
-    arch = match.groups()[0]
+    package_info = get_deb_package_info(asset)
+    arch = package_info["arch"]
 
-    metadata_api_url = f"{ARTIFACTORY_API_URL}/storage/{ARTIFACTORY_DEB_REPO}/dists/{args.stage}/Release"
-    metadata_url = f"{ARTIFACTORY_DEB_REPO_URL}/dists/{args.stage}/Release"
     deb_url = f"{ARTIFACTORY_DEB_REPO_URL}/pool/{args.stage}/{arch}/{asset.name}"
     dest_opts = f"deb.distribution={args.stage};deb.component=main;deb.architecture={arch}"
     dest_url = f"{deb_url};{dest_opts}"
@@ -275,34 +368,41 @@ def release_deb_to_artifactory(asset, args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
-    calculate_url = None
-    if getattr(args, "sync_calculate_metadata", False):
-        calculate_url = f"{ARTIFACTORY_API_URL}/deb/reindex/{ARTIFACTORY_DEB_REPO}?async=0"
-
     upload_package_to_artifactory(
         asset.path,
         dest_url,
         user,
         token,
-        metadata_api_url,
-        metadata_url,
-        sign_metadata=True,
-        timeout=args.timeout,
-        calculate_url=calculate_url,
+    )
+
+    if wait_for_metadata:
+        wait_for_packages_in_metadata("deb", [package_info], args.stage, user, token, args.timeout)
+
+    return package_info
+
+
+def release_debs_to_artifactory(assets, args):
+    expected_packages = []
+    for asset in assets:
+        expected_packages.append(release_deb_to_artifactory(asset, args, wait_for_metadata=False))
+
+    wait_for_packages_in_metadata(
+        "deb",
+        expected_packages,
+        args.stage,
+        args.artifactory_user,
+        args.artifactory_token,
+        args.timeout,
     )
 
 
-
-def release_rpm_to_artifactory(asset, args):
+def release_rpm_to_artifactory(asset, args, wait_for_metadata=True):
     user = args.artifactory_user
     token = args.artifactory_token
 
-    match = re.match(r".*\.(x86_64|aarch64)\.rpm$", asset.name)
-    assert match, f"Failed to get arch from {asset.path}!"
-    arch = match.groups()[0]
+    package_info = get_rpm_package_info(asset)
+    arch = package_info["arch"]
 
-    metadata_api_url = f"{ARTIFACTORY_API_URL}/storage/{ARTIFACTORY_RPM_REPO}/{args.stage}/{arch}/repodata/repomd.xml"
-    metadata_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/repodata/repomd.xml"
     dest_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/{asset.name}"
 
     if not args.force and artifactory_file_exists(dest_url, user, token):
@@ -310,20 +410,34 @@ def release_rpm_to_artifactory(asset, args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
-    calculate_url = None
-    if getattr(args, "sync_calculate_metadata", False):
-        calculate_url = f"{ARTIFACTORY_API_URL}/yum/{ARTIFACTORY_RPM_REPO}/{args.stage}/{arch}?async=0"
-
     upload_package_to_artifactory(
         asset.path,
         dest_url,
         user,
         token,
-        metadata_api_url,
-        metadata_url,
-        sign_metadata=True,
-        timeout=args.timeout,
-        calculate_url=calculate_url,
+    )
+
+    if wait_for_metadata:
+        wait_for_packages_in_metadata("rpm", [package_info], args.stage, user, token, args.timeout)
+
+    return package_info
+
+
+def release_rpms_to_artifactory(assets, args):
+    expected_packages = []
+    arch = get_rpm_package_info(assets[0])["arch"]
+    for asset in assets:
+        package_info = get_rpm_package_info(asset)
+        assert package_info["arch"] == arch, "RPM batch must use a single arch"
+        expected_packages.append(release_rpm_to_artifactory(asset, args, wait_for_metadata=False))
+
+    wait_for_packages_in_metadata(
+        "rpm",
+        expected_packages,
+        args.stage,
+        args.artifactory_user,
+        args.artifactory_token,
+        args.timeout,
     )
 
 

@@ -46,6 +46,7 @@ type Paths struct {
 	GeneratedCollectorConfig string
 	StorageDirectory         string
 	DefaultAgentConfig       string
+	ConfigApplyTimeout       string
 	UseHUPConfigReload       bool
 }
 
@@ -86,13 +87,19 @@ type supervisorStorage struct {
 }
 
 type supervisorAgent struct {
-	Env                map[string]string `yaml:"env,omitempty"`
-	Executable         string            `yaml:"executable"`
-	ConfigFiles        []string          `yaml:"config_files"`
-	Args               []string          `yaml:"args,omitempty"`
-	PassthroughLogs    bool              `yaml:"passthrough_logs"`
-	UseHUPConfigReload bool              `yaml:"use_hup_config_reload,omitempty"`
-	ValidateConfig     bool              `yaml:"validate_config"`
+	Env                map[string]string          `yaml:"env,omitempty"`
+	Executable         string                     `yaml:"executable"`
+	ConfigApplyTimeout string                     `yaml:"config_apply_timeout"`
+	ConfigFiles        []string                   `yaml:"config_files"`
+	Args               []string                   `yaml:"args,omitempty"`
+	Description        supervisorAgentDescription `yaml:"description"`
+	PassthroughLogs    bool                       `yaml:"passthrough_logs"`
+	UseHUPConfigReload bool                       `yaml:"use_hup_config_reload,omitempty"`
+	ValidateConfig     bool                       `yaml:"validate_config"`
+}
+
+type supervisorAgentDescription struct {
+	IncludeResourceAttributes bool `yaml:"include_resource_attributes"`
 }
 
 // SupervisorEnabled reports whether the persisted service-scoped supervisor
@@ -171,6 +178,8 @@ func PrepareSupervisor(args []string, env map[string]string, paths Paths) error 
 		Storage: supervisorStorage{Directory: paths.StorageDirectory},
 		Agent: supervisorAgent{
 			Executable:         paths.CollectorExecutable,
+			Description:        supervisorAgentDescription{IncludeResourceAttributes: true},
+			ConfigApplyTimeout: paths.ConfigApplyTimeout,
 			ConfigFiles:        []string{paths.GeneratedCollectorConfig},
 			Args:               args,
 			PassthroughLogs:    true,

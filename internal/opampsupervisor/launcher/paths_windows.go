@@ -42,6 +42,7 @@ func DefaultPaths() Paths {
 		GeneratedCollectorConfig: filepath.Join(stateDir, "collector_config.yaml"),
 		StorageDirectory:         stateDir,
 		DefaultAgentConfig:       defaultAgentConfig,
+		ConfigApplyTimeout:       "2m",
 		UseHUPConfigReload:       false,
 	}
 }

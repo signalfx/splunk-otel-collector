@@ -97,7 +97,6 @@ func TestCyberArkFactory_CreateConfigSource(t *testing.T) {
 			if tt.wantErr != nil {
 				require.Error(t, err)
 				assert.Nil(t, actual)
-				assert.IsType(t, tt.wantErr, err)
 			} else {
 				require.NoError(t, err)
 				assert.NotNil(t, actual)

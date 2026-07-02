@@ -97,7 +97,9 @@ func (c *cyberarkConfigSource) Retrieve(ctx context.Context, selector string, _ 
 
 		if c.autoRefresh && watcher != nil {
 			doneCh := make(chan struct{})
-			c.buildPollingWatcher(watcher, doneCh)
+			// The polling watcher runs on its own long-lived background context by
+			// design, so it intentionally does not thread ctx through.
+			c.buildPollingWatcher(watcher, doneCh) //nolint:contextcheck
 			closeFunc = func(_ context.Context) error {
 				close(doneCh)
 				return nil
@@ -130,6 +132,9 @@ func (c *cyberarkConfigSource) buildPollingWatcher(watcher confmap.WatcherFunc, 
 		for {
 			select {
 			case <-ticker.C:
+				// The polling loop outlives the originating Retrieve call, so it must
+				// not reuse that (potentially canceled) context; a fresh background
+				// context scopes each refresh to its own CLI invocation.
 				latest, err := c.retriever.retrieve(context.Background())
 				if err != nil {
 					// Assume the configuration needs to be re-fetched. The reload will

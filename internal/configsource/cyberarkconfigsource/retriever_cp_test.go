@@ -64,7 +64,8 @@ func TestCPRetriever_ExecError(t *testing.T) {
 	fields, err := r.retrieve(context.Background())
 	require.Error(t, err)
 	assert.Nil(t, fields)
-	assert.IsType(t, &errCLIExec{}, err)
+	var cliErr *errCLIExec
+	assert.ErrorAs(t, err, &cliErr)
 }
 
 func TestParseOutput_WrongFieldCount(t *testing.T) {
@@ -72,7 +73,8 @@ func TestParseOutput_WrongFieldCount(t *testing.T) {
 	fields, err := parseOutput(joinFields("s3cr3t", "svc"))
 	require.Error(t, err)
 	assert.Nil(t, fields)
-	assert.IsType(t, &errParseOutput{}, err)
+	var parseErr *errParseOutput
+	assert.ErrorAs(t, err, &parseErr)
 }
 
 func TestBuildArgs_FolderDefaultsToRoot(t *testing.T) {
@@ -95,6 +97,21 @@ func TestBuildArgs_FolderDefaultsToRoot(t *testing.T) {
 	for _, f := range outputFields {
 		assert.Contains(t, joined, f.attr)
 	}
+}
+
+func TestExecCommandRunner_Success(t *testing.T) {
+	// echo is available on the Linux/macOS runners used for coverage; it writes the
+	// argument to stdout, exercising the success path of the production runner.
+	out, err := execCommandRunner(context.Background(), "echo", "hello")
+	require.NoError(t, err)
+	assert.Equal(t, "hello", strings.TrimSpace(string(out)))
+}
+
+func TestExecCommandRunner_Error(t *testing.T) {
+	// A binary that does not exist forces cmd.Run to fail, exercising the error path.
+	out, err := execCommandRunner(context.Background(), "cyberark-binary-that-does-not-exist")
+	require.Error(t, err)
+	assert.Nil(t, out)
 }
 
 func TestBuildArgs_ExplicitFolder(t *testing.T) {

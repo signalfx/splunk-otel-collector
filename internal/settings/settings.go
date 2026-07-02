@@ -85,6 +85,8 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
+var statConfigFile = os.Stat
+
 var defaultFeatureGates = []string{}
 
 type Settings struct {
@@ -578,7 +580,7 @@ func checkInputConfigs(settings *Settings) error {
 			}
 			filePath = location
 		}
-		if _, err := os.Stat(filePath); err != nil {
+		if _, err := statConfigFile(filePath); err != nil {
 			return fmt.Errorf("unable to find the configuration file %s, ensure flag '--config' is set properly: %w", filePath, err)
 		}
 		configFilePaths = append(configFilePaths, filePath)
@@ -614,7 +616,7 @@ func checkConfigPathEnvVar(settings *Settings) error {
 	configPath := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
-	if _, err := os.Stat(configPath); err != nil {
+	if _, err := statConfigFile(configPath); err != nil {
 		return fmt.Errorf("unable to find the configuration file (%s), ensure %s environment variable is set properly: %w", configPath, ConfigEnvVar, err)
 	}
 

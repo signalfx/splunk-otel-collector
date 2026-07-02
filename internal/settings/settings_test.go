@@ -460,6 +460,75 @@ func TestDeprecatedOTLPLinuxConfigWarning(t *testing.T) {
 	}
 }
 
+func TestDeprecatedOTLPLinuxConfigWarningFromSelectedConfig(t *testing.T) {
+	tests := []struct {
+		name             string
+		args             []string
+		env              map[string]string
+		expectedResolver []string
+	}{
+		{
+			name:             "config flag",
+			args:             []string{"--config", DefaultOTLPLinuxConfig},
+			expectedResolver: []string{DefaultOTLPLinuxConfig},
+		},
+		{
+			name:             "config flag file URI",
+			args:             []string{"--config", "file:" + DefaultOTLPLinuxConfig},
+			expectedResolver: []string{"file:" + DefaultOTLPLinuxConfig},
+		},
+		{
+			name: "config env var",
+			env: map[string]string{
+				ConfigEnvVar: DefaultOTLPLinuxConfig,
+			},
+			expectedResolver: []string{DefaultOTLPLinuxConfig},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Cleanup(clearEnv(t))
+			setStatConfigFileForDefaultOTLPLinuxConfig(t)
+			t.Setenv(RealmEnvVar, "us0")
+			t.Setenv(TokenEnvVar, "access_token")
+
+			oldWriter := log.Default().Writer()
+			logs := new(bytes.Buffer)
+			log.Default().SetOutput(logs)
+			t.Cleanup(func() {
+				log.Default().SetOutput(oldWriter)
+			})
+
+			for key, value := range test.env {
+				t.Setenv(key, value)
+			}
+
+			settings, err := New(test.args)
+			require.NoError(t, err)
+			require.Equal(t, test.expectedResolver, settings.ResolverURIs())
+
+			actualLogs := logs.String()
+			require.Contains(t, actualLogs, "Configuration file /etc/otel/collector/otlp_config_linux.yaml is deprecated")
+			require.Contains(t, actualLogs, "Use --config=/etc/otel/collector/agent_config.yaml instead")
+			require.Contains(t, actualLogs, "set SPLUNK_LISTEN_INTERFACE=0.0.0.0 when migrating")
+		})
+	}
+}
+
+func setStatConfigFileForDefaultOTLPLinuxConfig(t *testing.T) {
+	oldStatConfigFile := statConfigFile
+	statConfigFile = func(name string) (os.FileInfo, error) {
+		if name == DefaultOTLPLinuxConfig || filepath.Clean(name) == filepath.Clean(DefaultOTLPLinuxConfig) {
+			return os.Stat(localOTLPLinuxConfig)
+		}
+		return os.Stat(name)
+	}
+	t.Cleanup(func() {
+		statConfigFile = oldStatConfigFile
+	})
+}
+
 func TestConfigPrecedence(t *testing.T) {
 	validConfig := `receivers:
   host_metrics:

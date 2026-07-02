@@ -142,7 +142,7 @@ The `cp` retriever requests a fixed, ordered list of attributes from `CLIPasswor
 its `-o` flag, joined with a rare delimiter (`@#@`) on a single output line, and parses the
 result positionally. It assumes the SDK emits every requested field, in order, and that
 unset pass properties still emit an empty positional value so the field count stays stable.
-A field-count mismatch is treated as an error rather than silently mis-mapping values. A
+A field-count mismatch is treated as an error rather than silently misassigning values. A
 configurable field list is a possible future extension.
 
 ## Future enhancements

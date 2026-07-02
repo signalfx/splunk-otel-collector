@@ -69,12 +69,12 @@ type (
 
 // cpRetriever fetches a CyberArk object via the local CLIPasswordSDK (Credential Provider).
 type cpRetriever struct {
+	runner     commandRunner
 	binaryPath string
 	appID      string
 	safe       string
 	folder     string
 	object     string
-	runner     commandRunner
 }
 
 func newCPRetriever(cfg *Config) *cpRetriever {
@@ -119,7 +119,7 @@ func (r *cpRetriever) retrieve(ctx context.Context) (map[string]any, error) {
 }
 
 // parseOutput splits the delimiter-joined CLI output positionally and maps each value to its
-// logical field key. A count mismatch is treated as an error rather than mis-mapping.
+// logical field key. A count mismatch is treated as an error rather than misassigning values.
 func parseOutput(out []byte) (map[string]any, error) {
 	line := strings.TrimRight(string(out), "\r\n")
 	parts := strings.Split(line, outputDelimiter)

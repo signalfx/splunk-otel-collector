@@ -31,9 +31,9 @@ import (
 // fakeRetriever is a test double for the retriever interface. It returns whatever the
 // current results function yields and counts invocations.
 type fakeRetriever struct {
-	mu     sync.Mutex
-	calls  int
 	result func(call int) (map[string]any, error)
+	calls  int
+	mu     sync.Mutex
 }
 
 func (f *fakeRetriever) retrieve(context.Context) (map[string]any, error) {
@@ -90,7 +90,8 @@ func TestRetrieve_BadSelector(t *testing.T) {
 	got, err := source.Retrieve(context.Background(), "Nonexistent", nil, nil)
 	require.Error(t, err)
 	assert.Nil(t, got)
-	assert.IsType(t, &errBadSelector{}, err)
+	var selErr *errBadSelector
+	assert.ErrorAs(t, err, &selErr)
 }
 
 func TestRetrieve_RetrieverErrorLeavesCacheNil(t *testing.T) {
@@ -172,5 +173,46 @@ func TestRetrieve_AutoRefreshErrorEmitsErrorEvent(t *testing.T) {
 func TestNewRetriever_UnsupportedMode(t *testing.T) {
 	_, err := newRetriever(&Config{RetrievalMode: "ccp"})
 	require.Error(t, err)
-	assert.IsType(t, &errUnsupportedMode{}, err)
+	var modeErr *errUnsupportedMode
+	assert.ErrorAs(t, err, &modeErr)
+}
+
+func TestNewConfigSource_UnsupportedModeError(t *testing.T) {
+	// An unknown retrieval_mode makes newRetriever fail, exercising newConfigSource's
+	// error path.
+	source, err := newConfigSource(&Config{RetrievalMode: "ccp"}, zap.NewNop())
+	require.Error(t, err)
+	assert.Nil(t, source)
+	var modeErr *errUnsupportedMode
+	assert.ErrorAs(t, err, &modeErr)
+}
+
+func TestNewConfigSource_Success(t *testing.T) {
+	source, err := newConfigSource(&Config{
+		RetrievalMode: retrievalModeCP,
+		BinaryPath:    defaultBinaryPath,
+		AppID:         "collector-app",
+		Safe:          "DBSecrets",
+		Object:        "prod-db",
+	}, zap.NewNop())
+	require.NoError(t, err)
+	assert.NotNil(t, source)
+}
+
+func TestRetrieve_AutoRefreshCloseStopsWatcher(t *testing.T) {
+	// The retriever always returns the same values, so the watcher never fires a change
+	// event; closing the retrieved value must stop the polling goroutine via doneCh.
+	r := &fakeRetriever{result: func(int) (map[string]any, error) {
+		return map[string]any{"Password": "s3cr3t"}, nil
+	}}
+	source := newTestSource(r, true, 10*time.Millisecond)
+
+	got, err := source.Retrieve(context.Background(), "", nil, func(*confmap.ChangeEvent) {
+		t.Fatal("watcher must not fire when the retrieved values are unchanged")
+	})
+	require.NoError(t, err)
+
+	// Let the poller tick at least once with unchanged values, then close.
+	time.Sleep(50 * time.Millisecond)
+	require.NoError(t, got.Close(context.Background()))
 }

@@ -1,0 +1,14 @@
+config_sources:
+  cyberark:
+    app_id: collector-app
+    safe: DBSecrets
+    object: prod-db
+  cyberark/auto:
+    retrieval_mode: cp
+    binary_path: /opt/CARKaim/sdk/CLIPasswordSDK
+    app_id: collector-app
+    safe: DBSecrets
+    folder: Root
+    object: staging-db
+    auto_refresh: true
+    poll_interval: 30s

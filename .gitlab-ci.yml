@@ -1211,6 +1211,7 @@ sign-windows-image:
 release-debs:
   extends:
     - .trigger-filter
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
   rules:
     - *main-condition
     - *manual-release-condition
@@ -1243,6 +1244,7 @@ release-debs:
 release-rpms:
   extends:
     - .trigger-filter
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
   rules:
     - *main-condition
     - *manual-release-condition

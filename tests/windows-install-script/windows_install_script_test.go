@@ -32,8 +32,8 @@ import (
 )
 
 const (
-	// Old version to install first, this version by default is not installed as machine-wide.
-	oldCollectorVersion = "0.94.0"
+	// Old version to install first, minimum version supported by the installation script.
+	oldCollectorVersion = "0.128.0"
 	// Service name
 	serviceName = "splunk-otel-collector"
 	// Service display name

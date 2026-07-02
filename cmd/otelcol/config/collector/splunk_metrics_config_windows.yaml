@@ -185,7 +185,7 @@ receivers:
 
 processors:
   batch:
-  resourcedetection:
+  resource_detection:
     detectors: [ system, env ]
     system:
       hostname_sources: [ "os" ]
@@ -284,45 +284,45 @@ service:
   pipelines:
     metrics/cpu:
       receivers: [windowsperfcounters/cpu]
-      processors: [transform/perfcounters_cpu, batch, resourcedetection]
+      processors: [transform/perfcounters_cpu, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/processor_information:
       receivers: [windowsperfcounters/processor_information]
-      processors: [transform/perfcounters_processor_information, batch, resourcedetection]
+      processors: [transform/perfcounters_processor_information, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/logical_disk:
       receivers: [windowsperfcounters/logical_disk]
-      processors: [transform/perfcounters_logical_disk, batch, resourcedetection]
+      processors: [transform/perfcounters_logical_disk, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/physical_disk:
       receivers: [windowsperfcounters/physical_disk]
-      processors: [transform/perfcounters_physical_disk, batch, resourcedetection]
+      processors: [transform/perfcounters_physical_disk, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/memory:
       receivers: [windowsperfcounters/memory]
-      processors: [transform/perfcounters_memory, batch, resourcedetection]
+      processors: [transform/perfcounters_memory, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/network:
       receivers: [windowsperfcounters/network]
-      processors: [transform/perfcounters_network, batch, resourcedetection]
+      processors: [transform/perfcounters_network, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/process:
       receivers: [windowsperfcounters/process]
-      processors: [transform/perfcounters_process, batch, resourcedetection]
+      processors: [transform/perfcounters_process, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/system:
       receivers: [windowsperfcounters/system]
-      processors: [transform/perfcounters_system, batch, resourcedetection]
+      processors: [transform/perfcounters_system, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/dfs_replicated_folders:
       receivers: [windowsperfcounters/dfs_replicated_folders]
-      processors: [transform/perfcounters_dfs_replicated_folders, batch, resourcedetection]
+      processors: [transform/perfcounters_dfs_replicated_folders, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/ntds:
       receivers: [windowsperfcounters/ntds]
-      processors: [transform/perfcounters_ntds, batch, resourcedetection]
+      processors: [transform/perfcounters_ntds, batch, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/dns:
       receivers: [windowsperfcounters/dns]
-      processors: [transform/perfcounters_dns, batch, resourcedetection]
+      processors: [transform/perfcounters_dns, batch, resource_detection]
       exporters: [splunk_hec/metrics]

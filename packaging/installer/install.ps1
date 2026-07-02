@@ -538,7 +538,7 @@ else {
         remove_splunk_zc_method_from_env
     }
     if (-not $preserve_prev_default_config) {
-        $default_config_files = @("agent_config.yaml", "gateway_config.yaml")
+        $default_config_files = @("agent_config.yaml", "gateway_config.yaml", "splunk_logs_config_windows.yaml", "splunk_metrics_config_windows.yaml")
         foreach ($file in $default_config_files) {
             $target = Join-Path "${Env:ProgramData}\Splunk\OpenTelemetry Collector" "$file"
             Write-Host "Deleting previous version default configuration file '$target'"

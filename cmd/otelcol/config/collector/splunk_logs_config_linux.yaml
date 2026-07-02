@@ -1020,7 +1020,7 @@ processors:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
-  resourcedetection:
+  resource_detection:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
@@ -1096,6 +1096,6 @@ service:
         #- file_log/zookeeper-trace
       processors:
         - memory_limiter
-        - resourcedetection
+        - resource_detection
       exporters:
         - splunk_hec/logs

@@ -36,3 +36,30 @@ echo "$OUTPUT_BASH"
 echo "============================"
 [[ ! "$OUTPUT_BASH" =~ OTEL_RESOURCE_ATTRIBUTES ]] && echo "Test passes"  || exit 1
 [[ ! "$OUTPUT_BASH" =~ SPLUNK_METRICS_ENABLED ]] && echo "Test passes"  || exit 1
+
+run_with_conf() {
+  local conf_file="$1"
+  docker run --platform linux/${arch} --rm \
+    -v "${conf_file}:/etc/splunk/zeroconfig/java.conf" \
+    zeroconfig-test-java
+}
+
+echo "Test path filter: matching working dir allows injection"
+OUTPUT_MATCH_WD=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-match-working-dir.conf")
+echo "$OUTPUT_MATCH_WD" | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" > /dev/null && echo "Test passes" || exit 1
+
+echo "Test path filter: matching executable path allows injection"
+OUTPUT_MATCH_EXE=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-match-exec-path.conf")
+echo "$OUTPUT_MATCH_EXE" | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" > /dev/null && echo "Test passes" || exit 1
+
+echo "Test path filter: non-matching path skips injection"
+OUTPUT_NONMATCH=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-nonmatch.conf")
+[[ ! "$OUTPUT_NONMATCH" =~ OTEL_RESOURCE_ATTRIBUTES ]] && echo "Test passes" || exit 1
+
+echo "Test path filter: traversal canonicalizing away from exe skips injection"
+OUTPUT_TRAV_ABSENT=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-traversal-absent.conf")
+[[ ! "$OUTPUT_TRAV_ABSENT" =~ OTEL_RESOURCE_ATTRIBUTES ]] && echo "Test passes" || exit 1
+
+echo "Test path filter: traversal canonicalizing to covering dir allows injection"
+OUTPUT_TRAV_PRESENT=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-traversal-present.conf")
+echo "$OUTPUT_TRAV_PRESENT" | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" > /dev/null && echo "Test passes" || exit 1

@@ -1,0 +1,47 @@
+name: script
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/script.yml'
+      - 'packaging/script/**'
+
+concurrency:
+  group: script-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: 1.25.7
+
+jobs:
+  ci:
+    strategy:
+      matrix:
+        tester: [ {arch: "amd64", runner: "ubuntu-24.04"}, {arch: "arm64", runner: "ubuntu-24.04-arm"} ]
+      fail-fast: false
+    runs-on: ${{ matrix.tester.runner }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: package
+        run: |
+          pip3 install virtualenv
+          set -o pipefail
+          cd packaging/script
+          ARCH="${{ matrix.tester.arch }}" make package
+
+      - name: Upload script
+        uses: actions/upload-artifact@v6
+        with:
+          name: script-${{ matrix.tester.arch }}
+          path: ${{github.workspace}}/packaging/script/dist/*
+
+      - name: test
+        run: |
+          set -o pipefail
+          cd packaging/script
+          make test_${{ matrix.tester.arch }}

@@ -138,7 +138,7 @@ jobs:
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@0234bb73ccb40f0c430b795634f9247e2b5c2d23 # v5.2.0
+        uses: docker/setup-docker-action@6d7cfa65f60a9dda7b46e5513fa982536f3c9877 # v5.3.0
         with:
           daemon-config: |
             {
@@ -202,7 +202,7 @@ jobs:
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@0234bb73ccb40f0c430b795634f9247e2b5c2d23 # v5.2.0
+        uses: docker/setup-docker-action@6d7cfa65f60a9dda7b46e5513fa982536f3c9877 # v5.3.0
         with:
           daemon-config: |
             {

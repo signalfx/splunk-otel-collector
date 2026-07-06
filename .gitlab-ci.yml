@@ -25,13 +25,11 @@ variables:
   CREDS_HELPER_ALLOW_LEGACY: "true"
 
 include:
-  - project: 'prodsec/scp-scanning/gitlab-checkmarx'
-    ref: latest
-    file: '/templates/.sast_scan.yml'
   - project: 'ci-cd/templates'
     ref: main
     file:
       - '/prodsec/.oss-scan.yml'
+      - '/prodsec/.sast-scan.yml'
       - '/prodsec/.binary-scan.yml'
       - '/prodsec/.container-scan.yml'
   - project: 'core-ee/signing/api-integration'
@@ -113,6 +111,11 @@ fossa:
   variables:
     jira_automation: "true"
   # allow_failure: false
+
+sast-scan:
+  stage: test
+  extends: .sast_scan
+  needs: []
 
 .docker-reader-role: &docker-reader-role |
   creds-helper init

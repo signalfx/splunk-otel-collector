@@ -18,9 +18,20 @@ spec:
         - image: envoyproxy/envoy:v1.38-latest
           name: envoy-test
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 10000
               name: envoy
             - containerPort: 9901
               name: admin
-
+          volumeMounts:
+            - name: envoy-tmp
+              mountPath: /tmp
+      volumes:
+        - name: envoy-tmp
+          emptyDir: {}

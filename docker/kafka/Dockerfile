@@ -6,4 +6,5 @@ EXPOSE 7099
 ENV KAFKA_BIN="/opt/bitnami/kafka/bin"
 
 ADD scripts/* scripts/
+USER 1001
 CMD ["bash", "scripts/run.sh"]

@@ -7,15 +7,13 @@ if [ $major -gt 5 ]; then
 fi
 
 run_mongo_commandline () {
-    nohup gosu mongodb $MONGO admin --eval "help" > /dev/null 2>&1
+    nohup $MONGO admin --eval "help" > /dev/null 2>&1
 
 }
 
 sleep 5
 
-chown -R mongodb:mongodb /home/mongodb
-
-nohup gosu mongodb mongod --dbpath=/data/db &
+nohup mongod --dbpath=/data/db &
 
 run_mongo_commandline
 
@@ -30,4 +28,4 @@ done
 
 bash /home/mongodb/scripts/setup_user.sh
 
-gosu mongodb mongod --dbpath=/data/db --config mongod.conf
+mongod --dbpath=/data/db --config mongod.conf

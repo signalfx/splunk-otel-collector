@@ -84,4 +84,4 @@ If a pipeline only carries one signal type, include only the matching `trace_sta
 ## Timeline
 
 - **Deprecation notice**: Current release
-- **Planned removal**: Future release, to be announced
+- **Planned removal**: October 2026

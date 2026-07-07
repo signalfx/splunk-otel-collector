@@ -104,10 +104,11 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
 
    Each value is a `:`-separated list of **absolute** directories. Matching is directory-prefix with
    path-boundary checks (for example, `/opt/app` matches `/opt/app` and `/opt/app/bin/java`, but not
-   `/opt/application`; `/` matches any absolute path). Entries are canonicalized before matching;
-   non-absolute entries and entries that traverse with `..` are ignored. When both keys are set, each
-   configured filter must pass (AND semantics). When a key is omitted, that filter is not applied
-   and all matching language processes continue to be instrumented (the default).
+   `/opt/application`; `/` matches any absolute path). Entries containing `..` path components or
+   entries that are not absolute paths are ignored. Other entries are canonicalized before matching
+   when possible. When both keys are set, each configured filter must pass (AND semantics). When a
+   key is omitted, that filter is not applied and all matching language processes continue to be
+   instrumented (the default).
 3. Reboot the system or restart the applications/services for any changes to take effect. The `libsplunk.so` shared
    object library will then be preloaded for all subsequent processes and inject the environment variables from the
    `/etc/splunk/zeroconfig` configuration files for Java and Node.js processes.

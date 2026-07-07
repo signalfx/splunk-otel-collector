@@ -59,7 +59,3 @@ OUTPUT_NONMATCH=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-nonmatch.conf")
 echo "Test path filter: traversal canonicalizing away from exe skips injection"
 OUTPUT_TRAV_ABSENT=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-traversal-absent.conf")
 [[ ! "$OUTPUT_TRAV_ABSENT" =~ OTEL_RESOURCE_ATTRIBUTES ]] && echo "Test passes" || exit 1
-
-echo "Test path filter: traversal canonicalizing to covering dir allows injection"
-OUTPUT_TRAV_PRESENT=$(run_with_conf "${SCRIPT_DIR}/zeroconfig-traversal-present.conf")
-echo "$OUTPUT_TRAV_PRESENT" | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" > /dev/null && echo "Test passes" || exit 1

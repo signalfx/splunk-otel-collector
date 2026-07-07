@@ -122,16 +122,18 @@ static int path_matches_any(const char *path, const char *list) {
         memcpy(token_buf, start, token_len);
         token_buf[token_len] = '\0';
 
-        char resolved[PATH_MAX];
-        const char *match_token;
-        if (realpath(token_buf, resolved) != NULL) {
-            match_token = resolved;
-        } else if (token_contains_dotdot(token_buf)) {
+        if (token_contains_dotdot(token_buf)) {
             if (colon == NULL) {
                 break;
             }
             start = colon + 1;
             continue;
+        }
+
+        char resolved[PATH_MAX];
+        const char *match_token;
+        if (realpath(token_buf, resolved) != NULL) {
+            match_token = resolved;
         } else {
             match_token = token_buf;
         }

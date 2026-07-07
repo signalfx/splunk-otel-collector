@@ -1,4 +1,8 @@
 FROM python
 RUN pip3 install splunk-appinspect
 
+RUN useradd --create-home appinspect
+USER appinspect
+WORKDIR /home/appinspect
+
 CMD ["splunk-appinspect", "inspect", "--ci", "--excluded-tags", "aarch64_compatibility", "/packages"]

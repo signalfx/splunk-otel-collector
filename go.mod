@@ -3,6 +3,8 @@ module github.com/signalfx/splunk-otel-collector
 go 1.26.4
 
 require (
+	cd.splunkdev.com/gdi/unified-collector/exporter/s2sexporter v0.1.0
+	cd.splunkdev.com/gdi/unified-collector/receiver/wineventlogreceiver v0.1.0
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/antonmedv/expr v1.15.5
 	github.com/cenkalti/backoff/v4 v4.3.0

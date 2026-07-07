@@ -128,6 +128,7 @@ func TestDefaultComponents(t *testing.T) {
 		"windows_event_log",
 		"windowsperfcounters",
 		"windows_service",
+		"wineventlog",
 		"yang_grpc",
 		"zipkin",
 		"zookeeper",
@@ -197,6 +198,7 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp_http",
 		"prometheus_remote_write",
 		"pulsar",
+		"s2s",
 		"signalfx",
 		"splunk_hec",
 	}

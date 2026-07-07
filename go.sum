@@ -1,3 +1,7 @@
+cd.splunkdev.com/gdi/unified-collector/exporter/s2sexporter v0.1.0 h1:6R3ulM1X6ntpaFKF6Gpm8arymYA44jEhyfUV8BBO7yA=
+cd.splunkdev.com/gdi/unified-collector/exporter/s2sexporter v0.1.0/go.mod h1:gxV/UkJo7xUnBBD2BWu7rUaO057ePZ7AXpPn4BFkods=
+cd.splunkdev.com/gdi/unified-collector/receiver/wineventlogreceiver v0.1.0 h1:1Cwvp8kAw/ViL57eGIepB07/bmSXBVnbebt0M1tVni4=
+cd.splunkdev.com/gdi/unified-collector/receiver/wineventlogreceiver v0.1.0/go.mod h1:ovzL9eo45NRBhGI8uAMpOqwvh3Eoy8h4S+CONdhPyCU=
 cel.dev/expr v0.25.1 h1:1KrZg61W6TWSxuNZ37Xy49ps13NUovb66QLprthtwi4=
 cel.dev/expr v0.25.1/go.mod h1:hrXvqGP6G6gyx8UAHSHJ5RGk//1Oj5nXQ2NI02Nrsg4=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=

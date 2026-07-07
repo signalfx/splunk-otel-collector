@@ -1,0 +1,9 @@
+change_type: new_component
+
+component: s2s exporter and wineventlog receiver
+
+note: Add the private Unified Collector components to the Splunk distribution.
+
+issues: [7674]
+
+subtext:

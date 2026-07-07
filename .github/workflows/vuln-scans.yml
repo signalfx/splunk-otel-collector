@@ -51,10 +51,15 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Set up environment
         uses: ./.github/actions/setup-environment
+        with:
+          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
       - run: |
           make docker-otelcol ARCH=${{ matrix.ARCH }} FIPS="${{ matrix.FIPS }}"
         env:
           DOCKER_BUILDKIT: '1'
+          OTELCOL_PRIVATE_MODULES_USER: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
+          OTELCOL_PRIVATE_MODULES_TOKEN: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
       - run: mkdir -p dist && docker save -o dist/image.tar otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -67,6 +72,7 @@ jobs:
       matrix:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
     uses: ./.github/workflows/reusable-compile.yml
+    secrets: inherit
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
@@ -234,6 +240,9 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
+        with:
+          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: Echo `govulncheck` version
         continue-on-error: true

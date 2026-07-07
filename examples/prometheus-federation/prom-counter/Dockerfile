@@ -9,4 +9,6 @@ RUN go get
 
 RUN go build
 
+USER 65532:65532
+
 CMD /go/src/app/prom-counter

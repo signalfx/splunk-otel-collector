@@ -14,13 +14,34 @@ spec:
         app: envoy-test
     spec:
       automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 101
       containers:
         - image: envoyproxy/envoy:v1.38-latest
           name: envoy-test
           imagePullPolicy: IfNotPresent
+          command:
+            - envoy
+          args:
+            - -c
+            - /etc/envoy/envoy.yaml
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 10000
               name: envoy
             - containerPort: 9901
               name: admin
-
+          volumeMounts:
+            - name: envoy-tmp
+              mountPath: /tmp
+      volumes:
+        - name: envoy-tmp
+          emptyDir: {}

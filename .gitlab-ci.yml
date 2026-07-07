@@ -116,6 +116,9 @@ sast-scan:
   stage: test
   extends: .sast_scan
   needs: []
+  variables:
+    alert_mode: "policy"
+  allow_failure: false
 
 .docker-reader-role: &docker-reader-role |
   creds-helper init

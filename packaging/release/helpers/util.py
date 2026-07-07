@@ -38,6 +38,13 @@ from .constants import (
 )
 
 
+METADATA_POLL_INTERVAL = 60
+
+
+class MetadataNotReady(Exception):
+    pass
+
+
 class Asset(object):
     def __init__(self, url=None, path=None):
         assert url or path, "Either url= or path= is required!"
@@ -112,7 +119,12 @@ def download_file(url, dest, user=None, token=None):
 
 def get_url_bytes(url, user=None, token=None):
     auth = (user, token) if user and token else None
-    resp = requests.get(url, auth=auth, timeout=60)
+    try:
+        resp = requests.get(url, auth=auth, timeout=60)
+    except requests.RequestException as err:
+        raise MetadataNotReady(f"download failed: {err}") from err
+    if resp.status_code == 404 or resp.status_code >= 500:
+        raise MetadataNotReady(f"download failed:\n{resp.reason}\n{resp.text}")
     assert resp.status_code == 200, f"download failed:\n{resp.reason}\n{resp.text}"
     return resp.content
 
@@ -130,9 +142,7 @@ def verify_bytes_checksum(data, checksum_type, expected_checksum, expected_size=
         assert len(data) == int(expected_size), (
             f"size mismatch: expected {expected_size}, got {len(data)}"
         )
-    hash_name = checksum_type.replace("-", "")
-    if hash_name == "sha":
-        hash_name = "sha1"
+    hash_name = normalize_checksum_type(checksum_type)
     digest = hashlib.new(hash_name)
     digest.update(data)
     actual_checksum = digest.hexdigest().lower()
@@ -141,10 +151,27 @@ def verify_bytes_checksum(data, checksum_type, expected_checksum, expected_size=
     )
 
 
+def normalize_checksum_type(checksum_type):
+    if not checksum_type:
+        return ""
+    hash_name = checksum_type.replace("-", "").lower()
+    if hash_name == "sha":
+        return "sha1"
+    return hash_name
+
+
+def package_checksum_matches(package, expected):
+    checksum_type = normalize_checksum_type(package.get("checksum_type", ""))
+    expected_checksum = expected.get(checksum_type, "")
+    return bool(expected_checksum) and (package.get("checksum") or "").lower() == expected_checksum.lower()
+
+
 def get_deb_package_info(asset):
     match = re.match(r"(?P<name>.+)_(?P<version>[^_]+)_(?P<arch>amd64|arm64)\.deb$", asset.name)
     assert match, f"Failed to get deb package info from {asset.path}!"
-    return match.groupdict()
+    package_info = match.groupdict()
+    package_info["sha256"] = get_checksum(asset.path, hashlib.sha256())
+    return package_info
 
 
 def get_rpm_package_info(asset):
@@ -153,7 +180,10 @@ def get_rpm_package_info(asset):
         asset.name,
     )
     assert match, f"Failed to get rpm package info from {asset.path}!"
-    return match.groupdict()
+    package_info = match.groupdict()
+    package_info["sha1"] = get_checksum(asset.path, hashlib.sha1())
+    package_info["sha256"] = get_checksum(asset.path, hashlib.sha256())
+    return package_info
 
 
 def parse_deb_release_sha256(release_text):
@@ -203,12 +233,15 @@ def get_deb_packages_from_metadata(stage, arch, user, token):
         packages_url = f"{ARTIFACTORY_DEB_REPO_URL}/dists/{stage}/{packages_path}"
         packages_bytes = get_url_bytes(packages_url, user, token)
         checksum, size = checksums[packages_path]
-        verify_bytes_checksum(packages_bytes, "sha256", checksum, size)
+        try:
+            verify_bytes_checksum(packages_bytes, "sha256", checksum, size)
+        except AssertionError as err:
+            raise MetadataNotReady(f"{packages_path} checksum is not stable: {err}") from err
         if packages_path.endswith(".gz"):
             packages_bytes = gzip.decompress(packages_bytes)
         return parse_deb_packages(packages_bytes.decode("utf-8"))
 
-    raise AssertionError(f"No Packages metadata found in Release for {stage}/{arch}")
+    raise MetadataNotReady(f"No Packages metadata found in Release for {stage}/{arch}")
 
 
 def get_rpm_packages_from_metadata(stage, arch, user, token):
@@ -226,16 +259,21 @@ def get_rpm_packages_from_metadata(stage, arch, user, token):
         if data.attrib.get("type") == "primary":
             primary = data
             break
-    assert primary is not None, f"primary metadata not found in {repomd_url}"
+    if primary is None:
+        raise MetadataNotReady(f"primary metadata not found in {repomd_url}")
 
     checksum = primary.find(f"{repo_ns}checksum")
     location = primary.find(f"{repo_ns}location")
-    assert checksum is not None and location is not None, f"primary checksum/location missing in {repomd_url}"
+    if checksum is None or location is None:
+        raise MetadataNotReady(f"primary checksum/location missing in {repomd_url}")
 
     repo_root_url = repomd_url.rsplit("/repodata/repomd.xml", 1)[0] + "/"
     primary_url = urllib.parse.urljoin(repo_root_url, location.attrib["href"])
     primary_bytes = get_url_bytes(primary_url, user, token)
-    verify_bytes_checksum(primary_bytes, checksum.attrib["type"], checksum.text)
+    try:
+        verify_bytes_checksum(primary_bytes, checksum.attrib["type"], checksum.text)
+    except AssertionError as err:
+        raise MetadataNotReady(f"primary metadata checksum is not stable: {err}") from err
     if primary_url.endswith(".gz"):
         primary_bytes = gzip.decompress(primary_bytes)
 
@@ -243,12 +281,15 @@ def get_rpm_packages_from_metadata(stage, arch, user, token):
     packages = []
     for package in primary_xml.findall(f"{common_ns}package"):
         version = package.find(f"{common_ns}version")
+        checksum = package.find(f"{common_ns}checksum")
         packages.append(
             {
                 "name": package.findtext(f"{common_ns}name"),
                 "arch": package.findtext(f"{common_ns}arch"),
                 "version": version.attrib.get("ver") if version is not None else None,
                 "release": version.attrib.get("rel") if version is not None else None,
+                "checksum": checksum.text if checksum is not None else None,
+                "checksum_type": checksum.attrib.get("type") if checksum is not None else None,
             }
         )
     return packages
@@ -257,10 +298,11 @@ def get_rpm_packages_from_metadata(stage, arch, user, token):
 def wait_for_packages_in_metadata(package_type, expected_packages, stage, user, token, timeout=DEFAULT_TIMEOUT):
     print(
         f"Waiting for {len(expected_packages)} {package_type} package(s) "
-        f"to appear in {stage} repo metadata ..."
+        f"to appear in {stage} repo metadata "
+        f"(polling every {METADATA_POLL_INTERVAL}s) ..."
     )
     start_time = time.time()
-    last_log = -60
+    last_log = -METADATA_POLL_INTERVAL
 
     while True:
         elapsed = int(time.time() - start_time)
@@ -271,17 +313,17 @@ def wait_for_packages_in_metadata(package_type, expected_packages, stage, user, 
 
         try:
             missing = get_missing_packages_from_metadata(package_type, expected_packages, stage, user, token)
-        except Exception as err:
+        except MetadataNotReady as err:
             missing = [f"metadata not ready: {err}"]
 
         if not missing:
             print(f"All expected {package_type} package(s) are present in repo metadata.")
             return
 
-        if elapsed - last_log >= 60:
+        if elapsed - last_log >= METADATA_POLL_INTERVAL:
             print(f"  Still waiting after {elapsed}s. Missing: {missing}")
             last_log = elapsed
-        time.sleep(10)
+        time.sleep(min(METADATA_POLL_INTERVAL, max(1, timeout - elapsed)))
 
 
 def get_missing_packages_from_metadata(package_type, expected_packages, stage, user, token):
@@ -295,6 +337,7 @@ def get_missing_packages_from_metadata(package_type, expected_packages, stage, u
                     package.get("Package") == expected["name"]
                     and package.get("Version") == expected["version"]
                     and package.get("Architecture") == expected["arch"]
+                    and package.get("SHA256", "").lower() == expected["sha256"]
                     for package in live_packages
                 ):
                     missing.append(expected)
@@ -306,6 +349,7 @@ def get_missing_packages_from_metadata(package_type, expected_packages, stage, u
                     and package.get("version") == expected["version"]
                     and package.get("release") == expected["release"]
                     and package.get("arch") == expected["arch"]
+                    and package_checksum_matches(package, expected)
                     for package in live_packages
                 ):
                     missing.append(expected)

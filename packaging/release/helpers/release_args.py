@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import argparse
+import os
 
 from .constants import (
     ARTIFACTORY_URL,

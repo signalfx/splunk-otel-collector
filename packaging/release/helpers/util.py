@@ -26,10 +26,8 @@ import boto3
 import requests
 
 from .constants import (
-    ARTIFACTORY_API_URL,
     ARTIFACTORY_DEB_REPO_URL,
     ARTIFACTORY_RPM_REPO_URL,
-    ARTIFACTORY_URL,
     CLOUDFRONT_DISTRIBUTION_ID,
     DEFAULT_TIMEOUT,
     EXTENSIONS,
@@ -127,21 +125,6 @@ def delete_artifactory_file(url, user, token):
     assert resp.status_code == 204, f"delete failed:\n{resp.reason}\n{resp.text}"
 
 
-def get_md5_from_artifactory(url, user, token):
-    if not artifactory_file_exists(url, user, token):
-        return None
-
-    resp = requests.get(url, auth=(user, token))
-
-    assert resp.status_code == 200, f"md5 request failed:\n{resp.reason}\n{resp.text}"
-
-    md5 = resp.json().get("checksums", {}).get("md5", "")
-
-    assert md5, f"md5 not found in response:\n{resp.text}"
-
-    return md5
-
-
 def verify_bytes_checksum(data, checksum_type, expected_checksum, expected_size=None):
     if expected_size is not None:
         assert len(data) == int(expected_size), (
@@ -207,6 +190,9 @@ def parse_deb_packages(packages_text):
 
 
 def get_deb_packages_from_metadata(stage, arch, user, token):
+    # Verify the Packages index through the signed Release metadata before
+    # using it. This mirrors what apt relies on after Artifactory recalculates
+    # repo metadata, and avoids treating a transient metadata update as done.
     release_url = f"{ARTIFACTORY_DEB_REPO_URL}/dists/{stage}/Release"
     release_text = get_url_bytes(release_url, user, token).decode("utf-8")
     checksums = parse_deb_release_sha256(release_text)
@@ -226,6 +212,9 @@ def get_deb_packages_from_metadata(stage, arch, user, token):
 
 
 def get_rpm_packages_from_metadata(stage, arch, user, token):
+    # Resolve the current primary metadata from repomd.xml and verify its
+    # checksum before checking packages. This follows the same repo metadata
+    # chain dnf uses, so the release waits for the customer-visible index.
     repomd_url = f"{ARTIFACTORY_RPM_REPO_URL}/{stage}/{arch}/repodata/repomd.xml"
     repomd_bytes = get_url_bytes(repomd_url, user, token)
     repo_ns = "{http://linux.duke.edu/metadata/repo}"
@@ -331,23 +320,9 @@ def upload_package_to_artifactory(
     user,
     token,
 ):
-    local_md5 = get_checksum(path, hashlib.md5())
     clean_url = dest_url.split(";")[0]
-    storage_api_url = clean_url.replace(
-        ARTIFACTORY_URL + "/", ARTIFACTORY_API_URL + "/storage/", 1
-    )
-
-    pre_upload_md5 = None
     if artifactory_file_exists(clean_url, user, token):
-        pre_upload_md5 = get_md5_from_artifactory(storage_api_url, user, token)
-        print(f"Pre-upload file MD5 (remote): {pre_upload_md5}")
-    else:
-        print(f"File does not yet exist at {clean_url}")
-
-    print(f"Local file MD5:                {local_md5}")
-    content_changed = pre_upload_md5 is None or pre_upload_md5.lower() != local_md5.lower()
-    print(f"Content changed:               {content_changed}")
-
+        print(f"File already exists at {clean_url}; uploading replacement.")
     upload_file_to_artifactory(path, dest_url, user, token)
 
 

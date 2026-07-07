@@ -53,7 +53,7 @@ func TestDefaultComponents(t *testing.T) {
 		"active_directory_ds",
 		"apache",
 		"apache_spark",
-		"awscloudwatch",
+		"aws_cloudwatch",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azure_blob",
@@ -134,6 +134,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 	expectedReceiverAliases := map[string]string{
 		"apachespark":           "apache_spark",
+		"awscloudwatch":         "aws_cloudwatch",
 		"azureblob":             "azure_blob",
 		"azureeventhub":         "azure_event_hub",
 		"azuremonitor":          "azure_monitor",

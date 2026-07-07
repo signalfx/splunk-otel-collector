@@ -39,6 +39,9 @@ jobs:
 
       - name: Set up environment
         uses: ./.github/actions/setup-environment
+        with:
+          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: Build Docker image from local changes
         run: |

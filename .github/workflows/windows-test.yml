@@ -29,6 +29,19 @@ jobs:
           $ErrorActionPreference = 'Continue'
           & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
+      - name: Configure private Go module access
+        env:
+          PRIVATE_MODULES_USER: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
+          PRIVATE_MODULES_TOKEN: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:PRIVATE_MODULES_USER -or -not $env:PRIVATE_MODULES_TOKEN) {
+            throw "OTELCOL_PRIVATE_MODULES_USER and OTELCOL_PRIVATE_MODULES_TOKEN are required to fetch private Go modules"
+          }
+          git config --global url."https://$($env:PRIVATE_MODULES_USER):$($env:PRIVATE_MODULES_TOKEN)@cd.splunkdev.com/".insteadOf "https://cd.splunkdev.com/"
+          "GOPRIVATE=cd.splunkdev.com/gdi/unified-collector" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "GONOSUMDB=cd.splunkdev.com/gdi/unified-collector" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:

@@ -160,6 +160,9 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
+
+	"cd.splunkdev.com/gdi/unified-collector/exporter/s2sexporter"
+	"cd.splunkdev.com/gdi/unified-collector/receiver/wineventlogreceiver"
 )
 
 func Get() (otelcol.Factories, error) {
@@ -266,6 +269,7 @@ func Get() (otelcol.Factories, error) {
 		udplogreceiver.NewFactory(),
 		vcenterreceiver.NewFactory(),
 		wavefrontreceiver.NewFactory(),
+		wineventlogreceiver.NewFactory(),
 		windowseventlogreceiver.NewFactory(),
 		windowsperfcountersreceiver.NewFactory(),
 		windowsservicereceiver.NewFactory(),
@@ -289,6 +293,7 @@ func Get() (otelcol.Factories, error) {
 		otlphttpexporter.NewFactory(),
 		prometheusremotewriteexporter.NewFactory(),
 		pulsarexporter.NewFactory(),
+		s2sexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
 	)

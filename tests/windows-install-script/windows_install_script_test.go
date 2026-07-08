@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -31,15 +32,15 @@ import (
 )
 
 const (
-	// Old version to install first, this version by default is not installed as machine-wide.
-	oldCollectorVersion = "0.94.0"
+	// Old version to install first, minimum version supported by the installation script.
+	oldCollectorVersion = "0.128.0"
 	// Service name
 	serviceName = "splunk-otel-collector"
 	// Service display name
 	serviceDisplayName = "Splunk OpenTelemetry Collector"
 )
 
-func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
+func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	t.Setenv("VERIFY_ACCESS_TOKEN", "false")
 
 	requireNoPendingFileOperations(t)
@@ -52,17 +53,25 @@ func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
 	installCollector(t, oldCollectorVersion, "")
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
+	verifyZeroConfigResourceAttributeCount(t, 1)
 	legacySvcVersion := getCurrentServiceVersion(t)
 	require.Equal(t, oldCollectorVersion, legacySvcVersion)
+
+	// Uninstall the .NET instrumentation, so the upgrade is not blocked by the install.ps1 script
+	uninstallDotnetInstrumentation(t)
 
 	msiInstallerPath := getFilePathFromEnvVar(t, "MSI_COLLECTOR_PATH")
 	t.Logf(" *** Installing collector from %q", msiInstallerPath)
 	installCollector(t, "", msiInstallerPath)
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
+	verifyZeroConfigResourceAttributeCount(t, 1)
 	latestSvcVersion := getCurrentServiceVersion(t)
 	require.NotEqual(t, oldCollectorVersion, latestSvcVersion)
 	requireNoPendingFileOperations(t)
+
+	uninstallCollector(t)
+	verifyZeroConfigResourceAttributeCount(t, 0)
 }
 
 func installCollector(t *testing.T, version, msiPath string) {
@@ -70,8 +79,10 @@ func installCollector(t *testing.T, version, msiPath string) {
 	require.False(t, version != "" && msiPath != "", "Only one of version or msiPath should be provided")
 	args := []string{
 		"-ExecutionPolicy", "Bypass",
-		"-File", getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
+		"-Command", "& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
 		"-access_token", "fake-token",
+		"-with_dotnet_instrumentation", "1", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var with the Zero-Code attribute.
+		"-deployment_env", "test", // This forces another attribute to be set in OTEL_RESOURCE_ATTRIBUTES so the environment variable can't be totally removed by the install script.
 	}
 
 	if version != "" {
@@ -87,6 +98,20 @@ func installCollector(t *testing.T, version, msiPath string) {
 	output, err := cmd.CombinedOutput()
 	t.Logf("Install output: %s", string(output))
 	require.NoError(t, err, "Failed to install collector (version:%q msiPath:%q)", version, msiPath)
+}
+
+func uninstallCollector(t *testing.T) {
+	args := []string{
+		"-ExecutionPolicy", "Bypass",
+		"-Command", "& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
+		"-uninstall_collector", // Uninstall the collector and clean up any Splunk .NET zero-code resource attribute from OTEL_RESOURCE_ATTRIBUTES.
+	}
+
+	cmd := exec.Command("powershell.exe", args...)
+
+	output, err := cmd.CombinedOutput()
+	t.Logf("Uninstall output: %s", string(output))
+	require.NoError(t, err, "Failed to uninstall collector")
 }
 
 func verifyServiceExists(t *testing.T, scm *mgr.Mgr) {
@@ -140,6 +165,35 @@ func getCurrentServiceVersion(t *testing.T) string {
 	return ""
 }
 
+func verifyZeroConfigResourceAttributeCount(t *testing.T, expectedCount int) {
+	envKey, err := registry.OpenKey(
+		registry.LOCAL_MACHINE,
+		`SYSTEM\CurrentControlSet\Control\Session Manager\Environment`,
+		registry.QUERY_VALUE,
+	)
+	require.NoError(t, err)
+	defer envKey.Close()
+
+	otelResourceAttributes, _, err := envKey.GetStringValue("OTEL_RESOURCE_ATTRIBUTES")
+	require.NoError(t, err, "OTEL_RESOURCE_ATTRIBUTES machine-wide environment variable not found")
+	require.NotEmpty(t, otelResourceAttributes, "OTEL_RESOURCE_ATTRIBUTES should not be empty")
+	t.Logf("OTEL_RESOURCE_ATTRIBUTES: %q", otelResourceAttributes)
+
+	const expectedPrefix = "splunk.zc.method=splunk-otel-dotnet-"
+	count := 0
+	for _, attribute := range strings.Split(otelResourceAttributes, ",") {
+		trimmed := strings.TrimSpace(attribute)
+		if len(trimmed) > len(expectedPrefix) && strings.HasPrefix(trimmed, expectedPrefix) {
+			count++
+		}
+	}
+
+	require.Equal(t, expectedCount, count,
+		"OTEL_RESOURCE_ATTRIBUTES didn't contain the expected count of zero-code attributes, got %d in %q",
+		count, otelResourceAttributes,
+	)
+}
+
 func requireNoPendingFileOperations(t *testing.T) {
 	// Check for pending file rename operations
 	pendingFileRenameKey, err := registry.OpenKey(
@@ -167,4 +221,17 @@ func getFilePathFromEnvVar(t *testing.T, envVar string) string {
 		filePath = "\"" + filePath + "\""
 	}
 	return filePath
+}
+
+func uninstallDotnetInstrumentation(t *testing.T) {
+	args := []string{
+		"-ExecutionPolicy", "Bypass",
+		"-File", filepath.Join("testdata", "Uninstall-SplunkDotnetInstrumentation.ps1"),
+	}
+
+	cmd := exec.Command("powershell.exe", args...)
+
+	output, err := cmd.CombinedOutput()
+	t.Logf("Uninstall Splunk .NET instrumentation output:\n%s", string(output))
+	require.NoError(t, err, "Failed to uninstall .NET instrumentation")
 }

@@ -52,8 +52,8 @@ func TestDefaultComponents(t *testing.T) {
 	expectedReceivers := []string{
 		"active_directory_ds",
 		"apache",
-		"apachespark",
-		"awscloudwatch",
+		"apache_spark",
+		"aws_cloudwatch",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azure_blob",
@@ -111,7 +111,7 @@ func TestDefaultComponents(t *testing.T) {
 		"snmp",
 		"snowflake",
 		"solace",
-		"splunkenterprise",
+		"splunk_enterprise",
 		"splunk_hec",
 		"sqlquery",
 		"sqlserver",
@@ -127,12 +127,14 @@ func TestDefaultComponents(t *testing.T) {
 		"wavefront",
 		"windows_event_log",
 		"windowsperfcounters",
-		"windowsservice",
+		"windows_service",
 		"yang_grpc",
 		"zipkin",
 		"zookeeper",
 	}
 	expectedReceiverAliases := map[string]string{
+		"apachespark":           "apache_spark",
+		"awscloudwatch":         "aws_cloudwatch",
 		"azureblob":             "azure_blob",
 		"azureeventhub":         "azure_event_hub",
 		"azuremonitor":          "azure_monitor",
@@ -148,12 +150,14 @@ func TestDefaultComponents(t *testing.T) {
 		"kubeletstats":          "kubelet_stats",
 		"mongodbatlas":          "mongodb_atlas",
 		"prometheusremotewrite": "prometheus_remote_write",
+		"splunkenterprise":      "splunk_enterprise",
 		"sshcheck":              "ssh_check",
 		"tcpcheck":              "tcp_check",
 		"tcplog":                "tcp_log",
 		"tlscheck":              "tls_check",
 		"udplog":                "udp_log",
 		"windowseventlog":       "windows_event_log",
+		"windowsservice":        "windows_service",
 		"yanggrpc":              "yang_grpc",
 	}
 	expectedProcessors := []string{
@@ -191,16 +195,17 @@ func TestDefaultComponents(t *testing.T) {
 		"nop",
 		"otlp_grpc",
 		"otlp_http",
-		"prometheusremotewrite",
+		"prometheus_remote_write",
 		"pulsar",
 		"signalfx",
 		"splunk_hec",
 	}
 	expectedExporterAliases := map[string]string{
-		"loadbalancing":      "load_balancing",
-		"otlp":               "otlp_grpc",
-		"otlphttp":           "otlp_http",
-		"googlecloudstorage": "google_cloud_storage",
+		"loadbalancing":         "load_balancing",
+		"otlp":                  "otlp_grpc",
+		"otlphttp":              "otlp_http",
+		"googlecloudstorage":    "google_cloud_storage",
+		"prometheusremotewrite": "prometheus_remote_write",
 	}
 	expectedConnectors := []string{
 		"count",

@@ -25,13 +25,11 @@ variables:
   CREDS_HELPER_ALLOW_LEGACY: "true"
 
 include:
-  - project: 'prodsec/scp-scanning/gitlab-checkmarx'
-    ref: latest
-    file: '/templates/.sast_scan.yml'
   - project: 'ci-cd/templates'
     ref: main
     file:
       - '/prodsec/.oss-scan.yml'
+      - '/prodsec/.sast-scan.yml'
       - '/prodsec/.binary-scan.yml'
       - '/prodsec/.container-scan.yml'
   - project: 'core-ee/signing/api-integration'
@@ -113,6 +111,14 @@ fossa:
   variables:
     jira_automation: "true"
   # allow_failure: false
+
+sast-scan:
+  stage: test
+  extends: .sast_scan
+  needs: []
+  variables:
+    alert_mode: "policy"
+  allow_failure: false
 
 .docker-reader-role: &docker-reader-role |
   creds-helper init
@@ -279,16 +285,6 @@ update-otel-deps:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
-update-otel-deps-nightly:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
-
 update-javaagent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -335,6 +331,16 @@ update-dotnet-agent:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
+
+check-mass-deployments-release:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/check-mass-deployments-release.sh
 
 tidy-dependabot-pr:
   rules:
@@ -1211,16 +1217,23 @@ sign-windows-image:
 release-debs:
   extends:
     - .trigger-filter
-    - .submit-signing-request
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   resource_group: artifactory-deb
   needs:
     - job: sign-debs
       artifacts: true
   retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
+  script:
     - |
       set -ex
       for path in dist/signed/*.deb; do
@@ -1228,28 +1241,21 @@ release-debs:
           echo "$path not found!"
           exit 1
         fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
+        python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --path="$path"
       done
-    - test -f Release
-  variables:
-    ARTIFACT: Release
-    SIGN_TYPE: GPG
-  after_script:
-    - *get-artifactory-stage
-    - |
-      set -ex
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
-      fi
   artifacts:
     paths:
       - dist/signed/*.deb
-      - signed/Release.asc
 
 release-rpms:
   extends:
     - .trigger-filter
-    - .submit-signing-request
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
@@ -1258,10 +1264,12 @@ release-rpms:
     - job: sign-rpms
       artifacts: true
   retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
+  script:
     - |
       set -ex
       for path in dist/signed/*${ARCH}.rpm; do
@@ -1269,41 +1277,84 @@ release-rpms:
           echo "$path not found!"
           exit 1
         fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
+        python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --path="$path"
       done
-    - test -f repomd.xml
-  variables:
-    ARTIFACT: repomd.xml
-    SIGN_TYPE: GPG
-    DOWNLOAD_DIR: signed/${ARCH}
-  after_script:
-    - *get-artifactory-stage
-    - |
-      set -ex
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
-      fi
   artifacts:
     paths:
       - dist/signed/*${ARCH}.rpm
-      - signed/${ARCH}/repomd.xml.asc
 
-# since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
+# Verify Artifactory-generated repo metadata signatures after package publish.
 verify-signed-metadata:
   extends: .trigger-filter
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   needs:
-    - release-debs
-    - release-rpms
+    - job: release-debs
+      artifacts: false
+      optional: true
+    - job: release-rpms
+      artifacts: false
+      optional: true
   retry: 2
+  parallel:
+    matrix:
+      - TARGET: deb
+      - TARGET: rpm
+        ARCH: x86_64
+      - TARGET: rpm
+        ARCH: aarch64
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
   before_script:
-    - apt update && apt install -y curl
+    - apt update && apt install -y curl gnupg
   script:
     - *get-artifactory-stage
     - |
       set -exo pipefail
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg | diff - signed/Release.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/x86_64/repodata/repomd.xml.asc | diff - signed/x86_64/repomd.xml.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/aarch64/repodata/repomd.xml.asc | diff - signed/aarch64/repomd.xml.asc
+
+      export GNUPGHOME="$(mktemp -d)"
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
+      gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
+        || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
+
+      case "$TARGET" in
+        deb)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
+          curl -fsSL "${base}/Release" -o metadata.deb-Release
+          curl -fsSL "${base}/Release.gpg" -o metadata.deb-Release.gpg
+          curl -fsSL "${base}/InRelease" -o metadata.deb-InRelease
+
+          gpg --status-fd=1 --verify metadata.deb-Release.gpg metadata.deb-Release \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB Release.gpg did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+          gpg --status-fd=1 --verify metadata.deb-InRelease \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB InRelease did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+          ;;
+        rpm)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata"
+          curl -fsSL "${base}/repomd.xml" -o "metadata.rpm-${ARCH}-repomd.xml"
+          curl -fsSL "${base}/repomd.xml.asc" -o "metadata.rpm-${ARCH}-repomd.xml.asc"
+
+          gpg --status-fd=1 --verify "metadata.rpm-${ARCH}-repomd.xml.asc" "metadata.rpm-${ARCH}-repomd.xml" \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "RPM ${ARCH} repomd.xml.asc did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+          ;;
+        *)
+          echo "Unknown TARGET '${TARGET}'"; exit 1
+          ;;
+      esac
+
+      echo "Metadata signature OK for ${TARGET}${ARCH:+-${ARCH}}"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1625,12 +1676,15 @@ github-release:
       artifacts: true
     - job: sign-osx
       artifacts: true
-    - job: release-debs
+    - job: sign-debs
       artifacts: true
     - job: build-nupkg
       artifacts: true
-    - job: release-rpms
+    - job: sign-rpms
       artifacts: true
+    - job: verify-signed-metadata
+      artifacts: false
+      optional: true
     - job: sign-msi
       artifacts: true
     - job: sign-tar
@@ -1722,6 +1776,7 @@ puppet-release:
     - if: $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs: []
   before_script:
+    - gem update --system 3.2.3
     - gem install bundler -v 2.4.22
     - cd deployments/puppet
     - bundle install

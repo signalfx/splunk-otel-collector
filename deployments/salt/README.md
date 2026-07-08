@@ -13,7 +13,7 @@ Currently, the following Linux distributions and versions are supported:
 - Oracle: 8, 9, 10
 - Debian: 11, 12
 - SUSE: 15
-- Ubuntu: 22.04, 24.04
+- Ubuntu: 22.04, 24.04, 26.04
 
 ## Prerequisites
 

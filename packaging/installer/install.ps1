@@ -131,7 +131,7 @@ param(
     [Parameter(ParameterSetName = "Uninstall", Mandatory = $false)]
     [switch]$uninstall_collector,
 
-    [Parameter(ParameterSetName = "Install", Mandatory = $true)]
+    [Parameter(ParameterSetName = "Install", Mandatory = $false)]
     [string]$access_token = "",
 
     [string]$realm = "us0",
@@ -175,23 +175,6 @@ else {
 $format = "msi"
 $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.observability.splunkcloud.com"
-try {
-    Resolve-Path $env:PROGRAMFILES 2>&1>$null
-    $installation_path = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector"
-}
-catch {
-    $installation_path = "\Program Files\Splunk\OpenTelemetry Collector"
-}
-try {
-    Resolve-Path $env:PROGRAMDATA 2>&1>$null
-    $program_data_path = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector"
-}
-catch {
-    $program_data_path = "\ProgramData\Splunk\OpenTelemetry Collector"
-}
-$old_config_path = "$program_data_path\config.yaml"
-$agent_config_path = "$program_data_path\agent_config.yaml"
-$gateway_config_path = "$program_data_path\gateway_config.yaml"
 
 try {
     Resolve-Path $env:TEMP 2>&1>$null
@@ -409,18 +392,25 @@ function update_registry([string]$path, [string]$name, [string]$value) {
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
 }
 
-function set_service_environment([string]$service_name, [hashtable]$env_vars) {
-    # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
-    # 'Environment' REG_MULTI_SZ value.
-    [string []] $multi_sz_value = ($env_vars.Keys | ForEach-Object { "$_=$($env_vars[$_])" } | Sort-Object)
+function format_msi_public_property([string]$name, [string]$value) {
+    if ($value -match "\s") {
+        return "$name=`"$value`""
+    }
 
-    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
-    if (Test-Path $target_service_reg_key) {
-        Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
+    return "$name=$value"
+}
+
+function add_msi_public_property([string]$properties, [string]$name, [string]$value) {
+    if ([string]::IsNullOrEmpty($value) -Or $properties -match "(^|\s)$([regex]::Escape($name))=") {
+        return $properties
     }
-    else {
-        throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
+
+    $property = format_msi_public_property -name $name -value $value
+    if ([string]::IsNullOrWhiteSpace($properties)) {
+        return $property
     }
+
+    return "$properties $property"
 }
 
 function install_msi([string]$path) {
@@ -611,11 +601,13 @@ else {
     Write-Warning "[DEPRECATED] The parameter '-hec_url' is deprecated and will be removed in September 2026."
 }
 
-if ($hec_token -eq "") {
+if ($hec_token -eq "" -And $PSBoundParameters.ContainsKey("access_token")) {
     $hec_token = "$access_token"
 }
 
-if ($force_skip_verify_access_token) {
+if (!$PSBoundParameters.ContainsKey("access_token")) {
+    echo 'Skipping Access Token verification because access_token was not provided'
+} elseif ($force_skip_verify_access_token) {
     echo 'Skipping Access Token verification'
 }
 else {   
@@ -643,6 +635,12 @@ elseif ($msi_path -Eq "") {
         echo 'Determining latest release...'
         $collector_version = get_latest -stage $stage -format $format
         echo "- Latest release is $collector_version"
+    } else {
+        $min_version = [version]"0.128.0"
+        $parsed_version = $collector_version -replace '^v', ''
+        if ([version]$parsed_version -lt $min_version) {
+            throw "The minimum supported version is '$min_version', but '$collector_version' was requested."
+        }
     }
 
     # download the collector package with the specified collector_version or latest
@@ -658,74 +656,53 @@ else {
     }
 }
 
-install_msi -path "$msi_path"
-
-# copy the default configs to $program_data_path
-mkdir "$program_data_path" -ErrorAction Ignore
-if (!(Test-Path -Path "$agent_config_path") -And (Test-Path -Path "$installation_path\agent_config.yaml")) {
-    echo "$agent_config_path not found"
-    echo "Copying default agent_config.yaml to $agent_config_path"
-    Copy-Item "$installation_path\agent_config.yaml" "$agent_config_path"
-}
-if (!(Test-Path -Path "$gateway_config_path") -And (Test-Path -Path "$installation_path\gateway_config.yaml")) {
-    echo "$gateway_config_path not found"
-    echo "Copying default gateway_config.yaml to $gateway_config_path"
-    Copy-Item "$installation_path\gateway_config.yaml" "$gateway_config_path"
-}
-if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_path\config.yaml")) {
-    echo "$old_config_path not found"
-    echo "Copying default config.yaml to $old_config_path"
-    Copy-Item "$installation_path\config.yaml" "$old_config_path"
+if ($PSBoundParameters.ContainsKey("access_token")) {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_ACCESS_TOKEN" -value $access_token
 }
 
-if ($config_path -Eq "") {
-    if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
-        $config_path = $agent_config_path
+if ($config_path -Ne "") {
+    if (!(Test-Path -Path "$config_path")) {
+        throw "Valid Collector configuration file not found at $config_path."
     }
-    elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
-        $config_path = $gateway_config_path
-    }
-    elseif (Test-Path -Path "$old_config_path") {
-        $config_path = $old_config_path
-    }
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_CONFIG" -value $config_path
 }
 
-if (!(Test-Path -Path "$config_path")) {
-    throw "Valid Collector configuration file not found at $config_path."
-}
-
-$collector_env_vars = @{
-    "SPLUNK_ACCESS_TOKEN"     = "$access_token";
-    "SPLUNK_API_URL"          = "$api_url";
-    "SPLUNK_CONFIG"           = "$config_path";
-    "SPLUNK_HEC_TOKEN"        = "$hec_token";
-    "SPLUNK_HEC_URL"          = "$hec_url";
-    "SPLUNK_INGEST_URL"       = "$ingest_url";
-    "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
-    "SPLUNK_REALM"            = "$realm";
+if ($hec_token -Ne "") {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_HEC_TOKEN" -value $hec_token
 }
 
 if ($network_interface -Ne "") {
-    $collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_LISTEN_INTERFACE" -value $network_interface
 }
 
 if ($godebug -Ne "") {
-    $collector_env_vars.Add("GODEBUG", "$godebug")
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "GODEBUG" -value $godebug
 }
 
-# set the environment variables for the collector service
-set_service_environment $service_name $collector_env_vars
+if ($PSBoundParameters.ContainsKey("api_url")) {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_API_URL" -value $api_url
+}
+
+if ($PSBoundParameters.ContainsKey("hec_url")) {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_HEC_URL" -value $hec_url
+}
+
+if ($PSBoundParameters.ContainsKey("ingest_url")) {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_INGEST_URL" -value $ingest_url
+}
+
+$msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_MEMORY_TOTAL_MIB" -value $memory
+$msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_REALM" -value $realm
+$msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_SETUP_COLLECTOR_MODE" -value $mode
+
+install_msi -path "$msi_path"
 
 $message = "
 The $CollectorServiceDisplayName for Windows has been successfully installed.
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
-The collector's main configuration file is located at $config_path,
-and the environment variables are stored in the $regkey registry key.
-
-If the $config_path configuration file or any of the
-SPLUNK_* environment variables in the $regkey registry key are modified,
-the collector service must be restarted to apply the changes by restarting the system or running the
-following PowerShell commands:
+The collector service configuration is handled by the MSI installation.
+If the collector configuration is modified, the collector service must be restarted to apply the
+changes by restarting the system or running the following PowerShell commands:
   PS> Stop-Service $service_name
   PS> Start-Service $service_name
 "

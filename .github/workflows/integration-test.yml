@@ -19,10 +19,10 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -44,7 +44,7 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -52,7 +52,7 @@ jobs:
         run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -62,11 +62,11 @@ jobs:
           merge-multiple: true
           path: ./bin
       # Building multiarch container images requires qemu
-      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v10.2.1
-      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
         id: multiarch-otelcol-builder
         with:
           driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
@@ -118,10 +118,10 @@ jobs:
       fail-fast: false
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -152,7 +152,7 @@ jobs:
       COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -173,7 +173,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -189,7 +189,7 @@ jobs:
       # Here is the list of "services" (see above) that don't support arm64:
       # On profile integration: oracle
       # On profile smartagent: httpd
-      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
@@ -258,7 +258,7 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -277,7 +277,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -362,7 +362,7 @@ jobs:
       env:
         COVER_TESTING: true
       steps:
-        - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
           with:
             fetch-depth: 0
         - name: Free up disk space for next step
@@ -372,7 +372,7 @@ jobs:
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull
-        - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
           with:
             go-version: ${{ env.GO_VERSION }}
             cache-dependency-path: '**/go.sum'
@@ -435,7 +435,7 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -455,7 +455,7 @@ jobs:
           for f in k8s/${{ matrix.SERVICE }}/*.sh; do
             bash "$f" 
           done
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'

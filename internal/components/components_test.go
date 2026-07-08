@@ -53,7 +53,7 @@ func TestDefaultComponents(t *testing.T) {
 		"active_directory_ds",
 		"apache",
 		"apache_spark",
-		"awscloudwatch",
+		"aws_cloudwatch",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azure_blob",
@@ -111,7 +111,7 @@ func TestDefaultComponents(t *testing.T) {
 		"snmp",
 		"snowflake",
 		"solace",
-		"splunkenterprise",
+		"splunk_enterprise",
 		"splunk_hec",
 		"sqlquery",
 		"sqlserver",
@@ -134,6 +134,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 	expectedReceiverAliases := map[string]string{
 		"apachespark":           "apache_spark",
+		"awscloudwatch":         "aws_cloudwatch",
 		"azureblob":             "azure_blob",
 		"azureeventhub":         "azure_event_hub",
 		"azuremonitor":          "azure_monitor",
@@ -149,6 +150,7 @@ func TestDefaultComponents(t *testing.T) {
 		"kubeletstats":          "kubelet_stats",
 		"mongodbatlas":          "mongodb_atlas",
 		"prometheusremotewrite": "prometheus_remote_write",
+		"splunkenterprise":      "splunk_enterprise",
 		"sshcheck":              "ssh_check",
 		"tcpcheck":              "tcp_check",
 		"tcplog":                "tcp_log",

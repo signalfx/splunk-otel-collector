@@ -3,8 +3,6 @@ module github.com/signalfx/splunk-otel-collector
 go 1.26.4
 
 require (
-	cd.splunkdev.com/gdi/unified-collector/exporter/s2sexporter v0.1.0
-	cd.splunkdev.com/gdi/unified-collector/receiver/wineventlogreceiver v0.1.0
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/antonmedv/expr v1.15.5
 	github.com/cenkalti/backoff/v4 v4.3.0
@@ -143,6 +141,8 @@ require (
 	github.com/prometheus/common v0.69.0
 	github.com/prometheus/prometheus v0.312.0
 	github.com/shirou/gopsutil/v4 v4.26.5
+	github.com/signalfx/splunk-otel-collector-components/exporter/s2sexporter v0.0.0-20260707233042-6c1972e556bf
+	github.com/signalfx/splunk-otel-collector-components/receiver/wineventlogreceiver v0.0.0-20260707233042-6c1972e556bf
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000

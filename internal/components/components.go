@@ -161,8 +161,8 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 
-	"cd.splunkdev.com/gdi/unified-collector/exporter/s2sexporter"
-	"cd.splunkdev.com/gdi/unified-collector/receiver/wineventlogreceiver"
+	"github.com/signalfx/splunk-otel-collector-components/exporter/s2sexporter"
+	"github.com/signalfx/splunk-otel-collector-components/receiver/wineventlogreceiver"
 )
 
 func Get() (otelcol.Factories, error) {

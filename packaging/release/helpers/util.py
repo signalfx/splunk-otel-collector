@@ -20,10 +20,10 @@ import sys
 import tempfile
 import time
 import urllib.parse
-import xml.etree.ElementTree as ET
 
 import boto3
 import requests
+from defusedxml import ElementTree as ET
 
 from .constants import (
     ARTIFACTORY_DEB_REPO_URL,
@@ -93,7 +93,7 @@ def upload_file_to_artifactory(src, dest, user, token):
     print(f"uploading {src} to {dest} ...")
 
     with open(src, "rb") as fd:
-        headers = {"X-Checksum-MD5": get_checksum(src, hashlib.md5())}
+        headers = {"X-Checksum-Sha256": get_checksum(src, hashlib.sha256())}
         resp = requests.put(dest, auth=(user, token), headers=headers, data=fd)
 
         assert resp.status_code == 201, f"upload failed:\n{resp.reason}\n{resp.text}"
@@ -181,6 +181,8 @@ def get_rpm_package_info(asset):
     )
     assert match, f"Failed to get rpm package info from {asset.path}!"
     package_info = match.groupdict()
+    # Artifactory RPM metadata may publish type="sha"; this is metadata comparison, not package trust.
+    # nosemgrep: tools.semgrep.rules.CCF.insecure-hash-algorithm-sha1
     package_info["sha1"] = get_checksum(asset.path, hashlib.sha1())
     package_info["sha256"] = get_checksum(asset.path, hashlib.sha256())
     return package_info

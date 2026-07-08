@@ -1236,13 +1236,14 @@ release-debs:
   script:
     - |
       set -ex
-      for path in dist/signed/*.deb; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --path="$path"
-      done
+      shopt -s nullglob
+      paths=(dist/signed/*.deb)
+      shopt -u nullglob
+      if [ "${#paths[@]}" -eq 0 ]; then
+        echo "No signed debs found!"
+        exit 1
+      fi
+      python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --paths "${paths[@]}"
   artifacts:
     paths:
       - dist/signed/*.deb
@@ -1272,13 +1273,14 @@ release-rpms:
   script:
     - |
       set -ex
-      for path in dist/signed/*${ARCH}.rpm; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --path="$path"
-      done
+      shopt -s nullglob
+      paths=(dist/signed/*${ARCH}.rpm)
+      shopt -u nullglob
+      if [ "${#paths[@]}" -eq 0 ]; then
+        echo "No signed rpms found for ${ARCH}!"
+        exit 1
+      fi
+      python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --paths "${paths[@]}"
   artifacts:
     paths:
       - dist/signed/*${ARCH}.rpm

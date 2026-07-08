@@ -1,0 +1,5 @@
+change_type: enhancement
+component: config
+note: Add the Splunk access token header to the default OpAMP HTTP forwarder egress config.
+issues: [4437]
+subtext:

@@ -130,6 +130,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					"http_forwarder/opamp_splunk_o11y": map[string]any{
 						"egress": map[string]any{
 							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
+							"headers": map[string]any{
+								"X-SF-Token": "<redacted>",
+							},
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:4320", ip),
@@ -408,6 +411,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"http_forwarder/opamp_splunk_o11y": map[string]any{
 						"egress": map[string]any{
 							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
+							"headers": map[string]any{
+								"X-SF-Token": "<redacted>",
+							},
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:4320", ip),

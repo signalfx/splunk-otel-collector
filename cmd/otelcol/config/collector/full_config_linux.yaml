@@ -689,6 +689,9 @@ extensions:
       endpoint: 0.0.0.0:4320
     egress:
       endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
+      # Remove this header to use a token passed by the caller instead.
+      headers:
+        X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
 
   # Enables the host observer extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver

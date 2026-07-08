@@ -1,0 +1,8 @@
+change_type: enhancement
+
+component: puppet
+
+note: "Add Ubuntu 26.04 support to the Puppet deployment module."
+
+issues: []
+

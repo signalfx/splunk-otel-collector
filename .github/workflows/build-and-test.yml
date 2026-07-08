@@ -22,7 +22,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
         with:
-          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: tidy
@@ -40,7 +39,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
         with:
-          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: gofmt
@@ -58,7 +56,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
         with:
-          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: generate-metrics
@@ -91,7 +88,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
         with:
-          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
@@ -141,7 +137,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
         with:
-          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: Free up disk space for next step
@@ -176,7 +171,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
         with:
-          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: dockerd test

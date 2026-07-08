@@ -21,6 +21,5 @@ ENV OTELCOL_REQUIRE_PRIVATE_MODULES_TOKEN=true
 
 WORKDIR /src
 RUN --mount=type=cache,target=${GOMODCACHE} \
-    --mount=type=secret,id=private_modules_user \
     --mount=type=secret,id=private_modules_token \
     make otelcol BUILD_INFO="${BUILD_INFO}"

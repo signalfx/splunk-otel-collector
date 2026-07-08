@@ -3,8 +3,6 @@ name: compile
 on:
   workflow_call:
     secrets:
-      OTELCOL_PRIVATE_MODULES_USER:
-        required: true
       OTELCOL_PRIVATE_MODULES_TOKEN:
         required: true
     inputs:
@@ -23,7 +21,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
         with:
-          private-modules-user: ${{ secrets.OTELCOL_PRIVATE_MODULES_USER }}
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: Build Collector

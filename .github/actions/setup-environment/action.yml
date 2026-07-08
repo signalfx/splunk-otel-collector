@@ -2,11 +2,8 @@ name: 'setup environment'
 description: 'setup go environment'
 
 inputs:
-  private-modules-user:
-    description: 'GitLab deploy-token username with read access to private Go module repositories'
-    required: true
   private-modules-token:
-    description: 'GitLab deploy token with read access to private Go module repositories'
+    description: 'GitHub token with read access to private Go module repositories'
     required: true
 
 runs:
@@ -15,16 +12,15 @@ runs:
     - name: Configure private Go module access
       shell: bash
       env:
-        PRIVATE_MODULES_USER: ${{ inputs.private-modules-user }}
         PRIVATE_MODULES_TOKEN: ${{ inputs.private-modules-token }}
       run: |
-        if [ -z "$PRIVATE_MODULES_USER" ] || [ -z "$PRIVATE_MODULES_TOKEN" ]; then
-          echo "private-modules-user and private-modules-token are required to fetch private Go modules" >&2
+        if [ -z "$PRIVATE_MODULES_TOKEN" ]; then
+          echo "private-modules-token is required to fetch private Go modules" >&2
           exit 1
         fi
-        git config --global url."https://${PRIVATE_MODULES_USER}:${PRIVATE_MODULES_TOKEN}@cd.splunkdev.com/".insteadOf "https://cd.splunkdev.com/"
-        echo "GOPRIVATE=cd.splunkdev.com/gdi/unified-collector" >> "$GITHUB_ENV"
-        echo "GONOSUMDB=cd.splunkdev.com/gdi/unified-collector" >> "$GITHUB_ENV"
+        git config --global url."https://x-access-token:${PRIVATE_MODULES_TOKEN}@github.com/".insteadOf "https://github.com/"
+        echo "GOPRIVATE=github.com/signalfx/splunk-otel-collector-components" >> "$GITHUB_ENV"
+        echo "GONOSUMDB=github.com/signalfx/splunk-otel-collector-components" >> "$GITHUB_ENV"
 
     - name: Set up Go
       uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6

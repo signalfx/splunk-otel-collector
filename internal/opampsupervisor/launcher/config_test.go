@@ -758,11 +758,11 @@ func TestNormalizeLocalConfigPath(t *testing.T) {
 		},
 		"file URI absolute path": {
 			input: "file:/etc/otel/collector/agent_config.yaml",
-			want:  "/etc/otel/collector/agent_config.yaml",
+			want:  filepath.Clean("/etc/otel/collector/agent_config.yaml"),
 		},
 		"file URI cleaned path": {
 			input: "file:/etc/otel/collector/./agent_config.yaml",
-			want:  "/etc/otel/collector/agent_config.yaml",
+			want:  filepath.Clean("/etc/otel/collector/agent_config.yaml"),
 		},
 		"file URI relative path": {
 			input: "file:agent_config.yaml",

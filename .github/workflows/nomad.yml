@@ -20,7 +20,7 @@ defaults:
     working-directory: 'deployments/nomad'
 
 env:
-  GO_VERSION: 1.26.4
+  GO_VERSION: 1.26.5
 
 jobs:
 
@@ -39,6 +39,9 @@ jobs:
 
       - name: Set up environment
         uses: ./.github/actions/setup-environment
+        with:
+          private-modules: 'true'
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: Build Docker image from local changes
         run: |

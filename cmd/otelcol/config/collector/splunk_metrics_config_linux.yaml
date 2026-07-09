@@ -45,6 +45,12 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  resource/platform:
+    attributes:
+      - action: insert
+        key: splunk.destination
+        value: platform
+
 exporters:
   splunk_hec/metrics:
     token: "${SPLUNK_PLATFORM_TOKEN}"
@@ -72,6 +78,14 @@ exporters:
     tls:
       insecure_skip_verify: false
 
+  # Send to gateway instead of directly to Splunk Platform HEC.
+  # To use, uncomment 'otlp_grpc/gateway' in the pipeline exporters below
+  # and comment out 'splunk_hec/metrics'.
+  otlp_grpc/gateway:
+    endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+    tls:
+      insecure: true
+
 service:
   telemetry:
     logs:
@@ -87,5 +101,7 @@ service:
   pipelines:
     metrics/platform:
       receivers: [host_metrics]
-      processors: [memory_limiter, resourcedetection]
+      processors: [memory_limiter, resourcedetection, resource/platform]
       exporters: [splunk_hec/metrics]
+      # Use instead when sending to gateway:
+      #exporters: [otlp_grpc/gateway]

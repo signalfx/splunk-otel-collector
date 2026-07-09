@@ -355,6 +355,7 @@ endif
 	docker buildx build --pull \
 		--tag otelcol-fips-builder-$(GOOS)-$(GOARCH) \
 		--platform linux/$(GOARCH) \
+		--secret id=private_modules_token,env=OTELCOL_PRIVATE_MODULES_TOKEN \
 		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
 		--build-arg BUILD_INFO='$(BUILD_INFO)' \
 		--file cmd/otelcol/fips/build/Dockerfile.$(GOOS) ./

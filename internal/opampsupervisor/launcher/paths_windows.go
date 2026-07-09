@@ -36,13 +36,14 @@ func DefaultPaths() Paths {
 	stateDir := filepath.Join(programData, "Splunk", "OpenTelemetry Collector", "supervisor")
 	defaultAgentConfig := filepath.Join(programData, "Splunk", "OpenTelemetry Collector", "agent_config.yaml")
 	return Paths{
-		CollectorExecutable:      filepath.Join(installDir, "otelcol.exe"),
-		SupervisorExecutable:     filepath.Join(installDir, "opampsupervisor.exe"),
-		SupervisorConfig:         filepath.Join(stateDir, "supervisor_config.yaml"),
-		GeneratedCollectorConfig: filepath.Join(stateDir, "collector_config.yaml"),
-		StorageDirectory:         stateDir,
-		DefaultAgentConfig:       defaultAgentConfig,
-		ConfigApplyTimeout:       "2m",
-		UseHUPConfigReload:       false,
+		CollectorExecutable:         filepath.Join(installDir, "otelcol.exe"),
+		SupervisorExecutable:        filepath.Join(installDir, "opampsupervisor.exe"),
+		SupervisorConfig:            filepath.Join(stateDir, "supervisor_config.yaml"),
+		RuntimeSupervisorConfig:     filepath.Join(stateDir, "supervisor_runtime_config.yaml"),
+		GeneratedCollectorConfigDir: stateDir,
+		StorageDirectory:            stateDir,
+		DefaultAgentConfig:          defaultAgentConfig,
+		ConfigApplyTimeout:          "2m",
+		UseHUPConfigReload:          false,
 	}
 }

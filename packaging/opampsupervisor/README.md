@@ -21,4 +21,5 @@ go get -tool github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opamp
 go mod tidy
 ```
 
-Manual transitive dependency overrides will mean the packaged supervisor no longer matches the exact upstream release dependency graph when built.
+Manual transitive dependency overrides will mean the packaged supervisor no
+longer matches the exact upstream release dependency graph when built.

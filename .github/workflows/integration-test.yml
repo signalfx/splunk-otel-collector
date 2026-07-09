@@ -24,6 +24,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-environment
         with:
+          private-modules: 'true'
           private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
       - run: make binaries-linux_${{ matrix.ARCH }} COVER_TESTING=true
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

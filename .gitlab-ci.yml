@@ -222,11 +222,22 @@ sast-scan:
         fi
       fi
 
+# Configure git and GOPRIVATE so `go build`/`go mod` can fetch private modules
+# under github.com/signalfx/*. Requires OTELCOL_PRIVATE_MODULES_TOKEN.
+.private-modules-setup: &private-modules-setup |
+  if [ -z "${OTELCOL_PRIVATE_MODULES_TOKEN:-}" ]; then
+    echo "OTELCOL_PRIVATE_MODULES_TOKEN is required to fetch private Go modules" >&2
+    exit 1
+  fi
+  git config --global "url.https://x-access-token:${OTELCOL_PRIVATE_MODULES_TOKEN}@github.com/.insteadOf" "https://github.com/"
+
 .go-cache:
   image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
+    GOPRIVATE: "github.com/signalfx/splunk-otel-collector-components"
   before_script:
+    - *private-modules-setup
     - mkdir -p $GOPATH
     - make install-tools
     - export PATH=$GOPATH/bin:$PATH
@@ -403,6 +414,7 @@ otelcol-fips:
       aud: $CICD_VAULT_ADDR
   script:
     - *docker-reader-role
+    - *private-modules-setup
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       make otelcol-fips VERSION=${VERSION_TAG} DOCKER_REPO=${DOCKER_HUB_REPO}

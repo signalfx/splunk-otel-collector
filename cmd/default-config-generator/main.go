@@ -39,6 +39,7 @@ type ComponentConfig struct {
 // on generated config. It's not simple/clear how to detangle the declaration
 // and usage, as sometimes they're used in more places than others.
 type AgentTemplateDestination struct {
+	FileHeaderComment         string
 	LogsExporter              ComponentConfig
 	MetricsExporter           ComponentConfig
 	OTLPEntitiesExporter      ComponentConfig
@@ -53,6 +54,16 @@ type AgentTemplateDestination struct {
 func main() {
 	agentConfigs := []AgentTemplateDestination{
 		{
+			FileHeaderComment: `# Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+
+# If the collector is installed without the Linux/Windows installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
+# - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
+# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.`,
 			LogsExporter: ComponentConfig{
 				Name: "splunk_hec",
 				Contents: `token: "${SPLUNK_HEC_TOKEN}"
@@ -95,6 +106,13 @@ func main() {
 			ConfigDestinationFilePath: filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),
 		},
 		{
+			FileHeaderComment: `# Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+
+# If the collector is installed without the Linux/Windows installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
+# - SPLUNK_GATEWAY_URL: The URL of the Collector deployed as a gateway
+# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.`,
 			MetricsExporter: ComponentConfig{
 				Name: "otlp_grpc/gateway",
 			},

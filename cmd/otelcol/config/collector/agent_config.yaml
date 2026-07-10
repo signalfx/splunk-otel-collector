@@ -8,6 +8,7 @@
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
+# - SPLUNK_MEMORY_LIMIT_MIB: The maximum amount of memory, in MiB, targeted to be allocated by the process heap.
 
 extensions:
   headers_setter:
@@ -23,7 +24,6 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
       endpoint: "${SPLUNK_API_URL}"
-
   http_forwarder/opamp_splunk_o11y:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"

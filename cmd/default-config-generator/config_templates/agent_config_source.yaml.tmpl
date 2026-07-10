@@ -14,7 +14,6 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
       endpoint: "{{- .SplunkAPI.URL }}"
-
   http_forwarder/opamp_splunk_o11y:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"

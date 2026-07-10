@@ -63,7 +63,8 @@ func main() {
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
-# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.`,
+# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
+# - SPLUNK_MEMORY_LIMIT_MIB: The maximum amount of memory, in MiB, targeted to be allocated by the process heap.`,
 			LogsExporter: ComponentConfig{
 				Name: "splunk_hec",
 				Contents: `token: "${SPLUNK_HEC_TOKEN}"
@@ -110,9 +111,11 @@ func main() {
 
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:
+# - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
 # - SPLUNK_GATEWAY_URL: The URL of the Collector deployed as a gateway
-# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.`,
+# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
+# - SPLUNK_MEMORY_LIMIT_MIB: The maximum amount of memory, in MiB, targeted to be allocated by the process heap.`,
 			MetricsExporter: ComponentConfig{
 				Name: "otlp_grpc/gateway",
 			},

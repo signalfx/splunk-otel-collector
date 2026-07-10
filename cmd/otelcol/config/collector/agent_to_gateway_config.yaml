@@ -2,9 +2,11 @@
 
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:
+# - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
 # - SPLUNK_GATEWAY_URL: The URL of the Collector deployed as a gateway
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
+# - SPLUNK_MEMORY_LIMIT_MIB: The maximum amount of memory, in MiB, targeted to be allocated by the process heap.
 
 extensions:
   headers_setter:
@@ -20,7 +22,6 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
       endpoint: "${SPLUNK_GATEWAY_URL}"
-
   http_forwarder/opamp_splunk_o11y:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"

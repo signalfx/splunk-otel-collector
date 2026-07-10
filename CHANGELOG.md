@@ -21,6 +21,9 @@ and the [opentelemetry-collector-contrib v0.156.0](https://github.com/open-telem
 
 ### 🚩 Deprecations 🚩
 
+- (Splunk) `timestampprocessor`: Deprecate the Splunk `timestamp` processor in favor of the upstream `transform` processor. ([#7707](https://github.com/signalfx/splunk-otel-collector/pull/7707))
+  Use OTTL statements in the `transform` processor to apply timestamp offsets. See `docs/deprecations/timestampprocessor.md` for migration examples.
+
 - (Contrib) `connector/routing`: Deprecate the `request` context in favor of `otelcol.*` OTTL paths. ([#44762](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/44762))
   The routing connector `request` context and `request["key"]` condition syntax are deprecated in favor of
   `otelcol.client.metadata["key"][0]` for HTTP/client metadata and `otelcol.grpc.metadata["key"][0]` for gRPC metadata.

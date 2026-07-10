@@ -20,7 +20,7 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
-      endpoint: "{{- .SplunkIngest.URL }}"
+      endpoint: "{{- .SplunkAPI.URL }}"
 
   http_forwarder/opamp_splunk_o11y:
     ingress:

@@ -37,6 +37,7 @@ type ComponentConfig struct {
 // must be set, and which can be left blank?
 type AgentTemplateDestination struct {
 	LogsExporter              ComponentConfig
+	MetricsExporter           ComponentConfig
 	OTLPEntitiesExporter      ComponentConfig
 	OTLPGenericExporter       ComponentConfig
 	ProfilingExporter         ComponentConfig
@@ -56,6 +57,9 @@ func main() {
     source: "otel"
     sourcetype: "otel"
     profiling_data_enabled: false`,
+			},
+			MetricsExporter: ComponentConfig{
+				Name: "signalfx",
 			},
 			OTLPEntitiesExporter: ComponentConfig{
 				Name: "otlp_http/entities",
@@ -88,13 +92,8 @@ func main() {
 			ConfigDestinationFilePath: filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),
 		},
 		{
-			SplunkAPI: TelemetryDestination{
-				URL:  "${SPLUNK_GATEWAY_URL}",
-				Port: "6060",
-			},
-			SplunkIngest: TelemetryDestination{
-				URL:  "${SPLUNK_GATEWAY_URL}",
-				Port: "9943",
+			MetricsExporter: ComponentConfig{
+				Name: "otlp_grpc/gateway",
 			},
 			OpAmp: TelemetryDestination{
 				Port: "4320",
@@ -106,6 +105,14 @@ func main() {
       insecure: true
     auth:
       authenticator: headers_setter`,
+			},
+			SplunkAPI: TelemetryDestination{
+				URL:  "${SPLUNK_GATEWAY_URL}",
+				Port: "6060",
+			},
+			SplunkIngest: TelemetryDestination{
+				URL:  "${SPLUNK_GATEWAY_URL}",
+				Port: "9943",
 			},
 			ConfigDestinationFilePath: filepath.Join("..", "otelcol", "config", "collector", "agent_to_gateway_config.yaml"),
 		},

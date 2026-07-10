@@ -199,9 +199,7 @@ service:
     metrics:
       receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [signalfx]
-      # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway]
+      exporters: [{{- .MetricsExporter.Name -}}]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
@@ -232,5 +230,3 @@ service:
       {{- else -}}
       {{- .OTLPGenericExporter.Name -}}
       {{- end -}}]
-      # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway]

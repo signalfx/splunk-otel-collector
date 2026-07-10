@@ -27,6 +27,9 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
     egress:
       endpoint: "{{- .SplunkIngest.URL }}{{if .OpAmp.Port}}:{{- .OpAmp.Port -}} {{end}}"
+    # Remove this header to use a token passed by the caller instead.
+    headers:
+      X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
 
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
@@ -151,25 +154,16 @@ exporters:
     ingest_url: "{{- .SplunkIngest.URL }}{{if .SplunkIngest.Port}}:{{- .SplunkIngest.Port -}} {{end}}"
     sync_host_metadata: true
     correlation:
+  {{- if and .LogsExporter.Name .LogsExporter.Contents }}
   # Logs
-  splunk_hec:
-    token: "${SPLUNK_HEC_TOKEN}"
-    endpoint: "${SPLUNK_HEC_URL}"
-    source: "otel"
-    sourcetype: "otel"
-    profiling_data_enabled: false
+  {{ .LogsExporter.Name -}}:
+    {{ .LogsExporter.Contents }}
+  {{ end }}
+  {{- if and .LogsExporter.Name .LogsExporter.Contents }}
   # Profiling
-  splunk_hec/profiling:
-    token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "{{- .SplunkIngest.URL }}/v1/log"
-    log_data_enabled: false
-  # Send to gateway
-  otlp_grpc/gateway:
-    endpoint: "${SPLUNK_GATEWAY_URL}:4317"
-    tls:
-      insecure: true
-    auth:
-      authenticator: headers_setter
+  {{ .ProfilingExporter.Name -}}:
+    {{ .ProfilingExporter.Contents }}
+  {{- end }}
   # Debug
   debug:
     verbosity: detailed
@@ -201,9 +195,7 @@ service:
         - batch
         - resourcedetection
       #- resource/add_environment
-      exporters: [otlp_http]
-      # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway]
+      exporters: [{{- .OTLPGenericExporter.Name -}}]
     metrics:
       receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
@@ -232,6 +224,13 @@ service:
         - batch
         - resourcedetection
       #- resource/add_environment
-      exporters: [splunk_hec, splunk_hec/profiling]
+      exporters: [
+      {{- if or .LogsExporter.Name .ProfilingExporter.Name -}}
+        {{- if .LogsExporter.Name -}}{{ .LogsExporter.Name }}{{- end -}}
+        {{- if and .LogsExporter.Name .ProfilingExporter.Name -}}, {{ end -}}
+        {{- if .ProfilingExporter.Name -}}{{ .ProfilingExporter.Name }}{{- end -}}
+      {{- else -}}
+      {{- .OTLPGenericExporter.Name -}}
+      {{- end -}}]
       # Use instead when sending to gateway
       #exporters: [otlp_grpc/gateway]

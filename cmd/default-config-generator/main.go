@@ -36,8 +36,10 @@ type ComponentConfig struct {
 // When adding a new destination, how will a developer know which fields
 // must be set, and which can be left blank?
 type AgentTemplateDestination struct {
+	LogsExporter              ComponentConfig
 	OTLPEntitiesExporter      ComponentConfig
 	OTLPGenericExporter       ComponentConfig
+	ProfilingExporter         ComponentConfig
 	OpAmp                     TelemetryDestination
 	SplunkAPI                 TelemetryDestination
 	SplunkIngest              TelemetryDestination
@@ -47,6 +49,14 @@ type AgentTemplateDestination struct {
 func main() {
 	agentConfigs := []AgentTemplateDestination{
 		{
+			LogsExporter: ComponentConfig{
+				Name: "splunk_hec",
+				Contents: `token: "${SPLUNK_HEC_TOKEN}"
+    endpoint: "${SPLUNK_HEC_URL}"
+    source: "otel"
+    sourcetype: "otel"
+    profiling_data_enabled: false`,
+			},
 			OTLPEntitiesExporter: ComponentConfig{
 				Name: "otlp_http/entities",
 				Contents: `logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
@@ -62,6 +72,12 @@ func main() {
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
     auth:
       authenticator: headers_setter`,
+			},
+			ProfilingExporter: ComponentConfig{
+				Name: "splunk_hec/profiling",
+				Contents: `token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
+    log_data_enabled: false`,
 			},
 			SplunkAPI: TelemetryDestination{
 				URL: "${SPLUNK_API_URL}",

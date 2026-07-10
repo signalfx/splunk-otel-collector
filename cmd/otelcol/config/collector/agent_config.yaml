@@ -27,6 +27,9 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
     egress:
       endpoint: "${SPLUNK_INGEST_URL}"
+    # Remove this header to use a token passed by the caller instead.
+    headers:
+      X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
 
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
@@ -166,18 +169,12 @@ exporters:
     source: "otel"
     sourcetype: "otel"
     profiling_data_enabled: false
+  
   # Profiling
   splunk_hec/profiling:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
-  # Send to gateway
-  otlp_grpc/gateway:
-    endpoint: "${SPLUNK_GATEWAY_URL}:4317"
-    tls:
-      insecure: true
-    auth:
-      authenticator: headers_setter
   # Debug
   debug:
     verbosity: detailed
@@ -210,8 +207,6 @@ service:
         - resourcedetection
       #- resource/add_environment
       exporters: [otlp_http]
-      # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway]
     metrics:
       receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]

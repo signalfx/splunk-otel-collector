@@ -17,14 +17,15 @@
 package components
 
 import (
-	"github.com/signalfx/splunk-otel-collector-components/exporter/s2sexporter"
-	"github.com/signalfx/splunk-otel-collector-components/processor/linebreakprocessor"
-	"github.com/signalfx/splunk-otel-collector-components/receiver/wineventlogreceiver"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
+
+	"github.com/signalfx/splunk-otel-collector-components/exporter/s2sexporter"
+	"github.com/signalfx/splunk-otel-collector-components/processor/linebreakprocessor"
+	"github.com/signalfx/splunk-otel-collector-components/receiver/wineventlogreceiver"
 )
 
 func init() {

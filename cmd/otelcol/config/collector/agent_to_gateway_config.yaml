@@ -27,9 +27,9 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
     egress:
       endpoint: "${SPLUNK_GATEWAY_URL}:4320"
-    # Remove this header to use a token passed by the caller instead.
-    headers:
-      X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
+      # Remove this header to use a token passed by the caller instead.
+      headers:
+        X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
 
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.

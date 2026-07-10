@@ -1,0 +1,6 @@
+change_type: deprecation
+component: timestampprocessor
+note: Deprecate the Splunk `timestamp` processor in favor of the upstream `transform` processor.
+issues: [7707]
+subtext: |
+  Use OTTL statements in the `transform` processor to apply timestamp offsets. See `docs/deprecations/timestampprocessor.md` for migration examples.

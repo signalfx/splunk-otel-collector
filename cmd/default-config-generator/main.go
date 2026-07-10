@@ -22,51 +22,76 @@ import (
 	"text/template"
 )
 
+type TelemetryDestination struct {
+	URL  string
+	Port string
+}
+
+type ComponentConfig struct {
+	Name     string
+	Contents string
+}
+
+// TODO: How to designate some options as required, others as optional?
+// When adding a new destination, how will a developer know which fields
+// must be set, and which can be left blank?
 type AgentTemplateDestination struct {
-	ConfigDestinationFilePath  string
-	SplunkAPIDestinationURL    string
-	SplunkAPIPort              string
-	SplunkDestinationURL       string
-	SplunkIngestPort           string
-	OpAmpPort                  string
-	OTLPEntitiesExporterConfig string
-	OTLPEntitiesExporterName   string
-	OTLPExporterConfig         string
-	OTLPExporterName           string
+	OTLPEntitiesExporter      ComponentConfig
+	OTLPGenericExporter       ComponentConfig
+	OpAmp                     TelemetryDestination
+	SplunkAPI                 TelemetryDestination
+	SplunkIngest              TelemetryDestination
+	ConfigDestinationFilePath string
 }
 
 func main() {
 	agentConfigs := []AgentTemplateDestination{
 		{
+			OTLPEntitiesExporter: ComponentConfig{
+				Name: "otlp_http/entities",
+				Contents: `logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter`,
+			},
+			OTLPGenericExporter: ComponentConfig{
+				Name: "otlp_http",
+				Contents: `traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter`,
+			},
+			SplunkAPI: TelemetryDestination{
+				URL: "${SPLUNK_API_URL}",
+			},
+			SplunkIngest: TelemetryDestination{
+				URL: "${SPLUNK_INGEST_URL}",
+			},
 			ConfigDestinationFilePath: filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),
-			SplunkAPIDestinationURL:   "${SPLUNK_API_URL}",
-			SplunkDestinationURL:      "${SPLUNK_INGEST_URL}",
-			OTLPEntitiesExporterConfig: `logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
-    headers:
-      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
-    auth:
-      authenticator: headers_setter`,
-			OTLPEntitiesExporterName: "otlp_http/entities",
-			OTLPExporterConfig: `traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
-    headers:
-      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
-    auth:
-      authenticator: headers_setter`,
-			OTLPExporterName: "otlp_http",
 		},
 		{
-			ConfigDestinationFilePath: filepath.Join("..", "otelcol", "config", "collector", "agent_to_gateway_config.yaml"),
-			SplunkAPIDestinationURL:   "${SPLUNK_GATEWAY_URL}",
-			SplunkAPIPort:             "6060",
-			SplunkDestinationURL:      "${SPLUNK_GATEWAY_URL}",
-			SplunkIngestPort:          "9943",
-			OpAmpPort:                 "4320",
-			OTLPExporterConfig: `endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+			SplunkAPI: TelemetryDestination{
+				URL:  "${SPLUNK_GATEWAY_URL}",
+				Port: "6060",
+			},
+			SplunkIngest: TelemetryDestination{
+				URL:  "${SPLUNK_GATEWAY_URL}",
+				Port: "9943",
+			},
+			OpAmp: TelemetryDestination{
+				Port: "4320",
+			},
+			OTLPGenericExporter: ComponentConfig{
+				Name: "otlp_grpc/gateway",
+				Contents: `endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
     auth:
       authenticator: headers_setter`,
-			OTLPExporterName: "otlp_grpc/gateway",
+			},
+			ConfigDestinationFilePath: filepath.Join("..", "otelcol", "config", "collector", "agent_to_gateway_config.yaml"),
 		},
 	}
 

@@ -20,13 +20,13 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
-      endpoint: "{{- .SplunkDestinationURL }}"
+      endpoint: "{{- .SplunkIngest.URL }}"
 
   http_forwarder/opamp_splunk_o11y:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
     egress:
-      endpoint: "{{- .SplunkDestinationURL }}{{if .OpAmpPort}}:{{- .OpAmpPort -}} {{end}}"
+      endpoint: "{{- .SplunkIngest.URL }}{{if .OpAmp.Port}}:{{- .OpAmp.Port -}} {{end}}"
 
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
@@ -36,7 +36,7 @@ extensions:
       include_resource_attributes: true
     server:
       http:
-        endpoint: "{{- .SplunkDestinationURL }}{{if .OpAmpPort}}:{{- .OpAmpPort -}} {{end}}/v1/opamp"
+        endpoint: "{{- .SplunkIngest.URL }}{{if .OpAmp.Port}}:{{- .OpAmp.Port -}} {{end}}/v1/opamp"
         polling_interval: 30s
         headers:
           X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
@@ -138,17 +138,17 @@ processors:
     #key: deployment.environment
 
 exporters:
-  {{ .OTLPExporterName }}:
-    {{ .OTLPExporterConfig }}
-  {{if and .OTLPEntitiesExporterName .OTLPEntitiesExporterConfig }}
-  {{ .OTLPEntitiesExporterName -}}:
-    {{ .OTLPEntitiesExporterConfig }}
+  {{ .OTLPGenericExporter.Name }}:
+    {{ .OTLPGenericExporter.Contents }}
+  {{if and .OTLPEntitiesExporter.Name .OTLPEntitiesExporter.Contents }}
+  {{ .OTLPEntitiesExporter.Name -}}:
+    {{ .OTLPEntitiesExporter.Contents }}
   {{end}}
   # Metrics + Events
   signalfx:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
-    api_url: "{{- .SplunkAPIDestinationURL }}{{if .SplunkAPIPort}}:{{- .SplunkAPIPort -}} {{end}}"
-    ingest_url: "{{- .SplunkDestinationURL }}{{if .SplunkIngestPort}}:{{- .SplunkIngestPort -}} {{end}}"
+    api_url: "{{- .SplunkAPI.URL }}{{if .SplunkAPI.Port}}:{{- .SplunkAPI.Port -}} {{end}}"
+    ingest_url: "{{- .SplunkIngest.URL }}{{if .SplunkIngest.Port}}:{{- .SplunkIngest.Port -}} {{end}}"
     sync_host_metadata: true
     correlation:
   # Logs
@@ -161,7 +161,7 @@ exporters:
   # Profiling
   splunk_hec/profiling:
     token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "{{- .SplunkDestinationURL }}/v1/log"
+    endpoint: "{{- .SplunkIngest.URL }}/v1/log"
     log_data_enabled: false
   # Send to gateway
   otlp_grpc/gateway:
@@ -224,7 +224,7 @@ service:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [{{if .OTLPEntitiesExporterName }}{{- .OTLPEntitiesExporterName -}}{{else}}{{- .OTLPExporterName -}}{{- end -}}]
+      exporters: [{{if .OTLPEntitiesExporter.Name }}{{- .OTLPEntitiesExporter.Name -}}{{else}}{{- .OTLPGenericExporter.Name -}}{{- end -}}]
     logs:
       receivers: [fluent_forward, otlp]
       processors:

@@ -1,3 +1,5 @@
+# Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
@@ -30,7 +32,6 @@ extensions:
       # Remove this header to use a token passed by the caller instead.
       headers:
         X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
-
   # opamp/splunk_o11y is included in the default config, but startup removes it
   # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
   opamp/splunk_o11y:
@@ -158,7 +159,7 @@ exporters:
   # Logs
   {{ .LogsExporter.Name -}}:
     {{ .LogsExporter.Contents }}
-  {{ end }}
+  {{- end }}
   {{- if and .LogsExporter.Name .LogsExporter.Contents }}
   # Profiling
   {{ .ProfilingExporter.Name -}}:

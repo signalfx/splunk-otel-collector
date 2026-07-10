@@ -35,9 +35,11 @@ func TestDefaultPathsWindowsFallbacksAlignWithInstaller(t *testing.T) {
 	assert.Equal(t, filepath.Join(installDir, "otelcol.exe"), paths.CollectorExecutable)
 	assert.Equal(t, filepath.Join(installDir, "opampsupervisor.exe"), paths.SupervisorExecutable)
 	assert.Equal(t, filepath.Join(stateDir, "supervisor_config.yaml"), paths.SupervisorConfig)
-	assert.Equal(t, filepath.Join(stateDir, "collector_config.yaml"), paths.GeneratedCollectorConfig)
+	assert.Equal(t, filepath.Join(stateDir, "supervisor_runtime_config.yaml"), paths.RuntimeSupervisorConfig)
+	assert.Equal(t, stateDir, paths.GeneratedCollectorConfigDir)
 	assert.Equal(t, stateDir, paths.StorageDirectory)
 	assert.Equal(t, filepath.Join(`\ProgramData`, "Splunk", "OpenTelemetry Collector", "agent_config.yaml"), paths.DefaultAgentConfig)
+	assert.Equal(t, "2m", paths.ConfigApplyTimeout)
 	assert.False(t, paths.UseHUPConfigReload)
 }
 
@@ -48,6 +50,7 @@ func TestDefaultListenInterfaceForWindowsAgentConfig(t *testing.T) {
 	agentConfig := filepath.Join(programData, "Splunk", "OpenTelemetry Collector", "agent_config.yaml")
 	gatewayConfig := filepath.Join(programData, "Splunk", "OpenTelemetry Collector", "gateway_config.yaml")
 
-	assert.Equal(t, defaultAgentListenInterface, defaultListenInterfaceForConfig(agentConfig, agentConfig))
-	assert.Equal(t, defaultListenInterface, defaultListenInterfaceForConfig(gatewayConfig, agentConfig))
+	assert.Equal(t, defaultAgentListenInterface, defaultListenInterfaceForConfigs([]string{agentConfig}, agentConfig))
+	assert.Equal(t, defaultAgentListenInterface, defaultListenInterfaceForConfigs([]string{gatewayConfig, agentConfig}, agentConfig))
+	assert.Equal(t, defaultListenInterface, defaultListenInterfaceForConfigs([]string{gatewayConfig}, agentConfig))
 }

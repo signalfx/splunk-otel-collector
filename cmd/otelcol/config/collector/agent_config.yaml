@@ -216,6 +216,8 @@ service:
       processors: [memory_limiter, batch, resourcedetection]
       # When sending to gateway, at least one metrics pipeline needs
       # to use signalfx exporter so host metadata gets emitted
+      # TODO: Move to templating logic to only include comment in gateway config
+      # Can use OTLP exporter for agent to backend config.
       exporters: [signalfx]
     logs/signalfx:
       receivers: [smartagent/processlist]

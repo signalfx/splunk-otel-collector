@@ -35,6 +35,9 @@ type ComponentConfig struct {
 // TODO: How to designate some options as required, others as optional?
 // When adding a new destination, how will a developer know which fields
 // must be set, and which can be left blank?
+// Shortcoming: Components configs are used for different things depending
+// on generated config. It's not simple/clear how to detangle the declaration
+// and usage, as sometimes they're used in more places than others.
 type AgentTemplateDestination struct {
 	LogsExporter              ComponentConfig
 	MetricsExporter           ComponentConfig

@@ -117,7 +117,7 @@ The distribution offers support for the following components.
 | [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)        | [beta]           |
 | [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                                  | [alpha]          |
 | [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)                 | [beta]           |
-| [timestamp](../pkg/processor/timestampprocessor)                                                                                             | [in development] |
+| [timestamp](deprecations/timestampprocessor.md)                                                                                              | [deprecated]     |
 | [transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor)                        | [alpha]          |
 
 </div>

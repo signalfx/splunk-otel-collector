@@ -1,6 +1,6 @@
 ARG SPLUNK_OTEL_COLLECTOR_IMAGE
 
-FROM golang:1.26.4 AS golang
+FROM golang:1.26.5 AS golang
 ARG IMAGE_PLATFORM
 COPY telegraf-exec.go /opt/telegraf-exec.go
 RUN cd /opt && go mod init telegraf-exec && go mod tidy && \

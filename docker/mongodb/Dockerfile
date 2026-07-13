@@ -9,6 +9,8 @@ COPY mongod.conf /home/mongodb
 
 WORKDIR /home/mongodb
 
-RUN chmod +x /home/mongodb/scripts/*.sh
+RUN chmod +x /home/mongodb/scripts/*.sh && \
+    chown -R mongodb:mongodb /home/mongodb /data/db /data/configdb
 
+USER mongodb
 CMD ["/bin/bash", "/home/mongodb/scripts/run.sh"]

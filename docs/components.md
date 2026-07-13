@@ -17,7 +17,7 @@ The distribution offers support for the following components.
 | [apache](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver)                                                      | [beta]           |
 | [apachespark](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachesparkreceiver)                                            | [alpha]          |
 | [awscontainerinsights](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscontainerinsightreceiver)                           | [beta]           |
-| [awscloudwatch](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscloudwatchreceiver)                                        | [alpha]          |
+| [aws_cloudwatch](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscloudwatchreceiver)                                       | [alpha]          |
 | [awsecscontainermetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsecscontainermetricsreceiver)                      | [beta]           |
 | [azure_blob](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureblobreceiver)                                               | [alpha]          |
 | [azure_event_hub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureeventhubreceiver)                                      | [alpha]          |
@@ -117,7 +117,7 @@ The distribution offers support for the following components.
 | [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)        | [beta]           |
 | [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                                  | [alpha]          |
 | [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)                 | [beta]           |
-| [timestamp](../pkg/processor/timestampprocessor)                                                                                             | [in development] |
+| [timestamp](deprecations/timestampprocessor.md)                                                                                              | [deprecated]     |
 | [transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor)                        | [alpha]          |
 
 </div>
@@ -186,4 +186,3 @@ The distribution offers support for the following components.
 [alpha]: https://github.com/open-telemetry/opentelemetry-collector#alpha
 [in development]: https://github.com/open-telemetry/opentelemetry-collector#development
 [deprecated]: https://github.com/open-telemetry/opentelemetry-collector#deprecated
-

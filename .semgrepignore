@@ -3,3 +3,10 @@
 **/httpclient/test-certs/root.key
 **/jaegergrpc/testdata/key.pem
 **/splunk-otel-collector-releaser.tmp/*
+
+# Test/dev container images intentionally run as root for systemd, sudo,
+# Salt minion, or package build ownership behavior.
+deployments/ansible_collections/signalfx/splunk_otel_collector/molecule/**/Dockerfile.j2
+deployments/salt/Dockerfile
+packaging/fpm/Dockerfile
+instrumentation/packaging/fpm/Dockerfile

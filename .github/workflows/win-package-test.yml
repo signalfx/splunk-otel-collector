@@ -14,6 +14,7 @@ on:
       - 'internal/**'
       - 'Makefile'
       - 'Makefile.Common'
+      - 'packaging/installer/*.ps1'
       - 'packaging/msi/**'
       - 'tests/zeroconfig/windows/**'
       - 'tests/msi/**'
@@ -25,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.4
+  GO_VERSION: 1.26.5
 
 jobs:
   cross-compile:
@@ -35,6 +36,7 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
+    secrets: inherit
 
   msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml

@@ -4,6 +4,8 @@ package docker
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -90,49 +92,30 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 }
 
 func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequiredClientVersion string) {
-	// Fail if there is already a daemon.json file
-	if _, err := os.Stat("/etc/docker/daemon.json"); err == nil {
-		t.Fatal("daemon.json already exists, cannot update minimum required client version")
+	existingConfig, hasExistingConfig := readDockerDaemonConfig(t)
+	daemonConfig := map[string]any{}
+	if hasExistingConfig {
+		require.NoError(t, json.Unmarshal(existingConfig, &daemonConfig), "Failed to unmarshal existing daemon.json")
 	}
 
-	daemonConfig := map[string]string{
-		"min-api-version": minimumRequiredClientVersion,
-	}
+	daemonConfig["min-api-version"] = minimumRequiredClientVersion
 
 	configJSON, err := json.MarshalIndent(daemonConfig, "", "  ")
 	require.NoError(t, err, "Failed to marshal daemon config")
 	t.Logf("Docker daemon config JSON:\n%s", string(configJSON))
 
-	// Create a temporary daemon.json file with the new configuration then
-	// move it using sudo to the correct location.
-	tempFileName := filepath.Join(t.TempDir(), "daemon.json")
-	err = os.WriteFile(tempFileName, configJSON, 0o644)
-	require.NoError(t, err, "Failed to write daemon.json")
+	writeDockerDaemonConfig(t, configJSON)
 
-	cmd := exec.Command("sudo", "mv", tempFileName, "/etc/docker/")
-	err = cmd.Run()
-	require.NoError(t, err, "Failed to move daemon.json")
-
-	cmd = exec.Command("sudo", "service", "docker", "restart")
-	// Ignore error since the docker daemon might automatically restart after
-	// adding the config file
-	err = cmd.Run()
-	if err != nil {
-		t.Logf("Docker daemon restart error: %s", err)
-	}
+	restartDockerService(t)
 
 	t.Cleanup(func() {
-		cmd := exec.Command("sudo", "rm", "/etc/docker/daemon.json")
-		err := cmd.Run()
-		require.NoError(t, err, "Failed to remove daemon.json")
-
-		cmd = exec.Command("sudo", "service", "docker", "restart")
-		// Ignore error since the docker daemon might automatically restart after
-		// removing the config file
-		err = cmd.Run()
-		if err != nil {
-			t.Logf("Docker daemon restart error: %s", err)
+		if hasExistingConfig {
+			writeDockerDaemonConfig(t, existingConfig)
+		} else {
+			runCommand(t, "sudo", "rm", "-f", "/etc/docker/daemon.json")
 		}
+
+		restartDockerService(t)
 
 		requireDockerDaemonRunning(t)
 	})
@@ -140,41 +123,97 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 	requireDockerDaemonRunning(t)
 }
 
-func runDockerContainerToGenerateMetrics(t *testing.T) func() {
-	cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine", "sleep", "180")
-	err := cmd.Run()
-	require.NoError(t, err, "Failed to run docker container")
-	return func() {
-		cmd := exec.Command("docker", "rm", "-f", "docker-client-test")
-		err := cmd.Run()
-		require.NoError(t, err, "Failed to remove docker container")
+func readDockerDaemonConfig(t *testing.T) ([]byte, bool) {
+	t.Helper()
+	configJSON, err := os.ReadFile("/etc/docker/daemon.json")
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, false
 	}
+	require.NoError(t, err, "Failed to read existing daemon.json")
+	return configJSON, true
+}
+
+func writeDockerDaemonConfig(t *testing.T, configJSON []byte) {
+	t.Helper()
+	tempFileName := filepath.Join(t.TempDir(), "daemon.json")
+	err := os.WriteFile(tempFileName, configJSON, 0o644)
+	require.NoError(t, err, "Failed to write daemon.json")
+
+	runCommand(t, "sudo", "mv", tempFileName, "/etc/docker/")
+}
+
+func restartDockerService(t *testing.T) {
+	t.Helper()
+	cmd := exec.Command("sudo", "service", "docker", "restart")
+	output, err := cmd.CombinedOutput()
+	// Ignore error since the docker daemon might automatically restart after
+	// updating the config file.
+	if err != nil {
+		t.Logf("Docker daemon restart error: %s\nOutput:\n%s", err, string(output))
+	} else if len(output) > 0 {
+		t.Logf("Docker daemon restart output:\n%s", string(output))
+	}
+}
+
+func runDockerContainerToGenerateMetrics(t *testing.T) func() {
+	t.Helper()
+	imageName := fmt.Sprintf("docker-client-test:%d", os.Getpid())
+	containerName := fmt.Sprintf("docker-client-test-%d", os.Getpid())
+
+	buildDockerTestImage(t, imageName)
+	runCommand(t, "docker", "run", "-d", "--name", containerName, imageName)
+
+	return func() {
+		runCommand(t, "docker", "rm", "-f", containerName)
+		runCommand(t, "docker", "rmi", "-f", imageName)
+	}
+}
+
+func buildDockerTestImage(t *testing.T, imageName string) {
+	t.Helper()
+	tempDir := t.TempDir()
+	sleeperSource := []byte(`package main
+
+import "time"
+
+func main() {
+	time.Sleep(3 * time.Minute)
+}
+`)
+	err := os.WriteFile(filepath.Join(tempDir, "main.go"), sleeperSource, 0o644)
+	require.NoError(t, err, "Failed to write test container source")
+
+	cmd := exec.Command("go", "build", "-trimpath", "-o", filepath.Join(tempDir, "sleeper"), filepath.Join(tempDir, "main.go"))
+	cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
+	output, err := cmd.CombinedOutput()
+	require.NoErrorf(t, err, "Failed to build test container binary\nOutput:\n%s", string(output))
+
+	dockerfile := []byte("FROM scratch\nCOPY sleeper /sleeper\nENTRYPOINT [\"/sleeper\"]\n")
+	err = os.WriteFile(filepath.Join(tempDir, "Dockerfile"), dockerfile, 0o644)
+	require.NoError(t, err, "Failed to write test container Dockerfile")
+
+	runCommand(t, "docker", "build", "--pull=false", "-t", imageName, tempDir)
 }
 
 func requireDockerDaemonRunning(t *testing.T) {
+	t.Helper()
 	require.Eventually(t, func() bool {
-		isRunning, err := isServiceRunning(t, "docker")
-		require.NoError(t, err, "Failed to get docker service status")
-		return isRunning
+		cmd := exec.Command("docker", "info")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Logf("docker info failed: %s\nOutput:\n%s", err, string(output))
+			return false
+		}
+		return true
 	}, 30*time.Second, 1*time.Second)
 }
 
-func isServiceRunning(t *testing.T, serviceName string) (bool, error) {
-	cmd := exec.Command("service", serviceName, "status")
+func runCommand(t *testing.T, name string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command(name, args...)
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		// The 'service status' command often returns a non-zero exit code if the service is not running
-		// or if there's an error. We still need to parse the output to determine the status.
-		t.Logf("Error getting %q service status: %v", serviceName, err)
-	}
-
-	outputStr := string(output)
-
-	if strings.Contains(outputStr, "active (running)") {
-		return true, nil
-	}
-
-	return false, nil
+	require.NoErrorf(t, err, "Command %q failed\nOutput:\n%s", strings.Join(cmd.Args, " "), string(output))
+	return string(output)
 }
 
 type fakeOutput struct {

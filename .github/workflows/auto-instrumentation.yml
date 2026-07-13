@@ -50,8 +50,8 @@ jobs:
       - name: Check out the injector source.
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          repository: pjanotti/opentelemetry-injector
-          ref: add-build-time-allowed-env-var-prefixes-option
+          repository: open-telemetry/opentelemetry-injector
+          ref: v0.9.2
           path: instrumentation/build/opentelemetry-injector
 
       - name: Build ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} package

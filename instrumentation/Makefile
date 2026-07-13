@@ -3,8 +3,8 @@ ARCH?=$(shell go env GOARCH)
 # Docker repository used.
 DOCKER_REPO?=docker.io
 
-INJECTOR_GIT_REPO?=git@github.com:pjanotti/opentelemetry-injector.git
-INJECTOR_GIT_BRANCH?=add-build-time-allowed-env-var-prefixes-option
+INJECTOR_GIT_REPO?=git@github.com:open-telemetry/opentelemetry-injector.git
+INJECTOR_GIT_BRANCH?=v0.9.2
 # Allow Splunk-specific defaults in the shared injector env file when building the custom injector branch.
 INJECTOR_ALLOWED_ENV_VAR_PREFIXES?=OTEL_,SPLUNK_
 
@@ -19,7 +19,7 @@ so:
 
 .PHONY: clean
 clean:
-	rm -f tests so/*
+	rm -rf dist obj so/* build tests
 
 # Checkout the injector source if not already present (dev convenience; in CI use the checkout target).
 $(INJECTOR_SRC_DIR):

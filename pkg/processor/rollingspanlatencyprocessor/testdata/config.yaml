@@ -1,0 +1,29 @@
+rollingspanlatency:
+  half_life: 2h
+  slow_threshold: 3.0
+  very_slow_threshold: 4.0
+  attribute_key: latency.category
+  resource_key_attributes:
+    - service.namespace
+    - service.name
+    - deployment.environment.name
+  idle_timeout: 8h
+  eviction_interval: 10m
+  max_baselines: 1000
+  churn_warning_ratio: 0.5
+  warmup_count: 30
+  min_stddev: 1000000
+
+rollingspanlatency/custom:
+  half_life: 30s
+  slow_threshold: 2.0
+  very_slow_threshold: 3.0
+  attribute_key: span.latency_tier
+  resource_key_attributes:
+    - service.name
+  idle_timeout: 5m
+  eviction_interval: 1m
+  max_baselines: 500
+  churn_warning_ratio: 0.25
+  warmup_count: 10
+  min_stddev: 5000000

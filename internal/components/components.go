@@ -158,6 +158,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
+	"github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 )
@@ -314,6 +315,7 @@ func Get() (otelcol.Factories, error) {
 		spanprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
 		timestampprocessor.NewFactory(),
+		rollingspanlatencyprocessor.NewFactory(),
 		transformprocessor.NewFactory(),
 	)
 	if err != nil {

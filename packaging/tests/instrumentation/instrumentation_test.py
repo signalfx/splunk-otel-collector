@@ -49,8 +49,8 @@ PRELOAD_PATH = "/etc/ld.so.preload"
 
 JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
 NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
-DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_AGENT_ARM64_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-arm64/OpenTelemetry.AutoInstrumentation.Native.so"
+DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/glibc/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+DOTNET_AGENT_ARM64_PATH = f"{LIB_DIR}/splunk-otel-dotnet/glibc/linux-arm64/OpenTelemetry.AutoInstrumentation.Native.so"
 
 INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
 INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
@@ -123,8 +123,8 @@ def install_package(container, distro, path, arch="amd64"):
         assert container_file_exists(container, path), f"{path} not found"
 
     # dotnet agent path is arch-specific
-    # dotnet_path = DOTNET_AGENT_ARM64_PATH if arch == "arm64" else DOTNET_AGENT_PATH
-    # assert container_file_exists(container, dotnet_path), f"{dotnet_path} not found"
+    dotnet_path = DOTNET_AGENT_ARM64_PATH if arch == "arm64" else DOTNET_AGENT_PATH
+    assert container_file_exists(container, dotnet_path), f"{dotnet_path} not found"
 
 
 def verify_preload(container, line, exists=True):
@@ -359,7 +359,7 @@ def test_express_instrumentation(distro, arch):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("arch", ["amd64"])
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_dotnet_instrumentation(distro, arch):
     otelcol_bin = f"otelcol_linux_{arch}"
     otelcol_bin_path = OTELCOL_BIN_DIR / otelcol_bin

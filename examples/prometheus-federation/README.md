@@ -14,16 +14,16 @@ The OpenTelemetry Collector scrapes the Prometheus endpoint every 10 seconds as 
     prometheus:
       config:
         scrape_configs:
-          scrape_interval: 10s
-          scrape_timeout: 10s
-          # the federation endpoint:
-          # Read more about it here: https://prometheus.io/docs/prometheus/latest/federation/
-          # You can query the federation with PromQL, encoded as part of the query string.
-          static_configs:
-            - targets: [prometheus:9090]
-          metrics_path: /federate
-          params:
-            match[]: '{job="counter"}'
+          - scrape_interval: 10s
+            scrape_timeout: 10s
+            # the federation endpoint:
+            # Read more about it here: https://prometheus.io/docs/prometheus/latest/federation/
+            # You can query the federation with PromQL, encoded as part of the query string.
+            static_configs:
+              - targets: [prometheus:9090]
+            metrics_path: /federate
+            params:
+              match[]: '{job="counter"}'
 ```
 
 This configuration specifically scrapes metrics matching the query `{job="counter"}`.

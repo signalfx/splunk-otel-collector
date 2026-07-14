@@ -1,13 +1,17 @@
 receivers:
-    prometheus_simple:
-        collection_interval: 10s
-        # the federation endpoint:
-        # Read more about it here: https://prometheus.io/docs/prometheus/latest/federation/
-        # You can query the federation with PromQL, encoded as part of the query string.
-        endpoint: prometheus:9090
-        metrics_path: /federate
-        params:
-            match[]: '{job="counter"}'
+    prometheus:
+      config:
+        scrape_configs:
+          scrape_interval: 10s
+          scrape_timeout: 10s
+          # the federation endpoint:
+          # Read more about it here: https://prometheus.io/docs/prometheus/latest/federation/
+          # You can query the federation with PromQL, encoded as part of the query string.
+          static_configs:
+            - targets: [prometheus:9090]
+          metrics_path: /federate
+          params:
+              match[]: '{job="counter"}'
     otlp:
         protocols:
             grpc:
@@ -52,6 +56,6 @@ service:
     extensions: [pprof, zpages, health_check]
     pipelines:
       metrics:
-        receivers: [prometheus_simple]
+        receivers: [prometheus]
         processors: [batch]
         exporters: [splunk_hec/metrics]

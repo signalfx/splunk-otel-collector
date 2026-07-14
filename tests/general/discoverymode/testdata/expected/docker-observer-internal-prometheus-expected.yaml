@@ -21,7 +21,7 @@ resourceMetrics:
             stringValue: 172.17.0.3:9090
         - key: service.name
           value:
-            stringValue: prometheus_simple/172.17.0.3:9090
+            stringValue: prometheus/172.17.0.3:9090
         - key: url.scheme
           value:
             stringValue: http
@@ -32,12 +32,6 @@ resourceMetrics:
               dataPoints:
                 - asDouble: 0
                   attributes:
-                   - key: label_five
-                     value:
-                       stringValue: actual.label.five.value
-                   - key: label_four
-                     value:
-                       stringValue: actual.label.four.value
                    - key: label_one
                      value:
                        stringValue: actual.label.one.value

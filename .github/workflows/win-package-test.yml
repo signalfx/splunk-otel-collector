@@ -390,6 +390,7 @@ jobs:
       - uses: ./.github/actions/win-wait-for-docker
 
       - name: Build docker image
+        shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
@@ -402,6 +403,7 @@ jobs:
           Remove-Item .\cmd\otelcol\otelcol.exe
 
       - name: Run docker image
+        shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           docker run -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest

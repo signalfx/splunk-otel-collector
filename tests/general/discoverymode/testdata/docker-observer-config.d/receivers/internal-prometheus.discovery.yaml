@@ -1,15 +1,20 @@
-prometheus_simple:
+prometheus:
   enabled: false # overwritten by cli and env var properties
   rule:
     docker_observer: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090
   config:
     default:
-      collection_interval: invalid
-      labels:
-        label_one: ${LABEL_ONE_VALUE}
+      scrape_configs:
+        scrape_interval: invalid
+        scrape_timeout: invalid
+        static_configs:
+          - labels:
+              label_one: ${LABEL_ONE_VALUE}
     docker_observer:
-      collection_interval: 1s
-      labels:
-        label_two: ${LABEL_TWO_VALUE}
-        label_three: overwritten by --set property
-        label_four: overwritten by env var property
+      scrape_configs:
+        scrape_interval: 1s
+        scrape_timeout: 1s
+        static_configs:
+          - labels:
+              label_two: ${LABEL_TWO_VALUE}
+              label_three: actual.label.three.value

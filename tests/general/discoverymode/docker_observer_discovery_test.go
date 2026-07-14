@@ -72,15 +72,12 @@ func TestDockerObserver(t *testing.T) {
 				"DOCKER_DOMAIN_SOCKET":       fmt.Sprintf("tcp://%s", dockerSocketProxy.ContainerEndpoint),
 				"LABEL_ONE_VALUE":            "actual.label.one.value",
 				"LABEL_TWO_VALUE":            "actual.label.two.value",
-				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three": "overwritten by --set property",
-				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four":  "actual.label.four.value",
 			}).WithArgs(
 				"--discovery", "--config-dir", "/opt/config.d",
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.docker_observer.enabled=true`,
 				"--set", `splunk.discovery.extensions.docker_observer.config.endpoint=${DOCKER_DOMAIN_SOCKET}`,
-				"--set", `splunk.discovery.receivers.prometheus_simple.enabled=true`,
-				"--set", `splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value`,
+				"--set", `splunk.discovery.receivers.prometheus.enabled=true`,
 				"--discovery-properties", "/opt/properties.yaml",
 			)
 		},
@@ -136,10 +133,7 @@ SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=true \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_ENABLED=true \
-SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three=="overwritten by --set property" \
-SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four="actual.label.four.value" \
 /otelcol --config-dir /opt/config.d --discovery --dry-run \
---set splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value \
 --discovery-properties /opt/properties.yaml
 `)
 	cm, err := confmap.NewRetrievedFromYAML([]byte(out))

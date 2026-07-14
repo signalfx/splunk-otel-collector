@@ -343,6 +343,16 @@ update-dotnet-agent:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
 
+update-injector:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-injector.sh
+
 check-mass-deployments-release:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"

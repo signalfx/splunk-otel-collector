@@ -42,7 +42,7 @@ splunk.discovery:
       watch_observers: [host_observer]
       embed_receiver_config: true
       receivers:
-        prometheus:
+        prometheus/test:
           rule: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
           config:
             scrape_configs:

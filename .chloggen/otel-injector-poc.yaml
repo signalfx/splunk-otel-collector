@@ -20,3 +20,5 @@ subtext: |
   These configuration files now support environment variables with both `OTEL_` and
   `SPLUNK_` prefixes (e.g. `SPLUNK_METRICS_ENABLED`, `SPLUNK_PROFILER_ENABLED`,
   `SPLUNK_PROFILER_MEMORY_ENABLED`).
+  .NET auto-instrumentation is now also supported on musl-based Linux distributions and on
+  arm64, in addition to glibc/amd64.

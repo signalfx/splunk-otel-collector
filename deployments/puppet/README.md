@@ -12,7 +12,7 @@ Currently, the following Linux distributions and versions are supported:
 - Oracle: 7, 8, 9
 - Debian: 11, 12
 - SUSE: 15
-- Ubuntu: 22.04, 24.04
+- Ubuntu: 22.04, 24.04, 26.04
 
 > Note: `systemd` is required to be installed on the host for service
 > management.

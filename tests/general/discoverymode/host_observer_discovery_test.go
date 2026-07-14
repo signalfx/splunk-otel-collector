@@ -61,7 +61,6 @@ func TestHostObserver(t *testing.T) {
 				"LABEL_TWO_VALUE":            "actual.label.two.value.from.env.var",
 			}).WithArgs(
 				"--discovery", "--config-dir", "/opt/config.d",
-				"--set", "splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value.from.cmdline.property",
 				"--set", "splunk.discovery.extensions.k8s_observer.enabled=false",
 				"--set", "splunk.discovery.extensions.host_observer.config.refresh_interval=1s",
 			)

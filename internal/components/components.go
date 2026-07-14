@@ -16,6 +16,8 @@
 package components
 
 import (
+	"fmt"
+
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
@@ -137,10 +139,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
@@ -160,6 +164,16 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
+)
+
+// Component factories populated only when the `splunkprivate` build tag is set.
+// See components_splunkprivate.go / components_splunkprivate_stub.go.
+var (
+	privateExtensionFactories []extension.Factory
+	privateReceiverFactories  []receiver.Factory
+	privateProcessorFactories []processor.Factory
+	privateExporterFactories  []exporter.Factory
+	privateConnectorFactories []connector.Factory
 )
 
 func Get() (otelcol.Factories, error) {
@@ -340,5 +354,53 @@ func Get() (otelcol.Factories, error) {
 		Telemetry:  otelconftelemetry.NewFactory(),
 	}
 
+	if err := mergePrivateFactories(&factories); err != nil {
+		errs = append(errs, err)
+	}
+
 	return factories, multierr.Combine(errs...)
+}
+
+func mergePrivateFactories(factories *otelcol.Factories) error {
+	var errs []error
+	for _, f := range privateExtensionFactories {
+		if _, ok := factories.Extensions[f.Type()]; ok {
+			errs = append(errs, duplicateFactoryError("extension", f.Type().String()))
+			continue
+		}
+		factories.Extensions[f.Type()] = f
+	}
+	for _, f := range privateReceiverFactories {
+		if _, ok := factories.Receivers[f.Type()]; ok {
+			errs = append(errs, duplicateFactoryError("receiver", f.Type().String()))
+			continue
+		}
+		factories.Receivers[f.Type()] = f
+	}
+	for _, f := range privateProcessorFactories {
+		if _, ok := factories.Processors[f.Type()]; ok {
+			errs = append(errs, duplicateFactoryError("processor", f.Type().String()))
+			continue
+		}
+		factories.Processors[f.Type()] = f
+	}
+	for _, f := range privateExporterFactories {
+		if _, ok := factories.Exporters[f.Type()]; ok {
+			errs = append(errs, duplicateFactoryError("exporter", f.Type().String()))
+			continue
+		}
+		factories.Exporters[f.Type()] = f
+	}
+	for _, f := range privateConnectorFactories {
+		if _, ok := factories.Connectors[f.Type()]; ok {
+			errs = append(errs, duplicateFactoryError("connector", f.Type().String()))
+			continue
+		}
+		factories.Connectors[f.Type()] = f
+	}
+	return multierr.Combine(errs...)
+}
+
+func duplicateFactoryError(kind, name string) error {
+	return fmt.Errorf("duplicate %s factory %q from private components", kind, name)
 }

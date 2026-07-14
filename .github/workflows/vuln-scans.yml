@@ -51,9 +51,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Set up environment
         uses: ./.github/actions/setup-environment
-        with:
-          private-modules: 'true'
-          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
       - run: |
           make docker-otelcol ARCH=${{ matrix.ARCH }} FIPS="${{ matrix.FIPS }}"
         env:
@@ -72,7 +69,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
-    secrets: inherit
 
   anchore-image-scan:
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
@@ -238,9 +234,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
-        with:
-          private-modules: 'true'
-          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: Echo `govulncheck` version
         continue-on-error: true

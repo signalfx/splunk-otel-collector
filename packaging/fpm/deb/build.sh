@@ -34,7 +34,7 @@ if [[ -z "$JMX_METRIC_GATHERER_RELEASE" ]]; then
 fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
-launcher_path="$REPO_DIR/bin/splunk-otel-collector-launcher_linux_${ARCH}"
+launcher_path="$REPO_DIR/bin/otelcollauncher_linux_${ARCH}"
 opampsupervisor_path="$REPO_DIR/bin/opampsupervisor_linux_${ARCH}"
 
 buildroot="$(mktemp -d)"

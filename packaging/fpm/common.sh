@@ -29,7 +29,7 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
-LAUNCHER_INSTALL_PATH="/usr/bin/splunk-otel-collector-launcher"
+LAUNCHER_INSTALL_PATH="/usr/bin/otelcollauncher"
 OPAMPSUPERVISOR_INSTALL_PATH="/usr/bin/opampsupervisor"
 CONFIG_DIR_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/config.d.linux"
 CONFIG_DIR_INSTALL_PATH="/etc/otel/collector/config.d"
@@ -118,7 +118,7 @@ setup_files_and_permissions() {
 
         mkdir -p "$buildroot/$SUPERVISOR_STORAGE_PARENT_INSTALL_PATH"
         sudo chown $SERVICE_USER:$SERVICE_GROUP "$buildroot/$SUPERVISOR_STORAGE_PARENT_INSTALL_PATH"
-        sudo chmod 755 "$buildroot/$SUPERVISOR_STORAGE_PARENT_INSTALL_PATH"
+        sudo chmod 0750 "$buildroot/$SUPERVISOR_STORAGE_PARENT_INSTALL_PATH"
     fi
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
@@ -137,7 +137,7 @@ setup_files_and_permissions() {
     mkdir -p "$buildroot/$(dirname $SERVICE_INSTALL_PATH)"
     cp -f "$SERVICE_REPO_PATH" "$buildroot/$SERVICE_INSTALL_PATH"
     if [[ "$with_opamp_supervisor" = "true" ]]; then
-        sed -i 's#^ExecStart=/usr/bin/otelcol #ExecStart=/usr/bin/splunk-otel-collector-launcher #' "$buildroot/$SERVICE_INSTALL_PATH"
+        sed -i 's#^ExecStart=/usr/bin/otelcol #ExecStart=/usr/bin/otelcollauncher #' "$buildroot/$SERVICE_INSTALL_PATH"
     fi
     sudo chown root:root "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$SERVICE_INSTALL_PATH"

@@ -270,13 +270,13 @@ else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
 
-.PHONY: splunk-otel-collector-launcher
-splunk-otel-collector-launcher:
-	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/splunk-otel-collector-launcher_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/splunk-otel-collector-launcher
+.PHONY: otelcollauncher
+otelcollauncher:
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcollauncher
 ifeq ($(OS), Windows_NT)
-	$(LINK_CMD) .\bin\splunk-otel-collector-launcher$(EXTENSION) .\bin\splunk-otel-collector-launcher_$(GOOS)_$(GOARCH)$(EXTENSION)
+	$(LINK_CMD) .\bin\otelcollauncher$(EXTENSION) .\bin\otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION)
 else
-	$(LINK_CMD) splunk-otel-collector-launcher_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/splunk-otel-collector-launcher$(EXTENSION)
+	$(LINK_CMD) otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcollauncher$(EXTENSION)
 endif
 
 .PHONY: opampsupervisor
@@ -320,7 +320,7 @@ binaries-darwin_arm64:
 binaries-linux_amd64:
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
 ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=amd64 $(MAKE) splunk-otel-collector-launcher
+	GOOS=linux   GOARCH=amd64 $(MAKE) otelcollauncher
 	GOOS=linux   GOARCH=amd64 $(MAKE) opampsupervisor
 endif
 
@@ -328,7 +328,7 @@ endif
 binaries-linux_arm64:
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
 ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=arm64 $(MAKE) splunk-otel-collector-launcher
+	GOOS=linux   GOARCH=arm64 $(MAKE) otelcollauncher
 	GOOS=linux   GOARCH=arm64 $(MAKE) opampsupervisor
 endif
 
@@ -344,7 +344,7 @@ binaries-windows_arm64:
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
 ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux GOARCH=ppc64le $(MAKE) splunk-otel-collector-launcher
+	GOOS=linux GOARCH=ppc64le $(MAKE) otelcollauncher
 	GOOS=linux GOARCH=ppc64le $(MAKE) opampsupervisor
 endif
 

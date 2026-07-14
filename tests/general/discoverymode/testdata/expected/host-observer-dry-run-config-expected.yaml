@@ -24,11 +24,13 @@ receivers:
       prometheus_simple:
         rule: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
         config:
-          collection_interval: 1s
-          labels:
-            label_one: ${env:LABEL_ONE_VALUE}
-            label_two: ${LABEL_TWO_VALUE}
-            label_three: actual.label.three.value.from.env.var.property
+          scrape_configs:
+            - scrape_interval: 1s
+              scrape_timeout: 1s
+              static_configs:
+                - labels:
+                  label_one: ${env:LABEL_ONE_VALUE}
+                  label_two: ${LABEL_TWO_VALUE}
 service:
   telemetry:
     resource:

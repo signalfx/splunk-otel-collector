@@ -36,8 +36,6 @@ if [[ -z "$JMX_METRIC_GATHERER_RELEASE" ]]; then
 fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
-launcher_path="$REPO_DIR/bin/otelcollauncher_linux_${ARCH}"
-opampsupervisor_path="$REPO_DIR/bin/opampsupervisor_linux_${ARCH}"
 
 buildroot="$(mktemp -d)"
 
@@ -49,7 +47,7 @@ fi
 
 download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot"
 
-setup_files_and_permissions "$otelcol_path" "$buildroot" "$launcher_path" "$opampsupervisor_path"
+setup_files_and_permissions "$otelcol_path" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 

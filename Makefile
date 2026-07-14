@@ -281,7 +281,7 @@ endif
 
 .PHONY: opampsupervisor
 opampsupervisor:
-	cd packaging/opampsupervisor && GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o "$(CURDIR)/bin/opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)" github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor
+	cd internal/tools && GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -mod=readonly -trimpath -o "$(CURDIR)/bin/opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)" github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor
 ifeq ($(OS), Windows_NT)
 	$(LINK_CMD) .\bin\opampsupervisor$(EXTENSION) .\bin\opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)
 else
@@ -335,10 +335,18 @@ endif
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+ifeq ($(WITH_OPAMP_SUPERVISOR), true)
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
+endif
 
 .PHONY: binaries-windows_arm64
 binaries-windows_arm64:
 	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
+ifeq ($(WITH_OPAMP_SUPERVISOR), true)
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
+endif
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:

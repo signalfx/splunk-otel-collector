@@ -1,4 +1,4 @@
-prometheus:
+prometheus/test:
   rule:
     host_observer: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
   config:

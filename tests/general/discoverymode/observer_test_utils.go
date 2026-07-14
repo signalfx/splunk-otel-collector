@@ -29,7 +29,7 @@ import (
 // removeAllKeysOtherThan removes all bundled receivers from the discovery receiver to avoid having to update the
 // expected config every time a new bundled receiver rule is added. It returns the number of bundled receivers.
 func removeBundledReceivers(discReceiverCfg any) (removedCount int) {
-	receiverToKeep := "prometheus_simple"
+	receiverToKeep := "prometheus"
 	discReceivers := discReceiverCfg.(map[string]any)["receivers"].(map[string]any)
 	for k := range discReceivers {
 		if k != receiverToKeep {

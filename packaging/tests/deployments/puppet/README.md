@@ -61,8 +61,8 @@ pytest -s --verbose packaging/tests/deployments/puppet/puppet_test.py
 ### Run tests for a specific distro
 
 ```bash
-# For Ubuntu Noble (DEB)
-pytest -s --verbose -k "ubuntu-noble" packaging/tests/deployments/puppet/puppet_test.py
+# For Ubuntu Jammy (DEB)
+pytest -s --verbose -k "ubuntu-jammy" packaging/tests/deployments/puppet/puppet_test.py
 
 # For CentOS 8 (RPM)
 pytest -s --verbose -k "centos-8" packaging/tests/deployments/puppet/puppet_test.py
@@ -109,8 +109,8 @@ pytest -s --verbose -m "not instrumentation" packaging/tests/deployments/puppet/
 ### Combine filters
 
 ```bash
-# Run test_puppet_default for Ubuntu Noble with Puppet 8, excluding instrumentation
-pytest -s --verbose -k "test_puppet_default and ubuntu-noble and not instrumentation" \
+# Run test_puppet_default for Ubuntu Jammy with Puppet 7, excluding instrumentation
+pytest -s --verbose -k "test_puppet_default and ubuntu-jammy and not instrumentation" \
   -m deb \
   packaging/tests/deployments/puppet/puppet_test.py
 ```
@@ -120,6 +120,7 @@ pytest -s --verbose -k "test_puppet_default and ubuntu-noble and not instrumenta
 ### DEB Distros
 - `debian-bullseye`
 - `debian-bookworm`
+- `ubuntu-jammy`
 - `ubuntu-noble`
 
 ### RPM Distros
@@ -153,7 +154,7 @@ make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
 make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
 
 # 3. Run a quick test
-pytest -s --verbose -k "test_puppet_default and ubuntu-noble" \
+pytest -s --verbose -k "test_puppet_default and ubuntu-jammy" \
   packaging/tests/deployments/puppet/puppet_test.py
 ```
 

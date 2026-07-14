@@ -9,7 +9,6 @@ prometheus:
           static_configs:
             - labels:
                 label_one: '${env:LABEL_ONE_VALUE}'
-                label_three: overwritten by discovery property
     host_observer:
       scrape_configs:
         - scrape_interval: 1s

@@ -132,7 +132,6 @@ func TestDockerObserver(t *testing.T) {
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=true \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \
-SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_ENABLED=true \
 /otelcol --config-dir /opt/config.d --discovery --dry-run \
 --discovery-properties /opt/properties.yaml
 `)

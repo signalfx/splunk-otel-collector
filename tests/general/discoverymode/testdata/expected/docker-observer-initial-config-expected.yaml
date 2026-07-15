@@ -36,10 +36,12 @@ splunk.discovery:
           config:
             config:
               scrape_configs:
-                - scrape_interval: 1s
+                - job_name: prometheus
+                  scrape_interval: 1s
                   scrape_timeout: 1s
                   static_configs:
-                    - labels:
+                    - targets: ["0.0.0.0:9090"]
+                      labels:
                         label_five: actual.label.five.value
                         label_four: actual.label.four.value
                         label_one: ${LABEL_ONE_VALUE}

@@ -34,13 +34,16 @@ splunk.discovery:
       receivers:
         prometheus/test:
           config:
-            collection_interval: 1s
-            labels:
-              label_five: actual.label.five.value
-              label_four: actual.label.four.value
-              label_one: ${LABEL_ONE_VALUE}
-              label_three: actual.label.three.value
-              label_two: ${LABEL_TWO_VALUE}
+            scrape_configs:
+            - scrape_interval: 1s
+              scrape_timeout: 1s
+              static_configs:
+                - labels:
+                    label_five: actual.label.five.value
+                    label_four: actual.label.four.value
+                    label_one: ${LABEL_ONE_VALUE}
+                    label_three: actual.label.three.value
+                    label_two: ${LABEL_TWO_VALUE}
           rule: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090
       watch_observers: [docker_observer]
   service:

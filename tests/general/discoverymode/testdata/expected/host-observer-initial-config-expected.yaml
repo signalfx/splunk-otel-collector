@@ -50,8 +50,8 @@ splunk.discovery:
                 scrape_timeout: 1s
                 static_configs:
                   - labels:
-                    label_one: '${env:LABEL_ONE_VALUE}'
-                    label_two: ${LABEL_TWO_VALUE}
+                      label_one: '${env:LABEL_ONE_VALUE}'
+                      label_two: ${LABEL_TWO_VALUE}
   service:
     extensions/splunk.discovery:
       - host_observer

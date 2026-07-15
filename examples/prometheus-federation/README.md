@@ -14,7 +14,8 @@ The OpenTelemetry Collector scrapes the Prometheus endpoint every 10 seconds as 
     prometheus:
       config:
         scrape_configs:
-          - scrape_interval: 10s
+          - job_name: prometheus/federation
+            scrape_interval: 10s
             scrape_timeout: 10s
             # the federation endpoint:
             # Read more about it here: https://prometheus.io/docs/prometheus/latest/federation/

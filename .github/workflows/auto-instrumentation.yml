@@ -84,7 +84,9 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch="\"amd64\", \"arm64\""
           testcase="\"express\",\"tomcat\",\"dotnet\""
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}]}"
+          excluded_distros="centos-8 debian-bullseye oraclelinux-8 rockylinux-8"
+          exclude=$(for d in $excluded_distros; do echo -n "{\"DISTRO\": \"$d\", \"ARCH\": \"arm64\", \"TESTCASE\": \"dotnet\"},"; done)
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude%,}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:

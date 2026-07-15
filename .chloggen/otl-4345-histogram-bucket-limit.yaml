@@ -1,0 +1,35 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: breaking
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: config
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Add `transform/limit_histogram_buckets` processor to default agent metrics pipeline to prevent SignalFx backend from silently dropping histograms that exceed the 32-bucket limit.
+
+# One or more tracking issues related to the change
+issues: [7646]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  When the signalfx exporter sends histograms in OTLP format (`send_otlp_histograms: true`),
+  the SignalFx backend silently drops histograms with more than 32 buckets (31 explicit bounds).
+  Metrics such as gRPC call-duration histograms emit 40+ buckets by default and were being lost
+  at ingest with no error surfaced.
+
+  The new `transform/limit_histogram_buckets` processor uses
+  `merge_histogram_buckets(32, method="limit_buckets")` from the `transformprocessor` to reduce
+  histogram resolution to at most 32 buckets before export, preserving the total count and sum.
+  It is inserted before `batch` in the `metrics` pipeline of both the standard and FIPS agent
+  configs. Requires opentelemetry-collector-contrib v0.156.0 or later.
+
+  This is a breaking change: in the default exporter mode (`send_otlp_histograms: false`),
+  histograms are exploded into `_bucket`/`le` metric time series and are not subject to the
+  32-bucket backend limit. Users on the default mode will see reduced histogram resolution
+  (fewer `le` bucket boundaries) as a result of this processor running unconditionally.
+
+  To opt out, remove the `transform/limit_histogram_buckets` processor from the `metrics`
+  pipeline processors list and delete its definition from the `processors:` block in
+  `agent_config.yaml`.

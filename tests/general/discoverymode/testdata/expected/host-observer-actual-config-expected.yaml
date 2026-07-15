@@ -30,8 +30,8 @@ receivers:
               scrape_timeout: 1s
               static_configs:
                 - labels:
-                  label_one: actual.label.one.value.from.env.var
-                  label_two: actual.label.two.value.from.env.var
+                    label_one: actual.label.one.value.from.env.var
+                    label_two: actual.label.two.value.from.env.var
 service:
   telemetry:
     resource:

@@ -245,12 +245,12 @@ def verify_app_instrumentation(container, app, attributes, otelcol_path=None, ti
             log_header = "dotnet auto-instrumentation logs"
 
         if log_files != "":
-            code, logs = container.exec_run("cat " + log_files)
+            code, logs = container.exec_run(f"cat {log_files}")
             if code == 0:
-                print("=== " + log_header + " ===")
+                print(f"=== {log_header} ===")
                 print(logs.decode("utf-8"))
             else:
-                print("Attempt to cat log files failed with: " + code)
+                print(f"Attempt to cat log files failed with: {code}")
 
         raise
 

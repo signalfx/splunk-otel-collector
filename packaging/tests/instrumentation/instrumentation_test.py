@@ -82,6 +82,7 @@ EXPRESS_PIDFILE = "/opt/express/express.pid"
 DOTNET_PIDFILE = "/opt/dotnet/dotnet.pid"
 DOTNET_ENV = {
     "OTEL_INJECTOR_LOG_LEVEL": "debug",
+    "OTEL_LOG_LEVEL": "debug",
 }
 
 def get_dockerfile(distro):
@@ -235,11 +236,22 @@ def verify_app_instrumentation(container, app, attributes, otelcol_path=None, ti
     try:
         verify_attributes(stream, attributes, timeout=timeout)
     except AssertionError:
+        log_files = ""
         if app == "tomcat":
-            code, logs = container.exec_run("cat /usr/local/tomcat/logs/catalina.out")
+            log_files = "/usr/local/tomcat/logs/catalina.out"
+            log_header = "Tomcat catalina.out"
+        elif app == "dotnet":
+            log_files = "/var/log/opentelemetry/dotnet/*"
+            log_header = "dotnet auto-instrumentation logs"
+
+        if log_files != "":
+            code, logs = container.exec_run("cat " + log_files)
             if code == 0:
-                print("=== Tomcat catalina.out ===")
+                print("=== " + log_header + " ===")
                 print(logs.decode("utf-8"))
+            else:
+                print("Attempt to cat log files failed with: " + code)
+
         raise
 
 

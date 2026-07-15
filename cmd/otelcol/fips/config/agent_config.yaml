@@ -134,6 +134,16 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  # Cap histograms to 32 buckets before sending to the SignalFx backend.
+  # When send_otlp_histograms is enabled, the backend drops histograms with more
+  # than 32 buckets at ingest. Metrics such as gRPC call-duration histograms emit
+  # 40+ buckets by default and would otherwise be silently lost.
+  transform/limit_histogram_buckets:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - merge_histogram_buckets(32, method="limit_buckets")
+
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in a pipeline.
@@ -226,7 +236,7 @@ service:
       #exporters: [otlp_grpc]
     metrics:
       receivers: [host_metrics, otlp]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, transform/limit_histogram_buckets, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp_grpc]

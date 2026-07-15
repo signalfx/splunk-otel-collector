@@ -59,7 +59,6 @@ func TestHostObserver(t *testing.T) {
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 				"LABEL_ONE_VALUE":            "actual.label.one.value.from.env.var",
 				"LABEL_TWO_VALUE":            "actual.label.two.value.from.env.var",
-				"LABEL_THREE_VALUE":          "actual.label.three.value.from.env.var",
 			}).WithArgs(
 				"--discovery", "--config-dir", "/opt/config.d",
 				"--set", "splunk.discovery.extensions.k8s_observer.enabled=false",

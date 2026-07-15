@@ -9,6 +9,7 @@ prometheus/test:
           static_configs:
             - labels:
                 label_one: '${env:LABEL_ONE_VALUE}'
+                label_three: ${LABEL_THREE_VALUE}
     host_observer:
       scrape_configs:
         - scrape_interval: 1s

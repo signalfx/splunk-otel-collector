@@ -39,6 +39,7 @@ MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
+WITH_OPAMP_SUPERVISOR?=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -269,6 +270,24 @@ else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
 
+.PHONY: otelcollauncher
+otelcollauncher:
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcollauncher
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\otelcollauncher$(EXTENSION) .\bin\otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcollauncher$(EXTENSION)
+endif
+
+.PHONY: opampsupervisor
+opampsupervisor:
+	cd internal/tools && GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -mod=readonly -trimpath -o "$(CURDIR)/bin/opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)" github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\opampsupervisor$(EXTENSION) .\bin\opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/opampsupervisor$(EXTENSION)
+endif
+
 
 .PHONY: add-tag
 add-tag:
@@ -300,22 +319,42 @@ binaries-darwin_arm64:
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
+ifeq ($(WITH_OPAMP_SUPERVISOR), true)
+	GOOS=linux   GOARCH=amd64 $(MAKE) otelcollauncher
+	GOOS=linux   GOARCH=amd64 $(MAKE) opampsupervisor
+endif
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
+ifeq ($(WITH_OPAMP_SUPERVISOR), true)
+	GOOS=linux   GOARCH=arm64 $(MAKE) otelcollauncher
+	GOOS=linux   GOARCH=arm64 $(MAKE) opampsupervisor
+endif
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+ifeq ($(WITH_OPAMP_SUPERVISOR), true)
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
+endif
 
 .PHONY: binaries-windows_arm64
 binaries-windows_arm64:
 	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
+ifeq ($(WITH_OPAMP_SUPERVISOR), true)
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
+endif
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
+ifeq ($(WITH_OPAMP_SUPERVISOR), true)
+	GOOS=linux GOARCH=ppc64le $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=ppc64le $(MAKE) opampsupervisor
+endif
 
 .PHONY: deb-rpm-tar-package
 %-package:

@@ -35,9 +35,6 @@ resourceMetrics:
                    - key: label_one
                      value:
                        stringValue: actual.label.one.value
-                   - key: label_three
-                     value:
-                       stringValue: actual.label.three.value
                    - key: label_two
                      value:
                        stringValue: actual.label.two.value

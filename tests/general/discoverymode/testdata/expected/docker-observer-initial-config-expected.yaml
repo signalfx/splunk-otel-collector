@@ -42,10 +42,7 @@ splunk.discovery:
                   static_configs:
                     - targets: ["0.0.0.0:9090"]
                       labels:
-                        label_five: actual.label.five.value
-                        label_four: actual.label.four.value
                         label_one: ${LABEL_ONE_VALUE}
-                        label_three: actual.label.three.value
                         label_two: ${LABEL_TWO_VALUE}
           rule: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090
       watch_observers: [docker_observer]

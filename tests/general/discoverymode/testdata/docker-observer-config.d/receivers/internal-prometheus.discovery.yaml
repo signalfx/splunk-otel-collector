@@ -6,10 +6,12 @@ prometheus/test:
     default:
       config:
         scrape_configs:
-          - scrape_interval: invalid
+          - job_name: prometheus
+            scrape_interval: invalid
             scrape_timeout: invalid
             static_configs:
-              - labels:
+              - targets: ["0.0.0.0:9090"]
+                labels:
                   label_one: ${LABEL_ONE_VALUE}
     docker_observer:
       config:

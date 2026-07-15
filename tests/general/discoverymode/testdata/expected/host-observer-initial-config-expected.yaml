@@ -52,6 +52,8 @@ splunk.discovery:
                   - labels:
                       label_one: '${env:LABEL_ONE_VALUE}'
                       label_two: ${LABEL_TWO_VALUE}
+                      label_three: ${LABEL_THREE_VALUE}
+
   service:
     extensions/splunk.discovery:
       - host_observer

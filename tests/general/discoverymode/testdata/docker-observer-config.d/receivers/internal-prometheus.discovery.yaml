@@ -16,5 +16,4 @@ prometheus/test:
           scrape_timeout: 1s
           static_configs:
             - labels:
-                label_two: ${LABEL_TWO_VALUE}
-                label_three: actual.label.three.value
+              label_two: ${LABEL_TWO_VALUE}

@@ -3,17 +3,18 @@ prometheus/test:
     host_observer: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
   config:
     default:
-      scrape_configs:
-        - scrape_interval: invalid
-          scrape_timeout: invalid
-          static_configs:
-            - labels:
-                label_one: '${env:LABEL_ONE_VALUE}'
-                label_three: ${LABEL_THREE_VALUE}
+      config:
+        scrape_configs:
+          - scrape_interval: invalid
+            scrape_timeout: invalid
+            static_configs:
+              - labels:
+                  label_one: ${LABEL_ONE_VALUE}
     host_observer:
-      scrape_configs:
-        - scrape_interval: 1s
-          scrape_timeout: 1s
-          static_configs:
-            - labels:
-                label_two: ${LABEL_TWO_VALUE}
+      config:
+        scrape_configs:
+          - scrape_interval: 1s
+            scrape_timeout: 1s
+            static_configs:
+              - labels:
+                  label_two: ${LABEL_TWO_VALUE}

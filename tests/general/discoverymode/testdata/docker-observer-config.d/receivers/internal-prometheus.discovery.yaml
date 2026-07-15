@@ -4,16 +4,18 @@ prometheus/test:
     docker_observer: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090
   config:
     default:
-      scrape_configs:
-        - scrape_interval: invalid
-          scrape_timeout: invalid
-          static_configs:
-            - labels:
-                label_one: ${LABEL_ONE_VALUE}
+      config:
+        scrape_configs:
+          - scrape_interval: invalid
+            scrape_timeout: invalid
+            static_configs:
+              - labels:
+                  label_one: ${LABEL_ONE_VALUE}
     docker_observer:
-      scrape_configs:
-        - scrape_interval: 1s
-          scrape_timeout: 1s
-          static_configs:
-            - labels:
-                label_two: ${LABEL_TWO_VALUE}
+      config:
+        scrape_configs:
+          - scrape_interval: 1s
+            scrape_timeout: 1s
+            static_configs:
+              - labels:
+                  label_two: ${LABEL_TWO_VALUE}

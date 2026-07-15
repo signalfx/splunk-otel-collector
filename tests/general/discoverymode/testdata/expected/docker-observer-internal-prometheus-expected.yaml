@@ -21,7 +21,7 @@ resourceMetrics:
             stringValue: 172.17.0.3:9090
         - key: service.name
           value:
-            stringValue: prometheus/172.17.0.3:9090
+            stringValue: prometheus
         - key: url.scheme
           value:
             stringValue: http

@@ -48,6 +48,21 @@ jobs:
             exit 1
           fi
 
+  generate-configs:
+    name: generate-configs
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: ./.github/actions/setup-environment
+
+      - name: generate-configs
+        run: |
+          make generate-configs
+          if ! git diff --exit-code; then
+            echo "Generated configs are out of date. Run 'make generate-configs' and push the changes."
+            exit 1
+          fi
+
   generate-metrics:
     name: generate-metrics
     runs-on: ubuntu-24.04

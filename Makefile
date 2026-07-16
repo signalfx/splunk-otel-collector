@@ -251,6 +251,10 @@ install-tools:
 	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
 	cd ./internal/tools && go install mvdan.cc/gofumpt
 
+.PHONY: generate-configs
+generate-configs:
+	cd $(SRC_ROOT)/cmd/default-config-generator && $(GOCMD) run .
+
 .PHONY: generate-metrics
 generate-metrics:
 	go generate -tags mdatagen ./...

@@ -77,7 +77,6 @@ func TestDockerObserver(t *testing.T) {
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.docker_observer.enabled=true`,
 				"--set", `splunk.discovery.extensions.docker_observer.config.endpoint=${DOCKER_DOMAIN_SOCKET}`,
-				"--set", `splunk.discovery.receivers.prometheus.enabled=true`,
 				"--discovery-properties", "/opt/properties.yaml",
 			)
 		},

@@ -156,6 +156,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
@@ -180,6 +181,7 @@ func Get() (otelcol.Factories, error) {
 		k8sobserver.NewFactory(),
 		oauth2clientauthextension.NewFactory(),
 		opampextension.NewFactory(),
+		oracleencodingextension.NewFactory(),
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),
 		textencodingextension.NewFactory(),

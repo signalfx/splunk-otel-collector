@@ -1,0 +1,4 @@
+change_type: new_component
+component: oracleencodingextension
+note: Add the `oracle_encoding` extension, which unmarshals OCI (Oracle Cloud Infrastructure) Monitoring metrics published in JSONL format into OpenTelemetry metrics.
+issues: []

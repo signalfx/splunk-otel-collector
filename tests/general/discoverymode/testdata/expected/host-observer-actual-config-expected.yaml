@@ -31,7 +31,7 @@ receivers:
                 scrape_interval: 1s
                 scrape_timeout: 1s
                 static_configs:
-                  - targets: ["localhost:9090"]
+                  - targets: ['`endpoint`']
                     labels:
                       label_one: actual.label.one.value.from.env.var
                       label_two: actual.label.two.value.from.env.var

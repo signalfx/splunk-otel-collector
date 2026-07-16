@@ -29,7 +29,7 @@ receivers:
                 scrape_interval: 1s
                 scrape_timeout: 1s
                 static_configs:
-                  - target: ["localhost:9090"]
+                  - target: ['`endpoint`']
                     labels:
                       label_one: actual.label.one.value
                       label_two: actual.label.two.value

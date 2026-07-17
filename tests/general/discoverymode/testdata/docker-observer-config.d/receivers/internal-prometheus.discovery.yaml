@@ -1,5 +1,5 @@
 prometheus/test:
-  enabled: false
+  enabled: true
   rule:
     docker_observer: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090
   config:

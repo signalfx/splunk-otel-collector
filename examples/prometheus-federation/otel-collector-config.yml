@@ -12,7 +12,7 @@ receivers:
               - targets: [prometheus:9090]
             metrics_path: /federate
             params:
-                match[]: '{job="counter"}'
+              match[]: '{job="counter"}'
     otlp:
         protocols:
             grpc:

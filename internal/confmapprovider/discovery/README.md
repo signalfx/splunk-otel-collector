@@ -182,8 +182,9 @@ splunk.discovery.receivers.<receiver-type(/name)>.enabled: <true or false>
 splunk.discovery.extensions.<observer-type(/name)>.enabled: <true or false>
 
 # Examples
-splunk.discovery.receivers.oracledb.config.service: service_name
 splunk.discovery.receivers.oracledb.enabled: true
+splunk.discovery.receivers.oracledb.config.service: service_name
+splunk.discovery.receivers.oracledb.config.top_query_collection::max_query_sample_count: 1000
 
 splunk.discovery.extensions.docker_observer.config.endpoint: tcp://localhost:8080
 splunk.discovery.extensions.k8s_observer.enabled: false
@@ -198,8 +199,8 @@ variables:
 
 ```yaml
 # --set form will take priority to mapped values
-splunk.discovery.receivers.oracledb.config.service: service_name
 splunk.discovery.receivers.oracledb.enabled: true
+splunk.discovery.receivers.oracledb.config.service: service_name
 
 # mapped property form
 splunk.discovery:
@@ -223,8 +224,9 @@ SPLUNK_DISCOVERY_RECEIVERS_receiver_x2d_type_x2f_receiver_x2d_name_ENABLED=<true
 SPLUNK_DISCOVERY_EXTENSIONS_observer_x2d_type_x2f_observer_x2d_name_ENABLED=<true or false>
 
 # Examples
-SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="my_username"
 SPLUNK_DISCOVERY_RECEIVERS_oracledb_ENABLED=true
+SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="my_username"
+SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_top_query_collection_x3a__x3a_max_query_sample_count=1000
 
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint="tcp://localhost:8080"
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false

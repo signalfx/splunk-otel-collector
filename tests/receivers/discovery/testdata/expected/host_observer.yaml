@@ -60,13 +60,13 @@ resourceLogs:
                           stringValue: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
                       - key: discovery.receiver.type
                         value:
-                          stringValue: prometheus
+                          stringValue: prometheus_simple
                       - key: discovery.receiver.name
                         value:
                           stringValue: ""
                       - key: service.type
                         value:
-                          stringValue: prometheus
+                          stringValue: prometheus_simple
               - key: otel.entity.id
                 value:
                   kvlistValue:

@@ -210,7 +210,7 @@ splunk.discovery:
         endpoint: tcp://localhost:54321
   receivers:
     oracledb:
-      enabled: true # will be overwritten by above --set form (discovery is attempted for the receiver)
+      enabled: false # will be overwritten by above --set form (discovery is attempted for the receiver)
 ```
 
 Each discovery property also has an equivalent environment variable form using `_x<hex pair>_` encoded delimiters for

@@ -41,7 +41,9 @@ if os[:family] == 'windows'
   end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'ImagePath' }
-    its('ImagePath') { should match /^.*--discovery --set=processors.batch.timeout=10s$/ }
+    its('ImagePath') do
+      should match /^.*--discovery --set=processors\.batch\.timeout=10s --config "#{Regexp.escape(config_path)}"$/i
+    end
   end
 else
   config_path = '/etc/otel/collector/agent_config.yaml'

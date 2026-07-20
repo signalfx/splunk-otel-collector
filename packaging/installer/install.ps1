@@ -538,11 +538,13 @@ else {
         remove_splunk_zc_method_from_env
     }
     if (-not $preserve_prev_default_config) {
-        $default_config_files = @("agent_config.yaml", "gateway_config.yaml")
+        $default_config_files = @("agent_config.yaml", "gateway_config.yaml", "splunk_logs_config_windows.yaml", "splunk_metrics_config_windows.yaml")
         foreach ($file in $default_config_files) {
             $target = Join-Path "${Env:ProgramData}\Splunk\OpenTelemetry Collector" "$file"
-            Write-Host "Deleting previous version default configuration file '$target'"
-            Remove-Item -Path $target
+            if (Test-Path -LiteralPath $target) {
+                Write-Host "Deleting previous version default configuration file '$target'"
+                Remove-Item -LiteralPath $target
+            }
         }
     }
 }
@@ -679,18 +681,9 @@ if ($godebug -Ne "") {
     $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "GODEBUG" -value $godebug
 }
 
-if ($PSBoundParameters.ContainsKey("api_url")) {
-    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_API_URL" -value $api_url
-}
-
-if ($PSBoundParameters.ContainsKey("hec_url")) {
-    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_HEC_URL" -value $hec_url
-}
-
-if ($PSBoundParameters.ContainsKey("ingest_url")) {
-    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_INGEST_URL" -value $ingest_url
-}
-
+$msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_API_URL" -value $api_url
+$msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_HEC_URL" -value $hec_url
+$msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_INGEST_URL" -value $ingest_url
 $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_MEMORY_TOTAL_MIB" -value $memory
 $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_REALM" -value $realm
 $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_SETUP_COLLECTOR_MODE" -value $mode

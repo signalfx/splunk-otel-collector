@@ -50,7 +50,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	defer scm.Disconnect()
 
 	t.Logf(" *** Installing old collector version %s", oldCollectorVersion)
-	installCollector(t, oldCollectorVersion, "")
+	installCollector(t, getTestDataFilePath(t, "install-before-platform-indexes.ps1"), oldCollectorVersion, "")
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributeCount(t, 1)
@@ -62,7 +62,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 
 	msiInstallerPath := getFilePathFromEnvVar(t, "MSI_COLLECTOR_PATH")
 	t.Logf(" *** Installing collector from %q", msiInstallerPath)
-	installCollector(t, "", msiInstallerPath)
+	installCollector(t, getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"), "", msiInstallerPath)
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributeCount(t, 1)
@@ -74,12 +74,12 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	verifyZeroConfigResourceAttributeCount(t, 0)
 }
 
-func installCollector(t *testing.T, version, msiPath string) {
+func installCollector(t *testing.T, installScriptPath, version, msiPath string) {
 	require.False(t, version == "" && msiPath == "", "Either version or msiPath must be provided")
 	require.False(t, version != "" && msiPath != "", "Only one of version or msiPath should be provided")
 	args := []string{
 		"-ExecutionPolicy", "Bypass",
-		"-Command", "& " + getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"),
+		"-Command", "& " + installScriptPath,
 		"-access_token", "fake-token",
 		"-with_dotnet_instrumentation", "1", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var with the Zero-Code attribute.
 		"-deployment_env", "test", // This forces another attribute to be set in OTEL_RESOURCE_ATTRIBUTES so the environment variable can't be totally removed by the install script.
@@ -98,6 +98,13 @@ func installCollector(t *testing.T, version, msiPath string) {
 	output, err := cmd.CombinedOutput()
 	t.Logf("Install output: %s", string(output))
 	require.NoError(t, err, "Failed to install collector (version:%q msiPath:%q)", version, msiPath)
+}
+
+func getTestDataFilePath(t *testing.T, fileName string) string {
+	filePath := filepath.Join("testdata", fileName)
+	_, err := os.Stat(filePath)
+	require.NoError(t, err, "File %s does not exist", filePath)
+	return "." + string(os.PathSeparator) + filePath
 }
 
 func uninstallCollector(t *testing.T) {

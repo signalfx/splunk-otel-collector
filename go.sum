@@ -1890,6 +1890,12 @@ github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 h1:WsShHmu12Z
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083/go.mod h1:adPDS6s7WaajdFBV9mQ7i0dKfQ8xiDnF9ZNETVPpp7c=
 github.com/signalfx/golib/v3 v3.5.0 h1:QkhT8P/iMkTRg7Zec+w8iLEQzzCEIfHHz/A4NJgLQyg=
 github.com/signalfx/golib/v3 v3.5.0/go.mod h1:yze2t+zCjUjUdtSPEmCyg2UDU7jCyIqJV++eprc9OeE=
+github.com/signalfx/splunk-otel-collector-components/exporter/s2sexporter v0.1.0 h1:xo3F4hL/8JDyvkhqvsKwmQHgIRu7TrhBa8eh47pXT7Y=
+github.com/signalfx/splunk-otel-collector-components/exporter/s2sexporter v0.1.0/go.mod h1:06K3scrLdaIXcX0nQFVt16SR3vHjrO1IAS2+AMy+Xyw=
+github.com/signalfx/splunk-otel-collector-components/processor/linebreakprocessor v0.0.0-20260707233042-6c1972e556bf h1:o4Fj5bPKKjuibWiqU/CeRjjvDatgrZbM+JrNI8eq5LQ=
+github.com/signalfx/splunk-otel-collector-components/processor/linebreakprocessor v0.0.0-20260707233042-6c1972e556bf/go.mod h1:X6dQuM8lajvDKUchHdyXlcEGFsSC1r2h6SPqsnlphcA=
+github.com/signalfx/splunk-otel-collector-components/receiver/wineventlogreceiver v0.1.0 h1:kWZ68zt6539sapvavZ73lf3odiVmqKWNxJT4IV/95WM=
+github.com/signalfx/splunk-otel-collector-components/receiver/wineventlogreceiver v0.1.0/go.mod h1:it62YG8OzCbWpN8giquV4U1sMziwAouw7m8gPQhHF/Y=
 github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed h1:UnMojeBM2skhiZm8Iol3RBQpUHWvAkt993NxWhiV/70=
 github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
 github.com/sijms/go-ora/v2 v2.9.0 h1:+iQbUeTeCOFMb5BsOMgUhV8KWyrv9yjKpcK4x7+MFrg=

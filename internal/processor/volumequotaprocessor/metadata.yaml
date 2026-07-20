@@ -1,0 +1,7 @@
+type: volume_quota
+
+status:
+  class: processor
+  stability:
+    development: [traces]
+  distributions: []

@@ -3,4 +3,4 @@ source 'https://supermarket.chef.io'
 
 metadata
 
-cookbook 'nodejs'
+cookbook 'splunk_otel_collector_test', path: 'test/fixtures/cookbooks/splunk_otel_collector_test'

@@ -118,15 +118,9 @@ suites:
 
   - name: with_default_preload_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs: &nodejs_options
-        install_method: binary
-        version: 18.20.8
-        binary:
-          append_env_path: false  # required for idempotence
-          checksum: c9193e6c414891694759febe846f4f023bf48410a6924a8b1520c46565859665
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test
@@ -134,11 +128,9 @@ suites:
 
   - name: with_custom_preload_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs:
-        *nodejs_options
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test
@@ -156,11 +148,9 @@ suites:
 
   - name: with_default_systemd_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs:
-        *nodejs_options
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test
@@ -169,11 +159,9 @@ suites:
 
   - name: with_custom_systemd_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs:
-        *nodejs_options
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test
@@ -261,11 +249,9 @@ suites:
 
   - name: with_default_preload_node_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs:
-        *nodejs_options
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test
@@ -275,11 +261,9 @@ suites:
 
   - name: with_custom_preload_node_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs:
-        *nodejs_options
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test
@@ -299,11 +283,9 @@ suites:
 
   - name: with_default_systemd_node_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs:
-        *nodejs_options
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test
@@ -314,11 +296,9 @@ suites:
 
   - name: with_custom_systemd_node_instrumentation
     run_list:
-      - recipe[nodejs]
+      - recipe[splunk_otel_collector_test::nodejs]
       - recipe[splunk_otel_collector]
     attributes:
-      nodejs:
-        *nodejs_options
       splunk_otel_collector:
         splunk_access_token: testing123
         splunk_realm: test

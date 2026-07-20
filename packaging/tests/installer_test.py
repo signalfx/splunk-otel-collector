@@ -124,7 +124,9 @@ def get_installer_cmd():
 
     install_cmd = f"sh -l {debug_flag} /test/install.sh -- {SPLUNK_ACCESS_TOKEN} --realm {SPLUNK_REALM}"
 
-    if VERSION != "latest":
+    if LOCAL_COLLECTOR_PACKAGE:
+        install_cmd = f"{install_cmd} --collector-version /test/collector.pkg --skip-collector-repo"
+    elif VERSION != "latest":
         install_cmd = f"{install_cmd} --collector-version {VERSION.lstrip('v')}"
 
     if STAGE != "release":
@@ -234,6 +236,10 @@ def test_installer_default(distro, arch, mode):
     with run_distro_container(distro, arch) as container:
         # run installer script
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, "apt-get install -y libcap2-bin")
 
         try:
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)

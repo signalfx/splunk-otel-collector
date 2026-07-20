@@ -4,7 +4,7 @@ nodejs_install 'nodejs' do
   install_method 'binary'
   version '18.20.8'
   binary_checksums(
-    'linux_x64' => 'c9193e6c414891694759febe846f4f023bf48410a6924a8b1520c46565859665'
+    'linux_x64' => '27a9f3f14d5e99ad05a07ed3524ba3ee92f8ff8b6db5ff80b00f9feb5ec8097a'
   )
   append_env_path false
 end

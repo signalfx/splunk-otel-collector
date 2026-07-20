@@ -141,9 +141,6 @@ require (
 	github.com/prometheus/common v0.69.0
 	github.com/prometheus/prometheus v0.312.0
 	github.com/shirou/gopsutil/v4 v4.26.5
-	github.com/signalfx/splunk-otel-collector-components/exporter/s2sexporter v0.1.0
-	github.com/signalfx/splunk-otel-collector-components/processor/linebreakprocessor v0.0.0-20260707233042-6c1972e556bf
-	github.com/signalfx/splunk-otel-collector-components/receiver/wineventlogreceiver v0.1.0
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
@@ -164,7 +161,6 @@ require (
 	go.opentelemetry.io/collector/connector v0.156.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.156.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.156.0
-	go.opentelemetry.io/collector/exporter v1.62.0
 	go.opentelemetry.io/collector/exporter/debugexporter v0.156.0
 	go.opentelemetry.io/collector/exporter/nopexporter v0.156.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.156.0
@@ -523,6 +519,7 @@ require (
 	go.opentelemetry.io/collector/consumer/consumererror v0.156.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/xconsumererror v0.156.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.156.0 // indirect
+	go.opentelemetry.io/collector/exporter v1.62.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.156.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/xexporterhelper v0.156.0 // indirect
 	go.opentelemetry.io/collector/exporter/exportertest v0.156.0 // indirect

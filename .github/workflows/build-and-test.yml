@@ -21,9 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
-        with:
-          private-modules: 'true'
-          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: tidy
         run: |
@@ -167,17 +164,3 @@ jobs:
         working-directory: ./internal/signalfx-agent/pkg/monitors/docker
         run: |
           go test -v -tags=dockerd -timeout 3m ./...
-
-  # Prototype build of the collector with private components enabled via the `splunkprivate` build tag.
-  splunkprivate-build:
-    name: splunkprivate-build
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/setup-environment
-        with:
-          private-modules: 'true'
-          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
-
-      - name: Build otelcol with splunkprivate tag
-        run: make otelcol-splunkprivate

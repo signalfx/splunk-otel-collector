@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Bug fix: Ensure fresh installations set the collector config directory ownership to the custom service user and group (if configured) rather than the default service owner (Linux only) 
+- Bug fix: Ensure the collector config directory ownership is set to the custom service user and group (if configured) rather than the default service owner (Linux only) 
 
 ## puppet-v0.21.0
 

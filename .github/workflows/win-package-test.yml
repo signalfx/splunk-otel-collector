@@ -36,7 +36,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
-    secrets: inherit
 
   msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
@@ -391,6 +390,7 @@ jobs:
       - uses: ./.github/actions/win-wait-for-docker
 
       - name: Build docker image
+        shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
@@ -403,13 +403,25 @@ jobs:
           Remove-Item .\cmd\otelcol\otelcol.exe
 
       - name: Run docker image
+        shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           docker run -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
-          Start-Sleep 10
-          $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
-          if ( $DockerOutput -eq $null ) {
+          $ready = $false
+          for ($i = 0; $i -lt 12; $i++) {
+            Start-Sleep 5
+            $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
+            if (-not $DockerOutput) {
+              break
+            }
+            $DockerLogs=$(cmd /c "docker logs otelcol 2>&1")
+            if ($DockerLogs -match 'Everything is ready\. Begin running and processing data\.') {
+              $ready = $true
+              break
+            }
+          }
+          if (-not $ready) {
             docker logs otelcol
-            echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
+            echo "Failing job execution: otelcol docker container did not report readiness within 60 seconds."
             exit 1
           }

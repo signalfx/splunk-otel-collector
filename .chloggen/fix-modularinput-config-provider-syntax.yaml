@@ -1,0 +1,13 @@
+change_type: enhancement
+
+component: Splunk_TA_otel
+
+note: Support the use of configuration providers in the `Splunk Add-on for OpenTelemetry Collector` configuration
+
+issues: [7782]
+
+subtext: |
+  The [Splunk Add-on for OpenTelemetry Collector](https://splunkbase.splunk.com/app/7125) will only treat values like
+  `$VAR_NAME` and `${VAR_NAME}` as environment variables. This way configuration settings can specify
+  [configuration providers](https://github.com/open-telemetry/opentelemetry-collector/blob/main/confmap/README.md#provider)
+  with values like `${file:./my-text-file}` and have them resolved when the collector is running.

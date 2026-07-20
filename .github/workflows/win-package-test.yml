@@ -164,12 +164,6 @@ jobs:
           Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
-          # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
-          $found_jmx = $false
-          (Get-PSDrive -PSProvider FileSystem).Root | ForEach-Object {
-            $found_jmx = $found_jmx -Or (Test-Path (Join-Path "$_" "opt\opentelemetry-java-contrib-jmx-metrics.jar"))
-          }
-          if (-not $found_jmx) { throw "Could not find expected jar file" }
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
@@ -399,7 +393,7 @@ jobs:
           } else {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
           }
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=$base_image --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=$base_image -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
 
       - name: Run docker image

@@ -86,7 +86,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: binaries-linux_amd64
-    secrets: inherit
 
   # Use reusable workflow for DEB package
   puppet-build-deb-local-package:
@@ -218,7 +217,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: binaries-windows_amd64
-    secrets: inherit
 
   puppet-build-windows-msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml

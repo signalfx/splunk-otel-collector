@@ -21,17 +21,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/connector"
-	"go.opentelemetry.io/collector/connector/forwardconnector"
-	"go.opentelemetry.io/collector/exporter"
-	"go.opentelemetry.io/collector/exporter/nopexporter"
-	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/extension/zpagesextension"
-	"go.opentelemetry.io/collector/otelcol"
-	"go.opentelemetry.io/collector/processor"
-	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/collector/receiver/nopreceiver"
 )
 
 func TestDefaultComponents(t *testing.T) {
@@ -297,78 +286,4 @@ func TestDefaultComponents(t *testing.T) {
 		require.True(t, ok, "Missing expected connector alias "+alias)
 		assert.Equal(t, actual, v.Type().String())
 	}
-}
-
-func TestMergePrivateFactories(t *testing.T) {
-	extFactory := zpagesextension.NewFactory()
-	recvFactory := receiver.Factory(nopreceiver.NewFactory())
-	procFactory := batchprocessor.NewFactory()
-	expFactory := nopexporter.NewFactory()
-	connFactory := connector.Factory(forwardconnector.NewFactory())
-
-	swapPrivateFactories(t,
-		[]extension.Factory{extFactory},
-		[]receiver.Factory{recvFactory},
-		[]processor.Factory{procFactory},
-		[]exporter.Factory{expFactory},
-		[]connector.Factory{connFactory},
-	)
-
-	t.Run("merges into empty factories", func(t *testing.T) {
-		factories := emptyFactories()
-		require.NoError(t, mergePrivateFactories(&factories))
-		_, ok := factories.Extensions[extFactory.Type()]
-		assert.True(t, ok)
-		_, ok = factories.Receivers[recvFactory.Type()]
-		assert.True(t, ok)
-		_, ok = factories.Processors[procFactory.Type()]
-		assert.True(t, ok)
-		_, ok = factories.Exporters[expFactory.Type()]
-		assert.True(t, ok)
-		_, ok = factories.Connectors[connFactory.Type()]
-		assert.True(t, ok)
-	})
-
-	t.Run("reports duplicates per kind", func(t *testing.T) {
-		factories := emptyFactories()
-		factories.Extensions[extFactory.Type()] = extFactory
-		factories.Receivers[recvFactory.Type()] = recvFactory
-		factories.Processors[procFactory.Type()] = procFactory
-		factories.Exporters[expFactory.Type()] = expFactory
-		factories.Connectors[connFactory.Type()] = connFactory
-
-		err := mergePrivateFactories(&factories)
-		require.Error(t, err)
-		msg := err.Error()
-		for _, kind := range []string{"extension", "receiver", "processor", "exporter", "connector"} {
-			assert.Contains(t, msg, "duplicate "+kind)
-		}
-	})
-}
-
-func emptyFactories() otelcol.Factories {
-	return otelcol.Factories{
-		Extensions: map[component.Type]extension.Factory{},
-		Receivers:  map[component.Type]receiver.Factory{},
-		Processors: map[component.Type]processor.Factory{},
-		Exporters:  map[component.Type]exporter.Factory{},
-		Connectors: map[component.Type]connector.Factory{},
-	}
-}
-
-func swapPrivateFactories(t *testing.T, exts []extension.Factory, recvs []receiver.Factory, procs []processor.Factory, exps []exporter.Factory, conns []connector.Factory) {
-	t.Helper()
-	origExts, origRecvs, origProcs, origExps, origConns := privateExtensionFactories, privateReceiverFactories, privateProcessorFactories, privateExporterFactories, privateConnectorFactories
-	privateExtensionFactories = exts
-	privateReceiverFactories = recvs
-	privateProcessorFactories = procs
-	privateExporterFactories = exps
-	privateConnectorFactories = conns
-	t.Cleanup(func() {
-		privateExtensionFactories = origExts
-		privateReceiverFactories = origRecvs
-		privateProcessorFactories = origProcs
-		privateExporterFactories = origExps
-		privateConnectorFactories = origConns
-	})
 }

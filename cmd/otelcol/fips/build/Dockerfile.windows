@@ -19,10 +19,6 @@ ENV GOMODCACHE=/go/pkg/mod
 ENV GOFLAGS="-tags=requirefips"
 ENV GOEXPERIMENT=systemcrypto
 ENV EXTENSION=.exe
-ENV GOPRIVATE=github.com/signalfx/splunk-otel-collector-components
 
 WORKDIR /src
-RUN --mount=type=cache,target=${GOMODCACHE} \
-    --mount=type=secret,id=private_modules_token,required=true \
-    git config --global "url.https://x-access-token:$(cat /run/secrets/private_modules_token)@github.com/.insteadOf" "https://github.com/" && \
-    make otelcol BUILD_INFO="${BUILD_INFO}"
+RUN --mount=type=cache,target=${GOMODCACHE} make otelcol BUILD_INFO="${BUILD_INFO}"

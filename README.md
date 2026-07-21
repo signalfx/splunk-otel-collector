@@ -161,6 +161,19 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.156.0 to 0.157.0
+
+[OpenTelemetry has deprecated `deployment.environment` in favor of `deployment.environment.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/deployment/).
+The Collector's optional deployment environment configuration and the `--deployment-environment` (Linux) and `-deployment_env` (Windows) installer
+options now use `deployment.environment.name`.
+
+If a legacy downstream consumer still requires `deployment.environment`, use that name instead in the applicable configuration. For instrumented
+applications, set `OTEL_RESOURCE_ATTRIBUTES=deployment.environment=<value>`. The Ansible, Chef, Puppet, and Salt integrations can pass the deprecated key
+through their generic resource-attribute option.
+
+The installer deployment environment option will use the new attribute name. To keep the deprecated attribute, replace only that attribute in
+`OTEL_RESOURCE_ATTRIBUTES`, preserve all other attributes, and restart the instrumented applications or IIS.
+
 ### From 0.150.0 to 0.151.0
 
 The default Windows MSI artifact download URL has been updated: [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide)

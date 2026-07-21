@@ -170,7 +170,9 @@ after installation/configuration in order for any changes to take effect.
 
 - `auto_instrumentation_resource_attributes`: Configure the OpenTelemetry auto
   instrumentation resource attributes, e.g.
-  `deployment.environment=prod,my.key=value` (comma-separated `key=value` pairs.).
+  `deployment.environment.name=prod,my.key=value` (comma-separated `key=value` pairs.).
+  To retain the deprecated attribute for a legacy downstream consumer, set `deployment.environment=prod` instead.
+  See the [0.156.0 → 0.157.0 upgrade guideline](https://github.com/signalfx/splunk-otel-collector/blob/main/README.md#from-01560-to-01570).
   (**default:** `None`)
 
 - `auto_instrumentation_service_name`: Explicitly set the service name for

@@ -364,7 +364,7 @@ class {{ splunk_otel_collector:
     auto_instrumentation_version => '$version',
     auto_instrumentation_systemd => $with_systemd,
     auto_instrumentation_ld_so_preload => '# my extra library',
-    auto_instrumentation_resource_attributes => 'deployment.environment=test',
+    auto_instrumentation_resource_attributes => 'deployment.environment.name=test',
     auto_instrumentation_generate_service_name => false,
     auto_instrumentation_disable_telemetry => true,
     auto_instrumentation_service_name => 'test',
@@ -422,7 +422,7 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
         if version == "latest":
             assert node_package_installed(container)
 
-        resource_attributes = rf"{resource_attributes},deployment.environment=test"
+        resource_attributes = rf"{resource_attributes},deployment.environment.name=test"
         if with_systemd == "true":
             for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)

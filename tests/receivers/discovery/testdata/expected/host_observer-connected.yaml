@@ -13,27 +13,15 @@ resourceLogs:
                 value:
                   kvlistValue:
                     values:
-                      - key: is_ipv6
-                        value:
-                          boolValue: false
-                      - key: service.type
-                        value:
-                          stringValue: prometheus_simple
-                      - key: transport
-                        value:
-                          stringValue: TCP
-                      - key: process_name
+                      - key: process.executable.name
                         value:
                           stringValue: otelcol
-                      - key: command
-                        value:
-                          stringValue: /otelcol --config /etc/config.yaml
                       - key: type
                         value:
                           stringValue: hostport
                       - key: discovery.endpoint.id
                         value:
-                          stringValue:
+                          stringValue: ''
                       - key: endpoint
                         value:
                           stringValue: ''
@@ -48,7 +36,7 @@ resourceLogs:
                           stringValue: one.value
                       - key: discovery.receiver.type
                         value:
-                          stringValue: prometheus_simple
+                          stringValue: prometheus
                       - key: discovery.observer.id
                         value:
                           stringValue: host_observer/with/another/name
@@ -61,10 +49,10 @@ resourceLogs:
                       - key: two.key
                         value:
                           stringValue: two.value
-                      - key: service_name
-                        value:
-                          stringValue: otelcol
                       - key: service_version
+                        value:
+                          stringValue: ""
+                      - key: service.version
                         value:
                           stringValue: ""
                       - key: url.scheme
@@ -73,12 +61,6 @@ resourceLogs:
                       - key: discovery.receiver.config
                         value:
                           stringValue: ""
-                      - key: url.scheme
-                        value:
-                          stringValue: http
-                      - key: net.host.port
-                        value:
-                          stringValue: "8888"
                       - key: discovery.status
                         value:
                           stringValue: successful
@@ -90,11 +72,23 @@ resourceLogs:
                           stringValue: Successfully connected to prometheus server
                       - key: service.name
                         value:
-                          stringValue:
+                          stringValue: ''
+                      - key: discovery.receiver.name
+                        value:
+                          stringValue: otelcol
+                      - key: is_ipv6
+                        value:
+                          boolValue: false
               - key: otel.entity.id
                 value:
                   kvlistValue:
                     values:
+                      - key: service.type
+                        value:
+                          stringValue: prometheus
+                      - key: service.name
+                        value:
+                          stringValue: otelcol
                       - key: source.port
                         value:
                           intValue: "8888"

@@ -339,6 +339,30 @@ var receiverMetaMap = map[string]ReceiverMeta{
 			},
 		},
 	},
+	"prometheus/otelcol": {
+		ServiceType: "prometheus",
+		Status: Status{
+			Metrics: []Match{
+				{
+					Status:  "successful",
+					Regexp:  "^otelcol_process_uptime$",
+					Message: "Successfully connected to prometheus server",
+				},
+			},
+			Statements: []Match{
+				{
+					Status:  "failed",
+					Strict:  "Failed to scrape Prometheus endpoint",
+					Message: "Port appears to not be serving prometheus metrics",
+				},
+				{
+					Status:  "failed",
+					Regexp:  "Failed to scrape Prometheus endpoint",
+					Message: "Port appears to not be serving prometheus metrics",
+				},
+			},
+		},
+	},
 	"rabbitmq": {
 		ServiceType: "rabbitmq",
 		Status: Status{

@@ -29,14 +29,13 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStatusLogs(t *testing.T) {
-	t.Skip("Skip to make the build pass, to be fixed in next PR")
+func TestDiscoveryReceiverWithHostObserverAndPrometheusReceiverProvideStatusLogs(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	_, shutdown := tc.SplunkOtelCollector("host_observer_simple_prometheus_config.yaml")
+	_, shutdown := tc.SplunkOtelCollector("host_observer_prometheus_config.yaml")
 	defer shutdown()
 
 	failure, err := golden.ReadLogs(filepath.Join("testdata", "expected", "host_observer.yaml"))
@@ -86,6 +85,7 @@ func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStat
 					entityAttributes.Map().PutStr("service_instance_id", "")
 					entityAttributes.Map().PutStr("service_version", "")
 					entityAttributes.Map().PutStr("service.instance.id", "")
+					entityAttributes.Map().PutStr("service.version", "")
 					entityAttributes.Map().PutStr("endpoint", "")
 					entityAttributes.Map().PutBool("is_ipv6", false)
 					entityAttributes.Map().PutStr("discovery.endpoint.id", "")

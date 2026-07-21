@@ -40,15 +40,6 @@ tar_setup_files_and_permissions() {
     mkdir -p "$buildroot/$BUNDLE_BASE_DIR/config"
     cp "$config_folder/gateway_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
     cp "$config_folder/agent_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
-
-    JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
-    download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot/$BUNDLE_BASE_DIR"
-    JMX_INSTALL_PATH="$buildroot/$BUNDLE_BASE_DIR/opt/opentelemetry-java-contrib-jmx-metrics.jar"
-    if [[ -e "$JMX_INSTALL_PATH" ]]; then
-        sudo chown root:root "$JMX_INSTALL_PATH"
-        sudo chmod 755 "$JMX_INSTALL_PATH"
-    fi
-
 }
 
 if [[ -z "$VERSION" ]]; then

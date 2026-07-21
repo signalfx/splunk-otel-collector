@@ -45,11 +45,11 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
-  resource/platform:
-    attributes:
-      - action: insert
-        key: splunk.destination
-        value: platform
+  transform/platform:
+    metric_statements:
+      - context: scope
+        statements:
+          - set(attributes["otel.platform"], "true")
 
 exporters:
   splunk_hec/metrics:
@@ -101,7 +101,7 @@ service:
   pipelines:
     metrics/platform:
       receivers: [host_metrics]
-      processors: [memory_limiter, resourcedetection, resource/platform]
+      processors: [memory_limiter, resourcedetection, transform/platform]
       exporters: [splunk_hec/metrics]
       # Use instead when sending to gateway:
       #exporters: [otlp_grpc/gateway]

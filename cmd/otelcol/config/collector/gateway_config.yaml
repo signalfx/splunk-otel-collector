@@ -158,70 +158,14 @@ exporters:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
     auth:
       authenticator: headers_setter
-  # Splunk Platform
-  splunk_hec/platform_logs:
-    token: "${SPLUNK_PLATFORM_TOKEN}"
-    endpoint: "${SPLUNK_PLATFORM_URL}"
-    source: "otel"
-    sourcetype: "otel"
-    index: "${env:SPLUNK_PLATFORM_LOGS_INDEX}"
-    profiling_data_enabled: false
-    disable_compression: true
-    timeout: 10s
-    retry_on_failure:
-      enabled: true
-      initial_interval: 5s
-      max_elapsed_time: 300s
-      max_interval: 30s
-    sending_queue:
-      enabled: true
-      block_on_overflow: true
-      num_consumers: 10
-      queue_size: 10000
-      sizer: items
-      batch:
-        flush_timeout: 200ms
-        min_size: 2048
-    tls:
-      insecure_skip_verify: false
-  splunk_hec/platform_metrics:
-    token: "${SPLUNK_PLATFORM_TOKEN}"
-    endpoint: "${SPLUNK_PLATFORM_URL}"
-    source: "otel"
-    index: "${env:SPLUNK_PLATFORM_METRICS_INDEX}"
-    log_data_enabled: false
-    use_multi_metric_format: true
-    disable_compression: true
-    timeout: 10s
-    retry_on_failure:
-      enabled: true
-      initial_interval: 5s
-      max_elapsed_time: 300s
-      max_interval: 30s
-    sending_queue:
-      enabled: true
-      block_on_overflow: true
-      num_consumers: 10
-      queue_size: 10000
-      sizer: items
-      batch:
-        flush_timeout: 200ms
-        min_size: 2048
-    tls:
-      insecure_skip_verify: false
 
 connectors:
-  # Routing connector to separate entity events from regular logs,
-  # and to route Splunk Platform-destined logs to the logs/platform pipeline.
   routing/logs:
     default_pipelines: [logs]
     table:
       - context: log
         condition: instrumentation_scope.attributes["otel.entity.event_as_log"] == true
         pipelines: [logs/entities]
-      - context: log
-        condition: resource.attributes["splunk.destination"] == "platform"
-        pipelines: [logs/platform]
 
 service:
   extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, http_forwarder/signalfx, opamp/splunk_o11y, zpages]
@@ -269,11 +213,3 @@ service:
     logs/split:
       receivers: [otlp]
       exporters: [routing/logs]
-    logs/platform:
-      receivers: [routing/logs]
-      processors: [memory_limiter]
-      exporters: [splunk_hec/platform_logs]
-    metrics/platform:
-      receivers: [otlp]
-      processors: [memory_limiter]
-      exporters: [splunk_hec/platform_metrics]

@@ -61,6 +61,7 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
+gateway_platform_config_path="${collector_config_dir}/gateway_config_platform.yaml"
 logs_config_path="${collector_config_dir}/splunk_logs_config_linux.yaml"
 logs_file_storage_path="/var/lib/otelcol/filelogs"
 metrics_config_path="${collector_config_dir}/splunk_metrics_config_linux.yaml"
@@ -1955,7 +1956,7 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
-    if [ "${with_logs:-false}" != "true" ] && [ "${with_metrics:-false}" != "true" ]; then
+    if [ "${with_logs:-false}" != "true" ] && [ "${with_metrics:-false}" != "true" ] && [ "$mode" != "gateway" ]; then
       configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
     fi
   fi
@@ -1982,7 +1983,15 @@ parse_args_and_install() {
     if [ -n "$splunk_platform_metrics_index" ]; then
       configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
     fi
-    if [ "$mode" != "gateway" ]; then
+    if [ "$mode" = "gateway" ]; then
+      if [ -n "$access_token" ]; then
+        # both o11y and platform: merge gateway_config.yaml + gateway_config_platform.yaml
+        otelcol_options="$otelcol_options --config $gateway_config_path --config $gateway_platform_config_path --feature-gates=confmap.enableMergeAppendOption"
+      else
+        # platform only: use gateway_config_platform.yaml standalone
+        otelcol_options="$otelcol_options --config $gateway_platform_config_path"
+      fi
+    else
       local platform_configs=
       if [ "$with_logs" = "true" ]; then
         platform_configs="$platform_configs --config $logs_config_path"
@@ -1998,6 +2007,11 @@ parse_args_and_install() {
         otelcol_options="$otelcol_options$platform_configs"
       fi
     fi
+  fi
+
+  # For o11y-only gateway, set SPLUNK_CONFIG to the gateway config
+  if [ "$mode" = "gateway" ] && [ -n "$access_token" ] && [ -z "$splunk_platform_url" ]; then
+    configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   fi
 
   if [ -n "$otelcol_options" ]; then

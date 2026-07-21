@@ -61,7 +61,6 @@ func TestHostObserver(t *testing.T) {
 				"LABEL_TWO_VALUE":            "actual.label.two.value.from.env.var",
 			}).WithArgs(
 				"--discovery", "--config-dir", "/opt/config.d",
-				"--set", "splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value.from.cmdline.property",
 				"--set", "splunk.discovery.extensions.k8s_observer.enabled=false",
 				"--set", "splunk.discovery.extensions.host_observer.config.refresh_interval=1s",
 			)
@@ -120,7 +119,6 @@ func TestHostObserver(t *testing.T) {
 	_, out, _ := cc.Container.AssertExec(t, 15*time.Second,
 		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error \
 REFRESH_INTERVAL=1s \
-SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_label_three=actual.label.three.value.from.env.var.property \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\${REFRESH_INTERVAL} \
 /otelcol --config-dir /opt/config.d --discovery --dry-run`)

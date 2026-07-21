@@ -37,7 +37,7 @@ const (
 	noPid                  = -1
 )
 
-// Config exported to be used by jmx metric receiver.
+// Config exported to be used by test utilities.
 type Config struct {
 	EnvironmentVariables map[string]string `mapstructure:"environment_variables"`
 	RestartDelay         *time.Duration    `mapstructure:"restart_delay"`
@@ -48,7 +48,7 @@ type Config struct {
 	RestartOnError       bool              `mapstructure:"restart_on_error"`
 }
 
-// Subprocess exported to be used by jmx metric receiver.
+// Subprocess exported to be used by test utilities.
 type Subprocess struct {
 	Stdout         chan string
 	cancel         context.CancelFunc
@@ -85,7 +85,7 @@ func (subprocess *Subprocess) Pid() int {
 	return pid
 }
 
-// NewSubprocess exported to be used by jmx metric receiver.
+// NewSubprocess exported to be used by test utilities.
 func NewSubprocess(conf *Config, logger *zap.Logger) *Subprocess {
 	if conf.RestartDelay == nil {
 		restartDelay := defaultRestartDelay

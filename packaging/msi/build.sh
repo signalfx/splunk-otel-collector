@@ -24,10 +24,8 @@ fi
 
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
-JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
 VERSION=""
-JMX_METRIC_GATHERER_RELEASE=""
 ARCH=""
 
 while [[ $# -gt 0 ]]; do
@@ -36,17 +34,13 @@ while [[ $# -gt 0 ]]; do
             VERSION="${2:-}"
             shift 2
             ;;
-        --jmx-metric-gatherer-release)
-            JMX_METRIC_GATHERER_RELEASE="${2:-}"
-            shift 2
-            ;;
         --arch)
             ARCH="${2:-}"
             shift 2
             ;;
         *)
             echo "Unknown flag: $1"
-            echo "Usage: $0 [--version <version>] [--jmx-metric-gatherer-release <release>] [--arch <arch>]"
+            echo "Usage: $0 [--version <version>] [--arch <arch>]"
             exit 1
             ;;
     esac
@@ -65,10 +59,6 @@ get_version() {
         echo "$commit_tag"
     fi
 }
-
-if [ -z "$JMX_METRIC_GATHERER_RELEASE" ]; then
-    JMX_METRIC_GATHERER_RELEASE=$(cat "$JMX_METRIC_GATHERER_RELEASE_PATH")
-fi
 
 if [ -z "$VERSION" ]; then
     VERSION="$( get_version )"
@@ -118,5 +108,4 @@ REPO_DIR="$REPO_DIR" \
 WORK_DIR="$REPO_DIR/work" \
 VERSION="$MSI_VERSION" \
 ARCH="$ARCH" \
-JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
     "$SCRIPT_DIR/msi-builder/build-launcher.sh"

@@ -1,0 +1,20 @@
+services:
+  tomcat:
+    image: "tomcat:8-jdk8-corretto"
+    container_name: tomcat
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./splunk-otel-javaagent.jar:/var/splunk-otel-javaagent.jar
+    environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/var/splunk-otel-javaagent.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otelcollector:4318"
+      SPLUNK_PROFILER_ENABLED: "true"
+      OTEL_SERVICE_NAME: tomcat
+  # OpenTelemetry Collector
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:latest
+    container_name: otelcollector
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml

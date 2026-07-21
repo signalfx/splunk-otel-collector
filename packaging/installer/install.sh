@@ -943,7 +943,7 @@ install() {
         exit 1
       fi
       apt-get -y update
-      apt-get -y install apt-transport-https gnupg
+      apt-get -y install apt-transport-https gnupg libcap2-bin
       if [ "$skip_collector_repo" = "false" ]; then
         install_collector_apt_repo "$stage"
       fi

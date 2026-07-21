@@ -634,6 +634,11 @@ func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {
 		case
 			DefaultGatewayConfig,
 			DefaultOTLPLinuxConfig:
+			// When Splunk Platform is configured, SPLUNK_REALM and SPLUNK_ACCESS_TOKEN
+			// are not required — the gateway forwards to Splunk Platform HEC instead of o11y.
+			if os.Getenv("SPLUNK_PLATFORM_URL") != "" && os.Getenv("SPLUNK_PLATFORM_TOKEN") != "" {
+				continue
+			}
 			requiredEnvVars := []string{RealmEnvVar, TokenEnvVar}
 			for _, v := range requiredEnvVars {
 				if os.Getenv(v) == "" {

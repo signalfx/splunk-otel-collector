@@ -19,6 +19,9 @@ ENV GOMODCACHE=/go/pkg/mod
 ENV GOFLAGS="-tags=requirefips"
 ENV GOEXPERIMENT=systemcrypto
 ENV EXTENSION=.exe
+ENV OTELCOL_REQUIRE_PRIVATE_MODULES_TOKEN=true
 
 WORKDIR /src
-RUN --mount=type=cache,target=${GOMODCACHE} make otelcol BUILD_INFO="${BUILD_INFO}"
+RUN --mount=type=cache,target=${GOMODCACHE} \
+    --mount=type=secret,id=private_modules_token \
+    make otelcol BUILD_INFO="${BUILD_INFO}"

@@ -84,6 +84,7 @@ jobs:
   # Build Linux binary for package building
   puppet-build-linux-binary:
     uses: ./.github/workflows/reusable-compile.yml
+    secrets: inherit
     with:
       SYS_BINARY: binaries-linux_amd64
 
@@ -215,6 +216,7 @@ jobs:
   # Use existing reusable workflows for building Windows artifacts
   puppet-build-windows-binary:
     uses: ./.github/workflows/reusable-compile.yml
+    secrets: inherit
     with:
       SYS_BINARY: binaries-windows_amd64
 

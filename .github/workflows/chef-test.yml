@@ -35,6 +35,7 @@ jobs:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-windows_amd64" ]
     uses: ./.github/workflows/reusable-compile.yml
+    secrets: inherit
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 

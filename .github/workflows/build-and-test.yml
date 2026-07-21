@@ -21,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
+        with:
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: tidy
         run: |
@@ -36,6 +38,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
+        with:
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: gofmt
         run: |
@@ -51,6 +55,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
+        with:
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: generate-metrics
         run: |
@@ -81,6 +87,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
+        with:
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
 
@@ -128,6 +136,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
+        with:
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: Free up disk space for next step
         run: .github/workflows/scripts/free-disk-space.sh
@@ -150,6 +160,7 @@ jobs:
       matrix:
         SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-windows_arm64", "binaries-linux_ppc64le" ]
     uses: ./.github/workflows/reusable-compile.yml
+    secrets: inherit
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
@@ -159,6 +170,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/setup-environment
+        with:
+          private-modules-token: ${{ secrets.OTELCOL_PRIVATE_MODULES_TOKEN }}
 
       - name: dockerd test
         working-directory: ./internal/signalfx-agent/pkg/monitors/docker

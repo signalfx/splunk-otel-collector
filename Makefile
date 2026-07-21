@@ -54,6 +54,22 @@ DOCKER_REPO?=docker.io
 GOTESPLIT_TOTAL?=1
 GOTESPLIT_INDEX?=0
 
+PRIVATE_MODULES?=github.com/signalfx/splunk-otel-collector-components
+PRIVATE_MODULES_TOKEN_FILE?=/run/secrets/private_modules_token
+WITH_PRIVATE_MODULES = \
+	private_modules_token_file="$(PRIVATE_MODULES_TOKEN_FILE)"; \
+	if [ -s "$$private_modules_token_file" ]; then \
+		private_modules_token="$$(cat "$$private_modules_token_file")"; \
+		export GOPRIVATE="$${GOPRIVATE:-$(PRIVATE_MODULES)}"; \
+		export GONOSUMDB="$${GONOSUMDB:-$(PRIVATE_MODULES)}"; \
+		export GIT_CONFIG_COUNT=1; \
+		export GIT_CONFIG_KEY_0="url.https://x-access-token:$${private_modules_token}@github.com/.insteadOf"; \
+		export GIT_CONFIG_VALUE_0="https://github.com/"; \
+	elif [ "$${OTELCOL_REQUIRE_PRIVATE_MODULES_TOKEN:-false}" = "true" ]; then \
+		echo "private_modules_token BuildKit secret is required to fetch private Go modules" >&2; \
+		exit 1; \
+	fi;
+
 ### TARGETS
 
 .DEFAULT_GOAL := all
@@ -258,11 +274,11 @@ generate-metrics:
 
 .PHONY: otelcol
 otelcol:
-	go generate ./...
+	@$(WITH_PRIVATE_MODULES) go generate ./...
 ifeq ($(COVER_TESTING), true)
-	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	@$(WITH_PRIVATE_MODULES) GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 else
-	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	@$(WITH_PRIVATE_MODULES) GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 endif
 ifeq ($(OS), Windows_NT)
 	$(LINK_CMD) .\bin\otelcol$(EXTENSION) .\bin\otelcol_$(GOOS)_$(GOARCH)$(EXTENSION)
@@ -394,6 +410,7 @@ endif
 	docker buildx build --pull \
 		--tag otelcol-fips-builder-$(GOOS)-$(GOARCH) \
 		--platform linux/$(GOARCH) \
+		--secret id=private_modules_token,env=OTELCOL_PRIVATE_MODULES_TOKEN \
 		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
 		--build-arg BUILD_INFO='$(BUILD_INFO)' \
 		--file cmd/otelcol/fips/build/Dockerfile.$(GOOS) ./

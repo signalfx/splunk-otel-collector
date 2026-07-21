@@ -1,0 +1,122 @@
+# Gateway configuration for sending data to Splunk Platform via HEC.
+# Use this config when the gateway receives OTLP data from agents and forwards
+# it to Splunk Platform (Enterprise or Cloud) instead of Splunk Observability.
+#
+# Required environment variables:
+# - SPLUNK_PLATFORM_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_PLATFORM_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
+# - SPLUNK_MEMORY_LIMIT_MIB: 90% of total memory allocated to the collector
+#
+# Optional environment variables:
+# - SPLUNK_PLATFORM_LOGS_INDEX: Splunk index for logs. Defaults to the index configured on the HEC token.
+# - SPLUNK_PLATFORM_METRICS_INDEX: Splunk index for metrics. Defaults to the index configured on the HEC token.
+# - SPLUNK_LISTEN_INTERFACE: Network interface for receivers (default: 0.0.0.0)
+
+extensions:
+  health_check:
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
+  zpages:
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
+    expvar:
+      enabled: true
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:4317"
+      http:
+        endpoint: "${SPLUNK_LISTEN_INTERFACE}:4318"
+
+processors:
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+  filter/platform_logs:
+    error_mode: ignore
+    logs:
+      log_record:
+        - scope.attributes["otel.platform"] != "true"
+  filter/platform_metrics:
+    error_mode: ignore
+    metrics:
+      metric:
+        - scope.attributes["otel.platform"] != "true"
+
+exporters:
+  splunk_hec/platform_logs:
+    token: "${SPLUNK_PLATFORM_TOKEN}"
+    endpoint: "${SPLUNK_PLATFORM_URL}"
+    source: "otel"
+    sourcetype: "otel"
+    index: "${env:SPLUNK_PLATFORM_LOGS_INDEX}"
+    profiling_data_enabled: false
+    disable_compression: true
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_elapsed_time: 300s
+      max_interval: 30s
+    sending_queue:
+      enabled: true
+      block_on_overflow: true
+      num_consumers: 10
+      queue_size: 10000
+      sizer: items
+      batch:
+        flush_timeout: 200ms
+        min_size: 2048
+    tls:
+      insecure_skip_verify: false
+  splunk_hec/platform_metrics:
+    token: "${SPLUNK_PLATFORM_TOKEN}"
+    endpoint: "${SPLUNK_PLATFORM_URL}"
+    source: "otel"
+    index: "${env:SPLUNK_PLATFORM_METRICS_INDEX}"
+    log_data_enabled: false
+    use_multi_metric_format: true
+    disable_compression: true
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_elapsed_time: 300s
+      max_interval: 30s
+    sending_queue:
+      enabled: true
+      block_on_overflow: true
+      num_consumers: 10
+      queue_size: 10000
+      sizer: items
+      batch:
+        flush_timeout: 200ms
+        min_size: 2048
+    tls:
+      insecure_skip_verify: false
+
+service:
+  extensions: [health_check, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    resource:
+      attributes:
+        - name: otelcol.service.mode
+          value: gateway
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
+  pipelines:
+    logs/platform:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/platform_logs]
+      exporters: [splunk_hec/platform_logs]
+    metrics/platform:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/platform_metrics]
+      exporters: [splunk_hec/platform_metrics]

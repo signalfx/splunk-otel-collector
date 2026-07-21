@@ -93,7 +93,7 @@ preload_path="/etc/ld.so.preload"
 default_instrumentation_version="latest"
 default_obi_version="v0.6.0"
 default_deployment_environment=""
-instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
+instrumentation_so_path="/usr/lib/splunk-instrumentation/libotelinject.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 systemd_instrumentation_config_path="/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 default_obi_install_dir="/usr/local/bin"
@@ -107,13 +107,20 @@ otlp_endpoint=""
 otlp_endpoint_protocol=""
 metrics_exporter=""
 logs_exporter=""
-java_zeroconfig_path="/etc/splunk/zeroconfig/java.conf"
-node_zeroconfig_path="/etc/splunk/zeroconfig/node.conf"
-dotnet_zeroconfig_path="/etc/splunk/zeroconfig/dotnet.conf"
+injector_config_path="/etc/opentelemetry/injector/injector.conf"
+injector_default_env_path="/etc/opentelemetry/injector/default_env.conf"
 node_package_path="/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
 node_install_prefix="/usr/lib/splunk-instrumentation/splunk-otel-js"
 dotnet_install_dir="/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
-dotnet_agent_path="${dotnet_install_dir}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+case "$distro_arch" in
+  arm64|aarch64)
+    dotnet_native_arch="arm64"
+    ;;
+  *)
+    dotnet_native_arch="x64"
+    ;;
+esac
+dotnet_agent_path="${dotnet_install_dir}/glibc/linux-${dotnet_native_arch}/OpenTelemetry.AutoInstrumentation.Native.so"
 all_sdks="java node dotnet"
 sdks_to_enable=""
 sdks_enabled=""
@@ -698,7 +705,7 @@ disable_preload() {
   fi
 }
 
-create_zeroconfig_java() {
+create_injector_default_env() {
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
@@ -706,11 +713,11 @@ create_zeroconfig_java() {
     resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
   fi
 
-  backup_file "$java_zeroconfig_path"
+  backup_file "$injector_default_env_path"
 
-  echo "Creating ${java_zeroconfig_path}"
-  cat <<EOH > $java_zeroconfig_path
-JAVA_TOOL_OPTIONS=-javaagent:${instrumentation_jar_path}
+  echo "Creating ${injector_default_env_path}"
+  cat <<EOH > $injector_default_env_path
+OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
 OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
 SPLUNK_PROFILER_ENABLED=${enable_profiler}
 SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
@@ -718,23 +725,46 @@ SPLUNK_METRICS_ENABLED=${enable_metrics}
 EOH
 
   if [ -n "$service_name" ]; then
-    echo "OTEL_SERVICE_NAME=${service_name}" >> $java_zeroconfig_path
+    echo "OTEL_SERVICE_NAME=${service_name}" >> $injector_default_env_path
   fi
 
   if [ -n "$otlp_endpoint" ]; then
-    echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $java_zeroconfig_path
+    echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $injector_default_env_path
   fi
 
   if [ -n "$otlp_endpoint_protocol" ]; then
-    echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $java_zeroconfig_path
+    echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $injector_default_env_path
   fi
 
   if [ -n "$metrics_exporter" ]; then
-    echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $java_zeroconfig_path
+    echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $injector_default_env_path
   fi
 
   if [ -n "$logs_exporter" ]; then
-    echo "OTEL_LOGS_EXPORTER=${logs_exporter}" >> $java_zeroconfig_path
+    echo "OTEL_LOGS_EXPORTER=${logs_exporter}" >> $injector_default_env_path
+  fi
+}
+
+configure_injector_runtimes() {
+  local sdks_enabled="$1"
+  local disabled_runtimes=""
+
+  if ! item_in_list "java" "$sdks_enabled"; then
+    disabled_runtimes=$( add_item_to_list "jvm" "$disabled_runtimes" )
+  fi
+  if ! item_in_list "node" "$sdks_enabled"; then
+    disabled_runtimes=$( add_item_to_list "nodejs" "$disabled_runtimes" )
+  fi
+  if ! item_in_list "dotnet" "$sdks_enabled"; then
+    disabled_runtimes=$( add_item_to_list "dotnet" "$disabled_runtimes" )
+  fi
+
+  backup_file "$injector_config_path"
+
+  sed -i -e '/^auto_instrumentation_disabled=/d' "$injector_config_path"
+
+  if [ -n "$disabled_runtimes" ]; then
+    echo "auto_instrumentation_disabled=$( echo $disabled_runtimes | tr ' ' ',' )" >> "$injector_config_path"
   fi
 }
 
@@ -775,93 +805,6 @@ install_node_package() {
   mkdir -p ${node_install_prefix}/node_modules
   echo "Running 'cd $node_install_prefix && $npm_path install --global=false $node_package_path':"
   (cd $node_install_prefix && $npm_path install --global=false $node_package_path)
-}
-
-create_zeroconfig_node() {
-  local version="$( get_package_version splunk-otel-auto-instrumentation )"
-  local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
-
-  if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
-  fi
-
-  backup_file "$node_zeroconfig_path"
-
-  echo "Creating ${node_zeroconfig_path}"
-  cat <<EOH > $node_zeroconfig_path
-NODE_OPTIONS=-r ${node_install_prefix}/node_modules/@splunk/otel/instrument
-OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
-SPLUNK_PROFILER_ENABLED=${enable_profiler}
-SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
-SPLUNK_METRICS_ENABLED=${enable_metrics}
-EOH
-
-  if [ -n "$service_name" ]; then
-    echo "OTEL_SERVICE_NAME=${service_name}" >> $node_zeroconfig_path
-  fi
-
-  if [ -n "$otlp_endpoint" ]; then
-    echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $node_zeroconfig_path
-  fi
-
-  if [ -n "$otlp_endpoint_protocol" ]; then
-    echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $node_zeroconfig_path
-  fi
-
-  if [ -n "$metrics_exporter" ]; then
-    echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $node_zeroconfig_path
-  fi
-
-  if [ -n "$logs_exporter" ]; then
-    echo "OTEL_LOGS_EXPORTER=${logs_exporter}" >> $node_zeroconfig_path
-  fi
-}
-
-create_zeroconfig_dotnet() {
-  local version="$( get_package_version splunk-otel-auto-instrumentation )"
-  local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
-
-  if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
-  fi
-
-  backup_file "$dotnet_zeroconfig_path"
-
-  echo "Creating ${dotnet_zeroconfig_path}"
-  cat <<EOH > $dotnet_zeroconfig_path
-CORECLR_ENABLE_PROFILING=1
-CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}
-CORECLR_PROFILER_PATH=${dotnet_install_dir}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so
-DOTNET_ADDITIONAL_DEPS=${dotnet_install_dir}/AdditionalDeps
-DOTNET_SHARED_STORE=${dotnet_install_dir}/store
-DOTNET_STARTUP_HOOKS=${dotnet_install_dir}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll
-OTEL_DOTNET_AUTO_HOME=${dotnet_install_dir}
-OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
-OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
-SPLUNK_PROFILER_ENABLED=${enable_profiler}
-SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
-SPLUNK_METRICS_ENABLED=${enable_metrics}
-EOH
-
-  if [ -n "$service_name" ]; then
-    echo "OTEL_SERVICE_NAME=${service_name}" >> $dotnet_zeroconfig_path
-  fi
-
-  if [ -n "$otlp_endpoint" ]; then
-    echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $dotnet_zeroconfig_path
-  fi
-
-  if [ -n "$otlp_endpoint_protocol" ]; then
-    echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $dotnet_zeroconfig_path
-  fi
-
-  if [ -n "$metrics_exporter" ]; then
-    echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $dotnet_zeroconfig_path
-  fi
-
-  if [ -n "$logs_exporter" ]; then
-    echo "OTEL_LOGS_EXPORTER=${logs_exporter}" >> $dotnet_zeroconfig_path
-  fi
 }
 
 create_systemd_instrumentation_config() {
@@ -918,10 +861,10 @@ EOH
       cat <<EOH >> $systemd_instrumentation_config_path
 DefaultEnvironment="CORECLR_ENABLE_PROFILING=1"
 DefaultEnvironment="CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}"
-DefaultEnvironment="CORECLR_PROFILER_PATH=${dotnet_install_dir}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DefaultEnvironment="DOTNET_ADDITIONAL_DEPS=${dotnet_install_dir}/AdditionalDeps"
-DefaultEnvironment="DOTNET_SHARED_STORE=${dotnet_install_dir}/store"
-DefaultEnvironment="DOTNET_STARTUP_HOOKS=${dotnet_install_dir}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll"
+DefaultEnvironment="CORECLR_PROFILER_PATH=${dotnet_install_dir}/glibc/linux-${dotnet_native_arch}/OpenTelemetry.AutoInstrumentation.Native.so"
+DefaultEnvironment="DOTNET_ADDITIONAL_DEPS=${dotnet_install_dir}/glibc/AdditionalDeps"
+DefaultEnvironment="DOTNET_SHARED_STORE=${dotnet_install_dir}/glibc/store"
+DefaultEnvironment="DOTNET_STARTUP_HOOKS=${dotnet_install_dir}/glibc/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll"
 DefaultEnvironment="OTEL_DOTNET_AUTO_HOME=${dotnet_install_dir}"
 DefaultEnvironment="OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation"
 EOH
@@ -1131,7 +1074,7 @@ Splunk Platform:
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
-                                        libsplunk.so shared object library to /etc/ld.so.preload to enable auto
+                                        libotelinject.so shared object library to /etc/ld.so.preload to enable auto
                                         instrumentation for all supported processes on the host.
                                         Cannot be combined with the '--with-systemd-instrumentation' option.
                                         (default: --without-instrumentation)
@@ -1146,7 +1089,6 @@ Auto Instrumentation:
                                         Currently supported values: "java", "node", and "dotnet"
                                         Use --with-instrumentation-sdk to enable only the specified language(s),
                                         for example "--with-instrumentation-sdk java".
-                                        *Note*: .NET (dotnet) auto instrumentation is only supported on x86_64/amd64.
                                         (default: --with-instrumentation-sdk $( echo $all_sdks | tr ' ' ',' ))
   --npm-path <path>                     If Auto Instrumentation for Node.js is enabled, npm is required to install the
                                         included Splunk OpenTelemetry Auto Instrumentation for Node.js package. If npm
@@ -1301,7 +1243,7 @@ version_supported() {
 
 dotnet_supported() {
   case "$distro_arch" in
-    amd64|x86_64)
+    amd64|x86_64|arm64|aarch64)
       return 0
       ;;
     *)
@@ -1847,38 +1789,28 @@ parse_args_and_install() {
 
   if [ "$with_instrumentation" = "true" ]; then
     if item_in_list "java" "$sdks_to_enable"; then
-      create_zeroconfig_java
       sdks_enabled=$( add_item_to_list "java" "$sdks_enabled" )
-    elif [ -f "$java_zeroconfig_path" ]; then
-      backup_file "$java_zeroconfig_path"
-      rm -f "$java_zeroconfig_path"
     fi
     if item_in_list "node" "$sdks_to_enable" && install_node_package "$npm_path"; then
-      create_zeroconfig_node
       node_package_installed="true"
       sdks_enabled=$( add_item_to_list "node" "$sdks_enabled" )
-    elif [ -f "$node_zeroconfig_path" ]; then
-      backup_file "$node_zeroconfig_path"
-      rm -f "$node_zeroconfig_path"
     fi
     if item_in_list "dotnet" "$sdks_to_enable" && [ -f "$dotnet_agent_path" ]; then
-      create_zeroconfig_dotnet
       sdks_enabled=$( add_item_to_list "dotnet" "$sdks_enabled" )
-    elif [ -f "$dotnet_zeroconfig_path" ]; then
-      backup_file "$dotnet_zeroconfig_path"
-      rm -f "$dotnet_zeroconfig_path"
     fi
     if [ -n "$sdks_enabled" ]; then
+      create_injector_default_env
+      configure_injector_runtimes "$sdks_enabled"
       if [ -f "$systemd_instrumentation_config_path" ]; then
         # backup and remove the systemd config if it exists to avoid conflicts with /etc/ld.so.preload
         backup_file "$systemd_instrumentation_config_path"
         rm -f "$systemd_instrumentation_config_path"
       fi
-      # add libsplunk.so to /etc/ld.so.preload if it was not added automatically by the instrumentation package
+      # add libotelinject.so to /etc/ld.so.preload if it was not added automatically by the instrumentation package
       enable_preload
     fi
   elif [ "$with_systemd_instrumentation" = "true" ]; then
-    # remove libsplunk.so from /etc/ld.so.preload if it was added automatically by the instrumentation package
+    # remove libotelinject.so from /etc/ld.so.preload if it was added automatically by the instrumentation package
     disable_preload
     sdks_enabled="$sdks_to_enable"
     if item_in_list "node" "$sdks_to_enable" && install_node_package "$npm_path"; then
@@ -2072,7 +2004,7 @@ EOH
 The Splunk OpenTelemetry Auto Instrumentation package has been installed.
 /etc/ld.so.preload has been configured for the instrumentation library at $instrumentation_so_path.
 
-The configuration file(s) are located in /etc/splunk/zeroconfig/.
+The configuration file(s) are located in /etc/opentelemetry/injector/.
 
 Reboot the system or restart the application(s) for auto instrumentation to take effect.
 

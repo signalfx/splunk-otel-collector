@@ -30,7 +30,6 @@ GATEWAY_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
 SUPPORT_BUNDLE_SCRIPT=${SUPPORT_BUNDLE_SCRIPT:-"${MSI_SRC_DIR}/splunk-support-bundle.ps1"}
 SPLUNK_ICON="${MSI_SRC_DIR}/splunk.ico"
 OUTPUT_DIR="${REPO_DIR}/dist"
-JMX_METRIC_GATHERER_RELEASE="1.29.0"
 
 usage() {
     cat <<EOH >&2
@@ -48,8 +47,6 @@ OPTIONS:
                                       Defaults to '$GATEWAY_CONFIG'.
     --support-bundle PATH             Absolute path to the support bundle script.
                                       Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
-    --jmx-metric-gatherer VERSION     The released version of the JMX Metric Gatherer JAR to include (will be downloaded).
-                                      Defaults to '$JMX_METRIC_GATHERER_RELEASE'.
     --splunk-icon PATH                Absolute path to the splunk.ico.
                                       Defaults to '$SPLUNK_ICON'.
     --arch ARCH                       Target architecture to build for (e.g., "amd64", "arm64").
@@ -67,7 +64,6 @@ parse_args_and_build() {
     local splunk_logs_config="$SPLUNK_LOGS_CONFIG"
     local splunk_metrics_config="$SPLUNK_METRICS_CONFIG"
     local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
-    local jmx_metric_gatherer_release="$JMX_METRIC_GATHERER_RELEASE"
     local splunk_icon="$SPLUNK_ICON"
     local output="$OUTPUT_DIR"
     local version=
@@ -94,10 +90,6 @@ parse_args_and_build() {
                 ;;
             --support-bundle)
                 support_bundle="$2"
-                shift 1
-                ;;
-            --jmx-metric-gatherer)
-                jmx_metric_gatherer_release="$2"
                 shift 1
                 ;;
             --splunk-icon)
@@ -167,13 +159,6 @@ parse_args_and_build() {
     cp "$splunk_metrics_config" "${files_dir}/splunk_metrics_config_windows.yaml"
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
 
-    jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
-    if [ -f "${jmx_metrics_jar}" ]; then
-        echo "JMX Metric Gatherer already downloaded"
-    else
-        download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir"
-    fi
-
     cd ${WORK_DIR}
 
     wixarch="x64"
@@ -187,7 +172,6 @@ parse_args_and_build() {
         -bindpath "${files_dir}" \
         -d Version="${version}" \
         -d Otelcol="${otelcol}" \
-        -d JmxMetricsJar="${jmx_metrics_jar}" \
         -d FilesDir="${files_dir}"
 
     msi="${build_dir}/${msi_name}"
@@ -197,17 +181,6 @@ parse_args_and_build() {
     { set +x; } 2>/dev/null
 
     echo "MSI saved to ${output}/${msi_name}"
-}
-
-download_jmx_metric_gatherer() {
-    local version="$1"
-    local build_dir="$2"
-    jmx_filename="opentelemetry-java-contrib-jmx-metrics.jar"
-    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/$version/opentelemetry-jmx-metrics.jar"
-    echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"
-
-    mkdir -p "${build_dir}"
-    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${build_dir}/${jmx_filename}"
 }
 
 parse_args_and_build $@

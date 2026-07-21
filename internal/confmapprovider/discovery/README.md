@@ -153,7 +153,6 @@ I. Receivers
 * `apache` ([config](./bundle.d/receivers/apache.discovery.yaml))
 * `envoy` ([config](./bundle.d/receivers/envoy.discovery.yaml))
 * `istio` ([config](./bundle.d/receivers/istio.discovery.yaml))
-* `jmx/cassandra` ([config](./bundle.d/receivers/jmx-cassandra.discovery.yaml))
 * `kafka_metrics` ([config](./bundle.d/receivers/kafka_metrics.discovery.yaml))
 * `mongodb` ([config](./bundle.d/receivers/mongodb.discovery.yaml))
 * `mysql` ([config](./bundle.d/receivers/mysql.discovery.yaml))

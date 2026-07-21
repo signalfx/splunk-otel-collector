@@ -296,17 +296,6 @@ update-javaagent:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-javaagent.sh
 
-update-jmx-metrics-gatherer:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-yq.sh
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-jmx-metrics-gatherer.sh
-
 update-nodejs-agent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -653,7 +642,7 @@ build-msi:
           $VERSION_TAG = ""
       }
     - |
-      $bashCmd = "./packaging/msi/build.sh --version '$VERSION_TAG' --jmx-metric-gatherer-release $(Get-Content ./packaging/jmx-metric-gatherer-release.txt) --arch $($env:ARCH)"
+      $bashCmd = "./packaging/msi/build.sh --version '$VERSION_TAG' --arch $($env:ARCH)"
       & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCmd"
   artifacts:
     paths:
@@ -987,10 +976,9 @@ build-push-windows-image:
         # Only push latest tag for main and stable releases
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -1122,10 +1110,9 @@ build-push-windows-fips-image:
         # Only push latest tag for main and stable releases (manual or tag)
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"

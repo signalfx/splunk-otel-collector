@@ -24,9 +24,8 @@ BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/int
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
-BUILD_JMX_GATHERER_HASH=-X github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver.MetricsGathererHash=e934a3788da32002dedb4c3f122d900648ba3ad5c9dceaf4d58709caa4d1e547
-BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_JMX_GATHERER_HASH}"
-BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION) ${BUILD_JMX_GATHERER_HASH}"
+BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
+BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 CGO_ENABLED?=0
 
 # This directory is used in tests hold code coverage results.
@@ -36,7 +35,6 @@ CGO_ENABLED?=0
 # access to host dir.
 MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 
-JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
 WITH_OPAMP_SUPERVISOR?=false
@@ -126,14 +124,6 @@ integration-test-kafka-metrics-discovery:
 .PHONY: integration-test-kafka-metrics-discovery-with-cover
 integration-test-kafka-metrics-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_kafka_metrics'
-
-.PHONY: integration-test-jmx/cassandra-discovery
-integration-test-jmx/cassandra-discovery:
-	@make integration-test-target TARGET='discovery_integration_jmx'
-
-.PHONY: integration-test-jmx/cassandra-discovery-with-cover
-integration-test-jmx/cassandra-discovery-with-cover:
-	@make integration-test-cover-target TARGET='discovery_integration_jmx'
 
 .PHONY: integration-test-apache-discovery
 integration-test-apache-discovery:
@@ -303,7 +293,7 @@ delete-tag:
 
 .PHONY: docker-otelcol
 docker-otelcol:
-	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./packaging/docker-otelcol.sh
+	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64
@@ -362,7 +352,7 @@ ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)
 endif
 	docker build -t otelcol-fpm packaging/fpm
-	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm
+	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) otelcol-fpm
 
 .PHONY: update-examples
 update-examples:

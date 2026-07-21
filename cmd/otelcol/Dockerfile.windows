@@ -19,11 +19,6 @@ COPY config/collector/ecs_ec2_config.yaml ./
 
 WORKDIR "C:\\Program Files\Splunk\OpenTelemetry Collector"
 
-# Download JMX Metric Gatherer
-ARG JMX_METRIC_GATHERER_RELEASE
-RUN New-Item -Path "C:\\" -Name "opt" -ItemType "directory"
-RUN Invoke-WebRequest -Uri "https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/${env:JMX_METRIC_GATHERER_RELEASE}/opentelemetry-jmx-metrics.jar" -Outfile "c:\opt\opentelemetry-java-contrib-jmx-metrics.jar"
-
 # Setting environment variables
 ENV SPLUNK_CONFIG="C:\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml"
 

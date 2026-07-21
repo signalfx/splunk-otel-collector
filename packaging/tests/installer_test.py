@@ -271,7 +271,7 @@ def test_installer_default(distro, arch, mode):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_installer_custom(distro, arch):
-    collector_version = "0.126.0"
+    collector_version = LOCAL_COLLECTOR_PACKAGE if LOCAL_COLLECTOR_PACKAGE else "0.126.0"
     service_owner = "test-user"
     custom_config = "/etc/my-custom-config.yaml"
 
@@ -281,13 +281,16 @@ def test_installer_custom(distro, arch):
         "--memory 256",
         f"--service-user {service_owner} --service-group {service_owner}",
         f"--collector-config {custom_config}",
-        f"--collector-version {collector_version}",
     ))
+    if not LOCAL_COLLECTOR_PACKAGE:
+        install_cmd += f" --collector-version ${collector_version}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
     with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, CUSTOM_COLLECTOR_CONFIG, custom_config)
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
 
         try:
             # run installer script
@@ -295,8 +298,9 @@ def test_installer_custom(distro, arch):
             time.sleep(5)
 
             # verify collector version
-            _, output = run_container_cmd(container, "otelcol --version")
-            assert output.decode("utf-8").strip() == f"otelcol version v{collector_version}"
+            if not LOCAL_COLLECTOR_PACKAGE:
+                _, output = run_container_cmd(container, "otelcol --version")
+                assert output.decode("utf-8").strip() == f"otelcol version v{collector_version}"
 
             # verify env file created with configured parameters
             verify_env_file(container, config_path=custom_config, memory="256", listen_addr="10.0.0.1")
@@ -383,6 +387,8 @@ def test_installer_with_instrumentation_default(distro, arch, method):
     dockerfile = get_instrumentation_dockerfile(distro)
     with run_distro_container(distro, dockerfile=dockerfile, arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
         if LOCAL_INSTRUMENTATION_PACKAGE:
             copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
@@ -499,6 +505,8 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
     dockerfile = get_instrumentation_dockerfile(distro)
     with run_distro_container(distro, dockerfile=dockerfile, arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
         if LOCAL_INSTRUMENTATION_PACKAGE:
             copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
@@ -661,6 +669,8 @@ def test_installer_with_obi(distro, arch):
     print(f"Testing OBI installation on {distro} ({arch}) ...")
     with run_distro_container(distro, arch=arch, extra_volumes={"/sys/fs/bpf": {"bind": "/sys/fs/bpf", "mode": "rw"}}) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
 
         run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
         time.sleep(5)

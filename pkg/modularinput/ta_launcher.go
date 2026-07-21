@@ -222,13 +222,31 @@ func detectTARunMode(args []string) TARunMode {
 	return ExecutionTARunMode
 }
 
+// envVarRefPattern matches valid environment variable references: $VAR or ${VAR}, where VAR
+// contains only letters, digits, and underscores, and doesn't start with a digit.
+// This intentionally excludes collector config provider syntax such as "${file:./secret}" or
+// "${env:HOME}", which is not a valid identifier and must be passed through untouched so the
+// collector's own config resolver can process it later.
+var envVarRefPattern = regexp.MustCompile(`\$(?:([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})`)
+
+// expandEnvRefs replaces $VAR and ${VAR} references matched by envVarRefPattern with the value
+// of the corresponding process environment variable. Any other "${...}" or "$..." sequence that
+// doesn't match a valid environment variable name (e.g. config provider syntax) is left untouched.
+func expandEnvRefs(s string) string {
+	return envVarRefPattern.ReplaceAllStringFunc(s, func(match string) string {
+		sub := envVarRefPattern.FindStringSubmatch(match)
+		name := sub[1]
+		if name == "" {
+			name = sub[2]
+		}
+		return os.Getenv(name)
+	})
+}
+
 // setEnvVarsInOrder sets environment variables in dependency order.
 // Variables that don't reference other environment variables are set first,
 // followed by those that do reference other environment variables.
 func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string) error) error {
-	// Pattern to match environment variable references: $VAR, ${VAR} (case insensitive)
-	envVarRefPattern := regexp.MustCompile(`(?i)\$\{?[A-Z_][A-Z0-9_]*\}?`)
-
 	// Separate variables into those with and without dependencies
 	var noDeps []string
 	var withDeps []string
@@ -256,7 +274,7 @@ func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string
 
 	// Set variables with dependencies, expanding environment variable references
 	for _, envVarName := range withDeps {
-		envVarValue := os.ExpandEnv(envVars[envVarName])
+		envVarValue := expandEnvRefs(envVars[envVarName])
 		err := setEnvFunc(envVarName, envVarValue)
 		if err != nil {
 			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)

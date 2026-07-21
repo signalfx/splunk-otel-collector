@@ -366,14 +366,6 @@ install-test-tools:
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
 
-# otelcol-splunkprivate builds a prototype collector that includes closed-source
-# components from github.com/signalfx/splunk-otel-collector-components via the
-# `splunkprivate` build tag. Assumes GOPRIVATE and git credentials are already
-# configured for github.com/signalfx/splunk-otel-collector-components.
-.PHONY: otelcol-splunkprivate
-otelcol-splunkprivate:
-	GOFLAGS="-tags=splunkprivate" $(MAKE) otelcol
-
 .PHONY: otelcol-fips
 otelcol-fips:
 ifeq ($(GOOS), linux)
@@ -392,7 +384,6 @@ endif
 	docker buildx build --pull \
 		--tag otelcol-fips-builder-$(GOOS)-$(GOARCH) \
 		--platform linux/$(GOARCH) \
-		--secret id=private_modules_token,env=OTELCOL_PRIVATE_MODULES_TOKEN \
 		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
 		--build-arg BUILD_INFO='$(BUILD_INFO)' \
 		--file cmd/otelcol/fips/build/Dockerfile.$(GOOS) ./

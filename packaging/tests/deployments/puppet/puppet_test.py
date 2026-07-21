@@ -48,6 +48,8 @@ PKG_NAME = "splunk-otel-collector"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
 SPLUNK_ACCESS_TOKEN = "testing123"
 SPLUNK_REALM = "test"
+CUSTOM_SERVICE_OWNER = "custom-user"
+CUSTOM_SERVICE_GROUP = "custom-group"
 SPLUNK_INGEST_URL = f"https://ingest.{SPLUNK_REALM}.observability.splunkcloud.com"
 SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.observability.splunkcloud.com"
 PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "8").split(",")
@@ -201,6 +203,8 @@ class {{ splunk_otel_collector:
     collector_version => '$version',
     collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
+    service_user => '{CUSTOM_SERVICE_OWNER}',
+    service_group => '{CUSTOM_SERVICE_GROUP}',
 }}
 """
 )
@@ -236,7 +240,13 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
-            assert wait_for(lambda: service_is_running(container))
+            assert wait_for(lambda: service_is_running(container, service_owner=CUSTOM_SERVICE_OWNER))
+            code, output = container.exec_run(f"stat -c '%U:%G:%a' {CONFIG_DIR}")
+            assert code == 0
+            assert output.decode("utf-8").strip() == f"{CUSTOM_SERVICE_OWNER}:{CUSTOM_SERVICE_GROUP}:755"
+            assert container.exec_run(
+                f"su -s /bin/sh -c 'test -w {CONFIG_DIR}' {CUSTOM_SERVICE_OWNER}"
+            ).exit_code == 0
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 

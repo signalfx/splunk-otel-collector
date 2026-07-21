@@ -89,7 +89,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/influxdbreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.156.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8seventsreceiver v0.156.0

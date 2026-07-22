@@ -16,8 +16,12 @@
 package vaultconfigsource
 
 import (
+	"errors"
+	"fmt"
+
+	hclog "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-secure-stdlib/awsutil"
 	"github.com/hashicorp/vault/api"
-	aws "github.com/hashicorp/vault/builtin/credential/aws"
 )
 
 // IAMAuthentication holds the authentication options for AWS IAM. The options
@@ -37,33 +41,63 @@ type IAMAuthentication struct {
 	Role *string `mapstructure:"role"`
 }
 
+// Token performs an AWS IAM login against the Vault server and returns the
+// resulting client token. The logic mirrors upstream's
+// builtin/credential/aws/cli.go CLIHandler.Auth, inlined here to avoid
+// depending on the github.com/hashicorp/vault module.
 func (iam *IAMAuthentication) Token(client *api.Client) (string, error) {
-	data := map[string]string{}
-
-	// Have to only set these if provided to not confuse the Auth method below
+	mount := "aws"
 	if iam.Mount != nil {
-		data["mount"] = *iam.Mount
+		mount = *iam.Mount
 	}
+
+	role := ""
 	if iam.Role != nil {
-		data["role"] = *iam.Role
+		role = *iam.Role
 	}
+
+	headerValue := ""
+	if iam.HeaderValue != nil {
+		headerValue = *iam.HeaderValue
+	}
+
+	var accessKeyID, secretAccessKey, securityToken string
 	if iam.AWSAccessKeyID != nil {
-		data["aws_access_key_id"] = *iam.AWSAccessKeyID
+		accessKeyID = *iam.AWSAccessKeyID
 	}
 	if iam.AWSSecretAccessKey != nil {
-		data["aws_secret_access_key"] = *iam.AWSSecretAccessKey
+		secretAccessKey = *iam.AWSSecretAccessKey
 	}
 	if iam.AWSSecurityToken != nil {
-		data["aws_security_token"] = *iam.AWSSecurityToken
-	}
-	if iam.HeaderValue != nil {
-		data["header_value"] = *iam.HeaderValue
+		securityToken = *iam.AWSSecurityToken
 	}
 
-	h := aws.CLIHandler{}
-	secret, err := h.Auth(client, data)
+	logger := hclog.Default()
+	logger.SetLevel(hclog.Info)
+	creds, err := awsutil.RetrieveCreds(accessKeyID, secretAccessKey, securityToken, logger)
 	if err != nil {
 		return "", err
 	}
+
+	// The CLI has always defaulted to "us-east-1" if a region is not provided,
+	// matching upstream behavior.
+	region := awsutil.DefaultRegion
+	loginData, err := awsutil.GenerateLoginData(creds, headerValue, region, logger)
+	if err != nil {
+		return "", err
+	}
+	if loginData == nil {
+		return "", errors.New("got nil response from GenerateLoginData")
+	}
+	loginData["role"] = role
+
+	secret, err := client.Logical().Write(fmt.Sprintf("auth/%s/login", mount), loginData)
+	if err != nil {
+		return "", err
+	}
+	if secret == nil {
+		return "", errors.New("empty response from credential provider")
+	}
+
 	return secret.Auth.ClientToken, nil
 }

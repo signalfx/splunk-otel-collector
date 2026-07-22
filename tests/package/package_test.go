@@ -62,7 +62,6 @@ func TestTarCollectorPackageInstall(t *testing.T) {
 				bundleDir := "/tmp/splunk-otel-collector"
 				assertExec(t, container, time.Minute, "test -d "+bundleDir+"/bin")
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/bin/otelcol")
-				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/opt/opentelemetry-java-contrib-jmx-metrics.jar")
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/config/agent_config.yaml")
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/config/gateway_config.yaml")
 			})

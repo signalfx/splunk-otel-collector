@@ -1,0 +1,9 @@
+change_type: enhancement
+
+component: installer
+
+note: Add Ubuntu 26.04 (Resolute) support to the Linux installer and CI coverage.
+
+issues: [7761]
+
+subtext:

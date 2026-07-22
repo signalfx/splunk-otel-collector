@@ -5,6 +5,9 @@ self-hosted-runner:
     - otel-arm64
     - otel-windows
     - otel-windows-arm
+    # This is a GitHub-hosted preview runner, not self-hosted. Keep it here
+    # until actionlint's built-in GitHub runner labels catch up.
+    - ubuntu-26.04
 
 # Path-specific configurations.
 paths:

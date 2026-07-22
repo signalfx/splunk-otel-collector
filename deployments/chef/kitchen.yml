@@ -86,6 +86,11 @@ platforms:
       image: dokken/ubuntu-24.04
       pid_one_command: /bin/systemd
 
+  - name: ubuntu-26.04
+    driver:
+      image: dokken/ubuntu-26.04
+      pid_one_command: /bin/systemd
+
 suites:
   - name: default
     run_list:

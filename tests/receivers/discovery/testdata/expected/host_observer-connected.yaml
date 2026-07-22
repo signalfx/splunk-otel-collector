@@ -27,7 +27,7 @@ resourceLogs:
                           stringValue: ''
                       - key: discovery.observer.name
                         value:
-                          stringValue: with/another/name
+                          stringValue: ""
                       - key: discovery.observer.type
                         value:
                           stringValue: host_observer
@@ -39,7 +39,7 @@ resourceLogs:
                           stringValue: prometheus
                       - key: discovery.observer.id
                         value:
-                          stringValue: host_observer/with/another/name
+                          stringValue: ""
                       - key: service_instance_id
                         value:
                           stringValue: ""

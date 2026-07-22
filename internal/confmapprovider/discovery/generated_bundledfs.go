@@ -31,6 +31,7 @@ import "embed"
 //go:embed bundle.d/receivers/nginx.discovery.yaml
 //go:embed bundle.d/receivers/oracledb.discovery.yaml
 //go:embed bundle.d/receivers/postgresql.discovery.yaml
+//go:embed bundle.d/receivers/prometheus_otelcol.discovery.yaml
 //go:embed bundle.d/receivers/rabbitmq.discovery.yaml
 //go:embed bundle.d/receivers/redis.discovery.yaml
 //go:embed bundle.d/receivers/sqlserver.discovery.yaml

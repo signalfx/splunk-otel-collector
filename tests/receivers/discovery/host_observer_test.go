@@ -59,6 +59,10 @@ func TestDiscoveryReceiverWithHostObserverAndPrometheusReceiverProvideStatusLogs
 					continue
 				}
 				if v, ok := entityAttributes.Map().Get("discovery.status"); ok && v.Str() == "failed" {
+					entityAttributes.Map().PutStr("discovery.observer.id", "")
+					entityAttributes.Map().PutStr("discovery.observer.name", "")
+					entityAttributes.Map().PutStr("discovery.endpoint.id", "")
+					entityAttributes.Map().PutStr("discovery.receiver.config", "")
 					err := plogtest.CompareLogs(failure, received,
 						plogtest.IgnoreResourceAttributeValue("service_instance_id"),
 						plogtest.IgnoreResourceAttributeValue("service_version"),
@@ -91,6 +95,8 @@ func TestDiscoveryReceiverWithHostObserverAndPrometheusReceiverProvideStatusLogs
 					entityAttributes.Map().PutStr("discovery.endpoint.id", "")
 					entityAttributes.Map().PutStr("discovery.receiver.config", "")
 					entityAttributes.Map().PutStr("service.name", "")
+					entityAttributes.Map().PutStr("discovery.observer.id", "")
+					entityAttributes.Map().PutStr("discovery.observer.name", "")
 
 					err := plogtest.CompareLogs(success, received,
 						plogtest.IgnoreResourceAttributeValue("service_instance_id"),

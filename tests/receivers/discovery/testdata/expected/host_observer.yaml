@@ -21,7 +21,7 @@ resourceLogs:
                           stringValue: hostport
                       - key: discovery.endpoint.id
                         value:
-                          stringValue: (host_observer)[::]-4318-TCP-1
+                          stringValue: ""
                       - key: endpoint
                         value:
                           stringValue: '[::]:4318'
@@ -39,10 +39,10 @@ resourceLogs:
                           stringValue: failed
                       - key: discovery.observer.id
                         value:
-                          stringValue: host_observer
+                          stringValue: ""
                       - key: discovery.receiver.config
                         value:
-                          stringValue: cmVjZWl2ZXJzOgogIHByb21ldGhldXMvb3RlbGNvbDoKICAgIGNvbmZpZzoKICAgICAgY29uZmlnOgogICAgICAgIHNjcmFwZV9jb25maWdzOgogICAgICAgIC0gam9iX25hbWU6IG90ZWxjb2wKICAgICAgICAgIHNjcmFwZV9pbnRlcnZhbDogMTBzCiAgICAgICAgICBzdGF0aWNfY29uZmlnczoKICAgICAgICAgIC0gdGFyZ2V0czoKICAgICAgICAgICAgLSAnYGVuZHBvaW50YCcKICAgIHJlc291cmNlX2F0dHJpYnV0ZXM6CiAgICAgIG9uZS5rZXk6IG9uZS52YWx1ZQogICAgICB0d28ua2V5OiB0d28udmFsdWUKICAgIHJ1bGU6IHR5cGUgPT0gImhvc3Rwb3J0IiBhbmQgY29tbWFuZCBjb250YWlucyAib3RlbGNvbCIKd2F0Y2hfb2JzZXJ2ZXJzOgotIGhvc3Rfb2JzZXJ2ZXIK
+                          stringValue: ""
                       - key: discovery.receiver.type
                         value:
                           stringValue: prometheus

@@ -12,7 +12,7 @@ on:
         value: ${{ jobs.msi-build.outputs.version }}
 
 env:
-  GO_VERSION: 1.26.4
+  GO_VERSION: 1.26.5
 
 jobs:
   msi-build:
@@ -58,9 +58,8 @@ jobs:
         run: |
           # Build script parameters
           VERSION="${{ steps.get-version.outputs.version }}"
-          JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
-          ./packaging/msi/build.sh --version "$VERSION" --jmx-metric-gatherer-release "$JMX_METRIC_GATHERER_RELEASE" --arch "${{ inputs.ARCH }}"
+          ./packaging/msi/build.sh --version "$VERSION" --arch "${{ inputs.ARCH }}"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

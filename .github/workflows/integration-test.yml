@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.4
+  GO_VERSION: 1.26.5
 jobs:
   otelcol:
     runs-on: ubuntu-24.04
@@ -22,10 +22,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+      - uses: ./.github/actions/setup-environment
       - run: make binaries-linux_${{ matrix.ARCH }} COVER_TESTING=true
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -335,7 +332,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "jmx/cassandra" "kafka-metrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
+          for service in "apache" "kafka-metrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 # go.mongodb.org/mongo-driver/v2 requires MongoDB 4.2 or newer.
@@ -343,7 +340,7 @@ jobs:
                 for mongodb_version in "4.4" "5.0"; do
                   includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\", \"MONGODB_VERSION\": \"${mongodb_version}\"}"
                 done
-              elif [[ ("$service" != "jmx/cassandra" && "$service" != "oracledb") || "arm64" != "$arch" ]]; then
+              elif [[ "$service" != "oracledb" || "arm64" != "$arch" ]]; then
                 includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\"}"
               fi
             done
@@ -385,11 +382,6 @@ jobs:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
         - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
-        - name: Add Java if required by the discovery test configuration (e.g. for JMX tests)
-          if: matrix.SERVICE == 'jmx/cassandra'
-          run: |
-            docker buildx build --load --platform linux/${{ matrix.ARCH }} -t otelcol:latest \
-              -f ./tests/receivers/jmx/cassandra/Dockerfile .
         - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover

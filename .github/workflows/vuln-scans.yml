@@ -16,7 +16,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: 1.26.4
+  GO_VERSION: 1.26.5
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -128,7 +128,7 @@ jobs:
           } else {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
           }
-          docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
       - uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
         id: anchore-scan

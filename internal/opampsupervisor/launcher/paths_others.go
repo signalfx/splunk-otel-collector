@@ -20,12 +20,14 @@ package launcher
 // locations used by the package-managed service on Linux packages.
 func DefaultPaths() Paths {
 	return Paths{
-		CollectorExecutable:      "/usr/bin/otelcol",
-		SupervisorExecutable:     "/usr/bin/opampsupervisor",
-		SupervisorConfig:         "/etc/otel/collector/supervisor/supervisor_config.yaml",
-		GeneratedCollectorConfig: "/etc/otel/collector/supervisor/collector_config.yaml",
-		StorageDirectory:         "/var/lib/otelcol/supervisor",
-		DefaultAgentConfig:       "/etc/otel/collector/agent_config.yaml",
-		UseHUPConfigReload:       true,
+		CollectorExecutable:         "/usr/bin/otelcol",
+		SupervisorExecutable:        "/usr/bin/opampsupervisor",
+		SupervisorConfig:            "/etc/otel/collector/supervisor/supervisor_config.yaml",
+		RuntimeSupervisorConfig:     "/etc/otel/collector/supervisor/supervisor_runtime_config.yaml",
+		GeneratedCollectorConfigDir: "/etc/otel/collector/supervisor",
+		StorageDirectory:            "/var/lib/otelcol/supervisor",
+		DefaultAgentConfig:          "/etc/otel/collector/agent_config.yaml",
+		ConfigApplyTimeout:          "1m",
+		UseHUPConfigReload:          true,
 	}
 }

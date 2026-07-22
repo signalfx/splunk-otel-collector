@@ -1020,7 +1020,7 @@ processors:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
-  resourcedetection:
+  resource_detection:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
@@ -1032,8 +1032,8 @@ processors:
 
 exporters:
   splunk_hec/logs:
-    token: "${SPLUNK_PLATFORM_TOKEN}"
     endpoint: "${SPLUNK_PLATFORM_URL}"
+    token: "${SPLUNK_PLATFORM_TOKEN}"
     source: "otel"
     index: "${SPLUNK_PLATFORM_LOGS_INDEX}"
     splunk_app_name: "splunk-otel-collector"
@@ -1112,7 +1112,7 @@ service:
         #- file_log/zookeeper-trace
       processors:
         - memory_limiter
-        - resourcedetection
+        - resource_detection
         - transform/platform
       exporters:
         - splunk_hec/logs

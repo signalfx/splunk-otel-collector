@@ -62,7 +62,6 @@ func TestTarCollectorPackageInstall(t *testing.T) {
 				bundleDir := "/tmp/splunk-otel-collector"
 				assertExec(t, container, time.Minute, "test -d "+bundleDir+"/bin")
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/bin/otelcol")
-				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/opt/opentelemetry-java-contrib-jmx-metrics.jar")
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/config/agent_config.yaml")
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/config/gateway_config.yaml")
 			})
@@ -141,6 +140,63 @@ func TestCollectorPackageUpgrade(t *testing.T) {
 
 				require.Eventually(t, func() bool {
 					return serviceIsRunning(t, container)
+				}, 20*time.Second, time.Second)
+			})
+		}
+	}
+}
+
+func TestCollectorPackageUpgradeWithCustomServiceOwner(t *testing.T) {
+	skipUnlessLinux(t)
+	packageType := skipUnlessPackageType(t, "deb", "rpm")
+
+	const (
+		customServiceUser  = "otel-custom-user"
+		customServiceGroup = "otel-custom-group"
+	)
+
+	for _, distro := range selectedDistros(t, packageType) {
+		for _, arch := range selectedArches(t) {
+			t.Run(fmt.Sprintf("%s/%s", distro, arch), func(t *testing.T) {
+				pkgPath := requirePackage(t, packageType, arch)
+				container := runDistroContainer(t, packageType, distro, arch)
+				defer logJournal(t, container)
+
+				copyFileToContainer(t, container, filepath.Join(repoRoot(t), "packaging", "installer", "install.sh"))
+				installCommand := fmt.Sprintf(
+					"VERIFY_ACCESS_TOKEN=false sh /test/install.sh -- testing123 --realm test --collector-version 0.35.0 --service-user %s --service-group %s",
+					customServiceUser,
+					customServiceGroup,
+				)
+				assertExec(t, container, 10*time.Minute, installCommand)
+
+				require.Eventually(t, func() bool {
+					return serviceIsRunningAs(t, container, customServiceUser)
+				}, 20*time.Second, time.Second)
+
+				copyFileToContainer(t, container, pkgPath)
+				upgradePackage(t, container, packageType, "/test/"+filepath.Base(pkgPath))
+
+				require.Equal(t, "User="+customServiceUser, strings.TrimSpace(assertExec(
+					t, container, time.Minute, "systemctl show --property=User "+serviceName,
+				)))
+				require.Equal(t, "Group="+customServiceGroup, strings.TrimSpace(assertExec(
+					t, container, time.Minute, "systemctl show --property=Group "+serviceName,
+				)))
+
+				expectedOwner := customServiceUser + ":" + customServiceGroup
+				require.Equal(t, expectedOwner, strings.TrimSpace(assertExec(
+					t, container, time.Minute, "stat -c '%U:%G' /etc/otel/collector",
+				)))
+				require.Equal(t, expectedOwner, strings.TrimSpace(assertExec(
+					t, container, time.Minute, "stat -c '%U:%G' "+envPath,
+				)))
+				require.Equal(t, "600", strings.TrimSpace(assertExec(
+					t, container, time.Minute, "stat -c '%a' "+envPath,
+				)))
+
+				require.Eventually(t, func() bool {
+					return serviceIsRunningAs(t, container, customServiceUser)
 				}, 20*time.Second, time.Second)
 			})
 		}
@@ -361,8 +417,13 @@ func uninstallPackage(t *testing.T, container *testutils.Container, packageType 
 
 func serviceIsRunning(t *testing.T, container *testutils.Container) bool {
 	t.Helper()
+	return serviceIsRunningAs(t, container, serviceOwner)
+}
+
+func serviceIsRunningAs(t *testing.T, container *testutils.Container, owner string) bool {
+	t.Helper()
 	systemctlCode, _, _ := exec(t, container, time.Minute, "systemctl status "+serviceName)
-	pgrepCode, _, _ := exec(t, container, time.Minute, "pgrep -a -u "+serviceOwner+" -f "+serviceProcess)
+	pgrepCode, _, _ := exec(t, container, time.Minute, "pgrep -a -u "+owner+" -f "+serviceProcess)
 	return systemctlCode == 0 && pgrepCode == 0
 }
 

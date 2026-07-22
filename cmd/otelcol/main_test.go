@@ -41,7 +41,8 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	configFiles, err = filepath.Glob(filepath.Join("config", "collector", "*.yaml"))
 	require.NoError(t, err)
-	require.Len(t, configFiles, 11, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
+
+	require.Len(t, configFiles, 12, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
 
 	tests := []struct {
 		extraEnvVars   map[string]string
@@ -184,6 +185,18 @@ func TestRunFromCmdLine(t *testing.T) {
 				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
 				"SPLUNK_PLATFORM_TOKEN":      "test-token",
 				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:        15 * time.Second,
+			skipNonWindows: true,
+			validateOnly:   true,
+		},
+		{
+			name: "splunk_metrics_windows",
+			args: []string{"otelcol", "--config=config/collector/splunk_metrics_config_windows.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_URL":           "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "test-token",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "metrics",
 			},
 			timeout:        15 * time.Second,
 			skipNonWindows: true,

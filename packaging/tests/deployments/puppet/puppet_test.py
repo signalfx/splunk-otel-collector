@@ -48,6 +48,8 @@ PKG_NAME = "splunk-otel-collector"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
 SPLUNK_ACCESS_TOKEN = "testing123"
 SPLUNK_REALM = "test"
+CUSTOM_SERVICE_OWNER = "custom-user"
+CUSTOM_SERVICE_GROUP = "custom-group"
 SPLUNK_INGEST_URL = f"https://ingest.{SPLUNK_REALM}.observability.splunkcloud.com"
 SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.observability.splunkcloud.com"
 PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "8").split(",")
@@ -201,6 +203,8 @@ class {{ splunk_otel_collector:
     collector_version => '$version',
     collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
+    service_user => '{CUSTOM_SERVICE_OWNER}',
+    service_group => '{CUSTOM_SERVICE_GROUP}',
 }}
 """
 )
@@ -226,7 +230,7 @@ def test_puppet_with_custom_vars(distro, puppet_release):
         try:
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
-            
+
             print(f"Using collector version: {COLLECTOR_VERSION}")
             config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=COLLECTOR_VERSION)
             run_puppet_apply(container, config)
@@ -236,7 +240,13 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
-            assert wait_for(lambda: service_is_running(container))
+            assert wait_for(lambda: service_is_running(container, service_owner=CUSTOM_SERVICE_OWNER))
+            code, output = container.exec_run(f"stat -c '%U:%G:%a' {CONFIG_DIR}")
+            assert code == 0
+            assert output.decode("utf-8").strip() == f"{CUSTOM_SERVICE_OWNER}:{CUSTOM_SERVICE_GROUP}:755"
+            assert container.exec_run(
+                f"su -s /bin/sh -c 'test -w {CONFIG_DIR}' {CUSTOM_SERVICE_OWNER}"
+            ).exit_code == 0
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
@@ -469,6 +479,7 @@ WIN_PUPPET_MODULE_SRC_DIR = os.path.join(REPO_DIR, "deployments", "puppet")
 WIN_PUPPET_MODULE_DEST_DIR = r"C:\ProgramData\PuppetLabs\code\environments\production\modules\splunk_otel_collector"
 WIN_INSTALL_DIR = r"C:\Program Files\Splunk\OpenTelemetry Collector"
 WIN_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml"
+WIN_CONFIG_SVC_ARG = f'--config "{WIN_CONFIG_PATH}"'
 
 WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure
 # Support for local MSI server for testing with locally built artifacts
@@ -521,6 +532,24 @@ def run_win_puppet_agent(config):
         run_win_command(cmd, returncodes=[0, 2])
 
 
+def win_collector_supports_service_args():
+    if WIN_COLLECTOR_VERSION == "latest":
+        return True
+    version_match = re.match(r"^(\d+)\.(\d+)\.(\d+)", WIN_COLLECTOR_VERSION)
+    if version_match is None:
+        return False
+    return tuple(map(int, version_match.groups())) >= (0, 127, 0)
+
+
+def assert_win_collector_configured_with_default_config(collector_service):
+    if not win_collector_supports_service_args():
+        assert get_otelcol_svc_env_var("SPLUNK_CONFIG") == WIN_CONFIG_PATH
+        return
+
+    assert WIN_CONFIG_SVC_ARG in collector_service.binpath()
+    assert get_otelcol_svc_env_var("SPLUNK_CONFIG") is None
+
+
 
 @pytest.mark.windows
 @pytest.mark.skipif(sys.platform != "win32", reason="only runs on windows")
@@ -549,7 +578,9 @@ def test_win_puppet_default():
         listen_interface = None
     assert listen_interface is None
 
-    assert psutil.win_service_get("splunk-otel-collector").status() == psutil.STATUS_RUNNING
+    collector_service = psutil.win_service_get("splunk-otel-collector")
+    assert collector_service.status() == psutil.STATUS_RUNNING
+    assert_win_collector_configured_with_default_config(collector_service)
 
 
 @pytest.mark.windows
@@ -560,8 +591,8 @@ def test_win_puppet_custom_vars():
     api_url = "https://fake-splunk-api.com"
     ingest_url = "https://fake-splunk-ingest.com"
     config = WIN_CUSTOM_VARS_CONFIG.substitute(
-        api_url=api_url, 
-        ingest_url=ingest_url, 
+        api_url=api_url,
+        ingest_url=ingest_url,
         version=WIN_COLLECTOR_VERSION,
         win_repo_url=WIN_MSI_REPO_URL
     )
@@ -580,5 +611,6 @@ def test_win_puppet_custom_vars():
 
     collector_service = psutil.win_service_get("splunk-otel-collector")
     assert collector_service.status() == psutil.STATUS_RUNNING
-    if WIN_COLLECTOR_VERSION == "latest":
-        assert collector_service.binpath().endswith("--discovery --set=processors.batch.timeout=10s")
+    assert_win_collector_configured_with_default_config(collector_service)
+    if win_collector_supports_service_args():
+        assert "--discovery --set=processors.batch.timeout=10s" in collector_service.binpath()

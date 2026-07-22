@@ -3,4 +3,5 @@ source 'https://supermarket.chef.io'
 
 metadata
 
-cookbook 'nodejs'
+cookbook 'nodejs', '~> 11.0'
+cookbook 'nodejs_test', path: 'test/cookbooks/nodejs_test'

@@ -44,8 +44,6 @@ METRICS_CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_metrics_config_linux.yam
 SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
-JMX_METRIC_GATHERER_RELEASE_PATH="${FPM_DIR}/../jmx-metric-gatherer-release.txt"
-
 PREINSTALL_PATH="$FPM_DIR/preinstall.sh"
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
@@ -67,17 +65,6 @@ get_version() {
 create_user_group() {
     sudo getent passwd $SERVICE_USER >/dev/null || \
         sudo useradd --system --user-group --no-create-home --shell /sbin/nologin $SERVICE_USER
-}
-
-download_jmx_metric_gatherer() {
-    local version="$1"
-    local buildroot="$2"
-
-    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/$version/opentelemetry-jmx-metrics.jar"
-    mkdir -p "$buildroot/opt"
-
-    echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"
-    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
 }
 
 setup_files_and_permissions() {
@@ -106,10 +93,4 @@ setup_files_and_permissions() {
     cp -f "$SERVICE_REPO_PATH" "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chown root:root "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$SERVICE_INSTALL_PATH"
-
-    JMX_INSTALL_PATH="$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
-    if [[ -e "$JMX_INSTALL_PATH" ]]; then
-        sudo chown root:root "$JMX_INSTALL_PATH"
-        sudo chmod 755 "$JMX_INSTALL_PATH"
-    fi
 }

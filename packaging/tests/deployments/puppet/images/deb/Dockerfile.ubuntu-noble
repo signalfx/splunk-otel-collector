@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
@@ -8,9 +8,9 @@ RUN ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime && \
     apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release dpkg-dev apt-utils tzdata && \
     dpkg-reconfigure -f noninteractive tzdata
 
-ARG PUPPET_RELEASE="6"
-RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-jammy.deb && \
-    dpkg -i puppet${PUPPET_RELEASE}-release-jammy.deb && \
+ARG PUPPET_RELEASE="8"
+RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-noble.deb && \
+    dpkg -i puppet${PUPPET_RELEASE}-release-noble.deb && \
     apt-get update && \
     apt-get install -y puppet-agent
 

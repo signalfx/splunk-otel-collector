@@ -69,7 +69,7 @@ func TestSplunkPlatformLogsEffectiveConfig(t *testing.T) {
 	logsHec, ok := pipelines["logs/hec"].(map[string]any)
 	require.True(t, ok)
 	require.Equal(t, []any{"file_log/varlog"}, logsHec["receivers"])
-	require.Equal(t, []any{"memory_limiter", "resourcedetection"}, logsHec["processors"])
+	require.Equal(t, []any{"memory_limiter", "resource_detection"}, logsHec["processors"])
 	require.Equal(t, []any{"splunk_hec/logs"}, logsHec["exporters"])
 
 	// The platform HEC exporter points at the configured URL and index.
@@ -102,7 +102,7 @@ func TestSplunkPlatformLogsEffectiveConfig(t *testing.T) {
 			"check_interval": "2s",
 			"limit_mib":      460,
 		},
-		"resourcedetection": map[string]any{
+		"resource_detection": map[string]any{
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 			"override":  true,
 		},
@@ -206,6 +206,10 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 			"limit_mib":      460,
 		},
 		"resourcedetection": map[string]any{
+			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
+			"override":  true,
+		},
+		"resource_detection": map[string]any{
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 			"override":  true,
 		},

@@ -10,7 +10,7 @@
   "dependencies": [
     {
       "name": "puppetlabs/apt",
-      "version_requirement": ">= 4.1.0"
+      "version_requirement": ">= 9.1.0"
     },
     {
       "name": "puppet/yum",
@@ -69,7 +69,8 @@
       "operatingsystem": "Ubuntu",
       "operatingsystemrelease": [
         "22.04",
-        "24.04"
+        "24.04",
+        "26.04"
       ]
     },
     {

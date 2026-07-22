@@ -22,4 +22,7 @@ RUN rm C:\splunk-uf.msi
 
 COPY windows-container-start-and-wait.ps1 C:\\windows-container-start-and-wait.ps1
 
+# This test-only Universal Forwarder image installs and runs Windows services.
+USER ContainerAdministrator
+
 CMD ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass", "-File", "C:\windows-container-start-and-wait.ps1"]

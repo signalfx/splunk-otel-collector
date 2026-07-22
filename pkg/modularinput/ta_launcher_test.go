@@ -752,6 +752,46 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 	assert.Less(t, tokenPos, apiPos, "SPLUNK_ACCESS_TOKEN should be set before SPLUNK_API_URL")
 }
 
+func TestHandleLaunchAsTA_ConfigProviderSyntaxPreserved(t *testing.T) {
+	// Regression test: "splunk_access_token" using collector config provider syntax
+	// (e.g. "${file:./access_token.txt}") must reach the environment unchanged so the
+	// collector's own confmap resolver can process it, instead of being corrupted by the
+	// modular input's own environment variable expansion.
+	originalIsParentFn := isParentProcessSplunkdFn
+	originalSetEnvFn := setEnvFn
+	defer func() {
+		isParentProcessSplunkdFn = originalIsParentFn
+		setEnvFn = originalSetEnvFn
+	}()
+
+	isParentProcessSplunkdFn = func() bool { return true }
+
+	envVars := make(map[string]string)
+	setEnvFn = func(key, value string) error {
+		envVars[key] = value
+		return nil
+	}
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_access_token">${file:./access_token.txt}</param>
+			<param name="splunk_realm">br0</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	args := []string{"program"}
+	resultArgs, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>", nil)
+	require.NoError(t, err)
+	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged")
+
+	assert.Equal(t, "${file:./access_token.txt}", envVars["SPLUNK_ACCESS_TOKEN"], "config provider syntax must reach the environment unchanged")
+	assert.Equal(t, "br0", envVars["SPLUNK_REALM"])
+}
+
 func TestHandleLaunchAsTA_MixedCaseSplunkPrefix(t *testing.T) {
 	// Save original functions and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn
@@ -909,6 +949,49 @@ func TestSetEnvVarsInOrder_WithDependencies(t *testing.T) {
 	// Verify values
 	assert.Equal(t, "us0", setVars["SPLUNK_REALM"])
 	assert.Equal(t, "https://ingest.us0.observability.splunkcloud.com", setVars["SPLUNK_INGEST_URL"])
+}
+
+func TestSetEnvVarsInOrder_ConfigProviderSyntaxPassedThrough(t *testing.T) {
+	// Values using collector config provider syntax (e.g. "${file:...}") are not valid
+	// environment variable references and must be passed through untouched instead of being
+	// expanded (and blanked out) by os.ExpandEnv.
+	envVars := map[string]string{
+		"SPLUNK_ACCESS_TOKEN": "${file:./access_token.txt}",
+		"SPLUNK_CONFIG":       "${env:HOME}/config.yaml",
+	}
+
+	setVars := make(map[string]string)
+	mockSetEnv := func(key, value string) error {
+		setVars[key] = value
+		return nil
+	}
+
+	err := setEnvVarsInOrder(envVars, mockSetEnv)
+	require.NoError(t, err, "Expected no error")
+
+	assert.Equal(t, "${file:./access_token.txt}", setVars["SPLUNK_ACCESS_TOKEN"], "config provider syntax must be preserved literally")
+	assert.Equal(t, "${env:HOME}/config.yaml", setVars["SPLUNK_CONFIG"], "config provider syntax must be preserved literally")
+}
+
+func TestSetEnvVarsInOrder_MixedEnvRefAndConfigProviderSyntax(t *testing.T) {
+	// A value can legitimately mix a real environment variable reference with config provider
+	// syntax; only the real reference should be expanded.
+	t.Setenv("SPLUNK_REALM", "us0")
+
+	envVars := map[string]string{
+		"SPLUNK_CONFIG_URL": "https://${SPLUNK_REALM}.example.com/${file:./path.txt}",
+	}
+
+	setVars := make(map[string]string)
+	mockSetEnv := func(key, value string) error {
+		setVars[key] = value
+		return nil
+	}
+
+	err := setEnvVarsInOrder(envVars, mockSetEnv)
+	require.NoError(t, err, "Expected no error")
+
+	assert.Equal(t, "https://us0.example.com/${file:./path.txt}", setVars["SPLUNK_CONFIG_URL"])
 }
 
 func TestSetEnvVarsInOrder_SetEnvError(t *testing.T) {

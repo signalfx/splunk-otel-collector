@@ -95,30 +95,6 @@ var receiverMetaMap = map[string]ReceiverMeta{
 			},
 		},
 	},
-	"jmx/cassandra": {
-		ServiceType: "cassandra",
-		Status: Status{
-			Metrics: []Match{
-				{
-					Status:  "successful",
-					Strict:  "cassandra.client.request.count",
-					Message: "jmx/cassandra receiver is working!",
-				},
-			},
-			Statements: []Match{
-				{
-					Status:  "failed",
-					Regexp:  "connect: network is unreachable",
-					Message: "The container cannot be reached by the Collector. Make sure they're in the same network.",
-				},
-				{
-					Status:  "failed",
-					Regexp:  "connect: connection refused",
-					Message: "The container is refusing cassandra server connections.",
-				},
-			},
-		},
-	},
 	"kafka_metrics": {
 		ServiceType: "kafka",
 		Status: Status{

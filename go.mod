@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4
@@ -90,7 +90,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/influxdbreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.156.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.156.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8seventsreceiver v0.156.0

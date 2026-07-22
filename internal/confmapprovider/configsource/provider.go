@@ -25,6 +25,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource/cyberarkconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/envvarconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/etcd2configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/includeconfigsource"
@@ -40,6 +41,7 @@ var configSourceFactories = func() configsource.Factories {
 		vaultconfigsource.NewFactory(),
 		zookeeperconfigsource.NewFactory(),
 		etcd2configsource.NewFactory(),
+		cyberarkconfigsource.NewFactory(),
 	} {
 		if _, ok := factories[f.Type()]; ok {
 			panic(fmt.Sprintf("duplicate config source factory %q", f.Type()))

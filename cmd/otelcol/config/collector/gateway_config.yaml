@@ -160,6 +160,7 @@ exporters:
       authenticator: headers_setter
 
 connectors:
+  # Routing connector to separate entity events from regular logs
   routing/logs:
     default_pipelines: [logs]
     table:

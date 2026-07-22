@@ -149,6 +149,14 @@ integration-test-nginx-discovery:
 integration-test-nginx-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_nginx'
 
+.PHONY: integration-test-rabbitmq-discovery
+integration-test-rabbitmq-discovery:
+	@make integration-test-target TARGET='discovery_integration_rabbitmq'
+
+.PHONY: integration-test-rabbitmq-discovery-with-cover
+integration-test-rabbitmq-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_rabbitmq'
+
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
 	@make integration-test-target TARGET='discovery_integration_redis'

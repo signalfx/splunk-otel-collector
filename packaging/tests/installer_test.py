@@ -734,7 +734,7 @@ def test_installer_splunk_platform_gateway_only(distro, arch):
         verify_config_file(container, env_path, "SPLUNK_PLATFORM_URL", SPLUNK_PLATFORM_URL)
         verify_config_file(container, env_path, "SPLUNK_PLATFORM_TOKEN", SPLUNK_PLATFORM_TOKEN)
         verify_config_file(container, env_path, "SPLUNK_PLATFORM_LOGS_INDEX", SPLUNK_PLATFORM_LOGS_INDEX)
-        verify_config_file(container, env_path, "OTELCOL_OPTIONS", f'"--config {GATEWAY_PLATFORM_CONFIG_PATH}"')
+        verify_config_file(container, env_path, "OTELCOL_OPTIONS", f'" --config {GATEWAY_PLATFORM_CONFIG_PATH}"')
         # o11y vars should not be set
         verify_config_file(container, env_path, "SPLUNK_ACCESS_TOKEN", ".*", exists=False)
         verify_config_file(container, env_path, "SPLUNK_REALM", ".*", exists=False)
@@ -777,7 +777,7 @@ def test_installer_splunk_platform_gateway_dual_destination(distro, arch):
         verify_config_file(container, env_path, "SPLUNK_PLATFORM_TOKEN", SPLUNK_PLATFORM_TOKEN)
         verify_config_file(container, env_path, "SPLUNK_PLATFORM_LOGS_INDEX", SPLUNK_PLATFORM_LOGS_INDEX)
         # both configs merged
-        expected_options = f'"--config {GATEWAY_CONFIG_PATH} --config {GATEWAY_PLATFORM_CONFIG_PATH} --feature-gates=confmap.enableMergeAppendOption"'
+        expected_options = f'" --config {GATEWAY_CONFIG_PATH} --config {GATEWAY_PLATFORM_CONFIG_PATH} --feature-gates=confmap.enableMergeAppendOption"'
         verify_config_file(container, env_path, "OTELCOL_OPTIONS", expected_options)
         # SPLUNK_CONFIG should not be set — OTELCOL_OPTIONS drives config selection
         verify_config_file(container, env_path, "SPLUNK_CONFIG", ".*", exists=False)

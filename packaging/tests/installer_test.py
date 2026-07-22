@@ -56,6 +56,7 @@ SPLUNK_ENV_PATH = "/etc/otel/collector/splunk-otel-collector.conf"
 OLD_SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
 AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
+GATEWAY_PLATFORM_CONFIG_PATH = "/etc/otel/collector/gateway_config_platform.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
@@ -709,8 +710,8 @@ def get_platform_installer_cmd():
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
-def test_installer_splunk_platform_logs_gateway_mode(distro, arch):
-    """Verify installer rejects log collection in gateway mode."""
+def test_installer_splunk_platform_gateway_only(distro, arch):
+    """Verify installer configures platform-only gateway: OTELCOL_OPTIONS points to gateway_config_platform.yaml."""
     install_cmd = " ".join((
         get_platform_installer_cmd(),
         f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",
@@ -719,7 +720,7 @@ def test_installer_splunk_platform_logs_gateway_mode(distro, arch):
         "--mode gateway",
     ))
 
-    print(f"Testing Splunk Platform logs gateway rejection on {distro} ({arch}) ...")
+    print(f"Testing Splunk Platform-only gateway on {distro} ({arch}) ...")
     with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
         if LOCAL_COLLECTOR_PACKAGE:
@@ -727,9 +728,59 @@ def test_installer_splunk_platform_logs_gateway_mode(distro, arch):
             if distro in DEB_DISTROS:
                 run_container_cmd(container, "apt-get install -y libcap2-bin")
 
-        _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
-        assert "not supported in gateway mode" in output.decode("utf-8"), \
-            f"Expected gateway mode error message, got: {output.decode('utf-8')}"
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+
+        env_path = SPLUNK_ENV_PATH
+        verify_config_file(container, env_path, "SPLUNK_PLATFORM_URL", SPLUNK_PLATFORM_URL)
+        verify_config_file(container, env_path, "SPLUNK_PLATFORM_TOKEN", SPLUNK_PLATFORM_TOKEN)
+        verify_config_file(container, env_path, "SPLUNK_PLATFORM_LOGS_INDEX", SPLUNK_PLATFORM_LOGS_INDEX)
+        verify_config_file(container, env_path, "OTELCOL_OPTIONS", f'"--config {GATEWAY_PLATFORM_CONFIG_PATH}"')
+        # o11y vars should not be set
+        verify_config_file(container, env_path, "SPLUNK_ACCESS_TOKEN", ".*", exists=False)
+        verify_config_file(container, env_path, "SPLUNK_REALM", ".*", exists=False)
+        verify_config_file(container, env_path, "SPLUNK_CONFIG", ".*", exists=False)
+
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_splunk_platform_gateway_dual_destination(distro, arch):
+    """Verify installer merges gateway_config.yaml + gateway_config_platform.yaml when both o11y and platform are configured."""
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        f"--splunk-platform-token {SPLUNK_PLATFORM_TOKEN}",
+        f"--splunk-platform-url {SPLUNK_PLATFORM_URL}",
+        f"--splunk-platform-logs-index {SPLUNK_PLATFORM_LOGS_INDEX}",
+        "--mode gateway",
+    ))
+
+    print(f"Testing Splunk Platform + o11y dual-destination gateway on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, "apt-get install -y libcap2-bin")
+
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+
+        env_path = SPLUNK_ENV_PATH
+        # o11y vars
+        verify_config_file(container, env_path, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
+        verify_config_file(container, env_path, "SPLUNK_REALM", SPLUNK_REALM)
+        # platform vars
+        verify_config_file(container, env_path, "SPLUNK_PLATFORM_URL", SPLUNK_PLATFORM_URL)
+        verify_config_file(container, env_path, "SPLUNK_PLATFORM_TOKEN", SPLUNK_PLATFORM_TOKEN)
+        verify_config_file(container, env_path, "SPLUNK_PLATFORM_LOGS_INDEX", SPLUNK_PLATFORM_LOGS_INDEX)
+        # both configs merged
+        expected_options = f'"--config {GATEWAY_CONFIG_PATH} --config {GATEWAY_PLATFORM_CONFIG_PATH} --feature-gates=confmap.enableMergeAppendOption"'
+        verify_config_file(container, env_path, "OTELCOL_OPTIONS", expected_options)
+        # SPLUNK_CONFIG should not be set — OTELCOL_OPTIONS drives config selection
+        verify_config_file(container, env_path, "SPLUNK_CONFIG", ".*", exists=False)
 
 
 @pytest.mark.installer

@@ -35,11 +35,11 @@ processors:
   filter/platform_logs:
     error_mode: ignore
     log_conditions:
-      - instrumentation_scope.attributes["otel.platform"] != "true"
+      - scope.attributes["otel.platform"] != "true"
   filter/platform_metrics:
     error_mode: ignore
     metric_conditions:
-      - instrumentation_scope.attributes["otel.platform"] != "true"
+      - scope.attributes["otel.platform"] != "true"
 
 exporters:
   splunk_hec/platform_logs:

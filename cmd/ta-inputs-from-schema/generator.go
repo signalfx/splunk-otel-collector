@@ -25,9 +25,9 @@ func generateInputsConf(scheme *Scheme, globalSettings, inputName string) string
 
 	// Write header with input name
 	sb.WriteString(fmt.Sprintf(
-		"# ATTENTION: If copying this file as base for your local/inputs.conf\n" + 
-		"# rename the stanza below to something in the form [%s://<data_input_name>]\n" +
-		"[%s]\n\n",
+		"# ATTENTION: If copying this file as base for your local/inputs.conf\n"+
+			"# rename the stanza below to something in the form [%s://<data_input_name>]\n"+
+			"[%s]\n\n",
 		inputName, inputName))
 
 	// Write global settings

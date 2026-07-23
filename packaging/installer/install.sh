@@ -1158,9 +1158,6 @@ Auto Instrumentation:
                                         If not specified, the "Environment" in the Splunk APM UI will appear as
                                         "unknown" for all instrumented applications. The resource attribute will be
                                         appended to the OTEL_RESOURCE_ATTRIBUTES environment variable.
-                                        For legacy consumers that require "deployment.environment", replace the
-                                        generated key after installation, preserve the other resource attributes, and
-                                        restart the instrumented applications.
                                         (default: empty)
   --service-name <name>                 Override the auto-generated service names for all instrumented applications
                                         on this host with the specified value. The value will be set to the

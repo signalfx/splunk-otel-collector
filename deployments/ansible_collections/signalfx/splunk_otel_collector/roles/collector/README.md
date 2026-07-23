@@ -225,9 +225,7 @@ to take effect.
 - `splunk_otel_auto_instrumentation_resource_attributes`:
   Configure the OpenTelemetry instrumentation resource attributes,
   e.g. `deployment.environment.name=prod,my.key=value` (comma-separated
-  `key=value` pairs). (**default:** ``). To retain the deprecated attribute 
-  for a legacy downstream consumer, set `deployment.environment=prod` instead. 
-  See the [0.156.0 → 0.157.0 upgrade guideline](https://github.com/signalfx/splunk-otel-collector/blob/main/README.md#from-01560-to-01570).
+  `key=value` pairs). (**default:** ``).
 
 - `splunk_otel_auto_instrumentation_service_name` (Linux only): Explicitly set
   the service name for ***all*** instrumented applications on the node, e.g.

@@ -70,7 +70,6 @@
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
 .PARAMETER deployment_env
     (OPTIONAL) A system-wide "deployment.environment.name" set via the environment variable 'OTEL_RESOURCE_ATTRIBUTES' for the whole machine. Ignored if -with_dotnet_instrumentation is false.
-    For legacy consumers that require "deployment.environment", replace the generated key after installation, preserve the other resource attributes, and restart IIS. 
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -deployment_env staging
 .PARAMETER insecure

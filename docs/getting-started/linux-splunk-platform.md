@@ -47,12 +47,12 @@ For the full list of included paths and all available receivers, see the [defaul
 
 Additional receivers are defined in the config but disabled by default:
 
-| **Receiver**                                                | **Description**                                                   |
-|-------------------------------------------------------------|-------------------------------------------------------------------|
-| `file_log/etc`                                              | Config files under `/etc` — one-time read on each collector start |
-| `file_log/bash_history`                                     | Bash history files                                                |
-| `journald`                                                  | Systemd journal — requires group membership (see below)           |
-| `file_log/nginx-access`, `file_log/mysql-error`, and others | Application-specific log files                                    |
+| **Receiver**                                                | **Description**                                                      |
+|-------------------------------------------------------------|----------------------------------------------------------------------|
+| `file_log/etc`                                              | Config files under `/etc` — one-time read on each collector start    |
+| `file_log/bash_history`                                     | Bash history files                                                   |
+| `journald`                                                  | Systemd journal — requires group membership (see below)              |
+| `file_log/nginx-access`, `file_log/mysql-error`, and others | Application-specific log files — **experimental**, subject to change |
 
 ## Enable or disable receivers
 

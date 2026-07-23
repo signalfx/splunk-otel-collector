@@ -1,5 +1,6 @@
 monitors:
 - doc: |
+    **This monitor is deprecated and will be removed on or after October 2026**
     Reports statistics about cgroups on Linux.  This only supports cgroups v1
     and not the newer v2 unified implementation.
 

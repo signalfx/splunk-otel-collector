@@ -225,7 +225,7 @@ to take effect.
 - `splunk_otel_auto_instrumentation_resource_attributes`:
   Configure the OpenTelemetry instrumentation resource attributes,
   e.g. `deployment.environment.name=prod,my.key=value` (comma-separated
-  `key=value` pairs). (**default:** ``).
+  `key=value` pairs). (**default:** ``)
 
 - `splunk_otel_auto_instrumentation_service_name` (Linux only): Explicitly set
   the service name for ***all*** instrumented applications on the node, e.g.

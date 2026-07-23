@@ -48,6 +48,7 @@ func init() {
 // Configure monitor
 func (m *Monitor) Configure(config *Config) error {
 	m.logger = logger.WithField("monitorID", config.MonitorID)
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026.")
 	httpClient, err := config.HTTPConfig.Build()
 	if err != nil {
 		return err

@@ -1,5 +1,7 @@
 # Ingest Linux data to Splunk Platform
 
+> **Scope:** This guide covers Splunk Platform integration via the [Linux installer script](linux-installer.md) only. For manual configuration or other installation methods, see the [Splunk Platform log and metrics collection reference](../splunk-platform-log-collection.md).
+
 ## Prerequisites
 
 - A running Splunk Platform instance (Splunk Enterprise or Splunk Cloud)

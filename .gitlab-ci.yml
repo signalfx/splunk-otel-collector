@@ -13,6 +13,9 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
+  PRIVATE_COMPONENTS:
+    value: ""
+    description: "Space/newline-separated list of private components to build into otelcol, e.g. 'exporter/s2sexporter@v0.1.0 receiver/wineventlogreceiver@v0.1.0'. Pulled from cd.splunkdev.com/gdi/unified-collector. Triggers the compile-private job when non-empty."
   GO_VERSION: 1.26.5
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -354,6 +357,45 @@ compile:
     matrix:
       - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        make $TARGET VERSION=${VERSION_TAG}
+      else
+        make $TARGET
+      fi
+  after_script:
+    - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
+  artifacts:
+    paths:
+      - bin/otelcol_*
+
+# Gated, experimental build of otelcol that additionally pulls in private components from
+# cd.splunkdev.com/gdi/unified-collector, as listed in the PRIVATE_COMPONENTS pipeline variable.
+# The set/version of components is entirely driven by that variable - no repo change is needed
+# to bump a version or add a component. See .gitlab/build-private-components.sh.
+compile-private:
+  timeout: 2h
+  extends:
+    - .go-cache
+  tags: [large]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $PRIVATE_COMPONENTS != ""
+  parallel:
+    matrix:
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
+  variables:
+    GOFLAGS: "-mod=mod"
+  before_script:
+    - mkdir -p $GOPATH
+    - make install-tools
+    - export PATH=$GOPATH/bin:$PATH
+    - export GOPRIVATE="cd.splunkdev.com/gdi/*"
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@cd.splunkdev.com/".insteadOf "https://cd.splunkdev.com/"
+  script:
+    - .gitlab/build-private-components.sh
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG:-}" ]]; then

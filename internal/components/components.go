@@ -16,6 +16,8 @@
 package components
 
 import (
+	"fmt"
+
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
@@ -188,6 +190,13 @@ func Get() (otelcol.Factories, error) {
 	if err != nil {
 		errs = append(errs, err)
 	}
+	for _, f := range additionalExtensions {
+		if _, exists := extensions[f.Type()]; exists {
+			errs = append(errs, fmt.Errorf("duplicate private extension %q", f.Type()))
+			continue
+		}
+		extensions[f.Type()] = f
+	}
 
 	receivers, err := otelcol.MakeFactoryMap(
 		activedirectorydsreceiver.NewFactory(),
@@ -274,6 +283,13 @@ func Get() (otelcol.Factories, error) {
 	if err != nil {
 		errs = append(errs, err)
 	}
+	for _, f := range additionalReceivers {
+		if _, exists := receivers[f.Type()]; exists {
+			errs = append(errs, fmt.Errorf("duplicate private receiver %q", f.Type()))
+			continue
+		}
+		receivers[f.Type()] = f
+	}
 
 	exporters, err := otelcol.MakeFactoryMap(
 		awss3exporter.NewFactory(),
@@ -292,6 +308,13 @@ func Get() (otelcol.Factories, error) {
 	)
 	if err != nil {
 		errs = append(errs, err)
+	}
+	for _, f := range additionalExporters {
+		if _, exists := exporters[f.Type()]; exists {
+			errs = append(errs, fmt.Errorf("duplicate private exporter %q", f.Type()))
+			continue
+		}
+		exporters[f.Type()] = f
 	}
 
 	processors, err := otelcol.MakeFactoryMap[processor.Factory](
@@ -317,6 +340,13 @@ func Get() (otelcol.Factories, error) {
 	if err != nil {
 		errs = append(errs, err)
 	}
+	for _, f := range additionalProcessors {
+		if _, exists := processors[f.Type()]; exists {
+			errs = append(errs, fmt.Errorf("duplicate private processor %q", f.Type()))
+			continue
+		}
+		processors[f.Type()] = f
+	}
 
 	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
@@ -327,6 +357,13 @@ func Get() (otelcol.Factories, error) {
 	)
 	if err != nil {
 		errs = append(errs, err)
+	}
+	for _, f := range additionalConnectors {
+		if _, exists := connectors[f.Type()]; exists {
+			errs = append(errs, fmt.Errorf("duplicate private connector %q", f.Type()))
+			continue
+		}
+		connectors[f.Type()] = f
 	}
 
 	factories := otelcol.Factories{

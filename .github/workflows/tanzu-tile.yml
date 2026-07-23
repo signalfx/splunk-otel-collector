@@ -63,7 +63,7 @@ jobs:
 
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@42435f26fd0824180d7a31f0dd75afd37eb2e18f # master
+        uses: Homebrew/actions/setup-homebrew@df4b09108a1de9d6f995fe68f302b3f68bd6d2ef # master
       - name: Install BOSH CLI
         shell: bash
         run: |

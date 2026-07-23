@@ -46,6 +46,9 @@ resourceSpans:
             - key: process.pid
               value:
                 intValue: "800"
+            - key: process.creation.time
+              value:
+                stringValue: "2026-07-21T21:14:58.6003205+00:00"
             - key: process.runtime.description
               value:
                 stringValue: .NET 8.0.23

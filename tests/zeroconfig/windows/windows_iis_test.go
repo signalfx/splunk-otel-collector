@@ -147,6 +147,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 				ptracetest.IgnoreResourceAttributeValue("os.description"),
 				ptracetest.IgnoreResourceAttributeValue("process.owner"),
 				ptracetest.IgnoreResourceAttributeValue("process.pid"),
+				ptracetest.IgnoreResourceAttributeValue("process.creation.time"),
 				ptracetest.IgnoreResourceAttributeValue("process.runtime.description"),
 				ptracetest.IgnoreResourceAttributeValue("process.runtime.version"),
 				ptracetest.IgnoreResourceAttributeValue("service.instance.id"),

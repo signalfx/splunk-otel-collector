@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## chef-v0.20.0
+
 - Bug fix: Ensure the collector config directory ownership is set to the custom service user and group (if configured) rather than the default service owner (Linux only)
 
 ## chef-v0.19.0

@@ -8,10 +8,8 @@ replace (
 )
 
 require (
-	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/antonmedv/expr v1.15.5
-	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/go-playground/locales v0.14.1
@@ -46,7 +44,6 @@ require (
 	golang.org/x/sync v0.20.0
 	golang.org/x/sys v0.46.0
 	golang.org/x/tools v0.44.0 // indirect
-	google.golang.org/grpc v1.82.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.35.4
@@ -74,11 +71,14 @@ require (
 	go.opentelemetry.io/collector/pdata v1.62.0
 )
 
-require github.com/satori/go.uuid v1.2.0 // indirect
+require (
+	github.com/satori/go.uuid v1.2.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.43.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.43.0 // indirect
+	gonum.org/v1/gonum v0.17.0 // indirect
+)
 
 require (
-	code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3 // indirect
-	code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a // indirect
 	collectd.org v0.6.0 // indirect
 	filippo.io/edwards25519 v1.1.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -209,7 +209,6 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect

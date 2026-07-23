@@ -100,7 +100,6 @@ and the [opentelemetry-collector-contrib v0.157.0](https://github.com/open-telem
             - host: {}
   ```
 - (Core) `pkg/service`: Add `service.partialReload` feature gate (Alpha) and `service.partialReloadReceivers` feature gate (Beta) that together restart only receivers on config reload when non-receiver config sections are unchanged, avoiding unnecessary disruption to processors, exporters, and extensions. Enable with `--feature-gates=service.partialReload`. ([#5966](https://github.com/open-telemetry/opentelemetry-collector/issues/5966))
-- (Contrib) `exporter/elasticsearch`: Add `retry::retry_on_document_status` to configure document-level retry status codes separately from request-level retries. ([#48681](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48681))
 - (Contrib) `exporter/kafka`: Add `exporter.kafka.useRequestType` alpha feature gate that routes all signals through a custom exporterhelper.Request ([#48090](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/48090))
   When the gate is enabled, traces, metrics, logs, and profiles all convert
   pdata into Kafka records at request-creation time and use a custom

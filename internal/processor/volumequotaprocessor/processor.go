@@ -102,12 +102,6 @@ func (p *volumeQuotaProcessor) processSpan(s ptrace.Span) {
 	if p.config.GlobalLimits.Spans > 0 {
 		rateLimit = p.currentEpoch.globalSpanSamplingRate
 		p.currentEpoch.globalSpanCount++
-		if p.currentEpoch.globalSpanCount > p.config.GlobalLimits.Spans {
-			globalSpanLimit := 1 - (float64(p.currentEpoch.globalSpanCount) / float64(p.config.GlobalLimits.Spans))
-			if globalSpanLimit < rateLimit {
-				rateLimit = globalSpanLimit
-			}
-		}
 	}
 
 	if p.config.GlobalLimits.Traces > 0 {
@@ -119,12 +113,6 @@ func (p *volumeQuotaProcessor) processSpan(s ptrace.Span) {
 			p.currentEpoch.traceIdsTracker[traceIdStr] = struct{}{}
 			p.currentEpoch.globalTracesCount++
 		}
-		if p.currentEpoch.globalTracesCount > p.config.GlobalLimits.Traces {
-			globalTracesLimit := 1 - (float64(p.currentEpoch.globalTracesCount) / float64(p.config.GlobalLimits.Traces))
-			if globalTracesLimit < rateLimit {
-				rateLimit = globalTracesLimit
-			}
-		}
 	}
 
 	// update service counters
@@ -135,12 +123,6 @@ func (p *volumeQuotaProcessor) processSpan(s ptrace.Span) {
 				rateLimit = p.currentEpoch.servicesSpansSamplingRate[serviceName]
 			}
 			p.currentEpoch.serviceSpansCount[serviceName] = v + 1
-			if v+1 > p.config.Limits.Spans[serviceName] {
-				serviceSpanLimit := 1 - (float64(v+1) / float64(p.config.Limits.Spans[serviceName]))
-				if serviceSpanLimit < rateLimit {
-					rateLimit = serviceSpanLimit
-				}
-			}
 		}
 		if tracker, ok := p.currentEpoch.serviceTraceIdsTracker[serviceName]; ok {
 			if p.currentEpoch.servicesTracesSamplingRate[serviceName] < rateLimit {
@@ -150,12 +132,6 @@ func (p *volumeQuotaProcessor) processSpan(s ptrace.Span) {
 			if _, ok := tracker[traceIDstr]; !ok {
 				tracker[traceIDstr] = struct{}{}
 				p.currentEpoch.serviceTracesCount[serviceName]++
-			}
-			if p.currentEpoch.serviceTracesCount[serviceName] > p.config.Limits.Traces[serviceName] {
-				serviceTraceLimit := 1 - (float64(p.currentEpoch.serviceTracesCount[serviceName]) / float64(p.config.Limits.Traces[serviceName]))
-				if serviceTraceLimit < rateLimit {
-					rateLimit = serviceTraceLimit
-				}
 			}
 		}
 	}

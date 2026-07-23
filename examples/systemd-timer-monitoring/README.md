@@ -33,7 +33,8 @@ The collector is configured with three receivers:
   captures every run of the job (start, the script's own log lines, and
   systemd's own success/failure messages) without any code changes to the
   script itself.
-- `otlp`, to receive the metrics `report-job-status.sh` pushes directly.
+- [`otlp`](https://github.com/open-telemetry/opentelemetry-collector/blob/main/receiver/otlpreceiver/README.md),
+  to receive the metrics `report-job-status.sh` pushes directly.
 - [`influxdb`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/influxdbreceiver/README.md),
   to receive the `backup_job duration_seconds=...,size_bytes=...` line
   protocol metric `backup-job.sh` pushes directly.

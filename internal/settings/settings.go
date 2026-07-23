@@ -61,9 +61,10 @@ const (
 	// Deprecated: SPLUNK_TRACE_URL env var is deprecated, SPLUNK_REALM or SPLUNK_INGEST_URL should be used instead.
 	TraceIngestURLEnvVar = "SPLUNK_TRACE_URL"
 
-	DefaultGatewayConfig   = "/etc/otel/collector/gateway_config.yaml"
-	DefaultOTLPLinuxConfig = "/etc/otel/collector/otlp_config_linux.yaml"
-	DefaultConfigDir       = "/etc/otel/collector/config.d"
+	DefaultGatewayConfig         = "/etc/otel/collector/gateway_config.yaml"
+	DefaultGatewayPlatformConfig = "/etc/otel/collector/gateway_config_platform.yaml"
+	DefaultOTLPLinuxConfig       = "/etc/otel/collector/otlp_config_linux.yaml"
+	DefaultConfigDir             = "/etc/otel/collector/config.d"
 
 	DefaultMemoryLimitPercentage = 90
 	DefaultMemoryTotalMiB        = 512

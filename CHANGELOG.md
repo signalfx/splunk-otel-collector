@@ -22,30 +22,12 @@ and the [opentelemetry-collector-contrib v0.157.0](https://github.com/open-telem
   `OTEL_EXPORTER_OTLP_ENDPOINT` (or `otel.exporter.otlp.endpoint`) to the collector's listening OTLP
   gRPC interface (defaults to port 4317), and set `otel.jmx.target.system` to `cassandra`.
 - (Core) `pkg/exporterhelper`: Replace histogram bucket boundaries for `otelcol_exporter_queue_batch_send_size_bytes` and `otelcol_processor_batch_batch_send_size_bytes` with a power-of-2 byte-scale set spanning 128 B to 16 MiB. ([#15535](https://github.com/open-telemetry/opentelemetry-collector/issues/15535))
-  The previous boundaries included many small sub-kilobyte buckets that were not useful for byte-scale
-  payloads, and `otelcol_exporter_queue_batch_send_size_bytes` topped out at 6000 bytes so nearly all
-  observations fell into the `+Inf` overflow bucket. The new boundaries are powers of two from 128 B
-  to 16777216 (16 MiB), giving a meaningful distribution for real batch payload sizes (including small
-  timeout-flushed batches) and keeping the two
-  metrics directly comparable on the same dashboards. Dashboards or alerts that hard-code specific `le`
-  values for these histograms will need to be updated.
 - (Core) `processor/batch`: Replace histogram bucket boundaries for `otelcol_processor_batch_batch_send_size_bytes` with a power-of-2 byte-scale set spanning 128 B to 16 MiB. ([#15535](https://github.com/open-telemetry/opentelemetry-collector/issues/15535))
-  The previous boundaries included many small sub-kilobyte buckets that were not useful for byte-scale
-  payloads. The new boundaries are powers of two from 128 B to 16777216 (16 MiB), giving a meaningful
-  distribution for real batch payload sizes (including small timeout-flushed batches) and keeping the
-  metric directly comparable with
-  `otelcol_exporter_queue_batch_send_size_bytes` on the same dashboards. Dashboards or alerts that
-  hard-code specific `le` values for this histogram will need to be updated.
 - (Contrib) `connector/routing`: Promote the `connector.routing.defaultErrorModeIgnore` feature gate to beta. The default `error_mode` is now `ignore` instead of `propagate`. ([#48418](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48418))
-  To restore the previous default of `propagate`, run the collector with the feature gate disabled by passing `--feature-gates=-connector.routing.defaultErrorModeIgnore`.
 - (Contrib) `processor/filter`: Promote the `processor.filter.defaultErrorModeIgnore` feature gate to stable. The default top-level `error_mode` is now permanently `ignore` instead of `propagate`. ([#47232](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47232))
-  The gate will be removed in v0.159.0.
 - (Contrib) `processor/tail_sampling`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
 - (Contrib) `processor/transform`: Promote the `processor.transform.defaultErrorModeIgnore` feature gate to stable. The default top-level `error_mode` is now permanently `ignore` instead of `propagate`. ([#47231](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47231))
-  The gate will be removed in v0.159.0.
-- (Contrib) `receiver/chrony`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
-- (Contrib) `receiver/haproxy`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
-- (Contrib) `receiver/host_metrics`: Make the `cpu` attribute opt-in for hostmetrics CPU time and utilization metrics. ([#49161](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/49161))
+- (Contrib) `receiver/host_metrics`: Make the `cpu` attribute opt-in for hostmetrics CPU time and utilization metrics. ([#49161](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/49161)).
   By default, `system.cpu.time` and `system.cpu.utilization` are now aggregated across logical CPUs and no longer include the `cpu` attribute.
   To restore the previous per-logical-CPU output, configure:
   ```yaml
@@ -59,6 +41,7 @@ and the [opentelemetry-collector-contrib v0.157.0](https://github.com/open-telem
             system.cpu.utilization:
               attributes: [cpu, state]
   ```
+  This change doesn't affect signalfx exporter.
 - (Contrib) `receiver/host_metrics`: Enable the `system.cpu.logical.count` metric by default in the CPU scraper. ([#49325](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49325))
   To restore the previous behavior, disable the new metric by applying the following config:
   ```yaml
@@ -70,11 +53,6 @@ and the [opentelemetry-collector-contrib v0.157.0](https://github.com/open-telem
             system.cpu.logical.count:
               enabled: false
   ```
-- (Contrib) `receiver/memcached`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
-- (Contrib) `receiver/mongodb`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
-- (Contrib) `receiver/nginx`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
-- (Contrib) `receiver/splunk_enterprise`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
-- (Contrib) `receiver/sqlserver`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
 - (Contrib) `receiver/sqlserver`: Change `sqlserver.lock.timeout.rate` to emit per-type data points ([#48925](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48925))
   `sqlserver.lock.timeout.rate` now requires a `sqlserver.lock.timeout.type` attribute
   (`all`, `nonzero`) and emits one data point per type. Users who enable this metric
@@ -225,6 +203,13 @@ and the [opentelemetry-collector-contrib v0.157.0](https://github.com/open-telem
   an `<Invalid value type>` error and aborted `service.New`. Slice-typed attributes are now converted
   element-wise.
 - (Core) `pkg/service`: Record status events reported by extensions ([#15557](https://github.com/open-telemetry/opentelemetry-collector/pull/15557))
+- (Contrib) `receiver/chrony`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
+- (Contrib) `receiver/haproxy`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
+- (Contrib) `receiver/memcached`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
+- (Contrib) `receiver/mongodb`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
+- (Contrib) `receiver/nginx`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
+- (Contrib) `receiver/splunk_enterprise`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
+- (Contrib) `receiver/sqlserver`: Fix metric units to comply with the UCUM specification ([#49453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49453))
 - (Contrib) `exporter/file`: Added 0644 permissions to created export files when rotation is enabled. ([#49677](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49677))
   When rotation is enabled, files are created with 0640 permissions as we did not pass FileMode to TimberJack (defaults to 0640). After this change, file creation for both rotation enabled or disabled is done with 0644 permissions.
 - (Contrib) `exporter/file`: Migrate lumberjack-format rotated backup files to timberjack naming convention on startup to prevent unbounded disk usage after upgrade. ([#47674](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47674))

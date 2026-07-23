@@ -210,17 +210,26 @@ jobs:
           name: msi-build-amd64
           path: /tmp/msi-build
       # Workaround for https://github.com/actions/runner-images/issues/13202
-      - name: Unload KVM module (AMD)
+      # VirtualBox cannot grab VT-x/AMD-V while the KVM modules are loaded,
+      # which makes `vagrant up` fail with "VBoxManage: ... (VERR_NOT_AVAILABLE)".
+      # A single modprobe -r is racy: the module can be briefly held right after
+      # boot, so retry until kvm is gone and fail loudly if it never unloads.
+      - name: Unload KVM module
         run: |
-          # Check if KVM modules are loaded
-          lsmod | grep kvm
-          # Unload KVM modules if present (for Intel or AMD CPUs)
-          sudo modprobe -r kvm_intel || true
-          sudo modprobe -r kvm_amd || true
-          sudo rmmod kvm || true
-          # Verify KVM is unloaded
-          lsmod | grep kvm
-        continue-on-error: true
+          echo "KVM modules before unload:"
+          lsmod | grep kvm || echo "  (none loaded)"
+          for attempt in $(seq 1 10); do
+            sudo modprobe -r kvm_intel kvm_amd kvm 2>/dev/null || true
+            if ! lsmod | grep -q '^kvm'; then
+              echo "KVM unloaded after attempt ${attempt}."
+              exit 0
+            fi
+            echo "kvm still loaded, retrying (attempt ${attempt})..."
+            sleep 3
+          done
+          echo "ERROR: failed to unload KVM modules; VirtualBox will not be able to start VMs." >&2
+          lsmod | grep kvm >&2
+          exit 1
 
       - name: Install vagrant and virtualbox
         run: |

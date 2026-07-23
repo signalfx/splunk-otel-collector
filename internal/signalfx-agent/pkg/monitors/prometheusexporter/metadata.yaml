@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the prometheusreceiver instead.**
     This monitor reads metrics from a [Prometheus
     exporter](https://prometheus.io/docs/instrumenting/exporters/) endpoint.
 

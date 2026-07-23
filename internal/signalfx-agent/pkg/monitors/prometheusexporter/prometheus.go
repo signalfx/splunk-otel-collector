@@ -98,7 +98,7 @@ type fetcher func() (io.ReadCloser, expfmt.Format, error)
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": m.monitorName, "monitorID": conf.MonitorID})
-
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the prometheusreceiver instead.")
 	var bearerToken string
 
 	if conf.UseServiceAccount {

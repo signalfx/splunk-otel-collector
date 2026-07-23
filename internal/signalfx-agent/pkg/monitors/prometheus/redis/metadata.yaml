@@ -1,6 +1,7 @@
 monitors:
 - monitorType: prometheus/redis
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the redisreceiver instead.**
     This monitor scrapes [Prometheus Redis
     Exporter](https://github.com/oliver006/redis_exporter) metrics and sends
     them to SignalFx.  It is a wrapper around the

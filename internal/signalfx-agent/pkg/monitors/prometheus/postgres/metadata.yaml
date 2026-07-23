@@ -1,6 +1,7 @@
 monitors:
 - monitorType: prometheus/postgres
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the postgresqlreceiver instead.**
     This monitor scrapes [Prometheus PostgreSQL Server
     Exporter](https://github.com/wrouesnel/postgres_exporter) metrics and sends
     them to SignalFx.  It is a wrapper around the

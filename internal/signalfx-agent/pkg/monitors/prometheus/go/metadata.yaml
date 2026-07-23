@@ -2,6 +2,7 @@ goPackage: prometheusgo
 monitors:
 - monitorType: prometheus/go
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the Golang instrumentation SDK instead.**
     This monitor scrapes [Prometheus Go
     collector](https://godoc.org/github.com/prometheus/client_golang/prometheus#NewGoCollector)
     and [Prometheus process

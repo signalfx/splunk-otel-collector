@@ -1,6 +1,7 @@
 monitors:
 - monitorType: prometheus/node
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the prometheusreceiver instead.**
     This monitor scrapes [Prometheus Node
     Exporter](https://github.com/prometheus/node_exporter) metrics and sends
     them to SignalFx.  It is a wrapper around the

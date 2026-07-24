@@ -1,5 +1,0 @@
-change_type: enhancement
-component: packaging
-note: Run Windows Collector container images as ContainerUser by default.
-issues: [7788]
-subtext: Use `--user ContainerAdministrator` when running the container if administrator privileges are required.

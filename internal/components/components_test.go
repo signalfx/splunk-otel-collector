@@ -163,7 +163,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedProcessors := []string{
 		"attributes",
 		"batch",
-		"cumulativetodelta",
+		"cumulative_to_delta",
 		"filter",
 		"groupbyattrs",
 		"k8s_attributes",
@@ -181,6 +181,7 @@ func TestDefaultComponents(t *testing.T) {
 		"transform",
 	}
 	expectedProcessorAliases := map[string]string{
+		"cumulativetodelta": "cumulative_to_delta",
 		"k8sattributes":     "k8s_attributes",
 		"metricstransform":  "metrics_transform",
 		"resourcedetection": "resource_detection",

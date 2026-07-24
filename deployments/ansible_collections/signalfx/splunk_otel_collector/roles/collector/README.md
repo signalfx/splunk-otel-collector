@@ -369,7 +369,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   variable in the Windows registry (**default:** ``, i.e. the "Environment"
   will appear as `unknown` in Splunk APM for the instrumented
   service/application) using the `deployment.environment.name` attribute.
-  To retain the deprecated attribute for a legacy downstream consumer, use the 
+  To retain the deprecated attribute, use the 
   `splunk_dotnet_auto_instrumentation_additional_options` option instead:
   ```yaml
   splunk_dotnet_auto_instrumentation_additional_options:

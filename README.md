@@ -167,7 +167,7 @@ as a reference.
 The Collector's optional deployment environment configuration and the `--deployment-environment` (Linux) and `-deployment_env` (Windows) installer
 options now use `deployment.environment.name`.
 
-If a legacy downstream consumer still requires `deployment.environment`, use that name instead in the applicable configuration. For instrumented
+If `deployment.environment` is still required, use that name instead in the applicable configuration. For instrumented
 applications, set `OTEL_RESOURCE_ATTRIBUTES=deployment.environment=<value>`. The Ansible, Chef, Puppet, and Salt integrations can pass the deprecated key
 through their generic resource-attribute option.
 

@@ -137,7 +137,7 @@ processors:
   # Optional: The following processor can be used to add a default "deployment.environment.name" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in a pipeline.
-  # To use the deprecated attribute for a legacy downstream consumer, change the key to "deployment.environment".
+  # To use the deprecated attribute, change the key to "deployment.environment".
   # For more information, see https://docs.splunk.com/Observability/gdi/opentelemetry/components/resource-processor.html
   #resource/add_environment:
     #attributes:
@@ -208,7 +208,7 @@ service:
         - name: otelcol.service.mode
           value: agent
         # Optional: Add a deployment environment to the Collector's internal telemetry.
-        # Use "deployment.environment" as the name only if required by a legacy downstream consumer.
+        # To use the deprecated attribute, change the key to "deployment.environment".
         # - name: deployment.environment.name
         #   value: staging/production/...
     metrics:

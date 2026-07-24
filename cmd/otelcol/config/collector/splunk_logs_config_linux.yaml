@@ -1024,6 +1024,38 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  # Matches Splunk_TA_nix props.conf source:: stanzas for file-based sourcetype assignment.
+  # In Splunk, "source::....X" means the filename component is exactly X.
+  # Regex: "/X$" matches the exact filename after the last path separator.
+  transform/nix_sourcetype:
+    log_statements:
+      - context: log
+        statements:
+          # [source::....linux_secure] -> linux_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "linux_secure")
+              where IsMatch(resource.attributes["com.splunk.source"], "/linux_secure$")
+          # [source::....nix] -> linux_secure (filename ends with .nix extension)
+          - set(resource.attributes["com.splunk.sourcetype"], "linux_secure")
+              where IsMatch(resource.attributes["com.splunk.source"], "\\.nix$")
+          # [source::....aix_secure] -> aix_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "aix_secure")
+              where IsMatch(resource.attributes["com.splunk.source"], "/aix_secure$")
+          # [source::....osx_secure] -> osx_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_secure")
+              where IsMatch(resource.attributes["com.splunk.source"], "/osx_secure$")
+          # [source::....syslog] -> syslog
+          - set(resource.attributes["com.splunk.sourcetype"], "syslog")
+              where IsMatch(resource.attributes["com.splunk.source"], "/syslog$")
+          # [source::....dhcpd] -> dhcpd
+          - set(resource.attributes["com.splunk.sourcetype"], "dhcpd")
+              where IsMatch(resource.attributes["com.splunk.source"], "/dhcpd$")
+          # [source::/etc/passwd*] -> ignored_type
+          - set(resource.attributes["com.splunk.sourcetype"], "ignored_type")
+              where IsMatch(resource.attributes["com.splunk.source"], "^/etc/passwd")
+          # [source::/etc/shadow*] -> ignored_type
+          - set(resource.attributes["com.splunk.sourcetype"], "ignored_type")
+              where IsMatch(resource.attributes["com.splunk.source"], "^/etc/shadow")
+
 exporters:
   splunk_hec/logs:
     endpoint: "${SPLUNK_PLATFORM_URL}"
@@ -1099,5 +1131,6 @@ service:
       processors:
         - memory_limiter
         - resource_detection
+        - transform/nix_sourcetype
       exporters:
         - splunk_hec/logs

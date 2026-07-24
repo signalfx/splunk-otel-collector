@@ -134,6 +134,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
+	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
@@ -141,6 +142,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
+	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
@@ -159,6 +161,18 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
+)
+
+const (
+	splunkInputsSupportFeatureGateID = "splunk_inputs"
+)
+
+var splunkinputssupport = featuregate.GlobalRegistry().MustRegister(
+	splunkInputsSupportFeatureGateID,
+	featuregate.StageAlpha,
+	featuregate.WithRegisterDescription("When enabled, the collector supports the `splunk_inputs` receiver. "+
+		"When disabled (default), the `splunk_inputs` receiver is not available and the collector will crash if it tries to run it."),
+	featuregate.WithRegisterFromVersion("v0.157.0"),
 )
 
 func Get() (otelcol.Factories, error) {
@@ -189,7 +203,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	receivers, err := otelcol.MakeFactoryMap(
+	receiverFactories := []receiver.Factory{
 		activedirectorydsreceiver.NewFactory(),
 		apachereceiver.NewFactory(),
 		apachesparkreceiver.NewFactory(),
@@ -270,7 +284,13 @@ func Get() (otelcol.Factories, error) {
 		yanggrpcreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 		zookeeperreceiver.NewFactory(),
-	)
+	}
+
+	if splunkinputssupport.IsEnabled() {
+		receiverFactories = append(receiverFactories, splunkinputsreceiver.NewFactory())
+	}
+
+	receivers, err := otelcol.MakeFactoryMap(receiverFactories...)
 	if err != nil {
 		errs = append(errs, err)
 	}

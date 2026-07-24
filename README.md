@@ -101,7 +101,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 - [HashiCorp Nomad](./deployments/nomad)
 - Linux
   - [Installer script](./docs/getting-started/linux-installer.md) (recommended for single-host demo/test environments)
-  - [Splunk Platform log and metrics collection](./docs/getting-started/linux-splunk-platform.md) (send logs and metrics to Splunk Enterprise or Splunk Cloud)
+  - [Collect logs on Linux](./docs/getting-started/linux-logs.md)
   - Configuration management (recommended for multi-host production environments)
     - [Ansible](https://galaxy.ansible.com/ui/repo/published/signalfx/splunk_otel_collector/)
     - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
@@ -128,9 +128,7 @@ A variety of default configuration files are provided:
   Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
   documentation. `agent_config.yaml` is the recommended starting configuration for
-  most environments. To collect logs and metrics for Splunk Platform (Splunk Enterprise
-  or Splunk Cloud), use the installer's `--splunk-platform-url` flag — see
-  [Splunk Platform log and metrics collection](docs/splunk-platform-log-collection.md).
+  most environments. To collect logs, see [Collect logs on Linux](docs/getting-started/linux-logs.md).
 
 In addition, the following components can be configured:
 

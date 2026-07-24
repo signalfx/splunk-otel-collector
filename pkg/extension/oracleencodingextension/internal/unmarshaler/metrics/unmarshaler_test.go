@@ -38,7 +38,7 @@ func TestUnmarshalMetrics(t *testing.T) {
 	// Two distinct resources: (namespace, compartmentId, resourceGroup, resourceId) tuples.
 	require.Equal(t, 2, md.ResourceMetrics().Len())
 
-	var firstRM, secondRM = md.ResourceMetrics().At(0), md.ResourceMetrics().At(1)
+	firstRM, secondRM := md.ResourceMetrics().At(0), md.ResourceMetrics().At(1)
 	if v, _ := firstRM.Resource().Attributes().Get(oracleCloudNamespaceKey); v.AsString() != "myFirstNamespace" {
 		firstRM, secondRM = secondRM, firstRM
 	}
@@ -77,7 +77,7 @@ func TestUnmarshalMetrics(t *testing.T) {
 	require.Equal(t, 2, successRate.Gauge().DataPoints().Len())
 
 	dp0 := successRate.Gauge().DataPoints().At(0)
-	require.Equal(t, 83.0, dp0.DoubleValue())
+	require.InDelta(t, 83.0, dp0.DoubleValue(), .001)
 	require.Equal(t, pcommon.NewTimestampFromTime(time.UnixMilli(1784285626872)), dp0.Timestamp())
 
 	// resourceId is promoted to the Resource as cloud.resource_id, but is
@@ -108,7 +108,7 @@ func TestUnmarshalMetrics_GaugeUnit(t *testing.T) {
 			m := md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0)
 			require.Equal(t, pmetric.MetricTypeGauge, m.Type())
 			require.Equal(t, 1, m.Gauge().DataPoints().Len())
-			require.Equal(t, 42.0, m.Gauge().DataPoints().At(0).DoubleValue())
+			require.InDelta(t, 42.0, m.Gauge().DataPoints().At(0).DoubleValue(), .001)
 		})
 	}
 }
@@ -132,7 +132,7 @@ func TestUnmarshalMetrics_SkipsZeroTimestampDatapoint(t *testing.T) {
 
 	dps := md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints()
 	require.Equal(t, 1, dps.Len())
-	require.Equal(t, 2.0, dps.At(0).DoubleValue())
+	require.InDelta(t, 2.0, dps.At(0).DoubleValue(), .001)
 }
 
 func TestUnmarshalMetrics_SkipsRecordWithOnlyZeroTimestampDatapoints(t *testing.T) {
@@ -244,16 +244,16 @@ func TestUnmarshalMetrics_SortsDatapointsByTimestampAscending(t *testing.T) {
 	require.Equal(t, 3, dps.Len())
 
 	require.Equal(t, pcommon.NewTimestampFromTime(time.UnixMilli(1673388760000)), dps.At(0).Timestamp())
-	require.Equal(t, 1.0, dps.At(0).DoubleValue())
+	require.InDelta(t, 1.0, dps.At(0).DoubleValue(), .001)
 	require.Equal(t, pcommon.NewTimestampFromTime(time.UnixMilli(1673388761000)), dps.At(1).Timestamp())
-	require.Equal(t, 2.0, dps.At(1).DoubleValue())
+	require.InDelta(t, 2.0, dps.At(1).DoubleValue(), .001)
 	require.Equal(t, pcommon.NewTimestampFromTime(time.UnixMilli(1673388762000)), dps.At(2).Timestamp())
-	require.Equal(t, 3.0, dps.At(2).DoubleValue())
+	require.InDelta(t, 3.0, dps.At(2).DoubleValue(), .001)
 }
 
 func TestUnmarshalMetrics_DoesNotMergeConflictingUnits(t *testing.T) {
 	input := `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"ms"},"datapoints":[{"timestamp":1673388760000,"value":42.0}]}
-{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"s"},"datapoints":[{"timestamp":1673388761000,"value":0.043}]}
+{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"s"},"datapoints":[{"timestamp":1673388761000,"value":0.04}]}
 `
 	u := NewResourceMetricsUnmarshaler(zap.NewNop())
 	md, err := u.UnmarshalMetrics([]byte(input))
@@ -269,8 +269,8 @@ func TestUnmarshalMetrics_DoesNotMergeConflictingUnits(t *testing.T) {
 	}
 	require.Contains(t, metricsByUnit, "ms")
 	require.Contains(t, metricsByUnit, "s")
-	require.Equal(t, 42.0, metricsByUnit["ms"].Gauge().DataPoints().At(0).DoubleValue())
-	require.Equal(t, 0.043, metricsByUnit["s"].Gauge().DataPoints().At(0).DoubleValue())
+	require.InDelta(t, 42.0, metricsByUnit["ms"].Gauge().DataPoints().At(0).DoubleValue(), .001)
+	require.InDelta(t, 0.04, metricsByUnit["s"].Gauge().DataPoints().At(0).DoubleValue(), .001)
 }
 
 func TestUnmarshalMetrics_Empty(t *testing.T) {

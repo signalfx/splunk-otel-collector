@@ -15,6 +15,7 @@
 $ErrorActionPreference = "Stop"
 
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$APP_NAME = if ($env:APP_NAME) { $env:APP_NAME } else { "Splunk_TA_otel_windows_x86_64" }
 if ($env:ASSETS_DIR) {
     $resolvedAssetsPath = Resolve-Path -ErrorAction SilentlyContinue $env:ASSETS_DIR
     if (-not $resolvedAssetsPath) {
@@ -85,13 +86,14 @@ if ($tokenLineFound) {
 Write-Host "Launching Splunk Universal Forwarder container..."
 Write-Host "  Container name: $CONTAINER_NAME"
 Write-Host "  Image tag: $IMAGE_TAG"
+Write-Host "  App name: $APP_NAME"
 Write-Host "  Assets directory: $ASSETS_DIR"
 Write-Host "  Log directory: $LOG_DIR"
 
 # Launch Splunk Universal Forwarder container
 docker run -d --name $CONTAINER_NAME `
     --user ContainerAdministrator `
-    -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\Splunk_TA_otel" `
+    -v "${ASSETS_DIR}:C:\Program Files\SplunkUniversalForwarder\etc\apps\${APP_NAME}" `
     -v "${LOG_DIR}:C:\Program Files\SplunkUniversalForwarder\var\log\splunk" `
     -p 8888:8888 `
     -p 55679:55679 `

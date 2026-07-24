@@ -40,6 +40,12 @@ This example showcases how the collector can follow a file and send its contents
 
 This example showcases how the collector can select different sourcetypes per log sources.
 
+## [Monitoring a systemd timer](./systemd-timer-monitoring)
+
+This example showcases how the collector can monitor a script run periodically via a systemd timer, using the journald receiver to capture its execution logs and a generic `ExecStopPost=` script to report the exit status of any systemd job as a metric.
+
+[Read more...](./systemd-timer-monitoring)
+
 # Dependencies
 
 - docker

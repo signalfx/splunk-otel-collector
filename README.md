@@ -61,7 +61,7 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/products/obse
 Splunk OpenTelemetry Collector natively supports sending logs and metrics to
 [Splunk Cloud](https://www.splunk.com/en_us/products/splunk-cloud-platform.html)
 and [Splunk Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html).
-See [Ingest Linux data to Splunk Platform](docs/getting-started/linux-splunk-platform.md).
+See [Collect logs on Linux](docs/getting-started/linux-logs.md).
 [Splunk Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
 remain a supported alternative.
 

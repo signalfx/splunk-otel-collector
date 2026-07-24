@@ -1,6 +1,6 @@
 # Collect logs on Linux
 
-> **Scope:** This guide covers log collection via the [Linux installer script](linux-installer.md) only. For manual configuration, see the [filelog receiver documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver).
+> **Scope:** This guide covers log collection via the [Linux installer script](linux-installer.md) only.
 
 ## Prerequisites
 

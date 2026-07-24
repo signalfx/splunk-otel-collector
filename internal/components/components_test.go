@@ -41,6 +41,7 @@ func TestDefaultComponents(t *testing.T) {
 		"k8s_observer",
 		"oauth2client",
 		"opamp",
+		"oracle_encoding",
 		"pprof",
 		"smartagent",
 		"text_encoding",

@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 )
 
-// removeAllKeysOtherThan removes all bundled receivers from the discovery receiver to avoid having to update the
+// removeBundledReceivers removes all bundled receivers from the discovery receiver to avoid having to update the
 // expected config every time a new bundled receiver rule is added. It returns the number of bundled receivers.
 func removeBundledReceivers(discReceiverCfg any) (removedCount int) {
 	receiverToKeep := "prometheus/test"

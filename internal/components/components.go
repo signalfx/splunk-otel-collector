@@ -164,11 +164,11 @@ import (
 )
 
 const (
-	dotConfSupportFeatureGateID = "dot_conf_support"
+	enableTARunnerFeatureGateID = "enableTARunner"
 )
 
-var dotConfSupport = featuregate.GlobalRegistry().MustRegister(
-	dotConfSupportFeatureGateID,
+var enableTARunner = featuregate.GlobalRegistry().MustRegister(
+	enableTARunnerFeatureGateID,
 	featuregate.StageAlpha,
 	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver. "+
 		"When disabled (default), the `splunk_inputs` receiver is not available and the collector will crash if it tries to run it."),
@@ -286,7 +286,7 @@ func Get() (otelcol.Factories, error) {
 		zookeeperreceiver.NewFactory(),
 	}
 
-	if dotConfSupport.IsEnabled() {
+	if enableTARunner.IsEnabled() {
 		receiverFactories = append(receiverFactories, splunkinputsreceiver.NewFactory())
 	}
 

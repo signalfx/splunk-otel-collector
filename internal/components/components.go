@@ -172,7 +172,7 @@ var dotConfSupport = featuregate.GlobalRegistry().MustRegister(
 	featuregate.StageAlpha,
 	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver. "+
 		"When disabled (default), the `splunk_inputs` receiver is not available and the collector will crash if it tries to run it."),
-	featuregate.WithRegisterFromVersion("v0.157.0"),
+	featuregate.WithRegisterFromVersion("v0.158.0"),
 )
 
 func Get() (otelcol.Factories, error) {

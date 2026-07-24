@@ -1024,6 +1024,12 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  transform/platform:
+    log_statements:
+      - context: scope
+        statements:
+          - set(attributes["otel.platform"], "true")
+
 exporters:
   splunk_hec/logs:
     endpoint: "${SPLUNK_PLATFORM_URL}"
@@ -1049,6 +1055,14 @@ exporters:
         min_size: 2048
     tls:
       insecure_skip_verify: false
+
+  # Send to gateway instead of directly to Splunk Platform HEC.
+  # To use, uncomment 'otlp_grpc/gateway' in the pipeline exporters below
+  # and comment out 'splunk_hec/logs'.
+  otlp_grpc/gateway:
+    endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+    tls:
+      insecure: true
 
 service:
   telemetry:
@@ -1099,5 +1113,8 @@ service:
       processors:
         - memory_limiter
         - resource_detection
+        - transform/platform
       exporters:
         - splunk_hec/logs
+        # Use instead when sending to gateway:
+        #- otlp_grpc/gateway

@@ -61,6 +61,7 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
+gateway_platform_config_path="${collector_config_dir}/gateway_config_platform.yaml"
 logs_config_path="${collector_config_dir}/splunk_logs_config_linux.yaml"
 logs_file_storage_path="/var/lib/otelcol/filelogs"
 metrics_config_path="${collector_config_dir}/splunk_metrics_config_linux.yaml"
@@ -1123,6 +1124,8 @@ Collector:
 Splunk Platform:
   --splunk-platform-token <token>       Set the HEC token for sending data to Splunk Platform.
   --splunk-platform-url <url>           Set the Splunk Platform HEC endpoint URL.
+                                        Supported in both agent mode (direct HEC export) and gateway mode
+                                        (OTLP agents forward to gateway, gateway exports to HEC).
   --splunk-platform-logs-index <index>  Set the Splunk index to send logs to.
                                         Optional: if omitted, the index defaults to the one configured on the HEC token.
   --splunk-platform-metrics-index <index>  Set the Splunk index to send metrics to. This option enables Splunk Platform
@@ -1663,13 +1666,15 @@ parse_args_and_install() {
       exit 0
   fi
 
-  # When --splunk-platform-url is provided, the following rules determine what is collected:
+  # When --splunk-platform-url is provided in agent mode, the following rules determine what is collected:
   # - If only --splunk-platform-metrics-index is set: only metrics collection is enabled.
   # - If neither index is set: log collection is enabled by default.
   # - If both indexes are set: both logs and metrics collection are enabled.
   # --splunk-platform-token is required alongside --splunk-platform-url.
   # --splunk-platform-logs-index is optional when logs are enabled; if omitted, the index
   # defaults to whatever is configured on the HEC token.
+  # In gateway mode, --splunk-platform-url only configures the gateway's HEC exporters;
+  # no local log/metrics collection is activated on the gateway node.
   # Validate before prompting for access token to avoid blocking on interactive input.
   if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_logs_index" ] || [ -n "$splunk_platform_metrics_index" ]; then
     if [ -z "$splunk_platform_url" ]; then
@@ -1683,16 +1688,14 @@ parse_args_and_install() {
       echo "[ERROR] --splunk-platform-token is required when --splunk-platform-url is set." >&2
       exit 1
     fi
-    if [ "$mode" = "gateway" ]; then
-      echo "[ERROR] Splunk Platform ingestion is not supported in gateway mode." >&2
-      exit 1
-    fi
-    if [ -n "$splunk_platform_metrics_index" ]; then
-      with_metrics="true"
-    fi
-    # Enable logs by default unless only metrics index was specified.
-    if [ -n "$splunk_platform_logs_index" ] || [ -z "$splunk_platform_metrics_index" ]; then
-      with_logs="true"
+    if [ "$mode" != "gateway" ]; then
+      if [ -n "$splunk_platform_metrics_index" ]; then
+        with_metrics="true"
+      fi
+      # Enable logs by default unless only metrics index was specified.
+      if [ -n "$splunk_platform_logs_index" ] || [ -z "$splunk_platform_metrics_index" ]; then
+        with_logs="true"
+      fi
     fi
   fi
 
@@ -1953,7 +1956,7 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
     configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
-    if [ "${with_logs:-false}" != "true" ] && [ "${with_metrics:-false}" != "true" ]; then
+    if [ "${with_logs:-false}" != "true" ] && [ "${with_metrics:-false}" != "true" ] && [ "$mode" != "gateway" ]; then
       configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
     fi
   fi
@@ -1965,7 +1968,7 @@ parse_args_and_install() {
     otelcol_options="--discovery"
   fi
 
-  if [ "$with_logs" = "true" ] || [ "$with_metrics" = "true" ]; then
+  if [ "$with_logs" = "true" ] || [ "$with_metrics" = "true" ] || { [ "$mode" = "gateway" ] && [ -n "$splunk_platform_url" ]; }; then
     configure_env_file "SPLUNK_PLATFORM_URL" "$splunk_platform_url" "$collector_env_path"
     configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
     if [ "$with_logs" = "true" ]; then
@@ -1973,27 +1976,42 @@ parse_args_and_install() {
       chown -R $service_user:$service_group "$logs_file_storage_path"
       chmod 700 "$logs_file_storage_path"
       configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
-      if [ -n "$splunk_platform_logs_index" ]; then
-        configure_env_file "SPLUNK_PLATFORM_LOGS_INDEX" "$splunk_platform_logs_index" "$collector_env_path"
-      fi
     fi
-    if [ "$with_metrics" = "true" ]; then
+    if [ -n "$splunk_platform_logs_index" ]; then
+      configure_env_file "SPLUNK_PLATFORM_LOGS_INDEX" "$splunk_platform_logs_index" "$collector_env_path"
+    fi
+    if [ -n "$splunk_platform_metrics_index" ]; then
       configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
     fi
-    local platform_configs=
-    if [ "$with_logs" = "true" ]; then
-      platform_configs="$platform_configs --config $logs_config_path"
-    fi
-    if [ "$with_metrics" = "true" ]; then
-      platform_configs="$platform_configs --config $metrics_config_path"
-    fi
-    if [ -n "$access_token" ]; then
-      otelcol_options="$otelcol_options --config $collector_config_path$platform_configs --feature-gates=confmap.enableMergeAppendOption"
-    elif [ "$with_logs" = "true" ] && [ "$with_metrics" = "true" ]; then
-      otelcol_options="$otelcol_options$platform_configs --feature-gates=confmap.enableMergeAppendOption"
+    if [ "$mode" = "gateway" ]; then
+      if [ -n "$access_token" ]; then
+        # both o11y and platform: merge gateway_config.yaml + gateway_config_platform.yaml
+        otelcol_options="$otelcol_options --config $gateway_config_path --config $gateway_platform_config_path --feature-gates=confmap.enableMergeAppendOption"
+      else
+        # platform only: use gateway_config_platform.yaml standalone
+        otelcol_options="$otelcol_options --config $gateway_platform_config_path"
+      fi
     else
-      otelcol_options="$otelcol_options$platform_configs"
+      local platform_configs=
+      if [ "$with_logs" = "true" ]; then
+        platform_configs="$platform_configs --config $logs_config_path"
+      fi
+      if [ "$with_metrics" = "true" ]; then
+        platform_configs="$platform_configs --config $metrics_config_path"
+      fi
+      if [ -n "$access_token" ]; then
+        otelcol_options="$otelcol_options --config $collector_config_path$platform_configs --feature-gates=confmap.enableMergeAppendOption"
+      elif [ "$with_logs" = "true" ] && [ "$with_metrics" = "true" ]; then
+        otelcol_options="$otelcol_options$platform_configs --feature-gates=confmap.enableMergeAppendOption"
+      else
+        otelcol_options="$otelcol_options$platform_configs"
+      fi
     fi
+  fi
+
+  # For o11y-only gateway, set SPLUNK_CONFIG to the gateway config
+  if [ "$mode" = "gateway" ] && [ -n "$access_token" ] && [ -z "$splunk_platform_url" ]; then
+    configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   fi
 
   if [ -n "$otelcol_options" ]; then

@@ -97,3 +97,52 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
    object library will then be preloaded for all subsequent processes and inject the environment variables from the
    `/etc/splunk/zeroconfig` configuration files for Java and Node.js processes.
 
+## Running the `auto-instrumentation` CI Workflow Locally
+
+The [`auto-instrumentation.yml`](../.github/workflows/auto-instrumentation.yml) workflow builds the collector binary
+and the `splunk-otel-auto-instrumentation` package, then runs `packaging/tests/instrumentation/instrumentation_test.py`
+against them in distro containers. To reproduce a single `test-package (<distro>, <arch>, <testcase>)` job locally
+(e.g. `test-package (debian-bullseye, arm64, dotnet)`):
+
+1. Build the collector binary for the target arch (from the repo root):
+
+   ```bash
+   make binaries-linux_arm64   # or binaries-linux_amd64
+   ```
+
+   Produces `bin/otelcol_linux_<arch>`.
+
+2. Check out the pinned injector source and build the deb/rpm package (from `instrumentation/`):
+
+   ```bash
+   cd instrumentation
+   make checkout-injector          # clones open-telemetry/opentelemetry-injector at the version in packaging/injector-release.txt
+   make deb-package ARCH=arm64     # or rpm-package, matching the target distro's package type
+   cd ..
+   ```
+
+   Produces `instrumentation/dist/*.deb` (or `.rpm`).
+
+3. Install the test dependencies:
+
+   ```bash
+   python3 -m venv .venv && source .venv/bin/activate
+   pip install -r packaging/tests/requirements.txt
+   ```
+
+4. Run pytest with the same `-k` filter CI uses (distro, arch, testcase):
+
+   ```bash
+   python3 -u -m pytest -s --verbose \
+     -k "debian-bullseye and arm64 and (dotnet or uninstall)" \
+     packaging/tests/instrumentation/instrumentation_test.py
+   ```
+
+Notes:
+
+- Docker must be running; tests spin up `--privileged` systemd containers defined under
+  `packaging/tests/instrumentation/images/{deb,rpm}/Dockerfile.<distro>`.
+- Run on a host matching the target `arch` to avoid needing QEMU emulation.
+- The test looks up `bin/otelcol_linux_<arch>` and a matching package in `instrumentation/dist/`, so steps 1 and 2
+  must complete first.
+

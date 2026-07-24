@@ -57,30 +57,43 @@ OLD_SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
 AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
-LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
+LIBOTELINJECT_PATH = "/usr/lib/splunk-instrumentation/libotelinject.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 JAVA_TOOL_OPTIONS = f"-javaagent:{JAVA_AGENT_PATH}"
 PRELOAD_PATH = "/etc/ld.so.preload"
 SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 NODE_PACKAGE_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
-JAVA_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
-NODE_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
-DOTNET_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
+INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
+INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
 NODE_PREFIX = "/usr/lib/splunk-instrumentation/splunk-otel-js"
 NODE_OPTIONS = f"-r {NODE_PREFIX}/node_modules/@splunk/otel/instrument"
 DOTNET_HOME = "/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
-DOTNET_AGENT_PATH = f"{DOTNET_HOME}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_VARS = {
-    "CORECLR_ENABLE_PROFILING": "1",
-    "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
-    "CORECLR_PROFILER_PATH": DOTNET_AGENT_PATH,
-    "DOTNET_ADDITIONAL_DEPS": f"{DOTNET_HOME}/AdditionalDeps",
-    "DOTNET_SHARED_STORE": f"{DOTNET_HOME}/store",
-    "DOTNET_STARTUP_HOOKS": f"{DOTNET_HOME}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll",
-    "OTEL_DOTNET_AUTO_HOME": DOTNET_HOME,
-    "OTEL_DOTNET_AUTO_PLUGINS":
-        "Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation",
-}
+DOTNET_AGENT_PATH = f"{DOTNET_HOME}/glibc/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+DOTNET_AGENT_ARM64_PATH = f"{DOTNET_HOME}/glibc/linux-arm64/OpenTelemetry.AutoInstrumentation.Native.so"
+# maps install.sh sdk names to the injector's runtime names used in auto_instrumentation_disabled
+RUNTIME_NAMES = {"java": "jvm", "node": "nodejs", "dotnet": "dotnet"}
+
+
+def get_dotnet_agent_path(arch):
+    return DOTNET_AGENT_ARM64_PATH if arch == "arm64" else DOTNET_AGENT_PATH
+
+
+def get_dotnet_vars(arch):
+    return {
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+        "CORECLR_PROFILER_PATH": get_dotnet_agent_path(arch),
+        "DOTNET_ADDITIONAL_DEPS": f"{DOTNET_HOME}/glibc/AdditionalDeps",
+        "DOTNET_SHARED_STORE": f"{DOTNET_HOME}/glibc/store",
+        "DOTNET_STARTUP_HOOKS": f"{DOTNET_HOME}/glibc/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll",
+        "OTEL_DOTNET_AUTO_HOME": DOTNET_HOME,
+        "OTEL_DOTNET_AUTO_PLUGINS":
+            "Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation",
+    }
+
+
+def get_disabled_runtimes(enabled_sdks):
+    return ",".join(RUNTIME_NAMES[sdk] for sdk in ("java", "node", "dotnet") if sdk not in enabled_sdks)
 
 INSTALLER_TIMEOUT = "30m"
 
@@ -124,7 +137,9 @@ def get_installer_cmd():
 
     install_cmd = f"sh -l {debug_flag} /test/install.sh -- {SPLUNK_ACCESS_TOKEN} --realm {SPLUNK_REALM}"
 
-    if VERSION != "latest":
+    if LOCAL_COLLECTOR_PACKAGE:
+        install_cmd = f"{install_cmd} --collector-version /test/collector.pkg --skip-collector-repo"
+    elif VERSION != "latest":
         install_cmd = f"{install_cmd} --collector-version {VERSION.lstrip('v')}"
 
     if STAGE != "release":
@@ -206,8 +221,8 @@ def verify_uninstall(container, distro):
     for pkg in ("splunk-otel-collector", "splunk-otel-auto-instrumentation"):
         assert not package_is_installed(container, distro, pkg), f"{pkg} was not uninstalled"
 
-    # verify libsplunk.so was removed from /etc/ld.so.preload after uninstall
-    verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
+    # verify libotelinject.so was removed from /etc/ld.so.preload after uninstall
+    verify_config_file(container, PRELOAD_PATH, f".*{LIBOTELINJECT_PATH}.*", None, exists=False)
 
     # verify the systemd config file was removed after uninstall
     assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
@@ -234,6 +249,10 @@ def test_installer_default(distro, arch, mode):
     with run_distro_container(distro, arch) as container:
         # run installer script
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, "apt-get install -y libcap2-bin")
 
         try:
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
@@ -265,7 +284,7 @@ def test_installer_default(distro, arch, mode):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_installer_custom(distro, arch):
-    collector_version = "0.126.0"
+    collector_version = LOCAL_COLLECTOR_PACKAGE if LOCAL_COLLECTOR_PACKAGE else "0.126.0"
     service_owner = "test-user"
     custom_config = "/etc/my-custom-config.yaml"
 
@@ -275,13 +294,16 @@ def test_installer_custom(distro, arch):
         "--memory 256",
         f"--service-user {service_owner} --service-group {service_owner}",
         f"--collector-config {custom_config}",
-        f"--collector-version {collector_version}",
     ))
+    if not LOCAL_COLLECTOR_PACKAGE:
+        install_cmd += f" --collector-version ${collector_version}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
     with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, CUSTOM_COLLECTOR_CONFIG, custom_config)
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
 
         try:
             # run installer script
@@ -289,8 +311,9 @@ def test_installer_custom(distro, arch):
             time.sleep(5)
 
             # verify collector version
-            _, output = run_container_cmd(container, "otelcol --version")
-            assert output.decode("utf-8").strip() == f"otelcol version v{collector_version}"
+            if not LOCAL_COLLECTOR_PACKAGE:
+                _, output = run_container_cmd(container, "otelcol --version")
+                assert output.decode("utf-8").strip() == f"otelcol version v{collector_version}"
 
             # verify env file created with configured parameters
             verify_env_file(container, config_path=custom_config, memory="256", listen_addr="10.0.0.1")
@@ -347,8 +370,8 @@ def node_package_installed(container):
     return rc == 0
 
 
-def verify_dotnet_config(container, path, exists=True):
-    for key, val in DOTNET_VARS.items():
+def verify_dotnet_config(container, path, arch, exists=True):
+    for key, val in get_dotnet_vars(arch).items():
         val = val if exists else ".*"
         verify_config_file(container, path, key, val, exists=exists)
 
@@ -377,6 +400,8 @@ def test_installer_with_instrumentation_default(distro, arch, method):
     dockerfile = get_instrumentation_dockerfile(distro)
     with run_distro_container(distro, dockerfile=dockerfile, arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
         if LOCAL_INSTRUMENTATION_PACKAGE:
             copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
@@ -415,39 +440,33 @@ def test_installer_with_instrumentation_default(distro, arch, method):
         rc, _ = run_container_cmd(container, "sh -l -c 'npm ls --global=true @splunk/otel'", exit_code=None)
         assert rc != 0, "splunk-otel-js installed globally"
 
-        if arch == "amd64":
-            assert container_file_exists(container, DOTNET_AGENT_PATH)
+        assert container_file_exists(container, get_dotnet_agent_path(arch))
 
         config_attributes = rf"splunk\.zc\.method={zc_method}"
 
         if method == "preload":
-            # verify libsplunk.so was added to /etc/ld.so.preload
-            verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
+            # verify libotelinject.so was added to /etc/ld.so.preload
+            verify_config_file(container, PRELOAD_PATH, LIBOTELINJECT_PATH, None)
 
             assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
 
-            # verify default options for java, node.js, and .NET
-            verify_config_file(container, JAVA_ZEROCONFIG_PATH, "JAVA_TOOL_OPTIONS", JAVA_TOOL_OPTIONS)
-            verify_config_file(container, NODE_ZEROCONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-            configs_to_verify = [JAVA_ZEROCONFIG_PATH, NODE_ZEROCONFIG_PATH]
-            if arch == "amd64":
-                verify_dotnet_config(container, DOTNET_ZEROCONFIG_PATH)
-                configs_to_verify.append(DOTNET_ZEROCONFIG_PATH)
-            else:
-                assert not container_file_exists(container, DOTNET_ZEROCONFIG_PATH)
-            for config_path in configs_to_verify:
-                verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
-                verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
-                verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
-                verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
-                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
-                verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
-                verify_config_file(container, config_path, "OTEL_METRICS_EXPORTER", ".*", exists=False)
-                verify_config_file(container, config_path, "OTEL_LOGS_EXPORTER", ".*", exists=False)
-                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
+            # all supported sdks (java, node, dotnet) are enabled by default, so no
+            # auto_instrumentation_disabled line should be present
+            verify_config_file(container, INJECTOR_CONFIG_PATH, "auto_instrumentation_disabled", ".*", exists=False)
+
+            # verify default options
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "SPLUNK_PROFILER_ENABLED", "false")
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "SPLUNK_METRICS_ENABLED", "false")
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_SERVICE_NAME", ".*", exists=False)
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_METRICS_EXPORTER", ".*", exists=False)
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_LOGS_EXPORTER", ".*", exists=False)
+            verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
         else:
-            # verify libsplunk.so was not added to /etc/ld.so.preload
-            verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
+            # verify libotelinject.so was not added to /etc/ld.so.preload
+            verify_config_file(container, PRELOAD_PATH, f".*{LIBOTELINJECT_PATH}.*", None, exists=False)
 
             # verify default options
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
@@ -461,7 +480,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
-            verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=True if arch == "amd64" else False)
+            verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, arch)
 
         verify_uninstall(container, distro)
 
@@ -493,6 +512,8 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
     dockerfile = get_instrumentation_dockerfile(distro)
     with run_distro_container(distro, dockerfile=dockerfile, arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
         if LOCAL_INSTRUMENTATION_PACKAGE:
             copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
@@ -521,20 +542,12 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             install_cmd = f"{install_cmd} --instrumentation-version /test/instrumentation.pkg"
 
         # run installer script
-        _, output = run_container_cmd(
+        run_container_cmd(
             container,
             install_cmd,
             env={"VERIFY_ACCESS_TOKEN": "false"},
-            exit_code=1 if sdk == "dotnet" and arch != "amd64" else 0,
             timeout=INSTALLER_TIMEOUT,
         )
-
-        if sdk == "dotnet" and arch != "amd64":
-            verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
-            verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
-            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
-            assert ".NET auto instrumentation is not currently supported" in output.decode("utf-8")
-            pytest.xfail("installer script successfully failed for .NET on arm64")
 
         time.sleep(5)
 
@@ -561,8 +574,8 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
         rc, _ = run_container_cmd(container, "sh -l -c 'npm ls --global=true @splunk/otel'", exit_code=None)
         assert rc != 0, "splunk-otel-js installed globally"
 
-        if arch == "amd64":
-            assert container_file_exists(container, DOTNET_AGENT_PATH)
+        if sdk == "dotnet":
+            assert container_file_exists(container, get_dotnet_agent_path(arch))
 
         config_attributes = ",".join((
             rf"splunk\.zc\.method={zc_method}",
@@ -570,28 +583,16 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
         ))
 
         if method == "preload":
-            # verify libsplunk.so was added to /etc/ld.so.preload
-            verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
+            # verify libotelinject.so was added to /etc/ld.so.preload
+            verify_config_file(container, PRELOAD_PATH, LIBOTELINJECT_PATH, None)
 
             assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
 
-            # verify configured options
-            if sdk == "java":
-                config_path = JAVA_ZEROCONFIG_PATH
-                verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", JAVA_TOOL_OPTIONS)
-                assert not container_file_exists(container, NODE_ZEROCONFIG_PATH)
-                assert not container_file_exists(container, DOTNET_ZEROCONFIG_PATH)
-            elif sdk == "node":
-                config_path = NODE_ZEROCONFIG_PATH
-                verify_config_file(container, config_path, "NODE_OPTIONS", NODE_OPTIONS)
-                assert not container_file_exists(container, JAVA_ZEROCONFIG_PATH)
-                assert not container_file_exists(container, DOTNET_ZEROCONFIG_PATH)
-            else:
-                config_path = DOTNET_ZEROCONFIG_PATH
-                verify_dotnet_config(container, config_path)
-                assert not container_file_exists(container, JAVA_ZEROCONFIG_PATH)
-                assert not container_file_exists(container, NODE_ZEROCONFIG_PATH)
+            # verify only the selected sdk is enabled in injector.conf
+            disabled_runtimes = get_disabled_runtimes([sdk])
+            verify_config_file(container, INJECTOR_CONFIG_PATH, "auto_instrumentation_disabled", disabled_runtimes)
 
+            config_path = INJECTOR_DEFAULT_ENV_PATH
             verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
             verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
             verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
@@ -602,20 +603,20 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             verify_config_file(container, config_path, "OTEL_LOGS_EXPORTER", "none")
             verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf")
         else:
-            # verify libsplunk.so was not added to /etc/ld.so.preload
-            verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
+            # verify libotelinject.so was not added to /etc/ld.so.preload
+            verify_config_file(container, PRELOAD_PATH, f".*{LIBOTELINJECT_PATH}.*", None, exists=False)
 
             # verify configured options
             if sdk == "java":
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", JAVA_TOOL_OPTIONS)
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
-                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, arch, exists=False)
             elif sdk == "node":
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", ".*", exists=False)
-                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, arch, exists=False)
             else:
-                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, arch)
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", ".*", exists=False)
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
 
@@ -655,6 +656,8 @@ def test_installer_with_obi(distro, arch):
     print(f"Testing OBI installation on {distro} ({arch}) ...")
     with run_distro_container(distro, arch=arch, extra_volumes={"/sys/fs/bpf": {"bind": "/sys/fs/bpf", "mode": "rw"}}) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
 
         run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
         time.sleep(5)

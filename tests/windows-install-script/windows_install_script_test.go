@@ -53,7 +53,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	installCollector(t, getTestDataFilePath(t, "install-before-platform-indexes.ps1"), oldCollectorVersion, "")
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
-	verifyZeroConfigResourceAttributeCount(t, 1)
+	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment=test")
 	legacySvcVersion := getCurrentServiceVersion(t)
 	require.Equal(t, oldCollectorVersion, legacySvcVersion)
 
@@ -65,13 +65,13 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	installCollector(t, getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"), "", msiInstallerPath)
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
-	verifyZeroConfigResourceAttributeCount(t, 1)
+	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment.name=test")
 	latestSvcVersion := getCurrentServiceVersion(t)
 	require.NotEqual(t, oldCollectorVersion, latestSvcVersion)
 	requireNoPendingFileOperations(t)
 
 	uninstallCollector(t)
-	verifyZeroConfigResourceAttributeCount(t, 0)
+	verifyZeroConfigResourceAttributes(t, 0, "deployment.environment.name=test")
 }
 
 func installCollector(t *testing.T, installScriptPath, version, msiPath string) {
@@ -172,7 +172,7 @@ func getCurrentServiceVersion(t *testing.T) string {
 	return ""
 }
 
-func verifyZeroConfigResourceAttributeCount(t *testing.T, expectedCount int) {
+func verifyZeroConfigResourceAttributes(t *testing.T, expectedCount int, expectedAttribute string) {
 	envKey, err := registry.OpenKey(
 		registry.LOCAL_MACHINE,
 		`SYSTEM\CurrentControlSet\Control\Session Manager\Environment`,
@@ -199,6 +199,7 @@ func verifyZeroConfigResourceAttributeCount(t *testing.T, expectedCount int) {
 		"OTEL_RESOURCE_ATTRIBUTES didn't contain the expected count of zero-code attributes, got %d in %q",
 		count, otelResourceAttributes,
 	)
+	require.Contains(t, strings.Split(otelResourceAttributes, ","), expectedAttribute)
 }
 
 func requireNoPendingFileOperations(t *testing.T) {

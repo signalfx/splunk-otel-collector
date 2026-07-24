@@ -136,7 +136,7 @@ suites:
         splunk_realm: test
         with_auto_instrumentation: true
         auto_instrumentation_ld_so_preload: "# my extra library"
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
@@ -168,7 +168,7 @@ suites:
         with_auto_instrumentation: true
         auto_instrumentation_systemd: true
         auto_instrumentation_ld_so_preload: "# my extra library"
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
@@ -202,7 +202,7 @@ suites:
         with_auto_instrumentation_sdks:
           - java
         auto_instrumentation_ld_so_preload: "# my extra library"
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
@@ -237,7 +237,7 @@ suites:
         with_auto_instrumentation_sdks:
           - java
         auto_instrumentation_systemd: true
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
@@ -271,7 +271,7 @@ suites:
         with_auto_instrumentation_sdks:
           - nodejs
         auto_instrumentation_ld_so_preload: "# my extra library"
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
@@ -306,7 +306,7 @@ suites:
         with_auto_instrumentation_sdks:
           - nodejs
         auto_instrumentation_systemd: true
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
@@ -340,7 +340,7 @@ suites:
         with_auto_instrumentation_sdks:
           - dotnet
         auto_instrumentation_ld_so_preload: "# my extra library"
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
@@ -375,7 +375,7 @@ suites:
         with_auto_instrumentation_sdks:
           - dotnet
         auto_instrumentation_systemd: true
-        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_resource_attributes: deployment.environment.name=test
         auto_instrumentation_service_name: test
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true

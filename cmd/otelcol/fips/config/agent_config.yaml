@@ -134,15 +134,16 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
-  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
+  # Optional: The following processor can be used to add a default "deployment.environment.name" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in a pipeline.
+  # To use the deprecated attribute, change the key to "deployment.environment".
   # For more information, see https://docs.splunk.com/Observability/gdi/opentelemetry/components/resource-processor.html
   #resource/add_environment:
     #attributes:
       #- action: insert
         #value: staging/production/...
-        #key: deployment.environment
+        #key: deployment.environment.name
 
 exporters:
   # Traces
@@ -206,6 +207,10 @@ service:
       attributes:
         - name: otelcol.service.mode
           value: agent
+        # Optional: Add a deployment environment to the Collector's internal telemetry.
+        # To use the deprecated attribute, change the key to "deployment.environment".
+        # - name: deployment.environment.name
+        #   value: staging/production/...
     metrics:
       readers:
         - pull:

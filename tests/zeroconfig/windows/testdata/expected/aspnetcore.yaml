@@ -67,7 +67,7 @@ resourceSpans:
             - key: telemetry.sdk.version
               value:
                 stringValue: 1.15.0
-            - key: deployment.environment
+            - key: deployment.environment.name
               value:
                 stringValue: zc-iis-test
             - key: splunk.zc.method

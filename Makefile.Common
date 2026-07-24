@@ -106,6 +106,7 @@ COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COV
 test-with-codecov:
 	mkdir -p $(COVER_DIR_ABS)
 	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_TESTING_OPTS)
+
 endif
 
 .PHONY: addlicense

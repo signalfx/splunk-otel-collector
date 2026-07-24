@@ -23,7 +23,7 @@ To also send metrics and traces to Splunk Observability Cloud at the same time, 
 
 ```sh
 curl -sSL https://dl.observability.splunkcloud.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
-sudo sh /tmp/splunk-otel-collector.sh --realm us0 \
+sudo sh /tmp/splunk-otel-collector.sh --realm <realm> \
   --splunk-platform-token "<your-hec-token>" \
   --splunk-platform-url   "https://<your-splunk-host>:8088/services/collector" \
   --splunk-platform-metrics-index "<your-metrics-index>" \

@@ -20,7 +20,6 @@ package metrics // import "github.com/signalfx/splunk-otel-collector/pkg/extensi
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"strings"
 
@@ -110,23 +109,29 @@ func NewResourceMetricsUnmarshaler(logger *zap.Logger) ResourceMetricsUnmarshale
 // per line, and converts it into an OpenTelemetry pmetric.Metrics object.
 func (r ResourceMetricsUnmarshaler) UnmarshalMetrics(buf []byte) (pmetric.Metrics, error) {
 	b := newMetricsBuilder(r.logger)
+	r.readJSONLLines(bytes.NewReader(buf), b.unmarshalRecord)
+	return b.build(), nil
+}
 
-	reader := bufio.NewReader(bytes.NewReader(buf))
+// readJSONLLines reads newline-delimited records from rdr, invoking unmarshalRecordFn with
+// each non-blank, trimmed line. It is split out from UnmarshalMetrics so that
+// read errors from the underlying reader (as opposed to bytes.Reader, which
+// only ever yields io.EOF) can be exercised in tests.
+func (r ResourceMetricsUnmarshaler) readJSONLLines(rdr io.Reader, unmarshalRecordFn func([]byte)) {
+	reader := bufio.NewReader(rdr)
 	for {
 		line, err := reader.ReadBytes('\n')
 		trimmed := bytes.TrimSpace(line)
 		if len(trimmed) > 0 {
-			b.unmarshalRecord(trimmed)
+			unmarshalRecordFn(trimmed)
 		}
 		if err != nil {
 			if err != io.EOF {
-				return pmetric.NewMetrics(), fmt.Errorf("failed to read JSONL input: %w", err)
+				r.logger.Warn("Failed to read JSON input", zap.Error(err))
 			}
-			break
+			return
 		}
 	}
-
-	return b.build(), nil
 }
 
 // resourceAttributes maps an OCI metric record onto OpenTelemetry resource

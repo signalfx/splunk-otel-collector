@@ -1,0 +1,36 @@
+services:
+  # Container running systemd, with backup-job.timer/.service installed.
+  # The timer periodically runs backup-job.sh, which logs to the journal and
+  # also pushes a metric to the collector as InfluxDB line protocol.
+  backup-job:
+    build: ./backup-job
+    container_name: backup-job
+    privileged: true
+    cgroup: host
+    tmpfs:
+      - /run
+      - /run/lock
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - journal:/run/log/journal
+    depends_on:
+      - otelcollector
+
+  # OpenTelemetry Collector: tails the shared journal for backup-job log
+  # entries, receives the exit-status metric report-job-status.sh pushes over
+  # OTLP HTTP, and the duration/size metric backup-job.sh pushes as InfluxDB
+  # line protocol.
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:latest
+    container_name: otelcollector
+    user: "0"
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - journal:/run/log/journal:ro
+    ports:
+      - "4318:4318"
+      - "8086:8086"
+
+volumes:
+  journal:

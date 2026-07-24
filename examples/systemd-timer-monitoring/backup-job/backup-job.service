@@ -1,0 +1,7 @@
+[Unit]
+Description=Backup job (demo script monitored via systemd timer)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/backup-job.sh
+ExecStopPost=/usr/local/bin/report-job-status.sh %n

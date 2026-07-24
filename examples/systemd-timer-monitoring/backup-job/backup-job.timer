@@ -1,0 +1,10 @@
+[Unit]
+Description=Run backup-job.service on a recurring schedule (demo cadence: every 30s)
+
+[Timer]
+OnBootSec=10s
+OnUnitActiveSec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

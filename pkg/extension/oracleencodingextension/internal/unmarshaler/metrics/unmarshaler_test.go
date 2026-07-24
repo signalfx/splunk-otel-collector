@@ -15,6 +15,7 @@
 package metrics
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,6 +27,23 @@ import (
 	conventions "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.uber.org/zap"
 )
+
+// erroringReader returns a fixed line of data followed by a non-io.EOF error,
+// simulating a failure in the underlying io.Reader (e.g. a broken pipe)
+type erroringReader struct {
+	err  error
+	data []byte
+	read bool
+}
+
+func (r *erroringReader) Read(p []byte) (int, error) {
+	if r.read {
+		return 0, r.err
+	}
+	r.read = true
+	n := copy(p, r.data)
+	return n, nil
+}
 
 func TestUnmarshalMetrics(t *testing.T) {
 	buf, err := os.ReadFile(filepath.Join("testdata", "metrics.jsonl"))
@@ -93,6 +111,19 @@ func TestUnmarshalMetrics(t *testing.T) {
 	_, ok = secondRM.Resource().Attributes().Get(oracleCloudResourceGroupKey)
 	require.False(t, ok)
 	require.Equal(t, 1, secondRM.ScopeMetrics().At(0).Metrics().Len())
+}
+
+func TestReadJSONLLines_ReturnsNonEOFReadError(t *testing.T) {
+	wantErr := errors.New("broken pipe")
+	r := &erroringReader{data: []byte(`{"name":"m"}` + "\n"), err: wantErr}
+
+	var lines [][]byte
+	err := readJSONLLines(r, func(line []byte) {
+		lines = append(lines, append([]byte{}, line...))
+	})
+
+	require.ErrorIs(t, err, wantErr)
+	require.Equal(t, [][]byte{[]byte(`{"name":"m"}`)}, lines)
 }
 
 func TestUnmarshalMetrics_Empty(t *testing.T) {

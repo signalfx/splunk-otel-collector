@@ -111,22 +111,32 @@ func NewResourceMetricsUnmarshaler(logger *zap.Logger) ResourceMetricsUnmarshale
 func (r ResourceMetricsUnmarshaler) UnmarshalMetrics(buf []byte) (pmetric.Metrics, error) {
 	b := newMetricsBuilder(r.logger)
 
-	reader := bufio.NewReader(bytes.NewReader(buf))
+	if err := readJSONLLines(bytes.NewReader(buf), b.unmarshalRecord); err != nil {
+		return pmetric.NewMetrics(), fmt.Errorf("failed to read JSONL input: %w", err)
+	}
+
+	return b.build(), nil
+}
+
+// readJSONLLines reads newline-delimited records from r, invoking handle with
+// each non-blank, trimmed line. It is split out from UnmarshalMetrics so that
+// read errors from the underlying reader (as opposed to bytes.Reader, which
+// only ever yields io.EOF) can be exercised in tests.
+func readJSONLLines(r io.Reader, handle func([]byte)) error {
+	reader := bufio.NewReader(r)
 	for {
 		line, err := reader.ReadBytes('\n')
 		trimmed := bytes.TrimSpace(line)
 		if len(trimmed) > 0 {
-			b.unmarshalRecord(trimmed)
+			handle(trimmed)
 		}
 		if err != nil {
 			if err != io.EOF {
-				return pmetric.NewMetrics(), fmt.Errorf("failed to read JSONL input: %w", err)
+				return err
 			}
-			break
+			return nil
 		}
 	}
-
-	return b.build(), nil
 }
 
 // resourceAttributes maps an OCI metric record onto OpenTelemetry resource

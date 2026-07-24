@@ -63,3 +63,6 @@ tests/installation/testdata/systemd/splunk-otel-collector.conf
 
 # temp istio installation files
 tests/receivers/istio/istio-*/
+
+# Splunk_TA_nix addon contents
+examples/splunkinputs/Splunk_TA_nix/

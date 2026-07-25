@@ -46,6 +46,14 @@ This example showcases how the collector can monitor a script run periodically v
 
 [Read more...](./systemd-timer-monitoring)
 
+## [Monitoring a Windows Scheduled Task](./windows-task-scheduler-monitoring)
+
+This example showcases how the collector can monitor a script run periodically via Windows Task Scheduler,
+using the `windows_event_log` receiver to capture scheduler and application logs and a generic PowerShell
+wrapper to report the exit status of any scheduled task as a metric.
+
+[Read more...](./windows-task-scheduler-monitoring)
+
 # Dependencies
 
 - docker

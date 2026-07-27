@@ -8,6 +8,7 @@
     <TargetFramework>net462</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <CustomActionContents>CustomAction.config</CustomActionContents>
+    <AcceptEula>wix7</AcceptEula>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">

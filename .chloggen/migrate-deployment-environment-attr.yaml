@@ -16,4 +16,4 @@ issues: [7802]
 subtext: |
   Existing `--deployment-environment` and `-deployment_env` installer options now emit
   `deployment.environment.name`. For legacy override instructions, see the
-  [0.156.0 → 0.157.0 upgrade guideline](README.md#from-01560-to-01570).
+  [0.157.0 → 0.158.0 upgrade guideline](README.md#from-01570-to-01580).

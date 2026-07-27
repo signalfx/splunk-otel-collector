@@ -159,7 +159,7 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
-### From 0.156.0 to 0.157.0
+### From 0.157.0 to 0.158.0
 
 [OpenTelemetry has deprecated `deployment.environment` in favor of `deployment.environment.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/deployment/).
 The Collector's optional deployment environment configuration and the `--deployment-environment` (Linux) and `-deployment_env` (Windows) installer

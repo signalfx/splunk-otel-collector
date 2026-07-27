@@ -632,6 +632,7 @@ build-msi:
     - |
       # Install WiX toolset
       & dotnet tool restore
+      & dotnet wix eula accept wix7
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {

@@ -1,0 +1,13 @@
+receivers:
+  splunk_inputs:
+    path: /var/ta
+exporters:
+  splunk_hec:
+    endpoint: http://splunk:8088/services/collector/event
+    token: 00000000-0000-0000-0000-0000000000000
+
+service:
+  pipelines:
+    logs:
+      receivers: [splunk_inputs]
+      exporters: [splunk_hec]

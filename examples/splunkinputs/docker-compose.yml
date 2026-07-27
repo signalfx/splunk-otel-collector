@@ -1,0 +1,29 @@
+services:
+  splunk:
+    image: splunk/splunk:9.4
+    container_name: splunk
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HEC_TOKEN=00000000-0000-0000-0000-0000000000000
+      - SPLUNK_PASSWORD=changeme
+    ports:
+      - 18000:8000
+    volumes:
+      - ./splunk.yml:/tmp/defaults/default.yml
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8000' ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  otelcol:
+    build:
+      context: ../..
+      dockerfile: examples/splunkinputs/debian.Dockerfile
+    container_name: otelcol
+    command:
+      - --config
+      - /etc/config.yaml
+      - --feature-gates=+enableTARunner
+    volumes:
+      - ./config.yaml:/etc/config.yaml
+      - ./Splunk_TA_nix:/var/ta

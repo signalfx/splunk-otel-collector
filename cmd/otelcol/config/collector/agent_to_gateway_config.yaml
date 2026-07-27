@@ -4,9 +4,7 @@
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
-# - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
-# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
-# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
+# - SPLUNK_GATEWAY_URL: The URL of the Collector deployed as a gateway
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 # - SPLUNK_MEMORY_LIMIT_MIB: The maximum amount of memory, in MiB, targeted to be allocated by the process heap.
 
@@ -23,12 +21,12 @@ extensions:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
-      endpoint: "${SPLUNK_API_URL}"
+      endpoint: "${SPLUNK_GATEWAY_URL}"
   http_forwarder/opamp_splunk_o11y:
     ingress:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
     egress:
-      endpoint: "${SPLUNK_INGEST_URL}"
+      endpoint: "${SPLUNK_GATEWAY_URL}:4320"
       # Remove this header to use a token passed by the caller instead.
       headers:
         X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
@@ -40,7 +38,7 @@ extensions:
       include_resource_attributes: true
     server:
       http:
-        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        endpoint: "${SPLUNK_GATEWAY_URL}:4320/v1/opamp"
         polling_interval: 30s
         headers:
           X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
@@ -142,39 +140,20 @@ processors:
     #key: deployment.environment
 
 exporters:
-  otlp_http:
-    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
-    headers:
-      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
-    auth:
-      authenticator: headers_setter
-  
-  otlp_http/entities:
-    logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
-    headers:
-      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+  otlp_grpc/gateway:
+    endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+    tls:
+      insecure: true
     auth:
       authenticator: headers_setter
   
   # Metrics + Events
   signalfx:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
-    api_url: "${SPLUNK_API_URL}"
-    ingest_url: "${SPLUNK_INGEST_URL}"
+    api_url: "${SPLUNK_GATEWAY_URL}:6060"
+    ingest_url: "${SPLUNK_GATEWAY_URL}:9943"
     sync_host_metadata: true
     correlation:
-  # Logs
-  splunk_hec:
-    token: "${SPLUNK_HEC_TOKEN}"
-    endpoint: "${SPLUNK_HEC_URL}"
-    source: "otel"
-    sourcetype: "otel"
-    profiling_data_enabled: false
-  # Profiling
-  splunk_hec/profiling:
-    token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
-    log_data_enabled: false
   # Debug
   debug:
     verbosity: detailed
@@ -206,11 +185,11 @@ service:
         - batch
         - resourcedetection
       #- resource/add_environment
-      exporters: [otlp_http]
+      exporters: [otlp_grpc/gateway]
     metrics:
       receivers: [host_metrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [signalfx]
+      exporters: [otlp_grpc/gateway]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
@@ -227,7 +206,7 @@ service:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [otlp_http/entities]
+      exporters: [otlp_grpc/gateway]
     logs:
       receivers: [fluent_forward, otlp]
       processors:
@@ -235,4 +214,4 @@ service:
         - batch
         - resourcedetection
       #- resource/add_environment
-      exporters: [splunk_hec, splunk_hec/profiling]
+      exporters: [otlp_grpc/gateway]

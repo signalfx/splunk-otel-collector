@@ -58,20 +58,18 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/products/obse
   More information available
   [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
 
-While it is recommended to use [Splunk
-Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
-to send data to [Splunk
-Cloud](https://www.splunk.com/en_us/products/splunk-cloud-platform.html) or [Splunk
-Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html),
-Splunk OpenTelemetry Collector can be configured to send data to them via the
-[`splunk_hec`
-exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
+Splunk OpenTelemetry Collector natively supports sending logs and metrics to
+[Splunk Cloud](https://www.splunk.com/en_us/products/splunk-cloud-platform.html)
+and [Splunk Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html).
+See [Collect logs on Linux](docs/getting-started/linux-logs.md).
+[Splunk Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
+remain a supported alternative.
 
 ## Current Status
 
 - The Splunk Distribution of the OpenTelemetry Collector is production tested; it is in use by a number of customers in their production environments
 - Customers that use our distribution can receive direct help from official Splunk support within SLA's
-- Customers can use or migrate to the Splunk Distribution of the OpenTelemetry Collector without worrying about future breaking changes to its core configuration experience for metrics and traces collection (OpenTelemetry logs collection configuration is in beta). There may be breaking changes to the Collector's own metrics.
+- Customers can use or migrate to the Splunk Distribution of the OpenTelemetry Collector without worrying about future breaking changes to its core configuration experience for metrics, traces, and log collection. There may be breaking changes to the Collector's own metrics.
 
 ## Getting Started
 
@@ -103,6 +101,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 - [HashiCorp Nomad](./deployments/nomad)
 - Linux
   - [Installer script](./docs/getting-started/linux-installer.md) (recommended for single-host demo/test environments)
+  - [Collect logs on Linux](./docs/getting-started/linux-logs.md)
   - Configuration management (recommended for multi-host production environments)
     - [Ansible](https://galaxy.ansible.com/ui/repo/published/signalfx/splunk_otel_collector/)
     - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
@@ -128,9 +127,8 @@ A variety of default configuration files are provided:
 - [OpenTelemetry
   Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
-  documentation. The `logs_config_linux.yaml` is a good starting point for using
-  the collector for collecting application logs on Linux environments.
-  `agent_config.yaml` is the recommended starting configuration for most environments.
+  documentation. `agent_config.yaml` is the recommended starting configuration for
+  most environments. To collect logs, see [Collect logs on Linux](docs/getting-started/linux-logs.md).
 
 In addition, the following components can be configured:
 

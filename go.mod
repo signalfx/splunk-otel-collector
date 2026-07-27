@@ -13,7 +13,6 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
 	github.com/hashicorp/vault/api v1.23.0
-	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.158.0
@@ -160,6 +159,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.64.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.64.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.64.0
+	go.opentelemetry.io/collector/confmap/xconfmap v0.158.0
 	go.opentelemetry.io/collector/connector v0.158.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.158.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.158.0
@@ -176,6 +176,7 @@ require (
 	go.opentelemetry.io/collector/processor v1.64.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.158.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.158.0
+	go.opentelemetry.io/collector/processor/processortest v0.158.0
 	go.opentelemetry.io/collector/receiver v1.64.0
 	go.opentelemetry.io/collector/receiver/nopreceiver v0.158.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.158.0
@@ -507,7 +508,6 @@ require (
 	go.opentelemetry.io/collector/config/configretry v1.64.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.158.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.64.0 // indirect
-	go.opentelemetry.io/collector/confmap/xconfmap v0.158.0 // indirect
 	go.opentelemetry.io/collector/connector/connectortest v0.158.0 // indirect
 	go.opentelemetry.io/collector/connector/xconnector v0.158.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.158.0 // indirect
@@ -534,7 +534,6 @@ require (
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.158.0 // indirect
 	go.opentelemetry.io/collector/processor/processorhelper v0.158.0 // indirect
 	go.opentelemetry.io/collector/processor/processorhelper/xprocessorhelper v0.158.0 // indirect
-	go.opentelemetry.io/collector/processor/processortest v0.158.0 // indirect
 	go.opentelemetry.io/collector/processor/xprocessor v0.158.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.158.0 // indirect
 	go.opentelemetry.io/collector/service/hostcapabilities v0.158.0 // indirect

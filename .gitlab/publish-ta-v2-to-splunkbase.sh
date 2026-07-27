@@ -7,13 +7,45 @@
 #   APP_ID              - Splunk Base application ID
 #   TA_PACKAGE          - Path to the .tgz package to publish
 #   VERSION_TAG         - Version tag for release notes (e.g. v0.148.0)
+#
+# Optional environment variables:
+#   SUPPORTED_SPLUNK_VERSIONS_FOR_COLLECTOR_TA - Overrides the default list of
+#                         Splunk platform versions declared as supported for
+#                         the release. Splunkbase rejects versions it doesn't
+#                         recognize (HTTP 400, "Not a valid Splunk version"),
+#                         so use this to adjust the list without editing the
+#                         script, e.g. when Splunkbase drops support for an
+#                         older version or hasn't added a newer one yet.
 
 set -euo pipefail
 
-SPLUNK_VERSIONS="8.0,8.1,8.2,9.0,9.1,9.2,9.3,9.4,10.0,10.1,10.2,10.3,10.4"
+DEFAULT_SPLUNK_VERSIONS="9.0,9.1,9.2,9.3,9.4,10.0,10.1,10.2,10.3,10.4,10.5"
+SPLUNK_VERSIONS="${SUPPORTED_SPLUNK_VERSIONS_FOR_COLLECTOR_TA:-${DEFAULT_SPLUNK_VERSIONS}}"
 AUTH="srv-prod-gdi-otel:${SPLUNKBASE_PASSWORD}"
 MAX_WAIT_SECONDS=600
 POLL_INTERVAL=10
+
+# Performs a curl request, capturing the HTTP status code in CURL_JSON_HTTP_CODE
+# and the response body in CURL_JSON_BODY, and always prints the body in a
+# pretty format so API error messages (e.g. validation failures) are visible
+# in the job log instead of being silently discarded.
+curl_json() {
+    local body_file
+    body_file=$(mktemp)
+
+    if ! CURL_JSON_HTTP_CODE=$(curl -sS -o "${body_file}" -w '%{http_code}' "$@"); then
+        rm -f "${body_file}"
+        return 1
+    fi
+
+    CURL_JSON_BODY=$(cat "${body_file}")
+    rm -f "${body_file}"
+
+    echo "--- Response body (HTTP ${CURL_JSON_HTTP_CODE}) ---"
+    if ! jq '.' <<< "${CURL_JSON_BODY}" 2>/dev/null; then
+        echo "${CURL_JSON_BODY}"
+    fi
+}
 
 if [ ! -f "${TA_PACKAGE}" ]; then
     echo "Package file not found: ${TA_PACKAGE}"
@@ -30,13 +62,20 @@ echo "--- Processing ${file_name} ---"
 
 # Step 1: Upload package and capture the returned id
 echo "Step 1: Uploading ${file_name}..."
-response=$(curl -u "${AUTH}" \
+if ! curl_json -u "${AUTH}" \
     --request POST "https://splunkbase.splunk.com/api/v1/app/${APP_ID}/new_release" \
     -F "files[]=@${abs_path}" \
     -F "filename=${file_name}" \
     -F "splunk_versions=${SPLUNK_VERSIONS}" \
-    -F "visibility=false" \
-    -fSs) || { echo "Upload request failed for ${file_name}"; exit 1; }
+    -F "visibility=false"; then
+    echo "Upload request failed for ${file_name}"
+    exit 1
+fi
+if [ "${CURL_JSON_HTTP_CODE}" -lt 200 ] || [ "${CURL_JSON_HTTP_CODE}" -ge 300 ]; then
+    echo "Upload request returned HTTP ${CURL_JSON_HTTP_CODE} for ${file_name}"
+    exit 1
+fi
+response="${CURL_JSON_BODY}"
 
 if ! id=$(echo "$response" | jq -r '.id'); then
     echo "Failed to parse upload response for ${file_name}: ${response}"
@@ -64,13 +103,18 @@ while true; do
         break
     fi
 
-    if ! response=$(curl -u "${AUTH}" \
-        --request GET "https://splunkbase.splunk.com/api/v1/package/${id}/" \
-        -fSs); then
+    if ! curl_json -u "${AUTH}" \
+        --request GET "https://splunkbase.splunk.com/api/v1/package/${id}/"; then
         echo "Polling request failed for id ${id}"
         validation_ok=0
         break
     fi
+    if [ "${CURL_JSON_HTTP_CODE}" -lt 200 ] || [ "${CURL_JSON_HTTP_CODE}" -ge 300 ]; then
+        echo "Polling request returned HTTP ${CURL_JSON_HTTP_CODE} for id ${id}"
+        validation_ok=0
+        break
+    fi
+    response="${CURL_JSON_BODY}"
 
     if ! result=$(echo "$response" | jq -r '.result'); then
         echo "Failed to parse validation response for id ${id}: ${response}"
@@ -119,22 +163,30 @@ fi
 
 # Step 3: Update release notes
 echo "Step 3: Updating release notes for release_file ${release_file}..."
-curl -u "${AUTH}" \
+if ! curl_json -u "${AUTH}" \
     --request PUT "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/releases/${release_file}/" \
-    --json "{\"public\":true,\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}" \
-    -fSs \
-    || { echo "Failed to update release notes for ${file_name}"; exit 1; }
-echo ""
+    --json "{\"public\":true,\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}"; then
+    echo "Failed to update release notes for ${file_name}"
+    exit 1
+fi
+if [ "${CURL_JSON_HTTP_CODE}" -lt 200 ] || [ "${CURL_JSON_HTTP_CODE}" -ge 300 ]; then
+    echo "Update release notes request returned HTTP ${CURL_JSON_HTTP_CODE} for ${file_name}"
+    exit 1
+fi
 echo "Updated release notes for ${file_name} (release_file: ${release_file})"
 
 # Step 4: Make the latest release the default version for the app
 echo "Step 4: Setting release_file ${release_file} as default version for app ${APP_ID}..."
-curl -u "${AUTH}" \
+if ! curl_json -u "${AUTH}" \
     --request PATCH "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/" \
-    --json "{\"latest_release\": ${release_file}}" \
-    -fSs \
-    || { echo "Failed to set default version for ${file_name}"; exit 1; }
-echo ""
+    --json "{\"latest_release\": ${release_file}}"; then
+    echo "Failed to set default version for ${file_name}"
+    exit 1
+fi
+if [ "${CURL_JSON_HTTP_CODE}" -lt 200 ] || [ "${CURL_JSON_HTTP_CODE}" -ge 300 ]; then
+    echo "Set default version request returned HTTP ${CURL_JSON_HTTP_CODE} for ${file_name}"
+    exit 1
+fi
 echo "Set ${release_file} as default version for app ${APP_ID}"
 
 echo "--- Done with ${file_name} ---"

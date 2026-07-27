@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/knadh/koanf v1.5.0
+	github.com/nsqio/go-diskqueue v1.1.1-0.20250912154844-ff2a02e5299f
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider v0.157.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.157.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.157.0
@@ -173,6 +174,7 @@ require (
 	go.opentelemetry.io/collector/processor v1.63.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.157.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.157.0
+	go.opentelemetry.io/collector/processor/processortest v0.157.0
 	go.opentelemetry.io/collector/receiver v1.63.0
 	go.opentelemetry.io/collector/receiver/nopreceiver v0.157.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.157.0
@@ -527,7 +529,6 @@ require (
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.157.0 // indirect
 	go.opentelemetry.io/collector/processor/processorhelper v0.157.0 // indirect
 	go.opentelemetry.io/collector/processor/processorhelper/xprocessorhelper v0.157.0 // indirect
-	go.opentelemetry.io/collector/processor/processortest v0.157.0 // indirect
 	go.opentelemetry.io/collector/processor/xprocessor v0.157.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.157.0 // indirect
 	go.opentelemetry.io/collector/service/hostcapabilities v0.157.0 // indirect

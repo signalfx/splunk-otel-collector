@@ -21,6 +21,7 @@ import (
 	"compress/gzip"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -166,12 +167,12 @@ func TestLinuxPackageContents(t *testing.T) {
 
 	packageName := linuxName
 	// Linux package should contain linux binaries
-	linuxBinPath := filepath.Join(packageName, linuxBinDir)
+	linuxBinPath := path.Join(packageName, linuxBinDir)
 	assert.True(t, containsPath(contents, linuxBinPath),
 		"Linux package should contain %s folder", linuxBinPath)
 
 	// Linux package should NOT contain windows binaries
-	windowsBinPath := filepath.Join(packageName, windowsBinDir)
+	windowsBinPath := path.Join(packageName, windowsBinDir)
 	assert.False(t, containsPath(contents, windowsBinPath),
 		"Linux package should NOT contain %s folder", windowsBinPath)
 }
@@ -186,12 +187,12 @@ func TestWindowsPackageContents(t *testing.T) {
 	packageName := windowsName
 
 	// Windows package should contain windows binaries
-	windowsBinPath := filepath.Join(packageName, windowsBinDir)
+	windowsBinPath := path.Join(packageName, windowsBinDir)
 	assert.True(t, containsPath(contents, windowsBinPath),
 		"Windows package should contain %s folder", windowsBinPath)
 
 	// Windows package should NOT contain linux binaries
-	linuxBinPath := filepath.Join(packageName, linuxBinDir)
+	linuxBinPath := path.Join(packageName, linuxBinDir)
 	assert.False(t, containsPath(contents, linuxBinPath),
 		"Windows package should NOT contain %s folder", linuxBinPath)
 }
@@ -206,11 +207,11 @@ func TestMultiOSPackageContents(t *testing.T) {
 	packageName := multiOSName
 
 	// Multi-OS package should contain both linux and windows binaries
-	linuxBinPath := filepath.Join(packageName, linuxBinDir)
+	linuxBinPath := path.Join(packageName, linuxBinDir)
 	assert.True(t, containsPath(contents, linuxBinPath),
 		"Multi-OS package should contain %s folder", linuxBinPath)
 
-	windowsBinPath := filepath.Join(packageName, windowsBinDir)
+	windowsBinPath := path.Join(packageName, windowsBinDir)
 	assert.True(t, containsPath(contents, windowsBinPath),
 		"Multi-OS package should contain %s folder", windowsBinPath)
 }
@@ -232,23 +233,23 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			require.FileExists(t, pkgPath, "%s package not found", pkgName)
 
 			mandatoryPaths := []string{
-				filepath.Join(root, "configs", "agent_config.yaml"),
-				filepath.Join(root, "configs", "gateway_config.yaml"),
-				filepath.Join(root, "default", "app.conf"),
-				filepath.Join(root, "default", "inputs.conf"),
-				filepath.Join(root, "README", "inputs.conf.spec"),
-				filepath.Join(root, "static", "appIcon_2x.png"),
-				filepath.Join(root, "static", "appIcon.png"),
+				path.Join(root, "configs", "agent_config.yaml"),
+				path.Join(root, "configs", "gateway_config.yaml"),
+				path.Join(root, "default", "app.conf"),
+				path.Join(root, "default", "inputs.conf"),
+				path.Join(root, "README", "inputs.conf.spec"),
+				path.Join(root, "static", "appIcon_2x.png"),
+				path.Join(root, "static", "appIcon.png"),
 			}
 
 			addLinuxExecutable := pkgName != "Windows"
 			if addLinuxExecutable {
-				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "linux_x86_64", "bin", "Splunk_TA_otel"))
+				mandatoryPaths = append(mandatoryPaths, path.Join(root, "linux_x86_64", "bin", "Splunk_TA_otel"))
 			}
 
 			addWindowsExecutable := pkgName != "Linux"
 			if addWindowsExecutable {
-				mandatoryPaths = append(mandatoryPaths, filepath.Join(root, "windows_x86_64", "bin", "Splunk_TA_otel.exe"))
+				mandatoryPaths = append(mandatoryPaths, path.Join(root, "windows_x86_64", "bin", "Splunk_TA_otel.exe"))
 			}
 
 			contents := getTarContents(t, pkgPath)
@@ -270,7 +271,7 @@ func TestPackageMandatoryFiles(t *testing.T) {
 			}
 
 			// The Makefile sets: version = <git-tag-without-v-prefix>
-			appConfContent := getTarFileContent(t, pkgPath, filepath.Join(root, "default", "app.conf"))
+			appConfContent := getTarFileContent(t, pkgPath, path.Join(root, "default", "app.conf"))
 			require.NotEmpty(t, appConfContent, "app.conf not found or empty in %s package", pkgName)
 			var appConfVersion string
 			for _, line := range strings.Split(appConfContent, "\n") {

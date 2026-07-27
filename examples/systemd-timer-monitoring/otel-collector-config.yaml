@@ -1,0 +1,36 @@
+receivers:
+  # Reads the systemd journal for the backup-job unit, capturing every run
+  # (start, stdout messages, and success/failure) as log records.
+  # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/journaldreceiver/README.md
+  journald:
+    directory: /run/log/journal
+    units:
+      - backup-job.service
+      - backup-job.timer
+    start_at: beginning
+
+  # Receives the exit-status metrics that report-job-status.sh pushes
+  # directly after each run (wired up as backup-job.service's ExecStopPost=).
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Receives the duration/size metrics that backup-job.sh pushes directly
+  # after each run, as InfluxDB line protocol.
+  # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/influxdbreceiver/README.md
+  influxdb:
+    endpoint: 0.0.0.0:8086
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [journald]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp, influxdb]
+      exporters: [debug]

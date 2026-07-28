@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,12 +23,32 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type configGenerator struct {
 	basePath    string
 	outputPath  string
 	overlayPath string
+}
+
+type twoSpaceYAMLParser struct{}
+
+func (p twoSpaceYAMLParser) Unmarshal(b []byte) (map[string]interface{}, error) {
+	return yaml.Parser().Unmarshal(b)
+}
+
+func (p twoSpaceYAMLParser) Marshal(config map[string]interface{}) ([]byte, error) {
+	out := bytes.Buffer{}
+	encoder := yamlv3.NewEncoder(&out)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(config); err != nil {
+		return nil, err
+	}
+	if err := encoder.Close(); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
 }
 
 func main() {
@@ -56,7 +77,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		mergedContents, err := mergedConfig.Marshal(yaml.Parser())
+		mergedContents, err := mergedConfig.Marshal(twoSpaceYAMLParser{})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to marshal merged config for %q: %v\n", overlay.outputPath, err)
 			os.Exit(1)

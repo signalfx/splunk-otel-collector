@@ -865,7 +865,7 @@ DefaultEnvironment="CORECLR_PROFILER_PATH=${dotnet_install_dir}/glibc/linux-${do
 DefaultEnvironment="DOTNET_ADDITIONAL_DEPS=${dotnet_install_dir}/glibc/AdditionalDeps"
 DefaultEnvironment="DOTNET_SHARED_STORE=${dotnet_install_dir}/glibc/store"
 DefaultEnvironment="DOTNET_STARTUP_HOOKS=${dotnet_install_dir}/glibc/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll"
-DefaultEnvironment="OTEL_DOTNET_AUTO_HOME=${dotnet_install_dir}"
+DefaultEnvironment="OTEL_DOTNET_AUTO_HOME=${dotnet_install_dir}/glibc"
 DefaultEnvironment="OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation"
 EOH
   fi

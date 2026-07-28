@@ -2,7 +2,7 @@
 self-hosted-runner:
   # Labels of self-hosted runner in array of strings.
   labels:
-    - otel-arm64
+    - ubuntu-24.04-arm-16core
     - otel-windows
     - otel-windows-arm
 

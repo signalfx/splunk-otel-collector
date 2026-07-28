@@ -352,7 +352,7 @@ splunk-otel-collector:
   auto_instrumentation_version: '$version'
   auto_instrumentation_systemd: $systemd
   auto_instrumentation_ld_so_preload: '# my extra library'
-  auto_instrumentation_resource_attributes: 'deployment.environment=test'
+  auto_instrumentation_resource_attributes: 'deployment.environment.name=test'
   auto_instrumentation_service_name: 'test'
   auto_instrumentation_generate_service_name: False
   auto_instrumentation_disable_telemetry: True
@@ -400,7 +400,7 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
             assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
         if version == "latest":
             assert node_package_installed(container)
-        resource_attributes = f"{resource_attributes},deployment.environment=test"
+        resource_attributes = f"{resource_attributes},deployment.environment.name=test"
         if with_systemd:
             for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)

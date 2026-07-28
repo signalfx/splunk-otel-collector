@@ -40,7 +40,7 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
     resource:
       service.name: my-collector
       host.name: collector-host
-      deployment.environment: production
+      deployment.environment.name: production
 `,
 			expected: `service:
   telemetry:
@@ -50,7 +50,7 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
           value: my-collector
         - name: host.name
           value: collector-host
-        - name: deployment.environment
+        - name: deployment.environment.name
           value: production
 `,
 			useElementsMatch: true,
@@ -131,7 +131,7 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
       service.name: my-collector
       service.version: 1.0.0
       host.name: collector-host
-      deployment.environment: production
+      deployment.environment.name: production
       cluster.name: main-cluster
 `,
 			customAssertion: func(t *testing.T, in, _ *confmap.Conf) {
@@ -150,11 +150,11 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
 				}
 
 				require.Equal(t, map[string]any{
-					"service.name":           "my-collector",
-					"service.version":        "1.0.0",
-					"host.name":              "collector-host",
-					"deployment.environment": "production",
-					"cluster.name":           "main-cluster",
+					"service.name":                "my-collector",
+					"service.version":             "1.0.0",
+					"host.name":                   "collector-host",
+					"deployment.environment.name": "production",
+					"cluster.name":                "main-cluster",
 				}, actualAttrs)
 			},
 		},
@@ -308,7 +308,7 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
       attributes: scalar1
       detectors: scalar2
       service.name: my-collector
-      deployment.environment: production
+      deployment.environment.name: production
 `,
 			customAssertion: func(t *testing.T, in, _ *confmap.Conf) {
 				inMap := in.ToStringMap()
@@ -326,7 +326,7 @@ func TestMigrateTelemetryResourceAttributes(t *testing.T) {
 					attrMap[a["name"].(string)] = a["value"]
 				}
 				require.Equal(t, "my-collector", attrMap["service.name"])
-				require.Equal(t, "production", attrMap["deployment.environment"])
+				require.Equal(t, "production", attrMap["deployment.environment.name"])
 			},
 		},
 		{

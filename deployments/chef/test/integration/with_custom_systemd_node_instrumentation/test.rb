@@ -1,6 +1,6 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 node_options = '-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument'
-resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+-systemd,deployment.environment=test'
+resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+-systemd,deployment.environment.name=test'
 otlp_endpoint = 'http://0.0.0.0:4317'
 
 describe package('splunk-otel-auto-instrumentation') do

@@ -203,7 +203,7 @@ after installation/configuration in order for any change to take effect.
 
 - `auto_instrumentation_resource_attributes`: Configure the OpenTelemetry auto
   instrumentation resource attributes, e.g.
-  `deployment.environment=prod,my.key=value` (comma-separated `key=value` pairs.).
+  `deployment.environment.name=prod,my.key=value` (comma-separated `key=value` pairs.).
   (**default:** `''`)
 
 - `auto_instrumentation_service_name`: Explicitly set the service name for

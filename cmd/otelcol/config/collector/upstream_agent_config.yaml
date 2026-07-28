@@ -132,7 +132,7 @@ processors:
   # Resource detection processor is configured to override all host and cloud attributes because instrumentation
   # libraries can send wrong values from container environments.
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
-  resourcedetection:
+  resource_detection:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
@@ -213,7 +213,7 @@ service:
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       #- resource/add_environment
       exporters: [otlp_http]
       # Use instead when sending to gateway
@@ -221,21 +221,21 @@ service:
     # Required for Splunk Infrastructure Monitoring
     metrics:
       receivers: [host_metrics, otlp]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resource_detection]
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp_grpc/gateway]
     # Required for Splunk APM and/or Infrastructure Monitoring
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resource_detection]
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp_grpc/gateway]
     logs/entities:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resource_detection]
       exporters: [otlp_http/entities]
     # Required for profiling
     logs:
@@ -243,7 +243,7 @@ service:
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       #- resource/add_environment
       exporters: [splunk_hec/profiling]
       # Use instead when sending to gateway

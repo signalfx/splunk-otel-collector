@@ -187,10 +187,6 @@ func TestSplunkPlatformMetricsWithO11yEffectiveConfig(t *testing.T) {
 			"check_interval": "2s",
 			"limit_mib":      460,
 		},
-		"resourcedetection": map[string]any{
-			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
-			"override":  true,
-		},
 		"resource_detection": map[string]any{
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 			"override":  true,

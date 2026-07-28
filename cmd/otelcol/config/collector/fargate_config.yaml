@@ -89,17 +89,18 @@ processors:
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
   # detect if the collector is running on a cloud system
   # important for creating unique cloud provider dimensions
-  resourcedetection:
+  resource_detection:
     detectors: [ecs]
     override: false
-  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
+  # Optional: The following processor can be used to add a default "deployment.environment.name" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in the pipeline below.
+  # To use the deprecated attribute, change the key to "deployment.environment".
   #resource/add_environment:
     #attributes:
       #- action: insert
         #value: staging/production/...
-        #key: deployment.environment
+        #key: deployment.environment.name
 
 exporters:
   # Traces
@@ -132,6 +133,12 @@ service:
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    # Optional: Uncomment to add a deployment environment to the Collector's internal telemetry.
+    # To use the deprecated attribute, change the key to "deployment.environment".
+    # resource:
+    #   attributes:
+    #     - name: deployment.environment.name
+    #       value: staging/production/...
     metrics:
       readers:
         - pull:
@@ -145,18 +152,18 @@ service:
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [otlp_http]
     metrics:
       receivers: [otlp, awsecscontainermetrics, prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resource_detection]
       exporters: [signalfx]
     logs:
       receivers: [otlp]
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [splunk_hec, splunk_hec/profiling]

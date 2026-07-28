@@ -710,7 +710,7 @@ create_injector_default_env() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   backup_file "$injector_default_env_path"
@@ -807,13 +807,14 @@ install_node_package() {
   (cd $node_install_prefix && $npm_path install --global=false $node_package_path)
 }
 
+>>>>>>> 247e9dac201b67b2e19323d89a24a7452f26496f
 create_systemd_instrumentation_config() {
   local sdks="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}-systemd"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   mkdir -p "$(dirname $systemd_instrumentation_config_path)"
@@ -1096,7 +1097,7 @@ Auto Instrumentation:
                                         Auto Instrumentation for Node.js will not be activated. Use this option to
                                         specify a custom path to npm, for example "/my/path/to/npm".
                                         (default: npm)
-  --deployment-environment <value>      Set the "deployment.environment" resource attribute to the specified value.
+  --deployment-environment <value>      Set the "deployment.environment.name" resource attribute to the specified value.
                                         If not specified, the "Environment" in the Splunk APM UI will appear as
                                         "unknown" for all instrumented applications. The resource attribute will be
                                         appended to the OTEL_RESOURCE_ATTRIBUTES environment variable.

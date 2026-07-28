@@ -294,7 +294,7 @@ def test_tomcat_instrumentation(distro, arch):
         attributes = {
             r"telemetry\.sdk\.language": r"Str\(java\)",
             r"service\.name": rf"Str\(service_name_from_java\)",
-            r"deployment\.environment": rf"Str\(deployment_environment_from_java\)",
+            r"deployment\.environment\.name": rf"Str\(deployment_environment_from_java\)",
         }
 
         # overwrite default env var, copy per-language env vars
@@ -355,7 +355,7 @@ def test_express_instrumentation(distro, arch):
         attributes = {
             r"telemetry\.sdk\.language": r"Str\(nodejs\)",
             r"service\.name": rf"Str\(service_name_from_node\)",
-            r"deployment\.environment": rf"Str\(deployment_environment_from_node\)",
+            r"deployment\.environment\.name": rf"Str\(deployment_environment_from_node\)",
         }
 
         # overwrite default env var, copy per-language env vars
@@ -405,7 +405,7 @@ def test_dotnet_instrumentation(distro, arch):
         attributes = {
             r"telemetry\.sdk\.language": r"Str\(dotnet\)",
             r"service\.name": rf"Str\(service_name_from_dotnet\)",
-            r"deployment\.environment": rf"Str\(deployment_environment_from_dotnet\)",
+            r"deployment\.environment\.name": rf"Str\(deployment_environment_from_dotnet\)",
         }
 
         # overwrite default env var, copy per-language env vars

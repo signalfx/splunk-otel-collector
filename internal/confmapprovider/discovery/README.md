@@ -31,7 +31,7 @@ graph LR
     4 --> 4a1>batch.yaml]
     4a1 --> 4b1[[batch:<br>]]
     4 --> 4a2>resource-detection.yaml]
-    4a2 --> 4b2[[resourcedetection:<br>detectors:<br>- system]]
+    4a2 --> 4b2[[resource_detection:<br>detectors:<br>- system]]
   end
   config.d --> 5[/receivers/]
   subgraph 5a[receivers]
@@ -70,7 +70,7 @@ extensions:
     endpoint: 0.0.0.0:1234
 processors:
   batch: {}
-  resourcedetection:
+  resource_detection:
     detectors:
     - system
 receivers:

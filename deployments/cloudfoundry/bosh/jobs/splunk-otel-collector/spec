@@ -31,7 +31,7 @@ properties:
     otel.processor.config_yaml:
         description: |
             User specified and configured processors for the collector. This will be used in place of
-            automatically setup processors. Default is resourcedetection if no processor config is specified.
+            automatically setup processors. Default is resource_detection if no processor config is specified.
     otel.processor.names:
         description: |
             User specified processor names. This will be used for the metrics pipeline in the collector

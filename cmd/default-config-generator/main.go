@@ -37,6 +37,11 @@ func main() {
 			overlayPath: filepath.Join("config", "agent_to_backend_overlay.yaml"),
 			outputPath:  filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),
 		},
+		{
+			basePath:    filepath.Join("config", "agent_config.yaml"),
+			overlayPath: filepath.Join("config", "agent_to_gateway_overlay.yaml"),
+			outputPath:  filepath.Join("..", "otelcol", "config", "collector", "agent_to_gateway_config.yaml"),
+		},
 	}
 
 	for _, overlay := range configs {

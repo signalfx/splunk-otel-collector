@@ -1,0 +1,4 @@
+extensions:
+  http_forwarder:
+    egress:
+      endpoint: "${SPLUNK_GATEWAY_URL}"

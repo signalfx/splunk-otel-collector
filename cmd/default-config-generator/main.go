@@ -32,7 +32,7 @@ type configGenerator struct {
 
 func main() {
 	configs := []configGenerator{
-		configGenerator{
+		{
 			basePath:    filepath.Join("config", "agent_config.yaml"),
 			overlayPath: filepath.Join("config", "agent_to_backend_overlay.yaml"),
 			outputPath:  filepath.Join("..", "otelcol", "config", "collector", "agent_config.yaml"),

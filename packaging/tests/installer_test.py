@@ -68,14 +68,13 @@ INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
 NODE_PREFIX = "/usr/lib/splunk-instrumentation/splunk-otel-js"
 NODE_OPTIONS = f"-r {NODE_PREFIX}/node_modules/@splunk/otel/instrument"
 DOTNET_HOME = "/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
-DOTNET_AGENT_PATH = f"{DOTNET_HOME}/glibc/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_AGENT_ARM64_PATH = f"{DOTNET_HOME}/glibc/linux-arm64/OpenTelemetry.AutoInstrumentation.Native.so"
+DOTNET_AGENT_PATH_TEMPLATE = f"{DOTNET_HOME}/glibc/linux-{{arch}}/OpenTelemetry.AutoInstrumentation.Native.so"
 # maps install.sh sdk names to the injector's runtime names used in auto_instrumentation_disabled
 RUNTIME_NAMES = {"java": "jvm", "node": "nodejs", "dotnet": "dotnet"}
 
 
 def get_dotnet_agent_path(arch):
-    return DOTNET_AGENT_ARM64_PATH if arch == "arm64" else DOTNET_AGENT_PATH
+    return DOTNET_AGENT_PATH_TEMPLATE.format(arch="arm64" if arch == "arm64" else "x64")
 
 
 def get_dotnet_vars(arch):

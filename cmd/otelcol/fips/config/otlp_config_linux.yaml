@@ -66,7 +66,7 @@ processors:
   # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
   # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
-  resourcedetection/internal:
+  resource_detection/internal:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
@@ -158,5 +158,5 @@ service:
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection/internal]
+      processors: [memory_limiter, batch, resource_detection/internal]
       exporters: [signalfx]

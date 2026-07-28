@@ -111,10 +111,10 @@ processors:
   memory_limiter:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
-  resourcedetection:
+  resource_detection:
     detectors: [ecs]
     override: false
-  resourcedetection/internal:
+  resource_detection/internal:
     detectors: [ecs]
     override: true
   filter:
@@ -174,22 +174,22 @@ service:
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [otlp_http]
     metrics:
       receivers: [host_metrics, otlp, awsecscontainermetrics]
-      processors: [memory_limiter, batch, filter, resourcedetection]
+      processors: [memory_limiter, batch, filter, resource_detection]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, filter, resourcedetection/internal]
+      processors: [memory_limiter, batch, filter, resource_detection/internal]
       exporters: [signalfx]
     logs:
       receivers: [otlp, fluent_forward]
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [splunk_hec, splunk_hec/profiling]

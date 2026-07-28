@@ -89,7 +89,7 @@ processors:
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
   # detect if the collector is running on a cloud system
   # important for creating unique cloud provider dimensions
-  resourcedetection:
+  resource_detection:
     detectors: [ecs]
     override: false
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
@@ -145,18 +145,18 @@ service:
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [otlp_http]
     metrics:
       receivers: [otlp, awsecscontainermetrics, prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resource_detection]
       exporters: [signalfx]
     logs:
       receivers: [otlp]
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [splunk_hec, splunk_hec/profiling]

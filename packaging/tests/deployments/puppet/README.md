@@ -126,7 +126,7 @@ pytest -s --verbose -k "test_puppet_default and ubuntu-noble and not instrumenta
 - `amazonlinux-2023`
 - `centos-8`
 - `centos-9`
-- `opensuse-16`
+- `opensuse-15`
 - `oraclelinux-8`
 
 ## Common pytest Options

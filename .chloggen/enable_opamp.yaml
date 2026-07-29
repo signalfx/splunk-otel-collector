@@ -14,5 +14,5 @@ issues: [7850]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  The feature gate ID `splunk.opamp.enabled` is now `StageBeta` which no longer removes the Splunk OpAMP extension (`opamp/splunk_o11y`) by default.
+  Promotes the `splunk.opamp.enabled` feature gate to beta which no longer removes the Splunk OpAMP extension (`opamp/splunk_o11y`) by default.
   If you do not want to use the OpAMP extension, disable the feature gate with `--feature-gates=-splunk.opamp.enabled`. 

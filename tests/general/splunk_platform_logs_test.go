@@ -179,6 +179,7 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 		"health_check",
 		"http_forwarder",
 		"http_forwarder/opamp_splunk_o11y",
+		"opamp/splunk_o11y",
 		"zpages",
 		"config_source_telemetry",
 		"file_storage/filelogs",

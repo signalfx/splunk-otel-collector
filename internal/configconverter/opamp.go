@@ -29,9 +29,9 @@ const (
 
 var opampFeatureGate = featuregate.GlobalRegistry().MustRegister(
 	opampFeatureGateID,
-	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the opamp/splunk_o11y extension is active. "+
-		"When disabled (default), the opamp/splunk_o11y extension is removed from the service.extensions configuration at startup, if it is present."),
+	featuregate.StageBeta,
+	featuregate.WithRegisterDescription("When enabled (default), the opamp/splunk_o11y extension is active. "+
+		"When disabled, the opamp/splunk_o11y extension is removed from the service.extensions configuration at startup, if it is present."),
 	featuregate.WithRegisterFromVersion("v0.151.0"),
 )
 

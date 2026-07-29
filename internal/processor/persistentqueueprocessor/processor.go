@@ -73,7 +73,7 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 		maxSize,
 		int64(1*time.Second),
 		100*time.Millisecond,
-		func(lvl diskqueue.LogLevel, f string, args ...interface{}) {
+		func(lvl diskqueue.LogLevel, f string, args ...any) {
 			switch lvl {
 			case diskqueue.DEBUG:
 				b.settings.Logger.Debug(fmt.Sprintf(f, args...))
@@ -116,7 +116,8 @@ func (b *persistentqueue) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	if err != nil {
 		return err
 	}
-	if b.config.ThroughputLimit != 0 && int32(len(marshaled)) > b.config.ThroughputLimit {
+	int32len := int32(len(marshaled)) //nolint:gosec // disable G115
+	if b.config.ThroughputLimit != 0 && int32len > b.config.ThroughputLimit || int32len < 0 {
 		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(marshaled)
@@ -183,10 +184,10 @@ InnerLoop:
 			} else {
 				<-b.queue.ReadChan()
 				if b.limitEnabled {
-					b.limit.Add(-int32(len(newMessage)))
+					b.limit.Add(-int32(len(newMessage))) //nolint:gosec // disable G115
 				}
 			}
-			if b.limitEnabled && b.limit.Load()-int32(len(newMessage)) < 0 {
+			if b.limitEnabled && b.limit.Load()-int32(len(newMessage)) < 0 { //nolint:gosec // disable G115
 				break InnerLoop
 			}
 		}

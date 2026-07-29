@@ -1,4 +1,4 @@
-{% if item.image not in ["opensuse15", "centos9", "centos10", "oraclelinux9", "oraclelinux10"] %}
+{% if item.image not in ["opensuse16", "centos9", "centos10", "oraclelinux9", "oraclelinux10"] %}
 
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
 

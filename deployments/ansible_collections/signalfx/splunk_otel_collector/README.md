@@ -24,6 +24,7 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat: 9, 10
 - Debian: 11, 12, 13
 - Oracle: 9, 10
+- SUSE: 16
 - Ubuntu: 22.04, 24.04
 
 ### Windows

@@ -58,6 +58,11 @@ platforms:
 
   - name: opensuse-16
     driver:
+      image: dokken/opensuse-leap-16.0
+      pid_one_command: /usr/lib/systemd/systemd
+
+  - name: opensuse-15
+    driver:
       image: dokken/opensuse-leap-15
       pid_one_command: /usr/lib/systemd/systemd
 

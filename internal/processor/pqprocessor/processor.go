@@ -65,7 +65,6 @@ func (b *pqprocessor) Start(_ context.Context, _ component.Host) error {
 		maxSize = 10_000_000
 	}
 
-	// Create a new queue with segment size of 50
 	q := diskqueue.New(
 		"processor",
 		b.config.Folder,

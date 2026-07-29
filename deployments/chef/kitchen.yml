@@ -94,7 +94,7 @@ platforms:
   - name: ubuntu-26.04
     driver:
       image: dokken/ubuntu-26.04
-      pid_one_command: /bin/systemd
+      pid_one_command: /usr/lib/systemd/systemd
 
 suites:
   - name: default

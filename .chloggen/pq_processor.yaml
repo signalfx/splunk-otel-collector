@@ -2,7 +2,7 @@
 change_type: new_component
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: pqprocessor
+component: processor/persistent_queue
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
 note: New processor for persistent queueing

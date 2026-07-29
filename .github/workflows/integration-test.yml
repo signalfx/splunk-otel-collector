@@ -332,7 +332,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "kafka-metrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
+          for service in "apache" "kafka-metrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "rabbitmq" "redis" "weaviate"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 # go.mongodb.org/mongo-driver/v2 requires MongoDB 4.2 or newer.

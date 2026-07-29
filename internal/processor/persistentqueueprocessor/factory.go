@@ -41,6 +41,6 @@ func createLogs(_ context.Context, settings processor.Settings, config component
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		Bandwidth: 10000,
+		ThroughputLimit: 10000,
 	}
 }

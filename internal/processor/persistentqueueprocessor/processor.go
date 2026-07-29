@@ -56,18 +56,18 @@ func (b *persistentqueue) Capabilities() consumer.Capabilities {
 func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 	b.shutdownChan = make(chan struct{})
 	b.run = make(chan struct{}, 1)
-	if err := os.MkdirAll(b.config.Folder, 0o755); err != nil {
+	if err := os.MkdirAll(b.config.Path, 0o755); err != nil {
 		return err
 	}
 
-	maxSize := b.config.Bandwidth
+	maxSize := b.config.ThroughputLimit
 	if maxSize == 0 {
 		maxSize = 10_000_000
 	}
 
 	q := diskqueue.New(
 		"processor",
-		b.config.Folder,
+		b.config.Path,
 		1024*1024*1024,
 		0,
 		maxSize,
@@ -90,10 +90,10 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 	)
 	b.queue = q
 
-	b.limitEnabled = b.config.Bandwidth > 0
+	b.limitEnabled = b.config.ThroughputLimit > 0
 	if b.limitEnabled {
 		b.limit = atomic.Int32{}
-		b.limit.Store(b.config.Bandwidth)
+		b.limit.Store(b.config.ThroughputLimit)
 	}
 	b.tryRun()
 	b.scheduleLimit()
@@ -116,8 +116,8 @@ func (b *persistentqueue) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	if err != nil {
 		return err
 	}
-	if b.config.Bandwidth != 0 && int32(len(marshaled)) > b.config.Bandwidth {
-		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.Bandwidth)
+	if b.config.ThroughputLimit != 0 && int32(len(marshaled)) > b.config.ThroughputLimit {
+		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(marshaled)
 	if err != nil {
@@ -144,7 +144,7 @@ func (b *persistentqueue) scheduleLimit() {
 			case <-ticker.C:
 				// reset limit
 				if b.limitEnabled {
-					b.limit.Store(b.config.Bandwidth)
+					b.limit.Store(b.config.ThroughputLimit)
 				}
 				b.tryRun()
 			}

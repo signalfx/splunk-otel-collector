@@ -99,6 +99,21 @@ services:
     build: ./oracle
     ports:
       - "1521:1521"
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    profiles:
+      - integration-test-rabbitmq-discovery
+    environment:
+      RABBITMQ_DEFAULT_USER: splunk.discovery.default
+      RABBITMQ_DEFAULT_PASS: splunk.discovery.default
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
   redis_server:
     image: quay.io/splunko11ytest/redis_server:latest
     profiles:

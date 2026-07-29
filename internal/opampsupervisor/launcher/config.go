@@ -194,6 +194,11 @@ func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 // supervisor start and writes the runtime supervisor config with the current
 // launcher-managed agent fields.
 func prepareSupervisor(inputs supervisorInputs, env map[string]string, paths Paths) error {
+	supervisorDir := filepath.Dir(paths.SupervisorConfig)
+	if err := os.MkdirAll(supervisorDir, 0o700); err != nil {
+		return fmt.Errorf("create supervisor config directory %q: %w", supervisorDir, err)
+	}
+
 	collectorConfigs, err := loadCollectorConfigFiles(inputs.configFiles)
 	if err != nil {
 		return err

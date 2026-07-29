@@ -807,7 +807,6 @@ install_node_package() {
   (cd $node_install_prefix && $npm_path install --global=false $node_package_path)
 }
 
->>>>>>> 247e9dac201b67b2e19323d89a24a7452f26496f
 create_systemd_instrumentation_config() {
   local sdks="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"

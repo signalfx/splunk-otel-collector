@@ -112,11 +112,11 @@ processors:
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
   # detect if the collector is running on a cloud system
   # important for creating unique cloud provider dimensions
-  resourcedetection:
+  resource_detection:
     detectors: [ecs]
     override: false
   # Same as above but overrides resource attributes set by receivers
-  resourcedetection/internal:
+  resource_detection/internal:
     detectors: [ecs]
     override: true
   # Defines the filter processor with example settings
@@ -126,14 +126,15 @@ processors:
       exclude:
         match_type: regexp
         metric_names: ${env:METRICS_TO_EXCLUDE}
-#  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
+#  # Optional: The following processor can be used to add a default "deployment.environment.name" attribute to the logs and
 #  # traces when it's not populated by instrumentation libraries.
 #  # If enabled, make sure to enable this processor in the pipeline below.
+#  # To use the deprecated attribute, change the key to "deployment.environment".
 #  resource/add_environment:
 #    attributes:
 #      - action: insert
 #        value: staging/production/...
-#        key: deployment.environment
+#        key: deployment.environment.name
 
 exporters:
   # Traces
@@ -166,6 +167,12 @@ service:
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    # Optional: Uncomment to add a deployment environment to the Collector's internal telemetry.
+    # To use the deprecated attribute, change the key to "deployment.environment".
+    # resource:
+    #   attributes:
+    #     - name: deployment.environment.name
+    #       value: staging/production/...
     metrics:
       readers:
         - pull:
@@ -179,22 +186,22 @@ service:
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [otlp_http]
     metrics:
       receivers: [host_metrics, otlp]
-      processors: [memory_limiter, batch, filter, resourcedetection]
+      processors: [memory_limiter, batch, filter, resource_detection]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, filter, resourcedetection/internal]
+      processors: [memory_limiter, batch, filter, resource_detection/internal]
       exporters: [signalfx]
     logs:
       receivers: [otlp, fluent_forward]
       processors:
         - memory_limiter
         - batch
-        - resourcedetection
+        - resource_detection
         #- resource/add_environment
       exporters: [splunk_hec, splunk_hec/profiling]

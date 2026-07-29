@@ -88,13 +88,13 @@ convert_version_for_msi() {
 MSI_VERSION=$(convert_version_for_msi "$VERSION")
 
 if ! wix_version="$(dotnet wix --version 2>/dev/null)"; then
-    echo "Error: dotnet wix not found or failed to run. Ensure WiX Toolset 6.x is installed via 'dotnet tool restore'."
+    echo "Error: dotnet wix not found or failed to run. Ensure WiX Toolset 7.x is installed via 'dotnet tool restore'."
     exit 1
 fi
-if [[ ! "$wix_version" =~ ^6\. ]]; then
+if [[ ! "$wix_version" =~ ^7\. ]]; then
     echo "Error: Unexpected WiX Toolset version."
     echo " Got:      '$wix_version'"
-    echo " Expected: '6.x'"
+    echo " Expected: '7.x'"
     exit 1
 fi
 

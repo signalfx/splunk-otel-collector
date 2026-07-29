@@ -91,7 +91,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 		"processors": map[string]any{
-			"resourcedetection": map[string]any{
+			"resource_detection": map[string]any{
 				"detectors": []any{"system"},
 			},
 		},
@@ -107,7 +107,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			"extensions": []any{"zpages", "config_source_telemetry"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"processors": []any{"resourcedetection"},
+					"processors": []any{"resource_detection"},
 					"receivers":  []any{"host_metrics"},
 					"exporters":  []any{"otlp_grpc"},
 				},

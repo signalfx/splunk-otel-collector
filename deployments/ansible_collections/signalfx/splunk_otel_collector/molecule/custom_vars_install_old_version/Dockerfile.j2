@@ -48,7 +48,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
 RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers
 CMD ["/usr/sbin/init"]
 {% else %}
-FROM opensuse/leap:15
+FROM opensuse/leap:16
 RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
 RUN zypper -n install -l ansible dbus-1 python3-rpm sudo systemd-sysvinit
 

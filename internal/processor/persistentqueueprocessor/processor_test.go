@@ -38,7 +38,7 @@ func TestQueue(t *testing.T) {
 	folder, err := os.MkdirTemp(t.TempDir(), "queue-*")
 	require.NoError(t, err)
 	cfg := createDefaultConfig().(*Config)
-	cfg.Folder = folder
+	cfg.Path = folder
 	sink := &consumertest.LogsSink{}
 	p, err := createLogs(
 		t.Context(),
@@ -82,8 +82,8 @@ func TestQueueMessageTooBig(t *testing.T) {
 	require.NoError(t, err)
 	sink := &consumertest.LogsSink{}
 	cfg := createDefaultConfig().(*Config)
-	cfg.Bandwidth = 10
-	cfg.Folder = folder
+	cfg.ThroughputLimit = 10
+	cfg.Path = folder
 	p, err := createLogs(
 		t.Context(),
 		processortest.NewNopSettings(component.MustNewType("bandwidth_limiter")),
@@ -103,8 +103,8 @@ func TestQueueMessageSlowedDown(t *testing.T) {
 	require.NoError(t, err)
 	sink := &consumertest.LogsSink{}
 	cfg := createDefaultConfig().(*Config)
-	cfg.Bandwidth = 37
-	cfg.Folder = folder
+	cfg.ThroughputLimit = 37
+	cfg.Path = folder
 	logger, _ := zap.NewDevelopment()
 	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
@@ -133,8 +133,8 @@ func TestPush1MIn128KOut(t *testing.T) {
 	require.NoError(t, err)
 	sink := &consumertest.LogsSink{}
 	cfg := createDefaultConfig().(*Config)
-	cfg.Bandwidth = 128000
-	cfg.Folder = folder
+	cfg.ThroughputLimit = 128000
+	cfg.Path = folder
 	logger, _ := zap.NewDevelopment()
 	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
@@ -164,8 +164,8 @@ func TestNoLimit(t *testing.T) {
 	require.NoError(t, err)
 	sink := &consumertest.LogsSink{}
 	cfg := createDefaultConfig().(*Config)
-	cfg.Bandwidth = 0
-	cfg.Folder = folder
+	cfg.ThroughputLimit = 0
+	cfg.Path = folder
 	logger, _ := zap.NewDevelopment()
 	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
@@ -214,8 +214,8 @@ func TestRetryForever(t *testing.T) {
 		rejecting: true,
 	}
 	cfg := createDefaultConfig().(*Config)
-	cfg.Bandwidth = 128000
-	cfg.Folder = folder
+	cfg.ThroughputLimit = 128000
+	cfg.Path = folder
 	logger, _ := zap.NewDevelopment()
 	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
@@ -246,8 +246,8 @@ func TestRetryForeverStartAndStop(t *testing.T) {
 		rejecting: true,
 	}
 	cfg := createDefaultConfig().(*Config)
-	cfg.Bandwidth = 128000
-	cfg.Folder = folder
+	cfg.ThroughputLimit = 128000
+	cfg.Path = folder
 	logger, _ := zap.NewDevelopment()
 	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
@@ -362,8 +362,8 @@ func BenchmarkNoLimit(b *testing.B) {
 			require.NoError(b, err)
 			m := &mockLogsConsumer{}
 			cfg := createDefaultConfig().(*Config)
-			cfg.Bandwidth = 0
-			cfg.Folder = folder
+			cfg.ThroughputLimit = 0
+			cfg.Path = folder
 			logger, _ := zap.NewDevelopment()
 			settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 			settings.Logger = logger
@@ -454,8 +454,8 @@ func BenchmarkWithLimits(b *testing.B) {
 			require.NoError(b, err)
 			m := &mockLogsConsumer{}
 			cfg := createDefaultConfig().(*Config)
-			cfg.Bandwidth = int32(scenario.limit)
-			cfg.Folder = folder
+			cfg.ThroughputLimit = int32(scenario.limit)
+			cfg.Path = folder
 			logger, _ := zap.NewDevelopment()
 			settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 			settings.Logger = logger

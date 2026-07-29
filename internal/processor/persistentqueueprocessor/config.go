@@ -17,16 +17,16 @@ package persistentqueueprocessor
 import "errors"
 
 type Config struct {
-	Folder    string `mapstructure:"folder"`
-	Bandwidth int32  `mapstructure:"bandwidth"`
+	Path            string `mapstructure:"path"`
+	ThroughputLimit int32  `mapstructure:"throughput_limit"`
 }
 
 func (c *Config) Validate() error {
-	if c.Folder == "" {
-		return errors.New("folder must be a valid folder")
+	if c.Path == "" {
+		return errors.New("path must be a valid folder")
 	}
-	if c.Bandwidth < 0 {
-		return errors.New("bandwidth must be zero or positive")
+	if c.ThroughputLimit < 0 {
+		return errors.New("throughput_limit must be zero or positive")
 	}
 	return nil
 }

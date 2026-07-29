@@ -85,7 +85,7 @@ def get_dotnet_vars(arch):
         "DOTNET_ADDITIONAL_DEPS": f"{DOTNET_HOME}/glibc/AdditionalDeps",
         "DOTNET_SHARED_STORE": f"{DOTNET_HOME}/glibc/store",
         "DOTNET_STARTUP_HOOKS": f"{DOTNET_HOME}/glibc/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll",
-        "OTEL_DOTNET_AUTO_HOME": DOTNET_HOME,
+        "OTEL_DOTNET_AUTO_HOME": f"{DOTNET_HOME}/glibc",
         "OTEL_DOTNET_AUTO_PLUGINS":
             "Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation",
     }

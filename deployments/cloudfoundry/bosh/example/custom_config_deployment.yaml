@@ -41,14 +41,14 @@ instance_groups:
                   realm: "..."
 
               processors:
-                resourcedetection:
+                resource_detection:
                   detectors: [ system ]
 
               service:
                 pipelines:
                   metrics:
                     receivers: [ cloud_foundry ]
-                    processors: [ resourcedetection ]
+                    processors: [ resource_detection ]
                     exporters: [ signalfx ]
 
     vm_type: default

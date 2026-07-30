@@ -69,7 +69,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
 .PARAMETER deployment_env
-    (OPTIONAL) A system-wide "deployment.environment" set via the environment variable 'OTEL_RESOURCE_ATTRIBUTES' for the whole machine. Ignored if -with_dotnet_instrumentation is false.
+    (OPTIONAL) A system-wide "deployment.environment.name" set via the environment variable 'OTEL_RESOURCE_ATTRIBUTES' for the whole machine. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -deployment_env staging
 .PARAMETER insecure
@@ -704,7 +704,7 @@ echo "$message"
 $otel_resource_attributes = ""
 if ($deployment_env -ne "") {
     echo "Setting deployment environment to $deployment_env"
-    $otel_resource_attributes = "deployment.environment=$deployment_env"
+    $otel_resource_attributes = "deployment.environment.name=$deployment_env"
 }
 else {
     echo "Deployment environment was not specified. Unless otherwise defined, will appear as 'unknown' in the UI."

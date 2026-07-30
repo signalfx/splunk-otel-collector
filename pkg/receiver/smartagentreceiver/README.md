@@ -49,7 +49,7 @@ receivers:
     type: processlist
 
 processors:
-  resourcedetection:
+  resource_detection:
     detectors:
       - system
 
@@ -68,21 +68,21 @@ service:
       receivers:
         - smartagent/processlist
       processors:
-        - resourcedetection
+        - resource_detection
       exporters:
         - signalfx
     logs:
       receivers:
         - smartagent/processlist
       processors:
-        - resourcedetection
+        - resource_detection
       exporters:
         - signalfx
     traces:
       receivers:
         - otlp
       processors:
-        - resourcedetection
+        - resource_detection
       exporters:
         - otlp_http
 ```

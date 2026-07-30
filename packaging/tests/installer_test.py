@@ -566,7 +566,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
 
         config_attributes = ",".join((
             rf"splunk\.zc\.method={zc_method}",
-            rf"deployment\.environment={environment}",
+            rf"deployment\.environment\.name={environment}",
         ))
 
         if method == "preload":

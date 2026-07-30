@@ -134,7 +134,7 @@ receivers:
                 - '/etc/ecs_sd_targets.yaml'
 processors:
   batch:
-  resourcedetection:
+  resource_detection:
     detectors: [ecs]
     override: false    
 exporters:
@@ -146,7 +146,7 @@ service:
   pipelines:
     metrics:
       receivers: [prometheus]
-      processors: [batch, resourcedetection]
+      processors: [batch, resource_detection]
       exporters: [signalfx]
 ```
 
@@ -213,7 +213,7 @@ allows you to collect telemetry data by deploying the Collector in a task that i
 from tasks containing monitored applications. This is in contrast to the sidecar deployment
 where the Collector container, and the monitored application containers are in the same task.
 Do not configure the ECS
-[resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#resource-detection-processor)
+[resource_detection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#resource-detection-processor)
 processor for the standalone task since it would detect resources in the standalone Collector
 task itself as opposed to resources in the tasks containing the monitored applications.
 

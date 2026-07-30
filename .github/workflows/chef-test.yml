@@ -2,27 +2,9 @@ name: chef-test
 
 # Only run tests if there are relevant changes
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/chef-test.yml'
-      - 'deployments/chef/**'
-      - 'packaging/msi/**'
-      - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/chef-test.yml'
-      - 'deployments/chef/**'
-      - 'packaging/msi/**'
-      - '!**.md'
-  schedule:
-    - cron: '0 0 * * 2,5' # Every Tuesday and Friday at midnight UTC
-
-env:
-  # EOL REFERENCE: https://endoflife.date/chef-workstation
-  CHEF_VERSION: "25.12.1102"
-  CHEF_LICENSE: accept
 
 jobs:
   chef-kitchen-windows:
@@ -34,4 +16,4 @@ jobs:
       - name: Install chef
         uses: actionshub/chef-install@f3b35943a257c25f3ca69e3b773fa4e0e99b58d6 # 6.0.0
         with:
-          version: "25.12.1102"
+          version: "25.14.2"

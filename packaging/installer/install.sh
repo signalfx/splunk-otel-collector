@@ -1247,7 +1247,7 @@ distro_is_supported() {
       ;;
     sles|opensuse*)
       case "$distro_version" in
-        12*|15*|42*)
+        12*|15*|16*|42*)
           return 0
           ;;
       esac

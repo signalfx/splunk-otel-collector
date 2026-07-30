@@ -56,9 +56,13 @@ receivers:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
         type: move
-      - type: add
+      - type: copy
+        from: attributes["log.file.name"]
+        to: resource["com.splunk.sourcetype"]
+      - type: replace
         field: resource["com.splunk.sourcetype"]
-        value: linux:varlog
+        regex: '\.[^.]+$'
+        replace_with: ''
 
   # Matches TA stanza: [monitor:///etc]
   # whitelist=(\.(conf|cfg|ini|init|cf|cnf|profile|rc|rules|tab|login)$|(config|shrc|tab|policy)$|^ifcfg)
@@ -1025,8 +1029,8 @@ processors:
     override: true
 
   # Matches Splunk_TA_nix props.conf source:: stanzas for file-based sourcetype assignment.
-  # In Splunk, "source::....X" means the filename component is exactly X.
-  # Regex: "/X$" matches the exact filename after the last path separator.
+  # These run after the filename-as-sourcetype assignment in the filelog receiver operators,
+  # overriding specific well-known paths with their canonical Splunk sourcetypes.
   transform/nix_sourcetype:
     log_statements:
       - context: log
@@ -1034,9 +1038,9 @@ processors:
           # [source::....linux_secure] -> linux_secure
           - set(resource.attributes["com.splunk.sourcetype"], "linux_secure")
               where IsMatch(resource.attributes["com.splunk.source"], "/linux_secure$")
-          # [source::....nix] -> linux_secure (filename ends with .nix extension)
+          # [source::....nix] -> linux_secure
           - set(resource.attributes["com.splunk.sourcetype"], "linux_secure")
-              where IsMatch(resource.attributes["com.splunk.source"], "\\.nix$")
+              where IsMatch(resource.attributes["com.splunk.source"], "/[^/]+\\.nix$")
           # [source::....aix_secure] -> aix_secure
           - set(resource.attributes["com.splunk.sourcetype"], "aix_secure")
               where IsMatch(resource.attributes["com.splunk.source"], "/aix_secure$")
@@ -1049,6 +1053,9 @@ processors:
           # [source::....dhcpd] -> dhcpd
           - set(resource.attributes["com.splunk.sourcetype"], "dhcpd")
               where IsMatch(resource.attributes["com.splunk.source"], "/dhcpd$")
+          # [source::(....(config|conf|cfg|ini|emacs|license|lng|plist|presets|properties|props|vim|wsdl))] -> config_file
+          - set(resource.attributes["com.splunk.sourcetype"], "config_file")
+              where IsMatch(resource.attributes["com.splunk.source"], "\\.(config|conf|cfg|ini|emacs|license|lng|plist|presets|properties|props|vim|wsdl)$")
           # [source::/etc/passwd*] -> ignored_type
           - set(resource.attributes["com.splunk.sourcetype"], "ignored_type")
               where IsMatch(resource.attributes["com.splunk.source"], "^/etc/passwd")

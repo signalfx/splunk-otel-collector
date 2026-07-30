@@ -24,7 +24,7 @@ The OpenTelemetry Collector scrapes the Prometheus endpoint every 10 seconds as 
               - targets: [prometheus:9090]
             metrics_path: /federate
             params:
-              match[]: '{job="counter"}'
+              match[]: ['{job="counter"}']
 ```
 
 This configuration specifically scrapes metrics matching the query `{job="counter"}`.

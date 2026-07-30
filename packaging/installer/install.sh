@@ -94,6 +94,7 @@ default_instrumentation_version="latest"
 default_obi_version="v0.6.0"
 default_deployment_environment=""
 instrumentation_so_path="/usr/lib/splunk-instrumentation/libotelinject.so"
+legacy_instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 systemd_instrumentation_config_path="/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 default_obi_install_dir="/usr/local/bin"
@@ -590,6 +591,11 @@ ensure_not_installed() {
       echo "Please uninstall auto instrumentation, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
+    if [ -f "$legacy_instrumentation_so_path" ]; then
+      echo "$legacy_instrumentation_so_path already exists which implies that an older version of auto instrumentation is already installed." >&2
+      echo "Please uninstall auto instrumentation, or try running this script with the '--uninstall' option." >&2
+      exit 1
+    fi
     if [ -f "$systemd_instrumentation_config_path" ]; then
       echo "$systemd_instrumentation_config_path already exists which implies that auto instrumentation is already installed." >&2
       echo "Please uninstall auto instrumentation, or try running this script with the '--uninstall' option." >&2
@@ -934,13 +940,18 @@ uninstall() {
   local with_obi="$2"
   local obi_install_dir="$3"
 
-  for agent in otelcol $instrumentation_so_path; do
+  local instrumentation_removed="false"
+  for agent in otelcol $instrumentation_so_path $legacy_instrumentation_so_path; do
+    if [ "$agent" = "$legacy_instrumentation_so_path" ] && [ "$instrumentation_removed" = "true" ]; then
+      continue
+    fi
     if command -v $agent >/dev/null 2>&1; then
       pkg="$agent"
       if [ "$agent" = "otelcol" ]; then
         pkg="splunk-otel-collector"
-      elif [ "$agent" = "$instrumentation_so_path" ]; then
+      elif [ "$agent" = "$instrumentation_so_path" ] || [ "$agent" = "$legacy_instrumentation_so_path" ]; then
         pkg="splunk-otel-auto-instrumentation"
+        instrumentation_removed="true"
       fi
       case "$distro" in
         ubuntu|debian)

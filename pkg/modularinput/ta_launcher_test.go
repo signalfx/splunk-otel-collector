@@ -357,6 +357,8 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 		EnvAppName:     "test-app",
 		EnvBaseDirName: "test-base-dir",
 		EnvStanzaName:  "test-stanza",
+		EnvServerURI:   "https://localhost:8089",
+		EnvSessionKey:  "test_key",
 	}, envVars)
 }
 

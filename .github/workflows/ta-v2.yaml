@@ -126,10 +126,20 @@ jobs:
           sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/${APP_NAME}/local/inputs.conf
           sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/${APP_NAME}/local/inputs.conf
 
+      - name: Generate Splunk admin password
+        id: gen_password
+        shell: bash
+        run: |
+          set -eo pipefail
+          pw="$(uuidgen 2>/dev/null || openssl rand -hex 16)"
+          echo "::add-mask::$pw"
+          echo "splunk_password=$pw" >> "$GITHUB_OUTPUT"
+
       - name: Run local container
         env:
           ASSETS_DIR: ./build-out/${{ steps.extract.outputs.app_name }}
           SPLUNK_VERSION: ${{ matrix.splunk_version }}
+          SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
         run: |
           sudo -E ./run-local-package-in-container.sh
 
@@ -176,10 +186,68 @@ jobs:
             exit 1
           fi
 
+      - name: Create test secret in Splunk secret storage
+        env:
+          SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
+        run: |
+          set -eo pipefail
+          APP_NAME="${{ steps.extract.outputs.app_name }}"
+          curl -k -sS -u "admin:${SPLUNK_PASSWORD}" \
+            "https://localhost:8089/servicesNS/nobody/${APP_NAME}/storage/passwords" \
+            -d name=smoke_test_user \
+            -d password=smoke_test_secret_value \
+            -d realm=smoke_test_realm
+
+      - name: Add splunk_secret config source and restart Splunk
+        run: |
+          set -eo pipefail
+          ASSETS_DIR="./build-out/${{ steps.extract.outputs.app_name }}"
+          CONFIG_FILE="${ASSETS_DIR}/configs/agent_config.yaml"
+          yq -i '
+            .config_sources.splunk_secret.endpoint = "${env:SPLUNK_SERVER_URI}" |
+            .config_sources.splunk_secret.session_key = "${env:SPLUNK_SESSION_KEY}" |
+            .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]
+          ' "$CONFIG_FILE"
+          cat "$CONFIG_FILE"
+          docker exec -u splunk "$CONTAINER_NAME" /opt/splunk/bin/splunk restart
+
+      - name: Wait for collector to relaunch after restart
+        run: |
+          timeout=180
+          elapsed=0
+          echo -n "Waiting for expvar endpoint to be available: "
+          while ! docker exec -i "$CONTAINER_NAME" curl http://localhost:55679/debug/expvarz --silent > /dev/null; do
+              if [ $elapsed -ge $timeout ]; then
+                  echo ""
+                  echo "Timeout: expvar endpoint was not available within $timeout seconds"
+                  exit 1
+              fi
+              sleep 2
+              elapsed=$((elapsed + 2))
+              echo -n "."
+          done
+
+      - name: Get collector PID after restart
+        id: get_pid_after_restart
+        run: |
+          docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA"
+          otelcol_pid="$(docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA" | awk '{print $2}')"
+          echo "$TA PID $otelcol_pid"
+          echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
+
+      - name: Check secret from Splunk secret storage is resolved by the collector
+        run: |
+          if docker exec -i "$CONTAINER_NAME" curl -s http://localhost:8888/metrics | grep -q 'ta_smoke_secret="smoke_test_secret_value"'; then
+            echo "splunk_secret config source correctly resolved the secret in the collector service."
+          else
+            echo "splunk_secret config source did NOT resolve the secret in the collector service!"
+            exit 1
+          fi
+
       - name: Check if collector process is alive after 30 seconds
         run: |
           sleep 30
-          otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
+          otelcol_pid="${{ steps.get_pid_after_restart.outputs.otelcol_pid }}"
           if docker exec "$CONTAINER_NAME" sudo ps "$otelcol_pid"; then
             echo "$TA process ($otelcol_pid) was still running."
           else

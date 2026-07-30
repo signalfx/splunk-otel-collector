@@ -157,15 +157,7 @@ jobs:
 
       - name: Patch kitchen-dokken Cmd type for Docker API compatibility
         run: |
-          DOKKEN_RB=""
-          for root in /opt/chef-workstation /opt/cinc-workstation; do
-            if [ -d "$root/embedded/lib/ruby/gems" ]; then
-              DOKKEN_RB=$(find "$root/embedded/lib/ruby/gems" -name "dokken.rb" -path "*/kitchen/driver/dokken.rb" -print -quit)
-              break
-            fi
-          done
-
-          test -n "$DOKKEN_RB"
+          DOKKEN_RB=$(find /opt/cinc-workstation/embedded/lib/ruby/gems -name "dokken.rb" -path "*/kitchen/driver/dokken.rb")
           sudo sed -i 's/"Cmd" => "true"/"Cmd" => ["true"]/' "$DOKKEN_RB"
 
       - run: chef exec kitchen test ${{ matrix.DISTRO }}

@@ -124,7 +124,7 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          testcase="${{ matrix.TESTCASE }} or uninstall"
+          testcase="${{ matrix.TESTCASE }} or uninstall or upgrade_from_libsplunk"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             packaging/tests/instrumentation/instrumentation_test.py
 
@@ -133,7 +133,7 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          testcase="${{ matrix.TESTCASE }} or uninstall"
+          testcase="${{ matrix.TESTCASE }} or uninstall or upgrade_from_libsplunk"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             --last-failed \
             packaging/tests/instrumentation/instrumentation_test.py

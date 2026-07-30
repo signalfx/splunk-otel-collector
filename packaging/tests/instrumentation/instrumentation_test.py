@@ -67,6 +67,33 @@ INSTALLED_FILES = [
     INJECTOR_DEFAULT_ENV_PATH,
 ]
 
+# Legacy (pre-injector) package that shipped libsplunk.so and config under
+# /etc/splunk/zeroconfig/ instead of libotelinject.so + /etc/opentelemetry/injector/.
+LEGACY_VERSION = "0.156.0"
+LEGACY_RELEASE_URL = f"https://github.com/signalfx/splunk-otel-collector/releases/download/v{LEGACY_VERSION}"
+LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
+ZEROCONFIG_DIR = "/etc/splunk/zeroconfig"
+LEGACY_FILES = [
+    LIBSPLUNK_PATH,
+    f"{ZEROCONFIG_DIR}/java.conf",
+    f"{ZEROCONFIG_DIR}/node.conf",
+    f"{ZEROCONFIG_DIR}/dotnet.conf",
+]
+UPGRADE_WARNING = (
+    f"WARNING: Upgrading {PKG_NAME} from a version using libsplunk.so. "
+    "Auto-instrumentation is switching from libsplunk.so to libotelinject.so, "
+    "and configuration files have moved from /etc/splunk/zeroconfig/ to "
+    "/etc/opentelemetry/injector/. See the release notes for details."
+)
+
+
+def legacy_package_name(distro, arch):
+    if distro in DEB_DISTROS:
+        return f"{PKG_NAME}_{LEGACY_VERSION}_{arch}.deb"
+    rpm_arch = "aarch64" if arch == "arm64" else "x86_64"
+    return f"{PKG_NAME}-{LEGACY_VERSION}-1.{rpm_arch}.rpm"
+
+
 TOMCAT_PIDFILE = "/usr/local/tomcat/temp/tomcat.pid"
 TOMCAT_ENV = {
     "JAVA_HOME": "/opt/java/openjdk",
@@ -461,3 +488,54 @@ def test_package_uninstall(distro, arch):
         verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
         verify_preload(container, "# This line should be preserved")
+
+
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_package_upgrade_from_libsplunk(distro, arch):
+    pkg_path = get_package(distro, PKG_NAME, arch)
+    assert pkg_path, f"{PKG_NAME} package not found"
+    pkg_base = os.path.basename(pkg_path)
+
+    legacy_pkg = legacy_package_name(distro, arch)
+    legacy_url = f"{LEGACY_RELEASE_URL}/{legacy_pkg}"
+
+    with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch) as container:
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+
+        # download and install the legacy libsplunk.so-based package
+        # (not all distro images ship curl, so fall back to wget)
+        download_cmd = (
+            f"sh -c 'if command -v curl >/dev/null; then "
+            f"curl -sfL {legacy_url} -o /test/{legacy_pkg}; else "
+            f"wget -q {legacy_url} -O /test/{legacy_pkg}; fi'"
+        )
+        run_container_cmd(container, download_cmd)
+        if distro in DEB_DISTROS:
+            run_container_cmd(container, f"dpkg -i /test/{legacy_pkg}")
+        else:
+            run_container_cmd(container, f"rpm -ivh /test/{legacy_pkg}")
+
+        for path in LEGACY_FILES:
+            assert container_file_exists(container, path), f"{path} not found after legacy install"
+
+        # upgrade to the locally-built package using libotelinject.so
+        if distro in DEB_DISTROS:
+            _, output = run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
+        else:
+            _, output = run_container_cmd(container, f"rpm -Uvh /test/{pkg_base}")
+
+        assert UPGRADE_WARNING in output.decode("utf-8"), \
+            f"expected upgrade warning not found in output:\n{output.decode('utf-8')}"
+
+        # verify legacy files were removed by the upgrade
+        for path in LEGACY_FILES:
+            assert not container_file_exists(container, path), f"{path} still present after upgrade"
+
+        # verify new files were installed
+        for path in INSTALLED_FILES:
+            assert container_file_exists(container, path), f"{path} not found after upgrade"

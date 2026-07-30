@@ -53,6 +53,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --rpm-rpmbuild-define "_build_id_links none" \
     --rpm-summary "$PKG_DESCRIPTION" \
     --rpm-use-file-permissions \
+    --before-install "$PREINSTALL_PATH" \
     --before-remove "$PREUNINSTALL_PATH" \
     --depends sed \
     --depends grep \

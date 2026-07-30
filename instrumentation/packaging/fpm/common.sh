@@ -42,6 +42,7 @@ DOTNET_AGENT_RELEASE_PATH="${FPM_DIR}/../dotnet-agent-release.txt"
 DOTNET_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-dotnet/releases/"
 DOTNET_AGENT_INSTALL_DIR="${INSTALL_DIR}/splunk-otel-dotnet"
 
+PREINSTALL_PATH="$FPM_DIR/preinstall.sh"
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
 
 get_version() {

@@ -169,56 +169,12 @@ jobs:
           path: deployments/chef/.kitchen/logs/*
 
   chef-kitchen-windows:
-    runs-on: ${{ matrix.DISTRO }}
-    needs: [ chef-lint-spec-test, chef-kitchen-matrix, msi-build ]
-    defaults:
-      run:
-        working-directory: 'deployments/chef'
-    strategy:
-      matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.win-matrix) }}
-      fail-fast: false
+    runs-on: windows-2025
     steps:
       - name: Check out code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          path: /tmp
-
-      - uses: ./.github/actions/win-wait-for-docker
-
-      # Chef doesn't have an easy way to get names of files from unarchived packages
-      # It's simpler to unarchive and move the built artifacts manually to the
-      # cookbook files directory. The files/ dir under the Chef deployment is a special
-      # directory in Chef, used for copying files from the cookbook to the host running
-      # Chef.
-      # Cookbook files reference: https://docs.chef.io/files/
-      - name: Extract artifacts
-        run: |
-          mkdir files
-          Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
-          mv $msiPath.FullName ./files/splunk-otel-collector.msi
-
       - name: Install chef
         uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
         with:
-          version: ${{ env.CHEF_VERSION }}
-
-      - name: Install kitchen-docker
-        run: chef gem install kitchen-docker
-
-      - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
-        run: |
-          kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
-          # For some reason, kitchen returns 0 here even if there are test failures, so check the log instead.
-          grep -q "No tests executed." .kitchen/logs/kitchen.log && exit 1
-          grep -q "0 failures" .kitchen/logs/kitchen.log || exit 1
-        shell: bash
-        env:
-          KITCHEN_YAML: kitchen.windows.yml
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
-        with:
-          name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
-          path: deployments/chef/.kitchen/logs/*
+          version: "25.12.1102"

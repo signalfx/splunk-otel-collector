@@ -204,8 +204,7 @@ jobs:
           ASSETS_DIR="./build-out/${{ steps.extract.outputs.app_name }}"
           CONFIG_FILE="${ASSETS_DIR}/configs/agent_config.yaml"
           sudo yq -i '
-            .config_sources.splunk_secret.endpoint = "${env:SPLUNK_SERVER_URI}" |
-            .config_sources.splunk_secret.session_key = "${env:SPLUNK_SESSION_KEY}" |
+            .config_sources.splunk_secret.insecure_skip_verify = true |
             .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]
           ' "$CONFIG_FILE"
           sudo cat "$CONFIG_FILE"

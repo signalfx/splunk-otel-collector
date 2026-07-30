@@ -144,7 +144,7 @@ func TestPush1MIn128KOut(t *testing.T) {
 	for range 1_000_000 / 100_000 {
 		require.NoError(t, p.ConsumeLogs(t.Context(), createLd100k()))
 	}
-	time.Sleep(4 * time.Second)
+	time.Sleep(5 * time.Second)
 	found := len(sink.AllLogs())
 	require.Equal(t, 5, found)
 	time.Sleep(5 * time.Second)

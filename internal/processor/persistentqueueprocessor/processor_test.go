@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -179,7 +180,7 @@ func TestNoLimit(t *testing.T) {
 
 type mockLogsConsumer struct {
 	received  []plog.Logs
-	rejecting bool
+	rejecting atomic.Bool
 }
 
 func (m *mockLogsConsumer) Capabilities() consumer.Capabilities {
@@ -189,7 +190,7 @@ func (m *mockLogsConsumer) Capabilities() consumer.Capabilities {
 }
 
 func (m *mockLogsConsumer) ConsumeLogs(_ context.Context, logs plog.Logs) error {
-	if m.rejecting {
+	if m.rejecting.Load() {
 		return errors.New("rejecting")
 	}
 	m.received = append(m.received, logs)
@@ -198,8 +199,9 @@ func (m *mockLogsConsumer) ConsumeLogs(_ context.Context, logs plog.Logs) error 
 
 func TestRetryForever(t *testing.T) {
 	m := &mockLogsConsumer{
-		rejecting: true,
+		rejecting: atomic.Bool{},
 	}
+	m.rejecting.Store(true)
 	cfg := createDefaultConfig().(*Config)
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
@@ -221,15 +223,16 @@ func TestRetryForever(t *testing.T) {
 		require.NoError(t, p.ConsumeLogs(t.Context(), createLd100k()))
 	}
 	require.Empty(t, m.received)
-	m.rejecting = false
+	m.rejecting.Store(false)
 	time.Sleep(10 * time.Second)
 	require.Len(t, m.received, 10)
 }
 
 func TestRetryForeverStartAndStop(t *testing.T) {
 	m := &mockLogsConsumer{
-		rejecting: true,
+		rejecting: atomic.Bool{},
 	}
+	m.rejecting.Store(true)
 	cfg := createDefaultConfig().(*Config)
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
@@ -253,7 +256,7 @@ func TestRetryForeverStartAndStop(t *testing.T) {
 	require.Empty(t, m.received)
 	require.NoError(t, p.Shutdown(context.WithoutCancel(t.Context())))
 	require.NoError(t, p.Start(t.Context(), componenttest.NewNopHost()))
-	m.rejecting = false
+	m.rejecting.Store(false)
 	time.Sleep(10 * time.Second)
 	require.Len(t, m.received, 10)
 }

@@ -57,6 +57,7 @@ var factory = telegrafInputs.Inputs["tail"]
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the [count connector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/countconnector) instead.")
 	m.plugin = factory().(*telegrafPlugin.Tail)
 
 	// use the default config

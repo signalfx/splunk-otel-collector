@@ -34,22 +34,22 @@ import (
 )
 
 const (
-	// inputBounds is the number of explicit bounds in the synthetic histogram
-	// sent to the collector (40 > 32 buckets, intentionally triggering the limit).
-	inputBounds = 40
+	// oversizedInputBuckets is the bucket count of the synthetic histogram sent to
+	// the collector. It exceeds maxAllowedBuckets so the transform must compact it.
+	oversizedInputBuckets = 41
 
-	// maxAllowedBounds mirrors the SignalFx backend limit: merge_histogram_buckets(32)
-	// keeps at most 32 buckets = 31 explicit bounds.
-	maxAllowedBounds = 31
+	// maxAllowedBuckets is the SignalFx backend limit that merge_histogram_buckets(32)
+	// enforces: at most 32 buckets per histogram datapoint.
+	maxAllowedBuckets = 32
 
-	// testMetricName is used to identify the synthetic histogram in the sink.
+	// testMetricName identifies the synthetic histogram in the sink.
 	testMetricName = "test.histogram.bucket.limit"
 )
 
-// TestHistogramBucketLimitReducesBuckets sends a histogram with inputBounds (40)
-// explicit bounds through the pipeline defined in histogram_bucket_limit.yaml and
-// asserts that the OTLPReceiverSink receives a histogram with at most maxAllowedBounds
-// (31) explicit bounds (32 total buckets).
+// TestHistogramBucketLimitReducesBuckets sends a histogram with oversizedInputBuckets
+// (41) buckets through the pipeline defined in histogram_bucket_limit.yaml and asserts
+// that the OTLPReceiverSink receives a histogram compacted to at most maxAllowedBuckets
+// (32) buckets.
 //
 // This exercises the transform/limit_histogram_buckets processor that is also
 // added to the default agent_config.yaml by OTL-4345.
@@ -73,24 +73,18 @@ func TestHistogramBucketLimitReducesBuckets(t *testing.T) {
 	)
 	defer shutdown()
 
-	// Dial the collector's OTLP gRPC receiver.
-	collectorAddr := fmt.Sprintf("127.0.0.1:%d", collectorOTLPPort)
-	conn, err := grpc.NewClient(collectorAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	defer conn.Close()
+	client := newOTLPMetricsClient(t, fmt.Sprintf("127.0.0.1:%d", collectorOTLPPort))
 
-	client := pmetricotlp.NewGRPCClient(conn)
-	payload := pmetricotlp.NewExportRequestFromMetrics(buildHistogramMetric(inputBounds))
-
-	// Wait for the collector's OTLP receiver to become ready, then send once.
+	// Retry the send until the collector's OTLP receiver accepts data. Each attempt
+	// is bounded by the same interval used between retries, so a stalled dial can't
+	// stretch the retry cadence beyond the ticker.
 	require.Eventually(t, func() bool {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		_, sendErr := client.Export(ctx, payload)
-		return sendErr == nil
-	}, 30*time.Second, 500*time.Millisecond, "collector OTLP receiver did not become ready")
+		return exportHistogram(ctx, client, oversizedInputBuckets) == nil
+	}, 30*time.Second, time.Second, "collector OTLP receiver did not become ready")
 
-	// Wait for the sink to receive the processed metric and verify bucket count.
+	// Wait for the sink to receive the processed metric and verify its bucket count.
 	assert.Eventually(t, func() bool {
 		for _, batch := range tc.OTLPReceiverSink.AllMetrics() {
 			rms := batch.ResourceMetrics()
@@ -105,10 +99,10 @@ func TestHistogramBucketLimitReducesBuckets(t *testing.T) {
 						}
 						dps := m.Histogram().DataPoints()
 						for l := 0; l < dps.Len(); l++ {
-							bounds := dps.At(l).ExplicitBounds().Len()
-							assert.LessOrEqualf(t, bounds, maxAllowedBounds,
-								"histogram %q datapoint %d has %d explicit bounds; want ≤ %d",
-								testMetricName, l, bounds, maxAllowedBounds)
+							buckets := dps.At(l).BucketCounts().Len()
+							assert.LessOrEqualf(t, buckets, maxAllowedBuckets,
+								"histogram %q datapoint %d has %d buckets; want ≤ %d",
+								testMetricName, l, buckets, maxAllowedBuckets)
 						}
 						return true
 					}
@@ -120,10 +114,28 @@ func TestHistogramBucketLimitReducesBuckets(t *testing.T) {
 		"timed out waiting for %q metric in OTLPReceiverSink", testMetricName)
 }
 
+// newOTLPMetricsClient dials the collector's OTLP/gRPC receiver at addr and returns a
+// metrics export client. The underlying connection is closed when the test finishes.
+func newOTLPMetricsClient(t *testing.T, addr string) pmetricotlp.GRPCClient {
+	t.Helper()
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, conn.Close()) })
+	return pmetricotlp.NewGRPCClient(conn)
+}
+
+// exportHistogram sends a single synthetic histogram with numBuckets buckets to the
+// collector's OTLP/gRPC receiver.
+func exportHistogram(ctx context.Context, client pmetricotlp.GRPCClient, numBuckets int) error {
+	payload := pmetricotlp.NewExportRequestFromMetrics(buildHistogramMetric(numBuckets))
+	_, err := client.Export(ctx, payload)
+	return err
+}
+
 // buildHistogramMetric constructs a pmetric.Metrics containing one explicit-bounds
-// histogram datapoint with numBounds boundary values.  The resulting metric has
-// numBounds+1 bucket counts (one per interval).
-func buildHistogramMetric(numBounds int) pmetric.Metrics {
+// histogram datapoint with numBuckets buckets (and therefore numBuckets-1 explicit
+// bounds).
+func buildHistogramMetric(numBuckets int) pmetric.Metrics {
 	now := time.Now()
 
 	md := pmetric.NewMetrics()
@@ -141,9 +153,10 @@ func buildHistogramMetric(numBounds int) pmetric.Metrics {
 	dp := hist.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(now.Add(-time.Minute)))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	dp.SetCount(uint64(numBounds + 1))
+	dp.SetCount(uint64(numBuckets))
 
-	// Explicit bounds: 1.0, 2.0, …, float64(numBounds).
+	// numBuckets buckets require numBuckets-1 explicit bounds (1.0, 2.0, …).
+	numBounds := numBuckets - 1
 	bounds := dp.ExplicitBounds()
 	bounds.EnsureCapacity(numBounds)
 	var sum float64
@@ -154,10 +167,10 @@ func buildHistogramMetric(numBounds int) pmetric.Metrics {
 	}
 	dp.SetSum(sum)
 
-	// Bucket counts: one observation per bucket (numBounds boundaries → numBounds+1 buckets).
+	// One observation per bucket.
 	counts := dp.BucketCounts()
-	counts.EnsureCapacity(numBounds + 1)
-	for i := 0; i <= numBounds; i++ {
+	counts.EnsureCapacity(numBuckets)
+	for i := 0; i < numBuckets; i++ {
 		counts.Append(1)
 	}
 

@@ -296,8 +296,21 @@ jobs:
         run: |
           curl https://download.splunk.com/products/universalforwarder/releases/${{ matrix.splunk_uf.version }}/windows/splunkforwarder-${{ matrix.splunk_uf.version }}-${{ matrix.splunk_uf.build_hash }}-windows-x64.msi -o splunkforwarder.msi
 
+      - name: Generate Splunk admin password
+        id: gen_password
+        shell: pwsh
+        run: |
+          $pw = [guid]::NewGuid().ToString()
+          Write-Host "::add-mask::$pw"
+          "splunk_password=$pw" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
       - name: Install Splunk UF
-        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes
+        env:
+          SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
+        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes SPLUNKPASSWORD="$Env:SPLUNK_PASSWORD"
+
+      - name: Install yq
+        run: choco install yq -y
 
       - name: Download TA v2 artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -306,9 +319,11 @@ jobs:
           path: ${{ github.workspace }}/packaging/ta-v2/out/distribution
 
       - name: Install Splunk_TA_otel on the local Splunk UF
+        id: install
         run: |
           tar -xzf "${{ github.workspace }}/packaging/ta-v2/out/distribution/${{ matrix.package }}" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
           $appName = "${{ matrix.package }}" -replace '\.tgz$', ''
+          "app_name=$appName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           $modularInputDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\$appName"
           New-Item -ItemType Directory -Path "$modularInputDir\local" -Force | Out-Null
           $inputsConfPath = "$modularInputDir\local\inputs.conf"
@@ -475,11 +490,113 @@ jobs:
               exit 1
           }
 
+      - name: Create test secret in Splunk secret storage
+        shell: pwsh
+        env:
+          SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
+          APP_NAME: ${{ steps.install.outputs.app_name }}
+        run: |
+          $pair = "admin:$Env:SPLUNK_PASSWORD"
+          $basicAuth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
+          Invoke-WebRequest -Uri "https://localhost:8089/servicesNS/nobody/$Env:APP_NAME/storage/passwords" `
+            -Method Post `
+            -Headers @{ Authorization = "Basic $basicAuth" } `
+            -Body @{ name = "smoke_test_user"; password = "smoke_test_secret_value"; realm = "smoke_test_realm" } `
+            -SkipCertificateCheck `
+            -UseBasicParsing
+
+      - name: Add splunk_secret config source and restart Splunk UF
+        shell: pwsh
+        env:
+          APP_NAME: ${{ steps.install.outputs.app_name }}
+        run: |
+          $configFile = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\$Env:APP_NAME\configs\agent_config.yaml"
+          yq -i '
+            .config_sources.splunk_secret.insecure_skip_verify = true |
+            .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]
+          ' $configFile
+          Get-Content $configFile
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe restart
+
+      - name: Wait for collector to relaunch after restart
+        shell: pwsh
+        run: |
+          $timeout = 120
+          $elapsed = 0
+          Write-Host -NoNewline "Waiting for expvar endpoint to be available: "
+          while ($true) {
+              try {
+                  $response = Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -Method Get -UseBasicParsing -ErrorAction Stop
+                  if ($response.StatusCode -eq 200) {
+                      Write-Host ""
+                      Write-Host "Expvar endpoint is available" -ForegroundColor Green
+                      break
+                  }
+              } catch {
+                  # Endpoint not available yet
+              }
+
+              if ($elapsed -ge $timeout) {
+                  Write-Host ""
+                  Write-Host "Timeout: expvar endpoint was not available within $timeout seconds" -ForegroundColor Red
+                  exit 1
+              }
+
+              Start-Sleep -Seconds 1
+              $elapsed += 1
+              Write-Host -NoNewline "."
+          }
+
+      - name: Get Splunk_TA_otel PID after restart
+        id: get_pid_after_restart
+        shell: pwsh
+        run: |
+          $timeout = 120
+          $elapsed = 0
+          $otelcol_pid = $null
+          Write-Host -NoNewline "Waiting for a single Splunk_TA_otel process: "
+          Start-Sleep -Seconds 5
+          while ($elapsed -lt $timeout -and $null -eq $otelcol_pid) {
+              try {
+                  $procs = @(Get-Process -Name Splunk_TA_otel -ErrorAction Stop)
+                  if ($procs.Count -eq 1) {
+                      $otelcol_pid = $procs[0].Id
+                      Write-Host ""
+                      Write-Host "Found Splunk_TA_otel PID: $otelcol_pid"
+                  }
+              } catch {
+                  # Process not found, continue waiting
+              }
+              if ($null -eq $otelcol_pid) {
+                  Start-Sleep -Seconds 1
+                  $elapsed += 1
+                  Write-Host -NoNewline "."
+              }
+          }
+          if ($null -eq $otelcol_pid) {
+              Write-Host ""
+              Write-Host "Timeout: Could not find Splunk_TA_otel process within $timeout seconds" -ForegroundColor Red
+              exit 1
+          }
+          "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Check secret from Splunk secret storage is resolved by the collector
+        shell: pwsh
+        run: |
+          $metrics = Invoke-WebRequest -Uri "http://localhost:8888/metrics" -UseBasicParsing
+          if ($metrics.Content -match 'ta_smoke_secret="smoke_test_secret_value"') {
+              Write-Host "splunk_secret config source correctly resolved the secret in the collector service."
+          } else {
+              Write-Host "splunk_secret config source did NOT resolve the secret in the collector service!" -ForegroundColor Red
+              exit 1
+          }
+
       - name: Check if Splunk_TA_otel process is alive after 30 seconds
         shell: pwsh
         run: |
           Start-Sleep -Seconds 30
-          $prev_otelcol_pid = ${{ steps.get_pid.outputs.otelcol_pid }}
+          $prev_otelcol_pid = ${{ steps.get_pid_after_restart.outputs.otelcol_pid }}
           $otelcol_pid = (Get-Process -Id $prev_otelcol_pid).Id
           if ($otelcol_pid) {
               Write-Host "Splunk_TA_otel process ($prev_otelcol_pid) was still running."

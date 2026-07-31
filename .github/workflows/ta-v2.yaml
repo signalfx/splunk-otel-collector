@@ -137,6 +137,7 @@ jobs:
 
       - name: Run local container
         env:
+          APP_NAME: ${{ steps.extract.outputs.app_name }}
           ASSETS_DIR: ./build-out/${{ steps.extract.outputs.app_name }}
           SPLUNK_VERSION: ${{ matrix.splunk_version }}
           SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}

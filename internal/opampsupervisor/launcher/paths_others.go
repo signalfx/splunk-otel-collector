@@ -12,41 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !windows
+//go:build !linux && !windows
 
 package launcher
 
-import (
-	"os"
-	"path/filepath"
-)
-
-// DefaultPaths returns collector, supervisor, and state locations for Linux
-// packages. Tar bundles use paths relative to the launcher executable.
 func DefaultPaths() Paths {
-	launcherExecutable, err := os.Executable()
-	if err != nil {
-		launcherExecutable = "/usr/bin/otelcollauncher"
-	}
-	return pathsForExecutable(launcherExecutable)
-}
-
-func pathsForExecutable(launcherExecutable string) Paths {
-	binDir := filepath.Dir(launcherExecutable)
-	configDir := "/etc/otel/collector"
-	if binDir != "/usr/bin" {
-		configDir = filepath.Join(filepath.Dir(binDir), "config")
-	}
-	supervisorConfigDir := filepath.Join(configDir, "supervisor")
-	return Paths{
-		CollectorExecutable:         filepath.Join(binDir, "otelcol"),
-		SupervisorExecutable:        filepath.Join(binDir, "opampsupervisor"),
-		SupervisorConfig:            filepath.Join(supervisorConfigDir, "supervisor_config.yaml"),
-		RuntimeSupervisorConfig:     filepath.Join(supervisorConfigDir, "supervisor_runtime_config.yaml"),
-		GeneratedCollectorConfigDir: supervisorConfigDir,
-		StorageDirectory:            "/var/lib/otelcol/supervisor",
-		DefaultAgentConfig:          filepath.Join(configDir, "agent_config.yaml"),
-		ConfigApplyTimeout:          "1m",
-		UseHUPConfigReload:          true,
-	}
+	return Paths{}
 }

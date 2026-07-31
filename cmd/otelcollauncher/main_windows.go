@@ -212,10 +212,9 @@ type childResult struct {
 // childProcess wraps the immediate child selected by the launcher. The child is
 // either otelcol.exe in direct mode or opampsupervisor.exe in supervisor mode.
 type childProcess struct {
-	cmd *exec.Cmd
-	// outputClosers unblock StdoutPipe/StderrPipe forwarding during hard-stop cleanup.
-	outputClosers []io.ReadCloser
+	cmd           *exec.Cmd
 	done          <-chan childResult
+	outputClosers []io.ReadCloser
 }
 
 // startChild launches the selected binary in its own process group. Interactive

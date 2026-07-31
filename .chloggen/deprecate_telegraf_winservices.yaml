@@ -14,4 +14,4 @@ issues: [7858]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  This monitor is deprecated and will be removed on or after October 2026. Please use the windows_service receiver instead.
+  This monitor is deprecated and will be removed on or after October 2026. Please use the [windows_service receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsservicereceiver/) instead.

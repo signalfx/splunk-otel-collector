@@ -5,7 +5,7 @@ change_type: new_component
 component: rollingspanlatencyprocessor
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add `rollingspanlatency` processor that appends a `latency.category` span attribute (`slow` or `very_slow`) when a span's duration is statistically anomalous relative to its own rolling EWMA baseline.
+note: Add `rolling_span_latency` processor that appends a `latency.category` span attribute (`slow` or `very_slow`) when a span's duration is statistically anomalous relative to its own rolling EWMA baseline.
 
 # One or more tracking issues related to the change
 issues: [7783]

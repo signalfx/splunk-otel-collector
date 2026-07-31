@@ -24,7 +24,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor/internal/metadata"
 )
 
-// NewFactory returns the OTel processor factory for rollingspanlatency.
 func NewFactory() processor.Factory {
 	return processor.NewFactory(
 		metadata.Type,

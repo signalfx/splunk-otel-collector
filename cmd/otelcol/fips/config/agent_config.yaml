@@ -134,10 +134,9 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
-  # Cap histograms to 32 buckets before sending to the SignalFx backend.
-  # When send_otlp_histograms is enabled, the backend drops histograms with more
-  # than 32 buckets at ingest. Metrics such as gRPC call-duration histograms emit
-  # 40+ buckets by default and would otherwise be silently lost.
+  # Limit explicit histograms to at most 32 buckets before export through signalfx exporter.
+  # With `send_otlp_histograms: true`, the backend drops histograms above this limit.
+  # With `send_otlp_histograms: false`, this reduces the emitted `_bucket` series and `le` boundaries.
   transform/limit_histogram_buckets:
     metric_statements:
       - context: datapoint

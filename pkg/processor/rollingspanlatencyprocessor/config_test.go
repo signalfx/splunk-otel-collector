@@ -34,7 +34,7 @@ func TestLoadConfig(t *testing.T) {
 		id       component.ID
 	}{
 		{
-			id: component.MustNewID("rollingspanlatency"),
+			id: component.MustNewID("rolling_span_latency"),
 			expected: &Config{
 				HalfLife:              2 * time.Hour,
 				SlowThreshold:         3.0,
@@ -50,7 +50,7 @@ func TestLoadConfig(t *testing.T) {
 			},
 		},
 		{
-			id: component.MustNewIDWithName("rollingspanlatency", "custom"),
+			id: component.MustNewIDWithName("rolling_span_latency", "custom"),
 			expected: &Config{
 				HalfLife:              30 * time.Second,
 				SlowThreshold:         2.0,

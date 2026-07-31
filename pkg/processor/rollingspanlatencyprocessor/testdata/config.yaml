@@ -1,4 +1,4 @@
-rollingspanlatency:
+rolling_span_latency:
   half_life: 2h
   slow_threshold: 3.0
   very_slow_threshold: 4.0
@@ -14,7 +14,7 @@ rollingspanlatency:
   warmup_count: 30
   min_stddev: 1000000
 
-rollingspanlatency/custom:
+rolling_span_latency/custom:
   half_life: 30s
   slow_threshold: 2.0
   very_slow_threshold: 3.0

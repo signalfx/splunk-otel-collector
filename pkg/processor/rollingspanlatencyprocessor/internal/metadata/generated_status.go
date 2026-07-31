@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Type      = component.MustNewType("rollingspanlatency")
+	Type      = component.MustNewType("rolling_span_latency")
 	ScopeName = "github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor"
 )
 

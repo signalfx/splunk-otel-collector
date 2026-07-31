@@ -33,7 +33,7 @@ type spanStats struct {
 	mean     float64
 	variance float64
 	count    int64
-	mu       sync.Mutex
+	mu       sync.RWMutex
 }
 
 // update incorporates a new duration sample (nanoseconds) at the given wall
@@ -62,16 +62,16 @@ func (s *spanStats) update(durationNs float64, now time.Time, halfLife time.Dura
 
 // snapshot returns the current mean and stddev without updating.
 func (s *spanStats) snapshot() (mean, stddev float64, count int64) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.mean, math.Sqrt(s.variance), s.count
 }
 
 // idleSince returns the time of the most recent observation, used by the
 // eviction sweep to determine whether the entry has gone stale.
 func (s *spanStats) idleSince() time.Time {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.lastSeen
 }
 

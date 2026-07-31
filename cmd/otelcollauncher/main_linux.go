@@ -12,10 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !linux && !windows
+//go:build linux
 
-package launcher
+package main
 
-func DefaultPaths() Paths {
-	return Paths{}
+import (
+	"golang.org/x/sys/unix"
+
+	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
+)
+
+// run replaces the launcher process with the selected child process on Linux
+// so systemd tracks the collector or supervisor directly.
+func run(args, env []string, paths launcher.Paths) error {
+	cmd, err := launcher.PrepareCommand(args, env, paths)
+	if err != nil {
+		return err
+	}
+	return unix.Exec(cmd.Path, append([]string{cmd.Path}, cmd.Args...), cmd.Env)
 }

@@ -22,6 +22,7 @@ RUN pdk update
 # Bundler version matches the version used to generate the Gemfile.lock
 RUN gem install bundler -v 4.0.17 && bundle install
 RUN bundle update puppet
+RUN bundle update puppet-lint
 
 RUN mkdir -p /root/.config/puppet && \
     echo "---\n\

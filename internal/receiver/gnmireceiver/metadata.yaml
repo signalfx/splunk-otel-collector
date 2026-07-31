@@ -9,9 +9,10 @@ status:
   class: receiver
   stability:
     development: [metrics]
-  distributions: [splunk]
+  distributions: []
   codeowners:
     active: [jkoronaAtCisco]
+  disable_codecov_badge: true
 
 # Used by the generated lifecycle test (generated_component_test.go).
 tests:

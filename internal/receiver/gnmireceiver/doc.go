@@ -17,5 +17,5 @@
 //go:generate mdatagen metadata.yaml
 
 // Package gnmireceiver implements a receiver that ingests network telemetry
-// from devices via gNMI Subscribe (dial-in).
+// from devices via gNMI Subscribe.
 package gnmireceiver

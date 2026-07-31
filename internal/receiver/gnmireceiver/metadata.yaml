@@ -1,19 +1,13 @@
 type: gnmi
 display_name: gNMI Receiver
-description: |
-  The gNMI receiver ingests streaming network telemetry from devices that expose a
-  [gNMI](https://github.com/openconfig/gnmi) interface. It subscribes to the device
-  (dial-in) and converts the streamed updates into OpenTelemetry metrics.
 
 status:
   class: receiver
   stability:
     development: [metrics]
-  distributions: []
+  distributions: [splunk]
   codeowners:
     active: [jkoronaAtCisco]
-  disable_codecov_badge: true
 
-# Used by the generated lifecycle test (generated_component_test.go).
 tests:
   config:

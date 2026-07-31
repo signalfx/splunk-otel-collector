@@ -17,14 +17,10 @@ package gnmireceiver
 import "go.opentelemetry.io/collector/component"
 
 // Config defines the configuration for the gNMI receiver.
-//
-// This is a skeleton stub; the target, subscription, and encoding fields are
-// added in a follow-up change.
 type Config struct{}
 
 var _ component.Config = (*Config)(nil)
 
-// Validate checks that the receiver configuration is valid.
 func (cfg *Config) Validate() error {
 	return nil
 }

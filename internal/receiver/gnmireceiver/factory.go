@@ -24,7 +24,6 @@ import (
 
 const typeStr = "gnmi"
 
-// NewFactory creates a factory for the gNMI receiver.
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		component.MustNewType(typeStr),
@@ -37,8 +36,6 @@ func createDefaultConfig() component.Config {
 	return &Config{}
 }
 
-// createMetricsReceiver returns a no-op receiver for now. Streaming and metric
-// conversion are added in follow-up changes.
 func createMetricsReceiver(
 	_ context.Context,
 	_ receiver.Settings,

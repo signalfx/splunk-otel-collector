@@ -21,8 +21,6 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 )
 
-// gnmiReceiver is a skeleton no-op metrics receiver. The gNMI dial-in session
-// and metric conversion are implemented in follow-up changes.
 type gnmiReceiver struct{}
 
 var _ receiver.Metrics = (*gnmiReceiver)(nil)

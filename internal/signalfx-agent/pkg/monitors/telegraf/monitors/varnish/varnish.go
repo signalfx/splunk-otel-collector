@@ -50,7 +50,7 @@ type Emitter struct {
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
-
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use https://docs.varnish-software.com/varnish-otel/ instead.")
 	plugin := telegrafInputs.Inputs["varnish"]().(*telegrafPlugin.Varnish)
 	plugin.UseSudo = conf.UseSudo
 	plugin.Binary = conf.Binary

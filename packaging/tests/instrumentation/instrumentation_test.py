@@ -77,8 +77,14 @@ LEGACY_FILES = [
     LIBSPLUNK_PATH,
     f"{ZEROCONFIG_DIR}/java.conf",
     f"{ZEROCONFIG_DIR}/node.conf",
-    f"{ZEROCONFIG_DIR}/dotnet.conf",
 ]
+
+def legacy_files(arch):
+    # the legacy libsplunk.so-based package never supported dotnet on arm64;
+    # that support was only added along with the switch to libotelinject.so.
+    if arch == "arm64":
+        return LEGACY_FILES
+    return LEGACY_FILES + [f"{ZEROCONFIG_DIR}/dotnet.conf"]
 UPGRADE_WARNING = (
     f"WARNING: Upgrading {PKG_NAME} from a version using libsplunk.so. "
     "Auto-instrumentation is switching from libsplunk.so to libotelinject.so, "
@@ -503,6 +509,7 @@ def test_package_upgrade_from_libsplunk(distro, arch):
 
     legacy_pkg = legacy_package_name(distro, arch)
     legacy_url = f"{LEGACY_RELEASE_URL}/{legacy_pkg}"
+    expected_legacy_files = legacy_files(arch)
 
     with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch) as container:
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
@@ -520,7 +527,7 @@ def test_package_upgrade_from_libsplunk(distro, arch):
         else:
             run_container_cmd(container, f"rpm -ivh /test/{legacy_pkg}")
 
-        for path in LEGACY_FILES:
+        for path in expected_legacy_files:
             assert container_file_exists(container, path), f"{path} not found after legacy install"
 
         # upgrade to the locally-built package using libotelinject.so
@@ -533,7 +540,7 @@ def test_package_upgrade_from_libsplunk(distro, arch):
             f"expected upgrade warning not found in output:\n{output.decode('utf-8')}"
 
         # verify legacy files were removed by the upgrade
-        for path in LEGACY_FILES:
+        for path in expected_legacy_files:
             assert not container_file_exists(container, path), f"{path} still present after upgrade"
 
         # verify new files were installed

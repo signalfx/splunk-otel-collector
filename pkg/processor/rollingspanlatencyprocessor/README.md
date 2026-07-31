@@ -28,7 +28,7 @@ All fields are optional. Defaults are shown in the example below.
 | `max_baselines` | No | Maximum number of baseline entries held in memory. `0` means unlimited. When the cap is reached, new keys are dropped and a warning is logged. Default: `0`. |
 | `churn_warning_ratio` | No | Fraction of the active baseline count that, when exceeded by a single eviction sweep's evicted count, triggers a high-churn warning. Default: `0.5`. |
 | `warmup_count` | No | Minimum number of observations required before a baseline is eligible for labeling. Default: `30`. |
-| `min_stddev` | No | Minimum standard deviation (nanoseconds) used when scoring a span. Prevents near-zero variance from producing false positives. Default: `1000000` (1ms). |
+| `min_stddev` | No | Minimum standard deviation used when scoring a span. Prevents near-zero variance from producing false positives. Default: `1ms`. |
 
 ### Example
 
@@ -48,5 +48,5 @@ processors:
     max_baselines: 1000
     churn_warning_ratio: 0.5
     warmup_count: 30
-    min_stddev: 1000000
+    min_stddev: 1ms
 ```

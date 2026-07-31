@@ -46,7 +46,7 @@ func TestLoadConfig(t *testing.T) {
 				MaxBaselines:          1000,
 				ChurnWarningRatio:     0.5,
 				WarmupCount:           30,
-				MinStddev:             1e6,
+				MinStddev:             time.Millisecond,
 			},
 		},
 		{
@@ -62,7 +62,7 @@ func TestLoadConfig(t *testing.T) {
 				MaxBaselines:          500,
 				ChurnWarningRatio:     0.25,
 				WarmupCount:           10,
-				MinStddev:             5e6,
+				MinStddev:             5 * time.Millisecond,
 			},
 		},
 	}

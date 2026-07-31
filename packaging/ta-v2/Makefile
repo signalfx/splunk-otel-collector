@@ -13,6 +13,8 @@ endif
 
 VERSION ?= $(shell git describe --match "v[0-9]*" HEAD)
 
+CP := sh -c 'cp "$$@"' cp
+
 # Set tar exclude options based on the target OS for packaging
 ifeq ($(TA_TARGET_OS),windows)
 	TAR_EXCLUDE_OPT ?= --exclude='*/linux_$(TA_ARCH)/*'
@@ -26,8 +28,8 @@ PKG_NAME := $(MOD_INPUT_NAME)$(TA_PLATFORM_SUFFIX)
 sync-configs:
 	@echo "Syncing configuration files ..."
 	@if [ ! -d ./assets/configs/ ]; then mkdir -p ./assets/configs/; fi
-	cp $(SRC_ROOT)/cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
-	cp $(SRC_ROOT)/cmd/otelcol/config/collector/gateway_config.yaml ./assets/configs/gateway_config.yaml
+	$(CP) $(SRC_ROOT)/cmd/otelcol/config/collector/agent_config.yaml ./assets/configs/agent_config.yaml
+	$(CP) $(SRC_ROOT)/cmd/otelcol/config/collector/gateway_config.yaml ./assets/configs/gateway_config.yaml
 
 .PHONY: ta-inputs-conf
 ta-inputs-conf:
@@ -98,13 +100,13 @@ build-otelcol-linux: ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME)
 ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME):
 	@echo "Building Linux executable ..."
 	if [ ! -d ./assets/linux_x86_64/bin/ ]; then mkdir -p ./assets/linux_x86_64/bin/; fi
-	cd $(SRC_ROOT)/ && GOOS=linux GOARCH=amd64 $(MAKE) otelcol
-	cp $(SRC_ROOT)/bin/otelcol_linux_amd64 ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME)
+	cd $(SRC_ROOT)/ && rm -f ./bin/otelcol && GOOS=linux GOARCH=amd64 EXTENSION= $(MAKE) otelcol
+	$(CP) $(SRC_ROOT)/bin/otelcol_linux_amd64 ./assets/linux_x86_64/bin/$(MOD_INPUT_NAME)
 
 .PHONY: build-otelcol-windows
 build-otelcol-windows: ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe:
 	@echo "Building Windows executable ..."
 	if [ ! -d ./assets/windows_x86_64/bin/ ]; then mkdir -p ./assets/windows_x86_64/bin/; fi
-	cd $(SRC_ROOT)/ && GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-	cp $(SRC_ROOT)/bin/otelcol_windows_amd64.exe ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
+	cd $(SRC_ROOT)/ && rm -f ./bin/otelcol.exe && GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	$(CP) $(SRC_ROOT)/bin/otelcol_windows_amd64.exe ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe

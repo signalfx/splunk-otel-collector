@@ -108,7 +108,7 @@ receivers:
                 - '/etc/ecs_sd_targets.yaml'
 processors:
   batch:
-  resourcedetection:
+  resource_detection:
     detectors: [ecs]
     override: false    
 exporters:
@@ -120,7 +120,7 @@ service:
   pipelines:
     metrics:
       receivers: [prometheus]
-      processors: [batch, resourcedetection]
+      processors: [batch, resource_detection]
       exporters: [signalfx]
 ```
 

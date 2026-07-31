@@ -20,7 +20,7 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat: 8, 9, 10
 - Oracle: 8, 9, 10
 - Debian: 11, 12, 13
-- SUSE: 15
+- SUSE: 15, 16
 - Ubuntu: 22.04, 24.04
 
 ## Windows
@@ -203,7 +203,7 @@ after installation/configuration in order for any change to take effect.
 
 - `auto_instrumentation_resource_attributes`: Configure the OpenTelemetry auto
   instrumentation resource attributes, e.g.
-  `deployment.environment=prod,my.key=value` (comma-separated `key=value` pairs.).
+  `deployment.environment.name=prod,my.key=value` (comma-separated `key=value` pairs.).
   (**default:** `''`)
 
 - `auto_instrumentation_service_name`: Explicitly set the service name for

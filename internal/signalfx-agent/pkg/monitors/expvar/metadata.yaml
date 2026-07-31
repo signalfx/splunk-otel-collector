@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026**
     The expvar monitor is a SignalFx Smart Agent monitor that scrapes metrics from variables exposed in JSON
     format at an HTTP endpoint by [expvar](https://golang.org/pkg/expvar/). The monitor uses configured paths
     to get metric and dimension values from fetched JSON objects.

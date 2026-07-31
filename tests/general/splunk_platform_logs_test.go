@@ -179,6 +179,7 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 		"health_check",
 		"http_forwarder",
 		"http_forwarder/opamp_splunk_o11y",
+		"opamp/splunk_o11y",
 		"zpages",
 		"config_source_telemetry",
 		"file_storage/filelogs",
@@ -204,10 +205,6 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 		"memory_limiter": map[string]any{
 			"check_interval": "2s",
 			"limit_mib":      460,
-		},
-		"resourcedetection": map[string]any{
-			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
-			"override":  true,
 		},
 		"resource_detection": map[string]any{
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},

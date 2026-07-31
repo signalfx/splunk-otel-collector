@@ -703,7 +703,7 @@ create_zeroconfig_java() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   backup_file "$java_zeroconfig_path"
@@ -782,7 +782,7 @@ create_zeroconfig_node() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   backup_file "$node_zeroconfig_path"
@@ -822,7 +822,7 @@ create_zeroconfig_dotnet() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   backup_file "$dotnet_zeroconfig_path"
@@ -870,7 +870,7 @@ create_systemd_instrumentation_config() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}-systemd"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   mkdir -p "$(dirname $systemd_instrumentation_config_path)"
@@ -1154,7 +1154,7 @@ Auto Instrumentation:
                                         Auto Instrumentation for Node.js will not be activated. Use this option to
                                         specify a custom path to npm, for example "/my/path/to/npm".
                                         (default: npm)
-  --deployment-environment <value>      Set the "deployment.environment" resource attribute to the specified value.
+  --deployment-environment <value>      Set the "deployment.environment.name" resource attribute to the specified value.
                                         If not specified, the "Environment" in the Splunk APM UI will appear as
                                         "unknown" for all instrumented applications. The resource attribute will be
                                         appended to the OTEL_RESOURCE_ATTRIBUTES environment variable.
@@ -1247,7 +1247,7 @@ distro_is_supported() {
       ;;
     sles|opensuse*)
       case "$distro_version" in
-        12*|15*|42*)
+        12*|15*|16*|42*)
           return 0
           ;;
       esac
@@ -1673,7 +1673,7 @@ parse_args_and_install() {
   # Validate before prompting for access token to avoid blocking on interactive input.
   if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_logs_index" ] || [ -n "$splunk_platform_metrics_index" ]; then
     if [ -z "$splunk_platform_url" ]; then
-      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index or --splunk-platform-metrics-index is set." >&2
+      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-token is set." >&2
       exit 1
     fi
   fi

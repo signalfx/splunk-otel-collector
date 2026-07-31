@@ -181,7 +181,7 @@ processors:
   memory_limiter:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
-  resourcedetection:
+  resource_detection:
     detectors:
     - system
     - env
@@ -212,7 +212,7 @@ service:
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       receivers:
       - host_metrics
     metrics/agent:
@@ -222,7 +222,7 @@ service:
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       receivers:
       - prometheus/agent
     traces:
@@ -232,7 +232,7 @@ service:
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       receivers:
       - otlp
       - jaeger

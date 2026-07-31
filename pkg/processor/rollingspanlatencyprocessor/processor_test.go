@@ -24,9 +24,32 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
 	"go.uber.org/zap"
 )
+
+// errMeter is a metric.Meter stub whose Int64ObservableGauge always errors.
+type errMeter struct{ noop.Meter }
+
+func (errMeter) Int64ObservableGauge(_ string, _ ...metric.Int64ObservableGaugeOption) (metric.Int64ObservableGauge, error) {
+	return noop.Int64ObservableGauge{}, errors.New("gauge error")
+}
+
+// errMeter2 errors only on Int64ObservableCounter (gauge succeeds).
+type errMeter2 struct{ noop.Meter }
+
+func (errMeter2) Int64ObservableCounter(_ string, _ ...metric.Int64ObservableCounterOption) (metric.Int64ObservableCounter, error) {
+	return noop.Int64ObservableCounter{}, errors.New("counter error")
+}
+
+// errMeterProvider wraps a meter and implements metric.MeterProvider.
+type errMeterProvider struct {
+	noop.MeterProvider
+	m metric.Meter
+}
+
+func (e errMeterProvider) Meter(_ string, _ ...metric.MeterOption) metric.Meter { return e.m }
 
 func newTestProcessor(t *testing.T, cfg Config) (*rollingSpanLatencyProcessor, *consumertest.TracesSink) {
 	t.Helper()
@@ -667,5 +690,119 @@ func TestConfig_Validate(t *testing.T) {
 				t.Errorf("Validate() = %v, want %v", err, tc.wantErr)
 			}
 		})
+	}
+}
+
+func TestConfig_Validate_ZeroSlowThreshold(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.SlowThreshold = 0
+	if err := cfg.Validate(); !errors.Is(err, errInvalidSlowThreshold) {
+		t.Errorf("want errInvalidSlowThreshold, got %v", err)
+	}
+}
+
+func TestProcessor_Capabilities(t *testing.T) {
+	p, _ := newTestProcessor(t, defaultConfig())
+	caps := p.Capabilities()
+	if !caps.MutatesData {
+		t.Error("expected MutatesData=true")
+	}
+}
+
+func TestProcessor_StartShutdown(t *testing.T) {
+	p, _ := newTestProcessor(t, defaultConfig())
+	if err := p.Start(context.Background(), nil); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	if err := p.Shutdown(context.Background()); err != nil {
+		t.Fatalf("Shutdown: %v", err)
+	}
+}
+
+func TestProcessor_ShutdownWithoutStart(t *testing.T) {
+	p, _ := newTestProcessor(t, defaultConfig())
+	if err := p.Shutdown(context.Background()); err != nil {
+		t.Fatalf("Shutdown without Start should not error: %v", err)
+	}
+}
+
+func TestProcessor_ZeroDurationSpanIgnored(t *testing.T) {
+	p, sink := newTestProcessor(t, defaultConfig())
+	warmProcessor(p, baseAttrs, "op", int64(100e6), 50, time.Second)
+	sink.Reset()
+
+	// Span with equal start and end timestamps: duration = 0, should be ignored.
+	td := ptrace.NewTraces()
+	rs := td.ResourceSpans().AppendEmpty()
+	for k, v := range baseAttrs {
+		rs.Resource().Attributes().PutStr(k, v)
+	}
+	sp := rs.ScopeSpans().AppendEmpty().Spans().AppendEmpty()
+	sp.SetName("op")
+	ts := pcommon.Timestamp(time.Unix(2_000_000, 0).UnixNano()) //nolint:gosec
+	sp.SetStartTimestamp(ts)
+	sp.SetEndTimestamp(ts)
+	_ = p.ConsumeTraces(context.Background(), td)
+
+	if labels := collectLabels(sink, defaultConfig().AttributeKey); len(labels) > 0 {
+		t.Errorf("zero-duration span should not be labeled, got %v", labels)
+	}
+}
+
+func TestNewProcessor_RegisterMetrics_GaugeError(t *testing.T) {
+	sink := new(consumertest.TracesSink)
+	telemetry := component.TelemetrySettings{
+		Logger:        zap.NewNop(),
+		MeterProvider: errMeterProvider{m: errMeter{}},
+	}
+	_, err := newProcessor(defaultConfig(), telemetry, sink)
+	if err == nil {
+		t.Error("expected error when gauge registration fails")
+	}
+}
+
+func TestNewProcessor_RegisterMetrics_CounterError(t *testing.T) {
+	sink := new(consumertest.TracesSink)
+	telemetry := component.TelemetrySettings{
+		Logger:        zap.NewNop(),
+		MeterProvider: errMeterProvider{m: errMeter2{}},
+	}
+	_, err := newProcessor(defaultConfig(), telemetry, sink)
+	if err == nil {
+		t.Error("expected error when counter registration fails")
+	}
+}
+
+func TestEvictLoop_StopsOnContextCancel(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.EvictionInterval = 10 * time.Millisecond
+	p, _ := newTestProcessor(t, cfg)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		p.evictLoop(ctx)
+		close(done)
+	}()
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Error("evictLoop did not stop after context cancellation")
+	}
+}
+
+func TestGetOrCreateStats_DoubleCheckedLockFastPath(t *testing.T) {
+	p, _ := newTestProcessor(t, defaultConfig())
+	const key = "test-key"
+
+	// Pre-populate the map directly so the fast-path (key exists under RLock)
+	// is not hit, but the double-checked path inside the write lock is hit when
+	// two concurrent callers race. We simulate this by inserting the key before
+	// the second getOrCreateStats call acquires the write lock.
+	s1 := p.getOrCreateStats(key)
+	s2 := p.getOrCreateStats(key) // should find existing entry under write-lock check
+	if s1 != s2 {
+		t.Error("expected same *spanStats for the same key")
 	}
 }

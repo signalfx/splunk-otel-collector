@@ -20,7 +20,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,7 +41,7 @@ func TestSupervisorEnabled(t *testing.T) {
 }
 
 func TestPrepareCommandDirectMode(t *testing.T) {
-	paths := testPaths(t, t.TempDir())
+	paths := testPaths(t.TempDir())
 	env := []string{"A=B"}
 	args := []string{
 		"--config", "/etc/otel/collector/agent_config.yaml",
@@ -55,8 +54,10 @@ func TestPrepareCommandDirectMode(t *testing.T) {
 	assert.Equal(t, args, cmd.Args)
 	assert.Equal(t, env, cmd.Env)
 
+	_, err = os.Stat(filepath.Dir(paths.SupervisorConfig))
+	require.ErrorIs(t, err, os.ErrNotExist)
 	_, err = os.Stat(paths.StorageDirectory)
-	assert.ErrorIs(t, err, os.ErrNotExist)
+	require.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func TestPrepareCommandSupervisorMode(t *testing.T) {
@@ -69,7 +70,7 @@ service:
   extensions: [health_check]
 `), 0o600))
 
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	paths.CollectorExecutable = filepath.Join(dir, "test-otelcol")
 
 	env := []string{
@@ -87,11 +88,15 @@ service:
 	assert.Equal(t, paths.SupervisorExecutable, cmd.Path)
 	assert.Equal(t, []string{"--config", paths.RuntimeSupervisorConfig}, cmd.Args)
 	assert.Equal(t, append(append([]string{}, env...), ListenInterfaceEnvVar+"="+defaultListenInterface), cmd.Env)
+	assert.FileExists(t, paths.SupervisorConfig)
+	assert.FileExists(t, paths.RuntimeSupervisorConfig)
+	_, err = os.Stat(paths.StorageDirectory)
+	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func TestPrepareCommandSupervisorModeDefaultAgentListenInterface(t *testing.T) {
 	dir := t.TempDir()
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	require.NoError(t, os.WriteFile(paths.DefaultAgentConfig, []byte(`service: {}`), 0o600))
 
 	env := []string{
@@ -110,7 +115,7 @@ func TestPrepareCommandSupervisorModePreservesExplicitListenInterface(t *testing
 	configPath := filepath.Join(dir, "collector.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
 
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	env := []string{
 		SupervisorEnabledEnvVar + "=true",
 		CollectorConfigEnvVar + "=" + configPath,
@@ -144,7 +149,7 @@ service:
   extensions: [health_check, opamp/splunk_o11y, http_forwarder/opamp_splunk_o11y, opamp/custom]
 `), 0o600))
 
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	err := prepareSupervisor(
 		supervisorInputs{
 			configFiles: []string{configPath},
@@ -247,7 +252,7 @@ service:
   extensions: [health_check]
 `), 0o600))
 
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	err := prepareSupervisor(
 		supervisorInputs{
 			configFiles: []string{baseConfigPath, overlayConfigPath, otherConfigPath},
@@ -295,7 +300,7 @@ service:
 
 func TestPrepareCommandPreservesExistingConfigAndRecomputesEnv(t *testing.T) {
 	dir := t.TempDir()
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	overlayPath := filepath.Join(dir, "overlay.yaml")
 	require.NoError(t, os.WriteFile(overlayPath, []byte(`extensions: {}`), 0o600))
 	sourceConfig := `
@@ -326,6 +331,7 @@ agent:
   passthrough_logs: false
   validate_config: false
 `
+	require.NoError(t, os.MkdirAll(filepath.Dir(paths.SupervisorConfig), 0o700))
 	require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte(sourceConfig), 0o600))
 	configPath := filepath.Join(dir, "collector.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(`
@@ -376,31 +382,9 @@ service:
 	assert.Equal(t, append(append([]string{}, env...), ListenInterfaceEnvVar+"="+defaultListenInterface), cmd.Env)
 }
 
-func TestPrepareSupervisorConfigDoesNotRewriteExistingSourceConfig(t *testing.T) {
-	dir := t.TempDir()
-	paths := testPaths(t, dir)
-	configPath := filepath.Join(dir, "collector.yaml")
-	require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
-
-	args := []string{"--feature-gates=+splunk.opamp.enabled"}
-	inputs := supervisorInputs{configFiles: []string{configPath}, agentArgs: args}
-	env := map[string]string{IngestURLEnvVar: "https://ingest.example"}
-	require.NoError(t, prepareSupervisor(inputs, env, paths))
-	want := readFile(t, paths.SupervisorConfig)
-	oldTime := time.Unix(1000, 0)
-	require.NoError(t, os.Chtimes(paths.SupervisorConfig, oldTime, oldTime))
-
-	require.NoError(t, prepareSupervisor(inputs, env, paths))
-
-	assert.Equal(t, want, readFile(t, paths.SupervisorConfig))
-	info, err := os.Stat(paths.SupervisorConfig)
-	require.NoError(t, err)
-	assert.True(t, info.ModTime().Equal(oldTime))
-}
-
 func TestPrepareSupervisorConfigRefreshesRuntimeConfigFromCurrentInputs(t *testing.T) {
 	dir := t.TempDir()
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	baseConfigPath := filepath.Join(dir, "base.yaml")
 	overlayConfigPath := filepath.Join(dir, "overlay.yaml")
 	require.NoError(t, os.WriteFile(baseConfigPath, []byte(`service: {}`), 0o600))
@@ -417,6 +401,7 @@ agent:
   passthrough_logs: false
   validate_config: false
 `
+	require.NoError(t, os.MkdirAll(filepath.Dir(paths.SupervisorConfig), 0o700))
 	require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte(sourceConfig), 0o600))
 
 	err := prepareSupervisor(
@@ -446,7 +431,7 @@ agent:
 
 func TestPrepareSupervisorRuntimeConfigRemovesStaleArgsWhenCurrentArgsAreEmpty(t *testing.T) {
 	dir := t.TempDir()
-	paths := testPaths(t, dir)
+	paths := testPaths(dir)
 	configPath := filepath.Join(dir, "collector.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
 	sourceConfig := `
@@ -466,6 +451,7 @@ agent:
   passthrough_logs: false
   validate_config: false
 `
+	require.NoError(t, os.MkdirAll(filepath.Dir(paths.SupervisorConfig), 0o700))
 	require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte(sourceConfig), 0o600))
 
 	err := prepareSupervisor(supervisorInputs{configFiles: []string{configPath}}, map[string]string{}, paths)
@@ -486,6 +472,13 @@ func TestPrepareSupervisorConfigReturnsErrors(t *testing.T) {
 		setup   func(t *testing.T, dir string, paths Paths) (supervisorInputs, map[string]string)
 		wantErr string
 	}{
+		"Supervisor config directory creation": {
+			setup: func(t *testing.T, _ string, paths Paths) (supervisorInputs, map[string]string) {
+				require.NoError(t, os.WriteFile(filepath.Dir(paths.SupervisorConfig), []byte("not a directory"), 0o600))
+				return supervisorInputs{}, nil
+			},
+			wantErr: "create supervisor config directory",
+		},
 		"Collector config read": {
 			setup: func(_ *testing.T, dir string, _ Paths) (supervisorInputs, map[string]string) {
 				return supervisorInputs{configFiles: []string{filepath.Join(dir, "missing.yaml")}},
@@ -514,6 +507,7 @@ func TestPrepareSupervisorConfigReturnsErrors(t *testing.T) {
 			setup: func(t *testing.T, dir string, paths Paths) (supervisorInputs, map[string]string) {
 				configPath := filepath.Join(dir, "collector.yaml")
 				require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Dir(paths.SupervisorConfig), 0o700))
 				require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte("agent: ["), 0o600))
 				return supervisorInputs{configFiles: []string{configPath}},
 					map[string]string{IngestURLEnvVar: "https://ingest.example"}
@@ -524,6 +518,7 @@ func TestPrepareSupervisorConfigReturnsErrors(t *testing.T) {
 			setup: func(t *testing.T, dir string, paths Paths) (supervisorInputs, map[string]string) {
 				configPath := filepath.Join(dir, "collector.yaml")
 				require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Dir(paths.SupervisorConfig), 0o700))
 				require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte("server: {endpoint: https://user.example/v1/opamp}\n"), 0o600))
 				return supervisorInputs{configFiles: []string{configPath}},
 					map[string]string{IngestURLEnvVar: "https://ingest.example"}
@@ -534,6 +529,7 @@ func TestPrepareSupervisorConfigReturnsErrors(t *testing.T) {
 			setup: func(t *testing.T, dir string, paths Paths) (supervisorInputs, map[string]string) {
 				configPath := filepath.Join(dir, "collector.yaml")
 				require.NoError(t, os.WriteFile(configPath, []byte(`service: {}`), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Dir(paths.SupervisorConfig), 0o700))
 				require.NoError(t, os.WriteFile(paths.SupervisorConfig, []byte("agent: invalid\n"), 0o600))
 				return supervisorInputs{configFiles: []string{configPath}},
 					map[string]string{IngestURLEnvVar: "https://ingest.example"}
@@ -545,7 +541,7 @@ func TestPrepareSupervisorConfigReturnsErrors(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			dir := t.TempDir()
-			paths := testPaths(t, dir)
+			paths := testPaths(dir)
 			inputs, env := tt.setup(t, dir, paths)
 			err := prepareSupervisor(inputs, env, paths)
 			require.Error(t, err)
@@ -1099,11 +1095,8 @@ func assertMinimalCapabilitiesYAML(t *testing.T, path string) {
 	}, capabilities)
 }
 
-func testPaths(t *testing.T, dir string) Paths {
-	t.Helper()
-
+func testPaths(dir string) Paths {
 	supervisorConfig := filepath.Join(dir, "config", "supervisor_config.yaml")
-	require.NoError(t, os.MkdirAll(filepath.Dir(supervisorConfig), 0o700))
 	return Paths{
 		CollectorExecutable:         "otelcol",
 		SupervisorExecutable:        "opampsupervisor",

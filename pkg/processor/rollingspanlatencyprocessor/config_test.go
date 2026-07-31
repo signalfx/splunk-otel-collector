@@ -30,8 +30,8 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		id       component.ID
 		expected *Config
+		id       component.ID
 	}{
 		{
 			id: component.MustNewID("rollingspanlatency"),

@@ -18,7 +18,7 @@ lint: dev-image
 	docker run \
 		--rm \
 		splunk-otel-connector-puppet-dev \
-		bundle exec puppet-lint --fail-on-warnings \
+		puppet-lint --fail-on-warnings \
 		--no-parameter_documentation-check --no-parameter_types-check \
 		--no-top_scope_facts-check --no-strict_indent-check \
 		.
@@ -28,7 +28,7 @@ rake-spec: dev-image
 	docker run \
 		--rm \
 		splunk-otel-connector-puppet-dev \
-		bundle exec rake spec
+		rake spec
 
 .PHONY: package
 package: dev-image

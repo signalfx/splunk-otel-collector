@@ -8,7 +8,7 @@ component: gnmireceiver
 note: Add skeleton for the gNMI receiver (metrics, in development). No telemetry is produced yet.
 
 # One or more tracking issues related to the change
-issues: [0]
+issues: [7857]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

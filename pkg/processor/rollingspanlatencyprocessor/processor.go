@@ -221,9 +221,10 @@ func (p *rollingSpanLatencyProcessor) processSpan(span ptrace.Span, resourceVals
 		return
 	}
 
+	minStddev := float64(p.config.MinStddev.Nanoseconds())
 	effectiveStddev := preStddev
-	if effectiveStddev < p.config.MinStddev {
-		effectiveStddev = p.config.MinStddev
+	if effectiveStddev < minStddev {
+		effectiveStddev = minStddev
 	}
 
 	deviations := (durationNs - preMean) / effectiveStddev

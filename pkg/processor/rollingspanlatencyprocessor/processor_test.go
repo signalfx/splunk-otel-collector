@@ -634,52 +634,52 @@ func TestConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "zero half life",
-			cfg:     Config{HalfLife: 0, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: 0, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errInvalidHalfLife,
 		},
 		{
 			name:    "very slow not greater than slow",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 3, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 3, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errVerySlowMustExceedSlow,
 		},
 		{
 			name:    "empty attribute key",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errEmptyAttributeKey,
 		},
 		{
 			name:    "empty resource key attributes",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errEmptyResourceKeyAttributes,
 		},
 		{
 			name:    "zero idle timeout",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: 0, EvictionInterval: time.Minute, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: 0, EvictionInterval: time.Minute, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errInvalidIdleTimeout,
 		},
 		{
 			name:    "zero eviction interval",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: 0, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: 0, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errInvalidEvictionInterval,
 		},
 		{
 			name:    "negative max baselines",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: -1, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: -1, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errNegativeMaxBaselines,
 		},
 		{
 			name:    "churn warning ratio out of range",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0, WarmupCount: 30, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0, WarmupCount: 30, MinStddev: time.Millisecond},
 			wantErr: errInvalidChurnWarningRatio,
 		},
 		{
 			name:    "zero warmup count",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 0, MinStddev: 1e6},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 0, MinStddev: time.Millisecond},
 			wantErr: errInvalidWarmupCount,
 		},
 		{
 			name:    "negative min stddev",
-			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: -1},
+			cfg:     Config{HalfLife: time.Hour, SlowThreshold: 3, VerySlowThreshold: 4, AttributeKey: "k", ResourceKeyAttributes: []string{"a"}, IdleTimeout: time.Hour, EvictionInterval: time.Minute, MaxBaselines: 0, ChurnWarningRatio: 0.5, WarmupCount: 30, MinStddev: -time.Millisecond},
 			wantErr: errInvalidMinStddev,
 		},
 	}

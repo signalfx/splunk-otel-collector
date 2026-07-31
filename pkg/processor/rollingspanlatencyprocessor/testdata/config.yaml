@@ -12,7 +12,7 @@ rolling_span_latency:
   max_baselines: 1000
   churn_warning_ratio: 0.5
   warmup_count: 30
-  min_stddev: 1000000
+  min_stddev: 1ms
 
 rolling_span_latency/custom:
   half_life: 30s
@@ -26,4 +26,4 @@ rolling_span_latency/custom:
   max_baselines: 500
   churn_warning_ratio: 0.25
   warmup_count: 10
-  min_stddev: 5000000
+  min_stddev: 5ms

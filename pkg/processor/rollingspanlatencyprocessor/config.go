@@ -66,11 +66,11 @@ type Config struct {
 	// of active baselines were replaced within one eviction interval. Default: 0.5.
 	ChurnWarningRatio float64 `mapstructure:"churn_warning_ratio"`
 
-	// MinStddev is the minimum standard deviation (in nanoseconds) used when
-	// scoring a span. When the EWMA stddev falls below this floor the floor is
-	// used instead, preventing near-zero variance from turning small OS jitter
-	// into false positives. Default: 1ms (1_000_000 ns).
-	MinStddev float64 `mapstructure:"min_stddev"`
+	// MinStddev is the minimum standard deviation used when scoring a span.
+	// When the EWMA stddev falls below this floor the floor is used instead,
+	// preventing near-zero variance from turning small OS jitter into false
+	// positives. Default: 1ms.
+	MinStddev time.Duration `mapstructure:"min_stddev"`
 
 	// MaxBaselines is the maximum number of baseline entries held in memory at
 	// once. When the cap is reached, new keys are dropped and a warning is
@@ -104,7 +104,7 @@ func defaultConfig() Config {
 		MaxBaselines:          0,
 		ChurnWarningRatio:     0.5,
 		WarmupCount:           30,
-		MinStddev:             1e6, // 1ms in nanoseconds
+		MinStddev:             time.Millisecond,
 	}
 }
 

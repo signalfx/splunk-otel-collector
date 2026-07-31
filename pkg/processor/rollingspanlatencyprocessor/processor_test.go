@@ -16,6 +16,7 @@ package rollingspanlatencyprocessor
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -55,8 +56,8 @@ func makeTraces(resAttrs map[string]string, spanName string, durationNs int64, n
 	sp := ss.Spans().AppendEmpty()
 	sp.SetName(spanName)
 	endNs := now.UnixNano()
-	sp.SetStartTimestamp(pcommon.Timestamp(endNs - durationNs))
-	sp.SetEndTimestamp(pcommon.Timestamp(endNs))
+	sp.SetStartTimestamp(pcommon.Timestamp(endNs - durationNs)) //nolint:gosec // timestamps are positive nanosecond values
+	sp.SetEndTimestamp(pcommon.Timestamp(endNs))                //nolint:gosec // timestamps are positive nanosecond values
 	return td
 }
 
@@ -215,7 +216,7 @@ func TestProcessor_DemoScenario_NormalSpanNotMislabeled(t *testing.T) {
 	jitters := []int64{-2, -1, 0, 1, 2, -2, 0, 1, -1, 2}
 	for i := 0; i < 35; i++ {
 		now = now.Add(200 * time.Millisecond)
-		jitter := jitters[i%len(jitters)]
+		jitter := jitters[i%len(jitters)] //nolint:gosec // modulo guarantees index is in bounds
 		_ = p.ConsumeTraces(context.Background(), makeTraces(baseAttrs, "process-order", (50+jitter)*int64(time.Millisecond), now))
 		now = now.Add(200 * time.Millisecond)
 		_ = p.ConsumeTraces(context.Background(), makeTraces(baseAttrs, "query-inventory", (50+jitter)*int64(time.Millisecond), now))
@@ -251,7 +252,7 @@ func TestProcessor_DemoScenario_NormalSpanNotMislabeled(t *testing.T) {
 				spans := sss.At(j).Spans()
 				for k := 0; k < spans.Len(); k++ {
 					sp := spans.At(k)
-					dur := int64(sp.EndTimestamp()-sp.StartTimestamp()) / int64(time.Millisecond)
+					dur := int64(sp.EndTimestamp()-sp.StartTimestamp()) / int64(time.Millisecond) //nolint:gosec // timestamp difference is always positive
 					v, hasLabel := sp.Attributes().Get(cfg.AttributeKey)
 
 					if sp.Name() == "query-inventory" && hasLabel {
@@ -599,9 +600,9 @@ func TestEvict_ChurnWarningWhenHighTurnover(t *testing.T) {
 
 func TestConfig_Validate(t *testing.T) {
 	tests := []struct {
+		wantErr error
 		name    string
 		cfg     Config
-		wantErr error
 	}{
 		{
 			name:    "valid default",
@@ -662,7 +663,7 @@ func TestConfig_Validate(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.cfg.Validate()
-			if err != tc.wantErr {
+			if !errors.Is(err, tc.wantErr) {
 				t.Errorf("Validate() = %v, want %v", err, tc.wantErr)
 			}
 		})

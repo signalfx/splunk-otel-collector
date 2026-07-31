@@ -24,19 +24,6 @@ var _ component.Config = (*Config)(nil)
 
 // Config holds configuration for the rolling span latency processor.
 type Config struct {
-	// HalfLife controls the EWMA decay. The default (2h) means the effective
-	// weight of a sample halves every 2 hours, biasing the baseline toward
-	// recent data while retaining long-term signal.
-	HalfLife time.Duration `mapstructure:"half_life"`
-
-	// SlowThreshold is the number of standard deviations above the EWMA mean
-	// at which a span is labeled "slow". Default: 3.
-	SlowThreshold float64 `mapstructure:"slow_threshold"`
-
-	// VerySlowThreshold is the number of standard deviations above the EWMA
-	// mean at which a span is labeled "very_slow". Default: 4.
-	VerySlowThreshold float64 `mapstructure:"very_slow_threshold"`
-
 	// AttributeKey is the span attribute key written when a span is slow or
 	// very slow. Default: "latency.category".
 	AttributeKey string `mapstructure:"attribute_key"`
@@ -49,6 +36,11 @@ type Config struct {
 	// Default: ["service.namespace", "service.name", "deployment.environment.name"]
 	ResourceKeyAttributes []string `mapstructure:"resource_key_attributes"`
 
+	// HalfLife controls the EWMA decay. The default (2h) means the effective
+	// weight of a sample halves every 2 hours, biasing the baseline toward
+	// recent data while retaining long-term signal.
+	HalfLife time.Duration `mapstructure:"half_life"`
+
 	// IdleTimeout is how long a baseline key must go without any observations
 	// before it is evicted from memory. This prevents unbounded growth when
 	// services are retired or span names change.
@@ -60,10 +52,13 @@ type Config struct {
 	// contention on the stats map. Default: 10m.
 	EvictionInterval time.Duration `mapstructure:"eviction_interval"`
 
-	// MaxBaselines is the maximum number of baseline entries held in memory at
-	// once. When the cap is reached, new keys are dropped and a warning is
-	// logged. 0 means unlimited. Default: 0.
-	MaxBaselines int `mapstructure:"max_baselines"`
+	// SlowThreshold is the number of standard deviations above the EWMA mean
+	// at which a span is labeled "slow". Default: 3.
+	SlowThreshold float64 `mapstructure:"slow_threshold"`
+
+	// VerySlowThreshold is the number of standard deviations above the EWMA
+	// mean at which a span is labeled "very_slow". Default: 4.
+	VerySlowThreshold float64 `mapstructure:"very_slow_threshold"`
 
 	// ChurnWarningRatio is the fraction of the active baseline count that, when
 	// exceeded by a single eviction sweep's evicted count, triggers a warning
@@ -71,17 +66,22 @@ type Config struct {
 	// of active baselines were replaced within one eviction interval. Default: 0.5.
 	ChurnWarningRatio float64 `mapstructure:"churn_warning_ratio"`
 
-	// WarmupCount is the minimum number of observations required before a
-	// baseline key is eligible for labeling. Until this count is reached the
-	// mean and variance are still accumulated, but no attribute is written.
-	// Default: 30.
-	WarmupCount int `mapstructure:"warmup_count"`
-
 	// MinStddev is the minimum standard deviation (in nanoseconds) used when
 	// scoring a span. When the EWMA stddev falls below this floor the floor is
 	// used instead, preventing near-zero variance from turning small OS jitter
 	// into false positives. Default: 1ms (1_000_000 ns).
 	MinStddev float64 `mapstructure:"min_stddev"`
+
+	// MaxBaselines is the maximum number of baseline entries held in memory at
+	// once. When the cap is reached, new keys are dropped and a warning is
+	// logged. 0 means unlimited. Default: 0.
+	MaxBaselines int `mapstructure:"max_baselines"`
+
+	// WarmupCount is the minimum number of observations required before a
+	// baseline key is eligible for labeling. Until this count is reached the
+	// mean and variance are still accumulated, but no attribute is written.
+	// Default: 30.
+	WarmupCount int `mapstructure:"warmup_count"`
 }
 
 var defaultResourceKeyAttributes = []string{

@@ -29,11 +29,11 @@ import (
 // effective weight of any sample halve every halfLife regardless of observation
 // frequency.
 type spanStats struct {
-	mu       sync.Mutex
-	mean     float64
-	variance float64 // Welford's online EWMA variance
 	lastSeen time.Time
-	count    int64 // total observations; used to gate labeling until warm
+	mean     float64
+	variance float64
+	count    int64
+	mu       sync.Mutex
 }
 
 // update incorporates a new duration sample (nanoseconds) at the given wall
@@ -84,6 +84,5 @@ func (s *spanStats) decayAlpha(now time.Time, halfLife time.Duration) float64 {
 	}
 	dt := now.Sub(s.lastSeen).Seconds()
 	hl := halfLife.Seconds()
-	// alpha = 1 - exp(-ln2 * dt/halfLife)
 	return 1.0 - math.Exp(-math.Ln2*dt/hl)
 }

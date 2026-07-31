@@ -38,17 +38,14 @@ const (
 )
 
 type rollingSpanLatencyProcessor struct {
-	config      Config
-	logger      *zap.Logger
-	next        consumer.Traces
-	statsMu     sync.RWMutex
-	statsMap    map[string]*spanStats // keyed by buildKey(resourceVals, spanName)
-	nowFn       func() time.Time      // injectable for testing
-	cancelEvict context.CancelFunc
-
-	// droppedTotal counts keys dropped due to the max_baselines cap since the
-	// last eviction sweep. Reset to 0 after each sweep logs the value.
+	next         consumer.Traces
+	logger       *zap.Logger
+	statsMap     map[string]*spanStats
+	nowFn        func() time.Time
+	cancelEvict  context.CancelFunc
+	config       Config
 	droppedTotal atomic.Int64
+	statsMu      sync.RWMutex
 }
 
 // buildKey returns a composite stats-map key from an ordered slice of resource
@@ -109,8 +106,8 @@ func (p *rollingSpanLatencyProcessor) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{MutatesData: true}
 }
 
-func (p *rollingSpanLatencyProcessor) Start(_ context.Context, _ component.Host) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (p *rollingSpanLatencyProcessor) Start(ctx context.Context, _ component.Host) error {
+	ctx, cancel := context.WithCancel(ctx)
 	p.cancelEvict = cancel
 	go p.evictLoop(ctx)
 	return nil
@@ -206,7 +203,7 @@ func (p *rollingSpanLatencyProcessor) processSpan(span ptrace.Span, resourceVals
 	// advance the EWMA clock correctly. A batch-shared wall-clock time would
 	// give dt=0 for all but the first span, collapsing alpha to 0 and
 	// leaving variance near-zero.
-	now := time.Unix(0, int64(span.EndTimestamp()))
+	now := time.Unix(0, int64(span.EndTimestamp())) //nolint:gosec // OTel timestamps are always positive nanosecond values
 
 	stats := p.getOrCreateStats(key)
 	if stats == nil {

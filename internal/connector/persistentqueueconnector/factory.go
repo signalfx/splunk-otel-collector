@@ -44,7 +44,7 @@ func createProfiles(_ context.Context, settings connector.Settings, config compo
 	}, nil
 }
 
-func createMetrics(ctx context.Context, settings connector.Settings, config component.Config, metrics consumer.Metrics) (connector.Metrics, error) {
+func createMetrics(_ context.Context, settings connector.Settings, config component.Config, metrics consumer.Metrics) (connector.Metrics, error) {
 	cfg := config.(*Config)
 	return &persistentqueue{
 		settings:    settings,

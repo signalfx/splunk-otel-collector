@@ -71,15 +71,15 @@ type diskQueue struct {
 	readPos             int64
 	sync.RWMutex
 	exitFlag   int32
-	minMsgSize int32
-	maxMsgSize int32
+	minMsgSize int64
+	maxMsgSize int64
 	needSync   bool
 }
 
 // New instantiates an instance of diskQueue, retrieving metadata
 // from the filesystem and starting the read ahead goroutine
 func New(name, dataPath string, maxBytesPerFile int64,
-	minMsgSize, maxMsgSize int32,
+	minMsgSize, maxMsgSize int64,
 	syncEvery int64, syncTimeout time.Duration, logger *zap.Logger,
 ) Interface {
 	d := diskQueue{
@@ -253,7 +253,7 @@ func (d *diskQueue) skipToNextRWFile() error {
 // while advancing read positions and rolling files, if necessary
 func (d *diskQueue) readOne() ([]byte, error) {
 	var err error
-	var msgSize int32
+	var msgSize int64
 
 	if d.readFile == nil {
 		curFileName := d.fileName(d.readFileNum)
@@ -309,7 +309,7 @@ func (d *diskQueue) readOne() ([]byte, error) {
 		return nil, err
 	}
 
-	totalBytes := int64(4 + msgSize)
+	totalBytes := 8 + msgSize
 
 	// we only advance next* because we have not yet sent this to consumers
 	// (where readFileNum, readPos will actually be advanced)
@@ -337,8 +337,8 @@ func (d *diskQueue) readOne() ([]byte, error) {
 func (d *diskQueue) writeOne(data []byte) error {
 	var err error
 
-	dataLen := int32(len(data))
-	totalBytes := int64(4 + dataLen)
+	dataLen := int64(len(data))
+	totalBytes := 8 + dataLen
 
 	if dataLen < d.minMsgSize || dataLen > d.maxMsgSize {
 		return fmt.Errorf("invalid message write size (%d) minMsgSize=%d maxMsgSize=%d", dataLen, d.minMsgSize, d.maxMsgSize)

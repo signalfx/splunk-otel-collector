@@ -436,7 +436,7 @@ func BenchmarkWithLimits(b *testing.B) {
 		b.Run(fmt.Sprintf("%s-load-%d-limit-%d", scenario.name, scenario.load, scenario.limit), func(b *testing.B) {
 			m := &mockLogsConsumer{}
 			cfg := createDefaultConfig().(*Config)
-			cfg.ThroughputLimit = int32(scenario.limit) //nolint:gosec // disable G115
+			cfg.ThroughputLimit = int64(scenario.limit) //nolint:gosec // disable G115
 			cfg.Path = b.TempDir()
 			logger, _ := zap.NewDevelopment()
 			settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))

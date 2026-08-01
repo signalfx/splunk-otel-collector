@@ -578,7 +578,7 @@ func (d *diskQueue) moveForward() {
 	d.checkTailCorruption(d.depth)
 }
 
-func (d *diskQueue) handleReadError() {
+func (d *diskQueue) handleReadError(err error) {
 	// jump to the next read file and rename the current (bad) file
 	if d.readFileNum == d.writeFileNum {
 		// if you can't properly read from the current write file it's safe to
@@ -591,18 +591,20 @@ func (d *diskQueue) handleReadError() {
 		d.writePos = 0
 	}
 
-	badFn := d.fileName(d.readFileNum)
-	badRenameFn := badFn + ".bad"
+	if err != io.EOF {
+		badFn := d.fileName(d.readFileNum)
+		badRenameFn := badFn + ".bad"
 
-	d.logger.Warn("jump to next file and saving bad file as %s",
-		zap.String("name", d.name), zap.String("badRenameFilename", badRenameFn))
+		d.logger.Warn("jump to next file and saving bad file as %s",
+			zap.String("name", d.name), zap.String("badRenameFilename", badRenameFn))
 
-	err := os.Rename(badFn, badRenameFn)
-	if err != nil {
-		d.logger.Error(
-			"failed to rename bad diskqueue file",
-			zap.String("name", d.name), zap.String("badFilename", badFn), zap.String("badRenameFilename", badRenameFn),
-		)
+		err := os.Rename(badFn, badRenameFn)
+		if err != nil {
+			d.logger.Error(
+				"failed to rename bad diskqueue file",
+				zap.String("name", d.name), zap.String("badFilename", badFn), zap.String("badRenameFilename", badRenameFn),
+			)
+		}
 	}
 
 	d.readFileNum++
@@ -653,7 +655,7 @@ func (d *diskQueue) ioLoop() {
 				if err != nil {
 					d.logger.Error(fmt.Sprintf(" reading at %d of %s", d.readPos, d.fileName(d.readFileNum)),
 						zap.String("name", d.name), zap.Error(err))
-					d.handleReadError()
+					d.handleReadError(err)
 					continue
 				}
 			}

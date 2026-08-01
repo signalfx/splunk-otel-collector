@@ -44,7 +44,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/procstat"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/tail"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegraflogparser"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegrafsnmp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegrafstatsd"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/winperfcounters"

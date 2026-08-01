@@ -69,7 +69,7 @@ type persistentqueue struct {
 	run          chan struct{}
 	settings     connector.Settings
 	wg           sync.WaitGroup
-	limit        atomic.Int32
+	limit        atomic.Int64
 	limitEnabled bool
 }
 
@@ -105,7 +105,7 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 
 	b.limitEnabled = b.config.ThroughputLimit > 0
 	if b.limitEnabled {
-		b.limit = atomic.Int32{}
+		b.limit = atomic.Int64{}
 		b.limit.Store(b.config.ThroughputLimit)
 	}
 	b.tryRun()
@@ -135,8 +135,7 @@ func (b *persistentqueue) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	buf.WriteByte(versionByte)
 	buf.WriteByte(logByte)
 	buf.Write(marshaled)
-	int32len := int32(len(marshaled)) //nolint:gosec // disable G115
-	if b.config.ThroughputLimit != 0 && int32len > b.config.ThroughputLimit || int32len < 0 {
+	if b.config.ThroughputLimit != 0 && int64(len(marshaled)) > b.config.ThroughputLimit {
 		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
@@ -158,8 +157,7 @@ func (b *persistentqueue) ConsumeTraces(_ context.Context, ld ptrace.Traces) err
 	buf.WriteByte(versionByte)
 	buf.WriteByte(traceByte)
 	buf.Write(marshaled)
-	int32len := int32(len(marshaled)) //nolint:gosec // disable G115
-	if b.config.ThroughputLimit != 0 && (int32len > b.config.ThroughputLimit || int32len < 0) {
+	if b.config.ThroughputLimit != 0 && (int64(len(marshaled)) > b.config.ThroughputLimit) {
 		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
@@ -181,8 +179,7 @@ func (b *persistentqueue) ConsumeProfiles(_ context.Context, pd pprofile.Profile
 	buf.WriteByte(versionByte)
 	buf.WriteByte(profileByte)
 	buf.Write(marshaled)
-	int32len := int32(len(marshaled)) //nolint:gosec // disable G115
-	if b.config.ThroughputLimit != 0 && (int32len > b.config.ThroughputLimit || int32len < 0) {
+	if b.config.ThroughputLimit != 0 && (int64(len(marshaled)) > b.config.ThroughputLimit) {
 		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
@@ -204,8 +201,7 @@ func (b *persistentqueue) ConsumeMetrics(_ context.Context, md pmetric.Metrics) 
 	buf.WriteByte(versionByte)
 	buf.WriteByte(metricByte)
 	buf.Write(marshaled)
-	int32len := int32(len(marshaled)) //nolint:gosec // disable G115
-	if b.config.ThroughputLimit != 0 && (int32len > b.config.ThroughputLimit || int32len < 0) {
+	if b.config.ThroughputLimit != 0 && (int64(len(marshaled)) > b.config.ThroughputLimit) {
 		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
@@ -299,10 +295,10 @@ InnerLoop:
 			} else {
 				<-b.queue.ReadChan()
 				if b.limitEnabled {
-					b.limit.Add(-int32(len(newMessage))) //nolint:gosec // disable G115
+					b.limit.Add(-int64(len(newMessage))) //nolint:gosec // disable G115
 				}
 			}
-			if b.limitEnabled && b.limit.Load()-int32(len(newMessage)) < 0 { //nolint:gosec // disable G115
+			if b.limitEnabled && b.limit.Load()-int64(len(newMessage)) < 0 { //nolint:gosec // disable G115
 				break InnerLoop
 			}
 		}

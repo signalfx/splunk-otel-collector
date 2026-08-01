@@ -18,7 +18,7 @@ import "errors"
 
 type Config struct {
 	Path            string `mapstructure:"path"`
-	ThroughputLimit int32  `mapstructure:"throughput_limit"`
+	ThroughputLimit int64  `mapstructure:"throughput_limit"`
 }
 
 func (c *Config) Validate() error {

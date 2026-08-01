@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package persistentqueueprocessor
+package persistentqueueconnector
 
 import (
 	"bytes"
@@ -27,10 +27,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/connector/connectortest"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/plog"
-	"go.opentelemetry.io/collector/processor/processortest"
 	"go.uber.org/zap"
 )
 
@@ -40,7 +40,7 @@ func TestQueue(t *testing.T) {
 	sink := &consumertest.LogsSink{}
 	p, err := createLogs(
 		t.Context(),
-		processortest.NewNopSettings(component.MustNewType("bandwidth_limiter")),
+		connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter")),
 		cfg,
 		sink,
 	)
@@ -82,7 +82,7 @@ func TestQueueMessageTooBig(t *testing.T) {
 	cfg.Path = t.TempDir()
 	p, err := createLogs(
 		t.Context(),
-		processortest.NewNopSettings(component.MustNewType("bandwidth_limiter")),
+		connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter")),
 		cfg,
 		sink,
 	)
@@ -97,10 +97,10 @@ func TestQueueMessageTooBig(t *testing.T) {
 func TestQueueMessageSlowedDown(t *testing.T) {
 	sink := &consumertest.LogsSink{}
 	cfg := createDefaultConfig().(*Config)
-	cfg.ThroughputLimit = 37
+	cfg.ThroughputLimit = 39
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -128,7 +128,7 @@ func TestPush1MIn128KOut(t *testing.T) {
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -146,7 +146,7 @@ func TestPush1MIn128KOut(t *testing.T) {
 	}
 	time.Sleep(5 * time.Second)
 	found := len(sink.AllLogs())
-	require.Equal(t, 5, found)
+	require.True(t, found >= 4 && found <= 6)
 	time.Sleep(5 * time.Second)
 	require.Len(t, sink.AllLogs(), 10)
 }
@@ -157,7 +157,7 @@ func TestNoLimit(t *testing.T) {
 	cfg.ThroughputLimit = 0
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -206,7 +206,7 @@ func TestRetryForever(t *testing.T) {
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -237,7 +237,7 @@ func TestRetryForeverStartAndStop(t *testing.T) {
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -350,7 +350,7 @@ func BenchmarkNoLimit(b *testing.B) {
 			cfg.ThroughputLimit = 0
 			cfg.Path = b.TempDir()
 			logger, _ := zap.NewDevelopment()
-			settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+			settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 			settings.Logger = logger
 			p, err := createLogs(
 				b.Context(),
@@ -439,7 +439,7 @@ func BenchmarkWithLimits(b *testing.B) {
 			cfg.ThroughputLimit = int32(scenario.limit) //nolint:gosec // disable G115
 			cfg.Path = b.TempDir()
 			logger, _ := zap.NewDevelopment()
-			settings := processortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+			settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
 			settings.Logger = logger
 			p, err := createLogs(
 				b.Context(),

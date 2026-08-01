@@ -33,6 +33,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pprofile"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/connector/persistentqueueconnector/internal"
 )
 
 var (
@@ -89,7 +91,7 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 		maxSize = 10_000_000
 	}
 
-	q := diskqueue.New(
+	q := internal.New(
 		"processor",
 		b.config.Path,
 		1024*1024*1024,
@@ -97,20 +99,7 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 		maxSize,
 		int64(1*time.Second),
 		100*time.Millisecond,
-		func(lvl diskqueue.LogLevel, f string, args ...any) {
-			switch lvl {
-			case diskqueue.DEBUG:
-				b.settings.Logger.Debug(fmt.Sprintf(f, args...))
-			case diskqueue.INFO:
-				b.settings.Logger.Info(fmt.Sprintf(f, args...))
-			case diskqueue.WARN:
-				b.settings.Logger.Warn(fmt.Sprintf(f, args...))
-			case diskqueue.ERROR:
-				b.settings.Logger.Error(fmt.Sprintf(f, args...))
-			case diskqueue.FATAL:
-				b.settings.Logger.Fatal(fmt.Sprintf(f, args...))
-			}
-		},
+		b.settings.Logger,
 	)
 	b.queue = q
 
@@ -215,9 +204,6 @@ func (b *persistentqueue) ConsumeMetrics(_ context.Context, md pmetric.Metrics) 
 	buf.WriteByte(versionByte)
 	buf.WriteByte(metricByte)
 	buf.Write(marshaled)
-	if err != nil {
-		return err
-	}
 	int32len := int32(len(marshaled)) //nolint:gosec // disable G115
 	if b.config.ThroughputLimit != 0 && (int32len > b.config.ThroughputLimit || int32len < 0) {
 		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)

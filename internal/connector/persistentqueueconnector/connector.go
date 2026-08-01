@@ -88,9 +88,10 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 
 	maxSize := b.config.ThroughputLimit
 	if maxSize == 0 {
-		maxSize = 10_000_000
+		maxSize = 10_000_000 // max message size in bytes.
 	}
 
+	// TODO expose those params in config.
 	q := internal.New(
 		"processor",
 		b.config.Path,

@@ -520,10 +520,7 @@ jobs:
           APP_NAME: ${{ steps.install.outputs.app_name }}
         run: |
           $configFile = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\$Env:APP_NAME\configs\agent_config.yaml"
-          yq -i '
-            .config_sources.splunk_secret.insecure_skip_verify = true |
-            .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]
-          ' $configFile
+          yq -i '.config_sources.splunk_secret.insecure_skip_verify = true | .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]' $configFile
           Get-Content $configFile
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe restart

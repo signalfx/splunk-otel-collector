@@ -309,6 +309,15 @@ jobs:
           SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn AGREETOLICENSE=Yes SPLUNKPASSWORD="$Env:SPLUNK_PASSWORD"
 
+      - name: Configure Splunk UF management port for TCP access
+        run: |
+          # The universal forwarder defaults mgmtMode to "auto", which prefers a Unix Domain
+          # Socket over TCP for the management port, so 8089 is never opened. Force TCP so
+          # the REST API is reachable for the splunk_secret config source smoke test below.
+          $serverConfDir = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\system\local"
+          New-Item -ItemType Directory -Path $serverConfDir -Force | Out-Null
+          Add-Content -Path "$serverConfDir\server.conf" -Value "[httpServer]`nmgmtMode = tcp"
+
       - name: Install yq
         run: choco install yq -y
 

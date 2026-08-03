@@ -16,6 +16,7 @@ package persistentqueueconnector
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/connector"
@@ -73,6 +74,9 @@ func createTraces(_ context.Context, settings connector.Settings, config compone
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		ThroughputLimit: 10000,
+		ThroughputLimit: 0,
+		MaxBytesPerFile: 10 * 1024 * 1024,
+		SyncEvery:       1,
+		SyncTimeout:     100 * time.Millisecond,
 	}
 }

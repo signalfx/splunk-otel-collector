@@ -14,11 +14,17 @@
 
 package persistentqueueconnector
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type Config struct {
-	Path            string `mapstructure:"path"`
-	ThroughputLimit int64  `mapstructure:"throughput_limit"`
+	Path            string        `mapstructure:"path"`
+	ThroughputLimit int64         `mapstructure:"throughput_limit"`
+	MaxBytesPerFile int64         `mapstructure:"max_bytes_per_file"`
+	SyncEvery       int64         `mapstructure:"sync_every"`
+	SyncTimeout     time.Duration `mapstructure:"sync_timeout"`
 }
 
 func (c *Config) Validate() error {

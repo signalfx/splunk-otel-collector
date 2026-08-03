@@ -1,10 +1,10 @@
 # Build this docker image with a command like:
 #
-#    docker build -t splunk-uf-windows:9.4.0 --build-arg SPLUNK_UF_VERSION=9.4.0 --build-arg SPLUNK_UF_BUILD_HASH=6b4ebe426ca6 -f Dockerfile.windows .
+#    docker build -t splunk-uf-windows:9.4.0 --build-arg SPLUNK_UF_VERSION=9.4.0 --build-arg SPLUNK_UF_BUILD_HASH=6b4ebe426ca6 --build-arg SPLUNK_ADMIN_PASSWORD=<password> -f Dockerfile.windows .
 #
 ARG SPLUNK_UF_VERSION=9.4.0
 ARG SPLUNK_UF_BUILD_HASH=6b4ebe426ca6
-ARG SPLUNK_ADMIN_PASSWORD=changeme
+ARG SPLUNK_ADMIN_PASSWORD
 
 FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
@@ -15,6 +15,8 @@ ARG SPLUNK_ADMIN_PASSWORD
 # On ltsc2019 RUN defaults to "powershell -Command {0}", while ltsc2022 RUN defaults to "cmd /S /C"
 # set the SHELL so it is consistent between both versions.
 SHELL [ "powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';" ]
+
+RUN if (-not $Env:SPLUNK_ADMIN_PASSWORD) { Write-Error "SPLUNK_ADMIN_PASSWORD build-arg is required"; exit 1 }
 
 RUN curl.exe https://download.splunk.com/products/universalforwarder/releases/${Env:SPLUNK_UF_VERSION}/windows/splunkforwarder-${Env:SPLUNK_UF_VERSION}-${Env:SPLUNK_UF_BUILD_HASH}-windows-x64.msi -o splunk-uf.msi 
 

@@ -20,15 +20,15 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
-)
 
-const typeStr = "gnmi"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver/internal/metadata"
+)
 
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
-		component.MustNewType(typeStr),
+		metadata.Type,
 		createDefaultConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelDevelopment),
+		receiver.WithMetrics(createMetricsReceiver, metadata.MetricsStability),
 	)
 }
 

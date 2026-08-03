@@ -19,16 +19,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/receivertest"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver/internal/metadata"
 )
 
 func TestNewFactory(t *testing.T) {
 	factory := NewFactory()
 	require.NotNil(t, factory)
-	require.Equal(t, component.MustNewType(typeStr), factory.Type())
+	require.Equal(t, metadata.Type, factory.Type())
 }
 
 func TestCreateDefaultConfig(t *testing.T) {

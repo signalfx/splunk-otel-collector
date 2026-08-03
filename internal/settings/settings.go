@@ -279,6 +279,12 @@ func parseArgs(args []string) (*Settings, error) {
 		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
 			"'+' or no prefix will enable the feature.")
 
+	isFeatureGateCommand := len(args) > 0 && args[0] == "featuregate"
+	if isFeatureGateCommand {
+		// Leave the featuregate command and its arguments for the upstream Cobra command.
+		flagSet.SetInterspersed(false)
+	}
+
 	if err := flagSet.Parse(args); err != nil {
 		return nil, err
 	}
@@ -297,6 +303,9 @@ func parseArgs(args []string) (*Settings, error) {
 	// Pass flags that are handled by the collector core service as raw command line arguments.
 	colCoreCommands := []string{"validate"}
 	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
+	if isFeatureGateCommand {
+		settings.colCoreArgs = append(settings.colCoreArgs, flagSet.Args()...)
+	}
 
 	return settings, nil
 }

@@ -98,6 +98,7 @@ type Settings struct {
 	colCoreArgs             []string
 	discoveryProperties     []string
 	versionFlag             bool
+	featureGateCommand      bool
 	noConvertConfig         bool
 	configD                 bool
 	discoveryMode           bool
@@ -121,7 +122,7 @@ func New(args []string) (*Settings, error) {
 	}
 
 	// immediate exit paths, no further setup required
-	if s.versionFlag {
+	if s.versionFlag || s.featureGateCommand {
 		return s, nil
 	}
 
@@ -279,8 +280,8 @@ func parseArgs(args []string) (*Settings, error) {
 		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
 			"'+' or no prefix will enable the feature.")
 
-	isFeatureGateCommand := len(args) > 0 && args[0] == "featuregate"
-	if isFeatureGateCommand {
+	settings.featureGateCommand = len(args) > 0 && args[0] == "featuregate"
+	if settings.featureGateCommand {
 		// Leave the featuregate command and its arguments for the upstream Cobra command.
 		flagSet.SetInterspersed(false)
 	}
@@ -303,7 +304,7 @@ func parseArgs(args []string) (*Settings, error) {
 	// Pass flags that are handled by the collector core service as raw command line arguments.
 	colCoreCommands := []string{"validate"}
 	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
-	if isFeatureGateCommand {
+	if settings.featureGateCommand {
 		settings.colCoreArgs = append(settings.colCoreArgs, flagSet.Args()...)
 	}
 

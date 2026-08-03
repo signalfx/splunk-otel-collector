@@ -210,7 +210,7 @@ func TestNewSettingsWithValidate(t *testing.T) {
 }
 
 func TestNewSettingsWithFeatureGate(t *testing.T) {
-	t.Cleanup(setRequiredEnvVars(t))
+	t.Cleanup(clearEnv(t))
 	for _, args := range [][]string{
 		{"featuregate"},
 		{"featuregate", "splunk.opamp.enabled"},

@@ -2,7 +2,7 @@
 change_type: new_component
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: rollingspanlatencyprocessor
+component: rolling_span_latency
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
 note: Add `rolling_span_latency` processor that appends a `latency.category` span attribute (`slow` or `very_slow`) when a span's duration is statistically anomalous relative to its own rolling EWMA baseline.

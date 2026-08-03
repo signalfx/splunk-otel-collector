@@ -19,7 +19,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -182,7 +181,7 @@ func TestDiskQueuePeek(t *testing.T) {
 func assertFileNotExist(t *testing.T, fn string) {
 	f, err := os.OpenFile(fn, os.O_RDONLY, 0o600)
 	require.Equal(t, (*os.File)(nil), f)
-	require.Equal(t, true, os.IsNotExist(err))
+	require.True(t, os.IsNotExist(err))
 }
 
 func TestDiskQueueEmpty(t *testing.T) {
@@ -387,12 +386,7 @@ func TestDiskQueueTorture(t *testing.T) {
 	var wg sync.WaitGroup
 
 	dqName := "test_disk_queue_torture" + strconv.Itoa(int(time.Now().Unix()))
-	tmpDir, err := ioutil.TempDir("", fmt.Sprintf("nsq-test-%d", time.Now().UnixNano()))
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(tmpDir)
-	dq := New(dqName, tmpDir, 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
+	dq := New(dqName, t.TempDir(), 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
@@ -404,10 +398,8 @@ func TestDiskQueueTorture(t *testing.T) {
 	writeExitChan := make(chan int)
 
 	var depth int64
-	for i := 0; i < numWriters; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range numWriters {
+		wg.Go(func() {
 			for {
 				time.Sleep(100000 * time.Nanosecond)
 				select {
@@ -420,7 +412,7 @@ func TestDiskQueueTorture(t *testing.T) {
 					}
 				}
 			}
-		}()
+		})
 	}
 
 	time.Sleep(1 * time.Second)
@@ -433,54 +425,44 @@ func TestDiskQueueTorture(t *testing.T) {
 
 	t.Logf("restarting diskqueue")
 
-	dq = New(dqName, tmpDir, 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
+	dq = New(dqName, t.TempDir(), 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, depth, dq.Depth())
 
 	var read int64
-	for i := 0; i < numReaders; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range numReaders {
+		wg.Go(func() {
 			for {
 				time.Sleep(100000 * time.Nanosecond)
 				select {
 				case m := <-dq.ReadChan():
-					require.Equal(t, m, msg)
-					atomic.AddInt64(&read, 1)
+					if bytes.Equal(m, msg) {
+						atomic.AddInt64(&read, 1)
+					}
 				case <-readExitChan:
 					return
 				}
 			}
-		}()
+		})
 	}
 
 	t.Logf("waiting for depth 0")
-	for {
-		if dq.Depth() == 0 {
-			break
-		}
+	for dq.Depth() != 0 {
 		time.Sleep(50 * time.Millisecond)
 	}
 
 	t.Logf("closing readExitChan")
 	close(readExitChan)
 	wg.Wait()
-
 	require.Equal(t, depth, read)
 }
 
 func TestDiskQueueResize(t *testing.T) {
 	dqName := "test_disk_queue_resize" + strconv.Itoa(int(time.Now().Unix()))
-	tmpDir, err := ioutil.TempDir("", fmt.Sprintf("nsq-test-%d", time.Now().UnixNano()))
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(tmpDir)
 	msg := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	ml := int64(len(msg))
-	dq := New(dqName, tmpDir, 8*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
+	dq := New(dqName, t.TempDir(), 8*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
@@ -494,7 +476,7 @@ func TestDiskQueueResize(t *testing.T) {
 	require.Equal(t, int64(9), dq.Depth())
 
 	dq.Close()
-	dq = New(dqName, tmpDir, 10*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
+	dq = New(dqName, t.TempDir(), 10*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
 
 	for i := 0; i < 10; i++ {
 		msg[0] = byte(20 + i)
@@ -517,7 +499,7 @@ func TestDiskQueueResize(t *testing.T) {
 	dq.Close()
 
 	// make sure there aren't "bad" files due to read logic errors
-	files, err := filepath.Glob(filepath.Join(tmpDir, dqName+"*.bad"))
+	files, err := filepath.Glob(filepath.Join(t.TempDir(), dqName+"*.bad"))
 	Nil(t, err)
 	// empty files slice is actually nil, length check is less confusing
 	if len(files) > 0 {
@@ -797,7 +779,6 @@ func TestWriteRollReadEOF(t *testing.T) {
 // TestLargeMessageBoundary verifies that file rotation works correctly when messages are large relative to maxBytesPerFile,
 // ensuring no EOF errors occur at boundaries and all messages can be read back without corruption.
 func TestLargeMessageBoundary(t *testing.T) {
-
 	// Use smaller sizes to test the same behavior more efficiently
 	// 5KB file limit, 4KB max message (same 10:8 ratio as 50MB:40MB in production)
 	maxBytesPerFile := int64(5 * 1024)
@@ -808,15 +789,15 @@ func TestLargeMessageBoundary(t *testing.T) {
 
 	// Create messages that will cause multiple rotations
 	largeMsg := make([]byte, 4000) // ~4KB message
-	for i := 0; i < 15; i++ {      // ~60KB total, should rotate cleanly across multiple files
+	for range 15 {                 // ~60KB total, should rotate cleanly across multiple files
 		err := dq.Put(largeMsg)
 		Nil(t, err)
 	}
 
 	// Read all messages back
-	for i := 0; i < 15; i++ {
+	for range 15 {
 		msg := <-dq.ReadChan()
-		require.Equal(t, len(largeMsg), len(msg))
+		require.Len(t, largeMsg, len(msg))
 	}
 
 	// Verify no .bad files were created
@@ -831,7 +812,6 @@ func TestLargeMessageBoundary(t *testing.T) {
 // TestReadCurrentWriteFile verifies that when reading the current write file,
 // the reader doesn't try to rotate past the write file when reaching maxBytesPerFileRead
 func TestReadCurrentWriteFile(t *testing.T) {
-
 	// Small file limit to trigger boundary easily
 	maxBytesPerFile := int64(1024)
 	dq := New("test_current_file", t.TempDir(), maxBytesPerFile, 4, 1024, 1000, 2*time.Second, zap.NewNop())

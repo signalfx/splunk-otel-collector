@@ -91,15 +91,17 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 		maxSize = 10_000_000 // max message size in bytes.
 	}
 
+	queueName := b.settings.ID.Name()
+
 	// TODO expose those params in config.
 	q := internal.New(
-		"processor",
+		queueName,
 		b.config.Path,
-		1024*1024*1024,
+		b.config.MaxBytesPerFile,
 		0,
 		maxSize,
-		int64(1*time.Second),
-		100*time.Millisecond,
+		b.config.SyncEvery,
+		b.config.SyncTimeout,
 		b.settings.Logger,
 	)
 	b.queue = q

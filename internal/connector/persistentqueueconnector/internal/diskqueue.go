@@ -59,21 +59,21 @@ type diskQueue struct {
 	name                string
 	writeBuf            bytes.Buffer
 	maxBytesPerFile     int64
-	depth               int64
+	readFileNum         int64
 	nextReadPos         int64
 	writePos            int64
 	nextReadFileNum     int64
 	syncTimeout         time.Duration
 	syncEvery           int64
-	readFileNum         int64
+	depth               int64
 	writeFileNum        int64
 	maxBytesPerFileRead int64
 	readPos             int64
+	maxMsgSize          int64
+	minMsgSize          int64
 	sync.RWMutex
-	exitFlag   int32
-	minMsgSize int64
-	maxMsgSize int64
-	needSync   bool
+	exitFlag int32
+	needSync bool
 }
 
 // New instantiates an instance of diskQueue, retrieving metadata

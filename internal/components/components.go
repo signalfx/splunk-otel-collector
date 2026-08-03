@@ -135,8 +135,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
 	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
+	"github.com/splunk/tarunner/pkg/splunkoutputsexporter"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -290,12 +292,7 @@ func Get() (otelcol.Factories, error) {
 		receiverFactories = append(receiverFactories, splunkinputsreceiver.NewFactory())
 	}
 
-	receivers, err := otelcol.MakeFactoryMap(receiverFactories...)
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	exporters, err := otelcol.MakeFactoryMap(
+	exporterFactories := []exporter.Factory{
 		awss3exporter.NewFactory(),
 		debugexporter.NewFactory(),
 		fileexporter.NewFactory(),
@@ -309,7 +306,17 @@ func Get() (otelcol.Factories, error) {
 		pulsarexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
-	)
+	}
+	if enableTARunner.IsEnabled() {
+		exporterFactories = append(exporterFactories, splunkoutputsexporter.NewFactory())
+	}
+
+	receivers, err := otelcol.MakeFactoryMap(receiverFactories...)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	exporters, err := otelcol.MakeFactoryMap(exporterFactories...)
 	if err != nil {
 		errs = append(errs, err)
 	}

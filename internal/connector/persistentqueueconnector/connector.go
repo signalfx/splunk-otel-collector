@@ -298,10 +298,10 @@ InnerLoop:
 			} else {
 				<-b.queue.ReadChan()
 				if b.limitEnabled {
-					b.limit.Add(-int64(len(newMessage))) //nolint:gosec // disable G115
+					b.limit.Add(-int64(len(newMessage)))
 				}
 			}
-			if b.limitEnabled && b.limit.Load()-int64(len(newMessage)) < 0 { //nolint:gosec // disable G115
+			if b.limitEnabled && b.limit.Load()-int64(len(newMessage)) < 0 {
 				break InnerLoop
 			}
 		}

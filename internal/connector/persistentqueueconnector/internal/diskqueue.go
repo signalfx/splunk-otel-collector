@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"path"
 	"sync"
@@ -277,8 +277,8 @@ func (d *diskQueue) readOne() ([]byte, error) {
 		// should be initialized to the file's size, or default to maxBytesPerFile
 		d.maxBytesPerFileRead = d.maxBytesPerFile
 		if d.readFileNum < d.writeFileNum {
-			stat, err := d.readFile.Stat()
-			if err == nil {
+			stat, err2 := d.readFile.Stat()
+			if err2 == nil {
 				d.maxBytesPerFileRead = stat.Size()
 			}
 		}
@@ -469,7 +469,7 @@ func (d *diskQueue) retrieveMetaData() error {
 	if d.writePos < fileSize {
 		d.logger.Warn(fmt.Sprintf("metadata %s writePos %d < file size of %d, skipping to new file", fileName, d.writePos, fileSize),
 			zap.String("name", d.name))
-		d.writeFileNum += 1
+		d.writeFileNum++
 		d.writePos = 0
 		if d.writeFile != nil {
 			_ = d.writeFile.Close()
@@ -591,7 +591,7 @@ func (d *diskQueue) handleReadError(err error) {
 		d.writePos = 0
 	}
 
-	if err != io.EOF {
+	if !errors.Is(err, io.EOF) {
 		badFn := d.fileName(d.readFileNum)
 		badRenameFn := badFn + ".bad"
 

@@ -85,6 +85,8 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
+// statConfigFile allows tests to simulate package config paths that do not
+// exist on the host running the tests.
 var statConfigFile = os.Stat
 
 var defaultFeatureGates = []string{}

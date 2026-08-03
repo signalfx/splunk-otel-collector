@@ -155,6 +155,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
@@ -224,6 +225,7 @@ func Get() (otelcol.Factories, error) {
 		filelogreceiver.NewFactory(),
 		filestatsreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),
+		gnmireceiver.NewFactory(),
 		googlecloudpubsubreceiver.NewFactory(),
 		haproxyreceiver.NewFactory(),
 		hostmetricsreceiver.NewFactory(),

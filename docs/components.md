@@ -33,6 +33,7 @@ The distribution offers support for the following components.
 | [file_log](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)                                                   | [beta]           |
 | [file_stats](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filestatsreceiver)                                               | [beta]           |
 | [fluent_forward](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver)                                       | [beta]           |
+| [gnmi](../internal/receiver/gnmireceiver)                                                                                                                          | [in development] |
 | [googlecloudpubsub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/googlecloudpubsubreceiver)                                | [beta]           |
 | [haproxy](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/haproxyreceiver)                                                    | [beta]           |
 | [host_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)                                           | [beta]           |

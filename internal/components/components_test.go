@@ -70,6 +70,7 @@ func TestDefaultComponents(t *testing.T) {
 		"file_log",
 		"file_stats",
 		"fluent_forward",
+		"gnmi",
 		"googlecloudpubsub",
 		"haproxy",
 		"host_metrics",

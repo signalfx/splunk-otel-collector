@@ -35,7 +35,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func Nil(t *testing.T, object interface{}) {
+func Nil(t *testing.T, object any) {
 	if !isNil(object) {
 		_, file, line, _ := runtime.Caller(1)
 		t.Logf("\033[31m%s:%d:\n\n\t   <nil> (expected)\n\n\t!= %#v (actual)\033[39m\n\n",
@@ -44,7 +44,7 @@ func Nil(t *testing.T, object interface{}) {
 	}
 }
 
-func NotNil(t *testing.T, object interface{}) {
+func NotNil(t *testing.T, object any) {
 	if isNil(object) {
 		_, file, line, _ := runtime.Caller(1)
 		t.Logf("\033[31m%s:%d:\n\n\tExpected value not to be <nil>\033[39m\n\n",
@@ -53,7 +53,7 @@ func NotNil(t *testing.T, object interface{}) {
 	}
 }
 
-func isNil(object interface{}) bool {
+func isNil(object any) bool {
 	if object == nil {
 		return true
 	}
@@ -93,7 +93,7 @@ func TestDiskQueueRoll(t *testing.T) {
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
-	for i := 0; i < 11; i++ {
+	for i := range 11 {
 		err := dq.Put(msg)
 		Nil(t, err)
 		require.Equal(t, int64(i+1), dq.Depth())
@@ -118,7 +118,7 @@ func TestDiskQueuePeek(t *testing.T) {
 	require.Equal(t, int64(0), dq.Depth())
 
 	t.Run("roll", func(t *testing.T) {
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			err := dq.Put(msg)
 			Nil(t, err)
 			require.Equal(t, int64(i+1), dq.Depth())
@@ -136,7 +136,7 @@ func TestDiskQueuePeek(t *testing.T) {
 	})
 
 	t.Run("peek-read", func(t *testing.T) {
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			err := dq.Put(msg)
 			Nil(t, err)
 			require.Equal(t, int64(i+1), dq.Depth())
@@ -157,7 +157,7 @@ func TestDiskQueuePeek(t *testing.T) {
 	})
 
 	t.Run("read-peek", func(t *testing.T) {
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			err := dq.Put(msg)
 			Nil(t, err)
 			require.Equal(t, int64(i+1), dq.Depth())
@@ -192,13 +192,13 @@ func TestDiskQueueEmpty(t *testing.T) {
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		err := dq.Put(msg)
 		Nil(t, err)
 		require.Equal(t, int64(i+1), dq.Depth())
 	}
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		<-dq.ReadChan()
 	}
 
@@ -220,13 +220,13 @@ func TestDiskQueueEmpty(t *testing.T) {
 	require.Equal(t, dq.(*diskQueue).readPos, dq.(*diskQueue).nextReadPos)
 	require.Equal(t, dq.(*diskQueue).readFileNum, dq.(*diskQueue).nextReadFileNum)
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		err := dq.Put(msg)
 		Nil(t, err)
 		require.Equal(t, int64(i+1), dq.Depth())
 	}
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		<-dq.ReadChan()
 	}
 
@@ -251,7 +251,7 @@ func TestDiskQueueCorruption(t *testing.T) {
 	msg[62] = 4
 	msg[119] = 211
 
-	for i := 0; i < 25; i++ {
+	for range 25 {
 		dq.Put(msg)
 	}
 
@@ -265,7 +265,7 @@ func TestDiskQueueCorruption(t *testing.T) {
 	dqFn = dq.(*diskQueue).fileName(3)
 	os.Truncate(dqFn, 100)
 
-	for i := 0; i < 18; i++ {
+	for range 18 {
 		require.Equal(t, msg, <-dq.ReadChan())
 	}
 	require.Equal(t, int64(7), dq.Depth())
@@ -347,7 +347,7 @@ func TestDiskQueueSyncAfterRead(t *testing.T) {
 	msg := make([]byte, 1000)
 	dq.Put(msg)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		d := readMetaDataFile(dq.(*diskQueue).metaDataFileName(), 0)
 		if d.depth == 1 &&
 			d.readFileNum == 0 &&
@@ -365,7 +365,7 @@ next:
 	dq.Put(msg)
 	<-dq.ReadChan()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		d := readMetaDataFile(dq.(*diskQueue).metaDataFileName(), 0)
 		if d.depth == 1 &&
 			d.readFileNum == 0 &&
@@ -468,7 +468,7 @@ func TestDiskQueueResize(t *testing.T) {
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
-	for i := 0; i < 9; i++ {
+	for i := range 9 {
 		msg[0] = byte(i)
 		err := dq.Put(msg)
 		Nil(t, err)
@@ -480,7 +480,7 @@ func TestDiskQueueResize(t *testing.T) {
 	dq.Close()
 	dq = New(dqName, dir, 10*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		msg[0] = byte(20 + i)
 		err := dq.Put(msg)
 		Nil(t, err)
@@ -489,11 +489,11 @@ func TestDiskQueueResize(t *testing.T) {
 	require.Equal(t, ml+8, dq.(*diskQueue).writePos)
 	require.Equal(t, int64(19), dq.Depth())
 
-	for i := 0; i < 9; i++ {
+	for i := range 9 {
 		msg[0] = byte(i)
 		require.Equal(t, msg, <-dq.ReadChan())
 	}
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		msg[0] = byte(20 + i)
 		require.Equal(t, msg, <-dq.ReadChan())
 	}

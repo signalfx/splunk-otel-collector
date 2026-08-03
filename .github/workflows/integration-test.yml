@@ -49,7 +49,7 @@ jobs:
         run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -118,7 +118,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -170,7 +170,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -274,7 +274,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -369,7 +369,7 @@ jobs:
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull
-        - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
           with:
             go-version: ${{ env.GO_VERSION }}
             cache-dependency-path: '**/go.sum'
@@ -447,7 +447,7 @@ jobs:
           for f in k8s/${{ matrix.SERVICE }}/*.sh; do
             bash "$f" 
           done
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'

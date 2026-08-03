@@ -384,9 +384,10 @@ done:
 
 func TestDiskQueueTorture(t *testing.T) {
 	var wg sync.WaitGroup
+	dir := t.TempDir()
 
 	dqName := "test_disk_queue_torture" + strconv.Itoa(int(time.Now().Unix()))
-	dq := New(dqName, t.TempDir(), 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
+	dq := New(dqName, dir, 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
@@ -425,7 +426,7 @@ func TestDiskQueueTorture(t *testing.T) {
 
 	t.Logf("restarting diskqueue")
 
-	dq = New(dqName, t.TempDir(), 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
+	dq = New(dqName, dir, 262144, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, depth, dq.Depth())
@@ -462,7 +463,8 @@ func TestDiskQueueResize(t *testing.T) {
 	dqName := "test_disk_queue_resize" + strconv.Itoa(int(time.Now().Unix()))
 	msg := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	ml := int64(len(msg))
-	dq := New(dqName, t.TempDir(), 8*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
+	dir := t.TempDir()
+	dq := New(dqName, dir, 8*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
@@ -476,7 +478,7 @@ func TestDiskQueueResize(t *testing.T) {
 	require.Equal(t, int64(9), dq.Depth())
 
 	dq.Close()
-	dq = New(dqName, t.TempDir(), 10*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
+	dq = New(dqName, dir, 10*(ml+8), ml, 1<<10, 2500, time.Second, zap.NewNop())
 
 	for i := 0; i < 10; i++ {
 		msg[0] = byte(20 + i)
@@ -499,7 +501,7 @@ func TestDiskQueueResize(t *testing.T) {
 	dq.Close()
 
 	// make sure there aren't "bad" files due to read logic errors
-	files, err := filepath.Glob(filepath.Join(t.TempDir(), dqName+"*.bad"))
+	files, err := filepath.Glob(filepath.Join(dir, dqName+"*.bad"))
 	Nil(t, err)
 	// empty files slice is actually nil, length check is less confusing
 	if len(files) > 0 {

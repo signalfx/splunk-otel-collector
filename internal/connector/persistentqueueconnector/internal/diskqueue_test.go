@@ -110,7 +110,7 @@ func TestDiskQueueRoll(t *testing.T) {
 
 func TestDiskQueuePeek(t *testing.T) {
 	dqName := "test_disk_queue_peek" + strconv.Itoa(int(time.Now().Unix()))
-	msg := bytes.Repeat([]byte{0}, 10)
+	msg := make([]byte, 10)
 	ml := int64(len(msg))
 	dq := New(dqName, t.TempDir(), 10*(ml+8), ml, 1<<10, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
@@ -186,7 +186,7 @@ func assertFileNotExist(t *testing.T, fn string) {
 
 func TestDiskQueueEmpty(t *testing.T) {
 	dqName := "test_disk_queue_empty" + strconv.Itoa(int(time.Now().Unix()))
-	msg := bytes.Repeat([]byte{0}, 10)
+	msg := make([]byte, 10)
 	dq := New(dqName, t.TempDir(), 100, 0, 1<<10, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
@@ -801,7 +801,7 @@ func TestLargeMessageBoundary(t *testing.T) {
 	}
 
 	// Verify no .bad files were created
-	filepath.Walk(t.TempDir(), func(path string, info fs.FileInfo, err error) error {
+	filepath.Walk(t.TempDir(), func(path string, _ fs.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".bad") {
 			t.Fatalf("Found corrupted file: %s", path)
 		}
@@ -832,7 +832,7 @@ func TestReadCurrentWriteFile(t *testing.T) {
 	}
 
 	// Verify no .bad files were created
-	filepath.Walk(t.TempDir(), func(path string, info fs.FileInfo, err error) error {
+	filepath.Walk(t.TempDir(), func(path string, _ fs.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".bad") {
 			t.Fatalf("Found corrupted file: %s", path)
 		}

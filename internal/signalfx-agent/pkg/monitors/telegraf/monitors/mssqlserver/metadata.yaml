@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the [sql server receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlserverreceiver) instead.**
     This monitor reports metrics about Microsoft SQL servers.
     This monitor is based on the telegraf sqlserver plugin.  More information about the telegraf plugin
     can be found [here](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/sqlserver).

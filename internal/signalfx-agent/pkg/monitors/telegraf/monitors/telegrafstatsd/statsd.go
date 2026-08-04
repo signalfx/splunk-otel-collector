@@ -80,6 +80,7 @@ var factory = telegrafInputs.Inputs["statsd"]
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the [statsd receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver) instead.")
 	m.plugin = factory().(*telegrafPlugin.Statsd)
 
 	// copy configurations to the plugin

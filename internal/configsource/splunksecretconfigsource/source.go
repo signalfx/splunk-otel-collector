@@ -99,13 +99,12 @@ func newConfigSource(cfg *Config, app, user string, timeout time.Duration, logge
 }
 
 // Retrieve fetches the clear text value of the secret identified by selector from splunkd's
-// storage/passwords REST endpoint. The selector must be in the form "<realm>:<name>", e.g.
-// "myrealm:myuser". The realm segment can be empty (i.e. selector starting with ":") to
-// reference a secret stored without a realm.
+// storage/passwords REST endpoint. The selector must be in the form "[<realm>]:<name>", e.g.
+// "myrealm:myuser" or ":myuser" if the secret was stored without a realm.
 func (s *splunkSecretConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	realm, name, found := strings.Cut(selector, ":")
 	if !found || name == "" {
-		return nil, &errInvalidSelector{fmt.Errorf("selector %q must be in the form <realm>:<name>", selector)}
+		return nil, &errInvalidSelector{fmt.Errorf("selector %q must be in the form [<realm>]:<name>", selector)}
 	}
 
 	credentialID := name

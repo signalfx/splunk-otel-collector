@@ -485,7 +485,7 @@ func (d *diskQueue) persistMetaData() error {
 	var err error
 
 	fileName := d.metaDataFilePath()
-	f, err = os.CreateTemp("", fmt.Sprintf("%s-*", path.Base(fileName)))
+	f, err = os.CreateTemp("", path.Base(fileName)+"-*")
 	if err != nil {
 		return err
 	}

@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -179,6 +180,7 @@ func TestNoLimit(t *testing.T) {
 }
 
 type mockLogsConsumer struct {
+	mu        sync.Mutex
 	received  []plog.Logs
 	rejecting atomic.Bool
 }
@@ -193,8 +195,16 @@ func (m *mockLogsConsumer) ConsumeLogs(_ context.Context, logs plog.Logs) error 
 	if m.rejecting.Load() {
 		return errors.New("rejecting")
 	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.received = append(m.received, logs)
 	return nil
+}
+
+func (m *mockLogsConsumer) Logs() []plog.Logs {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.received
 }
 
 func TestRetryForever(t *testing.T) {
@@ -222,10 +232,10 @@ func TestRetryForever(t *testing.T) {
 	for range 1_000_000 / 100_000 {
 		require.NoError(t, p.ConsumeLogs(t.Context(), createLd100k()))
 	}
-	require.Empty(t, m.received)
+	require.Empty(t, m.Logs())
 	m.rejecting.Store(false)
 	time.Sleep(10 * time.Second)
-	require.Len(t, m.received, 10)
+	require.Len(t, m.Logs(), 10)
 }
 
 func TestRetryForeverStartAndStop(t *testing.T) {
@@ -253,12 +263,12 @@ func TestRetryForeverStartAndStop(t *testing.T) {
 	for range 1_000_000 / 100_000 {
 		require.NoError(t, p.ConsumeLogs(t.Context(), createLd100k()))
 	}
-	require.Empty(t, m.received)
+	require.Empty(t, m.Logs())
 	require.NoError(t, p.Shutdown(context.WithoutCancel(t.Context())))
 	require.NoError(t, p.Start(t.Context(), componenttest.NewNopHost()))
 	m.rejecting.Store(false)
 	time.Sleep(10 * time.Second)
-	require.Len(t, m.received, 10)
+	require.Len(t, m.Logs(), 10)
 }
 
 func BenchmarkNoLimit(b *testing.B) {

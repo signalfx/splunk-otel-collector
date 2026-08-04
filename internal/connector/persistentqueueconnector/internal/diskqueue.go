@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand/v2"
 	"os"
 	"path"
 	"sync"
@@ -207,7 +206,7 @@ func (d *diskQueue) Empty() error {
 func (d *diskQueue) deleteAllFiles() error {
 	err := d.skipToNextRWFile()
 
-	innerErr := os.Remove(d.metaDataFileName())
+	innerErr := os.Remove(d.metaDataFilePath())
 	if innerErr != nil && !os.IsNotExist(innerErr) {
 		d.logger.Error(" failed to remove metadata file", zap.String("name", d.name), zap.Error(innerErr))
 		return innerErr
@@ -434,7 +433,7 @@ func (d *diskQueue) retrieveMetaData() error {
 	var f *os.File
 	var err error
 
-	fileName := d.metaDataFileName()
+	fileName := d.metaDataFilePath()
 	f, err = os.OpenFile(fileName, os.O_RDONLY, 0o600)
 	if err != nil {
 		return err
@@ -485,11 +484,8 @@ func (d *diskQueue) persistMetaData() error {
 	var f *os.File
 	var err error
 
-	fileName := d.metaDataFileName()
-	tmpFileName := fmt.Sprintf("%s.%d.tmp", fileName, rand.Int())
-
-	// write to tmp file
-	f, err = os.OpenFile(tmpFileName, os.O_RDWR|os.O_CREATE, 0o600)
+	fileName := d.metaDataFilePath()
+	f, err = os.CreateTemp("", fmt.Sprintf("%s-*", path.Base(fileName)))
 	if err != nil {
 		return err
 	}
@@ -506,10 +502,10 @@ func (d *diskQueue) persistMetaData() error {
 	_ = f.Close()
 
 	// atomically rename
-	return os.Rename(tmpFileName, fileName)
+	return os.Rename(f.Name(), fileName)
 }
 
-func (d *diskQueue) metaDataFileName() string {
+func (d *diskQueue) metaDataFilePath() string {
 	return fmt.Sprintf(path.Join(d.dataPath, "%s.diskqueue.meta.dat"), d.name)
 }
 

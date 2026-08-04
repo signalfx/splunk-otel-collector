@@ -134,6 +134,8 @@ def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_
 def skip_if_necessary(distro, puppet_release):
     if distro == "ubuntu-xenial" and int(puppet_release) >= 8:
         pytest.skip(f"Puppet {puppet_release} not supported for {distro}")
+    if distro == "opensuse-16":
+        pytest.skip(f"Puppet does not support openSUSE 16")
 
 
 def node_package_installed(container):

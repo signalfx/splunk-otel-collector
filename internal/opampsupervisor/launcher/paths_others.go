@@ -12,22 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !windows
+//go:build !linux && !windows
 
 package launcher
 
-// DefaultPaths returns the installed collector, supervisor, and state
-// locations used by the package-managed service on Linux packages.
 func DefaultPaths() Paths {
-	return Paths{
-		CollectorExecutable:         "/usr/bin/otelcol",
-		SupervisorExecutable:        "/usr/bin/opampsupervisor",
-		SupervisorConfig:            "/etc/otel/collector/supervisor/supervisor_config.yaml",
-		RuntimeSupervisorConfig:     "/etc/otel/collector/supervisor/supervisor_runtime_config.yaml",
-		GeneratedCollectorConfigDir: "/etc/otel/collector/supervisor",
-		StorageDirectory:            "/var/lib/otelcol/supervisor",
-		DefaultAgentConfig:          "/etc/otel/collector/agent_config.yaml",
-		ConfigApplyTimeout:          "1m",
-		UseHUPConfigReload:          true,
-	}
+	return Paths{}
 }

@@ -136,7 +136,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.157.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.157.0
 	github.com/prometheus/client_model v0.6.2
-	github.com/prometheus/common v0.70.0
+	github.com/prometheus/common v0.70.1
 	github.com/prometheus/prometheus v0.312.0
 	github.com/shirou/gopsutil/v4 v4.26.6
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
@@ -146,7 +146,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1
 	github.com/stretchr/testify v1.11.1
-	go.etcd.io/etcd/client/v2 v2.305.32
+	go.etcd.io/etcd/client/v2 v2.305.33
 	go.opentelemetry.io/collector/component/componentstatus v0.157.0
 	go.opentelemetry.io/collector/component/componenttest v0.157.0
 	go.opentelemetry.io/collector/config/confighttp v0.157.0
@@ -693,7 +693,7 @@ require (
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
-	github.com/magiconair/properties v1.8.10
+	github.com/magiconair/properties v1.18.11
 	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

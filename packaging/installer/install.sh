@@ -1247,7 +1247,7 @@ distro_is_supported() {
       ;;
     sles|opensuse*)
       case "$distro_version" in
-        12*|15*|42*)
+        12*|15*|16*|42*)
           return 0
           ;;
       esac
@@ -1673,7 +1673,7 @@ parse_args_and_install() {
   # Validate before prompting for access token to avoid blocking on interactive input.
   if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_logs_index" ] || [ -n "$splunk_platform_metrics_index" ]; then
     if [ -z "$splunk_platform_url" ]; then
-      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index or --splunk-platform-metrics-index is set." >&2
+      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-token is set." >&2
       exit 1
     fi
   fi

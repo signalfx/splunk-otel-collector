@@ -194,6 +194,11 @@ func PrepareCommand(args, environ []string, paths Paths) (Command, error) {
 // supervisor start and writes the runtime supervisor config with the current
 // launcher-managed agent fields.
 func prepareSupervisor(inputs supervisorInputs, env map[string]string, paths Paths) error {
+	supervisorDir := filepath.Dir(paths.SupervisorConfig)
+	if err := os.MkdirAll(supervisorDir, 0o700); err != nil {
+		return fmt.Errorf("failed to create supervisor config directory %q: %w", supervisorDir, err)
+	}
+
 	collectorConfigs, err := loadCollectorConfigFiles(inputs.configFiles)
 	if err != nil {
 		return err
@@ -207,7 +212,7 @@ func prepareSupervisor(inputs supervisorInputs, env map[string]string, paths Pat
 	_, statErr := os.Stat(paths.SupervisorConfig)
 	if statErr != nil {
 		if !errors.Is(statErr, fs.ErrNotExist) {
-			return fmt.Errorf("stat supervisor config %q: %w", paths.SupervisorConfig, statErr)
+			return fmt.Errorf("failed to access supervisor config file %q: %w", paths.SupervisorConfig, statErr)
 		}
 		initialConfig, initErr := initialSupervisorConfig(paths, collectorConfigs, env)
 		if initErr != nil {
@@ -433,11 +438,11 @@ func loadCollectorConfigFiles(paths []string) ([]collectorConfigInput, error) {
 func loadCollectorConfigFile(path string) (map[string]any, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("read collector config %q: %w", path, err)
+		return nil, fmt.Errorf("failed to read collector config %q: %w", path, err)
 	}
 	var config map[string]any
 	if err := yaml.Unmarshal(bytes, &config); err != nil {
-		return nil, fmt.Errorf("parse collector config %q: %w", path, err)
+		return nil, fmt.Errorf("failed to parse collector config %q: %w", path, err)
 	}
 	if config == nil {
 		config = map[string]any{}
@@ -565,10 +570,10 @@ func derivedOpAMPEndpoint(env map[string]string) string {
 func writeYAML(path string, value any) error {
 	bytes, err := yaml.Marshal(value)
 	if err != nil {
-		return fmt.Errorf("marshal %q: %w", path, err)
+		return fmt.Errorf("failed to marshal %q: %w", path, err)
 	}
 	if err := os.WriteFile(path, bytes, 0o600); err != nil {
-		return fmt.Errorf("write %q: %w", path, err)
+		return fmt.Errorf("failed to write %q: %w", path, err)
 	}
 	return nil
 }
@@ -614,10 +619,10 @@ func writeInitialSupervisorConfig(path string, config SupervisorConfig) error {
 		"ManagedAgentComment": managedAgentComment,
 	}
 	if err := initialSupervisorConfigTemplate.Execute(&buf, data); err != nil {
-		return fmt.Errorf("marshal %q: %w", path, err)
+		return fmt.Errorf("failed to marshal %q: %w", path, err)
 	}
 	if err := os.WriteFile(path, buf.Bytes(), 0o600); err != nil {
-		return fmt.Errorf("write %q: %w", path, err)
+		return fmt.Errorf("failed to write %q: %w", path, err)
 	}
 	return nil
 }
@@ -625,11 +630,11 @@ func writeInitialSupervisorConfig(path string, config SupervisorConfig) error {
 func loadSupervisorConfigFile(path string) (map[string]any, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("read supervisor config %q: %w", path, err)
+		return nil, fmt.Errorf("failed to read supervisor config %q: %w", path, err)
 	}
 	var decoded any
 	if err := yaml.Unmarshal(bytes, &decoded); err != nil {
-		return nil, fmt.Errorf("parse supervisor config %q: %w", path, err)
+		return nil, fmt.Errorf("failed to parse supervisor config %q: %w", path, err)
 	}
 	config, ok := asMap(decoded)
 	if !ok {

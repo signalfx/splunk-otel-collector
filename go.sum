@@ -973,8 +973,8 @@ github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e h1:Q6MvJtQK/iRcRt
 github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
 github.com/magefile/mage v1.17.2 h1:fyXVu1eadI8Ap1HCCNgEhJ5McIWiYhLR8uol64ZZc40=
 github.com/magefile/mage v1.17.2/go.mod h1:Yj51kqllmsgFpvvSzgrZPK9WtluG3kUhFaBUVLo4feA=
-github.com/magiconair/properties v1.8.10 h1:s31yESBquKXCV9a/ScB3ESkOjUYYv+X0rg8SYxI99mE=
-github.com/magiconair/properties v1.8.10/go.mod h1:Dhd985XPs7jluiymwWYZ0G4Z61jb3vdS329zhj2hYo0=
+github.com/magiconair/properties v1.18.11 h1:j5ozYZl0zCjG7ahMDH0GWIobOvvUzT0BdAguG0ViKy0=
+github.com/magiconair/properties v1.18.11/go.mod h1:Dhd985XPs7jluiymwWYZ0G4Z61jb3vdS329zhj2hYo0=
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
 github.com/mailru/easyjson v0.9.2 h1:dX8U45hQsZpxd80nLvDGihsQ/OxlvTkVUXH2r/8cb2M=
@@ -1556,8 +1556,8 @@ github.com/prometheus/common v0.4.1/go.mod h1:TNfzLD0ON7rHzMJeJkieUDPYmFC7Snx/y8
 github.com/prometheus/common v0.9.1/go.mod h1:yhUN8i9wzaXS3w1O07YhxHEBxD+W35wd8bs7vj7HSQ4=
 github.com/prometheus/common v0.10.0/go.mod h1:Tlit/dnDKsSWFlCLTWaA1cyBgKHSMdTB80sz/V91rCo=
 github.com/prometheus/common v0.26.0/go.mod h1:M7rCNAaPfAosfx8veZJCuw84e35h3Cfd9VFqTh1DIvc=
-github.com/prometheus/common v0.70.0 h1:bcpru3tWPVnxGnETLgOV5jbp/JRXgYEyv65CuBLAMMI=
-github.com/prometheus/common v0.70.0/go.mod h1:S/SFasQmgGiYH6C81LKCtYa8QACgthGg5zxL2udV7SY=
+github.com/prometheus/common v0.70.1 h1:1HvjP4D5oL3t8RsPlwxA9onvvStjtIHYE5XuuwOi/PY=
+github.com/prometheus/common v0.70.1/go.mod h1:VdFUQDMZK3VLkurFUVhia6uys/0suUp86TJz5qbJRhc=
 github.com/prometheus/common/assets v0.2.0 h1:0P5OrzoHrYBOSM1OigWL3mY8ZvV2N4zIE/5AahrSrfM=
 github.com/prometheus/common/assets v0.2.0/go.mod h1:D17UVUE12bHbim7HzwUvtqm6gwBEaDQ0F+hIGbFbccI=
 github.com/prometheus/exporter-toolkit v0.17.1 h1:psKN4wM7shBL/BxZkDHgm6YZJ3fAVG36+r86An/+7q0=
@@ -1780,8 +1780,8 @@ go.etcd.io/etcd/api/v3 v3.6.6/go.mod h1:f/om26iXl2wSkcTA1zGQv8reJRSLVdoEBsi4JdfM
 go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/pkg/v3 v3.6.6 h1:uoqgzSOv2H9KlIF5O1Lsd8sW+eMLuV6wzE3q5GJGQNs=
 go.etcd.io/etcd/client/pkg/v3 v3.6.6/go.mod h1:YngfUVmvsvOJ2rRgStIyHsKtOt9SZI2aBJrZiWJhCbI=
-go.etcd.io/etcd/client/v2 v2.305.32 h1:cXVte/p8Czwev9OFobUZktQgJlU5ltftyu/30SmZhHI=
-go.etcd.io/etcd/client/v2 v2.305.32/go.mod h1:r6H448xnVt+FYOGcsxJ0/Y/yPTxBQLp6RSC3cKap58o=
+go.etcd.io/etcd/client/v2 v2.305.33 h1:cgnmUT79NRRF6IsjEqwZhGik/uv/+Ixqgk9uHtW/2gw=
+go.etcd.io/etcd/client/v2 v2.305.33/go.mod h1:SD4bz1U5a5KF5QzS/R9Gf7wiiGY7LD6IQpfZsX3+Qw4=
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
 go.mongodb.org/atlas v0.38.0 h1:zfwymq20GqivGwxPZfypfUDry+WwMGVui97z1d8V4bU=
 go.mongodb.org/atlas v0.38.0/go.mod h1:DJYtM+vsEpPEMSkQzJnFHrT0sP7ev6cseZc/GGjJYG8=

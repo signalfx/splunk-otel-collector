@@ -64,22 +64,16 @@ owned by more than one user/app namespace, the lookup fails with an ambiguous
 selector error; set the `user` and/or `app` config fields to the owning
 user/app to disambiguate.
 
-```yaml
-components:
-  component_using_splunk_secret:
-    api_key: ${splunk_secret:myrealm:myuser}
-```
+## Example
 
-If multiple splunkd endpoints or credentials are needed, create different
-instances of the config source, e.g.:
+Configuring the [OpenTelemetry PostgreSQL receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/d975955280b0345300af84e7a029004541fb89ab/receiver/postgresqlreceiver#postgresql-receiver)
+to monitor the PostgreSQL instance installed in Splunk Enterprise search heads (Linux only),
+can be configured by creating the receiver as shown below and adding it to the metrics and
+log pipelines of the collector:
 
 ```yaml
-config_sources:
-  splunk_secret:
-    endpoint: ${env:SPLUNK_MANAGEMENT_URI}
-    session_key: ${env:SPLUNK_SESSION_KEY}
-
-components:
-  component_using_splunk_secret:
-    api_key: ${splunk_secret:myrealm:myuser}
+receivers:
+  postgresql:
+    username: postgres_admin
+    password: ${splunk_secret:postgres:postgres_admin} # This secret is automatically set during Splunk Enterprise installation
 ```

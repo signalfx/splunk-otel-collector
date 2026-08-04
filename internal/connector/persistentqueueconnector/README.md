@@ -21,8 +21,8 @@ apply the limit and FIFO across all signals.
 ```yaml
 connectors:
   persistent_queue:
-    folder: /var/queue
-    bandwidth: 256768 # 256 Kb
+    path: /var/queue
+    throughput_limit: 256768 # 256 Kb
 
 receivers:
   filelog:
@@ -36,7 +36,7 @@ service:
     logs:
       receivers: [filelog]
       exporters: [persistent_queue]
-    queue_out:
+    logs/queue_out:
       receivers: [persistent_queue]
       exporters: [debug]
 ```

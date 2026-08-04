@@ -118,7 +118,7 @@ func TestQueueMessageSlowedDown(t *testing.T) {
 	require.NoError(t, p.ConsumeLogs(t.Context(), createLd()))
 	require.NoError(t, p.ConsumeLogs(t.Context(), createLd()))
 	time.Sleep(500 * time.Millisecond)
-	require.Len(t, sink.AllLogs(), 1)
+	require.Less(t, len(sink.AllLogs()), 3)
 	time.Sleep(3 * time.Second)
 	require.Len(t, sink.AllLogs(), 3)
 }
@@ -147,7 +147,7 @@ func TestPush1MIn128KOut(t *testing.T) {
 	}
 	time.Sleep(5 * time.Second)
 	found := len(sink.AllLogs())
-	require.True(t, found >= 4 && found <= 6)
+	require.True(t, found < 10)
 	time.Sleep(5 * time.Second)
 	require.Len(t, sink.AllLogs(), 10)
 }

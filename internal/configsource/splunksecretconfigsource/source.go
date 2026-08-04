@@ -18,7 +18,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -166,7 +165,7 @@ func (s *splunkSecretConfigSource) Retrieve(ctx context.Context, selector string
 
 	clearPassword := parsed.Entry[0].Content.ClearPassword
 	if clearPassword == "" {
-		return nil, &errMissingClearPassword{errors.New("secret has no clear_password value")}
+		return nil, &errMissingClearPassword{fmt.Errorf("secret for selector %q has no clear_password value", selector)}
 	}
 
 	return confmap.NewRetrieved(clearPassword)

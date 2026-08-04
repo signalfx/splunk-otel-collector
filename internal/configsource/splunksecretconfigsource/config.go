@@ -24,11 +24,11 @@ import (
 type Config struct {
 	configsource.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 
-	// Endpoint is the splunkd management URI, e.g. "https://127.0.0.1:8089". It is typically
-	// set to ${env:SPLUNK_SERVER_URI} when running as a Splunk modular input.
+	// Endpoint is the Splunk management URI, e.g. "https://127.0.0.1:8089". It is typically
+	// set to ${env:SPLUNK_MANAGEMENT_URI} when running as a Splunk modular input.
 	Endpoint string `mapstructure:"endpoint"`
 
-	// SessionKey is the splunkd session key used to authenticate requests to the
+	// SessionKey is the Splunk session key used to authenticate requests to the
 	// storage/passwords REST endpoint. It is typically set to ${env:SPLUNK_SESSION_KEY}
 	// when running as a Splunk modular input.
 	SessionKey string `mapstructure:"session_key"`

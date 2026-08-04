@@ -17,6 +17,7 @@ package splunksecretconfigsource
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"time"
@@ -63,7 +64,7 @@ func (f *splunkSecretFactory) CreateDefaultConfig() configsource.Settings {
 	// user to explicitly reference them via ${env:...} in the collector config.
 	return &Config{
 		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
-		Endpoint:       os.Getenv(modularinput.EnvServerURI),
+		Endpoint:       os.Getenv(modularinput.EnvManagementURI),
 		SessionKey:     os.Getenv(modularinput.EnvSessionKey),
 		App:            defaultApp,
 		User:           defaultUser,
@@ -75,13 +76,17 @@ func (f *splunkSecretFactory) CreateConfigSource(_ context.Context, settings con
 	cfg := settings.(*Config)
 
 	if cfg.Endpoint == "" {
-		return nil, &errMissingEndpoint{errors.New("cannot connect to splunkd without an endpoint")}
+		return nil, &errMissingEndpoint{
+			fmt.Errorf("'endpoint' must be specified, this value can also be set via the environment variable %s", modularinput.EnvManagementURI),
+		}
 	}
 	if _, err := url.ParseRequestURI(cfg.Endpoint); err != nil {
 		return nil, &errInvalidEndpoint{err}
 	}
 	if cfg.SessionKey == "" {
-		return nil, &errMissingSessionKey{errors.New("cannot authenticate to splunkd without a session_key")}
+		return nil, &errMissingSessionKey{
+			fmt.Errorf("'session_key' must be specified, this value can also be set via the environment variable %s", modularinput.EnvSessionKey),
+		}
 	}
 
 	app := cfg.App
@@ -97,7 +102,7 @@ func (f *splunkSecretFactory) CreateConfigSource(_ context.Context, settings con
 	timeout := cfg.Timeout
 	if timeout <= 0 {
 		if timeout < 0 {
-			return nil, &errNonPositiveTimeout{errors.New("timeout must be positive")}
+			return nil, &errNonPositiveTimeout{errors.New("'timeout' must be positive")}
 		}
 		timeout = defaultTimeout
 	}

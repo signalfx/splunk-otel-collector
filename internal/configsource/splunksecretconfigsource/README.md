@@ -6,7 +6,7 @@ Use the `splunk_secret` config source to retrieve secrets stored in Splunk's loc
 typically `8089`) and inject them into your collector configuration.
 
 This is primarily intended for use when the collector is launched as a Splunk TA
-modular input, where the `SPLUNK_SERVER_URI` and `SPLUNK_SESSION_KEY` environment
+modular input, where the `SPLUNK_MANAGEMENT_URI` and `SPLUNK_SESSION_KEY` environment
 variables are automatically set by the [TA launcher shim](../../../pkg/modularinput/ta_launcher.go)
 from the `server_uri` and `session_key` fields
 Splunk provides on stdin. `endpoint` and `session_key` default to the values of
@@ -22,9 +22,9 @@ Splunk secret config source. The following parameters are available:
 config_sources:
   splunk_secret:
     # endpoint is the splunkd management URI, e.g. "https://127.0.0.1:8089".
-    # Defaults to the SPLUNK_SERVER_URI environment variable set by the TA
+    # Defaults to the SPLUNK_MANAGEMENT_URI environment variable set by the TA
     # launcher shim when running as a TA modular input.
-    endpoint: ${env:SPLUNK_SERVER_URI}
+    endpoint: ${env:SPLUNK_MANAGEMENT_URI}
     # session_key authenticates requests to the storage/passwords endpoint.
     # Defaults to the SPLUNK_SESSION_KEY environment variable set by the TA
     # launcher shim when running as a TA modular input.
@@ -76,7 +76,7 @@ instances of the config source, e.g.:
 ```yaml
 config_sources:
   splunk_secret:
-    endpoint: ${env:SPLUNK_SERVER_URI}
+    endpoint: ${env:SPLUNK_MANAGEMENT_URI}
     session_key: ${env:SPLUNK_SESSION_KEY}
 
 components:

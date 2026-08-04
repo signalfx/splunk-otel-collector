@@ -55,11 +55,11 @@ const (
 	// EnvStanzaName is the environment variable set to the full stanza name
 	// (e.g. "Splunk_TA_otel://default") from the modular input XML.
 	EnvStanzaName = "SPLUNK_MODINPUT_STANZA_NAME"
-	// EnvServerURI is the environment variable set to the splunkd management URI
+	// EnvManagementURI is the environment variable set to the splunkd management URI
 	// (e.g. "https://127.0.0.1:8089") received from Splunk on stdin. It can be used
 	// by the collector configuration to reach the local splunkd REST API, for example
 	// to retrieve secrets from the storage/passwords endpoint.
-	EnvServerURI = "SPLUNK_SERVER_URI"
+	EnvManagementURI = "SPLUNK_MANAGEMENT_URI"
 	// EnvSessionKey is the environment variable set to the splunkd session key
 	// received from Splunk on stdin. It can be used to authenticate requests to the
 	// local splunkd REST API, for example to retrieve secrets from the storage/passwords
@@ -119,7 +119,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 		if err != nil {
 			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to read XML from stdin: %w", err)
 		}
-		modularInputEnvVars[EnvServerURI] = items.ServerURI
+		modularInputEnvVars[EnvManagementURI] = items.ServerURI
 		modularInputEnvVars[EnvSessionKey] = items.SessionKey
 
 		args, err = validator(items, args)
@@ -141,7 +141,7 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 		if err != nil {
 			return nil, ExecutionTARunMode, fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
 		}
-		modularInputEnvVars[EnvServerURI] = input.ServerURI
+		modularInputEnvVars[EnvManagementURI] = input.ServerURI
 		modularInputEnvVars[EnvSessionKey] = input.SessionKey
 
 		for _, stanza := range input.Configuration.Stanza {

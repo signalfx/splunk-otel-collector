@@ -354,11 +354,11 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	assert.Equal(t, args, resultArgs, "Expected args to be returned unchanged with empty stanza")
 	// The stanza matched, so the stanza env vars are set even with no splunk_ params; EnvBaseDirName is also derived from the executable path.
 	assert.Equal(t, map[string]string{
-		EnvAppName:     "test-app",
-		EnvBaseDirName: "test-base-dir",
-		EnvStanzaName:  "test-stanza",
-		EnvServerURI:   "https://localhost:8089",
-		EnvSessionKey:  "test_key",
+		EnvAppName:       "test-app",
+		EnvBaseDirName:   "test-base-dir",
+		EnvStanzaName:    "test-stanza",
+		EnvManagementURI: "https://localhost:8089",
+		EnvSessionKey:    "test_key",
 	}, envVars)
 }
 

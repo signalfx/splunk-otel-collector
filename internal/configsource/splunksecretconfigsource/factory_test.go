@@ -39,7 +39,7 @@ func TestSplunkSecretFactory_CreateDefaultConfig(t *testing.T) {
 }
 
 func TestSplunkSecretFactory_CreateDefaultConfig_FromModularInputEnv(t *testing.T) {
-	t.Setenv(modularinput.EnvServerURI, "https://127.0.0.1:8089")
+	t.Setenv(modularinput.EnvManagementURI, "https://127.0.0.1:8089")
 	t.Setenv(modularinput.EnvSessionKey, "some_session_key")
 
 	factory := NewFactory()

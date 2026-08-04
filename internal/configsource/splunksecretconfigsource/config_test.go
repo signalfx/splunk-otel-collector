@@ -15,7 +15,6 @@
 package splunksecretconfigsource
 
 import (
-	"context"
 	"path"
 	"testing"
 	"time"
@@ -37,7 +36,7 @@ func TestSplunkSecretLoadConfig(t *testing.T) {
 		component.MustNewType(typeStr): NewFactory(),
 	}
 
-	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories, nil)
+	actualSettings, splitConf, err := configsource.SettingsFromConf(t.Context(), v, factories, nil)
 	require.NoError(t, err)
 	require.NotNil(t, splitConf)
 
@@ -63,6 +62,6 @@ func TestSplunkSecretLoadConfig(t *testing.T) {
 	require.Equal(t, expectedSettings, actualSettings)
 	require.Empty(t, splitConf.ToStringMap())
 
-	_, err = configsource.BuildConfigSources(context.Background(), actualSettings, zap.NewNop(), factories)
+	_, err = configsource.BuildConfigSources(t.Context(), actualSettings, zap.NewNop(), factories)
 	require.NoError(t, err)
 }

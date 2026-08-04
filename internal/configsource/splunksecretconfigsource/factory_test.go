@@ -15,7 +15,6 @@
 package splunksecretconfigsource
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -87,7 +86,7 @@ func TestSplunkSecretFactory_CreateConfigSource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := factory.CreateConfigSource(context.Background(), tt.config, zap.NewNop())
+			actual, err := factory.CreateConfigSource(t.Context(), tt.config, zap.NewNop())
 			if tt.wantErr != nil {
 				require.Error(t, err)
 				assert.Nil(t, actual)

@@ -15,7 +15,6 @@
 package splunksecretconfigsource
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -205,7 +204,7 @@ func TestSplunkSecretRetrieve(t *testing.T) {
 				user = "-"
 			}
 			source := newConfigSource(cfg, app, user, time.Second, zap.NewNop())
-			retrieved, err := source.Retrieve(context.Background(), tc.selector, nil, nil)
+			retrieved, err := source.Retrieve(t.Context(), tc.selector, nil, nil)
 			if tc.checkErr != nil {
 				require.Error(t, err)
 				tc.checkErr(t, err)

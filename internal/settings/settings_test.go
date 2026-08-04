@@ -82,6 +82,27 @@ func TestNewSettingsWithHelpFlags(t *testing.T) {
 	require.Nil(t, settings)
 }
 
+func TestWriteUsage(t *testing.T) {
+	flagSet := flag.NewFlagSet("otelcol", flag.ContinueOnError)
+	flagSet.Bool("visible", false, "visible flag")
+	flagSet.Bool("hidden", false, "hidden flag")
+	require.NoError(t, flagSet.MarkHidden("hidden"))
+
+	var output bytes.Buffer
+	flagSet.SetOutput(&output)
+	writeUsage(flagSet)
+
+	usage := output.String()
+	require.Contains(t, usage, `Available Commands:
+  featuregate  Display feature gates information
+  validate     Validates the config without running the collector
+
+Flags:
+`)
+	require.Contains(t, usage, "--visible")
+	require.NotContains(t, usage, "--hidden")
+}
+
 func TestNewSettingsConfMapProviders(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	settings, err := New([]string{})

@@ -279,6 +279,9 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet.Var(new(stringArrayFlagValue), featureGates,
 		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
 			"'+' or no prefix will enable the feature.")
+	flagSet.Usage = func() {
+		writeUsage(flagSet)
+	}
 
 	settings.featureGateCommand = len(args) > 0 && args[0] == "featuregate"
 	if settings.featureGateCommand {
@@ -309,6 +312,19 @@ func parseArgs(args []string) (*Settings, error) {
 	}
 
 	return settings, nil
+}
+
+func writeUsage(flagSet *flag.FlagSet) {
+	fmt.Fprintf(flagSet.Output(), `Usage:
+  otelcol [flags]
+  otelcol [command]
+
+Available Commands:
+  featuregate  Display feature gates information
+  validate     Validates the config without running the collector
+
+Flags:
+%s`, flagSet.FlagUsages())
 }
 
 func parseSetOptionArguments(arguments []string) (setProperties, discoveryProperties []string) {

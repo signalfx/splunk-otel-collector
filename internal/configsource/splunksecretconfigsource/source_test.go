@@ -146,6 +146,20 @@ func TestSplunkSecretRetrieve(t *testing.T) {
 			},
 		},
 		{
+			name:     "unexpected_status_code_redacts_clear_password",
+			selector: "myrealm:myuser",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(`{"entry":[{"content":{"clear_password":"s3cr3t"}}]}`))
+			},
+			checkErr: func(t *testing.T, err error) {
+				var target *errUnexpectedStatusCode
+				require.ErrorAs(t, err, &target)
+				assert.NotContains(t, err.Error(), "s3cr3t")
+				assert.Contains(t, err.Error(), "REDACTED")
+			},
+		},
+		{
 			name:     "invalid_json_response",
 			selector: "myrealm:myuser",
 			handler: func(w http.ResponseWriter, _ *http.Request) {

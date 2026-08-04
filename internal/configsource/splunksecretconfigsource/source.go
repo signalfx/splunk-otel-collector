@@ -23,6 +23,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -39,6 +40,23 @@ type (
 	errAmbiguousSelector    struct{ error }
 	errMissingClearPassword struct{ error }
 )
+
+// clearPasswordPatterns matches clear_password values that splunkd may echo back in an
+// error response body, whether the body is JSON (output_mode=json) or the XML/Atom format
+// splunkd falls back to for some error conditions (e.g. authentication failures).
+var clearPasswordPatterns = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)("clear_password"\s*:\s*")[^"]*(")`),
+	regexp.MustCompile(`(?i)(name="clear_password"[^>]*>)[^<]*(<)`),
+}
+
+// redactClearPassword returns body with any clear_password value replaced by a redaction
+// marker, guarding against accidentally leaking a secret in an error message.
+func redactClearPassword(body string) string {
+	for _, re := range clearPasswordPatterns {
+		body = re.ReplaceAllString(body, "${1}REDACTED${2}")
+	}
+	return body
+}
 
 // passwordsResponse models the subset of the storage/passwords JSON response that is
 // relevant to retrieve the clear text value of a secret.
@@ -124,7 +142,7 @@ func (s *splunkSecretConfigSource) Retrieve(ctx context.Context, selector string
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, &errUnexpectedStatusCode{fmt.Errorf("splunkd returned status %d for selector %q: %s", resp.StatusCode, selector, string(body))}
+		return nil, &errUnexpectedStatusCode{fmt.Errorf("splunkd returned status %d for selector %q: %s", resp.StatusCode, selector, redactClearPassword(string(body)))}
 	}
 
 	var parsed passwordsResponse

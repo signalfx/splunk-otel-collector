@@ -180,8 +180,8 @@ func TestNoLimit(t *testing.T) {
 }
 
 type mockLogsConsumer struct {
-	mu        sync.Mutex
 	received  []plog.Logs
+	mu        sync.Mutex
 	rejecting atomic.Bool
 }
 

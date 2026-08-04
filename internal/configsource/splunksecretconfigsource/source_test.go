@@ -208,12 +208,12 @@ func TestSplunkSecretRetrieve(t *testing.T) {
 			if tc.checkErr != nil {
 				require.Error(t, err)
 				tc.checkErr(t, err)
-				return
+			} else {
+				require.NoError(t, err)
+				val, err := retrieved.AsString()
+				require.NoError(t, err)
+				assert.Equal(t, tc.expectedValue, val)
 			}
-			require.NoError(t, err)
-			val, err := retrieved.AsString()
-			require.NoError(t, err)
-			assert.Equal(t, tc.expectedValue, val)
 		})
 	}
 }

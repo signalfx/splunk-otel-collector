@@ -82,6 +82,27 @@ func TestNewSettingsWithHelpFlags(t *testing.T) {
 	require.Nil(t, settings)
 }
 
+func TestWriteUsage(t *testing.T) {
+	flagSet := flag.NewFlagSet("otelcol", flag.ContinueOnError)
+	flagSet.Bool("visible", false, "visible flag")
+	flagSet.Bool("hidden", false, "hidden flag")
+	require.NoError(t, flagSet.MarkHidden("hidden"))
+
+	var output bytes.Buffer
+	flagSet.SetOutput(&output)
+	writeUsage(flagSet)
+
+	usage := output.String()
+	require.Contains(t, usage, `Available Commands:
+  featuregate  Display feature gates information
+  validate     Validates the config without running the collector
+
+Flags:
+`)
+	require.Contains(t, usage, "--visible")
+	require.NotContains(t, usage, "--hidden")
+}
+
 func TestNewSettingsConfMapProviders(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	settings, err := New([]string{})
@@ -183,10 +204,50 @@ func TestSplunkConfigYamlNotUtilizedInResolverURIsWithConfigEnvVar(t *testing.T)
 
 func TestNewSettingsWithValidate(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	settings, err := New([]string{"validate"})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	require.Equal(t, []string{"validate"}, settings.ColCoreArgs())
+	tests := []struct {
+		name     string
+		args     []string
+		expected []string
+	}{
+		{
+			name:     "command only",
+			args:     []string{"validate"},
+			expected: []string{"validate"},
+		},
+		{
+			name:     "command with flags",
+			args:     []string{"validate", "--feature-gates", "foo"},
+			expected: []string{"--feature-gates", "foo", "validate"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			settings, err := New(test.args)
+			require.NoError(t, err)
+			require.NotNil(t, settings)
+			require.Equal(t, test.expected, settings.ColCoreArgs())
+		})
+	}
+}
+
+func TestNewSettingsWithFeatureGate(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	for _, args := range [][]string{
+		{"featuregate"},
+		{"featuregate", "splunk.opamp.enabled"},
+		{"featuregate", "--help"},
+		{"featuregate", "-h"},
+		{"featuregate", "splunk.opamp.enabled", "--help"},
+		{"featuregate", "unknown.feature", "extra-argument"},
+		{"featuregate", "--unknown-flag"},
+	} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			settings, err := New(args)
+			require.NoError(t, err)
+			require.NotNil(t, settings)
+			require.Equal(t, args, settings.ColCoreArgs())
+		})
+	}
 }
 
 func TestCheckRuntimeParams_Default(t *testing.T) {

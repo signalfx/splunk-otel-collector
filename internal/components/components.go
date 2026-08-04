@@ -134,6 +134,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/connector/persistentqueueconnector"
 	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
@@ -345,6 +346,7 @@ func Get() (otelcol.Factories, error) {
 	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
 		connector.Factory(forwardconnector.NewFactory()),
+		persistentqueueconnector.NewFactory(),
 		routingconnector.NewFactory(),
 		spanmetricsconnector.NewFactory(),
 		sumconnector.NewFactory(),

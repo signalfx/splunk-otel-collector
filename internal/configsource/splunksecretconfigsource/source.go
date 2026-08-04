@@ -98,6 +98,21 @@ func newConfigSource(cfg *Config, app, user string, timeout time.Duration, logge
 	}
 }
 
+// passwordsURL builds the storage/passwords REST endpoint URL for the given credentialID.
+// See https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/secretstorage/secretstoragerest and
+// https://help.splunk.com/en/data-management/splunk-enterprise-admin-manual/10.4/configuration-file-reference/10.4.1-configuration-file-reference/passwords.conf
+//
+// servicesNS/{user}/{app}/ pins the lookup to a specific user/app namespace. A
+// <realm>:<name> credential is only guaranteed unique within the user/app namespace it
+// was created in, so s.user and s.app both default to "-" (all users/apps, per the
+// wildcard documented at https://help.splunk.com/en/?resourceId=Splunk_RESTREF_RESTlist)
+// but can be set via the User/App config fields to disambiguate credentials that collide
+// across namespaces. See the "Namespace" section at
+// https://help.splunk.com/en/?resourceId=Splunk_RESTUM_RESTusing for details.
+func (s *splunkSecretConfigSource) passwordsURL(credentialID string) string {
+	return fmt.Sprintf("%s/servicesNS/%s/%s/storage/passwords/%s?output_mode=json", s.endpoint, url.PathEscape(s.user), url.PathEscape(s.app), url.PathEscape(credentialID))
+}
+
 // Retrieve fetches the clear text value of the secret identified by selector from splunkd's
 // storage/passwords REST endpoint. The selector must be in the form "[<realm>]:<name>", e.g.
 // "myrealm:myuser" or ":myuser" if the secret was stored without a realm.
@@ -112,18 +127,7 @@ func (s *splunkSecretConfigSource) Retrieve(ctx context.Context, selector string
 		credentialID = realm + ":" + name
 	}
 
-	// See https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/secretstorage/secretstoragerest and
-	// https://help.splunk.com/en/data-management/splunk-enterprise-admin-manual/10.4/configuration-file-reference/10.4.1-configuration-file-reference/passwords.conf
-	//
-	// servicesNS/{user}/{app}/ pins the lookup to a specific user/app namespace. A
-	// <realm>:<name> credential is only guaranteed unique within the user/app namespace it
-	// was created in, so s.user and s.app both default to "-" (all users/apps, per the
-	// wildcard documented at https://help.splunk.com/en/?resourceId=Splunk_RESTREF_RESTlist)
-	// but can be set via the User/App config fields to disambiguate credentials that collide
-	// across namespaces. See the "Namespace" section at
-	// https://help.splunk.com/en/?resourceId=Splunk_RESTUM_RESTusing for details.
-	reqURL := fmt.Sprintf("%s/servicesNS/%s/%s/storage/passwords/%s?output_mode=json", s.endpoint, url.PathEscape(s.user), url.PathEscape(s.app), url.PathEscape(credentialID))
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.passwordsURL(credentialID), http.NoBody)
 	if err != nil {
 		return nil, &errRequestFailed{fmt.Errorf("failed to build request for selector %q: %w", selector, err)}
 	}

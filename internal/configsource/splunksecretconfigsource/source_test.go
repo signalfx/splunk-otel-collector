@@ -25,12 +25,61 @@ import (
 	"go.uber.org/zap"
 )
 
+func TestPasswordsURL(t *testing.T) {
+	testCases := []struct {
+		name         string
+		endpoint     string
+		app          string
+		user         string
+		credentialID string
+		expected     string
+	}{
+		{
+			name:         "defaults",
+			endpoint:     "https://splunkd.example.com:8089",
+			app:          "-",
+			user:         "-",
+			credentialID: "myrealm:myuser",
+			expected:     "https://splunkd.example.com:8089/servicesNS/-/-/storage/passwords/myrealm:myuser?output_mode=json",
+		},
+		{
+			name:         "specific_app",
+			endpoint:     "https://splunkd.example.com:8089",
+			app:          "myapp",
+			user:         "-",
+			credentialID: "myrealm:myuser",
+			expected:     "https://splunkd.example.com:8089/servicesNS/-/myapp/storage/passwords/myrealm:myuser?output_mode=json",
+		},
+		{
+			name:         "specific_user",
+			endpoint:     "https://splunkd.example.com:8089",
+			app:          "-",
+			user:         "myowner",
+			credentialID: "myrealm:myuser",
+			expected:     "https://splunkd.example.com:8089/servicesNS/myowner/-/storage/passwords/myrealm:myuser?output_mode=json",
+		},
+		{
+			name:         "credential_id_needs_escaping",
+			endpoint:     "https://splunkd.example.com:8089",
+			app:          "my app",
+			user:         "-",
+			credentialID: "myrealm:my/user",
+			expected:     "https://splunkd.example.com:8089/servicesNS/-/my%20app/storage/passwords/myrealm:my%2Fuser?output_mode=json",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			source := newConfigSource(&Config{Endpoint: tc.endpoint}, tc.app, tc.user, time.Second, zap.NewNop())
+			assert.Equal(t, tc.expected, source.passwordsURL(tc.credentialID))
+		})
+	}
+}
+
 func TestSplunkSecretRetrieve(t *testing.T) {
 	testsCases := []struct {
 		name          string
 		selector      string
-		app           string
-		user          string
 		checkErr      func(t *testing.T, err error)
 		handler       http.HandlerFunc
 		expectedValue string
@@ -57,28 +106,6 @@ func TestSplunkSecretRetrieve(t *testing.T) {
 				_, _ = w.Write([]byte(`{"entry":[{"content":{"clear_password":"s3cr3t2"}}]}`))
 			},
 			expectedValue: "s3cr3t2",
-		},
-		{
-			name:         "present_with_specific_app",
-			selector:     "myrealm:myuser",
-			app:          "myapp",
-			expectedPath: "/servicesNS/-/myapp/storage/passwords/myrealm:myuser",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write([]byte(`{"entry":[{"content":{"clear_password":"s3cr3t3"}}]}`))
-			},
-			expectedValue: "s3cr3t3",
-		},
-		{
-			name:         "present_with_specific_user",
-			selector:     "myrealm:myuser",
-			user:         "myowner",
-			expectedPath: "/servicesNS/myowner/-/storage/passwords/myrealm:myuser",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write([]byte(`{"entry":[{"content":{"clear_password":"s3cr3t4"}}]}`))
-			},
-			expectedValue: "s3cr3t4",
 		},
 		{
 			name:     "ambiguous_selector_multiple_apps",
@@ -195,15 +222,7 @@ func TestSplunkSecretRetrieve(t *testing.T) {
 				cfg.Endpoint = "http://127.0.0.1:0"
 			}
 
-			app := tc.app
-			if app == "" {
-				app = "-"
-			}
-			user := tc.user
-			if user == "" {
-				user = "-"
-			}
-			source := newConfigSource(cfg, app, user, time.Second, zap.NewNop())
+			source := newConfigSource(cfg, "-", "-", time.Second, zap.NewNop())
 			retrieved, err := source.Retrieve(t.Context(), tc.selector, nil, nil)
 			if tc.checkErr != nil {
 				require.Error(t, err)

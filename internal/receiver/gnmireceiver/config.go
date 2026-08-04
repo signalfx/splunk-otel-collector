@@ -56,22 +56,16 @@ type Config struct {
 
 // TargetConfig defines connectivity, authentication, and subscriptions for a
 // single gNMI target.
-//
-//nolint:govet // fieldalignment: suboptimal layout is inherited from the embedded configgrpc.ClientConfig
 type TargetConfig struct {
-	ClientConfig configgrpc.ClientConfig `mapstructure:",squash"`
-
 	// Username and Password are sent as gNMI gRPC metadata.
 	Username configopaque.String `mapstructure:"username"`
 	Password configopaque.String `mapstructure:"password"`
-
 	// Encoding is the gNMI encoding to request: "proto", "json", or "json_ietf".
 	// Defaults to "proto" when omitted.
 	Encoding string `mapstructure:"encoding"`
-
 	// Subscriptions is the list of paths to subscribe to on this target.
-	Subscriptions []SubscriptionConfig `mapstructure:"subscriptions"`
-
+	Subscriptions []SubscriptionConfig    `mapstructure:"subscriptions"`
+	ClientConfig  configgrpc.ClientConfig `mapstructure:",squash"`
 	// Redial is the delay before reconnecting after a session failure.
 	// Set to 0 to disable automatic reconnection.
 	Redial time.Duration `mapstructure:"redial"`

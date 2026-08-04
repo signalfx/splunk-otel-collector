@@ -210,7 +210,7 @@ func TestDiskQueueEmpty(t *testing.T) {
 	numFiles := dq.(*diskQueue).writeFileNum
 	dq.Empty()
 
-	assertFileNotExist(t, dq.(*diskQueue).metaDataFileName())
+	assertFileNotExist(t, dq.(*diskQueue).metaDataFilePath())
 	for i := int64(0); i <= numFiles; i++ {
 		assertFileNotExist(t, dq.(*diskQueue).fileName(i))
 	}
@@ -348,7 +348,7 @@ func TestDiskQueueSyncAfterRead(t *testing.T) {
 	dq.Put(msg)
 
 	for range 10 {
-		d := readMetaDataFile(dq.(*diskQueue).metaDataFileName(), 0)
+		d := readMetaDataFile(dq.(*diskQueue).metaDataFilePath(), 0)
 		if d.depth == 1 &&
 			d.readFileNum == 0 &&
 			d.writeFileNum == 0 &&
@@ -366,7 +366,7 @@ next:
 	<-dq.ReadChan()
 
 	for range 10 {
-		d := readMetaDataFile(dq.(*diskQueue).metaDataFileName(), 0)
+		d := readMetaDataFile(dq.(*diskQueue).metaDataFilePath(), 0)
 		if d.depth == 1 &&
 			d.readFileNum == 0 &&
 			d.writeFileNum == 0 &&

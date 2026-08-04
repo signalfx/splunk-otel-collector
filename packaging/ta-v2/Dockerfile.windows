@@ -24,9 +24,7 @@ RUN msiexec.exe /i C:\splunk-uf.msi /qn /norestart AGREETOLICENSE=Yes SPLUNKUSER
 
 RUN rm C:\splunk-uf.msi
 
-# The universal forwarder defaults mgmtMode to "auto", which prefers a Unix Domain Socket
-# over TCP for the management port, so 8089 is never opened. Force TCP so the REST API
-# is reachable from outside the container.
+# Force mgmtMode to tcp; the default "auto" prefers a Unix Domain Socket, leaving 8089 closed.
 RUN New-Item -ItemType Directory -Path "'C:\\Program Files\\SplunkUniversalForwarder\\etc\\system\\local'" -Force | Out-Null; Add-Content -Path "'C:\\Program Files\\SplunkUniversalForwarder\\etc\\system\\local\\server.conf'" -Value \"[httpServer]`nmgmtMode = tcp\"
 
 COPY windows-container-start-and-wait.ps1 C:\\windows-container-start-and-wait.ps1

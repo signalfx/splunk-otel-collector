@@ -33,25 +33,16 @@ type Config struct {
 	// when running as a Splunk modular input.
 	SessionKey string `mapstructure:"session_key"`
 
-	// App scopes the storage/passwords lookup to a specific Splunk app namespace
-	// (servicesNS/<user>/<app>/storage/passwords). A <realm>:<name> credential is only
-	// guaranteed unique within the app it was created in, so if multiple apps store a
-	// credential with the same realm and name, set this to the owning app to disambiguate.
-	// Defaults to "-", the wildcard documented for servicesNS meaning "all apps", which
-	// preserves lookups across every app visible to the session.
+	// App scopes the storage/passwords lookup to a specific Splunk app namespace. Set this
+	// to disambiguate credentials that collide across apps. Defaults to "-" (all apps).
 	App string `mapstructure:"app"`
 
-	// User scopes the storage/passwords lookup to a specific Splunk user namespace
-	// (servicesNS/<user>/<app>/storage/passwords). A <realm>:<name> credential can also be
-	// stored with user-level sharing, so if multiple users store a credential with the same
-	// realm and name, set this to the owning user to disambiguate. Defaults to "-", the
-	// wildcard documented for servicesNS meaning "all users", which preserves lookups
-	// across every user visible to the session.
+	// User scopes the storage/passwords lookup to a specific Splunk user namespace. Set this
+	// to disambiguate credentials that collide across users. Defaults to "-" (all users).
 	User string `mapstructure:"user"`
 
 	// InsecureSkipVerify controls whether the TLS certificate presented by the splunkd
-	// management endpoint is verified. Defaults to false: certificate verification is
-	// enabled unless explicitly disabled.
+	// management endpoint is verified. Defaults to false.
 	InsecureSkipVerify bool `mapstructure:"insecure_skip_verify"`
 
 	// Timeout is the maximum amount of time to wait for a response from splunkd.

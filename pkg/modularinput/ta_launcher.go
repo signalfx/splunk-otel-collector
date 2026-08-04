@@ -56,14 +56,10 @@ const (
 	// (e.g. "Splunk_TA_otel://default") from the modular input XML.
 	EnvStanzaName = "SPLUNK_MODINPUT_STANZA_NAME"
 	// EnvManagementURI is the environment variable set to the splunkd management URI
-	// (e.g. "https://127.0.0.1:8089") received from Splunk on stdin. It can be used
-	// by the collector configuration to reach the local splunkd REST API, for example
-	// to retrieve secrets from the storage/passwords endpoint.
+	// (e.g. "https://127.0.0.1:8089") received from Splunk on stdin.
 	EnvManagementURI = "SPLUNK_MANAGEMENT_URI"
 	// EnvSessionKey is the environment variable set to the splunkd session key
-	// received from Splunk on stdin. It can be used to authenticate requests to the
-	// local splunkd REST API, for example to retrieve secrets from the storage/passwords
-	// endpoint. The session key is only valid for the lifetime of the modular input process.
+	// received from Splunk on stdin.
 	EnvSessionKey = "SPLUNK_SESSION_KEY"
 )
 

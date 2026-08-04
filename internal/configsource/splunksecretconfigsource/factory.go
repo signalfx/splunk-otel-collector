@@ -35,9 +35,7 @@ const (
 
 	defaultTimeout = 10 * time.Second
 
-	// defaultApp and defaultUser are the servicesNS wildcards documented at
-	// https://help.splunk.com/en/?resourceId=Splunk_RESTREF_RESTlist meaning "all apps" and
-	// "all users", preserving lookups across every app/user namespace visible to the session.
+	// defaultApp and defaultUser are the servicesNS wildcards meaning "all apps" and "all users".
 	defaultApp  = "-"
 	defaultUser = "-"
 )
@@ -57,11 +55,8 @@ func (f *splunkSecretFactory) Type() component.Type {
 }
 
 func (f *splunkSecretFactory) CreateDefaultConfig() configsource.Settings {
-	// When running as a Splunk TA modular input, HandleLaunchAsTA (see
-	// pkg/modularinput/ta_launcher.go) sets these environment variables from the
-	// server_uri and session_key values Splunk provides on stdin. Defaulting to
-	// them here lets the config source work out-of-the-box without requiring the
-	// user to explicitly reference them via ${env:...} in the collector config.
+	// Defaulting Endpoint/SessionKey to these env vars (set by HandleLaunchAsTA when running
+	// as a Splunk TA modular input) lets the config source work out-of-the-box.
 	return &Config{
 		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 		Endpoint:       os.Getenv(modularinput.EnvManagementURI),

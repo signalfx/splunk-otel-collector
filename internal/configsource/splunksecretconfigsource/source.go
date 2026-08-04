@@ -40,16 +40,14 @@ type (
 	errMissingClearPassword struct{ error }
 )
 
-// clearPasswordPatterns matches clear_password values that splunkd may echo back in an
-// error response body, whether the body is JSON (output_mode=json) or the XML/Atom format
-// splunkd falls back to for some error conditions (e.g. authentication failures).
+// clearPasswordPatterns matches clear_password values splunkd may echo back in an error
+// response, in both JSON and XML/Atom formats.
 var clearPasswordPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)("clear_password"\s*:\s*")[^"]*(")`),
 	regexp.MustCompile(`(?i)(name="clear_password"[^>]*>)[^<]*(<)`),
 }
 
-// redactClearPassword returns body with any clear_password value replaced by a redaction
-// marker, guarding against accidentally leaking a secret in an error message.
+// redactClearPassword replaces any clear_password value in body with a redaction marker.
 func redactClearPassword(body string) string {
 	for _, re := range clearPasswordPatterns {
 		body = re.ReplaceAllString(body, "${1}REDACTED${2}")
@@ -57,9 +55,8 @@ func redactClearPassword(body string) string {
 	return body
 }
 
-// passwordsResponse models the subset of the storage/passwords JSON response that is
-// relevant to retrieve the clear text value of a secret.
-// See https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/secretstorage/secretstoragerest
+// passwordsResponse models the subset of the storage/passwords JSON response needed to
+// retrieve a secret's clear text value.
 type passwordsResponse struct {
 	Entry []struct {
 		Content struct {

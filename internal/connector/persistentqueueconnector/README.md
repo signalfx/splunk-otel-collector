@@ -23,4 +23,20 @@ connectors:
   persistent_queue:
     folder: /var/queue
     bandwidth: 256768 # 256 Kb
+
+receivers:
+  filelog:
+    include: ["/var/log/my.log"]
+
+exporters:
+  debug:
+
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      exporters: [persistent_queue]
+    queue_out:
+      receivers: [persistent_queue]
+      exporters: [debug]
 ```

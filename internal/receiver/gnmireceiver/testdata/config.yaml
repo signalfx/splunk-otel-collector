@@ -1,0 +1,30 @@
+gnmi:
+  targets:
+    - endpoint: 10.0.0.1:57400
+      username: admin
+      password: admin
+      encoding: json_ietf
+      redial: 30s
+      tls:
+        insecure: true
+      subscriptions:
+        - path: /interfaces/interface/state/counters
+          origin: openconfig
+          mode: sample
+          sample_interval: 10s
+          default:
+            type: sum
+            unit: "1"
+          overrides:
+            in-octets:
+              type: sum
+              unit: By
+            out-octets:
+              type: sum
+              unit: By
+        - path: /interfaces/interface/state/oper-status
+          mode: on_change
+          heartbeat_interval: 60s
+          overrides:
+            oper-status:
+              type: gauge

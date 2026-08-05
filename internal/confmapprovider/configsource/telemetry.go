@@ -162,6 +162,7 @@ func (t *TelemetryHook) observeConfigSourceUsage(_ context.Context, observer met
 }
 
 var customConfigSources = map[string]struct{}{
+	"cyberark":  {},
 	"env":       {},
 	"etcd2":     {},
 	"include":   {},

@@ -1,0 +1,40 @@
+name: build-instrumentation-package
+
+on:
+  workflow_call:
+    inputs:
+      SYS_PACKAGE:
+        required: true
+        type: string
+      ARCH:
+        required: true
+        type: string
+
+jobs:
+  build-instrumentation-package:
+    runs-on: ${{ inputs.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get injector version
+        id: injector-version
+        run: echo "ref=$(cat instrumentation/packaging/injector-release.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the injector source.
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: open-telemetry/opentelemetry-injector
+          ref: ${{ steps.injector-version.outputs.ref }}
+          path: instrumentation/build/opentelemetry-injector
+
+      - name: Build ${{ inputs.ARCH }} ${{ inputs.SYS_PACKAGE }} package
+        run: make -C instrumentation/ ${{ inputs.SYS_PACKAGE }}-package ARCH="${{ inputs.ARCH }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-${{ inputs.ARCH }}-${{ inputs.SYS_PACKAGE }}
+          path: ./instrumentation/dist/*.${{ inputs.SYS_PACKAGE }}

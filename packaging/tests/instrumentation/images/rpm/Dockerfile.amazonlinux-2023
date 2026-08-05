@@ -29,10 +29,8 @@ COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 
 COPY instrumentation/setup-dotnet.sh /opt
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-    yum install -y libicu && \
-    bash /opt/setup-dotnet.sh; \
-    fi
+RUN yum install -y libicu && \
+    bash /opt/setup-dotnet.sh "$TARGETARCH"
 
 VOLUME [ "/sys/fs/cgroup" ]
 

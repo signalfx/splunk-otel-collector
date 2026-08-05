@@ -149,6 +149,7 @@ require (
 	go.etcd.io/etcd/client/v2 v2.305.33
 	go.opentelemetry.io/collector/component/componentstatus v0.157.0
 	go.opentelemetry.io/collector/component/componenttest v0.157.0
+	go.opentelemetry.io/collector/config/configgrpc v0.157.0
 	go.opentelemetry.io/collector/config/confighttp v0.157.0
 	go.opentelemetry.io/collector/config/confignet v1.63.0
 	go.opentelemetry.io/collector/config/configopaque v1.63.0
@@ -495,7 +496,6 @@ require (
 	go.opentelemetry.io/collector/client v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.63.0 // indirect
-	go.opentelemetry.io/collector/config/configgrpc v0.157.0 // indirect
 	go.opentelemetry.io/collector/config/configmiddleware v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configoptional v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v1.63.0 // indirect

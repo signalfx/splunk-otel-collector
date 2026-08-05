@@ -16,8 +16,8 @@ updates into OpenTelemetry metrics.
 
 ## Configuration
 
-The receiver connects to one or more gNMI `targets`. Each target opens a `Subscribe` 
-stream and can carry multiple path `subscriptions`.
+The receiver opens a long-lived gNMI `Subscribe` stream to each configured target. Each
+stream can contain multiple path `subscriptions`.
 
 ```yaml
 receivers:
@@ -60,7 +60,7 @@ Each target embeds the standard collector [gRPC client settings][configgrpc]
 | `username`      |           | Sent as gNMI gRPC metadata (not an `Authorization` header).        |
 | `password`      |           | Sent as gNMI gRPC metadata. Redacted in logs.                      |
 | `encoding`      | `proto`   | gNMI encoding: `proto`, `json`, or `json_ietf`.                    |
-| `redial`        | `10s`     | Delay before reconnecting after a session failure (min `1s`).      |
+| `redial`        | `10s`     | Delay before reconnecting after a session failure (min `1s`). Set to `0` to disable automatic reconnection. |
 | `tls`           |           | Standard collector TLS client settings.                            |
 | `subscriptions` | (required)| One or more path subscriptions (below).                            |
 
@@ -68,10 +68,10 @@ Each target embeds the standard collector [gRPC client settings][configgrpc]
 
 | Field                | Default   | Description                                                                 |
 | -------------------- | --------- | --------------------------------------------------------------------------- |
-| `path`               | (required)| gNMI path to subscribe to.                                                  |
+| `path`               | (required)| gNMI path to subscribe to. Must be absolute (start with `/`).               |
 | `origin`             |           | YANG model origin (e.g. `openconfig`).                                      |
-| `mode`               | (required)| `sample`, `on_change`, or `target_defined`.                                 |
-| `sample_interval`    |           | Sampling period; required and must be `> 0` when `mode` is `sample`.        |
+| `mode`               | (required)| Per-path mode within a `STREAM` subscription: `sample`, `on_change`, or `target_defined`. The receiver does not support `ONCE` or `POLL` SubscriptionLists. |
+| `sample_interval`    |           | Sampling period. Required and must be `> 0` when `mode` is `sample`; must not be set for other modes. |
 | `heartbeat_interval` |           | Forces an update at this interval even if the value has not changed.        |
 | `suppress_redundant` | `false`   | Skip sending unchanged values.                                              |
 | `default`            |           | Metric `type`/`unit` applied to leaves not matched by `overrides`.          |
@@ -90,5 +90,22 @@ For each leaf the receiver applies the matching `overrides` entry if present, ot
 `default`. **A leaf matched by neither is dropped** (no metric is emitted). A subscription
 must therefore define at least one of `default` or `overrides`.
 
+### Notes on gNMI specification behavior
+
+- **`sample_interval` must be explicit.** The [specification][spec-stream] gives
+  `sample_interval: 0` the meaning "use the target's lowest supported interval". This
+  receiver instead requires an explicit interval `> 0` for `sample` mode, so that the
+  collection rate is always a deliberate choice rather than whatever maximum rate the
+  device will produce.
+- **`sample_interval` is rejected for other modes.** The specification states that a target
+  should reject `target_defined` when a sample interval is supplied, so the receiver fails
+  configuration validation rather than sending an interval that would be rejected or
+  silently ignored.
+- **Default `encoding` is `proto`.** The specification designates JSON as the minimum
+  encoding a target must support, so `proto` may not be available everywhere. The receiver
+  does not perform `Capabilities` negotiation, so set `encoding` explicitly if the target
+  does not support `proto`.
+
 [configgrpc]: https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configgrpc/README.md
 [UCUM]: https://ucum.org/ucum
+[spec-stream]: https://openconfig.net/docs/gnmi/gnmi-specification/#35152-stream-subscriptions

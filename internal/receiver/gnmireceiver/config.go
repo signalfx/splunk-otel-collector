@@ -17,6 +17,7 @@ package gnmireceiver
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -172,12 +173,19 @@ func (s *SubscriptionConfig) Validate() error {
 	if s.Path == "" {
 		return errors.New("path is required")
 	}
+	if !strings.HasPrefix(s.Path, "/") {
+		return fmt.Errorf("path %q must be absolute (start with %q)", s.Path, "/")
+	}
+
 	switch s.Mode {
 	case modeSample:
 		if s.SampleInterval <= 0 {
 			return errors.New("sample_interval must be > 0 for \"sample\" mode")
 		}
 	case modeOnChange, modeTargetDefined:
+		if s.SampleInterval != 0 {
+			return fmt.Errorf("sample_interval must not be set for %q mode", s.Mode)
+		}
 	case "":
 		return errors.New("mode is required")
 	default:

@@ -158,6 +158,36 @@ func TestValidate(t *testing.T) {
 			expectedErr: "heartbeat_interval must be >= 0",
 		},
 		{
+			name: "sample_interval set for on_change",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Mode = modeOnChange
+				c.Targets[0].Subscriptions[0].SampleInterval = 10 * time.Second
+			},
+			expectedErr: "sample_interval must not be set",
+		},
+		{
+			name: "sample_interval set for target_defined",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Mode = modeTargetDefined
+				c.Targets[0].Subscriptions[0].SampleInterval = 10 * time.Second
+			},
+			expectedErr: "sample_interval must not be set",
+		},
+		{
+			name: "on_change without sample_interval is valid",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Mode = modeOnChange
+				c.Targets[0].Subscriptions[0].SampleInterval = 0
+			},
+		},
+		{
+			name: "relative path",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Path = "interfaces/interface"
+			},
+			expectedErr: "must be absolute",
+		},
+		{
 			name: "no default and no overrides",
 			mutate: func(c *Config) {
 				c.Targets[0].Subscriptions[0].Default = nil

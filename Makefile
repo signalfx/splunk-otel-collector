@@ -349,10 +349,6 @@ endif
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux GOARCH=ppc64le $(MAKE) otelcollauncher
-	GOOS=linux GOARCH=ppc64le $(MAKE) opampsupervisor
-endif
 
 .PHONY: deb-rpm-tar-package
 %-package:

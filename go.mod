@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/knadh/koanf v1.5.0
+	github.com/nsqio/go-diskqueue v1.1.1-0.20250912154844-ff2a02e5299f
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider v0.157.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.157.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.157.0
@@ -159,8 +160,11 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.63.0
 	go.opentelemetry.io/collector/confmap/xconfmap v0.157.0
 	go.opentelemetry.io/collector/connector v0.157.0
+	go.opentelemetry.io/collector/connector/connectortest v0.157.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.157.0
+	go.opentelemetry.io/collector/connector/xconnector v0.157.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.157.0
+	go.opentelemetry.io/collector/consumer/xconsumer v0.157.0
 	go.opentelemetry.io/collector/exporter/debugexporter v0.157.0
 	go.opentelemetry.io/collector/exporter/nopexporter v0.157.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.157.0
@@ -170,6 +174,7 @@ require (
 	go.opentelemetry.io/collector/extension/zpagesextension v0.157.0
 	go.opentelemetry.io/collector/otelcol v0.157.0
 	go.opentelemetry.io/collector/pdata v1.63.0
+	go.opentelemetry.io/collector/pdata/pprofile v0.157.0
 	go.opentelemetry.io/collector/pipeline v1.63.0
 	go.opentelemetry.io/collector/processor v1.63.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.157.0
@@ -501,11 +506,8 @@ require (
 	go.opentelemetry.io/collector/config/configretry v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.157.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.63.0 // indirect
-	go.opentelemetry.io/collector/connector/connectortest v0.157.0 // indirect
-	go.opentelemetry.io/collector/connector/xconnector v0.157.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.157.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/xconsumererror v0.157.0 // indirect
-	go.opentelemetry.io/collector/consumer/xconsumer v0.157.0 // indirect
 	go.opentelemetry.io/collector/exporter v1.63.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.157.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/xexporterhelper v0.157.0 // indirect
@@ -521,7 +523,6 @@ require (
 	go.opentelemetry.io/collector/internal/memorylimiter v0.157.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.157.0 // indirect
 	go.opentelemetry.io/collector/internal/telemetry v0.157.0 // indirect
-	go.opentelemetry.io/collector/pdata/pprofile v0.157.0 // indirect
 	go.opentelemetry.io/collector/pdata/testdata v0.157.0 // indirect
 	go.opentelemetry.io/collector/pdata/xpdata v0.157.0 // indirect
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.157.0 // indirect

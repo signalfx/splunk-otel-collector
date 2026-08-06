@@ -5,7 +5,6 @@
 ## Prerequisites
 
 - A HEC token with write permissions to the target index. See <https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector>.
-- The Splunk Distribution of OpenTelemetry Collector installed on a Linux host
 
 ## Install the Collector with log collection enabled
 
@@ -43,7 +42,7 @@ sudo sh /tmp/splunk-otel-collector.sh --realm <realm> \
 
 By default, the Collector tails files under `/var/log` matching common log patterns (`*.log`, `*log`, `*auth*`, `*secure*`, `*messages*`, and others). This mirrors the behavior of the Splunk Add-on for Unix and Linux.
 
-For the full list of included paths and all available receivers, see the [default configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/splunk_logs_config_linux.yaml).
+The full configuration is installed at `/etc/otel/collector/splunk_logs_config_linux.yaml`. For the full list of included paths and all available receivers, see the [default configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/splunk_logs_config_linux.yaml).
 
 Additional receivers are defined in the config but disabled by default:
 
@@ -149,7 +148,7 @@ Path patterns support log-rotation suffixes (e.g. `secure.1`, `secure.2`). For t
 To see all sourcetypes currently being ingested:
 
 ```
-index="<your-index>" | stats count by sourcetype
+index="<your-index>" sourcetype="linux:*" | stats count by sourcetype
 ```
 
 To search for a specific well-known sourcetype:
@@ -157,3 +156,13 @@ To search for a specific well-known sourcetype:
 ```
 index="<your-index>" sourcetype=linux_secure
 ```
+
+To view the Collector's own logs:
+
+```sh
+sudo journalctl -u splunk-otel-collector -f
+```
+
+## Troubleshooting
+
+For help diagnosing common log collection issues, see the [Troubleshoot log collection](https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/troubleshooting/troubleshoot-log-collection) guide.

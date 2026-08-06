@@ -61,7 +61,7 @@ and the [opentelemetry-collector-contrib v0.158.0](https://github.com/open-telem
 - (Splunk) `smartagent/logstash`: Deprecate the monitor ([#7812](https://github.com/signalfx/splunk-otel-collector/pull/7812))
   This monitor is deprecated and will be removed on or after October 2026
 - (Splunk) `smartagent/netio`: The monitor is deprecated. ([#7811](https://github.com/signalfx/splunk-otel-collector/pull/7811))
-  The netio monitor is deprecated and will be removed on or after October 2026. Please use the hostmetricsreceiver instead.
+  The netio monitor is deprecated and will be removed on or after October 2026. Please use the [hostmetrics receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver) instead.
 - (Splunk) `telegraf/mssqlserver`: Deprecate the monitor ([#7867](https://github.com/signalfx/splunk-otel-collector/pull/7867))
   This monitor is deprecated and will be removed on or after October 2026. Please use the [SQL Server receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlserverreceiver) instead.
 - (Splunk) `telegraf/ntpq`: Deprecate the monitor ([#7866](https://github.com/signalfx/splunk-otel-collector/pull/7866))

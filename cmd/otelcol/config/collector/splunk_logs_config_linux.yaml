@@ -1054,9 +1054,6 @@ processors:
           # [source::....syslog] -> syslog
           - set(resource.attributes["com.splunk.sourcetype"], "syslog")
             where IsMatch(resource.attributes["com.splunk.source"], "\\.syslog$")
-          # auth.log gets assigned with a syslog sourcetype in the TA
-          - set(resource.attributes["com.splunk.sourcetype"], "syslog")
-            where IsMatch(resource.attributes["com.splunk.source"], "auth.log$")
           # [source::....dhcpd] -> dhcpd
           - set(resource.attributes["com.splunk.sourcetype"], "dhcpd")
             where IsMatch(resource.attributes["com.splunk.source"], "\\.dhcpd$")
@@ -1155,6 +1152,10 @@ processors:
           # [source::...stash_new] -> stash_new
           - set(resource.attributes["com.splunk.sourcetype"], "stash_new")
             where IsMatch(resource.attributes["com.splunk.source"], "stash_new$")
+          # auth.log gets assigned with a syslog delayed rule [delayedrule::syslog]
+          # auth.log file follows the syslog format so in Splunk it is always assigned with a syslog sourcetype
+          - set(resource.attributes["com.splunk.sourcetype"], "syslog")
+            where IsMatch(resource.attributes["com.splunk.source"], "auth.log$")
 
 exporters:
   splunk_hec/logs:

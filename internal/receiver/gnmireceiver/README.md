@@ -10,9 +10,9 @@ updates into OpenTelemetry metrics.
 | Distributions | [Splunk](https://github.com/signalfx/splunk-otel-collector)                                                                         |
 | [Code Owners](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/CONTRIBUTING.md#becoming-a-code-owner)    | [@jkoronaAtCisco](https://www.github.com/jkoronaAtCisco)                                                                            |
 
-> **Note:** This receiver is in early development. Configuration is defined, but the
-> subscription/streaming engine and metric conversion are still being added, so the
-> receiver does not yet produce telemetry.
+> **Note:** This receiver is in early development. It connects to configured targets and
+> maintains gNMI `Subscribe` streams, but conversion of received updates into metrics is
+> still being added, so the receiver does not yet produce telemetry.
 
 ## Configuration
 

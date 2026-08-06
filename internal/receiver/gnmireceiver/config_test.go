@@ -115,6 +115,16 @@ func TestValidate(t *testing.T) {
 			expectedErr: "invalid encoding",
 		},
 		{
+			name:        "negative redial",
+			mutate:      func(c *Config) { c.Targets[0].Redial = -1 * time.Second },
+			expectedErr: "redial must not be negative",
+		},
+		{
+			name:        "zero redial disables reconnection and is valid",
+			mutate:      func(c *Config) { c.Targets[0].Redial = 0 },
+			expectedErr: "",
+		},
+		{
 			name:        "redial too small",
 			mutate:      func(c *Config) { c.Targets[0].Redial = 500 * time.Millisecond },
 			expectedErr: "redial must be at least 1s",

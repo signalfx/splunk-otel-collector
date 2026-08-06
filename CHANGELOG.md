@@ -16,7 +16,7 @@ and the [opentelemetry-collector-contrib v0.158.0](https://github.com/open-telem
   Delete the telegraf/logparser monitor, which has no support from Telegraf and is no longer in use.
 - (Splunk) `extension/opamp`: Enable the Splunk OpAMP extension (`opamp/splunk_o11y`) by default. ([#7850](https://github.com/signalfx/splunk-otel-collector/pull/7850))
   Promotes the `splunk.opamp.enabled` feature gate to beta which no longer removes the Splunk OpAMP extension (`opamp/splunk_o11y`) by default.
-  If you do not want to use the OpAMP extension, disable the feature gate with `--feature-gates=-splunk.opamp.enabled`. 
+  If you do not want to use the OpAMP extension, disable the feature gate with `--feature-gates=-splunk.opamp.enabled`.
 - (Splunk) `config, installer`: Use `deployment.environment.name` instead of deprecated `deployment.environment` in default configuration files and installer generated resource attributes. ([#7802](https://github.com/signalfx/splunk-otel-collector/pull/7802))
   Existing `--deployment-environment` and `-deployment_env` installer options now emit
   `deployment.environment.name`. For legacy override instructions, see the

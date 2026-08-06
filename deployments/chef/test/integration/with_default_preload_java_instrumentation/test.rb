@@ -1,6 +1,6 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 java_tool_options = '-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
-resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+'
+resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+(?:[-+._~][A-Za-z0-9.+_~-]*)?'
 
 describe package('splunk-otel-auto-instrumentation') do
   it { should be_installed }

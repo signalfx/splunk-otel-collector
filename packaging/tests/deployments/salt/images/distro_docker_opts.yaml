@@ -3,6 +3,7 @@ deb:
   debian-bookworm: ["DISTRO_IMAGE=debian:bookworm"]
   ubuntu-jammy: ["DISTRO_IMAGE=ubuntu:22.04"]
   ubuntu-noble: ["DISTRO_IMAGE=ubuntu:24.04"]
+  ubuntu-resolute: ["DISTRO_IMAGE=ubuntu:26.04"]
 
 rpm:
   amazonlinux-2023: ["DISTRO_IMAGE=amazonlinux:2023"]

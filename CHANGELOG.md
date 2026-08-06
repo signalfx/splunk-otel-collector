@@ -69,7 +69,7 @@ and the [opentelemetry-collector-contrib v0.158.0](https://github.com/open-telem
 - (Splunk) `telegraf/procstat`: Deprecate the monitor ([#7865](https://github.com/signalfx/splunk-otel-collector/pull/7865))
   This monitor is deprecated and will be removed on or after October 2026. Please use the [host_metrics receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver) instead.
 - (Splunk) `telegraf/snmp`: Deprecate the monitor ([#7862](https://github.com/signalfx/splunk-otel-collector/pull/7862))
-  This monitor is deprecated and will be removed on or after October 2026. Please use the [snmpreceiver receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver) instead.
+  This monitor is deprecated and will be removed on or after October 2026. Please use the [snmp receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver) instead.
 - (Splunk) `telegraf/statsd`: Deprecate the monitor. ([#7861](https://github.com/signalfx/splunk-otel-collector/pull/7861))
   This monitor is deprecated and will be removed on or after October 2026. Please use the [statsd receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver) instead.
 - (Splunk) `telegraf/tail`: Deprecate the monitor ([#7864](https://github.com/signalfx/splunk-otel-collector/pull/7864))

@@ -33,7 +33,9 @@ func NewFactory() receiver.Factory {
 }
 
 func createDefaultConfig() component.Config {
-	return &Config{}
+	return &Config{
+		Targets: []TargetConfig{},
+	}
 }
 
 func createMetricsReceiver(

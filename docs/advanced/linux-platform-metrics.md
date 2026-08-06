@@ -6,7 +6,6 @@
 
 - A running Splunk Platform instance (Splunk Enterprise or Splunk Cloud) with a metrics index
 - A HEC token with write permissions to the target metrics index. See <https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector>.
-- The Splunk Distribution of OpenTelemetry Collector installed on a Linux host
 
 ## Install the Collector with metrics collection enabled
 
@@ -40,7 +39,7 @@ sudo sh /tmp/splunk-otel-collector.sh --realm <realm> \
 
 ## What gets collected
 
-By default, the Collector uses the `host_metrics` receiver to collect system metrics from the Linux host at a `10s` collection interval. The default scrapers collect CPU, disk, filesystem, memory, network, load, paging, and process count metrics.
+By default, the Collector uses the `host_metrics` receiver to collect system metrics from the Linux host at a `10s` collection interval. The default scrapers collect CPU, disk, filesystem, memory, network, load, paging, and process count metrics. The full configuration is installed at `/etc/otel/collector/splunk_metrics_config_linux.yaml`.
 
 | **Scraper**  | **Description**                                                                                                                                                                                                                                                  |
 |--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -128,4 +127,10 @@ host_metrics:
 
 ```
 | mpreview index="<your-metrics-index>" | search source=otel
+```
+
+To view the Collector's own logs:
+
+```sh
+sudo journalctl -u splunk-otel-collector -f
 ```

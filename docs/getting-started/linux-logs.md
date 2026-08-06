@@ -5,7 +5,6 @@
 ## Prerequisites
 
 - A HEC token with write permissions to the target index. See <https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector>.
-- The Splunk Distribution of OpenTelemetry Collector installed on a Linux host
 
 ## Install the Collector with log collection enabled
 

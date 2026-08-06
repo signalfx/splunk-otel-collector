@@ -6,7 +6,6 @@
 
 - A running Splunk Platform instance (Splunk Enterprise or Splunk Cloud) with a metrics index
 - A HEC token with write permissions to the target metrics index. See <https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector>.
-- The Splunk Distribution of OpenTelemetry Collector installed on a Linux host
 
 ## Install the Collector with metrics collection enabled
 

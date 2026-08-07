@@ -13,7 +13,7 @@ configuration is required.
 ## Purpose
 
 The Splunk OpenTelemetry Collector supports custom config sources (e.g. `env`, `etcd2`, 
-`include`, `vault`, `zookeeper`) that are initialised before the collector
+`include`, `splunk_secret`, `vault`, `zookeeper`) that are initialised before the collector
 service — and therefore before the service's `MeterProvider` — is available.
 This extension is started by the service with a fully initialised
 `component.TelemetrySettings`. On `Start()` it injects those settings into the
@@ -48,13 +48,14 @@ service:
 
 ### Attribute values for `config_source_type`
 
-| Value       | Config source           |
-|-------------|-------------------------|
-| `env`       | `envvarconfigsource`    |
-| `etcd2`     | `etcd2configsource`     |
-| `include`   | `includeconfigsource`   |
-| `vault`     | `vaultconfigsource`     |
-| `zookeeper` | `zookeeperconfigsource` |
+| Value           | Config source              |
+|-----------------|----------------------------|
+| `env`           | `envvarconfigsource`       |
+| `etcd2`         | `etcd2configsource`        |
+| `include`       | `includeconfigsource`      |
+| `splunk_secret` | `splunksecretconfigsource` |
+| `vault`         | `vaultconfigsource`        |
+| `zookeeper`     | `zookeeperconfigsource`    |
 
 ### Example output
 

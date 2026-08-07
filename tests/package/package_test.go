@@ -41,9 +41,13 @@ const (
 	serviceName       = "splunk-otel-collector"
 	serviceOwner      = "splunk-otel-collector"
 	serviceProcess    = "otelcol"
+	supervisorProcess = "opampsupervisor"
 	envPath           = "/etc/otel/collector/splunk-otel-collector.conf"
 	agentConfigPath   = "/etc/otel/collector/agent_config.yaml"
 	gatewayConfigPath = "/etc/otel/collector/gateway_config.yaml"
+	statePath         = "/var/lib/otelcol"
+	supervisorState   = statePath + "/supervisor"
+	supervisorConfig  = "/etc/otel/collector/supervisor/supervisor_config.yaml"
 )
 
 func TestTarCollectorPackageInstall(t *testing.T) {
@@ -61,7 +65,9 @@ func TestTarCollectorPackageInstall(t *testing.T) {
 
 				bundleDir := "/tmp/splunk-otel-collector"
 				assertExec(t, container, time.Minute, "test -d "+bundleDir+"/bin")
-				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/bin/otelcol")
+				for _, binary := range []string{"otelcol", "otelcollauncher", "opampsupervisor"} {
+					assertExec(t, container, time.Minute, "test -f "+bundleDir+"/bin/"+binary)
+				}
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/config/agent_config.yaml")
 				assertExec(t, container, time.Minute, "test -f "+bundleDir+"/config/gateway_config.yaml")
 			})
@@ -86,6 +92,7 @@ func TestCollectorPackageInstall(t *testing.T) {
 
 				assertExec(t, container, time.Minute, "test -f "+agentConfigPath)
 				assertExec(t, container, time.Minute, "test -f "+gatewayConfigPath)
+				assertPackagedBinaries(t, container)
 
 				time.Sleep(5 * time.Second)
 				require.False(t, serviceIsRunning(t, container), "service should not be running after package install without config")
@@ -95,11 +102,13 @@ func TestCollectorPackageInstall(t *testing.T) {
 				require.Eventually(t, func() bool {
 					return serviceIsRunning(t, container)
 				}, 10*time.Second, time.Second)
+				require.False(t, processIsRunningAs(t, container, serviceOwner, supervisorProcess))
 
 				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
 				require.Eventually(t, func() bool {
 					return serviceIsRunning(t, container)
 				}, 10*time.Second, time.Second)
+				require.False(t, processIsRunningAs(t, container, serviceOwner, supervisorProcess))
 
 				assertExec(t, container, time.Minute, "systemctl stop "+serviceName)
 				time.Sleep(5 * time.Second)
@@ -112,6 +121,63 @@ func TestCollectorPackageInstall(t *testing.T) {
 				time.Sleep(5 * time.Second)
 				require.False(t, serviceIsRunning(t, container), "service should not be running after uninstall")
 				assertExec(t, container, time.Minute, "test -f "+envPath)
+			})
+		}
+	}
+}
+
+func TestCollectorPackageInstallWithSupervisor(t *testing.T) {
+	skipUnlessLinux(t)
+	packageType := skipUnlessPackageType(t, "deb", "rpm")
+
+	for _, distro := range selectedDistros(t, packageType) {
+		for _, arch := range selectedArches(t) {
+			t.Run(fmt.Sprintf("%s/%s", distro, arch), func(t *testing.T) {
+				pkgPath := requirePackage(t, packageType, arch)
+				container := runDistroContainer(t, packageType, distro, arch)
+				defer logJournal(t, container)
+
+				installLibcap(t, container, packageType)
+				copyFileToContainer(t, container, pkgPath)
+				installPackage(t, container, packageType, "/test/"+filepath.Base(pkgPath))
+
+				assertExec(t, container, time.Minute, "cp -f "+envPath+".example "+envPath)
+				assertExec(
+					t,
+					container,
+					time.Minute,
+					"sed -i 's/^SPLUNK_OPAMP_SUPERVISOR_ENABLED=false$/SPLUNK_OPAMP_SUPERVISOR_ENABLED=true/' "+envPath,
+				)
+				assertExec(t, container, time.Minute, "systemctl start "+serviceName)
+				require.Eventually(t, func() bool {
+					return serviceIsRunning(t, container) &&
+						processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+				}, 20*time.Second, time.Second)
+
+				assertExec(t, container, time.Minute, "test -f "+supervisorConfig)
+				assertExec(t, container, time.Minute, "test -d "+supervisorState)
+
+				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
+				require.Eventually(t, func() bool {
+					return serviceIsRunning(t, container) &&
+						processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+				}, 20*time.Second, time.Second)
+
+				assertExec(t, container, time.Minute, "systemctl stop "+serviceName)
+				time.Sleep(5 * time.Second)
+				require.False(t, serviceIsRunning(t, container), "service should stop cleanly")
+				require.False(
+					t,
+					processIsRunningAs(t, container, serviceOwner, serviceProcess),
+					"collector should stop cleanly",
+				)
+				require.False(
+					t,
+					processIsRunningAs(t, container, serviceOwner, supervisorProcess),
+					"supervisor should stop cleanly",
+				)
+
+				uninstallPackage(t, container, packageType)
 			})
 		}
 	}
@@ -138,9 +204,21 @@ func TestCollectorPackageUpgrade(t *testing.T) {
 				copyFileToContainer(t, container, pkgPath)
 				upgradePackage(t, container, packageType, "/test/"+filepath.Base(pkgPath))
 
+				assertPackagedBinaries(t, container)
 				require.Eventually(t, func() bool {
 					return serviceIsRunning(t, container)
 				}, 20*time.Second, time.Second)
+				require.False(t, processIsRunningAs(t, container, serviceOwner, supervisorProcess))
+
+				// Existing installations can opt in to supervisor mode after upgrading.
+				assertExec(t, container, time.Minute, "echo SPLUNK_OPAMP_SUPERVISOR_ENABLED=true >> "+envPath)
+				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
+				require.Eventually(t, func() bool {
+					return serviceIsRunning(t, container) &&
+						processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+				}, 20*time.Second, time.Second)
+				assertExec(t, container, time.Minute, "test -f "+supervisorConfig)
+				assertExec(t, container, time.Minute, "test -d "+supervisorState)
 			})
 		}
 	}
@@ -423,8 +501,20 @@ func serviceIsRunning(t *testing.T, container *testutils.Container) bool {
 func serviceIsRunningAs(t *testing.T, container *testutils.Container, owner string) bool {
 	t.Helper()
 	systemctlCode, _, _ := exec(t, container, time.Minute, "systemctl status "+serviceName)
-	pgrepCode, _, _ := exec(t, container, time.Minute, "pgrep -a -u "+owner+" -f "+serviceProcess)
-	return systemctlCode == 0 && pgrepCode == 0
+	return systemctlCode == 0 && processIsRunningAs(t, container, owner, serviceProcess)
+}
+
+func processIsRunningAs(t *testing.T, container *testutils.Container, owner, process string) bool {
+	t.Helper()
+	pgrepCode, _, _ := exec(t, container, time.Minute, "pgrep -a -u "+owner+" -x "+process)
+	return pgrepCode == 0
+}
+
+func assertPackagedBinaries(t *testing.T, container *testutils.Container) {
+	t.Helper()
+	for _, binary := range []string{"/usr/bin/otelcol", "/usr/bin/otelcollauncher", "/usr/bin/opampsupervisor"} {
+		assertExec(t, container, time.Minute, "test -x "+binary)
+	}
 }
 
 func logJournal(t *testing.T, container *testutils.Container) {

@@ -86,10 +86,6 @@ and the [opentelemetry-collector-contrib v0.158.0](https://github.com/open-telem
   The field continues to work but will emit a deprecation warning in the logs when set and
   code will be removed later.
 
-### 🚀 New components 🚀
-
-- (Splunk) `gnmireceiver`: Add skeleton for the gNMI receiver (metrics, in development). No telemetry is produced yet. ([#7857](https://github.com/signalfx/splunk-otel-collector/pull/7857))
-
 ### 💡 Enhancements 💡
 
 - (Splunk) `otelcol`: Support upstream featuregate subcommand to list available feature gates and display details for a specific feature gate. ([#7886](https://github.com/signalfx/splunk-otel-collector/pull/7886))

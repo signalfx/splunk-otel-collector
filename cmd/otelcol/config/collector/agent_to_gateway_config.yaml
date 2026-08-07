@@ -46,7 +46,7 @@ extensions:
     endpoint: ${SPLUNK_LISTEN_INTERFACE}:13133
   http_forwarder:
     egress:
-      endpoint: ${SPLUNK_API_URL}
+      endpoint: ${SPLUNK_GATEWAY_URL}
     ingress:
       endpoint: ${SPLUNK_LISTEN_INTERFACE}:6060
   http_forwarder/opamp_splunk_o11y:

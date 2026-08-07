@@ -86,6 +86,16 @@ and the [opentelemetry-collector-contrib v0.158.0](https://github.com/open-telem
   The field continues to work but will emit a deprecation warning in the logs when set and
   code will be removed later.
 
+### 🚀 New components 🚀
+
+- (Splunk) `splunk_secret`: Add a new `splunk_secret` config provider to allow retrieving secrets stored in Splunk's secret storage. ([#7852](https://github.com/signalfx/splunk-otel-collector/pull/7852))
+  Secrets stored via Splunk's [secret storage](https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/secretstorage)
+  can now be referenced directly in the collector configuration, e.g.
+  `${splunk_secret:myrealm:myuser}`. See the
+  [splunk_secret docs](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/configsource/splunksecretconfigsource/README.md)
+  for details. As any config provider it can also be directly used in the [Splunk Add-on for OpenTelemetry Collector](https://splunkbase.splunk.com/app/7125)
+  configuration, see [Support config providers in TA configuration](https://github.com/signalfx/splunk-otel-collector/pull/7782).
+
 ### 💡 Enhancements 💡
 
 - (Splunk) `otelcol`: Support upstream featuregate subcommand to list available feature gates and display details for a specific feature gate. ([#7886](https://github.com/signalfx/splunk-otel-collector/pull/7886))

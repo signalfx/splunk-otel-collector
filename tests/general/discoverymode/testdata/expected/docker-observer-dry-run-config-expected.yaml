@@ -19,6 +19,7 @@ processors:
 receivers:
   discovery/docker_observer:
     embed_receiver_config: true
+    receivers:
     watch_observers: [docker_observer]
 service:
   extensions: [zpages, docker_observer]

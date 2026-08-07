@@ -33,8 +33,8 @@ const (
 	attributeValueSlow     = "slow"
 	attributeValueVerySlow = "very_slow"
 
-	metricActiveBaselines = "rolling_span_latency_active_baselines"
-	metricDroppedKeys     = "rolling_span_latency_dropped_keys_total"
+	metricActiveBaselines = "processor_rolling_span_latency_active_baselines"
+	metricDroppedKeys     = "processor_rolling_span_latency_dropped_keys_total"
 )
 
 type rollingSpanLatencyProcessor struct {

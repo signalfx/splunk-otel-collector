@@ -1665,14 +1665,17 @@ github.com/splunk/tarunner v0.0.0-20260807094505-7e1dacd5c1f4 h1:/KQ125wq3un3Sbw
 github.com/splunk/tarunner v0.0.0-20260807094505-7e1dacd5c1f4/go.mod h1:Su1GIrjguDkrNqmJhW1pAI4CEpQUsh5k2bCmtRdAlfQ=
 github.com/splunk/tarunner v0.0.0-20260807130108-5041c8c32fed h1:CUaInnxzwRi8PMvFc0gEU1YHM3kuibceNFcRk03oSi4=
 github.com/splunk/tarunner v0.0.0-20260807130108-5041c8c32fed/go.mod h1:EQ9+46d9a0ldO65loMa0zHjYnlfxcIHbKACMCodbl8U=
+github.com/splunk/tarunner v0.0.0-20260807133206-956a31f7491d/go.mod h1:EQ9+46d9a0ldO65loMa0zHjYnlfxcIHbKACMCodbl8U=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260807094505-7e1dacd5c1f4 h1:xGaX1TEyuhcoY4eOhmcE/zD4S+A6DNVMP5mG60IVy5A=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260807094505-7e1dacd5c1f4/go.mod h1:lef2LGM1oLy/e6OVhC+9Bh/25p21LKDTNS1vo/WjNZE=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260807130108-5041c8c32fed h1:YJ50X1onuGo1IP1K2RzuoHYSITlfTLJsY7dphDVAL9M=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260807130108-5041c8c32fed/go.mod h1:lef2LGM1oLy/e6OVhC+9Bh/25p21LKDTNS1vo/WjNZE=
+github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260807133206-956a31f7491d/go.mod h1:lef2LGM1oLy/e6OVhC+9Bh/25p21LKDTNS1vo/WjNZE=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260807094505-7e1dacd5c1f4 h1:IQ6+rQD7Q4Whn/BIrLLYagWWLiHFALwCeawRyBPwmUc=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260807094505-7e1dacd5c1f4/go.mod h1:fQxztYy1qvMtZo327IYEbjtt6N1cmuBO8CzH6HKd5kc=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260807130108-5041c8c32fed h1:uCu7cFPbEd9nuf6tv5N4HWTluchssYZ7pUgjluAeM8U=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260807130108-5041c8c32fed/go.mod h1:7N12nstLFr+6fIdut7hgmY5Qwc2yjNF1InbBiH3pdcE=
+github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260807133206-956a31f7491d/go.mod h1:7N12nstLFr+6fIdut7hgmY5Qwc2yjNF1InbBiH3pdcE=
 github.com/stackitcloud/stackit-sdk-go/core v0.26.0 h1:jQEb9gkehfp6VCP6TcYk7BI10cz4l0KM2L6hqYBH2QA=
 github.com/stackitcloud/stackit-sdk-go/core v0.26.0/go.mod h1:WU1hhxnjXw2EV7CYa1nlEvNpMiRY6CvmIOaHuL3pOaA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

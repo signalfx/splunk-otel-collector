@@ -22,6 +22,10 @@ can use the following resources:
 - [`Dockerfile.windows`](./Dockerfile.windows): A Windows image that installs
   the Splunk Universal Forwarder and prepares the environment by adding necessary
   folders and setting permissions. See comments in the Dockerfile for more details.
+  The admin account is created with username `admin` and a password that must
+  be supplied at build time with `--build-arg SPLUNK_ADMIN_PASSWORD=<password>`
+  (the build fails if it is not set), so the REST API at `localhost:8089`
+  (mapped by `run-local-package-in-container.ps1`) can be used to authenticate.
 - [`run-local-package-in-container.ps1`](./run-local-package-in-container.ps1):
   This PowerShell script automates the testing of the Splunk Technical Add-on (TA)
   for OpenTelemetry Collector by spinning up a Windows-based Splunk Universal

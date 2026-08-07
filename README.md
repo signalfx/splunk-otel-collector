@@ -136,6 +136,7 @@ In addition, the following components can be configured:
   - [Environment variables](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/envvarconfigsource)
   - [Etcd2](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/etcd2configsource)
   - [Include](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/includeconfigsource)
+  - [Splunk Secret Storage](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/splunksecretconfigsource)
   - [Vault](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
   - [Zookeeper](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
 - SignalFx Smart Agent

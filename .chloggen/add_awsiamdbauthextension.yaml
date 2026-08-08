@@ -8,7 +8,7 @@ component: extension/aws_iam_db_auth
 note: "Added `aws_iam_db_auth` extension component to the distribution."
 
 # One or more tracking issues related to the change
-issues: [https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/49044]
+issues: [7898]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

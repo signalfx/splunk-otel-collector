@@ -26,6 +26,7 @@ import (
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []string{
 		"ack",
+		"aws_iam_db_auth",
 		"basicauth",
 		"bearertokenauth",
 		"config_source_telemetry",

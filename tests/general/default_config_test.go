@@ -457,7 +457,13 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"host_metrics": map[string]any{
 						"collection_interval": "10s",
 						"scrapers": map[string]any{
-							"cpu":        nil,
+							"cpu": map[string]any{
+								"metrics": map[string]any{
+									"system.cpu.logical.count": map[string]any{
+										"enabled": true,
+									},
+								},
+							},
 							"disk":       nil,
 							"filesystem": nil,
 							"load":       nil,

@@ -26,23 +26,31 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/receivertest"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver/internal/metadata"
+	rcvrmetadata "github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver/internal/metadata"
 )
 
 type mockGNMIServer struct {
 	gnmipb.UnimplementedGNMIServer
 	lastReq      *gnmipb.SubscribeRequest
+	lastMD       metadata.MD
 	updates      int
 	mu           sync.Mutex
 	subscribeHit atomic.Int32
 	failFirst    atomic.Bool
 	sendError    bool
+	// silent accepts the subscription but never responds, so tests can tell
+	// "request sent" apart from "target responded".
+	silent bool
 }
 
 func (m *mockGNMIServer) lastRequest() *gnmipb.SubscribeRequest {
@@ -51,13 +59,21 @@ func (m *mockGNMIServer) lastRequest() *gnmipb.SubscribeRequest {
 	return m.lastReq
 }
 
+func (m *mockGNMIServer) lastMetadata() metadata.MD {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.lastMD
+}
+
 func (m *mockGNMIServer) Subscribe(stream gnmipb.GNMI_SubscribeServer) error {
 	req, err := stream.Recv()
 	if err != nil {
 		return err
 	}
+	md, _ := metadata.FromIncomingContext(stream.Context())
 	m.mu.Lock()
 	m.lastReq = req
+	m.lastMD = md.Copy()
 	m.mu.Unlock()
 	m.subscribeHit.Add(1)
 
@@ -67,6 +83,10 @@ func (m *mockGNMIServer) Subscribe(stream gnmipb.GNMI_SubscribeServer) error {
 
 	if m.sendError {
 		return status.Error(codes.InvalidArgument, "simulated subscription error")
+	}
+	if m.silent {
+		<-stream.Context().Done()
+		return nil
 	}
 	if err := stream.Send(&gnmipb.SubscribeResponse{
 		Response: &gnmipb.SubscribeResponse_SyncResponse{SyncResponse: true},
@@ -130,7 +150,7 @@ func TestReceiverStartShutdown(t *testing.T) {
 
 	cfg := &Config{Targets: []TargetConfig{testTarget(addr)}}
 	sink := new(consumertest.MetricsSink)
-	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(metadata.Type), sink)
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
 
 	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
 	require.Eventually(t, func() bool {
@@ -147,9 +167,98 @@ func TestReceiverStartShutdown(t *testing.T) {
 	require.NoError(t, r.Shutdown(context.Background()))
 }
 
+func TestSubscriptionEstablishedLoggedOnlyAfterResponse(t *testing.T) {
+	core, logs := observer.New(zap.InfoLevel)
+	settings := receivertest.NewNopSettings(rcvrmetadata.Type)
+	settings.Logger = zap.New(core)
+
+	silentSrv := &mockGNMIServer{silent: true}
+	addr, stop := startMockServer(t, silentSrv)
+	defer stop()
+
+	target := testTarget(addr)
+	cfg := &Config{Targets: []TargetConfig{target}}
+	r := newGNMIReceiver(cfg, settings, new(consumertest.MetricsSink))
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	require.Eventually(t, func() bool {
+		return silentSrv.subscribeHit.Load() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+	assert.Empty(t, logs.FilterMessage("gNMI subscription established").All(),
+		"established must not be logged before the target responds")
+	require.NoError(t, r.Shutdown(context.Background()))
+
+	core2, logs2 := observer.New(zap.InfoLevel)
+	settings2 := receivertest.NewNopSettings(rcvrmetadata.Type)
+	settings2.Logger = zap.New(core2)
+
+	srv := &mockGNMIServer{updates: 1}
+	addr2, stop2 := startMockServer(t, srv)
+	defer stop2()
+
+	cfg2 := &Config{Targets: []TargetConfig{testTarget(addr2)}}
+	r2 := newGNMIReceiver(cfg2, settings2, new(consumertest.MetricsSink))
+	require.NoError(t, r2.Start(context.Background(), componenttest.NewNopHost()))
+	require.Eventually(t, func() bool {
+		return len(logs2.FilterMessage("gNMI subscription established").All()) == 1
+	}, 3*time.Second, 10*time.Millisecond)
+	require.NoError(t, r2.Shutdown(context.Background()))
+}
+
+func TestCredentialMetadata(t *testing.T) {
+	tests := []struct {
+		name             string
+		username         string
+		password         string
+		expectedUser     []string
+		expectedPassword []string
+	}{
+		{
+			name:             "username and password",
+			username:         "admin",
+			password:         "secret",
+			expectedUser:     []string{"admin"},
+			expectedPassword: []string{"secret"},
+		},
+		{
+			name:             "username only omits password",
+			username:         "admin",
+			expectedUser:     []string{"admin"},
+			expectedPassword: nil,
+		},
+		{
+			name:             "no credentials",
+			expectedUser:     nil,
+			expectedPassword: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := &mockGNMIServer{updates: 1}
+			addr, stop := startMockServer(t, srv)
+			defer stop()
+
+			target := testTarget(addr)
+			target.Username = configopaque.String(tt.username)
+			target.Password = configopaque.String(tt.password)
+			cfg := &Config{Targets: []TargetConfig{target}}
+			r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
+
+			require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+			require.Eventually(t, func() bool {
+				return srv.subscribeHit.Load() >= 1
+			}, 3*time.Second, 10*time.Millisecond)
+			md := srv.lastMetadata()
+			assert.Equal(t, tt.expectedUser, md.Get("username"))
+			assert.Equal(t, tt.expectedPassword, md.Get("password"))
+			require.NoError(t, r.Shutdown(context.Background()))
+		})
+	}
+}
+
 func TestReceiverShutdownWithoutStart(t *testing.T) {
 	cfg := &Config{Targets: []TargetConfig{testTarget("localhost:1")}}
-	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(metadata.Type), new(consumertest.MetricsSink))
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
 
 	require.NoError(t, r.Shutdown(context.Background()))
 }
@@ -163,7 +272,7 @@ func TestReceiverRedialsAfterSessionFailure(t *testing.T) {
 	target := testTarget(addr)
 	target.Redial = 100 * time.Millisecond
 	cfg := &Config{Targets: []TargetConfig{target}}
-	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(metadata.Type), new(consumertest.MetricsSink))
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
 
 	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
 	require.Eventually(t, func() bool {
@@ -181,7 +290,7 @@ func TestReceiverRedialDisabledStopsAfterFailure(t *testing.T) {
 	target := testTarget(addr)
 	target.Redial = 0
 	cfg := &Config{Targets: []TargetConfig{target}}
-	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(metadata.Type), new(consumertest.MetricsSink))
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
 
 	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
 	require.Eventually(t, func() bool {
@@ -200,7 +309,7 @@ func TestSubscriptionErrorEndsSession(t *testing.T) {
 	target := testTarget(addr)
 	target.Redial = 100 * time.Millisecond
 	cfg := &Config{Targets: []TargetConfig{target}}
-	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(metadata.Type), new(consumertest.MetricsSink))
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
 
 	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
 	require.Eventually(t, func() bool {
@@ -213,7 +322,7 @@ func TestReceiverStartFailsOnInvalidPath(t *testing.T) {
 	target := testTarget("localhost:57400")
 	target.Subscriptions[0].Path = "/interfaces/interface[]/state"
 	cfg := &Config{Targets: []TargetConfig{target}}
-	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(metadata.Type), new(consumertest.MetricsSink))
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
 
 	err := r.Start(context.Background(), componenttest.NewNopHost())
 	require.Error(t, err)

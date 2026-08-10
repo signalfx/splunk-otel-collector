@@ -105,10 +105,11 @@ func (c *gnmiClient) connect(ctx context.Context) error {
 func (c *gnmiClient) subscribe(ctx context.Context) error {
 	streamCtx := ctx
 	if c.target.Username != "" {
-		streamCtx = metadata.AppendToOutgoingContext(ctx,
-			"username", string(c.target.Username),
-			"password", string(c.target.Password),
-		)
+		kv := []string{"username", string(c.target.Username)}
+		if c.target.Password != "" {
+			kv = append(kv, "password", string(c.target.Password))
+		}
+		streamCtx = metadata.AppendToOutgoingContext(ctx, kv...)
 	}
 
 	client := gnmipb.NewGNMIClient(c.conn)
@@ -122,12 +123,14 @@ func (c *gnmiClient) subscribe(ctx context.Context) error {
 		return err
 	}
 	if err := stream.Send(req); err != nil {
-		return err
+		if !errors.Is(err, io.EOF) {
+			return err
+		}
+		c.logger.Debug("gNMI subscribe request send returned EOF, reading stream status",
+			zap.String("endpoint", c.target.ClientConfig.Endpoint))
 	}
-	c.logger.Info("gNMI subscription established",
-		zap.String("endpoint", c.target.ClientConfig.Endpoint),
-		zap.Int("subscriptions", len(c.target.Subscriptions)))
 
+	established := false
 	for {
 		resp, recvErr := stream.Recv()
 		if recvErr != nil {
@@ -135,6 +138,13 @@ func (c *gnmiClient) subscribe(ctx context.Context) error {
 				return nil
 			}
 			return recvErr
+		}
+
+		if !established {
+			established = true
+			c.logger.Info("gNMI subscription established",
+				zap.String("endpoint", c.target.ClientConfig.Endpoint),
+				zap.Int("subscriptions", len(c.target.Subscriptions)))
 		}
 
 		metrics, parseErr := c.parser.parse(resp)

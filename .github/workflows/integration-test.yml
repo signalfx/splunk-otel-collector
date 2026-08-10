@@ -19,7 +19,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-environment
@@ -41,7 +41,7 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -115,7 +115,7 @@ jobs:
       fail-fast: false
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -149,7 +149,7 @@ jobs:
       COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       # Multiarch images require more disk space
@@ -247,7 +247,7 @@ jobs:
     needs: [ "otelcol" ]
     strategy:
       matrix:
-        RUNNER: [ "ubuntu-22.04", "ubuntu-24.04" ]
+        RUNNER: [ "ubuntu-22.04", "ubuntu-24.04", "ubuntu-26.04" ]
         PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:
@@ -255,7 +255,7 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Free up disk space for next step
@@ -359,7 +359,7 @@ jobs:
       env:
         COVER_TESTING: true
       steps:
-        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           with:
             fetch-depth: 0
         - name: Free up disk space for next step
@@ -427,7 +427,7 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Free up disk space for next step

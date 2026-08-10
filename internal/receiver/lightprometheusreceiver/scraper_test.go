@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/confmap/xconfmap"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 	conventions "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -104,7 +104,7 @@ func TestScraper(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := tt.cfg
 			cfg.ClientConfig.Endpoint = fmt.Sprintf("%s%s", promMock.URL, "/metrics")
-			require.NoError(t, xconfmap.Validate(cfg))
+			require.NoError(t, confmap.Validate(cfg))
 
 			scraper := newScraper(receivertest.NewNopSettings(receivertest.NopType), cfg)
 

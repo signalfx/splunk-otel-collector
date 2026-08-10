@@ -53,7 +53,7 @@ BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
 EXCLUDE_MODS=-not -path "./examples/*" -not -path "./packaging/technical-addon/*"
-FIND_MOD_ARGS=-type f -name "go.mod"
+FIND_MOD_ARGS=-type f -name "*.go"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 

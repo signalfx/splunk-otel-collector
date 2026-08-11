@@ -169,6 +169,7 @@ service:
 	var runtimeConfig SupervisorConfig
 	readYAML(t, paths.RuntimeSupervisorConfig, &runtimeConfig)
 	runtimeYAML := readFile(t, paths.RuntimeSupervisorConfig)
+	assert.True(t, bytes.HasPrefix([]byte(runtimeYAML), []byte(runtimeSupervisorConfigHeader)))
 
 	assert.Equal(t, "https://custom.example/v1/opamp", supervisorConfig.Server.Endpoint)
 	assert.Equal(t, map[string]any{"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"}, supervisorConfig.Server.Headers)
@@ -177,8 +178,10 @@ service:
 	assertMinimalCapabilities(t, supervisorConfig.Capabilities)
 	assertMinimalCapabilitiesYAML(t, paths.SupervisorConfig)
 	assert.True(t, supervisorConfig.Agent.Description.IncludeResourceAttributes)
+	assert.Equal(t, paths.BootstrapTimeout, supervisorConfig.Agent.BootstrapTimeout)
 	assert.Equal(t, paths.ConfigApplyTimeout, supervisorConfig.Agent.ConfigApplyTimeout)
 	assert.Contains(t, supervisorYAML, "include_resource_attributes: true")
+	assert.Contains(t, supervisorYAML, "bootstrap_timeout: "+paths.BootstrapTimeout)
 	assert.Contains(t, supervisorYAML, "config_apply_timeout: "+paths.ConfigApplyTimeout)
 	assert.Contains(t, supervisorYAML, managedAgentComment)
 	assert.Contains(t, supervisorYAML, "# "+managedAgentComment+"\nagent:\n")
@@ -186,6 +189,10 @@ service:
 	assert.Empty(t, supervisorConfig.Agent.ConfigFiles)
 	assert.Empty(t, supervisorConfig.Agent.Args)
 	assert.Equal(t, paths.CollectorExecutable, runtimeConfig.Agent.Executable)
+	assert.Equal(t, paths.BootstrapTimeout, runtimeConfig.Agent.BootstrapTimeout)
+	assert.Equal(t, paths.ConfigApplyTimeout, runtimeConfig.Agent.ConfigApplyTimeout)
+	assert.Contains(t, runtimeYAML, "bootstrap_timeout: "+paths.BootstrapTimeout)
+	assert.Contains(t, runtimeYAML, "config_apply_timeout: "+paths.ConfigApplyTimeout)
 	require.Len(t, runtimeConfig.Agent.ConfigFiles, 1)
 	managedConfigPath := runtimeConfig.Agent.ConfigFiles[0]
 	assert.Equal(t, []string{
@@ -283,6 +290,7 @@ service:
 
 	var baseManagedConfig map[string]any
 	readYAML(t, baseManagedPath, &baseManagedConfig)
+	assert.False(t, bytes.HasPrefix([]byte(readFile(t, baseManagedPath)), []byte(runtimeSupervisorConfigHeader)))
 	extensions := baseManagedConfig["extensions"].(map[string]any)
 	assert.Contains(t, extensions, "health_check")
 	assert.NotContains(t, extensions, opampSplunkExtension)
@@ -1038,7 +1046,7 @@ func TestWriteYAMLErrors(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			path, value := tt.setup(t, t.TempDir())
-			err := writeYAML(path, value)
+			err := writeYAML(path, value, "")
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
@@ -1105,6 +1113,7 @@ func testPaths(dir string) Paths {
 		RuntimeSupervisorConfig:     filepath.Join(filepath.Dir(supervisorConfig), "supervisor_runtime_config.yaml"),
 		GeneratedCollectorConfigDir: filepath.Dir(supervisorConfig),
 		DefaultAgentConfig:          filepath.Join(dir, "agent_config.yaml"),
+		BootstrapTimeout:            "1m",
 		ConfigApplyTimeout:          "1m",
 		UseHUPConfigReload:          true,
 	}

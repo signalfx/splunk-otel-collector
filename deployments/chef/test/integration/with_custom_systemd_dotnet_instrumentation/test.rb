@@ -1,5 +1,5 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
-resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+-systemd,deployment.environment.name=test'
+resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+(?:[-+._~][A-Za-z0-9.+_~-]*)?-systemd,deployment.environment.name=test'
 otlp_endpoint = 'http://0.0.0.0:4317'
 dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet'
 

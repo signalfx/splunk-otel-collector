@@ -1,5 +1,5 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
-resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+'
+resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+(?:[-+._~][A-Za-z0-9.+_~-]*)?'
 dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet'
 
 describe package('splunk-otel-auto-instrumentation') do

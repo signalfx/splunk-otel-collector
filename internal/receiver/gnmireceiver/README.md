@@ -10,9 +10,9 @@ updates into OpenTelemetry metrics.
 | Distributions | [Splunk](https://github.com/signalfx/splunk-otel-collector)                                                                         |
 | [Code Owners](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/CONTRIBUTING.md#becoming-a-code-owner)    | [@jkoronaAtCisco](https://www.github.com/jkoronaAtCisco)                                                                            |
 
-> **Note:** This receiver is in early development. Configuration is defined, but the
-> subscription/streaming engine and metric conversion are still being added, so the
-> receiver does not yet produce telemetry.
+> **Note:** This receiver is in early development. It connects to configured targets and
+> maintains gNMI `Subscribe` streams, but conversion of received updates into metrics is
+> still being added, so the receiver does not yet produce telemetry.
 
 ## Configuration
 
@@ -57,8 +57,8 @@ Each target embeds the standard collector [gRPC client settings][configgrpc]
 | Field           | Default   | Description                                                        |
 | --------------- | --------- | ------------------------------------------------------------------ |
 | `endpoint`      | (required)| `host:port` of the gNMI target.                                    |
-| `username`      |           | Sent as gNMI gRPC metadata (not an `Authorization` header).        |
-| `password`      |           | Sent as gNMI gRPC metadata. Redacted in logs.                      |
+| `username`      |           | Sent as gNMI gRPC metadata (not an `Authorization` header). |
+| `password`      |           | Sent as gNMI gRPC metadata alongside `username`. Redacted in logs. Requires `username`. |
 | `encoding`      | `proto`   | gNMI encoding: `proto`, `json`, or `json_ietf`.                    |
 | `redial`        | `10s`     | Delay before reconnecting after a session failure (min `1s`). Set to `0` to disable automatic reconnection. |
 | `tls`           |           | Standard collector TLS client settings.                            |
@@ -90,6 +90,19 @@ For each leaf the receiver applies the matching `overrides` entry if present, ot
 `default`. **A leaf matched by neither is dropped** (no metric is emitted). A subscription
 must therefore define at least one of `default` or `overrides`.
 
+### Credentials
+
+Credentials are sent as gNMI AAA gRPC metadata rather than an `Authorization`
+header. Per [section 3.1 of the specification][spec-auth], the metadata must contain a
+username and may include a password, and the two cases mean different things:
+
+- `username` **and** `password` — the target authenticates *and* authorizes the RPC.
+- `username` only — the target authorizes the RPC.
+
+The receiver therefore omits the `password` metadata key entirely when no password is
+configured, rather than sending an empty one (which would be an authentication attempt
+with a blank password). Setting `password` without `username` is rejected at startup.
+
 ### Notes on gNMI specification behavior
 
 - **`sample_interval` must be explicit.** The [specification][spec-stream] gives
@@ -109,3 +122,4 @@ must therefore define at least one of `default` or `overrides`.
 [configgrpc]: https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configgrpc/README.md
 [UCUM]: https://ucum.org/ucum
 [spec-stream]: https://openconfig.net/docs/gnmi/gnmi-specification/#35152-stream-subscriptions
+[spec-auth]: https://openconfig.net/docs/gnmi/gnmi-specification/#31-session-security-authentication-and-rpc-authorization

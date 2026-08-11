@@ -40,9 +40,9 @@ func createDefaultConfig() component.Config {
 
 func createMetricsReceiver(
 	_ context.Context,
-	_ receiver.Settings,
-	_ component.Config,
-	_ consumer.Metrics,
+	settings receiver.Settings,
+	cfg component.Config,
+	nextConsumer consumer.Metrics,
 ) (receiver.Metrics, error) {
-	return &gnmiReceiver{}, nil
+	return newGNMIReceiver(cfg.(*Config), settings, nextConsumer), nil
 }

@@ -73,6 +73,7 @@ type Paths struct {
 	GeneratedCollectorConfigDir string
 	StorageDirectory            string
 	DefaultAgentConfig          string
+	BootstrapTimeout            string
 	ConfigApplyTimeout          string
 	UseHUPConfigReload          bool
 }
@@ -125,6 +126,7 @@ type supervisorTelemetryLogs struct {
 type supervisorAgent struct {
 	Env                map[string]string          `yaml:"env,omitempty"`
 	Executable         string                     `yaml:"executable,omitempty"`
+	BootstrapTimeout   string                     `yaml:"bootstrap_timeout"`
 	ConfigApplyTimeout string                     `yaml:"config_apply_timeout"`
 	ConfigFiles        []string                   `yaml:"config_files,omitempty"`
 	Args               []string                   `yaml:"args,omitempty"`
@@ -603,6 +605,7 @@ func initialSupervisorConfig(paths Paths, collectorConfigs []collectorConfigInpu
 		},
 		Agent: supervisorAgent{
 			Description:        supervisorAgentDescription{IncludeResourceAttributes: true},
+			BootstrapTimeout:   paths.BootstrapTimeout,
 			ConfigApplyTimeout: paths.ConfigApplyTimeout,
 			PassthroughLogs:    true,
 			UseHUPConfigReload: paths.UseHUPConfigReload,

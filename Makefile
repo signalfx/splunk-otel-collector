@@ -304,7 +304,7 @@ docker-otelcol:
 	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64
+binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64 binaries-linux_s390x binaries-windows_386
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
@@ -342,9 +342,17 @@ ifeq ($(WITH_OPAMP_SUPERVISOR), true)
 	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
 endif
 
+.PHONY: binaries-windows_386
+binaries-windows_386:
+	GOOS=windows GOARCH=386 EXTENSION=.exe $(MAKE) otelcol
+
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
+
+.PHONY: binaries-linux_s390x
+binaries-linux_s390x:
+	GOOS=linux GOARCH=s390x $(MAKE) otelcol
 
 .PHONY: deb-rpm-tar-package
 %-package:

@@ -71,7 +71,7 @@ jobs:
           ignore_words_list: AKS
           skip: "./internal/signalfx-agent,*.sum,*.mod"
       - name: Spell check - crate-ci/typos
-        uses: crate-ci/typos@bee27e3a4fd1ea2111cf90ab89cd076c870fce14 # v1.48.0
+        uses: crate-ci/typos@8a48f81b6c64dcfea44b3633223084c4be58ac5f # v1.49.0
         with:
           config: ./.typos.toml
 
@@ -148,7 +148,7 @@ jobs:
   cross-compile:
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-windows_arm64", "binaries-linux_ppc64le" ]
+        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-windows_arm64", "binaries-linux_ppc64le", "binaries-linux_s390x", "binaries-windows_386" ]
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}

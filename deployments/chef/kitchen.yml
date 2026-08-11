@@ -132,6 +132,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -142,6 +143,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -162,6 +164,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -173,6 +176,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -263,6 +267,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -275,6 +280,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -297,6 +303,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -310,6 +317,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true

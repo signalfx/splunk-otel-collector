@@ -8,12 +8,14 @@ on:
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - 'instrumentation/**'
       - 'packaging/msi/**'
       - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - 'instrumentation/**'
       - 'packaging/msi/**'
       - '!**.md'
   schedule:
@@ -49,6 +51,29 @@ jobs:
     with:
       SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
       ARCH: ${{ matrix.ARCH }}
+
+  build-auto-instrumentation-package:
+    needs: [ chef-lint-spec-test ]
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        SYS_PACKAGE: [ "deb", "rpm" ]
+        ARCH: [ "amd64" ]
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Build ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} auto-instrumentation package
+        run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
+
+      - name: Upload ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} auto-instrumentation package
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
+          path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
 
   msi-custom-actions:
     needs: [ chef-lint-spec-test ]
@@ -116,7 +141,7 @@ jobs:
 
   chef-kitchen-linux:
     runs-on: ubuntu-24.04
-    needs: [ chef-lint-spec-test, chef-kitchen-matrix, build-package ]
+    needs: [ chef-lint-spec-test, chef-kitchen-matrix, build-package, build-auto-instrumentation-package ]
     defaults:
       run:
         working-directory: 'deployments/chef'
@@ -149,6 +174,10 @@ jobs:
           mv "$deb_path" ./files/soc.deb
           rpm_path=$(find /tmp/rpm-amd64-package/splunk-otel-collector*x86_64.rpm)
           mv "$rpm_path" ./files/soc.rpm
+          auto_deb_path=$(find /tmp/splunk-otel-auto-instrumentation-amd64-deb/splunk-otel-auto-instrumentation*amd64.deb)
+          mv "$auto_deb_path" ./files/soai.deb
+          auto_rpm_path=$(find /tmp/splunk-otel-auto-instrumentation-amd64-rpm/splunk-otel-auto-instrumentation*x86_64.rpm)
+          mv "$auto_rpm_path" ./files/soai.rpm
 
       - name: Install chef
         uses: actionshub/chef-install@f3b35943a257c25f3ca69e3b773fa4e0e99b58d6 # 6.0.0

@@ -46,7 +46,10 @@ func pathsForExecutable(launcherExecutable string) Paths {
 		GeneratedCollectorConfigDir: supervisorConfigDir,
 		StorageDirectory:            "/var/lib/otelcol/supervisor",
 		DefaultAgentConfig:          filepath.Join(configDir, "agent_config.yaml"),
-		ConfigApplyTimeout:          "1m",
-		UseHUPConfigReload:          true,
+		// Allow the collector to start before a SIGHUP reload when the supervisor
+		// receives remote config immediately after startup.
+		BootstrapTimeout:   "1m",
+		ConfigApplyTimeout: "2m",
+		UseHUPConfigReload: true,
 	}
 }

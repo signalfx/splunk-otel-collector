@@ -178,8 +178,10 @@ service:
 	assertMinimalCapabilities(t, supervisorConfig.Capabilities)
 	assertMinimalCapabilitiesYAML(t, paths.SupervisorConfig)
 	assert.True(t, supervisorConfig.Agent.Description.IncludeResourceAttributes)
+	assert.Equal(t, paths.BootstrapTimeout, supervisorConfig.Agent.BootstrapTimeout)
 	assert.Equal(t, paths.ConfigApplyTimeout, supervisorConfig.Agent.ConfigApplyTimeout)
 	assert.Contains(t, supervisorYAML, "include_resource_attributes: true")
+	assert.Contains(t, supervisorYAML, "bootstrap_timeout: "+paths.BootstrapTimeout)
 	assert.Contains(t, supervisorYAML, "config_apply_timeout: "+paths.ConfigApplyTimeout)
 	assert.Contains(t, supervisorYAML, managedAgentComment)
 	assert.Contains(t, supervisorYAML, "# "+managedAgentComment+"\nagent:\n")
@@ -187,6 +189,10 @@ service:
 	assert.Empty(t, supervisorConfig.Agent.ConfigFiles)
 	assert.Empty(t, supervisorConfig.Agent.Args)
 	assert.Equal(t, paths.CollectorExecutable, runtimeConfig.Agent.Executable)
+	assert.Equal(t, paths.BootstrapTimeout, runtimeConfig.Agent.BootstrapTimeout)
+	assert.Equal(t, paths.ConfigApplyTimeout, runtimeConfig.Agent.ConfigApplyTimeout)
+	assert.Contains(t, runtimeYAML, "bootstrap_timeout: "+paths.BootstrapTimeout)
+	assert.Contains(t, runtimeYAML, "config_apply_timeout: "+paths.ConfigApplyTimeout)
 	require.Len(t, runtimeConfig.Agent.ConfigFiles, 1)
 	managedConfigPath := runtimeConfig.Agent.ConfigFiles[0]
 	assert.Equal(t, []string{
@@ -1107,6 +1113,7 @@ func testPaths(dir string) Paths {
 		RuntimeSupervisorConfig:     filepath.Join(filepath.Dir(supervisorConfig), "supervisor_runtime_config.yaml"),
 		GeneratedCollectorConfigDir: filepath.Dir(supervisorConfig),
 		DefaultAgentConfig:          filepath.Join(dir, "agent_config.yaml"),
+		BootstrapTimeout:            "1m",
 		ConfigApplyTimeout:          "1m",
 		UseHUPConfigReload:          true,
 	}

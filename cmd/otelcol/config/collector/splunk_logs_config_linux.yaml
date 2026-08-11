@@ -46,6 +46,10 @@ receivers:
     exclude:
       - /var/log/lastlog
       - /var/log/anaconda.syslog
+      - /var/log/*.swp
+      - /var/log/*.swx
+      - /var/log/.*.swp
+      - /var/log/.*.swx
     start_at: beginning
     storage: file_storage/filelogs
     retry_on_failure:
@@ -56,9 +60,13 @@ receivers:
       - from: attributes["log.file.path"]
         to: resource["com.splunk.source"]
         type: move
-      - type: add
-        field: resource["com.splunk.sourcetype"]
-        value: linux:varlog
+      - type: regex_parser
+        parse_from: attributes["log.file.name"]
+        regex: '^(?P<stem>[^.]+)'
+        parse_to: attributes
+      - type: move
+        from: attributes["stem"]
+        to: resource["com.splunk.sourcetype"]
 
   # Matches TA stanza: [monitor:///etc]
   # whitelist=(\.(conf|cfg|ini|init|cf|cnf|profile|rc|rules|tab|login)$|(config|shrc|tab|policy)$|^ifcfg)
@@ -114,7 +122,7 @@ receivers:
         type: move
       - type: add
         field: resource["com.splunk.sourcetype"]
-        value: linux:bash_history
+        value: bash_history
 
   # Disabled by default. To enable, uncomment journald in the pipeline receivers below.
   # The collector service user must also have permission to read the journal:
@@ -1024,6 +1032,131 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  # Matches Splunk_TA_nix props.conf source:: stanzas for file-based sourcetype assignment.
+  # These run after the filename-as-sourcetype assignment in the filelog receiver operators,
+  # overriding specific well-known paths with their canonical Splunk sourcetypes.
+  transform/nix_sourcetype:
+    log_statements:
+      - context: log
+        statements:
+          # [source::....linux_secure] -> linux_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "linux_secure")
+            where IsMatch(resource.attributes["com.splunk.source"], "\\.linux_secure$")
+          # [source::....nix] -> linux_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "linux_secure")
+            where IsMatch(resource.attributes["com.splunk.source"], "\\.nix$")
+          # [source::....aix_secure] -> aix_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "aix_secure")
+            where IsMatch(resource.attributes["com.splunk.source"], "\\.aix_secure$")
+          # [source::....osx_secure] -> osx_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_secure")
+            where IsMatch(resource.attributes["com.splunk.source"], "\\.osx_secure$")
+          # [source::....syslog] -> syslog
+          - set(resource.attributes["com.splunk.sourcetype"], "syslog")
+            where IsMatch(resource.attributes["com.splunk.source"], "\\.syslog$")
+          # [source::....dhcpd] -> dhcpd
+          - set(resource.attributes["com.splunk.sourcetype"], "dhcpd")
+            where IsMatch(resource.attributes["com.splunk.source"], "\\.dhcpd$")
+          # [source::(....(config|conf|cfg|ini|emacs|license|lng|plist|presets|properties|props|vim|wsdl))] -> config_file
+          - set(resource.attributes["com.splunk.sourcetype"], "config_file")
+            where IsMatch(resource.attributes["com.splunk.source"], "\\.(config|conf|cfg|ini|emacs|license|lng|plist|presets|properties|props|vim|wsdl)$")
+          # [source::/etc/passwd*] -> ignored_type
+          - set(resource.attributes["com.splunk.sourcetype"], "ignored_type")
+            where IsMatch(resource.attributes["com.splunk.source"], "^/etc/passwd")
+          # [source::/etc/shadow*] -> ignored_type
+          - set(resource.attributes["com.splunk.sourcetype"], "ignored_type")
+            where IsMatch(resource.attributes["com.splunk.source"], "^/etc/shadow")
+          # The following mappings are from Splunk default props.conf
+          # (########## FILE MATCH CONDITIONS ##########)
+          # In Splunk props.conf, "..." means any path prefix (or none), so
+          # "source::.../var/log/file(.\d+)?" is translated to ".*/var/log/file(\.[0-9]+)?$".
+          # "(.\d+)?" in props.conf is a log-rotation suffix (.1, .2, etc.).
+          # [source::.../var/log/anaconda.log(.\d+)?] -> anaconda
+          - set(resource.attributes["com.splunk.sourcetype"], "anaconda")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/anaconda\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/httpd/error_log(.\d+)?] -> apache_error
+          - set(resource.attributes["com.splunk.sourcetype"], "apache_error")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/httpd/error_log(\\.[0-9]+)?$")
+          # [source::.../(apache|httpd).../error*] -> apache_error
+          - set(resource.attributes["com.splunk.sourcetype"], "apache_error")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/(apache|httpd).*/error")
+          # [source::.../var/log/cups/access_log(.\d+)?] -> cups_access
+          - set(resource.attributes["com.splunk.sourcetype"], "cups_access")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/cups/access_log(\\.[0-9]+)?$")
+          # [source::.../var/log/cups/error_log(.\d+)?] -> cups_error
+          - set(resource.attributes["com.splunk.sourcetype"], "cups_error")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/cups/error_log(\\.[0-9]+)?$")
+          # [source::.../var/log/dmesg(.\d+)?] -> dmesg
+          - set(resource.attributes["com.splunk.sourcetype"], "dmesg")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/dmesg(\\.[0-9]+)?$")
+          # [source::.../var/log/ftp.log(.\d+)?] -> ftp
+          - set(resource.attributes["com.splunk.sourcetype"], "ftp")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/ftp\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/audit/audit.log(.\d+)?] -> linux_audit
+          - set(resource.attributes["com.splunk.sourcetype"], "linux_audit")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/audit/audit\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/boot.log(.\d+)?] -> linux_bootlog
+          - set(resource.attributes["com.splunk.sourcetype"], "linux_bootlog")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/boot\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/secure(.\d+)?] -> linux_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "linux_secure")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/secure(\\.[0-9]+)?$")
+          # [source::.../var/log/asl.log(.\d+)?] -> osx_asl
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_asl")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/asl\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/crashreporter.log(.\d+)?] -> osx_crashreporter
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_crashreporter")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/crashreporter\\.log(\\.[0-9]+)?$")
+          # [source::....crash.log(.\d+)?] -> osx_crash_log (filename is exactly crash.log)
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_crash_log")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/crash\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/install.log(.\d+)?] -> osx_install
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_install")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/install\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/secure.log(.\d+)?] -> osx_secure
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_secure")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/secure\\.log(\\.[0-9]+)?$")
+          # [source::.../var/log/daily.out(.\d+)?] -> osx_daily
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_daily")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/daily\\.out(\\.[0-9]+)?$")
+          # [source::.../var/log/weekly.out(.\d+)?] -> osx_weekly
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_weekly")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/weekly\\.out(\\.[0-9]+)?$")
+          # [source::.../var/log/monthly.out(.\d+)?] -> osx_monthly
+          - set(resource.attributes["com.splunk.sourcetype"], "osx_monthly")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/monthly\\.out(\\.[0-9]+)?$")
+          # [source::.../var/log/rpmpkgs(.\d+)?] -> rpmpkgs
+          - set(resource.attributes["com.splunk.sourcetype"], "rpmpkgs")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/rpmpkgs(\\.[0-9]+)?$")
+          # [source::.../var/log/sa/sar\d+] -> sar
+          - set(resource.attributes["com.splunk.sourcetype"], "sar")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/sa/sar[0-9]+$")
+          # [source::.../var/log/spooler(.\d+)?] -> spooler
+          - set(resource.attributes["com.splunk.sourcetype"], "spooler")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/spooler(\\.[0-9]+)?$")
+          # [source::.../var/log/httpd/httpd/ssl_error_log(.\d+)?] -> ssl_error
+          - set(resource.attributes["com.splunk.sourcetype"], "ssl_error")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/httpd/httpd/ssl_error_log(\\.[0-9]+)?$")
+          # [source::.../messages(.\d+)?] -> syslog
+          - set(resource.attributes["com.splunk.sourcetype"], "syslog")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/messages(\\.[0-9]+)?$")
+          # [source::.../var/log/wtmp(.\d+)?] -> wtmp
+          - set(resource.attributes["com.splunk.sourcetype"], "wtmp")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/var/log/wtmp(\\.[0-9]+)?$")
+          # [source::.../mysql.log(.\d+)?] -> mysqld
+          - set(resource.attributes["com.splunk.sourcetype"], "mysqld")
+            where IsMatch(resource.attributes["com.splunk.source"], ".*/mysql\\.log(\\.[0-9]+)?$")
+          # [source::...stash] -> stash
+          - set(resource.attributes["com.splunk.sourcetype"], "stash")
+            where IsMatch(resource.attributes["com.splunk.source"], "stash$")
+          # [source::...stash_new] -> stash_new
+          - set(resource.attributes["com.splunk.sourcetype"], "stash_new")
+            where IsMatch(resource.attributes["com.splunk.source"], "stash_new$")
+          # auth.log gets assigned with a syslog delayed rule [delayedrule::syslog]
+          # auth.log file follows the syslog format so in Splunk it is always assigned with a syslog sourcetype
+          - set(resource.attributes["com.splunk.sourcetype"], "syslog")
+            where IsMatch(resource.attributes["com.splunk.source"], "auth.log$")
+
 exporters:
   splunk_hec/logs:
     endpoint: "${SPLUNK_PLATFORM_URL}"
@@ -1099,5 +1232,6 @@ service:
       processors:
         - memory_limiter
         - resource_detection
+        - transform/nix_sourcetype
       exporters:
         - splunk_hec/logs

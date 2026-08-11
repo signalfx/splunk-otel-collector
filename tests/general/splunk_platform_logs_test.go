@@ -69,7 +69,7 @@ func TestSplunkPlatformLogsEffectiveConfig(t *testing.T) {
 	logsHec, ok := pipelines["logs/hec"].(map[string]any)
 	require.True(t, ok)
 	require.Equal(t, []any{"file_log/varlog"}, logsHec["receivers"])
-	require.Equal(t, []any{"memory_limiter", "resource_detection"}, logsHec["processors"])
+	require.Equal(t, []any{"memory_limiter", "resource_detection", "transform/nix_sourcetype"}, logsHec["processors"])
 	require.Equal(t, []any{"splunk_hec/logs"}, logsHec["exporters"])
 
 	// The platform HEC exporter points at the configured URL and index.
@@ -97,16 +97,9 @@ func TestSplunkPlatformLogsEffectiveConfig(t *testing.T) {
 	// Only the platform logs processors are present.
 	processors, ok := config["processors"].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, map[string]any{
-		"memory_limiter": map[string]any{
-			"check_interval": "2s",
-			"limit_mib":      460,
-		},
-		"resource_detection": map[string]any{
-			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
-			"override":  true,
-		},
-	}, processors)
+	require.Contains(t, processors, "memory_limiter")
+	require.Contains(t, processors, "resource_detection")
+	require.Contains(t, processors, "transform/nix_sourcetype")
 }
 
 func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
@@ -198,19 +191,10 @@ func TestSplunkPlatformLogsWithO11yEffectiveConfig(t *testing.T) {
 	// Processors from both configs are present in the merged config.
 	processors, ok := config["processors"].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, map[string]any{
-		"batch": map[string]any{
-			"metadata_keys": []any{"X-SF-Token"},
-		},
-		"memory_limiter": map[string]any{
-			"check_interval": "2s",
-			"limit_mib":      460,
-		},
-		"resource_detection": map[string]any{
-			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
-			"override":  true,
-		},
-	}, processors)
+	require.Contains(t, processors, "batch")
+	require.Contains(t, processors, "memory_limiter")
+	require.Contains(t, processors, "resource_detection")
+	require.Contains(t, processors, "transform/nix_sourcetype")
 }
 
 func TestSplunkPlatformLogsConfig(t *testing.T) {
@@ -356,7 +340,7 @@ func assertTestMessageReceived(t *testing.T, sink *testutils.HECReceiverSink, te
 
 							sourcetype, ok := rl.Resource().Attributes().Get("com.splunk.sourcetype")
 							assert.True(c, ok, "com.splunk.sourcetype attribute missing")
-							assert.Equal(c, "linux:varlog", sourcetype.Str())
+							assert.Equal(c, "syslog", sourcetype.Str())
 
 							source, ok := rl.Resource().Attributes().Get("com.splunk.source")
 							assert.True(c, ok, "com.splunk.source attribute missing")

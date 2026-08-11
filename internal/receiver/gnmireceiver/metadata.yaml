@@ -11,3 +11,7 @@ status:
 
 tests:
   config:
+  goleak:
+    ignore:
+      top:
+        - "github.com/golang/glog.(*fileSink).flushDaemon"

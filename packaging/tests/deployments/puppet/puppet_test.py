@@ -54,6 +54,7 @@ SPLUNK_INGEST_URL = f"https://ingest.{SPLUNK_REALM}.observability.splunkcloud.co
 SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.observability.splunkcloud.com"
 PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "8").split(",")
 COLLECTOR_VERSION = os.environ.get("VERSION", "0.0.1")
+AUTO_INSTRUMENTATION_VERSION = os.environ.get("AUTO_INSTRUMENTATION_VERSION", "latest")
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
@@ -76,6 +77,17 @@ DOTNET_VARS = {
     "OTEL_DOTNET_AUTO_PLUGINS":
         "Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation",
 }
+
+
+def package_version_at_least(version, minimum):
+    if version == "latest":
+        return True
+
+    version_match = re.match(r"^(\d+)\.(\d+)\.(\d+)", version)
+    minimum_match = re.match(r"^(\d+)\.(\d+)\.(\d+)", minimum)
+    assert version_match is not None, f"unexpected package version: {version}"
+    assert minimum_match is not None, f"unexpected minimum package version: {minimum}"
+    return tuple(map(int, version_match.groups())) >= tuple(map(int, minimum_match.groups()))
 
 
 def run_puppet_apply(container, config, strict_mode=True):
@@ -275,7 +287,7 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("version", [AUTO_INSTRUMENTATION_VERSION])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_default_instrumentation(distro, puppet_release, version, with_systemd):
     skip_if_necessary(distro, puppet_release)
@@ -294,8 +306,11 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
             with_systemd=with_systemd,
         )
         run_puppet_apply(container, config)
+        verify_package_version(container, "splunk-otel-auto-instrumentation", version)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
+        with_new_instrumentation = package_version_at_least(version, "0.87.0")
+        with_dotnet_instrumentation = package_version_at_least(version, "0.99.0")
         resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
         if with_systemd == "true":
             resource_attributes = rf"{resource_attributes}-systemd"
@@ -304,7 +319,7 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
             verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
             assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
 
-        if version == "latest":
+        if with_new_instrumentation:
             assert node_package_installed(container)
 
         if with_systemd == "true":
@@ -320,18 +335,25 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", ".*", exists=False)
-            if version == "latest":
+            if with_new_instrumentation:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=with_dotnet_instrumentation)
             else:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
                 verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
-        elif version == "latest":
-            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+        elif with_new_instrumentation:
+            for config_path in [SYSTEMD_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
+                assert not container_file_exists(container, config_path)
             verify_config_file(container, JAVA_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
             verify_config_file(container, NODE_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-            verify_dotnet_config(container, DOTNET_CONFIG_PATH)
-            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH]:
+            if with_dotnet_instrumentation:
+                verify_dotnet_config(container, DOTNET_CONFIG_PATH)
+            else:
+                assert not container_file_exists(container, DOTNET_CONFIG_PATH)
+            config_paths = [JAVA_CONFIG_PATH, NODE_CONFIG_PATH]
+            if with_dotnet_instrumentation:
+                config_paths.append(DOTNET_CONFIG_PATH)
+            for config_path in config_paths:
                 verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
                 verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
@@ -390,7 +412,7 @@ class {{ splunk_otel_collector:
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("version", [AUTO_INSTRUMENTATION_VERSION])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_custom_instrumentation(distro, puppet_release, version, with_systemd):
     skip_if_necessary(distro, puppet_release)
@@ -409,8 +431,11 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
             with_systemd=with_systemd,
         )
         run_puppet_apply(container, config)
+        verify_package_version(container, "splunk-otel-auto-instrumentation", version)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
+        with_new_instrumentation = package_version_at_least(version, "0.87.0")
+        with_dotnet_instrumentation = package_version_at_least(version, "0.99.0")
         resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
         if with_systemd == "true":
             resource_attributes = rf"{resource_attributes}-systemd"
@@ -421,7 +446,7 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
             verify_config_file(container, "/etc/ld.so.preload", r"# my extra library")
             assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
 
-        if version == "latest":
+        if with_new_instrumentation:
             assert node_package_installed(container)
 
         resource_attributes = rf"{resource_attributes},deployment.environment.name=test"
@@ -438,19 +463,25 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", r"grpc")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", r"none")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", r"none")
-            if version == "latest":
+            if with_new_instrumentation:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=with_dotnet_instrumentation)
             else:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
                 verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
-        elif version == "latest":
+        elif with_new_instrumentation:
             for config_path in [SYSTEMD_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)
             verify_config_file(container, JAVA_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
             verify_config_file(container, NODE_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-            verify_dotnet_config(container, DOTNET_CONFIG_PATH)
-            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH]:
+            if with_dotnet_instrumentation:
+                verify_dotnet_config(container, DOTNET_CONFIG_PATH)
+            else:
+                assert not container_file_exists(container, DOTNET_CONFIG_PATH)
+            config_paths = [JAVA_CONFIG_PATH, NODE_CONFIG_PATH]
+            if with_dotnet_instrumentation:
+                config_paths.append(DOTNET_CONFIG_PATH)
+            for config_path in config_paths:
                 verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
                 verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")

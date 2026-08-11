@@ -135,6 +135,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.158.0
+	github.com/openconfig/gnmi v0.14.1
+	github.com/openconfig/ygot v0.35.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.70.1
 	github.com/prometheus/prometheus v0.313.2
@@ -326,6 +328,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
+	github.com/golang/glog v1.2.5 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/google/certificate-transparency-go v1.3.2 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
@@ -429,6 +432,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xstreamencoding v0.158.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.158.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.158.0 // indirect
+	github.com/openconfig/goyang v1.6.3 // indirect
 	github.com/opencontainers/cgroups v0.0.6 // indirect
 	github.com/opencontainers/runtime-spec v1.3.0 // indirect
 	github.com/orcaman/concurrent-map/v2 v2.0.1 // indirect
@@ -790,7 +794,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.287.1 // indirect
-	google.golang.org/grpc v1.83.0 // indirect
+	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect

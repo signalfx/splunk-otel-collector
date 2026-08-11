@@ -159,6 +159,13 @@ func (t *TargetConfig) Validate() error {
 			t.Encoding, encodingProto, encodingJSON, encodingJSONIETF)
 	}
 
+	if t.Username == "" && t.Password != "" {
+		return errors.New("password requires username to be set")
+	}
+
+	if t.Redial < 0 {
+		return errors.New("redial must not be negative (use 0 to disable reconnection)")
+	}
 	if t.Redial > 0 && t.Redial < time.Second {
 		return errors.New("redial must be at least 1s (or 0 to disable reconnection)")
 	}

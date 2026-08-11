@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -48,9 +49,7 @@ type mockGNMIServer struct {
 	subscribeHit atomic.Int32
 	failFirst    atomic.Bool
 	sendError    bool
-	// silent accepts the subscription but never responds, so tests can tell
-	// "request sent" apart from "target responded".
-	silent bool
+	silent       bool
 }
 
 func (m *mockGNMIServer) lastRequest() *gnmipb.SubscribeRequest {
@@ -254,6 +253,33 @@ func TestCredentialMetadata(t *testing.T) {
 			require.NoError(t, r.Shutdown(context.Background()))
 		})
 	}
+}
+
+func TestReceiverEmitsMetricsEndToEnd(t *testing.T) {
+	srv := &mockGNMIServer{updates: 3}
+	addr, stop := startMockServer(t, srv)
+	defer stop()
+
+	sink := new(consumertest.MetricsSink)
+	cfg := &Config{Targets: []TargetConfig{testTarget(addr)}}
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	require.Eventually(t, func() bool {
+		return sink.DataPointCount() >= 3
+	}, 5*time.Second, 20*time.Millisecond)
+	require.NoError(t, r.Shutdown(context.Background()))
+
+	metric := sink.AllMetrics()[0].ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "By", metric.Unit())
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+
+	dp := metric.Sum().DataPoints().At(0)
+	assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+	name, ok := dp.Attributes().Get("name")
+	require.True(t, ok)
+	assert.Equal(t, "eth0", name.Str())
 }
 
 func TestReceiverShutdownWithoutStart(t *testing.T) {

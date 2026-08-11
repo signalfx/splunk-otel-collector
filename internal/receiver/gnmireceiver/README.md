@@ -10,9 +10,7 @@ updates into OpenTelemetry metrics.
 | Distributions | [Splunk](https://github.com/signalfx/splunk-otel-collector)                                                                         |
 | [Code Owners](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/CONTRIBUTING.md#becoming-a-code-owner)    | [@jkoronaAtCisco](https://www.github.com/jkoronaAtCisco)                                                                            |
 
-> **Note:** This receiver is in early development. It connects to configured targets and
-> maintains gNMI `Subscribe` streams, but conversion of received updates into metrics is
-> still being added, so the receiver does not yet produce telemetry.
+> **Note:** This receiver is in early development and its configuration may change.
 
 ## Configuration
 
@@ -76,6 +74,32 @@ Each target embeds the standard collector [gRPC client settings][configgrpc]
 | `suppress_redundant` | `false`   | Skip sending unchanged values.                                              |
 | `default`            |           | Metric `type`/`unit` applied to leaves not matched by `overrides`.          |
 | `overrides`          |           | Map of leaf name → metric `type`/`unit`, taking precedence over `default`.  |
+
+### Metric names and attributes
+
+Metric names are the gNMI path elements joined with dots, prefixed with the model
+origin when the target supplies one:
+
+```
+/interfaces/interface[name=eth0]/state/counters/in-octets
+  -> interfaces.interface.state.counters.in-octets
+```
+
+Path keys are not part of the name; they become datapoint attributes (`name=eth0`
+above). The target endpoint is recorded as the `server.address` resource attribute.
+
+Integer values (including `counter64`) are emitted as integer datapoints so large
+counters keep full precision. Booleans are emitted as `1`/`0`.
+
+Non-numeric (string) values cannot be represented as a metric value, so a configured
+string leaf is emitted as an *info metric*: the name gains an `_info` suffix, the
+datapoint value is always `1`, and the string is carried in the `value` attribute.
+Unconfigured string leaves are dropped like any other unconfigured leaf.
+
+JSON and JSON-IETF payloads are flattened into one metric per leaf. Nested object
+keys extend the metric name; array elements keep the metric name and record their
+position in an `index` attribute. YANG leaf-lists are flattened the same way, so each
+element becomes a datapoint distinguished by its `index`.
 
 ### Metric type and unit resolution
 

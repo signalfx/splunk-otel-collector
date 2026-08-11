@@ -15,28 +15,335 @@
 package gnmireceiver
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver/internal/metadata"
+)
+
+const (
+	infoMetricSuffix = "_info"
+	infoValueAttr    = "value"
+	// indexAttr identifies an element's position when a JSON array is flattened.
+	indexAttr = "index"
 )
 
 // metricParser converts gNMI SubscribeResponse messages into OTel metrics.
-//
-// This is a stub: the value decoding, path/prefix handling, and type/unit
-// resolution are implemented in a follow-up change. It currently returns no
-// metrics so the connection engine can be exercised end-to-end without the
-// conversion logic.
-type metricParser struct{}
-
-func newMetricParser() *metricParser {
-	return &metricParser{}
+type metricParser struct {
+	endpoint      string
+	subscriptions []SubscriptionConfig
 }
 
-// parse converts a single gNMI SubscribeResponse into metrics.
-//
-// TODO: implement value decoding. The error return will become meaningful
-// once path/value parsing is added; the caller already handles it.
-//
-//nolint:unparam // error is always nil until value decoding is implemented
-func (p *metricParser) parse(_ *gnmipb.SubscribeResponse) (pmetric.Metrics, error) {
-	return pmetric.NewMetrics(), nil
+func newMetricParser(endpoint string, subscriptions []SubscriptionConfig) *metricParser {
+	return &metricParser{endpoint: endpoint, subscriptions: subscriptions}
+}
+
+func (p *metricParser) parse(resp *gnmipb.SubscribeResponse) (pmetric.Metrics, error) {
+	metrics := pmetric.NewMetrics()
+
+	notification := resp.GetUpdate()
+	if notification == nil || len(notification.GetUpdate()) == 0 {
+		return metrics, nil
+	}
+
+	ts := pcommon.NewTimestampFromTime(time.Now())
+	if notification.GetTimestamp() != 0 {
+		ts = pcommon.Timestamp(notification.GetTimestamp()) //nolint:gosec // G115: gNMI timestamps are non-negative unix nanos
+	}
+
+	sm := p.newScopeMetrics(metrics)
+
+	var errs []string
+	for _, update := range notification.GetUpdate() {
+		elems, keys := joinPath(notification.GetPrefix(), update.GetPath())
+		if len(elems) == 0 {
+			continue
+		}
+		origin := notification.GetPrefix().GetOrigin()
+		if origin == "" {
+			origin = update.GetPath().GetOrigin()
+		}
+
+		if err := p.appendUpdate(sm, origin, elems, keys, update.GetVal(), ts); err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+
+	if sm.Metrics().Len() == 0 {
+		metrics = pmetric.NewMetrics()
+	}
+	if len(errs) > 0 {
+		return metrics, fmt.Errorf("failed to convert %d update(s): %s", len(errs), strings.Join(errs, "; "))
+	}
+	return metrics, nil
+}
+
+func (p *metricParser) newScopeMetrics(metrics pmetric.Metrics) pmetric.ScopeMetrics {
+	rm := metrics.ResourceMetrics().AppendEmpty()
+	rm.Resource().Attributes().PutStr(string(conventions.ServerAddressKey), p.endpoint)
+	sm := rm.ScopeMetrics().AppendEmpty()
+	sm.Scope().SetName(metadata.ScopeName)
+	return sm
+}
+
+func (p *metricParser) appendUpdate(
+	sm pmetric.ScopeMetrics,
+	origin string,
+	elems []string,
+	keys map[string]string,
+	val *gnmipb.TypedValue,
+	ts pcommon.Timestamp,
+) error {
+	if val == nil {
+		return nil
+	}
+
+	switch v := val.GetValue().(type) {
+	case *gnmipb.TypedValue_UintVal:
+		p.emitInt(sm, origin, elems, keys, int64(v.UintVal), ts) //nolint:gosec // G115: gNMI counters are uint64;
+	case *gnmipb.TypedValue_IntVal:
+		p.emitInt(sm, origin, elems, keys, v.IntVal, ts)
+	case *gnmipb.TypedValue_FloatVal:
+		p.emitDouble(sm, origin, elems, keys, float64(v.FloatVal), ts) //nolint:staticcheck // SA1019: float_val is deprecated but still sent by some targets
+	case *gnmipb.TypedValue_DoubleVal:
+		p.emitDouble(sm, origin, elems, keys, v.DoubleVal, ts)
+	case *gnmipb.TypedValue_BoolVal:
+		var n int64
+		if v.BoolVal {
+			n = 1
+		}
+		p.emitInt(sm, origin, elems, keys, n, ts)
+	case *gnmipb.TypedValue_StringVal:
+		p.emitInfo(sm, origin, elems, keys, v.StringVal, ts)
+	case *gnmipb.TypedValue_JsonVal:
+		return p.emitJSON(sm, origin, elems, keys, v.JsonVal, ts)
+	case *gnmipb.TypedValue_JsonIetfVal:
+		return p.emitJSON(sm, origin, elems, keys, v.JsonIetfVal, ts)
+	case *gnmipb.TypedValue_LeaflistVal:
+		var errs []string
+		for i, element := range v.LeaflistVal.GetElement() {
+			if err := p.appendUpdate(sm, origin, elems, withIndex(keys, i), element, ts); err != nil {
+				errs = append(errs, err.Error())
+			}
+		}
+		if len(errs) > 0 {
+			return errors.New(strings.Join(errs, "; "))
+		}
+		return nil
+	default:
+		return nil
+	}
+	return nil
+}
+
+func withIndex(attrs map[string]string, i int) map[string]string {
+	indexed := make(map[string]string, len(attrs)+1)
+	for k, v := range attrs {
+		indexed[k] = v
+	}
+	indexed[indexAttr] = strconv.Itoa(i)
+	return indexed
+}
+
+func (p *metricParser) emitInt(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, value int64, ts pcommon.Timestamp,
+) {
+	cfg, ok := p.resolve(elems)
+	if !ok {
+		return
+	}
+	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
+	dp.SetIntValue(value)
+	dp.SetTimestamp(ts)
+	putAttrs(dp.Attributes(), keys)
+}
+
+func (p *metricParser) emitDouble(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, value float64, ts pcommon.Timestamp,
+) {
+	cfg, ok := p.resolve(elems)
+	if !ok {
+		return
+	}
+	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
+	dp.SetDoubleValue(value)
+	dp.SetTimestamp(ts)
+	putAttrs(dp.Attributes(), keys)
+}
+
+func (p *metricParser) emitInfo(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, value string, ts pcommon.Timestamp,
+) {
+	if _, ok := p.resolve(elems); !ok {
+		return
+	}
+	m := sm.Metrics().AppendEmpty()
+	m.SetName(metricName(origin, elems) + infoMetricSuffix)
+	dp := m.SetEmptyGauge().DataPoints().AppendEmpty()
+	dp.SetIntValue(1)
+	dp.SetTimestamp(ts)
+	dp.Attributes().PutStr(infoValueAttr, value)
+	putAttrs(dp.Attributes(), keys)
+}
+
+func (p *metricParser) newNumberDataPoint(
+	sm pmetric.ScopeMetrics, origin string, elems []string, cfg MetricConfig,
+) pmetric.NumberDataPoint {
+	m := sm.Metrics().AppendEmpty()
+	m.SetName(metricName(origin, elems))
+	m.SetUnit(cfg.Unit)
+
+	if cfg.Type == metricTypeSum {
+		sum := m.SetEmptySum()
+		sum.SetIsMonotonic(true)
+		sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+		return sum.DataPoints().AppendEmpty()
+	}
+	return m.SetEmptyGauge().DataPoints().AppendEmpty()
+}
+
+func (p *metricParser) resolve(elems []string) (MetricConfig, bool) {
+	sub := p.subscriptionFor(elems)
+	if sub == nil {
+		return MetricConfig{}, false
+	}
+	leaf := elems[len(elems)-1]
+	if cfg, ok := sub.Overrides[leaf]; ok {
+		return cfg, true
+	}
+	if sub.Default != nil {
+		return *sub.Default, true
+	}
+	return MetricConfig{}, false
+}
+
+func (p *metricParser) subscriptionFor(elems []string) *SubscriptionConfig {
+	var best *SubscriptionConfig
+	bestLen := -1
+	for i := range p.subscriptions {
+		sub := &p.subscriptions[i]
+		subElems := pathElemNames(sub.Path)
+		if len(subElems) > len(elems) {
+			continue
+		}
+		matched := true
+		for j, name := range subElems {
+			if elems[j] != name {
+				matched = false
+				break
+			}
+		}
+		if matched && len(subElems) > bestLen {
+			best = sub
+			bestLen = len(subElems)
+		}
+	}
+	return best
+}
+
+func (p *metricParser) emitJSON(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, raw []byte, ts pcommon.Timestamp,
+) error {
+	var decoded any
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		return fmt.Errorf("invalid JSON payload at %q: %w", metricName(origin, elems), err)
+	}
+	p.flatten(sm, origin, elems, keys, decoded, ts)
+	return nil
+}
+
+func (p *metricParser) flatten(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, value any, ts pcommon.Timestamp,
+) {
+	switch v := value.(type) {
+	case map[string]any:
+		for name, child := range v {
+			child2 := make([]string, len(elems), len(elems)+1)
+			copy(child2, elems)
+			p.flatten(sm, origin, append(child2, name), keys, child, ts)
+		}
+	case []any:
+		for i, child := range v {
+			p.flatten(sm, origin, elems, withIndex(keys, i), child, ts)
+		}
+	case float64:
+		if v == float64(int64(v)) {
+			p.emitInt(sm, origin, elems, keys, int64(v), ts)
+			return
+		}
+		p.emitDouble(sm, origin, elems, keys, v, ts)
+	case bool:
+		var n int64
+		if v {
+			n = 1
+		}
+		p.emitInt(sm, origin, elems, keys, n, ts)
+	case string:
+		p.emitInfo(sm, origin, elems, keys, v, ts)
+	case nil:
+		// JSON null carries no value.
+	}
+}
+
+func joinPath(prefix, path *gnmipb.Path) ([]string, map[string]string) {
+	keys := map[string]string{}
+	var elems []string
+	for _, p := range []*gnmipb.Path{prefix, path} {
+		for _, elem := range p.GetElem() {
+			if elem.GetName() != "" {
+				elems = append(elems, elem.GetName())
+			}
+			for k, v := range elem.GetKey() {
+				keys[k] = v
+			}
+		}
+	}
+	return elems, keys
+}
+
+func metricName(origin string, elems []string) string {
+	if origin == "" {
+		return strings.Join(elems, ".")
+	}
+	return origin + "." + strings.Join(elems, ".")
+}
+
+func pathElemNames(path string) []string {
+	trimmed := strings.Trim(path, "/")
+	if trimmed == "" {
+		return nil
+	}
+	parts := strings.Split(trimmed, "/")
+	names := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if idx := strings.IndexByte(part, '['); idx >= 0 {
+			part = part[:idx]
+		}
+		if part != "" {
+			names = append(names, part)
+		}
+	}
+	return names
+}
+
+func putAttrs(dest pcommon.Map, attrs map[string]string) {
+	for k, v := range attrs {
+		if v != "" {
+			dest.PutStr(k, v)
+		}
+	}
 }

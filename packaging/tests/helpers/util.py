@@ -14,6 +14,8 @@
 
 import glob
 import os
+import posixpath
+import shlex
 import tarfile
 import time
 from contextlib import contextmanager
@@ -191,8 +193,13 @@ def run_container_cmd(container, cmd, env=None, exit_code:Optional[int]=0, timeo
 
 def copy_file_into_container(container, path, target_path, size=None):
     target_path = str(target_path)
-    archive_path = target_path.lstrip("/")
+    target_dir = posixpath.dirname(target_path) or "/"
+    archive_path = posixpath.basename(target_path)
     assert archive_path, "target_path must include a file name"
+
+    if target_dir != "/":
+        code, output = container.exec_run(f"mkdir -p {shlex.quote(target_dir)}")
+        assert code == 0, f"failed to create {target_dir}:\n{output.decode('utf-8')}"
 
     with open(path, "rb") as fd:
         tario = BytesIO()
@@ -207,12 +214,12 @@ def copy_file_into_container(container, path, target_path, size=None):
 
         tar.close()
 
-        assert container.put_archive("/", tario.getvalue()), (
+        assert container.put_archive(target_dir, tario.getvalue()), (
             f"failed to copy {path} to {target_path}"
         )
 
         time.sleep(2)
-        code, output = container.exec_run(f"test -f {target_path}")
+        code, output = container.exec_run(f"test -f {shlex.quote(target_path)}")
         assert code == 0, (
             f"copied {path} to {target_path}, but target file was not found:\n"
             f"{output.decode('utf-8')}"

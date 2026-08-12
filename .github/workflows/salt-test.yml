@@ -186,6 +186,9 @@ jobs:
           name: splunk-otel-auto-instrumentation-amd64-rpm
           path: ./dist
 
+      - name: List downloaded package artifacts
+        run: find ./dist -maxdepth 3 -type f -print | sort
+
       - name: Setup python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:

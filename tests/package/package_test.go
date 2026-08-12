@@ -37,17 +37,18 @@ import (
 )
 
 const (
-	packageName       = "splunk-otel-collector"
-	serviceName       = "splunk-otel-collector"
-	serviceOwner      = "splunk-otel-collector"
-	serviceProcess    = "otelcol"
-	supervisorProcess = "opampsupervisor"
-	envPath           = "/etc/otel/collector/splunk-otel-collector.conf"
-	agentConfigPath   = "/etc/otel/collector/agent_config.yaml"
-	gatewayConfigPath = "/etc/otel/collector/gateway_config.yaml"
-	statePath         = "/var/lib/otelcol"
-	supervisorState   = statePath + "/supervisor"
-	supervisorConfig  = "/etc/otel/collector/supervisor/supervisor_config.yaml"
+	packageName            = "splunk-otel-collector"
+	serviceName            = "splunk-otel-collector"
+	serviceOwner           = "splunk-otel-collector"
+	serviceProcess         = "otelcol"
+	supervisorProcess      = "opampsupervisor"
+	lastPreLauncherVersion = "0.158.0"
+	envPath                = "/etc/otel/collector/splunk-otel-collector.conf"
+	agentConfigPath        = "/etc/otel/collector/agent_config.yaml"
+	gatewayConfigPath      = "/etc/otel/collector/gateway_config.yaml"
+	statePath              = "/var/lib/otelcol"
+	supervisorState        = statePath + "/supervisor"
+	supervisorConfig       = "/etc/otel/collector/supervisor/supervisor_config.yaml"
 )
 
 func TestTarCollectorPackageInstall(t *testing.T) {
@@ -202,15 +203,62 @@ func TestCollectorPackageUpgrade(t *testing.T) {
 				}, 20*time.Second, time.Second)
 
 				copyFileToContainer(t, container, pkgPath)
-				upgradePackage(t, container, packageType, "/test/"+filepath.Base(pkgPath))
+				upgradePackage(t, container, packageType, "/test/"+filepath.Base(pkgPath), false)
 
 				assertPackagedBinaries(t, container)
 				require.Eventually(t, func() bool {
 					return serviceIsRunning(t, container)
 				}, 20*time.Second, time.Second)
 				require.False(t, processIsRunningAs(t, container, serviceOwner, supervisorProcess))
+			})
+		}
+	}
+}
 
-				// Existing installations can opt in to supervisor mode after upgrading.
+func TestCollectorPackageRollbackSupervisorMode(t *testing.T) {
+	skipUnlessLinux(t)
+	packageType := skipUnlessPackageType(t, "deb", "rpm")
+
+	for _, distro := range selectedDistros(t, packageType) {
+		for _, arch := range selectedArches(t) {
+			t.Run(fmt.Sprintf("%s/%s", distro, arch), func(t *testing.T) {
+				pkgPath := requirePackage(t, packageType, arch)
+				container := runDistroContainer(t, packageType, distro, arch)
+				defer logJournal(t, container)
+
+				// Install pre-launcher version
+				copyFileToContainer(t, container, filepath.Join(repoRoot(t), "packaging", "installer", "install.sh"))
+				assertExec(t, container, 10*time.Minute, fmt.Sprintf(
+					"VERIFY_ACCESS_TOKEN=false sh /test/install.sh -- testing123 --realm test --collector-version %s",
+					lastPreLauncherVersion,
+				))
+
+				require.Eventually(t, func() bool {
+					return serviceIsRunning(t, container)
+				}, 20*time.Second, time.Second)
+				require.False(t, processIsRunningAs(t, container, serviceOwner, supervisorProcess))
+				assertExec(t, container, time.Minute, "test ! -e /usr/bin/otelcollauncher")
+				assertExec(t, container, time.Minute, "test ! -e /usr/bin/opampsupervisor")
+
+				const preservationMarker = "# Preserve this customization across package upgrade."
+				assertExec(t, container, time.Minute, "echo '"+preservationMarker+"' >> "+envPath)
+				assertExec(t, container, time.Minute, "echo '"+preservationMarker+"' >> "+agentConfigPath)
+				envChecksum := strings.TrimSpace(assertExec(t, container, time.Minute, "sha256sum "+envPath))
+				agentConfigChecksum := strings.TrimSpace(assertExec(t, container, time.Minute, "sha256sum "+agentConfigPath))
+
+				// Upgrade to latest local built package
+				copyFileToContainer(t, container, pkgPath)
+				upgradePackage(t, container, packageType, "/test/"+filepath.Base(pkgPath), true)
+
+				require.Equal(t, envChecksum, strings.TrimSpace(assertExec(t, container, time.Minute, "sha256sum "+envPath)))
+				require.Equal(t, agentConfigChecksum, strings.TrimSpace(assertExec(t, container, time.Minute, "sha256sum "+agentConfigPath)))
+				assertPackagedBinaries(t, container)
+				require.Eventually(t, func() bool {
+					return serviceIsRunning(t, container)
+				}, 20*time.Second, time.Second)
+				require.False(t, processIsRunningAs(t, container, serviceOwner, supervisorProcess))
+
+				// Enable supervisor mode
 				assertExec(t, container, time.Minute, "echo SPLUNK_OPAMP_SUPERVISOR_ENABLED=true >> "+envPath)
 				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
 				require.Eventually(t, func() bool {
@@ -219,6 +267,23 @@ func TestCollectorPackageUpgrade(t *testing.T) {
 				}, 20*time.Second, time.Second)
 				assertExec(t, container, time.Minute, "test -f "+supervisorConfig)
 				assertExec(t, container, time.Minute, "test -d "+supervisorState)
+
+				// Rollback to direct collector mode
+				assertExec(
+					t,
+					container,
+					time.Minute,
+					"sed -i 's/^SPLUNK_OPAMP_SUPERVISOR_ENABLED=true$/SPLUNK_OPAMP_SUPERVISOR_ENABLED=false/' "+envPath,
+				)
+				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
+				require.Eventually(t, func() bool {
+					return serviceIsRunning(t, container) &&
+						!processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+				}, 20*time.Second, time.Second)
+				require.Equal(t, serviceProcess, strings.TrimSpace(assertExec(
+					t, container, time.Minute, "ps -u "+serviceOwner+" -o comm=",
+				)))
+				require.Equal(t, agentConfigChecksum, strings.TrimSpace(assertExec(t, container, time.Minute, "sha256sum "+agentConfigPath)))
 			})
 		}
 	}
@@ -253,7 +318,7 @@ func TestCollectorPackageUpgradeWithCustomServiceOwner(t *testing.T) {
 				}, 20*time.Second, time.Second)
 
 				copyFileToContainer(t, container, pkgPath)
-				upgradePackage(t, container, packageType, "/test/"+filepath.Base(pkgPath))
+				upgradePackage(t, container, packageType, "/test/"+filepath.Base(pkgPath), false)
 
 				require.Equal(t, "User="+customServiceUser, strings.TrimSpace(assertExec(
 					t, container, time.Minute, "systemctl show --property=User "+serviceName,
@@ -469,11 +534,15 @@ func installPackage(t *testing.T, container *testutils.Container, packageType, p
 	}
 }
 
-func upgradePackage(t *testing.T, container *testutils.Container, packageType, packagePath string) {
+func upgradePackage(t *testing.T, container *testutils.Container, packageType, packagePath string, preserveConfigFiles bool) {
 	t.Helper()
 	switch packageType {
 	case "deb":
-		assertExec(t, container, 5*time.Minute, "dpkg -i --force-confnew "+packagePath)
+		configOption := "--force-confnew"
+		if preserveConfigFiles {
+			configOption = "--force-confold"
+		}
+		assertExec(t, container, 5*time.Minute, "dpkg -i "+configOption+" "+packagePath)
 	case "rpm":
 		assertExec(t, container, 5*time.Minute, "rpm -U "+packagePath)
 	default:

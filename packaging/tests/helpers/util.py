@@ -190,11 +190,15 @@ def run_container_cmd(container, cmd, env=None, exit_code:Optional[int]=0, timeo
 
 
 def copy_file_into_container(container, path, target_path, size=None):
+    target_path = str(target_path)
+    archive_path = target_path.lstrip("/")
+    assert archive_path, "target_path must include a file name"
+
     with open(path, "rb") as fd:
         tario = BytesIO()
         tar = tarfile.TarFile(fileobj=tario, mode="w")
 
-        info = tarfile.TarInfo(name=target_path)
+        info = tarfile.TarInfo(name=archive_path)
         if size is None:
             size = os.fstat(fd.fileno()).st_size
         info.size = size
@@ -203,9 +207,16 @@ def copy_file_into_container(container, path, target_path, size=None):
 
         tar.close()
 
-        container.put_archive("/", tario.getvalue())
+        assert container.put_archive("/", tario.getvalue()), (
+            f"failed to copy {path} to {target_path}"
+        )
 
         time.sleep(2)
+        code, output = container.exec_run(f"test -f {target_path}")
+        assert code == 0, (
+            f"copied {path} to {target_path}, but target file was not found:\n"
+            f"{output.decode('utf-8')}"
+        )
 
 
 def wait_for(test, timeout=DEFAULT_TIMEOUT, interval=1):

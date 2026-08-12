@@ -15,6 +15,8 @@
 {% set auto_instrumentation_otlp_endpoint_protocol = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_otlp_endpoint_protocol') %}
 {% set auto_instrumentation_metrics_exporter = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_metrics_exporter') %}
 {% set auto_instrumentation_logs_exporter = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_logs_exporter') %}
+{% set local_artifact_testing_enabled = salt['pillar.get']('splunk-otel-collector:local_artifact_testing_enabled', False) | to_bool %}
+{% set auto_instrumentation_package_source = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_package_source', '') %}
 {% set with_new_instrumentation = auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.87.0') >= 0 %}
 {% set dotnet_supported = (auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.99.0') >= 0) and grains['cpuarch'] in ['amd64', 'x86_64'] %}
 {% set systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf' %}
@@ -25,10 +27,15 @@
 {% set nodejs_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js' %}
 {% set dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet' %}
 
-Install Splunk OpenTelemetry Auto Instrumentation:
+splunk-otel-auto-instrumentation:
   pkg.installed:
+{% if local_artifact_testing_enabled %}
+    - sources:
+      - splunk-otel-auto-instrumentation: {{ auto_instrumentation_package_source }}
+{% else %}
     - name: splunk-otel-auto-instrumentation
     - version: {{ auto_instrumentation_version }}
+{% endif %}
     - require:
       - pkg: splunk-otel-collector
 

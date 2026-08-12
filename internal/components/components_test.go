@@ -175,6 +175,7 @@ func TestDefaultComponents(t *testing.T) {
 		"redaction",
 		"resource",
 		"resource_detection",
+		"rolling_span_latency",
 		"span",
 		"tail_sampling",
 		"timestamp",

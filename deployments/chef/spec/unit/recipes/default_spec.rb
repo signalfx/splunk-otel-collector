@@ -85,6 +85,72 @@ describe 'splunk_otel_collector::default' do
       it_behaves_like 'splunk-otel-collector linux service status'
       it_behaves_like 'install splunk-otel-collector package'
     end
+
+    context 'with local auto-instrumentation artifact on debian-family distro' do
+      cached(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '22.04') do |node|
+          node.normal['splunk_otel_collector'] = {
+            'splunk_access_token' => 'test123',
+            'splunk_realm' => 'test',
+            'local_artifact_testing_enabled' => true,
+            'with_auto_instrumentation' => true,
+            'with_auto_instrumentation_sdks' => %w(java),
+          }
+        end.converge described_recipe
+      end
+
+      it 'installs the local auto-instrumentation deb package' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to create_cookbook_file('/tmp/soai.deb').with(source: 'soai.deb', mode: '0644')
+        expect(chef_run).to install_dpkg_package('splunk-otel-auto-instrumentation').with(source: '/tmp/soai.deb')
+      end
+    end
+
+    context 'with local auto-instrumentation artifact on RedHat-family distro' do
+      cached(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'centos', version: '7') do |node|
+          node.normal['splunk_otel_collector'] = {
+            'splunk_access_token' => 'test123',
+            'splunk_realm' => 'test',
+            'local_artifact_testing_enabled' => true,
+            'with_auto_instrumentation' => true,
+            'with_auto_instrumentation_sdks' => %w(java),
+          }
+        end.converge described_recipe
+      end
+
+      it 'installs the local auto-instrumentation rpm package' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to create_cookbook_file('/tmp/soai.rpm').with(source: 'soai.rpm', mode: '0644')
+        expect(chef_run).to install_rpm_package('splunk-otel-auto-instrumentation').with(source: '/tmp/soai.rpm')
+      end
+    end
+
+    context 'with local auto-instrumentation artifact on suse-family distro' do
+      cached(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'suse', version: '15') do |node|
+          node.normal['splunk_otel_collector'] = {
+            'splunk_access_token' => 'test123',
+            'splunk_realm' => 'test',
+            'local_artifact_testing_enabled' => true,
+            'with_auto_instrumentation' => true,
+            'with_auto_instrumentation_sdks' => %w(java),
+          }
+        end.converge described_recipe
+      end
+
+      it 'installs the local auto-instrumentation rpm package with zypper' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to create_cookbook_file('/tmp/soai.rpm').with(source: 'soai.rpm', mode: '0644')
+        expect(chef_run).to install_zypper_package('splunk-otel-auto-instrumentation').with(source: '/tmp/soai.rpm', gpg_check: false)
+      end
+    end
   end
   context 'on the Windows platform family' do
     context 'on windows-family distro' do

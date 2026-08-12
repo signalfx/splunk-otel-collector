@@ -191,6 +191,14 @@ func TestSplunkPlatformMetricsWithO11yEffectiveConfig(t *testing.T) {
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 			"override":  true,
 		},
+		"transform/limit_histogram_buckets": map[string]any{
+			"metric_statements": []any{
+				map[string]any{
+					"context":    "datapoint",
+					"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
+				},
+			},
+		},
 	}, processors)
 }
 

@@ -33,14 +33,16 @@ func NewFactory() receiver.Factory {
 }
 
 func createDefaultConfig() component.Config {
-	return &Config{}
+	return &Config{
+		Targets: []TargetConfig{},
+	}
 }
 
 func createMetricsReceiver(
 	_ context.Context,
-	_ receiver.Settings,
-	_ component.Config,
-	_ consumer.Metrics,
+	settings receiver.Settings,
+	cfg component.Config,
+	nextConsumer consumer.Metrics,
 ) (receiver.Metrics, error) {
-	return &gnmiReceiver{}, nil
+	return newGNMIReceiver(cfg.(*Config), settings, nextConsumer), nil
 }

@@ -2,6 +2,7 @@
 {% set splunk_repo_base_url = salt['pillar.get']('splunk-otel-collector:repo_base_url', 'https://splunk.jfrog.io/splunk') %}
 {% set package_stage = salt['pillar.get']('splunk-otel-collector:package_stage', 'release') %}
 {% set collector_version = salt['pillar.get']('splunk-otel-collector:collector_version', 'latest') %}
+{% set debian_gpg_key_path = '/etc/apt/keyrings/splunk-otel-collector.gpg' %}
 {% set local_artifact_testing_enabled = salt['pillar.get']('splunk-otel-collector:local_artifact_testing_enabled', False) | to_bool %}
 {% set collector_package_source = salt['pillar.get']('splunk-otel-collector:collector_package_source', '') %}
 
@@ -27,15 +28,24 @@ Install setcap via yum package manager:
 
 {% elif os_family == 'Debian' %}
 
+/etc/apt/keyrings:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: '0755'
+
 {% if not local_artifact_testing_enabled %}
 Add Splunk OpenTelemetry Collector repo to apt source list:
   pkgrepo.managed:
-    - name: deb {{ splunk_repo_base_url }}/otel-collector-deb {{ package_stage }} main
+    - name: deb [signed-by={{ debian_gpg_key_path }}] {{ splunk_repo_base_url }}/otel-collector-deb {{ package_stage }} main
     - file: /etc/apt/sources.list.d/splunk-otel-collector.list
     - key_url: {{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg
+    - aptkey: False
     - refresh: True
     - gpgcheck: 1
     - enabled: 1
+    - require:
+      - file: /etc/apt/keyrings
 {% endif %}
 
 Install apt dependencies for secure transport:

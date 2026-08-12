@@ -32,6 +32,44 @@ SERVICE_NAME = "splunk-otel-collector"
 SERVICE_OWNER = "splunk-otel-collector"
 OTELCOL_BIN = "/usr/bin/otelcol"
 DEFAULT_TIMEOUT = 10
+MAX_DOCKER_BUILD_LOG_LINES = 200
+
+
+def format_docker_build_log(build_log):
+    lines = []
+    for chunk in build_log:
+        if isinstance(chunk, bytes):
+            chunk = chunk.decode("utf-8", errors="replace")
+        if isinstance(chunk, str):
+            lines.extend(chunk.rstrip().splitlines())
+            continue
+
+        if "stream" in chunk:
+            lines.extend(chunk["stream"].rstrip().splitlines())
+        if "status" in chunk:
+            status = chunk["status"]
+            if chunk.get("id"):
+                status = f"{chunk['id']}: {status}"
+            if chunk.get("progress"):
+                status = f"{status} {chunk['progress']}"
+            lines.append(status)
+        if "errorDetail" in chunk and chunk["errorDetail"].get("message"):
+            lines.append(chunk["errorDetail"]["message"])
+        elif "error" in chunk:
+            lines.append(chunk["error"])
+
+    lines = [line for line in lines if line]
+    if len(lines) > MAX_DOCKER_BUILD_LOG_LINES:
+        lines = lines[-MAX_DOCKER_BUILD_LOG_LINES:]
+    return "\n".join(lines) or "<no docker build output>"
+
+
+def format_retry_exception(e):
+    if isinstance(e, docker.errors.BuildError):
+        build_log = getattr(e, "build_log", None)
+        if build_log:
+            return f"{e}\nDocker build log:\n{format_docker_build_log(build_log)}"
+    return str(e)
 
 
 def retry(function, exception, max_attempts=5, interval=5):
@@ -39,7 +77,13 @@ def retry(function, exception, max_attempts=5, interval=5):
         try:
             return function()
         except exception as e:
-            assert attempt < (max_attempts - 1), "%s failed after %d attempts!\n%s" % (function, max_attempts, str(e))
+            if attempt >= (max_attempts - 1):
+                message = "%s failed after %d attempts!\n%s" % (
+                    function,
+                    max_attempts,
+                    format_retry_exception(e),
+                )
+                raise AssertionError(message) from e
         time.sleep(interval)
 
 

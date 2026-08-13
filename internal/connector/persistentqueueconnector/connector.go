@@ -23,7 +23,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/nsqio/go-diskqueue"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/consumer"
@@ -63,7 +62,7 @@ type persistentqueue struct {
 	nextMetrics  consumer.Metrics
 	nextTraces   consumer.Traces
 	nextProfiles xconsumer.Profiles
-	queue        diskqueue.Interface
+	queue        internal.Interface
 	config       *Config
 	shutdownChan chan struct{}
 	run          chan struct{}

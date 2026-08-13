@@ -131,55 +131,97 @@ func TestCollectorPackageInstallWithSupervisor(t *testing.T) {
 	skipUnlessLinux(t)
 	packageType := skipUnlessPackageType(t, "deb", "rpm")
 
+	accessToken := "testing123"
+	realm := "test"
+	platformToken := "test-hec-token"
+	platformURL := "https://splunk.example.com:8088/services/collector"
+	platformLogIndex := "test-logs-index"
+	testCases := []struct {
+		name        string
+		extraArgs   string
+		expectedEnv []string
+	}{
+		{
+			name: "observability-cloud",
+			expectedEnv: []string{
+				"SPLUNK_CONFIG=" + agentConfigPath,
+			},
+		},
+		{
+			name: "observability-cloud-and-splunk-platform",
+			extraArgs: fmt.Sprintf(
+				"--splunk-platform-token %s --splunk-platform-url %s --splunk-platform-logs-index %s",
+				platformToken,
+				platformURL,
+				platformLogIndex,
+			),
+			expectedEnv: []string{
+				"SPLUNK_PLATFORM_TOKEN=" + platformToken,
+				"SPLUNK_PLATFORM_URL=" + platformURL,
+				"SPLUNK_PLATFORM_LOGS_INDEX=" + platformLogIndex,
+			},
+		},
+	}
+
 	for _, distro := range selectedDistros(t, packageType) {
 		for _, arch := range selectedArches(t) {
-			t.Run(fmt.Sprintf("%s/%s", distro, arch), func(t *testing.T) {
-				pkgPath := requirePackage(t, packageType, arch)
-				container := runDistroContainer(t, packageType, distro, arch)
-				defer logJournal(t, container)
+			for _, testCase := range testCases {
+				t.Run(fmt.Sprintf("%s/%s/%s", distro, arch, testCase.name), func(t *testing.T) {
+					pkgPath := requirePackage(t, packageType, arch)
+					container := runDistroContainer(t, packageType, distro, arch)
+					defer logJournal(t, container)
 
-				installLibcap(t, container, packageType)
-				copyFileToContainer(t, container, pkgPath)
-				installPackage(t, container, packageType, "/test/"+filepath.Base(pkgPath))
+					installLibcap(t, container, packageType)
+					copyFileToContainer(t, container, pkgPath)
+					copyFileToContainer(t, container, filepath.Join(repoRoot(t), "packaging", "installer", "install.sh"))
+					installCommand := fmt.Sprintf(
+						"VERIFY_ACCESS_TOKEN=false sh /test/install.sh -- %s --realm %s --collector-version /test/%s --skip-collector-repo --with-supervisor %s",
+						accessToken,
+						realm,
+						filepath.Base(pkgPath),
+						testCase.extraArgs,
+					)
+					assertExec(t, container, 10*time.Minute, installCommand)
 
-				assertExec(t, container, time.Minute, "cp -f "+envPath+".example "+envPath)
-				assertExec(
-					t,
-					container,
-					time.Minute,
-					"sed -i 's/^SPLUNK_OPAMP_SUPERVISOR_ENABLED=false$/SPLUNK_OPAMP_SUPERVISOR_ENABLED=true/' "+envPath,
-				)
-				assertExec(t, container, time.Minute, "systemctl start "+serviceName)
-				require.Eventually(t, func() bool {
-					return serviceIsRunning(t, container) &&
-						processIsRunningAs(t, container, serviceOwner, supervisorProcess)
-				}, 20*time.Second, time.Second)
+					envLines := strings.Split(strings.TrimSpace(assertExec(t, container, time.Minute, "cat "+envPath)), "\n")
+					expectedEnv := append([]string{
+						"SPLUNK_ACCESS_TOKEN=" + accessToken,
+						"SPLUNK_REALM=" + realm,
+						"SPLUNK_OPAMP_SUPERVISOR_ENABLED=true",
+					}, testCase.expectedEnv...)
+					require.Subset(t, envLines, expectedEnv)
 
-				assertExec(t, container, time.Minute, "test -f "+supervisorConfig)
-				assertExec(t, container, time.Minute, "test -d "+supervisorState)
+					require.Eventually(t, func() bool {
+						return serviceIsRunning(t, container) &&
+							processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+					}, 20*time.Second, time.Second)
 
-				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
-				require.Eventually(t, func() bool {
-					return serviceIsRunning(t, container) &&
-						processIsRunningAs(t, container, serviceOwner, supervisorProcess)
-				}, 20*time.Second, time.Second)
+					assertExec(t, container, time.Minute, "test -f "+supervisorConfig)
+					assertExec(t, container, time.Minute, "test -d "+supervisorState)
 
-				assertExec(t, container, time.Minute, "systemctl stop "+serviceName)
-				time.Sleep(5 * time.Second)
-				require.False(t, serviceIsRunning(t, container), "service should stop cleanly")
-				require.False(
-					t,
-					processIsRunningAs(t, container, serviceOwner, serviceProcess),
-					"collector should stop cleanly",
-				)
-				require.False(
-					t,
-					processIsRunningAs(t, container, serviceOwner, supervisorProcess),
-					"supervisor should stop cleanly",
-				)
+					assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
+					require.Eventually(t, func() bool {
+						return serviceIsRunning(t, container) &&
+							processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+					}, 20*time.Second, time.Second)
 
-				uninstallPackage(t, container, packageType)
-			})
+					assertExec(t, container, time.Minute, "systemctl stop "+serviceName)
+					time.Sleep(5 * time.Second)
+					require.False(t, serviceIsRunning(t, container), "service should stop cleanly")
+					require.False(
+						t,
+						processIsRunningAs(t, container, serviceOwner, serviceProcess),
+						"collector should stop cleanly",
+					)
+					require.False(
+						t,
+						processIsRunningAs(t, container, serviceOwner, supervisorProcess),
+						"supervisor should stop cleanly",
+					)
+
+					uninstallPackage(t, container, packageType)
+				})
+			}
 		}
 	}
 }

@@ -158,37 +158,71 @@ func (p *metricParser) emitInt(
 	sm pmetric.ScopeMetrics, origin string, elems []string,
 	keys map[string]string, value int64, ts pcommon.Timestamp,
 ) {
-	cfg, ok := p.resolve(elems)
+	cfg, ok := p.resolve(origin, elems)
 	if !ok {
 		return
 	}
-	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
-	dp.SetIntValue(value)
-	dp.SetTimestamp(ts)
-	putAttrs(dp.Attributes(), keys)
+	p.writeInt(sm, origin, elems, keys, cfg, value, ts)
 }
 
 func (p *metricParser) emitDouble(
 	sm pmetric.ScopeMetrics, origin string, elems []string,
 	keys map[string]string, value float64, ts pcommon.Timestamp,
 ) {
-	cfg, ok := p.resolve(elems)
+	cfg, ok := p.resolve(origin, elems)
 	if !ok {
 		return
 	}
-	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
-	dp.SetDoubleValue(value)
-	dp.SetTimestamp(ts)
-	putAttrs(dp.Attributes(), keys)
+	p.writeDouble(sm, origin, elems, keys, cfg, value, ts)
 }
 
 func (p *metricParser) emitInfo(
 	sm pmetric.ScopeMetrics, origin string, elems []string,
 	keys map[string]string, value string, ts pcommon.Timestamp,
 ) {
-	if _, ok := p.resolve(elems); !ok {
+	cfg, ok := p.resolve(origin, elems)
+	if !ok {
 		return
 	}
+
+	if cfg.Type == metricTypeSum || cfg.Type == metricTypeGauge {
+		if n, err := strconv.ParseInt(value, 10, 64); err == nil {
+			p.writeInt(sm, origin, elems, keys, cfg, n, ts)
+			return
+		}
+		if f, err := strconv.ParseFloat(value, 64); err == nil {
+			p.writeDouble(sm, origin, elems, keys, cfg, f, ts)
+			return
+		}
+	}
+
+	p.writeInfo(sm, origin, elems, keys, value, ts)
+}
+
+func (p *metricParser) writeInt(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, cfg MetricConfig, value int64, ts pcommon.Timestamp,
+) {
+	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
+	dp.SetIntValue(value)
+	dp.SetTimestamp(ts)
+	putAttrs(dp.Attributes(), keys)
+}
+
+func (p *metricParser) writeDouble(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, cfg MetricConfig, value float64, ts pcommon.Timestamp,
+) {
+	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
+	dp.SetDoubleValue(value)
+	dp.SetTimestamp(ts)
+	putAttrs(dp.Attributes(), keys)
+}
+
+func (p *metricParser) writeInfo(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, value string, ts pcommon.Timestamp,
+) {
 	m := sm.Metrics().AppendEmpty()
 	m.SetName(metricName(origin, elems) + infoMetricSuffix)
 	dp := m.SetEmptyGauge().DataPoints().AppendEmpty()
@@ -214,8 +248,8 @@ func (p *metricParser) newNumberDataPoint(
 	return m.SetEmptyGauge().DataPoints().AppendEmpty()
 }
 
-func (p *metricParser) resolve(elems []string) (MetricConfig, bool) {
-	sub := p.subscriptionFor(elems)
+func (p *metricParser) resolve(origin string, elems []string) (MetricConfig, bool) {
+	sub := p.subscriptionFor(origin, elems)
 	if sub == nil {
 		return MetricConfig{}, false
 	}
@@ -229,11 +263,14 @@ func (p *metricParser) resolve(elems []string) (MetricConfig, bool) {
 	return MetricConfig{}, false
 }
 
-func (p *metricParser) subscriptionFor(elems []string) *SubscriptionConfig {
+func (p *metricParser) subscriptionFor(origin string, elems []string) *SubscriptionConfig {
 	var best *SubscriptionConfig
 	bestLen := -1
 	for i := range p.subscriptions {
 		sub := &p.subscriptions[i]
+		if sub.Origin != "" && sub.Origin != origin {
+			continue
+		}
 		subElems := pathElemNames(sub.Path)
 		if len(subElems) > len(elems) {
 			continue

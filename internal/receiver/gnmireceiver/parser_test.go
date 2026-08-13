@@ -340,6 +340,40 @@ func TestParseJSONFlattensObject(t *testing.T) {
 	assert.True(t, hasInfo, "string leaf should become an info metric")
 }
 
+// TestParseJSONIETFQuotedNumberRespectsConfiguredType reproduces the specific
+// scenario raised in review on PR #7918: a json_ietf payload that quotes a
+// numeric leaf as a JSON string (rather than a JSON number), which some
+// targets do for large integers. The leaf is configured as "sum" via
+// countersSubscription's "in-octets" override and must be emitted as a
+// numeric datapoint, not silently become an _info metric.
+func TestParseJSONIETFQuotedNumberRespectsConfiguredType(t *testing.T) {
+	payload := []byte(`{"in-octets": "10"}`)
+	m, err := testParser().parse(&gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{
+			Update: &gnmipb.Notification{
+				Update: []*gnmipb.Update{{
+					Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
+						{Name: "interfaces"},
+						{Name: "interface", Key: map[string]string{"name": "eth0"}},
+						{Name: "state"},
+						{Name: "counters"},
+					}},
+					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_JsonIetfVal{JsonIetfVal: payload}},
+				}},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name(),
+		"a quoted number for a leaf configured as sum must not become an _info metric")
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	dp := metric.Sum().DataPoints().At(0)
+	assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+	assert.Equal(t, int64(10), dp.IntValue())
+}
+
 func TestParseJSONNestedObjectExtendsName(t *testing.T) {
 	sub := SubscriptionConfig{
 		Path:    "/interfaces/interface/state",
@@ -491,6 +525,140 @@ func TestParseUnsupportedValueTypeIsSkipped(t *testing.T) {
 		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_BytesVal{BytesVal: []byte{1, 2}}}))
 	require.NoError(t, err)
 	assert.Equal(t, 0, m.DataPointCount())
+}
+
+// TestParseUsesOriginToDisambiguateSameSubscriptionPath covers a review
+// comment on PR #7918: two subscriptions can share a path under different
+// origins (e.g. the same counters path modeled once in "openconfig" and once
+// in a vendor-native tree). Origin must be consulted when selecting which
+// subscription's type/unit configuration applies, or whichever subscription
+// happens to be listed first would silently win for both.
+func TestParseUsesOriginToDisambiguateSameSubscriptionPath(t *testing.T) {
+	ocSub := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Origin:  "openconfig",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}
+	nativeSub := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Origin:  "cisco-native",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeGauge, Unit: "1"},
+	}
+	p := testParser(ocSub, nativeSub)
+
+	updateWithOrigin := func(origin string, val uint64) *gnmipb.SubscribeResponse {
+		return &gnmipb.SubscribeResponse{
+			Response: &gnmipb.SubscribeResponse_Update{
+				Update: &gnmipb.Notification{
+					Update: []*gnmipb.Update{{
+						Path: &gnmipb.Path{
+							Origin: origin,
+							Elem: []*gnmipb.PathElem{
+								{Name: "interfaces"}, {Name: "interface"},
+								{Name: "state"}, {Name: "counters"}, {Name: "in-octets"},
+							},
+						},
+						Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: val}},
+					}},
+				},
+			},
+		}
+	}
+
+	ocMetric, err := p.parse(updateWithOrigin("openconfig", 1))
+	require.NoError(t, err)
+	require.Equal(t, pmetric.MetricTypeSum, onlyMetric(t, ocMetric).Type(),
+		"openconfig-origin update must resolve against the openconfig subscription")
+	assert.Equal(t, "By", onlyMetric(t, ocMetric).Unit())
+
+	nativeMetric, err := p.parse(updateWithOrigin("cisco-native", 1))
+	require.NoError(t, err)
+	require.Equal(t, pmetric.MetricTypeGauge, onlyMetric(t, nativeMetric).Type(),
+		"cisco-native-origin update must resolve against the cisco-native subscription, not fall through to openconfig's config")
+	assert.Equal(t, "1", onlyMetric(t, nativeMetric).Unit())
+}
+
+// TestParseOriginlessSubscriptionMatchesAnyOrigin ensures the origin match is
+// not stricter than before for the common single-model case: a subscription
+// that does not declare an origin should still match updates regardless of
+// what origin the target reports.
+func TestParseOriginlessSubscriptionMatchesAnyOrigin(t *testing.T) {
+	sub := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}
+	m, err := testParser(sub).parse(&gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{
+			Update: &gnmipb.Notification{
+				Update: []*gnmipb.Update{{
+					Path: &gnmipb.Path{
+						Origin: "openconfig",
+						Elem: []*gnmipb.PathElem{
+							{Name: "interfaces"}, {Name: "interface"},
+							{Name: "state"}, {Name: "counters"}, {Name: "in-octets"},
+						},
+					},
+					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 1}},
+				}},
+			},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 1, m.DataPointCount())
+}
+
+// TestParseJSONIETFNumericStringRespectsConfiguredType covers a review
+// comment on PR #7918: json_ietf targets sometimes encode numeric leaves as
+// JSON strings (e.g. `"in-octets": "123"`) rather than JSON numbers. A leaf
+// explicitly configured as numeric must not be silently downgraded to an
+// info metric just because the wire encoding used a string.
+func TestParseJSONIETFNumericStringRespectsConfiguredType(t *testing.T) {
+	m, err := testParser().parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "123"}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name(),
+		"a numeric string for a leaf configured as sum must not become an _info metric")
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	dp := metric.Sum().DataPoints().At(0)
+	assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+	assert.Equal(t, int64(123), dp.IntValue())
+}
+
+// TestParseJSONIETFNumericStringGauge covers the gauge-configured leaf case
+// (in-octets-rate is configured as a gauge in countersSubscription), and a
+// non-integer numeric string, to exercise the float64 fallback.
+func TestParseJSONIETFNumericStringGauge(t *testing.T) {
+	m, err := testParser().parse(updateResponse("in-octets-rate",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "1.5"}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets-rate", metric.Name())
+	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
+	dp := metric.Gauge().DataPoints().At(0)
+	assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+	assert.InDelta(t, 1.5, dp.DoubleValue(), 0.0001)
+}
+
+// TestParseNonNumericStringStillBecomesInfoMetric ensures the numeric-string
+// fallback doesn't change behavior for a leaf that is genuinely non-numeric
+// (oper-status is configured as a gauge but the value "UP" never parses as a
+// number), and for a leaf with no numeric type configured at all.
+func TestParseNonNumericStringStillBecomesInfoMetric(t *testing.T) {
+	m, err := testParser().parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "UP"}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
+	value, ok := metric.Gauge().DataPoints().At(0).Attributes().Get("value")
+	require.True(t, ok)
+	assert.Equal(t, "UP", value.Str())
 }
 
 func TestParseUsesLongestMatchingSubscription(t *testing.T) {

@@ -96,6 +96,14 @@ string leaf is emitted as an *info metric*: the name gains an `_info` suffix, th
 datapoint value is always `1`, and the string is carried in the `value` attribute.
 Unconfigured string leaves are dropped like any other unconfigured leaf.
 
+Some targets encode numeric leaves as JSON strings rather than JSON numbers,
+particularly over `json_ietf` (e.g. `"in-octets": "123"`, common for values that
+don't fit safely in a JSON number). If the leaf is configured with a numeric `type`
+(`sum` or `gauge`), the receiver parses the string as a number and emits it normally
+instead of falling back to an info metric — configuration takes precedence over the
+wire encoding. A string that does not parse as a number, or that has no numeric type
+configured, still becomes an info metric.
+
 JSON and JSON-IETF payloads are flattened into one metric per leaf. Nested object
 keys extend the metric name; array elements keep the metric name and record their
 position in an `index` attribute. YANG leaf-lists are flattened the same way, so each

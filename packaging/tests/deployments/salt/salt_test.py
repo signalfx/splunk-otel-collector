@@ -14,6 +14,7 @@
 
 import os
 import re
+import shlex
 import string
 import tempfile
 import yaml
@@ -40,7 +41,7 @@ DEB_DOCKERFILE = IMAGES_DIR / "Dockerfile.deb"
 RPM_DOCKERFILE = IMAGES_DIR / "Dockerfile.rpm"
 DISTRO_YAML = IMAGES_DIR / "distro_docker_opts.yaml"
 PKG_DIR = REPO_DIR / "dist"
-LOCAL_ARTIFACTS_DIR = "/tmp/splunk-otel-local-artifacts"
+LOCAL_ARTIFACTS_DIR = "/opt/splunk-otel-local-artifacts"
 COLLECTOR_PKG_NAME = "splunk-otel-collector"
 AUTO_INSTRUMENTATION_PKG_NAME = "splunk-otel-auto-instrumentation"
 CONFIG_DIR = "/etc/otel/collector"
@@ -198,17 +199,24 @@ def get_local_package_source(package_name, distro):
     return f"{LOCAL_ARTIFACTS_DIR}/{package_path.name}"
 
 
+def verify_local_package_source(container, package_source):
+    run_container_cmd(container, f"ls -l {shlex.quote(LOCAL_ARTIFACTS_DIR)}", exit_code=None)
+    run_container_cmd(container, f"test -f {shlex.quote(package_source)}")
+
+
 def with_local_artifacts(container, distro, config, install_auto_instrumentation=False):
     if not LOCAL_ARTIFACT_TESTING_ENABLED:
         return config
 
     collector_package_source = get_local_package_source(COLLECTOR_PKG_NAME, distro)
+    verify_local_package_source(container, collector_package_source)
     local_config = f"""
   local_artifact_testing_enabled: True
   collector_package_source: '{collector_package_source}'
 """
     if install_auto_instrumentation:
         auto_instrumentation_package_source = get_local_package_source(AUTO_INSTRUMENTATION_PKG_NAME, distro)
+        verify_local_package_source(container, auto_instrumentation_package_source)
         local_config += f"  auto_instrumentation_package_source: '{auto_instrumentation_package_source}'\n"
 
     return f"{config}\n{local_config}"

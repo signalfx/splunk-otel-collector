@@ -152,7 +152,6 @@ func (c *gnmiClient) subscribe(ctx context.Context) error {
 			c.logger.Error("failed to parse gNMI response",
 				zap.String("endpoint", c.target.ClientConfig.Endpoint),
 				zap.Error(parseErr))
-			continue
 		}
 		if metrics.DataPointCount() == 0 {
 			continue

@@ -91,6 +91,13 @@ above). The target endpoint is recorded as the `server.address` resource attribu
 Integer values (including `counter64`) are emitted as integer datapoints so large
 counters keep full precision. Booleans are emitted as `1`/`0`.
 
+`counter64` and other unsigned leaves that exceed `2^63-1` (larger than any real
+interface counter is likely to reach, but possible on wraparound) cannot be
+represented as a 64-bit signed integer datapoint. Rather than silently wrapping to a
+negative value, the receiver falls back to a double for that single update — losing
+precision above `2^53` but keeping the sign and magnitude correct — and logs the
+occurrence.
+
 Non-numeric (string) values cannot be represented as a metric value, so a configured
 string leaf is emitted as an *info metric*: the name gains an `_info` suffix, the
 datapoint value is always `1`, and the string is carried in the `value` attribute.

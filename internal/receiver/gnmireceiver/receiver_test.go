@@ -16,6 +16,7 @@ package gnmireceiver
 
 import (
 	"context"
+	"math"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -42,14 +43,15 @@ import (
 
 type mockGNMIServer struct {
 	gnmipb.UnimplementedGNMIServer
-	lastReq      *gnmipb.SubscribeRequest
-	lastMD       metadata.MD
-	updates      int
-	mu           sync.Mutex
-	subscribeHit atomic.Int32
-	failFirst    atomic.Bool
-	sendError    bool
-	silent       bool
+	lastReq                *gnmipb.SubscribeRequest
+	lastMD                 metadata.MD
+	updates                int
+	mu                     sync.Mutex
+	subscribeHit           atomic.Int32
+	failFirst              atomic.Bool
+	sendError              bool
+	silent                 bool
+	overflowAlongsideValid bool
 }
 
 func (m *mockGNMIServer) lastRequest() *gnmipb.SubscribeRequest {
@@ -91,6 +93,37 @@ func (m *mockGNMIServer) Subscribe(stream gnmipb.GNMI_SubscribeServer) error {
 		Response: &gnmipb.SubscribeResponse_SyncResponse{SyncResponse: true},
 	}); err != nil {
 		return err
+	}
+	if m.overflowAlongsideValid {
+		// One notification carrying an overflowing counter64 (in-octets)
+		// alongside an otherwise-valid leaf (in-errors) on the same
+		// interface. The client must still forward the valid datapoint.
+		notif := &gnmipb.Notification{
+			Timestamp: time.Now().UnixNano(),
+			Update: []*gnmipb.Update{
+				{
+					Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
+						{Name: "interfaces"},
+						{Name: "interface", Key: map[string]string{"name": "eth0"}},
+						{Name: "state"}, {Name: "counters"}, {Name: "in-octets"},
+					}},
+					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: math.MaxUint64}},
+				},
+				{
+					Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
+						{Name: "interfaces"},
+						{Name: "interface", Key: map[string]string{"name": "eth0"}},
+						{Name: "state"}, {Name: "counters"}, {Name: "in-errors"},
+					}},
+					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 3}},
+				},
+			},
+		}
+		if err := stream.Send(&gnmipb.SubscribeResponse{
+			Response: &gnmipb.SubscribeResponse_Update{Update: notif},
+		}); err != nil {
+			return err
+		}
 	}
 	for i := 0; i < m.updates; i++ {
 		notif := &gnmipb.Notification{
@@ -280,6 +313,38 @@ func TestReceiverEmitsMetricsEndToEnd(t *testing.T) {
 	name, ok := dp.Attributes().Get("name")
 	require.True(t, ok)
 	assert.Equal(t, "eth0", name.Str())
+}
+
+// TestReceiverForwardsPartialSuccessOnParseError covers a review comment on
+// PR #7918: a uint64 leaf above math.MaxInt64 (e.g. a wrapped counter64)
+// makes parser.parse() return an error, but parse() already keeps every
+// update it converted successfully. The client must forward those datapoints
+// rather than discarding the whole notification because one leaf failed.
+func TestReceiverForwardsPartialSuccessOnParseError(t *testing.T) {
+	srv := &mockGNMIServer{overflowAlongsideValid: true}
+	addr, stop := startMockServer(t, srv)
+	defer stop()
+
+	sink := new(consumertest.MetricsSink)
+	cfg := &Config{Targets: []TargetConfig{testTarget(addr)}}
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	require.Eventually(t, func() bool {
+		return sink.DataPointCount() > 0
+	}, 5*time.Second, 20*time.Millisecond,
+		"in-errors datapoint must be forwarded even though in-octets overflowed in the same notification")
+	require.NoError(t, r.Shutdown(context.Background()))
+
+	var names []string
+	for _, md := range sink.AllMetrics() {
+		metrics := md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+		for i := 0; i < metrics.Len(); i++ {
+			names = append(names, metrics.At(i).Name())
+		}
+	}
+	assert.Contains(t, names, "interfaces.interface.state.counters.in-errors",
+		"the valid leaf must not be dropped alongside the overflowing one, got %v", names)
 }
 
 func TestReceiverShutdownWithoutStart(t *testing.T) {

@@ -15,6 +15,7 @@
 package gnmireceiver
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -122,6 +123,53 @@ func TestParsePreservesCounter64Precision(t *testing.T) {
 	dp := onlyMetric(t, m).Sum().DataPoints().At(0)
 	assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
 	assert.Equal(t, int64(large), dp.IntValue())
+}
+
+// TestParseUintAtInt64BoundaryConvertsExactly pins the boundary: a uint64
+// equal to math.MaxInt64 fits exactly and must not trigger the overflow
+// fallback.
+func TestParseUintAtInt64BoundaryConvertsExactly(t *testing.T) {
+	m, err := testParser().parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: math.MaxInt64}}))
+	require.NoError(t, err)
+
+	dp := onlyMetric(t, m).Sum().DataPoints().At(0)
+	assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+	assert.Equal(t, int64(math.MaxInt64), dp.IntValue())
+}
+
+// TestParseUintOverflowFallsBackToDoubleWithError covers a review comment on
+// PR #7918: converting a uint64 above math.MaxInt64 to int64 does not just
+// lose precision, it wraps to a negative number (int64(math.MaxInt64+1) is
+// negative). The receiver must not emit that silently wrong value. Instead it
+// falls back to a double, at the cost of precision above 2^53, and returns an
+// error so the caller logs it rather than the corruption passing unnoticed.
+func TestParseUintOverflowFallsBackToDoubleWithError(t *testing.T) {
+	overflow := uint64(math.MaxInt64) + 1
+	m, err := testParser().parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: overflow}}))
+	require.Error(t, err, "overflow must be surfaced so it is logged, not silently swallowed")
+	assert.Contains(t, err.Error(), "exceeds int64 range")
+
+	metric := onlyMetric(t, m)
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	dp := metric.Sum().DataPoints().At(0)
+	assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType(),
+		"overflowing values must fall back to a double, never a wrapped negative int")
+	assert.InDelta(t, float64(overflow), dp.DoubleValue(), float64(overflow)*1e-9)
+}
+
+// TestParseUintMaxValueFallsBackToDouble exercises the true maximum uint64
+// (a plausible counter64 wraparound value), confirming it does not panic or
+// wrap and is reported as a positive double rather than a negative int64.
+func TestParseUintMaxValueFallsBackToDouble(t *testing.T) {
+	m, err := testParser().parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: math.MaxUint64}}))
+	require.Error(t, err)
+
+	dp := onlyMetric(t, m).Sum().DataPoints().At(0)
+	assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+	assert.Positive(t, dp.DoubleValue(), "must report a large positive value, not a wrapped negative int")
 }
 
 func TestParseIntEmitsSum(t *testing.T) {

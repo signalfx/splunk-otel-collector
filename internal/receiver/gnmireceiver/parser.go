@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -109,7 +110,7 @@ func (p *metricParser) appendUpdate(
 
 	switch v := val.GetValue().(type) {
 	case *gnmipb.TypedValue_UintVal:
-		p.emitInt(sm, origin, elems, keys, int64(v.UintVal), ts) //nolint:gosec // G115: gNMI counters are uint64;
+		return p.emitUint(sm, origin, elems, keys, v.UintVal, ts)
 	case *gnmipb.TypedValue_IntVal:
 		p.emitInt(sm, origin, elems, keys, v.IntVal, ts)
 	case *gnmipb.TypedValue_FloatVal:
@@ -152,6 +153,19 @@ func withIndex(attrs map[string]string, i int) map[string]string {
 	}
 	indexed[indexAttr] = strconv.Itoa(i)
 	return indexed
+}
+
+func (p *metricParser) emitUint(
+	sm pmetric.ScopeMetrics, origin string, elems []string,
+	keys map[string]string, value uint64, ts pcommon.Timestamp,
+) error {
+	if value > math.MaxInt64 {
+		p.emitDouble(sm, origin, elems, keys, float64(value), ts)
+		return fmt.Errorf("value %d for %q exceeds int64 range; emitted as a double and lost precision",
+			value, metricName(origin, elems))
+	}
+	p.emitInt(sm, origin, elems, keys, int64(value), ts) //nolint:gosec // G115: bounded above by the math.MaxInt64 check
+	return nil
 }
 
 func (p *metricParser) emitInt(

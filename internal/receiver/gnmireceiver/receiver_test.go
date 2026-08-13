@@ -105,7 +105,9 @@ func (m *mockGNMIServer) Subscribe(stream gnmipb.GNMI_SubscribeServer) error {
 					Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
 						{Name: "interfaces"},
 						{Name: "interface", Key: map[string]string{"name": "eth0"}},
-						{Name: "state"}, {Name: "counters"}, {Name: "in-octets"},
+						{Name: "state"},
+						{Name: "counters"},
+						{Name: "in-octets"},
 					}},
 					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: math.MaxUint64}},
 				},
@@ -113,7 +115,9 @@ func (m *mockGNMIServer) Subscribe(stream gnmipb.GNMI_SubscribeServer) error {
 					Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
 						{Name: "interfaces"},
 						{Name: "interface", Key: map[string]string{"name": "eth0"}},
-						{Name: "state"}, {Name: "counters"}, {Name: "in-errors"},
+						{Name: "state"},
+						{Name: "counters"},
+						{Name: "in-errors"},
 					}},
 					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 3}},
 				},

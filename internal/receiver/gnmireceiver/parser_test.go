@@ -604,8 +604,11 @@ func TestParseUsesOriginToDisambiguateSameSubscriptionPath(t *testing.T) {
 						Path: &gnmipb.Path{
 							Origin: origin,
 							Elem: []*gnmipb.PathElem{
-								{Name: "interfaces"}, {Name: "interface"},
-								{Name: "state"}, {Name: "counters"}, {Name: "in-octets"},
+								{Name: "interfaces"},
+								{Name: "interface"},
+								{Name: "state"},
+								{Name: "counters"},
+								{Name: "in-octets"},
 							},
 						},
 						Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: val}},
@@ -645,8 +648,11 @@ func TestParseOriginlessSubscriptionMatchesAnyOrigin(t *testing.T) {
 					Path: &gnmipb.Path{
 						Origin: "openconfig",
 						Elem: []*gnmipb.PathElem{
-							{Name: "interfaces"}, {Name: "interface"},
-							{Name: "state"}, {Name: "counters"}, {Name: "in-octets"},
+							{Name: "interfaces"},
+							{Name: "interface"},
+							{Name: "state"},
+							{Name: "counters"},
+							{Name: "in-octets"},
 						},
 					},
 					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 1}},

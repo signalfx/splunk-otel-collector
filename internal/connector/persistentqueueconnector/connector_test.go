@@ -147,7 +147,7 @@ func TestPush1MIn128KOut(t *testing.T) {
 	}
 	time.Sleep(5 * time.Second)
 	found := len(sink.AllLogs())
-	require.True(t, found < 10)
+	require.Less(t, found, 10)
 	time.Sleep(5 * time.Second)
 	require.Len(t, sink.AllLogs(), 10)
 }

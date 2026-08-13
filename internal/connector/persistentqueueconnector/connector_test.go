@@ -124,7 +124,6 @@ func TestQueueMessageSlowedDown(t *testing.T) {
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		assert.Len(tt, sink.AllLogs(), 5)
 	}, 5*time.Second, 100*time.Millisecond)
-
 }
 
 func TestPush1MIn128KOut(t *testing.T) {

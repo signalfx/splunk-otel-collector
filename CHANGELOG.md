@@ -7826,8 +7826,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - `connector/forward` - Add support for the forward connector ([#3100](https://github.com/signalfx/splunk-otel-collector/pull/3100))
 - `receiver/signalfxgatewayprometheusremotewritereceiver` - Add new receiver that aims to be an otel-native version of
-  the SignalFx [Prometheus remote write](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go)
-  [gateway](https://github.com/signalfx/gateway/blob/main/README.md) ([#3064](https://github.com/signalfx/splunk-otel-collector/pull/3064))
+  the SignalFx Prometheus remote write gateway ([#3064](https://github.com/signalfx/splunk-otel-collector/pull/3064))
 - `signalfx-agent`: Relocate to be internal to the collector ([#3052](https://github.com/signalfx/splunk-otel-collector/pull/3052))
 
 ## v0.76.1

@@ -103,6 +103,19 @@ string leaf is emitted as an *info metric*: the name gains an `_info` suffix, th
 datapoint value is always `1`, and the string is carried in the `value` attribute.
 Unconfigured string leaves are dropped like any other unconfigured leaf.
 
+An info metric reports only the current value, not every possible value — an
+`oper-status` transition from `UP` to `DOWN` produces one new datapoint, not an
+explicit `0` for the state that's no longer active:
+
+```
+interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="UP"
+interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="DOWN"
+```
+
+Emitting the full enum (active state `1`, all others `0`) requires knowing a leaf's
+possible values in advance; tracked as a follow-up (YANG-schema support and a
+config-driven `enum_values`).
+
 Some targets encode numeric leaves as JSON strings rather than JSON numbers,
 particularly over `json_ietf` (e.g. `"in-octets": "123"`, common for values that
 don't fit safely in a JSON number). If the leaf is configured with a numeric `type`

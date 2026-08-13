@@ -5,6 +5,7 @@
 {% set debian_gpg_key_path = '/etc/apt/keyrings/splunk-otel-collector.gpg' %}
 {% set local_artifact_testing_enabled = salt['pillar.get']('splunk-otel-collector:local_artifact_testing_enabled', False) | to_bool %}
 {% set collector_package_source = salt['pillar.get']('splunk-otel-collector:collector_package_source', '') %}
+{% set zypper_local_artifact_testing_enabled = local_artifact_testing_enabled and salt['cmd.has_exec']('zypper') %}
 
 # Repository configuration.
 
@@ -87,11 +88,26 @@ Add Splunk OpenTelemetry Collector repo to zypper source list:
 
 # Installation of splunk-otel-collector package and starting of service.
 
+{% if zypper_local_artifact_testing_enabled %}
+Install local splunk-otel-collector package:
+  cmd.run:
+    - name: zypper --non-interactive --no-gpg-checks install -y --allow-unsigned-rpm {{ collector_package_source }}
+    - unless: rpm -q splunk-otel-collector
+
+{% endif %}
+
 splunk-otel-collector:
   pkg.installed:
 {% if local_artifact_testing_enabled %}
+{% if zypper_local_artifact_testing_enabled %}
+    - name: splunk-otel-collector
+    - require:
+      - cmd: Install local splunk-otel-collector package
+{% else %}
     - sources:
       - splunk-otel-collector: {{ collector_package_source }}
+    - skip_verify: True
+{% endif %}
 {% else %}
     - name: splunk-otel-collector
     - version: {{ collector_version }}

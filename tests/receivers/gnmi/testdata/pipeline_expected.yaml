@@ -1,0 +1,46 @@
+resourceMetrics:
+  - resource:
+      attributes:
+        - key: server.address
+          value:
+            stringValue: 127.0.0.1:34847
+    scopeMetrics:
+      - metrics:
+          - name: openconfig.interfaces.interface.state.counters.in-octets
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "9007199254740993"
+                  attributes:
+                    - key: name
+                      value:
+                        stringValue: eth0
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+            unit: By
+          - name: openconfig.interfaces.interface.state.counters.out-octets
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "54321"
+                  attributes:
+                    - key: name
+                      value:
+                        stringValue: eth0
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+            unit: By
+          - name: openconfig.interfaces.interface.state.counters.in-errors
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "7"
+                  attributes:
+                    - key: name
+                      value:
+                        stringValue: eth0
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+            unit: '{error}'
+        scope:
+          name: github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver

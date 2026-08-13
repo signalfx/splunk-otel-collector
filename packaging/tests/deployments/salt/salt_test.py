@@ -40,6 +40,7 @@ DEB_DOCKERFILE = IMAGES_DIR / "Dockerfile.deb"
 RPM_DOCKERFILE = IMAGES_DIR / "Dockerfile.rpm"
 DISTRO_YAML = IMAGES_DIR / "distro_docker_opts.yaml"
 PKG_DIR = REPO_DIR / "dist"
+LOCAL_ARTIFACTS_DIR = "/tmp/splunk-otel-local-artifacts"
 COLLECTOR_PKG_NAME = "splunk-otel-collector"
 AUTO_INSTRUMENTATION_PKG_NAME = "splunk-otel-auto-instrumentation"
 CONFIG_DIR = "/etc/otel/collector"
@@ -186,24 +187,28 @@ def find_local_package(package_name, distro):
     return matches[0]
 
 
-def copy_local_package(container, package_name, distro):
+def local_artifact_volumes():
+    if not LOCAL_ARTIFACT_TESTING_ENABLED:
+        return None
+    return {str(PKG_DIR): {"bind": LOCAL_ARTIFACTS_DIR, "mode": "ro"}}
+
+
+def get_local_package_source(package_name, distro):
     package_path = find_local_package(package_name, distro)
-    container_path = f"/tmp/{package_path.name}"
-    copy_file_into_container(container, package_path, container_path)
-    return container_path
+    return f"{LOCAL_ARTIFACTS_DIR}/{package_path.name}"
 
 
 def with_local_artifacts(container, distro, config, install_auto_instrumentation=False):
     if not LOCAL_ARTIFACT_TESTING_ENABLED:
         return config
 
-    collector_package_source = copy_local_package(container, COLLECTOR_PKG_NAME, distro)
+    collector_package_source = get_local_package_source(COLLECTOR_PKG_NAME, distro)
     local_config = f"""
   local_artifact_testing_enabled: True
   collector_package_source: '{collector_package_source}'
 """
     if install_auto_instrumentation:
-        auto_instrumentation_package_source = copy_local_package(container, AUTO_INSTRUMENTATION_PKG_NAME, distro)
+        auto_instrumentation_package_source = get_local_package_source(AUTO_INSTRUMENTATION_PKG_NAME, distro)
         local_config += f"  auto_instrumentation_package_source: '{auto_instrumentation_package_source}'\n"
 
     return f"{config}\n{local_config}"
@@ -241,7 +246,13 @@ def test_salt_default(distro):
     else:
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
         try:
             config = with_local_artifacts(container, distro, DEFAULT_CONFIG)
             run_salt_apply(container, config)
@@ -288,7 +299,13 @@ def test_salt_custom(distro):
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
         try:
             config = with_local_artifacts(container, distro, CUSTOM_CONFIG)
             run_salt_apply(container, config)
@@ -342,7 +359,13 @@ def test_salt_default_instrumentation(distro, version, with_systemd):
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
         config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=version, systemd=str(with_systemd))
         config = with_local_artifacts(container, distro, config, install_auto_instrumentation=True)
         run_salt_apply(container, config)
@@ -457,7 +480,13 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
         collector_version = COLLECTOR_VERSION if LOCAL_ARTIFACT_TESTING_ENABLED else version
         config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(
             collector_version=collector_version,

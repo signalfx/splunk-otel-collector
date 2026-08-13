@@ -45,12 +45,16 @@ func newGNMIReceiver(cfg *Config, settings receiver.Settings, nextConsumer consu
 func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) error {
 	clients := make([]*gnmiClient, 0, len(r.cfg.Targets))
 	for i := range r.cfg.Targets {
+		parser := newMetricParser(
+			r.cfg.Targets[i].ClientConfig.Endpoint,
+			r.cfg.Targets[i].Subscriptions,
+		)
 		client := newGNMIClient(
 			&r.cfg.Targets[i],
 			host,
 			r.settings.TelemetrySettings,
 			r.consumer,
-			newMetricParser(),
+			parser,
 		)
 
 		if err := client.connect(startCtx); err != nil {

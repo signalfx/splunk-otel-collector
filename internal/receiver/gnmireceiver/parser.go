@@ -202,7 +202,7 @@ func (p *metricParser) emitUint(
 		return fmt.Errorf("value %d for %q exceeds int64 range; emitted as a double and lost precision",
 			value, metricName(origin, elems))
 	}
-	return p.emitInt(b, origin, elems, keys, int64(value), ts) //nolint:gosec // G115: bounded above by the math.MaxInt64 check
+	return p.emitInt(b, origin, elems, keys, int64(value), ts)
 }
 
 func (p *metricParser) emitInt(

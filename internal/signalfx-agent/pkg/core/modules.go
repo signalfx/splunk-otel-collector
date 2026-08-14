@@ -1,4 +1,4 @@
-//go:build !aix && !freebsd
+//go:build !aix && !freebsd && !solaris
 
 package core
 

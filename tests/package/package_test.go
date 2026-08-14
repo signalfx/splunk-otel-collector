@@ -374,6 +374,9 @@ func TestCollectorPackageUpgradeWithCustomServiceOwner(t *testing.T) {
 					t, container, time.Minute, "stat -c '%U:%G' /etc/otel/collector",
 				)))
 				require.Equal(t, expectedOwner, strings.TrimSpace(assertExec(
+					t, container, time.Minute, "stat -c '%U:%G' "+statePath,
+				)))
+				require.Equal(t, expectedOwner, strings.TrimSpace(assertExec(
 					t, container, time.Minute, "stat -c '%U:%G' "+envPath,
 				)))
 				require.Equal(t, "600", strings.TrimSpace(assertExec(

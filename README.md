@@ -169,8 +169,7 @@ directly or the OpAMP Supervisor, enabling additional Fleet Management capabilit
 [OpenTelemetry Fleet Management](https://help.splunk.com/en/splunk-observability-cloud/manage-data/manage-otel-agents-and-collectors/manage-opentelemetry-agents-and-collectors)
 for details. 
 
-For a new installation, pass `--with-supervisor` to the installer script. See [Collector for Linux](https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux)
-for additional installation options and guidance. To enable the OpAMP Supervisor after upgrading, set
+For a new installation, pass `--with-supervisor` to the installer script. To enable the OpAMP Supervisor after upgrading, set
 `SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in `/etc/otel/collector/splunk-otel-collector.conf` and restart the service.
 
 To stop running the Collector under OpAMP Supervisor, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=false` and restart the

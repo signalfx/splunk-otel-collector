@@ -1,6 +1,7 @@
 monitors:
 - monitorType: prometheus/nginx-ingress
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the nginxreceiver instead.**
     This monitor gets metrics from [Ingress 
     Nginx](https://github.com/kubernetes/ingress-nginx).
     It is a wrapper around the [prometheus-exporter](./prometheus-exporter.md) 

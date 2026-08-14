@@ -211,6 +211,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedConnectors := []string{
 		"count",
 		"forward",
+		"persistent_queue",
 		"routing",
 		"span_metrics",
 		"sum",

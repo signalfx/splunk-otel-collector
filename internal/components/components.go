@@ -152,6 +152,7 @@ import (
 	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 	"go.uber.org/multierr"
 
+	"github.com/signalfx/splunk-otel-collector/internal/connector/persistentqueueconnector"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
@@ -343,6 +344,7 @@ func Get() (otelcol.Factories, error) {
 	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
 		connector.Factory(forwardconnector.NewFactory()),
+		persistentqueueconnector.NewFactory(),
 		routingconnector.NewFactory(),
 		spanmetricsconnector.NewFactory(),
 		sumconnector.NewFactory(),

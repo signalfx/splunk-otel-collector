@@ -152,10 +152,12 @@ jobs:
           - binaries-aix_ppc64
           - binaries-darwin_amd64
           - binaries-darwin_arm64
+          - binaries-freebsd_amd64
           - binaries-linux_amd64
           - binaries-linux_arm64
           - binaries-linux_ppc64le
           - binaries-linux_s390x
+          - binaries-solaris_amd64
           - binaries-windows_386
           - binaries-windows_amd64
           - binaries-windows_arm64

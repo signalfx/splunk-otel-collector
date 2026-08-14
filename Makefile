@@ -307,10 +307,12 @@ docker-otelcol:
 binaries-all-sys: binaries-aix_ppc64 \
 	binaries-darwin_amd64 \
 	binaries-darwin_arm64 \
+	binaries-freebsd_amd64 \
 	binaries-linux_amd64 \
 	binaries-linux_arm64 \
 	binaries-linux_ppc64le \
 	binaries-linux_s390x \
+	binaries-solaris_amd64 \
 	binaries-windows_386 \
 	binaries-windows_amd64 \
 	binaries-windows_arm64
@@ -321,26 +323,30 @@ binaries-aix_ppc64:
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
-	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-darwin_arm64
 binaries-darwin_arm64:
-	GOOS=darwin  GOARCH=arm64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=arm64 $(MAKE) otelcol
+
+.PHONY: binaries-freebsd_amd64
+binaries-freebsd_amd64:
+	GOOS=freebsd GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcol
 ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcollauncher
-	GOOS=linux   GOARCH=amd64 $(MAKE) opampsupervisor
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=amd64 $(MAKE) opampsupervisor
 endif
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcol
 ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcollauncher
-	GOOS=linux   GOARCH=arm64 $(MAKE) opampsupervisor
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=arm64 $(MAKE) opampsupervisor
 endif
 
 .PHONY: binaries-linux_ppc64le
@@ -350,6 +356,10 @@ binaries-linux_ppc64le:
 .PHONY: binaries-linux_s390x
 binaries-linux_s390x:
 	GOOS=linux GOARCH=s390x $(MAKE) otelcol
+
+.PHONY: binaries-solaris_amd64
+binaries-solaris_amd64:
+	GOOS=solaris GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-windows_386
 binaries-windows_386:

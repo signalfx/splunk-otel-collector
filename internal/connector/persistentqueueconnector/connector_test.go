@@ -15,8 +15,8 @@
 package persistentqueueconnector
 
 import (
-	"bytes"
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"sync"
@@ -65,14 +65,18 @@ func createLd() plog.Logs {
 func createLd100k() plog.Logs {
 	ld := plog.NewLogs()
 	lr := ld.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
-	lr.Body().SetStr(string(bytes.Repeat([]byte{'a'}, 100_000)))
+	randomBytes := make([]byte, 100_000)
+	_, _ = rand.Read(randomBytes)
+	lr.Body().SetStr(string(randomBytes))
 	return ld
 }
 
 func createLd500() plog.Logs {
 	ld := plog.NewLogs()
 	lr := ld.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
-	lr.Body().SetStr(string(bytes.Repeat([]byte{'a'}, 500)))
+	randomBytes := make([]byte, 500)
+	_, _ = rand.Read(randomBytes)
+	lr.Body().SetStr(string(randomBytes))
 	return ld
 }
 
@@ -98,7 +102,7 @@ func TestQueueMessageTooBig(t *testing.T) {
 func TestQueueMessageSlowedDown(t *testing.T) {
 	sink := &consumertest.LogsSink{}
 	cfg := createDefaultConfig().(*Config)
-	cfg.ThroughputLimit = 39
+	cfg.ThroughputLimit = 63
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
 	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))

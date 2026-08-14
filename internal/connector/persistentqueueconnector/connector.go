@@ -16,8 +16,10 @@ package persistentqueueconnector
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -129,16 +131,26 @@ func (b *persistentqueue) Shutdown(_ context.Context) error {
 func (b *persistentqueue) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
+	zipWriter := gzip.NewWriter(buf)
 	defer bufPool.Put(buf)
 	marshaled, err := logsMarshaler.MarshalLogs(ld)
 	if err != nil {
 		return err
 	}
-	buf.WriteByte(versionByte)
-	buf.WriteByte(logByte)
-	buf.Write(marshaled)
-	if b.config.ThroughputLimit != 0 && int64(len(marshaled)) > b.config.ThroughputLimit {
-		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
+	_, err = buf.Write([]byte{versionByte, logByte})
+	if err != nil {
+		return err
+	}
+	_, err = zipWriter.Write(marshaled)
+	if err != nil {
+		return err
+	}
+	err = zipWriter.Close()
+	if err != nil {
+		return err
+	}
+	if b.config.ThroughputLimit != 0 && int64(buf.Len()) > b.config.ThroughputLimit {
+		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", buf.Len(), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
 	if err != nil {
@@ -151,16 +163,26 @@ func (b *persistentqueue) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 func (b *persistentqueue) ConsumeTraces(_ context.Context, ld ptrace.Traces) error {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
+	zipWriter := gzip.NewWriter(buf)
 	defer bufPool.Put(buf)
 	marshaled, err := tracesMarshaler.MarshalTraces(ld)
 	if err != nil {
 		return err
 	}
-	buf.WriteByte(versionByte)
-	buf.WriteByte(traceByte)
-	buf.Write(marshaled)
-	if b.config.ThroughputLimit != 0 && (int64(len(marshaled)) > b.config.ThroughputLimit) {
-		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
+	_, err = buf.Write([]byte{versionByte, traceByte})
+	if err != nil {
+		return err
+	}
+	_, err = zipWriter.Write(marshaled)
+	if err != nil {
+		return err
+	}
+	err = zipWriter.Close()
+	if err != nil {
+		return err
+	}
+	if b.config.ThroughputLimit != 0 && (int64(buf.Len()) > b.config.ThroughputLimit) {
+		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", buf.Len(), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
 	if err != nil {
@@ -173,16 +195,26 @@ func (b *persistentqueue) ConsumeTraces(_ context.Context, ld ptrace.Traces) err
 func (b *persistentqueue) ConsumeProfiles(_ context.Context, pd pprofile.Profiles) error {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
+	zipWriter := gzip.NewWriter(buf)
 	defer bufPool.Put(buf)
 	marshaled, err := profilesMarshaler.MarshalProfiles(pd)
 	if err != nil {
 		return err
 	}
-	buf.WriteByte(versionByte)
-	buf.WriteByte(profileByte)
-	buf.Write(marshaled)
-	if b.config.ThroughputLimit != 0 && (int64(len(marshaled)) > b.config.ThroughputLimit) {
-		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
+	_, err = buf.Write([]byte{versionByte, profileByte})
+	if err != nil {
+		return err
+	}
+	_, err = zipWriter.Write(marshaled)
+	if err != nil {
+		return err
+	}
+	err = zipWriter.Close()
+	if err != nil {
+		return err
+	}
+	if b.config.ThroughputLimit != 0 && (int64(buf.Len()) > b.config.ThroughputLimit) {
+		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", buf.Len(), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
 	if err != nil {
@@ -195,16 +227,26 @@ func (b *persistentqueue) ConsumeProfiles(_ context.Context, pd pprofile.Profile
 func (b *persistentqueue) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
+	zipWriter := gzip.NewWriter(buf)
 	defer bufPool.Put(buf)
 	marshaled, err := metricsMarshaler.MarshalMetrics(md)
 	if err != nil {
 		return err
 	}
-	buf.WriteByte(versionByte)
-	buf.WriteByte(metricByte)
-	buf.Write(marshaled)
-	if b.config.ThroughputLimit != 0 && (int64(len(marshaled)) > b.config.ThroughputLimit) {
-		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", len(marshaled), b.config.ThroughputLimit)
+	_, err = buf.Write([]byte{versionByte, metricByte})
+	if err != nil {
+		return err
+	}
+	_, err = zipWriter.Write(marshaled)
+	if err != nil {
+		return err
+	}
+	err = zipWriter.Close()
+	if err != nil {
+		return err
+	}
+	if b.config.ThroughputLimit != 0 && (int64(buf.Len()) > b.config.ThroughputLimit) {
+		return fmt.Errorf("cannot consume object, size is larger than allowed bandwidth: %d bytes, max %d bytes", buf.Len(), b.config.ThroughputLimit)
 	}
 	err = b.queue.Put(buf.Bytes())
 	if err != nil {
@@ -263,18 +305,32 @@ InnerLoop:
 			var metrics pmetric.Metrics
 			var profiles pprofile.Profiles
 			dataType := ""
+			reader, err := gzip.NewReader(bytes.NewReader(newMessage[2:]))
+			if err != nil {
+				b.settings.Logger.Error("error unzipping", zap.Error(err))
+				<-b.queue.ReadChan()
+				continue InnerLoop
+			}
+			defer reader.Close()
+			uncompressedData, err := io.ReadAll(reader)
+			if err != nil {
+				b.settings.Logger.Error("error unzipping", zap.Error(err))
+				<-b.queue.ReadChan()
+				continue InnerLoop
+			}
 			switch newMessage[1] {
 			case logByte:
-				logs, err = logsUnmarshaler.UnmarshalLogs(newMessage[2:])
+
+				logs, err = logsUnmarshaler.UnmarshalLogs(uncompressedData)
 				dataType = "logs"
 			case traceByte:
-				traces, err = tracesUnmarshaler.UnmarshalTraces(newMessage[2:])
+				traces, err = tracesUnmarshaler.UnmarshalTraces(uncompressedData)
 				dataType = "logs"
 			case metricByte:
-				metrics, err = metricsUnmarshaler.UnmarshalMetrics(newMessage[2:])
+				metrics, err = metricsUnmarshaler.UnmarshalMetrics(uncompressedData)
 				dataType = "logs"
 			case profileByte:
-				profiles, err = profilesUnmarshaler.UnmarshalProfiles(newMessage[2:])
+				profiles, err = profilesUnmarshaler.UnmarshalProfiles(uncompressedData)
 				dataType = "logs"
 			}
 			if err != nil {

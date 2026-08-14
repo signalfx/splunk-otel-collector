@@ -7,9 +7,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/linux-package-test.yml'
+      - '.github/workflows/reusable-build-package.yml'
+      - '.github/workflows/reusable-compile.yml'
       - '.github/workflows/scripts/ecs-mock/**'
       - 'cmd/otelcol/**'
+      - 'cmd/otelcollauncher/**'
       - 'internal/**'
+      - 'packaging/collect-libs.sh'
+      - 'packaging/fpm/**'
       - 'packaging/installer/**'
       - 'packaging/tests/images/**'
       - 'tests/go.mod'
@@ -35,6 +40,7 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
+      WITH_OPAMP_SUPERVISOR: ${{ contains(fromJSON('["binaries-linux_amd64", "binaries-linux_arm64"]'), matrix.SYS_BINARIES) }}
 
   build-package:
     needs: [cross-compile]

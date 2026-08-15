@@ -19,6 +19,8 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -41,7 +43,7 @@ func TestQueue(t *testing.T) {
 	sink := &consumertest.LogsSink{}
 	p, err := createLogs(
 		t.Context(),
-		connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter")),
+		connectortest.NewNopSettings(component.MustNewType("persistent_queue")),
 		cfg,
 		sink,
 	)
@@ -87,7 +89,7 @@ func TestQueueMessageTooBig(t *testing.T) {
 	cfg.Path = t.TempDir()
 	p, err := createLogs(
 		t.Context(),
-		connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter")),
+		connectortest.NewNopSettings(component.MustNewType("persistent_queue")),
 		cfg,
 		sink,
 	)
@@ -105,7 +107,7 @@ func TestQueueMessageSlowedDown(t *testing.T) {
 	cfg.ThroughputLimit = 63
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -136,7 +138,7 @@ func TestPush1MIn128KOut(t *testing.T) {
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -165,7 +167,7 @@ func TestNoLimit(t *testing.T) {
 	cfg.ThroughputLimit = 0
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -223,7 +225,7 @@ func TestRetryForever(t *testing.T) {
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -254,7 +256,7 @@ func TestRetryForeverStartAndStop(t *testing.T) {
 	cfg.ThroughputLimit = 128000
 	cfg.Path = t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+	settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
 	settings.Logger = logger
 	p, err := createLogs(
 		t.Context(),
@@ -367,7 +369,7 @@ func BenchmarkNoLimit(b *testing.B) {
 			cfg.ThroughputLimit = 0
 			cfg.Path = b.TempDir()
 			logger, _ := zap.NewDevelopment()
-			settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+			settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
 			settings.Logger = logger
 			p, err := createLogs(
 				b.Context(),
@@ -456,7 +458,7 @@ func BenchmarkWithLimits(b *testing.B) {
 			cfg.ThroughputLimit = int64(scenario.limit)
 			cfg.Path = b.TempDir()
 			logger, _ := zap.NewDevelopment()
-			settings := connectortest.NewNopSettings(component.MustNewType("bandwidth_limiter"))
+			settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
 			settings.Logger = logger
 			p, err := createLogs(
 				b.Context(),
@@ -481,4 +483,40 @@ func BenchmarkWithLimits(b *testing.B) {
 			}
 		})
 	}
+}
+
+func TestQueueCompaction(t *testing.T) {
+	cfg := createDefaultConfig().(*Config)
+	cfg.Path = t.TempDir()
+	cfg.ThroughputLimit = 100089
+	sink := &consumertest.LogsSink{}
+	settings := connectortest.NewNopSettings(component.MustNewType("persistent_queue"))
+	settings.ID = component.MustNewIDWithName("persistent_queue", "myqueue")
+	p, err := createLogs(
+		t.Context(),
+		settings,
+		cfg,
+		sink,
+	)
+	require.NoError(t, err)
+	require.NoError(t, p.Start(t.Context(), componenttest.NewNopHost()))
+	defer func() {
+		require.NoError(t, p.Shutdown(context.WithoutCancel(t.Context())))
+	}()
+	for range 5 {
+		require.NoError(t, p.ConsumeLogs(t.Context(), createLd100k()))
+	}
+	time.Sleep(5 * time.Second)
+	_, err = os.ReadFile(filepath.Join(cfg.Path, "myqueue.diskqueue.meta.dat"))
+	require.NoError(t, err)
+	// force compaction
+	p.(*persistentqueue).compaction <- struct{}{}
+	time.Sleep(1 * time.Second)
+	_, err = os.Stat(filepath.Join(cfg.Path, "myqueue.diskqueue.meta.dat"))
+	require.ErrorIs(t, err, os.ErrNotExist)
+
+	require.NoError(t, p.ConsumeLogs(t.Context(), createLd100k()))
+	time.Sleep(1 * time.Second)
+	_, err = os.ReadFile(filepath.Join(cfg.Path, "myqueue.diskqueue.meta.dat"))
+	require.NoError(t, err)
 }

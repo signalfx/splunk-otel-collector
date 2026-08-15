@@ -68,6 +68,7 @@ type persistentqueue struct {
 	config       *Config
 	shutdownChan chan struct{}
 	run          chan struct{}
+	compaction   chan struct{}
 	settings     connector.Settings
 	wg           sync.WaitGroup
 	limit        atomic.Int64
@@ -83,6 +84,7 @@ func (b *persistentqueue) Capabilities() consumer.Capabilities {
 func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 	b.shutdownChan = make(chan struct{})
 	b.run = make(chan struct{}, 1)
+	b.compaction = make(chan struct{}, 1)
 	if err := os.MkdirAll(b.config.Path, 0o755); err != nil {
 		return err
 	}
@@ -94,7 +96,6 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 
 	queueName := b.settings.ID.Name()
 
-	// TODO expose those params in config.
 	q := internal.New(
 		queueName,
 		b.config.Path,
@@ -114,6 +115,7 @@ func (b *persistentqueue) Start(_ context.Context, _ component.Host) error {
 	}
 	b.tryRun()
 	b.scheduleLimit()
+	b.scheduleCompaction()
 
 	b.wg.Go(b.consumeLoop)
 	return nil
@@ -281,6 +283,26 @@ func (b *persistentqueue) scheduleLimit() {
 	})
 }
 
+func (b *persistentqueue) scheduleCompaction() {
+	if b.config.CompactInterval == 0 {
+		return
+	}
+	b.wg.Go(func() {
+		ticker := time.NewTicker(b.config.CompactInterval)
+		for {
+			select {
+			case <-b.shutdownChan:
+				return
+			case <-ticker.C:
+				select {
+				case b.compaction <- struct{}{}:
+				default:
+				}
+			}
+		}
+	})
+}
+
 func (b *persistentqueue) consumeLoop() {
 	for {
 		select {
@@ -298,6 +320,11 @@ InnerLoop:
 		select {
 		case <-b.shutdownChan:
 			return
+		case <-b.compaction:
+			err := b.queue.Empty()
+			if err != nil {
+				b.settings.Logger.Error("error during compaction", zap.Error(err))
+			}
 		case newMessage := <-b.queue.PeekChan():
 			var err error
 			var logs plog.Logs

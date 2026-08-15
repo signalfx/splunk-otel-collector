@@ -13,8 +13,12 @@ apply the limit and FIFO across all signals.
 
 | Name | Description | Default value |
 | -- | -- | -- |
-| path | The path at which the queue will be stored on disk | "" (required) |
-| throughput_limit | The limit in bytes of data to read from the queue. If 0, no limit applies. | 0 |
+| `path` | The path at which the queue will be stored on disk | "" (required) |
+| `throughput_limit` | The limit in bytes of data to read from the queue. If 0, no limit applies. | 0 |
+| `max_bytes_per_file` | | 10 MiB |
+| `sync_every` | How often to sync the queue to disk, in number of writes | 1 |
+| `sync_timeout` | How often to sync the queue to disk, as a time interval | 100 milliseconds|
+| `compact_interval` | | 30 minutes |
 
 # Example
 

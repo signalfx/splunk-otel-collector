@@ -9,7 +9,6 @@ on:
       - '.github/workflows/otelcol-fips.yml'
       - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
-      - 'cmd/otelcollauncher/**'
       - 'internal/**'
       - 'pkg/**'
       - 'tests/**'
@@ -76,25 +75,6 @@ jobs:
           path: ./bin
       - run: Set-ItemProperty -Path HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy -Name Enabled -Value ${{ matrix.FIPSMODE }}
       - run: ./bin/otelcol-fips_windows_amd64.exe --version
-
-  linux-launcher-test:
-    runs-on: ubuntu-24.04${{ matrix.GOARCH == 'arm64' && '-arm' || '' }}
-    strategy:
-      matrix:
-        GOARCH: [ amd64, arm64 ]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-      - name: Verify the launcher starts the Collector in FIPS mode
-        run: |
-          make otelcol otelcollauncher GOOS=linux GOARCH=${{ matrix.GOARCH }}
-          output=$(SPLUNK_OPAMP_SUPERVISOR_ENABLED=false GODEBUG=fips140=on ./bin/otelcollauncher --version 2>&1)
-          echo "$output"
-          grep -q 'otelcol version' <<< "$output"
 
   docker-otelcol-fips:
     runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}

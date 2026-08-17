@@ -528,11 +528,7 @@ sign-osx:
 
 .build-tar-deb-rpm:
   needs:
-    - job: compile
-      parallel:
-        matrix:
-          - TARGET: [binaries-linux_amd64, binaries-linux_arm64]
-            WITH_OPAMP_SUPERVISOR: "true"
+    - compile
   parallel:
     matrix:
       - ARCH: [amd64, arm64]

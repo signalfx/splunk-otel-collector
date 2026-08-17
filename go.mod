@@ -469,7 +469,7 @@ require (
 	github.com/snowflakedb/gosnowflake/v2 v2.1.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
-	github.com/splunk/tarunner v0.5.0 // indirect
+	github.com/splunk/tarunner v0.5.1 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.26.0 // indirect
 	github.com/tg123/go-htpasswd v1.2.5 // indirect
 	github.com/thda/tds v0.1.7 // indirect
@@ -813,9 +813,9 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
-	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260812080238-f1b6d57ff6a7
-	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260812080238-f1b6d57ff6a7
-	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260812080238-f1b6d57ff6a7
+	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260817083851-cb6f4ff66fd4
+	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260817083851-cb6f4ff66fd4
+	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260817083851-cb6f4ff66fd4
 )
 
 // each of these is required for the smartagentreceiver

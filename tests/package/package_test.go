@@ -260,6 +260,8 @@ func TestCollectorPackageUpgrade(t *testing.T) {
 func TestCollectorPackageRollbackSupervisorMode(t *testing.T) {
 	skipUnlessLinux(t)
 	packageType := skipUnlessPackageType(t, "deb", "rpm")
+	fipsMode := "fips140=on"
+	fipsEnv := "GODEBUG=" + fipsMode
 
 	for _, distro := range selectedDistros(t, packageType) {
 		for _, arch := range selectedArches(t) {
@@ -271,8 +273,9 @@ func TestCollectorPackageRollbackSupervisorMode(t *testing.T) {
 				// Install pre-launcher version
 				copyFileToContainer(t, container, filepath.Join(repoRoot(t), "packaging", "installer", "install.sh"))
 				assertExec(t, container, 10*time.Minute, fmt.Sprintf(
-					"VERIFY_ACCESS_TOKEN=false sh /test/install.sh -- testing123 --realm test --collector-version %s",
+					"VERIFY_ACCESS_TOKEN=false sh /test/install.sh -- testing123 --realm test --collector-version %s --godebug %s",
 					lastPreLauncherVersion,
+					fipsMode,
 				))
 
 				require.Eventually(t, func() bool {
@@ -296,7 +299,8 @@ func TestCollectorPackageRollbackSupervisorMode(t *testing.T) {
 				require.Equal(t, agentConfigChecksum, strings.TrimSpace(assertExec(t, container, time.Minute, "sha256sum "+agentConfigPath)))
 				assertPackagedBinaries(t, container)
 				require.Eventually(t, func() bool {
-					return serviceIsRunning(t, container)
+					return serviceIsRunning(t, container) &&
+						processHasEnv(t, container, serviceOwner, serviceProcess, fipsEnv)
 				}, 20*time.Second, time.Second)
 				require.False(t, processIsRunningAs(t, container, serviceOwner, supervisorProcess))
 
@@ -305,7 +309,9 @@ func TestCollectorPackageRollbackSupervisorMode(t *testing.T) {
 				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
 				require.Eventually(t, func() bool {
 					return serviceIsRunning(t, container) &&
-						processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+						processIsRunningAs(t, container, serviceOwner, supervisorProcess) &&
+						processHasEnv(t, container, serviceOwner, supervisorProcess, fipsEnv) &&
+						processHasEnv(t, container, serviceOwner, serviceProcess, fipsEnv)
 				}, 20*time.Second, time.Second)
 				assertExec(t, container, time.Minute, "test -f "+supervisorConfig)
 				assertExec(t, container, time.Minute, "test -d "+supervisorState)
@@ -320,7 +326,8 @@ func TestCollectorPackageRollbackSupervisorMode(t *testing.T) {
 				assertExec(t, container, time.Minute, "systemctl restart "+serviceName)
 				require.Eventually(t, func() bool {
 					return serviceIsRunning(t, container) &&
-						!processIsRunningAs(t, container, serviceOwner, supervisorProcess)
+						!processIsRunningAs(t, container, serviceOwner, supervisorProcess) &&
+						processHasEnv(t, container, serviceOwner, serviceProcess, fipsEnv)
 				}, 20*time.Second, time.Second)
 				require.Equal(t, serviceProcess, strings.TrimSpace(assertExec(
 					t, container, time.Minute, "ps -u "+serviceOwner+" -o comm=",
@@ -622,6 +629,14 @@ func processIsRunningAs(t *testing.T, container *testutils.Container, owner, pro
 	t.Helper()
 	pgrepCode, _, _ := exec(t, container, time.Minute, "pgrep -a -u "+owner+" -x "+process)
 	return pgrepCode == 0
+}
+
+func processHasEnv(t *testing.T, container *testutils.Container, owner, process, expected string) bool {
+	t.Helper()
+	command := "pid=$(pgrep -n -u " + owner + " -x " + process + ") && " +
+		"grep -zFqx '" + expected + "' /proc/$pid/environ"
+	code, _, _ := exec(t, container, time.Minute, command)
+	return code == 0
 }
 
 func assertPackagedBinaries(t *testing.T, container *testutils.Container) {

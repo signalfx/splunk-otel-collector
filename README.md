@@ -173,7 +173,8 @@ For a new installation, pass `--with-supervisor` to the installer script. To ena
 `SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in `/etc/otel/collector/splunk-otel-collector.conf` and restart the service.
 
 To stop running the Collector under OpAMP Supervisor, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=false` and restart the
-service. The service will return to running the `otelcol` only.
+service. The service will return to running the `otelcol` only. When switched back to collector only mode, remote configuration
+delivered through the supervisor is no longer applied.
 
 On DEB and RPM installation or upgrade, the package also now recursively sets the ownership of `/var/lib/otelcol` to
 the service user and group. This ensures the Collector and OpAMP Supervisor can write files in existing

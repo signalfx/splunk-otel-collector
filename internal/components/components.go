@@ -45,6 +45,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/cumulativetodeltaprocessor"
@@ -198,6 +199,7 @@ func Get() (otelcol.Factories, error) {
 		oauth2clientauthextension.NewFactory(),
 		opampextension.NewFactory(),
 		pprofextension.NewFactory(),
+		sigv4authextension.NewFactory(),
 		smartagentextension.NewFactory(),
 		textencodingextension.NewFactory(),
 		zpagesextension.NewFactory(),

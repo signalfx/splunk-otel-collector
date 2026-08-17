@@ -55,6 +55,7 @@ import (
 	k8sobserver "github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	opampextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension"
 	pprofextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension"
+	sigv4authextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	filestorage "github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage"
 	attributesprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	cumulativetodeltaprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/cumulativetodeltaprocessor"
@@ -182,6 +183,7 @@ func NewBaseline() *Baseline {
 			oauth2clientauthextension.NewFactory(),
 			opampextension.NewFactory(),
 			pprofextension.NewFactory(),
+			sigv4authextension.NewFactory(),
 			textencodingextension.NewFactory(),
 			zpagesextension.NewFactory(),
 		},

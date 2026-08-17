@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
+import os
 import re
+import shlex
 import string
 import tempfile
 import yaml
@@ -39,6 +40,10 @@ IMAGES_DIR = Path(__file__).parent.resolve() / "images"
 DEB_DOCKERFILE = IMAGES_DIR / "Dockerfile.deb"
 RPM_DOCKERFILE = IMAGES_DIR / "Dockerfile.rpm"
 DISTRO_YAML = IMAGES_DIR / "distro_docker_opts.yaml"
+PKG_DIR = REPO_DIR / "dist"
+LOCAL_ARTIFACTS_DIR = "/opt/splunk-otel-local-artifacts"
+COLLECTOR_PKG_NAME = "splunk-otel-collector"
+AUTO_INSTRUMENTATION_PKG_NAME = "splunk-otel-auto-instrumentation"
 CONFIG_DIR = "/etc/otel/collector"
 SPLUNK_CONFIG = f"{CONFIG_DIR}/agent_config.yaml"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
@@ -49,6 +54,10 @@ SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.observability.splunkcloud.com"
 SPLUNK_SERVICE_USER = "splunk-otel-collector"
 SPLUNK_SERVICE_GROUP = "splunk-otel-collector"
 SPLUNK_MEMORY_TOTAL_MIB = 512
+LOCAL_ARTIFACT_TESTING_ENABLED = os.environ.get("LOCAL_ARTIFACT_TESTING_ENABLED", "false").lower() == "true"
+COLLECTOR_VERSION = os.environ.get("VERSION", "latest")
+AUTO_INSTRUMENTATION_VERSION = os.environ.get("AUTO_INSTRUMENTATION_VERSION", "latest")
+INSTRUMENTATION_VERSIONS = [AUTO_INSTRUMENTATION_VERSION] if LOCAL_ARTIFACT_TESTING_ENABLED else ["0.86.0", "latest"]
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
@@ -156,6 +165,68 @@ def node_package_installed(container):
     print(output.decode("utf-8"))
     return rc == 0
 
+
+def package_version_at_least(version, minimum):
+    if version == "latest":
+        return True
+
+    version_match = re.match(r"^(\d+)\.(\d+)\.(\d+)", version)
+    minimum_match = re.match(r"^(\d+)\.(\d+)\.(\d+)", minimum)
+    assert version_match is not None, f"unexpected package version: {version}"
+    assert minimum_match is not None, f"unexpected minimum package version: {minimum}"
+    return tuple(map(int, version_match.groups())) >= tuple(map(int, minimum_match.groups()))
+
+
+def find_local_package(package_name, distro):
+    if distro in DEB_DISTROS:
+        pattern = f"{package_name}_*amd64.deb"
+    else:
+        pattern = f"{package_name}-*x86_64.rpm"
+
+    matches = sorted(PKG_DIR.glob(pattern))
+    assert len(matches) == 1, f"expected exactly one {pattern} package in {PKG_DIR}, found {matches}"
+    return matches[0]
+
+
+def local_artifact_volumes():
+    if not LOCAL_ARTIFACT_TESTING_ENABLED:
+        return None
+    return {str(PKG_DIR): {"bind": LOCAL_ARTIFACTS_DIR, "mode": "ro"}}
+
+
+def get_local_package_source(package_name, distro):
+    package_path = find_local_package(package_name, distro)
+    return f"{LOCAL_ARTIFACTS_DIR}/{package_path.name}"
+
+
+def verify_local_package_source(container, package_source):
+    run_container_cmd(container, f"ls -l {shlex.quote(LOCAL_ARTIFACTS_DIR)}", exit_code=None)
+    run_container_cmd(container, f"test -f {shlex.quote(package_source)}")
+
+
+def with_local_artifacts(container, distro, config, install_auto_instrumentation=False):
+    if not LOCAL_ARTIFACT_TESTING_ENABLED:
+        return config
+
+    collector_package_source = get_local_package_source(COLLECTOR_PKG_NAME, distro)
+    verify_local_package_source(container, collector_package_source)
+    local_config = f"""
+  local_artifact_testing_enabled: True
+  collector_package_source: '{collector_package_source}'
+"""
+    if install_auto_instrumentation:
+        auto_instrumentation_package_source = get_local_package_source(AUTO_INSTRUMENTATION_PKG_NAME, distro)
+        verify_local_package_source(container, auto_instrumentation_package_source)
+        local_config += f"  auto_instrumentation_package_source: '{auto_instrumentation_package_source}'\n"
+
+    return f"{config}\n{local_config}"
+
+
+def verify_collector_version(container):
+    if LOCAL_ARTIFACT_TESTING_ENABLED:
+        verify_package_version(container, COLLECTOR_PKG_NAME, COLLECTOR_VERSION)
+
+
 def get_build_args(distro):
     if distro in DEB_DISTROS:
         build_args = DISTRO_OPTS.get('deb', {}).get(distro, [])
@@ -183,9 +254,17 @@ def test_salt_default(distro):
     else:
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
         try:
-            run_salt_apply(container, DEFAULT_CONFIG)
+            config = with_local_artifacts(container, distro, DEFAULT_CONFIG)
+            run_salt_apply(container, config)
+            verify_collector_version(container)
             verify_env_file(container)
             assert wait_for(lambda: service_is_running(container))
             if distro in DEB_DISTROS:
@@ -228,9 +307,17 @@ def test_salt_custom(distro):
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
         try:
-            run_salt_apply(container, CUSTOM_CONFIG)
+            config = with_local_artifacts(container, distro, CUSTOM_CONFIG)
+            run_salt_apply(container, config)
+            verify_collector_version(container)
             verify_env_file(
                 container,
                 api_url="https://fake-api.com",
@@ -270,7 +357,7 @@ splunk-otel-collector:
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
-@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("version", INSTRUMENTATION_VERSIONS)
 @pytest.mark.parametrize("with_systemd", [True, False])
 def test_salt_default_instrumentation(distro, version, with_systemd):
     if distro in DEB_DISTROS:
@@ -280,11 +367,22 @@ def test_salt_default_instrumentation(distro, version, with_systemd):
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
         config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=version, systemd=str(with_systemd))
+        config = with_local_artifacts(container, distro, config, install_auto_instrumentation=True)
         run_salt_apply(container, config)
+        verify_collector_version(container)
+        verify_package_version(container, AUTO_INSTRUMENTATION_PKG_NAME, version)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
+        with_new_instrumentation = package_version_at_least(version, "0.87.0")
+        with_dotnet_instrumentation = package_version_at_least(version, "0.99.0")
         resource_attributes = rf"splunk.zc.method=splunk-otel-auto-instrumentation-{version}"
         if with_systemd:
             resource_attributes = rf"{resource_attributes}-systemd"
@@ -292,7 +390,7 @@ def test_salt_default_instrumentation(distro, version, with_systemd):
         else:
             verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
             assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
-        if version == "latest":
+        if with_new_instrumentation:
             assert node_package_installed(container)
         if with_systemd:
             for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
@@ -307,18 +405,25 @@ def test_salt_default_instrumentation(distro, version, with_systemd):
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", ".*", exists=False)
-            if version == "latest":
+            if with_new_instrumentation:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=with_dotnet_instrumentation)
             else:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
                 verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
-        elif version == "latest":
-            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+        elif with_new_instrumentation:
+            for config_path in [SYSTEMD_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
+                assert not container_file_exists(container, config_path)
             verify_config_file(container, JAVA_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
             verify_config_file(container, NODE_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-            verify_dotnet_config(container, DOTNET_CONFIG_PATH)
-            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH]:
+            if with_dotnet_instrumentation:
+                verify_dotnet_config(container, DOTNET_CONFIG_PATH)
+            else:
+                assert not container_file_exists(container, DOTNET_CONFIG_PATH)
+            config_paths = [JAVA_CONFIG_PATH, NODE_CONFIG_PATH]
+            if with_dotnet_instrumentation:
+                config_paths.append(DOTNET_CONFIG_PATH)
+            for config_path in config_paths:
                 verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
                 verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
@@ -332,7 +437,6 @@ def test_salt_default_instrumentation(distro, version, with_systemd):
             for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, SYSTEMD_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)
             config_path = INSTRUMENTATION_CONFIG_PATH
-            verify_package_version(container, "splunk-otel-auto-instrumentation", version)
             verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)
             verify_config_file(container, config_path, "resource_attributes", resource_attributes)
             verify_config_file(container, config_path, "service_name", ".*", exists=False)
@@ -347,7 +451,7 @@ CUSTOM_INSTRUMENTATION_CONFIG = string.Template(f"""
 splunk-otel-collector:
   splunk_access_token: '{SPLUNK_ACCESS_TOKEN}'
   splunk_realm: '{SPLUNK_REALM}'
-  collector_version: '$version'
+  collector_version: '$collector_version'
   install_auto_instrumentation: True
   auto_instrumentation_version: '$version'
   auto_instrumentation_systemd: $systemd
@@ -374,7 +478,7 @@ splunk-otel-collector:
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("version", INSTRUMENTATION_VERSIONS)
 @pytest.mark.parametrize("with_systemd", [True, False])
 def test_salt_custom_instrumentation(distro, version, with_systemd):
     if distro in DEB_DISTROS:
@@ -384,11 +488,27 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
         dockerfile = RPM_DOCKERFILE
         build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
-        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(version=version, systemd=str(with_systemd))
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+        extra_volumes=local_artifact_volumes(),
+    ) as container:
+        collector_version = COLLECTOR_VERSION if LOCAL_ARTIFACT_TESTING_ENABLED else version
+        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(
+            collector_version=collector_version,
+            version=version,
+            systemd=str(with_systemd),
+        )
+        config = with_local_artifacts(container, distro, config, install_auto_instrumentation=True)
         run_salt_apply(container, config)
+        verify_collector_version(container)
+        verify_package_version(container, AUTO_INSTRUMENTATION_PKG_NAME, version)
         verify_env_file(container)
         assert wait_for(lambda: service_is_running(container))
+        with_new_instrumentation = package_version_at_least(version, "0.87.0")
+        with_dotnet_instrumentation = package_version_at_least(version, "0.99.0")
         resource_attributes = rf"splunk.zc.method=splunk-otel-auto-instrumentation-{version}"
         if with_systemd:
             resource_attributes = rf"{resource_attributes}-systemd"
@@ -398,7 +518,7 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
             verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
             verify_config_file(container, "/etc/ld.so.preload", r"# my extra library")
             assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
-        if version == "latest":
+        if with_new_instrumentation:
             assert node_package_installed(container)
         resource_attributes = f"{resource_attributes},deployment.environment.name=test"
         if with_systemd:
@@ -414,19 +534,25 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", "grpc")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", "none")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", "none")
-            if version == "latest":
+            if with_new_instrumentation:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=with_dotnet_instrumentation)
             else:
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
                 verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
-        elif version == "latest":
+        elif with_new_instrumentation:
             for config_path in [SYSTEMD_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)
             verify_config_file(container, JAVA_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
             verify_config_file(container, NODE_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-            verify_dotnet_config(container, DOTNET_CONFIG_PATH)
-            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH]:
+            if with_dotnet_instrumentation:
+                verify_dotnet_config(container, DOTNET_CONFIG_PATH)
+            else:
+                assert not container_file_exists(container, DOTNET_CONFIG_PATH)
+            config_paths = [JAVA_CONFIG_PATH, NODE_CONFIG_PATH]
+            if with_dotnet_instrumentation:
+                config_paths.append(DOTNET_CONFIG_PATH)
+            for config_path in config_paths:
                 verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
                 verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
@@ -440,7 +566,6 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
             for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, SYSTEMD_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)
             config_path = INSTRUMENTATION_CONFIG_PATH
-            verify_package_version(container, "splunk-otel-auto-instrumentation", version)
             verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)
             verify_config_file(container, config_path, "resource_attributes", resource_attributes)
             verify_config_file(container, config_path, "service_name", "test")

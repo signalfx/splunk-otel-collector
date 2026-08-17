@@ -40,7 +40,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
-      WITH_OPAMP_SUPERVISOR: ${{ contains(fromJSON('["binaries-linux_amd64", "binaries-linux_arm64"]'), matrix.SYS_BINARIES) }}
 
   build-package:
     needs: [cross-compile]

@@ -197,6 +197,8 @@ github.com/aws/aws-sdk-go-v2/credentials v1.19.33/go.mod h1:ZxAmkcyOM9beY/WO9oxp
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.6.0/go.mod h1:gqlclDEZp4aqJOancXK6TN24aKhT0W0Ae9MHk3wzTMM=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.34 h1:1EsGke6rTD2CG3j2MMVB77n6Q+FlbQWYI/dFdLWBNtM=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.34/go.mod h1:5B1Z/QbaWzqoWRzYxZfmCbDDRcvUHcfAIQw/S+KfDmc=
+github.com/aws/aws-sdk-go-v2/feature/rds/auth v1.6.34 h1:pjwlPBr+vMOM62LPgTu9iLRTAUdKkz/hO/VbtGfHcac=
+github.com/aws/aws-sdk-go-v2/feature/rds/auth v1.6.34/go.mod h1:rjMbjYOeWyey/eDhNlPUt+h+2XGWrMuRJq11Vl+dkU0=
 github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.21.0 h1:pQZGI0qQXeCHZHMeWzhwPu+4jkWrdrIb2dgpG4OKmco=
 github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.21.0/go.mod h1:XGq5kImVqQT4HUNbbG+0Y8O74URsPNH7CGPg1s1HW5E=
 github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager v0.3.8 h1:3N8l29bIaW3MC0GCGQ/p6rcd3U25j3wXu6QS4YrCPe4=
@@ -1124,6 +1126,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokena
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.158.0/go.mod h1:GmYgdDYVfJ3+Im/hSGhhJjeEuMUCQ3FYx34wE2UZAeA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/dbauth v0.158.0 h1:ORJGVBzqg1VOsE0Xf4fGzA4XuB8qwSFiXp8U4ap3E7c=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/dbauth v0.158.0/go.mod h1:pyhMIvs6zXZzq9HxyRK5tV9SCLuohcw0VrJtvTgJh5U=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/dbauth/awsiamdbauthextension v0.158.0 h1:HCv1a0D7+oYaIZ7I04IHig1DqYKewRJrOlFFB94n0q8=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/dbauth/awsiamdbauthextension v0.158.0/go.mod h1:SXWs8Z8Rut+S3Y6WSDvZ/9fKbEdqXCjzzID/lvkhq1E=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.158.0 h1:OMekJiKlROgLKwjHksIzkTUIn5SerX37lkaOgZeT4cQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.158.0/go.mod h1:mEVcEkt3r03dYfYDgP0zBsCyzuO4ZtuwRR03I5Osw74=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/googlecloudlogentryencodingextension v0.158.0 h1:ywSEmHGZEbE+pzdNNQZ7GNNz1nutMDQygfOLRFHb9zY=

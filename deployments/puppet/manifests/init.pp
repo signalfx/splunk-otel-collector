@@ -200,7 +200,8 @@ class splunk_otel_collector (
     $zeroconfig_node_config_path = '/etc/splunk/zeroconfig/node.conf'
     $zeroconfig_dotnet_config_path = '/etc/splunk/zeroconfig/dotnet.conf'
     $zeroconfig_systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf'
-    $injector_config_dir = '/etc/opentelemetry/injector'
+    $opentelemetry_config_dir = '/etc/opentelemetry'
+    $injector_config_dir = "${opentelemetry_config_dir}/injector"
     $injector_config_path = "${injector_config_dir}/injector.conf"
     $injector_default_env_path = "${injector_config_dir}/default_env.conf"
     $with_new_instrumentation = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0
@@ -256,7 +257,11 @@ class splunk_otel_collector (
         ensure  => absent,
         require => Package[$auto_instrumentation_package_name],
       }
-      file { $injector_config_dir:
+      file { $opentelemetry_config_dir:
+        ensure  => directory,
+        require => Package[$auto_instrumentation_package_name],
+      }
+      -> file { $injector_config_dir:
         ensure => directory,
       }
       -> file { $injector_config_path:

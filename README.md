@@ -128,7 +128,7 @@ A variety of default configuration files are provided:
   Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
   documentation. `agent_config.yaml` is the recommended starting configuration for
-  most environments. To collect logs, see [Collect logs on Linux](docs/getting-started/linux-logs.md).
+  most environments. To collect logs, see [Collect logs on Linux](docs/getting-started/linux-logs.md) or [Collect logs on Windows](docs/getting-started/windows-logs.md).
 
 In addition, the following components can be configured:
 

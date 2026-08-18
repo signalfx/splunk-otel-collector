@@ -20,6 +20,11 @@
   ansible.builtin.set_fact:
     auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
+- name: Determine the auto-instrumentation package layout
+  ansible.builtin.set_fact:
+    with_otel_injector: >-
+      {{ local_artifact_testing_enabled or auto_instrumentation_version is version('0.158.0', '>') }}
+
 - name: Set auto instrumentation facts
   ansible.builtin.set_fact:
     package_changed: "{{ apt_instrumentation_package is changed \
@@ -33,7 +38,8 @@
       and auto_instrumentation_version is version('0.87.0', '>=') }}"
     with_dotnet: "{{ 'dotnet' in (splunk_otel_auto_instrumentation_sdks | default([])) \
       and auto_instrumentation_version is version('0.99.0', '>=') \
-      and ansible_architecture in ('x86_64', 'amd64', 'aarch64') }}"
+      and (with_otel_injector or ansible_architecture in ('x86_64', 'amd64')) \
+      and ansible_architecture in ('x86_64', 'amd64', 'aarch64', 'arm64') }}"
 
 - name: Check for npm
   ansible.builtin.command: npm --version
@@ -78,19 +84,46 @@
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/java.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_java
+  when: with_otel_injector or with_systemd or not with_new_instrumentation or not with_java
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/node.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_nodejs or not npm_found
+  when: with_otel_injector or with_systemd or not with_new_instrumentation or not with_nodejs or not npm_found
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for .NET config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/dotnet.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_dotnet
+  when: with_otel_injector or with_systemd or not with_new_instrumentation or not with_dotnet
+
+- name: Delete the OpenTelemetry injector config files for legacy packages
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/opentelemetry/injector/injector.conf
+    - /etc/opentelemetry/injector/default_env.conf
+  when: not with_otel_injector
+
+- name: Configure the OpenTelemetry injector
+  ansible.builtin.template:
+    src: injector.conf.j2
+    dest: /etc/opentelemetry/injector/injector.conf
+    owner: root
+    group: root
+    mode: '644'
+  when: with_otel_injector
+
+- name: Configure the OpenTelemetry injector environment
+  ansible.builtin.template:
+    src: default_env.conf.j2
+    dest: /etc/opentelemetry/injector/default_env.conf
+    owner: root
+    group: root
+    mode: '644'
+  when: with_otel_injector
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation config file
   ansible.builtin.template:
@@ -108,7 +141,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_java and with_new_instrumentation and not with_systemd
+  when: with_java and with_new_instrumentation and not with_otel_injector and not with_systemd
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.template:
@@ -117,7 +150,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_nodejs and npm_found and not with_systemd
+  when: with_nodejs and npm_found and not with_otel_injector and not with_systemd
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for .NET config file
   ansible.builtin.template:
@@ -126,7 +159,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_dotnet and not with_systemd
+  when: with_dotnet and not with_otel_injector and not with_systemd
 
 - name: Ensure the system.conf.d directory exists
   ansible.builtin.file:

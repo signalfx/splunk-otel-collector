@@ -1,11 +1,15 @@
 # Cookbook:: splunk_otel_collector
 # Recipe:: auto_instrumentation
 
-with_new_instrumentation = node['splunk_otel_collector']['auto_instrumentation_version'] == 'latest' || Gem::Version.new(node['splunk_otel_collector']['auto_instrumentation_version']) >= Gem::Version.new('0.87.0')
+requested_version = node['splunk_otel_collector']['auto_instrumentation_version']
+normalized_version = requested_version.tr('_-', '.')
+with_otel_injector = node['splunk_otel_collector']['local_artifact_testing_enabled'] || requested_version == 'latest' || Gem::Version.new(normalized_version) > Gem::Version.new('0.158.0')
+with_new_instrumentation = requested_version == 'latest' || Gem::Version.new(normalized_version) >= Gem::Version.new('0.87.0')
 with_systemd = node['splunk_otel_collector']['auto_instrumentation_systemd'].to_s.downcase == 'true'
 with_java = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('java')
 with_nodejs = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('nodejs') && with_new_instrumentation
-dotnet_supported = %w(x86_64 amd64).include?(node['cpu']['architecture']) && (node['splunk_otel_collector']['auto_instrumentation_version'] == 'latest' || Gem::Version.new(node['splunk_otel_collector']['auto_instrumentation_version']) >= Gem::Version.new('0.99.0'))
+dotnet_arch_supported = %w(x86_64 amd64).include?(node['cpu']['architecture']) || (with_otel_injector && %w(aarch64 arm64).include?(node['cpu']['architecture']))
+dotnet_supported = dotnet_arch_supported && (requested_version == 'latest' || Gem::Version.new(normalized_version) >= Gem::Version.new('0.99.0'))
 with_dotnet = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('dotnet') && dotnet_supported
 npm_path = node['splunk_otel_collector']['auto_instrumentation_npm_path']
 lib_dir = '/usr/lib/splunk-instrumentation'
@@ -19,6 +23,9 @@ dotnet_config_file = "#{zc_config_dir}/dotnet.conf"
 old_config_file = "#{lib_dir}/instrumentation.conf"
 systemd_config_dir = '/usr/lib/systemd/system.conf.d'
 systemd_config_file = "#{systemd_config_dir}/00-splunk-otel-auto-instrumentation.conf"
+injector_config_dir = '/etc/opentelemetry/injector'
+injector_config_file = "#{injector_config_dir}/injector.conf"
+injector_default_env_file = "#{injector_config_dir}/default_env.conf"
 
 # will be updated at run time based on whether npm is found
 node.run_state[:with_nodejs] = with_nodejs && shell_out("bash -c 'command -v #{npm_path}'").exitstatus == 0
@@ -118,7 +125,55 @@ else
   end
 end
 
-if with_systemd
+unless with_otel_injector
+  [injector_config_file, injector_default_env_file].each do |config_file|
+    file config_file do
+      action :delete
+    end
+  end
+end
+
+if with_otel_injector
+  [java_config_file, nodejs_config_file, dotnet_config_file, old_config_file].each do |config_file|
+    file config_file do
+      action :delete
+    end
+  end
+  directory injector_config_dir do
+    recursive true
+  end
+  template injector_config_file do
+    variables(
+      with_java: lazy { with_java },
+      with_nodejs: lazy { node.run_state[:with_nodejs] },
+      with_dotnet: lazy { with_dotnet }
+    )
+    source 'injector.conf.erb'
+  end
+  template injector_default_env_file do
+    variables(
+      installed_version: lazy { node['packages']['splunk-otel-auto-instrumentation']['version'] },
+      with_dotnet: lazy { with_dotnet },
+      with_systemd: lazy { with_systemd }
+    )
+    source 'default_env.conf.erb'
+  end
+  if with_systemd
+    directory systemd_config_dir do
+      recursive true
+    end
+    template systemd_config_file do
+      variables(with_otel_injector: true)
+      source '00-splunk-otel-auto-instrumentation.conf.erb'
+      notifies :run, 'execute[reload systemd]', :delayed
+    end
+  else
+    file systemd_config_file do
+      action :delete
+      notifies :run, 'execute[reload systemd]', :delayed
+    end
+  end
+elsif with_systemd
   [java_config_file, nodejs_config_file, dotnet_config_file, old_config_file].each do |config_file|
     file config_file do
       action :delete
@@ -197,6 +252,7 @@ end
 
 template '/etc/ld.so.preload' do
   variables(
+    with_otel_injector: lazy { with_otel_injector },
     with_systemd: lazy { with_systemd },
     with_java: lazy { with_java },
     with_nodejs: lazy { node.run_state[:with_nodejs] },

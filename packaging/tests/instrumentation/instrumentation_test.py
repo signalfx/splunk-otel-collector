@@ -69,7 +69,7 @@ INSTALLED_FILES = [
 
 # Legacy (pre-injector) package that shipped libsplunk.so and config under
 # /etc/splunk/zeroconfig/ instead of libotelinject.so + /etc/opentelemetry/injector/.
-LEGACY_VERSION = "0.156.0"
+LEGACY_VERSION = "0.158.0"
 LEGACY_RELEASE_URL = f"https://github.com/signalfx/splunk-otel-collector/releases/download/v{LEGACY_VERSION}"
 LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
 ZEROCONFIG_DIR = "/etc/splunk/zeroconfig"

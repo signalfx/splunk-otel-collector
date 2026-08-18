@@ -194,13 +194,19 @@ class splunk_otel_collector (
     $auto_instrumentation_package_name = 'splunk-otel-auto-instrumentation'
     $ld_so_preload_path =  '/etc/ld.so.preload'
     $libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
+    $libotelinject_path = '/usr/lib/splunk-instrumentation/libotelinject.so'
     $instrumentation_config_path = '/usr/lib/splunk-instrumentation/instrumentation.conf'
     $zeroconfig_java_config_path = '/etc/splunk/zeroconfig/java.conf'
     $zeroconfig_node_config_path = '/etc/splunk/zeroconfig/node.conf'
     $zeroconfig_dotnet_config_path = '/etc/splunk/zeroconfig/dotnet.conf'
     $zeroconfig_systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf'
+    $injector_config_dir = '/etc/opentelemetry/injector'
+    $injector_config_path = "${injector_config_dir}/injector.conf"
+    $injector_default_env_path = "${injector_config_dir}/default_env.conf"
     $with_new_instrumentation = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0
-    $dotnet_supported = $facts['os']['architecture'] in ['amd64', 'x86_64'] and ($auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.99.0') >= 0) # lint:ignore:140chars
+    $with_otel_injector = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.158.0') > 0
+    $dotnet_arch_supported = $facts['os']['architecture'] in ['amd64', 'x86_64'] or ($with_otel_injector and $facts['os']['architecture'] in ['arm64', 'aarch64']) # lint:ignore:140chars
+    $dotnet_supported = $dotnet_arch_supported and ($auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.99.0') >= 0) # lint:ignore:140chars
 
     if $facts['os']['family'] == 'debian' {
       package { $auto_instrumentation_package_name:
@@ -238,7 +244,48 @@ class splunk_otel_collector (
       require => Package[$auto_instrumentation_package_name],
     }
 
-    if $auto_instrumentation_systemd {
+    if !$with_otel_injector {
+      file { [$injector_config_path, $injector_default_env_path]:
+        ensure  => absent,
+        require => Package[$auto_instrumentation_package_name],
+      }
+    }
+
+    if $with_otel_injector {
+      file { [$zeroconfig_java_config_path, $zeroconfig_node_config_path, $zeroconfig_dotnet_config_path, $instrumentation_config_path]:
+        ensure  => absent,
+        require => Package[$auto_instrumentation_package_name],
+      }
+      file { $injector_config_dir:
+        ensure => directory,
+      }
+      -> file { $injector_config_path:
+        ensure  => file,
+        content => template('splunk_otel_collector/injector.conf.erb'),
+        require => Package[$auto_instrumentation_package_name],
+      }
+      -> file { $injector_default_env_path:
+        ensure  => file,
+        content => template('splunk_otel_collector/default_env.conf.erb'),
+        require => Package[$auto_instrumentation_package_name],
+      }
+      if $auto_instrumentation_systemd {
+        file { ['/usr/lib/systemd', '/usr/lib/systemd/system.conf.d']:
+          ensure => directory,
+        }
+        -> file { $zeroconfig_systemd_config_path:
+          ensure  => file,
+          content => template('splunk_otel_collector/00-splunk-otel-auto-instrumentation.conf.erb'),
+          require => Package[$auto_instrumentation_package_name],
+          notify  => Exec['systemctl daemon-reload'],
+        }
+      } else {
+        file { $zeroconfig_systemd_config_path:
+          ensure => absent,
+          notify => Exec['systemctl daemon-reload'],
+        }
+      }
+    } elsif $auto_instrumentation_systemd {
       file { [$zeroconfig_java_config_path, $zeroconfig_node_config_path, $zeroconfig_dotnet_config_path, $instrumentation_config_path]:
         ensure  => absent,
         require => Package[$auto_instrumentation_package_name],

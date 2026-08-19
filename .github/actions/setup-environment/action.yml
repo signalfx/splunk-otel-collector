@@ -1,6 +1,12 @@
 name: 'setup environment'
 description: 'setup go environment'
 
+inputs:
+  install_tools:
+    description: 'Install all development tools'
+    required: false
+    default: 'true'
+
 runs:
   using: "composite"
   steps:
@@ -11,6 +17,7 @@ runs:
         cache-dependency-path: '**/go.sum'
 
     - name: Installing required tools
+      if: inputs.install_tools == 'true'
       working-directory: ${{ github.workspace }}
       run: |
         make install-tools

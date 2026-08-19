@@ -146,6 +146,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1
 	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0
+	github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0
 	github.com/stretchr/testify v1.11.1
 	go.etcd.io/etcd/client/v2 v2.305.32
 	go.opentelemetry.io/collector/component/componentstatus v0.157.0
@@ -816,6 +817,7 @@ replace (
 	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260819133742-cecd7c144d6b
 	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260819133742-cecd7c144d6b
 	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260819133742-cecd7c144d6b
+	github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0 => ../tarunner/pkg/splunktaobserver
 )
 
 // each of these is required for the smartagentreceiver

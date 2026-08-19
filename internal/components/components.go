@@ -136,6 +136,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
 	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 	"github.com/splunk/tarunner/pkg/splunkoutputsexporter"
+	"github.com/splunk/tarunner/pkg/splunktaobserver"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter"
@@ -143,6 +144,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/nopexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
@@ -179,7 +181,7 @@ var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 
 func Get() (otelcol.Factories, error) {
 	var errs []error
-	extensions, err := otelcol.MakeFactoryMap(
+	extensionFactories := []extension.Factory{
 		ackextension.NewFactory(),
 		basicauthextension.NewFactory(),
 		bearertokenauthextension.NewFactory(),
@@ -200,7 +202,11 @@ func Get() (otelcol.Factories, error) {
 		smartagentextension.NewFactory(),
 		textencodingextension.NewFactory(),
 		zpagesextension.NewFactory(),
-	)
+	}
+	if enableTARunner.IsEnabled() {
+		extensionFactories = append(extensionFactories, splunktaobserver.NewFactory())
+	}
+	extensions, err := otelcol.MakeFactoryMap(extensionFactories...)
 	if err != nil {
 		errs = append(errs, err)
 	}

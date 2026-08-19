@@ -22,16 +22,10 @@ import (
 	"sync"
 )
 
-// childLogSink is the platform-specific destination for child process output.
-type childLogSink interface {
-	Info(msg string)
-	Error(msg string)
-}
-
 // forwardChildOutput drains both child process output streams and writes complete
-// lines to the provided sink. The returned channel closes after both streams
+// lines with the provided function. The returned channel closes after both streams
 // reach EOF so callers can wait for output to drain after the child exits.
-func forwardChildOutput(stdout, stderr io.Reader, sink childLogSink) <-chan error {
+func forwardChildOutput(stdout, stderr io.Reader, write func(string)) <-chan error {
 	done := make(chan error, 1)
 	errs := make(chan error, 2)
 
@@ -40,11 +34,11 @@ func forwardChildOutput(stdout, stderr io.Reader, sink childLogSink) <-chan erro
 
 	go func() {
 		defer wg.Done()
-		errs <- forwardOutputStream(stdout, sink.Info)
+		errs <- forwardOutputStream(stdout, write)
 	}()
 	go func() {
 		defer wg.Done()
-		errs <- forwardOutputStream(stderr, sink.Error)
+		errs <- forwardOutputStream(stderr, write)
 	}()
 
 	go func() {

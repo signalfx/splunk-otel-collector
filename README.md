@@ -162,23 +162,34 @@ as a reference.
 
 ### From 0.158.0 to 0.159.0
 
-Linux DEB and RPM packages now use `otelcollauncher` as the service entrypoint instead of
-`otelcol`. By default, the launcher starts `otelcol` directly and passes through the existing `OTELCOL_OPTIONS`,
+Linux DEB and RPM packages and Windows installations through MSI or Chocolatey now use `otelcollauncher` as the service entrypoint
+instead of `otelcol`. By default, the launcher starts `otelcol` directly and passes through the existing service arguments,
 so upgrades preserve the previous Collector service behavior. The launcher allows the service to start either `otelcol`
 directly or the OpAMP Supervisor, enabling additional Fleet Management capabilities. See
 [OpenTelemetry Fleet Management](https://help.splunk.com/en/splunk-observability-cloud/manage-data/manage-otel-agents-and-collectors/manage-opentelemetry-agents-and-collectors)
-for details. 
+for details.
 
-For a new installation, pass `--with-supervisor` to the installer script. To enable the OpAMP Supervisor after upgrading, set
-`SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in `/etc/otel/collector/splunk-otel-collector.conf` and restart the service.
+For a new Linux installation, pass `--with-supervisor` to the installer script. To enable the OpAMP Supervisor after
+upgrading, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in `/etc/otel/collector/splunk-otel-collector.conf` and restart the
+service.
 
-To stop running the Collector under OpAMP Supervisor, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=false` and restart the
-service. The service will return to running the `otelcol` only. When switched back to collector only mode, remote configuration
-delivered through the supervisor is no longer applied.
+For a new Windows installation, pass `-with_supervisor $true` to the installer script. To enable the OpAMP Supervisor after
+upgrading, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in the service's `Environment` value under
+`HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector` and restart the service.
 
-On DEB and RPM installation or upgrade, the package also now recursively sets the ownership of `/var/lib/otelcol` to
+To stop running the Collector under OpAMP Supervisor, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=false` in:
+- Linux: `/etc/otel/collector/splunk-otel-collector.conf`
+- Windows: service's `Environment` value under `HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
+
+Restart the service after changing the setting. The launcher will return to starting `otelcol` directly, without the
+supervisor. When switched back to direct mode, remote configuration delivered through the supervisor is no longer applied.
+
+On Linux DEB and RPM installation or upgrade, the package also now recursively sets the ownership of `/var/lib/otelcol` to
 the service user and group. This ensures the Collector and OpAMP Supervisor can write files in existing
 and new subdirectories of the shared state directory.
+
+On Windows installation or upgrade, the Collector output written to stdout or stderr is now forwarded as Information events by
+the launcher to the Windows Event Log. Logs configured for files or other destinations are unaffected.
 
 ### From 0.157.0 to 0.158.0
 

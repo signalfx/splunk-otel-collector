@@ -182,24 +182,10 @@ func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.Chang
 }
 
 // windowsEventLog is the subset of the Windows Event Log API the launcher uses
-// to bridge service-mode child stdout and stderr.
+// for child and launcher output.
 type windowsEventLog interface {
 	Info(eid uint32, msg string) error
 	Error(eid uint32, msg string) error
-}
-
-// eventLogSink maps child stdout/stderr lines to Windows Event Log records.
-// Write failures are non-fatal so logging issues cannot block pipe draining.
-type eventLogSink struct {
-	elog windowsEventLog
-}
-
-func (s eventLogSink) Info(msg string) {
-	_ = s.elog.Info(1, msg)
-}
-
-func (s eventLogSink) Error(msg string) {
-	_ = s.elog.Error(3, msg)
 }
 
 // childResult keeps process wait errors separate from child output forwarding
@@ -218,8 +204,8 @@ type childProcess struct {
 }
 
 // startChild launches the selected binary in its own process group. Interactive
-// runs inherit console stdout/stderr; service runs bridge child stdout/stderr
-// to Event Log through the provided event log handle.
+// runs inherit console stdout/stderr; service runs bridge both child streams to
+// Information events because stream identity does not indicate log severity.
 func startChild(cmdSpec launcher.Command, elog windowsEventLog) (*childProcess, error) {
 	cmd := exec.Command(cmdSpec.Path, cmdSpec.Args...)
 	cmd.Env = cmdSpec.Env
@@ -250,7 +236,10 @@ func startChild(cmdSpec launcher.Command, elog windowsEventLog) (*childProcess, 
 		return nil, err
 	}
 	if elog != nil {
-		outputDone = forwardChildOutput(outputClosers[0], outputClosers[1], eventLogSink{elog: elog})
+		outputDone = forwardChildOutput(outputClosers[0], outputClosers[1], func(msg string) {
+			// Event Log write failures are non-fatal so logging issues cannot block pipe draining.
+			_ = elog.Info(1, msg)
+		})
 	}
 
 	return &childProcess{

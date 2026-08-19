@@ -137,7 +137,7 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025", "windows-11-arm" ]
         MODE: [ "agent", "gateway" ]
-        WITH_SUPERVISOR: [ false, true ]
+        SERVICE_MODE: [ "direct", "supervisor" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -164,23 +164,25 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
-          $with_supervisor = "${{ matrix.WITH_SUPERVISOR }}" -eq "true"
+          $with_supervisor = "${{ matrix.SERVICE_MODE }}" -eq "supervisor"
           $with_platform = $with_supervisor -and "${{ matrix.MODE }}" -eq "agent"
-          $collector_args = @{
+          $installer_args = @{
             access_token = "${{ env.token }}"
             realm = "${{ env.realm }}"
             mode = "${{ matrix.MODE }}"
             memory = "${{ env.memory }}"
             with_supervisor = $with_supervisor
           }
+          $service_test_args = $installer_args.Clone()
           if ($with_platform) {
-            $collector_args.splunk_platform_token = "fake-platform-token"
-            $collector_args.splunk_platform_url = "https://fake-hec.splunkcloud.com/services/collector"
-            $collector_args.splunk_platform_logs_index = "fake-logs-index"
+            $installer_args.msi_public_properties = 'SPLUNK_PLATFORM_TOKEN=fake-platform-token SPLUNK_PLATFORM_URL=https://fake-hec.splunkcloud.com/services/collector SPLUNK_PLATFORM_LOGS_INDEX=fake-logs-index'
+            $service_test_args.splunk_platform_token = "fake-platform-token"
+            $service_test_args.splunk_platform_url = "https://fake-hec.splunkcloud.com/services/collector"
+            $service_test_args.splunk_platform_logs_index = "fake-logs-index"
           }
-          .\packaging\installer\install.ps1 -msi_path "$msi_path" @collector_args
+          .\packaging\installer\install.ps1 -msi_path "$msi_path" @installer_args
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 @collector_args
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 @service_test_args
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_supervisor:$with_supervisor
       - name: splunk-otel-collector logs
         if: ${{ always() }}
@@ -279,7 +281,7 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
         SCENARIO: [ "install", "upgrade" ]
-        WITH_SUPERVISOR: [ false, true ]
+        SERVICE_MODE: [ "direct", "supervisor" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
@@ -306,7 +308,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
-          $with_supervisor = "${{ matrix.WITH_SUPERVISOR }}" -eq "true"
+          $with_supervisor = "${{ matrix.SERVICE_MODE }}" -eq "supervisor"
           $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }}"
           if ($with_supervisor) {
             $params += " /SPLUNK_OPAMP_SUPERVISOR_ENABLED:TRUE"

@@ -137,16 +137,25 @@ if ((service_running -name "splunk-otel-collector")) {
     throw "splunk-otel-collector service is not running."
 }
 
-foreach ($executable in @("otelcol.exe", "otelcollauncher.exe", "opampsupervisor.exe")) {
+$uninstallProperties = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
+    ForEach-Object { Get-ItemProperty $_.PSPath } |
+    Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
+$installed_version = [Version]$uninstallProperties.DisplayVersion
+$expect_launcher = $with_supervisor -or $installed_version -ge [Version]"0.159.0.0"
+
+$expected_executables = @("otelcol.exe")
+if ($expect_launcher) {
+    $expected_executables += @("otelcollauncher.exe", "opampsupervisor.exe")
+}
+foreach ($executable in $expected_executables) {
     if (!(Test-Path -Path "${program_files_collector_dir}\${executable}")) {
         throw "Executable '${program_files_collector_dir}\${executable}' was not found after the install."
     }
 }
-assert_process_topology -supervisor_enabled $with_supervisor
+if ($expect_launcher) {
+    assert_process_topology -supervisor_enabled $with_supervisor
+}
 
-$uninstallProperties = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
-    ForEach-Object { Get-ItemProperty $_.PSPath } |
-    Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
 if ($with_msi_uninstall_comments -ne "") {
     if ($with_msi_uninstall_comments -ne $uninstallProperties.Comments) {
         throw "Uninstall Comments in registry are not properly set. Found: '$uninstallProperties.Comments', Expected '$with_msi_uninstall_comments'"
@@ -155,7 +164,6 @@ if ($with_msi_uninstall_comments -ne "") {
     }
 }
 
-$installed_version = [Version]$uninstallProperties.DisplayVersion
 if ($installed_version -gt [Version]"0.97.0.0") {
     if (Test-Path -Path "${program_files_collector_dir}\*_config.yaml") {
         throw "Found config files in '${program_files_collector_dir}' these files should not be present"
@@ -184,10 +192,6 @@ try {
     $svc_commandline = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "ImagePath"
 } catch {
     throw "Failed to retrieve the service command line from the registry."
-}
-$expected_svc_executable = "`"${program_files_collector_dir}\otelcollauncher.exe`""
-if (!$svc_commandline.StartsWith($expected_svc_executable)) {
-    throw "Service executable is not the launcher. Found: '$svc_commandline', Expected to start with: '$expected_svc_executable'"
 }
 
 $expected_svc_args = $with_svc_args.Trim('"').Replace('""', '"')

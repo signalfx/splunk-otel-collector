@@ -814,10 +814,10 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
-	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260819133742-cecd7c144d6b
-	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260819133742-cecd7c144d6b
-	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260819133742-cecd7c144d6b
-	github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0 => ../tarunner/pkg/splunktaobserver
+	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260819140540-097c78132797
+	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260819140540-097c78132797
+	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260819140540-097c78132797
+	github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0 => github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0-20260819140540-097c78132797
 )
 
 // each of these is required for the smartagentreceiver

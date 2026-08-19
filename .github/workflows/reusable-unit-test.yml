@@ -24,7 +24,25 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Report disk space before environment setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-PSDrive -PSProvider FileSystem |
+            Select-Object Name,
+              @{Name='UsedGB'; Expression={[math]::Round($_.Used / 1GB, 2)}},
+              @{Name='FreeGB'; Expression={[math]::Round($_.Free / 1GB, 2)}} |
+            Format-Table -AutoSize
+
       - uses: ./.github/actions/setup-environment
+        with:
+          install_tools: 'false'
+
+      - name: Install unit test reporting tool
+        if: ${{ inputs.COVERAGE }}
+        working-directory: ./internal/tools
+        run: go install github.com/jstemmer/go-junit-report
 
       - name: Set CGO_ENABLED
         # Currently, CGO enabled is required for:
@@ -46,6 +64,16 @@ jobs:
             exit 1
           fi
 
+      - name: Report disk space before unit tests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-PSDrive -PSProvider FileSystem |
+            Select-Object Name,
+              @{Name='UsedGB'; Expression={[math]::Round($_.Used / 1GB, 2)}},
+              @{Name='FreeGB'; Expression={[math]::Round($_.Free / 1GB, 2)}} |
+            Format-Table -AutoSize
+
       - name: Unit tests
         run: |
           set -o pipefail
@@ -57,6 +85,16 @@ jobs:
           else
             make test-all
           fi
+
+      - name: Report disk space after unit tests
+        if: ${{ always() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          Get-PSDrive -PSProvider FileSystem |
+            Select-Object Name,
+              @{Name='UsedGB'; Expression={[math]::Round($_.Used / 1GB, 2)}},
+              @{Name='FreeGB'; Expression={[math]::Round($_.Free / 1GB, 2)}} |
+            Format-Table -AutoSize
 
       - name: Uploading artifacts
         if: ${{ inputs.COVERAGE }}

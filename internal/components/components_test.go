@@ -43,6 +43,7 @@ func TestDefaultComponents(t *testing.T) {
 		"oauth2client",
 		"opamp",
 		"pprof",
+		"sigv4auth",
 		"smartagent",
 		"text_encoding",
 		"zpages",

@@ -44,6 +44,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.158.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.158.0

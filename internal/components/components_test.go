@@ -26,6 +26,7 @@ import (
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []string{
 		"ack",
+		"aws_iam_db_auth",
 		"basicauth",
 		"bearertokenauth",
 		"config_source_telemetry",
@@ -175,6 +176,7 @@ func TestDefaultComponents(t *testing.T) {
 		"redaction",
 		"resource",
 		"resource_detection",
+		"rolling_span_latency",
 		"span",
 		"tail_sampling",
 		"timestamp",
@@ -197,7 +199,6 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp_grpc",
 		"otlp_http",
 		"prometheus_remote_write",
-		"pulsar",
 		"signalfx",
 		"splunk_hec",
 	}

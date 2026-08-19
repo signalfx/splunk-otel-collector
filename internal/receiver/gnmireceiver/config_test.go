@@ -115,6 +115,29 @@ func TestValidate(t *testing.T) {
 			expectedErr: "invalid encoding",
 		},
 		{
+			name:        "password without username",
+			mutate:      func(c *Config) { c.Targets[0].Password = "secret" },
+			expectedErr: "password requires username",
+		},
+		{
+			name: "username and password together are valid",
+			mutate: func(c *Config) {
+				c.Targets[0].Username = "admin"
+				c.Targets[0].Password = "secret"
+			},
+			expectedErr: "",
+		},
+		{
+			name:        "negative redial",
+			mutate:      func(c *Config) { c.Targets[0].Redial = -1 * time.Second },
+			expectedErr: "redial must not be negative",
+		},
+		{
+			name:        "zero redial disables reconnection and is valid",
+			mutate:      func(c *Config) { c.Targets[0].Redial = 0 },
+			expectedErr: "",
+		},
+		{
 			name:        "redial too small",
 			mutate:      func(c *Config) { c.Targets[0].Redial = 500 * time.Millisecond },
 			expectedErr: "redial must be at least 1s",

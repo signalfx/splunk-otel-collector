@@ -55,17 +55,67 @@ ruby_block 'install splunk-otel-js' do
   only_if { with_nodejs }
 end
 
-package 'splunk-otel-auto-instrumentation' do
-  action :install
-  version node['splunk_otel_collector']['auto_instrumentation_version'] if node['splunk_otel_collector']['auto_instrumentation_version'] != 'latest'
-  flush_cache [ :before ] if platform_family?('amazon', 'rhel')
-  options '--allow-downgrades' if platform_family?('debian') \
-    && node['packages'] \
-    && node['packages']['apt'] \
-    && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
-  allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
-  notifies :reload, 'ohai[reload packages]', :immediately
-  notifies :run, 'ruby_block[install splunk-otel-js]', :immediately
+if node['splunk_otel_collector']['local_artifact_testing_enabled']
+  if platform_family?('debian')
+    file_name = 'soai.deb'
+    deb_install_path = '/tmp/' + file_name
+
+    cookbook_file deb_install_path do
+      source file_name
+      mode '0644'
+    end
+
+    dpkg_package 'splunk-otel-auto-instrumentation' do
+      source deb_install_path
+      action :install
+      notifies :reload, 'ohai[reload packages]', :immediately
+      notifies :run, 'ruby_block[install splunk-otel-js]', :immediately
+    end
+  elsif platform_family?('rhel', 'amazon')
+    file_name = 'soai.rpm'
+    rpm_install_path = '/tmp/' + file_name
+
+    cookbook_file rpm_install_path do
+      source file_name
+      mode '0644'
+    end
+
+    rpm_package 'splunk-otel-auto-instrumentation' do
+      source rpm_install_path
+      action :install
+      notifies :reload, 'ohai[reload packages]', :immediately
+      notifies :run, 'ruby_block[install splunk-otel-js]', :immediately
+    end
+  elsif platform_family?('suse')
+    file_name = 'soai.rpm'
+    rpm_install_path = '/tmp/' + file_name
+
+    cookbook_file rpm_install_path do
+      source file_name
+      mode '0644'
+    end
+
+    zypper_package 'splunk-otel-auto-instrumentation' do
+      source rpm_install_path
+      gpg_check false
+      action :install
+      notifies :reload, 'ohai[reload packages]', :immediately
+      notifies :run, 'ruby_block[install splunk-otel-js]', :immediately
+    end
+  end
+else
+  package 'splunk-otel-auto-instrumentation' do
+    action :install
+    version node['splunk_otel_collector']['auto_instrumentation_version'] if node['splunk_otel_collector']['auto_instrumentation_version'] != 'latest'
+    flush_cache [ :before ] if platform_family?('amazon', 'rhel')
+    options '--allow-downgrades' if platform_family?('debian') \
+      && node['packages'] \
+      && node['packages']['apt'] \
+      && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
+    allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
+    notifies :reload, 'ohai[reload packages]', :immediately
+    notifies :run, 'ruby_block[install splunk-otel-js]', :immediately
+  end
 end
 
 if with_systemd

@@ -29,6 +29,8 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
+OTELCOLLAUNCHER_INSTALL_PATH="/usr/bin/otelcollauncher"
+OPAMPSUPERVISOR_INSTALL_PATH="/usr/bin/opampsupervisor"
 CONFIG_DIR_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/config.d.linux"
 CONFIG_DIR_INSTALL_PATH="/etc/otel/collector/config.d"
 AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
@@ -65,16 +67,28 @@ create_user_group() {
         sudo useradd --system --user-group --no-create-home --shell /sbin/nologin $SERVICE_USER
 }
 
+install_binary() {
+    local source_path="$1"
+    local install_path="$2"
+    local buildroot="$3"
+
+    mkdir -p "$buildroot/$(dirname "$install_path")"
+    cp -f "$source_path" "$buildroot/$install_path"
+    sudo chown root:root "$buildroot/$install_path"
+    sudo chmod 755 "$buildroot/$install_path"
+}
+
 setup_files_and_permissions() {
     local otelcol="$1"
-    local buildroot="$2"
+    local otelcollauncher="$2"
+    local opampsupervisor="$3"
+    local buildroot="$4"
 
     create_user_group
 
-    mkdir -p "$buildroot/$(dirname $OTELCOL_INSTALL_PATH)"
-    cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+    install_binary "$otelcol" "$OTELCOL_INSTALL_PATH" "$buildroot"
+    install_binary "$otelcollauncher" "$OTELCOLLAUNCHER_INSTALL_PATH" "$buildroot"
+    install_binary "$opampsupervisor" "$OPAMPSUPERVISOR_INSTALL_PATH" "$buildroot"
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
     cp -r "$CONFIG_DIR_REPO_PATH" "$buildroot/$CONFIG_DIR_INSTALL_PATH"

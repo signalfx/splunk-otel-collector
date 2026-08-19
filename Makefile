@@ -336,18 +336,14 @@ binaries-freebsd_amd64:
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
 	GOOS=linux GOARCH=amd64 $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
 	GOOS=linux GOARCH=amd64 $(MAKE) otelcollauncher
 	GOOS=linux GOARCH=amd64 $(MAKE) opampsupervisor
-endif
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
 	GOOS=linux GOARCH=arm64 $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
 	GOOS=linux GOARCH=arm64 $(MAKE) otelcollauncher
 	GOOS=linux GOARCH=arm64 $(MAKE) opampsupervisor
-endif
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:

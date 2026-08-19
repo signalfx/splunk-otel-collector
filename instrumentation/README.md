@@ -93,6 +93,22 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
    - [Java](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
    - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/configuration/advanced-nodejs-otel-configuration.html)
    - [.NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/configuration/advanced-dotnet-configuration.html)
+
+   The following optional keys in the same per-language configuration files limit which processes
+   receive auto-instrumentation. They are interpreted by `libsplunk.so` and are ***not*** exported
+   to the process (they are not in the allow-list above):
+   - `SPLUNK_INSTRUMENTATION_ALLOWED_EXECUTABLE_PATHS` — limit instrumentation to processes whose
+     executable path is under one of the listed directories.
+   - `SPLUNK_INSTRUMENTATION_ALLOWED_WORKING_DIRS` — limit instrumentation to processes whose
+     current working directory is under one of the listed directories.
+
+   Each value is a `:`-separated list of **absolute** directories. Matching is directory-prefix with
+   path-boundary checks (for example, `/opt/app` matches `/opt/app` and `/opt/app/bin/java`, but not
+   `/opt/application`; `/` matches any absolute path). Entries containing `..` path components or
+   entries that are not absolute paths are ignored. Other entries are canonicalized before matching
+   when possible. When both keys are set, each configured filter must pass (AND semantics). When a
+   key is omitted, that filter is not applied and all matching language processes continue to be
+   instrumented (the default).
 3. Reboot the system or restart the applications/services for any changes to take effect. The `libsplunk.so` shared
    object library will then be preloaded for all subsequent processes and inject the environment variables from the
    `/etc/splunk/zeroconfig` configuration files for Java and Node.js processes.

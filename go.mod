@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4
@@ -31,6 +31,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.158.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/dbauth/awsiamdbauthextension v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.158.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.158.0
@@ -245,6 +246,7 @@ require (
 	github.com/aws/aws-msk-iam-sasl-signer-go v1.0.4 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.32.34 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.34 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/rds/auth v1.6.34 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager v0.3.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.66.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.81.0 // indirect
@@ -779,7 +781,7 @@ require (
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
-	golang.org/x/text v0.40.0
+	golang.org/x/text v0.41.0
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect

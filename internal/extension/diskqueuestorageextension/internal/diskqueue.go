@@ -36,7 +36,6 @@ type Interface interface {
 	Close() error
 	Delete() error
 	Depth() int64
-	Empty() error
 }
 
 // diskQueue implements a filesystem backed FIFO queue
@@ -45,8 +44,6 @@ type diskQueue struct {
 	writeChan           chan []byte
 	exitSyncChan        chan int
 	exitChan            chan int
-	emptyResponseChan   chan error
-	emptyChan           chan int
 	logger              *zap.Logger
 	writeFile           *os.File
 	readFile            *os.File
@@ -89,8 +86,6 @@ func New(name, dataPath string, maxBytesPerFile int64,
 		depthChan:          make(chan int64),
 		writeChan:          make(chan []byte),
 		writeResponseChan:  make(chan error),
-		emptyChan:          make(chan int),
-		emptyResponseChan:  make(chan error),
 		exitChan:           make(chan int),
 		exitSyncChan:       make(chan int),
 		syncEvery:          syncEvery,
@@ -183,34 +178,6 @@ func (d *diskQueue) exit(deleted bool) error {
 	}
 
 	return nil
-}
-
-// Empty destructively clears out any pending data in the queue
-// by fast forwarding read positions and removing intermediate files
-func (d *diskQueue) Empty() error {
-	d.RLock()
-	defer d.RUnlock()
-
-	if d.exitFlag == 1 {
-		return errors.New("exiting")
-	}
-
-	d.logger.Info("emptying", zap.String("name", d.name))
-
-	d.emptyChan <- 1
-	return <-d.emptyResponseChan
-}
-
-func (d *diskQueue) deleteAllFiles() error {
-	err := d.skipToNextRWFile()
-
-	innerErr := os.Remove(d.metaDataFilePath())
-	if innerErr != nil && !os.IsNotExist(innerErr) {
-		d.logger.Error(" failed to remove metadata file", zap.String("name", d.name), zap.Error(innerErr))
-		return innerErr
-	}
-
-	return err
 }
 
 func (d *diskQueue) skipToNextRWFile() error {
@@ -652,9 +619,6 @@ func (d *diskQueue) ioLoop() {
 			// moveForward sets needSync flag if a file is removed
 			d.moveForward()
 		case d.depthChan <- d.depth:
-		case <-d.emptyChan:
-			d.emptyResponseChan <- d.deleteAllFiles()
-			count = 0
 		case dataWrite := <-d.writeChan:
 			count++
 			d.writeResponseChan <- d.writeOne(dataWrite)

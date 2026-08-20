@@ -13,8 +13,11 @@ import (
 	"go.opentelemetry.io/collector/extension/xextension/storage"
 )
 
+// special keys used by the persistent queue to store metadata.
 const (
 	metadataKey                       = "qmv0"
+
+	// all legacy keys - ignored.
 	legacyReadIndexKey                = "ri"
 	legacyWriteIndexKey               = "wi"
 	legacyCurrentlyDispatchedItemsKey = "di"

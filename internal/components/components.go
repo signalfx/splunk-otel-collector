@@ -134,9 +134,9 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
+	"github.com/splunk/tarunner/pkg/folderobserver"
 	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 	"github.com/splunk/tarunner/pkg/splunkoutputsexporter"
-	"github.com/splunk/tarunner/pkg/splunktaobserver"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter"
@@ -204,7 +204,7 @@ func Get() (otelcol.Factories, error) {
 		zpagesextension.NewFactory(),
 	}
 	if enableTARunner.IsEnabled() {
-		extensionFactories = append(extensionFactories, splunktaobserver.NewFactory())
+		extensionFactories = append(extensionFactories, folderobserver.NewFactory())
 	}
 	extensions, err := otelcol.MakeFactoryMap(extensionFactories...)
 	if err != nil {

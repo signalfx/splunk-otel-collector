@@ -278,6 +278,7 @@ func Get() (otelcol.Factories, error) {
 		statsdreceiver.NewFactory(),
 		syslogreceiver.NewFactory(),
 		systemdreceiver.NewFactory(),
+		tareceiver.NewFactory(),
 		tcpcheckreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
 		tlscheckreceiver.NewFactory(),

@@ -131,7 +131,6 @@ func TestDiskQueuePeek(t *testing.T) {
 			require.Equal(t, msg, <-dq.ReadChan())
 			require.Equal(t, int64(i-1), dq.Depth())
 		}
-
 	})
 
 	t.Run("peek-read", func(t *testing.T) {
@@ -151,7 +150,6 @@ func TestDiskQueuePeek(t *testing.T) {
 			require.Equal(t, msg, <-dq.ReadChan())
 			require.Equal(t, int64(i-1), dq.Depth())
 		}
-
 	})
 
 	t.Run("read-peek", func(t *testing.T) {
@@ -171,7 +169,6 @@ func TestDiskQueuePeek(t *testing.T) {
 			require.Equal(t, msg, <-dq.PeekChan())
 			require.Equal(t, int64(i-1), dq.Depth())
 		}
-
 	})
 }
 

@@ -28,6 +28,7 @@ The distribution offers support for the following components.
 | [cloud_foundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)                                         | [beta]           |
 | [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                                                  | [beta]           |
 | [discovery](../internal/receiver/discoveryreceiver)                                                                                                                | [in development] |
+| [dns_check](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/dnscheckreceiver)                                                 | [in development] |
 | [docker_stats](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/dockerstatsreceiver)                                           | [alpha]          |
 | [elasticsearch](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/elasticsearchreceiver)                                        | [beta]           |
 | [file_log](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)                                                   | [beta]           |

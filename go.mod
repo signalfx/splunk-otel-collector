@@ -144,9 +144,9 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
+	github.com/splunk/tarunner/pkg/folderobserver v0.0.0
 	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1
 	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0
-	github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0
 	github.com/stretchr/testify v1.11.1
 	go.etcd.io/etcd/client/v2 v2.305.32
 	go.opentelemetry.io/collector/component/componentstatus v0.157.0
@@ -814,10 +814,10 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
-	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260819140540-097c78132797
-	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260819140540-097c78132797
-	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260819140540-097c78132797
-	github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0 => github.com/splunk/tarunner/pkg/splunktaobserver v0.0.0-20260819140540-097c78132797
+	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260820085209-da9a3a1dc2f2
+	github.com/splunk/tarunner/pkg/folderobserver v0.0.0 => github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260820085209-da9a3a1dc2f2
+	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260820085209-da9a3a1dc2f2
+	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260820085209-da9a3a1dc2f2
 )
 
 // each of these is required for the smartagentreceiver

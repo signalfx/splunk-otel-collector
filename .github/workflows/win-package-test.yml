@@ -154,7 +154,7 @@ jobs:
           & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
       - name: Installation test
-        shell: pwsh
+        shell: powershell
         env:
           token: fake-token
           realm: fake-realm
@@ -299,7 +299,7 @@ jobs:
           & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
       - name: Chocolatey ${{ matrix.SCENARIO }} test
-        shell: pwsh
+        shell: powershell
         env:
           token: fake-token
           realm: fake-realm

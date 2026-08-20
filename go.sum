@@ -1330,6 +1330,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryr
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.159.0/go.mod h1:SV9BLdK4HXRAvWVpMA86FN+rA5vGc6imbPQU3ByVkM0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.159.0 h1:u7VXBXd5Zd7pEmrxIT9HI5C0vw7NSYAUutndQIYxPeQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.159.0/go.mod h1:3PiuQqGHZaof95HGS8gesmcpcNmnZpGRzZVzE5T9n0A=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dnscheckreceiver v0.159.0 h1:ldhTyZ9XT9LNq0cSeIj+tRI8FRL/NSrP6bW6f9cEDMY=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dnscheckreceiver v0.159.0/go.mod h1:KNwtfEpGeL+6qEmqJbBQJrHb+42Wmp8IzHfIWsyIs44=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.159.0 h1:nPufi6lzD7nscYY6ihJmo79bMXF6fsvdWBjOIHH8R1M=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.159.0/go.mod h1:RdHR15IATaIcK27y6tqCJV0+yqc9X+DzMRmsbCBSJoY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.159.0 h1:eV82sVCC/j5e7N82C/0fG+ixrcjNKYcUYpf+9+pnm8c=

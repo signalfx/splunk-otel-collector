@@ -1663,12 +1663,16 @@ github.com/spiffe/go-spiffe/v2 v2.6.0 h1:l+DolpxNWYgruGQVV0xsfeya3CsC7m8iBzDnMps
 github.com/spiffe/go-spiffe/v2 v2.6.0/go.mod h1:gm2SeUoMZEtpnzPNs2Csc0D/gX33k1xIx7lEzqblHEs=
 github.com/splunk/tarunner v0.0.0-20260820094027-8958f8dd56ff h1:5o3Z80+LQ0fE4a2qclcilFqLhGWJpeHryP+yqIHniHc=
 github.com/splunk/tarunner v0.0.0-20260820094027-8958f8dd56ff/go.mod h1:aE1O2AOJ4la6t8SRLZmdKLenOF2Yt/oDV1xsUQSx0tU=
+github.com/splunk/tarunner v0.0.0-20260820102604-bd182569e9c0/go.mod h1:aE1O2AOJ4la6t8SRLZmdKLenOF2Yt/oDV1xsUQSx0tU=
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260820094027-8958f8dd56ff h1:vQxi+Z80diKzAdq9kEW51uhkpvw3a4obSv7jaWpMjPc=
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260820094027-8958f8dd56ff/go.mod h1:Cqnny+uYm622vZU9Dx/9JZhiwk3HtqIiszrK4k+6U5A=
+github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260820102604-bd182569e9c0/go.mod h1:Cqnny+uYm622vZU9Dx/9JZhiwk3HtqIiszrK4k+6U5A=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260820094027-8958f8dd56ff h1:0xqoUYnL23yc8ue9VJLp3zf5PVPigOOI3ow+fR2fHFw=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260820094027-8958f8dd56ff/go.mod h1:5f0Il0JXAl1HMsDeeHX3OqKZhwG3p8ALqJqrunzX/r8=
+github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260820102604-bd182569e9c0/go.mod h1:GKO3DKmwgh/UGyVvncdb3M8c2gqun+FbhqcrWUxF5tc=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260820094027-8958f8dd56ff h1:RSONxHW3wK3U0+BpCqhTfIFruECorzy/DPDVgiWAJbE=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260820094027-8958f8dd56ff/go.mod h1:7N12nstLFr+6fIdut7hgmY5Qwc2yjNF1InbBiH3pdcE=
+github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260820102604-bd182569e9c0/go.mod h1:taMgJKqO+LEV3KPMqkLXwhrn9HS9xotwnfEdylUq/2Q=
 github.com/stackitcloud/stackit-sdk-go/core v0.26.0 h1:jQEb9gkehfp6VCP6TcYk7BI10cz4l0KM2L6hqYBH2QA=
 github.com/stackitcloud/stackit-sdk-go/core v0.26.0/go.mod h1:WU1hhxnjXw2EV7CYa1nlEvNpMiRY6CvmIOaHuL3pOaA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

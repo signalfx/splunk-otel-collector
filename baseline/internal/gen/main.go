@@ -16,7 +16,7 @@
 // the public baseline API. ocb emits a throwaway `package main` with an
 // unexported components() func that assembles factories via MakeFactoryMap; this
 // tool rewrites that into `package baseline`'s NewBaseline() constructor, which
-// returns the raw factory slices so flavours can append to them before Build().
+// returns the raw factory slices so flavors can append to them before Build().
 //
 // It is invoked by `go generate` after ocb runs — see baseline/gen.go.
 package main
@@ -149,7 +149,7 @@ import (
 
 	b.WriteString("// NewBaseline returns the shared baseline component set: upstream collector\n")
 	b.WriteString("// core and contrib components only, with no Splunk-specific components. It is\n")
-	b.WriteString("// the common denominator every flavour layers onto and is not shipped on its own.\n")
+	b.WriteString("// the common denominator every flavor layers onto and is not shipped on its own.\n")
 	b.WriteString("func NewBaseline() *Baseline {\n")
 	b.WriteString("\treturn &Baseline{\n")
 	for _, k := range kinds {
@@ -165,7 +165,7 @@ import (
 	if err != nil {
 		return fmt.Errorf("gofmt generated source: %w\n%s", err, b.String())
 	}
-	return os.WriteFile(out, formatted, 0o644)
+	return os.WriteFile(out, formatted, 0o600)
 }
 
 func findFunc(f *ast.File, name string) *ast.FuncDecl {

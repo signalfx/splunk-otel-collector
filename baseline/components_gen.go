@@ -156,7 +156,7 @@ import (
 
 // NewBaseline returns the shared baseline component set: upstream collector
 // core and contrib components only, with no Splunk-specific components. It is
-// the common denominator every flavour layers onto and is not shipped on its own.
+// the common denominator every flavor layers onto and is not shipped on its own.
 func NewBaseline() *Baseline {
 	return &Baseline{
 		extensions: []extension.Factory{

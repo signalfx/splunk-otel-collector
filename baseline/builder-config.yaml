@@ -7,7 +7,7 @@
 # generated Go.
 #
 # It contains ONLY upstream core + contrib components supported by Splunk OTel
-# Collector distributions. Components specific to each flavour layered onto
+# Collector distributions. Components specific to each flavor layered onto
 # the baseline in Go by the consuming module (see internal/components in
 # the root repo). Six of them live under internal/ and cannot be referenced
 # from an OCB manifest anyway.
@@ -19,7 +19,7 @@
 
 dist:
   name: otelcol-baseline
-  description: Shared baseline for Splunk OTel Collector flavours
+  description: Shared baseline for Splunk OTel Collector flavors
   otelcol_version: 0.159.0
   output_path: ./internal/gen/ocb
 

@@ -38,7 +38,7 @@ func TestNewBaselineBuilds(t *testing.T) {
 }
 
 // TestBaselineIsUpstreamOnly asserts the baseline carries no Splunk-specific
-// components. Those are each flavour's delta, layered on top by the consumer.
+// components. Those are each flavor's delta, layered on top by the consumer.
 func TestBaselineIsUpstreamOnly(t *testing.T) {
 	factories, err := NewBaseline().Build()
 	require.NoError(t, err)
@@ -58,9 +58,9 @@ func TestBaselineIsUpstreamOnly(t *testing.T) {
 	}
 }
 
-// TestFlavourContribution demonstrates the composition seam: a flavour appends
+// TestFlavorContribution demonstrates the composition seam: a flavor appends
 // its factory to a slice and Build includes it without touching the baseline.
-func TestFlavourContribution(t *testing.T) {
+func TestFlavorContribution(t *testing.T) {
 	exampleType := component.MustNewType("example_contrib_exporter")
 	newExample := func() exporter.Factory {
 		return exporter.NewFactory(exampleType, func() component.Config { return &struct{}{} })

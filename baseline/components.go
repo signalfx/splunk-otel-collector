@@ -13,20 +13,20 @@
 // limitations under the License.
 
 // Package baseline is the shared, upstream-only component set that every Splunk
-// OTel Collector flavour layers on top of.
+// OTel Collector flavor layers on top of.
 //
 // The component set is defined by builder-config.yaml (an OpenTelemetry
 // Collector Builder manifest) and generated into components_gen.go by
 // `go generate ./...`. Edit the manifest, not the generated Go.
 //
-// A flavour composes its component set by starting from NewBaseline, adding its
+// A flavor composes its component set by starting from NewBaseline, adding its
 // own factories through the Add* methods, and calling Build:
 //
 //	b := baseline.NewBaseline()
 //	b.AddExporters(appdexporter.NewFactory()) // private
 //	factories, err := b.Build()
 //
-// The Add* methods are append-only: a flavour can layer new components on top of
+// The Add* methods are append-only: a flavor can layer new components on top of
 // the baseline but cannot replace or drop the shared set. Adding a component whose
 // type collides with a baseline component (an override attempt) is rejected by
 // Build.
@@ -45,7 +45,7 @@ import (
 
 // Baseline is the composable, pre-assembly form of a component set: the raw
 // factory slices before they are collapsed into otelcol.Factories. The slices
-// are unexported and mutated only through the Add* methods, so a flavour can
+// are unexported and mutated only through the Add* methods, so a flavor can
 // layer its own factories on top of the baseline — applying its own feature
 // gates inline (add only when a gate is enabled) without any hook machinery —
 // but cannot replace or drop the shared set.
@@ -57,27 +57,27 @@ type Baseline struct {
 	connectors []connector.Factory
 }
 
-// AddReceivers appends flavour receiver factories on top of the baseline.
+// AddReceivers appends flavor receiver factories on top of the baseline.
 func (b *Baseline) AddReceivers(factories ...receiver.Factory) {
 	b.receivers = append(b.receivers, factories...)
 }
 
-// AddProcessors appends flavour processor factories on top of the baseline.
+// AddProcessors appends flavor processor factories on top of the baseline.
 func (b *Baseline) AddProcessors(factories ...processor.Factory) {
 	b.processors = append(b.processors, factories...)
 }
 
-// AddExporters appends flavour exporter factories on top of the baseline.
+// AddExporters appends flavor exporter factories on top of the baseline.
 func (b *Baseline) AddExporters(factories ...exporter.Factory) {
 	b.exporters = append(b.exporters, factories...)
 }
 
-// AddExtensions appends flavour extension factories on top of the baseline.
+// AddExtensions appends flavor extension factories on top of the baseline.
 func (b *Baseline) AddExtensions(factories ...extension.Factory) {
 	b.extensions = append(b.extensions, factories...)
 }
 
-// AddConnectors appends flavour connector factories on top of the baseline.
+// AddConnectors appends flavor connector factories on top of the baseline.
 func (b *Baseline) AddConnectors(factories ...connector.Factory) {
 	b.connectors = append(b.connectors, factories...)
 }

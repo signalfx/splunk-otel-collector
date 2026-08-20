@@ -19,6 +19,8 @@ import (
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 
+	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
+
 	"github.com/signalfx/splunk-otel-collector/baseline"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
@@ -30,7 +32,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
-	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 )
 
 const (
@@ -49,8 +50,8 @@ var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 // upstream-only baseline plus the Splunk-specific components. The resulting set
 // is identical to what the collector shipped before the baseline split.
 //
-// The public collector is itself a flavour — it layers the Splunk delta below
-// onto baseline.NewBaseline(), exactly as a private flavour (appd, UC) would
+// The public collector is itself a flavor — it layers the Splunk delta below
+// onto baseline.NewBaseline(), exactly as a private flavor (appd, UC) would
 // layer its own delta. Feature-gated components are appended inline.
 func Get() (otelcol.Factories, error) {
 	b := baseline.NewBaseline()

@@ -26,7 +26,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.70.1
-	github.com/prometheus/procfs v0.21.0
+	github.com/prometheus/procfs v0.21.1
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -64,7 +64,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
 	github.com/microsoft/go-mssqldb v1.9.8
-	go.opentelemetry.io/collector/pdata v1.64.0
+	go.opentelemetry.io/collector/pdata v1.65.0
 )
 
 require (
@@ -187,7 +187,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/collector/featuregate v1.64.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.65.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/metric v1.45.0 // indirect
@@ -204,7 +204,7 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

@@ -13,12 +13,20 @@ import (
 	"go.opentelemetry.io/collector/extension/xextension/storage"
 )
 
-const metadataKey = "qmv0"
+const (
+	metadataKey                       = "qmv0"
+	legacyReadIndexKey                = "ri"
+	legacyWriteIndexKey               = "wi"
+	legacyCurrentlyDispatchedItemsKey = "di"
+)
 
 var _ storage.Extension = (*diskQueueStorageExtension)(nil)
 
-func newDiskQueueStorageExtension(settings extension.Settings) extension.Extension {
-	return &diskQueueStorageExtension{}
+func newDiskQueueStorageExtension(settings extension.Settings, cfg *Config) extension.Extension {
+	return &diskQueueStorageExtension{
+		config:   cfg,
+		settings: settings,
+	}
 }
 
 type diskQueueStorageExtension struct {
@@ -32,28 +40,43 @@ type client struct {
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
-	if key == metadataKey {
-		return c.readMetadata()
-	} else {
+	switch key {
+	case metadataKey:
+		b, err := c.readMetadata()
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil, nil
+			}
+			panic(err)
+		}
+		return b, nil
+	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
+		return nil, nil
+	default:
 		b := <-c.queue.PeekChan()
 		return b, nil
 	}
 }
 
 func (c *client) Set(_ context.Context, key string, value []byte) error {
-	if key == metadataKey {
+	switch key {
+	case metadataKey:
 		return c.persistMetaData(value)
-	} else {
+	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
+		return nil
+	default:
 		return c.queue.Put(value)
 	}
 }
 
 func (c *client) Delete(_ context.Context, key string) error {
-	if key == metadataKey {
+	switch key {
+	case metadataKey, legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
+		return nil
+	default:
+		<-c.queue.ReadChan()
 		return nil
 	}
-	<-c.queue.ReadChan()
-	return nil
 }
 
 func (c *client) Batch(ctx context.Context, ops ...*storage.Operation) error {
@@ -82,7 +105,8 @@ func (c *client) Close(_ context.Context) error {
 
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {
 	return &client{
-		queue: internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
+		path:  d.config.Path,
+		queue: internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.config.CompactInterval, d.settings.Logger),
 	}, nil
 }
 

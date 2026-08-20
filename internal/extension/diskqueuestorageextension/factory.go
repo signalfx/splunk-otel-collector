@@ -33,7 +33,7 @@ func createDefaultConfig() component.Config {
 func createExtension(
 	_ context.Context,
 	settings extension.Settings,
-	_ component.Config,
+	cfg component.Config,
 ) (extension.Extension, error) {
-	return newDiskQueueStorageExtension(settings), nil
+	return newDiskQueueStorageExtension(settings, cfg.(*Config)), nil
 }

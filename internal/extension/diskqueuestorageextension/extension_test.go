@@ -1,14 +1,21 @@
 package diskqueuestorageextension
 
 import (
+	"net"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/extension/extensiontest"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 	"go.uber.org/zap"
 )
 
@@ -23,12 +30,27 @@ func (h hostWithExtensions) GetExtensions() map[component.ID]component.Component
 }
 
 func TestExtensionAsPersistentQueue(t *testing.T) {
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err)
+	recf := otlpreceiver.NewFactory()
+	rCfg := recf.CreateDefaultConfig().(*otlpreceiver.Config)
+	listenerForFreePort, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	require.NoError(t, listenerForFreePort.Close())
+	rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint = listenerForFreePort.Addr().String()
+	sink := &consumertest.LogsSink{}
+	receiverSettings := receivertest.NewNopSettings(component.MustNewType("otlp"))
+	receiverSettings.Logger = logger
+	reclogs, err := recf.CreateLogs(t.Context(), receiverSettings, rCfg, sink)
+	require.NoError(t, err)
+	require.NoError(t, reclogs.Start(t.Context(), componenttest.NewNopHost()))
 	f := otlpexporter.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
 	extId := component.MustNewIDWithName("disk_queue_storage", "my")
 	cfg.QueueConfig.GetOrInsertDefault().StorageID = &extId
-	logger, err := zap.NewDevelopment()
-	require.NoError(t, err)
+	cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
+	cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
+	cfg.ClientConfig.TLS.Insecure = true
 	exporterSettings := exportertest.NewNopSettings(component.MustNewType("otlp"))
 	exporterSettings.Logger = logger
 	l, err := f.CreateLogs(t.Context(), exporterSettings, cfg)
@@ -46,18 +68,13 @@ func TestExtensionAsPersistentQueue(t *testing.T) {
 		},
 	}))
 	logs := plog.NewLogs()
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
-	require.NoError(t, l.ConsumeLogs(t.Context(), logs))
+	logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty().Body().SetStr("hello world")
+	for range 10 {
+		require.NoError(t, l.ConsumeLogs(t.Context(), logs))
+	}
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		require.Len(tt, sink.AllLogs(), 10)
+	}, 1*time.Second, 100*time.Millisecond)
 	require.NoError(t, l.Shutdown(t.Context()))
-
+	require.NoError(t, reclogs.Shutdown(t.Context()))
 }

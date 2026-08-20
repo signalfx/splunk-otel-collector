@@ -64,36 +64,39 @@ type diskQueue struct {
 	nextReadFileNum     int64
 	syncTimeout         time.Duration
 	syncEvery           int64
+	compactionInterval  time.Duration
 	depth               int64
 	writeFileNum        int64
 	maxBytesPerFileRead int64
 	readPos             int64
 	sync.RWMutex
-	exitFlag int32
-	needSync bool
+	exitFlag       int32
+	needSync       bool
+	needCompaction bool
 }
 
 // New instantiates an instance of diskQueue, retrieving metadata
 // from the filesystem and starting the read ahead goroutine
 func New(name, dataPath string, maxBytesPerFile int64,
-	syncEvery int64, syncTimeout time.Duration, logger *zap.Logger,
+	syncEvery int64, syncTimeout time.Duration, compactionInterval time.Duration, logger *zap.Logger,
 ) Interface {
 	d := diskQueue{
-		name:              name,
-		dataPath:          dataPath,
-		maxBytesPerFile:   maxBytesPerFile,
-		readChan:          make(chan []byte),
-		peekChan:          make(chan []byte),
-		depthChan:         make(chan int64),
-		writeChan:         make(chan []byte),
-		writeResponseChan: make(chan error),
-		emptyChan:         make(chan int),
-		emptyResponseChan: make(chan error),
-		exitChan:          make(chan int),
-		exitSyncChan:      make(chan int),
-		syncEvery:         syncEvery,
-		syncTimeout:       syncTimeout,
-		logger:            logger,
+		name:               name,
+		dataPath:           dataPath,
+		maxBytesPerFile:    maxBytesPerFile,
+		readChan:           make(chan []byte),
+		peekChan:           make(chan []byte),
+		depthChan:          make(chan int64),
+		writeChan:          make(chan []byte),
+		writeResponseChan:  make(chan error),
+		emptyChan:          make(chan int),
+		emptyResponseChan:  make(chan error),
+		exitChan:           make(chan int),
+		exitSyncChan:       make(chan int),
+		syncEvery:          syncEvery,
+		syncTimeout:        syncTimeout,
+		compactionInterval: compactionInterval,
+		logger:             logger,
 	}
 
 	// no need to lock here, nothing else could possibly be touching this instance
@@ -411,6 +414,18 @@ func (d *diskQueue) sync() error {
 	return nil
 }
 
+func (d *diskQueue) compact() error {
+	var errs []error
+	for i := d.readFileNum - 1; i >= 0; i-- {
+		file := d.fileName(i)
+		err := os.Remove(file)
+		if !os.IsNotExist(err) {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
 // retrieveMetaData initializes state from the filesystem
 func (d *diskQueue) retrieveMetaData() error {
 	var f *os.File
@@ -587,6 +602,7 @@ func (d *diskQueue) ioLoop() {
 	var p chan []byte
 
 	syncTicker := time.NewTicker(d.syncTimeout)
+	compactionTicker := time.NewTicker(d.compactionInterval)
 
 	for {
 		// dont sync all the time :)
@@ -597,9 +613,17 @@ func (d *diskQueue) ioLoop() {
 		if d.needSync {
 			err = d.sync()
 			if err != nil {
-				d.logger.Error(" failed to sync - %s", zap.String("name", d.name), zap.Error(err))
+				d.logger.Error(" failed to sync", zap.String("name", d.name), zap.Error(err))
 			}
 			count = 0
+		}
+
+		if d.needCompaction {
+			err = d.compact()
+			if err != nil {
+				d.logger.Error(" failed to compact", zap.String("name", d.name), zap.Error(err))
+			}
+			d.needCompaction = false
 		}
 
 		if d.readFileNum < d.writeFileNum || (d.readFileNum == d.writeFileNum && d.readPos < d.writePos) {
@@ -640,6 +664,12 @@ func (d *diskQueue) ioLoop() {
 				continue
 			}
 			d.needSync = true
+		case <-compactionTicker.C:
+			if count == 0 {
+				// avoid sync when there's no activity
+				continue
+			}
+			d.needCompaction = true
 		case <-d.exitChan:
 			goto exit
 		}

@@ -1,0 +1,8 @@
+# ocb scratch output: `go generate` runs the OpenTelemetry Collector Builder into
+# this dir, rewrites it into components_gen.go, then removes it. Only present if a
+# generate run was interrupted — never checked in.
+/internal/gen/ocb/
+
+# Compiled gen tool: a stray build artifact if the gen tool was `go build`-ed
+# here instead of `go run`. Never checked in.
+/gen

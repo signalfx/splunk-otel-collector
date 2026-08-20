@@ -57,3 +57,13 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
     update_gomod "$gomod" "$CONTRIB_PKGS" "$CONTRIB_VERSION"
     make -C "$REPO_DIR" tidy-all
 done
+
+# The baseline module pins the same OTel modules a second time, as hardcoded
+# versions in builder-config.yaml (the ocb manifest that generates
+# components_gen.go). `go get` above only touched go.mod, so re-sync the manifest
+# from the bumped go.mod. components_gen.go carries no version strings, so a
+# version-only bump needs no regeneration; run `go generate ./...` in ./baseline
+# only when the component set itself changes.
+if [ -x "$REPO_DIR/baseline/sync-manifest-versions.sh" ]; then
+    "$REPO_DIR/baseline/sync-manifest-versions.sh"
+fi

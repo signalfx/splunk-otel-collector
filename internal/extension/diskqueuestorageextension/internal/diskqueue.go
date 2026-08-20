@@ -75,7 +75,7 @@ type diskQueue struct {
 // New instantiates an instance of diskQueue, retrieving metadata
 // from the filesystem and starting the read ahead goroutine
 func New(name, dataPath string, maxBytesPerFile int64,
-	syncEvery int64, syncTimeout time.Duration, compactionInterval time.Duration, logger *zap.Logger,
+	syncEvery int64, syncTimeout, compactionInterval time.Duration, logger *zap.Logger,
 ) Interface {
 	d := diskQueue{
 		name:               name,

@@ -70,7 +70,7 @@ func isNil(object any) bool {
 func TestDiskQueue(t *testing.T) {
 	dqName := "test_disk_queue" + strconv.Itoa(int(time.Now().Unix()))
 	tmpDir := t.TempDir()
-	dq := New(dqName, tmpDir, 1024, 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, tmpDir, 1024, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
@@ -88,7 +88,7 @@ func TestDiskQueueRoll(t *testing.T) {
 	dqName := "test_disk_queue_roll" + strconv.Itoa(int(time.Now().Unix()))
 	msg := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 	ml := int64(len(msg))
-	dq := New(dqName, t.TempDir(), 10*(ml+8), 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, t.TempDir(), 10*(ml+8), 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
@@ -112,7 +112,7 @@ func TestDiskQueuePeek(t *testing.T) {
 	dqName := "test_disk_queue_peek" + strconv.Itoa(int(time.Now().Unix()))
 	msg := make([]byte, 10)
 	ml := int64(len(msg))
-	dq := New(dqName, t.TempDir(), 10*(ml+8), 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, t.TempDir(), 10*(ml+8), 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
@@ -213,7 +213,7 @@ func readMetaDataFile(fileName string, retried int) md {
 
 func TestDiskQueueSyncAfterRead(t *testing.T) {
 	dqName := "test_disk_queue_read_after_sync" + strconv.Itoa(int(time.Now().Unix()))
-	dq := New(dqName, t.TempDir(), 1<<11, 1<<10, 2500, 50*time.Millisecond, zap.NewNop())
+	dq := New(dqName, t.TempDir(), 1<<11, 2500, 50*time.Millisecond, zap.NewNop())
 	defer dq.Close()
 
 	msg := make([]byte, 1000)
@@ -259,7 +259,7 @@ func TestDiskQueueTorture(t *testing.T) {
 	dir := t.TempDir()
 
 	dqName := "test_disk_queue_torture" + strconv.Itoa(int(time.Now().Unix()))
-	dq := New(dqName, dir, 262144, 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, dir, 262144, 2500, 2*time.Second, zap.NewNop())
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
@@ -298,7 +298,7 @@ func TestDiskQueueTorture(t *testing.T) {
 
 	t.Logf("restarting diskqueue")
 
-	dq = New(dqName, dir, 262144, 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq = New(dqName, dir, 262144, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, depth, dq.Depth())
@@ -336,7 +336,7 @@ func TestDiskQueueResize(t *testing.T) {
 	msg := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	ml := int64(len(msg))
 	dir := t.TempDir()
-	dq := New(dqName, dir, 8*(ml+8), 2500, time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, dir, 8*(ml+8), 2500, time.Second, zap.NewNop())
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
 
@@ -350,7 +350,7 @@ func TestDiskQueueResize(t *testing.T) {
 	require.Equal(t, int64(9), dq.Depth())
 
 	dq.Close()
-	dq = New(dqName, dir, 10*(ml+8), 2500, time.Second, 10*time.Minute, zap.NewNop())
+	dq = New(dqName, dir, 10*(ml+8), 2500, time.Second, zap.NewNop())
 
 	for i := range 10 {
 		msg[0] = byte(20 + i)
@@ -420,7 +420,7 @@ func BenchmarkDiskQueuePut1048576(b *testing.B) {
 func benchmarkDiskQueuePut(b *testing.B, size int64) {
 	b.StopTimer()
 	dqName := "bench_disk_queue_put" + strconv.Itoa(b.N) + strconv.Itoa(int(time.Now().Unix()))
-	dq := New(dqName, b.TempDir(), 1024768*100, 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, b.TempDir(), 1024768*100, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	b.SetBytes(size)
 	data := make([]byte, size)
@@ -581,7 +581,7 @@ func BenchmarkDiskQueueGet1048576(b *testing.B) {
 func benchmarkDiskQueueGet(b *testing.B, size int64) {
 	b.StopTimer()
 	dqName := "bench_disk_queue_get" + strconv.Itoa(b.N) + strconv.Itoa(int(time.Now().Unix()))
-	dq := New(dqName, b.TempDir(), 1024768, 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, b.TempDir(), 1024768, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	b.SetBytes(size)
 	data := make([]byte, size)
@@ -599,7 +599,7 @@ func TestDiskQueueRollAsync(t *testing.T) {
 	dqName := "test_disk_queue_roll" + strconv.Itoa(int(time.Now().Unix()))
 	msg := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 	ml := int64(len(msg))
-	dq := New(dqName, t.TempDir(), 10*(ml+8), 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, t.TempDir(), 10*(ml+8), 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
@@ -627,7 +627,7 @@ func TestDiskQueueRollAsync(t *testing.T) {
 
 func TestWriteRollReadEOF(t *testing.T) {
 	dqName := "test_disk_queue_roll_readEOF" + strconv.Itoa(int(time.Now().Unix()))
-	dq := New(dqName, t.TempDir(), 1024, 2500, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New(dqName, t.TempDir(), 1024, 2500, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 	NotNil(t, dq)
 	require.Equal(t, int64(0), dq.Depth())
@@ -657,7 +657,7 @@ func TestLargeMessageBoundary(t *testing.T) {
 	// 5KB file limit, 4KB max message (same 10:8 ratio as 50MB:40MB in production)
 	maxBytesPerFile := int64(5 * 1024)
 
-	dq := New("test_large_msg", t.TempDir(), maxBytesPerFile, 1000, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New("test_large_msg", t.TempDir(), maxBytesPerFile, 1000, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 
 	// Create messages that will cause multiple rotations
@@ -687,7 +687,7 @@ func TestLargeMessageBoundary(t *testing.T) {
 func TestReadCurrentWriteFile(t *testing.T) {
 	// Small file limit to trigger boundary easily
 	maxBytesPerFile := int64(1024)
-	dq := New("test_current_file", t.TempDir(), maxBytesPerFile, 1000, 2*time.Second, 10*time.Minute, zap.NewNop())
+	dq := New("test_current_file", t.TempDir(), maxBytesPerFile, 1000, 2*time.Second, zap.NewNop())
 	defer dq.Close()
 
 	// Write messages up to the file limit

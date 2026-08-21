@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/xextension/storage"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension/internal"
 )
@@ -53,8 +54,9 @@ type diskQueueStorageExtension struct {
 }
 
 type client struct {
-	queue internal.Interface
-	path  string
+	queue  internal.Interface
+	path   string
+	logger *zap.Logger
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
@@ -65,7 +67,8 @@ func (c *client) Get(_ context.Context, key string) ([]byte, error) {
 			if os.IsNotExist(err) {
 				return nil, nil
 			}
-			panic(err)
+			c.logger.Error("could not read metadata", zap.Error(err))
+			return nil, err
 		}
 		return b, nil
 	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
@@ -123,8 +126,9 @@ func (c *client) Close(_ context.Context) error {
 
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {
 	return &client{
-		path:  d.config.Path,
-		queue: internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.config.CompactInterval, d.settings.Logger),
+		path:   d.config.Path,
+		queue:  internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
+		logger: d.settings.Logger,
 	}, nil
 }
 

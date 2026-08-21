@@ -40,7 +40,6 @@ func createDefaultConfig() component.Config {
 		MaxBytesPerFile: 10 * 1024 * 1024,
 		SyncEvery:       1,
 		SyncTimeout:     100 * time.Millisecond,
-		CompactInterval: 30 * time.Minute,
 	}
 }
 

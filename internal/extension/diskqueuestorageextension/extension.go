@@ -57,8 +57,8 @@ type diskQueueStorageExtension struct {
 
 type client struct {
 	queue         internal.Interface
-	path          string
 	logger        *zap.Logger
+	path          string
 	checkFirstGet sync.Once
 }
 

@@ -16,10 +16,9 @@
 package components
 
 import (
+	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
-
-	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 
 	"github.com/signalfx/splunk-otel-collector/baseline"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"

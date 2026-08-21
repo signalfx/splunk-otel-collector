@@ -1677,6 +1677,8 @@ github.com/splunk/tarunner v0.0.0-20260821085912-1d258eafec43 h1:2WpmMZARyMIvNUr
 github.com/splunk/tarunner v0.0.0-20260821085912-1d258eafec43/go.mod h1:aE1O2AOJ4la6t8SRLZmdKLenOF2Yt/oDV1xsUQSx0tU=
 github.com/splunk/tarunner v0.0.0-20260821090848-156f5849074b h1:9b9eFBycIFkC8yfKl9EPMpYVmAbxQU+sy1b7LO6oRx0=
 github.com/splunk/tarunner v0.0.0-20260821090848-156f5849074b/go.mod h1:aE1O2AOJ4la6t8SRLZmdKLenOF2Yt/oDV1xsUQSx0tU=
+github.com/splunk/tarunner v0.0.0-20260821092123-723e8a306016 h1:UHNzPSF0Rm4ZT6AuFIfMcqEsbuzoBpTVu5iGcMnVSQw=
+github.com/splunk/tarunner v0.0.0-20260821092123-723e8a306016/go.mod h1:aE1O2AOJ4la6t8SRLZmdKLenOF2Yt/oDV1xsUQSx0tU=
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260820114740-42d130fd41c9 h1:vX8Ap5/EipsKyPL+J+Gbal2R2s6iNfu0ad2Nh4NEOVQ=
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260820114740-42d130fd41c9/go.mod h1:Cqnny+uYm622vZU9Dx/9JZhiwk3HtqIiszrK4k+6U5A=
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260820121403-f84c499037ec/go.mod h1:Cqnny+uYm622vZU9Dx/9JZhiwk3HtqIiszrK4k+6U5A=
@@ -1689,6 +1691,8 @@ github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260821085912-1d258eafec43
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260821085912-1d258eafec43/go.mod h1:Cqnny+uYm622vZU9Dx/9JZhiwk3HtqIiszrK4k+6U5A=
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260821090848-156f5849074b h1:UwtGOO9WPRLJjnNd54Jl362+cOgAsvbNCpRVpvUfn4s=
 github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260821090848-156f5849074b/go.mod h1:Cqnny+uYm622vZU9Dx/9JZhiwk3HtqIiszrK4k+6U5A=
+github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260821092123-723e8a306016 h1:RGH9zm+RBjHiT1hApJjJrhsE7BQxWCOraQm8bo2+odA=
+github.com/splunk/tarunner/pkg/folderobserver v0.0.0-20260821092123-723e8a306016/go.mod h1:Cqnny+uYm622vZU9Dx/9JZhiwk3HtqIiszrK4k+6U5A=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260820114740-42d130fd41c9 h1:C3vUEgKXTGVwbvZ06Y6kXo/+uI7u7qWoggxhPC4IX0E=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260820114740-42d130fd41c9/go.mod h1:rHA9jLwwxwCRDQl+eAMAVw25N5pC8M+WgMjTfpjfcaA=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260820121403-f84c499037ec/go.mod h1:rHA9jLwwxwCRDQl+eAMAVw25N5pC8M+WgMjTfpjfcaA=
@@ -1701,6 +1705,8 @@ github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260821085912-1d258e
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260821085912-1d258eafec43/go.mod h1:rHA9jLwwxwCRDQl+eAMAVw25N5pC8M+WgMjTfpjfcaA=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260821090848-156f5849074b h1:MUENyarXTcDaRLU1/vS+G39eVCZnvxZNilRF66arru4=
 github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260821090848-156f5849074b/go.mod h1:rHA9jLwwxwCRDQl+eAMAVw25N5pC8M+WgMjTfpjfcaA=
+github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260821092123-723e8a306016 h1:VdyqqlhWi5OWQahCnNjZrbgLach0eEeTYurlUNUrZ2Q=
+github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260821092123-723e8a306016/go.mod h1:rHA9jLwwxwCRDQl+eAMAVw25N5pC8M+WgMjTfpjfcaA=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260820114740-42d130fd41c9 h1:4tKh1I/OUJMzQPOW1BNVRcr7/DMhNnxNwf7gdFaKgaU=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260820114740-42d130fd41c9/go.mod h1:taMgJKqO+LEV3KPMqkLXwhrn9HS9xotwnfEdylUq/2Q=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260820121403-f84c499037ec/go.mod h1:taMgJKqO+LEV3KPMqkLXwhrn9HS9xotwnfEdylUq/2Q=
@@ -1713,6 +1719,8 @@ github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260821085912-1d258
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260821085912-1d258eafec43/go.mod h1:taMgJKqO+LEV3KPMqkLXwhrn9HS9xotwnfEdylUq/2Q=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260821090848-156f5849074b h1:AZ/cMuhsClob/KNy2bUcXwyUQcOJUW01VRsr9Di2lcM=
 github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260821090848-156f5849074b/go.mod h1:taMgJKqO+LEV3KPMqkLXwhrn9HS9xotwnfEdylUq/2Q=
+github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260821092123-723e8a306016 h1:C7WeNx9/hYhyPS+xrAQwmQOaZwmV3xgph5LW2nCz864=
+github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260821092123-723e8a306016/go.mod h1:taMgJKqO+LEV3KPMqkLXwhrn9HS9xotwnfEdylUq/2Q=
 github.com/stackitcloud/stackit-sdk-go/core v0.26.0 h1:jQEb9gkehfp6VCP6TcYk7BI10cz4l0KM2L6hqYBH2QA=
 github.com/stackitcloud/stackit-sdk-go/core v0.26.0/go.mod h1:WU1hhxnjXw2EV7CYa1nlEvNpMiRY6CvmIOaHuL3pOaA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

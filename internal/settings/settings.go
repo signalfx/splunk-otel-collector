@@ -103,6 +103,7 @@ type Settings struct {
 	discoveryProperties     []string
 	versionFlag             bool
 	featureGateCommand      bool
+	componentsCommand       bool
 	noConvertConfig         bool
 	configD                 bool
 	discoveryMode           bool
@@ -126,7 +127,7 @@ func New(args []string) (*Settings, error) {
 	}
 
 	// immediate exit paths, no further setup required
-	if s.versionFlag || s.featureGateCommand {
+	if s.versionFlag || s.featureGateCommand || s.componentsCommand {
 		return s, nil
 	}
 
@@ -288,8 +289,9 @@ func parseArgs(args []string) (*Settings, error) {
 	}
 
 	settings.featureGateCommand = len(args) > 0 && args[0] == "featuregate"
-	if settings.featureGateCommand {
-		// Leave the featuregate command and its arguments for the upstream Cobra command.
+	settings.componentsCommand = len(args) > 0 && args[0] == "components"
+	if settings.featureGateCommand || settings.componentsCommand {
+		// Leave the featuregate/components command and its arguments for the upstream Cobra command.
 		flagSet.SetInterspersed(false)
 	}
 
@@ -311,7 +313,7 @@ func parseArgs(args []string) (*Settings, error) {
 	// Pass flags that are handled by the collector core service as raw command line arguments.
 	colCoreCommands := []string{"validate"}
 	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
-	if settings.featureGateCommand {
+	if settings.featureGateCommand || settings.componentsCommand {
 		settings.colCoreArgs = append(settings.colCoreArgs, flagSet.Args()...)
 	}
 
@@ -324,6 +326,7 @@ func writeUsage(flagSet *flag.FlagSet) {
   otelcol [command]
 
 Available Commands:
+  components   Outputs available components in this collector distribution
   featuregate  Display feature gates information
   validate     Validates the config without running the collector
 

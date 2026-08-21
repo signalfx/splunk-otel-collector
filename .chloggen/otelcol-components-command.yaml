@@ -1,0 +1,5 @@
+change_type: enhancement
+component: otelcol
+note: Add an `otelcol components` command that lists every receiver, processor, exporter, extension, and connector available in this collector distribution, along with their stability levels.
+issues: []
+subtext: null

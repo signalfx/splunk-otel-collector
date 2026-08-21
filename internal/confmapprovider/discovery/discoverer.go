@@ -39,11 +39,11 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
-	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/internal"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
+	"github.com/signalfx/splunk-otel-collector/pkg/components/defaults"
 )
 
 const logLevelEnvVar = "SPLUNK_DISCOVERY_LOG_LEVEL"
@@ -81,7 +81,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		Command: "discovery",
 		Version: version.Version,
 	}
-	factories, err := components.Get()
+	factories, err := defaults.Get()
 	if err != nil {
 		return (*discoverer)(nil), err
 	}

@@ -94,6 +94,7 @@ func TestWriteUsage(t *testing.T) {
 
 	usage := output.String()
 	require.Contains(t, usage, `Available Commands:
+  components   Outputs available components in this collector distribution
   featuregate  Display feature gates information
   validate     Validates the config without running the collector
 
@@ -245,6 +246,23 @@ func TestNewSettingsWithFeatureGate(t *testing.T) {
 			settings, err := New(args)
 			require.NoError(t, err)
 			require.NotNil(t, settings)
+			require.Equal(t, args, settings.ColCoreArgs())
+		})
+	}
+}
+
+func TestNewSettingsWithComponents(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	for _, args := range [][]string{
+		{"components"},
+		{"components", "--help"},
+		{"components", "-h"},
+	} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			settings, err := New(args)
+			require.NoError(t, err)
+			require.NotNil(t, settings)
+			require.True(t, settings.componentsCommand)
 			require.Equal(t, args, settings.ColCoreArgs())
 		})
 	}

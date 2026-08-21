@@ -42,7 +42,7 @@ Before building the image, place a Windows collector binary named
 
 The `splunk_inputs` receiver this example depends on is only registered from
 `v0.158.0` onward (see the `enableTARunner` feature gate in
-[`internal/components/components.go`](../../internal/components/components.go)),
+[`pkg/components/defaults/components.go`](../../pkg/components/defaults/components.go)),
 so download the latest release from the
 [project's GitHub releases page](https://github.com/signalfx/splunk-otel-collector/releases)
 and fail fast if it predates that version:

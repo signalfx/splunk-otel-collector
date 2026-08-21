@@ -139,10 +139,10 @@ Some people make be interested in adding and/or removing components. This can
 be accomplished by:
 
 1. Adding or removing components from the import in
-   [components.go](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components.go#L18)
-2. Adding or removing components from [Get function in components.go](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components.go#L75)
+   [defaults.go](https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/components/defaults/defaults.go#L18)
+2. Adding or removing components from [RegisterDefaults in defaults.go](https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/components/defaults/defaults.go#L168)
 3. Updating tests by adding or removing components from
-   [TestDefaultComponents](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components_test.go#L26)
+   [TestDefaultComponents](https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/components/defaults/components_test.go#L26)
 4. Updating [components.md](docs/components.md) (only required if submitting PR to repository)
 
 > :warn: Adding or removing components is not officially supported by Splunk as

@@ -13,9 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package components
+package defaults
 
 import (
+	"github.com/signalfx/splunk-otel-collector/pkg/components"
+
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
@@ -135,24 +137,16 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
-	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
-	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
-	"go.opentelemetry.io/collector/featuregate"
-	"go.opentelemetry.io/collector/otelcol"
-	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
-	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/nopreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
-	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
@@ -166,203 +160,153 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 )
 
-const (
-	enableTARunnerFeatureGateID = "enableTARunner"
-)
+// RegisterDefaults registers every component that ships with this collector distribution
+// into r's Extensions, Receivers, Processors, Exporters, and Connectors registries. Callers
+// assembling a customized distribution typically call components.NewRegistries, then
+// RegisterDefaults, then Register or Deregister their own factories on the result before
+// calling Build.
+func RegisterDefaults(r *components.Registries) {
+	r.Extensions.Register(ackextension.NewFactory())
+	r.Extensions.Register(awsiamdbauthextension.NewFactory())
+	r.Extensions.Register(basicauthextension.NewFactory())
+	r.Extensions.Register(bearertokenauthextension.NewFactory())
+	r.Extensions.Register(configsourcetelemetryextension.NewFactory())
+	r.Extensions.Register(dockerobserver.NewFactory())
+	r.Extensions.Register(ecsobserver.NewFactory())
+	r.Extensions.Register(filestorage.NewFactory())
+	r.Extensions.Register(googlecloudlogentryencodingextension.NewFactory())
+	r.Extensions.Register(headerssetterextension.NewFactory())
+	r.Extensions.Register(healthcheckextension.NewFactory())
+	r.Extensions.Register(hostobserver.NewFactory())
+	r.Extensions.Register(httpforwarderextension.NewFactory())
+	r.Extensions.Register(k8sleaderelector.NewFactory())
+	r.Extensions.Register(k8sobserver.NewFactory())
+	r.Extensions.Register(oauth2clientauthextension.NewFactory())
+	r.Extensions.Register(opampextension.NewFactory())
+	r.Extensions.Register(pprofextension.NewFactory())
+	r.Extensions.Register(smartagentextension.NewFactory())
+	r.Extensions.Register(textencodingextension.NewFactory())
+	r.Extensions.Register(zpagesextension.NewFactory())
 
-var enableTARunner = featuregate.GlobalRegistry().MustRegister(
-	enableTARunnerFeatureGateID,
-	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver. "+
-		"When disabled (default), the `splunk_inputs` receiver is not available and the collector will crash if it tries to run it."),
-	featuregate.WithRegisterFromVersion("v0.158.0"),
-)
+	r.Receivers.Register(activedirectorydsreceiver.NewFactory())
+	r.Receivers.Register(apachereceiver.NewFactory())
+	r.Receivers.Register(apachesparkreceiver.NewFactory())
+	r.Receivers.Register(awscloudwatchreceiver.NewFactory())
+	r.Receivers.Register(awscontainerinsightreceiver.NewFactory())
+	r.Receivers.Register(awsecscontainermetricsreceiver.NewFactory())
+	r.Receivers.Register(azureblobreceiver.NewFactory())
+	r.Receivers.Register(azureeventhubreceiver.NewFactory())
+	r.Receivers.Register(azuremonitorreceiver.NewFactory())
+	r.Receivers.Register(carbonreceiver.NewFactory())
+	r.Receivers.Register(chronyreceiver.NewFactory())
+	r.Receivers.Register(ciscoosreceiver.NewFactory())
+	r.Receivers.Register(cloudfoundryreceiver.NewFactory())
+	r.Receivers.Register(collectdreceiver.NewFactory())
+	r.Receivers.Register(discoveryreceiver.NewFactory())
+	r.Receivers.Register(dnscheckreceiver.NewFactory())
+	r.Receivers.Register(dockerstatsreceiver.NewFactory())
+	r.Receivers.Register(elasticsearchreceiver.NewFactory())
+	r.Receivers.Register(filelogreceiver.NewFactory())
+	r.Receivers.Register(filestatsreceiver.NewFactory())
+	r.Receivers.Register(fluentforwardreceiver.NewFactory())
+	r.Receivers.Register(gnmireceiver.NewFactory())
+	r.Receivers.Register(googlecloudpubsubreceiver.NewFactory())
+	r.Receivers.Register(haproxyreceiver.NewFactory())
+	r.Receivers.Register(hostmetricsreceiver.NewFactory())
+	r.Receivers.Register(httpcheckreceiver.NewFactory())
+	r.Receivers.Register(icmpcheckreceiver.NewFactory())
+	r.Receivers.Register(iisreceiver.NewFactory())
+	r.Receivers.Register(influxdbreceiver.NewFactory())
+	r.Receivers.Register(jaegerreceiver.NewFactory())
+	r.Receivers.Register(journaldreceiver.NewFactory())
+	r.Receivers.Register(k8sclusterreceiver.NewFactory())
+	r.Receivers.Register(k8seventsreceiver.NewFactory())
+	r.Receivers.Register(k8sobjectsreceiver.NewFactory())
+	r.Receivers.Register(kafkametricsreceiver.NewFactory())
+	r.Receivers.Register(kafkareceiver.NewFactory())
+	r.Receivers.Register(kubeletstatsreceiver.NewFactory())
+	r.Receivers.Register(lightprometheusreceiver.NewFactory())
+	r.Receivers.Register(memcachedreceiver.NewFactory())
+	r.Receivers.Register(mongodbatlasreceiver.NewFactory())
+	r.Receivers.Register(mongodbreceiver.NewFactory())
+	r.Receivers.Register(mysqlreceiver.NewFactory())
+	r.Receivers.Register(nginxreceiver.NewFactory())
+	r.Receivers.Register(nopreceiver.NewFactory())
+	r.Receivers.Register(ntpreceiver.NewFactory())
+	r.Receivers.Register(oracledbreceiver.NewFactory())
+	r.Receivers.Register(otlpreceiver.NewFactory())
+	r.Receivers.Register(postgresqlreceiver.NewFactory())
+	r.Receivers.Register(prometheusreceiver.NewFactory())
+	r.Receivers.Register(prometheusremotewritereceiver.NewFactory())
+	r.Receivers.Register(purefareceiver.NewFactory())
+	r.Receivers.Register(rabbitmqreceiver.NewFactory())
+	r.Receivers.Register(receivercreator.NewFactory())
+	r.Receivers.Register(redisreceiver.NewFactory())
+	r.Receivers.Register(saphanareceiver.NewFactory())
+	r.Receivers.Register(scriptedinputsreceiver.NewFactory())
+	r.Receivers.Register(signalfxgatewayprometheusremotewritereceiver.NewFactory())
+	r.Receivers.Register(simpleprometheusreceiver.NewFactory())
+	r.Receivers.Register(smartagentreceiver.NewFactory())
+	r.Receivers.Register(snmpreceiver.NewFactory())
+	r.Receivers.Register(snowflakereceiver.NewFactory())
+	r.Receivers.Register(solacereceiver.NewFactory())
+	r.Receivers.Register(splunkenterprisereceiver.NewFactory())
+	r.Receivers.Register(splunkhecreceiver.NewFactory())
+	r.Receivers.Register(sqlqueryreceiver.NewFactory())
+	r.Receivers.Register(sqlserverreceiver.NewFactory())
+	r.Receivers.Register(sshcheckreceiver.NewFactory())
+	r.Receivers.Register(statsdreceiver.NewFactory())
+	r.Receivers.Register(syslogreceiver.NewFactory())
+	r.Receivers.Register(systemdreceiver.NewFactory())
+	r.Receivers.Register(tcpcheckreceiver.NewFactory())
+	r.Receivers.Register(tcplogreceiver.NewFactory())
+	r.Receivers.Register(tlscheckreceiver.NewFactory())
+	r.Receivers.Register(udplogreceiver.NewFactory())
+	r.Receivers.Register(vcenterreceiver.NewFactory())
+	r.Receivers.Register(wavefrontreceiver.NewFactory())
+	r.Receivers.Register(windowseventlogreceiver.NewFactory())
+	r.Receivers.Register(windowsperfcountersreceiver.NewFactory())
+	r.Receivers.Register(windowsservicereceiver.NewFactory())
+	r.Receivers.Register(yanggrpcreceiver.NewFactory())
+	r.Receivers.Register(zipkinreceiver.NewFactory())
+	r.Receivers.Register(zookeeperreceiver.NewFactory())
 
-func Get() (otelcol.Factories, error) {
-	var errs []error
-	extensions, err := otelcol.MakeFactoryMap(
-		ackextension.NewFactory(),
-		awsiamdbauthextension.NewFactory(),
-		basicauthextension.NewFactory(),
-		bearertokenauthextension.NewFactory(),
-		configsourcetelemetryextension.NewFactory(),
-		dockerobserver.NewFactory(),
-		ecsobserver.NewFactory(),
-		filestorage.NewFactory(),
-		googlecloudlogentryencodingextension.NewFactory(),
-		headerssetterextension.NewFactory(),
-		healthcheckextension.NewFactory(),
-		hostobserver.NewFactory(),
-		httpforwarderextension.NewFactory(),
-		k8sleaderelector.NewFactory(),
-		k8sobserver.NewFactory(),
-		oauth2clientauthextension.NewFactory(),
-		opampextension.NewFactory(),
-		pprofextension.NewFactory(),
-		smartagentextension.NewFactory(),
-		textencodingextension.NewFactory(),
-		zpagesextension.NewFactory(),
-	)
-	if err != nil {
-		errs = append(errs, err)
-	}
+	r.Exporters.Register(awss3exporter.NewFactory())
+	r.Exporters.Register(debugexporter.NewFactory())
+	r.Exporters.Register(fileexporter.NewFactory())
+	r.Exporters.Register(googlecloudstorageexporter.NewFactory())
+	r.Exporters.Register(kafkaexporter.NewFactory())
+	r.Exporters.Register(loadbalancingexporter.NewFactory())
+	r.Exporters.Register(nopexporter.NewFactory())
+	r.Exporters.Register(otlpexporter.NewFactory())
+	r.Exporters.Register(otlphttpexporter.NewFactory())
+	r.Exporters.Register(prometheusremotewriteexporter.NewFactory())
+	r.Exporters.Register(signalfxexporter.NewFactory())
+	r.Exporters.Register(splunkhecexporter.NewFactory())
 
-	receiverFactories := []receiver.Factory{
-		activedirectorydsreceiver.NewFactory(),
-		apachereceiver.NewFactory(),
-		apachesparkreceiver.NewFactory(),
-		awscloudwatchreceiver.NewFactory(),
-		awscontainerinsightreceiver.NewFactory(),
-		awsecscontainermetricsreceiver.NewFactory(),
-		azureblobreceiver.NewFactory(),
-		azureeventhubreceiver.NewFactory(),
-		azuremonitorreceiver.NewFactory(),
-		carbonreceiver.NewFactory(),
-		chronyreceiver.NewFactory(),
-		ciscoosreceiver.NewFactory(),
-		cloudfoundryreceiver.NewFactory(),
-		collectdreceiver.NewFactory(),
-		discoveryreceiver.NewFactory(),
-		dnscheckreceiver.NewFactory(),
-		dockerstatsreceiver.NewFactory(),
-		elasticsearchreceiver.NewFactory(),
-		filelogreceiver.NewFactory(),
-		filestatsreceiver.NewFactory(),
-		fluentforwardreceiver.NewFactory(),
-		gnmireceiver.NewFactory(),
-		googlecloudpubsubreceiver.NewFactory(),
-		haproxyreceiver.NewFactory(),
-		hostmetricsreceiver.NewFactory(),
-		httpcheckreceiver.NewFactory(),
-		icmpcheckreceiver.NewFactory(),
-		iisreceiver.NewFactory(),
-		influxdbreceiver.NewFactory(),
-		jaegerreceiver.NewFactory(),
-		journaldreceiver.NewFactory(),
-		k8sclusterreceiver.NewFactory(),
-		k8seventsreceiver.NewFactory(),
-		k8sobjectsreceiver.NewFactory(),
-		kafkametricsreceiver.NewFactory(),
-		kafkareceiver.NewFactory(),
-		kubeletstatsreceiver.NewFactory(),
-		lightprometheusreceiver.NewFactory(),
-		memcachedreceiver.NewFactory(),
-		mongodbatlasreceiver.NewFactory(),
-		mongodbreceiver.NewFactory(),
-		mysqlreceiver.NewFactory(),
-		nginxreceiver.NewFactory(),
-		receiver.Factory(nopreceiver.NewFactory()),
-		ntpreceiver.NewFactory(),
-		oracledbreceiver.NewFactory(),
-		otlpreceiver.NewFactory(),
-		postgresqlreceiver.NewFactory(),
-		prometheusreceiver.NewFactory(),
-		prometheusremotewritereceiver.NewFactory(),
-		purefareceiver.NewFactory(),
-		rabbitmqreceiver.NewFactory(),
-		receivercreator.NewFactory(),
-		redisreceiver.NewFactory(),
-		saphanareceiver.NewFactory(),
-		scriptedinputsreceiver.NewFactory(),
-		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
-		simpleprometheusreceiver.NewFactory(),
-		smartagentreceiver.NewFactory(),
-		snmpreceiver.NewFactory(),
-		snowflakereceiver.NewFactory(),
-		solacereceiver.NewFactory(),
-		splunkenterprisereceiver.NewFactory(),
-		splunkhecreceiver.NewFactory(),
-		sqlqueryreceiver.NewFactory(),
-		sqlserverreceiver.NewFactory(),
-		sshcheckreceiver.NewFactory(),
-		statsdreceiver.NewFactory(),
-		syslogreceiver.NewFactory(),
-		systemdreceiver.NewFactory(),
-		tcpcheckreceiver.NewFactory(),
-		tcplogreceiver.NewFactory(),
-		tlscheckreceiver.NewFactory(),
-		udplogreceiver.NewFactory(),
-		vcenterreceiver.NewFactory(),
-		wavefrontreceiver.NewFactory(),
-		windowseventlogreceiver.NewFactory(),
-		windowsperfcountersreceiver.NewFactory(),
-		windowsservicereceiver.NewFactory(),
-		yanggrpcreceiver.NewFactory(),
-		zipkinreceiver.NewFactory(),
-		zookeeperreceiver.NewFactory(),
-	}
+	r.Processors.Register(attributesprocessor.NewFactory())
+	r.Processors.Register(batchprocessor.NewFactory())
+	r.Processors.Register(cumulativetodeltaprocessor.NewFactory())
+	r.Processors.Register(filterprocessor.NewFactory())
+	r.Processors.Register(groupbyattrsprocessor.NewFactory())
+	r.Processors.Register(k8sattributesprocessor.NewFactory())
+	r.Processors.Register(logstransformprocessor.NewFactory())
+	r.Processors.Register(memorylimiterprocessor.NewFactory())
+	r.Processors.Register(metricsgenerationprocessor.NewFactory())
+	r.Processors.Register(metricstransformprocessor.NewFactory())
+	r.Processors.Register(probabilisticsamplerprocessor.NewFactory())
+	r.Processors.Register(redactionprocessor.NewFactory())
+	r.Processors.Register(resourcedetectionprocessor.NewFactory())
+	r.Processors.Register(resourceprocessor.NewFactory())
+	r.Processors.Register(spanprocessor.NewFactory())
+	r.Processors.Register(tailsamplingprocessor.NewFactory())
+	r.Processors.Register(timestampprocessor.NewFactory())
+	r.Processors.Register(rollingspanlatencyprocessor.NewFactory())
+	r.Processors.Register(transformprocessor.NewFactory())
 
-	if enableTARunner.IsEnabled() {
-		receiverFactories = append(receiverFactories, splunkinputsreceiver.NewFactory())
-	}
-
-	receivers, err := otelcol.MakeFactoryMap(receiverFactories...)
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	exporters, err := otelcol.MakeFactoryMap(
-		awss3exporter.NewFactory(),
-		debugexporter.NewFactory(),
-		fileexporter.NewFactory(),
-		googlecloudstorageexporter.NewFactory(),
-		kafkaexporter.NewFactory(),
-		loadbalancingexporter.NewFactory(),
-		nopexporter.NewFactory(),
-		otlpexporter.NewFactory(),
-		otlphttpexporter.NewFactory(),
-		prometheusremotewriteexporter.NewFactory(),
-		signalfxexporter.NewFactory(),
-		splunkhecexporter.NewFactory(),
-	)
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	processors, err := otelcol.MakeFactoryMap[processor.Factory](
-		attributesprocessor.NewFactory(),
-		batchprocessor.NewFactory(),
-		cumulativetodeltaprocessor.NewFactory(),
-		filterprocessor.NewFactory(),
-		groupbyattrsprocessor.NewFactory(),
-		k8sattributesprocessor.NewFactory(),
-		logstransformprocessor.NewFactory(),
-		memorylimiterprocessor.NewFactory(),
-		metricsgenerationprocessor.NewFactory(),
-		metricstransformprocessor.NewFactory(),
-		probabilisticsamplerprocessor.NewFactory(),
-		redactionprocessor.NewFactory(),
-		resourcedetectionprocessor.NewFactory(),
-		resourceprocessor.NewFactory(),
-		spanprocessor.NewFactory(),
-		tailsamplingprocessor.NewFactory(),
-		timestampprocessor.NewFactory(),
-		rollingspanlatencyprocessor.NewFactory(),
-		transformprocessor.NewFactory(),
-	)
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	connectors, err := otelcol.MakeFactoryMap(
-		countconnector.NewFactory(),
-		connector.Factory(forwardconnector.NewFactory()),
-		routingconnector.NewFactory(),
-		spanmetricsconnector.NewFactory(),
-		sumconnector.NewFactory(),
-	)
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	factories := otelcol.Factories{
-		Extensions: extensions,
-		Receivers:  receivers,
-		Processors: processors,
-		Exporters:  exporters,
-		Connectors: connectors,
-		Telemetry:  otelconftelemetry.NewFactory(),
-	}
-
-	return factories, multierr.Combine(errs...)
+	r.Connectors.Register(countconnector.NewFactory())
+	r.Connectors.Register(forwardconnector.NewFactory())
+	r.Connectors.Register(routingconnector.NewFactory())
+	r.Connectors.Register(spanmetricsconnector.NewFactory())
+	r.Connectors.Register(sumconnector.NewFactory())
 }

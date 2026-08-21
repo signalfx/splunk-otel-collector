@@ -32,11 +32,11 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
+	"github.com/signalfx/splunk-otel-collector/pkg/components/defaults"
 	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
@@ -118,7 +118,7 @@ func runFromCmdLine(args []string) {
 
 	serviceSettings := otelcol.CollectorSettings{
 		BuildInfo: info,
-		Factories: components.Get,
+		Factories: defaults.Get,
 		ConfigProviderSettings: otelcol.ConfigProviderSettings{
 			ResolverSettings: confmap.ResolverSettings{
 				URIs:               collectorSettings.ResolverURIs(),

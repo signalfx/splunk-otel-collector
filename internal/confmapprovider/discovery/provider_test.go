@@ -32,9 +32,9 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pipeline"
 
-	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/components/defaults"
 )
 
 func TestConfigDProviderHappyPath(t *testing.T) {
@@ -134,7 +134,7 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, provider)
 
-	factories, err := components.Get()
+	factories, err := defaults.Get()
 	require.NoError(t, err)
 
 	conf, err := provider.Get(context.Background(), factories)
@@ -204,7 +204,7 @@ func TestDiscoveryProvider_HostObserverDisabled(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, provider)
 
-	factories, err := components.Get()
+	factories, err := defaults.Get()
 	require.NoError(t, err)
 
 	conf, err := provider.Get(context.Background(), factories)

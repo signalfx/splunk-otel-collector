@@ -1,0 +1,5 @@
+change_type: enhancement
+component: components
+note: Move the collector's component factories from internal/components to the new public pkg/components package. External Go programs can call pkg/components.NewRegistries to assemble their own set of component factories into an otelcol.Factories, without pulling in this distribution's full dependency graph. Programs that want this distribution's own default set of components can additionally import pkg/components/defaults and call RegisterDefaults.
+issues: []
+subtext: null

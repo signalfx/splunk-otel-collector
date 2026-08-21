@@ -21,8 +21,8 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
+	"github.com/signalfx/splunk-otel-collector/pkg/components/defaults"
 )
 
 const defaultValue = "splunk.discovery.default"
@@ -52,7 +52,7 @@ func createConfigPropertyEnvVar(componentID component.ID) func(...string) (strin
 }
 
 func configPropertyForComponent(componentID component.ID, methodName string, args []string, stringer func(property *properties.Property) string) (string, error) {
-	factories, err := components.Get()
+	factories, err := defaults.Get()
 	if err != nil {
 		return "", fmt.Errorf("failed accessing distribution components: %w", err)
 	}

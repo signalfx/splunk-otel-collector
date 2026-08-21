@@ -8,7 +8,7 @@ on:
     paths:
       - 'deployments/nomad/**'
       - '.github/workflows/nomad.yml'
-      - 'internal/components/**'
+      - 'pkg/components/**'
       - 'cmd/otelcol/**'
       - '!**.md'
 

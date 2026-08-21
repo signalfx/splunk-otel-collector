@@ -20,6 +20,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
+	"sync"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -54,12 +56,19 @@ type diskQueueStorageExtension struct {
 }
 
 type client struct {
-	queue  internal.Interface
-	path   string
-	logger *zap.Logger
+	queue         internal.Interface
+	path          string
+	logger        *zap.Logger
+	checkFirstGet sync.Once
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
+	// on the first Get, check we are working with a persistent queue.
+	c.checkFirstGet.Do(func() {
+		if key != metadataKey {
+			panic("disk_queue_storage extensions must only be used with exporter persistent queues.")
+		}
+	})
 	switch key {
 	case metadataKey:
 		b, err := c.readMetadata()
@@ -74,8 +83,11 @@ func (c *client) Get(_ context.Context, key string) ([]byte, error) {
 	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil, nil
 	default:
-		b := <-c.queue.PeekChan()
-		return b, nil
+		itemKey, err := parseItemKey(key)
+		if err != nil {
+			return nil, err
+		}
+		return c.queue.Get(itemKey)
 	}
 }
 
@@ -86,7 +98,11 @@ func (c *client) Set(_ context.Context, key string, value []byte) error {
 	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil
 	default:
-		return c.queue.Put(value)
+		itemKey, err := parseItemKey(key)
+		if err != nil {
+			return err
+		}
+		return c.queue.Put(itemKey, value)
 	}
 }
 
@@ -95,9 +111,18 @@ func (c *client) Delete(_ context.Context, key string) error {
 	case metadataKey, legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil
 	default:
-		<-c.queue.ReadChan()
-		return nil
+		itemKey, err := parseItemKey(key)
+		if err != nil {
+			return err
+		}
+		return c.queue.Delete(itemKey)
 	}
+}
+
+// parseItemKey parses the item keys used by the persistent queue
+// (see exporterhelper's getItemKey), which are decimal-encoded uint64 indices.
+func parseItemKey(key string) (uint64, error) {
+	return strconv.ParseUint(key, 10, 64)
 }
 
 func (c *client) Batch(ctx context.Context, ops ...*storage.Operation) error {

@@ -13,8 +13,4 @@ issues: [7948]
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
-subtext: |
-  Collector output written to stdout or stderr is now forwarded as Information events by
-  the launcher to the Windows Event Log. Logs configured for files or other destinations
-  are unaffected. See the [0.158.0 to 0.159.0 upgrade guideline](README.md#from-01580-to-01590)
-  for more details about the service entrypoint change and switching modes.
+subtext: See the [0.158.0 to 0.159.0 upgrade guideline](README.md#from-01580-to-01590) for more details.

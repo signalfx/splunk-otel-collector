@@ -188,9 +188,6 @@ On Linux DEB and RPM installation or upgrade, the package also now recursively s
 the service user and group. This ensures the Collector and OpAMP Supervisor can write files in existing
 and new subdirectories of the shared state directory.
 
-On Windows installation or upgrade, the Collector output written to stdout or stderr is now forwarded as Information events by
-the launcher to the Windows Event Log. Logs configured for files or other destinations are unaffected.
-
 ### From 0.157.0 to 0.158.0
 
 [OpenTelemetry has deprecated `deployment.environment` in favor of `deployment.environment.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/deployment/).

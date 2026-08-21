@@ -16,6 +16,7 @@ package main
 
 import (
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,15 +46,46 @@ func TestForwardOutputStreamHandlesLongLines(t *testing.T) {
 	assert.Equal(t, []string{longLine}, lines)
 }
 
-func TestForwardChildOutputUsesSameWriterForBothStreams(t *testing.T) {
-	lines := make(chan string, 2)
+func TestForwardChildOutputMapsStreamsToSinkLevels(t *testing.T) {
+	sink := &recordingSink{}
 
 	err := <-forwardChildOutput(
 		strings.NewReader("stdout line\n"),
 		strings.NewReader("stderr line\n"),
-		func(msg string) { lines <- msg },
+		sink,
 	)
 
 	require.NoError(t, err)
-	assert.ElementsMatch(t, []string{"stdout line", "stderr line"}, []string{<-lines, <-lines})
+	assert.Equal(t, []string{"stdout line"}, sink.infoLines())
+	assert.Equal(t, []string{"stderr line"}, sink.errorLines())
+}
+
+type recordingSink struct {
+	info   []string
+	errors []string
+	mu     sync.Mutex
+}
+
+func (s *recordingSink) Info(msg string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.info = append(s.info, msg)
+}
+
+func (s *recordingSink) Error(msg string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.errors = append(s.errors, msg)
+}
+
+func (s *recordingSink) infoLines() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.info...)
+}
+
+func (s *recordingSink) errorLines() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.errors...)
 }

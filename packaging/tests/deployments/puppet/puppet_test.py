@@ -56,9 +56,12 @@ PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "8").split(",")
 COLLECTOR_VERSION = os.environ.get("VERSION", "0.0.1")
 AUTO_INSTRUMENTATION_VERSION = os.environ.get("AUTO_INSTRUMENTATION_VERSION", "latest")
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
+LIBOTELINJECT_PATH = "/usr/lib/splunk-instrumentation/libotelinject.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
 SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
+INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
+INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
 JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
 DOTNET_CONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
@@ -88,6 +91,16 @@ def package_version_at_least(version, minimum):
     assert version_match is not None, f"unexpected package version: {version}"
     assert minimum_match is not None, f"unexpected minimum package version: {minimum}"
     return tuple(map(int, version_match.groups())) >= tuple(map(int, minimum_match.groups()))
+
+
+def package_uses_otel_injector(version):
+    if version == "latest":
+        return True
+
+    match = re.match(r"^(\d+)\.(\d+)\.(\d+)(.*)$", version)
+    assert match is not None, f"unexpected package version: {version}"
+    release = tuple(map(int, match.groups()[:3]))
+    return release > (0, 158, 0) or (release == (0, 158, 0) and bool(match.group(4)))
 
 
 def run_puppet_apply(container, config, strict_mode=True):
@@ -162,6 +175,65 @@ def verify_dotnet_config(container, path, exists=True):
     for key, val in DOTNET_VARS.items():
         val = val if exists else ".*"
         verify_config_file(container, path, key, val, exists=exists)
+
+
+def verify_otel_injector_config(
+    container,
+    version,
+    with_systemd,
+    resource_attributes,
+    service_name=None,
+    profiler_enabled=False,
+    profiler_memory_enabled=False,
+    metrics_enabled=False,
+    otlp_endpoint=None,
+    otlp_protocol=None,
+    metrics_exporter=None,
+    logs_exporter=None,
+):
+    for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
+        assert not container_file_exists(container, config_path)
+
+    verify_config_file(container, INJECTOR_CONFIG_PATH, "jvm_auto_instrumentation_agent_path", JAVA_AGENT_PATH)
+    verify_config_file(
+        container,
+        INJECTOR_CONFIG_PATH,
+        "nodejs_auto_instrumentation_agent_path",
+        f"{NODE_PREFIX}/node_modules/@splunk/otel/instrument.js",
+    )
+    verify_config_file(container, INJECTOR_CONFIG_PATH, "dotnet_auto_instrumentation_agent_path_prefix", DOTNET_HOME)
+    verify_config_file(container, INJECTOR_CONFIG_PATH, "auto_instrumentation_disabled=.*", exists=False)
+
+    if with_systemd:
+        verify_config_file(container, "/etc/ld.so.preload", LIBOTELINJECT_PATH, exists=False)
+        verify_config_file(container, SYSTEMD_CONFIG_PATH, "LD_PRELOAD", LIBOTELINJECT_PATH)
+    else:
+        verify_config_file(container, "/etc/ld.so.preload", LIBOTELINJECT_PATH)
+        assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+
+    verify_config_file(
+        container,
+        INJECTOR_DEFAULT_ENV_PATH,
+        "OTEL_DOTNET_AUTO_PLUGINS",
+        DOTNET_VARS["OTEL_DOTNET_AUTO_PLUGINS"],
+    )
+    verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+    verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "OTEL_SERVICE_NAME", service_name or ".*", exists=bool(service_name))
+    verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "SPLUNK_PROFILER_ENABLED", str(profiler_enabled).lower())
+    verify_config_file(
+        container,
+        INJECTOR_DEFAULT_ENV_PATH,
+        "SPLUNK_PROFILER_MEMORY_ENABLED",
+        str(profiler_memory_enabled).lower(),
+    )
+    verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, "SPLUNK_METRICS_ENABLED", str(metrics_enabled).lower())
+    for key, value in {
+        "OTEL_EXPORTER_OTLP_ENDPOINT": otlp_endpoint,
+        "OTEL_EXPORTER_OTLP_PROTOCOL": otlp_protocol,
+        "OTEL_METRICS_EXPORTER": metrics_exporter,
+        "OTEL_LOGS_EXPORTER": logs_exporter,
+    }.items():
+        verify_config_file(container, INJECTOR_DEFAULT_ENV_PATH, key, value or ".*", exists=bool(value))
 
 
 DEFAULT_CONFIG = string.Template(
@@ -312,6 +384,18 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
         with_new_instrumentation = package_version_at_least(version, "0.87.0")
         with_dotnet_instrumentation = package_version_at_least(version, "0.99.0")
         resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
+        if package_uses_otel_injector(version):
+            if with_systemd == "true":
+                resource_attributes = rf"{resource_attributes}-systemd"
+            assert node_package_installed(container)
+            verify_otel_injector_config(
+                container,
+                version,
+                with_systemd == "true",
+                resource_attributes,
+            )
+            return
+
         if with_systemd == "true":
             resource_attributes = rf"{resource_attributes}-systemd"
             verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH, exists=False)
@@ -437,6 +521,28 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
         with_new_instrumentation = package_version_at_least(version, "0.87.0")
         with_dotnet_instrumentation = package_version_at_least(version, "0.99.0")
         resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
+        if package_uses_otel_injector(version):
+            if with_systemd == "true":
+                resource_attributes = rf"{resource_attributes}-systemd"
+            resource_attributes = rf"{resource_attributes},deployment.environment.name=test"
+            assert node_package_installed(container)
+            verify_otel_injector_config(
+                container,
+                version,
+                with_systemd == "true",
+                resource_attributes,
+                service_name="test",
+                profiler_enabled=True,
+                profiler_memory_enabled=True,
+                metrics_enabled=True,
+                otlp_endpoint=r"http://0.0.0.0:4317",
+                otlp_protocol="grpc",
+                metrics_exporter="none",
+                logs_exporter="none",
+            )
+            verify_config_file(container, "/etc/ld.so.preload", r"# my extra library")
+            return
+
         if with_systemd == "true":
             resource_attributes = rf"{resource_attributes}-systemd"
             verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH, exists=False)

@@ -86,6 +86,52 @@ describe 'splunk_otel_collector::default' do
       it_behaves_like 'install splunk-otel-collector package'
     end
 
+    context 'with the last libsplunk auto-instrumentation release' do
+      cached(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '22.04') do |node|
+          node.normal['splunk_otel_collector'] = {
+            'splunk_access_token' => 'test123',
+            'splunk_realm' => 'test',
+            'with_auto_instrumentation' => true,
+            'auto_instrumentation_version' => '0.158.0',
+            'with_auto_instrumentation_sdks' => %w(java),
+          }
+        end.converge described_recipe
+      end
+
+      it 'manages the legacy zeroconfig layout' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to create_template('/etc/splunk/zeroconfig/java.conf')
+        expect(chef_run).to_not create_template('/etc/opentelemetry/injector/injector.conf')
+        expect(chef_run).to delete_file('/etc/opentelemetry/injector/injector.conf')
+      end
+    end
+
+    context 'with an OpenTelemetry injector auto-instrumentation release' do
+      cached(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '22.04') do |node|
+          node.normal['splunk_otel_collector'] = {
+            'splunk_access_token' => 'test123',
+            'splunk_realm' => 'test',
+            'with_auto_instrumentation' => true,
+            'auto_instrumentation_version' => '0.159.0',
+            'with_auto_instrumentation_sdks' => %w(java),
+          }
+        end.converge described_recipe
+      end
+
+      it 'manages the OpenTelemetry injector layout' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to create_template('/etc/opentelemetry/injector/injector.conf')
+        expect(chef_run).to create_template('/etc/opentelemetry/injector/default_env.conf')
+        expect(chef_run).to delete_file('/etc/splunk/zeroconfig/java.conf')
+      end
+    end
+
     context 'with local auto-instrumentation artifact on debian-family distro' do
       cached(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '22.04') do |node|

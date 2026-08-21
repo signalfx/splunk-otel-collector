@@ -1,0 +1,131 @@
+---
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+- name: Assert splunk-otel-collector service is running
+  ansible.builtin.assert:
+    that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
+
+- name: Populate package facts
+  ansible.builtin.package_facts:
+
+- name: Set installed auto-instrumentation version
+  ansible.builtin.set_fact:
+    installed_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
+
+- name: Check legacy auto-instrumentation config files
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - /usr/lib/splunk-instrumentation/instrumentation.conf
+    - /etc/splunk/zeroconfig/java.conf
+    - /etc/splunk/zeroconfig/node.conf
+    - /etc/splunk/zeroconfig/dotnet.conf
+  register: legacy_instrumentation_configs
+
+- name: Assert legacy auto-instrumentation config files do not exist
+  ansible.builtin.assert:
+    that: not item.stat.exists
+  loop: "{{ legacy_instrumentation_configs.results }}"
+
+- name: Read OpenTelemetry injector config
+  ansible.builtin.slurp:
+    path: /etc/opentelemetry/injector/injector.conf
+  register: injector_config
+
+- name: Read OpenTelemetry injector default environment
+  ansible.builtin.slurp:
+    path: /etc/opentelemetry/injector/default_env.conf
+  register: injector_default_env
+
+- name: Decode OpenTelemetry injector configs
+  ansible.builtin.set_fact:
+    injector_config_lines: "{{ (injector_config.content | b64decode).splitlines() }}"
+    injector_default_env_lines: "{{ (injector_default_env.content | b64decode).splitlines() }}"
+    instrumentation_method: "splunk.zc.method=splunk-otel-auto-instrumentation-{{ installed_instrumentation_version }}"
+    instrumentation_method_suffix: "{{ '-systemd' if expected_instrumentation_systemd else '' }}"
+    instrumentation_custom_attributes: "{{ ',deployment.environment.name=test' if expected_custom_instrumentation else '' }}"
+    dotnet_plugin_line: >-
+      OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
+
+- name: Assert OpenTelemetry injector agent paths
+  ansible.builtin.assert:
+    that: item in injector_config_lines
+  loop:
+    - jvm_auto_instrumentation_agent_path=/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
+    - >-
+      nodejs_auto_instrumentation_agent_path=/usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument.js
+    - dotnet_auto_instrumentation_agent_path_prefix=/usr/lib/splunk-instrumentation/splunk-otel-dotnet
+
+- name: Assert OpenTelemetry injector SDK selection
+  ansible.builtin.assert:
+    that:
+      - "('auto_instrumentation_disabled=jvm' in injector_config_lines) == ('java' not in expected_instrumentation_sdks)"
+      - "('auto_instrumentation_disabled=nodejs' in injector_config_lines) == ('nodejs' not in expected_instrumentation_sdks)"
+      - "('auto_instrumentation_disabled=dotnet' in injector_config_lines) == ('dotnet' not in expected_instrumentation_sdks)"
+
+- name: Assert OpenTelemetry injector environment
+  vars:
+    expected_resource_attributes: >-
+      {{ instrumentation_method }}{{ instrumentation_method_suffix }}{{ instrumentation_custom_attributes }}
+  ansible.builtin.assert:
+    that:
+      - "(dotnet_plugin_line in injector_default_env_lines) == ('dotnet' in expected_instrumentation_sdks)"
+      - "('OTEL_RESOURCE_ATTRIBUTES=' + expected_resource_attributes) in injector_default_env_lines"
+      - "('OTEL_SERVICE_NAME=test' in injector_default_env_lines) == expected_custom_instrumentation"
+      - "('SPLUNK_PROFILER_ENABLED=' + (expected_custom_instrumentation | string | lower)) in injector_default_env_lines"
+      - "('SPLUNK_PROFILER_MEMORY_ENABLED=' + (expected_custom_instrumentation | string | lower)) in injector_default_env_lines"
+      - "('SPLUNK_METRICS_ENABLED=' + (expected_custom_instrumentation | string | lower)) in injector_default_env_lines"
+
+- name: Assert custom OpenTelemetry injector environment
+  ansible.builtin.assert:
+    that:
+      - "'OTEL_EXPORTER_OTLP_ENDPOINT=http://0.0.0.0:4317' in injector_default_env_lines"
+      - "'OTEL_EXPORTER_OTLP_PROTOCOL=grpc' in injector_default_env_lines"
+      - "'OTEL_METRICS_EXPORTER=none' in injector_default_env_lines"
+      - "'OTEL_LOGS_EXPORTER=none' in injector_default_env_lines"
+  when: expected_custom_exporters | default(false)
+
+- name: Read ld.so.preload
+  ansible.builtin.slurp:
+    path: /etc/ld.so.preload
+  register: ld_so_preload
+
+- name: Decode ld.so.preload
+  ansible.builtin.set_fact:
+    ld_so_preload_lines: "{{ (ld_so_preload.content | b64decode).splitlines() }}"
+
+- name: Assert ld.so.preload configuration
+  ansible.builtin.assert:
+    that:
+      - "('/usr/lib/splunk-instrumentation/libotelinject.so' in ld_so_preload_lines) == (not expected_instrumentation_systemd)"
+      - "('# my custom library' in ld_so_preload_lines) == expected_custom_preload"
+
+- name: Check systemd auto-instrumentation config
+  ansible.builtin.stat:
+    path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
+  register: instrumentation_systemd_config
+
+- name: Assert systemd auto-instrumentation config state
+  ansible.builtin.assert:
+    that: instrumentation_systemd_config.stat.exists == expected_instrumentation_systemd
+
+- name: Read systemd auto-instrumentation config
+  ansible.builtin.slurp:
+    path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
+  register: instrumentation_systemd_contents
+  when: expected_instrumentation_systemd
+
+- name: Assert systemd activates libotelinject
+  vars:
+    expected_systemd_line: 'DefaultEnvironment="LD_PRELOAD=/usr/lib/splunk-instrumentation/libotelinject.so"'
+  ansible.builtin.assert:
+    that: expected_systemd_line in (instrumentation_systemd_contents.content | b64decode).splitlines()
+  when: expected_instrumentation_systemd
+
+- name: Check Node.js auto-instrumentation package
+  ansible.builtin.command: npm list --global=false @splunk/otel
+  args:
+    chdir: /usr/lib/splunk-instrumentation/splunk-otel-js
+  changed_when: false
+  when: "'nodejs' in expected_instrumentation_sdks"

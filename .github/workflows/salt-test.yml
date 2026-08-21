@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - '.github/workflows/salt-test.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/salt/**'
       - 'instrumentation/**'
       - 'packaging/tests/deployments/salt/**'
@@ -16,6 +17,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/salt-test.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/salt/**'
       - 'instrumentation/**'
       - 'packaging/tests/deployments/salt/**'
@@ -90,59 +92,16 @@ jobs:
       ARCH: amd64
 
   salt-build-deb-local-auto-instrumentation-package:
-    runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.get-version.outputs.version }}
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-
-      - name: Get package version
-        id: get-version
-        run: |
-          # Get base version from git and strip the v prefix
-          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Build deb amd64 auto-instrumentation package
-        run: make -C instrumentation/ deb-package VERSION="${{ steps.get-version.outputs.version }}" ARCH=amd64
-
-      - name: Uploading deb amd64 auto-instrumentation package artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: splunk-otel-auto-instrumentation-amd64-deb
-          path: ./instrumentation/dist/*.deb
+    uses: ./.github/workflows/reusable-build-instrumentation-package.yml
+    with:
+      SYS_PACKAGE: deb
+      ARCH: amd64
 
   salt-build-rpm-local-auto-instrumentation-package:
-    runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.get-version.outputs.version }}
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-
-      - name: Get package version
-        id: get-version
-        run: |
-          # Get base version from git and strip the v prefix
-          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
-
-          # RPM expects numeric/dot or convert X.Y.Z-60 to X.Y.Z_60 (replace dash with underscore)
-          VERSION="${VERSION//-/_}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Build rpm amd64 auto-instrumentation package
-        run: make -C instrumentation/ rpm-package VERSION="${{ steps.get-version.outputs.version }}" ARCH=amd64
-
-      - name: Uploading rpm amd64 auto-instrumentation package artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: splunk-otel-auto-instrumentation-amd64-rpm
-          path: ./instrumentation/dist/*.rpm
+    uses: ./.github/workflows/reusable-build-instrumentation-package.yml
+    with:
+      SYS_PACKAGE: rpm
+      ARCH: amd64
 
   salt-test:
     name: salt-test

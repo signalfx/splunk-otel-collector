@@ -167,6 +167,15 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  # Use below example redaction processor to mask sensitive data
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/redactionprocessor/README.md
+  #  redaction/windows_sensitive_logs:
+  #    allow_all_keys: true
+  #    summary: silent
+  #    blocked_values:
+  #      AWS IPv4 addresses
+  #      - "ip-[^<\"]*"
+
   # WinEventLog://Application -> sourcetype=XmlWinEventLog  source=WinEventLog:Application
   transform/application:
     log_statements:

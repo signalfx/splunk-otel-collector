@@ -120,6 +120,10 @@
    (OPTIONAL) Preserve the default configuration files, located at `$Env:ProgramData\Splunk\OpenTelemetry Collector`, of previous version when upgrading the collector. By default it is $false since version changes can include breaking configuration changes.
    .EXAMPLE
     .\install.ps1 -preserve_prev_default_config $true
+.PARAMETER with_supervisor
+    (OPTIONAL) Whether to manage the Splunk OpenTelemetry Collector with OpAMP Supervisor (default: false).
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_supervisor $true
 .PARAMETER uninstall_collector
     (OPTIONAL) Uninstalls the Splunk OpenTelemetry Collector if it is already installed and then exits the script.
     .EXAMPLE
@@ -137,6 +141,7 @@ param(
     [string]$realm = "us0",
     [string]$memory = "512",
     [ValidateSet('agent', 'gateway')][string]$mode = "agent",
+    [bool]$with_supervisor = $false,
     [string]$network_interface = "",
     [string]$ingest_url = "",
     [string]$api_url = "",
@@ -493,6 +498,10 @@ else {
 echo 'Checking execution policy'
 check_policy
 
+if ($with_supervisor -And !$PSBoundParameters.ContainsKey("access_token")) {
+    throw "The -access_token parameter is required when -with_supervisor is true."
+}
+
 if (-not (Get-Service -Name $service_name -ErrorAction SilentlyContinue)) {
     if ($uninstall_collector) {
         remove_splunk_zc_method_from_env
@@ -679,6 +688,10 @@ if ($network_interface -Ne "") {
 
 if ($godebug -Ne "") {
     $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "GODEBUG" -value $godebug
+}
+
+if ($with_supervisor) {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_OPAMP_SUPERVISOR_ENABLED" -value "true"
 }
 
 $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_API_URL" -value $api_url

@@ -51,27 +51,22 @@ type location struct {
 // byte range, so a record can be read or deleted independently of any other
 // record, in any order.
 type diskQueue struct {
-	mu sync.Mutex
-
-	index     map[uint64]location
-	liveCount map[int64]int64 // live record count per segment file
-
-	writeFile    *os.File
-	writeFileNum int64
-	writePos     int64
-
-	pendingSync int64
-
+	index           map[uint64]location
+	liveCount       map[int64]int64
+	writeFile       *os.File
+	doneChan        chan struct{}
+	exitChan        chan struct{}
 	logger          *zap.Logger
 	dataPath        string
 	name            string
+	writeFileNum    int64
+	pendingSync     int64
 	maxBytesPerFile int64
 	syncEvery       int64
 	syncTimeout     time.Duration
-
-	exitChan chan struct{}
-	doneChan chan struct{}
-	closed   bool
+	writePos        int64
+	mu              sync.Mutex
+	closed          bool
 }
 
 // New instantiates a diskQueue, restoring its index from the filesystem if

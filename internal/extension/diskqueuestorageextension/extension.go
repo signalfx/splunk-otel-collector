@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -56,6 +55,7 @@ type diskQueueStorageExtension struct {
 }
 
 type client struct {
+	name          string
 	queue         internal.Interface
 	logger        *zap.Logger
 	path          string
@@ -152,6 +152,7 @@ func (c *client) Close(_ context.Context) error {
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {
 	return &client{
 		path:   d.config.Path,
+		name:   storageName,
 		queue:  internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
 		logger: d.settings.Logger,
 	}, nil
@@ -169,8 +170,8 @@ func (c *client) persistMetaData(value []byte) error {
 	var f *os.File
 	var err error
 
-	fileName := filepath.Join(c.path, metadataKey)
-	f, err = os.CreateTemp("", path.Base(fileName)+"-*")
+	fileName := filepath.Join(c.path, c.name+"-"+metadataKey)
+	f, err = os.CreateTemp("", c.name+"-"+metadataKey+"-*")
 	if err != nil {
 		return err
 	}
@@ -188,6 +189,6 @@ func (c *client) persistMetaData(value []byte) error {
 }
 
 func (c *client) readMetadata() ([]byte, error) {
-	fileName := filepath.Join(c.path, metadataKey)
+	fileName := filepath.Join(c.path, c.name+"-"+metadataKey)
 	return os.ReadFile(fileName)
 }

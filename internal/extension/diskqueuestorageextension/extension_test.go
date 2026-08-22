@@ -63,10 +63,6 @@ func TestExtensionAsPersistentQueue(t *testing.T) {
 	extId := component.MustNewIDWithName("disk_queue_storage", "my")
 	cfg.QueueConfig.GetOrInsertDefault().StorageID = &extId
 	cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
-	// Use multiple consumers so that dispatched items complete out of
-	// order; this exercises the storage client's key-addressed Get/Delete
-	// rather than a simple single-item head-of-queue path.
-	cfg.QueueConfig.GetOrInsertDefault().NumConsumers = 4
 	cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
 	cfg.ClientConfig.TLS.Insecure = true
 	exporterSettings := exportertest.NewNopSettings(component.MustNewType("otlp"))

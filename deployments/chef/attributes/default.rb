@@ -7,15 +7,15 @@ default['splunk_otel_collector']['debian_gpg_key_url'] = "#{node['splunk_otel_co
 default['splunk_otel_collector']['rhel_repo_url'] = "#{node['splunk_otel_collector']['repo_base_url']}/otel-collector-rpm/#{node['splunk_otel_collector']['package_stage']}/$basearch/"
 default['splunk_otel_collector']['rhel_gpg_key_url'] = "#{node['splunk_otel_collector']['repo_base_url']}/otel-collector-rpm/splunk-B3CD4420.pub"
 
-default['splunk_otel_collector']['windows_repo_url'] = "https://dl.signalfx.com/splunk-otel-collector/msi/#{node['splunk_otel_collector']['package_stage']}"
+default['splunk_otel_collector']['windows_repo_url'] = "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/#{node['splunk_otel_collector']['package_stage']}"
 
 default['splunk_otel_collector']['service_name'] = 'splunk-otel-collector'
 
 default['splunk_otel_collector']['splunk_access_token'] = nil
 default['splunk_otel_collector']['splunk_realm'] = 'us0'
 
-default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
-default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
+default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.observability.splunkcloud.com"
+default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.observability.splunkcloud.com"
 default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v1/log"
 default['splunk_otel_collector']['splunk_hec_token'] = node['splunk_otel_collector']['splunk_access_token'].to_s
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'
@@ -41,17 +41,11 @@ if platform_family?('windows')
   default['splunk_otel_collector']['collector_config_dest'] = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
   default['splunk_otel_collector']['collector_version_file'] = "#{collector_install_dir}\\collector_version.txt"
 
-  default['splunk_otel_collector']['splunk_bundle_dir'] = "#{collector_install_dir}\\agent-bundle"
-  default['splunk_otel_collector']['splunk_collectd_dir'] = "#{node['splunk_otel_collector']['splunk_bundle_dir']}\\run\\collectd"
-
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['collector_version'] = 'latest'
 
   default['splunk_otel_collector']['collector_config_source'] = 'file:///etc/otel/collector/agent_config.yaml'
   default['splunk_otel_collector']['collector_config_dest'] = '/etc/otel/collector/agent_config.yaml'
-
-  default['splunk_otel_collector']['splunk_bundle_dir'] = '/usr/lib/splunk-otel-collector/agent-bundle'
-  default['splunk_otel_collector']['splunk_collectd_dir'] = "#{node['splunk_otel_collector']['splunk_bundle_dir']}/run/collectd"
 
   default['splunk_otel_collector']['user'] = 'splunk-otel-collector'
   default['splunk_otel_collector']['group'] = 'splunk-otel-collector'

@@ -8,21 +8,21 @@ on:
     paths:
       - '.github/workflows/puppet-test.yml'
       - 'deployments/puppet/**'
+      - 'instrumentation/**'
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
       - 'packaging/msi/**'
-      - 'packaging/bundle/**'
       - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/puppet-test.yml'
       - 'deployments/puppet/**'
+      - 'instrumentation/**'
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
       - 'packaging/msi/**'
-      - 'packaging/bundle/**'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 3,6' # Every Wednesday and Saturday at midnight UTC
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Lint
         run: |
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Lint
         run: |
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # EOL REFERENCE: https://endoflife.date/puppet
       - name: Get matrix
@@ -89,18 +89,11 @@ jobs:
     with:
       SYS_BINARY: binaries-linux_amd64
 
-  # Build Linux agent bundle for package building
-  puppet-build-linux-agent-bundle:
-    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
-    with:
-      ARCH: amd64
-
   # Use reusable workflow for DEB package
   puppet-build-deb-local-package:
     uses: ./.github/workflows/reusable-build-package.yml
     needs:
       - puppet-build-linux-binary
-      - puppet-build-linux-agent-bundle
     with:
       SYS_PACKAGE: deb
       ARCH: amd64
@@ -110,10 +103,66 @@ jobs:
     uses: ./.github/workflows/reusable-build-package.yml
     needs:
       - puppet-build-linux-binary
-      - puppet-build-linux-agent-bundle
     with:
       SYS_PACKAGE: rpm
       ARCH: amd64
+
+  # Build DEB auto-instrumentation package
+  puppet-build-deb-local-auto-instrumentation-package:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get package version
+        id: get-version
+        run: |
+          # Get base version from git and strip the v prefix
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build deb amd64 auto-instrumentation package
+        run: make -C instrumentation/ deb-package VERSION="${{ steps.get-version.outputs.version }}" ARCH=amd64
+
+      - name: Uploading deb amd64 auto-instrumentation package artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-deb
+          path: ./instrumentation/dist/*.deb
+
+  # Build RPM auto-instrumentation package
+  puppet-build-rpm-local-auto-instrumentation-package:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get package version
+        id: get-version
+        run: |
+          # Get base version from git and strip the v prefix
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
+
+          # RPM expects numeric/dot or convert X.Y.Z-60 to X.Y.Z_60 (replace dash with underscore)
+          VERSION="${VERSION//-/_}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build rpm amd64 auto-instrumentation package
+        run: make -C instrumentation/ rpm-package VERSION="${{ steps.get-version.outputs.version }}" ARCH=amd64
+
+      - name: Uploading rpm amd64 auto-instrumentation package artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-rpm
+          path: ./instrumentation/dist/*.rpm
 
   puppet-test:
     name: puppet-test
@@ -124,27 +173,41 @@ jobs:
       - puppet-test-matrix
       - puppet-build-deb-local-package
       - puppet-build-rpm-local-package
+      - puppet-build-deb-local-auto-instrumentation-package
+      - puppet-build-rpm-local-auto-instrumentation-package
     strategy:
       matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download DEB package artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: deb-amd64-package
           path: ./dist
 
       - name: Download RPM package artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: rpm-amd64-package
           path: ./dist
 
+      - name: Download DEB auto-instrumentation package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-deb
+          path: ./dist
+
+      - name: Download RPM auto-instrumentation package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-rpm
+          path: ./dist
+
       - name: Setup python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -160,18 +223,24 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           DEB_VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
           RPM_VERSION: "${{ needs.puppet-build-rpm-local-package.outputs.version }}"
+          DEB_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-deb-local-auto-instrumentation-package.outputs.version }}"
+          RPM_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-rpm-local-auto-instrumentation-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           
-          # Determine VERSION based on distro type
+          # Determine package versions based on distro type
           case "$distro" in
             debian-*|ubuntu-*)
               export VERSION="$DEB_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$DEB_AUTO_INSTRUMENTATION_VERSION"
               echo "Using DEB version: $VERSION"
+              echo "Using DEB auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
               export VERSION="$RPM_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$RPM_AUTO_INSTRUMENTATION_VERSION"
               echo "Using RPM version: $VERSION"
+              echo "Using RPM auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             *)
               echo "Unknown distro: $distro"
@@ -194,18 +263,24 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           DEB_VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
           RPM_VERSION: "${{ needs.puppet-build-rpm-local-package.outputs.version }}"
+          DEB_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-deb-local-auto-instrumentation-package.outputs.version }}"
+          RPM_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-rpm-local-auto-instrumentation-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           
-          # Determine VERSION based on distro type
+          # Determine package versions based on distro type
           case "$distro" in
             debian-*|ubuntu-*)
               export VERSION="$DEB_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$DEB_AUTO_INSTRUMENTATION_VERSION"
               echo "Using DEB version: $VERSION"
+              echo "Using DEB auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
               export VERSION="$RPM_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$RPM_AUTO_INSTRUMENTATION_VERSION"
               echo "Using RPM version: $VERSION"
+              echo "Using RPM auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             *)
               echo "Unknown distro: $distro"
@@ -228,11 +303,6 @@ jobs:
     with:
       SYS_BINARY: binaries-windows_amd64
 
-  puppet-build-windows-agent-bundle:
-    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
-    with:
-      ARCH: amd64
-
   puppet-build-windows-msi-custom-actions:
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
 
@@ -241,7 +311,6 @@ jobs:
     uses: ./.github/workflows/reusable-msi-build.yml
     needs:
       - puppet-build-windows-binary
-      - puppet-build-windows-agent-bundle
       - puppet-build-windows-msi-custom-actions
     with:
       ARCH: amd64
@@ -255,23 +324,25 @@ jobs:
       - puppet-build-windows-msi-local-package
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-2025" ]
         # EOL REFERENCE: https://endoflife.date/puppet
         PUPPET_RELEASE: [ "8.10.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download MSI package artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msi-build-amd64
           path: ./dist
 
+      - uses: ./.github/actions/win-wait-for-docker
+
       - name: Setup python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip

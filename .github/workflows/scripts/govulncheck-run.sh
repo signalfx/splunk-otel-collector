@@ -13,7 +13,7 @@ FAILED=0
 # Repository prefix to remove from package names
 REPO_PREFIX=$(go list -m)
 
-# Use a bash regex to extract the the value of the --format flag
+# Use a bash regex to extract the value of the --format flag
 # from the GOVULN_OPTS environment variable
 if [[ "$GOVULN_OPTS" =~ .*--format[[:space:]]+([a-z]+).* ]]; then
   FORMAT=${BASH_REMATCH[1]}

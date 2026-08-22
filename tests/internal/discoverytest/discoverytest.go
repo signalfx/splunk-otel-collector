@@ -31,9 +31,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
-	docker "github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
+	docker "github.com/moby/moby/client"
 	k8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -58,7 +58,7 @@ const (
 func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 	f := otlpreceiver.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	cfg.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	cfg.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  endpoint,
 			Transport: "tcp",
@@ -277,25 +277,25 @@ func getHostEndpoint(t *testing.T) string {
 		return "host.docker.internal"
 	}
 
-	client, err := docker.NewClientWithOpts(docker.FromEnv)
+	client, err := docker.New(docker.FromEnv)
 	require.NoError(t, err)
-	client.NegotiateAPIVersion(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	nw, err := client.NetworkInspect(ctx, "kind", network.InspectOptions{})
+	nw, err := client.NetworkInspect(ctx, "kind", docker.NetworkInspectOptions{})
 	require.NoError(t, err)
 
 	// Prefer IPv4 gateways
 	var fallback string
-	for _, ipam := range nw.IPAM.Config {
-		if ipam.Gateway == "" {
+	for _, ipam := range nw.Network.IPAM.Config {
+		if !ipam.Gateway.IsValid() {
 			continue
 		}
-		if ip := net.ParseIP(ipam.Gateway); ip != nil && ip.To4() != nil {
-			return ipam.Gateway
+		gwStr := ipam.Gateway.String()
+		if ip := net.ParseIP(gwStr); ip != nil && ip.To4() != nil {
+			return gwStr
 		}
 		if fallback == "" {
-			fallback = ipam.Gateway
+			fallback = gwStr
 		}
 	}
 	if fallback != "" {

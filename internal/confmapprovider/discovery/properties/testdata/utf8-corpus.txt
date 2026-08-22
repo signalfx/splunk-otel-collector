@@ -154,7 +154,7 @@ Runes:
   ᚻᛖ ᚳᚹᚫᚦ ᚦᚫᛏ ᚻᛖ ᛒᚢᛞᛖ ᚩᚾ ᚦᚫᛗ ᛚᚪᚾᛞᛖ ᚾᚩᚱᚦᚹᛖᚪᚱᛞᚢᛗ ᚹᛁᚦ ᚦᚪ ᚹᛖᛥᚫ
 
   (Old English, which transcribed into Latin reads 'He cwaeth that he
-  bude thaem lande northweardum with tha Westsae.' and means 'He said
+  bude thaem lande northweardum with tha Westsae.' and means 'He said <!-- codespell:ignore tha -->
   that he lived in the northern land near the Western Sea.')
 
 Braille:

@@ -62,6 +62,7 @@ type Monitor struct {
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = utils.NewThrottledLogger(log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID}), 30*time.Second)
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026")
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 	m.conf = conf
 	m.metricTypeMap = conf.getMetricTypeMap()

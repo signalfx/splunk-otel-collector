@@ -5,7 +5,7 @@ extensions:
     expvar:
       enabled: true
 receivers:
-  hostmetrics:
+  host_metrics:
     scrapers:
       filesystem:
       memory:
@@ -14,8 +14,8 @@ receivers:
       disk:
     collection_interval: ${include:./testdata/collection_interval_scalar}
 processors:
-  resourcedetection:
+  resource_detection:
     detectors: [ system ]
 exporters:
   otlp_grpc: ${include:./testdata/exporter_component}
-service: ${include:./testdata/service_template_component?my_receivers=[hostmetrics]&my_processors=[resourcedetection]&my_exporters=[otlp_grpc]}
+service: ${include:./testdata/service_template_component?my_receivers=[host_metrics]&my_processors=[resource_detection]&my_exporters=[otlp_grpc]}

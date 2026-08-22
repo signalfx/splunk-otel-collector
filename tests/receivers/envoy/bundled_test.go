@@ -47,6 +47,7 @@ func TestEnvoyDockerObserver(t *testing.T) {
 			"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 			"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 			"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocketProxy.ContainerEndpoint),
+			"--set", `splunk.discovery.extensions.docker_observer.config.ignore_non_host_bindings=true`,
 		)
 	})
 	defer shutdown()

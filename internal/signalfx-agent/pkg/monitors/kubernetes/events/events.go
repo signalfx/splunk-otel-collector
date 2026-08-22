@@ -166,7 +166,7 @@ func (m *Monitor) k8sEventToSignalFxEvent(ev *v1.Event) *event.Event {
 		"obj_field_path":       ev.InvolvedObject.FieldPath,
 	}
 
-	// Reuse the existing kubernetes-cluster monitor dimensions that we send for metrics
+	// Reuse the same Kubernetes resource dimensions that we send for metrics
 	switch ev.InvolvedObject.Kind {
 	case "Pod":
 		dims["kubernetes_pod_name"] = ev.InvolvedObject.Name

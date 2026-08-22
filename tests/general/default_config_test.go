@@ -59,7 +59,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
 					"otlp_http": map[string]any{
-						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
+						"traces_endpoint": "https://ingest.not.real.observability.splunkcloud.com/v2/trace/otlp",
 						"sending_queue": map[string]any{
 							"num_consumers": 32,
 						},
@@ -83,19 +83,19 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"sync_host_metadata": true,
 					},
 					"splunk_hec": map[string]any{
-						"endpoint":               "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":               "https://ingest.not.real.observability.splunkcloud.com/v1/log",
 						"source":                 "otel",
 						"sourcetype":             "otel",
 						"token":                  "<redacted>",
 						"profiling_data_enabled": false,
 					},
 					"splunk_hec/profiling": map[string]any{
-						"endpoint":         "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":         "https://ingest.not.real.observability.splunkcloud.com/v1/log",
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
 					"otlp_http/entities": map[string]any{
-						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
+						"logs_endpoint": "https://ingest.not.real.observability.splunkcloud.com/v3/event",
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
@@ -105,6 +105,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"extensions": map[string]any{
+					"config_source_telemetry": map[string]any{},
 					"headers_setter": map[string]any{
 						"headers": []any{
 							map[string]any{
@@ -120,18 +121,43 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 					"http_forwarder": map[string]any{
 						"egress": map[string]any{
-							"endpoint": "https://api.not.real.signalfx.com",
+							"endpoint": "https://api.not.real.observability.splunkcloud.com",
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
+					"http_forwarder/opamp_splunk_o11y": map[string]any{
+						"egress": map[string]any{
+							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
+							"headers": map[string]any{
+								"X-SF-Token": "<redacted>",
+							},
+						},
+						"ingress": map[string]any{
+							"endpoint": fmt.Sprintf("%s:4320", ip),
+						},
+					},
 					"http_forwarder/signalfx": map[string]any{
 						"egress": map[string]any{
-							"endpoint": "https://ingest.not.real.signalfx.com",
+							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:9943", ip),
+						},
+					},
+					"opamp/splunk_o11y": map[string]any{
+						"agent_description": map[string]any{
+							"include_resource_attributes": true,
+						},
+						"server": map[string]any{
+							"http": map[string]any{
+								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
+								"headers": map[string]any{
+									"X-SF-Token": "<redacted>",
+								},
+								"polling_interval": "30s",
+							},
 						},
 					},
 					"zpages": map[string]any{
@@ -149,16 +175,15 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"check_interval": "2s",
 						"limit_mib":      460,
 					},
-					"resourcedetection/internal": map[string]any{
+					"resource_detection/internal": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
-					"resource/add_mode": map[string]any{
-						"attributes": []any{
+					"transform/limit_histogram_buckets": map[string]any{
+						"metric_statements": []any{
 							map[string]any{
-								"action": "insert",
-								"value":  "gateway",
-								"key":    "otelcol.service.mode",
+								"context":    "datapoint",
+								"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
 							},
 						},
 					},
@@ -222,7 +247,34 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/signalfx", "zpages"},
+					"telemetry": map[string]any{
+						"resource": map[string]any{
+							"attributes": []any{
+								map[string]any{
+									"name":  "otelcol.service.mode",
+									"value": "gateway",
+								},
+							},
+						},
+						"metrics": map[string]any{
+							"readers": []any{
+								map[string]any{
+									"pull": map[string]any{
+										"exporter": map[string]any{
+											"prometheus": map[string]any{
+												"host": "127.0.0.1",
+												"port": 8888,
+											},
+										},
+									},
+								},
+							},
+						},
+						"logs": map[string]any{
+							"level": "info",
+						},
+					},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "http_forwarder/signalfx", "opamp/splunk_o11y", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
@@ -240,12 +292,12 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch"},
+							"processors": []any{"memory_limiter", "transform/limit_histogram_buckets", "batch"},
 							"receivers":  []any{"otlp"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal", "resource/add_mode"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection/internal"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
@@ -309,32 +361,32 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
-						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
+						"traces_endpoint": "https://ingest.not.real.observability.splunkcloud.com/v2/trace/otlp",
 						"auth": map[string]any{
 							"authenticator": "<redacted>",
 						},
 					},
 					"signalfx": map[string]any{
 						"access_token":       "<redacted>",
-						"api_url":            "https://api.not.real.signalfx.com",
+						"api_url":            "https://api.not.real.observability.splunkcloud.com",
 						"correlation":        nil,
-						"ingest_url":         "https://ingest.not.real.signalfx.com",
+						"ingest_url":         "https://ingest.not.real.observability.splunkcloud.com",
 						"sync_host_metadata": true,
 					},
 					"splunk_hec": map[string]any{
-						"endpoint":               "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":               "https://ingest.not.real.observability.splunkcloud.com/v1/log",
 						"source":                 "otel",
 						"sourcetype":             "otel",
 						"token":                  "<redacted>",
 						"profiling_data_enabled": false,
 					},
 					"splunk_hec/profiling": map[string]any{
-						"endpoint":         "https://ingest.not.real.signalfx.com/v1/log",
+						"endpoint":         "https://ingest.not.real.observability.splunkcloud.com/v1/log",
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
 					"otlp_http/entities": map[string]any{
-						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
+						"logs_endpoint": "https://ingest.not.real.observability.splunkcloud.com/v3/event",
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
@@ -344,6 +396,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					},
 				},
 				"extensions": map[string]any{
+					"config_source_telemetry": map[string]any{},
 					"headers_setter": map[string]any{
 						"headers": []any{
 							map[string]any{
@@ -357,16 +410,35 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"health_check": map[string]any{"endpoint": fmt.Sprintf("%s:13133", ip)},
 					"http_forwarder": map[string]any{
 						"egress": map[string]any{
-							"endpoint": "https://api.not.real.signalfx.com",
+							"endpoint": "https://api.not.real.observability.splunkcloud.com",
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
-					"smartagent": map[string]any{
-						"bundleDir": "/usr/lib/splunk-otel-collector/agent-bundle",
-						"collectd": map[string]any{
-							"configDir": "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd",
+					"http_forwarder/opamp_splunk_o11y": map[string]any{
+						"egress": map[string]any{
+							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
+							"headers": map[string]any{
+								"X-SF-Token": "<redacted>",
+							},
+						},
+						"ingress": map[string]any{
+							"endpoint": fmt.Sprintf("%s:4320", ip),
+						},
+					},
+					"opamp/splunk_o11y": map[string]any{
+						"agent_description": map[string]any{
+							"include_resource_attributes": true,
+						},
+						"server": map[string]any{
+							"http": map[string]any{
+								"endpoint": "https://ingest.not.real.observability.splunkcloud.com/v1/opamp",
+								"headers": map[string]any{
+									"X-SF-Token": "<redacted>",
+								},
+								"polling_interval": "30s",
+							},
 						},
 					},
 					"zpages": map[string]any{
@@ -383,23 +455,22 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"check_interval": "2s",
 						"limit_mib":      460,
 					},
-					"resourcedetection": map[string]any{
+					"resource_detection": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
-					"resource/add_mode": map[string]any{
-						"attributes": []any{
+					"transform/limit_histogram_buckets": map[string]any{
+						"metric_statements": []any{
 							map[string]any{
-								"action": "insert",
-								"value":  "agent",
-								"key":    "otelcol.service.mode",
+								"context":    "datapoint",
+								"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
 							},
 						},
 					},
 				},
 				"receivers": map[string]any{
-					"fluentforward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
-					"hostmetrics": map[string]any{
+					"fluent_forward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
+					"host_metrics": map[string]any{
 						"collection_interval": "10s",
 						"scrapers": map[string]any{
 							"cpu":        nil,
@@ -458,49 +529,73 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "zpages", "smartagent"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "opamp/splunk_o11y", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"fluentforward", "otlp"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
+							"receivers":  []any{"fluent_forward", "otlp"},
 						},
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"receivers":  []any{"smartagent/processlist"},
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"hostmetrics", "otlp"},
+							"processors": []any{"memory_limiter", "transform/limit_histogram_buckets", "batch", "resource_detection"},
+							"receivers":  []any{"host_metrics", "otlp"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection", "resource/add_mode"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"otlp_http", "signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"exporters":  []any{"otlp_http"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},
 						"logs/entities": map[string]any{
 							"receivers":  []any{"nop"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"exporters":  []any{"otlp_http/entities"},
 						},
 					},
 					"telemetry": map[string]any{
-						"logs": map[string]any{"level": "info"},
+						"resource": map[string]any{
+							"attributes": []any{
+								map[string]any{
+									"name":  "otelcol.service.mode",
+									"value": "agent",
+								},
+							},
+						},
+						"metrics": map[string]any{
+							"readers": []any{
+								map[string]any{
+									"pull": map[string]any{
+										"exporter": map[string]any{
+											"prometheus": map[string]any{
+												"host": "127.0.0.1",
+												"port": 8888,
+											},
+										},
+									},
+								},
+							},
+						},
+						"logs": map[string]any{
+							"level": "info",
+						},
 					},
 				},
 			}, config)
 
 			require.Eventually(t, func() bool {
 				for _, log := range tc.ObservedLogs.All() {
-					// confirm the smartagent extension's config has been sourced by receiver instance.
-					if strings.Contains(log.Message, "Smart Agent Config provider configured") {
+					// confirm all components were loaded successfully
+					if strings.Contains(log.Message, "Everything is ready. Begin running and processing data.") {
 						return true
 					}
 				}

@@ -9,11 +9,11 @@ Observability Cloud](https://www.splunk.com/en_us/products/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023
-- CentOS / Red Hat: 8, 9
-- Oracle: 8, 9
-- Debian: 9, 10, 11
-- SUSE: 15
-- Ubuntu: 16.04, 18.04, 20.04, 22.04
+- CentOS / Red Hat: 8, 9, 10
+- Oracle: 8, 9, 10
+- Debian: 11, 12
+- SUSE: 15, 16
+- Ubuntu: 22.04, 24.04, 26.04
 
 ## Prerequisites
 
@@ -53,13 +53,13 @@ splunk-otel-collector:
   `splunk_access_token`)
 
 - `splunk_ingest_url`: The Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`. The `SPLUNK_INGEST_URL` environment 
+  `https://ingest.us0.observability.splunkcloud.com`. The `SPLUNK_INGEST_URL` environment 
   variable will be set with this value for the collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
-- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`.
+- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.observability.splunkcloud.com`.
   The `SPLUNK_API_URL` environment variable will be set with this value for the
-  collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
+  collector service. (**default:** `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `collector_version`: Version of the collector package to install, e.g.
   `0.25.0`. (**default:** `latest`)
@@ -73,21 +73,6 @@ splunk-otel-collector:
   `splunk_otel_collector_config` in remote hosts. To use custom collector config add the config file into salt dir, 
   e.g. `salt://templates/agent_config.yaml`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_otel_collector_config` will be used)
-
-- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
-  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
-  The default path is provided by the collector package. If the specified path
-  is changed from the default value, the path should be an existing directory
-  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the collector service. (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle`)
-
-- `splunk_collectd_dir`: The path to the collectd config directory for the
-  Smart Agent bundle. The default path is provided by the collector package.
-  If the specified path is changed from the default value, the path should be
-  an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the collector service.
-  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle`)
 
 - `splunk_service_user` and `splunk_service_group` (Linux only): Set the user/group
   ownership for the collector service. The user/group will be created if they
@@ -185,7 +170,7 @@ after installation/configuration in order for any changes to take effect.
 
 - `auto_instrumentation_resource_attributes`: Configure the OpenTelemetry auto
   instrumentation resource attributes, e.g.
-  `deployment.environment=prod,my.key=value` (comma-separated `key=value` pairs.).
+  `deployment.environment.name=prod,my.key=value` (comma-separated `key=value` pairs.).
   (**default:** `None`)
 
 - `auto_instrumentation_service_name`: Explicitly set the service name for

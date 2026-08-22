@@ -77,13 +77,13 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 
 	otlpFactory := otlpreceiver.NewFactory()
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
-	otlpConfig.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	otlpConfig.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  otlp.Endpoint,
 			Transport: "tcp",
 		},
 	})
-	otlpConfig.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
+	otlpConfig.Protocols.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 
 	params := receiver.Settings{
 		ID: component.MustNewID(typeStr),

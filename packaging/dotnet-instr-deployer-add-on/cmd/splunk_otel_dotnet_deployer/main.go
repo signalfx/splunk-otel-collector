@@ -71,7 +71,7 @@ func run() int {
 	return 0
 }
 
-// setupStandardLogger intializes the standard logger with settings appropriate for the deployer.
+// setupStandardLogger initializes the standard logger with settings appropriate for the deployer.
 func setupLogger() (closer func()) {
 	// Setup the logger prefix to the proper date time format.
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.LUTC | log.Lshortfile)

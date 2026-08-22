@@ -123,7 +123,7 @@ receivers:
     auth:
       authenticator: bearertokenauth
   # TODO: Identify any additional scrapers that are necessary and useful.
-  hostmetrics:
+  host_metrics:
     scrapers:
       cpu:
       memory:
@@ -135,7 +135,7 @@ processors:
   batch:
     send_batch_size: 10000
     timeout: 10s
-  resourcedetection:
+  resource_detection:
     detectors: [system]
   resource:
     attributes:
@@ -158,8 +158,8 @@ service:
   extensions: [bearertokenauth]
   pipelines:
     metrics:
-      receivers: [hostmetrics$OPTIONAL_SPARK_RECEIVER]
-      processors: [batch, resourcedetection, resource]
+      receivers: [host_metrics$OPTIONAL_SPARK_RECEIVER]
+      processors: [batch, resource_detection, resource]
       exporters: [signalfx]
 "
 

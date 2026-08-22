@@ -1,5 +1,5 @@
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 1s
     scrapers:
       cpu:
@@ -18,7 +18,7 @@ service:
   pipelines:
     metrics:
       receivers:
-        - hostmetrics
+        - host_metrics
       processors:
         - memory_limiter
       exporters:

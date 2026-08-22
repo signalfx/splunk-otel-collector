@@ -21,9 +21,11 @@ Observability Cloud](https://www.splunk.com/en_us/products/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2023
-- CentOS / Red Hat: 9
-- Debian: 11, 12
-- Ubuntu: 22.04, 24.04
+- CentOS / Red Hat: 9, 10
+- Debian: 11, 12, 13
+- Oracle: 9, 10
+- SUSE: 16
+- Ubuntu: 22.04, 24.04, 26.04
 
 ### Windows
 

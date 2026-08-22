@@ -51,7 +51,7 @@ structure](https://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/ModIn
 in which the root directory is the name of the modular input.
 
 The directory structure will contain [platform and architecture](https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/custominputs/modinputsoverview/#Platform-and-architecture-support)
-specific paths for the modular _script_, which can be an binary executable,
+specific paths for the modular _script_, which can be a binary executable,
 Python source file, or a platform native script, e.g.: `cmd` on Windows or
 `sh` on Linux.
 

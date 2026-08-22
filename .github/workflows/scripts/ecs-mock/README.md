@@ -2,7 +2,7 @@
 
 Minimal mock for the ECS Task Metadata V4 endpoint, used by the
 `linux-package-test` workflow to smoke-test collector configs that include the
-`awsecscontainermetrics` receiver and the `resourcedetection` processor with
+`awsecscontainermetrics` receiver and the `resource_detection` processor with
 the `ecs` detector.
 
 ## Files

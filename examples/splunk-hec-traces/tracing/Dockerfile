@@ -1,4 +1,4 @@
-FROM golang:1.25.3-bullseye
+FROM golang:1.26.6-bookworm
 
 WORKDIR /go/src/app
 
@@ -8,5 +8,7 @@ COPY main.go .
 RUN go get
 
 RUN go build
+
+USER 65532:65532
 
 CMD /go/src/app/tracing

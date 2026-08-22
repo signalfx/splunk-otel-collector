@@ -46,6 +46,9 @@ get_distro_codename() {
       12)
         codename="bookworm"
         ;;
+      13)
+        codename="trixie"
+        ;;
       *)
         codename=""
         ;;
@@ -58,11 +61,13 @@ get_distro_codename() {
 collector_config_dir="/etc/otel/collector"
 agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
+logs_config_path="${collector_config_dir}/splunk_logs_config_linux.yaml"
+logs_file_storage_path="/var/lib/otelcol/filelogs"
+state_dir="/var/lib/otelcol"
+metrics_config_path="${collector_config_dir}/splunk_metrics_config_linux.yaml"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
-collector_bundle_dir="/usr/lib/splunk-otel-collector/agent-bundle"
-collectd_config_dir="${collector_bundle_dir}/run/collectd"
 distro="$( get_distro )"
 distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
@@ -87,10 +92,14 @@ default_service_group="splunk-otel-collector"
 
 preload_path="/etc/ld.so.preload"
 default_instrumentation_version="latest"
+default_obi_version="v0.6.0"
 default_deployment_environment=""
 instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 systemd_instrumentation_config_path="/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
+default_obi_install_dir="/usr/local/bin"
+obi_repo_base="https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation/releases/download"
+obi_github_latest_api="https://api.github.com/repos/open-telemetry/opentelemetry-ebpf-instrumentation/releases/latest"
 service_name=""
 enable_profiler="false"
 enable_profiler_memory="false"
@@ -116,13 +125,294 @@ repo_for_stage() {
   echo "$repo_url/$stage"
 }
 
+normalize_obi_version() {
+  local version="$1"
+
+  if [ "$version" = "latest" ]; then
+    echo "$version"
+  else
+    echo "$version" | sed -e 's/^v//'
+  fi
+}
+
+validate_obi_version() {
+  local version="$1"
+
+  case "$version" in
+    latest)
+      return 0
+      ;;
+  esac
+
+  # Allow only semver-like tags with optional leading 'v' and optional
+  # prerelease/build suffixes (e.g., 1.2.3, v1.2.3, 1.2.3-rc.1, v1.2.3+build.7).
+  if ! printf '%s\n' "$version" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+|-[0-9A-Za-z.-]+(\+[0-9A-Za-z.-]+)?)?$'; then
+    echo "[ERROR] Invalid OBI version '$version'. Expected 'latest' or a semver tag (for example: 0.6.0, v0.6.0, 0.6.0-rc.1)." >&2
+    exit 1
+  fi
+}
+
+resolve_obi_version() {
+  local version="$1"
+
+  if [ "$version" != "latest" ]; then
+    echo "v$( normalize_obi_version "$version" )"
+    return 0
+  fi
+
+  local api_response
+  if ! api_response="$( download_file_to_stdout "$obi_github_latest_api" )"; then
+    echo "[ERROR] Failed to download OBI release metadata from $obi_github_latest_api" >&2
+    exit 1
+  fi
+
+  local tag
+  tag="$( printf '%s\n' "$api_response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1 )"
+  if [ -z "$tag" ]; then
+    echo "[ERROR] Could not determine latest OBI version from $obi_github_latest_api" >&2
+    exit 1
+  fi
+
+  echo "$tag"
+}
+
+kernel_major_minor() {
+  local kernel_release
+  local kernel_version
+  kernel_release="$(uname -r)"
+  kernel_version="$( echo "$kernel_release" | cut -d '-' -f 1 )"
+  echo "$kernel_version" | awk -F. '{ printf "%d.%d", $1, $2 }'
+}
+
+kernel_at_least() {
+  local minimum="$1"
+  local current="$( kernel_major_minor )"
+  local current_major="$( echo "$current" | cut -d. -f1 )"
+  local current_minor="$( echo "$current" | cut -d. -f2 )"
+  local min_major="$( echo "$minimum" | cut -d. -f1 )"
+  local min_minor="$( echo "$minimum" | cut -d. -f2 )"
+
+  if [ "$current_major" -gt "$min_major" ]; then
+    return 0
+  fi
+  if [ "$current_major" -lt "$min_major" ]; then
+    return 1
+  fi
+  [ "$current_minor" -ge "$min_minor" ]
+}
+
+bpffs_mounted() {
+  awk '$2 == "/sys/fs/bpf" && $3 == "bpf" { found = 1 } END { exit !found }' /proc/mounts
+}
+
+ensure_bpffs_available() {
+  # Confirm kernel advertises bpf fs support.
+  if ! grep -qw bpf /proc/filesystems; then
+    echo "[ERROR] OBI requires kernel support for bpf fs, but 'bpf' was not found in /proc/filesystems." >&2
+    return 1
+  fi
+
+  if bpffs_mounted; then
+    return 0
+  fi
+
+  echo "[ERROR] OBI requires bpffs mounted at /sys/fs/bpf. You can mount it with: 'mount -t bpf bpf /sys/fs/bpf' (run as root), then rerun this installer." >&2
+  return 1
+}
+
+# Maps a raw uname -m value to the canonical OBI arch name (amd64 or arm64).
+# Unknown values are echoed unchanged so ensure_obi_supported_arch can reject them.
+normalize_obi_arch() {
+  local arch="$1"
+  case "$arch" in
+    x86_64)  echo "amd64" ;;
+    aarch64) echo "arm64" ;;
+    *)       echo "$arch" ;;
+  esac
+}
+
+# Exits with an error if arch is not a supported OBI architecture.
+ensure_obi_supported_arch() {
+  local arch="$1"
+  case "$arch" in
+    amd64|arm64) return 0 ;;
+    *)
+      echo "[ERROR] OBI is not supported on architecture '${arch}'. Supported architectures: amd64, arm64." >&2
+      return 1
+      ;;
+  esac
+}
+
+# Returns 0 if the running kernel meets OBI's minimum version requirement for
+# the current distro, 1 with an error otherwise.
+ensure_obi_supported_kernel() {
+  # RHEL-family kernels backport required eBPF features to 4.18.
+  local min_kernel="5.8"
+  case "$distro" in
+    amzn|centos|ol|rhel|rocky)
+      min_kernel="4.18"
+      ;;
+  esac
+
+  if ! kernel_at_least "$min_kernel"; then
+    echo "[ERROR] OBI requires Linux kernel ${min_kernel}+ on ${distro} (${distro_version}). Current kernel: $(uname -r)." >&2
+    return 1
+  fi
+}
+
+# Returns 0 if the eBPF capabilities required by OBI are available, 1 otherwise.
+ensure_bpf_enabled() {
+  if ! ensure_bpffs_available; then
+    return 1
+  fi
+
+  if command -v bpftool >/dev/null 2>&1; then
+    if ! bpftool feature probe kernel >/dev/null 2>&1; then
+      echo "[ERROR] OBI requires eBPF runtime features that could not be validated with bpftool." >&2
+      return 1
+    fi
+  else
+    echo "[NOTICE] bpftool is not installed; skipping detailed eBPF feature probe." >&2
+  fi
+}
+
+ensure_running_as_root() {
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "[ERROR] OBI installation requires root privileges." >&2
+    return 1
+  fi
+}
+
+# Validates that OBI can be installed in the current environment.
+# Exits with an error on any failure.
+preflight_obi() {
+  local desired_version="$1"
+  local arch
+
+  arch=$(normalize_obi_arch "$distro_arch")
+  ensure_obi_supported_arch "$arch" || exit 1
+  ensure_obi_supported_kernel || exit 1
+  ensure_running_as_root || exit 1
+  ensure_bpf_enabled || exit 1
+
+  if ! command -v tar >/dev/null 2>&1; then
+    echo "[ERROR] tar is required to install OBI" >&2
+    exit 1
+  fi
+
+  if ! command -v sha256sum >/dev/null 2>&1; then
+    echo "[ERROR] sha256sum is required to verify OBI downloads" >&2
+    exit 1
+  fi
+
+  validate_obi_version "$desired_version"
+
+  # Some minimal images (for example, openSUSE test images) ship tar without
+  # a gzip binary in PATH. Ensure gzip is available before extracting .tar.gz.
+  if ! command -v gzip >/dev/null 2>&1; then
+    echo "gzip is required to extract OBI archives and was not found; attempting to install it ..."
+    case "$distro" in
+      ubuntu|debian)
+        apt-get -y update
+        install_apt_package "gzip" "latest"
+        ;;
+      amzn|centos|ol|rhel|rocky|sles|opensuse*)
+        install_yum_package "gzip"
+        ;;
+      *)
+        echo "[ERROR] gzip is required to extract OBI archives, but package installation is unsupported on distro '$distro'." >&2
+        exit 1
+        ;;
+    esac
+  fi
+
+  if ! command -v gzip >/dev/null 2>&1; then
+    echo "[ERROR] gzip is required to extract OBI archives" >&2
+    exit 1
+  fi
+
+}
+
+# Downloads, verifies, and installs the OBI binary.
+# Expects preflight_obi() to have already been called.
+# $1: resolved version tag (e.g. "v0.7.1"), $2: install directory
+install_obi() {
+  local version_tag="$1"
+  local install_dir="$2"
+  local arch
+  local tar_name
+  local checksums_name="SHA256SUMS"
+  local download_base
+  local tmp_dir
+
+  arch=$(normalize_obi_arch "$distro_arch")
+  tar_name="obi-${version_tag}-linux-${arch}.tar.gz"
+  download_base="${obi_repo_base}/${version_tag}"
+  tmp_dir="$(mktemp -d /tmp/splunk-obi.XXXXXX)"
+  # Ensure temporary files are removed on both success and any early exit.
+  trap "rm -rf '$tmp_dir'" EXIT HUP INT TERM
+
+  echo "Installing OBI ${version_tag} (${arch}) ..."
+  echo "Downloading ${download_base}/${tar_name}"
+  if ! download_file_to_stdout "$download_base/$tar_name" > "$tmp_dir/$tar_name"; then
+    echo "[ERROR] Failed to download ${download_base}/${tar_name}" >&2
+    exit 1
+  fi
+
+  echo "Downloading ${download_base}/${checksums_name}"
+  if ! download_file_to_stdout "$download_base/$checksums_name" > "$tmp_dir/$checksums_name"; then
+    echo "[ERROR] Failed to download ${download_base}/${checksums_name}" >&2
+    exit 1
+  fi
+
+  echo "Verifying checksum for ${tar_name}"
+  if ! (cd "$tmp_dir" && \
+    expected_checksum="$(awk -v f="$tar_name" '$2 == f { print $1 }' "$checksums_name" || true)" && \
+    [ -n "$expected_checksum" ] && \
+    actual_checksum="$(sha256sum "$tar_name" | awk '{ print $1 }')" && \
+    [ "$expected_checksum" = "$actual_checksum" ]); then
+    echo "[ERROR] OBI checksum verification failed for ${tar_name}" >&2
+    exit 1
+  fi
+
+  # Safely extract only the expected 'obi' binary from the archive without
+  # allowing other files or paths inside the tarball to be created.
+  if ! (cd "$tmp_dir" && tar -xOzf "$tar_name" obi > "$tmp_dir/obi"); then
+    echo "[ERROR] Failed to extract expected binary (obi) from OBI archive" >&2
+    exit 1
+  fi
+
+  if [ ! -f "$tmp_dir/obi" ]; then
+    echo "[ERROR] OBI archive did not contain expected binary (obi)" >&2
+    exit 1
+  fi
+
+  mkdir -p -- "$install_dir"
+  command install -m 0755 -- "$tmp_dir/obi" "$install_dir/obi"
+
+  rm -rf "$tmp_dir"
+  trap - EXIT HUP INT TERM
+
+  echo "Installed OBI binaries to $install_dir"
+  "$install_dir/obi" --version || true
+}
+
+uninstall_obi() {
+  local install_dir="$1"
+
+  if [ -f "$install_dir/obi" ]; then
+    rm -f -- "$install_dir/obi"
+    echo "Removed OBI binary: $install_dir/obi"
+  fi
+}
+
 download_file_to_stdout() {
   local url=$1
 
   if command -v curl > /dev/null; then
-    curl -sSL $url
+    curl -fsSL -- "$url"
   elif command -v wget > /dev/null; then
-    wget -O - -o /dev/null $url
+    wget -O - -o /dev/null -- "$url"
   else
     echo "Either curl or wget must be installed to download $url" >&2
     exit 1
@@ -278,6 +568,8 @@ ensure_not_installed() {
   local with_instrumentation="$1"
   local with_systemd_instrumentation="$2"
   local npm_path="$3"
+  local with_obi="${4:-false}"
+  local obi_install_dir="${5:-$default_obi_install_dir}"
   local otelcol_path=$( command -v otelcol 2>/dev/null || true )
 
   if [ -n "$otelcol_path" ]; then
@@ -302,6 +594,12 @@ ensure_not_installed() {
       echo "Please uninstall @splunk/otel, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
+  fi
+
+  if [ "$with_obi" = "true" ] && [ -e "$obi_install_dir/obi" ]; then
+    echo "$obi_install_dir/obi already exists which implies that OBI is already installed." >&2
+    echo "Please uninstall OBI, or try running this script with the '--uninstall --with-obi' option." >&2
+    exit 1
   fi
 }
 
@@ -406,7 +704,7 @@ create_zeroconfig_java() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   backup_file "$java_zeroconfig_path"
@@ -485,7 +783,7 @@ create_zeroconfig_node() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   backup_file "$node_zeroconfig_path"
@@ -525,7 +823,7 @@ create_zeroconfig_dotnet() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   backup_file "$dotnet_zeroconfig_path"
@@ -573,7 +871,7 @@ create_systemd_instrumentation_config() {
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}-systemd"
 
   if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+    resource_attributes="${resource_attributes},deployment.environment.name=${deployment_environment}"
   fi
 
   mkdir -p "$(dirname $systemd_instrumentation_config_path)"
@@ -691,6 +989,8 @@ install() {
 
 uninstall() {
   local npm_path="$1"
+  local with_obi="$2"
+  local obi_install_dir="$3"
 
   for agent in otelcol $instrumentation_so_path; do
     if command -v $agent >/dev/null 2>&1; then
@@ -715,7 +1015,7 @@ uninstall() {
               systemctl daemon-reload
             fi
           else
-            agent_path="$( command -v agent )"
+            agent_path="$( command -v "$agent" )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
@@ -741,7 +1041,7 @@ uninstall() {
               systemctl daemon-reload
             fi
           else
-            agent_path="$( command -v agent )"
+            agent_path="$( command -v "$agent" )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
@@ -759,6 +1059,10 @@ uninstall() {
     (cd $node_install_prefix && "$npm_path" uninstall --global=false @splunk/otel)
     echo "Successfully uninstalled the @splunk/otel npm package from $node_install_prefix"
   fi
+
+  if [ "$with_obi" = "true" ]; then
+    uninstall_obi "$obi_install_dir"
+  fi
 }
 
 usage() {
@@ -774,7 +1078,7 @@ Collector:
   -- <access_token>                     Use '--' if access_token starts with '-'.
   --api-url <url>                       Set the api endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://api.REALM.signalfx.com)
+                                        (default: https://api.REALM.observability.splunkcloud.com)
   --beta                                Use the beta package repo instead of the primary.
   --collector-config <path>             Set the path to an existing custom config file for the collector service instead
                                         of the default config file provided by the collector package based on the
@@ -788,14 +1092,14 @@ Collector:
                                         (default: "$default_collector_version")
   --discovery                           Enable discovery mode on collector startup (disabled by default).
   --hec-token <token>                   Set the HEC token if different than the specified access_token.
-  --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
+  --hec-url <url>                       [DEPRECATED] Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com/v1/log)
+                                        (default: https://ingest.REALM.observability.splunkcloud.com/v1/log)
   --godebug <value>                     Set values for the GODEBUG environment variable.
                                         For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com)
+                                        (default: https://ingest.REALM.observability.splunkcloud.com)
   --memory <memory size>                Total memory in MIB to allocate to the collector
                                         (default: "$default_memory_size")
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
@@ -816,6 +1120,17 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
+  --with-supervisor                     Whether to manage the Splunk OpenTelemetry Collector with OpAMP Supervisor.
+                                        (default: false)
+
+Splunk Platform:
+  --splunk-platform-token <token>       Set the HEC token for sending data to Splunk Platform.
+  --splunk-platform-url <url>           Set the Splunk Platform HEC endpoint URL.
+  --splunk-platform-logs-index <index>  Set the Splunk index to send logs to.
+                                        Optional: if omitted, the index defaults to the one configured on the HEC token.
+  --splunk-platform-metrics-index <index>  Set the Splunk index to send metrics to. This option enables Splunk Platform
+                                        metrics collection and must be specified when configuring metrics via this
+                                        installer.
 
 Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
@@ -842,7 +1157,7 @@ Auto Instrumentation:
                                         Auto Instrumentation for Node.js will not be activated. Use this option to
                                         specify a custom path to npm, for example "/my/path/to/npm".
                                         (default: npm)
-  --deployment-environment <value>      Set the "deployment.environment" resource attribute to the specified value.
+  --deployment-environment <value>      Set the "deployment.environment.name" resource attribute to the specified value.
                                         If not specified, the "Environment" in the Splunk APM UI will appear as
                                         "unknown" for all instrumented applications. The resource attribute will be
                                         appended to the OTEL_RESOURCE_ATTRIBUTES environment variable.
@@ -887,9 +1202,25 @@ Auto Instrumentation:
                                         0.99.0.
                                         (default: $default_instrumentation_version)
 
+OBI (OpenTelemetry eBPF Instrumentation):
+  --with-obi                            Download and install the OBI standalone binary (obi).
+                                        OBI is Linux-only and requires x86_64/amd64 or arm64/aarch64,
+                                        root privileges, eBPF runtime support, and Linux kernel 5.8+
+                                        (or 4.18+ for RHEL-family distributions).
+                                        (default: --without-obi)
+  --without-obi                         Disable OBI installation.
+  --obi-version <version|latest>        OBI version to install from GitHub releases.
+                                        Values can be provided with or without the 'v' prefix.
+                                        (default: $default_obi_version)
+  --obi-install-dir <path>              Directory where OBI binaries will be installed.
+                                        (default: $default_obi_install_dir)
+
 Uninstall:
   --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux and Splunk
                                         OpenTelemetry Auto Instrumentation packages, if installed.
+                                        To also remove OBI binaries installed with --with-obi,
+                                        include --with-obi and, if needed, --obi-install-dir <path>
+                                        so uninstall targets the correct OBI install location.
 
 EOH
 }
@@ -898,14 +1229,14 @@ distro_is_supported() {
   case "$distro" in
     ubuntu)
       case "$distro_codename" in
-        bionic|focal|xenial|jammy|noble)
+        bionic|focal|xenial|jammy|noble|resolute)
           return 0
           ;;
       esac
       ;;
     debian)
       case "$distro_codename" in
-        bookworm|bullseye)
+        bookworm|bullseye|trixie)
           return 0
           ;;
       esac
@@ -919,7 +1250,7 @@ distro_is_supported() {
       ;;
     sles|opensuse*)
       case "$distro_version" in
-        12*|15*|42*)
+        12*|15*|16*|42*)
           return 0
           ;;
       esac
@@ -1069,6 +1400,12 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
+  local splunk_platform_token=
+  local splunk_platform_url=
+  local splunk_platform_logs_index=
+  local with_logs="false"
+  local splunk_platform_metrics_index=
+  local with_metrics="false"
   local godebug=
   local ingest_url=
   local insecure=
@@ -1086,11 +1423,16 @@ parse_args_and_install() {
   local with_systemd_instrumentation="false"
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
+  local with_obi="false"
+  local obi_version="$default_obi_version"
+  local obi_install_dir="$default_obi_install_dir"
+  local obi_version_tag=
   local discovery=
   local npm_path="npm"
   local node_package_installed="false"
   local with_sdks=""
   local without_sdks=""
+  local with_supervisor="false"
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -1119,6 +1461,23 @@ parse_args_and_install() {
         ;;
       --hec-url)
         hec_url="$2"
+        echo "[DEPRECATED]: The parameter '--hec-url' is deprecated and will be removed in September 2026." >&2
+        shift 1
+        ;;
+      --splunk-platform-token)
+        splunk_platform_token="$2"
+        shift 1
+        ;;
+      --splunk-platform-url)
+        splunk_platform_url="$2"
+        shift 1
+        ;;
+      --splunk-platform-logs-index)
+        splunk_platform_logs_index="$2"
+        shift 1
+        ;;
+      --splunk-platform-metrics-index)
+        splunk_platform_metrics_index="$2"
         shift 1
         ;;
       --godebug)
@@ -1209,6 +1568,9 @@ parse_args_and_install() {
         done
         shift 1
         ;;
+      --with-supervisor)
+        with_supervisor="true"
+        ;;
       --npm-path)
         npm_path="$2"
         if ! command -v "$npm_path" >/dev/null 2>&1; then
@@ -1219,6 +1581,20 @@ parse_args_and_install() {
         ;;
       --instrumentation-version)
         instrumentation_version="$2"
+        shift 1
+        ;;
+      --with-obi)
+        with_obi="true"
+        ;;
+      --without-obi)
+        with_obi="false"
+        ;;
+      --obi-version)
+        obi_version="$2"
+        shift 1
+        ;;
+      --obi-install-dir)
+        obi_install_dir="$2"
         shift 1
         ;;
       --deployment-environment)
@@ -1290,20 +1666,58 @@ parse_args_and_install() {
 
   if [ "$uninstall" = true ]; then
       check_support
-      uninstall "$npm_path"
+      uninstall "$npm_path" "$with_obi" "$obi_install_dir"
       exit 0
   fi
 
-  if [ -z "$access_token" ]; then
+  # When --splunk-platform-url is provided, the following rules determine what is collected:
+  # - If only --splunk-platform-metrics-index is set: only metrics collection is enabled.
+  # - If neither index is set: log collection is enabled by default.
+  # - If both indexes are set: both logs and metrics collection are enabled.
+  # --splunk-platform-token is required alongside --splunk-platform-url.
+  # --splunk-platform-logs-index is optional when logs are enabled; if omitted, the index
+  # defaults to whatever is configured on the HEC token.
+  # Validate before prompting for access token to avoid blocking on interactive input.
+  if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_logs_index" ] || [ -n "$splunk_platform_metrics_index" ]; then
+    if [ -z "$splunk_platform_url" ]; then
+      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-token is set." >&2
+      exit 1
+    fi
+  fi
+
+  if [ -n "$splunk_platform_url" ]; then
+    if [ -z "$splunk_platform_token" ]; then
+      echo "[ERROR] --splunk-platform-token is required when --splunk-platform-url is set." >&2
+      exit 1
+    fi
+    if [ "$mode" = "gateway" ]; then
+      echo "[ERROR] Splunk Platform ingestion is not supported in gateway mode." >&2
+      exit 1
+    fi
+    if [ -n "$splunk_platform_metrics_index" ]; then
+      with_metrics="true"
+    fi
+    # Enable logs by default unless only metrics index was specified.
+    if [ -n "$splunk_platform_logs_index" ] || [ -z "$splunk_platform_metrics_index" ]; then
+      with_logs="true"
+    fi
+  fi
+
+  if [ -z "$access_token" ] && [ -z "$splunk_platform_url" ]; then
     access_token=$(request_access_token)
   fi
 
+  if [ "$with_supervisor" = "true" ] && [ -z "$access_token" ]; then
+    echo "[ERROR] --with-supervisor requires a Splunk Observability Cloud access token." >&2
+    exit 1
+  fi
+
   if [ -z "$api_url" ]; then
-    api_url="https://api.${realm}.signalfx.com"
+    api_url="https://api.${realm}.observability.splunkcloud.com"
   fi
 
   if [ -z "$ingest_url" ]; then
-    ingest_url="https://ingest.${realm}.signalfx.com"
+    ingest_url="https://ingest.${realm}.observability.splunkcloud.com"
   fi
 
   if [ -z "$hec_token" ]; then
@@ -1384,7 +1798,12 @@ parse_args_and_install() {
     fi
   fi
 
-  ensure_not_installed "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
+  if [ "$with_obi" = "true" ]; then
+    preflight_obi "$obi_version"
+    obi_version_tag="$( resolve_obi_version "$obi_version" )"
+  fi
+
+  ensure_not_installed "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path" "$with_obi" "$obi_install_dir"
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
   echo "Memory Size in MIB: $memory"
@@ -1392,10 +1811,15 @@ parse_args_and_install() {
   if [ -n "$listen_interface" ]; then
     echo "Listen network interface: $listen_interface"
   fi
-  echo "Realm: $realm"
-  echo "Ingest Endpoint: $ingest_url"
-  echo "API Endpoint: $api_url"
-  echo "HEC Endpoint: $hec_url"
+  if [ -n "$access_token" ]; then
+    echo "Realm: $realm"
+    echo "Ingest Endpoint: $ingest_url"
+    echo "API Endpoint: $api_url"
+    echo "HEC Endpoint: $hec_url"
+  fi
+  if [ -n "$splunk_platform_url" ]; then
+    echo "Splunk Platform Endpoint: $splunk_platform_url"
+  fi
   echo "GODEBUG: $godebug"
   if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
@@ -1421,13 +1845,17 @@ parse_args_and_install() {
   fi
   echo
 
-  if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
+  if [ -n "$access_token" ] && [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
     echo "If your access token is valid, you can skip validation by setting VERIFY_ACCESS_TOKEN=false and rerunning the installer." >&2
     exit 1
   fi
 
   install "$stage" "$collector_version" "$skip_collector_repo" "$instrumentation_version"
+
+  if [ "$with_obi" = "true" ]; then
+    install_obi "$obi_version_tag" "$obi_install_dir"
+  fi
 
   if [ "$with_instrumentation" = "true" ]; then
     if item_in_list "java" "$sdks_to_enable"; then
@@ -1530,28 +1958,64 @@ parse_args_and_install() {
   if [ -n "$listen_interface" ]; then
     configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   fi
-  configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
-  configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
-  configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
-  configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
-  configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
-  configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
-  configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
-  configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
-  if [ -d "$collector_bundle_dir" ]; then
-    configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
-    # ensure the collector service owner has access to the bundle dir
-    chown -R $service_user:$service_group "$(dirname $collector_bundle_dir)"
+  if [ -n "$access_token" ]; then
+    configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
+    configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
+    configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
+    configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+    configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+    if [ "${with_logs:-false}" != "true" ] && [ "${with_metrics:-false}" != "true" ]; then
+      configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
+    fi
   fi
-  if [ -d "$collectd_config_dir" ]; then
-    configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
-    # ensure the collector service owner has access to the collectd dir
-    chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
+  configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
+  configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
+  if [ "$with_supervisor" = "true" ]; then
+    configure_env_file "SPLUNK_OPAMP_SUPERVISOR_ENABLED" "true" "$collector_env_path"
   fi
 
+  mkdir -p "$state_dir"
+  chown -R "$service_user:$service_group" "$state_dir"
+
+  local otelcol_options=
   if [ "$discovery" = "true" ]; then
-    configure_env_file "OTELCOL_OPTIONS" "--discovery" "$collector_env_path"
+    otelcol_options="--discovery"
+  fi
+
+  if [ "$with_logs" = "true" ] || [ "$with_metrics" = "true" ]; then
+    configure_env_file "SPLUNK_PLATFORM_URL" "$splunk_platform_url" "$collector_env_path"
+    configure_env_file "SPLUNK_PLATFORM_TOKEN" "$splunk_platform_token" "$collector_env_path"
+    if [ "$with_logs" = "true" ]; then
+      mkdir -p "$logs_file_storage_path"
+      chown -R $service_user:$service_group "$logs_file_storage_path"
+      chmod 700 "$logs_file_storage_path"
+      configure_env_file "SPLUNK_FILE_STORAGE_EXTENSION_PATH" "$logs_file_storage_path" "$collector_env_path"
+      if [ -n "$splunk_platform_logs_index" ]; then
+        configure_env_file "SPLUNK_PLATFORM_LOGS_INDEX" "$splunk_platform_logs_index" "$collector_env_path"
+      fi
+    fi
+    if [ "$with_metrics" = "true" ]; then
+      configure_env_file "SPLUNK_PLATFORM_METRICS_INDEX" "$splunk_platform_metrics_index" "$collector_env_path"
+    fi
+    local platform_configs=
+    if [ "$with_logs" = "true" ]; then
+      platform_configs="$platform_configs --config $logs_config_path"
+    fi
+    if [ "$with_metrics" = "true" ]; then
+      platform_configs="$platform_configs --config $metrics_config_path"
+    fi
+    if [ -n "$access_token" ]; then
+      otelcol_options="$otelcol_options --config $collector_config_path$platform_configs --feature-gates=confmap.enableMergeAppendOption"
+    elif [ "$with_logs" = "true" ] && [ "$with_metrics" = "true" ]; then
+      otelcol_options="$otelcol_options$platform_configs --feature-gates=confmap.enableMergeAppendOption"
+    else
+      otelcol_options="$otelcol_options$platform_configs"
+    fi
+  fi
+
+  if [ -n "$otelcol_options" ]; then
+    configure_env_file "OTELCOL_OPTIONS" "\"$otelcol_options\"" "$collector_env_path"
   fi
 
   # ensure the collector service owner has access to the config dir
@@ -1577,15 +2041,47 @@ The Splunk OpenTelemetry Collector for Linux has been successfully installed.
 
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 
-The collector's main configuration file is located at $collector_config_path,
-and the environment file is located at $collector_env_path.
+Configuration files:
+  Environment file: $collector_env_path
+EOH
 
-If either $collector_config_path or $collector_env_path are modified, the collector service
-must be restarted to apply the changes by running the following command as root:
+  if [ -n "$access_token" ]; then
+    cat <<EOH
+  Collector config: $collector_config_path
+EOH
+  fi
+
+  if [ "$with_logs" = "true" ]; then
+    cat <<EOH
+  Splunk Platform logs config:   $logs_config_path
+EOH
+  fi
+
+  if [ "$with_metrics" = "true" ]; then
+    cat <<EOH
+  Splunk Platform metrics config:   $metrics_config_path
+EOH
+  fi
+
+  cat <<EOH
+You can modify any of the above configuration files to customize the collector's behavior.
+To apply changes, restart the collector:
 
   systemctl restart splunk-otel-collector
 
 EOH
+
+  if [ "$with_logs" = "true" ]; then
+    cat <<EOH
+[NOTICE] Journald log collection is disabled by default. To enable it:
+  1. Uncomment the 'journald' entry in the 'logs/hec' pipeline in $logs_config_path.
+  2. Grant the collector service user permission to read the journal:
+
+       sudo usermod -aG systemd-journal $service_user
+       sudo systemctl restart splunk-otel-collector
+
+EOH
+  fi
 
   if [ -n "$sdks_to_enable" ]; then
     if [ -n "$sdks_enabled" ]; then

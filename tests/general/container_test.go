@@ -90,7 +90,7 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 	defer tc.ShutdownOTLPReceiverSink()
 
 	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"hostmetrics_cpu.yaml",
+		"host_metrics_cpu.yaml",
 		func(collector testutils.Collector) testutils.Collector {
 			return collector.WithArgs("--config", "/etc/config.yaml")
 		},
@@ -160,7 +160,7 @@ func TestConfigYamlEnvVar(t *testing.T) {
 				map[string]string{
 					"SPLUNK_CONFIG": "",
 					"SPLUNK_CONFIG_YAML": `receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 1s
     scrapers:
       cpu:
@@ -174,7 +174,7 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics]
+      receivers: [host_metrics]
       exporters: [otlp]
 `,
 				},

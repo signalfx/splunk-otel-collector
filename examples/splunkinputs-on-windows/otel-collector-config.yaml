@@ -1,0 +1,20 @@
+receivers:
+  # Reads a Splunk TA's inputs.conf, transforms.conf, and props.conf directly
+  # from C:\var\ta, emulating its modular input(s). C:\var\ta is a generic
+  # mount point; this example happens to mount the Splunk Add-on for
+  # Microsoft Windows there, but any TA can be used instead.
+  splunk_inputs:
+    path: C:\var\ta
+
+exporters:
+  splunk_hec:
+    endpoint: ${env:SPLUNK_HEC_URL}
+    token: ${env:SPLUNK_HEC_TOKEN}
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [splunk_inputs]
+      exporters: [debug, splunk_hec]

@@ -1,0 +1,19 @@
+[files]
+extend-exclude = [
+  "docker/httpd_basicauth/httpd.conf",
+  "internal/signalfx-agent/*",
+  "*.sum",
+  "*.mod",
+]
+
+[default]
+extend-ignore-re = [
+    # Ignore lines that are purposely ignored
+    "(?Rm)^.*(#|//|<!--)\\s*codespell:ignore.*$"
+]
+
+[default.extend-words]
+# Don't correct these words, they're valid in certain contexts
+AKS = "AKS"
+facter = "facter"
+Hashi = "Hashi"

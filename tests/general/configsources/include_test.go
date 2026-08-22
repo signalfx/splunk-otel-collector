@@ -71,6 +71,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 
 	expectedConfig := map[string]any{
 		"extensions": map[string]any{
+			"config_source_telemetry": map[string]any{},
 			"zpages": map[string]any{
 				"expvar": map[string]any{
 					"enabled": true,
@@ -78,7 +79,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 		"receivers": map[string]any{
-			"hostmetrics": map[string]any{
+			"host_metrics": map[string]any{
 				"collection_interval": "10s",
 				"scrapers": map[string]any{
 					"cpu":        nil,
@@ -90,7 +91,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 		"processors": map[string]any{
-			"resourcedetection": map[string]any{
+			"resource_detection": map[string]any{
 				"detectors": []any{"system"},
 			},
 		},
@@ -103,11 +104,11 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
-			"extensions": []any{"zpages"},
+			"extensions": []any{"zpages", "config_source_telemetry"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"processors": []any{"resourcedetection"},
-					"receivers":  []any{"hostmetrics"},
+					"processors": []any{"resource_detection"},
+					"receivers":  []any{"host_metrics"},
 					"exporters":  []any{"otlp_grpc"},
 				},
 			},

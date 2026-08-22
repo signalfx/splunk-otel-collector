@@ -5,10 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/api/types/filters"
-	docker "github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	docker "github.com/moby/moby/client"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
@@ -28,22 +26,22 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 	// Make sure you hold the lock before calling this
 	updateContainer := func(id string) bool {
 		inspectCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		c, err := client.ContainerInspect(inspectCtx, id)
+		r, err := client.ContainerInspect(inspectCtx, id, docker.ContainerInspectOptions{})
 		defer cancel()
 		if err != nil {
 			logger.WithError(err).Errorf("Could not inspect updated container %s", id)
-		} else if imageFilter == nil || !imageFilter.Matches(c.Config.Image) {
+		} else if imageFilter == nil || !imageFilter.Matches(r.Container.Config.Image) {
 			logger.Debugf("Updated Docker container %s", id)
-			containers[id] = &c
+			containers[id] = &r.Container
 			return true
 		}
 		return false
 	}
 
 	syncContainerList := func() error {
-		f := filters.NewArgs()
+		f := make(docker.Filters)
 		f.Add("status", "running")
-		options := container.ListOptions{
+		options := docker.ContainerListOptions{
 			Filters: f,
 		}
 		containerList, err := client.ContainerList(ctx, options)
@@ -52,15 +50,15 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 		}
 
 		type void struct{}
-		containersMap := make(map[string]void, len(containerList))
+		containersMap := make(map[string]void, len(containerList.Items))
 
 		wg := sync.WaitGroup{}
-		for i := range containerList {
+		for i := range containerList.Items {
 			// The Docker API has a different return type for list vs. inspect, and
 			// no way to get the return type of list for individual containers,
 			// which makes this harder than it should be.
 			// Add new entries and skip containers that are already cached
-			if _, ok := containers[containerList[i].ID]; !ok {
+			if _, ok := containers[containerList.Items[i].ID]; !ok {
 				wg.Add(1)
 				go func(id string) {
 					lock.Lock()
@@ -68,10 +66,10 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 					changeHandler(nil, containers[id])
 					lock.Unlock()
 					wg.Done()
-				}(containerList[i].ID)
+				}(containerList.Items[i].ID)
 			}
 			// Map will be used to find the delta
-			containersMap[containerList[i].ID] = void{}
+			containersMap[containerList.Items[i].ID] = void{}
 		}
 		wg.Wait()
 		// Find stale entries and delete them
@@ -90,7 +88,7 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 		defer refreshTicker.Stop()
 		// This pattern is taken from
 		// https://github.com/docker/cli/blob/master/cli/command/container/stats.go
-		f := filters.NewArgs()
+		f := make(docker.Filters)
 		f.Add("type", "container")
 		f.Add("event", "destroy")
 		f.Add("event", "die")
@@ -104,13 +102,13 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 	START_STREAM:
 		for {
 			since := lastTime.Format(time.RFC3339Nano)
-			options := events.ListOptions{
+			options := docker.EventsListOptions{
 				Filters: f,
 				Since:   since,
 			}
 
 			logger.Infof("Watching for Docker events since %s", since)
-			eventCh, errCh := client.Events(ctx, options)
+			result := client.Events(ctx, options)
 
 			err := syncContainerList()
 			if err != nil {
@@ -126,7 +124,7 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 						logger.WithError(err).Error("Error while periodically syncing container cache")
 					}
 
-				case event := <-eventCh:
+				case event := <-result.Messages:
 					lock.Lock()
 
 					switch event.Action {
@@ -150,7 +148,7 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 
 					lastTime = time.Unix(0, event.TimeNano)
 
-				case err := <-errCh:
+				case err := <-result.Err:
 					logger.WithError(err).Error("Error watching docker container events")
 					time.Sleep(3 * time.Second)
 					continue START_STREAM

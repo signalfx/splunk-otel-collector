@@ -26,6 +26,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
@@ -83,6 +85,10 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
+// statConfigFile allows tests to simulate package config paths that do not
+// exist on the host running the tests.
+var statConfigFile = os.Stat
+
 var defaultFeatureGates = []string{}
 
 type Settings struct {
@@ -96,6 +102,7 @@ type Settings struct {
 	colCoreArgs             []string
 	discoveryProperties     []string
 	versionFlag             bool
+	featureGateCommand      bool
 	noConvertConfig         bool
 	configD                 bool
 	discoveryMode           bool
@@ -119,7 +126,7 @@ func New(args []string) (*Settings, error) {
 	}
 
 	// immediate exit paths, no further setup required
-	if s.versionFlag {
+	if s.versionFlag || s.featureGateCommand {
 		return s, nil
 	}
 
@@ -193,6 +200,8 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 		// Upstream providers
 		&warningProviderFactory{ProviderFactory: envprovider.NewFactory(), warnings: s.envVarWarnings},
 		fileprovider.NewFactory(),
+		secretsmanagerprovider.NewFactory(),
+		googlesecretmanagerprovider.NewFactory(),
 
 		// Custom providers
 		s.discovery.PropertyProviderFactory(),
@@ -206,13 +215,13 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 	confMapConverterFactories := []confmap.ConverterFactory{
 		configconverter.ConverterFactoryFromConverter(configconverter.NewOverwritePropertiesConverter(s.setProperties)),
+		configconverter.ConverterFactoryFromFunc(configconverter.MigrateTelemetryResourceAttributes),
 		configconverter.ConverterFactoryFromFunc(configconverter.SetupDiscovery),
 	}
 	if !s.noConvertConfig {
 		confMapConverterFactories = append(
 			confMapConverterFactories,
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),
-			configconverter.ConverterFactoryFromFunc(configconverter.AddOTLPHistogramAttr),
 		)
 	}
 	return confMapConverterFactories
@@ -274,6 +283,15 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet.Var(new(stringArrayFlagValue), featureGates,
 		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
 			"'+' or no prefix will enable the feature.")
+	flagSet.Usage = func() {
+		writeUsage(flagSet)
+	}
+
+	settings.featureGateCommand = len(args) > 0 && args[0] == "featuregate"
+	if settings.featureGateCommand {
+		// Leave the featuregate command and its arguments for the upstream Cobra command.
+		flagSet.SetInterspersed(false)
+	}
 
 	if err := flagSet.Parse(args); err != nil {
 		return nil, err
@@ -293,8 +311,24 @@ func parseArgs(args []string) (*Settings, error) {
 	// Pass flags that are handled by the collector core service as raw command line arguments.
 	colCoreCommands := []string{"validate"}
 	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
+	if settings.featureGateCommand {
+		settings.colCoreArgs = append(settings.colCoreArgs, flagSet.Args()...)
+	}
 
 	return settings, nil
+}
+
+func writeUsage(flagSet *flag.FlagSet) {
+	fmt.Fprintf(flagSet.Output(), `Usage:
+  otelcol [flags]
+  otelcol [command]
+
+Available Commands:
+  featuregate  Display feature gates information
+  validate     Validates the config without running the collector
+
+Flags:
+%s`, flagSet.FlagUsages())
 }
 
 func parseSetOptionArguments(arguments []string) (setProperties, discoveryProperties []string) {
@@ -374,16 +408,35 @@ func checkRuntimeParams(settings *Settings) error {
 	return nil
 }
 
+// warnDeprecatedSignalfxURLs logs a deprecation warning when SPLUNK_API_URL or SPLUNK_INGEST_URL
+// contains a deprecated signalfx.com hostname. The recommended replacement endpoints use
+// observability.splunkcloud.com instead.
+func warnDeprecatedSignalfxURLs() {
+	const (
+		deprecatedDomain  = "signalfx.com"
+		recommendedDomain = "observability.splunkcloud.com"
+	)
+	for _, envVar := range []string{APIURLEnvVar, IngestURLEnvVar, HecLogIngestURLEnvVar} {
+		if url, ok := os.LookupEnv(envVar); ok && strings.Contains(url, deprecatedDomain) {
+			logWarn("%s %q uses a deprecated %q endpoint. "+
+				"Please update to use a %q endpoint instead "+
+				"(e.g. https://api.<realm>.%s or https://ingest.<realm>.%s).",
+				envVar, url, deprecatedDomain, recommendedDomain,
+				recommendedDomain, recommendedDomain)
+		}
+	}
+}
+
 func setDefaultEnvVars(s *Settings) error {
 	defaultEnvVars := map[string]string{
 		ListenInterfaceEnvVar: defaultListenAddr(s),
 	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {
-		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.signalfx.com", realm)
-		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com", realm)
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)
-		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)
+		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.observability.splunkcloud.com", realm)
+		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com", realm)
+		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v2/trace", realm)
+		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v1/log", realm)
 	}
 
 	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {
@@ -416,6 +469,7 @@ func setDefaultEnvVars(s *Settings) error {
 			}
 		}
 	}
+	warnDeprecatedSignalfxURLs()
 	return nil
 }
 
@@ -554,7 +608,7 @@ func checkInputConfigs(settings *Settings) error {
 			}
 			filePath = location
 		}
-		if _, err := os.Stat(filePath); err != nil {
+		if _, err := statConfigFile(filePath); err != nil {
 			return fmt.Errorf("unable to find the configuration file %s, ensure flag '--config' is set properly: %w", filePath, err)
 		}
 		configFilePaths = append(configFilePaths, filePath)
@@ -563,6 +617,8 @@ func checkInputConfigs(settings *Settings) error {
 	if len(configFilePaths) == 0 {
 		return nil
 	}
+
+	warnIfDeprecatedOTLPLinuxConfigUsed(configFilePaths)
 
 	if configPathVar != "" {
 		differingVals := true
@@ -588,7 +644,7 @@ func checkConfigPathEnvVar(settings *Settings) error {
 	configPath := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
-	if _, err := os.Stat(configPath); err != nil {
+	if _, err := statConfigFile(configPath); err != nil {
 		return fmt.Errorf("unable to find the configuration file (%s), ensure %s environment variable is set properly: %w", configPath, ConfigEnvVar, err)
 	}
 
@@ -600,7 +656,31 @@ func checkConfigPathEnvVar(settings *Settings) error {
 		_ = settings.configPaths.Set(configPath)
 	}
 
+	warnIfDeprecatedOTLPLinuxConfigUsed(settings.configPaths.value)
+
 	return confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value)
+}
+
+func warnIfDeprecatedOTLPLinuxConfigUsed(paths []string) {
+	for _, path := range paths {
+		if isDeprecatedOTLPLinuxConfig(path) {
+			logWarn(
+				"Configuration file %s is deprecated and will be removed in a future release. "+
+					"Use --config=%s instead. If you need receivers to listen outside the container, set %s=0.0.0.0 when migrating.",
+				path, DefaultAgentConfigLinux, ListenInterfaceEnvVar)
+			return
+		}
+	}
+}
+
+func isDeprecatedOTLPLinuxConfig(path string) bool {
+	scheme, location, isURI := parseURI(path)
+	if isURI && scheme == fileProviderScheme {
+		path = location
+	}
+
+	cleaned := filepath.Clean(path)
+	return path == DefaultOTLPLinuxConfig || cleaned == filepath.Clean(DefaultOTLPLinuxConfig)
 }
 
 func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {

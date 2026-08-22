@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -44,7 +43,7 @@ type MonitorConfig struct {
 	// in your monitor config block: `extraSpanTagsFromEndpoint: {env: 'Get(container_labels, "myapp.com/environment")'}`.
 	// This only applies when the monitor has a `discoveryRule` or was
 	// dynamically instantiated by an endpoint. It does nothing, for example,
-	// in the `signalfx-forwarder` montior.
+	// in monitors that don't use discovery rules or dynamic endpoint instantiation.
 	ExtraSpanTagsFromEndpoint map[string]string `yaml:"extraSpanTagsFromEndpoint" json:"extraSpanTagsFromEndpoint"`
 	// A set of default span tags (key:value pairs) to include on spans emitted by the
 	// monitor(s) created from this configuration.
@@ -56,7 +55,7 @@ type MonitorConfig struct {
 	// in your monitor config block: `defaultSpanTagsFromEndpoint: {env: 'Get(container_labels, "myapp.com/environment")'}`
 	// This only applies when the monitor has a `discoveryRule` or was
 	// dynamically instantiated by an endpoint. It does nothing, for example,
-	// in the `signalfx-forwarder` montior.
+	// in monitors that don't use discovery rules or dynamic endpoint instantiation.
 	DefaultSpanTagsFromEndpoint map[string]string `yaml:"defaultSpanTagsFromEndpoint" json:"defaultSpanTagsFromEndpoint"`
 	// A mapping of extra dimension names to a [discovery rule
 	// expression](https://docs.splunk.com/observability/gdi/smart-agent/smart-agent-resources.html#service-discovery-using-the-smart-agent)
@@ -65,7 +64,7 @@ type MonitorConfig struct {
 	// in your monitor config block: `extraDimensionsFromEndpoint: {env: 'Get(container_labels, "myapp.com/environment")'}`.
 	// This only applies when the monitor has a `discoveryRule` or was
 	// dynamically instantiated by an endpoint. It does nothing, for example,
-	// in the `signalfx-forwarder` montior.
+	// in monitors that don't use discovery rules or dynamic endpoint instantiation.
 	ExtraDimensionsFromEndpoint map[string]string `yaml:"extraDimensionsFromEndpoint" json:"extraDimensionsFromEndpoint"`
 	// A set of mappings from a configuration option on this monitor to
 	// attributes of a discovered endpoint.  The keys are the config option on
@@ -128,9 +127,6 @@ type MonitorConfig struct {
 	// emitted by default.  A metric group is simply a collection of metrics,
 	// and they are defined in each monitor's documentation.
 	ExtraGroups []string `yaml:"extraGroups" json:"extraGroups"`
-	// If this is a native collectd plugin-based monitor it will
-	// run its own collectd subprocess. No effect otherwise.
-	IsolatedCollectd bool `yaml:"isolatedCollectd" json:"isolatedCollectd"`
 	// OtherConfig is everything else that is custom to a particular monitor
 	OtherConfig map[string]interface{} `yaml:",inline" neverLog:"omit"`
 	Hostname    string                 `yaml:"-" json:"-"`
@@ -139,7 +135,6 @@ type MonitorConfig struct {
 	// so that diagnostics can output it.
 	ValidationError string          `yaml:"-" json:"-" hash:"ignore"`
 	MonitorID       types.MonitorID `yaml:"-" hash:"ignore"`
-	BundleDir       string          `yaml:"-" json:"-"`
 }
 
 // Validate ensures the config is correct beyond what basic YAML parsing
@@ -191,12 +186,6 @@ func (mc *MonitorConfig) MetricNameExprs() ([]*RegexpWithReplace, error) {
 // in a struct that is referenced through a more generic interface.
 func (mc *MonitorConfig) MonitorConfigCore() *MonitorConfig {
 	return mc
-}
-
-// IsCollectdBased returns whether this monitor type depends on the
-// collectd subprocess to run.
-func (mc *MonitorConfig) IsCollectdBased() bool {
-	return strings.HasPrefix(mc.Type, "collectd/")
 }
 
 // MonitorCustomConfig represents monitor-specific configuration that doesn't

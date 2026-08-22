@@ -143,7 +143,7 @@ extensions:
     endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu: null
@@ -181,7 +181,7 @@ processors:
   memory_limiter:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
-  resourcedetection:
+  resource_detection:
     detectors:
     - system
     - env
@@ -190,14 +190,14 @@ processors:
 exporters:
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
-    api_url: https://api.${SPLUNK_REALM}.signalfx.com
+    api_url: https://api.${SPLUNK_REALM}.observability.splunkcloud.com
     correlation: null
-    ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
+    ingest_url: https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com
     sync_host_metadata: true
   debug:
     verbosity: detailed
   otlp_http:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 service:
@@ -212,9 +212,9 @@ service:
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       receivers:
-      - hostmetrics
+      - host_metrics
     metrics/agent:
       exporters:
       - debug
@@ -222,18 +222,17 @@ service:
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       receivers:
       - prometheus/agent
     traces:
       exporters:
       - debug
       - otlp_http
-      - signalfx
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       receivers:
       - otlp
       - jaeger

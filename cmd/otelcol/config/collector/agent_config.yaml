@@ -3,12 +3,10 @@
 # If the collector is installed without the Linux/Windows installer script, the following
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
-# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
-# - SPLUNK_BUNDLE_DIR: The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector/agent-bundle
-# - SPLUNK_COLLECTD_DIR: The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.observability.splunkcloud.com
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
-# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.observability.splunkcloud.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 
 extensions:
@@ -27,19 +25,39 @@ extensions:
       endpoint: "${SPLUNK_API_URL}"
       # Use instead when sending to gateway
       #endpoint: "${SPLUNK_GATEWAY_URL}"
-  smartagent:
-    bundleDir: "${SPLUNK_BUNDLE_DIR}"
-    collectd:
-      configDir: "${SPLUNK_COLLECTD_DIR}"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "${SPLUNK_INGEST_URL}"
+      # Use instead when sending to gateway
+      #endpoint: "${SPLUNK_GATEWAY_URL}:4320"
+      # Remove this header to use a token passed by the caller instead.
+      headers:
+        X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    agent_description:
+      # Include the Collector's resource attributes as OpAMP non-identifying attributes.
+      include_resource_attributes: true
+    server:
+      http:
+        endpoint: "${SPLUNK_INGEST_URL}/v1/opamp"
+        # Use instead when sending to gateway (assuming the gateway is running http_forwarder/signalfx on port 4320)
+        #endpoint: "${SPLUNK_GATEWAY_URL}:4320/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     #endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
     expvar:
       enabled: true
 
 receivers:
-  fluentforward:
+  fluent_forward:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:8006"
-  hostmetrics:
+  host_metrics:
     collection_interval: 10s
     scrapers:
       cpu:
@@ -114,26 +132,29 @@ processors:
   # Resource detection processor is configured to override all host and cloud attributes because instrumentation
   # libraries can send wrong values from container environments.
   # https://docs.splunk.com/Observability/gdi/opentelemetry/components/resourcedetection-processor.html#ordering-considerations
-  resourcedetection:
+  resource_detection:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
-  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
+  # Limit explicit histograms to at most 32 buckets before export through signalfx exporter.
+  # With `send_otlp_histograms: true`, the backend drops histograms above this limit.
+  # With `send_otlp_histograms: false`, this reduces the emitted `_bucket` series and `le` boundaries.
+  transform/limit_histogram_buckets:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - merge_histogram_buckets(32, method="limit_buckets")
+
+  # Optional: The following processor can be used to add a default "deployment.environment.name" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in a pipeline.
+  # To use the deprecated attribute, change the key to "deployment.environment".
   # For more information, see https://docs.splunk.com/Observability/gdi/opentelemetry/components/resource-processor.html
   #resource/add_environment:
     #attributes:
       #- action: insert
         #value: staging/production/...
-        #key: deployment.environment
-
-  # The following processor is used to add "otelcol.service.mode" attribute to the internal metrics
-  resource/add_mode:
-    attributes:
-      - action: insert
-        value: "agent"
-        key: otelcol.service.mode
+        #key: deployment.environment.name
 
 exporters:
   # Traces
@@ -187,47 +208,65 @@ service:
   telemetry:
     logs:
       level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
-  extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
+    # Resource attributes attached to the Collector's internal telemetry. These
+    # are also exposed via OpAMP when the opamp/splunk_o11y extension is enabled
+    # with agent_description.include_resource_attributes set to true.
+    resource:
+      attributes:
+        - name: otelcol.service.mode
+          value: agent
+        # Optional: Add a deployment environment to the Collector's internal telemetry.
+        # To use the deprecated attribute, change the key to "deployment.environment".
+        # - name: deployment.environment.name
+        #   value: staging/production/...
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       #- resource/add_environment
-      exporters: [otlp_http, signalfx]
+      exporters: [otlp_http]
       # Use instead when sending to gateway
-      #exporters: [otlp_grpc/gateway, signalfx]
+      #exporters: [otlp_grpc/gateway]
     metrics:
-      receivers: [hostmetrics, otlp]
-      processors: [memory_limiter, batch, resourcedetection]
+      receivers: [host_metrics, otlp]
+      processors: [memory_limiter, transform/limit_histogram_buckets, batch, resource_detection]
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp_grpc/gateway]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection, resource/add_mode]
+      processors: [memory_limiter, batch, resource_detection]
       # When sending to gateway, at least one metrics pipeline needs
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]
     logs/signalfx:
       receivers: [smartagent/processlist]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resource_detection]
       exporters: [signalfx]
     logs/entities:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resource_detection]
       exporters: [otlp_http/entities]
       # Use instead when sending to gateway
       #exporters: [otlp_grpc/gateway]
     logs:
-      receivers: [fluentforward, otlp]
+      receivers: [fluent_forward, otlp]
       processors:
       - memory_limiter
       - batch
-      - resourcedetection
+      - resource_detection
       #- resource/add_environment
       exporters: [splunk_hec, splunk_hec/profiling]
       # Use instead when sending to gateway

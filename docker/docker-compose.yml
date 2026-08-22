@@ -1,51 +1,12 @@
 services:
-  # Apache image for collectd-apache test
+  # Apache image for apache discovery test
   apache:
     image: quay.io/splunko11ytest/apache:latest
     profiles:
-      - smartagent
       - integration-test-apache-discovery
     build: ./apache
     ports:
       - "18080:80"
-  # Cassandra image for smartagent/jmx test:
-  cassandra:
-    image: quay.io/splunko11ytest/cassandra:latest
-    profiles:
-      - smartagent
-    build: ./cassandra
-    ports:
-      - "7199:7199"
-  # Cassandra  without auth
-  cassandra-jmx-noauth:
-    profiles:
-      - cassandra
-      - integration-test-jmx/cassandra-discovery
-    build:
-      dockerfile_inline: |
-        FROM cassandra:5
-        ENV LOCAL_JMX=no
-        RUN sed -ri 's/ -Dcom\.sun\.management\.jmxremote\.authenticate=true/ -Dcom\.sun\.management\.jmxremote\.authenticate=false/' /etc/cassandra/cassandra-env.sh
-        RUN sed -ri 's/ -Dcom\.sun\.management\.jmxremote\.password\.file=\/etc\/cassandra\/jmxremote\.password//' /etc/cassandra/cassandra-env.sh
-        # Escape $JVM_OPTS by including extra $
-        # This command prepends content to /etc/cassandra/cassandra-env.sh
-        RUN echo "`echo 'JVM_OPTS="$$JVM_OPTS -Djava.rmi.server.hostname=0.0.0.0"'; echo 'export LOCAL_JMX="no"'; cat /etc/cassandra/cassandra-env.sh`" > /etc/cassandra/cassandra-env.sh
-    environment:
-      LOCAL_JMX: no
-      JVM_EXTRA_OPTS: "-Dcom.sun.management.jmxremote.authenticate=false"
-      JMX_PORT: "${JMX_PORT:-7199}"
-    ports:
-      - "${JMX_PORT:-7199}:${JMX_PORT:-7199}"
-    healthcheck:
-      interval: 10s
-      timeout: 10s
-      retries: 20
-      test:
-        - "CMD"
-        - "grep"
-        - "-q"
-        - "Startup complete"
-        - "/var/log/cassandra/system.log"
   envoy:
     image: quay.io/splunko11ytest/envoy:latest
     profiles:
@@ -97,93 +58,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     profiles:
-      - integration-test-kafkametrics-discovery
-  kafka-broker:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: broker
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      JMX_PORT: 7099
-    ports:
-      - "7099:7099"
-      - "9092:9092"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/7099"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  kafka-consumer:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: consumer
-      KAFKA_BROKER: kafka-broker:9092
-      JMX_PORT: 9099
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    ports:
-      - "9099:9099"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/9099"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  kafka-producer:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: producer
-      KAFKA_BROKER: kafka-broker:9092
-      JMX_PORT: 8099
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    ports:
-      - "8099:8099"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/8099"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  kafka-topic-creator:
-    image: quay.io/splunko11ytest/kafka:latest
-    depends_on:
-      - zookeeper
-    profiles:
-      - smartagent
-    build: ./kafka
-    environment:
-      START_AS: create-topic
-      KAFKA_BROKER: kafka-broker:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      - integration-test-kafka-metrics-discovery
   kong:
     image: quay.io/splunko11ytest/kong:latest
     profiles:
@@ -224,6 +99,21 @@ services:
     build: ./oracle
     ports:
       - "1521:1521"
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    profiles:
+      - integration-test-rabbitmq-discovery
+    environment:
+      RABBITMQ_DEFAULT_USER: splunk.discovery.default
+      RABBITMQ_DEFAULT_PASS: splunk.discovery.default
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
   redis_server:
     image: quay.io/splunko11ytest/redis_server:latest
     profiles:
@@ -231,7 +121,6 @@ services:
     build: ./redis_server
     ports:
       - "6379:6379"
-  # Kafka test, requires multiple Kafka containers and Zookeeper:
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.33.2
     profiles:
@@ -240,20 +129,3 @@ services:
       - "2112:2112"
     environment:
       PROMETHEUS_MONITORING_ENABLED: "true"
-  zookeeper:
-    image: zookeeper:3.5
-    profiles:
-      - smartagent
-    ports:
-      - "2181:2181"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bash",
-          "-c",
-          "exec 6<> /dev/tcp/localhost/2181"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5

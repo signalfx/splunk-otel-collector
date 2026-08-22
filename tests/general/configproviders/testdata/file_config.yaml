@@ -1,5 +1,5 @@
 receivers:
-  hostmetrics: ${file:./testdata/file_with_config_content}
+  host_metrics: ${file:./testdata/file_with_config_content}
 exporters:
   otlp_grpc:
     endpoint: ${env:OTLP_ENDPOINT}
@@ -9,5 +9,5 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics]
+      receivers: [host_metrics]
       exporters: [otlp_grpc]

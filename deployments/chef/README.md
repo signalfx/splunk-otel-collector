@@ -17,11 +17,11 @@ https://www.splunk.com/en_us/products/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
-- CentOS / Red Hat: 8, 9
-- Oracle: 8, 9
-- Debian: 9, 10, 11
-- SUSE: 15
-- Ubuntu: 18.04, 20.04, 22.04
+- CentOS / Red Hat: 8, 9, 10
+- Oracle: 8, 9, 10
+- Debian: 11, 12, 13
+- SUSE: 15, 16
+- Ubuntu: 22.04, 24.04, 26.04
 
 ## Windows
 
@@ -29,6 +29,7 @@ Currently, the following Windows versions are supported:
 
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
+- Windows Server 2025 64-bit
 
 On Windows, the collector is installed as a Windows service and its environment
 variables are set at the service scope, i.e.: they are only available to the
@@ -66,16 +67,16 @@ required `splunk_access_token` attribute and some optional attributes:
   (**default:** `us0`)
 
 - `splunk_ingest_url`: Explicitly set the Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`, instead of the URL derived from the
+  `https://ingest.us0.observability.splunkcloud.com`, instead of the URL derived from the
   `splunk_realm` attribute. The `SPLUNK_INGEST_URL` environment variable will
   be set with this value for the Collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `splunk_api_url`: Explicitly set the Splunk API URL, e.g.
-  `https://api.us0.signalfx.com`, instead of the URL derived from `splunk_realm`
+  `https://api.us0.observability.splunkcloud.com`, instead of the URL derived from `splunk_realm`
   attribute. The `SPLUNK_API_URL` environment variable will be set with this
   value for the Collector service. (**default:**
-  `https://api.{{ splunk_realm }}.signalfx.com`)
+  `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `collector_version`: Version of the Collector package to install, e.g.
   `0.34.0`. (**default:** `latest`)
@@ -114,24 +115,6 @@ required `splunk_access_token` attribute and some optional attributes:
 
 - `package_stage`: The Collector package repository stage to use.  Can be
   `release`, `beta`, or `test`. (**default:** `release`)
-
-- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
-  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
-  The default path is provided by the Collector package. If the specified path
-  is changed from the default value, the path should be an existing directory
-  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the Collector service. (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle` on Windows)
-
-- `splunk_collectd_dir`: The path to the collectd config directory for the
-  Smart Agent bundle. The default path is provided by the Collector package.
-  If the specified path is changed from the default value, the path should be
-  an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the Collector service.
-  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`
-  on Windows)
 
 - `collector_additional_env_vars`: Hash of additional environment variables
   from the collector configuration file for the collector service
@@ -220,7 +203,7 @@ after installation/configuration in order for any change to take effect.
 
 - `auto_instrumentation_resource_attributes`: Configure the OpenTelemetry auto
   instrumentation resource attributes, e.g.
-  `deployment.environment=prod,my.key=value` (comma-separated `key=value` pairs.).
+  `deployment.environment.name=prod,my.key=value` (comma-separated `key=value` pairs.).
   (**default:** `''`)
 
 - `auto_instrumentation_service_name`: Explicitly set the service name for

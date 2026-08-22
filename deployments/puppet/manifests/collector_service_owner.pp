@@ -34,6 +34,15 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
     }
   }
 
+  file { '/etc/otel/collector':
+    ensure  => directory,
+    owner   => $service_user,
+    group   => $service_group,
+    mode    => '0755',
+    require => User[$service_user],
+    before  => Service[$service_name],
+  }
+
   case $::service_provider {
     'systemd': {
       $tmpfile_path = "/etc/tmpfiles.d/${service_name}.conf"

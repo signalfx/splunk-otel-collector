@@ -7,7 +7,7 @@ releases:
 
 stemcells:
   - alias: default
-    os: ubuntu-bionic
+    os: ubuntu-jammy
     version: latest
 
 update:
@@ -27,7 +27,7 @@ instance_groups:
           otel:
             config_yaml: |
               receivers:
-                cloudfoundry:
+                cloud_foundry:
                   rlp_gateway:
                     endpoint: "https://log-stream.sys.<TAS environment name>.cf-app.com"
                   uaa:
@@ -41,14 +41,14 @@ instance_groups:
                   realm: "..."
 
               processors:
-                resourcedetection:
+                resource_detection:
                   detectors: [ system ]
 
               service:
                 pipelines:
                   metrics:
-                    receivers: [ cloudfoundry ]
-                    processors: [ resourcedetection ]
+                    receivers: [ cloud_foundry ]
+                    processors: [ resource_detection ]
                     exporters: [ signalfx ]
 
     vm_type: default

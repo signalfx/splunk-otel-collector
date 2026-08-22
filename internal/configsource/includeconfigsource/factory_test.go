@@ -43,28 +43,12 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 			},
 		},
 		{
-			name:   "delete_files",
-			config: Config{DeleteFiles: true}, // SA1019: deprecated DeleteFiles
-			expected: &includeConfigSource{
-				Config:       &Config{DeleteFiles: true}, // SA1019: deprecated DeleteFiles
-				watchedFiles: make(map[string]struct{}),
-			},
-		},
-		{
 			name:   "watch_files",
 			config: Config{WatchFiles: true},
 			expected: &includeConfigSource{
 				Config:       &Config{WatchFiles: true},
 				watchedFiles: make(map[string]struct{}),
 			},
-		},
-		{
-			name: "err_on_delete_and_watch",
-			config: Config{
-				DeleteFiles: true, // SA1019: deprecated DeleteFiles
-				WatchFiles:  true,
-			},
-			wantErr: true,
 		},
 	}
 

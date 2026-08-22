@@ -19,6 +19,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
+
+	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/confmap"
 
@@ -41,16 +44,19 @@ type retrieveParams struct {
 
 type envVarConfigSource struct {
 	defaults map[string]any
+	logger   *zap.Logger
 }
 
-func newConfigSource(cfg *Config) configsource.ConfigSource {
+func newConfigSource(cfg *Config, logger *zap.Logger) configsource.ConfigSource {
 	defaults := make(map[string]any)
 	if cfg.Defaults != nil {
 		defaults = cfg.Defaults
+		logger.Warn("The defaults field is deprecated, please use the `env:ENV_VAR:-default` notation instead. Support will be removed on or after June 2026.")
 	}
 
 	return &envVarConfigSource{
 		defaults: defaults,
+		logger:   logger,
 	}
 }
 
@@ -63,10 +69,20 @@ func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params
 		}
 	}
 
-	value, ok := os.LookupEnv(selector)
+	if actualParams.Optional {
+		e.logger.Warn("The optional option is deprecated. Support will be removed on or after June 2026.")
+	}
+
+	segments := strings.SplitN(selector, ":-", 2)
+
+	value, ok := os.LookupEnv(segments[0])
 	if ok {
 		// Environment variable found, everything is done.
 		return confmap.NewRetrieved(value)
+	}
+
+	if len(segments) > 1 {
+		return confmap.NewRetrieved(segments[1])
 	}
 
 	defaultValue, ok := e.defaults[selector]

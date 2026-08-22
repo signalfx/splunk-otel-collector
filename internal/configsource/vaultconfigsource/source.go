@@ -195,7 +195,7 @@ func (v *vaultConfigSource) buildLifetimeWatcher(watcher confmap.WatcherFunc, do
 func (v *vaultConfigSource) buildV1LeaseWatcher(watcher confmap.WatcherFunc, doneCh chan struct{}) error {
 	go func() {
 		// The lease duration is a hint of time to re-fetch the values.
-		// The SmartAgent waits for half ot the lease duration.
+		// The SmartAgent waits for half of the lease duration.
 		updateWait := time.Duration(v.secret.LeaseDuration/2) * time.Second
 		select {
 		case <-time.After(updateWait):

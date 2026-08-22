@@ -58,20 +58,18 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/products/obse
   More information available
   [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
 
-While it is recommended to use [Splunk
-Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
-to send data to [Splunk
-Cloud](https://www.splunk.com/en_us/products/splunk-cloud-platform.html) or [Splunk
-Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html),
-Splunk OpenTelemetry Collector can be configured to send data to them via the
-[`splunk_hec`
-exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
+Splunk OpenTelemetry Collector natively supports sending logs and metrics to
+[Splunk Cloud](https://www.splunk.com/en_us/products/splunk-cloud-platform.html)
+and [Splunk Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html).
+See [Collect logs on Linux](docs/getting-started/linux-logs.md).
+[Splunk Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
+remain a supported alternative.
 
 ## Current Status
 
 - The Splunk Distribution of the OpenTelemetry Collector is production tested; it is in use by a number of customers in their production environments
 - Customers that use our distribution can receive direct help from official Splunk support within SLA's
-- Customers can use or migrate to the Splunk Distribution of the OpenTelemetry Collector without worrying about future breaking changes to its core configuration experience for metrics and traces collection (OpenTelemetry logs collection configuration is in beta). There may be breaking changes to the Collector's own metrics.
+- Customers can use or migrate to the Splunk Distribution of the OpenTelemetry Collector without worrying about future breaking changes to its core configuration experience for metrics, traces, and log collection. There may be breaking changes to the Collector's own metrics.
 
 ## Getting Started
 
@@ -103,6 +101,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 - [HashiCorp Nomad](./deployments/nomad)
 - Linux
   - [Installer script](./docs/getting-started/linux-installer.md) (recommended for single-host demo/test environments)
+  - [Collect logs on Linux](./docs/getting-started/linux-logs.md)
   - Configuration management (recommended for multi-host production environments)
     - [Ansible](https://galaxy.ansible.com/ui/repo/published/signalfx/splunk_otel_collector/)
     - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
@@ -128,9 +127,8 @@ A variety of default configuration files are provided:
 - [OpenTelemetry
   Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
-  documentation. The `logs_config_linux.yaml` is a good starting point for using
-  the collector for collecting application logs on Linux environments.
-  `agent_config.yaml` is the recommended starting configuration for most environments.
+  documentation. `agent_config.yaml` is the recommended starting configuration for
+  most environments. To collect logs, see [Collect logs on Linux](docs/getting-started/linux-logs.md) or [Collect logs on Windows](docs/getting-started/windows-logs.md).
 
 In addition, the following components can be configured:
 
@@ -138,6 +136,7 @@ In addition, the following components can be configured:
   - [Environment variables](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/envvarconfigsource)
   - [Etcd2](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/etcd2configsource)
   - [Include](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/includeconfigsource)
+  - [Splunk Secret Storage](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/splunksecretconfigsource)
   - [Vault](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
   - [Zookeeper](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
 - SignalFx Smart Agent
@@ -160,6 +159,120 @@ compatibility on the fly, but configuration files will not be overridden, so you
 manually before the backward compatibility is dropped. For every configuration update use
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
+
+### From 0.158.0 to 0.159.0
+
+Linux DEB and RPM packages now use `otelcollauncher` as the service entrypoint instead of
+`otelcol`. By default, the launcher starts `otelcol` directly and passes through the existing `OTELCOL_OPTIONS`,
+so upgrades preserve the previous Collector service behavior. The launcher allows the service to start either `otelcol`
+directly or the OpAMP Supervisor, enabling additional Fleet Management capabilities. See
+[OpenTelemetry Fleet Management](https://help.splunk.com/en/splunk-observability-cloud/manage-data/manage-otel-agents-and-collectors/manage-opentelemetry-agents-and-collectors)
+for details. 
+
+For a new installation, pass `--with-supervisor` to the installer script. To enable the OpAMP Supervisor after upgrading, set
+`SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in `/etc/otel/collector/splunk-otel-collector.conf` and restart the service.
+
+To stop running the Collector under OpAMP Supervisor, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=false` and restart the
+service. The service will return to running the `otelcol` only. When switched back to collector only mode, remote configuration
+delivered through the supervisor is no longer applied.
+
+On DEB and RPM installation or upgrade, the package also now recursively sets the ownership of `/var/lib/otelcol` to
+the service user and group. This ensures the Collector and OpAMP Supervisor can write files in existing
+and new subdirectories of the shared state directory.
+
+### From 0.157.0 to 0.158.0
+
+[OpenTelemetry has deprecated `deployment.environment` in favor of `deployment.environment.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/deployment/).
+The Collector's optional deployment environment configuration and the `--deployment-environment` (Linux) and `-deployment_env` (Windows) installer
+options now use `deployment.environment.name`.
+
+If `deployment.environment` is still required, use that name instead in the applicable configuration. For instrumented
+applications, set `OTEL_RESOURCE_ATTRIBUTES=deployment.environment=<value>`. The Ansible, Chef, Puppet, and Salt integrations can pass the deprecated key
+through their generic resource-attribute option.
+
+The installer deployment environment option will use the new attribute name. To keep the deprecated attribute, replace only that attribute in
+`OTEL_RESOURCE_ATTRIBUTES`, preserve all other attributes, and restart the instrumented applications or IIS.
+
+### From 0.150.0 to 0.151.0
+
+The default Windows MSI artifact download URL has been updated: [Splunk Observability Cloud domain transition guide](https://help.splunk.com/en/splunk-observability-cloud/reference/splunk-observability-cloud-domain-transition-guide)
+- `https://dl.signalfx.com` → `https://dl.observability.splunkcloud.com`
+
+To keep using the legacy `dl.signalfx.com` download URL, pass `-collector_msi_url` explicitly to
+`install.ps1` (replace `<version>` with the collector version):
+
+Windows (`install.ps1`):
+```
+-collector_msi_url https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi
+```
+
+### From 0.149.0 to 0.150.0
+
+Default endpoint URLs have changed from *.signalfx.com to *.observability.splunkcloud.com. The legacy endpoints remaim functional but migrating to the new domain is highly recommended. See the domain transition guide for background.
+
+| Variable | Old default | New default |
+| --- | --- | --- |
+| `SPLUNK_API_URL` | `https://api.<realm>.signalfx.com` | `https://api.<realm>.observability.splunkcloud.com` |
+| `SPLUNK_INGEST_URL` | `https://ingest.<realm>.signalfx.com` | `https://ingest.<realm>.observability.splunkcloud.com` |
+| `SPLUNK_TRACE_URL` | `https://ingest.<realm>.signalfx.com/v2/trace` | `https://ingest.<realm>.observability.splunkcloud.com/v2/trace` |
+| `SPLUNK_HEC_URL` | `https://ingest.<realm>.signalfx.com/v1/log` | `https://ingest.<realm>.observability.splunkcloud.com/v1/log` |
+
+    Note: If you have firewall rules or proxy allowlists scoped to *.signalfx.com, add
+    *.observability.splunkcloud.com (or the realm-specific hostnames
+    api.<realm>.observability.splunkcloud.com and ingest.<realm>.observability.splunkcloud.com)
+    before switching.
+
+###  Package manager upgrade (apt, yum, choco upgrade)
+
+  Your existing environment configuration is preserved. The collector continues
+  to use the endpoints you previously configured.
+  
+  When you are ready to migrate, replace <realm> with your realm (e.g. us0):
+  
+  **Linux**: Edit `/etc/otel/collector/splunk-otel-collector.conf:`
+  
+    SPLUNK_API_URL=https://api.<realm>.observability.splunkcloud.com
+    SPLUNK_INGEST_URL=https://ingest.<realm>.observability.splunkcloud.com
+    SPLUNK_HEC_URL=https://ingest.<realm>.observability.splunkcloud.com/v1/log
+  
+  Then restart the service: `sudo systemctl restart splunk-otel-collector`
+  
+  **Windows**: Update the `Environment` value in the registry at
+  `HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector` with the
+  same URLs, then restart the service.
+  
+  `SPLUNK_TRACE_URL` is derived automatically from `SPLUNK_INGEST_URL` at runtime
+  unless you have explicitly set it. If you have, update it as well.
+  
+  ### MSI upgrade (Windows)
+  
+  Upgrading via `msiexec` applies the new `*.observability.splunkcloud.com`
+  defaults. To keep the legacy endpoints, pass them as MSI properties:
+  
+    msiexec /i <path\to\msi> SPLUNK_API_URL=https://api.<realm>.signalfx.com SPLUNK_INGEST_URL=https://ingest.<realm>.signalfx.com SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
+  
+  ### New installation
+  
+  New installations default to `*.observability.splunkcloud.com`. If your
+  environment requires the legacy endpoints, pass them explicitly:
+  
+  `install.sh` (add these flags):
+  
+    --api-url https://api.<realm>.signalfx.com \
+    --ingest-url https://ingest.<realm>.signalfx.com
+  
+  `install.ps1` (add these flags):
+  
+    -api_url https://api.<realm>.signalfx.com `
+    -ingest_url https://ingest.<realm>.signalfx.com
+  
+  Chocolatey (add these params):
+  
+    choco install splunk-otel-collector --params "'/SPLUNK_API_URL:https://api.<realm>.signalfx.com /SPLUNK_INGEST_URL:https://ingest.<realm>.signalfx.com /SPLUNK_HEC_URL:https://ingest.<realm>.signalfx.com/v1/log'"
+    
+  `msiexec` (add these properties):
+  
+    SPLUNK_API_URL=https://api.<realm>.signalfx.com SPLUNK_INGEST_URL=https://ingest.<realm>.signalfx.com SPLUNK_HEC_URL=https://ingest.<realm>.signalfx.com/v1/log
 
 ### From 0.117.0 to 0.118.0
 
@@ -187,7 +300,7 @@ as a reference.
     service:
       pipelines:
         traces:
-          exporters: [otlphttp, signalfx]
+          exporters: [otlphttp]
     ```
 
 

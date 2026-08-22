@@ -21,7 +21,6 @@ $env_var_names = @(
     "SPLUNK_HEC_TOKEN",
     "SPLUNK_HEC_URL",
     "SPLUNK_MEMORY_TOTAL_MIB",
-    "SPLUNK_BUNDLE_DIR",
     "SPLUNK_LISTEN_INTERFACE"
 )
 
@@ -77,12 +76,11 @@ if ($access_token) {
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_REALM" "us0"
 $realm = $env_vars["SPLUNK_REALM"] # Cache the realm since it is used to build various default values.
 
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_INGEST_URL"         "https://ingest.$realm.signalfx.com"
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_API_URL"            "https://api.$realm.signalfx.com"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_INGEST_URL"         "https://ingest.$realm.observability.splunkcloud.com"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_API_URL"            "https://api.$realm.observability.splunkcloud.com"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_TOKEN"          $env_vars["SPLUNK_ACCESS_TOKEN"]
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_URL"            "https://ingest.$realm.signalfx.com/v1/log"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_URL"            "https://ingest.$realm.observability.splunkcloud.com/v1/log"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_MEMORY_TOTAL_MIB"   "512"
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_BUNDLE_DIR"         "$installation_path\agent-bundle"
 
 # stop orphaned service or when upgrading from bundle installation
 if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {

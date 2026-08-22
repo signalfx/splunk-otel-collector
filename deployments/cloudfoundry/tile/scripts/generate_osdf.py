@@ -9,9 +9,10 @@ SIMPLIFIED_BSD_NAME_STR = "Simplified BSD"
 NEW_BSD_NAME_STR = "New BSD"
 ISC_NAME_STR = "ISC"
 MIT_NAME_STR = "MIT"
+MIT_NO_ATTR_NAME_STR = "MIT No Attribution"
 MPL_NAME_STR = "Mozilla Public License 2.0"
 
-LICENSE_LIST = [APACHE_NAME_STR, SIMPLIFIED_BSD_NAME_STR, NEW_BSD_NAME_STR, ISC_NAME_STR, MIT_NAME_STR, MPL_NAME_STR]
+LICENSE_LIST = [APACHE_NAME_STR, SIMPLIFIED_BSD_NAME_STR, NEW_BSD_NAME_STR, ISC_NAME_STR, MIT_NAME_STR, MIT_NO_ATTR_NAME_STR, MPL_NAME_STR]
 
 class License:
 	def __init__(self, name, primary_header, secondary_header):
@@ -28,7 +29,8 @@ SIMPLIFIED_BSD_LICENSE = License(SIMPLIFIED_BSD_NAME_STR, "SECTION 2: BSD 2-clau
 NEW_BSD_LICENSE = License(NEW_BSD_NAME_STR, "SECTION 3: BSD 3-clause \"New\" or \"Revised\" License", "--------------- SECTION 3: BSD 3-clause \"New\" or \"Revised\" License ----------\n\nBSD 3-clause \"New\" or \"Revised\" License is applicable to the following component(s).")
 ISC_LICENSE = License(ISC_NAME_STR, "SECTION 4: ISC License", "--------------- SECTION 4: ISC License ----------\n\nISC License is applicable to the following component(s).")
 MIT_LICENSE = License(MIT_NAME_STR, "SECTION 5: MIT License", "--------------- SECTION 5: MIT License ----------\n\nMIT License is applicable to the following component(s).")
-MPL_LICENSE = License(MPL_NAME_STR, "SECTION 6: Mozilla Public License 2.0", "--------------- SECTION 6: Mozilla Public License 2.0 ----------\n\nMozilla Public License 2.0 is applicable to the following component(s).")
+MIT_NO_ATTR_LICENSE = License(MIT_NO_ATTR_NAME_STR, "SECTION 6: MIT No Attribution License", "--------------- SECTION 6: MIT No Attribution License ----------\n\nMIT No Attribution License is applicable to the following component(s).")
+MPL_LICENSE = License(MPL_NAME_STR, "SECTION 7: Mozilla Public License 2.0", "--------------- SECTION 7: Mozilla Public License 2.0 ----------\n\nMozilla Public License 2.0 is applicable to the following component(s).")
 
 HEADER = """open_source_disclosures_Splunk OpenTelemetry Collector-COLLECTOR_VERSION.txt
 
@@ -175,7 +177,22 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY <<var;name=copyrightHolderAsIs;original=THE COPYRIGHT HOLDERS AND CONTRIBUTORS;match=.+>> "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <<var;name=copyrightHolderLiability;original=THE COPYRIGHT HOLDER OR CONTRIBUTORS;match=.+>> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
---------------- APPENDIX 6: Mozilla Public License 2.0 (Template) -----------
+--------------- APPENDIX 6: MIT No Attribution License (Template) -----------
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------- APPENDIX 7: Mozilla Public License 2.0 (Template) -----------
 
 Mozilla Public License Version 2.0 
 
@@ -329,6 +346,7 @@ VALID_LICENSES = {
 	NEW_BSD_NAME_STR: NEW_BSD_LICENSE,
 	ISC_NAME_STR: ISC_LICENSE,
 	MIT_NAME_STR: MIT_LICENSE,
+	MIT_NO_ATTR_NAME_STR: MIT_NO_ATTR_LICENSE,
 	MPL_NAME_STR: MPL_LICENSE,
 }
 

@@ -1,7 +1,7 @@
 # Splunk OpenTelemetry Collector Tanzu Tile
 
 This directory is used to generate a Tanzu tile of the [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector).
-The Tanzu tile uses the BOSH release to deploy the collector as a [loggregator firehose nozzle](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/nozzle.html).
+The Tanzu tile uses the BOSH release to deploy the collector as a [loggregator firehose nozzle](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/nozzle.html).
 
 ## CI Build and Artifacts
 

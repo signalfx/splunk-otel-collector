@@ -7,7 +7,7 @@ This readme covers the following steps:
 - Releasing
 
 of a Tanzu tile of the [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector).
-The Tanzu tile uses the BOSH release to deploy the collector as a [loggregator firehose nozzle](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/nozzle.html).
+The Tanzu tile uses the BOSH release to deploy the collector as a [loggregator firehose nozzle](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/nozzle.html).
 
 A crucial step here is the testing and for that you will need to have access to a Tanzu environment and there are a few async tasks that can take some time because it needs approval from Broadcom/VMWare. Follow the steps outlined in the Tanzu ISV Partner Guide to register for a Broadcom Portal Account requesting access to the ISV dashboard. 
 
@@ -23,13 +23,13 @@ Before building and testing a tile, make sure you've updated your repo. Also not
 
 ## Install Dependencies
 
-1. Download the [Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html)
+1. Download the [Tile Generator](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/tile-developer-guide/3-1/tile-dev-tanzu/tile-generator.html)
   - Note that MacOS support was dropped for this tool, so an older version must be downloaded for darwin development. Version `14.0.6-dev.1` has been confirmed to be working.
   - Download the tile and pcf release assets from [Tile Generator v14.0.6](https://github.com/cf-platform-eng/tile-generator/releases/tag/v14.0.6-dev.1)
     -  you are looking for `tile_darwin-64bit` and `pcf_darwin-64bit`
 
 2. Install [Bosh CLI](https://bosh.io/docs/cli-v2-install/) 
-3. Run the install cli script to install other dependencies [script](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/cloudfoundry/tile/scripts/install_cli_depencies.sh). This will make the tile and pcf tools executables and put them in the right directory
+3. Run the install cli script to install other dependencies [script](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/cloudfoundry/tile/scripts/install_cli_dependencies.sh). This will make the tile and pcf tools executables and put them in the right directory
   - Note: The downloaded binaries from step 1 should be in the `~/Downloads` folder for this script to work correctly
 
 ## Build the Tanzu Tile 
@@ -43,7 +43,7 @@ cd splunk-otel-collector/deployments/cloudfoundry/tile
 ```
 $ ./make-latest-tile
 ```
-This creates a file with a `.pivotal` extension in the product directory, which is the tile packaged as a compressed file. Additionally, it creates 2 files named `tile-history.yml` and `tile.yml`. The `tile-history.yml` file has the version of the the tile you will be releasing.
+This creates a file with a `.pivotal` extension in the product directory, which is the tile packaged as a compressed file. Additionally, it creates 2 files named `tile-history.yml` and `tile.yml`. The `tile-history.yml` file has the version of the tile you will be releasing.
 
 ## Configuring the Tile in the Tanzu Environment
 
@@ -107,4 +107,4 @@ Dependencies that need approval:
   - For guidance on whether a license is approved for use, reach out to your product, legal or the Broadcom team through the Pivotal Partners Slack
   - Any commands that needed to be run should be added to the list of commands above, so future users don’t have to duplicate your work.
 
-- Next step is to make the actual release by uploading the artifiacts and filling out a form. The process is outlined in the Tanzu ISV Partner Guide
+- Next step is to make the actual release by uploading the artifacts and filling out a form. The process is outlined in the Tanzu ISV Partner Guide

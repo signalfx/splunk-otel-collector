@@ -6,24 +6,28 @@ on:
       SYS_BINARY:
         required: true
         type: string
+      WITH_OPAMP_SUPERVISOR:
+        required: false
+        type: boolean
+        default: false
 
 env:
-  GO_VERSION: 1.25.7
+  GO_VERSION: 1.26.6
 
 jobs:
   compile:
     name: compile
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment
 
       - name: Build Collector
         run: |
-          make ${{ inputs.SYS_BINARY }}
+          make ${{ inputs.SYS_BINARY }} WITH_OPAMP_SUPERVISOR=${{ inputs.WITH_OPAMP_SUPERVISOR }}
 
       - name: Uploading binaries
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.SYS_BINARY }}
           path: |

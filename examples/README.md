@@ -40,6 +40,20 @@ This example showcases how the collector can follow a file and send its contents
 
 This example showcases how the collector can select different sourcetypes per log sources.
 
+## [Monitoring a systemd timer](./systemd-timer-monitoring)
+
+This example showcases how the collector can monitor a script run periodically via a systemd timer, using the journald receiver to capture its execution logs and a generic `ExecStopPost=` script to report the exit status of any systemd job as a metric.
+
+[Read more...](./systemd-timer-monitoring)
+
+## [Monitoring a Windows Scheduled Task](./windows-task-scheduler-monitoring)
+
+This example showcases how the collector can monitor a script run periodically via Windows Task Scheduler,
+using the `windows_event_log` receiver to capture scheduler and application logs and a generic PowerShell
+wrapper to report the exit status of any scheduled task as a metric.
+
+[Read more...](./windows-task-scheduler-monitoring)
+
 # Dependencies
 
 - docker

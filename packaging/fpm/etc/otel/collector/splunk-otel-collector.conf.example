@@ -15,6 +15,10 @@
 # Run `/usr/bin/otelcol --help` to see all available options.
 OTELCOL_OPTIONS=""
 
+# Set to true to manage the collector with the OpAMP Supervisor.
+# Leave false to run the collector directly.
+SPLUNK_OPAMP_SUPERVISOR_ENABLED=false
+
 
 # Path to the config file for the collector.
 # Required, unless the OTELCOL_OPTIONS environment variable above includes the '--config <path to config file>' option.
@@ -30,13 +34,13 @@ SPLUNK_ACCESS_TOKEN=abc123
 SPLUNK_REALM=us0
 
 # Splunk api endpoint URL.
-SPLUNK_API_URL=https://api.us0.signalfx.com
+SPLUNK_API_URL=https://api.us0.observability.splunkcloud.com
 
 # Splunk ingest endpoint URL.
-SPLUNK_INGEST_URL=https://ingest.us0.signalfx.com
+SPLUNK_INGEST_URL=https://ingest.us0.observability.splunkcloud.com
 
 # Splunk HEC endpoint URL, if forwarding to Splunk Observability Cloud
-SPLUNK_HEC_URL=https://ingest.us0.signalfx.com/v1/log
+SPLUNK_HEC_URL=https://ingest.us0.observability.splunkcloud.com/v1/log
 # If you're forwarding to a Splunk Enterprise instance running on example.com, with HEC at port 8088:
 # SPLUNK_HEC_URL=https://example.com:8088/services/collector
 
@@ -46,13 +50,6 @@ SPLUNK_HEC_TOKEN=abc123
 # Total memory in MIB to allocate to the collector.
 # Automatically configures the memory limit.
 SPLUNK_MEMORY_TOTAL_MIB=1024
-
-# The path to the Smart Agent bundle.
-SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
-
-# The path to the collectd config directory for the Smart Agent.
-# This directory must be read/writable by the collector process.
-SPLUNK_COLLECTD_DIR=/usr/lib/splunk-otel-collector/agent-bundle/run/collectd
 
 # Network interface the collector receivers listen on.
 SPLUNK_LISTEN_INTERFACE=127.0.0.1

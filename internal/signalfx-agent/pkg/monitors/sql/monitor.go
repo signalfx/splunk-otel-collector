@@ -9,15 +9,13 @@ import (
 	"time"
 
 	// Imports to get sql driver registered
-	_ "github.com/SAP/go-hdb/driver"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/lib/pq"
 
 	// krb5 auth import needed per https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29694/files#r1427408445
 	_ "github.com/microsoft/go-mssqldb"
 	_ "github.com/microsoft/go-mssqldb/integratedauth/krb5"
-	_ "github.com/snowflakedb/gosnowflake"
+	_ "github.com/snowflakedb/gosnowflake/v2"
 
 	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/sirupsen/logrus"

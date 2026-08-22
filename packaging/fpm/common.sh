@@ -29,18 +29,20 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
+OTELCOLLAUNCHER_INSTALL_PATH="/usr/bin/otelcollauncher"
+OPAMPSUPERVISOR_INSTALL_PATH="/usr/bin/opampsupervisor"
 CONFIG_DIR_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/config.d.linux"
 CONFIG_DIR_INSTALL_PATH="/etc/otel/collector/config.d"
 AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
 AGENT_CONFIG_INSTALL_PATH="/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/gateway_config.yaml"
 GATEWAY_CONFIG_INSTALL_PATH="/etc/otel/collector/gateway_config.yaml"
+LOGS_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/splunk_logs_config_linux.yaml"
+LOGS_CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_logs_config_linux.yaml"
+METRICS_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/splunk_metrics_config_linux.yaml"
+METRICS_CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_metrics_config_linux.yaml"
 SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
-
-JMX_METRIC_GATHERER_RELEASE_PATH="${FPM_DIR}/../jmx-metric-gatherer-release.txt"
-BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
-AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 
 PREINSTALL_PATH="$FPM_DIR/preinstall.sh"
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
@@ -65,33 +67,35 @@ create_user_group() {
         sudo useradd --system --user-group --no-create-home --shell /sbin/nologin $SERVICE_USER
 }
 
-download_jmx_metric_gatherer() {
-    local version="$1"
-    local buildroot="$2"
+install_binary() {
+    local source_path="$1"
+    local install_path="$2"
+    local buildroot="$3"
 
-    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/$version/opentelemetry-jmx-metrics.jar"
-    mkdir -p "$buildroot/opt"
-
-    echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"
-    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+    mkdir -p "$buildroot/$(dirname "$install_path")"
+    cp -f "$source_path" "$buildroot/$install_path"
+    sudo chown root:root "$buildroot/$install_path"
+    sudo chmod 755 "$buildroot/$install_path"
 }
 
 setup_files_and_permissions() {
     local otelcol="$1"
-    local buildroot="$2"
-    local bundle_path="$3"
+    local otelcollauncher="$2"
+    local opampsupervisor="$3"
+    local buildroot="$4"
 
     create_user_group
 
-    mkdir -p "$buildroot/$(dirname $OTELCOL_INSTALL_PATH)"
-    cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+    install_binary "$otelcol" "$OTELCOL_INSTALL_PATH" "$buildroot"
+    install_binary "$otelcollauncher" "$OTELCOLLAUNCHER_INSTALL_PATH" "$buildroot"
+    install_binary "$opampsupervisor" "$OPAMPSUPERVISOR_INSTALL_PATH" "$buildroot"
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
     cp -r "$CONFIG_DIR_REPO_PATH" "$buildroot/$CONFIG_DIR_INSTALL_PATH"
     cp -f "$AGENT_CONFIG_REPO_PATH" "$buildroot/$AGENT_CONFIG_INSTALL_PATH"
     cp -f "$GATEWAY_CONFIG_REPO_PATH" "$buildroot/$GATEWAY_CONFIG_INSTALL_PATH"
+    cp -f "$LOGS_CONFIG_REPO_PATH" "$buildroot/$LOGS_CONFIG_INSTALL_PATH"
+    cp -f "$METRICS_CONFIG_REPO_PATH" "$buildroot/$METRICS_CONFIG_INSTALL_PATH"
     sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/etc/otel"
     sudo chmod -R 755 "$buildroot/etc/otel"
     sudo chmod 600 "$buildroot/etc/otel/collector/$SERVICE_NAME.conf.example"
@@ -100,17 +104,4 @@ setup_files_and_permissions() {
     cp -f "$SERVICE_REPO_PATH" "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chown root:root "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$SERVICE_INSTALL_PATH"
-
-    if [[ -n "$bundle_path" ]]; then
-        mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
-        tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
-    fi
-
-    JMX_INSTALL_PATH="$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
-    if [[ -e "$JMX_INSTALL_PATH" ]]; then
-        sudo chown root:root "$JMX_INSTALL_PATH"
-        sudo chmod 755 "$JMX_INSTALL_PATH"
-    fi
 }

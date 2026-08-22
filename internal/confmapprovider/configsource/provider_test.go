@@ -22,6 +22,8 @@ import (
 	"path"
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -155,6 +157,46 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			for _, h := range hooks {
 				h.AssertCalled(t, "OnShutdown")
 			}
+		})
+	}
+}
+
+// TestSecretProviderSchemes verifies that the AWS and GCP secret manager
+// provider factories report the correct scheme names and integrate cleanly
+// with the configsource wrapping layer (OnNew / OnShutdown hooks fire).
+func TestSecretProviderSchemes(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		factory        confmap.ProviderFactory
+		expectedScheme string
+	}{
+		{
+			name:           "secretsmanager",
+			factory:        secretsmanagerprovider.NewFactory(),
+			expectedScheme: "secretsmanager",
+		},
+		{
+			name:           "googlesecretmanager",
+			factory:        googlesecretmanagerprovider.NewFactory(),
+			expectedScheme: "googlesecretmanager",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			// Verify the scheme string.
+			provider := tc.factory.Create(confmap.ProviderSettings{})
+			assert.Equal(t, tc.expectedScheme, provider.Scheme())
+
+			// Verify the configsource wrap layer: OnNew fires on Create, OnShutdown fires on Shutdown.
+			h := &mockHook{}
+			h.On("OnNew")
+			h.On("OnShutdown")
+
+			p := New(zap.NewNop(), []Hook{h})
+			wrapped := p.Wrap(tc.factory).Create(confmap.ProviderSettings{})
+			h.AssertCalled(t, "OnNew")
+
+			require.NoError(t, wrapped.Shutdown(context.Background()))
+			h.AssertCalled(t, "OnShutdown")
 		})
 	}
 }

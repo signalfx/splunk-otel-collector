@@ -3,8 +3,11 @@ accept = ["200..=299", "429"]
 exclude = [
     "my.host",
     "file://*",
-    "api.*.signalfx.com",
-    "ingest.*.signalfx.com",
+    "api.*.signalfx.com", # legacy endpoints still referenced in upgrade/rollback docs
+    "ingest.*.signalfx.com", # legacy endpoints still referenced in upgrade/rollback docs
+    "api.*.observability.splunkcloud.com",
+    "ingest.*.observability.splunkcloud.com",
+    "cdn.observability.splunkcloud.com", # favicon CDN, may not be live during transition
     "splunk.jfrog.io.*basearch",
     "localhost:*",
     "127.*:*",
@@ -15,11 +18,13 @@ exclude = [
     "https://superuser.com/a/980821", # failing with 403 Forbidden
     "https://self-service.isv.ci", # Failing with timeouts, not stable and still current according to https://github.com/cf-platform-eng/selfservice/blame/main/README.md#L3
     "https://github.com/.*/(pull|issues)/[0-9]+", # We have too many PR and issues links in CHANGELOG.md that we always run out of the rate limit
+    "https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver", # page has been removed from main, but can still be linked from different branches
     "https://bugs.mysql.com/*", # Failing with 403 Forbidden. Likely rejecting the user agent
     "https://docs.splunk.com", # is returning 403, ignoring temporarily
     "^http(s)?://localhost",
     "^http(s)?://example.com",
-    "^https://dev.mysql.com"
+    "^https://dev.mysql.com",
+    "https://developers.redhat.com/*", # Failing with 403 Forbidden
 ]
 
 include-fragments = true

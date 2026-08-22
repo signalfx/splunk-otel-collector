@@ -24,7 +24,7 @@ RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream8" ]] ; then \
 
 # additional packages for suse
 RUN if [[ ${DISTRO_IMAGE} =~ "opensuse" ]] ; then \
-    ${PKG_MGR} install -y dbus-1 systemd-sysvinit gzip; \
+    ${PKG_MGR} install -y dbus-1 gzip; \
 	fi
 
 RUN ${PKG_MGR} install -y systemd procps python3-pip python3-devel gcc wget tar
@@ -33,7 +33,11 @@ RUN if [ ${PKG_MGR} != "zypper" ]; then \
 wget -O /etc/yum.repos.d/salt.repo -q https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.repo; fi
 RUN if [ ${PKG_MGR} == "dnf" ]; then dnf clean expire-cache; fi
 RUN if [ ${PKG_MGR} == "yum" ]; then yum makecache; fi
-RUN ${PKG_MGR} install -y salt-minion
+RUN if [ ${PKG_MGR} == "zypper" ]; then \
+        ${PKG_MGR} install -y salt-minion; \
+    else \
+        ${PKG_MGR} install -y --nogpgcheck salt-minion; \
+    fi
 
 RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz && \
     mkdir -p /opt/ && \

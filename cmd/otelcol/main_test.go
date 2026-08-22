@@ -25,6 +25,7 @@ import (
 	"context"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
@@ -34,12 +35,25 @@ import (
 )
 
 func TestRunFromCmdLine(t *testing.T) {
+	configFiles, err := filepath.Glob(filepath.Join("config", "collector", "*.yml"))
+	require.NoError(t, err)
+	require.Empty(t, configFiles, "Default configs must end with the extension `.yaml` rather than `.yml`. Please update accordingly.")
+
+	configFiles, err = filepath.Glob(filepath.Join("config", "collector", "*.yaml"))
+	require.NoError(t, err)
+
+	require.Len(t, configFiles, 12, "A new test case must be added to TestRunFromCmdLine to validate default configurations")
+
 	tests := []struct {
-		name     string
-		panicMsg string
-		skipMsg  string
-		args     []string
-		timeout  time.Duration
+		extraEnvVars   map[string]string
+		name           string
+		panicMsg       string
+		skipMsg        string
+		args           []string
+		timeout        time.Duration
+		skipNonWindows bool
+		skipWindows    bool
+		validateOnly   bool
 	}{
 		{
 			name:    "agent",
@@ -47,9 +61,106 @@ func TestRunFromCmdLine(t *testing.T) {
 			timeout: 15 * time.Second,
 		},
 		{
+			name: "ecs_ec2",
+			args: []string{"otelcol", "--config=config/collector/ecs_ec2_config.yaml"},
+			extraEnvVars: map[string]string{
+				"ECS_CONTAINER_METADATA_URI_V4": "https://foo.com",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name: "fargate",
+			args: []string{"otelcol", "--config=config/collector/fargate_config.yaml"},
+			extraEnvVars: map[string]string{
+				"ECS_CONTAINER_METADATA_URI_V4": "https://foo.com",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name:         "full_linux",
+			args:         []string{"otelcol", "--config=config/collector/full_config_linux.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			// scripted_inputs receiver is not supported on Windows, config validation fails when it's included.
+			// This can be removed when scripted_inputs is removed.
+			skipWindows: true,
+		},
+		{
 			name:    "gateway",
 			args:    []string{"otelcol", "--config=config/collector/gateway_config.yaml"},
 			timeout: 15 * time.Second,
+		},
+		{
+			name:         "logs_linux",
+			args:         []string{"otelcol", "--config=config/collector/logs_config_linux.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name:         "otlp_linux",
+			args:         []string{"otelcol", "--config=config/collector/otlp_config_linux.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name:         "upstream_agent",
+			args:         []string{"otelcol", "--config=config/collector/upstream_agent_config.yaml"},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+		},
+		{
+			name: "splunk_logs_linux",
+			args: []string{"otelcol", "--config=config/collector/splunk_logs_config_linux.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
+			name: "splunk_logs_linux_no_index",
+			args: []string{"otelcol", "--config=config/collector/splunk_logs_config_linux.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN": "test-token",
+				"SPLUNK_PLATFORM_URL":   "https://localhost:8088/services/collector",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
+			name: "agent_plus_splunk_logs_linux",
+			args: []string{
+				"otelcol",
+				"--feature-gates=confmap.enableMergeAppendOption",
+				"--config=config/collector/agent_config.yaml",
+				"--config=config/collector/splunk_logs_config_linux.yaml",
+			},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
+		},
+		{
+			name: "splunk_metrics_linux",
+			args: []string{"otelcol", "--config=config/collector/splunk_metrics_config_linux.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_TOKEN":         "test-token",
+				"SPLUNK_PLATFORM_URL":           "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "metrics",
+			},
+			timeout:      15 * time.Second,
+			validateOnly: true,
+			skipWindows:  true,
 		},
 		{
 			name:    "default_discovery",
@@ -67,15 +178,56 @@ func TestRunFromCmdLine(t *testing.T) {
 			panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
 			skipMsg:  "Skipping this test by default because --dry-run uses os.Exit(0) to end the execution",
 		},
+		{
+			name: "splunk_logs_windows",
+			args: []string{"otelcol", "--config=config/collector/splunk_logs_config_windows.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:        15 * time.Second,
+			skipNonWindows: true,
+			validateOnly:   true,
+		},
+		{
+			name: "splunk_metrics_windows",
+			args: []string{"otelcol", "--config=config/collector/splunk_metrics_config_windows.yaml"},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_URL":           "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "test-token",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "metrics",
+			},
+			timeout:        15 * time.Second,
+			skipNonWindows: true,
+			validateOnly:   true,
+		},
+		{
+			name: "agent_plus_splunk_logs_windows",
+			args: []string{
+				"otelcol",
+				"--config=config/collector/agent_config.yaml",
+				"--config=config/collector/splunk_logs_config_windows.yaml",
+				"--feature-gates=confmap.enableMergeAppendOption",
+			},
+			extraEnvVars: map[string]string{
+				"SPLUNK_PLATFORM_URL":        "https://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":      "test-token",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "main",
+			},
+			timeout:        15 * time.Second,
+			skipNonWindows: true,
+			validateOnly:   true,
+		},
 	}
 
 	// Set execution environment
 	requiredEnvVars := map[string]string{
+		"NO_WINDOWS_SERVICE":      "true", // Avoid using the Windows service manager
 		"SPLUNK_ACCESS_TOKEN":     "access_token",
 		"SPLUNK_HEC_TOKEN":        "hec_token",
 		"SPLUNK_REALM":            "test_realm",
 		"SPLUNK_LISTEN_INTERFACE": "127.0.0.1",
-		"NO_WINDOWS_SERVICE":      "true", // Avoid using the Windows service manager
 	}
 	for key, value := range requiredEnvVars {
 		t.Setenv(key, value)
@@ -83,8 +235,19 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.skipWindows && runtime.GOOS == "windows" {
+				t.Skip("skipping test on windows")
+			}
+			if tt.skipNonWindows && runtime.GOOS != "windows" {
+				t.Skip("skipping test on non-windows")
+			}
+
 			if tt.skipMsg != "" {
 				t.Skip(tt.skipMsg)
+			}
+
+			for key, value := range tt.extraEnvVars {
+				t.Setenv(key, value)
 			}
 
 			// GH darwin runners don't have docker installed, skip discovery tests on them
@@ -106,13 +269,18 @@ func TestRunFromCmdLine(t *testing.T) {
 
 			defer waitForPort(t, "55679")
 
+			args := append([]string{}, tt.args...)
+			if tt.validateOnly {
+				args = append(args, "validate")
+			}
+
 			if tt.panicMsg != "" {
-				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
+				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(args) })
 				return
 			}
 
 			waitForPort(t, "55679")
-			runFromCmdLine(tt.args)
+			runFromCmdLine(args)
 		})
 	}
 }

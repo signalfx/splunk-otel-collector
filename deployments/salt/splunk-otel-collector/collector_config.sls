@@ -6,19 +6,15 @@
 
 {% set splunk_realm = salt['pillar.get']('splunk-otel-collector:splunk_realm', 'us0') %}
 
-{% set splunk_api_url = salt['pillar.get']('splunk-otel-collector:splunk_api_url', 'https://api.' + splunk_realm + '.signalfx.com' ) %}
+{% set splunk_api_url = salt['pillar.get']('splunk-otel-collector:splunk_api_url', 'https://api.' + splunk_realm + '.observability.splunkcloud.com' ) %}
 
-{% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.signalfx.com') %}
+{% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.observability.splunkcloud.com') %}
 
 {% set splunk_hec_url = salt['pillar.get']('splunk-otel-collector:splunk_hec_url', splunk_ingest_url + '/v1/log') %}
 
 {% set splunk_hec_token = salt['pillar.get']('splunk-otel-collector:splunk_hec_token', splunk_access_token) %}
 
 {% set splunk_otel_collector_config = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_config', '/etc/otel/collector/agent_config.yaml') %}
-
-{% set splunk_collectd_dir = salt['pillar.get']('splunk-otel-collector:splunk_collectd_dir', '/usr/lib/splunk-otel-collector/agent-bundle/run/collectd') %}
-
-{% set splunk_bundle_dir = salt['pillar.get']('splunk-otel-collector:splunk_bundle_dir', '/usr/lib/splunk-otel-collector/agent-bundle') %}
 
 {% set splunk_memory_total_mib = salt['pillar.get']('splunk-otel-collector:splunk_memory_total_mib', '512') %}
 
@@ -46,8 +42,6 @@
         {% if splunk_listen_interface -%}
         SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}
         {% endif -%}
-        SPLUNK_BUNDLE_DIR={{ splunk_bundle_dir }}
-        SPLUNK_COLLECTD_DIR={{ splunk_collectd_dir }}
 {% for key, value in collector_additional_env_vars.items() %}
         {{ key }}={{ value }}
 {% endfor %}

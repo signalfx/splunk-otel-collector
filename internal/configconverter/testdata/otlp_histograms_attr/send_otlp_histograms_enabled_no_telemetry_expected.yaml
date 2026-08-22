@@ -1,10 +1,10 @@
 receivers:
-  hostmetrics:
+  host_metrics:
     scrapers:
       cpu:
 exporters:
   otlp_grpc:
-    endpoint: "https://ingest.signalfx.com:443"
+    endpoint: "https://ingest.observability.splunkcloud.com:443"
     headers:
       "X-SF-Token": TOKEN
     sending_queue:
@@ -24,18 +24,18 @@ service:
   pipelines:
     metrics:
       receivers:
-        - hostmetrics
+        - host_metrics
       exporters:
         - otlp_grpc
         - signalfx
     metrics/signalfx:
       receivers:
-        - hostmetrics
+        - host_metrics
       exporters:
         - signalfx
     metrics/histograms:
       receivers:
-        - hostmetrics
+        - host_metrics
       processors:
         - batch
       exporters:

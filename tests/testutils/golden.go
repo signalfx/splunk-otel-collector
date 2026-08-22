@@ -94,13 +94,13 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 	f := otlpreceiver.NewFactory()
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+	c.Protocols.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
 			Endpoint:  fmt.Sprintf("localhost:%d", port),
 			Transport: "tcp",
 		},
 	})
-	c.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
+	c.Protocols.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)

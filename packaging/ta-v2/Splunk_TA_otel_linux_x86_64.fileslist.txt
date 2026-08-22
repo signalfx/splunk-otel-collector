@@ -1,0 +1,8 @@
+Splunk_TA_otel_linux_x86_64/configs/agent_config.yaml
+Splunk_TA_otel_linux_x86_64/configs/gateway_config.yaml
+Splunk_TA_otel_linux_x86_64/default/app.conf
+Splunk_TA_otel_linux_x86_64/default/inputs.conf
+Splunk_TA_otel_linux_x86_64/linux_x86_64/bin/Splunk_TA_otel
+Splunk_TA_otel_linux_x86_64/README/inputs.conf.spec
+Splunk_TA_otel_linux_x86_64/static/appIcon_2x.png
+Splunk_TA_otel_linux_x86_64/static/appIcon.png

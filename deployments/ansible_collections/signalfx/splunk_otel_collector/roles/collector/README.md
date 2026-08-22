@@ -56,16 +56,16 @@ $> ansible-playbook playbook.yaml -e start_service=false
   Collector service. (**default:** `us0`)
 
 - `splunk_ingest_url`: The Splunk ingest URL, e.g.
-  `https://ingest.us0.signalfx.com`. The `SPLUNK_INGEST_URL` environment
+  `https://ingest.us0.observability.splunkcloud.com`. The `SPLUNK_INGEST_URL` environment
   variable will be set with this value for the collector service. (**default:**
-  `https://ingest.{{ splunk_realm }}.signalfx.com`)
+  `https://ingest.{{ splunk_realm }}.observability.splunkcloud.com`)
 
-- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`.
+- `splunk_api_url`: The Splunk API URL, e.g. `https://api.us0.observability.splunkcloud.com`.
   The `SPLUNK_API_URL` environment variable will be set with this value for the
-  collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
+  collector service. (**default:** `https://api.{{ splunk_realm }}.observability.splunkcloud.com`)
 
 - `splunk_hec_url`: The Splunk HEC endpoint URL, e.g.
-  `https://ingest.us0.signalfx.com/v1/log`. The `SPLUNK_HEC_URL` environment
+  `https://ingest.us0.observability.splunkcloud.com/v1/log`. The `SPLUNK_HEC_URL` environment
   variable will be set with this value for the collector service. (**default:**
   `{{ splunk_ingest_url }}/v1/log`)
 
@@ -86,23 +86,6 @@ $> ansible-playbook playbook.yaml -e start_service=false
   `splunk_otel_collector_config` in remote hosts. Can be used to submit a custom collector 
   config, e.g. `./custom_collector_config.yaml`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_otel_collector_config` will be used)
-
-- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
-  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
-  The default path is provided by the collector package. If the specified path
-  is changed from the default value, the path should be an existing directory
-  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the collector service. (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle` on Linux, **default:** 
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle` on Windows)
-
-- `splunk_collectd_dir`: The path to the collectd config directory for the
-  Smart Agent bundle. The default path is provided by the collector package.
-  If the specified path is changed from the default value, the path should be
-  an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the collector service.
-  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  **default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd` on Windows)
 
 - `splunk_service_user` and `splunk_service_group` (Linux only): Set the user/group
   ownership for the collector service. The user/group will be created if they
@@ -241,8 +224,8 @@ to take effect.
 
 - `splunk_otel_auto_instrumentation_resource_attributes`:
   Configure the OpenTelemetry instrumentation resource attributes,
-  e.g. `deployment.environment=prod,my.key=value` (comma-separated
-  `key=value` pairs. (**default:** ``)
+  e.g. `deployment.environment.name=prod,my.key=value` (comma-separated
+  `key=value` pairs). (**default:** ``)
 
 - `splunk_otel_auto_instrumentation_service_name` (Linux only): Explicitly set
   the service name for ***all*** instrumented applications on the node, e.g.
@@ -368,7 +351,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"  # Required
   CORECLR_ENABLE_PROFILING: "1"  # Required
   CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"  # Required
-  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},{{ splunk_otel_auto_instrumentation_resource_attributes }},splunk.zc.method=splunk-otel-dotnet-1.8.0"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment.name={{ splunk_dotnet_auto_instrumentation_environment }},{{ splunk_otel_auto_instrumentation_resource_attributes }},splunk.zc.method=splunk-otel-dotnet-1.8.0"
   OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
   SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
   SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"
@@ -385,7 +368,13 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   example `production`. The value is assigned to the `OTEL_RESOURCE_ATTRIBUTES` environment
   variable in the Windows registry (**default:** ``, i.e. the "Environment"
   will appear as `unknown` in Splunk APM for the instrumented
-  service/application) using the `deployment.environment` attribute key.
+  service/application) using the `deployment.environment.name` attribute.
+  To retain the deprecated attribute, use the 
+  `splunk_dotnet_auto_instrumentation_additional_options` option instead:
+  ```yaml
+  splunk_dotnet_auto_instrumentation_additional_options:
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=<value>,my.key=my-value"
+  ```
 
 - `splunk_dotnet_auto_instrumentation_service_name` (Windows only): Configure
   this variable to override the [auto-generated service name](

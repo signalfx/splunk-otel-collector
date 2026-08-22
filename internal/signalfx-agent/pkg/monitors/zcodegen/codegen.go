@@ -1,7 +1,7 @@
 //go:build !windows
 
 // Package codegen exists purely to manipulate the go:generate build order so
-// that collectd templates are generated first before the monitor metadata
+// that generated monitor sources are created before the monitor metadata
 // module is generated.
 package codegen
 

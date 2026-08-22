@@ -1,0 +1,17 @@
+receivers:
+  host_metrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+
+exporters:
+  otlp_grpc:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [host_metrics]
+      exporters: [otlp_grpc]

@@ -31,9 +31,13 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 			pmetrictest.IgnoreMetricsOrder(),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("server_address"),
+			pmetrictest.IgnoreMetricAttributeValue("server_port"),
+			pmetrictest.IgnoreMetricAttributeValue("transport"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricValues(
+				"otelcol_exporter_in_flight_requests",
 				"otelcol_exporter_queue_batch_send_size",
 				"otelcol_exporter_queue_batch_send_size_bucket",
 				"otelcol_exporter_queue_batch_send_size_count",
@@ -46,6 +50,7 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 				"otelcol_process_uptime",
 				"otelcol_receiver_accepted_metric_points",
 				"otelcol_receiver_failed_metric_points",
+				"otelcol_receiver_refused_metric_points",
 			),
 		),
 	)

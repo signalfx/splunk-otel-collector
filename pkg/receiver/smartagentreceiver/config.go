@@ -18,12 +18,10 @@ import (
 	"fmt"
 	"net"
 	"reflect"
-	"runtime"
 	"strconv"
 
 	"github.com/signalfx/defaults"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"gopkg.in/yaml.v2"
 
 	_ "github.com/signalfx/signalfx-agent/pkg/core" // required to invoke monitor registration via init() calls
@@ -36,21 +34,12 @@ const defaultIntervalSeconds = 10
 
 var (
 	_ confmap.Unmarshaler = (*Config)(nil)
-	_ xconfmap.Validator  = (*Config)(nil)
-
-	nonWindowsMonitors = map[string]bool{
-		"collectd/apache":  true,
-		"collectd/cpufreq": true, "collectd/custom": true,
-		"collectd/memcached": true, "collectd/memory": true,
-		"collectd/php-fpm":   true,
-		"collectd/processes": true, "collectd/protocols": true,
-		"collectd/signalfx-metadata": true, "collectd/uptime": true,
-	}
+	_ confmap.Validator   = (*Config)(nil)
 )
 
 type Config struct {
 	monitorConfig saconfig.MonitorCustomConfig
-	MonitorType   string `mapstructure:"type"` // Smart Agent monitor type, e.g. collectd/cpu
+	MonitorType   string `mapstructure:"type"` // Smart Agent monitor type, e.g. cpu
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
@@ -97,9 +86,6 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	// The values are always pointers to an actual custom config.
 	customMonitorConfig, ok := monitors.ConfigTemplates[cfg.MonitorType]
 	if !ok {
-		if unsupported := nonWindowsMonitors[cfg.MonitorType]; runtime.GOOS == "windows" && unsupported {
-			return fmt.Errorf("smart agent monitor type %q is not supported on windows platforms", cfg.MonitorType)
-		}
 		return fmt.Errorf("no known monitor type %q", cfg.MonitorType)
 	}
 	monitorConfigType := reflect.TypeOf(customMonitorConfig).Elem()

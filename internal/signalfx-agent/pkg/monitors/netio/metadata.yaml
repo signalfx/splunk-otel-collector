@@ -3,6 +3,7 @@ monitors:
     interface:
       description: The name of the network interface (e.g. `eth0`)
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Use the hostmetrics receiver instead.**
     This monitor reports I/O metrics about network interfaces.
 
     On Linux hosts, this monitor relies on the `/proc` filesystem.

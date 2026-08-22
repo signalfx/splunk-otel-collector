@@ -82,6 +82,27 @@ func TestNewSettingsWithHelpFlags(t *testing.T) {
 	require.Nil(t, settings)
 }
 
+func TestWriteUsage(t *testing.T) {
+	flagSet := flag.NewFlagSet("otelcol", flag.ContinueOnError)
+	flagSet.Bool("visible", false, "visible flag")
+	flagSet.Bool("hidden", false, "hidden flag")
+	require.NoError(t, flagSet.MarkHidden("hidden"))
+
+	var output bytes.Buffer
+	flagSet.SetOutput(&output)
+	writeUsage(flagSet)
+
+	usage := output.String()
+	require.Contains(t, usage, `Available Commands:
+  featuregate  Display feature gates information
+  validate     Validates the config without running the collector
+
+Flags:
+`)
+	require.Contains(t, usage, "--visible")
+	require.NotContains(t, usage, "--hidden")
+}
+
 func TestNewSettingsConfMapProviders(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	settings, err := New([]string{})
@@ -89,7 +110,7 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.NotNil(t, settings)
 
 	confMapProviderFactories := settings.ConfMapProviderFactories()
-	require.Len(t, confMapProviderFactories, 6)
+	require.Len(t, confMapProviderFactories, 8)
 
 	schemas := make([]string, 0, len(confMapProviderFactories))
 	for _, provider := range confMapProviderFactories {
@@ -99,6 +120,8 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.Contains(t, schemas, settings.discovery.ConfigDScheme())
 	require.Contains(t, schemas, settings.discovery.DiscoveryModeScheme())
 	require.Contains(t, schemas, settings.discovery.PropertiesFileScheme())
+	require.Contains(t, schemas, "secretsmanager")
+	require.Contains(t, schemas, "googlesecretmanager")
 }
 
 func TestNewSettingsNoConvertConfig(t *testing.T) {
@@ -131,7 +154,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.one=val.one",
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
 	}, settings.ResolverURIs())
-	require.Len(t, settings.ConfMapConverterFactories(), 2)
+	require.Len(t, settings.ConfMapConverterFactories(), 3)
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
@@ -181,10 +204,50 @@ func TestSplunkConfigYamlNotUtilizedInResolverURIsWithConfigEnvVar(t *testing.T)
 
 func TestNewSettingsWithValidate(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	settings, err := New([]string{"validate"})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	require.Equal(t, []string{"validate"}, settings.ColCoreArgs())
+	tests := []struct {
+		name     string
+		args     []string
+		expected []string
+	}{
+		{
+			name:     "command only",
+			args:     []string{"validate"},
+			expected: []string{"validate"},
+		},
+		{
+			name:     "command with flags",
+			args:     []string{"validate", "--feature-gates", "foo"},
+			expected: []string{"--feature-gates", "foo", "validate"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			settings, err := New(test.args)
+			require.NoError(t, err)
+			require.NotNil(t, settings)
+			require.Equal(t, test.expected, settings.ColCoreArgs())
+		})
+	}
+}
+
+func TestNewSettingsWithFeatureGate(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	for _, args := range [][]string{
+		{"featuregate"},
+		{"featuregate", "splunk.opamp.enabled"},
+		{"featuregate", "--help"},
+		{"featuregate", "-h"},
+		{"featuregate", "splunk.opamp.enabled", "--help"},
+		{"featuregate", "unknown.feature", "extra-argument"},
+		{"featuregate", "--unknown-flag"},
+	} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			settings, err := New(args)
+			require.NoError(t, err)
+			require.NotNil(t, settings)
+			require.Equal(t, args, settings.ColCoreArgs())
+		})
+	}
 }
 
 func TestCheckRuntimeParams_Default(t *testing.T) {
@@ -267,10 +330,10 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	assert.Contains(t, set.envVarWarnings["SPLUNK_TRACE_URL"], `"SPLUNK_TRACE_URL" environment variable is deprecated`)
 
 	expectedEnvVars := [][]string{
-		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.signalfx.com", realm)},
-		{"SPLUNK_INGEST_URL", fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
-		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
-		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
+		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.observability.splunkcloud.com", realm)},
+		{"SPLUNK_INGEST_URL", fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com", realm)},
+		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v2/trace", realm)},
+		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com/v1/log", realm)},
 	}
 	for _, v := range expectedEnvVars {
 		val, ok := os.LookupEnv(v[0])
@@ -283,18 +346,18 @@ func TestNoWarningsIfTraceURLSetExplicitly(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
 	t.Setenv("SPLUNK_REALM", "us1")
-	t.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.signalfx.com/v2/trace")
+	t.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.observability.splunkcloud.com/v2/trace")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
 	assert.Empty(t, set.envVarWarnings)
 
 	val, ok := os.LookupEnv("SPLUNK_INGEST_URL")
 	assert.True(t, ok)
-	assert.Equal(t, "https://ingest.us1.signalfx.com", val)
+	assert.Equal(t, "https://ingest.us1.observability.splunkcloud.com", val)
 
 	val, ok = os.LookupEnv("SPLUNK_TRACE_URL")
 	assert.True(t, ok)
-	assert.Equal(t, "https://ingest.trace-realm.signalfx.com/v2/trace", val)
+	assert.Equal(t, "https://ingest.trace-realm.observability.splunkcloud.com/v2/trace", val)
 }
 
 func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
@@ -312,7 +375,7 @@ func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
 func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
-	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com/")
+	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.observability.splunkcloud.com/")
 	set := newSettings()
 	require.NoError(t, setDefaultEnvVars(set))
 	assert.Len(t, set.envVarWarnings, 1)
@@ -320,7 +383,7 @@ func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
 
 	val, ok := os.LookupEnv("SPLUNK_TRACE_URL")
 	assert.True(t, ok)
-	assert.Equal(t, "https://ingest.fake-realm.signalfx.com/v2/trace", val)
+	assert.Equal(t, "https://ingest.fake-realm.observability.splunkcloud.com/v2/trace", val)
 }
 
 func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
@@ -420,9 +483,116 @@ func TestUseConfigPathsFromEnvVar(t *testing.T) {
 	require.Equal(t, []string{localGatewayConfig}, settings.ResolverURIs())
 }
 
+func TestDeprecatedOTLPLinuxConfigWarning(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+	}{
+		{
+			name: "config path",
+			path: DefaultOTLPLinuxConfig,
+		},
+		{
+			name: "config file URI",
+			path: "file:" + DefaultOTLPLinuxConfig,
+		},
+		{
+			name: "cleaned config path",
+			path: "/etc/otel/collector/../collector/otlp_config_linux.yaml",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			oldWriter := log.Default().Writer()
+			logs := new(bytes.Buffer)
+			log.Default().SetOutput(logs)
+			t.Cleanup(func() {
+				log.Default().SetOutput(oldWriter)
+			})
+
+			warnIfDeprecatedOTLPLinuxConfigUsed([]string{test.path})
+
+			actualLogs := logs.String()
+			require.Contains(t, actualLogs, "otlp_config_linux.yaml is deprecated and will be removed in a future release")
+			require.Contains(t, actualLogs, "Use --config=/etc/otel/collector/agent_config.yaml instead")
+			require.Contains(t, actualLogs, "set SPLUNK_LISTEN_INTERFACE=0.0.0.0 when migrating")
+		})
+	}
+}
+
+func TestDeprecatedOTLPLinuxConfigWarningFromSelectedConfig(t *testing.T) {
+	tests := []struct {
+		name             string
+		args             []string
+		env              map[string]string
+		expectedResolver []string
+	}{
+		{
+			name:             "config flag",
+			args:             []string{"--config", DefaultOTLPLinuxConfig},
+			expectedResolver: []string{DefaultOTLPLinuxConfig},
+		},
+		{
+			name:             "config flag file URI",
+			args:             []string{"--config", "file:" + DefaultOTLPLinuxConfig},
+			expectedResolver: []string{"file:" + DefaultOTLPLinuxConfig},
+		},
+		{
+			name: "config env var",
+			env: map[string]string{
+				ConfigEnvVar: DefaultOTLPLinuxConfig,
+			},
+			expectedResolver: []string{DefaultOTLPLinuxConfig},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Cleanup(clearEnv(t))
+			setStatConfigFileForDefaultOTLPLinuxConfig(t)
+			t.Setenv(RealmEnvVar, "us0")
+			t.Setenv(TokenEnvVar, "access_token")
+
+			oldWriter := log.Default().Writer()
+			logs := new(bytes.Buffer)
+			log.Default().SetOutput(logs)
+			t.Cleanup(func() {
+				log.Default().SetOutput(oldWriter)
+			})
+
+			for key, value := range test.env {
+				t.Setenv(key, value)
+			}
+
+			settings, err := New(test.args)
+			require.NoError(t, err)
+			require.Equal(t, test.expectedResolver, settings.ResolverURIs())
+
+			actualLogs := logs.String()
+			require.Contains(t, actualLogs, "Configuration file /etc/otel/collector/otlp_config_linux.yaml is deprecated")
+			require.Contains(t, actualLogs, "Use --config=/etc/otel/collector/agent_config.yaml instead")
+			require.Contains(t, actualLogs, "set SPLUNK_LISTEN_INTERFACE=0.0.0.0 when migrating")
+		})
+	}
+}
+
+func setStatConfigFileForDefaultOTLPLinuxConfig(t *testing.T) {
+	oldStatConfigFile := statConfigFile
+	statConfigFile = func(name string) (os.FileInfo, error) {
+		if name == DefaultOTLPLinuxConfig || filepath.Clean(name) == filepath.Clean(DefaultOTLPLinuxConfig) {
+			return os.Stat(localOTLPLinuxConfig)
+		}
+		return os.Stat(name)
+	}
+	t.Cleanup(func() {
+		statConfigFile = oldStatConfigFile
+	})
+}
+
 func TestConfigPrecedence(t *testing.T) {
 	validConfig := `receivers:
-  hostmetrics:
+  host_metrics:
     collection_interval: 1s
     scrapers:
       cpu:
@@ -432,7 +602,7 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics]
+      receivers: [host_metrics]
       exporters: [debug]`
 
 	tests := []struct {
@@ -691,6 +861,197 @@ func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {
 	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
 	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH to be set")
 	require.Equal(t, path, nonDefaultPath)
+}
+
+// Unit tests for warnDeprecatedSignalfxURLs
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenURLsNotSet(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsAPIURLTriggersWarning(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	warnDeprecatedSignalfxURLs()
+
+	output := logBuf.String()
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.NotContains(t, output, IngestURLEnvVar)
+}
+
+func TestWarnDeprecatedSignalfxURLsIngestURLTriggersWarning(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+	warnDeprecatedSignalfxURLs()
+
+	output := logBuf.String()
+	assert.Contains(t, output, IngestURLEnvVar)
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.NotContains(t, output, APIURLEnvVar)
+}
+
+func TestWarnDeprecatedSignalfxURLsBothURLsTriggerWarning(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+	warnDeprecatedSignalfxURLs()
+
+	output := logBuf.String()
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, IngestURLEnvVar)
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningForRecommendedDomain(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.observability.splunkcloud.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.observability.splunkcloud.com")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenAPIURLEmpty(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// SPLUNK_API_URL is explicitly set but to an empty string (ok=true, url="").
+	t.Setenv(APIURLEnvVar, "")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenIngestURLEmpty(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// SPLUNK_INGEST_URL is explicitly set but to an empty string (ok=true, url="").
+	t.Setenv(IngestURLEnvVar, "")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenOnlyAPIURLSetToRecommended(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// Only SPLUNK_API_URL is set; SPLUNK_INGEST_URL is absent.
+	t.Setenv(APIURLEnvVar, "https://api.us0.observability.splunkcloud.com")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+func TestWarnDeprecatedSignalfxURLsNoWarningWhenOnlyIngestURLSetToRecommended(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	// Only SPLUNK_INGEST_URL is set; SPLUNK_API_URL is absent.
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.observability.splunkcloud.com")
+	warnDeprecatedSignalfxURLs()
+
+	assert.Empty(t, logBuf.String())
+}
+
+// Functional test: verifies the deprecation warning is logged end-to-end through setDefaultEnvVars.
+func TestDeprecatedSignalfxURLsWarningLoggedViaSetDefaultEnvVars(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+	require.NoError(t, setDefaultEnvVars(newSettings()))
+
+	output := logBuf.String()
+	assert.Contains(t, output, "deprecated")
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, IngestURLEnvVar)
+}
+
+// Functional test: verifies the deprecation warning is logged through the full New() collector
+// startup path when signalfx.com endpoints are configured.
+func TestDeprecatedSignalfxURLsWarningLoggedViaNew(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer log.Default().SetOutput(oldWriter)
+	logBuf := new(bytes.Buffer)
+	log.Default().SetOutput(logBuf)
+
+	t.Setenv(ConfigEnvVar, localGatewayConfig)
+	t.Setenv(APIURLEnvVar, "https://api.us0.signalfx.com")
+	t.Setenv(IngestURLEnvVar, "https://ingest.us0.signalfx.com")
+
+	_, err := New([]string{})
+	require.NoError(t, err)
+
+	output := logBuf.String()
+	assert.Contains(t, output, "deprecated")
+	assert.Contains(t, output, "signalfx.com")
+	assert.Contains(t, output, "observability.splunkcloud.com")
+	assert.Contains(t, output, APIURLEnvVar)
+	assert.Contains(t, output, IngestURLEnvVar)
 }
 
 // to satisfy Settings generation

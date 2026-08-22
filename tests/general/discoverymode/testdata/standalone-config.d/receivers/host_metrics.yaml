@@ -1,0 +1,4 @@
+host_metrics:
+  collection_interval: 1s
+  scrapers:
+    memory:

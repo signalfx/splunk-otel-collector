@@ -73,7 +73,7 @@ if [ "$KERNEL" = "Linux" ] ; then
 			if ( !NF ) { exit; }
 			# Skip the leading spaces
 			$0 = substr( $0, leading );
-			# the description spans fields so catch it seperately
+			# the description spans fields so catch it separately
 			desc=substr( $0, desclen );
 			FULLTEXT = FULLTEXT $0 "\n"
 			if ($1 ~ /[Ss][Pp][Ll][Uu][Nn][Kk]/) { SPLUNKD=1 }

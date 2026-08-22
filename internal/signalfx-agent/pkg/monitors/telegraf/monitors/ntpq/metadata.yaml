@@ -1,5 +1,6 @@
 monitors:
 - doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the [ntp receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver) instead.**
     This is an embedded form of the [Telegraf NTPQ
     plugin](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/ntpq).
 

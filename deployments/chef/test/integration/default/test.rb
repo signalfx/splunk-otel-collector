@@ -1,7 +1,7 @@
 splunk_access_token = 'testing123'
 splunk_realm = 'test'
-splunk_api_url = "https://api.#{splunk_realm}.signalfx.com"
-splunk_ingest_url = "https://ingest.#{splunk_realm}.signalfx.com"
+splunk_api_url = "https://api.#{splunk_realm}.observability.splunkcloud.com"
+splunk_ingest_url = "https://ingest.#{splunk_realm}.observability.splunkcloud.com"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = splunk_access_token
 splunk_memory_total = '512'
@@ -12,15 +12,10 @@ describe service('splunk-otel-collector') do
 end
 
 if os[:family] == 'windows'
-  bundle_dir = "#{ENV['ProgramFiles']}\\Splunk\\OpenTelemetry Collector\\agent-bundle"
-  collectd_dir = "#{bundle_dir}\\run\\collectd"
   config_path = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
   collector_env_vars = [
     { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token },
     { name: 'SPLUNK_API_URL', type: :string, data: splunk_api_url },
-    { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: bundle_dir },
-    { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: collectd_dir },
-    { name: 'SPLUNK_CONFIG', type: :string, data: config_path },
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
@@ -35,16 +30,16 @@ if os[:family] == 'windows'
   collector_env_vars_strings.sort!
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
+    it { should have_property 'ImagePath' }
+    its('ImagePath') do
+      should match /^.*--config "#{Regexp.escape(config_path)}"$/i
+    end
   end
 else
-  bundle_dir = '/usr/lib/splunk-otel-collector/agent-bundle'
-  collectd_dir = "#{bundle_dir}/run/collectd"
   config_path = '/etc/otel/collector/agent_config.yaml'
   describe file('/etc/otel/collector/splunk-otel-collector.conf') do
     its('content') { should match /^SPLUNK_ACCESS_TOKEN=#{splunk_access_token}$/ }
     its('content') { should match /^SPLUNK_API_URL=#{splunk_api_url}$/ }
-    its('content') { should match /^SPLUNK_BUNDLE_DIR=#{bundle_dir}$/ }
-    its('content') { should match /^SPLUNK_COLLECTD_DIR=#{collectd_dir}$/ }
     its('content') { should match /^SPLUNK_CONFIG=#{config_path}$/ }
     its('content') { should match /^SPLUNK_HEC_TOKEN=#{splunk_hec_token}$/ }
     its('content') { should match /^SPLUNK_HEC_URL=#{splunk_hec_url}$/ }
@@ -56,10 +51,6 @@ else
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=splunk-otel-collector$/ }
     its('content') { should match /^Group=splunk-otel-collector$/ }
-  end
-  describe service('td-agent') do
-    it { should_not be_enabled }
-    it { should_not be_running }
   end
   describe package('splunk-otel-auto-instrumentation') do
     it { should_not be_installed }

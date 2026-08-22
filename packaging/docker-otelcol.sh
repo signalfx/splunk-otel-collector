@@ -19,12 +19,10 @@ else
 fi
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 SKIP_COMPILE="${SKIP_COMPILE:-false}"
-SKIP_BUNDLE="${SKIP_BUNDLE:-false}"
 DOCKER_REPO="${DOCKER_REPO:-docker.io}"
-JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE:-}"
 MULTIARCH_OTELCOL_BUILDER="${MULTIARCH_OTELCOL_BUILDER:-}"
 if [ "$FIPS" != "true" ]; then
-    DOCKER_OPTS="--provenance=false --build-arg DOCKER_REPO=${DOCKER_REPO} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} $OTELCOL_DIR"
+    DOCKER_OPTS="--provenance=false --build-arg DOCKER_REPO=${DOCKER_REPO} $OTELCOL_DIR"
 else
     OTELCOL_DIR="${OTELCOL_DIR}/fips"
     DIST_DIR="${OTELCOL_DIR}/dist"
@@ -82,21 +80,6 @@ for arch in $archs; do
         fi
         cp "${REPO_DIR}/bin/${bin}" "$DIST_DIR"
     done
-    if [ "$FIPS" != "true" ]; then
-        if [[ "$arch" =~ ^amd64|arm64$ ]]; then
-            if [ "$SKIP_BUNDLE" != "true" ]; then
-                make -C "${REPO_DIR}/packaging/bundle" agent-bundle-linux ARCH=${arch} DOCKER_REPO=${DOCKER_REPO}
-            fi
-        else
-            # create a dummy file to copy for the docker build
-            touch "${REPO_DIR}/dist/agent-bundle_linux_${arch}.tar.gz"
-        fi
-        if [ ! -f "${REPO_DIR}/dist/agent-bundle_linux_${arch}.tar.gz" ]; then
-            echo "${REPO_DIR}/dist/agent-bundle_linux_${arch}.tar.gz not found!" >&2
-            exit 1
-        fi
-        cp "${REPO_DIR}/dist/agent-bundle_linux_${arch}.tar.gz" "$DIST_DIR"
-    fi
     if [[ "$PUSH" = "true" || "$CONTAINERD_ENABLED" = "true" ]]; then
         platforms="${platforms},linux/${arch}"
     else

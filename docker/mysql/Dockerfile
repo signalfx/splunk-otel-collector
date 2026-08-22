@@ -1,4 +1,4 @@
-FROM mysql:9.6
+FROM mysql:26.7
 ENV MYSQL_DATABASE=testdb
 ENV MYSQL_USER=testuser
 ENV MYSQL_PASSWORD=testpass

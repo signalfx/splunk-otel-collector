@@ -17,6 +17,7 @@
 package testutils
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,8 @@ func TestNewHECReceiverSink(t *testing.T) {
 	require.Nil(t, hec.Logger)
 	require.Nil(t, hec.logsReceiver)
 	require.Nil(t, hec.logsSink)
+	require.Nil(t, hec.metricsReceiver)
+	require.Nil(t, hec.metricsSink)
 }
 
 func TestHECReceiverNotBuilt(t *testing.T) {
@@ -40,6 +43,8 @@ func TestHECReceiverNotBuilt(t *testing.T) {
 	require.Error(t, hec.Shutdown())
 	require.Zero(t, hec.LogRecordCount())
 	require.Nil(t, hec.AllLogs())
+	require.Zero(t, hec.DataPointCount())
+	require.Nil(t, hec.AllMetrics())
 }
 
 func TestHECBuilderMethods(t *testing.T) {
@@ -62,4 +67,29 @@ func TestHECBuildDefaults(t *testing.T) {
 	assert.NotNil(t, hec.Logger)
 	assert.NotNil(t, hec.logsReceiver)
 	assert.NotNil(t, hec.logsSink)
+	assert.NotNil(t, hec.metricsReceiver)
+	assert.NotNil(t, hec.metricsSink)
+}
+
+func TestHECStartAndShutdown(t *testing.T) {
+	endpoint := fmt.Sprintf("127.0.0.1:%d", GetAvailablePort(t))
+	hec, err := NewHECReceiverSink().WithEndpoint(endpoint).Build()
+	require.NoError(t, err)
+
+	require.NoError(t, hec.Start())
+	require.NoError(t, hec.Shutdown())
+}
+
+func TestHECAccessorsOnBuiltEmptySink(t *testing.T) {
+	endpoint := fmt.Sprintf("127.0.0.1:%d", GetAvailablePort(t))
+	hec, err := NewHECReceiverSink().WithEndpoint(endpoint).Build()
+	require.NoError(t, err)
+
+	require.NoError(t, hec.Start())
+	defer func() { require.NoError(t, hec.Shutdown()) }()
+
+	assert.Zero(t, hec.LogRecordCount())
+	assert.Empty(t, hec.AllLogs())
+	assert.Zero(t, hec.DataPointCount())
+	assert.Empty(t, hec.AllMetrics())
 }

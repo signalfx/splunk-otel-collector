@@ -25,7 +25,6 @@ clean:
 	rm -f pkg/core/constants/versions.go
 	find pkg/monitors -name "genmetadata.go" -delete
 	find pkg/monitors -name "template.go" -delete
-	rm -f pkg/monitors/collectd/collectd.conf.go
 	rm -f pkg/monitors/zcodegen/monitorcodegen
 
 .PHONY: vet

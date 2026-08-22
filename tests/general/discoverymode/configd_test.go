@@ -145,6 +145,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 		"extensions": map[string]any{
+			"config_source_telemetry": map[string]any{},
 			"health_check/from-config-file": map[string]any{
 				"endpoint": "0.0.0.0:23456",
 			},
@@ -177,7 +178,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
-			"extensions": []any{"health_check/from-configd", "zpages"},
+			"extensions": []any{"health_check/from-configd", "zpages", "config_source_telemetry"},
 			"pipelines": map[string]any{
 				"metrics/from-config-file": map[string]any{
 					"exporters":  []any{"otlp_grpc/from-config-file"},

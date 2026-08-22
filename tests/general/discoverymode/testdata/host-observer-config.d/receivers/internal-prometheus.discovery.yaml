@@ -1,13 +1,21 @@
-prometheus_simple:
+prometheus/test:
   rule:
     host_observer: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
   config:
     default:
-      collection_interval: invalid
-      labels:
-        label_one: '${env:LABEL_ONE_VALUE}'
-        label_three: overwritten by discovery property
+      config:
+        scrape_configs:
+          - job_name: 'prometheus'
+            scrape_interval: invalid
+            scrape_timeout: invalid
     host_observer:
-      collection_interval: 1s
-      labels:
-        label_two: ${LABEL_TWO_VALUE}
+      config:
+        scrape_configs:
+          - job_name: 'prometheus'
+            scrape_interval: 1s
+            scrape_timeout: 1s
+            static_configs:
+              - targets: ['`endpoint`']
+                labels:
+                  label_one: '${env:LABEL_ONE_VALUE}'
+                  label_two: ${LABEL_TWO_VALUE}

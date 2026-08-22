@@ -21,6 +21,7 @@ var logger = logrus.WithField("monitorType", monitorType)
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the windows_service receiver instead.")
 	plugin := telegrafInputs.Inputs["win_services"]().(*telegrafPlugin.WinServices)
 
 	// create the emitter

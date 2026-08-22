@@ -22,22 +22,39 @@ if command -v setcap >/dev/null 2>&1; then
     # See: https://man7.org/linux/man-pages/man7/capabilities.7.html
     # Note: +eip gives the capability to the program regardless of who runs it.
     setcap CAP_SYS_PTRACE,CAP_DAC_READ_SEARCH=+eip /usr/bin/otelcol
+    # The launcher and supervisor need CAP_DAC_READ_SEARCH to maintain existing
+    # collector capability to read protected collector configurations.
+    setcap CAP_DAC_READ_SEARCH=+eip /usr/bin/otelcollauncher
+    setcap CAP_DAC_READ_SEARCH=+eip /usr/bin/opampsupervisor
 fi
 
-if [ -f /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter ]; then
-    /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-fi
-
-if [ -d /etc/otel/collector ]; then
-    chown -R splunk-otel-collector:splunk-otel-collector /etc/otel/collector
-fi
-
-if [ -d /usr/lib/splunk-otel-collector ]; then
-    chown -R splunk-otel-collector:splunk-otel-collector /usr/lib/splunk-otel-collector
-fi
+service_user="splunk-otel-collector"
+service_group="splunk-otel-collector"
+state_dir="/var/lib/otelcol"
 
 if command -v systemctl >/dev/null 2>&1; then
     systemctl daemon-reload
+
+    configured_service_user="$(systemctl show --property=User splunk-otel-collector.service 2>/dev/null)"
+    configured_service_group="$(systemctl show --property=Group splunk-otel-collector.service 2>/dev/null)"
+    configured_service_user="${configured_service_user#User=}"
+    configured_service_group="${configured_service_group#Group=}"
+    if [ -n "$configured_service_user" ] && [ -n "$configured_service_group" ]; then
+        service_user="$configured_service_user"
+        service_group="$configured_service_group"
+    fi
+fi
+
+if [ -d /etc/otel/collector ]; then
+    chown -R "$service_user:$service_group" /etc/otel/collector
+fi
+
+# /var/lib/otelcol is shared by collector file storage and supervisor state.
+# Preserve its contents while ensuring the active service owner can access it.
+mkdir -p "$state_dir"
+chown -R "$service_user:$service_group" "$state_dir"
+
+if command -v systemctl >/dev/null 2>&1; then
     systemctl enable splunk-otel-collector.service
     if [ -f /etc/otel/collector/splunk-otel-collector.conf ]; then
         echo "Starting splunk-otel-collector service"

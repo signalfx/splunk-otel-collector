@@ -10,6 +10,7 @@ on:
       - main
   pull_request:
     paths:
+      - '.github/workflows/tanzu-tile.yml'
       - 'deployments/cloudfoundry/bosh/**'
       - 'deployments/cloudfoundry/tile/**'
 
@@ -29,7 +30,7 @@ jobs:
       - name: Check out the codebase.
         # Technically it will be more precise for the license check to happen against the label matching the
         # Collector version, but that makes harder to track updates to scripts and so on.
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get the Collector version to be packaged
         run: |
@@ -62,10 +63,17 @@ jobs:
 
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@fd832223f9f99ebf0244dd20658680e5d4aca049 # master
       - name: Install BOSH CLI
         shell: bash
         run: |
+          brew install bubblewrap
+          # Required for bubblewrap to function properly
+          sudo sysctl -w kernel.unprivileged_userns_clone=1
+          sudo sysctl -w user.max_user_namespaces=28633
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+          brew trust cloudfoundry/tap
           brew install cloudfoundry/tap/bosh-cli
           bosh -v
       - name: Install PCF CLI
@@ -98,7 +106,7 @@ jobs:
           echo "osdf_license_path=$osdf_license_path" >> "$GITHUB_ENV"
 
       - name: Uploading artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tanzu-tile-publication-bundle
           path: |

@@ -17,10 +17,7 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
-	"os"
 	"path"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -53,14 +50,8 @@ import (
 )
 
 func cleanUp() func() {
-	jh := "JAVA_HOME"
-	existing, ok := os.LookupEnv(jh)
-	os.Unsetenv(jh)
 	return func() {
 		configureEnvironmentOnce = sync.Once{}
-		if ok {
-			os.Setenv(jh, existing)
-		}
 	}
 }
 
@@ -197,7 +188,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 }
 
 func TestStripMonitorTypePrefix(t *testing.T) {
-	assert.Equal(t, "foo", stripMonitorTypePrefix("collectd/foo"))
+	assert.Equal(t, "foo", stripMonitorTypePrefix("legacy/foo"))
 	assert.Equal(t, "cpu", stripMonitorTypePrefix("cpu"))
 }
 
@@ -321,49 +312,11 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		}
 		return false
 	}())
-	require.Equal(t, saconfig.CollectdConfig{
-		Timeout:             10,
-		ReadThreads:         1,
-		WriteThreads:        4,
-		WriteQueueLimitHigh: 5,
-		WriteQueueLimitLow:  400000,
-		LogLevel:            "notice",
-		IntervalSeconds:     10,
-		WriteServerIPAddr:   "127.9.8.7",
-		WriteServerPort:     0,
-		ConfigDir:           filepath.Join("/opt", "run", "collectd"),
-		BundleDir:           "/opt/",
-		InstanceName:        "",
-		WriteServerQuery:    "",
-	}, saConfig.Collectd)
-
-	if runtime.GOOS == "windows" {
-		require.NotEqual(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
-	} else {
-		require.Equal(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
-	}
-
 	require.Equal(t, "/proc", hostfs.HostProc())
 	require.Equal(t, "/sys", hostfs.HostSys())
 	require.Equal(t, "/run", hostfs.HostRun())
 	require.Equal(t, "/var", hostfs.HostVar())
 	require.Equal(t, "/etc", hostfs.HostEtc())
-}
-
-func TestJavaHomeRespected(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("non-windows only")
-	}
-	t.Cleanup(cleanUp())
-	os.Setenv("JAVA_HOME", "/existing/java/home")
-	cfg := newConfig("cpu", 1)
-	rcs := newReceiverCreateSettings("valid", t)
-	r := newReceiver(rcs, cfg)
-
-	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
-	require.NoError(t, r.Shutdown(context.Background()))
-
-	require.Equal(t, "/existing/java/home", os.Getenv("JAVA_HOME"))
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {

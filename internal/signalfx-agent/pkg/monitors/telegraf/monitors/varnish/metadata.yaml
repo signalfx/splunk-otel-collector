@@ -1,5 +1,6 @@
 monitors:
 - doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use https://docs.varnish-software.com/varnish-otel/ instead.**
     This is an embedded form of the [Telegraf Varnish
     plugin](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/varnish).
 

@@ -10,7 +10,10 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  GO_VERSION: 1.25.7
+  DRY_RUN:
+    value: ""
+    description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
+  GO_VERSION: 1.26.6
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -19,33 +22,14 @@ variables:
   BUILD_DIR:
     value: '${CI_PROJECT_DIR}/build'
     description: 'in this CI, where builds are stored'
-  ADDONS_SOURCE_DIR:
-    value: '${CI_PROJECT_DIR}/packaging/technical-addon'
-    description: 'in this CI, where the addons source directory is located'
   CREDS_HELPER_ALLOW_LEGACY: "true"
 
-stages:
-  - manual-release
-  - update-deps
-  - sast-oss-scan
-  - build
-  - sign-binaries
-  - package
-  - code-analysis
-  - sign-packages
-  - release
-  - docker-manifest-release
-  - xray-scan
-  - publish-release
-
 include:
-  - project: 'prodsec/scp-scanning/gitlab-checkmarx'
-    ref: latest
-    file: '/templates/.sast_scan.yml'
   - project: 'ci-cd/templates'
     ref: main
     file:
       - '/prodsec/.oss-scan.yml'
+      - '/prodsec/.sast-scan.yml'
       - '/prodsec/.binary-scan.yml'
       - '/prodsec/.container-scan.yml'
   - project: 'core-ee/signing/api-integration'
@@ -55,7 +39,6 @@ include:
 
 # Manual release job
 manual_release_trigger:
-  stage: manual-release
   variables:
     GIT_DEPTH: 0
   script:
@@ -121,15 +104,21 @@ manual_release_trigger:
 
 fossa:
   extends: .oss-scan
-  stage: sast-oss-scan
-  only:
-    - main
-    - schedules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   needs: []
-  dependencies: []
   variables:
     jira_automation: "true"
   # allow_failure: false
+
+sast-scan:
+  stage: test
+  extends: .sast_scan
+  needs: []
+  variables:
+    alert_mode: "policy"
+  allow_failure: false
 
 .docker-reader-role: &docker-reader-role |
   creds-helper init
@@ -192,6 +181,9 @@ fossa:
     - &no-schedules-condition
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
+    - &dry-run-condition
+      if: $DRY_RUN == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH != "main" && $RELEASE_VERSION == ""
+      when: always
 
 .deploy-release:
   image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
@@ -212,19 +204,23 @@ fossa:
     - *aws-releaser-role
     - pip3 install -r packaging/release/requirements.txt
     - |
-      if [ -n "${PATHS:-}" ]; then
-        for path in $PATHS; do
-          if [ ! -f "$path" ]; then
-            echo "$path not found!"
-            exit 1
-          fi
-          python3 packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
-        done
-      elif [ -n "${INSTALLERS:-}" ]; then
-        python3 packaging/release/release.py --force --installers ${OPTIONS:-}
+      if [[ -n "${DRY_RUN:-}" ]]; then
+        echo "DRY_RUN: skipping S3/Artifactory publish"
       else
-        echo "Either the PATHS or INSTALLERS env var must be defined!" >&2
-        exit 1
+        if [ -n "${PATHS:-}" ]; then
+          for path in $PATHS; do
+            if [ ! -f "$path" ]; then
+              echo "$path not found!"
+              exit 1
+            fi
+            python3 packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
+          done
+        elif [ -n "${INSTALLERS:-}" ]; then
+          python3 packaging/release/release.py --force --installers ${OPTIONS:-}
+        else
+          echo "Either the PATHS or INSTALLERS env var must be defined!" >&2
+          exit 1
+        fi
       fi
 
 .go-cache:
@@ -271,11 +267,9 @@ fossa:
 
 .xray-scan-package:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
-    - if: $CI_COMMIT_BRANCH == "main"
+    - <<: *no-schedules-condition
+    - <<: *main-condition
   extends: .binary-scan
-  stage: xray-scan
   variables:
     create_jira: "true"
   before_script:
@@ -283,76 +277,32 @@ fossa:
     - echo $ARTIFACT_PATH
 
 update-otel-deps:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
-  stage: update-deps
   needs: []
-  dependencies: []
   script:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
-update-otel-deps-nightly:
-  only:
-    - schedules
-  extends: .go-cache
-  tags: [large]
-  stage: update-deps
-  needs: []
-  dependencies: []
-  script:
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
-
-update-openjdk:
-  only:
-    - schedules
-  extends: .go-cache
-  tags: [large]
-  stage: update-deps
-  needs: []
-  dependencies: []
-  script:
-    - .gitlab/install-yq.sh
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-openjdk.sh
-
 update-javaagent:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
-  stage: update-deps
   needs: []
-  dependencies: []
   script:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-javaagent.sh
 
-update-jmx-metrics-gatherer:
-  only:
-    - schedules
-  extends: .go-cache
-  tags: [large]
-  stage: update-deps
-  needs: []
-  dependencies: []
-  script:
-    - .gitlab/install-yq.sh
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-jmx-metrics-gatherer.sh
-
 update-nodejs-agent:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
-  stage: update-deps
   needs: []
-  dependencies: []
   before_script:
     - !reference [.go-cache, before_script]
     - apt update && apt install -y jq
@@ -362,26 +312,32 @@ update-nodejs-agent:
     - .gitlab/update-nodejs-agent.sh
 
 update-dotnet-agent:
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   extends: .go-cache
   tags: [large]
-  stage: update-deps
   needs: []
-  dependencies: []
   script:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
+
+check-mass-deployments-release:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/check-mass-deployments-release.sh
 
 tidy-dependabot-pr:
   rules:
     - if: ($CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/) && ($CI_COMMIT_AUTHOR =~ /^dependabot.*/) && (($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_PIPELINE_SOURCE == "push"))
   extends: .go-cache
   tags: [large]
-  stage: update-deps
   needs: []
-  dependencies: []
   script:
     - .gitlab/install-gh-cli.sh
     - .gitlab/tidy-dependabot-pr.sh
@@ -392,32 +348,35 @@ compile:
     - .trigger-filter
     - .go-cache
   tags: [large]
-  stage: build
   needs:
     - job: manual_release_trigger
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
+      - TARGET: [binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64]
+        WITH_OPAMP_SUPERVISOR: "true"
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_ppc64le]
+        WITH_OPAMP_SUPERVISOR: "false"
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG:-}" ]]; then
-        make $TARGET VERSION=${VERSION_TAG}
+        make $TARGET VERSION=${VERSION_TAG} WITH_OPAMP_SUPERVISOR=${WITH_OPAMP_SUPERVISOR}
       else
-        make $TARGET
+        make $TARGET WITH_OPAMP_SUPERVISOR=${WITH_OPAMP_SUPERVISOR}
       fi
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
   artifacts:
     paths:
       - bin/otelcol_*
+      - bin/otelcollauncher_*
+      - bin/opampsupervisor_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.25:4.3.1'
+  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.26:5.9.0'
   extends:
     - .trigger-filter
-  stage: build
   needs:
     - job: manual_release_trigger
       optional: true
@@ -448,7 +407,6 @@ otelcol-fips:
 
 libsplunk:
   extends: .trigger-filter
-  stage: build
   needs:
     - job: manual_release_trigger
       optional: true
@@ -466,143 +424,8 @@ libsplunk:
     paths:
       - instrumentation/dist/libsplunk_*.so
 
-agent-bundle-linux:
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    # - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - <<: *manual-release-condition
-  stage: build
-  needs:
-    - job: manual_release_trigger
-      optional: true
-  retry: 2
-  resource_group: agent-bundle-linux-${ARCH}
-  parallel:
-    matrix:
-      - ARCH: amd64
-        TAG: main
-      - ARCH: arm64
-        TAG: arm
-  tags:
-    - $TAG
-  id_tokens:  # http://go/gitlab-17
-    CI_JOB_JWT:
-      aud:
-        - $CICD_VAULT_ADDR
-        - $SIGNING_PRD_URL
-  script:
-    - *docker-reader-role
-    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
-    - PUSH_CACHE=yes make -C packaging/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
-  artifacts:
-    paths:
-      - dist/agent-bundle_linux_${ARCH}.tar.gz
-
-agent-bundle-windows:
-  extends: .trigger-filter
-  image: mcr.microsoft.com/windows/servercore:ltsc2022
-  stage: build
-  needs:
-    - job: manual_release_trigger
-      optional: true
-  parallel:
-    matrix:
-      - ARCH: [amd64, arm64]
-  tags:
-    - windows2022
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  cache:
-    key:
-      files:
-        - packaging/bundle/collectd-plugins.yaml
-        - packaging/bundle/scripts/requirements.txt
-    paths:
-      - .cache/pip
-  script:
-    - ./packaging/bundle/scripts/windows/make.ps1 bundle $ARCH
-  artifacts:
-    paths:
-      - dist/agent-bundle_windows_$ARCH.zip
-
-.collector-ta-trigger:
-  rules:
-    # exclude manual collector release
-    - if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-      when: never
-    - <<: *main-condition
-    - <<: *no-schedules-condition
-    - &collector-ta-release-precondition
-      if: $CI_COMMIT_BRANCH =~ /^release\/technical-addon\/v[0-9]+\.[0-9]+\.[0-9]+$/
-      when: always
-    - &collector-ta-release-condition
-      if: $CI_COMMIT_TAG =~ /^Splunk_TA_otel\/v[0-9]+\.[0-9]+\.[0-9]+$/
-      when: always
-    - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
-      when: manual
-package-technical-addon:
-  extends:
-    - .collector-ta-trigger
-  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  stage: "package"
-  script: |
-    cd "${ADDONS_SOURCE_DIR}"
-    make distribute-ta -e
-  artifacts:
-    paths:
-      - "$BUILD_DIR/out/distribution/Splunk_TA_otel*.tgz"
-      - "$BUILD_DIR/packaging-scripts"
-      - "$BUILD_DIR/Makefile"
-  parallel:
-    matrix:
-      - PLATFORM: ["all"]
-
-AppInspect_local:
-  extends:
-    - .collector-ta-trigger
-  dependencies:
-    - "package-technical-addon"
-  stage: code-analysis
-  # AppInspect regex bugs out on python 3.11
-  image: '${DOCKER_CICD_REPO}/ci-container/python-3.9:1.26.0'
-  before_script:
-    - pip install splunk-add-on-ucc-framework
-    - pip install splunk-packaging-toolkit
-    - pip install splunk-appinspect
-  script:
-    - 'which "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" && exit 1'
-    - splunk-appinspect inspect --mode precert --included-tags cloud --output-file "$BUILD_DIR/out/appinspect_report_local.json" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz"
-  artifacts:
-    paths:
-      - "$BUILD_DIR/out/appinspect_report_local.json"
-      - "$BUILD_DIR/out/distribution/**/*"
-    expire_in: 21 day
-    when: always
-  allow_failure: false
-
-collector-ta-release:
-  rules:
-    - <<: *collector-ta-release-condition
-  extends:
-    - .go-cache # Use this image since this job uses the ghr tool
-  tags: [large]
-  stage: publish-release
-  dependencies:
-    - package-technical-addon
-  script:
-    - |
-      cd "${ADDONS_SOURCE_DIR}"
-      export TA_VERSION="$(sed -n '/^\[id\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$ADDONS_SOURCE_DIR/Splunk_TA_otel/default/app.conf" | tr -d ' \t\n\r')"
-      [[ -z "$TA_VERSION" ]] && echo "TA_VERSION MUST BE SET" && exit 1
-      make -e validate-release
-      RELEASE_NOTES="$(TA_NAME=Splunk_TA_otel "$ADDONS_SOURCE_DIR/packaging-scripts/github-ta-release-notes.sh")"
-      ls "$BUILD_DIR/out/distribution/"
-      ghr -draft -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Technical addon for the Splunk distribution of the OpenTelemetry Collector v$TA_VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" "$BUILD_DIR/out/distribution/Splunk_TA_otel-$TA_VERSION.tgz" 
-
 .instrumentation-deb-rpm:
   extends: .trigger-filter
-  stage: package
   needs:
     - libsplunk
   parallel:
@@ -657,7 +480,6 @@ sign-exe:
   extends:
     - .trigger-filter
     - .submit-signing-request
-  stage: sign-binaries
   retry: 2
   needs:
     - compile
@@ -665,24 +487,25 @@ sign-exe:
   parallel:
     matrix:
       - TARGET: otelcol
-        ARCH: amd64
-      - TARGET: otelcol
-        ARCH: arm64
+        ARCH: [amd64, arm64]
+        DOWNLOAD_DIR: dist/signed
       - TARGET: otelcol-fips
         ARCH: amd64
+        DOWNLOAD_DIR: dist/signed
+      - TARGET: [otelcollauncher, opampsupervisor]
+        ARCH: [amd64, arm64]
+        DOWNLOAD_DIR: dist/signed-msi-inputs
   variables:
     ARTIFACT: bin/${TARGET}_windows_${ARCH}.exe
     SIGN_TYPE: WIN
-    DOWNLOAD_DIR: dist/signed
   artifacts:
     paths:
-      - dist/signed/${TARGET}_windows_${ARCH}.exe
+      - ${DOWNLOAD_DIR}/${TARGET}_windows_${ARCH}.exe
 
 sign-osx:
   extends:
     - .trigger-filter
     - .submit-signing-request
-  stage: sign-binaries
   retry: 2
   needs:
     - compile
@@ -705,10 +528,8 @@ sign-osx:
       - dist/signed/otelcol_darwin_${ARCH}
 
 .build-tar-deb-rpm:
-  stage: package
   needs:
     - compile
-    - agent-bundle-linux
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -771,20 +592,44 @@ build-tar:
     paths:
       - dist/splunk-otel-collector*.tar.gz
 
+pack-ta-v2:
+  extends:
+    - .trigger-filter
+    - .go-cache
+  needs:
+    - job: sign-exe
+      artifacts: true
+    - job: compile
+      artifacts: true
+  script:
+    - |
+      mkdir -p packaging/ta-v2/assets/linux_x86_64/bin
+      cp bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_otel
+      mkdir -p packaging/ta-v2/assets/windows_x86_64/bin
+      cp dist/signed/otelcol_windows_amd64.exe packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_otel.exe
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        export VERSION="${VERSION_TAG}"
+      fi
+      echo "VERSION is set to $VERSION"
+    - cd packaging/ta-v2 && make all-packages
+  artifacts:
+    paths:
+      - packaging/ta-v2/out/distribution/
+
 build-msi:
   extends: .trigger-filter
   image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
-  stage: package
   needs:
     - sign-exe
-    - agent-bundle-windows
     - msi-custom-actions-package
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
   before_script:
     # build the MSI with the signed exe
-    - New-Item -Path bin -ItemType Directory -Force 
+    - New-Item -Path bin -ItemType Directory -Force
     - Copy-Item -Force dist/signed/otelcol_windows_$($env:ARCH).exe bin/otelcol_windows_$($env:ARCH).exe
   tags:
     - windows2022
@@ -795,6 +640,7 @@ build-msi:
     - |
       # Install WiX toolset
       & dotnet tool restore
+      & dotnet wix eula accept wix7
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
@@ -805,7 +651,8 @@ build-msi:
           $VERSION_TAG = ""
       }
     - |
-      & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt) $($env:ARCH)"
+      $bashCmd = "./packaging/msi/build.sh --version '$VERSION_TAG' --arch $($env:ARCH)"
+      & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCmd"
   artifacts:
     paths:
       - dist/*.msi
@@ -813,7 +660,9 @@ build-msi:
 msi-custom-actions-package:
   extends: .trigger-filter
   image: mcr.microsoft.com/dotnet/sdk:10.0.101-windowsservercore-ltsc2022
-  stage: build
+  needs:
+    - job: manual_release_trigger
+      optional: true
   tags:
     - windows2022
   script:
@@ -828,7 +677,6 @@ sign-debs:
   extends:
     - .trigger-filter
     - .submit-signing-request
-  stage: sign-packages
   retry: 2
   needs:
     - build-deb
@@ -851,7 +699,6 @@ sign-rpms:
   extends:
     - .trigger-filter
     - .submit-signing-request
-  stage: sign-packages
   retry: 2
   needs:
     - build-rpm
@@ -874,7 +721,6 @@ sign-tar:
   extends:
     - .trigger-filter
     - .submit-signing-request
-  stage: sign-packages
   retry: 2
   needs:
     - build-tar
@@ -898,7 +744,6 @@ sign-msi:
   extends:
     - .trigger-filter
     - .submit-signing-request
-  stage: sign-packages
   retry: 2
   needs:
     - build-msi
@@ -916,42 +761,12 @@ sign-msi:
     paths:
       - dist/signed/*.msi
 
-sign-agent-bundles:
-  extends:
-    - .trigger-filter
-    - .submit-signing-request
-  stage: sign-packages
-  retry: 2
-  needs:
-    - agent-bundle-linux
-    - agent-bundle-windows
-  variables:
-    ARTIFACT: dist/packages.tar.gz
-    SIGN_TYPE: GPG
-    OPTIONS: archive
-    DOWNLOAD_DIR: dist/signed
-  before_script:
-    - pushd dist && tar -czvf packages.tar.gz *.tar.gz *.zip && popd
-  after_script:
-    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
-    - mv dist/*.tar.gz dist/signed/
-    - mv dist/*.zip dist/signed/
-    - rm dist/signed/packages.tar.gz
-  artifacts:
-    paths:
-      - dist/signed/*.tar.gz
-      - dist/signed/*.tar.gz.asc
-      - dist/signed/*.zip
-      - dist/signed/*.zip.asc
-
 sign-ps-installer:
   extends:
     - .trigger-filter
     - .submit-signing-request
-  stage: sign-packages
   retry: 2
   needs: []
-  dependencies: []
   variables:
     ARTIFACT: dist/install.ps1
     SIGN_TYPE: WIN
@@ -966,7 +781,6 @@ sign-ps-installer:
 
 verify-signed-packages:
   extends: .trigger-filter
-  stage: sign-packages
   needs:
     - build-deb
     - build-rpm
@@ -978,19 +792,16 @@ verify-signed-packages:
     - sign-rpms
     - sign-msi
     - sign-tar
-    - agent-bundle-linux
-    - agent-bundle-windows
-    - sign-agent-bundles
     - sign-ps-installer
   script:
     - |
       set -ex
-      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip dist/install.ps1; do
+      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/install.ps1; do
         if [[ ! -f dist/signed/$(basename $pkg) ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
-        if [[ "${pkg##*.}" =~ gz|zip ]] && [[ ! -f dist/signed/$(basename $pkg).asc ]]; then
+        if [[ "${pkg##*.}" =~ gz ]] && [[ ! -f dist/signed/$(basename $pkg).asc ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
@@ -998,10 +809,9 @@ verify-signed-packages:
 
 build-push-linux-image:
   extends: .trigger-filter
-  stage: release
-  dependencies:
-    - compile
-    - agent-bundle-linux
+  needs:
+    - job: compile
+      artifacts: true
   retry: 2
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
@@ -1033,7 +843,7 @@ build-push-linux-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -1056,9 +866,9 @@ build-push-linux-image:
 
 build-push-linux-fips-image:
   extends: .trigger-filter
-  stage: release
-  dependencies:
-    - otelcol-fips
+  needs:
+    - job: otelcol-fips
+      artifacts: true
   retry: 2
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
@@ -1084,7 +894,7 @@ build-push-linux-fips-image:
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
     - |
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
@@ -1108,7 +918,6 @@ build-push-linux-fips-image:
 
 sign-linux-image-fips:
   extends: .sign-docker
-  stage: release
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -1119,7 +928,6 @@ sign-linux-image-fips:
 
 sign-linux-image:
   extends: .sign-docker
-  stage: release
   parallel:
     matrix:
       - ARCH: [amd64, arm64, ppc64le]
@@ -1130,14 +938,13 @@ sign-linux-image:
 
 build-push-windows-image:
   extends: .trigger-filter
-  stage: release
   parallel:
-    matrix:
+      matrix:
       - WIN_VERSION: ["2019", "2022"]
         BASE_TAG: ["quay.io/signalfx/splunk-otel-collector", "splunk/otel-collector"]
-  dependencies:
-    - sign-exe
-    - agent-bundle-windows
+  needs:
+    - job: sign-exe
+      artifacts: true
   tags:
     - windows${WIN_VERSION}
   image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
@@ -1149,7 +956,6 @@ build-push-windows-image:
     - Install-Chocolatey
     - Install-DockerCli
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-    - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
     - |
       if ($env:WIN_VERSION -eq "2019") {
         $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
@@ -1186,10 +992,9 @@ build-push-windows-image:
         # Only push latest tag for main and stable releases
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -1268,13 +1073,13 @@ build-push-windows-image:
 
 build-push-windows-fips-image:
   extends: .trigger-filter
-  stage: release
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
         BASE_TAG: [ "quay.io/signalfx/splunk-otel-collector", "splunk/otel-collector" ]
-  dependencies:
-    - sign-exe
+  needs:
+    - job: sign-exe
+      artifacts: true
   tags:
     - windows${WIN_VERSION}
   image: mcr.microsoft.com/windows/servercore:ltsc${WIN_VERSION}
@@ -1322,10 +1127,9 @@ build-push-windows-fips-image:
         # Only push latest tag for main and stable releases (manual or tag)
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -1404,7 +1208,6 @@ build-push-windows-fips-image:
 
 sign-windows-image:
   extends: .sign-docker
-  stage: release
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
@@ -1418,100 +1221,146 @@ sign-windows-image:
 release-debs:
   extends:
     - .trigger-filter
-    - .submit-signing-request
-  stage: release
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   resource_group: artifactory-deb
-  dependencies:
-    - sign-debs
+  needs:
+    - job: sign-debs
+      artifacts: true
   retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
+  script:
     - |
       set -ex
-      for path in dist/signed/*.deb; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
-      done
-    - test -f Release
-  variables:
-    ARTIFACT: Release
-    SIGN_TYPE: GPG
-  after_script:
-    - *get-artifactory-stage
-    - |
-      set -ex
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+      shopt -s nullglob
+      paths=(dist/signed/*.deb)
+      shopt -u nullglob
+      if [ "${#paths[@]}" -eq 0 ]; then
+        echo "No signed debs found!"
+        exit 1
       fi
+      python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --paths "${paths[@]}"
   artifacts:
     paths:
       - dist/signed/*.deb
-      - signed/Release.asc
 
 release-rpms:
   extends:
     - .trigger-filter
-    - .submit-signing-request
-  stage: release
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
   resource_group: artifactory-rpm
-  dependencies:
-    - sign-rpms
+  needs:
+    - job: sign-rpms
+      artifacts: true
   retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
+  script:
     - |
       set -ex
-      for path in dist/signed/*${ARCH}.rpm; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
-      done
-    - test -f repomd.xml
-  variables:
-    ARTIFACT: repomd.xml
-    SIGN_TYPE: GPG
-    DOWNLOAD_DIR: signed/${ARCH}
-  after_script:
-    - *get-artifactory-stage
-    - |
-      set -ex
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
-        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
+      shopt -s nullglob
+      paths=(dist/signed/*${ARCH}.rpm)
+      shopt -u nullglob
+      if [ "${#paths[@]}" -eq 0 ]; then
+        echo "No signed rpms found for ${ARCH}!"
+        exit 1
       fi
+      python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --paths "${paths[@]}"
   artifacts:
     paths:
       - dist/signed/*${ARCH}.rpm
-      - signed/${ARCH}/repomd.xml.asc
 
-# since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
+# Verify Artifactory-generated repo metadata signatures after package publish.
 verify-signed-metadata:
   extends: .trigger-filter
-  stage: release
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   needs:
-    - release-debs
-    - release-rpms
+    - job: release-debs
+      artifacts: false
+      optional: true
+    - job: release-rpms
+      artifacts: false
+      optional: true
   retry: 2
+  parallel:
+    matrix:
+      - TARGET: deb
+      - TARGET: rpm
+        ARCH: x86_64
+      - TARGET: rpm
+        ARCH: aarch64
+  variables:
+    SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
+    SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
+    SPLUNK_GPG_FINGERPRINT: "58C33310B7A354C1279DB6695EFA01EDB3CD4420"
   before_script:
-    - apt update && apt install -y curl
+    - apt update && apt install -y curl gnupg
   script:
     - *get-artifactory-stage
     - |
       set -exo pipefail
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg | diff - signed/Release.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/x86_64/repodata/repomd.xml.asc | diff - signed/x86_64/repomd.xml.asc
-      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/aarch64/repodata/repomd.xml.asc | diff - signed/aarch64/repomd.xml.asc
+
+      export GNUPGHOME="$(mktemp -d)"
+      trap 'rm -rf "$GNUPGHOME"' EXIT
+      gpg --import <(curl -fsSL "${SPLUNK_RPM_GPG_KEY_URL}")
+      gpg --import <(curl -fsSL "${SPLUNK_DEB_GPG_KEY_URL}")
+
+      gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
+        || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
+
+      case "$TARGET" in
+        deb)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
+          curl -fsSL "${base}/Release" -o metadata.deb-Release
+          curl -fsSL "${base}/Release.gpg" -o metadata.deb-Release.gpg
+          curl -fsSL "${base}/InRelease" -o metadata.deb-InRelease
+
+          gpg --status-fd=1 --verify metadata.deb-Release.gpg metadata.deb-Release \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB Release.gpg did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+          gpg --status-fd=1 --verify metadata.deb-InRelease \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB InRelease did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+          ;;
+        rpm)
+          base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata"
+          curl -fsSL "${base}/repomd.xml" -o "metadata.rpm-${ARCH}-repomd.xml"
+          curl -fsSL "${base}/repomd.xml.asc" -o "metadata.rpm-${ARCH}-repomd.xml.asc"
+
+          gpg --status-fd=1 --verify "metadata.rpm-${ARCH}-repomd.xml.asc" "metadata.rpm-${ARCH}-repomd.xml" \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "RPM ${ARCH} repomd.xml.asc did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+          ;;
+        *)
+          echo "Unknown TARGET '${TARGET}'"; exit 1
+          ;;
+      esac
+
+      echo "Metadata signature OK for ${TARGET}${ARCH:+-${ARCH}}"
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1519,9 +1368,9 @@ release-msi:
     - <<: *manual-release-condition
   extends:
     - .deploy-release
-  stage: release
-  dependencies:
-    - sign-msi
+  needs:
+    - job: sign-msi
+      artifacts: true
   variables:
     PATHS: dist/signed/*.msi
 
@@ -1531,20 +1380,20 @@ release-installers:
     - <<: *manual-release-condition
   extends:
     - .deploy-release
-  stage: release
-  dependencies:
-    - sign-ps-installer
+  needs:
+    - job: sign-ps-installer
+      artifacts: true
   variables:
     INSTALLERS: "true"
   before_script:
     - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
-release-nupkg:
+build-nupkg:
   extends: .trigger-filter
   image: mcr.microsoft.com/windows/servercore:ltsc2022
-  stage: release
-  dependencies:
-    - sign-msi
+  needs:
+    - job: sign-msi
+      artifacts: true
   tags:
     - windows2022
   script:
@@ -1569,11 +1418,10 @@ release-nupkg:
 choco-release:
   extends: .trigger-filter
   image: mcr.microsoft.com/windows/servercore:ltsc2022
-  stage: publish-release
   needs:
     - job: manual_release_trigger
       optional: true
-    - job: release-nupkg
+    - job: build-nupkg
       artifacts: true
     - job: github-release
       artifacts: false
@@ -1603,16 +1451,70 @@ choco-release:
       } elseif ($env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         $should_release = $true
       }
-      if ($should_release) {
+      if ($should_release -and -not $env:DRY_RUN) {
         choco config set --name="'defaultPushSource'" --value="'https://push.chocolatey.org/'"
         choco push -k $env:CHOCO_TOKEN .\dist\signed\splunk-otel-collector.${version}.nupkg
       } else {
-        Write-Host "Skipping choco push - not a stable release tag or manual release"
+        Write-Host "Skipping choco push - not a stable release tag, manual release, or DRY_RUN is set"
       }
+
+ta-v2-splunkbase-release:
+  extends: .trigger-filter
+  needs:
+    - job: manual_release_trigger
+      optional: true
+    - job: pack-ta-v2
+      artifacts: true
+    - job: github-release
+      artifacts: false
+  script:
+    - |
+      # Only push the TA v2 to Splunkbase for stable release tags or manual releases
+      should_release=false
+      if [[ "${RELEASE_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        should_release=true
+      fi
+      if [[ "$should_release" = true ]] && [[ -z "$DRY_RUN" ]]; then
+        echo "Releasing TA v2 to Splunkbase"
+        TA_DIR=packaging/ta-v2/out/distribution
+
+        declare -A log_files pids
+        for entry in \
+            "7125:${TA_DIR}/Splunk_TA_otel.tgz" \
+            "8698:${TA_DIR}/Splunk_TA_otel_linux_x86_64.tgz" \
+            "8699:${TA_DIR}/Splunk_TA_otel_windows_x86_64.tgz"
+        do
+          app_id="${entry%%:*}"
+          package="${entry#*:}"
+          log=$(mktemp)
+          echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
+          log_files[$app_id]="$log"
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" \
+            ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
+          pid=$!
+          echo "Started publication process with PID $pid for app ID $app_id"
+          pids[$app_id]=$pid
+        done
+
+        overall_status=0
+        for app_id in "${!pids[@]}"; do
+          wait "${pids[$app_id]}" && publish_status=0 || publish_status=$?
+          if [[ "$publish_status" -ne 0 ]]; then
+            overall_status=1
+          fi
+          echo "Publication process for app ID $app_id completed with status ${publish_status}"
+          echo "*+*+*+*+* Logs for app ID $app_id *+*+*+*+*"
+          cat "${log_files[$app_id]}"
+          echo "End of logs for app ID $app_id"
+          rm -f "${log_files[$app_id]}"
+        done
+        exit "$overall_status"
+      else
+        echo "Skipping TA v2 release - not a stable release tag, manual release, or DRY_RUN is set"
+      fi
 
 push-multiarch-manifest:
   extends: .trigger-filter
-  stage: docker-manifest-release
   parallel:
     matrix:
       - MANIFEST: [multiarch, windows_multiarch]
@@ -1739,7 +1641,6 @@ push-multiarch-manifest:
 
 sign-multiarch-manifest:
   extends: .sign-docker
-  stage: docker-manifest-release
   parallel:
     matrix:
       - MANIFEST: [multiarch, windows_multiarch]
@@ -1750,12 +1651,10 @@ sign-multiarch-manifest:
     - mv tags_to_sign_${MANIFEST}${FIPS} tags_to_sign
 
 xray-scan-docker:
-  only:
-    - main
-  except:
-    - schedules
+  rules:
+    - <<: *no-schedules-condition
+    - <<: *main-condition
   extends: .container-scan
-  stage: xray-scan
   parallel:
     matrix:
       # - CHILD: ["amd64", "arm64", "ppc64le", "2019", "2022"]
@@ -1774,7 +1673,6 @@ github-release:
     - .trigger-filter
     - .go-cache
   tags: [large]
-  stage: publish-release
   needs:
     - job: compile
       artifacts: true
@@ -1786,55 +1684,54 @@ github-release:
       artifacts: true
     - job: sign-osx
       artifacts: true
-    - job: release-debs
+    - job: sign-debs
       artifacts: true
-    - job: release-nupkg
+    - job: build-nupkg
       artifacts: true
-    - job: release-rpms
+    - job: sign-rpms
       artifacts: true
+    - job: verify-signed-metadata
+      artifacts: false
+      optional: true
     - job: sign-msi
       artifacts: true
     - job: sign-tar
       artifacts: true
     - job: push-multiarch-manifest
       artifacts: true
-    - job: sign-agent-bundles
-      artifacts: true
+    - job: sign-multiarch-manifest
+      artifacts: false
     - job: release-msi
       artifacts: false
       optional: true
     - job: release-installers
       artifacts: false
       optional: true
+    - job: pack-ta-v2
+      artifacts: true
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
     - cp bin/otelcol-fips_linux_* dist/assets/
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
+    - cp packaging/ta-v2/out/distribution/* dist/assets/
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      # Rename agent bundles to include the version for all releases (include pre-releases)
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        VERSION="${VERSION_TAG#v}"
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz.asc
-        mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${VERSION}_windows_amd64.zip
-        mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${VERSION}_windows_amd64.zip.asc
-        # exclude the arm64 bundle from release assets
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz.asc
-      fi
       pushd dist/assets && shasum -a 256 * > checksums.txt && popd
-      # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
-      if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
-        ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
-      fi
-      # Only create github release for stable release tags
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
-        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$VERSION_TAG" -b "$release_notes" --replace "$VERSION_TAG" dist/assets/
+      if [[ -z "${DRY_RUN:-}" ]]; then
+        # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
+        if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
+          ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
+        fi
+        # Only create github release for stable release tags
+        if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
+          ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$VERSION_TAG" -b "$release_notes" --replace "$VERSION_TAG" dist/assets/
+        fi
+      else
+        echo "DRY_RUN: skipping GitHub tag creation and release"
       fi
 
   artifacts:
@@ -1844,11 +1741,8 @@ github-release:
 
 .ansible:
   image: 'cimg/python:3.13'
-  only:
-    - /^ansible-v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - branches
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^ansible-v[0-9]+\.[0-9]+\.[0-9]+.*/
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
@@ -1858,7 +1752,7 @@ github-release:
 
 ansible-build:
   extends: .ansible
-  stage: build
+  needs: []
   artifacts:
     paths:
       - dist/
@@ -1869,7 +1763,9 @@ ansible-build:
 
 ansible-release:
   extends: .ansible
-  stage: release
+  needs:
+    - job: ansible-build
+      artifacts: true
   before_script:
     - pip3 install 'ansible>=12.2.0' yq~=3.0.0
   script:
@@ -1884,31 +1780,31 @@ ansible-release:
 
 puppet-release:
   image: '${DOCKER_HUB_REPO}/ruby:2.6-buster'
-  stage: release
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
+  needs: []
   before_script:
+    - gem update --system 3.2.3
     - gem install bundler -v 2.4.22
     - cd deployments/puppet
     - bundle install
     - bundle exec rake module:clean
   script:
-    - bundle exec rake module:push
+    - |
+      export BLACKSMITH_FORGE_URL=https://splunk.jfrog.io/artifactory/puppet-splunk
+      export BLACKSMITH_FORGE_TYPE=artifactory
+      export BLACKSMITH_FORGE_USERNAME="${ARTIFACTORY_USERNAME}"
+      export BLACKSMITH_FORGE_PASSWORD="${ARTIFACTORY_TOKEN}"
+      bundle exec rake module:push
   artifacts:
     paths:
       - deployments/puppet/pkg/*.tar.gz
 
 chef-release:
   image: 'chef/chefworkstation:stable'
-  stage: release
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^chef-v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^chef-v[0-9]+\.[0-9]+\.[0-9]+.*/
+  needs: []
   before_script:
     - mkdir -p ~/.chef
     - cat "$CHEF_PEM" > ~/.chef/signalfx.pem
@@ -1919,18 +1815,13 @@ chef-release:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
 
 .trigger-dotnet-instrumentation-deployer:
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
 
 build-dotnet-instrumentation-deployer:
   extends: .trigger-dotnet-instrumentation-deployer
   image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  stage: build
   needs: []
-  dependencies: []
   before_script:
     - cd packaging/dotnet-instr-deployer-add-on
   script:
@@ -1944,10 +1835,10 @@ sign-dotnet-instrumentation-deployer-exe:
   extends:
     - .trigger-dotnet-instrumentation-deployer
     - .submit-signing-request
-  stage: sign-binaries
   retry: 2
-  dependencies:
-    - build-dotnet-instrumentation-deployer
+  needs:
+    - job: build-dotnet-instrumentation-deployer
+      artifacts: true
   variables:
     ARTIFACT: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/splunk_otel_dotnet_deployer.exe
     SIGN_TYPE: WIN
@@ -1960,9 +1851,9 @@ sign-dotnet-instrumentation-deployer-exe:
 pack-dotnet-instrumentation-deployer:
   extends: .trigger-dotnet-instrumentation-deployer
   image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  stage: package
-  dependencies:
-    - sign-dotnet-instrumentation-deployer-exe
+  needs:
+    - job: sign-dotnet-instrumentation-deployer-exe
+      artifacts: true
   before_script:
     - cd packaging/dotnet-instr-deployer-add-on
   script:
@@ -1977,9 +1868,9 @@ dotnet-instrumentation-deployer-release:
     - .trigger-dotnet-instrumentation-deployer
     - .go-cache # Use this image since this job uses the ghr tool
   tags: [large]
-  stage: publish-release
-  dependencies:
-    - pack-dotnet-instrumentation-deployer
+  needs:
+    - job: pack-dotnet-instrumentation-deployer
+      artifacts: true
   script:
     - export
     - cd packaging/dotnet-instr-deployer-add-on

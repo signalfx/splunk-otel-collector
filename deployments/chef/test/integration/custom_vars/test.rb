@@ -13,14 +13,10 @@ describe service('splunk-otel-collector') do
 end
 
 if os[:family] == 'windows'
-  bundle_dir = "#{ENV['ProgramFiles']}\\Splunk\\OpenTelemetry Collector\\agent-bundle"
-  collectd_dir = "#{bundle_dir}\\run\\collectd"
   config_path = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
   collector_env_vars = [
     { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token },
     { name: 'SPLUNK_API_URL', type: :string, data: splunk_api_url },
-    { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: bundle_dir },
-    { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: collectd_dir },
     { name: 'SPLUNK_CONFIG', type: :string, data: config_path },
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
@@ -45,17 +41,21 @@ if os[:family] == 'windows'
   end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'ImagePath' }
-    its('ImagePath') { should match /^.*--discovery --set=processors.batch.timeout=10s$/ }
+    its('ImagePath') do
+      should match /^.*--discovery --set=processors\.batch\.timeout=10s --config "#{Regexp.escape(config_path)}"$/i
+    end
   end
 else
-  bundle_dir = '/usr/lib/splunk-otel-collector/agent-bundle'
-  collectd_dir = "#{bundle_dir}/run/collectd"
   config_path = '/etc/otel/collector/agent_config.yaml'
+  describe file('/etc/otel/collector') do
+    it { should be_directory }
+    its('owner') { should eq 'custom-user' }
+    its('group') { should eq 'custom-group' }
+    its('mode') { should cmp '0755' }
+  end
   describe file('/etc/otel/collector/splunk-otel-collector.conf') do
     its('content') { should match /^SPLUNK_ACCESS_TOKEN=#{splunk_access_token}$/ }
     its('content') { should match /^SPLUNK_API_URL=#{splunk_api_url}$/ }
-    its('content') { should match /^SPLUNK_BUNDLE_DIR=#{bundle_dir}$/ }
-    its('content') { should match /^SPLUNK_COLLECTD_DIR=#{collectd_dir}$/ }
     its('content') { should match /^SPLUNK_CONFIG=#{config_path}$/ }
     its('content') { should match /^SPLUNK_HEC_TOKEN=#{splunk_hec_token}$/ }
     its('content') { should match /^SPLUNK_HEC_URL=#{splunk_hec_url}$/ }
@@ -66,6 +66,9 @@ else
     its('content') { should match /^MY_CUSTOM_VAR1=value1$/ }
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
     its('content') { should match /^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s$/ }
+  end
+  describe command("su -s /bin/sh -c 'test -w /etc/otel/collector' custom-user") do
+    its('exit_status') { should eq 0 }
   end
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=custom-user$/ }

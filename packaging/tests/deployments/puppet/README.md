@@ -41,8 +41,8 @@ make rpm-package ARCH=amd64 VERSION=0.0.1-local
 **Note**: If you already have binaries and bundles built, you can skip compilation:
 
 ```bash
-make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
-make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
+make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
+make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
 ```
 
 The packages will be created in `dist/`:
@@ -61,8 +61,8 @@ pytest -s --verbose packaging/tests/deployments/puppet/puppet_test.py
 ### Run tests for a specific distro
 
 ```bash
-# For Ubuntu Jammy (DEB)
-pytest -s --verbose -k "ubuntu-jammy" packaging/tests/deployments/puppet/puppet_test.py
+# For Ubuntu Noble (DEB)
+pytest -s --verbose -k "ubuntu-noble" packaging/tests/deployments/puppet/puppet_test.py
 
 # For CentOS 8 (RPM)
 pytest -s --verbose -k "centos-8" packaging/tests/deployments/puppet/puppet_test.py
@@ -109,8 +109,8 @@ pytest -s --verbose -m "not instrumentation" packaging/tests/deployments/puppet/
 ### Combine filters
 
 ```bash
-# Run test_puppet_default for Ubuntu Jammy with Puppet 7, excluding instrumentation
-pytest -s --verbose -k "test_puppet_default and ubuntu-jammy and not instrumentation" \
+# Run test_puppet_default for Ubuntu Noble with Puppet 8, excluding instrumentation
+pytest -s --verbose -k "test_puppet_default and ubuntu-noble and not instrumentation" \
   -m deb \
   packaging/tests/deployments/puppet/puppet_test.py
 ```
@@ -119,8 +119,8 @@ pytest -s --verbose -k "test_puppet_default and ubuntu-jammy and not instrumenta
 
 ### DEB Distros
 - `debian-bullseye`
-- `ubuntu-focal`
-- `ubuntu-jammy`
+- `debian-bookworm`
+- `ubuntu-noble`
 
 ### RPM Distros
 - `amazonlinux-2023`
@@ -149,11 +149,11 @@ source venv/bin/activate
 pip install -r packaging/tests/requirements.txt
 
 # 2. Build packages (whenever code changes)
-make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
-make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true SKIP_BUNDLE=true
+make deb-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
+make rpm-package ARCH=amd64 VERSION=0.0.1-local SKIP_COMPILE=true
 
 # 3. Run a quick test
-pytest -s --verbose -k "test_puppet_default and ubuntu-jammy" \
+pytest -s --verbose -k "test_puppet_default and ubuntu-noble" \
   packaging/tests/deployments/puppet/puppet_test.py
 ```
 
@@ -219,4 +219,3 @@ pytest --timeout=600 packaging/tests/deployments/puppet/puppet_test.py
 ## Next Steps
 
 After validating locally, you can push to CI which will run the full test matrix automatically.
-

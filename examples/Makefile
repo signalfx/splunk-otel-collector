@@ -9,9 +9,9 @@ VERSION?=latest
 .DEFAULT_GOAL := examples-test-run
 
 .PHONY: update-examples
-# example usage: (will set version of splunk otel collector ot 0.59.1)
+# example usage: (will set version of splunk otel collector to 0.59.1)
 # make VERSION=0.59.1 update-example
-# --in-place without a rename is not portable btw osx and windows/linux, reccomendation seems to be to give it a valid backup file and then remove them.
+# --in-place without a rename is not portable btw osx and windows/linux, recommendation seems to be to give it a valid backup file and then remove them.
 update-examples:
 	find ./ -name docker-compose.yml -exec sed --in-place='.orig' -e 's;quay.io/signalfx/splunk-otel-collector:.*$$;quay.io/signalfx/splunk-otel-collector:$(VERSION);g' {} \; -exec rm {}.orig \;
 

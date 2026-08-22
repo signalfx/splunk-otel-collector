@@ -1,7 +1,7 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 java_tool_options = '-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
 node_options = '-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument'
-resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+-systemd'
+resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+(?:[-+._~][A-Za-z0-9.+_~-]*)?-systemd'
 dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet'
 
 describe package('splunk-otel-auto-instrumentation') do
@@ -57,9 +57,4 @@ end
 describe service('splunk-otel-collector') do
   it { should be_enabled }
   it { should be_running }
-end
-
-describe service('td-agent') do
-  it { should_not be_enabled }
-  it { should_not be_running }
 end

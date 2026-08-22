@@ -41,8 +41,8 @@ func (e *envVarFactory) CreateDefaultConfig() configsource.Settings {
 	}
 }
 
-func (e *envVarFactory) CreateConfigSource(_ context.Context, settings configsource.Settings, _ *zap.Logger) (configsource.ConfigSource, error) {
-	return newConfigSource(settings.(*Config)), nil
+func (e *envVarFactory) CreateConfigSource(_ context.Context, settings configsource.Settings, logger *zap.Logger) (configsource.ConfigSource, error) {
+	return newConfigSource(settings.(*Config), logger), nil
 }
 
 // NewFactory creates a factory for Vault ConfigSource objects.

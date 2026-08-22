@@ -15,101 +15,190 @@
 package modularinput
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
+	"maps"
+	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/google/shlex"
 	"github.com/shirou/gopsutil/v4/process"
 )
 
-// modularInputMode represents the mode in which the modular input is running
-type modularInputMode int
+// TARunMode indicates the mode in which the TA modular input is running.
+type TARunMode int
 
 const (
-	// notModularInput indicates the executable is not running as a modular input
-	notModularInput modularInputMode = iota
-	// executionMode indicates the executable is running as a modular input with no other arguments
-	executionMode
-	// introspectionMode indicates the executable is running as a modular input with --scheme argument
-	introspectionMode
-	// validationMode indicates the executable is running as a modular input with --validate-arguments argument
-	validationMode
+	// NotTARunMode indicates the executable is not running as a TA modular input.
+	NotTARunMode TARunMode = iota
+	// ExecutionTARunMode indicates normal execution mode (no special arguments).
+	ExecutionTARunMode
+	// IntrospectionTARunMode indicates the executable was invoked with --scheme.
+	IntrospectionTARunMode
+	// ValidationTARunMode indicates the executable was invoked with --validate-arguments.
+	ValidationTARunMode
+)
+
+const (
+	// EnvAppName is the environment variable set to the Splunk app name of the
+	// configuration stanza (the app attribute from the modular input XML).
+	EnvAppName = "SPLUNK_MODINPUT_APP_NAME"
+	// EnvBaseDirName is the environment variable set to the Splunk app base directory name of the modular
+	// input. This is derived from the executable path and can be used to locate other files in the app
+	// (e.g. default configuration files).
+	EnvBaseDirName = "SPLUNK_MODINPUT_BASE_DIR_NAME"
+	// EnvStanzaName is the environment variable set to the full stanza name
+	// (e.g. "Splunk_TA_otel://default") from the modular input XML.
+	EnvStanzaName = "SPLUNK_MODINPUT_STANZA_NAME"
+	// EnvManagementURI is the environment variable set to the splunkd management URI
+	// (e.g. "https://127.0.0.1:8089") received from Splunk on stdin.
+	EnvManagementURI = "SPLUNK_MANAGEMENT_URI"
+	// EnvSessionKey is the environment variable set to the splunkd session key
+	// received from Splunk on stdin.
+	EnvSessionKey = "SPLUNK_SESSION_KEY"
 )
 
 var (
-	ErrQueryMode = errors.New("modular input called in query mode")
-
 	// Function variables to facilitate testing
 	setEnvFn                           = os.Setenv
 	isParentProcessSplunkdFn           = isParentProcessSplunkd
+	currentProcessExeFn                = currentProcessExe
 	stdoutWriter             io.Writer = os.Stdout
 )
+
+// ValidatorFunc is a function that validates the parameters of a modular input stanza.
+// It receives the parsed validation items from Splunk and the current args slice.
+// It should return the (possibly modified) args to use for the rest of the launch, along with
+// an error describing the validation failure, or nil if the parameters are valid.
+// On failure, the error message is written as XML to stdout before exiting.
+type ValidatorFunc func(items *ValidationItems, args []string) ([]string, error)
 
 // HandleLaunchAsTA handles the launch of the collector as a Splunk TA modular input.
 // It checks if the collector is running in modular input mode and processes the input XML
 // to set environment variables from the configuration stanza.
-// Returns an error if the launch fails, ErrQueryMode if running in query mode,
-// or nil if not running in modular input mode or on success.
-func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string) error {
-	mode := isModularInputMode(args)
-	if mode == notModularInput {
-		return nil
+// The optional validator is called in --validate-arguments mode; pass nil to skip validation.
+// Returns the updated args, the TARunMode indicating how the process was invoked, and any error.
+// When not in modular input mode or when there are no "_cmd_args" parameters, the original
+// args are returned unchanged, so the caller can always use the returned args.
+func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme string, validator ValidatorFunc) ([]string, TARunMode, error) {
+	mode := detectTARunMode(args)
+	if mode == NotTARunMode {
+		return args, NotTARunMode, nil
 	}
 
-	if mode == introspectionMode {
-		// The caller is just expected to exit when receiving ErrQueryMode
+	if mode == IntrospectionTARunMode {
 		if _, err := fmt.Fprintln(stdoutWriter, scheme); err != nil {
-			return fmt.Errorf("failed to write scheme to stdout: %w", err)
+			return nil, IntrospectionTARunMode, fmt.Errorf("failed to write scheme to stdout: %w", err)
 		}
-		return ErrQueryMode
+		return nil, IntrospectionTARunMode, nil
 	}
 
-	if mode == validationMode {
-		// The caller is just expected to exit when receiving ErrQueryMode
-		return ErrQueryMode
-	}
-
-	input, err := ReadXML(stdin)
-	if err != nil {
-		return fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
+	modularInputEnvVars := make(map[string]string)
+	if baseDirName := baseDirNameFromExecutable(); baseDirName != "" {
+		modularInputEnvVars[EnvBaseDirName] = baseDirName
 	}
 
 	var configStanza Stanza
-	for _, stanza := range input.Configuration.Stanza {
-		if strings.HasPrefix(stanza.Name, configStanzaPrefix) {
-			configStanza = stanza
-			break
+	var params []Param
+	if mode == ValidationTARunMode {
+		if validator == nil {
+			// Caller didn't provided a validator, just return indicating that this is validation mode.
+			return args, ValidationTARunMode, nil
+		}
+
+		items, err := ReadValidationXML(stdin)
+		if err != nil {
+			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to read XML from stdin: %w", err)
+		}
+		modularInputEnvVars[EnvManagementURI] = items.ServerURI
+		modularInputEnvVars[EnvSessionKey] = items.SessionKey
+
+		args, err = validator(items, args)
+		if err != nil {
+			if writeErr := WriteValidationError(stdoutWriter, err.Error()); writeErr != nil {
+				return nil, ValidationTARunMode, fmt.Errorf("validation mode failed to write error response: %w", writeErr)
+			}
+			return nil, ValidationTARunMode, fmt.Errorf("validation mode failed: %w", err)
+		}
+
+		params = make([]Param, 0, len(items.Item))
+		for _, item := range items.Item {
+			for _, param := range item.Param {
+				params = append(params, Param{Name: param.Name, Value: param.Value})
+			}
+		}
+	} else {
+		input, err := ReadXML(stdin)
+		if err != nil {
+			return nil, ExecutionTARunMode, fmt.Errorf("launch as TA failed to read modular input XML from stdin: %w", err)
+		}
+		modularInputEnvVars[EnvManagementURI] = input.ServerURI
+		modularInputEnvVars[EnvSessionKey] = input.SessionKey
+
+		for _, stanza := range input.Configuration.Stanza {
+			if strings.HasPrefix(stanza.Name, configStanzaPrefix) {
+				modularInputEnvVars[EnvAppName] = stanza.App
+				modularInputEnvVars[EnvStanzaName] = stanza.Name
+				configStanza = stanza
+				break
+			}
+		}
+
+		params = make([]Param, 0, len(configStanza.Param))
+		for _, param := range configStanza.Param {
+			params = append(params, Param{Name: param.Name, Value: param.Value})
 		}
 	}
 
-	// First pass: build a map of parameters starting with "splunk_"
-	splunkEnvVars := make(map[string]string)
-	for _, param := range configStanza.Param {
-		if strings.HasPrefix(strings.ToLower(param.Name), "splunk_") {
-			envVarName := strings.ToUpper(param.Name)
-			splunkEnvVars[envVarName] = param.Value
+	// First pass: build a map of parameters starting with "splunk_" and collect cmd args
+	var cmdArgs []string
+	var err error
+	for _, param := range params {
+		paramName := strings.ToLower(param.Name)
+		if !strings.HasPrefix(paramName, "splunk_") {
+			continue
+		}
+
+		// Process special parameters
+		switch {
+		// TODO: to be refactored: the caller will specify which parameters should be parsed as env var pairs instead of using a naming convention
+		case strings.HasSuffix(paramName, "_env_vars"):
+			var pairs map[string]string
+			pairs, err = parseEnvVarPairs(param.Value)
+			if err != nil {
+				return nil, mode, fmt.Errorf("launch as TA failed to parse env vars from parameter '%s': %w", param.Name, err)
+			}
+			maps.Copy(modularInputEnvVars, pairs)
+		case strings.HasSuffix(paramName, "_cmd_args"):
+			var parsed []string
+			parsed, err = shlex.Split(param.Value)
+			if err != nil {
+				return nil, mode, fmt.Errorf("launch as TA failed to parse cmd args from parameter '%s': %w", param.Name, err)
+			}
+			cmdArgs = append(cmdArgs, parsed...)
+		default:
+			modularInputEnvVars[strings.ToUpper(param.Name)] = param.Value
 		}
 	}
 
 	// Second pass: set environment variables in dependency order
-	err = setEnvVarsInOrder(splunkEnvVars, setEnvFn)
-	if err != nil {
-		return err
+	if err := setEnvVarsInOrder(modularInputEnvVars, setEnvFn); err != nil {
+		return nil, mode, err
 	}
 
-	return nil
+	return append(args, cmdArgs...), mode, nil
 }
 
-func isModularInputMode(args []string) modularInputMode {
+func detectTARunMode(args []string) TARunMode {
 	// SPLUNK_HOME must be defined if this is running as a modular input.
 	_, hasSplunkHome := os.LookupEnv("SPLUNK_HOME")
 	if !hasSplunkHome {
-		return notModularInput
+		return NotTARunMode
 	}
 
 	// TA v1 is a special case of the collector being launched as a modular input
@@ -118,33 +207,56 @@ func isModularInputMode(args []string) modularInputMode {
 	_, isTAv1Launch := os.LookupEnv("SPLUNK_OTEL_TA_HOME")
 	if isTAv1Launch {
 		// TA v1, let the scripts handle the TA specific behavior
-		return notModularInput
+		return NotTARunMode
 	}
 
-	// Check if the parent process is splunkd
-	if !isParentProcessSplunkdFn() {
-		return notModularInput
+	// SPLUNK_TA_FORCE_MODULAR_INPUT bypasses the parent-process check.
+	// It is intended for testing only and must not be set in production.
+	_, forceModularInput := os.LookupEnv("SPLUNK_TA_FORCE_MODULAR_INPUT")
+	if !forceModularInput {
+		// Check if the parent process is splunkd
+		if !isParentProcessSplunkdFn() {
+			return NotTARunMode
+		}
 	}
 
 	// This is running as a modular input
 	if isArgScheme(args) {
-		return introspectionMode
+		return IntrospectionTARunMode
 	}
 
 	if isArgValidate(args) {
-		return validationMode
+		return ValidationTARunMode
 	}
 
-	return executionMode
+	return ExecutionTARunMode
+}
+
+// envVarRefPattern matches valid environment variable references: $VAR or ${VAR}, where VAR
+// contains only letters, digits, and underscores, and doesn't start with a digit.
+// This intentionally excludes collector config provider syntax such as "${file:./secret}" or
+// "${env:HOME}", which is not a valid identifier and must be passed through untouched so the
+// collector's own config resolver can process it later.
+var envVarRefPattern = regexp.MustCompile(`\$(?:([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})`)
+
+// expandEnvRefs replaces $VAR and ${VAR} references matched by envVarRefPattern with the value
+// of the corresponding process environment variable. Any other "${...}" or "$..." sequence that
+// doesn't match a valid environment variable name (e.g. config provider syntax) is left untouched.
+func expandEnvRefs(s string) string {
+	return envVarRefPattern.ReplaceAllStringFunc(s, func(match string) string {
+		sub := envVarRefPattern.FindStringSubmatch(match)
+		name := sub[1]
+		if name == "" {
+			name = sub[2]
+		}
+		return os.Getenv(name)
+	})
 }
 
 // setEnvVarsInOrder sets environment variables in dependency order.
 // Variables that don't reference other environment variables are set first,
 // followed by those that do reference other environment variables.
 func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string) error) error {
-	// Pattern to match environment variable references: $VAR, ${VAR} (case insensitive)
-	envVarRefPattern := regexp.MustCompile(`(?i)\$\{?[A-Z_][A-Z0-9_]*\}?`)
-
 	// Separate variables into those with and without dependencies
 	var noDeps []string
 	var withDeps []string
@@ -172,7 +284,7 @@ func setEnvVarsInOrder(envVars map[string]string, setEnvFunc func(string, string
 
 	// Set variables with dependencies, expanding environment variable references
 	for _, envVarName := range withDeps {
-		envVarValue := os.ExpandEnv(envVars[envVarName])
+		envVarValue := expandEnvRefs(envVars[envVarName])
 		err := setEnvFunc(envVarName, envVarValue)
 		if err != nil {
 			return fmt.Errorf("launch as TA failed to set environment variable '%s': %w", envVarName, err)
@@ -205,10 +317,99 @@ func isParentProcessSplunkd() bool {
 	return parentName == "splunkd" || parentName == "splunkd.exe"
 }
 
+// currentProcessExe returns the path to the current process image.
+func currentProcessExe() (string, error) {
+	return os.Executable()
+}
+
+// baseDirNameFromExecutable derives the Splunk app name from the current process image path.
+// Splunk installs modular input binaries at:
+//
+//	$SPLUNK_HOME/etc/apps/<AppName>/<platform>/bin/<binary>
+//
+// so the app name is the directory three levels above the binary.
+// Returns an empty string if the process image path cannot be determined, does not have
+// enough path components, or is not under $SPLUNK_HOME.
+func baseDirNameFromExecutable() string {
+	execPath, err := currentProcessExeFn()
+	if err != nil {
+		log.Printf("ERROR %v\n", err)
+		return ""
+	}
+
+	splunkHome, ok := os.LookupEnv("SPLUNK_HOME")
+	if !ok || splunkHome == "" {
+		return ""
+	}
+
+	// Walk up: bin → <platform> → <AppName>
+	binDir := filepath.Dir(execPath)
+	if filepath.Base(binDir) != "bin" {
+		return ""
+	}
+	appDir := filepath.Dir(filepath.Dir(binDir))
+	appName := filepath.Base(appDir)
+	if appName == "." || appName == string(filepath.Separator) {
+		return ""
+	}
+
+	// Ensure the walk-up landed somewhere under $SPLUNK_HOME.
+	// Use Clean to normalize the paths and add a trailing separator to
+	// ensure the we are comparing directory paths and not prefixes of other paths.
+	splunkHomeClean := filepath.Clean(splunkHome)
+	if splunkHomeClean != string(filepath.Separator) {
+		// The cleaned path is NOT just the separator, i.e. the root directory.
+		// It is safe to append the ending separator
+		splunkHomeClean += string(filepath.Separator)
+	}
+	appDirClean := filepath.Clean(appDir) + string(filepath.Separator)
+	if !strings.HasPrefix(appDirClean, splunkHomeClean) || len(appDirClean) == len(splunkHomeClean) {
+		return ""
+	}
+
+	return appName
+}
+
 func isArgScheme(args []string) bool {
 	return len(args) == 2 && args[1] == "--scheme"
 }
 
 func isArgValidate(args []string) bool {
 	return len(args) == 2 && args[1] == "--validate-arguments"
+}
+
+// parseEnvVarPairs parses a comma-separated list of key=value pairs into a map of
+// environment variable names to their string values.
+// Commas in keys and values must be percent-encoded as %2C so they are not treated as pair
+// separators. '=' characters in keys must be percent-encoded as %3D so the first literal '='
+// in each pair can be used as the key/value separator. '=' characters in values may be
+// percent-encoded as %3D but do not need to be, because only the first '=' is treated as the
+// separator. Other characters may also be percent-encoded (e.g., non-ASCII characters).
+// Example input: "KEY1=value1,KEY2=value=2%2Cextra" → {"KEY1": "value1", "KEY2": "value=2,extra"}
+func parseEnvVarPairs(s string) (map[string]string, error) {
+	result := make(map[string]string)
+	if s == "" {
+		return result, nil
+	}
+	for pair := range strings.SplitSeq(s, ",") {
+		rawKey, rawVal, found := strings.Cut(pair, "=")
+		if !found {
+			return nil, fmt.Errorf("invalid key=value pair %q: missing '='", pair)
+		}
+
+		key, err := url.PathUnescape(rawKey)
+		if err != nil {
+			return nil, fmt.Errorf("invalid percent-encoding in key %q: %w", rawKey, err)
+		}
+		val, err := url.PathUnescape(rawVal)
+		if err != nil {
+			return nil, fmt.Errorf("invalid percent-encoding in value %q: %w", rawVal, err)
+		}
+
+		if key == "" {
+			return nil, fmt.Errorf("invalid key=value pair %q: key must not be empty", pair)
+		}
+		result[key] = val
+	}
+	return result, nil
 }

@@ -1,6 +1,6 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 java_tool_options = '-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
-resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+,deployment.environment=test'
+resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+(?:[-+._~][A-Za-z0-9.+_~-]*)?,deployment.environment.name=test'
 otlp_endpoint = 'http://0.0.0.0:4317'
 ld_preload_line = '# my extra library'
 
@@ -49,9 +49,4 @@ end
 describe service('splunk-otel-collector') do
   it { should be_enabled }
   it { should be_running }
-end
-
-describe service('td-agent') do
-  it { should_not be_enabled }
-  it { should_not be_running }
 end

@@ -24,39 +24,25 @@ ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
 BUNDLE_BASE_DIR="/splunk-otel-collector"
 OTELCOL_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/otelcol"
+OTELCOLLAUNCHER_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/otelcollauncher"
+OPAMPSUPERVISOR_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/opampsupervisor"
 
 tar_setup_files_and_permissions() {
     local otelcol="$1"
-    local config_folder="$2"
-    local buildroot="$3"
-    local bundle_path="$4"
+    local otelcollauncher="$2"
+    local opampsupervisor="$3"
+    local config_folder="$4"
+    local buildroot="$5"
 
     create_user_group
 
-    mkdir -p "$buildroot/$(dirname $OTELCOL_INSTALL_PATH)"
-    cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+    install_binary "$otelcol" "$OTELCOL_INSTALL_PATH" "$buildroot"
+    install_binary "$otelcollauncher" "$OTELCOLLAUNCHER_INSTALL_PATH" "$buildroot"
+    install_binary "$opampsupervisor" "$OPAMPSUPERVISOR_INSTALL_PATH" "$buildroot"
 
     mkdir -p "$buildroot/$BUNDLE_BASE_DIR/config"
     cp "$config_folder/gateway_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
     cp "$config_folder/agent_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
-
-    JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
-    download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot/$BUNDLE_BASE_DIR"
-    JMX_INSTALL_PATH="$buildroot/$BUNDLE_BASE_DIR/opt/opentelemetry-java-contrib-jmx-metrics.jar"
-    if [[ -e "$JMX_INSTALL_PATH" ]]; then
-        sudo chown root:root "$JMX_INSTALL_PATH"
-        sudo chmod 755 "$JMX_INSTALL_PATH"
-    fi
-
-    if [[ -n "$bundle_path" ]]; then
-        mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
-        tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chown -R root:root "$buildroot/$BUNDLE_BASE_DIR"
-        sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
-    fi
-
 }
 
 if [[ -z "$VERSION" ]]; then
@@ -65,12 +51,18 @@ fi
 VERSION="${VERSION#v}"
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
+otelcollauncher_path="$REPO_DIR/bin/otelcollauncher_linux_${ARCH}"
+opampsupervisor_path="$REPO_DIR/bin/opampsupervisor_linux_${ARCH}"
 config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
-agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
-tar_setup_files_and_permissions "$otelcol_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
+tar_setup_files_and_permissions \
+    "$otelcol_path" \
+    "$otelcollauncher_path" \
+    "$opampsupervisor_path" \
+    "$config_folder_path" \
+    "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 

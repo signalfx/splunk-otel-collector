@@ -53,26 +53,27 @@ processors:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
-  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the traces
+  # Optional: The following processor can be used to add a default "deployment.environment.name" attribute to the traces
   # when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in the pipeline below.
+  # To use the deprecated attribute, change the key to "deployment.environment".
   #resource/add_environment:
     #attributes:
       #- action: insert
         #value: staging/production/...
-        #key: deployment.environment
+        #key: deployment.environment.name
 
   # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
   # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
-  resourcedetection/internal:
+  resource_detection/internal:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
 exporters:
   # Traces
   otlp_http:
-    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp"
     compression: gzip
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -99,14 +100,50 @@ extensions:
     ingress:
       endpoint: 0.0.0.0:6060
     egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://api.${SPLUNK_REALM}.observability.splunkcloud.com"
+  http_forwarder/opamp_splunk_o11y:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:4320"
+    egress:
+      endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com"
+      # Remove this header to use a token passed by the caller instead.
+      headers:
+        X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
+  # opamp/splunk_o11y is included in the default config, but startup removes it
+  # from service.extensions unless --feature-gates=+splunk.opamp.enabled is set.
+  opamp/splunk_o11y:
+    agent_description:
+      # Include the Collector's resource attributes as OpAMP non-identifying attributes.
+      include_resource_attributes: true
+    server:
+      http:
+        endpoint: "https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com/v1/opamp"
+        polling_interval: 30s
+        headers:
+          X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
     endpoint: 0.0.0.0:55679
     expvar:
       enabled: true
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/opamp_splunk_o11y, opamp/splunk_o11y, zpages]
+  telemetry:
+    logs:
+      level: ${env:SPLUNK_COLLECTOR_LOG_LEVEL:-info}
+    # Optional: Uncomment to add a deployment environment to the Collector's internal telemetry.
+    # To use the deprecated attribute, change the key to "deployment.environment".
+    # resource:
+    #   attributes:
+    #     - name: deployment.environment.name
+    #       value: staging/production/...
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '127.0.0.1'
+                port: 8888
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]
@@ -114,12 +151,12 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [otlp_http, signalfx]
+      exporters: [otlp_http]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection/internal]
+      processors: [memory_limiter, batch, resource_detection/internal]
       exporters: [signalfx]

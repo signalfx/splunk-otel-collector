@@ -51,6 +51,7 @@ deployments/heroku/test/node_modules
 /instrumentation/obj/
 /instrumentation/so/
 /instrumentation/tests/dotnet/libsplunk.so
+/instrumentation/tests/dotnet/obj/
 /instrumentation/tests/java/libsplunk.so
 /instrumentation/tests/nodejs/libsplunk.so
 
@@ -62,3 +63,6 @@ tests/installation/testdata/systemd/splunk-otel-collector.conf
 
 # temp istio installation files
 tests/receivers/istio/istio-*/
+
+# Splunk_TA_nix addon contents
+examples/splunkinputs/Splunk_TA_nix/

@@ -21,6 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 )
@@ -71,4 +72,11 @@ func TestOffsetFnZero(t *testing.T) {
 	offset, _ := time.ParseDuration(r1.Offset)
 	result := offsetFn(offset)(pcommon.Timestamp(uint64(0)))
 	require.Equal(t, pcommon.Timestamp(uint64(0)), result)
+}
+
+func TestFactoryStability(t *testing.T) {
+	factory := NewFactory()
+	require.Equal(t, component.StabilityLevelDeprecated, factory.TracesStability())
+	require.Equal(t, component.StabilityLevelDeprecated, factory.LogsStability())
+	require.Equal(t, component.StabilityLevelDeprecated, factory.MetricsStability())
 }

@@ -154,6 +154,8 @@ import (
 	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 	"go.uber.org/multierr"
 
+	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
+
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
@@ -186,6 +188,7 @@ func Get() (otelcol.Factories, error) {
 		basicauthextension.NewFactory(),
 		bearertokenauthextension.NewFactory(),
 		configsourcetelemetryextension.NewFactory(),
+		diskqueuestorageextension.NewFactory(),
 		dockerobserver.NewFactory(),
 		ecsobserver.NewFactory(),
 		filestorage.NewFactory(),

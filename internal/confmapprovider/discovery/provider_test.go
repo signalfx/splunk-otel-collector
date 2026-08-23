@@ -34,6 +34,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkappobserver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 )
 
@@ -216,4 +217,11 @@ func TestDiscoveryProvider_HostObserverDisabled(t *testing.T) {
 
 	// Discovery receivers should not be created if no discovery observers available.
 	assert.Empty(t, conf.Receivers)
+}
+
+func TestFactoryForObserverTypeIncludesSplunkAppObserver(t *testing.T) {
+	factory, err := factoryForObserverType(component.MustNewType(splunkappobserver.TypeStr))
+
+	require.NoError(t, err)
+	assert.Equal(t, component.MustNewType(splunkappobserver.TypeStr), factory.Type())
 }

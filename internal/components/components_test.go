@@ -43,6 +43,7 @@ func TestDefaultComponents(t *testing.T) {
 		"opamp",
 		"pprof",
 		"smartagent",
+		"splunk_app_observer",
 		"text_encoding",
 		"zpages",
 	}

@@ -153,6 +153,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkappobserver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
@@ -197,6 +198,7 @@ func Get() (otelcol.Factories, error) {
 		opampextension.NewFactory(),
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),
+		splunkappobserver.NewFactory(),
 		textencodingextension.NewFactory(),
 		zpagesextension.NewFactory(),
 	)

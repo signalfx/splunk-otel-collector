@@ -42,6 +42,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/internal"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkappobserver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
@@ -424,9 +425,10 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 
 func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
 	factories := map[component.Type]otelcolextension.Factory{
-		component.MustNewType("docker_observer"): dockerobserver.NewFactory(),
-		component.MustNewType("host_observer"):   hostobserver.NewFactory(),
-		component.MustNewType("k8s_observer"):    k8sobserver.NewFactory(),
+		component.MustNewType("docker_observer"):     dockerobserver.NewFactory(),
+		component.MustNewType("host_observer"):       hostobserver.NewFactory(),
+		component.MustNewType("k8s_observer"):        k8sobserver.NewFactory(),
+		component.MustNewType("splunk_app_observer"): splunkappobserver.NewFactory(),
 	}
 
 	ef, ok := factories[extType]

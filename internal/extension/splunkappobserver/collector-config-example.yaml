@@ -1,0 +1,27 @@
+extensions:
+  splunk_app_observer:
+    apps_path: ./etc/apps
+
+receivers:
+  receiver_creator:
+    watch_observers: [splunk_app_observer]
+    receivers:
+      filelog/splunk_app:
+        rule: type == "splunk_app"
+        config:
+          include:
+            - '`path`/*.log'
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+    telemetry:
+      logs:
+        level: debug
+    extensions: [splunk_app_observer]
+    pipelines:
+      logs:
+        receivers: [receiver_creator]
+        exporters: [debug]

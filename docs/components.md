@@ -162,6 +162,7 @@ The distribution offers support for the following components.
 | [opamp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension)                                                         | [alpha]   |
 | [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                                                         | [beta]    |
 | [smartagent](../pkg/extension/smartagentextension)                                                                                                                    | [beta]    |
+| [splunk_app_observer](../internal/extension/splunkappobserver)                                                                                                        | [alpha]   |
 | [text_encoding](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/encoding/textencodingextension)                                 | [beta]    |
 | [zpages](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension)                                                               | [beta]    |
 

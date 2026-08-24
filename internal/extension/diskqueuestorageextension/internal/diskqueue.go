@@ -15,7 +15,6 @@
 package internal
 
 import (
-	"bufio"
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
@@ -58,7 +57,6 @@ type diskQueue struct {
 	logger            *zap.Logger
 	writeFile         *os.File
 	peekFile          *os.File
-	peekReader        *bufio.Reader
 	depthChan         chan int64
 	peekChan          chan Message
 	dataPath          string
@@ -199,15 +197,6 @@ func (d *diskQueue) peekOne() ([]byte, error) {
 	}
 
 	return readBuf, nil
-}
-
-func (d *diskQueue) peekCandidate() *segment {
-	for _, s := range d.metadata.Segments {
-		if !s.Consumed {
-			return s
-		}
-	}
-	return d.lastSegment()
 }
 
 func (d *diskQueue) lastSegment() *segment {

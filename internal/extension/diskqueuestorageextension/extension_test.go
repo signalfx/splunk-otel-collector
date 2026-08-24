@@ -153,7 +153,6 @@ func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
 }
 
 func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
-
 	for _, volume := range []int{10, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000} {
 		b.Run(fmt.Sprintf("bench-%d", volume), func(b *testing.B) {
 			b.ReportAllocs()
@@ -165,6 +164,7 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 				require.NoError(b, err)
 				require.NoError(b, listenerForFreePort.Close())
 				rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint = listenerForFreePort.Addr().String()
+				rCfg.Protocols.GRPC.GetOrInsertDefault().MaxConcurrentStreams = 1024
 				sink := &consumertest.LogsSink{}
 				receiverSettings := receivertest.NewNopSettings(component.MustNewType("otlp"))
 				receiverSettings.Logger = logger
@@ -211,5 +211,4 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 			}
 		})
 	}
-
 }

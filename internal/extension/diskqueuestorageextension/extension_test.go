@@ -62,8 +62,8 @@ func TestExtensionAsPersistentQueue(t *testing.T) {
 	require.NoError(t, reclogs.Start(t.Context(), componenttest.NewNopHost()))
 	f := otlpexporter.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
-	extId := component.MustNewIDWithName("disk_queue_storage", "my")
-	cfg.QueueConfig.GetOrInsertDefault().StorageID = &extId
+	extID := component.MustNewIDWithName("disk_queue_storage", "my")
+	cfg.QueueConfig.GetOrInsertDefault().StorageID = &extID
 	cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
 	cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
 	cfg.ClientConfig.TLS.Insecure = true
@@ -77,7 +77,7 @@ func TestExtensionAsPersistentQueue(t *testing.T) {
 	extensionSettings.Logger = logger
 	require.NoError(t, l.Start(t.Context(), hostWithExtensions{
 		extensions: map[component.ID]component.Component{
-			extId: newDiskQueueStorageExtension(extensionSettings, extConfig),
+			extID: newDiskQueueStorageExtension(extensionSettings, extConfig),
 		},
 	}))
 	for i := range 10 {
@@ -116,8 +116,8 @@ func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
 	require.NoError(t, reclogs.Start(t.Context(), componenttest.NewNopHost()))
 	f := otlpexporter.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
-	extId := component.MustNewIDWithName("disk_queue_storage", "my")
-	cfg.QueueConfig.GetOrInsertDefault().StorageID = &extId
+	extID := component.MustNewIDWithName("disk_queue_storage", "my")
+	cfg.QueueConfig.GetOrInsertDefault().StorageID = &extID
 	cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
 	cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
 	cfg.ClientConfig.TLS.Insecure = true
@@ -132,7 +132,7 @@ func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
 	extensionSettings.Logger = logger
 	require.NoError(t, l.Start(t.Context(), hostWithExtensions{
 		extensions: map[component.ID]component.Component{
-			extId: newDiskQueueStorageExtension(extensionSettings, extConfig),
+			extID: newDiskQueueStorageExtension(extensionSettings, extConfig),
 		},
 	}))
 	for i := range 10 {
@@ -173,8 +173,8 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 				require.NoError(b, reclogs.Start(b.Context(), componenttest.NewNopHost()))
 				f := otlpexporter.NewFactory()
 				cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
-				extId := component.MustNewIDWithName("disk_queue_storage", "my")
-				cfg.QueueConfig.GetOrInsertDefault().StorageID = &extId
+				extID := component.MustNewIDWithName("disk_queue_storage", "my")
+				cfg.QueueConfig.GetOrInsertDefault().StorageID = &extID
 				cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
 				cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
 				cfg.ClientConfig.TLS.Insecure = true
@@ -189,7 +189,7 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 				extensionSettings.Logger = logger
 				require.NoError(b, l.Start(b.Context(), hostWithExtensions{
 					extensions: map[component.ID]component.Component{
-						extId: newDiskQueueStorageExtension(extensionSettings, extConfig),
+						extID: newDiskQueueStorageExtension(extensionSettings, extConfig),
 					},
 				}))
 				for i := range volume {

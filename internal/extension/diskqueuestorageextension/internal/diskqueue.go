@@ -17,7 +17,7 @@ package internal
 import (
 	"bufio"
 	"bytes"
-	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -29,57 +29,61 @@ import (
 	"go.uber.org/zap"
 )
 
-type Interface interface {
+type Message struct {
+	Payload         []byte
+	ConsumeCallback func()
+}
+
+type Queue interface {
 	Put([]byte) error
-	ReadChan() <-chan []byte // this is expected to be an *unbuffered* channel
-	PeekChan() <-chan []byte // this is expected to be an *unbuffered* channel
+	PeekChan() <-chan Message // this is expected to be an *unbuffered* channel
 	Close() error
 	Depth() int64
 }
 
+type Metadata struct {
+	Segments    []*segment
+	Depth       int64
+	PeekFileNum int64
+	PeekPos     int64
+}
+
 // diskQueue implements a filesystem backed FIFO queue
 type diskQueue struct {
-	writeResponseChan   chan error
-	writeChan           chan []byte
-	exitSyncChan        chan int
-	exitChan            chan int
-	logger              *zap.Logger
-	writeFile           *os.File
-	readFile            *os.File
-	reader              *bufio.Reader
-	depthChan           chan int64
-	peekChan            chan []byte
-	readChan            chan []byte
-	dataPath            string
-	name                string
-	writeBuf            bytes.Buffer
-	maxBytesPerFile     int64
-	readFileNum         int64
-	nextReadPos         int64
-	writePos            int64
-	nextReadFileNum     int64
-	syncTimeout         time.Duration
-	syncEvery           int64
-	depth               int64
-	writeFileNum        int64
-	maxBytesPerFileRead int64
-	readPos             int64
+	writeResponseChan chan error
+	writeChan         chan []byte
+	exitSyncChan      chan int
+	exitChan          chan int
+	logger            *zap.Logger
+	writeFile         *os.File
+	peekFile          *os.File
+	peekReader        *bufio.Reader
+	depthChan         chan int64
+	peekChan          chan Message
+	dataPath          string
+	name              string
+	writeBuf          bytes.Buffer
+	// TODO fix rotation
+	maxBytesPerFile int64
+	syncTimeout     time.Duration
+	syncEvery       int64
+	numWorkers      int
 	sync.RWMutex
 	exitFlag int32
 	needSync bool
+	metadata Metadata
 }
 
 // New instantiates an instance of diskQueue, retrieving metadata
 // from the filesystem and starting the read ahead goroutine
 func New(name, dataPath string, maxBytesPerFile int64,
 	syncEvery int64, syncTimeout time.Duration, logger *zap.Logger,
-) Interface {
+) Queue {
 	d := diskQueue{
 		name:              name,
 		dataPath:          dataPath,
 		maxBytesPerFile:   maxBytesPerFile,
-		readChan:          make(chan []byte),
-		peekChan:          make(chan []byte),
+		peekChan:          make(chan Message),
 		depthChan:         make(chan int64),
 		writeChan:         make(chan []byte),
 		writeResponseChan: make(chan error),
@@ -105,17 +109,12 @@ func (d *diskQueue) Depth() int64 {
 	depth, ok := <-d.depthChan
 	if !ok {
 		// ioLoop exited
-		depth = d.depth
+		depth = d.metadata.Depth
 	}
 	return depth
 }
 
-// ReadChan returns the receive-only []byte channel for reading data
-func (d *diskQueue) ReadChan() <-chan []byte {
-	return d.readChan
-}
-
-func (d *diskQueue) PeekChan() <-chan []byte {
+func (d *diskQueue) PeekChan() <-chan Message {
 	return d.peekChan
 }
 
@@ -147,18 +146,13 @@ func (d *diskQueue) exit() error {
 
 	d.exitFlag = 1
 
-	d.logger.Info("closing", zap.String("name", d.name))
+	d.logger.Debug("closing", zap.String("name", d.name))
 
 	close(d.exitChan)
 	// ensure that ioLoop has exited
 	<-d.exitSyncChan
 
 	close(d.depthChan)
-
-	if d.readFile != nil {
-		_ = d.readFile.Close()
-		d.readFile = nil
-	}
 
 	if d.writeFile != nil {
 		_ = d.writeFile.Close()
@@ -168,112 +162,56 @@ func (d *diskQueue) exit() error {
 	return nil
 }
 
-func (d *diskQueue) skipToNextRWFile() error {
+// peekOne performs a low level filesystem read for a single []byte
+func (d *diskQueue) peekOne() ([]byte, error) {
 	var err error
-
-	if d.readFile != nil {
-		_ = d.readFile.Close()
-		d.readFile = nil
-	}
-
-	if d.writeFile != nil {
-		_ = d.writeFile.Close()
-		d.writeFile = nil
-	}
-
-	for i := d.readFileNum; i <= d.writeFileNum; i++ {
-		fn := d.fileName(i)
-		innerErr := os.Remove(fn)
-		if innerErr != nil && !os.IsNotExist(innerErr) {
-			d.logger.Error(" failed to remove data file", zap.String("name", d.name), zap.Error(innerErr))
-			err = innerErr
-		}
-	}
-
-	d.writeFileNum++
-	d.writePos = 0
-	d.readFileNum = d.writeFileNum
-	d.readPos = 0
-	d.nextReadFileNum = d.writeFileNum
-	d.nextReadPos = 0
-	d.depth = 0
-
-	return err
-}
-
-// readOne performs a low level filesystem read for a single []byte
-// while advancing read positions and rolling files, if necessary
-func (d *diskQueue) readOne() ([]byte, error) {
-	var err error
-	var msgSize int64
-
-	if d.readFile == nil {
-		curFileName := d.fileName(d.readFileNum)
-		d.readFile, err = os.OpenFile(curFileName, os.O_RDONLY, 0o600)
+	if d.peekFile == nil {
+		curFileName := d.fileName(d.metadata.PeekFileNum)
+		d.peekFile, err = os.OpenFile(curFileName, os.O_RDONLY, 0o600)
 		if err != nil {
 			return nil, err
 		}
-
-		d.logger.Info("readOne() opened", zap.String("name", d.name), zap.String("filename", curFileName))
-
-		if d.readPos > 0 {
-			_, err = d.readFile.Seek(d.readPos, 0)
-			if err != nil {
-				_ = d.readFile.Close()
-				d.readFile = nil
-				return nil, err
-			}
-		}
-
-		// for "complete" files (i.e. not the "current" file), maxBytesPerFileRead
-		// should be initialized to the file's size, or default to maxBytesPerFile
-		d.maxBytesPerFileRead = d.maxBytesPerFile
-		if d.readFileNum < d.writeFileNum {
-			stat, err2 := d.readFile.Stat()
-			if err2 == nil {
-				d.maxBytesPerFileRead = stat.Size()
-			}
-		}
-
-		d.reader = bufio.NewReader(d.readFile)
+		d.logger.Debug("peekOne() opened", zap.String("name", d.name), zap.String("filename", curFileName))
 	}
 
-	err = binary.Read(d.reader, binary.BigEndian, &msgSize)
-	if err != nil {
-		_ = d.readFile.Close()
-		d.readFile = nil
-		return nil, err
+	var msgSize int64
+	for _, s := range d.metadata.Segments {
+		if s.FileNum == d.metadata.PeekFileNum && s.Pos == d.metadata.PeekPos {
+			msgSize = s.MessageLen
+			break
+		}
 	}
 
 	readBuf := make([]byte, msgSize)
-	_, err = io.ReadFull(d.reader, readBuf)
+	_, err = d.peekFile.ReadAt(readBuf, d.metadata.PeekPos)
 	if err != nil {
-		_ = d.readFile.Close()
-		d.readFile = nil
+		_ = d.peekFile.Close()
+		d.peekFile = nil
 		return nil, err
 	}
 
-	totalBytes := 8 + msgSize
-
-	// we only advance next* because we have not yet sent this to consumers
-	// (where readFileNum, readPos will actually be advanced)
-	d.nextReadPos = d.readPos + totalBytes
-	d.nextReadFileNum = d.readFileNum
-
-	// we only consider rotating if we're reading a "complete" file
-	// and since we cannot know the size at which it was rotated, we
-	// rely on maxBytesPerFileRead rather than maxBytesPerFile
-	if d.readFileNum <= d.writeFileNum && d.nextReadPos >= d.maxBytesPerFileRead {
-		if d.readFile != nil {
-			_ = d.readFile.Close()
-			d.readFile = nil
-		}
-
-		d.nextReadFileNum++
-		d.nextReadPos = 0
-	}
-
 	return readBuf, nil
+}
+
+func (d *diskQueue) peekCandidate() *segment {
+	for _, s := range d.metadata.Segments {
+		if !s.Consumed {
+			return s
+		}
+	}
+	return d.lastSegment()
+}
+
+func (d *diskQueue) lastSegment() *segment {
+	if len(d.metadata.Segments) == 0 {
+		return &segment{
+			FileNum:    0,
+			Pos:        0,
+			MessageLen: 0,
+			Consumed:   true,
+		}
+	}
+	return d.metadata.Segments[len(d.metadata.Segments)-1]
 }
 
 // writeOne performs a low level filesystem write for a single []byte
@@ -282,16 +220,16 @@ func (d *diskQueue) writeOne(data []byte) error {
 	var err error
 
 	dataLen := int64(len(data))
-	totalBytes := 8 + dataLen
+	totalBytes := dataLen
+
+	lastSegment := d.lastSegment()
+	writeFileNum := lastSegment.FileNum
+	writePos := lastSegment.Pos + lastSegment.MessageLen
 
 	// will not wrap-around if maxBytesPerFile + maxMsgSize < Int64Max
-	if d.writePos > 0 && d.writePos+totalBytes > d.maxBytesPerFile {
-		if d.readFileNum == d.writeFileNum {
-			d.maxBytesPerFileRead = d.writePos
-		}
-
-		d.writeFileNum++
-		d.writePos = 0
+	if writePos > 0 && writePos+totalBytes > d.maxBytesPerFile {
+		writeFileNum++
+		writePos = 0
 
 		// sync every time we start writing to a new file
 		err = d.sync()
@@ -306,16 +244,16 @@ func (d *diskQueue) writeOne(data []byte) error {
 	}
 
 	if d.writeFile == nil {
-		curFileName := d.fileName(d.writeFileNum)
+		curFileName := d.fileName(writeFileNum)
 		d.writeFile, err = os.OpenFile(curFileName, os.O_RDWR|os.O_CREATE, 0o600)
 		if err != nil {
 			return err
 		}
 
-		d.logger.Info("writeOne() opened", zap.String("name", d.name), zap.String("filename", curFileName))
+		d.logger.Debug("writeOne() opened", zap.String("name", d.name), zap.String("filename", curFileName))
 
-		if d.writePos > 0 {
-			_, err = d.writeFile.Seek(d.writePos, 0)
+		if writePos > 0 {
+			_, err = d.writeFile.Seek(writePos, 0)
 			if err != nil {
 				_ = d.writeFile.Close()
 				d.writeFile = nil
@@ -325,10 +263,6 @@ func (d *diskQueue) writeOne(data []byte) error {
 	}
 
 	d.writeBuf.Reset()
-	err = binary.Write(&d.writeBuf, binary.BigEndian, dataLen)
-	if err != nil {
-		return err
-	}
 
 	_, err = d.writeBuf.Write(data)
 	if err != nil {
@@ -343,8 +277,13 @@ func (d *diskQueue) writeOne(data []byte) error {
 		return err
 	}
 
-	d.writePos += totalBytes
-	d.depth++
+	d.metadata.Segments = append(d.metadata.Segments, &segment{
+		FileNum:    writeFileNum,
+		Pos:        writePos,
+		MessageLen: totalBytes,
+		Consumed:   false,
+	})
+	d.metadata.Depth++
 
 	return err
 }
@@ -383,38 +322,14 @@ func (d *diskQueue) retrieveMetaData() error {
 		_ = f.Close()
 	}()
 
-	var depth int64
-	_, err = fmt.Fscanf(f, "%d\n%d,%d\n%d,%d\n",
-		&depth,
-		&d.readFileNum, &d.readPos,
-		&d.writeFileNum, &d.writePos)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
-	d.depth = depth
-	d.nextReadFileNum = d.readFileNum
-	d.nextReadPos = d.readPos
 
-	// if the metadata was not sync'd at the last shutdown of nsqd
-	// then the actual file size might actually be larger than the writePos,
-	// in which case the safest thing to do is skip to the next file for
-	// writes, and let the reader salvage what it can from the messages in the
-	// diskqueue beyond the metadata's likely also stale readPos
-	fileName = d.fileName(d.writeFileNum)
-	fileInfo, err := os.Stat(fileName)
+	err = json.Unmarshal(b, &d.metadata)
 	if err != nil {
 		return err
-	}
-	fileSize := fileInfo.Size()
-	if d.writePos < fileSize {
-		d.logger.Warn(fmt.Sprintf("metadata %s writePos %d < file size of %d, skipping to new file", fileName, d.writePos, fileSize),
-			zap.String("name", d.name))
-		d.writeFileNum++
-		d.writePos = 0
-		if d.writeFile != nil {
-			_ = d.writeFile.Close()
-			d.writeFile = nil
-		}
 	}
 
 	return nil
@@ -428,126 +343,88 @@ func (d *diskQueue) fileName(fileNum int64) string {
 	return fmt.Sprintf(path.Join(d.dataPath, "%s.diskqueue.%06d.dat"), d.name, fileNum)
 }
 
-func (d *diskQueue) checkTailCorruption(depth int64) {
-	if d.readFileNum < d.writeFileNum || d.readPos < d.writePos {
-		return
+// move to the next peek position. If we reset, move back to the original read position.
+func (d *diskQueue) peekForward() {
+	var lastSegment *segment
+	for _, s := range d.metadata.Segments {
+		if !s.Consumed && (s.FileNum > d.metadata.PeekFileNum || (s.FileNum == d.metadata.PeekFileNum && s.Pos > d.metadata.PeekPos)) {
+			d.metadata.PeekFileNum = s.FileNum
+			d.metadata.PeekPos = s.Pos
+			return
+		}
+		lastSegment = s
 	}
+	// place at the tip.
+	if lastSegment != nil {
+		d.metadata.PeekFileNum = lastSegment.FileNum
+		d.metadata.PeekPos = lastSegment.Pos + lastSegment.MessageLen
+	}
+}
 
-	// we've reached the end of the diskqueue
-	// if depth isn't 0 something went wrong
-	if depth != 0 {
-		if depth < 0 {
-			d.logger.Error(fmt.Sprintf("negative depth at tail (%d), metadata corruption, resetting 0...", depth),
-				zap.String("name", d.name))
+type segment struct {
+	FileNum    int64
+	Pos        int64
+	MessageLen int64
+	Consumed   bool
+}
+
+func (d *diskQueue) moveForward(fileNum int64, pos int64, messageLen int64) {
+	consumedFiles := map[int64]bool{}
+	for _, s := range d.metadata.Segments {
+		// consume the segment
+		if s.FileNum == fileNum && s.Pos == pos && s.MessageLen == messageLen {
+			s.Consumed = true
+
+		}
+		if _, ok := consumedFiles[s.FileNum]; !ok {
+			consumedFiles[s.FileNum] = s.Consumed
 		} else {
-			d.logger.Error(
-				fmt.Sprintf("positive depth at tail (%d), data loss, resetting 0...", depth),
-				zap.String("name", d.name),
-			)
+			consumedFiles[s.FileNum] = consumedFiles[s.FileNum] && s.Consumed
 		}
-		// force set depth 0
-		d.depth = 0
-		d.needSync = true
+	}
+	d.metadata.Depth--
+
+	for fileNum, consumed := range consumedFiles {
+		if consumed {
+			fn := d.fileName(fileNum)
+			err := os.Remove(fn)
+			if err != nil && !os.IsNotExist(err) {
+				d.logger.Error(" failed to Remove", zap.String("name", d.name), zap.String("filename", fn), zap.Error(err))
+			}
+		}
 	}
 
-	if d.readFileNum != d.writeFileNum || d.readPos != d.writePos {
-		if d.readFileNum > d.writeFileNum {
-			d.logger.Error(fmt.Sprintf("readFileNum > writeFileNum (%d > %d), corruption, skipping to next writeFileNum and resetting 0...", d.readFileNum, d.writeFileNum),
-				zap.String("name", d.name))
+	compactedSegments := make([]*segment, 0, len(d.metadata.Segments))
+	for _, s := range d.metadata.Segments {
+		if !consumedFiles[s.FileNum] {
+			compactedSegments = append(compactedSegments, s)
 		}
-
-		if d.readPos > d.writePos {
-			d.logger.Error(fmt.Sprintf("readPos > writePos (%d > %d), corruption, skipping to next writeFileNum and resetting 0...", d.readPos, d.writePos),
-				zap.String("name", d.name))
-		}
-
-		if err := d.skipToNextRWFile(); err != nil {
-			d.logger.Error("error skipping to next file", zap.Error(err))
-		}
-		d.needSync = true
 	}
+	d.metadata.Segments = compactedSegments
 }
 
-func (d *diskQueue) moveForward() {
-	oldReadFileNum := d.readFileNum
-	d.readFileNum = d.nextReadFileNum
-	d.readPos = d.nextReadPos
-	d.depth--
-
-	// see if we need to clean up the old file
-	if oldReadFileNum != d.nextReadFileNum {
-		// sync every time we start reading from a new file
-		d.needSync = true
-
-		fn := d.fileName(oldReadFileNum)
-		err := os.Remove(fn)
-		if err != nil {
-			d.logger.Error(" failed to Remove", zap.String("name", d.name), zap.String("filename", fn), zap.Error(err))
-		}
-	}
-
-	d.checkTailCorruption(d.depth)
-}
-
-func (d *diskQueue) handleReadError(err error) {
-	// jump to the next read file and rename the current (bad) file
-	if d.readFileNum == d.writeFileNum {
-		// if you can't properly read from the current write file it's safe to
-		// assume that something is fucked and we should skip the current file too
-		if d.writeFile != nil {
-			_ = d.writeFile.Close()
-			d.writeFile = nil
-		}
-		d.writeFileNum++
-		d.writePos = 0
-	}
-
-	if !errors.Is(err, io.EOF) {
-		badFn := d.fileName(d.readFileNum)
-		badRenameFn := badFn + ".bad"
-
-		d.logger.Warn("jump to next file and saving bad file as %s",
-			zap.String("name", d.name), zap.String("badRenameFilename", badRenameFn))
-
-		err := os.Rename(badFn, badRenameFn)
-		if err != nil {
-			d.logger.Error(
-				"failed to rename bad diskqueue file",
-				zap.String("name", d.name), zap.String("badFilename", badFn), zap.String("badRenameFilename", badRenameFn),
-			)
-		}
-	}
-
-	d.readFileNum++
-	d.readPos = 0
-	d.nextReadFileNum = d.readFileNum
-	d.nextReadPos = 0
-
-	// significant state change, schedule a sync on the next iteration
-	d.needSync = true
-
-	d.checkTailCorruption(d.depth)
-}
-
-// ioLoop provides the backend for exposing a go channel (via ReadChan())
-// in support of multiple concurrent queue consumers
-//
-// it works by looping and branching based on whether or not the queue has data
-// to read and blocking until data is either read or written over the appropriate
-// go channels
-//
-// conveniently this also means that we're asynchronously reading from the filesystem
 func (d *diskQueue) ioLoop() {
-	var dataRead []byte
+	var peekDataRead []byte
 	var err error
 	var count int64
-	var r chan []byte
-	var p chan []byte
+	var p chan Message
+	var messagePeekFileNum int64
+	var messagePeekPos int64
+	recomputePeek := false
 
 	syncTicker := time.NewTicker(d.syncTimeout)
+	defer syncTicker.Stop()
 
+	type callback struct {
+		pos     int64
+		len     int64
+		fileNum int64
+	}
+
+	callbackChan := make(chan callback)
+
+ioLoop:
 	for {
-		// dont sync all the time :)
 		if count == d.syncEvery {
 			d.needSync = true
 		}
@@ -560,35 +437,52 @@ func (d *diskQueue) ioLoop() {
 			count = 0
 		}
 
-		if d.readFileNum < d.writeFileNum || (d.readFileNum == d.writeFileNum && d.readPos < d.writePos) {
-			if d.nextReadPos == d.readPos {
-				dataRead, err = d.readOne()
+		if recomputePeek {
+			recomputePeek = false
+			lastSegment := d.lastSegment()
+			if d.metadata.PeekFileNum < lastSegment.FileNum || (d.metadata.PeekFileNum == lastSegment.FileNum && d.metadata.PeekPos < lastSegment.Pos+lastSegment.MessageLen) {
+				peekDataRead, err = d.peekOne()
 				if err != nil {
-					d.logger.Error(fmt.Sprintf(" reading at %d of %s", d.readPos, d.fileName(d.readFileNum)),
+					d.logger.Error(fmt.Sprintf(" peeking at %d of %s", d.metadata.PeekPos, d.fileName(d.metadata.PeekFileNum)),
 						zap.String("name", d.name), zap.Error(err))
-					d.handleReadError(err)
 					continue
 				}
+				p = d.peekChan
+				messagePeekFileNum = d.metadata.PeekFileNum
+				messagePeekPos = d.metadata.PeekPos
+			} else {
+				p = nil
 			}
-			r = d.readChan
-			p = d.peekChan
-		} else {
-			r = nil
-			p = nil
 		}
 
 		select {
-		// the Go channel spec dictates that nil channel operations (read or write)
-		// in a select are skipped, we set r to d.readChan only when there is data to read
-		case p <- dataRead:
-		case r <- dataRead:
+		case c := <-callbackChan:
 			count++
-			// moveForward sets needSync flag if a file is removed
-			d.moveForward()
-		case d.depthChan <- d.depth:
+			d.moveForward(c.fileNum, c.pos, c.len)
+			recomputePeek = true
+		case p <- Message{
+			Payload: peekDataRead,
+			ConsumeCallback: func() func() {
+				callbackPos := messagePeekPos
+				callbackLen := int64(len(peekDataRead))
+				callbackFileNum := messagePeekFileNum
+				return func() {
+					callbackChan <- callback{
+						pos:     callbackPos,
+						len:     callbackLen,
+						fileNum: callbackFileNum,
+					}
+				}
+			}(),
+		}:
+			count++
+			d.peekForward()
+			recomputePeek = true
+		case d.depthChan <- d.metadata.Depth:
 		case dataWrite := <-d.writeChan:
 			count++
 			d.writeResponseChan <- d.writeOne(dataWrite)
+			recomputePeek = true
 		case <-syncTicker.C:
 			if count == 0 {
 				// avoid sync when there's no activity
@@ -596,31 +490,26 @@ func (d *diskQueue) ioLoop() {
 			}
 			d.needSync = true
 		case <-d.exitChan:
-			goto exit
+			d.logger.Debug("closing", zap.String("name", d.name))
+			d.exitSyncChan <- 1
+			break ioLoop
 		}
 	}
-
-exit:
-	d.logger.Info("closing ... ioLoop", zap.String("name", d.name))
-	syncTicker.Stop()
-	d.exitSyncChan <- 1
 }
 
 // persistMetaData atomically writes state to the filesystem
 func (d *diskQueue) persistMetaData() error {
-	var f *os.File
-	var err error
-
 	fileName := d.metaDataFilePath()
-	f, err = os.CreateTemp("", path.Base(fileName)+"-*")
+	f, err := os.CreateTemp("", path.Base(fileName)+"-*")
 	if err != nil {
 		return err
 	}
-
-	_, err = fmt.Fprintf(f, "%d\n%d,%d\n%d,%d\n",
-		d.depth,
-		d.readFileNum, d.readPos,
-		d.writeFileNum, d.writePos)
+	b, err := json.Marshal(d.metadata)
+	if err != nil {
+		_ = f.Close()
+		return err
+	}
+	_, err = f.Write(b)
 	if err != nil {
 		_ = f.Close()
 		return err

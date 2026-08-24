@@ -66,6 +66,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cloud_foundry",
 		"collectd",
 		"discovery",
+		"dns_check",
 		"docker_stats",
 		"elasticsearch",
 		"file_log",

@@ -1,4 +1,4 @@
-FROM ruby:3.3.8-bookworm
+FROM ruby:4.0.4-bookworm
 
 ENV PATH=$PATH:/opt/puppetlabs/bin:/opt/puppetlabs/pdk/bin
 
@@ -20,7 +20,9 @@ WORKDIR /etc/puppetlabs/code/modules/splunk_otel_collector
 COPY ./ ./
 RUN pdk update
 # Bundler version matches the version used to generate the Gemfile.lock
-RUN gem install bundler -v 2.4.13 && bundle install
+RUN gem install bundler -v 4.0.17 && bundle install
+RUN bundle update puppet
+RUN bundle update puppet-lint
 
 RUN mkdir -p /root/.config/puppet && \
     echo "---\n\

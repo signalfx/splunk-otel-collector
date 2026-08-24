@@ -30,8 +30,8 @@ import (
 )
 
 type Message struct {
-	Payload         []byte
 	ConsumeCallback func()
+	Payload         []byte
 }
 
 type Queue interface {
@@ -63,15 +63,14 @@ type diskQueue struct {
 	dataPath          string
 	name              string
 	writeBuf          bytes.Buffer
-	// TODO fix rotation
-	maxBytesPerFile int64
-	syncTimeout     time.Duration
-	syncEvery       int64
-	numWorkers      int
+	metadata          Metadata
+	maxBytesPerFile   int64
+	syncTimeout       time.Duration
+	syncEvery         int64
+	numWorkers        int
 	sync.RWMutex
 	exitFlag int32
 	needSync bool
-	metadata Metadata
 }
 
 // New instantiates an instance of diskQueue, retrieving metadata
@@ -368,13 +367,12 @@ type segment struct {
 	Consumed   bool
 }
 
-func (d *diskQueue) moveForward(fileNum int64, pos int64, messageLen int64) {
+func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 	consumedFiles := map[int64]bool{}
 	for _, s := range d.metadata.Segments {
 		// consume the segment
 		if s.FileNum == fileNum && s.Pos == pos && s.MessageLen == messageLen {
 			s.Consumed = true
-
 		}
 		if _, ok := consumedFiles[s.FileNum]; !ok {
 			consumedFiles[s.FileNum] = s.Consumed

@@ -54,12 +54,12 @@ type diskQueueStorageExtension struct {
 }
 
 type client struct {
-	name          string
 	queue         internal.Queue
 	logger        *zap.Logger
+	callbacks     map[string]func()
+	name          string
 	path          string
 	checkFirstGet sync.Once
-	callbacks     map[string]func()
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {

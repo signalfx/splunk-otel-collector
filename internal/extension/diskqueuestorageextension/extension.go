@@ -80,7 +80,7 @@ func (c *client) Get(_ context.Context, key string) ([]byte, error) {
 		message := <-c.queue.PeekChan()
 		// register callback for consumption
 		c.callbacks[key] = message.ConsumeCallback
-		return message.Payload, nil
+		return message.Payload(), nil
 	}
 }
 

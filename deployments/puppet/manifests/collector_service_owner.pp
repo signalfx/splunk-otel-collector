@@ -1,6 +1,14 @@
 # Sets the user/group for the splunk-otel-collector service.
 # If the user or group does not exist, they will be created.
 class splunk_otel_collector::collector_service_owner ($service_name, $service_user, $service_group) {
+  $collector_directories = ['/etc/otel/collector', '/var/lib/otelcol']
+  $collector_directory_paths = $collector_directories.join(' ')
+  $ownership_mismatch_command = [
+    "find ${collector_directory_paths}",
+    "\\( ! -user ${service_user} -o ! -group ${service_group} \\)",
+    '-print -quit | grep -q .',
+  ].join(' ')
+
   if !defined(Group[$service_group]) {
     if $service_group == 'splunk-otel-collector' or $service_group in split($::local_groups, ',') {
       group { $service_group:
@@ -34,15 +42,6 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
     }
   }
 
-  file { '/etc/otel/collector':
-    ensure  => directory,
-    owner   => $service_user,
-    group   => $service_group,
-    mode    => '0755',
-    require => User[$service_user],
-    before  => Service[$service_name],
-  }
-
   case $::service_provider {
     'systemd': {
       $tmpfile_path = "/etc/tmpfiles.d/${service_name}.conf"
@@ -51,18 +50,13 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
       $override_path = "/etc/systemd/system/${service_name}.service.d/service-owner.conf"
       $override_dir = $override_path.split('/')[0, - 2].join('/')
 
-      Package[$service_name] ~> Group[$service_group] ~> User[$service_user]
+      Package[$service_name] -> Group[$service_group] -> User[$service_user]
 
-      ~> exec { 'systemctl stop splunk-otel-collector':
-        path        => '/bin:/sbin:/usr/bin:/usr/sbin',
-        refreshonly => true,
-      }
-
-      ~> file { [$tmpfile_dir, $override_dir]:
+      -> file { [$tmpfile_dir, $override_dir]:
         ensure => directory,
       }
 
-      ~> file {
+      -> file {
         $tmpfile_path:
           ensure  => file,
           content => "D /run/${service_name} 0755 ${service_user} ${service_group} - -",
@@ -72,7 +66,7 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
         ;
       }
 
-      ~> file_line {
+      -> file_line {
         $override_path:
           path  => $override_path,
           line  => '[Service]',
@@ -94,10 +88,45 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
         ;
       }
 
-      ~> exec { ["systemd-tmpfiles --create --remove ${tmpfile_path}", 'systemctl daemon-reload']:
+      exec { 'systemctl stop splunk-otel-collector':
+        path        => '/bin:/sbin:/usr/bin:/usr/sbin',
+        refreshonly => true,
+        subscribe   => [
+          File_Line[$override_path],
+          File_Line['set-service-user'],
+          File_Line['set-service-group'],
+        ],
+      }
+
+      -> file { $collector_directories:
+        ensure => directory,
+        owner  => $service_user,
+        group  => $service_group,
+        mode   => '0755',
+      }
+
+      -> exec { 'set collector directory ownership recursively':
+        command => "chown -R ${service_user}:${service_group} ${collector_directory_paths}",
+        onlyif  => $ownership_mismatch_command,
+        path    => '/bin:/sbin:/usr/bin:/usr/sbin',
+      }
+
+      -> exec { "systemd-tmpfiles --create --remove ${tmpfile_path}":
         path        => '/bin:/sbin:/usr/bin:/usr/sbin',
         returns     => [0],
         refreshonly => true,
+        subscribe   => File[$tmpfile_path],
+      }
+
+      -> exec { 'systemctl daemon-reload':
+        path        => '/bin:/sbin:/usr/bin:/usr/sbin',
+        returns     => [0],
+        refreshonly => true,
+        subscribe   => [
+          File_Line[$override_path],
+          File_Line['set-service-user'],
+          File_Line['set-service-group'],
+        ],
       }
 
       ~> Service[$service_name]

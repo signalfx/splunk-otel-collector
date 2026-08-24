@@ -68,7 +68,6 @@ type diskQueue struct {
 	maxBytesPerFile   int64
 	syncTimeout       time.Duration
 	syncEvery         int64
-	numWorkers        int
 	exitFlag          atomic.Bool
 	needSync          bool
 	exitWG            sync.WaitGroup
@@ -117,14 +116,22 @@ func (d *diskQueue) PeekChan() <-chan Message {
 	return d.peekChan
 }
 
+var bufPool = sync.Pool{
+	New: func() any {
+		return &bytes.Buffer{}
+	},
+}
+
 // Put writes a []byte to the queue
 func (d *diskQueue) Put(data []byte) error {
 	if d.exitFlag.Load() {
 		return errors.New("exiting")
 	}
 
-	var buf bytes.Buffer
-	zw := gzip.NewWriter(&buf)
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+	zw := gzip.NewWriter(buf)
 	if _, err := zw.Write(data); err != nil {
 		return err
 	}

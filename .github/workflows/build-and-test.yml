@@ -164,7 +164,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
-      WITH_OPAMP_SUPERVISOR: ${{ contains(fromJSON('["binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-windows_arm64"]'), matrix.SYS_BINARIES) }}
 
   latest-dockerd-test:
     # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.

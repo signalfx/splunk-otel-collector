@@ -17,6 +17,7 @@
 package windows_install_script
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,6 +26,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shirou/gopsutil/v3/process"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/registry"
 	"golang.org/x/sys/windows/svc"
@@ -33,7 +35,11 @@ import (
 
 const (
 	// Old version to install first, minimum version supported by the installation script.
-	oldCollectorVersion = "0.128.0"
+	oldCollectorVersion    = "0.128.0"
+	lastPreLauncherVersion = "0.158.0"
+	fipsMode               = "fips140=on"
+	serviceRegistryPath    = `SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
+	preservationMarker     = "# Preserve this customization across package upgrade."
 	// Service name
 	serviceName = "splunk-otel-collector"
 	// Service display name
@@ -42,6 +48,12 @@ const (
 
 func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	t.Setenv("VERIFY_ACCESS_TOKEN", "false")
+	// Force the installer to set two Zero Code resource attributes so the upgrade
+	// verifies that it migrates one without removing the other.
+	zeroCodeArgs := []string{
+		"-with_dotnet_instrumentation", "1",
+		"-deployment_env", "test",
+	}
 
 	requireNoPendingFileOperations(t)
 
@@ -50,7 +62,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	defer scm.Disconnect()
 
 	t.Logf(" *** Installing old collector version %s", oldCollectorVersion)
-	installCollector(t, getTestDataFilePath(t, "install-before-platform-indexes.ps1"), oldCollectorVersion, "")
+	installCollector(t, getTestDataFilePath(t, "install-before-platform-indexes.ps1"), oldCollectorVersion, "", zeroCodeArgs...)
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment=test")
@@ -62,7 +74,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 
 	msiInstallerPath := getFilePathFromEnvVar(t, "MSI_COLLECTOR_PATH")
 	t.Logf(" *** Installing collector from %q", msiInstallerPath)
-	installCollector(t, getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"), "", msiInstallerPath)
+	installCollector(t, getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"), "", msiInstallerPath, zeroCodeArgs...)
 	verifyServiceExists(t, scm)
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment.name=test")
@@ -74,16 +86,85 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	verifyZeroConfigResourceAttributes(t, 0, "deployment.environment.name=test")
 }
 
-func installCollector(t *testing.T, installScriptPath, version, msiPath string) {
+func TestUpgradeAndRollbackSupervisorMode(t *testing.T) {
+	t.Setenv("VERIFY_ACCESS_TOKEN", "false")
+	requireNoPendingFileOperations(t)
+
+	scm, err := mgr.Connect()
+	require.NoError(t, err)
+	defer scm.Disconnect()
+
+	installScriptPath := getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH")
+	t.Logf(" *** Installing pre-launcher collector version %s", lastPreLauncherVersion)
+	installCollector(
+		t,
+		installScriptPath,
+		lastPreLauncherVersion,
+		"",
+		"-realm", "test",
+		"-godebug", fipsMode,
+	)
+	verifyServiceExists(t, scm)
+	verifyServiceState(t, scm, svc.Running)
+
+	configPath := filepath.Join(os.Getenv("PROGRAMDATA"), "Splunk", "OpenTelemetry Collector", "agent_config.yaml")
+	configFile, err := os.OpenFile(configPath, os.O_APPEND|os.O_WRONLY, 0)
+	require.NoError(t, err)
+	_, err = configFile.WriteString("\n" + preservationMarker + "\n")
+	require.NoError(t, err)
+	require.NoError(t, configFile.Close())
+	configHash := hashFile(t, configPath)
+
+	fipsEnvironment := "GODEBUG=" + fipsMode
+	verifyServiceEnvironmentContains(t, fipsEnvironment)
+
+	msiInstallerPath := getFilePathFromEnvVar(t, "MSI_COLLECTOR_PATH")
+	t.Logf(" *** Upgrading collector from %q", msiInstallerPath)
+	installCollector(
+		t,
+		installScriptPath,
+		"",
+		msiInstallerPath,
+		"-realm", "test",
+		"-godebug", fipsMode,
+		"-preserve_prev_default_config", "1",
+	)
+
+	verifyLauncherServiceEntrypoint(t, scm)
+	installDir := filepath.Join(os.Getenv("PROGRAMFILES"), "Splunk", "OpenTelemetry Collector")
+	for _, executableName := range []string{"otelcol.exe", "otelcollauncher.exe", "opampsupervisor.exe"} {
+		require.FileExists(t, filepath.Join(installDir, executableName))
+	}
+	verifyServiceEnvironmentContains(t, fipsEnvironment)
+	require.Equal(t, configHash, hashFile(t, configPath), "Collector configuration changed during package upgrade")
+	verifyServiceRunningWithProcess(t, scm, "otelcol.exe")
+
+	setServiceEnvironmentVariable(t, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "true")
+	restartService(t, scm)
+	verifyServiceEnvironmentContains(t, fipsEnvironment, "SPLUNK_OPAMP_SUPERVISOR_ENABLED=true")
+	verifyServiceRunningWithProcess(t, scm, "opampsupervisor.exe")
+	verifySupervisorConfigFiles(t)
+
+	setServiceEnvironmentVariable(t, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "false")
+	restartService(t, scm)
+	verifyServiceEnvironmentContains(t, fipsEnvironment, "SPLUNK_OPAMP_SUPERVISOR_ENABLED=false")
+	verifyServiceRunningWithProcess(t, scm, "otelcol.exe")
+	require.Equal(t, configHash, hashFile(t, configPath), "Collector configuration changed while switching supervisor modes")
+	requireNoPendingFileOperations(t)
+
+	uninstallCollector(t)
+}
+
+func installCollector(t *testing.T, installScriptPath, version, msiPath string, extraArgs ...string) {
+	t.Helper()
 	require.False(t, version == "" && msiPath == "", "Either version or msiPath must be provided")
 	require.False(t, version != "" && msiPath != "", "Only one of version or msiPath should be provided")
 	args := []string{
 		"-ExecutionPolicy", "Bypass",
 		"-Command", "& " + installScriptPath,
 		"-access_token", "fake-token",
-		"-with_dotnet_instrumentation", "1", // This forces the installer to set the OTEL_RESOURCE_ATTRIBUTES env var with the Zero-Code attribute.
-		"-deployment_env", "test", // This forces another attribute to be set in OTEL_RESOURCE_ATTRIBUTES so the environment variable can't be totally removed by the install script.
 	}
+	args = append(args, extraArgs...)
 
 	if version != "" {
 		args = append(args, "-collector_version", version)
@@ -138,6 +219,122 @@ func verifyServiceState(t *testing.T, scm *mgr.Mgr, desiredState svc.State) {
 		require.NoError(t, err)
 		return status.State == desiredState
 	}, 10*time.Second, 500*time.Millisecond, "Service failed to reach the desired state")
+}
+
+func verifyLauncherServiceEntrypoint(t *testing.T, scm *mgr.Mgr) {
+	t.Helper()
+	service, err := scm.OpenService(serviceName)
+	require.NoError(t, err)
+	defer service.Close()
+
+	serviceConfig, err := service.Config()
+	require.NoError(t, err)
+	require.Contains(t, strings.ToLower(serviceConfig.BinaryPathName), "otelcollauncher.exe")
+}
+
+func restartService(t *testing.T, scm *mgr.Mgr) {
+	t.Helper()
+	service, err := scm.OpenService(serviceName)
+	require.NoError(t, err)
+	defer service.Close()
+
+	_, err = service.Control(svc.Stop)
+	require.NoError(t, err)
+	require.Eventually(t, func() bool {
+		status, queryErr := service.Query()
+		return queryErr == nil && status.State == svc.Stopped
+	}, 30*time.Second, time.Second, "Service failed to stop")
+
+	require.NoError(t, service.Start())
+	require.Eventually(t, func() bool {
+		status, queryErr := service.Query()
+		return queryErr == nil && status.State == svc.Running
+	}, 30*time.Second, time.Second, "Service failed to restart")
+}
+
+func hashFile(t *testing.T, filePath string) string {
+	t.Helper()
+	contents, err := os.ReadFile(filePath)
+	require.NoError(t, err)
+	return fmt.Sprintf("%x", sha256.Sum256(contents))
+}
+
+func setServiceEnvironmentVariable(t *testing.T, name, value string) {
+	t.Helper()
+	key, err := registry.OpenKey(registry.LOCAL_MACHINE, serviceRegistryPath, registry.QUERY_VALUE|registry.SET_VALUE)
+	require.NoError(t, err)
+	defer key.Close()
+
+	environment, _, err := key.GetStringsValue("Environment")
+	require.NoError(t, err)
+	updatedEnvironment := make([]string, 0, len(environment)+1)
+	for _, entry := range environment {
+		parts := strings.SplitN(entry, "=", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[0], name) {
+			continue
+		}
+		updatedEnvironment = append(updatedEnvironment, entry)
+	}
+	updatedEnvironment = append(updatedEnvironment, name+"="+value)
+	require.NoError(t, key.SetStringsValue("Environment", updatedEnvironment))
+}
+
+func verifyServiceEnvironmentContains(t *testing.T, expectedEntries ...string) {
+	t.Helper()
+	key, err := registry.OpenKey(registry.LOCAL_MACHINE, serviceRegistryPath, registry.QUERY_VALUE)
+	require.NoError(t, err)
+	defer key.Close()
+
+	environment, _, err := key.GetStringsValue("Environment")
+	require.NoError(t, err)
+	for _, expectedEntry := range expectedEntries {
+		require.Contains(t, environment, expectedEntry)
+	}
+}
+
+func verifyServiceRunningWithProcess(t *testing.T, scm *mgr.Mgr, expectedProcessName string) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		service, err := scm.OpenService(serviceName)
+		if err != nil {
+			return false
+		}
+		defer service.Close()
+
+		status, err := service.Query()
+		if err != nil || status.State != svc.Running || status.ProcessId == 0 {
+			return false
+		}
+
+		serviceProcess, err := process.NewProcess(int32(status.ProcessId))
+		if err != nil {
+			return false
+		}
+		children, err := serviceProcess.Children()
+		if err != nil {
+			return false
+		}
+
+		for _, child := range children {
+			name, nameErr := child.Name()
+			if nameErr != nil {
+				return false
+			}
+			if strings.EqualFold(name, expectedProcessName) {
+				return true
+			}
+		}
+		return false
+	}, 30*time.Second, time.Second, "Service failed to run with %s", expectedProcessName)
+}
+
+func verifySupervisorConfigFiles(t *testing.T) {
+	t.Helper()
+	programData := os.Getenv("PROGRAMDATA")
+	require.NotEmpty(t, programData, "PROGRAMDATA environment variable is not set")
+	supervisorDir := filepath.Join(programData, "Splunk", "OpenTelemetry Collector", "supervisor")
+	require.FileExists(t, filepath.Join(supervisorDir, "supervisor_config.yaml"))
+	require.FileExists(t, filepath.Join(supervisorDir, "supervisor_runtime_config.yaml"))
 }
 
 func getCurrentServiceVersion(t *testing.T) string {

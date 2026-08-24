@@ -57,3 +57,45 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
     update_gomod "$gomod" "$CONTRIB_PKGS" "$CONTRIB_VERSION"
     make -C "$REPO_DIR" tidy-all
 done
+
+# The baseline module pins the same OTel modules a second time, as hardcoded
+# versions in builder-config.yaml (the ocb manifest that generates
+# components.go). The go get loop above only touched go.mod, so re-sync the
+# manifest from the bumped go.mod: rewrite otelcol_version and every
+# `- gomod: <module> <version>` line from the resolved go.mod version.
+# components.go carries no version strings, so a version-only bump needs no
+# regeneration; run `go generate ./...` in ./baseline only when the component
+# set itself changes.
+cd "$REPO_DIR/baseline"
+
+# otelcol_version is the ocb dist version — the collector release, matching
+# the go.opentelemetry.io/collector/otelcol module minus the leading "v".
+otelcol_ver="$( go list -m -f '{{.Version}}' go.opentelemetry.io/collector/otelcol )"
+
+tmp="$( mktemp )"
+while IFS= read -r line; do
+    case "$line" in
+        *"otelcol_version:"*)
+            # Preserve leading indentation, replace the value.
+            printf '%s%s\n' "${line%%otelcol_version:*}" "otelcol_version: ${otelcol_ver#v}"
+            ;;
+        *"- gomod:"*)
+            # Line shape: "  - gomod: <module> <version>". Re-resolve
+            # <version> from go.mod; leave untouched if not a dependency.
+            mod="$( printf '%s\n' "$line" | awk '{print $3}' )"
+            ver="$( go list -m -f '{{.Version}}' "$mod" 2>/dev/null || true )"
+            if [ -n "$ver" ]; then
+                printf '%s- gomod: %s %s\n' "${line%%- gomod:*}" "$mod" "$ver"
+            else
+                printf '%s\n' "$line"
+            fi
+            ;;
+        *)
+            printf '%s\n' "$line"
+            ;;
+    esac
+done < builder-config.yaml > "$tmp"
+mv "$tmp" builder-config.yaml
+echo ">>> Synced builder-config.yaml versions to go.mod (otelcol_version: ${otelcol_ver#v})"
+
+cd "$CUR_DIR"

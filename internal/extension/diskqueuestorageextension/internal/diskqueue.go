@@ -17,6 +17,7 @@ package internal
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -31,7 +32,7 @@ import (
 
 type Message struct {
 	ConsumeCallback func()
-	Payload         []byte
+	Payload         func() []byte
 }
 
 type Queue interface {
@@ -126,7 +127,15 @@ func (d *diskQueue) Put(data []byte) error {
 		return errors.New("exiting")
 	}
 
-	d.writeChan <- data
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+	if _, err := zw.Write(data); err != nil {
+		return err
+	}
+	if err := zw.Close(); err != nil {
+		return err
+	}
+	d.writeChan <- buf.Bytes()
 	return <-d.writeResponseChan
 }
 
@@ -459,7 +468,21 @@ ioLoop:
 			d.moveForward(c.fileNum, c.pos, c.len)
 			recomputePeek = true
 		case p <- Message{
-			Payload: peekDataRead,
+			Payload: func() func() []byte {
+				localPeekDataRead := peekDataRead
+				return func() []byte {
+					r, err := gzip.NewReader(bytes.NewReader(localPeekDataRead))
+					if err != nil {
+						d.logger.Error("error creating reader", zap.Error(err))
+						return []byte{}
+					}
+					decompressed, err := io.ReadAll(r)
+					if err != nil {
+						d.logger.Error("error decompressing entry", zap.Error(err))
+					}
+					return decompressed
+				}
+			}(),
 			ConsumeCallback: func() func() {
 				callbackPos := messagePeekPos
 				callbackLen := int64(len(peekDataRead))

@@ -25,6 +25,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"go.uber.org/zap"
@@ -53,7 +54,6 @@ type Metadata struct {
 type diskQueue struct {
 	writeResponseChan chan error
 	writeChan         chan []byte
-	exitSyncChan      chan int
 	exitChan          chan int
 	logger            *zap.Logger
 	writeFile         *os.File
@@ -69,9 +69,9 @@ type diskQueue struct {
 	syncTimeout       time.Duration
 	syncEvery         int64
 	numWorkers        int
-	sync.RWMutex
-	exitFlag int32
-	needSync bool
+	exitFlag          atomic.Bool
+	needSync          bool
+	exitWG            sync.WaitGroup
 }
 
 // New instantiates an instance of diskQueue, retrieving metadata
@@ -88,7 +88,6 @@ func New(name, dataPath string, maxBytesPerFile int64,
 		writeChan:         make(chan []byte),
 		writeResponseChan: make(chan error),
 		exitChan:          make(chan int),
-		exitSyncChan:      make(chan int),
 		syncEvery:         syncEvery,
 		syncTimeout:       syncTimeout,
 		logger:            logger,
@@ -100,7 +99,7 @@ func New(name, dataPath string, maxBytesPerFile int64,
 		d.logger.Error(" failed to retrieveMetaData", zap.String("name", d.name), zap.Error(err))
 	}
 
-	go d.ioLoop()
+	d.exitWG.Go(d.ioLoop)
 	return &d
 }
 
@@ -120,10 +119,7 @@ func (d *diskQueue) PeekChan() <-chan Message {
 
 // Put writes a []byte to the queue
 func (d *diskQueue) Put(data []byte) error {
-	d.RLock()
-	defer d.RUnlock()
-
-	if d.exitFlag == 1 {
+	if d.exitFlag.Load() {
 		return errors.New("exiting")
 	}
 
@@ -149,18 +145,15 @@ func (d *diskQueue) Close() error {
 }
 
 func (d *diskQueue) exit() error {
-	d.Lock()
-	defer d.Unlock()
-
-	d.exitFlag = 1
+	d.exitFlag.Store(true)
 
 	d.logger.Debug("closing", zap.String("name", d.name))
 
 	close(d.exitChan)
-	// ensure that ioLoop has exited
-	<-d.exitSyncChan
+	d.exitWG.Wait()
 
 	close(d.depthChan)
+	close(d.peekChan)
 
 	if d.writeFile != nil {
 		_ = d.writeFile.Close()
@@ -512,7 +505,6 @@ ioLoop:
 			d.needSync = true
 		case <-d.exitChan:
 			d.logger.Debug("closing", zap.String("name", d.name))
-			d.exitSyncChan <- 1
 			break ioLoop
 		}
 	}

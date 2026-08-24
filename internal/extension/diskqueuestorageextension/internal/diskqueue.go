@@ -165,6 +165,11 @@ func (d *diskQueue) exit() error {
 		d.writeFile = nil
 	}
 
+	if d.peekFile != nil {
+		_ = d.peekFile.Close()
+		d.peekFile = nil
+	}
+
 	return nil
 }
 
@@ -428,7 +433,7 @@ ioLoop:
 		if d.needSync {
 			err = d.sync()
 			if err != nil {
-				d.logger.Error(" failed to sync", zap.String("name", d.name), zap.Error(err))
+				d.logger.Error("failed to sync", zap.String("name", d.name), zap.Error(err))
 			}
 			count = 0
 		}
@@ -439,7 +444,7 @@ ioLoop:
 			if d.metadata.PeekFileNum < lastSegment.FileNum || (d.metadata.PeekFileNum == lastSegment.FileNum && d.metadata.PeekPos < lastSegment.Pos+lastSegment.MessageLen) {
 				peekDataRead, err = d.peekOne()
 				if err != nil {
-					d.logger.Error(fmt.Sprintf(" peeking at %d of %s", d.metadata.PeekPos, d.fileName(d.metadata.PeekFileNum)),
+					d.logger.Error(fmt.Sprintf("failed peeking at %d of %s", d.metadata.PeekPos, d.fileName(d.metadata.PeekFileNum)),
 						zap.String("name", d.name), zap.Error(err))
 					continue
 				}
@@ -465,6 +470,9 @@ ioLoop:
 						d.logger.Error("error creating reader", zap.Error(err))
 						return []byte{}
 					}
+					defer func() {
+						_ = r.Close()
+					}()
 					decompressed, err := io.ReadAll(r)
 					if err != nil {
 						d.logger.Error("error decompressing entry", zap.Error(err))

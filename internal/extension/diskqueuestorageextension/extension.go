@@ -63,6 +63,12 @@ type client struct {
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
+	// This is a kludgy way to detect that the extension is not used for persistent queueing.
+	c.checkFirstGet.Do(func() {
+		if key != metadataKey {
+			panic("The disk_queue_storage extension can only be used with the persistent queue.")
+		}
+	})
 	switch key {
 	case metadataKey:
 		b, err := c.readMetadata()

@@ -15,7 +15,9 @@
 package diskqueuestorageextension
 
 import (
+	"fmt"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -78,13 +80,73 @@ func TestExtensionAsPersistentQueue(t *testing.T) {
 			extId: newDiskQueueStorageExtension(extensionSettings, extConfig),
 		},
 	}))
-	logs := plog.NewLogs()
-	logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty().Body().SetStr("hello world")
-	for range 10 {
+	for i := range 10 {
+		logs := plog.NewLogs()
+		logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty().Body().SetStr(fmt.Sprintf("hello world %d", i))
 		require.NoError(t, l.ConsumeLogs(t.Context(), logs))
 	}
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		require.Len(tt, sink.AllLogs(), 10)
+		lrs := map[string]struct{}{}
+		var logs []string
+		for _, l := range sink.AllLogs() {
+			log := l.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Body().Str()
+			lrs[log] = struct{}{}
+			logs = append(logs, log)
+		}
+		require.Len(tt, lrs, 10, strings.Join(logs, ","))
+	}, 2*time.Second, 100*time.Millisecond)
+	require.NoError(t, l.Shutdown(t.Context()))
+	require.NoError(t, reclogs.Shutdown(t.Context()))
+}
+
+func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err)
+	recf := otlpreceiver.NewFactory()
+	rCfg := recf.CreateDefaultConfig().(*otlpreceiver.Config)
+	listenerForFreePort, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	require.NoError(t, listenerForFreePort.Close())
+	rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint = listenerForFreePort.Addr().String()
+	sink := &consumertest.LogsSink{}
+	receiverSettings := receivertest.NewNopSettings(component.MustNewType("otlp"))
+	receiverSettings.Logger = logger
+	reclogs, err := recf.CreateLogs(t.Context(), receiverSettings, rCfg, sink)
+	require.NoError(t, err)
+	require.NoError(t, reclogs.Start(t.Context(), componenttest.NewNopHost()))
+	f := otlpexporter.NewFactory()
+	cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
+	extId := component.MustNewIDWithName("disk_queue_storage", "my")
+	cfg.QueueConfig.GetOrInsertDefault().StorageID = &extId
+	cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
+	cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
+	cfg.ClientConfig.TLS.Insecure = true
+	cfg.QueueConfig.GetOrInsertDefault().NumConsumers = 32
+	exporterSettings := exportertest.NewNopSettings(component.MustNewType("otlp"))
+	exporterSettings.Logger = logger
+	l, err := f.CreateLogs(t.Context(), exporterSettings, cfg)
+	require.NoError(t, err)
+	extConfig := createDefaultConfig().(*Config)
+	extConfig.Path = t.TempDir()
+	extensionSettings := extensiontest.NewNopSettings(component.MustNewType("disk_queue_storage"))
+	extensionSettings.Logger = logger
+	require.NoError(t, l.Start(t.Context(), hostWithExtensions{
+		extensions: map[component.ID]component.Component{
+			extId: newDiskQueueStorageExtension(extensionSettings, extConfig),
+		},
+	}))
+	for i := range 10 {
+		logs := plog.NewLogs()
+		logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty().Body().SetStr(fmt.Sprintf("hello world %d", i))
+		require.NoError(t, l.ConsumeLogs(t.Context(), logs))
+	}
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		lrs := map[string]struct{}{}
+		for _, l := range sink.AllLogs() {
+			log := l.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Body().Str()
+			lrs[log] = struct{}{}
+		}
+		require.Len(tt, lrs, 10)
 	}, 1*time.Second, 100*time.Millisecond)
 	require.NoError(t, l.Shutdown(t.Context()))
 	require.NoError(t, reclogs.Shutdown(t.Context()))

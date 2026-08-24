@@ -55,10 +55,11 @@ type diskQueueStorageExtension struct {
 
 type client struct {
 	name          string
-	queue         internal.Interface
+	queue         internal.Queue
 	logger        *zap.Logger
 	path          string
 	checkFirstGet sync.Once
+	callbacks     map[string]func()
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
@@ -76,8 +77,10 @@ func (c *client) Get(_ context.Context, key string) ([]byte, error) {
 	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil, nil
 	default:
-		b := <-c.queue.PeekChan()
-		return b, nil
+		message := <-c.queue.PeekChan()
+		// register callback for consumption
+		c.callbacks[key] = message.ConsumeCallback
+		return message.Payload, nil
 	}
 }
 
@@ -97,7 +100,12 @@ func (c *client) Delete(_ context.Context, key string) error {
 	case metadataKey, legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil
 	default:
-		<-c.queue.ReadChan()
+		if callback, ok := c.callbacks[key]; ok {
+			callback()
+			delete(c.callbacks, key)
+		} else {
+			c.logger.Error("Cannot find consumption callback", zap.String("key", key))
+		}
 		return nil
 	}
 }
@@ -128,10 +136,11 @@ func (c *client) Close(_ context.Context) error {
 
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {
 	return &client{
-		path:   d.config.Path,
-		name:   storageName,
-		queue:  internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
-		logger: d.settings.Logger,
+		path:      d.config.Path,
+		name:      storageName,
+		queue:     internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
+		logger:    d.settings.Logger,
+		callbacks: make(map[string]func(), 10),
 	}, nil
 }
 

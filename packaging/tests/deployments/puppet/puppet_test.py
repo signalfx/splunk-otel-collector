@@ -650,11 +650,15 @@ def test_puppet_instrumentation_upgrade_from_libsplunk(distro, puppet_release, w
         )
         run_puppet_apply(container, legacy_config)
         verify_package_version(container, "splunk-otel-auto-instrumentation", legacy_version)
-        for config_path in (JAVA_CONFIG_PATH, NODE_CONFIG_PATH):
-            assert container_file_exists(container, config_path), f"{config_path} missing after legacy install"
         if with_systemd == "true":
+            for config_path in (JAVA_CONFIG_PATH, NODE_CONFIG_PATH):
+                assert not container_file_exists(container, config_path), (
+                    f"{config_path} should be absent when legacy instrumentation uses systemd"
+                )
             assert container_file_exists(container, SYSTEMD_CONFIG_PATH)
         else:
+            for config_path in (JAVA_CONFIG_PATH, NODE_CONFIG_PATH):
+                assert container_file_exists(container, config_path), f"{config_path} missing after legacy install"
             verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
 
         # Re-apply the same manifest with the version bumped past the otel injector threshold,

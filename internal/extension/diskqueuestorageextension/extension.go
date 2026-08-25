@@ -58,12 +58,12 @@ type client struct {
 	queue                 internal.Queue
 	logger                *zap.Logger
 	callbacks             map[string]func()
+	metadataFile          *os.File
 	name                  string
 	path                  string
-	checkFirstGet         sync.Once
-	metadataFile          *os.File
 	metadataWrites        int
 	metadataTruncateEvery int
+	checkFirstGet         sync.Once
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
@@ -172,7 +172,7 @@ const separator = "\n\n"
 func (c *client) persistMetaData(value []byte) error {
 	fileName := filepath.Join(c.path, c.name+"-"+metadataKey)
 	if c.metadataFile == nil {
-		f, err := os.OpenFile(fileName, os.O_TRUNC|os.O_APPEND|os.O_CREATE|os.O_WRONLY|os.O_SYNC, 0600)
+		f, err := os.OpenFile(fileName, os.O_TRUNC|os.O_APPEND|os.O_CREATE|os.O_WRONLY|os.O_SYNC, 0o600)
 		if err != nil {
 			return err
 		}

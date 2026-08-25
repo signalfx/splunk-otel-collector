@@ -123,6 +123,12 @@ var bufPool = sync.Pool{
 	},
 }
 
+var gzipWriterPool = sync.Pool{
+	New: func() any {
+		return gzip.NewWriter(io.Discard)
+	},
+}
+
 // Put writes a []byte to the queue
 func (d *diskQueue) Put(data []byte) error {
 	if d.exitFlag.Load() {
@@ -132,7 +138,9 @@ func (d *diskQueue) Put(data []byte) error {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	defer bufPool.Put(buf)
-	zw := gzip.NewWriter(buf)
+	zw := gzipWriterPool.Get().(*gzip.Writer)
+	zw.Reset(buf)
+	defer gzipWriterPool.Put(zw)
 	if _, err := zw.Write(data); err != nil {
 		_ = zw.Close()
 		return err
@@ -146,23 +154,16 @@ func (d *diskQueue) Put(data []byte) error {
 
 // Close cleans up the queue and persists metadata
 func (d *diskQueue) Close() error {
-	err := d.exit()
-	if err != nil {
-		return err
-	}
-	return d.sync()
-}
-
-func (d *diskQueue) exit() error {
-	d.exitFlag.Store(true)
-
 	d.logger.Debug("closing", zap.String("name", d.name))
-
 	close(d.exitChan)
+
+	d.exitFlag.Store(true)
 	d.exitWG.Wait()
 
 	close(d.depthChan)
 	close(d.peekChan)
+
+	_ = d.sync()
 
 	if d.writeFile != nil {
 		_ = d.writeFile.Close()
@@ -502,7 +503,11 @@ ioLoop:
 		case dataWrite := <-d.writeChan:
 			count++
 			d.writeResponseChan <- d.writeOne(dataWrite)
-			recomputePeek = true
+			lastSegment := d.lastSegment()
+			// if peek had caught up to the tip, recompute it now that a new entry is available.
+			if d.metadata.PeekPos == lastSegment.Pos && d.metadata.PeekFileNum == lastSegment.FileNum {
+				recomputePeek = true
+			}
 		case <-syncTicker.C:
 			if count == 0 {
 				// avoid sync when there's no activity

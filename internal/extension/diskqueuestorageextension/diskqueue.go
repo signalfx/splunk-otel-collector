@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+package diskqueuestorageextension
 
 import (
 	"bytes"
@@ -30,19 +30,12 @@ import (
 	"go.uber.org/zap"
 )
 
-type Message struct {
+type message struct {
 	ConsumeCallback func()
 	Payload         func() []byte
 }
 
-type Queue interface {
-	Put([]byte) error
-	PeekChan() <-chan Message // this is expected to be an *unbuffered* channel
-	Close() error
-	Depth() int64
-}
-
-type Metadata struct {
+type metadata struct {
 	Segments    []*segment
 	Depth       int64
 	PeekFileNum int64
@@ -59,10 +52,10 @@ type diskQueue struct {
 	peekFile              *os.File
 	metadataFile          *os.File
 	depthChan             chan int64
-	peekChan              chan Message
+	peekChan              chan message
 	dataPath              string
 	name                  string
-	metadata              Metadata
+	metadata              metadata
 	maxBytesPerFile       int64
 	syncTimeout           time.Duration
 	syncEvery             int64
@@ -73,16 +66,16 @@ type diskQueue struct {
 	metadataWrites        int
 }
 
-// New instantiates an instance of diskQueue, retrieving metadata
+// newQueue instantiates an instance of diskQueue, retrieving metadata
 // from the filesystem and starting the read ahead goroutine
-func New(name, dataPath string, maxBytesPerFile int64,
+func newQueue(name, dataPath string, maxBytesPerFile int64,
 	syncEvery int64, syncTimeout time.Duration, logger *zap.Logger,
-) Queue {
+) *diskQueue {
 	d := diskQueue{
 		name:                  name,
 		dataPath:              dataPath,
 		maxBytesPerFile:       maxBytesPerFile,
-		peekChan:              make(chan Message),
+		peekChan:              make(chan message),
 		depthChan:             make(chan int64),
 		writeChan:             make(chan []byte),
 		writeResponseChan:     make(chan error),
@@ -113,7 +106,7 @@ func (d *diskQueue) Depth() int64 {
 	return depth
 }
 
-func (d *diskQueue) PeekChan() <-chan Message {
+func (d *diskQueue) PeekChan() <-chan message {
 	return d.peekChan
 }
 
@@ -411,7 +404,7 @@ func (d *diskQueue) ioLoop() {
 	var peekDataRead []byte
 	var err error
 	var count int64
-	var p chan Message
+	var p chan message
 	var messagePeekFileNum int64
 	var messagePeekPos int64
 	recomputePeek := false
@@ -464,7 +457,7 @@ ioLoop:
 			count++
 			d.moveForward(c.fileNum, c.pos, c.len)
 			recomputePeek = true
-		case p <- Message{
+		case p <- message{
 			Payload: func() func() []byte {
 				localPeekDataRead := peekDataRead
 				return func() []byte {
@@ -520,8 +513,6 @@ ioLoop:
 		}
 	}
 }
-
-const separator = "\n\n"
 
 func (d *diskQueue) persistMetaData() error {
 	fileName := d.metaDataFilePath()

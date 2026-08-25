@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+package diskqueuestorageextension
 
 import (
 	"fmt"
@@ -24,12 +24,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func newQueue(t *testing.T) Queue {
-	return New("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
+func newQueueForTesting(t *testing.T) *diskQueue {
+	return newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 }
 
 func TestEmptyQueue(t *testing.T) {
-	empty := newQueue(t)
+	empty := newQueueForTesting(t)
 	assert.Equal(t, int64(0), empty.Depth())
 	select {
 	case <-empty.PeekChan():
@@ -40,7 +40,7 @@ func TestEmptyQueue(t *testing.T) {
 }
 
 func TestPutPeekConsume(t *testing.T) {
-	q := newQueue(t)
+	q := newQueueForTesting(t)
 	require.NoError(t, q.Put([]byte("hello world")))
 	assert.Equal(t, int64(1), q.Depth())
 	msg := <-q.PeekChan()
@@ -51,7 +51,7 @@ func TestPutPeekConsume(t *testing.T) {
 }
 
 func TestTwoPutsPeek(t *testing.T) {
-	q := newQueue(t)
+	q := newQueueForTesting(t)
 	require.NoError(t, q.Put([]byte("hello world")))
 	require.NoError(t, q.Put([]byte("hello world2")))
 	assert.Equal(t, int64(2), q.Depth())
@@ -61,7 +61,7 @@ func TestTwoPutsPeek(t *testing.T) {
 }
 
 func TestThreePutsThreeConsumes(t *testing.T) {
-	q := newQueue(t)
+	q := newQueueForTesting(t)
 	require.NoError(t, q.Put([]byte("hello world")))
 	assert.Equal(t, int64(1), q.Depth())
 	require.NoError(t, q.Put([]byte("hello world2")))
@@ -85,7 +85,7 @@ func TestThreePutsThreeConsumes(t *testing.T) {
 }
 
 func TestThreePutsThreeConsumesOutOfOrder(t *testing.T) {
-	q := newQueue(t)
+	q := newQueueForTesting(t)
 	require.NoError(t, q.Put([]byte("hello world")))
 	assert.Equal(t, int64(1), q.Depth())
 	require.NoError(t, q.Put([]byte("hello world2")))
@@ -108,7 +108,7 @@ func TestThreePutsThreeConsumesOutOfOrder(t *testing.T) {
 }
 
 func TestMultipleWorkers(t *testing.T) {
-	q := New("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
+	q := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.Put([]byte("hello world")))
 	assert.Equal(t, int64(1), q.Depth())
 	require.NoError(t, q.Put([]byte("hello world2")))
@@ -134,7 +134,7 @@ func TestMultipleWorkers(t *testing.T) {
 }
 
 func TestMultipleWorkersOutOfOrder(t *testing.T) {
-	q := New("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
+	q := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.Put([]byte("hello world")))
 	assert.Equal(t, int64(1), q.Depth())
 	require.NoError(t, q.Put([]byte("hello world2")))

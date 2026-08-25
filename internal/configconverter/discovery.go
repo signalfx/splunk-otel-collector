@@ -26,8 +26,9 @@ import (
 
 // SetupDiscovery will find `service::<extensions|receivers>/splunk.discovery` entries
 // provided by the discovery confmap.Provider and relocate them to
-// `service::extensions` and `service::pipelines::metrics::receivers`,
-// by appending them to existing sequences, if any.
+// `service::extensions` and, when the default metrics pipeline exists,
+// `service::pipelines::metrics::receivers`, by appending them to existing
+// sequences, if any.
 func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
@@ -70,7 +71,7 @@ func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 		return err
 	}
 
-	if len(discoReceivers) > 0 {
+	if len(discoReceivers) > 0 && metricsPipeline != nil {
 		metricsPipeline["receivers"] = appendUnique(metricsReceivers, discoReceivers)
 	}
 
@@ -129,11 +130,14 @@ func getDiscoReceivers(service map[string]any) (bool, []any, error) {
 }
 
 func getMetricsPipelineAndReceivers(pipelines map[string]any) (map[string]any, []any, error) {
-	metricsPipeline := map[string]any{}
-	if mp, ok := pipelines["metrics"]; ok && mp != nil {
-		metricsPipeline = mp.(map[string]any)
+	mp, ok := pipelines["metrics"]
+	if !ok || mp == nil {
+		return nil, nil, nil
 	}
-	pipelines["metrics"] = metricsPipeline
+	metricsPipeline, ok := mp.(map[string]any)
+	if !ok {
+		return nil, nil, fmt.Errorf("metrics pipeline is of unexpected form (%T): %v", mp, mp)
+	}
 
 	var metricsReceivers []any
 	if mr, ok := metricsPipeline["receivers"]; ok && mr != nil {

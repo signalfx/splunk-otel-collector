@@ -238,6 +238,147 @@ func TestDiscoveryEmptyReceivers(t *testing.T) {
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
+func TestDiscoveryMetricsPipelineHandling(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         string
+		expected      string
+		expectedError string
+	}{
+		{
+			name: "without metrics pipeline",
+			input: `service:
+  extensions/splunk.discovery: [ext/one]
+  pipelines:
+    traces:
+      receivers: [recv/one]
+      exporters: [exp/one]
+  receivers/splunk.discovery: [discovery/host_observer]
+`,
+			expected: `service:
+  extensions: [ext/one]
+  pipelines:
+    traces:
+      receivers: [recv/one]
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
+`,
+		},
+		{
+			name: "without metrics pipeline still updates entities",
+			input: `service:
+  pipelines:
+    logs/entities:
+      receivers: [recv/one]
+      exporters: [exp/one]
+  receivers/splunk.discovery: [discovery/host_observer]
+`,
+			expected: `service:
+  pipelines:
+    logs/entities:
+      receivers: [recv/one, discovery/host_observer]
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
+`,
+		},
+		{
+			name: "does not use named metrics pipeline",
+			input: `service:
+  pipelines:
+    metrics/custom:
+      receivers: [recv/one]
+      exporters: [exp/one]
+  receivers/splunk.discovery: [discovery/host_observer]
+`,
+			expected: `service:
+  pipelines:
+    metrics/custom:
+      receivers: [recv/one]
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
+`,
+		},
+		{
+			name: "with null metrics pipeline",
+			input: `service:
+  pipelines:
+    metrics:
+    traces:
+      receivers: [recv/one]
+      exporters: [exp/one]
+  receivers/splunk.discovery: [discovery/host_observer]
+`,
+			expected: `service:
+  pipelines:
+    metrics:
+    traces:
+      receivers: [recv/one]
+      exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
+`,
+		},
+		{
+			name: "with_empty metrics pipeline",
+			input: `service:
+  pipelines:
+    metrics: {}
+  receivers/splunk.discovery: [discovery/host_observer]
+`,
+			expected: `service:
+  pipelines:
+    metrics:
+      receivers: [discovery/host_observer]
+  telemetry:
+    resource:
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
+`,
+		},
+		{
+			name: "with malformed metrics pipeline",
+			input: `service:
+  pipelines:
+    metrics: invalid
+  receivers/splunk.discovery: [discovery/host_observer]
+`,
+			expectedError: "metrics pipeline is of unexpected form (string): invalid",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in := confFromYaml(t, tt.input)
+
+			err := SetupDiscovery(context.Background(), in)
+			if tt.expectedError != "" {
+				require.EqualError(t, err, tt.expectedError)
+				return
+			}
+
+			require.NoError(t, err)
+			expected := confFromYaml(t, tt.expected)
+			require.Equal(t, expected.ToStringMap(), in.ToStringMap())
+		})
+	}
+}
+
 func TestContinuousDiscoveryNoEntitiesPipeline(t *testing.T) {
 	in := confFromYaml(t, `service:
   pipelines:

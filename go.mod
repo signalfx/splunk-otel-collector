@@ -21,6 +21,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.160.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.160.0
@@ -310,7 +311,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampcustommessages v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.160.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/k8s v0.160.0 // indirect

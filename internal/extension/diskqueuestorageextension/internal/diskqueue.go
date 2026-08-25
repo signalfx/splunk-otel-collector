@@ -528,7 +528,7 @@ const separator = "\n\n"
 func (d *diskQueue) persistMetaData() error {
 	fileName := d.metaDataFilePath()
 	if d.metadataFile == nil {
-		f, err := os.OpenFile(fileName, os.O_TRUNC|os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		f, err := os.OpenFile(fileName, os.O_TRUNC|os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 		if err != nil {
 			return err
 		}
@@ -538,7 +538,7 @@ func (d *diskQueue) persistMetaData() error {
 	buf.Reset()
 	defer bufPool.Put(buf)
 	e := json.NewEncoder(buf)
-	buf.Write([]byte(separator))
+	buf.WriteString(separator)
 	err := e.Encode(d.metadata)
 	if err != nil {
 		return err

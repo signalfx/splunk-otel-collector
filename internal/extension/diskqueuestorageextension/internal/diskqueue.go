@@ -62,7 +62,6 @@ type diskQueue struct {
 	peekChan              chan Message
 	dataPath              string
 	name                  string
-	writeBuf              bytes.Buffer
 	metadata              Metadata
 	maxBytesPerFile       int64
 	syncTimeout           time.Duration
@@ -135,6 +134,7 @@ func (d *diskQueue) Put(data []byte) error {
 	defer bufPool.Put(buf)
 	zw := gzip.NewWriter(buf)
 	if _, err := zw.Write(data); err != nil {
+		_ = zw.Close()
 		return err
 	}
 	if err := zw.Close(); err != nil {
@@ -273,15 +273,8 @@ func (d *diskQueue) writeOne(data []byte) error {
 		}
 	}
 
-	d.writeBuf.Reset()
-
-	_, err = d.writeBuf.Write(data)
-	if err != nil {
-		return err
-	}
-
 	// only write to the file once
-	_, err = d.writeFile.Write(d.writeBuf.Bytes())
+	_, err = d.writeFile.Write(data)
 	if err != nil {
 		_ = d.writeFile.Close()
 		d.writeFile = nil

@@ -42,6 +42,19 @@ type metadata struct {
 	PeekPos     int64
 }
 
+type segment struct {
+	FileNum    int64
+	Pos        int64
+	MessageLen int64
+	Consumed   bool
+}
+
+type callback struct {
+	pos     int64
+	len     int64
+	fileNum int64
+}
+
 // diskQueue implements a filesystem backed FIFO queue
 type diskQueue struct {
 	writeResponseChan     chan error
@@ -359,13 +372,6 @@ func (d *diskQueue) peekForward() {
 	}
 }
 
-type segment struct {
-	FileNum    int64
-	Pos        int64
-	MessageLen int64
-	Consumed   bool
-}
-
 func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 	consumedFiles := map[int64]bool{}
 	for _, s := range d.metadata.Segments {
@@ -411,12 +417,6 @@ func (d *diskQueue) ioLoop() {
 
 	syncTicker := time.NewTicker(d.syncTimeout)
 	defer syncTicker.Stop()
-
-	type callback struct {
-		pos     int64
-		len     int64
-		fileNum int64
-	}
 
 	callbackChan := make(chan callback)
 

@@ -141,6 +141,10 @@ func (c *client) Batch(ctx context.Context, ops ...*storage.Operation) error {
 }
 
 func (c *client) Close(_ context.Context) error {
+	if c.metadataFile != nil {
+		_ = c.metadataFile.Close()
+		c.metadataFile = nil
+	}
 	return c.queue.Close()
 }
 

@@ -677,3 +677,69 @@ def test_salt_custom_instrumentation(distro, version, with_systemd):
             verify_config_file(container, config_path, "enable_profiler", "true")
             verify_config_file(container, config_path, "enable_profiler_memory", "true")
             verify_config_file(container, config_path, "enable_metrics", "true")
+
+
+@pytest.mark.salt
+@pytest.mark.instrumentation
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("with_systemd", [True, False])
+def test_salt_instrumentation_upgrade_from_libsplunk(distro, with_systemd):
+    # Simulates a fleet-wide upgrade: a host previously provisioned by salt with the legacy,
+    # libsplunk.so-based auto-instrumentation is re-converged with a version past the otel
+    # injector threshold, and should end up fully migrated to libotelinject.so.
+    if LOCAL_ARTIFACT_TESTING_ENABLED:
+        pytest.skip("local artifact testing only builds the current, otel-injector-based package")
+
+    legacy_version = "0.158.0"
+    assert not package_uses_otel_injector(legacy_version), \
+        f"test setup error: {legacy_version} is expected to predate the otel injector"
+    new_version = AUTO_INSTRUMENTATION_VERSION
+    assert package_uses_otel_injector(new_version), (
+        f"AUTO_INSTRUMENTATION_VERSION={new_version} does not use the otel injector; set it to "
+        "'latest' or a version greater than 0.158.0 to exercise the upgrade path"
+    )
+
+    if distro in DEB_DISTROS:
+        dockerfile = DEB_DOCKERFILE
+        build_args = get_build_args(distro)
+    else:
+        dockerfile = RPM_DOCKERFILE
+        build_args = get_build_args(distro)
+
+    with run_distro_container(
+        distro,
+        dockerfile=dockerfile,
+        path=REPO_DIR,
+        buildargs=build_args,
+    ) as container:
+        legacy_config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=legacy_version, systemd=str(with_systemd))
+        run_salt_apply(container, legacy_config)
+        verify_package_version(container, AUTO_INSTRUMENTATION_PKG_NAME, legacy_version)
+        for config_path in (JAVA_CONFIG_PATH, NODE_CONFIG_PATH):
+            assert container_file_exists(container, config_path), f"{config_path} missing after legacy install"
+        if with_systemd:
+            assert container_file_exists(container, SYSTEMD_CONFIG_PATH)
+        else:
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
+
+        # Re-apply the same pillar with the version bumped past the otel injector threshold, as a
+        # mass-deployment tool would when rolling out an upgrade fleet-wide.
+        new_config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=new_version, systemd=str(with_systemd))
+        run_salt_apply(container, new_config)
+        verify_collector_version(container)
+        verify_package_version(container, AUTO_INSTRUMENTATION_PKG_NAME, new_version)
+        verify_env_file(container)
+        assert wait_for(lambda: service_is_running(container))
+        assert node_package_installed(container)
+        assert not container_file_exists(container, LIBSPLUNK_PATH), "libsplunk.so was not removed by the upgrade"
+
+        resource_attributes = rf"splunk.zc.method=splunk-otel-auto-instrumentation-{new_version}"
+        if with_systemd:
+            resource_attributes = rf"{resource_attributes}-systemd"
+        verify_otel_injector_config(container, with_systemd, resource_attributes)
+        if not with_systemd:
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH, exists=False)

@@ -612,6 +612,78 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
             verify_config_file(container, config_path, "enable_metrics", "true")
 
 
+@pytest.mark.puppet
+@pytest.mark.instrumentation
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
+@pytest.mark.parametrize("with_systemd", ["true", "false"])
+def test_puppet_instrumentation_upgrade_from_libsplunk(distro, puppet_release, with_systemd):
+    # Simulates a fleet-wide upgrade: a host previously provisioned by puppet with the legacy,
+    # libsplunk.so-based auto-instrumentation is re-converged with a version past the otel
+    # injector threshold, and should end up fully migrated to libotelinject.so.
+    skip_if_necessary(distro, puppet_release)
+
+    legacy_version = "0.158.0"
+    assert not package_uses_otel_injector(legacy_version), \
+        f"test setup error: {legacy_version} is expected to predate the otel injector"
+    new_version = AUTO_INSTRUMENTATION_VERSION
+    assert package_uses_otel_injector(new_version), (
+        f"AUTO_INSTRUMENTATION_VERSION={new_version} does not use the otel injector; set it to "
+        "'latest' or a version greater than 0.158.0 to exercise the upgrade path"
+    )
+
+    if distro in DEB_DISTROS:
+        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+    else:
+        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+
+    buildargs = {"PUPPET_RELEASE": puppet_release}
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
+        legacy_config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(
+            collector_version=COLLECTOR_VERSION,
+            version=legacy_version,
+            with_systemd=with_systemd,
+        )
+        run_puppet_apply(container, legacy_config)
+        verify_package_version(container, "splunk-otel-auto-instrumentation", legacy_version)
+        for config_path in (JAVA_CONFIG_PATH, NODE_CONFIG_PATH):
+            assert container_file_exists(container, config_path), f"{config_path} missing after legacy install"
+        if with_systemd == "true":
+            assert container_file_exists(container, SYSTEMD_CONFIG_PATH)
+        else:
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
+
+        # Re-apply the same manifest with the version bumped past the otel injector threshold,
+        # as a mass-deployment tool would when rolling out an upgrade fleet-wide.
+        new_config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(
+            collector_version=COLLECTOR_VERSION,
+            version=new_version,
+            with_systemd=with_systemd,
+        )
+        run_puppet_apply(container, new_config)
+        verify_package_version(container, "splunk-otel-auto-instrumentation", new_version)
+        verify_env_file(container)
+        assert wait_for(lambda: service_is_running(container))
+        assert node_package_installed(container)
+        assert not container_file_exists(container, LIBSPLUNK_PATH), "libsplunk.so was not removed by the upgrade"
+
+        resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
+        if with_systemd == "true":
+            resource_attributes = rf"{resource_attributes}-systemd"
+        verify_otel_injector_config(
+            container,
+            new_version,
+            with_systemd == "true",
+            resource_attributes,
+        )
+        if with_systemd == "false":
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH, exists=False)
+
+
 WIN_PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "latest")
 WIN_PUPPET_BIN_DIR = r"C:\Program Files\Puppet Labs\Puppet\bin"
 WIN_PUPPET_MODULE_SRC_DIR = os.path.join(REPO_DIR, "deployments", "puppet")

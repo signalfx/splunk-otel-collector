@@ -8,6 +8,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/expr-lang/expr v1.17.8
 	github.com/fsnotify/fsnotify v1.10.1
+	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -161,6 +162,7 @@ require (
 	go.opentelemetry.io/collector/connector v0.157.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.157.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.157.0
+	go.opentelemetry.io/collector/consumer/xconsumer v0.157.0
 	go.opentelemetry.io/collector/exporter v1.63.0
 	go.opentelemetry.io/collector/exporter/debugexporter v0.157.0
 	go.opentelemetry.io/collector/exporter/nopexporter v0.157.0
@@ -170,7 +172,9 @@ require (
 	go.opentelemetry.io/collector/extension/extensiontest v0.157.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.157.0
 	go.opentelemetry.io/collector/otelcol v0.157.0
+	go.opentelemetry.io/collector/otelcol/otelcoltest v0.157.0
 	go.opentelemetry.io/collector/pdata v1.63.0
+	go.opentelemetry.io/collector/pdata/pprofile v0.157.0
 	go.opentelemetry.io/collector/pipeline v1.63.0
 	go.opentelemetry.io/collector/processor v1.63.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.157.0
@@ -180,9 +184,11 @@ require (
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.157.0
 	go.opentelemetry.io/collector/receiver/receiverhelper v0.157.0
 	go.opentelemetry.io/collector/receiver/receivertest v0.157.0
+	go.opentelemetry.io/collector/receiver/xreceiver v0.157.0
 	go.opentelemetry.io/collector/scraper v0.157.0
 	go.opentelemetry.io/collector/scraper/scraperhelper v0.157.0
 	go.opentelemetry.io/collector/service v0.157.0
+	go.opentelemetry.io/collector/service/hostcapabilities v0.157.0
 	go.opentelemetry.io/otel/metric v1.44.1-0.20260622141720-fbe3d073ba93
 	go.opentelemetry.io/otel/trace v1.44.1-0.20260622141720-fbe3d073ba93
 	go.uber.org/goleak v1.3.0
@@ -323,7 +329,6 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.25.5 // indirect
 	github.com/go-openapi/validate v0.25.2 // indirect
 	github.com/go-resty/resty/v2 v2.17.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
@@ -503,11 +508,11 @@ require (
 	go.opentelemetry.io/collector/config/configretry v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.157.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.63.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/httpprovider v1.63.0 // indirect
 	go.opentelemetry.io/collector/connector/connectortest v0.157.0 // indirect
 	go.opentelemetry.io/collector/connector/xconnector v0.157.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.157.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/xconsumererror v0.157.0 // indirect
-	go.opentelemetry.io/collector/consumer/xconsumer v0.157.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.157.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/xexporterhelper v0.157.0 // indirect
 	go.opentelemetry.io/collector/exporter/exportertest v0.157.0 // indirect
@@ -522,7 +527,6 @@ require (
 	go.opentelemetry.io/collector/internal/memorylimiter v0.157.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.157.0 // indirect
 	go.opentelemetry.io/collector/internal/telemetry v0.157.0 // indirect
-	go.opentelemetry.io/collector/pdata/pprofile v0.157.0 // indirect
 	go.opentelemetry.io/collector/pdata/testdata v0.157.0 // indirect
 	go.opentelemetry.io/collector/pdata/xpdata v0.157.0 // indirect
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.157.0 // indirect
@@ -530,8 +534,6 @@ require (
 	go.opentelemetry.io/collector/processor/processorhelper/xprocessorhelper v0.157.0 // indirect
 	go.opentelemetry.io/collector/processor/processortest v0.157.0 // indirect
 	go.opentelemetry.io/collector/processor/xprocessor v0.157.0 // indirect
-	go.opentelemetry.io/collector/receiver/xreceiver v0.157.0 // indirect
-	go.opentelemetry.io/collector/service/hostcapabilities v0.157.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.19.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.43.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.69.0 // indirect
@@ -721,7 +723,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.157.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.157.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/metadataproviders v0.157.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.157.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.157.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.157.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.157.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.157.0
@@ -813,9 +815,9 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
-	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260824114252-4f7791db782e
-	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260824114252-4f7791db782e
-	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260824114252-4f7791db782e
+	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260825101435-352e67cc7cee
+	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260825101435-352e67cc7cee
+	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260825101435-352e67cc7cee
 )
 
 // each of these is required for the smartagentreceiver

@@ -155,8 +155,8 @@ func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
 }
 
 func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
-	for _, extType := range []string{"diskqueue"} {
-		for _, volume := range []int{500} {
+	for _, extType := range []string{"diskqueue", "bbolt"} {
+		for _, volume := range []int{100, 200, 300, 400, 500, 1000} {
 			b.Run(fmt.Sprintf("bench-%s-%d", extType, volume), func(b *testing.B) {
 				b.ReportAllocs()
 				for b.Loop() {

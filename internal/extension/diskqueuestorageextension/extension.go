@@ -87,10 +87,10 @@ func (c *client) Get(_ context.Context, key string) ([]byte, error) {
 	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil, nil
 	default:
-		message := <-c.queue.PeekChan()
+		message := <-c.queue.peekChan
 		// register callback for consumption
-		c.callbacks[key] = message.ConsumeCallback
-		return message.Payload(), nil
+		c.callbacks[key] = message.consumeCallback
+		return message.payload(), nil
 	}
 }
 
@@ -101,7 +101,7 @@ func (c *client) Set(_ context.Context, key string, value []byte) error {
 	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil
 	default:
-		return c.queue.Put(value)
+		return c.queue.put(value)
 	}
 }
 
@@ -145,7 +145,7 @@ func (c *client) Close(_ context.Context) error {
 		_ = c.metadataFile.Close()
 		c.metadataFile = nil
 	}
-	return c.queue.Close()
+	return c.queue.close()
 }
 
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {

@@ -31,13 +31,13 @@ import (
 )
 
 type message struct {
-	ConsumeCallback func()
-	Payload         func() []byte
+	consumeCallback func()
+	payload         func() []byte
 }
 
 type metadata struct {
 	Segments    []*segment
-	Depth       int64
+	Depth       atomic.Int64
 	PeekFileNum int64
 	PeekPos     int64
 }
@@ -64,7 +64,6 @@ type diskQueue struct {
 	writeFile             *os.File
 	peekFile              *os.File
 	metadataFile          *os.File
-	depthChan             chan int64
 	peekChan              chan message
 	dataPath              string
 	name                  string
@@ -89,7 +88,6 @@ func newQueue(name, dataPath string, maxBytesPerFile int64,
 		dataPath:              dataPath,
 		maxBytesPerFile:       maxBytesPerFile,
 		peekChan:              make(chan message),
-		depthChan:             make(chan int64),
 		writeChan:             make(chan []byte),
 		writeResponseChan:     make(chan error),
 		exitChan:              make(chan int),
@@ -109,18 +107,8 @@ func newQueue(name, dataPath string, maxBytesPerFile int64,
 	return &d
 }
 
-// Depth returns the depth of the queue
-func (d *diskQueue) Depth() int64 {
-	depth, ok := <-d.depthChan
-	if !ok {
-		// ioLoop exited
-		depth = d.metadata.Depth
-	}
-	return depth
-}
-
-func (d *diskQueue) PeekChan() <-chan message {
-	return d.peekChan
+func (d *diskQueue) depth() int64 {
+	return d.metadata.Depth.Load()
 }
 
 var bufPool = sync.Pool{
@@ -135,8 +123,7 @@ var gzipWriterPool = sync.Pool{
 	},
 }
 
-// Put writes a []byte to the queue
-func (d *diskQueue) Put(data []byte) error {
+func (d *diskQueue) put(data []byte) error {
 	if d.exitFlag.Load() {
 		return errors.New("exiting")
 	}
@@ -158,15 +145,13 @@ func (d *diskQueue) Put(data []byte) error {
 	return <-d.writeResponseChan
 }
 
-// Close cleans up the queue and persists metadata
-func (d *diskQueue) Close() error {
+func (d *diskQueue) close() error {
 	d.logger.Debug("closing", zap.String("name", d.name))
 	close(d.exitChan)
 
 	d.exitFlag.Store(true)
 	d.exitWG.Wait()
 
-	close(d.depthChan)
 	close(d.peekChan)
 
 	_ = d.sync()
@@ -189,8 +174,7 @@ func (d *diskQueue) Close() error {
 	return nil
 }
 
-// peekOne performs a low level filesystem read for a single []byte
-func (d *diskQueue) peekOne() ([]byte, error) {
+func (d *diskQueue) peek() ([]byte, error) {
 	var err error
 	if d.peekFile == nil {
 		curFileName := d.fileName(d.metadata.PeekFileNum)
@@ -232,9 +216,7 @@ func (d *diskQueue) lastSegment() *segment {
 	return d.metadata.Segments[len(d.metadata.Segments)-1]
 }
 
-// writeOne performs a low level filesystem write for a single []byte
-// while advancing write positions and rolling files, if necessary
-func (d *diskQueue) writeOne(data []byte) error {
+func (d *diskQueue) write(data []byte) error {
 	var err error
 
 	dataLen := int64(len(data))
@@ -294,7 +276,7 @@ func (d *diskQueue) writeOne(data []byte) error {
 		MessageLen: totalBytes,
 		Consumed:   false,
 	})
-	d.metadata.Depth++
+	d.metadata.Depth.Add(1)
 
 	return err
 }
@@ -346,14 +328,6 @@ func (d *diskQueue) retrieveMetaData() error {
 	return nil
 }
 
-func (d *diskQueue) metaDataFilePath() string {
-	return fmt.Sprintf(path.Join(d.dataPath, "%s.diskqueue.meta.dat"), d.name)
-}
-
-func (d *diskQueue) fileName(fileNum int64) string {
-	return fmt.Sprintf(path.Join(d.dataPath, "%s.diskqueue.%06d.dat"), d.name, fileNum)
-}
-
 // move to the next peek position. If we reset, move back to the original read position.
 func (d *diskQueue) peekForward() {
 	var lastSegment *segment
@@ -385,7 +359,7 @@ func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 			consumedFiles[s.FileNum] = consumedFiles[s.FileNum] && s.Consumed
 		}
 	}
-	d.metadata.Depth--
+	d.metadata.Depth.Add(-1)
 
 	for fileNum, consumed := range consumedFiles {
 		if consumed {
@@ -408,11 +382,8 @@ func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 
 func (d *diskQueue) ioLoop() {
 	var peekDataRead []byte
-	var err error
-	var count int64
 	var p chan message
-	var messagePeekFileNum int64
-	var messagePeekPos int64
+	var count, messagePeekFileNum, messagePeekPos int64
 	recomputePeek := false
 
 	syncTicker := time.NewTicker(d.syncTimeout)
@@ -427,7 +398,7 @@ ioLoop:
 		}
 
 		if d.needSync {
-			err = d.sync()
+			err := d.sync()
 			if err != nil {
 				d.logger.Error("failed to sync", zap.String("name", d.name), zap.Error(err))
 			}
@@ -438,7 +409,8 @@ ioLoop:
 			recomputePeek = false
 			lastSegment := d.lastSegment()
 			if d.metadata.PeekFileNum < lastSegment.FileNum || (d.metadata.PeekFileNum == lastSegment.FileNum && d.metadata.PeekPos < lastSegment.Pos+lastSegment.MessageLen) {
-				peekDataRead, err = d.peekOne()
+				var err error
+				peekDataRead, err = d.peek()
 				if err != nil {
 					d.logger.Error(fmt.Sprintf("failed peeking at %d of %s", d.metadata.PeekPos, d.fileName(d.metadata.PeekFileNum)),
 						zap.String("name", d.name), zap.Error(err))
@@ -451,14 +423,14 @@ ioLoop:
 				p = nil
 			}
 		}
+		recomputePeek = true
 
 		select {
 		case c := <-callbackChan:
-			count++
 			d.moveForward(c.fileNum, c.pos, c.len)
-			recomputePeek = true
+			count++
 		case p <- message{
-			Payload: func() func() []byte {
+			payload: func() func() []byte {
 				localPeekDataRead := peekDataRead
 				return func() []byte {
 					r, err := gzip.NewReader(bytes.NewReader(localPeekDataRead))
@@ -476,7 +448,7 @@ ioLoop:
 					return decompressed
 				}
 			}(),
-			ConsumeCallback: func() func() {
+			consumeCallback: func() func() {
 				callbackPos := messagePeekPos
 				callbackLen := int64(len(peekDataRead))
 				callbackFileNum := messagePeekFileNum
@@ -489,17 +461,15 @@ ioLoop:
 				}
 			}(),
 		}:
-			count++
 			d.peekForward()
-			recomputePeek = true
-		case d.depthChan <- d.metadata.Depth:
+			count++
 		case dataWrite := <-d.writeChan:
 			count++
-			d.writeResponseChan <- d.writeOne(dataWrite)
+			d.writeResponseChan <- d.write(dataWrite)
 			lastSegment := d.lastSegment()
 			// if peek had caught up to the tip, recompute it now that a new entry is available.
-			if d.metadata.PeekPos == lastSegment.Pos && d.metadata.PeekFileNum == lastSegment.FileNum {
-				recomputePeek = true
+			if d.metadata.PeekPos != lastSegment.Pos || d.metadata.PeekFileNum != lastSegment.FileNum {
+				recomputePeek = false
 			}
 		case <-syncTicker.C:
 			if count == 0 {
@@ -507,6 +477,7 @@ ioLoop:
 				continue
 			}
 			d.needSync = true
+			recomputePeek = false
 		case <-d.exitChan:
 			d.logger.Debug("closing", zap.String("name", d.name))
 			break ioLoop
@@ -553,4 +524,12 @@ func (d *diskQueue) persistMetaData() error {
 	}
 
 	return nil
+}
+
+func (d *diskQueue) metaDataFilePath() string {
+	return fmt.Sprintf(path.Join(d.dataPath, "%s.diskqueue.meta.dat"), d.name)
+}
+
+func (d *diskQueue) fileName(fileNum int64) string {
+	return fmt.Sprintf(path.Join(d.dataPath, "%s.diskqueue.%06d.dat"), d.name, fileNum)
 }

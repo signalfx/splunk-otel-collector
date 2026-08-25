@@ -142,9 +142,11 @@ func TestCollectorPackageInstallWithSupervisor(t *testing.T) {
 		expectedEnv []string
 	}{
 		{
-			name: "observability-cloud",
+			name:      "observability-cloud",
+			extraArgs: "--discovery",
 			expectedEnv: []string{
 				"SPLUNK_CONFIG=" + agentConfigPath,
+				`OTELCOL_OPTIONS="--discovery"`,
 			},
 		},
 		{

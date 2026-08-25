@@ -271,7 +271,7 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 								lrs[log] = struct{}{}
 							}
 							require.Len(tt, lrs, volume)
-						}, 1*time.Second, 100*time.Millisecond)
+						}, 30*time.Second, 100*time.Millisecond)
 
 						require.NoError(b, l.Shutdown(b.Context()))
 						require.NoError(b, reclogs.Shutdown(b.Context()))

@@ -26,8 +26,6 @@ import (
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/xextension/storage"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension/internal"
 )
 
 // special keys used by the persistent queue to store metadata.
@@ -55,7 +53,7 @@ type diskQueueStorageExtension struct {
 }
 
 type client struct {
-	queue                 internal.Queue
+	queue                 *diskQueue
 	logger                *zap.Logger
 	callbacks             map[string]func()
 	metadataFile          *os.File
@@ -152,7 +150,7 @@ func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kin
 	return &client{
 		path:                  d.config.Path,
 		name:                  storageName,
-		queue:                 internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
+		queue:                 newQueue(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
 		logger:                d.settings.Logger,
 		callbacks:             make(map[string]func(), 10),
 		metadataTruncateEvery: 1000,

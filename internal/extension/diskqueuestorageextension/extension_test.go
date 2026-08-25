@@ -213,6 +213,7 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 						f := otlpexporter.NewFactory()
 						cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
 						cfg.QueueConfig.GetOrInsertDefault().NumConsumers = 32
+						cfg.QueueConfig.GetOrInsertDefault().QueueSize = int64(10000)
 						cfg.ClientConfig.TLS.Insecure = true
 						cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
 						cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint

@@ -25,10 +25,10 @@ import (
 )
 
 // SetupDiscovery will find `service::<extensions|receivers>/splunk.discovery` entries
-// provided by the discovery confmap.Provider and relocate them to
-// `service::extensions` and, when the default metrics pipeline exists,
-// `service::pipelines::metrics::receivers`, by appending them to existing
-// sequences, if any.
+// provided by the discovery confmap.Provider and, when the default metrics pipeline
+// exists, relocate them to `service::extensions` and `service::pipelines::metrics::receivers`
+// by appending them to existing sequences, if any. Otherwise, it just removes the
+// temporary entries to avoid creating an invalid config.
 func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
@@ -56,22 +56,25 @@ func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 		return nil
 	}
 
-	if len(discoExtensions) > 0 {
-		service["extensions"] = appendUnique(serviceExtensions, discoExtensions)
-	}
-
-	pipelines := map[string]any{}
+	var pipelines map[string]any
 	if pl, ok := service["pipelines"]; ok && pl != nil {
 		pipelines = pl.(map[string]any)
 	}
-	service["pipelines"] = pipelines
 
 	metricsPipeline, metricsReceivers, err := getMetricsPipelineAndReceivers(pipelines)
 	if err != nil {
 		return err
 	}
+	if metricsPipeline == nil {
+		*in = *confmap.NewFromStringMap(out)
+		return nil
+	}
 
-	if len(discoReceivers) > 0 && metricsPipeline != nil {
+	if len(discoExtensions) > 0 {
+		service["extensions"] = appendUnique(serviceExtensions, discoExtensions)
+	}
+
+	if len(discoReceivers) > 0 {
 		metricsPipeline["receivers"] = appendUnique(metricsReceivers, discoReceivers)
 	}
 

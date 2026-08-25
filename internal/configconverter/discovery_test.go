@@ -256,20 +256,14 @@ func TestDiscoveryMetricsPipelineHandling(t *testing.T) {
   receivers/splunk.discovery: [discovery/host_observer]
 `,
 			expected: `service:
-  extensions: [ext/one]
   pipelines:
     traces:
       receivers: [recv/one]
       exporters: [exp/one]
-  telemetry:
-    resource:
-      attributes:
-        - name: splunk_autodiscovery
-          value: "true"
 `,
 		},
 		{
-			name: "without metrics pipeline still updates entities",
+			name: "without metrics pipeline does not update entities",
 			input: `service:
   pipelines:
     logs/entities:
@@ -280,13 +274,8 @@ func TestDiscoveryMetricsPipelineHandling(t *testing.T) {
 			expected: `service:
   pipelines:
     logs/entities:
-      receivers: [recv/one, discovery/host_observer]
+      receivers: [recv/one]
       exporters: [exp/one]
-  telemetry:
-    resource:
-      attributes:
-        - name: splunk_autodiscovery
-          value: "true"
 `,
 		},
 		{
@@ -303,11 +292,6 @@ func TestDiscoveryMetricsPipelineHandling(t *testing.T) {
     metrics/custom:
       receivers: [recv/one]
       exporters: [exp/one]
-  telemetry:
-    resource:
-      attributes:
-        - name: splunk_autodiscovery
-          value: "true"
 `,
 		},
 		{
@@ -326,15 +310,10 @@ func TestDiscoveryMetricsPipelineHandling(t *testing.T) {
     traces:
       receivers: [recv/one]
       exporters: [exp/one]
-  telemetry:
-    resource:
-      attributes:
-        - name: splunk_autodiscovery
-          value: "true"
 `,
 		},
 		{
-			name: "with_empty metrics pipeline",
+			name: "with empty metrics pipeline",
 			input: `service:
   pipelines:
     metrics: {}

@@ -263,7 +263,7 @@ func TestDiscoveryMetricsPipelineHandling(t *testing.T) {
 `,
 		},
 		{
-			name: "without metrics pipeline does not update entities",
+			name: "without metrics pipeline still updates entities",
 			input: `service:
   pipelines:
     logs/entities:
@@ -274,8 +274,13 @@ func TestDiscoveryMetricsPipelineHandling(t *testing.T) {
 			expected: `service:
   pipelines:
     logs/entities:
-      receivers: [recv/one]
+      receivers: [recv/one, discovery/host_observer]
       exporters: [exp/one]
+  telemetry:
+    resource:
+      attributes:
+        - name: splunk_autodiscovery
+          value: "true"
 `,
 		},
 		{

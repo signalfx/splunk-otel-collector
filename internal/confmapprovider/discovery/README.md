@@ -97,7 +97,7 @@ Discovery mode will:
 [Discovery Receiver](../../receiver/discoveryreceiver/README.md) instance to receive discovery events from all
 successfully started observers.
 1. Wait 10s or the configured `SPLUNK_DISCOVERY_DURATION` environment variable [`time.Duration`](https://pkg.go.dev/time#ParseDuration).
-1. Embed any receiver instances' configs resulting in a `discovery.status` of `successful` inside a `receiver_creator/discovery` receiver's configuration to be passed to an existing `service::pipelines::metrics::receivers` sequence in the final Collector service config (or outputted w/ `--dry-run`). Discovery mode does not create a missing default metrics pipeline or select an exporter. Without a default metrics pipeline, discovered receivers and required observers are not activated in the Collector service.
+1. Embed any receiver instances' configs resulting in a `discovery.status` of `successful` inside a `receiver_creator/discovery` receiver's configuration to be passed to applicable existing `service::pipelines::metrics` and `service::pipelines::logs/entities` pipelines in the final Collector service config (or outputted w/ `--dry-run`). Discovery mode does not create a missing pipeline or select an exporter. When neither pipeline exists, discovered receivers and required observers are not activated in the Collector service.
 1. Log any receiver resulting in a `discovery.status` of `partial` with the configured guidance for setting any relevant discovery properties.
 1. Stop all temporary components before continuing on to the actual Collector service (or exiting early with `--dry-run`).
 

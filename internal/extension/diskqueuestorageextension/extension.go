@@ -15,6 +15,7 @@
 package diskqueuestorageextension
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"os"
@@ -54,12 +55,15 @@ type diskQueueStorageExtension struct {
 }
 
 type client struct {
-	queue         internal.Queue
-	logger        *zap.Logger
-	callbacks     map[string]func()
-	name          string
-	path          string
-	checkFirstGet sync.Once
+	queue                 internal.Queue
+	logger                *zap.Logger
+	callbacks             map[string]func()
+	name                  string
+	path                  string
+	checkFirstGet         sync.Once
+	metadataFile          *os.File
+	metadataWrites        int
+	metadataTruncateEvery int
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
@@ -142,11 +146,12 @@ func (c *client) Close(_ context.Context) error {
 
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {
 	return &client{
-		path:      d.config.Path,
-		name:      storageName,
-		queue:     internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
-		logger:    d.settings.Logger,
-		callbacks: make(map[string]func(), 10),
+		path:                  d.config.Path,
+		name:                  storageName,
+		queue:                 internal.New(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
+		logger:                d.settings.Logger,
+		callbacks:             make(map[string]func(), 10),
+		metadataTruncateEvery: 1000,
 	}, nil
 }
 
@@ -158,29 +163,40 @@ func (d *diskQueueStorageExtension) Shutdown(_ context.Context) error {
 	return nil
 }
 
+const separator = "\n\n"
+
 func (c *client) persistMetaData(value []byte) error {
-	var f *os.File
-	var err error
-
 	fileName := filepath.Join(c.path, c.name+"-"+metadataKey)
-	f, err = os.CreateTemp("", c.name+"-"+metadataKey+"-*")
+	if c.metadataFile == nil {
+		f, err := os.OpenFile(fileName, os.O_TRUNC|os.O_APPEND|os.O_CREATE|os.O_WRONLY|os.O_SYNC, 0600)
+		if err != nil {
+			return err
+		}
+		c.metadataFile = f
+	}
+	_, err := c.metadataFile.Write(value)
 	if err != nil {
+		_ = c.metadataFile.Close()
+		c.metadataFile = nil
 		return err
 	}
+	c.metadataWrites++
 
-	_, err = f.Write(value)
-	if err != nil {
-		_ = f.Close()
-		return err
+	if c.metadataWrites%c.metadataTruncateEvery == 0 {
+		_ = c.metadataFile.Close()
+		c.metadataFile = nil
+		c.metadataWrites = 0
 	}
-	_ = f.Sync()
-	_ = f.Close()
 
-	// atomically rename
-	return os.Rename(f.Name(), fileName)
+	return nil
 }
 
 func (c *client) readMetadata() ([]byte, error) {
 	fileName := filepath.Join(c.path, c.name+"-"+metadataKey)
-	return os.ReadFile(fileName)
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	lastMetadataUpdate := b[bytes.LastIndex(b, []byte(separator)):]
+	return lastMetadataUpdate, nil
 }

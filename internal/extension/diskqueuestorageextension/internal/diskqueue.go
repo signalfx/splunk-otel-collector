@@ -51,24 +51,27 @@ type Metadata struct {
 
 // diskQueue implements a filesystem backed FIFO queue
 type diskQueue struct {
-	writeResponseChan chan error
-	writeChan         chan []byte
-	exitChan          chan int
-	logger            *zap.Logger
-	writeFile         *os.File
-	peekFile          *os.File
-	depthChan         chan int64
-	peekChan          chan Message
-	dataPath          string
-	name              string
-	writeBuf          bytes.Buffer
-	metadata          Metadata
-	maxBytesPerFile   int64
-	syncTimeout       time.Duration
-	syncEvery         int64
-	exitFlag          atomic.Bool
-	needSync          bool
-	exitWG            sync.WaitGroup
+	writeResponseChan     chan error
+	writeChan             chan []byte
+	exitChan              chan int
+	logger                *zap.Logger
+	writeFile             *os.File
+	peekFile              *os.File
+	metadataFile          *os.File
+	depthChan             chan int64
+	peekChan              chan Message
+	dataPath              string
+	name                  string
+	writeBuf              bytes.Buffer
+	metadata              Metadata
+	maxBytesPerFile       int64
+	syncTimeout           time.Duration
+	syncEvery             int64
+	exitFlag              atomic.Bool
+	needSync              bool
+	exitWG                sync.WaitGroup
+	metadataTruncateEvery int
+	metadataWrites        int
 }
 
 // New instantiates an instance of diskQueue, retrieving metadata
@@ -77,17 +80,18 @@ func New(name, dataPath string, maxBytesPerFile int64,
 	syncEvery int64, syncTimeout time.Duration, logger *zap.Logger,
 ) Queue {
 	d := diskQueue{
-		name:              name,
-		dataPath:          dataPath,
-		maxBytesPerFile:   maxBytesPerFile,
-		peekChan:          make(chan Message),
-		depthChan:         make(chan int64),
-		writeChan:         make(chan []byte),
-		writeResponseChan: make(chan error),
-		exitChan:          make(chan int),
-		syncEvery:         syncEvery,
-		syncTimeout:       syncTimeout,
-		logger:            logger,
+		name:                  name,
+		dataPath:              dataPath,
+		maxBytesPerFile:       maxBytesPerFile,
+		peekChan:              make(chan Message),
+		depthChan:             make(chan int64),
+		writeChan:             make(chan []byte),
+		writeResponseChan:     make(chan error),
+		exitChan:              make(chan int),
+		syncEvery:             syncEvery,
+		syncTimeout:           syncTimeout,
+		logger:                logger,
+		metadataTruncateEvery: 1000,
 	}
 
 	// no need to lock here, nothing else could possibly be touching this instance
@@ -168,6 +172,11 @@ func (d *diskQueue) exit() error {
 	if d.peekFile != nil {
 		_ = d.peekFile.Close()
 		d.peekFile = nil
+	}
+
+	if d.metadataFile != nil {
+		_ = d.metadataFile.Close()
+		d.metadataFile = nil
 	}
 
 	return nil
@@ -328,8 +337,8 @@ func (d *diskQueue) retrieveMetaData() error {
 	if err != nil {
 		return err
 	}
-
-	err = json.Unmarshal(b, &d.metadata)
+	lastMetadataUpdate := b[bytes.LastIndex(b, []byte(separator)):]
+	err = json.Unmarshal(lastMetadataUpdate, &d.metadata)
 	if err != nil {
 		return err
 	}
@@ -514,26 +523,45 @@ ioLoop:
 	}
 }
 
-// persistMetaData atomically writes state to the filesystem
+const separator = "\n\n"
+
 func (d *diskQueue) persistMetaData() error {
 	fileName := d.metaDataFilePath()
-	f, err := os.CreateTemp("", path.Base(fileName)+"-*")
+	if d.metadataFile == nil {
+		f, err := os.OpenFile(fileName, os.O_TRUNC|os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
+		d.metadataFile = f
+	}
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+	e := json.NewEncoder(buf)
+	buf.Write([]byte(separator))
+	err := e.Encode(d.metadata)
 	if err != nil {
 		return err
 	}
-	b, err := json.Marshal(d.metadata)
+	_, err = d.metadataFile.Write(buf.Bytes())
 	if err != nil {
-		_ = f.Close()
+		_ = d.metadataFile.Close()
+		d.metadataFile = nil
 		return err
 	}
-	_, err = f.Write(b)
+	err = d.metadataFile.Sync()
 	if err != nil {
-		_ = f.Close()
+		_ = d.metadataFile.Close()
+		d.metadataFile = nil
 		return err
 	}
-	_ = f.Sync()
-	_ = f.Close()
+	d.metadataWrites++
 
-	// atomically rename
-	return os.Rename(f.Name(), fileName)
+	if d.metadataWrites%d.metadataTruncateEvery == 0 {
+		_ = d.metadataFile.Close()
+		d.metadataFile = nil
+		d.metadataWrites = 0
+	}
+
+	return nil
 }

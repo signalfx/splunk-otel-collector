@@ -36,6 +36,8 @@ const (
 	legacyReadIndexKey                = "ri"
 	legacyWriteIndexKey               = "wi"
 	legacyCurrentlyDispatchedItemsKey = "di"
+
+	separator = "\n\n"
 )
 
 var _ storage.Extension = (*diskQueueStorageExtension)(nil)
@@ -164,8 +166,6 @@ func (d *diskQueueStorageExtension) Start(_ context.Context, _ component.Host) e
 func (d *diskQueueStorageExtension) Shutdown(_ context.Context) error {
 	return nil
 }
-
-const separator = "\n\n"
 
 func (c *client) persistMetaData(value []byte) error {
 	fileName := filepath.Join(c.path, c.name+"-"+metadataKey)

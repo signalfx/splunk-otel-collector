@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- Linux auto-instrumentation now uses the official OpenTelemetry Injector for package versions newer than `0.158.0` (or `latest`). The role manages `/etc/opentelemetry/injector/` and `libotelinject.so`, removes the legacy `/etc/splunk/zeroconfig/` configuration during upgrades, and continues to support the legacy layout for package versions through `0.158.0`. .NET auto-instrumentation is also supported on arm64 for newer package versions.
+
 ## ansible-v1.1.0
 
 ### 🛑 Breaking changes 🛑

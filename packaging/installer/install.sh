@@ -1087,6 +1087,8 @@ Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
                                         libotelinject.so shared object library to /etc/ld.so.preload to enable auto
                                         instrumentation for all supported processes on the host.
+                                        Requires an auto instrumentation package version greater than 0.158.0 (or
+                                        "latest"), since only those versions include the OpenTelemetry injector.
                                         Cannot be combined with the '--with-systemd-instrumentation' option.
                                         (default: --without-instrumentation)
   --with[out]-systemd-instrumentation   Whether to install the splunk-otel-auto-instrumentation package and configure a
@@ -1149,7 +1151,10 @@ Auto Instrumentation:
   --instrumentation-version             The splunk-otel-auto-instrumentation package version to install.
                                         *Note*: The minimum supported version for Java and Node.js auto instrumentation
                                         is 0.87.0, and the minimum supported version for .NET auto instrumentation is
-                                        0.99.0.
+                                        0.99.0. If '--with-instrumentation' is used, the version must be greater than
+                                        0.158.0 (or "latest") since the OpenTelemetry injector (libotelinject.so) is
+                                        not included in earlier versions; use '--with-systemd-instrumentation' instead
+                                        to install an earlier version.
                                         (default: $default_instrumentation_version)
 
 OBI (OpenTelemetry eBPF Instrumentation):
@@ -1250,6 +1255,34 @@ version_supported() {
       return 0
     fi
   done
+}
+
+version_supports_otel_injector() {
+  local desired="$1"
+  local stage="$2"
+
+  if [ "$desired" = "latest" ] || [ "$stage" != "release" ] || [ -f "$desired" ]; then
+    return 0
+  fi
+
+  if ! echo "$desired" | grep -q "^[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+$"; then
+    echo "[ERROR] Unsupported version: $desired" >&2
+    exit 1
+  fi
+
+  local min="0.158.0"
+  for field in 1 2 3; do
+    m=$( echo "$min" | cut -d "." -f $field )
+    d=$( echo "$desired" | cut -d "." -f $field )
+    if [ $d -lt $m ]; then
+      return 1
+    elif [ $d -gt $m ]; then
+      return 0
+    fi
+  done
+
+  # desired is exactly equal to min; the otel injector requires a version greater than $min
+  return 1
 }
 
 dotnet_supported() {
@@ -1682,6 +1715,13 @@ parse_args_and_install() {
     echo "[ERROR] Unsupported auto instrumentation version: $instrumentation_version" >&2
     echo "[ERROR] Java and Node.js auto instrumentation require version 0.87.0 or greater." >&2
     echo "[ERROR] .NET auto instrumentation requires version 0.99.0 or greater." >&2
+    exit 1
+  elif [ "$with_instrumentation" = "true" ] && ! version_supports_otel_injector "$instrumentation_version" "$stage"; then
+    echo "[ERROR] Unsupported auto instrumentation version for --with-instrumentation: $instrumentation_version" >&2
+    echo "[ERROR] The --with-instrumentation option requires the OpenTelemetry injector (libotelinject.so), which is" >&2
+    echo "[ERROR] only included in auto instrumentation package versions greater than 0.158.0." >&2
+    echo "[ERROR] Use --with-systemd-instrumentation instead to install an older version, or specify" >&2
+    echo "[ERROR] '--instrumentation-version latest' or a version greater than 0.158.0." >&2
     exit 1
   else
     if [ -z "$with_sdks" ] && [ -z "$without_sdks" ]; then

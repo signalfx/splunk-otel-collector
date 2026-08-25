@@ -681,6 +681,35 @@ def test_installer_with_obi(distro, arch):
             f"OBI binary was not removed from {OBI_BIN} after uninstall"
 
 
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+@pytest.mark.parametrize("instrumentation_version", ["0.150.0", "0.158.0"])
+def test_installer_with_instrumentation_rejects_pre_injector_version(distro, arch, instrumentation_version):
+    """Verify --with-instrumentation errors on versions that predate the otel injector (<= 0.158.0)."""
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--with-instrumentation",
+        f"--instrumentation-version {instrumentation_version}",
+    ))
+
+    print(f"Testing --with-instrumentation version rejection on {distro} ({arch}) ...")
+    with run_distro_container(distro, arch=arch) as container:
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        if LOCAL_COLLECTOR_PACKAGE:
+            copy_file_into_container(container, LOCAL_COLLECTOR_PACKAGE, "/test/collector.pkg")
+
+        _, output = run_container_cmd(
+            container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, exit_code=1, timeout=INSTALLER_TIMEOUT
+        )
+        assert "requires the OpenTelemetry injector" in output.decode("utf-8"), \
+            f"Expected otel injector version error message, got: {output.decode('utf-8')}"
+
+
 SPLUNK_PLATFORM_TOKEN = os.environ.get("SPLUNK_PLATFORM_TOKEN", "test-hec-token")
 SPLUNK_PLATFORM_URL = os.environ.get("SPLUNK_PLATFORM_URL", "https://splunk.example.com:8088/services/collector")
 SPLUNK_PLATFORM_LOGS_INDEX = "test-logs-index"

@@ -50,7 +50,7 @@ func TestPutPeekConsume(t *testing.T) {
 	require.NoError(t, q.Close())
 }
 
-func TestTwoPutsPeekConsume(t *testing.T) {
+func TestTwoPutsPeek(t *testing.T) {
 	q := newQueue(t)
 	require.NoError(t, q.Put([]byte("hello world")))
 	require.NoError(t, q.Put([]byte("hello world2")))

@@ -30,6 +30,7 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/extensiontest"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -77,9 +78,10 @@ func TestExtensionAsPersistentQueue(t *testing.T) {
 	extConfig.Path = t.TempDir()
 	extensionSettings := extensiontest.NewNopSettings(component.MustNewType("disk_queue_storage"))
 	extensionSettings.Logger = logger
+	ext := newDiskQueueStorageExtension(extensionSettings, extConfig)
 	require.NoError(t, l.Start(t.Context(), hostWithExtensions{
 		extensions: map[component.ID]component.Component{
-			extID: newDiskQueueStorageExtension(extensionSettings, extConfig),
+			extID: ext,
 		},
 	}))
 	for i := range 10 {
@@ -99,6 +101,7 @@ func TestExtensionAsPersistentQueue(t *testing.T) {
 	}, 2*time.Second, 100*time.Millisecond)
 	require.NoError(t, l.Shutdown(t.Context()))
 	require.NoError(t, reclogs.Shutdown(t.Context()))
+	require.NoError(t, ext.Shutdown(t.Context()))
 }
 
 func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
@@ -132,9 +135,10 @@ func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
 	extConfig.Path = t.TempDir()
 	extensionSettings := extensiontest.NewNopSettings(component.MustNewType("disk_queue_storage"))
 	extensionSettings.Logger = logger
+	ext := newDiskQueueStorageExtension(extensionSettings, extConfig)
 	require.NoError(t, l.Start(t.Context(), hostWithExtensions{
 		extensions: map[component.ID]component.Component{
-			extID: newDiskQueueStorageExtension(extensionSettings, extConfig),
+			extID: ext,
 		},
 	}))
 	for i := range 10 {
@@ -152,6 +156,7 @@ func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
 	}, 1*time.Second, 100*time.Millisecond)
 	require.NoError(t, l.Shutdown(t.Context()))
 	require.NoError(t, reclogs.Shutdown(t.Context()))
+	require.NoError(t, ext.Shutdown(t.Context()))
 }
 
 func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
@@ -183,6 +188,7 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 					exporterSettings := exportertest.NewNopSettings(component.MustNewType("otlp"))
 					exporterSettings.Logger = logger
 					var l exporter.Logs
+					var ext extension.Extension
 					switch extType {
 					case "diskqueue":
 						extID := component.MustNewIDWithName("disk_queue_storage", "my")
@@ -193,9 +199,10 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 						extConfig.Path = b.TempDir()
 						extensionSettings := extensiontest.NewNopSettings(component.MustNewType("disk_queue_storage"))
 						extensionSettings.Logger = logger
+						ext = newDiskQueueStorageExtension(extensionSettings, extConfig)
 						require.NoError(b, l.Start(b.Context(), hostWithExtensions{
 							extensions: map[component.ID]component.Component{
-								extID: newDiskQueueStorageExtension(extensionSettings, extConfig),
+								extID: ext,
 							},
 						}))
 					case "bbolt":
@@ -209,11 +216,11 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 						extConfig.FSync = true
 						extensionSettings := extensiontest.NewNopSettings(component.MustNewType("file_storage"))
 						extensionSettings.Logger = logger
-						fileStorageExt, err := extF.Create(b.Context(), extensionSettings, extConfig)
+						ext, err := extF.Create(b.Context(), extensionSettings, extConfig)
 						require.NoError(b, err)
 						require.NoError(b, l.Start(b.Context(), hostWithExtensions{
 							extensions: map[component.ID]component.Component{
-								extID: fileStorageExt,
+								extID: ext,
 							},
 						}))
 					}
@@ -234,6 +241,7 @@ func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 
 					require.NoError(b, l.Shutdown(b.Context()))
 					require.NoError(b, reclogs.Shutdown(b.Context()))
+					require.NoError(b, ext.Shutdown(b.Context()))
 				}
 			})
 		}

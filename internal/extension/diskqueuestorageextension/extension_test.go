@@ -15,9 +15,12 @@
 package diskqueuestorageextension
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -26,6 +29,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exportertest"
@@ -159,91 +164,121 @@ func TestExtensionAsPersistentQueueWithWorkers(t *testing.T) {
 	require.NoError(t, ext.Shutdown(t.Context()))
 }
 
+type statefulLogSink struct {
+	sink         *consumertest.LogsSink
+	allowTraffic atomic.Bool
+}
+
+func (s *statefulLogSink) Capabilities() consumer.Capabilities {
+	return s.sink.Capabilities()
+}
+
+func (s *statefulLogSink) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
+	if s.allowTraffic.Load() {
+		return s.sink.ConsumeLogs(ctx, logs)
+	}
+	return consumererror.NewRetryableError(errors.New("no"))
+}
+
 func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
 	for _, extType := range []string{"diskqueue", "bbolt"} {
-		for _, volume := range []int{100, 200, 300, 400, 500, 1000} {
-			b.Run(fmt.Sprintf("bench-%s-%d", extType, volume), func(b *testing.B) {
-				b.ReportAllocs()
-				for b.Loop() {
-					logger := zap.NewNop()
-					recf := otlpreceiver.NewFactory()
-					rCfg := recf.CreateDefaultConfig().(*otlpreceiver.Config)
-					listenerForFreePort, err := net.Listen("tcp", "localhost:0")
-					require.NoError(b, err)
-					require.NoError(b, listenerForFreePort.Close())
-					rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint = listenerForFreePort.Addr().String()
-					rCfg.Protocols.GRPC.GetOrInsertDefault().MaxConcurrentStreams = 1024
-					sink := &consumertest.LogsSink{}
-					receiverSettings := receivertest.NewNopSettings(component.MustNewType("otlp"))
-					receiverSettings.Logger = logger
-					reclogs, err := recf.CreateLogs(b.Context(), receiverSettings, rCfg, sink)
-					require.NoError(b, err)
-					require.NoError(b, reclogs.Start(b.Context(), componenttest.NewNopHost()))
-					f := otlpexporter.NewFactory()
-					cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
-					cfg.QueueConfig.GetOrInsertDefault().NumConsumers = 32
-					cfg.ClientConfig.TLS.Insecure = true
-					cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
-					cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
-					exporterSettings := exportertest.NewNopSettings(component.MustNewType("otlp"))
-					exporterSettings.Logger = logger
-					var l exporter.Logs
-					var ext extension.Extension
-					switch extType {
-					case "diskqueue":
-						extID := component.MustNewIDWithName("disk_queue_storage", "my")
-						cfg.QueueConfig.GetOrInsertDefault().StorageID = &extID
-						l, err = f.CreateLogs(b.Context(), exporterSettings, cfg)
+		for _, traffic := range []string{"ok", "draining"} {
+			for _, volume := range []int{100, 200, 300, 400, 500, 1000} {
+				b.Run(fmt.Sprintf("bench-%s-%s-%d", extType, traffic, volume), func(b *testing.B) {
+					b.ReportAllocs()
+					for b.Loop() {
+						logger := zap.NewNop()
+						recf := otlpreceiver.NewFactory()
+						rCfg := recf.CreateDefaultConfig().(*otlpreceiver.Config)
+						listenerForFreePort, err := net.Listen("tcp", "localhost:0")
 						require.NoError(b, err)
-						extConfig := createDefaultConfig().(*Config)
-						extConfig.Path = b.TempDir()
-						extensionSettings := extensiontest.NewNopSettings(component.MustNewType("disk_queue_storage"))
-						extensionSettings.Logger = logger
-						ext = newDiskQueueStorageExtension(extensionSettings, extConfig)
-						require.NoError(b, l.Start(b.Context(), hostWithExtensions{
-							extensions: map[component.ID]component.Component{
-								extID: ext,
-							},
-						}))
-					case "bbolt":
-						extID := component.MustNewIDWithName("file_storage", "my")
-						cfg.QueueConfig.GetOrInsertDefault().StorageID = &extID
-						l, err = f.CreateLogs(b.Context(), exporterSettings, cfg)
-						require.NoError(b, err)
-						extF := filestorage.NewFactory()
-						extConfig := extF.CreateDefaultConfig().(*filestorage.Config)
-						extConfig.Directory = b.TempDir()
-						extConfig.FSync = true
-						extensionSettings := extensiontest.NewNopSettings(component.MustNewType("file_storage"))
-						extensionSettings.Logger = logger
-						ext, err := extF.Create(b.Context(), extensionSettings, extConfig)
-						require.NoError(b, err)
-						require.NoError(b, l.Start(b.Context(), hostWithExtensions{
-							extensions: map[component.ID]component.Component{
-								extID: ext,
-							},
-						}))
-					}
-
-					for i := range volume {
-						logs := plog.NewLogs()
-						logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty().Body().SetStr(fmt.Sprintf("hello world %d", i))
-						require.NoError(b, l.ConsumeLogs(b.Context(), logs))
-					}
-					assert.EventuallyWithT(b, func(tt *assert.CollectT) {
-						lrs := map[string]struct{}{}
-						for _, l := range sink.AllLogs() {
-							log := l.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Body().Str()
-							lrs[log] = struct{}{}
+						require.NoError(b, listenerForFreePort.Close())
+						rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint = listenerForFreePort.Addr().String()
+						rCfg.Protocols.GRPC.GetOrInsertDefault().MaxConcurrentStreams = 1024
+						var logConsumer consumer.Logs
+						sink := &consumertest.LogsSink{}
+						if traffic == "ok" {
+							logConsumer = sink
+						} else {
+							logConsumer = &statefulLogSink{
+								sink: sink,
+							}
+							logConsumer.(*statefulLogSink).allowTraffic.Store(false)
 						}
-						require.Len(tt, lrs, volume)
-					}, 1*time.Second, 100*time.Millisecond)
+						receiverSettings := receivertest.NewNopSettings(component.MustNewType("otlp"))
+						receiverSettings.Logger = logger
+						reclogs, err := recf.CreateLogs(b.Context(), receiverSettings, rCfg, logConsumer)
+						require.NoError(b, err)
+						require.NoError(b, reclogs.Start(b.Context(), componenttest.NewNopHost()))
+						f := otlpexporter.NewFactory()
+						cfg := f.CreateDefaultConfig().(*otlpexporter.Config)
+						cfg.QueueConfig.GetOrInsertDefault().NumConsumers = 32
+						cfg.ClientConfig.TLS.Insecure = true
+						cfg.QueueConfig.GetOrInsertDefault().WaitForResult = true
+						cfg.ClientConfig.Endpoint = rCfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint
+						exporterSettings := exportertest.NewNopSettings(component.MustNewType("otlp"))
+						exporterSettings.Logger = logger
+						var l exporter.Logs
+						var ext extension.Extension
+						switch extType {
+						case "diskqueue":
+							extID := component.MustNewIDWithName("disk_queue_storage", "my")
+							cfg.QueueConfig.GetOrInsertDefault().StorageID = &extID
+							l, err = f.CreateLogs(b.Context(), exporterSettings, cfg)
+							require.NoError(b, err)
+							extConfig := createDefaultConfig().(*Config)
+							extConfig.Path = b.TempDir()
+							extensionSettings := extensiontest.NewNopSettings(component.MustNewType("disk_queue_storage"))
+							extensionSettings.Logger = logger
+							ext = newDiskQueueStorageExtension(extensionSettings, extConfig)
+							require.NoError(b, l.Start(b.Context(), hostWithExtensions{
+								extensions: map[component.ID]component.Component{
+									extID: ext,
+								},
+							}))
+						case "bbolt":
+							extID := component.MustNewIDWithName("file_storage", "my")
+							cfg.QueueConfig.GetOrInsertDefault().StorageID = &extID
+							l, err = f.CreateLogs(b.Context(), exporterSettings, cfg)
+							require.NoError(b, err)
+							extF := filestorage.NewFactory()
+							extConfig := extF.CreateDefaultConfig().(*filestorage.Config)
+							extConfig.Directory = b.TempDir()
+							extConfig.FSync = true
+							extensionSettings := extensiontest.NewNopSettings(component.MustNewType("file_storage"))
+							extensionSettings.Logger = logger
+							ext, err = extF.Create(b.Context(), extensionSettings, extConfig)
+							require.NoError(b, err)
+							require.NoError(b, l.Start(b.Context(), hostWithExtensions{
+								extensions: map[component.ID]component.Component{
+									extID: ext,
+								},
+							}))
+						}
 
-					require.NoError(b, l.Shutdown(b.Context()))
-					require.NoError(b, reclogs.Shutdown(b.Context()))
-					require.NoError(b, ext.Shutdown(b.Context()))
-				}
-			})
+						for i := range volume {
+							logs := plog.NewLogs()
+							logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty().Body().SetStr(fmt.Sprintf("hello world %d", i))
+							require.NoError(b, l.ConsumeLogs(b.Context(), logs))
+						}
+						if traffic == "draining" {
+							logConsumer.(*statefulLogSink).allowTraffic.Store(true)
+						}
+						assert.EventuallyWithT(b, func(tt *assert.CollectT) {
+							lrs := map[string]struct{}{}
+							for _, l := range sink.AllLogs() {
+								log := l.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Body().Str()
+								lrs[log] = struct{}{}
+							}
+							require.Len(tt, lrs, volume)
+						}, 1*time.Second, 100*time.Millisecond)
+
+						require.NoError(b, l.Shutdown(b.Context()))
+						require.NoError(b, reclogs.Shutdown(b.Context()))
+						require.NoError(b, ext.Shutdown(b.Context()))
+					}
+				})
+			}
 		}
 	}
 }

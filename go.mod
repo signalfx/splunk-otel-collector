@@ -815,9 +815,9 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
-	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260826070918-993b40128b62
-	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260826070918-993b40128b62
-	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260826070918-993b40128b62
+	github.com/splunk/tarunner => github.com/splunk/tarunner v0.0.0-20260826073221-cb11c5af99bd
+	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1 => github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.0.0-20260826073221-cb11c5af99bd
+	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0 => github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260826073221-cb11c5af99bd
 )
 
 // each of these is required for the smartagentreceiver

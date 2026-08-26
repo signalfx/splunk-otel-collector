@@ -14,10 +14,21 @@ issues: [7581]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  Auto-instrumentation configuration files moved from `/etc/splunk/zeroconfig/` to
-  `/etc/opentelemetry/injector/` (e.g. `default_env.conf`, `injector.conf`), matching the
-  layout expected by the official OpenTelemetry injector.
-  These configuration files now support environment variables with both `OTEL_` and
-  `SPLUNK_` prefixes (e.g. `SPLUNK_METRICS_ENABLED`, `SPLUNK_PROFILER_ENABLED`,
-  `SPLUNK_PROFILER_MEMORY_ENABLED`).
-  .NET auto-instrumentation is now also supported on arm64, in addition to amd64.
+  This is a breaking change for existing auto-instrumentation installations. Configuration files moved from
+  `/etc/splunk/zeroconfig/` to `/etc/opentelemetry/injector/` (`default_env.conf` and `injector.conf`). Existing
+  values are not migrated, and the legacy files are removed during upgrade and cannot be recovered.
+  Migrate custom `OTEL_*` and `SPLUNK_*` values from `java.conf`, `node.conf`, and `dotnet.conf` to `default_env.conf`
+  before upgrading; values with other prefixes, including `JAVA_TOOL_OPTIONS`, `NODE_OPTIONS`, `CORECLR_*`, and
+  `DOTNET_*`, are ignored. The injector derives activation settings from agent paths in `injector.conf` instead.
+  `default_env.conf` is shared by all runtimes, and runtime-specific values must be configured through the relevant
+  application or service environment.
+
+  Package upgrades remove the legacy `/usr/lib/splunk-instrumentation/libsplunk.so` entry and delete an otherwise-empty
+  preload file. The installer adds the new entry and recreates the file when needed. Restart instrumented applications
+  or services, or reboot, after updating the preload entry or configuration.
+
+  .NET agent files are now installed under `splunk-otel-dotnet/glibc`, with `OTEL_DOTNET_AUTO_HOME` set to that
+  directory. The installer's `--with-instrumentation` option requires an auto-instrumentation package version greater
+  than 0.158.0.
+
+  .NET auto-instrumentation now supports arm64 in addition to amd64.

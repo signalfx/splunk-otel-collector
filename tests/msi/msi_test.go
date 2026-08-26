@@ -35,6 +35,8 @@ import (
 	"golang.org/x/text/transform"
 )
 
+const supervisorEnabledProperty = "SPLUNK_OPAMP_SUPERVISOR_ENABLED"
+
 // Test structure for MSI installation tests
 type msiTest struct {
 	name                   string
@@ -117,6 +119,13 @@ func TestMSI(t *testing.T) {
 				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
 				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
 				"SPLUNK_SETUP_COLLECTOR_MODE":   "agent",
+			},
+		},
+		{
+			name: "supervisor-enabled",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":     "fakeToken",
+				supervisorEnabledProperty: "true",
 			},
 		},
 	}
@@ -473,6 +482,10 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	require.NotEmpty(t, programDataDir, "PROGRAMDATA environment variable is not set")
 	programFilesDir := os.Getenv("PROGRAMFILES")
 	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
+	installDir := filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector")
+	for _, executable := range []string{"otelcol.exe", "otelcollauncher.exe", "opampsupervisor.exe"} {
+		assert.FileExists(t, filepath.Join(installDir, executable))
+	}
 
 	installRealm := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_REALM", "us0")
 	ingestURL := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_INGEST_URL", "https://ingest."+installRealm+".observability.splunkcloud.com")
@@ -517,6 +530,7 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 		"SPLUNK_PLATFORM_TOKEN",
 		"SPLUNK_PLATFORM_LOGS_INDEX",
 		"SPLUNK_PLATFORM_METRICS_INDEX",
+		supervisorEnabledProperty,
 	} {
 		if value, ok := msiProperties[key]; ok {
 			expectedEnvVars[key] = value
@@ -528,6 +542,15 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	assert.Equal(t, expectedEnvVars, svcEnvVars)
 
 	assert.Equal(t, expectedServiceCommand(t, expectedCollectorServiceArgs(t, msiProperties)), svcConfig.BinaryPathName)
+
+	if msiProperties[supervisorEnabledProperty] == "true" {
+		supervisorDir := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", "supervisor")
+		require.Eventually(t, func() bool {
+			_, configErr := os.Stat(filepath.Join(supervisorDir, "supervisor_config.yaml"))
+			_, runtimeConfigErr := os.Stat(filepath.Join(supervisorDir, "supervisor_runtime_config.yaml"))
+			return configErr == nil && runtimeConfigErr == nil
+		}, 10*time.Second, 500*time.Millisecond, "Supervisor configuration files were not created")
+	}
 }
 
 func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {
@@ -639,7 +662,7 @@ func expectedServiceCommand(t *testing.T, collectorServiceArgs string) string {
 	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
 
 	collectorDir := filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector")
-	collectorExe := filepath.Join(collectorDir, "otelcol") + ".exe"
+	collectorExe := filepath.Join(collectorDir, "otelcollauncher.exe")
 
 	if collectorServiceArgs == "" {
 		return quotedIfRequired(collectorExe)

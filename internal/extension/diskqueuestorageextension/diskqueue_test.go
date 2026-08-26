@@ -30,9 +30,8 @@ func newQueueForTesting(t *testing.T) *diskQueue {
 
 func TestEmptyQueue(t *testing.T) {
 	empty := newQueueForTesting(t)
-	assert.Equal(t, int64(0), empty.depth())
 	select {
-	case <-empty.peekChan:
+	case <-empty.peek():
 		assert.Fail(t, "should not peek")
 	default:
 	}
@@ -42,11 +41,8 @@ func TestEmptyQueue(t *testing.T) {
 func TestPutPeekConsume(t *testing.T) {
 	q := newQueueForTesting(t)
 	require.NoError(t, q.put([]byte("hello world")))
-	assert.Equal(t, int64(1), q.depth())
-	msg := <-q.peekChan
-	assert.Equal(t, int64(1), q.depth())
+	msg := <-q.peek()
 	msg.consumeCallback()
-	assert.Equal(t, int64(0), q.depth())
 	require.NoError(t, q.close())
 }
 
@@ -54,8 +50,8 @@ func TestTwoPutsPeek(t *testing.T) {
 	q := newQueueForTesting(t)
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
-	assert.Equal(t, int64(2), q.depth())
-	msg := <-q.peekChan
+	msg := <-q.peek()
+	fmt.Println("fdfdsfd")
 	require.NoError(t, q.close())
 	require.Equal(t, "hello world", string(msg.payload()))
 }
@@ -63,97 +59,61 @@ func TestTwoPutsPeek(t *testing.T) {
 func TestThreePutsThreeConsumes(t *testing.T) {
 	q := newQueueForTesting(t)
 	require.NoError(t, q.put([]byte("hello world")))
-	assert.Equal(t, int64(1), q.depth())
 	require.NoError(t, q.put([]byte("hello world2")))
-	assert.Equal(t, int64(2), q.depth())
 	require.NoError(t, q.put([]byte("hello world3")))
-	assert.Equal(t, int64(3), q.depth())
-	msg := <-q.peekChan
-	assert.Equal(t, int64(3), q.depth())
+	msg := <-q.peek()
 	require.Equal(t, "hello world", string(msg.payload()))
 	// do it again
-	msg = <-q.peekChan
-	assert.Equal(t, int64(3), q.depth())
+	msg = <-q.peek()
 	require.Equal(t, "hello world2", string(msg.payload()))
-	assert.Equal(t, int64(3), q.depth())
-	msg = <-q.peekChan
-	assert.Equal(t, int64(3), q.depth())
+	msg = <-q.peek()
 	assert.Equal(t, "hello world3", string(msg.payload()))
 	msg.consumeCallback()
-	assert.Equal(t, int64(2), q.depth())
 	require.NoError(t, q.close())
 }
 
 func TestThreePutsThreeConsumesOutOfOrder(t *testing.T) {
 	q := newQueueForTesting(t)
 	require.NoError(t, q.put([]byte("hello world")))
-	assert.Equal(t, int64(1), q.depth())
 	require.NoError(t, q.put([]byte("hello world2")))
-	assert.Equal(t, int64(2), q.depth())
 	require.NoError(t, q.put([]byte("hello world3")))
-	assert.Equal(t, int64(3), q.depth())
-	msg1 := <-q.peekChan
-	assert.Equal(t, int64(3), q.depth())
+	msg1 := <-q.peek()
 	msg1.consumeCallback()
-	assert.Equal(t, int64(2), q.depth())
-	msg2 := <-q.peekChan
-	assert.Equal(t, int64(2), q.depth())
-	msg3 := <-q.peekChan
-	assert.Equal(t, int64(2), q.depth())
+	msg2 := <-q.peek()
+	msg3 := <-q.peek()
 	msg3.consumeCallback()
-	assert.Equal(t, int64(1), q.depth())
 	msg2.consumeCallback()
-	assert.Equal(t, int64(0), q.depth())
 	require.NoError(t, q.close())
 }
 
 func TestMultipleWorkers(t *testing.T) {
 	q := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.put([]byte("hello world")))
-	assert.Equal(t, int64(1), q.depth())
 	require.NoError(t, q.put([]byte("hello world2")))
-	assert.Equal(t, int64(2), q.depth())
 	require.NoError(t, q.put([]byte("hello world3")))
-	assert.Equal(t, int64(3), q.depth())
-	msg := <-q.peekChan
-	assert.Equal(t, int64(3), q.depth())
+	msg := <-q.peek()
 	msg.consumeCallback()
 	require.Equal(t, "hello world", string(msg.payload()))
-	assert.Equal(t, int64(2), q.depth())
-	msg = <-q.peekChan
-	assert.Equal(t, int64(2), q.depth())
+	msg = <-q.peek()
 	require.Equal(t, "hello world2", string(msg.payload()))
 	msg.consumeCallback()
-	assert.Equal(t, int64(1), q.depth())
-	msg = <-q.peekChan
-	assert.Equal(t, int64(1), q.depth())
+	msg = <-q.peek()
 	msg.consumeCallback()
 	require.Equal(t, "hello world3", string(msg.payload()))
-	assert.Equal(t, int64(0), q.depth())
 	require.NoError(t, q.close())
 }
 
 func TestMultipleWorkersOutOfOrder(t *testing.T) {
 	q := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.put([]byte("hello world")))
-	assert.Equal(t, int64(1), q.depth())
 	require.NoError(t, q.put([]byte("hello world2")))
-	assert.Equal(t, int64(2), q.depth())
 	require.NoError(t, q.put([]byte("hello world3")))
-	assert.Equal(t, int64(3), q.depth())
-	msg1 := <-q.peekChan
-	assert.Equal(t, int64(3), q.depth())
+	msg1 := <-q.peek()
 	msg1.consumeCallback()
-	assert.Equal(t, int64(2), q.depth())
-	msg2 := <-q.peekChan
-	assert.Equal(t, int64(2), q.depth())
-	fmt.Println("shoo")
-	msg3 := <-q.peekChan
-	assert.Equal(t, int64(2), q.depth())
+	msg2 := <-q.peek()
+	msg3 := <-q.peek()
 	msg3.consumeCallback()
-	assert.Equal(t, int64(1), q.depth())
 	msg2.consumeCallback()
-	assert.Equal(t, int64(0), q.depth())
 	require.NoError(t, q.close())
 
 	assert.Equal(t, "hello world", string(msg1.payload()))

@@ -56,7 +56,7 @@ type callback struct {
 
 // diskQueue implements a filesystem backed FIFO queue
 type diskQueue struct {
-	writeResponseChan     chan error
+	callbackChan          chan callback
 	writeChan             chan []byte
 	exitChan              chan int
 	recomputePeekChan     chan struct{}
@@ -66,19 +66,19 @@ type diskQueue struct {
 	peekFile              *os.File
 	metadataFile          *os.File
 	peekChan              chan message
+	writeResponseChan     chan error
 	dataPath              string
 	name                  string
-	metadataLock          sync.Mutex
 	metadata              metadata
+	exitWG                sync.WaitGroup
 	maxBytesPerFile       int64
 	syncTimeout           time.Duration
 	syncEvery             int64
-	exitFlag              atomic.Bool
-	exitWG                sync.WaitGroup
 	metadataTruncateEvery int
 	metadataWrites        int
 	opCount               atomic.Int64
-	callbackChan          chan callback
+	metadataLock          sync.Mutex
+	exitFlag              atomic.Bool
 }
 
 // newQueue instantiates an instance of diskQueue, retrieving metadata
@@ -388,7 +388,6 @@ func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 				d.logger.Error(" failed to Remove", zap.String("name", d.name), zap.String("filename", f), zap.Error(err))
 			}
 		}
-
 	}
 
 	compactedSegments := make([]*segment, 0, len(d.metadata.Segments))

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Recursively set the ownership of collector config (`/etc/otel/collector`) and state (`/var/lib/otelcol`) directories to the configured service user and group on Linux.
+
 ## chef-v0.20.0
 
 - Bug fix: Ensure the collector config directory ownership is set to the custom service user and group (if configured) rather than the default service owner (Linux only)

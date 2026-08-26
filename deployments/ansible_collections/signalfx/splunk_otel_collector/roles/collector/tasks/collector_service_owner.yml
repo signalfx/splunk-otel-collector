@@ -14,13 +14,14 @@
     shell: /sbin/nologin
     home: /etc/otel/collector
 
-- name: Set Otel Collector config directory
+- name: Ensure Otel Collector config and state directories exist
   ansible.builtin.file:
-    path: /etc/otel/collector
+    path: "{{ item }}"
     state: directory
-    owner: "{{ splunk_service_user }}"
-    group: "{{ splunk_service_group }}"
     mode: '0755'
+  loop:
+    - /etc/otel/collector
+    - /var/lib/otelcol
 
 - name: Ensure systemd service directory for Splunk Otel Collector exists
   ansible.builtin.file:
@@ -33,4 +34,23 @@
     src: collector-service-owner.conf.j2
     dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
     mode: '644'
+  register: collector_service_owner_config
   notify: "restart splunk-otel-collector"
+
+- name: Stop Splunk Otel Collector before migrating directory ownership  # noqa no-handler
+  ansible.builtin.service:
+    name: splunk-otel-collector
+    state: stopped
+  when: collector_service_owner_config is changed
+
+- name: Set Otel Collector config and state directory ownership recursively
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ splunk_service_user }}"
+    group: "{{ splunk_service_group }}"
+    recurse: yes
+    follow: no
+  loop:
+    - /etc/otel/collector
+    - /var/lib/otelcol

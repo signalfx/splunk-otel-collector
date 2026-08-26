@@ -419,7 +419,12 @@ libotelinject:
   retry: 2
   parallel:
     matrix:
-      - ARCH: ["amd64", "arm64"]
+      - ARCH: amd64
+        TAG: main
+      - ARCH: arm64
+        TAG: arm
+  tags:
+    - $TAG
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR

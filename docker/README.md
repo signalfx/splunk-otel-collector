@@ -1,6 +1,7 @@
 This folder contains the definition of various Docker images used in testing.
 
-Those images are stored under quay.io/splunko11ytest, with the image name matching the folder name.
+When published, these images are stored under quay.io/splunko11ytest, with the image name matching the folder name.
+Integration CI builds the images from these Dockerfiles for each test profile and does not use the published images as a build cache.
 
 When testing locally,
 - Build and start individual service(s):

@@ -87,7 +87,7 @@ func (c *client) Get(_ context.Context, key string) ([]byte, error) {
 	case legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil, nil
 	default:
-		message := <-c.queue.peekChan
+		message := <-c.queue.peek()
 		// register callback for consumption
 		c.callbacks[key] = message.consumeCallback
 		return message.payload(), nil

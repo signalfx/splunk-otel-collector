@@ -6,6 +6,10 @@
 
 - Linux auto-instrumentation now uses the official OpenTelemetry Injector for package versions newer than `0.158.0` (or `latest`). The cookbook manages `/etc/opentelemetry/injector/` and `libotelinject.so`, removes the legacy `/etc/splunk/zeroconfig/` configuration during upgrades, and continues to support the legacy layout for package versions through `0.158.0`. .NET auto-instrumentation is also supported on arm64 for newer package versions.
 
+### 💡 Enhancements 💡
+
+- Recursively set the ownership of collector config (`/etc/otel/collector`) and state (`/var/lib/otelcol`) directories to the configured service user and group on Linux.
+
 ## chef-v0.20.0
 
 - Bug fix: Ensure the collector config directory ownership is set to the custom service user and group (if configured) rather than the default service owner (Linux only)

@@ -5,7 +5,7 @@ change_type: enhancement
 component: installer
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add demonstration of redaction processor.
+note: Add demonstration of redaction & transform processors.
 
 # One or more tracking issues related to the change
 issues: [7957]
@@ -14,4 +14,4 @@ issues: [7957]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  Redaction processor can be used to mask sensitive data like usernames, IP addresses etc.
+  Redaction and transform processors can be used to mask sensitive data like usernames, IP addresses etc.

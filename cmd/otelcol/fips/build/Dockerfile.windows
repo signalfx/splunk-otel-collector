@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/oss/go/microsoft/golang:${GO_VERSION}
 
 ARG TARGETARCH
 
+COPY baseline /src/baseline
 COPY cmd /src/cmd
 COPY internal /src/internal
 COPY packaging /src/packaging

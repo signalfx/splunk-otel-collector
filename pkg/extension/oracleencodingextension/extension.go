@@ -15,8 +15,6 @@
 package oracleencodingextension // import "github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 
 import (
-	"context"
-
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -28,19 +26,13 @@ import (
 var _ encoding.MetricsUnmarshalerExtension = (*oracleExtension)(nil)
 
 type oracleExtension struct {
+	component.StartFunc
+	component.ShutdownFunc
 	metricUnmarshaler pmetric.Unmarshaler
 }
 
 func (ex *oracleExtension) UnmarshalMetrics(buf []byte) (pmetric.Metrics, error) {
 	return ex.metricUnmarshaler.UnmarshalMetrics(buf)
-}
-
-func (*oracleExtension) Start(context.Context, component.Host) error {
-	return nil
-}
-
-func (*oracleExtension) Shutdown(context.Context) error {
-	return nil
 }
 
 func newOracleExtension(logger *zap.Logger) *oracleExtension {

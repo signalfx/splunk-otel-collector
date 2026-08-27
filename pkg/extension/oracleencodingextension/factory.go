@@ -19,17 +19,17 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
-)
 
-const typeStr = "oracle_encoding"
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension/internal/metadata"
+)
 
 // NewFactory creates a factory for the Oracle encoding extension.
 func NewFactory() extension.Factory {
 	return extension.NewFactory(
-		component.MustNewType(typeStr),
+		metadata.Type,
 		createDefaultConfig,
 		createExtension,
-		component.StabilityLevelAlpha,
+		metadata.ExtensionStability,
 	)
 }
 

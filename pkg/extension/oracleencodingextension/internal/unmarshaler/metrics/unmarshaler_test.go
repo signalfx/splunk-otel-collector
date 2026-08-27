@@ -26,6 +26,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	conventions "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension/internal/metadata"
 )
 
 // erroringReader returns a fixed line of data followed by a non-io.EOF error,
@@ -84,7 +86,7 @@ func TestUnmarshalMetrics(t *testing.T) {
 	require.Equal(t, "oc1", realm.AsString())
 
 	scopeMetrics := firstRM.ScopeMetrics().At(0)
-	require.Equal(t, ScopeName, scopeMetrics.Scope().Name())
+	require.Equal(t, metadata.ScopeName, scopeMetrics.Scope().Name())
 	require.Equal(t, 2, scopeMetrics.Metrics().Len())
 
 	successRate := scopeMetrics.Metrics().At(0)

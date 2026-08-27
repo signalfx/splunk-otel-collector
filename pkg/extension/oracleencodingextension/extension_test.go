@@ -22,28 +22,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension/internal/metadata"
 )
-
-func TestExtensionLifecycle(t *testing.T) {
-	ctx := context.Background()
-	createParams := extension.Settings{ID: component.MustNewID(typeStr)}
-	cfg := &Config{}
-
-	f := NewFactory()
-	ext, err := f.Create(ctx, createParams, cfg)
-	require.NoError(t, err)
-	require.NotNil(t, ext)
-
-	require.NoError(t, ext.Start(ctx, componenttest.NewNopHost()))
-	require.NoError(t, ext.Shutdown(ctx))
-}
 
 func TestUnmarshalMetrics(t *testing.T) {
 	ctx := context.Background()
-	createParams := extension.Settings{ID: component.MustNewID(typeStr)}
+	createParams := extension.Settings{ID: component.NewID(metadata.Type)}
 	f := NewFactory()
 	ext, err := f.Create(ctx, createParams, &Config{})
 	require.NoError(t, err)

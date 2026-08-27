@@ -22,6 +22,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension/internal/metadata"
 )
 
 // metricsBuilder accumulates OCI metric records into pmetric.Metrics,
@@ -77,7 +79,7 @@ func (b *metricsBuilder) unmarshalRecord(jsonRecord []byte) {
 		for k, v := range resourceAttributes(*rec, resourceID) {
 			rm.Resource().Attributes().PutStr(k, v)
 		}
-		rm.ScopeMetrics().AppendEmpty().Scope().SetName(ScopeName)
+		rm.ScopeMetrics().AppendEmpty().Scope().SetName(metadata.ScopeName)
 		b.allResourceMetrics[resourceKey] = rm
 	}
 

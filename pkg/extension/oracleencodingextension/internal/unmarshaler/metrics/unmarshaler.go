@@ -55,10 +55,6 @@ const (
 	ocidRealmSegmentIndex = 2
 )
 
-// ScopeName is the instrumentation scope name set on metrics produced by
-// this unmarshaler.
-const ScopeName = "github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
-
 // ociMetricRecord represents a single OCI Monitoring metric record, one of
 // which is expected per line of JSONL input.
 type ociMetricRecord struct {

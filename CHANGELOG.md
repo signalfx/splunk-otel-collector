@@ -12,7 +12,7 @@ and the [opentelemetry-collector-contrib v0.159.0](https://github.com/open-telem
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) `config`: Add `transform/limit_histogram_buckets` processor to limit explicit-bucket histograms in the default agent metrics pipeline to at most 32 buckets to prevent native OTLP histograms from being dropped by the SignalFx backend. ([#7646](https://github.com/signalfx/splunk-otel-collector/pull/7646))
+- (Splunk) `config`: Add `transform/limit_histogram_buckets` processor to limit explicit-bucket histograms in the default agent metrics pipeline to at most 32 buckets to prevent native OTLP histograms from being dropped by Splunk Observability Cloud. ([#7646](https://github.com/signalfx/splunk-otel-collector/pull/7646))
   Histograms above the limit are uniformly compacted by merging adjacent buckets.
   This preserves the total count and sum, but can produce fewer than 32 buckets and
   reduce histogram resolution.
@@ -32,13 +32,13 @@ and the [opentelemetry-collector-contrib v0.159.0](https://github.com/open-telem
 - (Splunk) `telegraf/dns`: Deprecate the telegraf/dns monitor ([#7983](https://github.com/signalfx/splunk-otel-collector/pull/7983))
   This monitor is deprecated and will be removed on or after October 2026. Please use the [DNS Check Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/dnscheckreceiver) instead.
 - (Splunk) `smartagent/disk-io/windows`: Deprecate the Windows implementation of smartagent/disk-io monitor. ([#7951](https://github.com/signalfx/splunk-otel-collector/pull/7951))
-  This deprecation affects only the Windows implementation of the smartagent/disk-io monitor. 
-  Users are encouraged to transition to the [disk scraper](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/diskscraper/documentation.md) 
+  This deprecation affects only the Windows implementation of the smartagent/disk-io monitor.
+  Users are encouraged to transition to the [disk scraper](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/diskscraper/documentation.md)
   in the hostmetrics receiver for continued functionality.
 
 - (Contrib) `exporter/signalfx`: Remove the logic sending trace correlation. ([#50166](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/50166))
   The trace correlation endpoint is no longer processing requests as the logic has moved
-  to be handled by the backend. With this change, the exporter continues to accept spans
+  to be handled by Splunk Observability Cloud. With this change, the exporter continues to accept spans
   but will no longer send them to the correlation endpoint.
 - (Contrib) `receiver/file_log`: Deprecate the implicit `ordering_criteria.top_n` default of 1 when `ordering_criteria.sort_by` is configured. Enable the `filelog.requireExplicitTopN` feature gate to require `top_n` to be set explicitly. ([#47444](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47444))
   When `ordering_criteria.sort_by` is configured without `top_n`, the matcher
@@ -136,12 +136,13 @@ and the [opentelemetry-collector-contrib v0.159.0](https://github.com/open-telem
     - `state` (on the scoreboard metric) -> `apache.worker.state`
     - `level` (on `apache.cpu.time`) -> `apache.process.level`
     - `mode` (on `apache.cpu.time`) -> `cpu.mode`
-- (Contrib) `receiver/apache`: Add `apache.request.rate` and `apache.traffic.rate` (disabled by default), and `apache.worker.limit` (enabled by default as a non-monotonic cumulative sum/UpDownCounter). ([#47061](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47061))
+- (Contrib) `receiver/apache`: Add the `apache.worker.limit` metric, enabled by default as a non-monotonic cumulative sum (UpDownCounter). ([#47061](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47061))
+- (Contrib) `receiver/apache`: Add the `apache.request.rate` and `apache.traffic.rate` metrics, disabled by default. ([#47061](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47061))
 - (Contrib) `receiver/kubelet_stats`: Add optional k8s node filesystem inode count/free metrics. ([#48926](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48926))
   Adds the following optional metrics to kubeletstatsreceiver:
   - k8s.node.filesystem.inode.count
   - k8s.node.filesystem.inode.free
-- (Contrib) `receiver/mysql`: Add replica thread running and open temporary table metrics to the mysqlreceiver. ([#50132](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/50132))
+- (Contrib) `receiver/mysql`: Add replica thread running and open temporary table metrics to the MySQL receiver. ([#50132](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/50132))
 - (Contrib) `receiver/mysql`: Add mysql.file.open, mysql.table.open, and mysql.thread.slow_launch metrics, disabled by default. ([#49867](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49867))
 - (Contrib) `receiver/mysql`: Add `alter_table`, `create_index`, `create_table`, and `optimize` command types to the `mysql.commands` metric. ([#49863](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/49863))
 - (Contrib) `receiver/mysql`: Add InnoDB data I/O and pending operation metrics. ([#50138](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/50138))
@@ -162,7 +163,7 @@ and the [opentelemetry-collector-contrib v0.159.0](https://github.com/open-telem
   together rather than reported per PDB, matching the existing behavior of every other opt-in
   oracle.db.pdb metric in this receiver.
 - (Contrib) `receiver/oracledb`: Add wait event timeout count to the session wait sample event ([#49934](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/49934))
-- (Contrib) `receiver/splunk_enterprise`: added dimensions to kvstore metrics ([#50189](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50189))
+- (Contrib) `receiver/splunk_enterprise`: Add dimensions to KV store metrics. ([#50189](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50189))
 - (Contrib) `receiver/sqlserver`: Use the go-sqllexer `ObfuscateAndNormalize` engine to obfuscate SQL in the top query and query sample collectors, and upgrade `github.com/DataDog/datadog-agent/pkg/obfuscate` to v0.82.0 ([#50210](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50210))
   Comment-only statements (e.g. Blue Prism banners) no longer produce a "result is empty" error or repeated
   error logs; they now obfuscate to an empty string. Statements the legacy tokenizer could not parse are

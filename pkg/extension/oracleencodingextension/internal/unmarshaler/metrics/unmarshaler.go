@@ -20,6 +20,7 @@ package metrics // import "github.com/signalfx/splunk-otel-collector/pkg/extensi
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 
@@ -101,7 +102,7 @@ func NewResourceMetricsUnmarshaler(logger *zap.Logger) ResourceMetricsUnmarshale
 func (r ResourceMetricsUnmarshaler) UnmarshalMetrics(buf []byte) (pmetric.Metrics, error) {
 	b := newMetricsBuilder(r.logger)
 	if err := r.readJSONLLines(bytes.NewReader(buf), b.addRecord); err != nil {
-		r.logger.Warn("Failed to decode JSON input", zap.Error(err))
+		return pmetric.Metrics{}, fmt.Errorf("failed to decode JSON input: %w", err)
 	}
 	return b.build(), nil
 }

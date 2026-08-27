@@ -115,8 +115,8 @@ func TestUnmarshalMetrics_Empty(t *testing.T) {
 func TestUnmarshalMetrics_InvalidJSON(t *testing.T) {
 	u := NewResourceMetricsUnmarshaler(zap.NewNop())
 	md, err := u.UnmarshalMetrics([]byte("not json\n"))
-	require.NoError(t, err)
-	require.Equal(t, 0, md.ResourceMetrics().Len())
+	require.Error(t, err)
+	require.Equal(t, pmetric.Metrics{}, md)
 }
 
 func TestExtractRealm(t *testing.T) {

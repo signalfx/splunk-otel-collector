@@ -15,9 +15,9 @@
 package metrics
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -29,23 +29,6 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension/internal/metadata"
 )
-
-// erroringReader returns a fixed line of data followed by a non-io.EOF error,
-// simulating a failure in the underlying io.Reader (e.g. a broken pipe)
-type erroringReader struct {
-	err  error
-	data []byte
-	read bool
-}
-
-func (r *erroringReader) Read(p []byte) (int, error) {
-	if r.read {
-		return 0, r.err
-	}
-	r.read = true
-	n := copy(p, r.data)
-	return n, nil
-}
 
 func TestUnmarshalMetrics(t *testing.T) {
 	buf, err := os.ReadFile(filepath.Join("testdata", "metrics.jsonl"))
@@ -115,22 +98,23 @@ func TestUnmarshalMetrics(t *testing.T) {
 	require.Equal(t, 1, secondRM.ScopeMetrics().At(0).Metrics().Len())
 }
 
-func TestReadJSONLLines_LogsNonEOFReadError(t *testing.T) {
-	wantErr := errors.New("broken pipe")
-	r := &erroringReader{data: []byte(`{"name":"m"}` + "\n"), err: wantErr}
-
+func TestReadJSONLLines_ReturnsDecodeError(t *testing.T) {
 	u := NewResourceMetricsUnmarshaler(zap.NewNop())
-	var lines [][]byte
-	u.readJSONLLines(r, func(line []byte) {
-		lines = append(lines, append([]byte{}, line...))
-	})
+	err := u.readJSONLLines(strings.NewReader("not json\n"), func(ociMetricRecord) {})
 
-	require.Equal(t, [][]byte{[]byte(`{"name":"m"}`)}, lines)
+	require.Error(t, err)
 }
 
 func TestUnmarshalMetrics_Empty(t *testing.T) {
 	u := NewResourceMetricsUnmarshaler(zap.NewNop())
 	md, err := u.UnmarshalMetrics([]byte(""))
+	require.NoError(t, err)
+	require.Equal(t, 0, md.ResourceMetrics().Len())
+}
+
+func TestUnmarshalMetrics_InvalidJSON(t *testing.T) {
+	u := NewResourceMetricsUnmarshaler(zap.NewNop())
+	md, err := u.UnmarshalMetrics([]byte("not json\n"))
 	require.NoError(t, err)
 	require.Equal(t, 0, md.ResourceMetrics().Len())
 }

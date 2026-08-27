@@ -15,6 +15,7 @@
 package metrics
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -23,6 +24,13 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
+
+func addJSONRecord(t *testing.T, b *metricsBuilder, input string) {
+	t.Helper()
+	var record ociMetricRecord
+	require.NoError(t, json.Unmarshal([]byte(input), &record))
+	b.addRecord(record)
+}
 
 func TestOCIMetricRecord_Validate(t *testing.T) {
 	tests := []struct {
@@ -110,19 +118,13 @@ func TestMetricsBuilder_GetDatapoints_LogsInvalidDimensionValue(t *testing.T) {
 	require.Equal(t, pcommon.ValueTypeEmpty, v.Type())
 }
 
-func TestMetricsBuilder_UnmarshalRecord_SkipsInvalidRecord(t *testing.T) {
+func TestMetricsBuilder_AddRecord_SkipsInvalidRecord(t *testing.T) {
 	b := newMetricsBuilder(zap.NewNop())
-	b.unmarshalRecord([]byte(`not json`))
+	b.addRecord(ociMetricRecord{Namespace: "ns", CompartmentID: "c1"})
 	require.Equal(t, 0, b.build().ResourceMetrics().Len())
 }
 
-func TestMetricsBuilder_UnmarshalRecord_SkipsMalformedJSON(t *testing.T) {
-	b := newMetricsBuilder(zap.NewNop())
-	b.unmarshalRecord([]byte(`not-a-json`))
-	require.Equal(t, 0, b.build().ResourceMetrics().Len())
-}
-
-func TestMetricsBuilder_UnmarshalRecord_SkipsRecordWithoutValidDatapoints(t *testing.T) {
+func TestMetricsBuilder_AddRecord_SkipsRecordWithoutValidDatapoints(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
@@ -139,16 +141,16 @@ func TestMetricsBuilder_UnmarshalRecord_SkipsRecordWithoutValidDatapoints(t *tes
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := newMetricsBuilder(zap.NewNop())
-			b.unmarshalRecord([]byte(tt.input))
+			addJSONRecord(t, b, tt.input)
 			require.Equal(t, 0, b.build().ResourceMetrics().Len())
 		})
 	}
 }
 
-func TestMetricsBuilder_UnmarshalRecord_SkipsResourceWithOnlyEmptyRecord(t *testing.T) {
+func TestMetricsBuilder_AddRecord_SkipsResourceWithOnlyEmptyRecord(t *testing.T) {
 	b := newMetricsBuilder(zap.NewNop())
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"empty","datapoints":[]}`))
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"valid","datapoints":[{"timestamp":1673388760000,"value":42.0}]}`))
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"empty","datapoints":[]}`)
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"valid","datapoints":[{"timestamp":1673388760000,"value":42.0}]}`)
 
 	md := b.build()
 	require.Equal(t, 1, md.ResourceMetrics().Len())
@@ -158,11 +160,11 @@ func TestMetricsBuilder_UnmarshalRecord_SkipsResourceWithOnlyEmptyRecord(t *test
 	require.Equal(t, "valid", scopeMetrics.Metrics().At(0).Name())
 }
 
-func TestMetricsBuilder_UnmarshalRecord_SetsGaugeType(t *testing.T) {
+func TestMetricsBuilder_AddRecord_SetsGaugeType(t *testing.T) {
 	for _, unit := range []string{"", "percent", "bytes", "milliseconds", "sum", "count", "Sum", "COUNT"} {
 		t.Run(unit, func(t *testing.T) {
 			b := newMetricsBuilder(zap.NewNop())
-			b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"` + unit + `"},"datapoints":[{"timestamp":1673388760000,"value":42.0}]}`))
+			addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"`+unit+`"},"datapoints":[{"timestamp":1673388760000,"value":42.0}]}`)
 
 			md := b.build()
 			require.Equal(t, 1, md.ResourceMetrics().Len())
@@ -175,10 +177,10 @@ func TestMetricsBuilder_UnmarshalRecord_SetsGaugeType(t *testing.T) {
 	}
 }
 
-func TestMetricsBuilder_UnmarshalRecord_MergesSameMetricIdentity(t *testing.T) {
+func TestMetricsBuilder_AddRecord_MergesSameMetricIdentity(t *testing.T) {
 	b := newMetricsBuilder(zap.NewNop())
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"successRate","dimensions":{"appName":"myAppA"},"metadata":{"unit":"percent","displayName":"Success rate"},"datapoints":[{"timestamp":1673388760000,"value":83.0}]}`))
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"successRate","dimensions":{"appName":"myAppB"},"metadata":{"unit":"percent","displayName":"Application success rate"},"datapoints":[{"timestamp":1673388761000,"value":90.0}]}`))
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"successRate","dimensions":{"appName":"myAppA"},"metadata":{"unit":"percent","displayName":"Success rate"},"datapoints":[{"timestamp":1673388760000,"value":83.0}]}`)
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"successRate","dimensions":{"appName":"myAppB"},"metadata":{"unit":"percent","displayName":"Application success rate"},"datapoints":[{"timestamp":1673388761000,"value":90.0}]}`)
 
 	md := b.build()
 	require.Equal(t, 1, md.ResourceMetrics().Len())
@@ -204,8 +206,8 @@ func TestMetricsBuilder_Build_SortsDatapointsByTimestampAscending(t *testing.T) 
 	b := newMetricsBuilder(zap.NewNop())
 	// Datapoints are out of order both within a single record and across
 	// separate records merged into the same metric.
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"ms"},"datapoints":[{"timestamp":1673388762000,"value":3.0},{"timestamp":1673388760000,"value":1.0}]}`))
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"ms"},"datapoints":[{"timestamp":1673388761000,"value":2.0}]}`))
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"ms"},"datapoints":[{"timestamp":1673388762000,"value":3.0},{"timestamp":1673388760000,"value":1.0}]}`)
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"ms"},"datapoints":[{"timestamp":1673388761000,"value":2.0}]}`)
 
 	md := b.build()
 	require.Equal(t, 1, md.ResourceMetrics().Len())
@@ -222,10 +224,10 @@ func TestMetricsBuilder_Build_SortsDatapointsByTimestampAscending(t *testing.T) 
 	require.InDelta(t, 3.0, dps.At(2).DoubleValue(), .001)
 }
 
-func TestMetricsBuilder_UnmarshalRecord_DoesNotMergeConflictingUnits(t *testing.T) {
+func TestMetricsBuilder_AddRecord_DoesNotMergeConflictingUnits(t *testing.T) {
 	b := newMetricsBuilder(zap.NewNop())
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"ms"},"datapoints":[{"timestamp":1673388760000,"value":42.0}]}`))
-	b.unmarshalRecord([]byte(`{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"s"},"datapoints":[{"timestamp":1673388761000,"value":0.04}]}`))
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"ms"},"datapoints":[{"timestamp":1673388760000,"value":42.0}]}`)
+	addJSONRecord(t, b, `{"namespace":"ns","compartmentId":"c1","resourceGroup":"rg","name":"latency","metadata":{"unit":"s"},"datapoints":[{"timestamp":1673388761000,"value":0.04}]}`)
 
 	md := b.build()
 	require.Equal(t, 1, md.ResourceMetrics().Len())

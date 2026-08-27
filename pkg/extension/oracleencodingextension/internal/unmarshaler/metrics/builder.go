@@ -15,11 +15,9 @@
 package metrics // import "github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension/internal/unmarshaler/metrics"
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
-	"github.com/goccy/go-json"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
@@ -28,7 +26,7 @@ import (
 )
 
 // metricsBuilder accumulates OCI metric records into pmetric.Metrics,
-// grouping and merging them as records are added via unmarshalRecord.
+// grouping and merging them as records are added via addRecord.
 type metricsBuilder struct {
 	logger *zap.Logger
 
@@ -44,17 +42,12 @@ func newMetricsBuilder(logger *zap.Logger) *metricsBuilder {
 	}
 }
 
-// unmarshalRecord parses a single JSON OCI metric record and merges
-// it into the builder's accumulated state. Records sharing the same
-// compartment, namespace, resource group and resource ID are grouped into a
-// single ResourceMetrics. Within a ResourceMetrics, records sharing the same
-// metric name and unit are merged into a single Metric.
-func (b *metricsBuilder) unmarshalRecord(jsonRecord []byte) {
-	var rec ociMetricRecord
-	if err := json.NewDecoder(bytes.NewBuffer(jsonRecord)).Decode(&rec); err != nil {
-		b.logger.Warn("Skipping invalid OCI metric record", zap.Error(fmt.Errorf("json unmarshal: %w", err)))
-		return
-	}
+// addRecord merges a single OCI metric record into the builder's accumulated
+// state. Records sharing the same compartment, namespace, resource group and
+// resource ID are grouped into a single ResourceMetrics. Within a
+// ResourceMetrics, records sharing the same metric name and unit are merged
+// into a single Metric.
+func (b *metricsBuilder) addRecord(rec ociMetricRecord) {
 	if err := rec.Validate(); err != nil {
 		b.logger.Warn("Skipping invalid OCI metric record", zap.Error(fmt.Errorf("record validation: %w", err)))
 		return

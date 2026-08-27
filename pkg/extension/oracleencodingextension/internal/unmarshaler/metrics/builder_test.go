@@ -24,48 +24,39 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestMetricsBuilder_GetValidRecord(t *testing.T) {
-	b := newMetricsBuilder(zap.NewNop())
-
+func TestOCIMetricRecord_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
-		input   string
+		record  ociMetricRecord
 		wantErr string
 	}{
 		{
-			name:    "invalid JSON",
-			input:   `not json`,
-			wantErr: "JSON unmarshal failed for OCI metric record",
-		},
-		{
 			name:    "missing name",
-			input:   `{"namespace":"ns","compartmentId":"c1"}`,
+			record:  ociMetricRecord{Namespace: "ns", CompartmentID: "c1"},
 			wantErr: "no name set on OCI metric record",
 		},
 		{
 			name:    "missing compartmentId",
-			input:   `{"namespace":"ns","name":"m"}`,
+			record:  ociMetricRecord{Namespace: "ns", Name: "m"},
 			wantErr: "no compartmentId set on OCI metric record",
 		},
 		{
 			name:    "missing namespace",
-			input:   `{"compartmentId":"c1","name":"m"}`,
+			record:  ociMetricRecord{CompartmentID: "c1", Name: "m"},
 			wantErr: "no namespace set on OCI metric record",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rec, err := b.getValidRecord([]byte(tt.input))
-			require.Nil(t, rec)
-			require.ErrorContains(t, err, tt.wantErr)
+			require.ErrorContains(t, tt.record.Validate(), tt.wantErr)
 		})
 	}
 
-	rec, err := b.getValidRecord([]byte(`{"namespace":"ns","compartmentId":"c1","name":"m"}`))
-	require.NoError(t, err)
-	require.Equal(t, "ns", rec.Namespace)
-	require.Equal(t, "c1", rec.CompartmentID)
-	require.Equal(t, "m", rec.Name)
+	require.NoError(t, (ociMetricRecord{
+		Namespace:     "ns",
+		CompartmentID: "c1",
+		Name:          "m",
+	}).Validate())
 }
 
 func TestMetricsBuilder_GetDatapoints_SkipsZeroTimestamp(t *testing.T) {
@@ -122,6 +113,12 @@ func TestMetricsBuilder_GetDatapoints_LogsInvalidDimensionValue(t *testing.T) {
 func TestMetricsBuilder_UnmarshalRecord_SkipsInvalidRecord(t *testing.T) {
 	b := newMetricsBuilder(zap.NewNop())
 	b.unmarshalRecord([]byte(`not json`))
+	require.Equal(t, 0, b.build().ResourceMetrics().Len())
+}
+
+func TestMetricsBuilder_UnmarshalRecord_SkipsMalformedJSON(t *testing.T) {
+	b := newMetricsBuilder(zap.NewNop())
+	b.unmarshalRecord([]byte(`not-a-json`))
 	require.Equal(t, 0, b.build().ResourceMetrics().Len())
 }
 

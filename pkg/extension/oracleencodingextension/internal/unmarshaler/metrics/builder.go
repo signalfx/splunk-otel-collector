@@ -15,6 +15,7 @@
 package metrics // import "github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension/internal/unmarshaler/metrics"
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -49,13 +50,17 @@ func newMetricsBuilder(logger *zap.Logger) *metricsBuilder {
 // single ResourceMetrics. Within a ResourceMetrics, records sharing the same
 // metric name and unit are merged into a single Metric.
 func (b *metricsBuilder) unmarshalRecord(jsonRecord []byte) {
-	rec, err := b.getValidRecord(jsonRecord)
-	if err != nil {
-		b.logger.Warn("Skipping invalid OCI metric record", zap.Error(err))
+	var rec ociMetricRecord
+	if err := json.NewDecoder(bytes.NewBuffer(jsonRecord)).Decode(&rec); err != nil {
+		b.logger.Warn("Skipping invalid OCI metric record", zap.Error(fmt.Errorf("json unmarshal: %w", err)))
+		return
+	}
+	if err := rec.Validate(); err != nil {
+		b.logger.Warn("Skipping invalid OCI metric record", zap.Error(fmt.Errorf("record validation: %w", err)))
 		return
 	}
 
-	dataPoints := b.getDatapoints(rec)
+	dataPoints := b.getDatapoints(&rec)
 
 	if dataPoints.Len() == 0 {
 		b.logger.Warn("Skipping OCI metric record without valid datapoints",
@@ -76,7 +81,7 @@ func (b *metricsBuilder) unmarshalRecord(jsonRecord []byte) {
 	rm, found := b.allResourceMetrics[resourceKey]
 	if !found {
 		rm = pmetric.NewResourceMetrics()
-		for k, v := range resourceAttributes(*rec, resourceID) {
+		for k, v := range resourceAttributes(rec, resourceID) {
 			rm.Resource().Attributes().PutStr(k, v)
 		}
 		rm.ScopeMetrics().AppendEmpty().Scope().SetName(metadata.ScopeName)
@@ -139,34 +144,29 @@ func (b *metricsBuilder) build() pmetric.Metrics {
 	return md
 }
 
-func (b *metricsBuilder) getValidRecord(jsonRecord []byte) (*ociMetricRecord, error) {
-	var rec ociMetricRecord
-	if err := json.Unmarshal(jsonRecord, &rec); err != nil {
-		return nil, fmt.Errorf("JSON unmarshal failed for OCI metric record: %w", err)
-	}
-
+func (rec ociMetricRecord) Validate() error {
 	if rec.Name == "" {
-		return nil, fmt.Errorf(
+		return fmt.Errorf(
 			"no name set on OCI metric record (namespace=%q, compartmentId=%q)",
 			rec.Namespace, rec.CompartmentID,
 		)
 	}
 
 	if rec.CompartmentID == "" {
-		return nil, fmt.Errorf(
+		return fmt.Errorf(
 			"no compartmentId set on OCI metric record (namespace=%q, name=%q)",
 			rec.Namespace, rec.Name,
 		)
 	}
 
 	if rec.Namespace == "" {
-		return nil, fmt.Errorf(
+		return fmt.Errorf(
 			"no namespace set on OCI metric record (compartmentId=%q, name=%q)",
 			rec.CompartmentID, rec.Name,
 		)
 	}
 
-	return &rec, nil
+	return nil
 }
 
 func (b *metricsBuilder) getDatapoints(rec *ociMetricRecord) pmetric.NumberDataPointSlice {

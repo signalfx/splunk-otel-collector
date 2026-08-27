@@ -1,5 +1,9 @@
 # Configuration file that uses the OTLP exporters to push data to Splunk products.
 # Currently supports only tracing.
+#
+# Deprecated: This config file will be removed in a future release. Migrate to
+# /etc/otel/collector/agent_config.yaml. Set SPLUNK_LISTEN_INTERFACE=0.0.0.0
+# when migrating if receivers need to listen outside the container.
 
 receivers:
   jaeger:

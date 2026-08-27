@@ -97,7 +97,7 @@ Discovery mode will:
 [Discovery Receiver](../../receiver/discoveryreceiver/README.md) instance to receive discovery events from all
 successfully started observers.
 1. Wait 10s or the configured `SPLUNK_DISCOVERY_DURATION` environment variable [`time.Duration`](https://pkg.go.dev/time#ParseDuration).
-1. Embed any receiver instances' configs resulting in a `discovery.status` of `successful` inside a `receiver_creator/discovery` receiver's configuration to be passed to the final Collector service config in a new or existing `service::pipelines::metrics::receivers` sequence (or outputted w/ `--dry-run`). Any required observers will be added to `service::extensions`.
+1. Embed any receiver instances' configs resulting in a `discovery.status` of `successful` inside a `receiver_creator/discovery` receiver's configuration to be passed to applicable existing `service::pipelines::metrics` and `service::pipelines::logs/entities` pipelines in the final Collector service config (or outputted w/ `--dry-run`). Discovery mode does not create a missing pipeline or select an exporter. When neither pipeline exists, discovered receivers and required observers are not activated in the Collector service.
 1. Log any receiver resulting in a `discovery.status` of `partial` with the configured guidance for setting any relevant discovery properties.
 1. Stop all temporary components before continuing on to the actual Collector service (or exiting early with `--dry-run`).
 
@@ -181,8 +181,9 @@ splunk.discovery.receivers.<receiver-type(/name)>.enabled: <true or false>
 splunk.discovery.extensions.<observer-type(/name)>.enabled: <true or false>
 
 # Examples
-splunk.discovery.receivers.prometheus_simple.config.labels::my_label: my_label_value
-splunk.discovery.receivers.prometheus_simple.enabled: true
+splunk.discovery.receivers.oracledb.enabled: true
+splunk.discovery.receivers.oracledb.config.service: service_name
+splunk.discovery.receivers.oracledb.config.top_query_collection::max_query_sample_count: 1000
 
 splunk.discovery.extensions.docker_observer.config.endpoint: tcp://localhost:8080
 splunk.discovery.extensions.k8s_observer.enabled: false
@@ -197,8 +198,8 @@ variables:
 
 ```yaml
 # --set form will take priority to mapped values
-splunk.discovery.receivers.prometheus_simple.config.labels::my_label: my_label_value
-splunk.discovery.receivers.prometheus_simple.enabled: true
+splunk.discovery.receivers.oracledb.enabled: true
+splunk.discovery.receivers.oracledb.config.service: service_name
 
 # mapped property form
 splunk.discovery:
@@ -208,7 +209,7 @@ splunk.discovery:
       config:
         endpoint: tcp://localhost:54321
   receivers:
-    prometheus_simple:
+    oracledb:
       enabled: false # will be overwritten by above --set form (discovery is attempted for the receiver)
 ```
 
@@ -222,8 +223,9 @@ SPLUNK_DISCOVERY_RECEIVERS_receiver_x2d_type_x2f_receiver_x2d_name_ENABLED=<true
 SPLUNK_DISCOVERY_EXTENSIONS_observer_x2d_type_x2f_observer_x2d_name_ENABLED=<true or false>
 
 # Examples
-SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_my_label="my_username"
-SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_ENABLED=true
+SPLUNK_DISCOVERY_RECEIVERS_oracledb_ENABLED=true
+SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="service_name"
+SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_top_query_collection_x3a__x3a_max_query_sample_count=1000
 
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint="tcp://localhost:8080"
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false

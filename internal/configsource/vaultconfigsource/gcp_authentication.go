@@ -16,11 +16,7 @@
 package vaultconfigsource
 
 import (
-	"fmt"
 	"time"
-
-	gcpauth "github.com/hashicorp/vault-plugin-auth-gcp/plugin"
-	"github.com/hashicorp/vault/api"
 )
 
 // GCPAuthentication holds the authentication options for GCP. The options
@@ -47,34 +43,4 @@ type GCPAuthentication struct {
 	// Project for the service account who will be authenticating to Vault.
 	// Defaults to the credential's "project_id" (if credentials are specified)."
 	Project *string `mapstructure:"project"`
-}
-
-func (gcp *GCPAuthentication) Token(client *api.Client) (string, error) {
-	data := map[string]string{}
-
-	if gcp.Mount != nil {
-		data["mount"] = *gcp.Mount
-	}
-	if gcp.Role != nil {
-		data["role"] = *gcp.Role
-	}
-	if gcp.Credentials != nil {
-		data["credentials"] = *gcp.Credentials
-	}
-	if gcp.JWTExpiration != nil {
-		data["jwt_exp"] = fmt.Sprintf("%d", *gcp.JWTExpiration)
-	}
-	if gcp.ServiceAccount != nil {
-		data["service_account"] = *gcp.ServiceAccount
-	}
-	if gcp.Project != nil {
-		data["project"] = *gcp.Project
-	}
-
-	h := gcpauth.CLIHandler{}
-	secret, err := h.Auth(client, data)
-	if err != nil {
-		return "", err
-	}
-	return secret.Auth.ClientToken, nil
 }

@@ -1,7 +1,0 @@
-# Ignore built or downloaded assets
-assets/windows_x86_64/bin/*.exe
-assets/windows_x86_64/bin/*.psm1
-assets/windows_x86_64/bin/*.zip
-
-# Ignore the directory with the compressed package to be distributed
-out/

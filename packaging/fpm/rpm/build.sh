@@ -31,6 +31,8 @@ VERSION="${VERSION/'-'/'_'}"
 VERSION="${VERSION#v}"
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
+otelcollauncher_path="$REPO_DIR/bin/otelcollauncher_linux_${ARCH}"
+opampsupervisor_path="$REPO_DIR/bin/opampsupervisor_linux_${ARCH}"
 
 buildroot="$(mktemp -d)"
 
@@ -40,7 +42,7 @@ elif [[ "$ARCH" = "amd64" ]]; then
     ARCH="x86_64"
 fi
 
-setup_files_and_permissions "$otelcol_path" "$buildroot"
+setup_files_and_permissions "$otelcol_path" "$otelcollauncher_path" "$opampsupervisor_path" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 

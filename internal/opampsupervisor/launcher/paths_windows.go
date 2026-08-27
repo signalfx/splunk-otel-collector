@@ -43,6 +43,7 @@ func DefaultPaths() Paths {
 		GeneratedCollectorConfigDir: stateDir,
 		StorageDirectory:            stateDir,
 		DefaultAgentConfig:          defaultAgentConfig,
+		BootstrapTimeout:            "15s",
 		ConfigApplyTimeout:          "2m",
 		UseHUPConfigReload:          false,
 	}

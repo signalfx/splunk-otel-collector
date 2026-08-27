@@ -1,5 +1,5 @@
 # One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
-change_type: enhancement
+change_type: breaking
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
 component: config
@@ -19,3 +19,4 @@ subtext: |
   - Change `bash_history` sourcetype from `linux:bash_history` to `bash_history` to match TA `inputs.conf`
   - Exclude vim swap files (`*.swp`, `*.swx`) from `file_log/varlog` to prevent binary file ingestion
   - Add sourcetype mappings from Splunk default `props.conf` FILE MATCH CONDITIONS (e.g. `anaconda`, `apache_error`, `cups_access`, `cups_error`, `dmesg`, `ftp`, `linux_audit`, `linux_bootlog`, `linux_secure`, `osx_*`, `rpmpkgs`, `sar`, `spooler`, `ssl_error`, `syslog`, `wtmp`, `mysqld`, `stash`)
+  - Note: this is not a direct replacement for the Splunk Add-on for Unix and Linux; content-based detection, scripted inputs, and additional field extractions from the TA are not implemented

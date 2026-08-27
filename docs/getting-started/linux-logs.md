@@ -141,14 +141,14 @@ After the filename fallback, the `transform/nix_sourcetype` processor overrides 
 
 Path patterns support log-rotation suffixes (e.g. `secure.1`, `secure.2`). For the full list of mappings, see the `transform/nix_sourcetype` processor in the [default configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/splunk_logs_config_linux.yaml).
 
-> **Note:** Splunk's content-based sourcetype detection (`delayedrule`, which classifies files by matching >80% of lines against a pattern) is not implemented. Mapping of `/var/log/auth.log` to `syslog` is an implemented exception. Files not matched by any path rule retain their filename-stem sourcetype. 
+> **Note:** This is not a direct replacement for the Splunk Add-on for Unix and Linux. Path-based sourcetype mappings cover the most common cases, but content-based detection, scripted inputs, and additional field extractions from the TA are not implemented. Validate sourcetype assignments if migrating from the TA.
 
 ## Verify log ingestion
 
 To see all sourcetypes currently being ingested:
 
 ```
-index="<your-index>" sourcetype="linux:*" | stats count by sourcetype
+index="<your-index>" | stats count by sourcetype
 ```
 
 To search for a specific well-known sourcetype:

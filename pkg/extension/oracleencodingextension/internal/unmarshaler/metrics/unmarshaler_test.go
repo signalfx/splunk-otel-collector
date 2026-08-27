@@ -81,7 +81,7 @@ func TestUnmarshalMetrics(t *testing.T) {
 	rg, ok := firstRM.Resource().Attributes().Get(oracleCloudResourceGroupKey)
 	require.True(t, ok)
 	require.Equal(t, "myFirstResourceGroup", rg.AsString())
-	realm, ok := firstRM.Resource().Attributes().Get(oracleCloudRealmKey)
+	realm, ok := firstRM.Resource().Attributes().Get(string(conventions.OracleCloudRealmKey))
 	require.True(t, ok)
 	require.Equal(t, "oc1", realm.AsString())
 

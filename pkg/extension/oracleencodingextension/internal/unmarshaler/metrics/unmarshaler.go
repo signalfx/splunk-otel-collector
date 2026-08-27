@@ -28,17 +28,12 @@ import (
 	"go.uber.org/zap"
 )
 
-// oracleCloudNamespaceKey and oracleCloudResourceGroupKey are not yet part of
-// the OTel semantic conventions oracle_cloud.* registry, so they are defined here
+// oracleCloudCompartmentIDKey, oracleCloudNamespaceKey and oracleCloudResourceGroupKey are not
+// yet part of the OTel semantic conventions oracle_cloud.* registry, so they are defined here
 const (
 	oracleCloudCompartmentIDKey = "oracle_cloud.compartment_id"
 	oracleCloudNamespaceKey     = "oracle_cloud.namespace"
 	oracleCloudResourceGroupKey = "oracle_cloud.resource_group"
-
-	// oracleCloudRealmKey is the OTel semantic convention key for the OCI
-	// realm the resource's tenancy belongs to (e.g. "oc1", "oc2").
-	// See https://opentelemetry.io/docs/specs/semconv/registry/attributes/oracle-cloud/
-	oracleCloudRealmKey = "oracle_cloud.realm"
 
 	// dimensionResourceID is the OCI Monitoring dimension holding the OCID of
 	// the resource emitting the metric. It is additionally promoted to the
@@ -150,7 +145,7 @@ func resourceAttributes(rec ociMetricRecord, resourceID string) map[string]strin
 		attrs[oracleCloudResourceGroupKey] = rec.ResourceGroup
 	}
 	if realm := extractRealm(rec.CompartmentID); realm != "" {
-		attrs[oracleCloudRealmKey] = realm
+		attrs[string(conventions.OracleCloudRealmKey)] = realm
 	}
 	return attrs
 }

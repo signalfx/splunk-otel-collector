@@ -16,7 +16,6 @@ package diskqueuestorageextension
 
 import (
 	"bytes"
-	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -27,8 +26,9 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension/internal/compression"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension/internal/compression"
 )
 
 var bufPool = sync.Pool{
@@ -37,11 +37,7 @@ var bufPool = sync.Pool{
 	},
 }
 
-var gzipWriterPool = sync.Pool{
-	New: func() any {
-		return gzip.NewWriter(io.Discard)
-	},
-}
+var gzipWriterPool = compression.NewGZIPWriterPool()
 
 var gzipReaderPool = compression.NewGZIPReaderPool()
 
@@ -134,18 +130,10 @@ func (d *diskQueue) put(data []byte) error {
 	if d.exitFlag.Load() {
 		return errors.New("exiting")
 	}
-
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	defer bufPool.Put(buf)
-	zw := gzipWriterPool.Get().(*gzip.Writer)
-	zw.Reset(buf)
-	defer gzipWriterPool.Put(zw)
-	if _, err := zw.Write(data); err != nil {
-		_ = zw.Close()
-		return err
-	}
-	if err := zw.Close(); err != nil {
+	if _, err := gzipWriterPool.Write(buf, data); err != nil {
 		return err
 	}
 	d.writeChan <- buf.Bytes()

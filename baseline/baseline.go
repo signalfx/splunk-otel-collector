@@ -15,9 +15,9 @@
 // Package baseline is the shared, upstream-only component set that every Splunk
 // OTel Collector flavor layers on top of.
 //
-// The component set lives in components.go. It is hand-maintained for now;
-// a follow-up adds an OpenTelemetry Collector Builder manifest and generator
-// that produce that file, after which it should not be edited by hand.
+// The component set is defined by builder-config.yaml (an OpenTelemetry
+// Collector Builder manifest) and generated into components.go by
+// `go generate ./...`. Edit the manifest, not the generated Go.
 //
 // A flavor composes its component set by starting from NewBaseline, adding its
 // own factories through the Add* methods, and calling Build:

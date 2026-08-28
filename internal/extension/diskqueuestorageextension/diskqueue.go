@@ -514,7 +514,8 @@ func (d *diskQueue) ioLoop() {
 			lastSegment := *d.lastSegment
 			d.metadataLock.RUnlock()
 			var msg message
-			if !(d.peekMetadata.PeekFileNum < lastSegment.FileNum || (d.peekMetadata.PeekFileNum == lastSegment.FileNum && d.peekMetadata.PeekPos < lastSegment.Pos+lastSegment.MessageLen)) {
+			// if at tip
+			if d.peekMetadata.PeekPos >= lastSegment.Pos+lastSegment.MessageLen && d.peekMetadata.PeekFileNum == lastSegment.FileNum {
 				continue
 			}
 			if d.peekMetadata.PeekLen == 0 {

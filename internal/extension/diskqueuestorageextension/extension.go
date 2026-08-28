@@ -21,7 +21,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"sync/atomic"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -64,10 +63,8 @@ type client struct {
 	name                  string
 	path                  string
 	callbacks             []map[string]func()
-	callbackIndex         atomic.Int64
 	metadataWrites        int
 	metadataTruncateEvery int
-	callbackLock          sync.RWMutex
 	checkFirstGet         sync.Once
 }
 

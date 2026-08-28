@@ -203,17 +203,12 @@ func (d *diskQueue) peekData() ([]byte, error) {
 		d.logger.Debug("peekData() opened", zap.String("name", d.name), zap.String("filename", curFileName))
 	}
 
-	buf := bufPool.Get().(*bytes.Buffer)
-	buf.Reset()
-	buf.Grow(int(d.peekMetadata.PeekLen))
 	_, err = d.peekFile.Seek(d.peekMetadata.PeekPos, 0)
 	if err != nil {
 		_ = d.peekFile.Close()
 		d.peekFile = nil
 		return nil, err
 	}
-	_, err = buf.ReadFrom(d.peekFile)
-
 	readBuf := make([]byte, d.peekMetadata.PeekLen)
 	_, err = d.peekFile.ReadAt(readBuf, d.peekMetadata.PeekPos)
 	if err != nil {

@@ -1,6 +1,7 @@
 This folder contains the definition of various Docker images used in testing.
 
-Those images are stored under quay.io/splunko11ytest, with the image name matching the folder name.
+These images are built locally from their Dockerfiles. Integration CI builds the images for each test profile and does
+not use the published test images or a remote build cache.
 
 When testing locally,
 - Build and start individual service(s):
@@ -19,9 +20,5 @@ When testing locally,
 When adding/modifying service images, ensure the directory name under [docker](../docker) matches the image name in
 [docker-compose.yml](./docker-compose.yml).
 
-If you need to update an image, update the Dockerfile with a PR. After merge, push the image manually with:
-
-```
-cd docker/<image>
-docker buildx build --platform=linux/amd64 --push -t quay.io/splunko11ytest/<image>:latest .
-```
+If you need to update an image, update its Dockerfile with a PR. The image will be rebuilt by CI when the corresponding
+test profile runs.

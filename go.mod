@@ -9,6 +9,7 @@ require (
 	github.com/expr-lang/expr v1.17.8
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-zookeeper/zk v1.0.4
+	github.com/goccy/go-json v0.10.6
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
@@ -20,6 +21,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.159.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.159.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.159.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.159.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.159.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.159.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.159.0
@@ -49,12 +51,9 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.65.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.65.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.65.0
-	go.opentelemetry.io/collector/connector v0.159.0
-	go.opentelemetry.io/collector/connector/forwardconnector v0.159.0
 	go.opentelemetry.io/collector/consumer/consumererror v0.159.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.159.0
 	go.opentelemetry.io/collector/exporter v1.65.0
-	go.opentelemetry.io/collector/exporter/debugexporter v0.159.0
 	go.opentelemetry.io/collector/exporter/exportertest v0.159.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.159.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.159.0
@@ -211,7 +210,6 @@ require (
 	github.com/go-openapi/validate v0.25.2 // indirect
 	github.com/go-resty/resty/v2 v2.17.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
-	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
@@ -308,7 +306,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampcustommessages v0.159.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension v0.159.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.159.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.159.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.159.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.159.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/k8s v0.159.0 // indirect
@@ -503,10 +500,13 @@ require (
 	go.opentelemetry.io/collector/config/configtelemetry v0.159.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.65.0 // indirect
 	go.opentelemetry.io/collector/confmap/xconfmap v0.159.0 // indirect
+	go.opentelemetry.io/collector/connector v0.159.0 // indirect
 	go.opentelemetry.io/collector/connector/connectortest v0.159.0 // indirect
+	go.opentelemetry.io/collector/connector/forwardconnector v0.159.0 // indirect
 	go.opentelemetry.io/collector/connector/xconnector v0.159.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/xconsumererror v0.159.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.159.0 // indirect
+	go.opentelemetry.io/collector/exporter/debugexporter v0.159.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.159.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/xexporterhelper v0.159.0 // indirect
 	go.opentelemetry.io/collector/exporter/nopexporter v0.159.0 // indirect
@@ -743,7 +743,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
-	github.com/pierrec/lz4/v4 v4.1.28 // indirect
+	github.com/pierrec/lz4/v4 v4.1.28
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect

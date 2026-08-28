@@ -87,6 +87,7 @@ type diskQueue struct {
 	dataPath              string
 	name                  string
 	metadata              metadata
+	lastSegment           *segment
 	peekMetadata          peekMetadata
 	exitWG                sync.WaitGroup
 	maxBytesPerFile       int64
@@ -130,6 +131,7 @@ func newQueue(name, dataPath string, maxBytesPerFile int64,
 	if err != nil && !os.IsNotExist(err) {
 		d.logger.Error(" failed to retrievePeekMetaData", zap.String("name", d.name), zap.Error(err))
 	}
+	d.lastSegment = d.computeLastSegment()
 	d.exitWG.Go(d.writeLoop)
 	d.exitWG.Go(d.ioLoop)
 	return &d
@@ -220,9 +222,7 @@ func (d *diskQueue) peekData() ([]byte, error) {
 	return readBuf, nil
 }
 
-func (d *diskQueue) lastSegment() *segment {
-	d.metadataLock.RLock()
-	defer d.metadataLock.RUnlock()
+func (d *diskQueue) computeLastSegment() *segment {
 	if len(d.metadata.Segments) == 0 {
 		return &segment{
 			FileNum:    0,
@@ -238,7 +238,7 @@ func (d *diskQueue) write(data []byte) error {
 	dataLen := int64(len(data))
 	totalBytes := dataLen
 
-	lastSegment := d.lastSegment()
+	lastSegment := d.lastSegment
 	writeFileNum := lastSegment.FileNum
 	writePos := lastSegment.Pos + lastSegment.MessageLen
 
@@ -296,6 +296,7 @@ func (d *diskQueue) write(data []byte) error {
 		Consumed:   false,
 	}
 	d.metadata.Segments = append(d.metadata.Segments, newSegment)
+	d.lastSegment = newSegment
 
 	return err
 }
@@ -509,7 +510,9 @@ func (d *diskQueue) ioLoop() {
 	for {
 		select {
 		case <-d.peekRequestChan:
-			lastSegment := d.lastSegment()
+			d.metadataLock.RLock()
+			lastSegment := *d.lastSegment
+			d.metadataLock.RUnlock()
 			var msg message
 			if !(d.peekMetadata.PeekFileNum < lastSegment.FileNum || (d.peekMetadata.PeekFileNum == lastSegment.FileNum && d.peekMetadata.PeekPos < lastSegment.Pos+lastSegment.MessageLen)) {
 				continue

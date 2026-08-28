@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -38,6 +39,8 @@ const (
 	legacyCurrentlyDispatchedItemsKey = "di"
 
 	separator = "\n\n"
+
+	callbacksSize = 10000
 )
 
 var _ storage.Extension = (*diskQueueStorageExtension)(nil)
@@ -57,7 +60,9 @@ type diskQueueStorageExtension struct {
 type client struct {
 	queue                 *diskQueue
 	logger                *zap.Logger
-	callbacks             map[string]func()
+	callbacks             []map[string]func()
+	callbackIndex         atomic.Int64
+	callbackLock          sync.RWMutex
 	metadataFile          *os.File
 	name                  string
 	path                  string
@@ -89,7 +94,19 @@ func (c *client) Get(_ context.Context, key string) ([]byte, error) {
 	default:
 		message := <-c.queue.peek()
 		// register callback for consumption
-		c.callbacks[key] = message.consumeCallback
+
+		var localCallbackMap map[string]func()
+		for _, callbackMap := range c.callbacks {
+			if len(callbackMap) < callbacksSize {
+				localCallbackMap = callbackMap
+				break
+			}
+		}
+		if localCallbackMap == nil {
+			localCallbackMap = make(map[string]func(), callbacksSize)
+			c.callbacks = append(c.callbacks, localCallbackMap)
+		}
+		localCallbackMap[key] = message.consumeCallback
 		return message.payload, nil
 	}
 }
@@ -110,13 +127,20 @@ func (c *client) Delete(_ context.Context, key string) error {
 	case metadataKey, legacyCurrentlyDispatchedItemsKey, legacyReadIndexKey, legacyWriteIndexKey:
 		return nil
 	default:
-		if callback, ok := c.callbacks[key]; ok {
-			callback()
-			delete(c.callbacks, key)
-		} else {
-			c.logger.Error("Cannot find consumption callback", zap.String("key", key))
+		callbackLen := len(c.callbacks)
+		for i := callbackLen - 1; i >= 0; i-- {
+			cbMap := c.callbacks[i]
+			if callback, ok := cbMap[key]; ok {
+				callback()
+				delete(cbMap, key)
+				if len(cbMap) == 0 && i != callbackLen-1 {
+					c.callbacks[i] = make(map[string]func(), callbacksSize)
+				}
+				return nil
+			}
 		}
-		return nil
+
+		return errors.New("cannot delete " + key)
 	}
 }
 
@@ -150,11 +174,13 @@ func (c *client) Close(_ context.Context) error {
 
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {
 	return &client{
-		path:                  d.config.Path,
-		name:                  storageName,
-		queue:                 newQueue(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
-		logger:                d.settings.Logger,
-		callbacks:             make(map[string]func(), 10),
+		path:   d.config.Path,
+		name:   storageName,
+		queue:  newQueue(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
+		logger: d.settings.Logger,
+		callbacks: []map[string]func(){
+			make(map[string]func(), callbacksSize),
+		},
 		metadataTruncateEvery: 1000,
 	}, nil
 }

@@ -223,6 +223,39 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  # The processors below assume the Windows Event Log body is structured JSON (raw: false). They can target nested fields such as "event_data.ProcessId".
+  # windows_event_log receives currently are configured to use XML format (raw: true). XML can also be redacted, but field-level targeting is more limited and generally requires XML-aware parsing or regex-based masking.
+
+  # Use below example of redaction processor to mask sensitive data.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/redactionprocessor/README.md
+  #  redaction/windows_sensitive_logs:
+  #    allow_all_keys: true
+  #    summary: silent
+  #    blocked_key_patterns:
+  #      - "guid"
+  #      - "culture"
+
+  # Transform processor can be used for more complex searches like matching nested values only under specific keys
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor
+  # transform/mask_windows_fields:
+  #   error_mode: ignore
+  #    log_statements:
+  #      - context: log
+  #        statements:
+  #          - set(body["event_data"]["ProcessId"], "****") where body["event_data"]["ProcessId"] != nil
+  #          - set(body["rendering_info"]["culture"], "****") where body["rendering_info"]["culture"] != nil
+
+
+
+  transform/mask_windows_fields:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - set(body["event_data"]["ProcessId"], "****") where body["event_data"]["ProcessId"] != nil
+          - set(body["rendering_info"]["culture"], "****") where body["rendering_info"]["culture"] != nil
+
+
   # WinEventLog://Application -> sourcetype=XmlWinEventLog  source=WinEventLog:Application
   transform/application:
     log_statements:

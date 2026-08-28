@@ -19,13 +19,21 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strings"
 	"syscall"
 
+	"github.com/shirou/gopsutil/v4/process"
 	"go.opentelemetry.io/collector/otelcol"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 )
+
+const otelcolLauncherProcessName = "otelcollauncher.exe"
+
+// Function variable to facilitate testing
+var parentProcessNameFn = parentProcessName
 
 func run(params otelcol.CollectorSettings) error {
 	// There shouldn't be any reason to use NO_WINDOWS_SERVICE anymore, but,
@@ -52,6 +60,9 @@ func run(params otelcol.CollectorSettings) error {
 		if ok && errno == windows.ERROR_FAILED_SERVICE_CONTROLLER_CONNECT {
 			// Per https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatchera#return-value
 			// this means that the process is not running as a service, so run interactively.
+			if isParentProcessOtelcolLauncher() {
+				return runInteractiveWithWindowsEventLog(params)
+			}
 			return runInteractive(params)
 		}
 
@@ -59,4 +70,23 @@ func run(params otelcol.CollectorSettings) error {
 	}
 
 	return nil
+}
+
+// isParentProcessOtelcolLauncher reports whether the immediate parent is the launcher.
+// Lookup failures are treated as a non-match so startup can continue with default logging behavior.
+func isParentProcessOtelcolLauncher() bool {
+	parentName, err := parentProcessNameFn()
+	if err != nil {
+		log.Printf("ERROR unable to get parent process name: %v\n", err)
+		return false
+	}
+	return strings.EqualFold(parentName, otelcolLauncherProcessName)
+}
+
+func parentProcessName() (string, error) {
+	parentProc, err := process.NewProcess(int32(os.Getppid())) //nolint:gosec // disable G115
+	if err != nil {
+		return "", fmt.Errorf("unable to get parent process: %w", err)
+	}
+	return parentProc.Name()
 }

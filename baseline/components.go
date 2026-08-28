@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The baseline component set. Hand-maintained until a follow-up adds the
-// generator that produces this file from an ocb manifest.
+// Code generated from builder-config.yaml by "go generate"; DO NOT EDIT.
 
 package baseline
 

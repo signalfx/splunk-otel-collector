@@ -3,7 +3,7 @@ resourceMetrics:
       attributes:
         - key: container.image.name
           value:
-            stringValue: quay.io/splunko11ytest/mysql
+            stringValue: mysql
         - key: container.name
           value:
             stringValue: docker-mysql-1

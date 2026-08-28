@@ -17,7 +17,6 @@ package diskqueuestorageextension
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,18 +26,35 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/goccy/go-json"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension/internal/compression"
 	"go.uber.org/zap"
 )
 
+var bufPool = sync.Pool{
+	New: func() any {
+		return &bytes.Buffer{}
+	},
+}
+
+var gzipWriterPool = sync.Pool{
+	New: func() any {
+		return gzip.NewWriter(io.Discard)
+	},
+}
+
+var gzipReaderPool = compression.NewGZIPReaderPool()
+
 type message struct {
 	consumeCallback func()
-	payload         func() []byte
+	payload         []byte
 }
 
 type metadata struct {
 	Segments    []*segment
 	PeekFileNum int64
 	PeekPos     int64
+	PeekLen     int64
 }
 
 type segment struct {
@@ -77,7 +93,7 @@ type diskQueue struct {
 	metadataTruncateEvery int
 	metadataWrites        int
 	opCount               atomic.Int64
-	metadataLock          sync.Mutex
+	metadataLock          sync.RWMutex
 	exitFlag              atomic.Bool
 }
 
@@ -112,18 +128,6 @@ func newQueue(name, dataPath string, maxBytesPerFile int64,
 	d.exitWG.Go(d.callbackLoop)
 	d.exitWG.Go(d.ioLoop)
 	return &d
-}
-
-var bufPool = sync.Pool{
-	New: func() any {
-		return &bytes.Buffer{}
-	},
-}
-
-var gzipWriterPool = sync.Pool{
-	New: func() any {
-		return gzip.NewWriter(io.Discard)
-	},
 }
 
 func (d *diskQueue) put(data []byte) error {
@@ -193,7 +197,7 @@ func (d *diskQueue) peekData() ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		d.logger.Debug("peekOne() opened", zap.String("name", d.name), zap.String("filename", curFileName))
+		d.logger.Debug("peekData() opened", zap.String("name", d.name), zap.String("filename", curFileName))
 	}
 
 	var msgSize int64
@@ -216,6 +220,8 @@ func (d *diskQueue) peekData() ([]byte, error) {
 }
 
 func (d *diskQueue) lastSegment() *segment {
+	d.metadataLock.RLock()
+	defer d.metadataLock.RUnlock()
 	if len(d.metadata.Segments) == 0 {
 		return &segment{
 			FileNum:    0,
@@ -228,10 +234,6 @@ func (d *diskQueue) lastSegment() *segment {
 }
 
 func (d *diskQueue) write(data []byte) error {
-	d.metadataLock.Lock()
-	defer d.metadataLock.Unlock()
-	var err error
-
 	dataLen := int64(len(data))
 	totalBytes := dataLen
 
@@ -245,7 +247,7 @@ func (d *diskQueue) write(data []byte) error {
 		writePos = 0
 
 		// sync every time we start writing to a new file
-		err = d.sync()
+		err := d.sync()
 		if err != nil {
 			d.logger.Error(" failed to sync - %s", zap.String("name", d.name), zap.Error(err))
 		}
@@ -258,6 +260,7 @@ func (d *diskQueue) write(data []byte) error {
 
 	if d.writeFile == nil {
 		curFileName := d.fileName(writeFileNum)
+		var err error
 		d.writeFile, err = os.OpenFile(curFileName, os.O_RDWR|os.O_CREATE, 0o600)
 		if err != nil {
 			return err
@@ -276,19 +279,25 @@ func (d *diskQueue) write(data []byte) error {
 	}
 
 	// only write to the file once
-	_, err = d.writeFile.Write(data)
+	_, err := d.writeFile.Write(data)
 	if err != nil {
 		_ = d.writeFile.Close()
 		d.writeFile = nil
 		return err
 	}
 
-	d.metadata.Segments = append(d.metadata.Segments, &segment{
+	d.metadataLock.Lock()
+	defer d.metadataLock.Unlock()
+	newSegment := &segment{
 		FileNum:    writeFileNum,
 		Pos:        writePos,
 		MessageLen: totalBytes,
 		Consumed:   false,
-	})
+	}
+	d.metadata.Segments = append(d.metadata.Segments, newSegment)
+	if d.metadata.PeekFileNum == newSegment.FileNum && d.metadata.PeekPos == newSegment.Pos {
+		d.metadata.PeekLen = newSegment.MessageLen
+	}
 
 	return err
 }
@@ -349,6 +358,7 @@ func (d *diskQueue) peekForward() {
 		if !s.Consumed && (s.FileNum > d.metadata.PeekFileNum || (s.FileNum == d.metadata.PeekFileNum && s.Pos > d.metadata.PeekPos)) {
 			d.metadata.PeekFileNum = s.FileNum
 			d.metadata.PeekPos = s.Pos
+			d.metadata.PeekLen = s.MessageLen
 			return
 		}
 		lastSegment = s
@@ -357,12 +367,14 @@ func (d *diskQueue) peekForward() {
 	if lastSegment != nil {
 		d.metadata.PeekFileNum = lastSegment.FileNum
 		d.metadata.PeekPos = lastSegment.Pos + lastSegment.MessageLen
+		// set when we write the next segment
+		d.metadata.PeekLen = 0
 	}
 }
 
 func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 	d.metadataLock.Lock()
-	defer d.metadataLock.Unlock()
+
 	consumedFiles := make(map[int64]bool, len(d.metadata.Segments))
 	for _, s := range d.metadata.Segments {
 		// consume the segment
@@ -380,6 +392,15 @@ func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 		return
 	}
 
+	compactedSegments := make([]*segment, 0, len(d.metadata.Segments))
+	for _, s := range d.metadata.Segments {
+		if !consumedFiles[s.FileNum] {
+			compactedSegments = append(compactedSegments, s)
+		}
+	}
+	d.metadata.Segments = compactedSegments
+	d.metadataLock.Unlock()
+
 	for fileNum, consumed := range consumedFiles {
 		if consumed {
 			f := d.fileName(fileNum)
@@ -390,13 +411,6 @@ func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 		}
 	}
 
-	compactedSegments := make([]*segment, 0, len(d.metadata.Segments))
-	for _, s := range d.metadata.Segments {
-		if !consumedFiles[s.FileNum] {
-			compactedSegments = append(compactedSegments, s)
-		}
-	}
-	d.metadata.Segments = compactedSegments
 }
 
 func (d *diskQueue) writeLoop() {
@@ -447,53 +461,47 @@ func (d *diskQueue) ioLoop() {
 	for {
 		select {
 		case <-d.peekRequestChan:
-			d.metadataLock.Lock()
 			lastSegment := d.lastSegment()
+			d.metadataLock.RLock()
 			var msg message
-			if d.metadata.PeekFileNum < lastSegment.FileNum || (d.metadata.PeekFileNum == lastSegment.FileNum && d.metadata.PeekPos < lastSegment.Pos+lastSegment.MessageLen) {
-				peekDataRead, err := d.peekData()
-				messagePeekFileNum := d.metadata.PeekFileNum
-				messagePeekPos := d.metadata.PeekPos
-				d.metadataLock.Unlock()
-				if err != nil {
-					d.logger.Error(fmt.Sprintf("failed peeking at %d of %s", d.metadata.PeekPos, d.fileName(d.metadata.PeekFileNum)),
-						zap.String("name", d.name), zap.Error(err))
-					panic("foo")
-				} else {
-					msg = message{
-						payload: func() []byte {
-							r, err := gzip.NewReader(bytes.NewReader(peekDataRead))
-							if err != nil {
-								d.logger.Error("error creating reader", zap.Error(err))
-								return []byte{}
-							}
-							defer func() {
-								_ = r.Close()
-							}()
-							decompressed, err := io.ReadAll(r)
-							if err != nil {
-								d.logger.Error("error decompressing entry", zap.Error(err))
-							}
-							return decompressed
-						},
-						consumeCallback: func() {
-							d.callbackChan <- callback{
-								pos:     messagePeekPos,
-								len:     int64(len(peekDataRead)),
-								fileNum: messagePeekFileNum,
-							}
-						},
+			if !(d.metadata.PeekFileNum < lastSegment.FileNum || (d.metadata.PeekFileNum == lastSegment.FileNum && d.metadata.PeekPos < lastSegment.Pos+lastSegment.MessageLen)) {
+				d.metadataLock.RUnlock()
+				continue
+			}
+			peekData, err := d.peekData()
+			if err != nil {
+				d.logger.Error("error peeking", zap.Error(err))
+				continue
+			}
+			messageLen := int64(len(peekData))
+			messagePeekFileNum := d.metadata.PeekFileNum
+			messagePeekPos := d.metadata.PeekPos
+			d.metadataLock.RUnlock()
+
+			buf := bufPool.Get().(*bytes.Buffer)
+			buf.Reset()
+			_, err = gzipReaderPool.Read(buf, peekData)
+			if err != nil {
+				d.logger.Error("error decompressing entry", zap.Error(err))
+				continue
+			}
+			msg = message{
+				payload: buf.Bytes(),
+				consumeCallback: func() {
+					d.callbackChan <- callback{
+						pos:     messagePeekPos,
+						len:     messageLen,
+						fileNum: messagePeekFileNum,
 					}
-				}
-				select {
-				case d.peekChan <- msg:
-					d.peekForward()
-					d.opCount.Add(1)
-				case <-d.exitChan:
-					return
-				}
-			} else {
-				d.metadataLock.Unlock()
+					bufPool.Put(buf)
+				},
+			}
+			select {
+			case d.peekChan <- msg:
+				d.peekForward()
+				d.opCount.Add(1)
+			case <-d.exitChan:
+				return
 			}
 		case <-d.exitChan:
 			return
@@ -515,9 +523,9 @@ func (d *diskQueue) persistMetaData() error {
 	defer bufPool.Put(buf)
 	e := json.NewEncoder(buf)
 	buf.WriteString(separator)
-	d.metadataLock.Lock()
+	d.metadataLock.RLock()
 	err := e.Encode(d.metadata)
-	d.metadataLock.Unlock()
+	d.metadataLock.RUnlock()
 	if err != nil {
 		return err
 	}

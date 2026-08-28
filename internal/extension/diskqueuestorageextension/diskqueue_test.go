@@ -15,7 +15,7 @@
 package diskqueuestorageextension
 
 import (
-	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -51,9 +51,8 @@ func TestTwoPutsPeek(t *testing.T) {
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
 	msg := <-q.peek()
-	fmt.Println("fdfdsfd")
 	require.NoError(t, q.close())
-	require.Equal(t, "hello world", string(msg.payload()))
+	require.Equal(t, "hello world", string(msg.payload))
 }
 
 func TestThreePutsThreeConsumes(t *testing.T) {
@@ -62,12 +61,12 @@ func TestThreePutsThreeConsumes(t *testing.T) {
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
 	msg := <-q.peek()
-	require.Equal(t, "hello world", string(msg.payload()))
+	require.Equal(t, "hello world", string(msg.payload))
 	// do it again
 	msg = <-q.peek()
-	require.Equal(t, "hello world2", string(msg.payload()))
+	require.Equal(t, "hello world2", string(msg.payload))
 	msg = <-q.peek()
-	assert.Equal(t, "hello world3", string(msg.payload()))
+	assert.Equal(t, "hello world3", string(msg.payload))
 	msg.consumeCallback()
 	require.NoError(t, q.close())
 }
@@ -92,14 +91,14 @@ func TestMultipleWorkers(t *testing.T) {
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
 	msg := <-q.peek()
-	msg.consumeCallback()
-	require.Equal(t, "hello world", string(msg.payload()))
-	msg = <-q.peek()
-	require.Equal(t, "hello world2", string(msg.payload()))
+	require.Equal(t, "hello world", string(msg.payload))
 	msg.consumeCallback()
 	msg = <-q.peek()
+	require.Equal(t, "hello world2", string(msg.payload))
 	msg.consumeCallback()
-	require.Equal(t, "hello world3", string(msg.payload()))
+	msg = <-q.peek()
+	require.Equal(t, "hello world3", string(msg.payload))
+	msg.consumeCallback()
 	require.NoError(t, q.close())
 }
 
@@ -109,14 +108,32 @@ func TestMultipleWorkersOutOfOrder(t *testing.T) {
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
 	msg1 := <-q.peek()
+	m1 := slices.Clone(msg1.payload)
 	msg1.consumeCallback()
 	msg2 := <-q.peek()
+	m2 := slices.Clone(msg2.payload)
 	msg3 := <-q.peek()
+	m3 := slices.Clone(msg3.payload)
 	msg3.consumeCallback()
 	msg2.consumeCallback()
 	require.NoError(t, q.close())
 
-	assert.Equal(t, "hello world", string(msg1.payload()))
-	assert.Equal(t, "hello world2", string(msg2.payload()))
-	assert.Equal(t, "hello world3", string(msg3.payload()))
+	assert.Equal(t, "hello world", string(m1))
+	assert.Equal(t, "hello world2", string(m2))
+	assert.Equal(t, "hello world3", string(m3))
+}
+
+func TestStartStopRestart(t *testing.T) {
+	dir := t.TempDir()
+	q := newQueue("foo", dir, 10_000_000, 1, 1*time.Second, zap.NewNop())
+	require.NoError(t, q.put([]byte("hello world")))
+	require.NoError(t, q.put([]byte("hello world2")))
+	require.NoError(t, q.put([]byte("hello world3")))
+	msg1 := <-q.peek()
+	msg1.consumeCallback()
+	require.NoError(t, q.close())
+	q = newQueue("foo", dir, 10_000_000, 1, 1*time.Second, zap.NewNop())
+	msg2 := <-q.peek()
+	require.Equal(t, "hello world2", string(msg2.payload))
+	require.NoError(t, q.close())
 }

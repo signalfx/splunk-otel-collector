@@ -181,7 +181,7 @@ func (s *statefulLogSink) ConsumeLogs(ctx context.Context, logs plog.Logs) error
 }
 
 func BenchmarkExtensionAsPersistentQueueWithWorkers(b *testing.B) {
-	for _, extType := range []string{"diskqueue", "bbolt"} {
+	for _, extType := range []string{"diskqueue"} {
 		for _, traffic := range []string{"ok", "draining"} {
 			for _, volume := range []int{100, 200, 300, 400, 500, 1000, 5000, 10000} {
 				b.Run(fmt.Sprintf("bench-%s-%s-%d", extType, traffic, volume), func(b *testing.B) {

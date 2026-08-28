@@ -72,11 +72,11 @@ func TestReaderPoolErrors(t *testing.T) {
 	closeErr := errors.New("close failed")
 
 	tests := []struct {
-		name        string
-		reader      *testResetReadCloser
 		dst         io.Writer
-		expectedN   int64
+		reader      *testResetReadCloser
+		name        string
 		expectedErr []error
+		expectedN   int64
 	}{
 		{
 			name:        "reset failure",
@@ -182,11 +182,11 @@ func gzipData(tb testing.TB, data []byte) []byte {
 }
 
 type testResetReadCloser struct {
-	data       []byte
 	readErr    error
 	resetErr   error
 	closeErr   error
 	reader     io.Reader
+	data       []byte
 	closeCalls int
 }
 

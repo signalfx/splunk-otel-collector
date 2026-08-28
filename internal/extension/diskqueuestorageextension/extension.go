@@ -60,14 +60,14 @@ type diskQueueStorageExtension struct {
 type client struct {
 	queue                 *diskQueue
 	logger                *zap.Logger
-	callbacks             []map[string]func()
-	callbackIndex         atomic.Int64
-	callbackLock          sync.RWMutex
 	metadataFile          *os.File
 	name                  string
 	path                  string
+	callbacks             []map[string]func()
+	callbackIndex         atomic.Int64
 	metadataWrites        int
 	metadataTruncateEvery int
+	callbackLock          sync.RWMutex
 	checkFirstGet         sync.Once
 }
 

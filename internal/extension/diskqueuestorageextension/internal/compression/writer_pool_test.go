@@ -79,11 +79,11 @@ func TestWriterPoolErrors(t *testing.T) {
 	closeErr := errors.New("close failed")
 
 	tests := []struct {
-		name        string
-		writer      *testResetWriteCloser
 		src         io.Reader
-		expectedN   int64
+		writer      *testResetWriteCloser
+		name        string
 		expectedErr []error
+		expectedN   int64
 	}{
 		{
 			name:        "read and close failures",

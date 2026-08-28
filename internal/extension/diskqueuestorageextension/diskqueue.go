@@ -72,22 +72,22 @@ type callback struct {
 
 // diskQueue implements a filesystem backed FIFO queue
 type diskQueue struct {
-	callbackChan          chan callback
+	writeFile             *os.File
 	writeChan             chan []byte
 	exitChan              chan int
 	recomputePeekChan     chan struct{}
 	peekRequestChan       chan struct{}
 	logger                *zap.Logger
-	writeFile             *os.File
+	lastSegment           *segment
 	peekFile              *os.File
 	metadataFile          *os.File
 	peekMetadataFile      *os.File
 	peekChan              chan message
 	writeResponseChan     chan error
+	callbackChan          chan callback
 	dataPath              string
 	name                  string
 	metadata              metadata
-	lastSegment           *segment
 	peekMetadata          peekMetadata
 	exitWG                sync.WaitGroup
 	maxBytesPerFile       int64

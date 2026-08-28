@@ -30,7 +30,6 @@ func TestDefaultComponents(t *testing.T) {
 		"basicauth",
 		"bearertokenauth",
 		"config_source_telemetry",
-		"disk_queue_storage",
 		"docker_observer",
 		"ecs_observer",
 		"file_storage",

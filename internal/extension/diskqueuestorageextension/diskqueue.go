@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -442,43 +443,31 @@ func (d *diskQueue) peekForward() {
 
 func (d *diskQueue) moveForward(fileNum, pos, messageLen int64) {
 	d.metadataLock.Lock()
-
-	consumedFiles := make(map[int64]bool, len(d.metadata.Segments))
-	for _, s := range d.metadata.Segments {
-		// consume the segment
-		if s.FileNum != d.peekMetadata.PeekFileNum && s.FileNum == fileNum && s.Pos == pos && s.MessageLen == messageLen {
-			s.Consumed = true
-		}
-		if _, ok := consumedFiles[s.FileNum]; !ok {
-			consumedFiles[s.FileNum] = s.Consumed
-		} else {
-			consumedFiles[s.FileNum] = consumedFiles[s.FileNum] && s.Consumed
-		}
-	}
-
-	if len(consumedFiles) == 0 {
+	if d.peekMetadata.PeekFileNum == fileNum {
+		d.metadataLock.Unlock()
 		return
 	}
-
-	compactedSegments := make([]*segment, 0, len(d.metadata.Segments))
-	for _, s := range d.metadata.Segments {
-		if !consumedFiles[s.FileNum] {
-			compactedSegments = append(compactedSegments, s)
+	allFiles := map[int64]struct{}{}
+	segmentIndex := 0
+	for i, s := range d.metadata.Segments {
+		// consume the segment
+		if s.FileNum == fileNum && s.Pos == pos && s.MessageLen == messageLen {
+			segmentIndex = i
+		} else {
+			allFiles[s.FileNum] = struct{}{}
 		}
 	}
-	d.metadata.Segments = compactedSegments
+	d.metadata.Segments = slices.Delete(d.metadata.Segments, segmentIndex, segmentIndex+1)
 	d.metadataLock.Unlock()
 
-	for fileNum, consumed := range consumedFiles {
-		if consumed {
-			f := d.fileName(fileNum)
-			err := os.Remove(f)
-			if err != nil && !os.IsNotExist(err) {
-				d.logger.Error(" failed to Remove", zap.String("name", d.name), zap.String("filename", f), zap.Error(err))
-			}
+	// file was not used anywhere else, now delete.
+	if _, ok := allFiles[fileNum]; !ok {
+		f := d.fileName(fileNum)
+		err := os.Remove(f)
+		if err != nil && !os.IsNotExist(err) {
+			d.logger.Error(" failed to Remove", zap.String("name", d.name), zap.String("filename", f), zap.Error(err))
 		}
 	}
-
 }
 
 func (d *diskQueue) writeLoop() {

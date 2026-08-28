@@ -1,0 +1,6 @@
+change_type: enhancement
+component: packaging
+note: Use SHA-256 instead of MD5 for per-file digests in newly built Collector and auto-instrumentation RPMs.
+issues: []
+subtext: |
+  Existing published RPMs are unchanged. Newly built packages require RPM 4.6 or later.

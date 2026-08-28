@@ -2,15 +2,15 @@
 
 ## Unreleased
 
-## puppet-v0.23.0
+## puppet-v0.22.0
+
+### 🧰 Bug fixes 🧰
+
+- Bug fix: Ensure the collector config directory ownership is set to the custom service user and group (if configured) rather than the default service owner (Linux only). 
 
 ### 💡 Enhancements 💡
 
 - Recursively set the ownership of collector config (`/etc/otel/collector`) and state (`/var/lib/otelcol`) directories to the configured service user and group on Linux.
-
-## puppet-v0.22.0
-
-- Bug fix: Ensure the collector config directory ownership is set to the custom service user and group (if configured) rather than the default service owner (Linux only) 
 
 ## puppet-v0.21.0
 

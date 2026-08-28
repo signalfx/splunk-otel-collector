@@ -5,7 +5,7 @@ change_type: new_component
 component: extension/disk_queue_storage
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add a new experimental performant extension for exporter queues
+note: Add a new experimental disk storage extension for exporter persistent queues
 
 # One or more tracking issues related to the change
 issues: [7956]
@@ -14,4 +14,9 @@ issues: [7956]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  This extension manages a persistent queue using append-only disk writes, compacting old read files.
+  This new extension is experimental and requires extensive testing. It allows fast writes and reads from disk by
+  using append-only writes and rotating files, removing files after they have been consumed.
+  The extension will only work if used as a persistent queue storage, and will crash the collector with an explicit
+  message if used otherwise.
+  The extension is only available behind the `enableDiskQueueStorage` feature gate.
+

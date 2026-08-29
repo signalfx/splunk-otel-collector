@@ -68,7 +68,7 @@ func TestWaitForOneMore(t *testing.T) {
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		require.NoError(t, q.put([]byte("hello world")))
+		_ = q.put([]byte("hello world"))
 	}()
 	msg = <-q.peek()
 

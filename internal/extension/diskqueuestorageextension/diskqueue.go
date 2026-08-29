@@ -235,7 +235,7 @@ func (d *diskQueue) write(data []byte) error {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(dataLen))
+	binary.BigEndian.PutUint64(b, uint64(dataLen)) //nolint:gosec // disable G115
 	buf.Write(b)
 	buf.Write(data)
 	_, err := d.writeFile.Write(buf.Bytes())
@@ -255,7 +255,7 @@ func (d *diskQueue) write(data []byte) error {
 		writePos = 0
 
 		// sync every time we start writing to a new file
-		err := d.sync()
+		err = d.sync()
 		if err != nil {
 			d.logger.Error(" failed to sync - %s", zap.String("name", d.name), zap.Error(err))
 		}
@@ -303,8 +303,8 @@ func (d *diskQueue) syncPeek() error {
 	buf.Reset()
 	defer bufPool.Put(buf)
 	buf.WriteString(separator)
-	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.peekMetadata.FileNum)))
-	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.peekMetadata.Pos)))
+	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.peekMetadata.FileNum))) //nolint:gosec // disable G115
+	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.peekMetadata.Pos)))     //nolint:gosec // disable G115
 	_, err := d.peekMetadataFile.Write(buf.Bytes())
 	if err != nil {
 		_ = d.peekMetadataFile.Close()
@@ -350,8 +350,8 @@ func (d *diskQueue) retrieveMetaData(fileName string) (*metadata, error) {
 	fileNum := binary.BigEndian.Uint64(buf.Bytes()[0:8])
 	pos := binary.BigEndian.Uint64(buf.Bytes()[8:])
 	return &metadata{
-		FileNum: int64(fileNum),
-		Pos:     int64(pos),
+		FileNum: int64(fileNum), //nolint:gosec // disable G115
+		Pos:     int64(pos),     //nolint:gosec // disable G115
 	}, nil
 }
 
@@ -473,7 +473,7 @@ func (d *diskQueue) readOne(callbacks map[int64]int) bool {
 			d.peekMetadata.Pos = 0
 			d.peekMetadata.FileNum++
 		} else {
-			d.peekMetadata.Pos = d.peekMetadata.Pos + int64(len(peekData)+8)
+			d.peekMetadata.Pos += int64(len(peekData) + 8)
 		}
 	case <-d.exitChan:
 	}
@@ -493,8 +493,8 @@ func (d *diskQueue) persistMetaData() error {
 	buf.Reset()
 	defer bufPool.Put(buf)
 	buf.WriteString(separator)
-	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.metadata.FileNum)))
-	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.metadata.Pos)))
+	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.metadata.FileNum))) //nolint:gosec // disable G115
+	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(d.metadata.Pos)))     //nolint:gosec // disable G115
 	_, err := d.metadataFile.Write(buf.Bytes())
 	if err != nil {
 		_ = d.metadataFile.Close()

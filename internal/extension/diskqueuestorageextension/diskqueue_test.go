@@ -25,7 +25,9 @@ import (
 )
 
 func newQueueForTesting(t *testing.T) *diskQueue {
-	return newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
+	logger, _ := zap.NewDevelopment()
+	d, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, logger)
+	return d
 }
 
 func TestEmptyQueue(t *testing.T) {
@@ -42,6 +44,34 @@ func TestPutPeekConsume(t *testing.T) {
 	q := newQueueForTesting(t)
 	require.NoError(t, q.put([]byte("hello world")))
 	msg := <-q.peek()
+	msg.consumeCallback()
+	require.NoError(t, q.close())
+}
+
+func TestCatchUpToHeadAndReadOne(t *testing.T) {
+	q := newQueueForTesting(t)
+	require.NoError(t, q.put([]byte("hello world")))
+	msg := <-q.peek()
+	msg.consumeCallback()
+	// we caught up to tip, now do one more
+	require.NoError(t, q.put([]byte("hello world")))
+	msg = <-q.peek()
+	msg.consumeCallback()
+	require.NoError(t, q.close())
+}
+
+func TestWaitForOneMore(t *testing.T) {
+	q := newQueueForTesting(t)
+	require.NoError(t, q.put([]byte("hello world")))
+	msg := <-q.peek()
+	msg.consumeCallback()
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		require.NoError(t, q.put([]byte("hello world")))
+	}()
+	msg = <-q.peek()
+
 	msg.consumeCallback()
 	require.NoError(t, q.close())
 }
@@ -86,7 +116,7 @@ func TestThreePutsThreeConsumesOutOfOrder(t *testing.T) {
 }
 
 func TestMultipleWorkers(t *testing.T) {
-	q := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
+	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
@@ -103,7 +133,7 @@ func TestMultipleWorkers(t *testing.T) {
 }
 
 func TestMultipleWorkersOutOfOrder(t *testing.T) {
-	q := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
+	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
@@ -125,14 +155,15 @@ func TestMultipleWorkersOutOfOrder(t *testing.T) {
 
 func TestStartStopRestart(t *testing.T) {
 	dir := t.TempDir()
-	q := newQueue("foo", dir, 10_000_000, 1, 1*time.Second, zap.NewNop())
+	logger, _ := zap.NewDevelopment()
+	q, _ := newQueue("foo", dir, 10_000_000, 1, 1*time.Second, logger)
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
 	msg1 := <-q.peek()
 	msg1.consumeCallback()
 	require.NoError(t, q.close())
-	q = newQueue("foo", dir, 10_000_000, 1, 1*time.Second, zap.NewNop())
+	q, _ = newQueue("foo", dir, 10_000_000, 1, 1*time.Second, logger)
 	msg2 := <-q.peek()
 	require.Equal(t, "hello world2", string(msg2.payload))
 	require.NoError(t, q.close())

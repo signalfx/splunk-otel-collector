@@ -37,6 +37,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/extensiontest"
+	"go.opentelemetry.io/collector/extension/xextension/storage"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -51,6 +52,21 @@ type hostWithExtensions struct {
 
 func (h hostWithExtensions) GetExtensions() map[component.ID]component.Component {
 	return h.extensions
+}
+
+func TestBadUsage(t *testing.T) {
+	extConfig := createDefaultConfig().(*Config)
+	extConfig.Path = t.TempDir()
+	extensionSettings := extensiontest.NewNopSettings(component.MustNewType("disk_queue_storage"))
+	ext := newDiskQueueStorageExtension(extensionSettings, extConfig)
+	require.NoError(t, ext.Start(t.Context(), componenttest.NewNopHost()))
+	storageExtension := ext.(storage.Extension)
+	c, err := storageExtension.GetClient(t.Context(), component.KindExporter, component.MustNewID("foo"), "mystorage")
+	require.NoError(t, err)
+	defer c.Close(t.Context())
+	require.Panics(t, func() {
+		_, _ = c.Get(t.Context(), "mykey")
+	})
 }
 
 func TestExtensionAsPersistentQueue(t *testing.T) {

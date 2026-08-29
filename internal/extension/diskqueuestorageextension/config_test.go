@@ -37,16 +37,6 @@ func TestConfigValidate(t *testing.T) {
 			},
 		},
 		{
-			name: "missing path",
-			cfg: Config{
-				Path:            "",
-				MaxBytesPerFile: 1024,
-				SyncEvery:       1,
-				SyncTimeout:     time.Second,
-			},
-			expectedErr: "path must be a valid folder",
-		},
-		{
 			name: "invalid max_bytes_per_file",
 			cfg: Config{
 				Path:            "/tmp/queue",

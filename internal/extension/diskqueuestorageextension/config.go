@@ -27,9 +27,6 @@ type Config struct {
 }
 
 func (c *Config) Validate() error {
-	if c.Path == "" {
-		return errors.New("path must be a valid folder")
-	}
 	if c.MaxBytesPerFile <= 0 {
 		return errors.New("max_bytes_per_file must be a positive value")
 	}

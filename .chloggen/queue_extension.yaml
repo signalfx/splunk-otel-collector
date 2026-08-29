@@ -18,5 +18,4 @@ subtext: |
   using append-only writes and rotating files, removing files after they have been consumed.
   The extension will only work if used as a persistent queue storage, and will crash the collector with an explicit
   message if used otherwise.
-  The extension is only available behind the `enableDiskQueueStorage` feature gate.
 

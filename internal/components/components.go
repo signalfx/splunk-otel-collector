@@ -16,13 +16,13 @@
 package components
 
 import (
+	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
 	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 
 	"github.com/signalfx/splunk-otel-collector/baseline"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
-	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
@@ -38,8 +38,7 @@ import (
 )
 
 const (
-	enableTARunnerFeatureGateID         = "enableTARunner"
-	enableDiskQueueStorageFeatureGateID = "enableDiskQueueStorage"
+	enableTARunnerFeatureGateID = "enableTARunner"
 )
 
 var enableTARunner = featuregate.GlobalRegistry().MustRegister(
@@ -48,14 +47,6 @@ var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver and `splunk_outputs` exporter. "+
 		"When disabled (default), the `splunk_inputs` receiver and `splunk_outputs` exporter are not available and the collector will crash if it tries to run them."),
 	featuregate.WithRegisterFromVersion("v0.158.0"),
-)
-
-var enableDiskQueueStorage = featuregate.GlobalRegistry().MustRegister(
-	enableDiskQueueStorageFeatureGateID,
-	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the collector supports running with an experimental disk storage extension. This extension"+
-		"may only be associated with an exporter persistent queue."),
-	featuregate.WithRegisterFromVersion("v0.160.0"),
 )
 
 // Get returns the public splunk-otel-collector component set: the shared,
@@ -72,6 +63,7 @@ func Get() (otelcol.Factories, error) {
 		configsourcetelemetryextension.NewFactory(),
 		oracleencodingextension.NewFactory(),
 		smartagentextension.NewFactory(),
+		diskqueuestorageextension.NewFactory(),
 	)
 	b.AddReceivers(
 		discoveryreceiver.NewFactory(),
@@ -84,9 +76,6 @@ func Get() (otelcol.Factories, error) {
 	if enableTARunner.IsEnabled() {
 		b.AddReceivers(splunkinputsreceiver.NewFactory())
 		b.AddExporters(splunkoutputsexporter.NewFactory())
-	}
-	if enableDiskQueueStorage.IsEnabled() {
-		b.AddExtensions(diskqueuestorageextension.NewFactory())
 	}
 	b.AddProcessors(
 		timestampprocessor.NewFactory(),

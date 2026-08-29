@@ -170,10 +170,14 @@ func (c *client) Close(_ context.Context) error {
 }
 
 func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kind, _ component.ID, storageName string) (storage.Client, error) {
+	q, err := newQueue(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger)
+	if err != nil {
+		return nil, err
+	}
 	return &client{
 		path:   d.config.Path,
 		name:   storageName,
-		queue:  newQueue(storageName, d.config.Path, d.config.MaxBytesPerFile, d.config.SyncEvery, d.config.SyncTimeout, d.settings.Logger),
+		queue:  q,
 		logger: d.settings.Logger,
 		callbacks: []map[string]func(){
 			make(map[string]func(), callbacksSize),

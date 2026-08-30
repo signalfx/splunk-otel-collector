@@ -20,17 +20,17 @@ import (
 	"net"
 	"testing"
 
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension/extensionauth"
-
-	"github.com/signalfx/splunk-otel-collector/cmd/splunk-connect-for-otlp/test"
 )
 
 func TestAuth(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	test.SetupAuth(listener, t)
+	testutils.SetupAuth(listener, t)
 	e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), fmt.Sprintf("http://%s", listener.Addr().String()), "foo")
 	require.NoError(t, err)
 	require.NotNil(t, e)

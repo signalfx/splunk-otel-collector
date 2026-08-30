@@ -1,0 +1,1 @@
+{"event":"This is my new event! And some number 101","fields":{"custom":"custom","otel.log.name":"label"},"host":"myhost","source":"otel-source","sourcetype":"sck-otel-st","index":"sck-otel"}

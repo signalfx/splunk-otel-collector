@@ -1,0 +1,355 @@
+// Copyright Splunk Inc. 2025
+// SPDX-License-Identifier: Apache-2.0
+
+package stdoutexporter
+
+import (
+	"context"
+	"encoding/hex"
+	"os"
+	"testing"
+
+	"github.com/signalfx/splunk-otel-collector/internal/auth"
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/exporter/exportertest"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+)
+
+var configPath = "./testdata/test_config.yaml"
+
+func prepareLogs() plog.Logs {
+	logs := plog.NewLogs()
+	rl := logs.ResourceLogs().AppendEmpty()
+	sl := rl.ScopeLogs().AppendEmpty()
+	sl.Scope().SetName("test")
+	ts := pcommon.Timestamp(0)
+	logRecord := sl.LogRecords().AppendEmpty()
+	logRecord.Body().SetStr("test log")
+	logRecord.Attributes().PutStr(testutils.DefaultNameLabel, "test- label")
+	logRecord.Attributes().PutStr("host.name", "myhost")
+	logRecord.Attributes().PutStr("custom", "custom")
+	logRecord.SetTimestamp(ts)
+	return logs
+}
+
+func prepareLogsNonDefaultParams(index, source, sourcetype, event string) plog.Logs {
+	logs := plog.NewLogs()
+	rl := logs.ResourceLogs().AppendEmpty()
+	sl := rl.ScopeLogs().AppendEmpty()
+	sl.Scope().SetName("test")
+	ts := pcommon.Timestamp(0)
+
+	logRecord := sl.LogRecords().AppendEmpty()
+	logRecord.Body().SetStr(event)
+	logRecord.Attributes().PutStr(testutils.DefaultNameLabel, "label")
+	logRecord.Attributes().PutStr(testutils.DefaultSourceLabel, source)
+	logRecord.Attributes().PutStr(testutils.DefaultSourceTypeLabel, sourcetype)
+	logRecord.Attributes().PutStr(testutils.DefaultIndexLabel, index)
+	logRecord.Attributes().PutStr("host.name", "myhost")
+	logRecord.Attributes().PutStr("custom", "custom")
+	logRecord.SetTimestamp(ts)
+	return logs
+}
+
+func prepareMetricsData(metricName string) pmetric.Metrics {
+	metricData := pmetric.NewMetrics()
+	metric := metricData.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
+	g := metric.SetEmptyGauge()
+	g.DataPoints().AppendEmpty().SetDoubleValue(132.929)
+	metric.SetName(metricName)
+	return metricData
+}
+
+func prepareTracesData(index, source, sourcetype string) ptrace.Traces {
+	ts := pcommon.Timestamp(0)
+
+	traces := ptrace.NewTraces()
+	rs := traces.ResourceSpans().AppendEmpty()
+	rs.Resource().Attributes().PutStr(testutils.DefaultSourceLabel, source)
+	rs.Resource().Attributes().PutStr("host.name", "myhost")
+	rs.Resource().Attributes().PutStr(testutils.DefaultSourceTypeLabel, sourcetype)
+	rs.Resource().Attributes().PutStr(testutils.DefaultIndexLabel, index)
+	ils := rs.ScopeSpans().AppendEmpty()
+	initSpan("myspan", ts, ils.Spans().AppendEmpty())
+	return traces
+}
+
+type cfg struct {
+	event      string
+	index      string
+	source     string
+	sourcetype string
+}
+
+type telemetryType string
+
+var (
+	metricsType = telemetryType("metrics")
+	logsType    = telemetryType("logs")
+	tracesType  = telemetryType("traces")
+)
+
+type testCfg struct {
+	name                   string
+	config                 *cfg
+	startTime              string
+	telType                telemetryType
+	expectedResultFilePath string
+}
+
+func logsTest(t *testing.T, test testCfg) {
+	settings := exportertest.NewNopSettings(exportertest.NopType)
+	var logs plog.Logs
+	if test.config.index != "main" {
+		logs = prepareLogsNonDefaultParams(test.config.index, test.config.source, test.config.sourcetype, test.config.event)
+	} else {
+		logs = prepareLogs()
+	}
+
+	exporter, err := newLogsExporter(t.Context(), settings, createDefaultConfig())
+	require.NoError(t, err)
+
+	err = exporter.Start(t.Context(), componenttest.NewNopHost())
+	require.NoError(t, err)
+	out := testutils.CaptureStdout(t, func() {
+		err = exporter.ConsumeLogs(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
+			AllowedIndexes: []string{
+				"main",
+				test.config.index,
+			},
+		}), logs)
+	})
+
+	require.NotEmpty(t, out)
+	require.NoError(t, err, "Must not error while sending log data")
+	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	require.NoError(t, err)
+	require.Equal(t, out, string(expectedJson))
+}
+
+func metricsTest(t *testing.T, test testCfg) {
+	settings := exportertest.NewNopSettings(exportertest.NopType)
+	metricData := prepareMetricsData(test.config.event)
+
+	exporter, err := newMetricsExporter(t.Context(), settings, createDefaultConfig())
+	require.NoError(t, err)
+	err = exporter.Start(t.Context(), componenttest.NewNopHost())
+	require.NoError(t, err)
+
+	out := testutils.CaptureStdout(t, func() {
+		err = exporter.ConsumeMetrics(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
+			AllowedIndexes: []string{
+				"main",
+				test.config.index,
+			},
+		}), metricData)
+	})
+	require.NotEmpty(t, out)
+	require.NoError(t, err, "Must not error while sending metric data")
+	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	require.NoError(t, err)
+	require.Equal(t, out, string(expectedJson))
+}
+
+func tracesTest(t *testing.T, test testCfg) {
+	settings := exportertest.NewNopSettings(exportertest.NopType)
+	tracesData := prepareTracesData(test.config.index, test.config.source, test.config.sourcetype)
+
+	exporter, err := newTracesExporter(t.Context(), settings, createDefaultConfig())
+	require.NoError(t, err)
+	err = exporter.Start(t.Context(), componenttest.NewNopHost())
+	require.NoError(t, err)
+
+	out := testutils.CaptureStdout(t, func() {
+		err = exporter.ConsumeTraces(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
+			AllowedIndexes: []string{
+				"main",
+				test.config.index,
+			},
+		}), tracesData)
+	})
+	require.NotEmpty(t, out)
+	require.NoError(t, err, "Must not error while sending trace data")
+	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	require.NoError(t, err)
+	require.Equal(t, out, string(expectedJson))
+}
+
+func TestSplunkHecExporter(t *testing.T) {
+	eventIndex, err := testutils.GetConfigVariable(configPath, "EVENT_INDEX")
+	require.NoError(t, err)
+	metricIndex, err := testutils.GetConfigVariable(configPath, "METRIC_INDEX")
+	require.NoError(t, err)
+	traceIndex, err := testutils.GetConfigVariable(configPath, "TRACE_INDEX")
+	require.NoError(t, err)
+	tests := []testCfg{
+		{
+			name: "Events to Splunk - logs",
+			config: &cfg{
+				event:      "test log",
+				index:      "main",
+				source:     "otel",
+				sourcetype: "st-otel",
+			},
+			startTime:              "-3h@h",
+			telType:                logsType,
+			expectedResultFilePath: "./testdata/expected_hec_log.json",
+		},
+		{
+			name: "Events to Splunk - Non default index",
+			config: &cfg{
+				event:      "This is my new event! And some number 101",
+				index:      eventIndex,
+				source:     "otel-source",
+				sourcetype: "sck-otel-st",
+			},
+			startTime:              "-1m@m",
+			telType:                logsType,
+			expectedResultFilePath: "./testdata/expected_hec_log_non_default_index.json",
+		},
+		{
+			name: "Events to Splunk - metrics",
+			config: &cfg{
+				event:      "test.metric",
+				index:      metricIndex,
+				source:     "otel",
+				sourcetype: "st-otel",
+			},
+			startTime:              "",
+			telType:                metricsType,
+			expectedResultFilePath: "./testdata/expected_hec_metric.json",
+		},
+		{
+			name: "Events to Splunk - traces",
+			config: &cfg{
+				event:      "",
+				index:      traceIndex,
+				source:     "trace-source",
+				sourcetype: "trace-sourcetype",
+			},
+			startTime:              "-1m@m",
+			telType:                tracesType,
+			expectedResultFilePath: "./testdata/expected_hec_trace.json",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			switch test.telType {
+			case logsType:
+				logsTest(t, test)
+			case metricsType:
+				metricsTest(t, test)
+			case tracesType:
+				tracesTest(t, test)
+			default:
+				assert.Fail(t, "Telemetry type must be set to one of the following values: metrics, traces, or logs.")
+			}
+		})
+	}
+}
+
+func initSpan(name string, ts pcommon.Timestamp, span ptrace.Span) {
+	span.Attributes().PutStr("foo", "bar")
+	span.SetName(name)
+	span.SetStartTimestamp(ts)
+	spanLink := span.Links().AppendEmpty()
+	spanLink.TraceState().FromRaw("OK")
+	bytes, _ := hex.DecodeString("12345678")
+	var traceID [16]byte
+	copy(traceID[:], bytes)
+	spanLink.SetTraceID(traceID)
+	bytes, _ = hex.DecodeString("1234")
+	var spanID [8]byte
+	copy(spanID[:], bytes)
+	spanLink.SetSpanID(spanID)
+	spanLink.Attributes().PutInt("foo", 1)
+	spanLink.Attributes().PutBool("bar", false)
+	foobarContents := spanLink.Attributes().PutEmptySlice("foobar")
+	foobarContents.AppendEmpty().SetStr("a")
+	foobarContents.AppendEmpty().SetStr("b")
+
+	spanEvent := span.Events().AppendEmpty()
+	spanEvent.Attributes().PutStr("foo", "bar")
+	spanEvent.SetName("myEvent")
+	spanEvent.SetTimestamp(ts + 3)
+}
+
+func TestBadIndexLogs(t *testing.T) {
+	logs := prepareLogsNonDefaultParams("foo", "", "", "event")
+	settings := exportertest.NewNopSettings(exportertest.NopType)
+
+	exporter, err := newLogsExporter(t.Context(), settings, createDefaultConfig())
+	require.NoError(t, err)
+
+	err = exporter.Start(t.Context(), componenttest.NewNopHost())
+	require.NoError(t, err)
+	err = exporter.ConsumeLogs(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
+		AllowedIndexes: []string{
+			"main",
+		},
+	}), logs)
+
+	require.EqualError(t, err, `index "foo" is not allowed`)
+}
+
+func TestBadIndexMetrics(t *testing.T) {
+	m := prepareMetricsData("foo")
+	m.ResourceMetrics().At(0).Resource().Attributes().PutStr("com.splunk.index", "foo")
+	settings := exportertest.NewNopSettings(exportertest.NopType)
+
+	exporter, err := newMetricsExporter(t.Context(), settings, createDefaultConfig())
+	require.NoError(t, err)
+
+	err = exporter.Start(t.Context(), componenttest.NewNopHost())
+	require.NoError(t, err)
+	err = exporter.ConsumeMetrics(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
+		AllowedIndexes: []string{
+			"main",
+		},
+	}), m)
+
+	require.EqualError(t, err, `index "foo" is not allowed`)
+}
+
+func TestBadIndexTraces(t *testing.T) {
+	td := prepareTracesData("bar", "", "")
+	settings := exportertest.NewNopSettings(exportertest.NopType)
+
+	exporter, err := newTracesExporter(t.Context(), settings, createDefaultConfig())
+	require.NoError(t, err)
+
+	err = exporter.Start(t.Context(), componenttest.NewNopHost())
+	require.NoError(t, err)
+	err = exporter.ConsumeTraces(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
+		AllowedIndexes: []string{
+			"main",
+		},
+	}), td)
+
+	require.EqualError(t, err, `index "bar" is not allowed`)
+}
+
+func TestBadIndexTracesResource(t *testing.T) {
+	td := prepareTracesData("foo", "", "")
+	settings := exportertest.NewNopSettings(exportertest.NopType)
+
+	exporter, err := newTracesExporter(t.Context(), settings, createDefaultConfig())
+	require.NoError(t, err)
+
+	err = exporter.Start(t.Context(), componenttest.NewNopHost())
+	require.NoError(t, err)
+	err = exporter.ConsumeTraces(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
+		AllowedIndexes: []string{
+			"main",
+		},
+	}), td)
+
+	require.EqualError(t, err, `index "foo" is not allowed`)
+}

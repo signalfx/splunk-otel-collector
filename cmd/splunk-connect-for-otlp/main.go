@@ -93,7 +93,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	te, err := f.CreateTraces(ctx, telemetrySettings, stdoutCfg)
+	tracesExporter, err := f.CreateTraces(ctx, telemetrySettings, stdoutCfg)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func run() error {
 	if _, err = rf.CreateMetrics(ctx, otlpSettings, cfg, me); err != nil {
 		return err
 	}
-	r, err := rf.CreateTraces(ctx, otlpSettings, cfg, te)
+	r, err := rf.CreateTraces(ctx, otlpSettings, cfg, tracesExporter)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func run() error {
 	if err = me.Start(ctx, h); err != nil {
 		return err
 	}
-	if err = te.Start(ctx, h); err != nil {
+	if err = tracesExporter.Start(ctx, h); err != nil {
 		return err
 	}
 	if err = r.Start(ctx, h); err != nil {
@@ -163,7 +163,7 @@ func run() error {
 
 	_ = r.Shutdown(ctx)
 	_ = le.Shutdown(ctx)
-	_ = te.Shutdown(ctx)
+	_ = tracesExporter.Shutdown(ctx)
 	_ = me.Shutdown(ctx)
 
 	return err

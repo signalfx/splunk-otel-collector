@@ -16,12 +16,12 @@ package auth
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"net"
 	"testing"
 
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
-
+	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension/extensionauth"
@@ -30,7 +30,7 @@ import (
 func TestAuth(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	testutils.SetupAuth(listener, t)
+	authtest.SetupAuth(listener, t)
 	e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), fmt.Sprintf("http://%s", listener.Addr().String()), "foo")
 	require.NoError(t, err)
 	require.NotNil(t, e)

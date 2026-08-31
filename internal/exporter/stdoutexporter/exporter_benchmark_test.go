@@ -5,6 +5,7 @@ package stdoutexporter
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,11 +15,18 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 var testDataDir = "../../../cmd/splunk-connect-for-otlp/testdata"
+
+// TelemetryType represents supported telemetry signals.
+type TelemetryType string
+
+const (
+	TelemetryTypeMetrics TelemetryType = "metrics"
+	TelemetryTypeTraces  TelemetryType = "traces"
+	TelemetryTypeLogs    TelemetryType = "logs"
+)
 
 func BenchmarkStdoutExporter(b *testing.B) {
 	stdoutWriter = func([]byte) error { return nil }
@@ -29,37 +37,37 @@ func BenchmarkStdoutExporter(b *testing.B) {
 
 	tests := []struct {
 		name          string
-		telType       testutils.TelemetryType
+		telType       TelemetryType
 		inputFilePath string
 	}{
 		{
 			name:          "metrics",
-			telType:       testutils.TelemetryTypeMetrics,
+			telType:       TelemetryTypeMetrics,
 			inputFilePath: filepath.Join(testDataDir, "otlp_metrics.json"),
 		},
 		{
 			name:          "large metric data set",
-			telType:       testutils.TelemetryTypeMetrics,
+			telType:       TelemetryTypeMetrics,
 			inputFilePath: filepath.Join(testDataDir, "otlp_metrics_big.json"),
 		},
 		{
 			name:          "traces",
-			telType:       testutils.TelemetryTypeTraces,
+			telType:       TelemetryTypeTraces,
 			inputFilePath: filepath.Join(testDataDir, "otlp_traces.json"),
 		},
 		{
 			name:          "large trace data set",
-			telType:       testutils.TelemetryTypeTraces,
+			telType:       TelemetryTypeTraces,
 			inputFilePath: filepath.Join(testDataDir, "otlp_traces_big.json"),
 		},
 		{
 			name:          "logs",
-			telType:       testutils.TelemetryTypeLogs,
+			telType:       TelemetryTypeLogs,
 			inputFilePath: filepath.Join(testDataDir, "otlp_logs.json"),
 		},
 		{
 			name:          "large log data set",
-			telType:       testutils.TelemetryTypeLogs,
+			telType:       TelemetryTypeLogs,
 			inputFilePath: filepath.Join(testDataDir, "otlp_logs_big.json"),
 		},
 	}
@@ -69,14 +77,14 @@ func BenchmarkStdoutExporter(b *testing.B) {
 		b.Run(tt.name, func(b *testing.B) {
 			var consume func(context.Context) error
 			switch tt.telType {
-			case testutils.TelemetryTypeMetrics:
-				metrics := testutils.LoadMetricsFromFile(b, tt.inputFilePath)
+			case TelemetryTypeMetrics:
+				metrics := LoadMetricsFromFile(b, tt.inputFilePath)
 				consume = setupMetricsExporter(b, ctx, settings, cfg, metrics)
-			case testutils.TelemetryTypeTraces:
-				traces := testutils.LoadTracesFromFile(b, tt.inputFilePath)
+			case TelemetryTypeTraces:
+				traces := LoadTracesFromFile(b, tt.inputFilePath)
 				consume = setupTracesExporter(b, ctx, settings, cfg, traces)
-			case testutils.TelemetryTypeLogs:
-				logs := testutils.LoadLogsFromFile(b, tt.inputFilePath)
+			case TelemetryTypeLogs:
+				logs := LoadLogsFromFile(b, tt.inputFilePath)
 				consume = setupLogsExporter(b, ctx, settings, cfg, logs)
 			default:
 				b.Fatalf("unknown telemetry type: %v", tt.telType)
@@ -133,4 +141,49 @@ func setupLogsExporter(b *testing.B, ctx context.Context, settings exporter.Sett
 	return func(ctx context.Context) error {
 		return exp.ConsumeLogs(ctx, logs)
 	}
+}
+
+func LoadLogsFromFile(tb testing.TB, path string) plog.Logs {
+	tb.Helper()
+
+	data, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		tb.Fatalf("failed to read logs fixture: %v", err)
+	}
+	unmarshaler := plog.JSONUnmarshaler{}
+	logs, err := unmarshaler.UnmarshalLogs(data)
+	if err != nil {
+		tb.Fatalf("failed to unmarshal logs fixture: %v", err)
+	}
+	return logs
+}
+
+func LoadMetricsFromFile(tb testing.TB, path string) pmetric.Metrics {
+	tb.Helper()
+
+	data, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		tb.Fatalf("failed to read metrics fixture: %v", err)
+	}
+	unmarshaler := pmetric.JSONUnmarshaler{}
+	metrics, err := unmarshaler.UnmarshalMetrics(data)
+	if err != nil {
+		tb.Fatalf("failed to unmarshal metrics fixture: %v", err)
+	}
+	return metrics
+}
+
+func LoadTracesFromFile(tb testing.TB, path string) ptrace.Traces {
+	tb.Helper()
+
+	data, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		tb.Fatalf("failed to read traces fixture: %v", err)
+	}
+	unmarshaler := ptrace.JSONUnmarshaler{}
+	traces, err := unmarshaler.UnmarshalTraces(data)
+	if err != nil {
+		tb.Fatalf("failed to unmarshal traces fixture: %v", err)
+	}
+	return traces
 }

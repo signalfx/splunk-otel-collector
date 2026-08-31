@@ -4,13 +4,17 @@
 package stdoutexporter
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
+	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth"
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+	"gopkg.in/yaml.v3"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,6 +24,13 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+)
+
+const (
+	DefaultSourceTypeLabel = "com.splunk.sourcetype"
+	DefaultSourceLabel     = "com.splunk.source"
+	DefaultIndexLabel      = "com.splunk.index"
+	DefaultNameLabel       = "otel.log.name"
 )
 
 var configPath = "./testdata/test_config.yaml"
@@ -32,7 +43,7 @@ func prepareLogs() plog.Logs {
 	ts := pcommon.Timestamp(0)
 	logRecord := sl.LogRecords().AppendEmpty()
 	logRecord.Body().SetStr("test log")
-	logRecord.Attributes().PutStr(testutils.DefaultNameLabel, "test- label")
+	logRecord.Attributes().PutStr(DefaultNameLabel, "test- label")
 	logRecord.Attributes().PutStr("host.name", "myhost")
 	logRecord.Attributes().PutStr("custom", "custom")
 	logRecord.SetTimestamp(ts)
@@ -48,10 +59,10 @@ func prepareLogsNonDefaultParams(index, source, sourcetype, event string) plog.L
 
 	logRecord := sl.LogRecords().AppendEmpty()
 	logRecord.Body().SetStr(event)
-	logRecord.Attributes().PutStr(testutils.DefaultNameLabel, "label")
-	logRecord.Attributes().PutStr(testutils.DefaultSourceLabel, source)
-	logRecord.Attributes().PutStr(testutils.DefaultSourceTypeLabel, sourcetype)
-	logRecord.Attributes().PutStr(testutils.DefaultIndexLabel, index)
+	logRecord.Attributes().PutStr(DefaultNameLabel, "label")
+	logRecord.Attributes().PutStr(DefaultSourceLabel, source)
+	logRecord.Attributes().PutStr(DefaultSourceTypeLabel, sourcetype)
+	logRecord.Attributes().PutStr(DefaultIndexLabel, index)
 	logRecord.Attributes().PutStr("host.name", "myhost")
 	logRecord.Attributes().PutStr("custom", "custom")
 	logRecord.SetTimestamp(ts)
@@ -72,10 +83,10 @@ func prepareTracesData(index, source, sourcetype string) ptrace.Traces {
 
 	traces := ptrace.NewTraces()
 	rs := traces.ResourceSpans().AppendEmpty()
-	rs.Resource().Attributes().PutStr(testutils.DefaultSourceLabel, source)
+	rs.Resource().Attributes().PutStr(DefaultSourceLabel, source)
 	rs.Resource().Attributes().PutStr("host.name", "myhost")
-	rs.Resource().Attributes().PutStr(testutils.DefaultSourceTypeLabel, sourcetype)
-	rs.Resource().Attributes().PutStr(testutils.DefaultIndexLabel, index)
+	rs.Resource().Attributes().PutStr(DefaultSourceTypeLabel, sourcetype)
+	rs.Resource().Attributes().PutStr(DefaultIndexLabel, index)
 	ils := rs.ScopeSpans().AppendEmpty()
 	initSpan("myspan", ts, ils.Spans().AppendEmpty())
 	return traces
@@ -118,7 +129,7 @@ func logsTest(t *testing.T, test testCfg) {
 
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
-	out := testutils.CaptureStdout(t, func() {
+	out := CaptureStdout(t, func() {
 		err = exporter.ConsumeLogs(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
 			AllowedIndexes: []string{
 				"main",
@@ -143,7 +154,7 @@ func metricsTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	out := testutils.CaptureStdout(t, func() {
+	out := CaptureStdout(t, func() {
 		err = exporter.ConsumeMetrics(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
 			AllowedIndexes: []string{
 				"main",
@@ -167,7 +178,7 @@ func tracesTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	out := testutils.CaptureStdout(t, func() {
+	out := CaptureStdout(t, func() {
 		err = exporter.ConsumeTraces(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
 			AllowedIndexes: []string{
 				"main",
@@ -183,11 +194,11 @@ func tracesTest(t *testing.T, test testCfg) {
 }
 
 func TestSplunkHecExporter(t *testing.T) {
-	eventIndex, err := testutils.GetConfigVariable(configPath, "EVENT_INDEX")
+	eventIndex, err := getConfigVariable(configPath, "EVENT_INDEX")
 	require.NoError(t, err)
-	metricIndex, err := testutils.GetConfigVariable(configPath, "METRIC_INDEX")
+	metricIndex, err := getConfigVariable(configPath, "METRIC_INDEX")
 	require.NoError(t, err)
-	traceIndex, err := testutils.GetConfigVariable(configPath, "TRACE_INDEX")
+	traceIndex, err := getConfigVariable(configPath, "TRACE_INDEX")
 	require.NoError(t, err)
 	tests := []testCfg{
 		{
@@ -352,4 +363,74 @@ func TestBadIndexTracesResource(t *testing.T) {
 	}), td)
 
 	require.EqualError(t, err, `index "foo" is not allowed`)
+}
+
+type IntegrationTestsConfig struct {
+	Host           string `yaml:"HOST"`
+	User           string `yaml:"USER"`
+	Password       string `yaml:"PASSWORD"`
+	UIPort         string `yaml:"UI_PORT"`
+	HecPort        string `yaml:"HEC_PORT"`
+	ManagementPort string `yaml:"MANAGEMENT_PORT"`
+	EventIndex     string `yaml:"EVENT_INDEX"`
+	MetricIndex    string `yaml:"METRIC_INDEX"`
+	TraceIndex     string `yaml:"TRACE_INDEX"`
+	HecToken       string `yaml:"HEC_TOKEN"`
+	SplunkImage    string `yaml:"SPLUNK_IMAGE"`
+}
+
+func getConfigVariable(configPath, key string) (string, error) {
+	// Read YAML file
+	fileData, err := os.ReadFile(configPath)
+	if err != nil {
+		return "", fmt.Errorf("error reading file: %v", err)
+	}
+
+	var config IntegrationTestsConfig
+	err = yaml.Unmarshal(fileData, &config)
+	if err != nil {
+		return "", fmt.Errorf("error decoding YAML: %v", err)
+	}
+
+	switch key {
+	case "EVENT_INDEX":
+		return config.EventIndex, nil
+	case "METRIC_INDEX":
+		return config.MetricIndex, nil
+	case "TRACE_INDEX":
+		return config.TraceIndex, nil
+	default:
+		fmt.Println("invalid field")
+		return "None", fmt.Errorf("invalid field %v", key)
+	}
+}
+
+// CaptureStdout captures all stdout output generated by fn and returns it as a string.
+func CaptureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+
+	original := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("failed to create stdout pipe: %v", err)
+	}
+	os.Stdout = w
+
+	outputCh := make(chan string, 1)
+	go func() {
+		var buf bytes.Buffer
+		_, _ = io.Copy(&buf, r)
+		_ = r.Close()
+		outputCh <- buf.String()
+	}()
+
+	fn()
+
+	// TODO: Find a way to synchronize without sleep.
+	time.Sleep(1 * time.Second)
+
+	_ = w.Close()
+	os.Stdout = original
+
+	return <-outputCh
 }

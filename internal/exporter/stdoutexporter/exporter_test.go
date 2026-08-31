@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/signalfx/splunk-otel-collector/internal/auth"
 	"gopkg.in/yaml.v3"
 
 	"github.com/stretchr/testify/assert"
@@ -24,6 +23,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+
+	"github.com/signalfx/splunk-otel-collector/internal/auth"
 )
 
 const (

@@ -21,10 +21,11 @@ import (
 	"net"
 	"testing"
 
-	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension/extensionauth"
+
+	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 )
 
 func TestAuth(t *testing.T) {

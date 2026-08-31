@@ -18,9 +18,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 )
 
 const (

@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -145,29 +146,15 @@ func run() error {
 	}
 	h.Start()
 
-	if err = le.Start(ctx, h); err != nil {
-		return err
-	}
-	if err = me.Start(ctx, h); err != nil {
-		return err
-	}
-	if err = tracesExporter.Start(ctx, h); err != nil {
-		return err
-	}
-	if err = r.Start(ctx, h); err != nil {
-		return err
+	if errStart := errors.Join(le.Start(ctx, h), me.Start(ctx, h), tracesExporter.Start(ctx, h), r.Start(ctx, h)); errStart != nil {
+		return errStart
 	}
 
 	logger.Info("OTLP Input started")
 
 	err = h.Wait()
 
-	_ = r.Shutdown(ctx)
-	_ = le.Shutdown(ctx)
-	_ = tracesExporter.Shutdown(ctx)
-	_ = me.Shutdown(ctx)
-
-	return err
+	return errors.Join(err, r.Shutdown(ctx), le.Shutdown(ctx), tracesExporter.Shutdown(ctx), me.Shutdown(ctx))
 }
 
 func createLogger() (*zap.Logger, error) {

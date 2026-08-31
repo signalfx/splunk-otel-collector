@@ -118,13 +118,14 @@ func run() error {
 		TelemetrySettings: settings,
 		ID:                component.MustNewID("otlp"),
 	}
-	if _, err := rf.CreateLogs(ctx, otlpSettings, cfg, le); err != nil {
+	if _, err = rf.CreateLogs(ctx, otlpSettings, cfg, le); err != nil {
 		return err
 	}
-	if _, err := rf.CreateMetrics(ctx, otlpSettings, cfg, me); err != nil {
+	if _, err = rf.CreateMetrics(ctx, otlpSettings, cfg, me); err != nil {
 		return err
 	}
-	r, err := rf.CreateTraces(ctx, otlpSettings, cfg, tracesExporter)
+	var r receiver.Traces
+	r, err = rf.CreateTraces(ctx, otlpSettings, cfg, tracesExporter)
 	if err != nil {
 		return err
 	}
@@ -144,16 +145,16 @@ func run() error {
 	}
 	h.Start()
 
-	if err := le.Start(ctx, h); err != nil {
+	if err = le.Start(ctx, h); err != nil {
 		return err
 	}
-	if err := me.Start(ctx, h); err != nil {
+	if err = me.Start(ctx, h); err != nil {
 		return err
 	}
-	if err := tracesExporter.Start(ctx, h); err != nil {
+	if err = tracesExporter.Start(ctx, h); err != nil {
 		return err
 	}
-	if err := r.Start(ctx, h); err != nil {
+	if err = r.Start(ctx, h); err != nil {
 		return err
 	}
 

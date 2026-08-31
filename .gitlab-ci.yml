@@ -1352,6 +1352,40 @@ verify-signed-metadata:
 
       echo "Metadata signature OK for ${TARGET}${ARCH:+-${ARCH}}"
 
+.verify-rpm-repository-install:
+  image: '${DOCKER_HUB_REPO}/rockylinux:9'
+  rules:
+    - *no-schedules-condition
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION == ""
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+-(beta|rc)\.[0-9]+$/
+    - *dry-run-condition
+  needs:
+    - job: release-rpms
+      artifacts: false
+  retry: 2
+  parallel:
+    matrix:
+      - ARCH: x86_64
+        RUNNER_TAG: main
+      - ARCH: aarch64
+        RUNNER_TAG: arm
+  tags:
+    - $RUNNER_TAG
+  before_script:
+    - *get-artifactory-stage
+  script:
+    - RPM_REPO_STAGE="$STAGE" ./packaging/tests/verify-rpm-repository-install.sh "$RPM_TEST_CASE" "$ARCH"
+
+verify-rpm-candidate-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: candidate
+
+verify-rpm-previous-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: previous
+
 # only upload the msi to S3 for stable release tags
 release-msi:
   rules:

@@ -14,16 +14,16 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/signalfx/splunk-otel-collector/internal/auth"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	noopmetric "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace/noop"
 
+	"github.com/signalfx/splunk-otel-collector/internal/auth"
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/stdoutexporter"
 )
 
@@ -84,16 +84,17 @@ func run() error {
 		TelemetrySettings: settings,
 		ID:                component.MustNewID("stdout"),
 	}
-	le, err := f.CreateLogs(ctx, telemetrySettings, stdoutCfg)
-	if err != nil {
+	var le exporter.Logs
+	var me exporter.Metrics
+	var tracesExporter exporter.Traces
+	var err error
+	if le, err = f.CreateLogs(ctx, telemetrySettings, stdoutCfg); err != nil {
 		return err
 	}
-	me, err := f.CreateMetrics(ctx, telemetrySettings, stdoutCfg)
-	if err != nil {
+	if me, err = f.CreateMetrics(ctx, telemetrySettings, stdoutCfg); err != nil {
 		return err
 	}
-	tracesExporter, err := f.CreateTraces(ctx, telemetrySettings, stdoutCfg)
-	if err != nil {
+	if tracesExporter, err = f.CreateTraces(ctx, telemetrySettings, stdoutCfg); err != nil {
 		return err
 	}
 	logger.Info("Configured exporter")
@@ -130,15 +131,15 @@ func run() error {
 
 	logger.Info("Configured OTLP receiver")
 
-	auth, err := auth.New(ctx, settings, xmlCfg.ServerURI, xmlCfg.SessionKey)
-	if err != nil {
+	var authExtension extension.Extension
+	if authExtension, err = auth.New(ctx, settings, xmlCfg.ServerURI, xmlCfg.SessionKey); err != nil {
 		return err
 	}
 
 	h := &ttyHost{
 		ErrStatus: make(chan error, 1),
 		Extensions: map[component.ID]component.Component{
-			extID: auth,
+			extID: authExtension,
 		},
 	}
 	h.Start()

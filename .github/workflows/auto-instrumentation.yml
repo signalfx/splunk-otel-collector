@@ -12,7 +12,6 @@ on:
       - 'internal/**'
       - '!**.md'
       - 'packaging/**'
-      - '!packaging/dotnet-instr-deployer-add-on/**'
 
 concurrency:
   group: auto-instrumentation-${{ github.event.pull_request.number || github.ref }}
@@ -23,7 +22,7 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
 
 jobs:
   cross-compile:

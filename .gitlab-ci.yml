@@ -13,7 +13,7 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -352,17 +352,14 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64]
-        WITH_OPAMP_SUPERVISOR: "true"
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_ppc64le]
-        WITH_OPAMP_SUPERVISOR: "false"
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG:-}" ]]; then
-        make $TARGET VERSION=${VERSION_TAG} WITH_OPAMP_SUPERVISOR=${WITH_OPAMP_SUPERVISOR}
+        make $TARGET VERSION=${VERSION_TAG}
       else
-        make $TARGET WITH_OPAMP_SUPERVISOR=${WITH_OPAMP_SUPERVISOR}
+        make $TARGET
       fi
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
@@ -627,9 +624,11 @@ build-msi:
     matrix:
       - ARCH: [amd64, arm64]
   before_script:
-    # build the MSI with the signed exe
+    # Build the MSI with the signed executables
     - New-Item -Path bin -ItemType Directory -Force
     - Copy-Item -Force dist/signed/otelcol_windows_$($env:ARCH).exe bin/otelcol_windows_$($env:ARCH).exe
+    - Copy-Item -Force dist/signed-msi-inputs/otelcollauncher_windows_$($env:ARCH).exe bin/otelcollauncher_windows_$($env:ARCH).exe
+    - Copy-Item -Force dist/signed-msi-inputs/opampsupervisor_windows_$($env:ARCH).exe bin/opampsupervisor_windows_$($env:ARCH).exe
   tags:
     - windows2022
   script:
@@ -1802,77 +1801,3 @@ chef-release:
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
-
-.trigger-dotnet-instrumentation-deployer:
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
-
-build-dotnet-instrumentation-deployer:
-  extends: .trigger-dotnet-instrumentation-deployer
-  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  needs: []
-  before_script:
-    - cd packaging/dotnet-instr-deployer-add-on
-  script:
-    - make download-dotnet-assets
-    - make build
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-
-sign-dotnet-instrumentation-deployer-exe:
-  extends:
-    - .trigger-dotnet-instrumentation-deployer
-    - .submit-signing-request
-  retry: 2
-  needs:
-    - job: build-dotnet-instrumentation-deployer
-      artifacts: true
-  variables:
-    ARTIFACT: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/splunk_otel_dotnet_deployer.exe
-    SIGN_TYPE: WIN
-    DOWNLOAD_DIR: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-
-
-pack-dotnet-instrumentation-deployer:
-  extends: .trigger-dotnet-instrumentation-deployer
-  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  needs:
-    - job: sign-dotnet-instrumentation-deployer-exe
-      artifacts: true
-  before_script:
-    - cd packaging/dotnet-instr-deployer-add-on
-  script:
-    - make pack
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-      - packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
-
-dotnet-instrumentation-deployer-release:
-  extends:
-    - .trigger-dotnet-instrumentation-deployer
-    - .go-cache # Use this image since this job uses the ghr tool
-  tags: [large]
-  needs:
-    - job: pack-dotnet-instrumentation-deployer
-      artifacts: true
-  script:
-    - export
-    - cd packaging/dotnet-instr-deployer-add-on
-    - pushd out/distribution/ && shasum -a 256 * > checksums.txt && popd
-    - |
-      set -e
-      if [[ "${CI_COMMIT_TAG:-}" =~ ^dotnet-instrumentation-deployer-ta-v([0-9]+\.[0-9]+\.[0-9]+[^ ]*) ]]; then
-        VERSION=${BASH_REMATCH[1]}
-        VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
-        SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
-        RELEASE_NOTES=$(echo -e "$VERSION_CHANGELOG\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
-        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
-      else
-        echo "Failed to get version from $CI_COMMIT_TAG"
-        exit 1
-      fi

@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
 jobs:
   otelcol:
     runs-on: ubuntu-24.04
@@ -63,7 +63,7 @@ jobs:
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v10.2.1
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
         id: multiarch-otelcol-builder
         with:
           driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
@@ -157,19 +157,10 @@ jobs:
         run: .github/workflows/scripts/free-disk-space.sh
         if: runner.os == 'Linux'
         continue-on-error: true
-      - name: Build ${{ matrix.PROFILE }} service images
-        run: |
-          images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
-          for image in $images; do
-            service=$(basename "$image" | cut -d ':' -f1)
-            if [[ -f docker/${service}/Dockerfile ]]; then
-              docker build --cache-from="quay.io/splunko11ytest/${service}:latest" -t "quay.io/splunko11ytest/${service}:latest" "docker/${service}"
-            fi
-          done
-          docker system prune -f
-          docker builder prune -f
-          docker images
-      - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
+      - name: Build ${{ matrix.PROFILE }} service images from source
+        run: docker/build-test-images.sh "${{ matrix.PROFILE }}"
+      - run: docker images
+      - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --pull never
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -261,19 +252,10 @@ jobs:
       - name: Free up disk space for next step
         run: .github/workflows/scripts/free-disk-space.sh
         if: matrix.PROFILE == 'integration' && runner.os == 'Linux'
-      - name: Build ${{ matrix.PROFILE }} service images
-        run: |
-          images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
-          for image in $images; do
-            service=$(basename "$image" | cut -d ':' -f1)
-            if [[ -f docker/${service}/Dockerfile ]]; then
-              docker build --cache-from="quay.io/splunko11ytest/${service}:latest" -t "quay.io/splunko11ytest/${service}:latest" "docker/${service}"
-            fi
-          done
-          docker system prune -f
-          docker builder prune -f
-          docker images
-      - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
+      - name: Build ${{ matrix.PROFILE }} service images from source
+        run: docker/build-test-images.sh "${{ matrix.PROFILE }}"
+      - run: docker images
+      - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --pull never
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -368,7 +350,11 @@ jobs:
           continue-on-error: true
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
-        - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull
+        - name: Pull upstream-only test service images
+          run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery pull --ignore-buildable --quiet
+        - name: Build test service images from source
+          run: docker/build-test-images.sh "integration-test-${{ matrix.SERVICE }}-discovery"
+        - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --pull never
         - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
           with:
             go-version: ${{ env.GO_VERSION }}

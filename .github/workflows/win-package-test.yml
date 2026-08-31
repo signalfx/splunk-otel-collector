@@ -10,10 +10,12 @@ on:
       - '.github/workflows/win-package-test.yml'
       - '.github/actions/win-wait-for-docker/**'
       - 'cmd/otelcol/**'
+      - 'cmd/otelcollauncher/**'
       - 'instrumentation/packaging/dotnet-agent-release.txt'
       - 'internal/**'
       - 'Makefile'
       - 'Makefile.Common'
+      - 'packaging/choco/**'
       - 'packaging/installer/*.ps1'
       - 'packaging/msi/**'
       - 'tests/zeroconfig/windows/**'
@@ -26,7 +28,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
 
 jobs:
   cross-compile:
@@ -135,6 +137,7 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025", "windows-11-arm" ]
         MODE: [ "agent", "gateway" ]
+        SERVICE_MODE: [ "direct", "supervisor" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -151,6 +154,7 @@ jobs:
           & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
       - name: Installation test
+        shell: powershell
         env:
           token: fake-token
           realm: fake-realm
@@ -160,10 +164,26 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}"
+          $with_supervisor = "${{ matrix.SERVICE_MODE }}" -eq "supervisor"
+          $with_platform = $with_supervisor -and "${{ matrix.MODE }}" -eq "agent"
+          $installer_args = @{
+            access_token = "${{ env.token }}"
+            realm = "${{ env.realm }}"
+            mode = "${{ matrix.MODE }}"
+            memory = "${{ env.memory }}"
+            with_supervisor = $with_supervisor
+          }
+          $service_test_args = $installer_args.Clone()
+          if ($with_platform) {
+            $installer_args.msi_public_properties = 'SPLUNK_PLATFORM_TOKEN=fake-platform-token SPLUNK_PLATFORM_URL=https://fake-hec.splunkcloud.com/services/collector SPLUNK_PLATFORM_LOGS_INDEX=fake-logs-index'
+            $service_test_args.splunk_platform_token = "fake-platform-token"
+            $service_test_args.splunk_platform_url = "https://fake-hec.splunkcloud.com/services/collector"
+            $service_test_args.splunk_platform_logs_index = "fake-logs-index"
+          }
+          .\packaging\installer\install.ps1 -msi_path "$msi_path" @installer_args
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}"
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 @service_test_args
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_supervisor:$with_supervisor
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
@@ -261,6 +281,7 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
         SCENARIO: [ "install", "upgrade" ]
+        SERVICE_MODE: [ "direct", "supervisor" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
@@ -278,6 +299,7 @@ jobs:
           & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
       - name: Chocolatey ${{ matrix.SCENARIO }} test
+        shell: powershell
         env:
           token: fake-token
           realm: fake-realm
@@ -286,7 +308,11 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
+          $with_supervisor = "${{ matrix.SERVICE_MODE }}" -eq "supervisor"
           $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }}"
+          if ($with_supervisor) {
+            $params += " /SPLUNK_OPAMP_SUPERVISOR_ENABLED:TRUE"
+          }
           # Default expected URLs reflect the new installer defaults (observability.splunkcloud.com).
           $expected_api_url = "https://api.${{ env.realm }}.observability.splunkcloud.com"
           $expected_ingest_url = "https://ingest.${{ env.realm }}.observability.splunkcloud.com"
@@ -347,8 +373,17 @@ jobs:
             }
           }
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -api_url "$expected_api_url" -ingest_url "$expected_ingest_url"
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}"
+          $service_test_args = @{
+            mode = "${{ matrix.MODE }}"
+            access_token = "${{ env.token }}"
+            realm = "${{ env.realm }}"
+            memory = "${{ env.memory }}"
+            api_url = "$expected_api_url"
+            ingest_url = "$expected_ingest_url"
+            with_supervisor = $with_supervisor
+          }
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 @service_test_args
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_supervisor:$with_supervisor
 
       - name: splunk-otel-collector logs
         if: ${{ always() }}
@@ -361,8 +396,12 @@ jobs:
             throw "choco uninstall failed!"
           }
           Start-Sleep -s 30
-          if ((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running") {
-            throw "splunk-otel-collector service is still running"
+          if (Get-Service -Name splunk-otel-collector -ErrorAction SilentlyContinue) {
+            throw "splunk-otel-collector service still exists"
+          }
+          $remaining_processes = Get-Process -Name otelcollauncher, opampsupervisor, otelcol -ErrorAction SilentlyContinue
+          if ($remaining_processes) {
+            throw "Collector processes are still running after uninstall: $($remaining_processes.Name -join ', ')"
           }
 
   docker-otelcol:

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## ansible-v1.2.0
+
+### 💡 Enhancements 💡
+
+- Recursively set the ownership of collector config (`/etc/otel/collector`) and state (`/var/lib/otelcol`) directories to the configured service user and group on Linux.
+
 ## ansible-v1.1.0
 
 ### 🛑 Breaking changes 🛑

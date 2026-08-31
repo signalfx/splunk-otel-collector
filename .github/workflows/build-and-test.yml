@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
 
 jobs:
   tidy:
@@ -152,17 +152,18 @@ jobs:
           - binaries-aix_ppc64
           - binaries-darwin_amd64
           - binaries-darwin_arm64
+          - binaries-freebsd_amd64
           - binaries-linux_amd64
           - binaries-linux_arm64
           - binaries-linux_ppc64le
           - binaries-linux_s390x
+          - binaries-solaris_amd64
           - binaries-windows_386
           - binaries-windows_amd64
           - binaries-windows_arm64
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
-      WITH_OPAMP_SUPERVISOR: ${{ contains(fromJSON('["binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-windows_arm64"]'), matrix.SYS_BINARIES) }}
 
   latest-dockerd-test:
     # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.

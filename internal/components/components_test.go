@@ -26,6 +26,7 @@ import (
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []string{
 		"ack",
+		"aws_iam_db_auth",
 		"basicauth",
 		"bearertokenauth",
 		"config_source_telemetry",
@@ -65,6 +66,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cloud_foundry",
 		"collectd",
 		"discovery",
+		"dns_check",
 		"docker_stats",
 		"elasticsearch",
 		"file_log",
@@ -113,7 +115,7 @@ func TestDefaultComponents(t *testing.T) {
 		"solace",
 		"splunk_enterprise",
 		"splunk_hec",
-		"sqlquery",
+		"sql_query",
 		"sqlserver",
 		"ssh_check",
 		"statsd",
@@ -151,6 +153,7 @@ func TestDefaultComponents(t *testing.T) {
 		"mongodbatlas":          "mongodb_atlas",
 		"prometheusremotewrite": "prometheus_remote_write",
 		"splunkenterprise":      "splunk_enterprise",
+		"sqlquery":              "sql_query",
 		"sshcheck":              "ssh_check",
 		"tcpcheck":              "tcp_check",
 		"tcplog":                "tcp_log",

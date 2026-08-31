@@ -301,7 +301,6 @@ func (se *stdoutExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics
 						}
 					}
 				}
-
 			}
 		}
 	}

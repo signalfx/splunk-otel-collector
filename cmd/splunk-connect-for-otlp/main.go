@@ -52,14 +52,14 @@ func run() error {
 			fmt.Println(string(debug.Stack()))
 		}
 	}()
-	config, err := ReadFromStdin()
-	if err != nil {
-		return err
+	config, errCfg := ReadFromStdin()
+	if errCfg != nil {
+		return errCfg
 	}
 
-	logger, err := createLogger()
-	if err != nil {
-		return err
+	logger, errLogger := createLogger()
+	if errLogger != nil {
+		return errLogger
 	}
 	logger.Info("Starting OTLP input")
 
@@ -71,7 +71,7 @@ func run() error {
 	}
 
 	xmlCfg := config.Extract()
-	if err = xmlCfg.Validate(); err != nil {
+	if err := xmlCfg.Validate(); err != nil {
 		return fmt.Errorf("cannot start TA due to invalid configuration: %w", err)
 	}
 	stdoutCfg := stdoutexporter.NewFactory().CreateDefaultConfig().(*stdoutexporter.Config)
@@ -117,10 +117,10 @@ func run() error {
 		TelemetrySettings: settings,
 		ID:                component.MustNewID("otlp"),
 	}
-	if _, err = rf.CreateLogs(ctx, otlpSettings, cfg, le); err != nil {
+	if _, err := rf.CreateLogs(ctx, otlpSettings, cfg, le); err != nil {
 		return err
 	}
-	if _, err = rf.CreateMetrics(ctx, otlpSettings, cfg, me); err != nil {
+	if _, err := rf.CreateMetrics(ctx, otlpSettings, cfg, me); err != nil {
 		return err
 	}
 	r, err := rf.CreateTraces(ctx, otlpSettings, cfg, tracesExporter)

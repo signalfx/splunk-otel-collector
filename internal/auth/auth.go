@@ -17,7 +17,6 @@ package auth
 import (
 	"context"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -34,7 +33,7 @@ type HecTokenConfig = splunkauthextension.HecTokenConfig
 
 func readTokens(f feed) []HecTokenConfig {
 	tokens := make([]HecTokenConfig, len(f.Entry))
-	for i, _ := range f.Entry {
+	for i := range f.Entry {
 		var token configopaque.String
 		var defaultIndex string
 		var indexes []string
@@ -59,7 +58,7 @@ func readTokens(f feed) []HecTokenConfig {
 }
 
 func New(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/servicesNS/-/-/data/inputs/http", serverURI), http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, serverURI+"/servicesNS/-/-/data/inputs/http", http.NoBody)
 	if err != nil {
 		return nil, err
 	}

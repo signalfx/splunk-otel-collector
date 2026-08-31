@@ -141,9 +141,9 @@ func logsTest(t *testing.T, test testCfg) {
 
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending log data")
-	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	expectedJSON, err := os.ReadFile(test.expectedResultFilePath)
 	require.NoError(t, err)
-	require.Equal(t, out, string(expectedJson))
+	require.JSONEq(t, out, string(expectedJSON))
 }
 
 func metricsTest(t *testing.T, test testCfg) {
@@ -165,9 +165,9 @@ func metricsTest(t *testing.T, test testCfg) {
 	})
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending metric data")
-	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	expectedJSON, err := os.ReadFile(test.expectedResultFilePath)
 	require.NoError(t, err)
-	require.Equal(t, out, string(expectedJson))
+	require.JSONEq(t, out, string(expectedJSON))
 }
 
 func tracesTest(t *testing.T, test testCfg) {
@@ -189,9 +189,9 @@ func tracesTest(t *testing.T, test testCfg) {
 	})
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending trace data")
-	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	expectedJSON, err := os.ReadFile(test.expectedResultFilePath)
 	require.NoError(t, err)
-	require.Equal(t, out, string(expectedJson))
+	require.JSONEq(t, out, string(expectedJSON))
 }
 
 func TestSplunkHecExporter(t *testing.T) {
@@ -384,13 +384,13 @@ func getConfigVariable(configPath, key string) (string, error) {
 	// Read YAML file
 	fileData, err := os.ReadFile(configPath)
 	if err != nil {
-		return "", fmt.Errorf("error reading file: %v", err)
+		return "", fmt.Errorf("error reading file: %w", err)
 	}
 
 	var config IntegrationTestsConfig
 	err = yaml.Unmarshal(fileData, &config)
 	if err != nil {
-		return "", fmt.Errorf("error decoding YAML: %v", err)
+		return "", fmt.Errorf("error decoding YAML: %w", err)
 	}
 
 	switch key {

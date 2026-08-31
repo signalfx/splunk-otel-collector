@@ -20,16 +20,18 @@ import (
 	"net"
 	"net/http"
 	"testing"
+	"time"
 )
 
 //go:embed testdata/response.xml
 var response []byte
 
-func SetupAuth(listener net.Listener, t *testing.T) {
+func SetupAuth(t *testing.T, listener net.Listener) {
 	server := http.Server{
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			_, _ = w.Write(response)
 		}),
+		ReadHeaderTimeout: 1 * time.Second,
 	}
 	t.Cleanup(func() {
 		_ = listener.Close()

@@ -6,7 +6,7 @@ package main
 import (
 	"bufio"
 	"encoding/xml"
-	"fmt"
+	"errors"
 	"os"
 	"strconv"
 	"strings"
@@ -102,7 +102,7 @@ func (x XMLInput) Extract() InputConfig {
 
 func (c InputConfig) Validate() error {
 	if c.EnableSSL && (c.ServerCert == "" || c.ServerKey == "") {
-		return fmt.Errorf("enableSSL requires both serverCert and serverKey to be set")
+		return errors.New("enableSSL requires both serverCert and serverKey to be set")
 	}
 	return nil
 }
@@ -120,12 +120,12 @@ func convertBool(value string) bool {
 
 func ReadFromStdin() (XMLInput, error) {
 	scanner := bufio.NewScanner(os.Stdin)
-	text := ""
+	b := strings.Builder{}
 	for scanner.Scan() {
-		text += scanner.Text()
+		b.WriteString(scanner.Text())
 	}
 
 	var config XMLInput
-	err := xml.Unmarshal([]byte(text), &config)
+	err := xml.Unmarshal([]byte(b.String()), &config)
 	return config, err
 }

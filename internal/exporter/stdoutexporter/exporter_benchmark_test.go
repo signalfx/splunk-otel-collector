@@ -73,19 +73,18 @@ func BenchmarkStdoutExporter(b *testing.B) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		b.Run(tt.name, func(b *testing.B) {
 			var consume func(context.Context) error
 			switch tt.telType {
 			case TelemetryTypeMetrics:
 				metrics := LoadMetricsFromFile(b, tt.inputFilePath)
-				consume = setupMetricsExporter(b, ctx, settings, cfg, metrics)
+				consume = setupMetricsExporter(ctx, b, settings, cfg, metrics)
 			case TelemetryTypeTraces:
 				traces := LoadTracesFromFile(b, tt.inputFilePath)
-				consume = setupTracesExporter(b, ctx, settings, cfg, traces)
+				consume = setupTracesExporter(ctx, b, settings, cfg, traces)
 			case TelemetryTypeLogs:
 				logs := LoadLogsFromFile(b, tt.inputFilePath)
-				consume = setupLogsExporter(b, ctx, settings, cfg, logs)
+				consume = setupLogsExporter(ctx, b, settings, cfg, logs)
 			default:
 				b.Fatalf("unknown telemetry type: %v", tt.telType)
 			}
@@ -101,7 +100,7 @@ func BenchmarkStdoutExporter(b *testing.B) {
 	}
 }
 
-func setupMetricsExporter(b *testing.B, ctx context.Context, settings exporter.Settings, cfg *Config, metrics pmetric.Metrics) func(context.Context) error {
+func setupMetricsExporter(ctx context.Context, b *testing.B, settings exporter.Settings, cfg *Config, metrics pmetric.Metrics) func(context.Context) error {
 	b.Helper()
 	exp, err := newMetricsExporter(ctx, settings, cfg)
 	if err != nil {
@@ -115,7 +114,7 @@ func setupMetricsExporter(b *testing.B, ctx context.Context, settings exporter.S
 	}
 }
 
-func setupTracesExporter(b *testing.B, ctx context.Context, settings exporter.Settings, cfg *Config, traces ptrace.Traces) func(context.Context) error {
+func setupTracesExporter(ctx context.Context, b *testing.B, settings exporter.Settings, cfg *Config, traces ptrace.Traces) func(context.Context) error {
 	b.Helper()
 	exp, err := newTracesExporter(ctx, settings, cfg)
 	if err != nil {
@@ -129,7 +128,7 @@ func setupTracesExporter(b *testing.B, ctx context.Context, settings exporter.Se
 	}
 }
 
-func setupLogsExporter(b *testing.B, ctx context.Context, settings exporter.Settings, cfg *Config, logs plog.Logs) func(context.Context) error {
+func setupLogsExporter(ctx context.Context, b *testing.B, settings exporter.Settings, cfg *Config, logs plog.Logs) func(context.Context) error {
 	b.Helper()
 	exp, err := newLogsExporter(ctx, settings, cfg)
 	if err != nil {

@@ -53,7 +53,7 @@ func TestRunReturnsErrorForInvalidInput(t *testing.T) {
 func TestRunStartsAndStopsOnSignal(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	authtest.SetupAuth(listener, t)
+	authtest.SetupAuth(t, listener)
 
 	restoreStdin := WriteToStdin(t, fmt.Sprintf(
 		`<input>
@@ -91,7 +91,7 @@ func TestRunStartsAndStopsOnSignal(t *testing.T) {
 func TestExpectedHEC(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	authtest.SetupAuth(listener, t)
+	authtest.SetupAuth(t, listener)
 	serverCert := filepath.Join("testdata", "cert.pem")
 	serverKey := filepath.Join("testdata", "key.pem")
 
@@ -140,7 +140,6 @@ func TestExpectedHEC(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		for _, ssl := range []bool{true, false} {
 			name := tt.name
 			if ssl {
@@ -170,7 +169,6 @@ func TestExpectedHEC(t *testing.T) {
 				runDone := make(chan error, 1)
 				go func() {
 					err := run()
-					require.NoError(t, err)
 					runDone <- err
 				}()
 				// wait until the receiver is up.
@@ -235,7 +233,7 @@ func PostOTLP(t *testing.T, port int, path string, body []byte, ssl bool) {
 			client = &http.Client{
 				Transport: &http.Transport{
 					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+						InsecureSkipVerify: true, //nolint:gosec // disable G402
 					},
 				},
 			}

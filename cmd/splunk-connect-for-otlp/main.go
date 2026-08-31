@@ -38,7 +38,6 @@ func main() {
 		case "--scheme":
 			fmt.Println(Scheme)
 		case "--validate-arguments":
-
 		}
 	} else if err := run(); err != nil {
 		log.Fatal(err)
@@ -144,16 +143,16 @@ func run() error {
 	}
 	h.Start()
 
-	if err = le.Start(ctx, h); err != nil {
+	if err := le.Start(ctx, h); err != nil {
 		return err
 	}
-	if err = me.Start(ctx, h); err != nil {
+	if err := me.Start(ctx, h); err != nil {
 		return err
 	}
-	if err = tracesExporter.Start(ctx, h); err != nil {
+	if err := tracesExporter.Start(ctx, h); err != nil {
 		return err
 	}
-	if err = r.Start(ctx, h); err != nil {
+	if err := r.Start(ctx, h); err != nil {
 		return err
 	}
 

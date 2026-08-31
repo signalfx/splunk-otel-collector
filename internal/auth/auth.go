@@ -34,11 +34,11 @@ type HecTokenConfig = splunkauthextension.HecTokenConfig
 
 func readTokens(f feed) []HecTokenConfig {
 	tokens := make([]HecTokenConfig, len(f.Entry))
-	for i, entry := range f.Entry {
+	for i, _ := range f.Entry {
 		var token configopaque.String
 		var defaultIndex string
 		var indexes []string
-		for _, key := range entry.Content.Dict.Key {
+		for _, key := range f.Entry[i].Content.Dict.Key {
 			if key.Name == "token" {
 				token = configopaque.String(key.Text)
 			}
@@ -59,11 +59,11 @@ func readTokens(f feed) []HecTokenConfig {
 }
 
 func New(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/servicesNS/-/-/data/inputs/http", serverURI), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/servicesNS/-/-/data/inputs/http", serverURI), http.NoBody)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", fmt.Sprintf("Splunk %s", sessionKey))
+	req.Header.Add("Authorization", "Splunk "+sessionKey)
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {

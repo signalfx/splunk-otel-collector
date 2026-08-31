@@ -84,9 +84,8 @@ func (se *stdoutExporter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 					if logIndexStr != "" {
 						if _, ok := mapIndexes[logIndexStr]; !ok {
 							return fmt.Errorf("index %q is not allowed", logIndexStr)
-						} else {
-							continue
 						}
+						continue
 					}
 				}
 				if resourceIndex, ok := r.Attributes().Get(defaultIndexLabel); ok {
@@ -94,9 +93,8 @@ func (se *stdoutExporter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 					if resourceIndexStr != "" {
 						if _, ok := mapIndexes[resourceIndexStr]; !ok {
 							return fmt.Errorf("index %q is not allowed", resourceIndexStr)
-						} else {
-							continue
 						}
+						continue
 					}
 				}
 			}
@@ -149,9 +147,8 @@ func (se *stdoutExporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) e
 					if spanIndexStr != "" {
 						if _, ok := allowedIndices[spanIndexStr]; !ok {
 							return fmt.Errorf("index %q is not allowed", spanIndexStr)
-						} else {
-							continue
 						}
+						continue
 					}
 				}
 				if resourceIndex, ok := r.Attributes().Get(defaultIndexLabel); ok {
@@ -159,9 +156,8 @@ func (se *stdoutExporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) e
 					if resourceIndexStr != "" {
 						if _, ok := allowedIndices[resourceIndexStr]; !ok {
 							return fmt.Errorf("index %q is not allowed", resourceIndexStr)
-						} else {
-							continue
 						}
+						continue
 					}
 				}
 			}
@@ -216,9 +212,8 @@ func (se *stdoutExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics
 							if metricIndexStr != "" {
 								if _, ok := allowedIndices[metricIndexStr]; !ok {
 									return fmt.Errorf("index %q is not allowed", metricIndexStr)
-								} else {
-									continue
 								}
+								continue
 							}
 						}
 					}
@@ -280,9 +275,8 @@ func (se *stdoutExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics
 					if resourceIndexStr != "" {
 						if _, ok := allowedIndices[resourceIndexStr]; !ok {
 							return fmt.Errorf("index %q is not allowed", resourceIndexStr)
-						} else {
-							continue
 						}
+						continue
 					}
 				}
 			}

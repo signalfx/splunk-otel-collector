@@ -1374,7 +1374,7 @@ verify-signed-metadata:
   before_script:
     - *get-artifactory-stage
   script:
-    - RPM_REPO_STAGE="$STAGE" ./packaging/tests/verify-rpm-repository-install.sh "$RPM_TEST_CASE" "$ARCH"
+    - RPM_REPO_GPGCHECK=1 RPM_REPO_STAGE="$STAGE" ./packaging/tests/verify-rpm-repository-install.sh "$RPM_TEST_CASE" "$ARCH"
 
 verify-rpm-candidate-install:
   extends: .verify-rpm-repository-install

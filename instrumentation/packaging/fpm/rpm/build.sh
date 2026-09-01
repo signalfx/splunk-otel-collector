@@ -51,6 +51,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --url "$PKG_URL" \
     --architecture "$ARCH" \
     --rpm-rpmbuild-define "_build_id_links none" \
+    --rpm-digest sha256 \
     --rpm-summary "$PKG_DESCRIPTION" \
     --rpm-use-file-permissions \
     --before-install "$PREINSTALL_PATH" \
@@ -60,4 +61,6 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --config-files "$CONFIG_DIR_INSTALL_PATH" \
     "$buildroot/"=/
 
-rpm -qpli "${OUTPUT_DIR}/${PKG_NAME}-${VERSION}-1.${ARCH}.rpm"
+rpm_path="${OUTPUT_DIR}/${PKG_NAME}-${VERSION}-1.${ARCH}.rpm"
+rpm -qpli "$rpm_path"
+"$REPO_DIR/packaging/fpm/rpm/verify-digests.sh" "$rpm_path"

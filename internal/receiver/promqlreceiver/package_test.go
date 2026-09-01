@@ -15,24 +15,11 @@
 package promqlreceiver
 
 import (
-	"errors"
+	"testing"
 
-	"go.opentelemetry.io/collector/config/confighttp"
-	"go.opentelemetry.io/collector/scraper/scraperhelper"
+	"go.uber.org/goleak"
 )
 
-type Config struct {
-	Queries          []string                       `mapstructure:"queries"`
-	ClientConfig     confighttp.ClientConfig        `mapstructure:",squash"`
-	ControllerConfig scraperhelper.ControllerConfig `mapstructure:",squash"`
-}
-
-func (c *Config) Validate() error {
-	if len(c.Queries) == 0 {
-		return errors.New("queries cannot be empty")
-	}
-	if c.ClientConfig.Endpoint == "" {
-		return errors.New("endpoint is required")
-	}
-	return nil
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
 }

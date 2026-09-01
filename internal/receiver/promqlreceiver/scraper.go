@@ -1,3 +1,17 @@
+// Copyright Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package promqlreceiver
 
 import (
@@ -13,7 +27,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/promql"
 	"github.com/prometheus/prometheus/promql/parser"
-	api "github.com/prometheus/prometheus/web/api/v1"
+	"github.com/prometheus/prometheus/util/stats"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -25,6 +39,21 @@ type scraper struct {
 	httpClient *http.Client
 	cfg        *Config
 	settings   receiver.Settings
+}
+
+type response struct {
+	Status    string          `json:"status"`
+	Data      json.RawMessage `json:"data,omitempty"`
+	ErrorType string          `json:"errorType,omitempty"`
+	Error     string          `json:"error,omitempty"`
+	Warnings  []string        `json:"warnings,omitempty"`
+	Infos     []string        `json:"infos,omitempty"`
+}
+
+type queryData struct {
+	Stats      stats.QueryStats `json:"stats,omitempty"`
+	ResultType parser.ValueType `json:"resultType"`
+	Result     json.RawMessage  `json:"result"`
 }
 
 func (s *scraper) Start(ctx context.Context, host component.Host) error {
@@ -56,7 +85,7 @@ func (s *scraper) ScrapeMetrics(ctx context.Context) (pmetric.Metrics, error) {
 	return m, errors.Join(errs...)
 }
 
-func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q string, m pmetric.Metrics) error {
+func (s *scraper) runOneQuery(_ context.Context, endpointURL *url.URL, q string, m pmetric.Metrics) error {
 	queryString := url.Values{}
 	queryString.Add("query", q)
 	queryURL := &url.URL{
@@ -78,23 +107,34 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q strin
 		return err
 	}
 	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
+	var b []byte
+	if b, err = io.ReadAll(resp.Body); err != nil {
 		return err
 	}
-	var promResponse api.Response
-	if err = json.Unmarshal(b, &promResponse); err != nil {
+	var promResponse response
+	if err := json.Unmarshal(b, &promResponse); err != nil {
 		return err
 	}
 	if promResponse.Status != "success" {
 		return fmt.Errorf("response status %q: %s", promResponse.Status, promResponse.Error)
 	}
 
-	qData := promResponse.Data.(api.QueryData)
+	var qData queryData
+	if err := json.Unmarshal(promResponse.Data, &qData); err != nil {
+		return err
+	}
+
 	switch qData.ResultType {
 	case parser.ValueTypeVector:
-		rm := m.ResourceMetrics().AppendEmpty()
-		convertVector(qData.Result.(promql.Vector), rm.ScopeMetrics().AppendEmpty())
+		var v promql.Vector
+		if err := json.Unmarshal(qData.Result, &v); err != nil {
+			return err
+		}
+		if sm, ok := convertVector(v); ok {
+			rm := m.ResourceMetrics().AppendEmpty()
+			sm.MoveTo(rm.ScopeMetrics().AppendEmpty())
+		}
+
 	default:
 		panic("unsupported response type " + qData.ResultType)
 	}
@@ -102,7 +142,7 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q strin
 	return nil
 }
 
-func convertVector(vector promql.Vector, scopeMetric pmetric.ScopeMetrics) {
+func convertVector(vector promql.Vector) (pmetric.ScopeMetrics, bool) {
 	mfMap := make(map[string]*pmetric.Metric)
 
 	for _, sample := range vector {
@@ -137,7 +177,7 @@ func convertVector(vector promql.Vector, scopeMetric pmetric.ScopeMetrics) {
 			}
 			dp := metric.Gauge().DataPoints().AppendEmpty()
 			dp.SetDoubleValue(sample.F)
-			dp.SetTimestamp(pcommon.Timestamp(sample.T))
+			dp.SetTimestamp(pcommon.Timestamp(sample.T)) //nolint:gosec // disable G115
 			attrs.CopyTo(dp.Attributes())
 		case string(model.MetricTypeCounter):
 			if metric.Type() == pmetric.MetricTypeEmpty {
@@ -145,14 +185,14 @@ func convertVector(vector promql.Vector, scopeMetric pmetric.ScopeMetrics) {
 			}
 			dp := metric.Sum().DataPoints().AppendEmpty()
 			dp.SetDoubleValue(sample.F)
-			dp.SetTimestamp(pcommon.Timestamp(sample.T))
+			dp.SetTimestamp(pcommon.Timestamp(sample.T)) //nolint:gosec // disable G115
 			attrs.CopyTo(dp.Attributes())
 		case string(model.MetricTypeHistogram), string(model.MetricTypeGaugeHistogram):
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptyHistogram()
 			}
 			dp := metric.Histogram().DataPoints().AppendEmpty()
-			dp.SetTimestamp(pcommon.Timestamp(sample.T))
+			dp.SetTimestamp(pcommon.Timestamp(sample.T)) //nolint:gosec // disable G115
 			dp.SetSum(sample.H.Sum)
 			dp.SetCount(uint64(sample.H.Count))
 			iter := sample.H.AllBucketIterator()
@@ -164,7 +204,15 @@ func convertVector(vector promql.Vector, scopeMetric pmetric.ScopeMetrics) {
 		}
 	}
 
+	if len(mfMap) == 0 {
+		return pmetric.NewScopeMetrics(), false
+	}
+
+	scopeMetric := pmetric.NewScopeMetrics()
+
 	for _, m := range mfMap {
 		m.MoveTo(scopeMetric.Metrics().AppendEmpty())
 	}
+
+	return scopeMetric, true
 }

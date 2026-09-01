@@ -3,7 +3,6 @@ module github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingext
 go 1.26.5
 
 require (
-	github.com/goccy/go-json v0.10.6
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.156.0
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.63.0

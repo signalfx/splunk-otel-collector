@@ -105,7 +105,7 @@ else
     fi
 
     echo "Installing previous RPM packages at version-release $target_evr for $arch"
-    dnf -y --cacheonly --repo "$repo_id" install \
+    dnf -y --repo "$repo_id" install \
         "${packages[0]}-${target_evr}.${arch}" \
         "${packages[1]}-${target_evr}.${arch}"
 fi

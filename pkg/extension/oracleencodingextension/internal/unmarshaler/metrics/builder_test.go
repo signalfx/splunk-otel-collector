@@ -35,8 +35,8 @@ func addJSONRecord(t *testing.T, b *metricsBuilder, input string) {
 func TestOCIMetricRecord_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
-		record  ociMetricRecord
 		wantErr string
+		record  ociMetricRecord
 	}{
 		{
 			name:    "missing name",

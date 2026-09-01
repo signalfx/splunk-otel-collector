@@ -469,13 +469,15 @@ func TestParseJSONArrayUsesIndexAttribute(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ms := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	require.Equal(t, 2, ms.Len())
+	// Both array elements share the same leaf name, so they merge into a
+	// single Metric with one datapoint per element, per the general OTel
+	// recommendation to reuse a Metric across identical series.
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.queue", metric.Name())
+	require.Equal(t, 2, metric.Sum().DataPoints().Len())
 	indexes := map[string]int64{}
-	for i := 0; i < ms.Len(); i++ {
-		metric := ms.At(i)
-		assert.Equal(t, "interfaces.interface.state.counters.queue", metric.Name())
-		dp := metric.Sum().DataPoints().At(0)
+	for i := 0; i < metric.Sum().DataPoints().Len(); i++ {
+		dp := metric.Sum().DataPoints().At(i)
 		idx, ok := dp.Attributes().Get(indexAttr)
 		require.True(t, ok, "array element must carry an index attribute")
 		indexes[idx.Str()] = dp.IntValue()
@@ -514,14 +516,15 @@ func TestParseLeafListUsesIndexAttribute(t *testing.T) {
 		}}))
 	require.NoError(t, err)
 
-	ms := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	require.Equal(t, 2, ms.Len())
+	// Both leaf-list elements share the same leaf name, so they merge into a
+	// single Metric with one datapoint per element.
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	require.Equal(t, 2, metric.Sum().DataPoints().Len())
 	byIndex := map[string]int64{}
-	for i := 0; i < ms.Len(); i++ {
-		metric := ms.At(i)
-		assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
-		require.Equal(t, pmetric.MetricTypeSum, metric.Type())
-		dp := metric.Sum().DataPoints().At(0)
+	for i := 0; i < metric.Sum().DataPoints().Len(); i++ {
+		dp := metric.Sum().DataPoints().At(i)
 		assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
 		idx, ok := dp.Attributes().Get(indexAttr)
 		require.True(t, ok, "leaf-list element must carry an index attribute")
@@ -544,13 +547,14 @@ func TestParseLeafListOfStringsEmitsInfoMetrics(t *testing.T) {
 		}}))
 	require.NoError(t, err)
 
-	ms := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	require.Equal(t, 2, ms.Len())
+	// Both leaf-list elements share the same _info metric name, so they merge
+	// into a single Metric with one datapoint per element.
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
+	require.Equal(t, 2, metric.Gauge().DataPoints().Len())
 	values := map[string]string{}
-	for i := 0; i < ms.Len(); i++ {
-		metric := ms.At(i)
-		assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
-		dp := metric.Gauge().DataPoints().At(0)
+	for i := 0; i < metric.Gauge().DataPoints().Len(); i++ {
+		dp := metric.Gauge().DataPoints().At(i)
 		idx, _ := dp.Attributes().Get(indexAttr)
 		val, ok := dp.Attributes().Get(infoValueAttr)
 		require.True(t, ok)
@@ -747,4 +751,63 @@ func TestPathElemNames(t *testing.T) {
 	assert.Equal(t, []string{"interfaces", "interface", "state"},
 		pathElemNames("/interfaces/interface[name=eth0]/state"))
 	assert.Nil(t, pathElemNames("/"))
+}
+
+// updateResponseFor builds a SubscribeResponse with one update for the given
+// leaf under /interfaces/interface[name=<iface>]/state/counters/<leaf>. Used
+// where updateResponse's hardcoded "eth0" interface isn't enough, e.g. to
+// exercise two leaves merging into one metric across different interfaces.
+func updateResponseFor(iface, leaf string, val *gnmipb.TypedValue) *gnmipb.Update {
+	return &gnmipb.Update{
+		Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
+			{Name: "interfaces"},
+			{Name: "interface", Key: map[string]string{"name": iface}},
+			{Name: "state"},
+			{Name: "counters"},
+			{Name: leaf},
+		}},
+		Val: val,
+	}
+}
+
+func multiUpdateResponse(updates ...*gnmipb.Update) *gnmipb.SubscribeResponse {
+	return &gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{
+			Update: &gnmipb.Notification{
+				Timestamp: time.Unix(0, 1234).UnixNano(),
+				Update:    updates,
+			},
+		},
+	}
+}
+
+// TestParseMergesSameLeafAcrossInterfacesIntoOneMetric covers review comment
+// #1 on PR #7918
+// (https://github.com/signalfx/splunk-otel-collector/pull/7918#discussion_r3769566400):
+// the same leaf reported for two different interfaces in one notification
+// (e.g. in-octets for eth0 and eth1) has the same path-derived name in both
+// cases, and must merge into a single pmetric.Metric with one datapoint per
+// interface, rather than two separate same-named Metric objects. This is the
+// general OpenTelemetry recommendation to reuse a Metric across identical
+// series.
+func TestParseMergesSameLeafAcrossInterfacesIntoOneMetric(t *testing.T) {
+	m, err := testParser().parse(multiUpdateResponse(
+		updateResponseFor("eth0", "in-octets", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 10}}),
+		updateResponseFor("eth1", "in-octets", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 20}}),
+	))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	require.Equal(t, 2, metric.Sum().DataPoints().Len())
+
+	byInterface := map[string]int64{}
+	for i := 0; i < metric.Sum().DataPoints().Len(); i++ {
+		dp := metric.Sum().DataPoints().At(i)
+		name, ok := dp.Attributes().Get("name")
+		require.True(t, ok)
+		byInterface[name.Str()] = dp.IntValue()
+	}
+	assert.Equal(t, map[string]int64{"eth0": 10, "eth1": 20}, byInterface)
 }

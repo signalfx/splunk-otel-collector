@@ -23,8 +23,10 @@ disable_eof: true
 
 fixed: {
   # Integer counters under a keyed list element. Exercises: prefix/path
-  # rejoining, uint64 -> int datapoint (no float rounding), and list keys
-  # surfacing as datapoint attributes rather than as part of the metric name.
+  # rejoining, uint64 -> int datapoint (no float rounding), list keys
+  # surfacing as datapoint attributes rather than as part of the metric name,
+  # and a second, more deeply nested keyed list element (subinterface) whose
+  # key must surface as its own attribute alongside the interface's.
   responses: {
     update: {
       timestamp: 1700000000000000000
@@ -32,22 +34,42 @@ fixed: {
         origin: "openconfig"
         elem: { name: "interfaces" }
         elem: { name: "interface" key: { key: "name" value: "eth0" } }
-        elem: { name: "state" }
-        elem: { name: "counters" }
       }
       update: {
-        path: { elem: { name: "in-octets" } }
+        path: {
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "in-octets" }
+        }
         # Larger than 2^53, so a value routed through a float64 would lose
         # precision. This is what pins counter64 handling.
         val: { uint_val: 9007199254740993 }
       }
       update: {
-        path: { elem: { name: "out-octets" } }
+        path: {
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "out-octets" }
+        }
         val: { uint_val: 54321 }
       }
       update: {
-        path: { elem: { name: "in-errors" } }
+        path: {
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "in-errors" }
+        }
         val: { uint_val: 7 }
+      }
+      update: {
+        path: {
+          elem: { name: "subinterfaces" }
+          elem: { name: "subinterface" key: { key: "index" value: "0" } }
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "in-octets" }
+        }
+        val: { uint_val: 222 }
       }
     }
   }

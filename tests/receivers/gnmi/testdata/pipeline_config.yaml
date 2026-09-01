@@ -16,6 +16,13 @@ receivers:
               in-errors:
                 type: sum
                 unit: "{error}"
+          - path: /interfaces/interface/subinterfaces/subinterface/state/counters
+            origin: openconfig
+            mode: sample
+            sample_interval: 1s
+            default:
+              type: sum
+              unit: By
 
 exporters:
   otlp_grpc:

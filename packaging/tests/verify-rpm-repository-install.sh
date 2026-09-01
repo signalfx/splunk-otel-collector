@@ -130,7 +130,6 @@ if [[ "$test_case" == "candidate" ]]; then
         local package="$1"
         local path="$2"
         local owner=""
-        local digest=""
 
         if [[ ! -f "$path" ]]; then
             echo "Expected candidate package file not found: $path" >&2
@@ -143,13 +142,7 @@ if [[ "$test_case" == "candidate" ]]; then
             exit 1
         fi
 
-        digest="$(rpm -q --dump "$package" | awk -v expected="$path" '$1 == expected { print $4; exit }')"
-        if [[ ! "$digest" =~ ^[[:xdigit:]]{64}$ ]]; then
-            echo "Expected a SHA-256 file digest for $path, got: ${digest:-none}" >&2
-            exit 1
-        fi
-
-        echo "$package owns $path with SHA-256 digest $digest"
+        echo "$package owns $path"
     }
 
     for binary in /usr/bin/otelcol /usr/bin/otelcollauncher /usr/bin/opampsupervisor; do

@@ -47,27 +47,6 @@ if [[ "$gpgcheck" != "0" && "$gpgcheck" != "1" ]]; then
     exit 1
 fi
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-repo_dir="$(cd "$script_dir/../.." && pwd)"
-
-candidate_evr="${CANDIDATE_RPM_EVR:-}"
-if [[ -z "$candidate_evr" ]]; then
-    # Match the version selection and RPM normalization performed by both builders.
-    candidate_version="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-    if [[ -z "$candidate_version" ]]; then
-        commit_tag="$(git -C "$repo_dir" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true)"
-        if [[ -n "$commit_tag" ]]; then
-            candidate_version="$commit_tag"
-        else
-            latest_tag="$(git -C "$repo_dir" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true)"
-            candidate_version="${latest_tag:-0.0.1}-post"
-        fi
-    fi
-    candidate_version="${candidate_version/'-'/'_'}"
-    candidate_version="${candidate_version#v}"
-    candidate_evr="${candidate_version}-1"
-fi
-
 cat > "/etc/yum.repos.d/splunk-otel-collector-${repo_stage}.repo" <<EOF
 [$repo_id]
 name=Splunk OpenTelemetry Collector ${repo_stage^} Repository
@@ -78,21 +57,38 @@ gpgkey=$gpg_key_url
 enabled=1
 EOF
 
-dnf -y --refresh --repo "$repo_id" makecache
+if [[ "$test_case" == "candidate" ]]; then
+    echo "Installing the latest RPM packages for $arch"
+    dnf -y --refresh --repo "$repo_id" install "${packages[@]}"
+    target_evr="$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' "${packages[0]}")"
+else
+    dnf -y --refresh --repo "$repo_id" makecache
 
-query_versions() {
-    dnf -q repoquery --repo "$repo_id" --arch "$arch" \
-        --qf '%{version}-%{release}' "$1" | sort -Vru
-}
+    query_versions() {
+        dnf -q --cacheonly repoquery --repo "$repo_id" --arch "$arch" --latest-limit 2 \
+            --qf '%{version}-%{release}' "$1" | sort -u
+    }
 
-target_evr="$candidate_evr"
-if [[ "$test_case" == "previous" ]]; then
-    mapfile -t collector_versions < <(query_versions "${packages[0]}")
-    mapfile -t instrumentation_versions < <(query_versions "${packages[1]}")
+    query_latest() {
+        dnf -q --cacheonly repoquery --repo "$repo_id" --arch "$arch" --latest-limit 1 \
+            --qf '%{version}-%{release}' "$1"
+    }
+
+    collector_latest="$(query_latest "${packages[0]}")"
+    instrumentation_latest="$(query_latest "${packages[1]}")"
+    if [[ -z "$collector_latest" || "$collector_latest" != "$instrumentation_latest" ]]; then
+        echo "The repository does not have one latest version shared by both RPM packages." >&2
+        exit 1
+    fi
+
+    collector_versions_output="$(query_versions "${packages[0]}")"
+    instrumentation_versions_output="$(query_versions "${packages[1]}")"
+    mapfile -t collector_versions < <(printf '%s' "$collector_versions_output")
+    mapfile -t instrumentation_versions < <(printf '%s' "$instrumentation_versions_output")
 
     target_evr=""
     for collector_version in "${collector_versions[@]}"; do
-        if [[ "$collector_version" == "$candidate_evr" ]]; then
+        if [[ "$collector_version" == "$collector_latest" ]]; then
             continue
         fi
         for instrumentation_version in "${instrumentation_versions[@]}"; do
@@ -104,15 +100,15 @@ if [[ "$test_case" == "previous" ]]; then
     done
 
     if [[ -z "$target_evr" ]]; then
-        echo "No previous version shared by both RPM packages was found in the test repository." >&2
+        echo "No previous version shared by both RPM packages was found in the repository." >&2
         exit 1
     fi
-fi
 
-echo "Installing $test_case RPM packages at version-release $target_evr for $arch"
-dnf -y --repo "$repo_id" install \
-    "${packages[0]}-${target_evr}.${arch}" \
-    "${packages[1]}-${target_evr}.${arch}"
+    echo "Installing previous RPM packages at version-release $target_evr for $arch"
+    dnf -y --repo "$repo_id" install \
+        "${packages[0]}-${target_evr}.${arch}" \
+        "${packages[1]}-${target_evr}.${arch}"
+fi
 
 for package in "${packages[@]}"; do
     installed_evr="$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' "$package")"

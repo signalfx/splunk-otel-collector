@@ -22,7 +22,6 @@ import (
 	"io"
 	"testing"
 
-	"github.com/pierrec/lz4/v4"
 	"github.com/stretchr/testify/require"
 )
 
@@ -177,14 +176,6 @@ func gunzipData(tb testing.TB, data []byte) []byte {
 	decompressed, err := io.ReadAll(reader)
 	require.NoError(tb, err)
 	require.NoError(tb, reader.Close())
-	return decompressed
-}
-
-func unlz4Data(tb testing.TB, data []byte) []byte {
-	tb.Helper()
-
-	decompressed, err := io.ReadAll(lz4.NewReader(bytes.NewReader(data)))
-	require.NoError(tb, err)
 	return decompressed
 }
 

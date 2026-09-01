@@ -20,8 +20,6 @@ import (
 	"errors"
 	"io"
 	"sync"
-
-	"github.com/pierrec/lz4/v4"
 )
 
 // ResetWriteCloser is an io.WriteCloser that can be reset to write to another destination.
@@ -52,11 +50,6 @@ func NewGZIPWriterPool() WriterPool {
 		w, _ := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
 		return w
 	})
-}
-
-// NewLZ4WriterPool returns a WriterPool that compresses data with LZ4.
-func NewLZ4WriterPool() WriterPool {
-	return NewWriterPool(func() *lz4.Writer { return lz4.NewWriter(io.Discard) })
 }
 
 // NewWriterPool returns a WriterPool that creates pooled writers with factory.

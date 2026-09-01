@@ -30,10 +30,6 @@ func TestGZIPWriterPool(t *testing.T) {
 	testWriterPool(t, NewGZIPWriterPool, gunzipData)
 }
 
-func TestLZ4WriterPool(t *testing.T) {
-	testWriterPool(t, NewLZ4WriterPool, unlz4Data)
-}
-
 func testWriterPool(t *testing.T, newPool func() WriterPool, decompress func(testing.TB, []byte) []byte) {
 	t.Helper()
 	t.Parallel()
@@ -119,10 +115,6 @@ func BenchmarkGZIPWriterPool(b *testing.B) {
 	benchmarkWriterPool(b, NewGZIPWriterPool)
 }
 
-func BenchmarkLZ4WriterPool(b *testing.B) {
-	benchmarkWriterPool(b, NewLZ4WriterPool)
-}
-
 func benchmarkWriterPool(b *testing.B, newPool func() WriterPool) {
 	for _, size := range []int{1 << 10, 64 << 10, 1 << 20} {
 		b.Run(fmt.Sprintf("%dB", size), func(b *testing.B) {
@@ -149,10 +141,6 @@ func benchmarkWriterPool(b *testing.B, newPool func() WriterPool) {
 
 func BenchmarkGZIPWriterPoolParallel(b *testing.B) {
 	benchmarkWriterPoolParallel(b, NewGZIPWriterPool)
-}
-
-func BenchmarkLZ4WriterPoolParallel(b *testing.B) {
-	benchmarkWriterPoolParallel(b, NewLZ4WriterPool)
 }
 
 func benchmarkWriterPoolParallel(b *testing.B, newPool func() WriterPool) {

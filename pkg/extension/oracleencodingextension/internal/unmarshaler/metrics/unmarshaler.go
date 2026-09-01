@@ -19,7 +19,6 @@ package metrics // import "github.com/signalfx/splunk-otel-collector/pkg/extensi
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -27,6 +26,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	conventions "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.uber.org/zap"
+
+	"github.com/goccy/go-json"
 )
 
 // oracleCloudCompartmentIDKey, oracleCloudNamespaceKey and oracleCloudResourceGroupKey are not

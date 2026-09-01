@@ -121,6 +121,44 @@ jobs:
       TEST_RACE: ${{ matrix.TEST_RACE }}
     secrets: inherit
 
+  report-flaky-tests:
+    name: report-flaky-tests
+    # Pull requests are reported on as well as main, they are the bulk of the CI
+    # traffic and hit flaky tests that pushes to main alone would take much longer
+    # to catch. Forks and Dependabot are excluded because their GITHUB_TOKEN is
+    # read-only, so the reporting below cannot work for them.
+    if: >-
+      ${{ !cancelled() && github.actor != 'dependabot[bot]'
+      && ((github.event_name == 'push' && github.ref == 'refs/heads/main')
+      || (github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository)) }}
+    needs: [test]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # There is nothing to download if every test job failed before running any
+        # test, in which case the script below has nothing to report.
+        continue-on-error: true
+        with:
+          pattern: unit-test-results-*
+          path: ./test-results
+
+      - name: Report flaky tests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # On pull requests GITHUB_SHA is the ephemeral merge commit, which cannot
+          # be looked up, so the head commit and the pull request are reported.
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: ./.github/workflows/scripts/report-flaky-tests.sh ./test-results
+
   coverage:
     if: ${{ github.actor != 'dependabot[bot]' }}
     name: coverage

@@ -40,6 +40,20 @@ GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 endif
 GOCMD?= go
 GOTEST=$(GOCMD) test
+# Setting TEST_RERUN_FAILS runs the tests through gotestsum, which re-runs failed
+# tests. A test that fails and then passes is flaky instead of consistently broken,
+# see .github/workflows/scripts/report-flaky-tests.sh.
+TEST_RERUN_FAILS?=false
+# Exported so that modules not including this file, like internal/signalfx-agent,
+# write their results to the same place.
+export TEST_RESULTS_DIR?=$(SRC_ROOT)/test-results
+# Every module writes its results to the same directory, so the module path is
+# used as the file name prefix to keep them apart.
+TEST_RESULTS_PREFIX=$(TEST_RESULTS_DIR)/$(subst /,_,$(subst $(SRC_ROOT),module,$(CURDIR)))
+GOTESTSUM=gotestsum --format standard-quiet --rerun-fails=2 --packages "./..." \
+	--jsonfile "$(TEST_RESULTS_PREFIX).json" \
+	--junitfile "$(TEST_RESULTS_PREFIX).junit.xml" \
+	--rerun-fails-report "$(TEST_RESULTS_PREFIX).rerun.txt"
 GOOS=$(shell $(GOCMD) env GOOS)
 GOARCH=$(shell $(GOCMD) env GOARCH)
 ADDLICENSES= addlicense
@@ -88,7 +102,12 @@ common: checklicense lint misspell
 
 .PHONY: test
 test:
+ifeq ($(TEST_RERUN_FAILS),true)
+	mkdir -p "$(TEST_RESULTS_DIR)"
+	$(GOTESTSUM) -- $(GOTEST_OPT)
+else
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
+endif
 
 ifeq ($(COVER_TESTING),true)
 # These variables and targets are expensive to build, so only build if explicitly requested
@@ -104,7 +123,12 @@ COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COV
 .PHONY: test-with-codecov
 test-with-codecov:
 	mkdir -p $(COVER_DIR_ABS)
+ifeq ($(TEST_RERUN_FAILS),true)
+	mkdir -p "$(TEST_RESULTS_DIR)"
+	$(GOTESTSUM) -- $(GOTEST_OPT) $(COVER_TESTING_OPTS)
+else
 	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_TESTING_OPTS)
+endif
 
 endif
 

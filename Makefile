@@ -239,7 +239,7 @@ install-tools:
 	cd ./internal/tools && go install github.com/client9/misspell/cmd/misspell
 	cd ./internal/tools && go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	cd ./internal/tools && go install github.com/google/addlicense
-	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
+	cd ./internal/tools && go install gotest.tools/gotestsum
 	cd ./internal/tools && go install go.opentelemetry.io/collector/cmd/mdatagen
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports

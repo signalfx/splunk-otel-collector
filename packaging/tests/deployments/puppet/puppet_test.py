@@ -649,13 +649,13 @@ def test_puppet_instrumentation_upgrade_from_libsplunk(distro, puppet_release, w
     # injector threshold, and should end up fully migrated to libotelinject.so.
     skip_if_necessary(distro, puppet_release)
 
-    legacy_version = "0.158.0"
+    legacy_version = "0.159.0"
     assert not package_uses_otel_injector(legacy_version), \
         f"test setup error: {legacy_version} is expected to predate the otel injector"
     new_version = AUTO_INSTRUMENTATION_VERSION
     assert package_uses_otel_injector(new_version), (
         f"AUTO_INSTRUMENTATION_VERSION={new_version} does not use the otel injector; set it to "
-        "'latest' or a version greater than 0.158.0 to exercise the upgrade path"
+        "'latest' or a version greater than 0.159.0 to exercise the upgrade path"
     )
 
     if distro in DEB_DISTROS:

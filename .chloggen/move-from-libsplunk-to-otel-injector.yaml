@@ -29,6 +29,6 @@ subtext: |
 
   .NET agent files are now installed under `splunk-otel-dotnet/glibc`, with `OTEL_DOTNET_AUTO_HOME` set to that
   directory. The installer's `--with-instrumentation` option requires an auto-instrumentation package version greater
-  than 0.158.0.
+  than 0.159.0.
 
   .NET auto-instrumentation now supports arm64 in addition to amd64.

@@ -205,7 +205,7 @@ class splunk_otel_collector (
     $injector_config_path = "${injector_config_dir}/injector.conf"
     $injector_default_env_path = "${injector_config_dir}/default_env.conf"
     $with_new_instrumentation = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0
-    $with_otel_injector = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.158.0') > 0
+    $with_otel_injector = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.159.0') > 0
     $dotnet_arch_supported = $facts['os']['architecture'] in ['amd64', 'x86_64'] or ($with_otel_injector and $facts['os']['architecture'] in ['arm64', 'aarch64']) # lint:ignore:140chars
     $dotnet_supported = $dotnet_arch_supported and ($auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.99.0') >= 0) # lint:ignore:140chars
 

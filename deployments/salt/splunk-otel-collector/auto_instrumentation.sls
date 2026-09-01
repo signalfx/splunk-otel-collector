@@ -25,7 +25,7 @@
 {% set with_otel_injector = (
     local_artifact_testing_enabled
     or auto_instrumentation_version == 'latest'
-    or salt['pkg.version_cmp'](auto_instrumentation_version, '0.158.0') > 0
+    or salt['pkg.version_cmp'](auto_instrumentation_version, '0.159.0') > 0
 ) %}
 {% set dotnet_version_supported = (
     auto_instrumentation_version == 'latest'

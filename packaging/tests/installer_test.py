@@ -688,9 +688,9 @@ def test_installer_with_obi(distro, arch):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
-@pytest.mark.parametrize("instrumentation_version", ["0.150.0", "0.158.0"])
+@pytest.mark.parametrize("instrumentation_version", ["0.150.0", "0.159.0"])
 def test_installer_with_instrumentation_rejects_pre_injector_version(distro, arch, instrumentation_version):
-    """Verify --with-instrumentation errors on versions that predate the otel injector (<= 0.158.0)."""
+    """Verify --with-instrumentation errors on versions that predate the otel injector (<= 0.159.0)."""
     install_cmd = " ".join((
         get_installer_cmd(),
         "--with-instrumentation",

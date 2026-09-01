@@ -23,7 +23,7 @@
 - name: Determine the auto-instrumentation package layout
   ansible.builtin.set_fact:
     with_otel_injector: >-
-      {{ local_artifact_testing_enabled or auto_instrumentation_version is version('0.158.0', '>') }}
+      {{ local_artifact_testing_enabled or auto_instrumentation_version is version('0.159.0', '>') }}
 
 - name: Set auto instrumentation facts
   ansible.builtin.set_fact:

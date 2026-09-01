@@ -128,7 +128,7 @@ after installation/configuration in order for any changes to take effect.
   Currently, the following values are supported:
   - `java`: [Splunk OpenTelemetry for Java](https://github.com/signalfx/splunk-otel-java)
   - `nodejs`: [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js)
-  - `dotnet`: [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64, plus arm64 for package versions newer than `0.158.0`)
+  - `dotnet`: [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64, plus arm64 for package versions newer than `0.159.0`)
 
   **Note:** This formula does not manage the installation/configuration of
   Node.js, `npm`, or Node.js applications. If `nodejs` is included in this
@@ -141,7 +141,7 @@ after installation/configuration in order for any changes to take effect.
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation)
   provided by the `splunk-otel-auto-instrumentation` package to activate and
   configure auto instrumentation system-wide for all supported applications.
-  Package versions through `0.158.0` use `libsplunk.so` instead.
+  Package versions through `0.159.0` use `libsplunk.so` instead.
   Alternatively, set this option to `True` to activate and configure auto
   instrumentation ***only*** for supported applications running as `systemd`
   services. If this option is set to `True`,

@@ -3,7 +3,7 @@
 
 requested_version = node['splunk_otel_collector']['auto_instrumentation_version']
 normalized_version = requested_version.tr('_-', '.')
-with_otel_injector = node['splunk_otel_collector']['local_artifact_testing_enabled'] || requested_version == 'latest' || Gem::Version.new(normalized_version) > Gem::Version.new('0.158.0')
+with_otel_injector = node['splunk_otel_collector']['local_artifact_testing_enabled'] || requested_version == 'latest' || Gem::Version.new(normalized_version) > Gem::Version.new('0.159.0')
 with_new_instrumentation = requested_version == 'latest' || Gem::Version.new(normalized_version) >= Gem::Version.new('0.87.0')
 with_systemd = node['splunk_otel_collector']['auto_instrumentation_systemd'].to_s.downcase == 'true'
 with_java = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('java')

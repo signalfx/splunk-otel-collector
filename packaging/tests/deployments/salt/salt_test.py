@@ -60,7 +60,7 @@ AUTO_INSTRUMENTATION_VERSION = os.environ.get("AUTO_INSTRUMENTATION_VERSION", "l
 INSTRUMENTATION_VERSIONS = (
     [AUTO_INSTRUMENTATION_VERSION]
     if LOCAL_ARTIFACT_TESTING_ENABLED
-    else ["0.86.0", "0.158.0", "latest"]
+    else ["0.86.0", "0.159.0", "latest"]
 )
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 LIBOTELINJECT_PATH = "/usr/lib/splunk-instrumentation/libotelinject.so"
@@ -712,13 +712,13 @@ def test_salt_instrumentation_upgrade_from_libsplunk(distro, with_systemd):
     if LOCAL_ARTIFACT_TESTING_ENABLED:
         pytest.skip("local artifact testing only builds the current, otel-injector-based package")
 
-    legacy_version = "0.158.0"
+    legacy_version = "0.159.0"
     assert not package_uses_otel_injector(legacy_version), \
         f"test setup error: {legacy_version} is expected to predate the otel injector"
     new_version = AUTO_INSTRUMENTATION_VERSION
     assert package_uses_otel_injector(new_version), (
         f"AUTO_INSTRUMENTATION_VERSION={new_version} does not use the otel injector; set it to "
-        "'latest' or a version greater than 0.158.0 to exercise the upgrade path"
+        "'latest' or a version greater than 0.159.0 to exercise the upgrade path"
     )
 
     if distro in DEB_DISTROS:

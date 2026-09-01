@@ -65,6 +65,11 @@ func (b *parseBatch) numberDataPoint(name, unit string, wantType pmetric.MetricT
 				"metric %q is already emitted as %s in this batch, cannot also emit it as %s",
 				name, m.Type(), wantType)
 		}
+		if m.Unit() != unit {
+			return pmetric.NumberDataPoint{}, fmt.Errorf(
+				"metric %q is already emitted with unit %q in this batch, cannot also emit it with unit %q",
+				name, m.Unit(), unit)
+		}
 		if wantType == pmetric.MetricTypeSum {
 			return m.Sum().DataPoints().AppendEmpty(), nil
 		}

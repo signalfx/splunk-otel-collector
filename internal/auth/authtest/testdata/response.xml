@@ -1,0 +1,135 @@
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:s="http://dev.splunk.com/ns/rest" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">
+    <title>http</title>
+    <id>https://localhost:8089/servicesNS/-/-/data/inputs/http</id>
+    <updated>2026-03-11T00:25:45+00:00</updated>
+    <generator build="9848f25c9430" version="9.3.5"/>
+    <author>
+        <name>Splunk</name>
+    </author>
+    <link href="/servicesNS/-/-/data/inputs/http/_new" rel="create"/>
+    <link href="/servicesNS/-/-/data/inputs/http/_reload" rel="_reload"/>
+    <link href="/servicesNS/-/-/data/inputs/http/_acl" rel="_acl"/>
+    <opensearch:totalResults>2</opensearch:totalResults>
+    <opensearch:itemsPerPage>30</opensearch:itemsPerPage>
+    <opensearch:startIndex>0</opensearch:startIndex>
+    <s:messages/>
+    <entry>
+        <title>http://foo</title>
+        <id>https://localhost:8089/servicesNS/nobody/launcher/data/inputs/http/http%3A%252F%252Ffoo</id>
+        <updated>2026-03-11T00:20:11+00:00</updated>
+        <link href="/servicesNS/nobody/launcher/data/inputs/http/http%3A%252F%252Ffoo" rel="alternate"/>
+        <author>
+            <name>admin</name>
+        </author>
+        <link href="/servicesNS/nobody/launcher/data/inputs/http/http%3A%252F%252Ffoo" rel="list"/>
+        <link href="/servicesNS/nobody/launcher/data/inputs/http/http%3A%252F%252Ffoo/_reload" rel="_reload"/>
+        <link href="/servicesNS/nobody/launcher/data/inputs/http/http%3A%252F%252Ffoo" rel="edit"/>
+        <link href="/servicesNS/nobody/launcher/data/inputs/http/http%3A%252F%252Ffoo" rel="remove"/>
+        <link href="/servicesNS/nobody/launcher/data/inputs/http/http%3A%252F%252Ffoo/disable" rel="disable"/>
+        <content type="text/xml">
+            <s:dict>
+                <s:key name="_rcvbuf">1572864</s:key>
+                <s:key name="disabled">0</s:key>
+                <s:key name="eai:acl">
+                    <s:dict>
+                        <s:key name="app">launcher</s:key>
+                        <s:key name="can_change_perms">1</s:key>
+                        <s:key name="can_list">1</s:key>
+                        <s:key name="can_share_app">1</s:key>
+                        <s:key name="can_share_global">1</s:key>
+                        <s:key name="can_share_user">1</s:key>
+                        <s:key name="can_write">1</s:key>
+                        <s:key name="modifiable">1</s:key>
+                        <s:key name="owner">admin</s:key>
+                        <s:key name="perms">
+                            <s:dict>
+                                <s:key name="read">
+                                    <s:list>
+                                        <s:item>admin</s:item>
+                                    </s:list>
+                                </s:key>
+                                <s:key name="write">
+                                    <s:list>
+                                        <s:item>admin</s:item>
+                                    </s:list>
+                                </s:key>
+                            </s:dict>
+                        </s:key>
+                        <s:key name="removable">1</s:key>
+                        <s:key name="sharing">app</s:key>
+                    </s:dict>
+                </s:key>
+                <s:key name="eai:appName">launcher</s:key>
+                <s:key name="eai:userName">nobody</s:key>
+                <s:key name="host">bff7e260bcb9</s:key>
+                <s:key name="index">main</s:key>
+                <s:key name="indexes">
+                    <s:list>
+                        <s:item>main</s:item>
+                    </s:list>
+                </s:key>
+                <s:key name="token">3bd96945-4ffc-409b-9a63-fd96fd97c7a7</s:key>
+            </s:dict>
+        </content>
+    </entry>
+    <entry>
+        <title>http://splunk_hec_token</title>
+        <id>https://localhost:8089/servicesNS/nobody/splunk_httpinput/data/inputs/http/http%3A%252F%252Fsplunk_hec_token</id>
+        <updated>2026-03-11T00:18:49+00:00</updated>
+        <link href="/servicesNS/nobody/splunk_httpinput/data/inputs/http/http%3A%252F%252Fsplunk_hec_token" rel="alternate"/>
+        <author>
+            <name>admin</name>
+        </author>
+        <link href="/servicesNS/nobody/splunk_httpinput/data/inputs/http/http%3A%252F%252Fsplunk_hec_token" rel="list"/>
+        <link href="/servicesNS/nobody/splunk_httpinput/data/inputs/http/http%3A%252F%252Fsplunk_hec_token/_reload" rel="_reload"/>
+        <link href="/servicesNS/nobody/splunk_httpinput/data/inputs/http/http%3A%252F%252Fsplunk_hec_token" rel="edit"/>
+        <link href="/servicesNS/nobody/splunk_httpinput/data/inputs/http/http%3A%252F%252Fsplunk_hec_token" rel="remove"/>
+        <link href="/servicesNS/nobody/splunk_httpinput/data/inputs/http/http%3A%252F%252Fsplunk_hec_token/disable" rel="disable"/>
+        <content type="text/xml">
+            <s:dict>
+                <s:key name="_rcvbuf">1572864</s:key>
+                <s:key name="disabled">0</s:key>
+                <s:key name="eai:acl">
+                    <s:dict>
+                        <s:key name="app">splunk_httpinput</s:key>
+                        <s:key name="can_change_perms">1</s:key>
+                        <s:key name="can_list">1</s:key>
+                        <s:key name="can_share_app">1</s:key>
+                        <s:key name="can_share_global">1</s:key>
+                        <s:key name="can_share_user">1</s:key>
+                        <s:key name="can_write">1</s:key>
+                        <s:key name="modifiable">1</s:key>
+                        <s:key name="owner">admin</s:key>
+                        <s:key name="perms">
+                            <s:dict>
+                                <s:key name="read">
+                                    <s:list>
+                                        <s:item>admin</s:item>
+                                    </s:list>
+                                </s:key>
+                                <s:key name="write">
+                                    <s:list>
+                                        <s:item>admin</s:item>
+                                    </s:list>
+                                </s:key>
+                            </s:dict>
+                        </s:key>
+                        <s:key name="removable">1</s:key>
+                        <s:key name="sharing">app</s:key>
+                    </s:dict>
+                </s:key>
+                <s:key name="eai:appName">splunk_httpinput</s:key>
+                <s:key name="eai:userName">nobody</s:key>
+                <s:key name="host">$decideOnStartup</s:key>
+                <s:key name="index">foo</s:key>
+                <s:key name="indexes">
+                    <s:list>
+                        <s:item>main</s:item>
+                        <s:item>foo</s:item>
+                    </s:list>
+                </s:key>
+                <s:key name="token">00000000-0000-0000-0000-0000000000000</s:key>
+            </s:dict>
+        </content>
+    </entry>
+</feed>

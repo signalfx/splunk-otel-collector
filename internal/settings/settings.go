@@ -85,6 +85,10 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
+// statConfigFile allows tests to simulate package config paths that do not
+// exist on the host running the tests.
+var statConfigFile = os.Stat
+
 var defaultFeatureGates = []string{}
 
 type Settings struct {
@@ -98,6 +102,7 @@ type Settings struct {
 	colCoreArgs             []string
 	discoveryProperties     []string
 	versionFlag             bool
+	featureGateCommand      bool
 	noConvertConfig         bool
 	configD                 bool
 	discoveryMode           bool
@@ -121,7 +126,7 @@ func New(args []string) (*Settings, error) {
 	}
 
 	// immediate exit paths, no further setup required
-	if s.versionFlag {
+	if s.versionFlag || s.featureGateCommand {
 		return s, nil
 	}
 
@@ -278,6 +283,15 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet.Var(new(stringArrayFlagValue), featureGates,
 		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
 			"'+' or no prefix will enable the feature.")
+	flagSet.Usage = func() {
+		writeUsage(flagSet)
+	}
+
+	settings.featureGateCommand = len(args) > 0 && args[0] == "featuregate"
+	if settings.featureGateCommand {
+		// Leave the featuregate command and its arguments for the upstream Cobra command.
+		flagSet.SetInterspersed(false)
+	}
 
 	if err := flagSet.Parse(args); err != nil {
 		return nil, err
@@ -297,8 +311,24 @@ func parseArgs(args []string) (*Settings, error) {
 	// Pass flags that are handled by the collector core service as raw command line arguments.
 	colCoreCommands := []string{"validate"}
 	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
+	if settings.featureGateCommand {
+		settings.colCoreArgs = append(settings.colCoreArgs, flagSet.Args()...)
+	}
 
 	return settings, nil
+}
+
+func writeUsage(flagSet *flag.FlagSet) {
+	fmt.Fprintf(flagSet.Output(), `Usage:
+  otelcol [flags]
+  otelcol [command]
+
+Available Commands:
+  featuregate  Display feature gates information
+  validate     Validates the config without running the collector
+
+Flags:
+%s`, flagSet.FlagUsages())
 }
 
 func parseSetOptionArguments(arguments []string) (setProperties, discoveryProperties []string) {
@@ -578,7 +608,7 @@ func checkInputConfigs(settings *Settings) error {
 			}
 			filePath = location
 		}
-		if _, err := os.Stat(filePath); err != nil {
+		if _, err := statConfigFile(filePath); err != nil {
 			return fmt.Errorf("unable to find the configuration file %s, ensure flag '--config' is set properly: %w", filePath, err)
 		}
 		configFilePaths = append(configFilePaths, filePath)
@@ -587,6 +617,8 @@ func checkInputConfigs(settings *Settings) error {
 	if len(configFilePaths) == 0 {
 		return nil
 	}
+
+	warnIfDeprecatedOTLPLinuxConfigUsed(configFilePaths)
 
 	if configPathVar != "" {
 		differingVals := true
@@ -612,7 +644,7 @@ func checkConfigPathEnvVar(settings *Settings) error {
 	configPath := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
-	if _, err := os.Stat(configPath); err != nil {
+	if _, err := statConfigFile(configPath); err != nil {
 		return fmt.Errorf("unable to find the configuration file (%s), ensure %s environment variable is set properly: %w", configPath, ConfigEnvVar, err)
 	}
 
@@ -624,7 +656,31 @@ func checkConfigPathEnvVar(settings *Settings) error {
 		_ = settings.configPaths.Set(configPath)
 	}
 
+	warnIfDeprecatedOTLPLinuxConfigUsed(settings.configPaths.value)
+
 	return confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value)
+}
+
+func warnIfDeprecatedOTLPLinuxConfigUsed(paths []string) {
+	for _, path := range paths {
+		if isDeprecatedOTLPLinuxConfig(path) {
+			logWarn(
+				"Configuration file %s is deprecated and will be removed in a future release. "+
+					"Use --config=%s instead. If you need receivers to listen outside the container, set %s=0.0.0.0 when migrating.",
+				path, DefaultAgentConfigLinux, ListenInterfaceEnvVar)
+			return
+		}
+	}
+}
+
+func isDeprecatedOTLPLinuxConfig(path string) bool {
+	scheme, location, isURI := parseURI(path)
+	if isURI && scheme == fileProviderScheme {
+		path = location
+	}
+
+	cleaned := filepath.Clean(path)
+	return path == DefaultOTLPLinuxConfig || cleaned == filepath.Clean(DefaultOTLPLinuxConfig)
 }
 
 func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {

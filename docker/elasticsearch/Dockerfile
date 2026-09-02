@@ -1,4 +1,4 @@
-FROM elasticsearch:9.4.2
+FROM elasticsearch:9.4.4
 
 ENV discovery.type=single-node
 

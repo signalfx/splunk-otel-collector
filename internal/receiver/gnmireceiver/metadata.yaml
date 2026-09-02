@@ -1,0 +1,17 @@
+type: gnmi
+display_name: gNMI Receiver
+
+status:
+  class: receiver
+  stability:
+    development: [metrics]
+  distributions: [splunk]
+  codeowners:
+    active: [jkoronaAtCisco]
+
+tests:
+  config:
+  goleak:
+    ignore:
+      top:
+        - "github.com/golang/glog.(*fileSink).flushDaemon"

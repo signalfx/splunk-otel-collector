@@ -14,7 +14,7 @@ on:
         type: boolean
 
 env:
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
 
 jobs:
   unit-test:
@@ -23,8 +23,36 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Report disk space before environment setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-PSDrive -PSProvider FileSystem |
+            Select-Object Name,
+              @{Name='UsedGB'; Expression={[math]::Round($_.Used / 1GB, 2)}},
+              @{Name='FreeGB'; Expression={[math]::Round($_.Free / 1GB, 2)}} |
+            Format-Table -AutoSize
+
+      - name: Configure Windows Go temporary directory
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $goTmp = Join-Path $env:RUNNER_TEMP 'go-tmp'
+          New-Item -ItemType Directory -Force -Path $goTmp | Out-Null
+          "GOTMPDIR=$goTmp" >> $env:GITHUB_ENV
+          "TMP=$goTmp" >> $env:GITHUB_ENV
+          "TEMP=$goTmp" >> $env:GITHUB_ENV
+
       - uses: ./.github/actions/setup-environment
+        with:
+          install_tools: 'false'
+
+      - name: Install unit test reporting tool
+        if: ${{ inputs.COVERAGE }}
+        working-directory: ./internal/tools
+        run: go install github.com/jstemmer/go-junit-report
 
       - name: Set CGO_ENABLED
         # Currently, CGO enabled is required for:
@@ -39,12 +67,27 @@ jobs:
           fi
 
       - name: bundle.d
+        if: ${{ !inputs.TEST_RACE }}
         run: |
           make bundle.d
           if ! git diff --exit-code; then
             echo "Discovery bundle.d config has changed. Run 'make bundle.d' and push the changes or ensure correct .tmpl updated."
             exit 1
           fi
+
+      - name: Clear Go build cache before Windows race tests
+        if: ${{ runner.os == 'Windows' && inputs.TEST_RACE }}
+        run: go clean -cache
+
+      - name: Report disk space before unit tests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-PSDrive -PSProvider FileSystem |
+            Select-Object Name,
+              @{Name='UsedGB'; Expression={[math]::Round($_.Used / 1GB, 2)}},
+              @{Name='FreeGB'; Expression={[math]::Round($_.Free / 1GB, 2)}} |
+            Format-Table -AutoSize
 
       - name: Unit tests
         run: |
@@ -54,9 +97,22 @@ jobs:
             mkdir -p unit-test-results-${{ inputs.OS }}/junit
             trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
             COVER_TESTING=true make gotest-with-codecov | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
+          elif [[ "${{ runner.os }}" == "Windows" && "${{ inputs.TEST_RACE }}" == "true" ]]; then
+            echo "Limiting Go package parallelism to 3 to reduce peak disk usage"
+            GOFLAGS=-p=3 make test-all
           else
             make test-all
           fi
+
+      - name: Report disk space after unit tests
+        if: ${{ always() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          Get-PSDrive -PSProvider FileSystem |
+            Select-Object Name,
+              @{Name='UsedGB'; Expression={[math]::Round($_.Used / 1GB, 2)}},
+              @{Name='FreeGB'; Expression={[math]::Round($_.Free / 1GB, 2)}} |
+            Format-Table -AutoSize
 
       - name: Uploading artifacts
         if: ${{ inputs.COVERAGE }}

@@ -56,6 +56,11 @@ platforms:
       image: dokken/debian-13
       pid_one_command: /usr/lib/systemd/systemd
 
+  - name: opensuse-16
+    driver:
+      image: dokken/opensuse-leap-16.0
+      pid_one_command: /usr/lib/systemd/systemd
+
   - name: opensuse-15
     driver:
       image: dokken/opensuse-leap-15
@@ -86,6 +91,11 @@ platforms:
       image: dokken/ubuntu-24.04
       pid_one_command: /bin/systemd
 
+  - name: ubuntu-26.04
+    driver:
+      image: dokken/ubuntu-26.04
+      pid_one_command: /usr/lib/systemd/systemd
+
 suites:
   - name: default
     run_list:
@@ -114,6 +124,7 @@ suites:
         collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2
+          SPLUNK_OPAMP_SUPERVISOR_ENABLED: "true"
         collector_command_line_args: --discovery --set=processors.batch.timeout=10s
 
   - name: with_default_preload_instrumentation
@@ -122,6 +133,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -132,6 +144,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -152,6 +165,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -163,6 +177,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -253,6 +268,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -265,6 +281,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -287,6 +304,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -300,6 +318,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true

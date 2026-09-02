@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/salt-test.yml'
       - 'deployments/salt/**'
+      - 'instrumentation/**'
       - 'packaging/tests/deployments/salt/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
@@ -16,6 +17,7 @@ on:
     paths:
       - '.github/workflows/salt-test.yml'
       - 'deployments/salt/**'
+      - 'instrumentation/**'
       - 'packaging/tests/deployments/salt/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
@@ -35,7 +37,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Lint
         run: |
@@ -45,7 +47,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get matrix
         id: get-matrix
@@ -66,20 +68,129 @@ jobs:
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
+  salt-build-linux-binary:
+    uses: ./.github/workflows/reusable-compile.yml
+    with:
+      SYS_BINARY: binaries-linux_amd64
+
+  salt-build-deb-local-package:
+    uses: ./.github/workflows/reusable-build-package.yml
+    needs:
+      - salt-build-linux-binary
+    with:
+      SYS_PACKAGE: deb
+      ARCH: amd64
+
+  salt-build-rpm-local-package:
+    uses: ./.github/workflows/reusable-build-package.yml
+    needs:
+      - salt-build-linux-binary
+    with:
+      SYS_PACKAGE: rpm
+      ARCH: amd64
+
+  salt-build-deb-local-auto-instrumentation-package:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get package version
+        id: get-version
+        run: |
+          # Get base version from git and strip the v prefix
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build deb amd64 auto-instrumentation package
+        run: make -C instrumentation/ deb-package VERSION="${{ steps.get-version.outputs.version }}" ARCH=amd64
+
+      - name: Uploading deb amd64 auto-instrumentation package artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-deb
+          path: ./instrumentation/dist/*.deb
+
+  salt-build-rpm-local-auto-instrumentation-package:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get package version
+        id: get-version
+        run: |
+          # Get base version from git and strip the v prefix
+          VERSION=$(git describe --match "v[0-9]*" HEAD | sed 's/^v//' | sed 's/-g[0-9a-f]*$//')
+
+          # RPM expects numeric/dot or convert X.Y.Z-60 to X.Y.Z_60 (replace dash with underscore)
+          VERSION="${VERSION//-/_}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build rpm amd64 auto-instrumentation package
+        run: make -C instrumentation/ rpm-package VERSION="${{ steps.get-version.outputs.version }}" ARCH=amd64
+
+      - name: Uploading rpm amd64 auto-instrumentation package artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-rpm
+          path: ./instrumentation/dist/*.rpm
+
   salt-test:
     name: salt-test
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-    needs: [salt-lint-test, salt-test-matrix]
+    needs:
+      - salt-lint-test
+      - salt-test-matrix
+      - salt-build-deb-local-package
+      - salt-build-rpm-local-package
+      - salt-build-deb-local-auto-instrumentation-package
+      - salt-build-rpm-local-auto-instrumentation-package
     strategy:
       matrix: ${{ fromJSON(needs.salt-test-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download DEB package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: deb-amd64-package
+          path: ./dist
+
+      - name: Download RPM package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: rpm-amd64-package
+          path: ./dist
+
+      - name: Download DEB auto-instrumentation package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-deb
+          path: ./dist
+
+      - name: Download RPM auto-instrumentation package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-rpm
+          path: ./dist
+
+      - name: List downloaded package artifacts
+        run: find ./dist -maxdepth 3 -type f -print | sort
 
       - name: Setup python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -91,16 +202,68 @@ jobs:
       - name: Test salt deployment
         id: pytest
         continue-on-error: true
+        env:
+          DEB_VERSION: "${{ needs.salt-build-deb-local-package.outputs.version }}"
+          RPM_VERSION: "${{ needs.salt-build-rpm-local-package.outputs.version }}"
+          DEB_AUTO_INSTRUMENTATION_VERSION: "${{ needs.salt-build-deb-local-auto-instrumentation-package.outputs.version }}"
+          RPM_AUTO_INSTRUMENTATION_VERSION: "${{ needs.salt-build-rpm-local-auto-instrumentation-package.outputs.version }}"
+          LOCAL_ARTIFACT_TESTING_ENABLED: "true"
         run: |
           distro="${{ matrix.DISTRO }}"
+
+          case "$distro" in
+            debian-*|ubuntu-*)
+              export VERSION="$DEB_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$DEB_AUTO_INSTRUMENTATION_VERSION"
+              echo "Using DEB version: $VERSION"
+              echo "Using DEB auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
+              ;;
+            amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
+              export VERSION="$RPM_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$RPM_AUTO_INSTRUMENTATION_VERSION"
+              echo "Using RPM version: $VERSION"
+              echo "Using RPM auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
+              ;;
+            *)
+              echo "Unknown distro: $distro"
+              exit 1
+              ;;
+          esac
+
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
             packaging/tests/deployments/salt/salt_test.py
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
+        env:
+          DEB_VERSION: "${{ needs.salt-build-deb-local-package.outputs.version }}"
+          RPM_VERSION: "${{ needs.salt-build-rpm-local-package.outputs.version }}"
+          DEB_AUTO_INSTRUMENTATION_VERSION: "${{ needs.salt-build-deb-local-auto-instrumentation-package.outputs.version }}"
+          RPM_AUTO_INSTRUMENTATION_VERSION: "${{ needs.salt-build-rpm-local-auto-instrumentation-package.outputs.version }}"
+          LOCAL_ARTIFACT_TESTING_ENABLED: "true"
         run: |
           distro="${{ matrix.DISTRO }}"
+
+          case "$distro" in
+            debian-*|ubuntu-*)
+              export VERSION="$DEB_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$DEB_AUTO_INSTRUMENTATION_VERSION"
+              echo "Using DEB version: $VERSION"
+              echo "Using DEB auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
+              ;;
+            amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
+              export VERSION="$RPM_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$RPM_AUTO_INSTRUMENTATION_VERSION"
+              echo "Using RPM version: $VERSION"
+              echo "Using RPM auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
+              ;;
+            *)
+              echo "Unknown distro: $distro"
+              exit 1
+              ;;
+          esac
+
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
             --last-failed \
             packaging/tests/deployments/salt/salt_test.py

@@ -9,6 +9,7 @@ on:
       - '.github/workflows/linux-package-test.yml'
       - '.github/workflows/scripts/ecs-mock/**'
       - 'cmd/otelcol/**'
+      - 'cmd/otelcollauncher/**'
       - 'internal/**'
       - 'packaging/installer/**'
       - 'packaging/tests/images/**'
@@ -25,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
 
 jobs:
   cross-compile:
@@ -52,7 +53,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get matrix
         id: get-matrix
@@ -80,7 +81,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
@@ -99,7 +100,7 @@ jobs:
           path: ./dist
 
       - name: Set up Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -129,7 +130,7 @@ jobs:
     needs: [cross-compile]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Multiarch images require more disk space
       - run: .github/workflows/scripts/free-disk-space.sh
@@ -148,7 +149,7 @@ jobs:
             }
 
       - name: Set up Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -198,7 +199,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store

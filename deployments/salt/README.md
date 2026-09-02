@@ -12,8 +12,8 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat: 8, 9, 10
 - Oracle: 8, 9, 10
 - Debian: 11, 12
-- SUSE: 15
-- Ubuntu: 22.04, 24.04
+- SUSE: 15, 16
+- Ubuntu: 22.04, 24.04, 26.04
 
 ## Prerequisites
 

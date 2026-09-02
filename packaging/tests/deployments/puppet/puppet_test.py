@@ -100,7 +100,7 @@ def package_uses_otel_injector(version):
     match = re.match(r"^(\d+)\.(\d+)\.(\d+)(.*)$", version)
     assert match is not None, f"unexpected package version: {version}"
     release = tuple(map(int, match.groups()[:3]))
-    return release > (0, 158, 0) or (release == (0, 158, 0) and bool(match.group(4)))
+    return release > (0, 159, 0) or (release == (0, 159, 0) and bool(match.group(4)))
 
 
 def run_puppet_apply(container, config, strict_mode=True):

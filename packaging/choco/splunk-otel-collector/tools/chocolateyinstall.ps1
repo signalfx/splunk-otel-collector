@@ -82,6 +82,15 @@ set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_TOKEN"          
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_URL"            "https://ingest.$realm.observability.splunkcloud.com/v1/log"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_MEMORY_TOTAL_MIB"   "512"
 
+$supervisor_enabled = $pp["SPLUNK_OPAMP_SUPERVISOR_ENABLED"]
+if ($supervisor_enabled) {
+    $supervisor_enabled = "$supervisor_enabled".ToLowerInvariant()
+    if ($supervisor_enabled -ne "true" -and $supervisor_enabled -ne "false") {
+        throw "Invalid value of SPLUNK_OPAMP_SUPERVISOR_ENABLED. Expected true or false."
+    }
+    $env_vars["SPLUNK_OPAMP_SUPERVISOR_ENABLED"] = $supervisor_enabled
+}
+
 # stop orphaned service or when upgrading from bundle installation
 if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
     stop_service -name $service_name

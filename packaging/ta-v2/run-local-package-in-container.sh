@@ -66,8 +66,8 @@ echo "  Splunk version: ${SPLUNK_VERSION}"
 echo "  Assets directory: ${ASSETS_DIR}"
 echo "  Log directory: ${LOG_DIR}"
 
-# Generate a random password
-SPLUNK_PASSWORD="$(uuidgen 2>/dev/null || openssl rand -hex 16)"
+# Generate a random password, unless one was already provided by the caller.
+SPLUNK_PASSWORD="${SPLUNK_PASSWORD:-$(uuidgen 2>/dev/null || openssl rand -hex 16)}"
 
 # Launch Splunk container
 docker run -d --name "${CONTAINER_NAME}" \

@@ -62,6 +62,7 @@ func GetPlugin(conf *Config) (*telegrafPlugin.Win_PerfCounters, error) {
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the windowsperfcounters receiver instead.")
 	plugin, err := GetPlugin(conf)
 	if err != nil {
 		return err

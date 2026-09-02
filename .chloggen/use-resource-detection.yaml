@@ -1,9 +1,0 @@
-change_type: enhancement
-
-component: config
-
-note: Use the canonical `resource_detection` processor name in bundled configurations and deployment examples.
-
-issues: [7846]
-
-subtext:

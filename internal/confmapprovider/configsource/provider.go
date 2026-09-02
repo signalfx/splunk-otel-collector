@@ -28,6 +28,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/envvarconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/etcd2configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/includeconfigsource"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource/splunksecretconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/vaultconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/zookeeperconfigsource"
 )
@@ -40,6 +41,7 @@ var configSourceFactories = func() configsource.Factories {
 		vaultconfigsource.NewFactory(),
 		zookeeperconfigsource.NewFactory(),
 		etcd2configsource.NewFactory(),
+		splunksecretconfigsource.NewFactory(),
 	} {
 		if _, ok := factories[f.Type()]; ok {
 			panic(fmt.Sprintf("duplicate config source factory %q", f.Type()))

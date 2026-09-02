@@ -39,6 +39,7 @@ func TestDefaultPathsWindowsFallbacksAlignWithInstaller(t *testing.T) {
 	assert.Equal(t, stateDir, paths.GeneratedCollectorConfigDir)
 	assert.Equal(t, stateDir, paths.StorageDirectory)
 	assert.Equal(t, filepath.Join(`\ProgramData`, "Splunk", "OpenTelemetry Collector", "agent_config.yaml"), paths.DefaultAgentConfig)
+	assert.Equal(t, "15s", paths.BootstrapTimeout)
 	assert.Equal(t, "2m", paths.ConfigApplyTimeout)
 	assert.False(t, paths.UseHUPConfigReload)
 }

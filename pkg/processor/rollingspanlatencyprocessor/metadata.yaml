@@ -1,0 +1,10 @@
+display_name: Rolling Span Latency Processor
+type: rolling_span_latency
+
+status:
+  class: processor
+  stability:
+    development: [traces]
+  distributions: [splunk]
+  codeowners:
+    active: [rnterbush]

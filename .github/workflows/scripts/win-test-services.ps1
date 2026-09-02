@@ -7,6 +7,7 @@ param (
     [string]$api_url = "https://api.${realm}.observability.splunkcloud.com",
     [string]$ingest_url = "https://ingest.${realm}.observability.splunkcloud.com",
     [string]$with_svc_args = "",
+    [switch]$with_supervisor,
     [string]$splunk_platform_url = "",
     [string]$splunk_platform_token = "",
     [string]$splunk_platform_logs_index = ""
@@ -48,6 +49,38 @@ function service_running([string]$name) {
     return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).State -Eq "Running")
 }
 
+function assert_process_topology([bool]$supervisor_enabled) {
+    for ($attempt = 0; $attempt -lt 10; $attempt++) {
+        $service = Get-CimInstance -ClassName Win32_Service -Filter "Name = 'splunk-otel-collector'"
+        $processes = Get-CimInstance -ClassName Win32_Process
+        $launcher_process = $processes | Where-Object {
+            $_.ProcessId -eq $service.ProcessId -and $_.Name -eq "otelcollauncher.exe"
+        }
+        $launcher_children = $processes | Where-Object { $_.ParentProcessId -eq $service.ProcessId }
+        $supervisor_process = $launcher_children | Where-Object { $_.Name -eq "opampsupervisor.exe" }
+
+        if ($supervisor_enabled) {
+            $collector_process = $processes | Where-Object {
+                $_.ParentProcessId -eq $supervisor_process.ProcessId -and $_.Name -eq "otelcol.exe"
+            }
+            if ($launcher_process -and $supervisor_process -and $collector_process) {
+                return
+            }
+        } else {
+            $collector_process = $launcher_children | Where-Object { $_.Name -eq "otelcol.exe" }
+            $any_supervisor_process = $processes | Where-Object { $_.Name -eq "opampsupervisor.exe" }
+            if ($launcher_process -and $collector_process -and !$any_supervisor_process) {
+                return
+            }
+        }
+
+        Start-Sleep -Seconds 1
+    }
+
+    $expected = if ($supervisor_enabled) { "launcher -> supervisor -> collector" } else { "launcher -> collector" }
+    throw "Expected $expected process topology was not found."
+}
+
 function append_svc_arg([string]$svc_args, [string]$arg) {
     if ([string]::IsNullOrWhitespace($svc_args)) {
         return $arg
@@ -59,6 +92,8 @@ $program_data_collector_dir = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector
 $program_files_collector_dir = "${Env:ProgramFiles}\Splunk\OpenTelemetry Collector"
 $default_config_path = "${program_data_collector_dir}\${mode}_config.yaml"
 $logs_config_path = "${program_data_collector_dir}\splunk_logs_config_windows.yaml"
+$supervisor_config_path = "${program_data_collector_dir}\supervisor\supervisor_config.yaml"
+$supervisor_runtime_config_path = "${program_data_collector_dir}\supervisor\supervisor_runtime_config.yaml"
 
 $expected_svc_env_vars = @{
   "SPLUNK_ACCESS_TOKEN"     = "$access_token";
@@ -71,6 +106,9 @@ $expected_svc_env_vars = @{
 
 if (![string]::IsNullOrWhitespace($memory)) {
     $expected_svc_env_vars["SPLUNK_MEMORY_TOTAL_MIB"] = "$memory"
+}
+if ($with_supervisor) {
+    $expected_svc_env_vars["SPLUNK_OPAMP_SUPERVISOR_ENABLED"] = "true"
 }
 
 if (![string]::IsNullOrWhitespace($splunk_platform_url)) {
@@ -102,6 +140,22 @@ if ((service_running -name "splunk-otel-collector")) {
 $uninstallProperties = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
     ForEach-Object { Get-ItemProperty $_.PSPath } |
     Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
+$installed_version = [Version]$uninstallProperties.DisplayVersion
+$expect_launcher = $with_supervisor -or $installed_version -ge [Version]"0.159.0.0"
+
+$expected_executables = @("otelcol.exe")
+if ($expect_launcher) {
+    $expected_executables += @("otelcollauncher.exe", "opampsupervisor.exe")
+}
+foreach ($executable in $expected_executables) {
+    if (!(Test-Path -Path "${program_files_collector_dir}\${executable}")) {
+        throw "Executable '${program_files_collector_dir}\${executable}' was not found after the install."
+    }
+}
+if ($expect_launcher) {
+    assert_process_topology -supervisor_enabled $with_supervisor
+}
+
 if ($with_msi_uninstall_comments -ne "") {
     if ($with_msi_uninstall_comments -ne $uninstallProperties.Comments) {
         throw "Uninstall Comments in registry are not properly set. Found: '$uninstallProperties.Comments', Expected '$with_msi_uninstall_comments'"
@@ -110,7 +164,6 @@ if ($with_msi_uninstall_comments -ne "") {
     }
 }
 
-$installed_version = [Version]$uninstallProperties.DisplayVersion
 if ($installed_version -gt [Version]"0.97.0.0") {
     if (Test-Path -Path "${program_files_collector_dir}\*_config.yaml") {
         throw "Found config files in '${program_files_collector_dir}' these files should not be present"
@@ -119,6 +172,15 @@ if ($installed_version -gt [Version]"0.97.0.0") {
 
 If (!(Test-Path -Path "$default_config_path")) {
     throw "Config file '$default_config_path' was not found after the install"
+}
+
+if ($with_supervisor) {
+    if (!(Test-Path -Path $supervisor_config_path)) {
+        throw "Supervisor config file '$supervisor_config_path' was not found after the service started."
+    }
+    if (!(Test-Path -Path $supervisor_runtime_config_path)) {
+        throw "Supervisor runtime config file '$supervisor_runtime_config_path' was not found after the service started."
+    }
 }
 
 if (![string]::IsNullOrWhitespace($splunk_platform_url) -and !(Test-Path -Path "$logs_config_path")) {

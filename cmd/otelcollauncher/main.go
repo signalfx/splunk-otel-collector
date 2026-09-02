@@ -15,7 +15,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
@@ -23,7 +23,6 @@ import (
 
 func main() {
 	if err := run(os.Args[1:], os.Environ(), launcher.DefaultPaths()); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }

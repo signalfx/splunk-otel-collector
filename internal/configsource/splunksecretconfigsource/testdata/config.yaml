@@ -1,0 +1,9 @@
+config_sources:
+  splunk_secret:
+    endpoint: https://localhost:8089
+    session_key: some_session_key
+  splunk_secret/insecure:
+    endpoint: https://localhost:8089
+    session_key: some_session_key
+    insecure_skip_verify: true
+    timeout: 5s

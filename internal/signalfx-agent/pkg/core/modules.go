@@ -1,3 +1,5 @@
+//go:build !aix && !freebsd && !solaris
+
 package core
 
 // Do an import of all of the built-in observers and monitors
@@ -5,7 +7,6 @@ package core
 
 import (
 	// Import everything that isn't referenced anywhere else
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cloudfoundry"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/conviva"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/coredns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
@@ -44,7 +45,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/procstat"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/tail"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegraflogparser"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegrafsnmp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegrafstatsd"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/winperfcounters"

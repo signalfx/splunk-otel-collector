@@ -12,22 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !windows
+//go:build !linux && !windows
 
 package main
 
 import (
-	"golang.org/x/sys/unix"
+	"errors"
 
 	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
-// run replaces the launcher process with the selected child process on POSIX
-// systems so systemd tracks the collector or supervisor directly.
-func run(args, env []string, paths launcher.Paths) error {
-	cmd, err := launcher.PrepareCommand(args, env, paths)
-	if err != nil {
-		return err
-	}
-	return unix.Exec(cmd.Path, append([]string{cmd.Path}, cmd.Args...), cmd.Env)
+func run(_, _ []string, _ launcher.Paths) error {
+	return errors.New("otelcollauncher is supported only on Linux and Windows")
 }

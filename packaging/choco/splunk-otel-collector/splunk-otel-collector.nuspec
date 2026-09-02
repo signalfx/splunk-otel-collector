@@ -17,6 +17,7 @@ The following package parameters are available:
  * `/SPLUNK_HEC_TOKEN`: The Splunk HEC authentication token. Default value is the same as `SPLUNK_ACCESS_TOKEN`.
  * `/SPLUNK_HEC_URL`: URL of the Splunk HEC endpoint (e.g. `https://ingest.us1.observability.splunkcloud.com/v1/log`). Default value is `https://ingest.$SPLUNK_REALM.observability.splunkcloud.com/v1/log`
  * `/SPLUNK_LISTEN_INTERFACE`: The network interface the collector receivers will listen on. Default value is `127.0.0.1` for agent mode and `0.0.0.0` for gateway.
+ * `/SPLUNK_OPAMP_SUPERVISOR_ENABLED:true|false`: Set to `true` to manage the Collector with OpAMP Supervisor. Default value is `false`.
  * `/MODE`: This parameter is used for setting the Collector configuration file to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml`. Possible values are `agent` and `gateway`. Default value is `agent`.
 
 To pass parameters, use `--params "''"` (e.g. `choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:MY_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:MY_SPLUNK_REALM'"`).

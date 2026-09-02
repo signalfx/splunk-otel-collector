@@ -63,6 +63,7 @@ agent_config_path="${collector_config_dir}/agent_config.yaml"
 gateway_config_path="${collector_config_dir}/gateway_config.yaml"
 logs_config_path="${collector_config_dir}/splunk_logs_config_linux.yaml"
 logs_file_storage_path="/var/lib/otelcol/filelogs"
+state_dir="/var/lib/otelcol"
 metrics_config_path="${collector_config_dir}/splunk_metrics_config_linux.yaml"
 old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
@@ -1119,6 +1120,8 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
+  --with-supervisor                     Whether to manage the Splunk OpenTelemetry Collector with OpAMP Supervisor.
+                                        (default: false)
 
 Splunk Platform:
   --splunk-platform-token <token>       Set the HEC token for sending data to Splunk Platform.
@@ -1226,7 +1229,7 @@ distro_is_supported() {
   case "$distro" in
     ubuntu)
       case "$distro_codename" in
-        bionic|focal|xenial|jammy|noble)
+        bionic|focal|xenial|jammy|noble|resolute)
           return 0
           ;;
       esac
@@ -1247,7 +1250,7 @@ distro_is_supported() {
       ;;
     sles|opensuse*)
       case "$distro_version" in
-        12*|15*|42*)
+        12*|15*|16*|42*)
           return 0
           ;;
       esac
@@ -1429,6 +1432,7 @@ parse_args_and_install() {
   local node_package_installed="false"
   local with_sdks=""
   local without_sdks=""
+  local with_supervisor="false"
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -1564,6 +1568,9 @@ parse_args_and_install() {
         done
         shift 1
         ;;
+      --with-supervisor)
+        with_supervisor="true"
+        ;;
       --npm-path)
         npm_path="$2"
         if ! command -v "$npm_path" >/dev/null 2>&1; then
@@ -1673,7 +1680,7 @@ parse_args_and_install() {
   # Validate before prompting for access token to avoid blocking on interactive input.
   if [ -n "$splunk_platform_token" ] || [ -n "$splunk_platform_logs_index" ] || [ -n "$splunk_platform_metrics_index" ]; then
     if [ -z "$splunk_platform_url" ]; then
-      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index or --splunk-platform-metrics-index is set." >&2
+      echo "[ERROR] --splunk-platform-url is required when --splunk-platform-token is set." >&2
       exit 1
     fi
   fi
@@ -1698,6 +1705,11 @@ parse_args_and_install() {
 
   if [ -z "$access_token" ] && [ -z "$splunk_platform_url" ]; then
     access_token=$(request_access_token)
+  fi
+
+  if [ "$with_supervisor" = "true" ] && [ -z "$access_token" ]; then
+    echo "[ERROR] --with-supervisor requires a Splunk Observability Cloud access token." >&2
+    exit 1
   fi
 
   if [ -z "$api_url" ]; then
@@ -1959,6 +1971,12 @@ parse_args_and_install() {
   fi
   configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
+  if [ "$with_supervisor" = "true" ]; then
+    configure_env_file "SPLUNK_OPAMP_SUPERVISOR_ENABLED" "true" "$collector_env_path"
+  fi
+
+  mkdir -p "$state_dir"
+  chown -R "$service_user:$service_group" "$state_dir"
 
   local otelcol_options=
   if [ "$discovery" = "true" ]; then

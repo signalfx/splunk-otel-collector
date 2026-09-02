@@ -66,6 +66,7 @@ var factory = telegrafInputs.Inputs["procstat"]
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the [host_metrics receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver) instead.")
 	plugin := factory().(*telegrafPlugin.Procstat)
 
 	// create the emitter

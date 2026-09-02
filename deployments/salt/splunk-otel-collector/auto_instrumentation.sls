@@ -15,6 +15,9 @@
 {% set auto_instrumentation_otlp_endpoint_protocol = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_otlp_endpoint_protocol') %}
 {% set auto_instrumentation_metrics_exporter = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_metrics_exporter') %}
 {% set auto_instrumentation_logs_exporter = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_logs_exporter') %}
+{% set local_artifact_testing_enabled = salt['pillar.get']('splunk-otel-collector:local_artifact_testing_enabled', False) | to_bool %}
+{% set auto_instrumentation_package_source = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_package_source', '') %}
+{% set zypper_local_artifact_testing_enabled = local_artifact_testing_enabled and salt['cmd.has_exec']('zypper') %}
 {% set with_new_instrumentation = auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.87.0') >= 0 %}
 {% set dotnet_supported = (auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.99.0') >= 0) and grains['cpuarch'] in ['amd64', 'x86_64'] %}
 {% set systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf' %}
@@ -25,12 +28,36 @@
 {% set nodejs_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js' %}
 {% set dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet' %}
 
-Install Splunk OpenTelemetry Auto Instrumentation:
+{% if zypper_local_artifact_testing_enabled %}
+Install local splunk-otel-auto-instrumentation package:
+  cmd.run:
+    - name: zypper --non-interactive --no-gpg-checks install -y --allow-unsigned-rpm {{ auto_instrumentation_package_source }}
+    - unless: rpm -q splunk-otel-auto-instrumentation
+    - require:
+      - pkg: splunk-otel-collector
+
+{% endif %}
+
+splunk-otel-auto-instrumentation:
   pkg.installed:
+{% if local_artifact_testing_enabled %}
+{% if zypper_local_artifact_testing_enabled %}
+    - name: splunk-otel-auto-instrumentation
+    - require:
+      - cmd: Install local splunk-otel-auto-instrumentation package
+{% else %}
+    - sources:
+      - splunk-otel-auto-instrumentation: {{ auto_instrumentation_package_source }}
+    - skip_verify: True
+    - require:
+      - pkg: splunk-otel-collector
+{% endif %}
+{% else %}
     - name: splunk-otel-auto-instrumentation
     - version: {{ auto_instrumentation_version }}
     - require:
       - pkg: splunk-otel-collector
+{% endif %}
 
 {% if 'nodejs' in auto_instrumentation_sdks and with_new_instrumentation %}
 {{ nodejs_prefix }}/node_modules:

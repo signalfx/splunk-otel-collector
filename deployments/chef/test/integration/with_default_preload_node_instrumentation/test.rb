@@ -1,6 +1,6 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 node_options = '-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument'
-resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+'
+resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+(?:[-+._~][A-Za-z0-9.+_~-]*)?'
 
 describe package('splunk-otel-auto-instrumentation') do
   it { should be_installed }

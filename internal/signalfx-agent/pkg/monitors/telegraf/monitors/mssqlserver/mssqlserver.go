@@ -60,6 +60,7 @@ type Monitor struct {
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the [sql server receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlserverreceiver) instead.")
 
 	plugin := telegrafInputs.Inputs["sqlserver"]().(*telegrafPlugin.SQLServer)
 

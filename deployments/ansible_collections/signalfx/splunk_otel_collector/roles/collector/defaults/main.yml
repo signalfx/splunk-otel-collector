@@ -85,5 +85,6 @@ splunk_dotnet_auto_instrumentation_iisreset: true
 splunk_dotnet_auto_instrumentation_additional_options: {}
 
 # Variables to be used only for testing
-# Used to test locally built artifacts instead of remotely downloaded version. Overrides splunk_otel_collector_version.
+# Used to test locally built artifacts instead of remotely downloaded versions.
+# Overrides splunk_otel_collector_version and splunk_otel_auto_instrumentation_version.
 local_artifact_testing_enabled: false

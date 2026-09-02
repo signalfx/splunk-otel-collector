@@ -42,6 +42,26 @@ shared_examples_for 'common linux resources' do
   it_behaves_like 'collector conf'
   it_behaves_like 'splunk-otel-collector linux service status'
   it_behaves_like 'install splunk-otel-collector package'
+
+  %w(/etc/otel/collector /var/lib/otelcol).each do |path|
+    it "manages #{path} for the collector service owner" do
+      expect(chef_run).to create_directory("ensure #{path} exists").with(
+        path: path,
+        mode: '0755'
+      )
+    end
+  end
+
+  it 'sets collector directory ownership recursively' do
+    expect(chef_run.execute('set collector directory ownership recursively').command).to eq(
+      'chown -R -- splunk-otel-collector:splunk-otel-collector /etc/otel/collector /var/lib/otelcol'
+    )
+  end
+
+  it 'stops the collector immediately when the service owner configuration changes' do
+    owner_config = chef_run.file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf')
+    expect(owner_config).to notify('service[splunk-otel-collector]').to(:stop).immediately
+  end
 end
 
 shared_examples_for 'common windows resources' do

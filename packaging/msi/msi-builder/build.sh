@@ -41,6 +41,8 @@ Description:
 
 OPTIONS:
     --otelcol PATH                    Absolute path to the otelcol exe.
+    --otelcollauncher PATH            Absolute path to the otelcollauncher exe.
+    --opampsupervisor PATH            Absolute path to the opampsupervisor exe.
     --agent-config PATH               Absolute path to the agent config.
                                       Defaults to '$AGENT_CONFIG'.
     --gateway-config PATH             Absolute path to the gateway config.
@@ -59,6 +61,8 @@ EOH
 
 parse_args_and_build() {
     local otelcol=""
+    local otelcollauncher=""
+    local opampsupervisor=""
     local agent_config="$AGENT_CONFIG"
     local gateway_config="$GATEWAY_CONFIG"
     local splunk_logs_config="$SPLUNK_LOGS_CONFIG"
@@ -78,6 +82,14 @@ parse_args_and_build() {
                 ;;
             --otelcol)
                 otelcol="$2"
+                shift 1
+                ;;
+            --otelcollauncher)
+                otelcollauncher="$2"
+                shift 1
+                ;;
+            --opampsupervisor)
+                opampsupervisor="$2"
                 shift 1
                 ;;
             --agent-config)
@@ -140,6 +152,12 @@ parse_args_and_build() {
     if [[ -z "$otelcol" ]]; then
         otelcol="${REPO_DIR}/bin/otelcol_windows_${msiarch}.exe"
     fi
+    if [[ -z "$otelcollauncher" ]]; then
+        otelcollauncher="${REPO_DIR}/bin/otelcollauncher_windows_${msiarch}.exe"
+    fi
+    if [[ -z "$opampsupervisor" ]]; then
+        opampsupervisor="${REPO_DIR}/bin/opampsupervisor_windows_${msiarch}.exe"
+    fi
 
     build_dir="${WORK_DIR}/build"
     files_dir="${build_dir}/msi"
@@ -172,6 +190,8 @@ parse_args_and_build() {
         -bindpath "${files_dir}" \
         -d Version="${version}" \
         -d Otelcol="${otelcol}" \
+        -d OtelcolLauncher="${otelcollauncher}" \
+        -d OpAMPSupervisor="${opampsupervisor}" \
         -d FilesDir="${files_dir}"
 
     msi="${build_dir}/${msi_name}"

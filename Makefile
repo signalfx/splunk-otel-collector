@@ -37,7 +37,6 @@ MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 
 SKIP_COMPILE=false
 ARCH?=amd64
-WITH_OPAMP_SUPERVISOR?=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -304,55 +303,74 @@ docker-otelcol:
 	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64
+binaries-all-sys: binaries-aix_ppc64 \
+	binaries-darwin_amd64 \
+	binaries-darwin_arm64 \
+	binaries-freebsd_amd64 \
+	binaries-linux_amd64 \
+	binaries-linux_arm64 \
+	binaries-linux_ppc64le \
+	binaries-linux_s390x \
+	binaries-solaris_amd64 \
+	binaries-windows_386 \
+	binaries-windows_amd64 \
+	binaries-windows_arm64
+
+.PHONY: binaries-aix_ppc64
+binaries-aix_ppc64:
+	GOOS=aix GOARCH=ppc64 $(MAKE) otelcol
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
-	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-darwin_arm64
 binaries-darwin_arm64:
-	GOOS=darwin  GOARCH=arm64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=arm64 $(MAKE) otelcol
+
+.PHONY: binaries-freebsd_amd64
+binaries-freebsd_amd64:
+	GOOS=freebsd GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcollauncher
-	GOOS=linux   GOARCH=amd64 $(MAKE) opampsupervisor
-endif
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=amd64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcollauncher
-	GOOS=linux   GOARCH=arm64 $(MAKE) opampsupervisor
-endif
-
-.PHONY: binaries-windows_amd64
-binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
-endif
-
-.PHONY: binaries-windows_arm64
-binaries-windows_arm64:
-	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
-	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
-endif
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcol
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=arm64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux GOARCH=ppc64le $(MAKE) otelcollauncher
-	GOOS=linux GOARCH=ppc64le $(MAKE) opampsupervisor
-endif
+
+.PHONY: binaries-linux_s390x
+binaries-linux_s390x:
+	GOOS=linux GOARCH=s390x $(MAKE) otelcol
+
+.PHONY: binaries-solaris_amd64
+binaries-solaris_amd64:
+	GOOS=solaris GOARCH=amd64 $(MAKE) otelcol
+
+.PHONY: binaries-windows_386
+binaries-windows_386:
+	GOOS=windows GOARCH=386 EXTENSION=.exe $(MAKE) otelcol
+
+.PHONY: binaries-windows_amd64
+binaries-windows_amd64:
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
+
+.PHONY: binaries-windows_arm64
+binaries-windows_arm64:
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
 
 .PHONY: deb-rpm-tar-package
 %-package:

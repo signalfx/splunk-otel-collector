@@ -64,8 +64,8 @@ func TestWaitForChildReturnsOutputAndWaitErrors(t *testing.T) {
 		return waitErr
 	})
 
-	assert.ErrorIs(t, result.outputErr, outputErr)
-	assert.ErrorIs(t, result.waitErr, waitErr)
+	require.ErrorIs(t, result.outputErr, outputErr)
+	require.ErrorIs(t, result.waitErr, waitErr)
 }
 
 func TestWaitForChildWithoutOutputForwardingWaitsImmediately(t *testing.T) {

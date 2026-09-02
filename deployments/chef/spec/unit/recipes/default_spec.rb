@@ -123,7 +123,7 @@ describe 'splunk_otel_collector::default' do
             'splunk_access_token' => 'test123',
             'splunk_realm' => 'test',
             'with_auto_instrumentation' => true,
-            'auto_instrumentation_version' => '0.159.0',
+            'auto_instrumentation_version' => '0.160.0',
             'with_auto_instrumentation_sdks' => %w(java),
           }
         end.converge described_recipe

@@ -35,9 +35,9 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
+	"github.com/signalfx/splunk-otel-collector/internal/modularinput"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
-	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
 )
 
 const modularinputStanzaPrefix = "Splunk_TA_otel://"

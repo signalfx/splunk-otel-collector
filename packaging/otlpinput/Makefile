@@ -1,5 +1,3 @@
-include ../../Makefile.common
-
 GOCMD?=go
 
 VERSION ?= $(shell git describe --match "v[0-9]*" HEAD)
@@ -7,8 +5,8 @@ PKG_NAME ?= splunk-connect-for-otlp
 
 .PHONY := tgz
 tgz: build
-	mkdir -p out/distribution/ && \
-	@tmpdir=$$(mktemp -d) && \
+	@mkdir -p out/distribution/ && \
+	tmpdir=$$(mktemp -d) && \
 	cp -rL splunk-connect-for-otlp $$tmpdir/splunk-connect-for-otlp && \
 	sed -i.bak \
 		-e 's/^version[[:space:]]*=[[:space:]]*.*/version = $(patsubst v%,%,$(VERSION))/' \
@@ -16,7 +14,7 @@ tgz: build
 		-e 's/^name[[:space:]]*=[[:space:]]*.*/name = $(PKG_NAME)/' \
 		$$tmpdir/$(PKG_NAME)/default/app.conf && \
 	rm -f $$tmpdir/$(PKG_NAME)/default/app.conf.bak && \
-	tar --format ustar -czvf out/distribution/splunk-connect-for-otlp.tgz $$tmpdir/splunk-connect-for-otlp
+	tar --format ustar -C $$tmpdir -czf out/distribution/splunk-connect-for-otlp.tgz splunk-connect-for-otlp
 
 splunk-connect-for-otlp.tgz: tgz
 

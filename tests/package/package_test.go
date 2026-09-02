@@ -42,7 +42,7 @@ const (
 	serviceOwner           = "splunk-otel-collector"
 	serviceProcess         = "otelcol"
 	supervisorProcess      = "opampsupervisor"
-	lastPreLauncherVersion = "0.159.0"
+	lastPreLauncherVersion = "0.158.0"
 	envPath                = "/etc/otel/collector/splunk-otel-collector.conf"
 	agentConfigPath        = "/etc/otel/collector/agent_config.yaml"
 	gatewayConfigPath      = "/etc/otel/collector/gateway_config.yaml"

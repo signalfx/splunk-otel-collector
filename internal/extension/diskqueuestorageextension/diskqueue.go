@@ -27,8 +27,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension/internal/compression"
 )
 
 var bufPool = sync.Pool{
@@ -36,10 +34,6 @@ var bufPool = sync.Pool{
 		return &bytes.Buffer{}
 	},
 }
-
-var gzipWriterPool = compression.NewGZIPWriterPool()
-
-var gzipReaderPool = compression.NewGZIPReaderPool()
 
 type message struct {
 	consumeCallback func()
@@ -82,13 +76,12 @@ type diskQueue struct {
 	metadataWrites        int
 	peekMetadataWrites    int
 	exitFlag              atomic.Bool
-	compression           bool
 }
 
 // newQueue instantiates an instance of diskQueue, retrieving metadata
 // from the filesystem and starting the read ahead goroutine
 func newQueue(name, dataPath string, maxBytesPerFile int64,
-	syncEvery int64, syncTimeout time.Duration, compression bool, logger *zap.Logger,
+	syncEvery int64, syncTimeout time.Duration, logger *zap.Logger,
 ) (*diskQueue, error) {
 	d := diskQueue{
 		name:                  name,
@@ -103,7 +96,6 @@ func newQueue(name, dataPath string, maxBytesPerFile int64,
 		waitForWriteChan:      make(chan struct{}),
 		syncEvery:             syncEvery,
 		syncTimeout:           syncTimeout,
-		compression:           compression,
 		logger:                logger,
 		metadataTruncateEvery: 1000,
 	}
@@ -128,17 +120,7 @@ func (d *diskQueue) put(data []byte) error {
 	if d.exitFlag.Load() {
 		return errors.New("exiting")
 	}
-	if !d.compression {
-		d.writeChan <- data
-	} else {
-		buf := bufPool.Get().(*bytes.Buffer)
-		buf.Reset()
-		defer bufPool.Put(buf)
-		if _, err := gzipWriterPool.Write(buf, data); err != nil {
-			return err
-		}
-		d.writeChan <- buf.Bytes()
-	}
+	d.writeChan <- data
 	return <-d.writeResponseChan
 }
 
@@ -455,35 +437,14 @@ func (d *diskQueue) readOne(callbacks map[int64]int) bool {
 	messagePeekFileNum := d.peekMetadata.FileNum
 	messagePeekPos := d.peekMetadata.Pos
 	callbacks[messagePeekFileNum]++
-	var msg message
-	if d.compression {
-		buf := bufPool.Get().(*bytes.Buffer)
-		buf.Reset()
-		_, err = gzipReaderPool.Read(buf, peekData)
-		if err != nil {
-			d.logger.Error("error decompressing entry", zap.Error(err))
-			return true
-		}
-		msg = message{
-			payload: buf.Bytes(),
-			consumeCallback: func() {
-				d.callbackChan <- callback{
-					pos:     messagePeekPos,
-					fileNum: messagePeekFileNum,
-				}
-				bufPool.Put(buf)
-			},
-		}
-	} else {
-		msg = message{
-			payload: peekData,
-			consumeCallback: func() {
-				d.callbackChan <- callback{
-					pos:     messagePeekPos,
-					fileNum: messagePeekFileNum,
-				}
-			},
-		}
+	msg := message{
+		payload: peekData,
+		consumeCallback: func() {
+			d.callbackChan <- callback{
+				pos:     messagePeekPos,
+				fileNum: messagePeekFileNum,
+			}
+		},
 	}
 
 	select {

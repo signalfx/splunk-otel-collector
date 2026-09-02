@@ -26,7 +26,7 @@ import (
 
 func newQueueForTesting(t *testing.T) *diskQueue {
 	logger, _ := zap.NewDevelopment()
-	d, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, false, logger)
+	d, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, logger)
 	return d
 }
 
@@ -116,7 +116,7 @@ func TestThreePutsThreeConsumesOutOfOrder(t *testing.T) {
 }
 
 func TestMultipleWorkers(t *testing.T) {
-	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, false, zap.NewNop())
+	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
@@ -133,7 +133,7 @@ func TestMultipleWorkers(t *testing.T) {
 }
 
 func TestMultipleWorkersOutOfOrder(t *testing.T) {
-	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, false, zap.NewNop())
+	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
@@ -156,14 +156,14 @@ func TestMultipleWorkersOutOfOrder(t *testing.T) {
 func TestStartStopRestart(t *testing.T) {
 	dir := t.TempDir()
 	logger, _ := zap.NewDevelopment()
-	q, _ := newQueue("foo", dir, 10_000_000, 1, 1*time.Second, false, logger)
+	q, _ := newQueue("foo", dir, 10_000_000, 1, 1*time.Second, logger)
 	require.NoError(t, q.put([]byte("hello world")))
 	require.NoError(t, q.put([]byte("hello world2")))
 	require.NoError(t, q.put([]byte("hello world3")))
 	msg1 := <-q.peek()
 	msg1.consumeCallback()
 	require.NoError(t, q.close())
-	q, _ = newQueue("foo", dir, 10_000_000, 1, 1*time.Second, false, logger)
+	q, _ = newQueue("foo", dir, 10_000_000, 1, 1*time.Second, logger)
 	msg2 := <-q.peek()
 	require.Equal(t, "hello world2", string(msg2.payload))
 	require.NoError(t, q.close())

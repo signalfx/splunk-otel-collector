@@ -24,7 +24,6 @@ type Config struct {
 	MaxBytesPerFile int64         `mapstructure:"max_bytes_per_file"`
 	SyncEvery       int64         `mapstructure:"sync_every"`
 	SyncTimeout     time.Duration `mapstructure:"sync_timeout"`
-	Compression     bool          `mapstructure:"compression"`
 }
 
 func (c *Config) Validate() error {

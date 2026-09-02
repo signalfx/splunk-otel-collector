@@ -1709,7 +1709,9 @@ github-release:
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       pushd dist/assets && shasum -a 256 * > checksums.txt && popd
       if [[ -z "${DRY_RUN:-}" ]]; then
-        # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
+        # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set).
+        # multimod tags the whole splunk-otel-collector module set (root, baseline,
+        # and pkg/*) from versions.yaml at the same version and commit.
         if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
           ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
         fi

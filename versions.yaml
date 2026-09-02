@@ -1,0 +1,48 @@
+# Copyright Splunk, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Module sets for the multimod releaser (go.opentelemetry.io/build-tools/multimod).
+# The splunk-otel-collector set is versioned in lockstep with the collector: the
+# root module plus every publicly consumable module (baseline and the pkg/*
+# components) share one version and are tagged together on each release.
+#
+# `multimod prerelease` syncs the require versions across these go.mod files, and
+# `multimod tag` creates the vX.Y.Z, baseline/vX.Y.Z, and pkg/*/vX.Y.Z tags.
+#
+# Every go.mod in the repo must appear in a module set or under excluded-modules;
+# `multimod verify` enforces this.
+module-sets:
+  splunk-otel-collector:
+    version: v0.159.0
+    modules:
+      - github.com/signalfx/splunk-otel-collector
+      - github.com/signalfx/splunk-otel-collector/baseline
+      - github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension
+      - github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor
+      - github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor
+      - github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
+excluded-modules:
+  # Vendored fork with its own module identity and replace directives; released
+  # from its own upstream, not tagged here.
+  - github.com/signalfx/signalfx-agent
+  # Build/lint/codegen tooling; never consumed as a library.
+  - github.com/signalfx/splunk-otel-collector/internal/tools
+  # Test suites; run in-tree, not consumed by version.
+  - github.com/signalfx/splunk-otel-collector/tests
+  - github.com/signalfx/splunk-otel-collector/tests/tools
+  - github.com/signalfx/splunk-otel-collector/packaging/ta-v2/tests
+  # Standalone example programs; copied out, never imported.
+  - github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter
+  - github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/tracing
+  - github.com/signalfx/splunk-otel-collector/examples/splunk-hec/logging

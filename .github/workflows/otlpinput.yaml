@@ -1,0 +1,59 @@
+name: otlpintput
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packaging/otlpinput/**'
+      - '.github/workflows/otlpinput.yaml'
+      - 'cmd/splunk-connect-for-otlp/**'
+      - 'internal/**'
+      - 'pkg/**'
+  pull_request:
+    paths:
+      - 'packaging/otlpinput/**'
+      - '.github/workflows/otlpinput.yaml'
+      - 'cmd/splunk-connect-for-otlp/**'
+      - 'internal/**'
+      - 'pkg/**'
+  workflow_dispatch: {}
+
+env:
+  GO_VERSION: 1.26.6
+
+jobs:
+  ta-v2-build-packages:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Package Splunk Connect for OTLP
+        working-directory: packaging/otlpinput
+        run: |
+          set -eo pipefail
+          make tgz
+          ls -l ./out/distribution
+
+      - name: Upload Splunk Connect for OTLP artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: otlpinput-packages
+          path: packaging/otlpinput/out/distribution/*.tgz
+
+      - name: Check no source files were modified
+        run: |
+          set -eo pipefail
+          if ! git diff --exit-code; then
+            echo "Source files were modified during the build. Please update the repository."
+            exit 1
+          fi

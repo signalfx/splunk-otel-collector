@@ -27,6 +27,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.159.0
 	github.com/openconfig/gnmi v0.14.1
 	github.com/openconfig/ygot v0.35.0
+	github.com/prometheus/client_golang v1.24.1
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.70.1
 	github.com/prometheus/prometheus v0.313.2
@@ -39,7 +40,7 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	go.etcd.io/etcd/client/v2 v2.305.33
 	go.opentelemetry.io/collector/component/componentstatus v0.159.0
 	go.opentelemetry.io/collector/component/componenttest v0.159.0
@@ -69,8 +70,8 @@ require (
 	go.opentelemetry.io/collector/scraper v0.159.0
 	go.opentelemetry.io/collector/scraper/scraperhelper v0.159.0
 	go.opentelemetry.io/collector/service v0.159.0
-	go.opentelemetry.io/otel/metric v1.45.0
-	go.opentelemetry.io/otel/trace v1.45.0
+	go.opentelemetry.io/otel/metric v1.46.0
+	go.opentelemetry.io/otel/trace v1.46.0
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.28.0
@@ -443,7 +444,6 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/prometheus-community/pro-bing v0.9.1 // indirect
 	github.com/prometheus/alertmanager v0.33.0 // indirect
-	github.com/prometheus/client_golang v1.24.1 // indirect
 	github.com/prometheus/client_golang/exp v0.0.0-20260602051030-3537b20ac86b // indirect
 	github.com/prometheus/common/assets v0.2.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.17.1 // indirect
@@ -780,9 +780,9 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.45.0 // indirect
 	go.opentelemetry.io/contrib/zpages v0.70.0 // indirect
-	go.opentelemetry.io/otel v1.45.0
-	go.opentelemetry.io/otel/sdk v1.45.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.45.0
+	go.opentelemetry.io/otel v1.46.0
+	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.46.0
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260727155853-b88d891fe743
 	golang.org/x/mod v0.40.0 // indirect

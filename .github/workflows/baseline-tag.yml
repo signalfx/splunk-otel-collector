@@ -1,9 +1,5 @@
-# Auto-tags the baseline module on merge to main. When baseline's shipping files
-# change, baseline/VERSION is read and a signed baseline/vX.Y.Z tag is created if
-# it does not already exist. If the tag exists and its baseline tree matches, the
-# run is a no-op (idempotent, like chart-releaser --skip-existing); if it exists
-# but the tree differs, the run fails loudly (an untagged change slipped past the
-# baseline-version-guard PR check).
+# On merge to main, tags baseline/<VERSION> if absent. No-op if the tag exists
+# and matches; fails if it exists but the baseline tree differs.
 
 name: baseline-tag
 
@@ -46,7 +42,7 @@ jobs:
 
           if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
             if baseline_shipping_changed "$tag"; then
-              echo "::error::${tag} already exists but the baseline tree differs from it. An untagged baseline change reached main; bump baseline/VERSION."
+              echo "::error::${tag} already exists but the baseline tree differs. An untagged baseline change reached main; bump baseline/VERSION."
               exit 1
             fi
             echo "${tag} already exists and matches HEAD; nothing to do."

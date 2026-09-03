@@ -58,11 +58,8 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
     make -C "$REPO_DIR" tidy-all
 done
 
-# Bump baseline/VERSION when the dep sweep changed baseline's shipping files.
-# baseline is published as a standalone module and tagged on merge from this
-# file; the CI guard requires the bump, and the auto-tagger reads it. The next
-# version is derived from OTEL_VERSION (stable: track upstream major+minor at
-# vX.Y.0; nightly/main: increment the rc), so no extra input is needed.
+# Bump baseline/VERSION when the sweep changed baseline's shipping files, so the
+# dep-update PR carries the bump the guard requires and the auto-tagger reads.
 # shellcheck source=.github/workflows/scripts/baseline-version.sh
 source "${REPO_DIR}/.github/workflows/scripts/baseline-version.sh"
 (

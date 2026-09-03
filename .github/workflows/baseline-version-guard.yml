@@ -1,9 +1,5 @@
-# Enforces that any change to the baseline module's shipping files (Go sources,
-# go.mod, go.sum) bumps baseline/VERSION above the latest published baseline tag.
-# The baseline module is published as a standalone Go module and consumed by
-# flavours via tag, so an untagged change would let an external consumer resolve
-# a tag whose content differs from what shipped. Mirrors Helm's
-# `ct lint --check-version-increment`.
+# Fails a PR that changes baseline's shipping files without bumping
+# baseline/VERSION above the latest published baseline tag.
 
 name: baseline-version-guard
 

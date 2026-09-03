@@ -88,6 +88,12 @@ origin when the target supplies one:
 Path keys are not part of the name; they become datapoint attributes (`name=eth0`
 above). The target endpoint is recorded as the `server.address` resource attribute.
 
+Two list elements in the same path can use the same key name (e.g. `index` on two
+nested keyed lists). When a key name occurs only once it keeps its plain name; when
+it occurs more than once, every occurrence of that name is prefixed with its owning
+element name (e.g. `subinterface.index`) so the attributes don't collide or silently
+overwrite one another.
+
 Integer values (including `counter64`) are emitted as integer datapoints so large
 counters keep full precision. Booleans are emitted as `1`/`0`.
 

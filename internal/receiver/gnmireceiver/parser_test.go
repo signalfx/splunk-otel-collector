@@ -747,6 +747,52 @@ func TestParseUsesNotificationTimestamp(t *testing.T) {
 	assert.Equal(t, int64(1234), dp.Timestamp().AsTime().UnixNano())
 }
 
+func TestParseDisambiguatesCollidingKeyNames(t *testing.T) {
+	sub := SubscriptionConfig{
+		Path:    "/interfaces/interface/subinterfaces/subinterface/queues/queue/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}
+	m, err := testParser(sub).parse(&gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{
+			Update: &gnmipb.Notification{
+				Update: []*gnmipb.Update{{
+					Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
+						{Name: "interfaces"},
+						{Name: "interface", Key: map[string]string{"name": "eth0"}},
+						{Name: "subinterfaces"},
+						{Name: "subinterface", Key: map[string]string{"index": "0"}},
+						{Name: "queues"},
+						{Name: "queue", Key: map[string]string{"index": "3"}},
+						{Name: "state"},
+						{Name: "counters"},
+						{Name: "in-octets"},
+					}},
+					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 1}},
+				}},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	dp := onlyMetric(t, m).Sum().DataPoints().At(0)
+
+	name, ok := dp.Attributes().Get("name")
+	require.True(t, ok, "the unique key name must keep its plain name")
+	assert.Equal(t, "eth0", name.Str())
+
+	_, ok = dp.Attributes().Get("index")
+	assert.False(t, ok, "the colliding key name must not be present unqualified")
+
+	subIndex, ok := dp.Attributes().Get("subinterface.index")
+	require.True(t, ok, "the subinterface's index must be namespaced by its element name")
+	assert.Equal(t, "0", subIndex.Str())
+
+	queueIndex, ok := dp.Attributes().Get("queue.index")
+	require.True(t, ok, "the queue's index must be namespaced by its element name")
+	assert.Equal(t, "3", queueIndex.Str())
+}
+
 func TestPathElemNames(t *testing.T) {
 	assert.Equal(t, []string{"interfaces", "interface", "state"},
 		pathElemNames("/interfaces/interface[name=eth0]/state"))

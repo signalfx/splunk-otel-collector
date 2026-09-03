@@ -69,7 +69,6 @@ The distribution offers support for the following components.
 | [receiver_creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator)                                           | [beta]           |
 | [redis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/redisreceiver)                                                        | [beta]           |
 | [saphana](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/saphanareceiver)                                                    | [alpha]          |
-| [scripted_inputs](../internal/receiver//scriptedinputsreceiver)                                                                                                    | [in development] |
 | [signalfxgatewayprometheusremotewrite](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/signalfxgatewayprometheusremotewritereceiver) | [deprecated]     |
 | [smartagent](../pkg/receiver/smartagentreceiver)                                                                                                                   | [beta]           |
 | [snmp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver)                                                          | [alpha]          |
@@ -161,6 +160,7 @@ The distribution offers support for the following components.
 | [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)                                            | [beta]    |
 | [oauth2client](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/oauth2clientauthextension)                                       | [beta]    |
 | [opamp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension)                                                         | [alpha]   |
+| [oracle_encoding](../pkg/extension/oracleencodingextension)                                                                                                           | [alpha]   |
 | [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                                                         | [beta]    |
 | [smartagent](../pkg/extension/smartagentextension)                                                                                                                    | [beta]    |
 | [text_encoding](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/encoding/textencodingextension)                                 | [beta]    |

@@ -173,21 +173,26 @@ def verify_preload(container, line, exists=True):
         assert not match, f"'{line}' found in {PRELOAD_PATH}"
 
 
-def start_app(container, app, timeout=300):
+def start_app(container, app, timeout=300, app_env=None):
     print(f"Starting {app} from a shell ...")
     if app == "tomcat":
-        run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=TOMCAT_ENV, user='tomcat:tomcat')
+        env = {**TOMCAT_ENV, **(app_env or {})}
+        run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=env, user='tomcat:tomcat')
     elif app == "express":
         run_container_cmd(
-            container, f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'", user='express:express',
+            container,
+            f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'",
+            env=app_env,
+            user='express:express',
         )
     elif app == "dotnet":
+        env = {**DOTNET_ENV, **(app_env or {})}
         run_container_cmd(
             container,
             f"bash -c '/opt/dotnet-sdk/dotnet /opt/dotnet/myWebApp.dll & echo $! > {DOTNET_PIDFILE}'",
             user='dotnet:dotnet',
             workdir="/opt/dotnet",
-            env=DOTNET_ENV,
+            env=env,
         )
 
     if app == "tomcat":
@@ -242,7 +247,7 @@ def verify_attributes(stream, attributes, timeout=300):
         assert found[key], f"timed out waiting for '{key}: {value}'"
 
 
-def verify_app_instrumentation(container, app, attributes, otelcol_path=None, timeout=300):
+def verify_app_instrumentation(container, app, attributes, otelcol_path=None, timeout=300, app_env=None):
 
     try:
         stop_app(container, app)
@@ -262,7 +267,7 @@ def verify_app_instrumentation(container, app, attributes, otelcol_path=None, ti
         # start the collector from the shell and get the output stream
         stream = container.exec_run(f"{otelcol_path} --config=/test/config.yaml", stream=True).output
 
-    start_app(container, app)
+    start_app(container, app, app_env=app_env)
 
     # check the collector output stream for attributes
     try:
@@ -335,6 +340,19 @@ def test_tomcat_instrumentation(distro, arch):
 
         # verify custom config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
+
+        # verify an existing application environment value takes precedence over default_env.conf
+        precedence_attributes = {
+            **attributes,
+            r"service\.name": rf"Str\(service_name_from_app\)",
+        }
+        verify_app_instrumentation(
+            container,
+            "tomcat",
+            precedence_attributes,
+            otelcol_path=otelcol,
+            app_env={"OTEL_SERVICE_NAME": "service_name_from_app"},
+        )
 
 
 @pytest.mark.parametrize(

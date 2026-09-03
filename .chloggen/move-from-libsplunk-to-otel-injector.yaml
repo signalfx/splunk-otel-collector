@@ -21,7 +21,8 @@ subtext: |
   before upgrading; values with other prefixes, including `JAVA_TOOL_OPTIONS`, `NODE_OPTIONS`, `CORECLR_*`, and
   `DOTNET_*`, are ignored. The injector derives activation settings from agent paths in `injector.conf` instead.
   `default_env.conf` is shared by all runtimes, and runtime-specific values must be configured through the relevant
-  application or service environment.
+  application or service environment. When a variable is set in both an application or service environment and
+  `default_env.conf`, the existing application or service value takes precedence, preserving the previous behavior.
 
   Package upgrades remove the legacy `/usr/lib/splunk-instrumentation/libsplunk.so` entry and delete an otherwise-empty
   preload file. The installer adds the new entry and recreates the file when needed. Restart instrumented applications

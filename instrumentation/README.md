@@ -86,6 +86,9 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
    - `SPLUNK_PROFILER_ENABLED`
    - `SPLUNK_PROFILER_MEMORY_ENABLED`
 
+   If an environment variable is set both in an application or service environment and in `default_env.conf`, the
+   existing application or service value takes precedence.
+
    Check the following for details about these environment variables and default values:
    - [Java](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
    - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/configuration/advanced-nodejs-otel-configuration.html)
@@ -146,4 +149,3 @@ Notes:
 - Run on a host matching the target `arch` to avoid needing QEMU emulation.
 - The test looks up `bin/otelcol_linux_<arch>` and a matching package in `instrumentation/dist/`, so steps 1 and 2
   must complete first.
-

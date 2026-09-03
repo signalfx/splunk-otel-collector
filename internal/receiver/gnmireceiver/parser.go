@@ -48,6 +48,48 @@ func newMetricParser(endpoint string, subscriptions []SubscriptionConfig) *metri
 	return &metricParser{endpoint: endpoint, subscriptions: subscriptions}
 }
 
+// parseBatch accumulates the metrics produced while converting a single SubscribeResponse.
+type parseBatch struct {
+	sm     pmetric.ScopeMetrics
+	byName map[string]pmetric.Metric
+}
+
+func newParseBatch(sm pmetric.ScopeMetrics) *parseBatch {
+	return &parseBatch{sm: sm, byName: map[string]pmetric.Metric{}}
+}
+
+func (b *parseBatch) numberDataPoint(name, unit string, wantType pmetric.MetricType) (pmetric.NumberDataPoint, error) {
+	if m, ok := b.byName[name]; ok {
+		if m.Type() != wantType {
+			return pmetric.NumberDataPoint{}, fmt.Errorf(
+				"metric %q is already emitted as %s in this batch, cannot also emit it as %s",
+				name, m.Type(), wantType)
+		}
+		if m.Unit() != unit {
+			return pmetric.NumberDataPoint{}, fmt.Errorf(
+				"metric %q is already emitted with unit %q in this batch, cannot also emit it with unit %q",
+				name, m.Unit(), unit)
+		}
+		if wantType == pmetric.MetricTypeSum {
+			return m.Sum().DataPoints().AppendEmpty(), nil
+		}
+		return m.Gauge().DataPoints().AppendEmpty(), nil
+	}
+
+	m := b.sm.Metrics().AppendEmpty()
+	m.SetName(name)
+	m.SetUnit(unit)
+	b.byName[name] = m
+
+	if wantType == pmetric.MetricTypeSum {
+		sum := m.SetEmptySum()
+		sum.SetIsMonotonic(true)
+		sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+		return sum.DataPoints().AppendEmpty(), nil
+	}
+	return m.SetEmptyGauge().DataPoints().AppendEmpty(), nil
+}
+
 func (p *metricParser) parse(resp *gnmipb.SubscribeResponse) (pmetric.Metrics, error) {
 	metrics := pmetric.NewMetrics()
 
@@ -61,7 +103,7 @@ func (p *metricParser) parse(resp *gnmipb.SubscribeResponse) (pmetric.Metrics, e
 		ts = pcommon.Timestamp(notification.GetTimestamp()) //nolint:gosec // G115: gNMI timestamps are non-negative unix nanos
 	}
 
-	sm := p.newScopeMetrics(metrics)
+	b := newParseBatch(p.newScopeMetrics(metrics))
 
 	var errs []string
 	for _, update := range notification.GetUpdate() {
@@ -74,12 +116,12 @@ func (p *metricParser) parse(resp *gnmipb.SubscribeResponse) (pmetric.Metrics, e
 			origin = update.GetPath().GetOrigin()
 		}
 
-		if err := p.appendUpdate(sm, origin, elems, keys, update.GetVal(), ts); err != nil {
+		if err := p.appendUpdate(b, origin, elems, keys, update.GetVal(), ts); err != nil {
 			errs = append(errs, err.Error())
 		}
 	}
 
-	if sm.Metrics().Len() == 0 {
+	if len(b.byName) == 0 {
 		metrics = pmetric.NewMetrics()
 	}
 	if len(errs) > 0 {
@@ -97,7 +139,7 @@ func (p *metricParser) newScopeMetrics(metrics pmetric.Metrics) pmetric.ScopeMet
 }
 
 func (p *metricParser) appendUpdate(
-	sm pmetric.ScopeMetrics,
+	b *parseBatch,
 	origin string,
 	elems []string,
 	keys map[string]string,
@@ -110,29 +152,29 @@ func (p *metricParser) appendUpdate(
 
 	switch v := val.GetValue().(type) {
 	case *gnmipb.TypedValue_UintVal:
-		return p.emitUint(sm, origin, elems, keys, v.UintVal, ts)
+		return p.emitUint(b, origin, elems, keys, v.UintVal, ts)
 	case *gnmipb.TypedValue_IntVal:
-		p.emitInt(sm, origin, elems, keys, v.IntVal, ts)
+		return p.emitInt(b, origin, elems, keys, v.IntVal, ts)
 	case *gnmipb.TypedValue_FloatVal:
-		p.emitDouble(sm, origin, elems, keys, float64(v.FloatVal), ts) //nolint:staticcheck // SA1019: float_val is deprecated but still sent by some targets
+		return p.emitDouble(b, origin, elems, keys, float64(v.FloatVal), ts) //nolint:staticcheck // SA1019: float_val is deprecated but still sent by some targets
 	case *gnmipb.TypedValue_DoubleVal:
-		p.emitDouble(sm, origin, elems, keys, v.DoubleVal, ts)
+		return p.emitDouble(b, origin, elems, keys, v.DoubleVal, ts)
 	case *gnmipb.TypedValue_BoolVal:
 		var n int64
 		if v.BoolVal {
 			n = 1
 		}
-		p.emitInt(sm, origin, elems, keys, n, ts)
+		return p.emitInt(b, origin, elems, keys, n, ts)
 	case *gnmipb.TypedValue_StringVal:
-		p.emitInfo(sm, origin, elems, keys, v.StringVal, ts)
+		return p.emitInfo(b, origin, elems, keys, v.StringVal, ts)
 	case *gnmipb.TypedValue_JsonVal:
-		return p.emitJSON(sm, origin, elems, keys, v.JsonVal, ts)
+		return p.emitJSON(b, origin, elems, keys, v.JsonVal, ts)
 	case *gnmipb.TypedValue_JsonIetfVal:
-		return p.emitJSON(sm, origin, elems, keys, v.JsonIetfVal, ts)
+		return p.emitJSON(b, origin, elems, keys, v.JsonIetfVal, ts)
 	case *gnmipb.TypedValue_LeaflistVal:
 		var errs []string
 		for i, element := range v.LeaflistVal.GetElement() {
-			if err := p.appendUpdate(sm, origin, elems, withIndex(keys, i), element, ts); err != nil {
+			if err := p.appendUpdate(b, origin, elems, withIndex(keys, i), element, ts); err != nil {
 				errs = append(errs, err.Error())
 			}
 		}
@@ -143,7 +185,6 @@ func (p *metricParser) appendUpdate(
 	default:
 		return nil
 	}
-	return nil
 }
 
 func withIndex(attrs map[string]string, i int) map[string]string {
@@ -156,110 +197,111 @@ func withIndex(attrs map[string]string, i int) map[string]string {
 }
 
 func (p *metricParser) emitUint(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value uint64, ts pcommon.Timestamp,
 ) error {
 	if value > math.MaxInt64 {
-		p.emitDouble(sm, origin, elems, keys, float64(value), ts)
+		if err := p.emitDouble(b, origin, elems, keys, float64(value), ts); err != nil {
+			return err
+		}
 		return fmt.Errorf("value %d for %q exceeds int64 range; emitted as a double and lost precision",
 			value, metricName(origin, elems))
 	}
-	p.emitInt(sm, origin, elems, keys, int64(value), ts)
-	return nil
+	return p.emitInt(b, origin, elems, keys, int64(value), ts)
 }
 
 func (p *metricParser) emitInt(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value int64, ts pcommon.Timestamp,
-) {
+) error {
 	cfg, ok := p.resolve(origin, elems)
 	if !ok {
-		return
+		return nil
 	}
-	p.writeInt(sm, origin, elems, keys, cfg, value, ts)
+	return p.writeInt(b, origin, elems, keys, cfg, value, ts)
 }
 
 func (p *metricParser) emitDouble(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value float64, ts pcommon.Timestamp,
-) {
+) error {
 	cfg, ok := p.resolve(origin, elems)
 	if !ok {
-		return
+		return nil
 	}
-	p.writeDouble(sm, origin, elems, keys, cfg, value, ts)
+	return p.writeDouble(b, origin, elems, keys, cfg, value, ts)
 }
 
 func (p *metricParser) emitInfo(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value string, ts pcommon.Timestamp,
-) {
+) error {
 	cfg, ok := p.resolve(origin, elems)
 	if !ok {
-		return
+		return nil
 	}
 
 	if cfg.Type == metricTypeSum || cfg.Type == metricTypeGauge {
 		if n, err := strconv.ParseInt(value, 10, 64); err == nil {
-			p.writeInt(sm, origin, elems, keys, cfg, n, ts)
-			return
+			return p.writeInt(b, origin, elems, keys, cfg, n, ts)
 		}
 		if f, err := strconv.ParseFloat(value, 64); err == nil {
-			p.writeDouble(sm, origin, elems, keys, cfg, f, ts)
-			return
+			return p.writeDouble(b, origin, elems, keys, cfg, f, ts)
 		}
 	}
 
-	p.writeInfo(sm, origin, elems, keys, value, ts)
+	return p.writeInfo(b, origin, elems, keys, cfg, value, ts)
 }
 
 func (p *metricParser) writeInt(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, cfg MetricConfig, value int64, ts pcommon.Timestamp,
-) {
-	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
+) error {
+	dp, err := b.numberDataPoint(metricName(origin, elems), cfg.Unit, metricDataType(cfg.Type))
+	if err != nil {
+		return err
+	}
 	dp.SetIntValue(value)
 	dp.SetTimestamp(ts)
 	putAttrs(dp.Attributes(), keys)
+	return nil
 }
 
 func (p *metricParser) writeDouble(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, cfg MetricConfig, value float64, ts pcommon.Timestamp,
-) {
-	dp := p.newNumberDataPoint(sm, origin, elems, cfg)
+) error {
+	dp, err := b.numberDataPoint(metricName(origin, elems), cfg.Unit, metricDataType(cfg.Type))
+	if err != nil {
+		return err
+	}
 	dp.SetDoubleValue(value)
 	dp.SetTimestamp(ts)
 	putAttrs(dp.Attributes(), keys)
+	return nil
 }
 
 func (p *metricParser) writeInfo(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
-	keys map[string]string, value string, ts pcommon.Timestamp,
-) {
-	m := sm.Metrics().AppendEmpty()
-	m.SetName(metricName(origin, elems) + infoMetricSuffix)
-	dp := m.SetEmptyGauge().DataPoints().AppendEmpty()
+	b *parseBatch, origin string, elems []string,
+	keys map[string]string, _ MetricConfig, value string, ts pcommon.Timestamp,
+) error {
+	name := metricName(origin, elems) + infoMetricSuffix
+	dp, err := b.numberDataPoint(name, "", pmetric.MetricTypeGauge)
+	if err != nil {
+		return err
+	}
 	dp.SetIntValue(1)
 	dp.SetTimestamp(ts)
 	dp.Attributes().PutStr(infoValueAttr, value)
 	putAttrs(dp.Attributes(), keys)
+	return nil
 }
 
-func (p *metricParser) newNumberDataPoint(
-	sm pmetric.ScopeMetrics, origin string, elems []string, cfg MetricConfig,
-) pmetric.NumberDataPoint {
-	m := sm.Metrics().AppendEmpty()
-	m.SetName(metricName(origin, elems))
-	m.SetUnit(cfg.Unit)
-
-	if cfg.Type == metricTypeSum {
-		sum := m.SetEmptySum()
-		sum.SetIsMonotonic(true)
-		sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-		return sum.DataPoints().AppendEmpty()
+func metricDataType(cfgType string) pmetric.MetricType {
+	if cfgType == metricTypeSum {
+		return pmetric.MetricTypeSum
 	}
-	return m.SetEmptyGauge().DataPoints().AppendEmpty()
+	return pmetric.MetricTypeGauge
 }
 
 func (p *metricParser) resolve(origin string, elems []string) (MetricConfig, bool) {
@@ -305,53 +347,72 @@ func (p *metricParser) subscriptionFor(origin string, elems []string) *Subscript
 }
 
 func (p *metricParser) emitJSON(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, raw []byte, ts pcommon.Timestamp,
 ) error {
 	var decoded any
 	if err := json.Unmarshal(raw, &decoded); err != nil {
 		return fmt.Errorf("invalid JSON payload at %q: %w", metricName(origin, elems), err)
 	}
-	p.flatten(sm, origin, elems, keys, decoded, ts)
-	return nil
+	return p.flatten(b, origin, elems, keys, decoded, ts)
 }
 
 func (p *metricParser) flatten(
-	sm pmetric.ScopeMetrics, origin string, elems []string,
+	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value any, ts pcommon.Timestamp,
-) {
+) error {
 	switch v := value.(type) {
 	case map[string]any:
+		var errs []string
 		for name, child := range v {
 			child2 := make([]string, len(elems), len(elems)+1)
 			copy(child2, elems)
-			p.flatten(sm, origin, append(child2, name), keys, child, ts)
+			if err := p.flatten(b, origin, append(child2, name), keys, child, ts); err != nil {
+				errs = append(errs, err.Error())
+			}
 		}
+		if len(errs) > 0 {
+			return errors.New(strings.Join(errs, "; "))
+		}
+		return nil
 	case []any:
+		var errs []string
 		for i, child := range v {
-			p.flatten(sm, origin, elems, withIndex(keys, i), child, ts)
+			if err := p.flatten(b, origin, elems, withIndex(keys, i), child, ts); err != nil {
+				errs = append(errs, err.Error())
+			}
 		}
+		if len(errs) > 0 {
+			return errors.New(strings.Join(errs, "; "))
+		}
+		return nil
 	case float64:
 		if v == float64(int64(v)) {
-			p.emitInt(sm, origin, elems, keys, int64(v), ts)
-			return
+			return p.emitInt(b, origin, elems, keys, int64(v), ts)
 		}
-		p.emitDouble(sm, origin, elems, keys, v, ts)
+		return p.emitDouble(b, origin, elems, keys, v, ts)
 	case bool:
 		var n int64
 		if v {
 			n = 1
 		}
-		p.emitInt(sm, origin, elems, keys, n, ts)
+		return p.emitInt(b, origin, elems, keys, n, ts)
 	case string:
-		p.emitInfo(sm, origin, elems, keys, v, ts)
+		return p.emitInfo(b, origin, elems, keys, v, ts)
 	case nil:
 		// JSON null carries no value.
+		return nil
+	default:
+		return nil
 	}
 }
 
 func joinPath(prefix, path *gnmipb.Path) ([]string, map[string]string) {
-	keys := map[string]string{}
+	type occurrence struct {
+		elem  string
+		value string
+	}
+	occurrences := map[string][]occurrence{}
 	var elems []string
 	for _, p := range []*gnmipb.Path{prefix, path} {
 		for _, elem := range p.GetElem() {
@@ -359,8 +420,23 @@ func joinPath(prefix, path *gnmipb.Path) ([]string, map[string]string) {
 				elems = append(elems, elem.GetName())
 			}
 			for k, v := range elem.GetKey() {
-				keys[k] = v
+				occurrences[k] = append(occurrences[k], occurrence{elem: elem.GetName(), value: v})
 			}
+		}
+	}
+
+	keys := make(map[string]string, len(occurrences))
+	for k, occs := range occurrences {
+		if len(occs) == 1 {
+			keys[k] = occs[0].value
+			continue
+		}
+		for _, occ := range occs {
+			name := k
+			if occ.elem != "" {
+				name = occ.elem + "." + k
+			}
+			keys[name] = occ.value
 		}
 	}
 	return elems, keys

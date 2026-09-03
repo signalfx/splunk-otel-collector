@@ -26,7 +26,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
-	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
+	"github.com/signalfx/splunk-otel-collector/internal/modularinput"
 )
 
 const (

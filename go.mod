@@ -33,6 +33,7 @@ require (
 	github.com/prometheus/prometheus v0.313.2
 	github.com/shirou/gopsutil/v4 v4.26.7
 	github.com/signalfx/splunk-otel-collector/baseline v0.0.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.0.0-00010101000000-000000000000
@@ -796,7 +797,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.287.1 // indirect
-	google.golang.org/grpc v1.83.1
+	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
@@ -817,6 +818,7 @@ require (
 replace (
 	github.com/signalfx/signalfx-agent => ./internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/baseline => ./baseline
+	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension => ./pkg/extension/oracleencodingextension
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor => ./pkg/processor/rollingspanlatencyprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor

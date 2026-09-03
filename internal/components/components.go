@@ -26,7 +26,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
@@ -66,7 +65,6 @@ func Get() (otelcol.Factories, error) {
 		discoveryreceiver.NewFactory(),
 		gnmireceiver.NewFactory(),
 		lightprometheusreceiver.NewFactory(),
-		scriptedinputsreceiver.NewFactory(),
 		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
 	)

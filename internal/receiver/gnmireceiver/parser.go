@@ -408,7 +408,11 @@ func (p *metricParser) flatten(
 }
 
 func joinPath(prefix, path *gnmipb.Path) ([]string, map[string]string) {
-	keys := map[string]string{}
+	type occurrence struct {
+		elem  string
+		value string
+	}
+	occurrences := map[string][]occurrence{}
 	var elems []string
 	for _, p := range []*gnmipb.Path{prefix, path} {
 		for _, elem := range p.GetElem() {
@@ -416,8 +420,23 @@ func joinPath(prefix, path *gnmipb.Path) ([]string, map[string]string) {
 				elems = append(elems, elem.GetName())
 			}
 			for k, v := range elem.GetKey() {
-				keys[k] = v
+				occurrences[k] = append(occurrences[k], occurrence{elem: elem.GetName(), value: v})
 			}
+		}
+	}
+
+	keys := make(map[string]string, len(occurrences))
+	for k, occs := range occurrences {
+		if len(occs) == 1 {
+			keys[k] = occs[0].value
+			continue
+		}
+		for _, occ := range occs {
+			name := k
+			if occ.elem != "" {
+				name = occ.elem + "." + k
+			}
+			keys[name] = occ.value
 		}
 	}
 	return elems, keys

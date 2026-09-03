@@ -1,0 +1,115 @@
+# Fixed response stream served by the OpenConfig fake gNMI agent
+# (github.com/openconfig/gnmi/testing/fake/gnmi/cmd/fake_server).
+#
+# This is a text-proto encoding of the fake.Config message. The "fixed"
+# generator streams these gnmi.SubscribeResponse messages verbatim, which is
+# why it is used here: every field the receiver has to interpret is pinned by
+# this file rather than synthesised by a random generator.
+#
+# A fresh response queue is created per Subscribe RPC, so a reconnect replays
+# the whole stream instead of yielding an empty one.
+#
+# The notifications below deliberately carry a non-empty `prefix`. A gNMI
+# target is free to split a path between the notification prefix and the
+# update path, and the receiver must rejoin them; keeping the split here is
+# what makes that assertion meaningful.
+
+target: "fakedut"
+client_type: GRPC_GNMI
+
+# Hold the stream open once the queue drains, instead of closing it. Without
+# this the receiver would see the session end and redial in a loop.
+disable_eof: true
+
+fixed: {
+  # Integer counters under a keyed list element. Exercises: prefix/path
+  # rejoining, uint64 -> int datapoint (no float rounding), list keys
+  # surfacing as datapoint attributes rather than as part of the metric name,
+  # and a second, more deeply nested keyed list element (subinterface) whose
+  # key must surface as its own attribute alongside the interface's.
+  responses: {
+    update: {
+      timestamp: 1700000000000000000
+      prefix: {
+        origin: "openconfig"
+        elem: { name: "interfaces" }
+        elem: { name: "interface" key: { key: "name" value: "eth0" } }
+      }
+      update: {
+        path: {
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "in-octets" }
+        }
+        # Larger than 2^53, so a value routed through a float64 would lose
+        # precision. This is what pins counter64 handling.
+        val: { uint_val: 9007199254740993 }
+      }
+      update: {
+        path: {
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "out-octets" }
+        }
+        val: { uint_val: 54321 }
+      }
+      update: {
+        path: {
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "in-errors" }
+        }
+        val: { uint_val: 7 }
+      }
+      update: {
+        path: {
+          elem: { name: "subinterfaces" }
+          elem: { name: "subinterface" key: { key: "index" value: "0" } }
+          elem: { name: "state" }
+          elem: { name: "counters" }
+          elem: { name: "in-octets" }
+        }
+        val: { uint_val: 222 }
+      }
+    }
+  }
+
+  # A second interface, to prove the key attribute actually varies per
+  # datapoint rather than being hardcoded.
+  responses: {
+    update: {
+      timestamp: 1700000000000000000
+      prefix: {
+        origin: "openconfig"
+        elem: { name: "interfaces" }
+        elem: { name: "interface" key: { key: "name" value: "eth1" } }
+        elem: { name: "state" }
+        elem: { name: "counters" }
+      }
+      update: {
+        path: { elem: { name: "in-octets" } }
+        val: { uint_val: 111 }
+      }
+    }
+  }
+
+  # A string leaf, which has no numeric representation and is emitted as an
+  # *_info metric carrying the value as an attribute.
+  responses: {
+    update: {
+      timestamp: 1700000000000000000
+      prefix: {
+        origin: "openconfig"
+        elem: { name: "interfaces" }
+        elem: { name: "interface" key: { key: "name" value: "eth0" } }
+        elem: { name: "state" }
+      }
+      update: {
+        path: { elem: { name: "oper-status" } }
+        val: { string_val: "UP" }
+      }
+    }
+  }
+
+  responses: { sync_response: true }
+}

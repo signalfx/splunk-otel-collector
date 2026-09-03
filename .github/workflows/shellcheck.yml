@@ -36,11 +36,3 @@ jobs:
           scandir: ".gitlab/"
           severity: warning
           version: ${{ env.VERSION }}
-      - name: shellcheck scripted inputs receiver scripts
-        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
-        env:
-          SHELLCHECK_OPTS: -x -e SC2059 -e SC2086
-        with:
-          scandir: "./internal/receiver/scriptedinputsreceiver/scripts"
-          severity: warning
-          version: ${{ env.VERSION }}

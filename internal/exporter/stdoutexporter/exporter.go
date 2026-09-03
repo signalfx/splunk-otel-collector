@@ -57,10 +57,10 @@ func newMetricsExporter(ctx context.Context, set exporter.Settings, cfg componen
 }
 
 type stdoutExporter struct {
-	TelemetrySettings component.TelemetrySettings
 	index             string
 	source            string
 	sourcetype        string
+	TelemetrySettings component.TelemetrySettings
 }
 
 func (se *stdoutExporter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {

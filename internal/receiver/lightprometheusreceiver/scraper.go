@@ -35,10 +35,10 @@ import (
 )
 
 type scraper struct {
-	settings  component.TelemetrySettings
 	client    *http.Client
 	cfg       *Config
 	name      string
+	settings  component.TelemetrySettings
 	startTime pcommon.Timestamp
 }
 

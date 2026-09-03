@@ -1,0 +1,40 @@
+receivers:
+  gnmi:
+    targets:
+      - endpoint: "${GNMI_ENDPOINT}"
+        tls:
+          insecure_skip_verify: true
+        subscriptions:
+          - path: /interfaces/interface/state/counters
+            origin: openconfig
+            mode: sample
+            sample_interval: 1s
+            default:
+              type: sum
+              unit: By
+            overrides:
+              in-errors:
+                type: sum
+                unit: "{error}"
+          - path: /interfaces/interface/subinterfaces/subinterface/state/counters
+            origin: openconfig
+            mode: sample
+            sample_interval: 1s
+            default:
+              type: sum
+              unit: By
+
+exporters:
+  otlp_grpc:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "debug"
+  pipelines:
+    metrics:
+      receivers: [gnmi]
+      exporters: [otlp_grpc]

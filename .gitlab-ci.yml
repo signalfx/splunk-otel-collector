@@ -1580,7 +1580,7 @@ otlpinput-splunkbase-release:
 
         declare -A log_files pids
         for entry in \
-            "8704:${TA_DIR}/splunk-connect-for-otlp.tgz" \
+            "8704:${TA_DIR}/splunk-connect-for-otlp.tgz"
         do
           app_id="${entry%%:*}"
           package="${entry#*:}"

@@ -91,26 +91,22 @@ test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 ifeq ($(COVER_TESTING),true)
-# These variables and targets are expensive to build, so only build if explicitly requested
-
-COVER_PUBLIC_PKGS := $(shell find . $(EXCLUDE_MODS) -not -path "./internal/*" $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
-COVER_INTERNAL_PKGS := $(shell find . -path "./internal/*" $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
+# These variables and targets are expensive to build, so only build if explicitly requested.
+# Package patterns keep the -coverpkg argument below the Windows command-line limit.
+COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list -m -f '{{.Path}}/...' \; | tr "\n" "," )
 
 COVER_DIR?=coverage
 COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
 TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
-COVER_PUBLIC_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PUBLIC_PKGS)
-COVER_PUBLIC_TESTING_OPTS?=$(COVER_PUBLIC_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
-COVER_PUBLIC_TESTING_INTEGRATION_OPTS?=$(COVER_PUBLIC_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
-COVER_INTERNAL_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_INTERNAL_PKGS)
-COVER_INTERNAL_TESTING_OPTS?=$(COVER_INTERNAL_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
-COVER_INTERNAL_TESTING_INTEGRATION_OPTS?=$(COVER_INTERNAL_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
 
 .PHONY: test-with-codecov
 test-with-codecov:
 	mkdir -p $(COVER_DIR_ABS)
-	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_PUBLIC_TESTING_OPTS)
-	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_INTERNAL_TESTING_OPTS)
+	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_TESTING_OPTS)
+
 endif
 
 .PHONY: addlicense

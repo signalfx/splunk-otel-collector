@@ -28,6 +28,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
@@ -58,6 +59,7 @@ func Get() (otelcol.Factories, error) {
 
 	b.AddExtensions(
 		configsourcetelemetryextension.NewFactory(),
+		oracleencodingextension.NewFactory(),
 		smartagentextension.NewFactory(),
 	)
 	b.AddReceivers(

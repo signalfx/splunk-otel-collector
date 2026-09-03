@@ -341,10 +341,10 @@ def test_tomcat_instrumentation(distro, arch):
         # verify custom config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
 
-        # verify an existing application environment value takes precedence over default_env.conf
+        # verify default_env.conf takes precedence over an existing application environment value
         precedence_attributes = {
             **attributes,
-            r"service\.name": rf"Str\(service_name_from_app\)",
+            r"service\.name": rf"Str\(service_name_from_java\)",
         }
         verify_app_instrumentation(
             container,

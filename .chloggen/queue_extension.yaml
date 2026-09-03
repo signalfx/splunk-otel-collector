@@ -1,0 +1,21 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: new_component
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: extension/disk_queue_storage
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Add a new experimental disk storage extension for exporter persistent queues
+
+# One or more tracking issues related to the change
+issues: [7956]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  This new extension is experimental and requires extensive testing. It allows fast writes and reads from disk by
+  using append-only writes and rotating files, removing files after they have been consumed.
+  The extension will only work if used as a persistent queue storage, and will crash the collector with an explicit
+  message if used otherwise.
+

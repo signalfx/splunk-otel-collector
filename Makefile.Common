@@ -110,9 +110,10 @@ else
 endif
 
 ifeq ($(COVER_TESTING),true)
-# These variables and targets are expensive to build, so only build if explicitly requested
+# These variables and targets are expensive to build, so only build if explicitly requested.
+# Package patterns keep the -coverpkg argument below the Windows command-line limit.
+COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list -m -f '{{.Path}}/...' \; | tr "\n" "," )
 
-COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 COVER_DIR?=coverage
 COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
 TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)

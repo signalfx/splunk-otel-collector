@@ -40,14 +40,14 @@ func TestValidConfig(t *testing.T) {
 
 	expectedCfg := &Config{
 		ControllerConfig: scraperhelper.ControllerConfig{
-			CollectionInterval: 10 * time.Second,
-			InitialDelay:       time.Second,
+			CollectionInterval: 30 * time.Second,
+			InitialDelay:       1 * time.Second,
 		},
 		ClientConfig: confighttp.NewDefaultClientConfig(),
 		ResourceAttributes: ResourceAttributesConfig{
-			ServiceInstanceID: ResourceAttributeConfig{Enabled: false},
-			ServiceName:       ResourceAttributeConfig{Enabled: false},
-			ServerAddress:     ResourceAttributeConfig{Enabled: true},
+			ServiceInstanceID: ResourceAttributeConfig{Enabled: true},
+			ServiceName:       ResourceAttributeConfig{Enabled: true},
+			ServerAddress:     ResourceAttributeConfig{Enabled: false},
 			ServerPort:        ResourceAttributeConfig{Enabled: false},
 			URLScheme:         ResourceAttributeConfig{Enabled: false},
 		},

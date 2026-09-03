@@ -42,6 +42,7 @@ func TestDefaultComponents(t *testing.T) {
 		"k8s_observer",
 		"oauth2client",
 		"opamp",
+		"oracle_encoding",
 		"pprof",
 		"smartagent",
 		"text_encoding",
@@ -77,7 +78,7 @@ func TestDefaultComponents(t *testing.T) {
 		"haproxy",
 		"host_metrics",
 		"http_check",
-		"icmpcheckreceiver",
+		"icmp_check",
 		"iis",
 		"influxdb",
 		"jaeger",
@@ -107,7 +108,6 @@ func TestDefaultComponents(t *testing.T) {
 		"receiver_creator",
 		"redis",
 		"saphana",
-		"scripted_inputs",
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
 		"snmp",
@@ -128,7 +128,7 @@ func TestDefaultComponents(t *testing.T) {
 		"vcenter",
 		"wavefront",
 		"windows_event_log",
-		"windowsperfcounters",
+		"windows_perf_counters",
 		"windows_service",
 		"yang_grpc",
 		"zipkin",
@@ -147,6 +147,7 @@ func TestDefaultComponents(t *testing.T) {
 		"fluentforward":         "fluent_forward",
 		"hostmetrics":           "host_metrics",
 		"httpcheck":             "http_check",
+		"icmpcheckreceiver":     "icmp_check",
 		"k8sobjects":            "k8s_objects",
 		"kafkametrics":          "kafka_metrics",
 		"kubeletstats":          "kubelet_stats",
@@ -160,6 +161,7 @@ func TestDefaultComponents(t *testing.T) {
 		"tlscheck":              "tls_check",
 		"udplog":                "udp_log",
 		"windowseventlog":       "windows_event_log",
+		"windowsperfcounters":   "windows_perf_counters",
 		"windowsservice":        "windows_service",
 		"yanggrpc":              "yang_grpc",
 	}
@@ -239,8 +241,9 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	recvs := factories.Receivers
+	t.Log(expectedReceivers)
 	assert.Len(t, recvs, len(expectedReceivers)+len(expectedReceiverAliases))
-
+	t.Log(expectedReceiverAliases)
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok, k)

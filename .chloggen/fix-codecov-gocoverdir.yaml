@@ -1,0 +1,4 @@
+change_type: bug_fix
+component: build
+note: Fix `test-with-codecov` not writing coverage counter data, causing per-module unit test coverage to be reported as 0% by Codecov.
+issues: [7824]

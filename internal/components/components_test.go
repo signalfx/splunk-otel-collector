@@ -108,7 +108,6 @@ func TestDefaultComponents(t *testing.T) {
 		"receiver_creator",
 		"redis",
 		"saphana",
-		"scripted_inputs",
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
 		"snmp",

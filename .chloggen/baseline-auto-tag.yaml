@@ -1,0 +1,14 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: enhancement
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: baseline
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Publish the `baseline` module on a version tag. `baseline/VERSION` declares the module version, a CI guard requires a bump when baseline's shipping files change, and merges to `main` auto-tag `baseline/vX.Y.Z`.
+
+# One or more tracking issues related to the change
+issues: [7954]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+subtext:

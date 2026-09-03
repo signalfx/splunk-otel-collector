@@ -1,0 +1,58 @@
+# Enforces that any change to the baseline module's shipping files (Go sources,
+# go.mod, go.sum) bumps baseline/VERSION above the latest published baseline tag.
+# The baseline module is published as a standalone Go module and consumed by
+# flavours via tag, so an untagged change would let an external consumer resolve
+# a tag whose content differs from what shipped. Mirrors Helm's
+# `ct lint --check-version-increment`.
+
+name: baseline-version-guard
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'baseline/**/*.go'
+      - 'baseline/go.mod'
+      - 'baseline/go.sum'
+      - 'baseline/VERSION'
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+      - name: Require VERSION bump when baseline shipping files change
+        run: |
+          set -euo pipefail
+          source .github/workflows/scripts/baseline-version.sh
+
+          base="${{ github.event.pull_request.base.sha }}"
+
+          if ! baseline_shipping_changed "$base"; then
+            echo "No baseline shipping changes; VERSION bump not required."
+            exit 0
+          fi
+
+          version="$(read_version)"
+          latest="$(latest_baseline_tag)"
+          latest_version="${latest#baseline/}"
+
+          if [ -z "$latest_version" ]; then
+            echo "OK: no prior baseline tag; baseline/VERSION=$version bootstraps the series."
+            exit 0
+          fi
+
+          if semver_gt "$version" "$latest_version"; then
+            echo "OK: baseline/VERSION=$version > latest tag $latest_version."
+            exit 0
+          fi
+
+          echo "::error file=baseline/VERSION::baseline shipping files changed but baseline/VERSION ($version) is not greater than the latest tag ($latest_version). Bump baseline/VERSION."
+          exit 1

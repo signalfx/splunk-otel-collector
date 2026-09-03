@@ -184,11 +184,11 @@ require (
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.21.2 // indirect
 	github.com/open-telemetry/opamp-go v0.23.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.159.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.159.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/basicauth v0.159.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/credentialsfile v0.159.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.159.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/basicauth v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/credentialsfile v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.160.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.29 // indirect
@@ -255,6 +255,7 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/collector/client v1.66.0 // indirect
 	go.opentelemetry.io/collector/component v1.66.0 // indirect
+	go.opentelemetry.io/collector/component/componentstatus v0.160.0 // indirect
 	go.opentelemetry.io/collector/component/componenttest v0.160.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v1.66.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.66.0 // indirect
@@ -278,6 +279,7 @@ require (
 	go.opentelemetry.io/collector/internal/schemagen v0.160.0 // indirect
 	go.opentelemetry.io/collector/internal/telemetry v0.160.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.66.0 // indirect
+	go.opentelemetry.io/collector/pipeline v1.66.0 // indirect
 	go.opentelemetry.io/collector/service v0.160.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.20.0 // indirect
 	go.opentelemetry.io/contrib/detectors/aws/ecs v1.45.0 // indirect

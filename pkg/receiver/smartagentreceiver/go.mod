@@ -3,9 +3,9 @@ module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 go 1.26.6
 
 require (
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.159.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.159.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.159.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.160.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.160.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.160.0
 	github.com/openzipkin/zipkin-go v0.4.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -122,7 +122,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.18.6 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
@@ -142,9 +142,9 @@ require (
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.159.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.159.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.159.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.160.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect

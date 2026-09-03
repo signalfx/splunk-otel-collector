@@ -54,5 +54,6 @@ jobs:
             exit 0
           fi
 
-          echo "::error file=baseline/VERSION::baseline shipping files changed but baseline/VERSION ($version) is not greater than the latest tag ($latest_version). Bump baseline/VERSION."
+          suggestion="$(next_patch_version "$latest_version")"
+          echo "::error file=baseline/VERSION::baseline shipping files changed but baseline/VERSION ($version) is not greater than the latest tag ($latest_version). Bump the version value in baseline/VERSION to $suggestion."
           exit 1

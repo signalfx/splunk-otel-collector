@@ -30,14 +30,7 @@ create_collector_pr() {
   setup_branch "$BRANCH" "$repo_url" "$check_for_pr"
 
   echo ">>> Updating otel deps to $OTEL_VERSION ..."
-  # When updating to a released semver (stable path), baseline releases at the
-  # same version. update-deps writes baseline/VERSION only if the sweep changed
-  # baseline's shipping files. The nightly/rc path passes its own BASELINE_VERSION.
-  local baseline_version="${BASELINE_VERSION:-}"
-  if [ -z "$baseline_version" ] && [[ "$OTEL_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-    baseline_version="$OTEL_VERSION"
-  fi
-  OTEL_VERSION="$OTEL_VERSION" BASELINE_VERSION="$baseline_version" ./update-deps
+  OTEL_VERSION="$OTEL_VERSION" ./update-deps
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then

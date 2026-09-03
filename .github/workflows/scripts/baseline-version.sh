@@ -57,3 +57,50 @@ semver_gt() {
   [ "$a_pre" != "$b_pre" ] && \
     [ "$(printf '%s\n%s\n' "$a_pre" "$b_pre" | sort -V | tail -n1)" = "$a_pre" ]
 }
+
+# next_patch_version <vX.Y.Z[-pre]>
+# Prints vX.Y.(Z+1), dropping any prerelease suffix. Used for cherry-pick hints
+# and to advance the stable patch when vX.Y.0 is already tagged.
+next_patch_version() {
+  local base="${1%%-*}"
+  if [[ "$base" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    echo "v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$(( BASH_REMATCH[3] + 1 ))"
+  else
+    echo "invalid version: $1" >&2
+    return 1
+  fi
+}
+
+# derive_baseline_version <otel_version> <ref_version>
+# Computes the next baseline version from the dep-update target and the latest
+# published baseline version (ref_version = latest tag, or current VERSION when
+# no tag exists yet).
+#   Stable  (otel_version is vX.Y.Z[.*]): baseline tracks upstream major+minor at
+#     patch 0 (vX.Y.0); if that is already tagged, advance the patch instead so
+#     the version stays strictly monotonic.
+#   Nightly (otel_version is main / a commit SHA): increment the rc suffix on the
+#     current base; from a GA ref, start rc.1 on the next minor.
+derive_baseline_version() {
+  local otel="$1" ref="$2"
+  if [[ "$otel" =~ ^v([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
+    local candidate="v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.0"
+    if [ -z "$ref" ] || semver_gt "$candidate" "$ref"; then
+      echo "$candidate"
+    else
+      next_patch_version "$ref"
+    fi
+    return
+  fi
+
+  # Nightly: bump the rc on the current base, or open rc.1 on the next minor.
+  local base="${ref%%-*}" pre=""
+  [ "$ref" != "$base" ] && pre="${ref#*-}"
+  if [[ "$pre" =~ ^rc\.([0-9]+)$ ]]; then
+    echo "${base}-rc.$(( BASH_REMATCH[1] + 1 ))"
+  elif [[ "$base" =~ ^v([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
+    echo "v${BASH_REMATCH[1]}.$(( BASH_REMATCH[2] + 1 )).0-rc.1"
+  else
+    echo "invalid ref version: $ref" >&2
+    return 1
+  fi
+}

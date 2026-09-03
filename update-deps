@@ -60,14 +60,20 @@ done
 
 # Bump baseline/VERSION when the dep sweep changed baseline's shipping files.
 # baseline is published as a standalone module and tagged on merge from this
-# file; the CI guard requires the bump, and the auto-tagger reads it. The caller
-# passes BASELINE_VERSION (stable: the release version, e.g. v0.160.0; nightly:
-# the rc string). Skipped when BASELINE_VERSION is unset (e.g. OTEL_VERSION=main).
-if [ -n "${BASELINE_VERSION:-}" ]; then
-    latest_tag="$( git -C "$REPO_DIR" tag -l 'baseline/v[0-9]*' --sort=-version:refname | head -n1 )"
-    if [ -z "$latest_tag" ] || ! git -C "$REPO_DIR" diff --quiet "$latest_tag" -- \
-            'baseline/**/*.go' 'baseline/*.go' 'baseline/go.mod' 'baseline/go.sum'; then
-        echo "Bumping baseline/VERSION to $BASELINE_VERSION"
-        echo "$BASELINE_VERSION" > "${REPO_DIR}/baseline/VERSION"
+# file; the CI guard requires the bump, and the auto-tagger reads it. The next
+# version is derived from OTEL_VERSION (stable: track upstream major+minor at
+# vX.Y.0; nightly/main: increment the rc), so no extra input is needed.
+# shellcheck source=.github/workflows/scripts/baseline-version.sh
+source "${REPO_DIR}/.github/workflows/scripts/baseline-version.sh"
+(
+    cd "$REPO_DIR"
+    latest_tag="$( latest_baseline_tag )"
+    if [ -n "$latest_tag" ] && ! baseline_shipping_changed "$latest_tag"; then
+        exit 0
     fi
-fi
+    ref="${latest_tag#baseline/}"
+    [ -z "$ref" ] && ref="$( read_version )"
+    next="$( derive_baseline_version "$OTEL_VERSION" "$ref" )"
+    echo "Bumping baseline/VERSION to $next"
+    echo "$next" > baseline/VERSION
+)

@@ -35,7 +35,6 @@ jobs:
         run: |
           set -euo pipefail
           source .github/workflows/scripts/baseline-version.sh
-          source .gitlab/common.sh
 
           version="$(read_version)"
           tag="baseline/${version}"
@@ -49,9 +48,12 @@ jobs:
             exit 0
           fi
 
-          setup_gpg
-          import_gpg_secret_key "$GITHUB_BOT_GPG_KEY"
-          setup_git
+          mkdir -p ~/.gnupg && chmod 700 ~/.gnupg
+          printf 'no-tty\npinentry-mode loopback\n' > ~/.gnupg/gpg.conf
+          gpg --batch --allow-secret-key-import --import <(echo "$GITHUB_BOT_GPG_KEY")
+          git config user.name release-bot
+          git config user.email ssg-srv-gh-o11y-gdi@splunk.com
+          git config user.signingKey "$GITHUB_BOT_GPG_KEY_ID"
 
           echo ">>> Creating signed tag ${tag} at $(git rev-parse HEAD) ..."
           git tag -s "$tag" -m "Release ${tag}"

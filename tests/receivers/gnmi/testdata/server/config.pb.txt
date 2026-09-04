@@ -93,8 +93,9 @@ fixed: {
     }
   }
 
-  # A string leaf, which has no numeric representation and is emitted as an
-  # *_info metric carrying the value as an attribute.
+  # A string leaf configured with a closed enum_values set, emitted as an
+  # *_state metric with one datapoint per declared value (1 for "UP", the
+  # active value, 0 for "DOWN").
   responses: {
     update: {
       timestamp: 1700000000000000000

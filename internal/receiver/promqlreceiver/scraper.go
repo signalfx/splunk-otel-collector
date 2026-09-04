@@ -162,8 +162,8 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q Query
 			return err
 		}
 		series := make([]promqlSeries, len(matrix))
-		for i, ser := range matrix {
-			series[i] = promqlSeries{metric: ser.Metric, floats: ser.Values, histograms: ser.Histograms}
+		for i, serie := range matrix {
+			series[i] = promqlSeries{metric: serie.Metric, floats: serie.Values, histograms: serie.Histograms}
 		}
 		if sm, ok := convertSeries(series, q.MetricName); ok {
 			rm := m.ResourceMetrics().AppendEmpty()
@@ -187,12 +187,12 @@ type promqlSeries struct {
 func convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bool) {
 	mfMap := make(map[string]*pmetric.Metric)
 
-	for _, ser := range series {
+	for _, serie := range series {
 		var metricName string
 		var metricType string
 		var metricUnit string
 		attrs := pcommon.NewMap()
-		for labelName, labelValue := range ser.metric {
+		for labelName, labelValue := range serie.metric {
 			switch labelName {
 			case model.MetricNameLabel:
 				metricName = string(labelValue)
@@ -227,19 +227,19 @@ func convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bo
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptyGauge()
 			}
-			appendNumberDataPoints(metric.Gauge().DataPoints(), ser.floats, attrs)
+			appendNumberDataPoints(metric.Gauge().DataPoints(), serie.floats, attrs)
 		case string(model.MetricTypeCounter):
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptySum()
 				metric.Sum().SetIsMonotonic(true)
 				metric.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 			}
-			appendNumberDataPoints(metric.Sum().DataPoints(), ser.floats, attrs)
+			appendNumberDataPoints(metric.Sum().DataPoints(), serie.floats, attrs)
 		case string(model.MetricTypeHistogram), string(model.MetricTypeGaugeHistogram):
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptyHistogram()
 			}
-			appendHistogramDataPoints(metric.Histogram().DataPoints(), ser.histograms, attrs)
+			appendHistogramDataPoints(metric.Histogram().DataPoints(), serie.histograms, attrs)
 		}
 	}
 

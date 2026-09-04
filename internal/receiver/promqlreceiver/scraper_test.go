@@ -147,7 +147,11 @@ func TestQueryPrometheusAPI(t *testing.T) {
 	f := NewFactory()
 	sink := &consumertest.MetricsSink{}
 	cfg := f.CreateDefaultConfig().(*Config)
-	cfg.Queries = []string{"up"}
+	cfg.Queries = []Query{
+		{
+			Query: "up",
+		},
+	}
 	cfg.ControllerConfig.CollectionInterval = 1 * time.Second
 	cfg.ClientConfig.Endpoint = "http://localhost:9090/api/v1/query"
 	cfg.ClientConfig.TLS.Insecure = true

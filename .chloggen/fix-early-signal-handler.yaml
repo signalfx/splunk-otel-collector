@@ -1,0 +1,3 @@
+change_type: bug_fix
+component: splunk-connect-for-otlp
+note: Register SIGTERM/SIGINT signal handler early in startup, before blocking auth calls, to ensure graceful shutdown even on slow CI runners.

@@ -139,7 +139,14 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q Query
 		if err := json.Unmarshal(qData.Result, &v); err != nil {
 			return err
 		}
-		if sm, ok := convertVector(v, q.MetricName); ok {
+		series := make([]promqlSeries, len(v))
+		for i, sample := range v {
+			series[i] = promqlSeries{metric: sample.Metric, floats: []promql.FPoint{{T: sample.T, F: sample.F}}}
+			if sample.H != nil {
+				series[i].histograms = []promql.HPoint{{T: sample.T, H: sample.H}}
+			}
+		}
+		if sm, ok := convertSeries(series, q.MetricName); ok {
 			rm := m.ResourceMetrics().AppendEmpty()
 			sm.MoveTo(rm.ScopeMetrics().AppendEmpty())
 		}
@@ -151,10 +158,14 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q Query
 		s.settings.Logger.Error("PromQL response of type scalar is not supported:", zap.String("query", q.Query))
 	case parser.ValueTypeMatrix:
 		var matrix promql.Matrix
-		if err := json.Unmarshal(qData.Result, &m); err != nil { //nolint:staticcheck // staticcheck fails to check promql.Matrix
+		if err := json.Unmarshal(qData.Result, &matrix); err != nil {
 			return err
 		}
-		if sm, ok := convertMatrix(matrix, q.MetricName); ok {
+		series := make([]promqlSeries, len(matrix))
+		for i, ser := range matrix {
+			series[i] = promqlSeries{metric: ser.Metric, floats: ser.Floats, histograms: ser.Histograms}
+		}
+		if sm, ok := convertSeries(series, q.MetricName); ok {
 			rm := m.ResourceMetrics().AppendEmpty()
 			sm.MoveTo(rm.ScopeMetrics().AppendEmpty())
 		}
@@ -165,28 +176,33 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q Query
 	return nil
 }
 
-func convertMatrix(matrix promql.Matrix, name string) (pmetric.ScopeMetrics, bool) {
+// promqlSeries is the common shape shared by promql.Vector samples and promql.Matrix series,
+// letting a single conversion path handle both instant and range query results.
+type promqlSeries struct {
+	metric     labels.Labels
+	floats     []promql.FPoint
+	histograms []promql.HPoint
+}
+
+func convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bool) {
 	mfMap := make(map[string]*pmetric.Metric)
 
-	for _, series := range matrix {
+	for _, ser := range series {
 		var metricName string
 		var metricType string
 		var metricUnit string
 		attrs := pcommon.NewMap()
-		series.Metric.Range(func(l labels.Label) {
-			if l.Name == model.MetricNameLabel {
+		ser.metric.Range(func(l labels.Label) {
+			switch l.Name {
+			case model.MetricNameLabel:
 				metricName = l.Value
-				return
-			}
-			if l.Name == model.MetricTypeLabel {
+			case model.MetricTypeLabel:
 				metricType = l.Value
-				return
-			}
-			if l.Name == model.MetricUnitLabel {
+			case model.MetricUnitLabel:
 				metricUnit = l.Value
-				return
+			default:
+				attrs.PutStr(l.Name, l.Value)
 			}
-			attrs.PutStr(l.Name, l.Value)
 		})
 
 		if metricName == "" {
@@ -211,47 +227,19 @@ func convertMatrix(matrix promql.Matrix, name string) (pmetric.ScopeMetrics, boo
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptyGauge()
 			}
-			for _, sample := range series.Floats {
-				dp := metric.Gauge().DataPoints().AppendEmpty()
-				dp.SetTimestamp(pcommon.Timestamp(sample.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
-				dp.SetDoubleValue(sample.F)
-				attrs.CopyTo(dp.Attributes())
-			}
+			appendNumberDataPoints(metric.Gauge().DataPoints(), ser.floats, attrs)
 		case string(model.MetricTypeCounter):
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptySum()
 				metric.Sum().SetIsMonotonic(true)
 				metric.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 			}
-			for _, sample := range series.Floats {
-				dp := metric.Sum().DataPoints().AppendEmpty()
-				dp.SetTimestamp(pcommon.Timestamp(sample.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
-				dp.SetDoubleValue(sample.F)
-				attrs.CopyTo(dp.Attributes())
-			}
+			appendNumberDataPoints(metric.Sum().DataPoints(), ser.floats, attrs)
 		case string(model.MetricTypeHistogram), string(model.MetricTypeGaugeHistogram):
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptyHistogram()
 			}
-			for _, sample := range series.Histograms {
-				dp := metric.Histogram().DataPoints().AppendEmpty()
-				dp.SetTimestamp(pcommon.Timestamp(sample.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
-				dp.SetSum(sample.H.Sum)
-				dp.SetCount(uint64(sample.H.Count))
-
-				firstBucket := true
-				iter := sample.H.AllBucketIterator()
-				for iter.Next() {
-					b := iter.At()
-					if firstBucket {
-						firstBucket = false
-						dp.ExplicitBounds().Append(b.Lower)
-					}
-					dp.BucketCounts().Append(uint64(b.Count))
-					dp.ExplicitBounds().Append(b.Upper)
-				}
-				attrs.CopyTo(dp.Attributes())
-			}
+			appendHistogramDataPoints(metric.Histogram().DataPoints(), ser.histograms, attrs)
 		}
 	}
 
@@ -261,98 +249,40 @@ func convertMatrix(matrix promql.Matrix, name string) (pmetric.ScopeMetrics, boo
 
 	scopeMetric := pmetric.NewScopeMetrics()
 
-	for _, m := range mfMap {
-		m.MoveTo(scopeMetric.Metrics().AppendEmpty())
+	for _, metric := range mfMap {
+		metric.MoveTo(scopeMetric.Metrics().AppendEmpty())
 	}
 
 	return scopeMetric, true
 }
 
-func convertVector(vector promql.Vector, name string) (pmetric.ScopeMetrics, bool) {
-	mfMap := make(map[string]*pmetric.Metric)
-
-	for _, sample := range vector {
-		var metricName string
-		var metricType string
-		var metricUnit string
-		attrs := pcommon.NewMap()
-		sample.Metric.Range(func(l labels.Label) {
-			if l.Name == model.MetricNameLabel {
-				metricName = l.Value
-				return
-			}
-			if l.Name == model.MetricTypeLabel {
-				metricType = l.Value
-				return
-			}
-			if l.Name == model.MetricUnitLabel {
-				metricUnit = l.Value
-				return
-			}
-			attrs.PutStr(l.Name, l.Value)
-		})
-
-		if metricName == "" {
-			// PromQL operations like sum() drop the original metric name.
-			metricName = name
-			if metricName == "" {
-				metricName = defaultMetricName
-			}
-		}
-
-		metric := mfMap[metricName]
-		if metric == nil {
-			nm := pmetric.NewMetric()
-			metric = &nm
-			metric.SetName(metricName)
-			metric.SetUnit(metricUnit)
-			mfMap[metricName] = metric
-		}
-		switch metricType {
-		case string(model.MetricTypeGauge):
-			if metric.Type() == pmetric.MetricTypeEmpty {
-				metric.SetEmptyGauge()
-			}
-			dp := metric.Gauge().DataPoints().AppendEmpty()
-			dp.SetDoubleValue(sample.F)
-			dp.SetTimestamp(pcommon.Timestamp(sample.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
-			attrs.CopyTo(dp.Attributes())
-		case string(model.MetricTypeCounter):
-			if metric.Type() == pmetric.MetricTypeEmpty {
-				metric.SetEmptySum()
-				metric.Sum().SetIsMonotonic(true)
-				metric.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-			}
-			dp := metric.Sum().DataPoints().AppendEmpty()
-			dp.SetDoubleValue(sample.F)
-			dp.SetTimestamp(pcommon.Timestamp(sample.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
-			attrs.CopyTo(dp.Attributes())
-		case string(model.MetricTypeHistogram), string(model.MetricTypeGaugeHistogram):
-			if metric.Type() == pmetric.MetricTypeEmpty {
-				metric.SetEmptyHistogram()
-			}
-			dp := metric.Histogram().DataPoints().AppendEmpty()
-			dp.SetTimestamp(pcommon.Timestamp(sample.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
-			dp.SetSum(sample.H.Sum)
-			dp.SetCount(uint64(sample.H.Count))
-			iter := sample.H.AllBucketIterator()
-			for iter.Next() {
-				b := iter.At()
-				dp.BucketCounts().Append(uint64(b.Count))
-			}
-			attrs.CopyTo(dp.Attributes())
-		}
+func appendNumberDataPoints(dps pmetric.NumberDataPointSlice, points []promql.FPoint, attrs pcommon.Map) {
+	for _, p := range points {
+		dp := dps.AppendEmpty()
+		dp.SetTimestamp(pcommon.Timestamp(p.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
+		dp.SetDoubleValue(p.F)
+		attrs.CopyTo(dp.Attributes())
 	}
+}
 
-	if len(mfMap) == 0 {
-		return pmetric.NewScopeMetrics(), false
+func appendHistogramDataPoints(dps pmetric.HistogramDataPointSlice, points []promql.HPoint, attrs pcommon.Map) {
+	for _, p := range points {
+		dp := dps.AppendEmpty()
+		dp.SetTimestamp(pcommon.Timestamp(p.T * 1e+6)) //nolint:gosec // disable G115 // convert from ms to ns
+		dp.SetSum(p.H.Sum)
+		dp.SetCount(uint64(p.H.Count))
+
+		firstBucket := true
+		iter := p.H.AllBucketIterator()
+		for iter.Next() {
+			b := iter.At()
+			if firstBucket {
+				firstBucket = false
+				dp.ExplicitBounds().Append(b.Lower)
+			}
+			dp.BucketCounts().Append(uint64(b.Count))
+			dp.ExplicitBounds().Append(b.Upper)
+		}
+		attrs.CopyTo(dp.Attributes())
 	}
-
-	scopeMetric := pmetric.NewScopeMetrics()
-
-	for _, m := range mfMap {
-		m.MoveTo(scopeMetric.Metrics().AppendEmpty())
-	}
-
-	return scopeMetric, true
 }

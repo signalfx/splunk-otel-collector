@@ -133,7 +133,6 @@ func run() error {
 
 	logger.Info("Configured OTLP receiver")
 
-	// Create host and register signal handler early, before blocking auth.New() call.
 	h := newTtyHost(map[component.ID]component.Component{})
 	h.Start()
 
@@ -142,7 +141,6 @@ func run() error {
 		return err
 	}
 
-	// Add auth extension to host after it's created.
 	h.Extensions[extID] = authExtension
 
 	if errStart := errors.Join(le.Start(ctx, h), me.Start(ctx, h), tracesExporter.Start(ctx, h), r.Start(ctx, h)); errStart != nil {

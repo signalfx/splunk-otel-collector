@@ -29,7 +29,6 @@ func newTtyHost(extensions map[component.ID]component.Component) *ttyHost {
 		ErrStatus:  make(chan error, 1),
 		Extensions: extensions,
 	}
-	// Register signal handler early, before any blocking operations.
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -40,7 +39,6 @@ func newTtyHost(extensions map[component.ID]component.Component) *ttyHost {
 }
 
 func (t *ttyHost) Start() {
-	// Signal handler is now registered in the constructor.
 }
 
 func (t *ttyHost) Wait() error {

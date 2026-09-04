@@ -186,13 +186,13 @@ func TestQueryPrometheusAPI(t *testing.T) {
 	require.Equal(t, "up", firstMetric.Name())
 	require.Equal(t, pmetric.MetricTypeGauge, firstMetric.Type())
 	require.Positive(t, firstMetric.Gauge().DataPoints().Len())
-	require.Equal(t, 1.0, firstMetric.Gauge().DataPoints().At(0).DoubleValue())
+	require.InDelta(t, 1.0, firstMetric.Gauge().DataPoints().At(0).DoubleValue(), 0)
 	require.Equal(t, "bar", firstMetric.Gauge().DataPoints().At(0).Attributes().AsRaw()["foo"])
 	secondMetric := sink.AllMetrics()[0].ResourceMetrics().At(1).ScopeMetrics().At(0).Metrics().At(0)
 	require.Equal(t, "myups", secondMetric.Name())
 	require.Equal(t, pmetric.MetricTypeGauge, secondMetric.Type())
 	require.Positive(t, secondMetric.Gauge().DataPoints().Len())
-	require.Equal(t, 2.0, secondMetric.Gauge().DataPoints().At(0).DoubleValue())
+	require.InDelta(t, 2.0, secondMetric.Gauge().DataPoints().At(0).DoubleValue(), 0)
 }
 
 // promAPIResponse marshals the given result into the same envelope the Prometheus HTTP API

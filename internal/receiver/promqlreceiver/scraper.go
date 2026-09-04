@@ -162,8 +162,8 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q Query
 			return err
 		}
 		series := make([]promqlSeries, len(matrix))
-		for i, serie := range matrix {
-			series[i] = promqlSeries{metric: serie.Metric, floats: serie.Values, histograms: serie.Histograms}
+		for i, se := range matrix {
+			series[i] = promqlSeries{metric: se.Metric, floats: se.Values, histograms: se.Histograms}
 		}
 		if sm, ok := s.convertSeries(series, q.MetricNameFallback); ok {
 			rm := m.ResourceMetrics().AppendEmpty()
@@ -187,12 +187,12 @@ type promqlSeries struct {
 func (s *scraper) convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bool) {
 	mfMap := make(map[string]*pmetric.Metric)
 
-	for _, serie := range series {
+	for _, se := range series {
 		var metricName string
 		var metricType string
 		var metricUnit string
 		attrs := pcommon.NewMap()
-		for labelName, labelValue := range serie.metric {
+		for labelName, labelValue := range se.metric {
 			switch labelName {
 			case model.MetricNameLabel:
 				metricName = string(labelValue)
@@ -223,9 +223,9 @@ func (s *scraper) convertSeries(series []promqlSeries, name string) (pmetric.Sco
 		}
 
 		if metricType == "" {
-			if len(serie.floats) > 0 {
+			if len(se.floats) > 0 {
 				metricType = string(model.MetricTypeGauge)
-			} else if len(serie.histograms) > 0 {
+			} else if len(se.histograms) > 0 {
 				metricType = string(model.MetricTypeGauge)
 			}
 		}
@@ -235,19 +235,19 @@ func (s *scraper) convertSeries(series []promqlSeries, name string) (pmetric.Sco
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptyGauge()
 			}
-			appendNumberDataPoints(metric.Gauge().DataPoints(), serie.floats, attrs)
+			appendNumberDataPoints(metric.Gauge().DataPoints(), se.floats, attrs)
 		case string(model.MetricTypeCounter):
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptySum()
 				metric.Sum().SetIsMonotonic(true)
 				metric.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 			}
-			appendNumberDataPoints(metric.Sum().DataPoints(), serie.floats, attrs)
+			appendNumberDataPoints(metric.Sum().DataPoints(), se.floats, attrs)
 		case string(model.MetricTypeHistogram), string(model.MetricTypeGaugeHistogram):
 			if metric.Type() == pmetric.MetricTypeEmpty {
 				metric.SetEmptyHistogram()
 			}
-			appendHistogramDataPoints(metric.Histogram().DataPoints(), serie.histograms, attrs)
+			appendHistogramDataPoints(metric.Histogram().DataPoints(), se.histograms, attrs)
 		default:
 			s.settings.Logger.Debug("Metric with unidentified type", zap.String("metricName", metricName))
 		}

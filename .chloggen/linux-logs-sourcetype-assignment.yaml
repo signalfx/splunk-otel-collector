@@ -14,9 +14,9 @@ issues: [7843]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  - Replace hardcoded `linux:varlog` sourcetype with dynamic filename-based assignment (e.g. `auth.log` -> `auth`, `syslog` -> `syslog`) matching Splunk's default behavior
-  - Add `transform/nix_sourcetype` overrides for `auth.log` -> `syslog` (replicating Splunk `LEARN_SOURCETYPE`), `config_file` extensions, and correct `\\.filename$` path patterns
+  - Replace hardcoded `linux:varlog` sourcetype with dynamic filename-based assignment matching Splunk's default behavior
+  - Add `transform/nix_sourcetype` processor with path-based overrides from Splunk TA for *nix `props.conf` (e.g. `auth.log` -> `syslog`, `secure` -> `linux_secure`, `audit.log` -> `linux_audit`)
   - Change `bash_history` sourcetype from `linux:bash_history` to `bash_history` to match TA `inputs.conf`
-  - Exclude vim swap files (`*.swp`, `*.swx`) from `file_log/varlog` to prevent binary file ingestion
-  - Add sourcetype mappings from Splunk default `props.conf` FILE MATCH CONDITIONS (e.g. `anaconda`, `apache_error`, `cups_access`, `cups_error`, `dmesg`, `ftp`, `linux_audit`, `linux_bootlog`, `linux_secure`, `osx_*`, `rpmpkgs`, `sar`, `spooler`, `ssl_error`, `syslog`, `wtmp`, `mysqld`, `stash`)
-  - Note: this is not a direct replacement for the Splunk Add-on for Unix and Linux; content-based detection, scripted inputs, and additional field extractions from the TA are not implemented
+  - Assign `config_file` sourcetype to files with config extensions (`.conf`, `.cfg`, `.ini`, etc.)
+  - Exclude vim swap files (`*.swp`, `*.swx`) from `file_log/varlog`
+  - Not a direct replacement for the Splunk Add-on for Unix and Linux; content-based detection, scripted inputs, and additional field extractions are not implemented

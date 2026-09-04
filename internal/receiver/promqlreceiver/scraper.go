@@ -146,7 +146,7 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q Query
 				series[i].floats = []model.SamplePair{{Timestamp: sample.Timestamp, Value: sample.Value}}
 			}
 		}
-		if sm, ok := convertSeries(series, q.MetricName); ok {
+		if sm, ok := s.convertSeries(series, q.MetricNameFallback); ok {
 			rm := m.ResourceMetrics().AppendEmpty()
 			sm.MoveTo(rm.ScopeMetrics().AppendEmpty())
 		}
@@ -165,7 +165,7 @@ func (s *scraper) runOneQuery(ctx context.Context, endpointURL *url.URL, q Query
 		for i, serie := range matrix {
 			series[i] = promqlSeries{metric: serie.Metric, floats: serie.Values, histograms: serie.Histograms}
 		}
-		if sm, ok := convertSeries(series, q.MetricName); ok {
+		if sm, ok := s.convertSeries(series, q.MetricNameFallback); ok {
 			rm := m.ResourceMetrics().AppendEmpty()
 			sm.MoveTo(rm.ScopeMetrics().AppendEmpty())
 		}
@@ -184,7 +184,7 @@ type promqlSeries struct {
 	histograms []model.SampleHistogramPair
 }
 
-func convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bool) {
+func (s *scraper) convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bool) {
 	mfMap := make(map[string]*pmetric.Metric)
 
 	for _, serie := range series {
@@ -222,6 +222,14 @@ func convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bo
 			mfMap[metricName] = metric
 		}
 
+		if metricType == "" {
+			if len(serie.floats) > 0 {
+				metricType = string(model.MetricTypeGauge)
+			} else if len(serie.histograms) > 0 {
+				metricType = string(model.MetricTypeGauge)
+			}
+		}
+
 		switch metricType {
 		case string(model.MetricTypeGauge):
 			if metric.Type() == pmetric.MetricTypeEmpty {
@@ -240,6 +248,8 @@ func convertSeries(series []promqlSeries, name string) (pmetric.ScopeMetrics, bo
 				metric.SetEmptyHistogram()
 			}
 			appendHistogramDataPoints(metric.Histogram().DataPoints(), serie.histograms, attrs)
+		default:
+			s.settings.Logger.Debug("Metric with unidentified type", zap.String("metricName", metricName))
 		}
 	}
 

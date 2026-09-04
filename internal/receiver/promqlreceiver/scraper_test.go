@@ -101,14 +101,12 @@ func TestQueryPrometheusAPI(t *testing.T) {
 	)
 	require.NoError(t, err)
 	appender := db.AppenderV2(t.Context())
-	ref, err := appender.Append(storage.SeriesRef(0), promlabels.New(promlabels.Label{Name: "foo", Value: "bar"}, promlabels.Label{Name: model.MetricNameLabel, Value: "up"}, promlabels.Label{Name: model.MetricTypeLabel, Value: string(model.MetricTypeGauge)}), time.Now().UnixMilli(), time.Now().Unix(), 1, nil, nil, storage.AppendV2Options{
+	_, err = appender.Append(storage.SeriesRef(0), promlabels.New(promlabels.Label{Name: "foo", Value: "bar"}, promlabels.Label{Name: model.MetricNameLabel, Value: "up"}, promlabels.Label{Name: model.MetricTypeLabel, Value: string(model.MetricTypeGauge)}), time.Now().Unix(), time.Now().UnixMilli(), 1, nil, nil, storage.AppendV2Options{
 		MetricFamilyName: "up",
 		Metadata:         metadata.Metadata{Type: model.MetricTypeGauge},
 	})
 	require.NoError(t, err)
-	require.NoError(t, appender.Commit())
-	appender = db.AppenderV2(t.Context())
-	_, err = appender.Append(ref, promlabels.New(promlabels.Label{Name: "foo", Value: "bar"}, promlabels.Label{Name: model.MetricNameLabel, Value: "up"}, promlabels.Label{Name: model.MetricTypeLabel, Value: string(model.MetricTypeGauge)}), time.Now().Unix(), time.Now().UnixMilli(), 1, nil, nil, storage.AppendV2Options{
+	_, err = appender.Append(storage.SeriesRef(0), promlabels.New(promlabels.Label{Name: "foo", Value: "foobar"}, promlabels.Label{Name: model.MetricNameLabel, Value: "up"}, promlabels.Label{Name: model.MetricTypeLabel, Value: string(model.MetricTypeGauge)}), time.Now().Unix(), time.Now().UnixMilli(), 1, nil, nil, storage.AppendV2Options{
 		MetricFamilyName: "up",
 		Metadata:         metadata.Metadata{Type: model.MetricTypeGauge},
 	})
@@ -157,6 +155,10 @@ func TestQueryPrometheusAPI(t *testing.T) {
 		{
 			Query: "up",
 		},
+		{
+			Query:              "count(up)",
+			MetricNameFallback: "myups",
+		},
 	}
 	cfg.ControllerConfig.CollectionInterval = 1 * time.Second
 	cfg.ClientConfig.Endpoint = "http://localhost:9090/api/v1/query"
@@ -184,8 +186,13 @@ func TestQueryPrometheusAPI(t *testing.T) {
 	require.Equal(t, "up", firstMetric.Name())
 	require.Equal(t, pmetric.MetricTypeGauge, firstMetric.Type())
 	require.Positive(t, firstMetric.Gauge().DataPoints().Len())
-	require.InDelta(t, 1, firstMetric.Gauge().DataPoints().At(0).DoubleValue(), 0)
+	require.Equal(t, 1.0, firstMetric.Gauge().DataPoints().At(0).DoubleValue())
 	require.Equal(t, "bar", firstMetric.Gauge().DataPoints().At(0).Attributes().AsRaw()["foo"])
+	secondMetric := sink.AllMetrics()[0].ResourceMetrics().At(1).ScopeMetrics().At(0).Metrics().At(0)
+	require.Equal(t, "myups", secondMetric.Name())
+	require.Equal(t, pmetric.MetricTypeGauge, secondMetric.Type())
+	require.Positive(t, secondMetric.Gauge().DataPoints().Len())
+	require.Equal(t, 2.0, secondMetric.Gauge().DataPoints().At(0).DoubleValue())
 }
 
 // promAPIResponse marshals the given result into the same envelope the Prometheus HTTP API
@@ -376,7 +383,7 @@ func TestScrapeMetricsMissingMetricNameUsesConfiguredName(t *testing.T) {
 
 	f := NewFactory()
 	cfg := f.CreateDefaultConfig().(*Config)
-	cfg.Queries = []Query{{Query: "sum(up)", MetricName: "custom_name"}}
+	cfg.Queries = []Query{{Query: "sum(up)", MetricNameFallback: "custom_name"}}
 	cfg.ClientConfig.Endpoint = srv.URL
 	settings := receivertest.NewNopSettings(component.MustNewType("promql"))
 	settings.TelemetrySettings.Logger = zaptest.NewLogger(t)

@@ -22,8 +22,8 @@ import (
 )
 
 type Query struct {
-	Query      string `mapstructure:"query"`
-	MetricName string `mapstructure:"metric_name"`
+	Query              string `mapstructure:"query"`
+	MetricNameFallback string `mapstructure:"metric_name_fallback"`
 }
 
 type Config struct {

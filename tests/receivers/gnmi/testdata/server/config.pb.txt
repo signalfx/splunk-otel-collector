@@ -71,6 +71,16 @@ fixed: {
         }
         val: { uint_val: 222 }
       }
+      # A string leaf configured with a closed enum_values set, emitted as an
+      # *_state metric with one datapoint per declared value (1 for "UP", the
+      # active value, 0 for "DOWN").
+      update: {
+        path: {
+          elem: { name: "state" }
+          elem: { name: "oper-status" }
+        }
+        val: { string_val: "UP" }
+      }
     }
   }
 
@@ -89,25 +99,6 @@ fixed: {
       update: {
         path: { elem: { name: "in-octets" } }
         val: { uint_val: 111 }
-      }
-    }
-  }
-
-  # A string leaf configured with a closed enum_values set, emitted as an
-  # *_state metric with one datapoint per declared value (1 for "UP", the
-  # active value, 0 for "DOWN").
-  responses: {
-    update: {
-      timestamp: 1700000000000000000
-      prefix: {
-        origin: "openconfig"
-        elem: { name: "interfaces" }
-        elem: { name: "interface" key: { key: "name" value: "eth0" } }
-        elem: { name: "state" }
-      }
-      update: {
-        path: { elem: { name: "oper-status" } }
-        val: { string_val: "UP" }
       }
     }
   }

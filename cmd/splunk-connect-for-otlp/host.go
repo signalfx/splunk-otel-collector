@@ -24,13 +24,21 @@ type ttyHost struct {
 	shutdownOnce sync.Once
 }
 
-func (t *ttyHost) Start() {
+func newTtyHost(extensions map[component.ID]component.Component) *ttyHost {
+	t := &ttyHost{
+		ErrStatus:  make(chan error, 1),
+		Extensions: extensions,
+	}
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs
 		t.Report(componentstatus.NewEvent(componentstatus.StatusStopping))
 	}()
+	return t
+}
+
+func (t *ttyHost) Start() {
 }
 
 func (t *ttyHost) Wait() error {

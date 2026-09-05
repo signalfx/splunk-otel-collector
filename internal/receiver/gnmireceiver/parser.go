@@ -32,10 +32,11 @@ import (
 )
 
 const (
-	infoMetricSuffix = "_info"
-	infoValueAttr    = "value"
-	// indexAttr identifies an element's position when a JSON array is flattened.
-	indexAttr = "index"
+	infoMetricSuffix  = "_info"
+	stateMetricSuffix = "_state"
+	infoValueAttr     = "value"
+	stateValueAttr    = "state"
+	indexAttr         = "index"
 )
 
 // metricParser converts gNMI SubscribeResponse messages into OTel metrics.
@@ -241,6 +242,10 @@ func (p *metricParser) emitInfo(
 		return nil
 	}
 
+	if len(cfg.EnumValues) > 0 {
+		return p.writeEnumState(b, origin, elems, keys, cfg, value, ts)
+	}
+
 	if cfg.Type == metricTypeSum || cfg.Type == metricTypeGauge {
 		if n, err := strconv.ParseInt(value, 10, 64); err == nil {
 			return p.writeInt(b, origin, elems, keys, cfg, n, ts)
@@ -295,6 +300,50 @@ func (p *metricParser) writeInfo(
 	dp.Attributes().PutStr(infoValueAttr, value)
 	putAttrs(dp.Attributes(), keys)
 	return nil
+}
+
+func (p *metricParser) writeEnumState(
+	b *parseBatch, origin string, elems []string,
+	keys map[string]string, cfg MetricConfig, value string, ts pcommon.Timestamp,
+) error {
+	name := metricName(origin, elems) + stateMetricSuffix
+	unit := cfg.Unit
+	if unit == "" {
+		unit = "1"
+	}
+
+	normalized := normalizeEnumValue(value)
+	matched := false
+	for _, enumValue := range cfg.EnumValues {
+		var n int64
+		if normalizeEnumValue(enumValue) == normalized {
+			n = 1
+			matched = true
+		}
+
+		dp, err := b.numberDataPoint(name, unit, pmetric.MetricTypeGauge)
+		if err != nil {
+			return err
+		}
+		dp.SetIntValue(n)
+		dp.SetTimestamp(ts)
+		dp.Attributes().PutStr(stateValueAttr, normalizeEnumValue(enumValue))
+		putAttrs(dp.Attributes(), keys)
+	}
+
+	if !matched {
+		return fmt.Errorf("value %q for %q is not in enum_values %v; emitted all states as 0",
+			value, metricName(origin, elems), cfg.EnumValues)
+	}
+	return nil
+}
+
+func normalizeEnumValue(value string) string {
+	value = strings.TrimSpace(value)
+	if idx := strings.LastIndexByte(value, ':'); idx >= 0 {
+		return value[idx+1:]
+	}
+	return value
 }
 
 func metricDataType(cfgType string) pmetric.MetricType {

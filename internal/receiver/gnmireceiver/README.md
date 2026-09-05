@@ -45,6 +45,13 @@ receivers:
               out-octets:
                 type: sum
                 unit: By
+          - path: /interfaces/interface/state/oper-status
+            mode: on_change
+            overrides:
+              oper-status:
+                type: gauge
+                # closed set of values this leaf can take; see "Enum leaves" below
+                enum_values: [UP, DOWN, TESTING]
 ```
 
 ### Target
@@ -72,8 +79,8 @@ Each target embeds the standard collector [gRPC client settings][configgrpc]
 | `sample_interval`    |           | Sampling period. Required and must be `> 0` when `mode` is `sample`; must not be set for other modes. |
 | `heartbeat_interval` |           | Forces an update at this interval even if the value has not changed.        |
 | `suppress_redundant` | `false`   | Skip sending unchanged values.                                              |
-| `default`            |           | Metric `type`/`unit` applied to leaves not matched by `overrides`.          |
-| `overrides`          |           | Map of leaf name → metric `type`/`unit`, taking precedence over `default`.  |
+| `default`            |           | Metric `type`/`unit`/`enum_values` applied to leaves not matched by `overrides`. |
+| `overrides`          |           | Map of leaf name → metric `type`/`unit`/`enum_values`, taking precedence over `default`. |
 
 ### Metric names and attributes
 
@@ -118,9 +125,8 @@ interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="UP"
 interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="DOWN"
 ```
 
-Emitting the full enum (active state `1`, all others `0`) requires knowing a leaf's
-possible values in advance; tracked as a follow-up (YANG-schema support and a
-config-driven `enum_values`).
+For a leaf whose possible values are known in advance, `enum_values` (below) emits
+the full state set and avoids this stale-timeseries problem.
 
 Some targets encode numeric leaves as JSON strings rather than JSON numbers,
 particularly over `json_ietf` (e.g. `"in-octets": "123"`, common for values that
@@ -135,14 +141,62 @@ keys extend the metric name; array elements keep the metric name and record thei
 position in an `index` attribute. YANG leaf-lists are flattened the same way, so each
 element becomes a datapoint distinguished by its `index`.
 
-### Metric type and unit resolution
+### Enum leaves
+
+A leaf with a known, closed set of possible values (e.g. `oper-status`) can be
+declared with `enum_values` instead of being left as a plain info metric:
+
+```yaml
+overrides:
+  oper-status:
+    type: gauge
+    enum_values: [UP, DOWN, TESTING]
+```
+
+Every update to that leaf then emits one datapoint per declared value — `1` for the
+active value, `0` for the rest — as a single metric with an `_state` suffix and a
+`state` attribute, rather than the `_info`/`value` pair used for unconfigured strings.
+This makes transitions unambiguous: the same notification that reports `DOWN` also
+reports `UP` going back to `0`.
+
+```
+interfaces.interface.state.counters.oper-status_state{name="eth0",state="UP"}      1
+interfaces.interface.state.counters.oper-status_state{name="eth0",state="DOWN"}    0
+interfaces.interface.state.counters.oper-status_state{name="eth0",state="TESTING"} 0
+
+# after a transition to DOWN:
+interfaces.interface.state.counters.oper-status_state{name="eth0",state="UP"}      0
+interfaces.interface.state.counters.oper-status_state{name="eth0",state="DOWN"}    1
+interfaces.interface.state.counters.oper-status_state{name="eth0",state="TESTING"} 0
+```
+
+Notes:
+
+- **Values only, not types.** `enum_values` applies to leaves that arrive as strings.
+  A leaf configured with `enum_values` that instead arrives as a number or boolean is
+  unaffected and still emits its plain numeric metric.
+- **Closed set.** A received value that is not in `enum_values` emits `0` for every
+  declared value (no series is minted for the unrecognized value) and is logged as an
+  error, so a stale enum list surfaces instead of silently growing cardinality.
+- **Module prefix is stripped.** `json_ietf` targets often module-qualify identityref
+  values (e.g. `openconfig-interfaces:UP`); the receiver strips everything up to and
+  including the last `:` on both the configured and received values, so `UP` and
+  `openconfig-interfaces:UP` are the same state. Matching is otherwise case-sensitive.
+- **Unit** defaults to `1` (dimensionless) but can be overridden; `type` must be
+  `gauge` — `enum_values` is rejected at startup with `type: sum`.
+- Cardinality scales with the number of declared values: an enum leaf with N values
+  produces N datapoints per update, per matched path.
+
+### Metric type, unit, and enum resolution
 
 gNMI carries a value's data type but not whether it is a counter or a gauge, nor its
-unit — that information lives in the YANG schema. The receiver resolves it from
-configuration instead:
+unit or possible values — that information lives in the YANG schema. The receiver
+resolves it from configuration instead:
 
 - `type`: `sum` (emitted as a monotonic Sum) or `gauge` (emitted as a Gauge).
 - `unit`: metric unit, ideally [UCUM] (e.g. `By`, `1`, `By/s`).
+- `enum_values`: closed set of string values, for leaves emitted as a state metric
+  (see [Enum leaves](#enum-leaves)).
 
 For each leaf the receiver applies the matching `overrides` entry if present, otherwise
 `default`. **A leaf matched by neither is dropped** (no metric is emitted). A subscription

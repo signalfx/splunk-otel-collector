@@ -120,6 +120,13 @@ type MetricConfig struct {
 	// Unit is the metric unit, ideally in UCUM (e.g. "By", "1", "By/s").
 	// Optional.
 	Unit string `mapstructure:"unit"`
+
+	// EnumValues declares the closed set of values a string leaf can take.
+	// When set, the leaf is emitted as a "_state" metric with one datapoint
+	// per declared value (1 for the active value, 0 for the rest).
+	// Applies only to leaves that arrive as strings; it has no effect
+	// on numeric or boolean  values. Optional.
+	EnumValues []string `mapstructure:"enum_values"`
 }
 
 var (
@@ -218,6 +225,23 @@ func (m *MetricConfig) Validate() error {
 	default:
 		return fmt.Errorf("invalid type %q (supported: %q, %q)",
 			m.Type, metricTypeGauge, metricTypeSum)
+	}
+
+	if len(m.EnumValues) > 0 {
+		if m.Type == metricTypeSum {
+			return fmt.Errorf("enum_values is not supported with type %q (state metrics must be a gauge)", metricTypeSum)
+		}
+		seen := make(map[string]string, len(m.EnumValues))
+		for _, v := range m.EnumValues {
+			if strings.TrimSpace(v) == "" {
+				return errors.New("enum_values must not contain empty values")
+			}
+			normalized := normalizeEnumValue(v)
+			if orig, ok := seen[normalized]; ok {
+				return fmt.Errorf("enum_values contains duplicate values %q and %q", orig, v)
+			}
+			seen[normalized] = v
+		}
 	}
 	return nil
 }

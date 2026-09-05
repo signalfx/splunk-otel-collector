@@ -1,39 +1,60 @@
 receivers:
   windows_event_log:
-    channel: Application
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Application">*</Select>
+          <Suppress Path="Application">*[System[Provider[@Name='XENAGENT']]]</Suppress>
+          <Suppress Path="Application">*[System[Provider[@Name='Tenable Nessus Agent']]]</Suppress>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
-    # Excludes events from providers whose metadata DLL is not accessible
+    # Suppresses events from providers whose metadata DLL is not accessible
     # to the collector process.
-    # Remove entries below if you want to collect those events despite the error.
-    exclude_providers:
-      - "XENAGENT"
-      - "Tenable Nessus Agent"
+    # Remove the Suppress clause if you want to collect those events despite
+    # the error.
 
   windows_event_log/security:
-    channel: Security
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Security">*</Select>
+          <!--
+          <Suppress Path="Security">*[System[EventID=4662]]</Suppress>
+          <Suppress Path="Security">*[System[EventID=566]]</Suppress>
+          -->
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
     # NOTE: Splunk blacklists the following with a message-body regex condition:
     #   EventCode 4662 where Object Type != groupPolicyContainer
     #   EventCode 566  where Object Type != groupPolicyContainer
-    # The exclude_events filter below drops ALL 4662/566 events — it cannot
-    # replicate the groupPolicyContainer exception. Use a filterprocessor
-    # with OTTL if you need conditional filtering.
-    #
-    # exclude_events:
-    #   - event_ids: [4662, 566]
+    # The commented Suppress clause in the query above would drop ALL
+    # 4662/566 events. It cannot replicate the groupPolicyContainer exception.
+    # Use a filterprocessor with OTTL if you need conditional filtering.
 
   windows_event_log/system:
-    channel: System
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="System">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
 
   windows_event_log/printservice:
-    channel: Microsoft-Windows-PrintService/Operational
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Microsoft-Windows-PrintService/Operational">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
@@ -42,44 +63,79 @@ receivers:
 
   # ForwardedEvents exists but is disabled — enable on WEF collectors only
   windows_event_log/forwardedevents:
-    channel: ForwardedEvents
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="ForwardedEvents">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
 
   # DC-only channels — will silently no-op on non-DC machines due to ignore_channel_errors
   windows_event_log/dfs_replication:
-    channel: DFS Replication
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="DFS Replication">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
 
   windows_event_log/directory_service:
-    channel: Directory Service
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Directory Service">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
 
   windows_event_log/file_replication:
-    channel: File Replication Service
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="File Replication Service">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
 
   windows_event_log/dns_server:
-    channel: DNS Server
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="DNS Server">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
 
   windows_event_log/key_management:
-    channel: Key Management Service
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Key Management Service">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true
 
   windows_event_log/defender:
-    channel: Microsoft-Windows-Windows Defender/Operational
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Microsoft-Windows-Windows Defender/Operational">*</Select>
+        </Query>
+      </QueryList>
     start_at: beginning
     raw: true
     ignore_channel_errors: true

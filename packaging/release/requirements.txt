@@ -1,4 +1,4 @@
-PyGithub==2.9.1
+PyGithub==2.10.0
 boto3==1.43.75
 defusedxml==0.7.1
 docker==7.2.0

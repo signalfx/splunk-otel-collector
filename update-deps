@@ -57,3 +57,20 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
     update_gomod "$gomod" "$CONTRIB_PKGS" "$CONTRIB_VERSION"
     make -C "$REPO_DIR" tidy-all
 done
+
+# Bump baseline/VERSION when the sweep changed baseline's shipping files, so the
+# dep-update PR carries the bump the guard requires and the auto-tagger reads.
+# shellcheck source=.github/workflows/scripts/baseline-version.sh
+source "${REPO_DIR}/.github/workflows/scripts/baseline-version.sh"
+(
+    cd "$REPO_DIR"
+    latest_tag="$( latest_baseline_tag )"
+    if [ -n "$latest_tag" ] && ! baseline_shipping_changed "$latest_tag"; then
+        exit 0
+    fi
+    ref="${latest_tag#baseline/}"
+    [ -z "$ref" ] && ref="$( read_version )"
+    next="$( derive_baseline_version "$OTEL_VERSION" "$ref" )"
+    echo "Bumping baseline/VERSION to $next"
+    echo "$next" > baseline/VERSION
+)

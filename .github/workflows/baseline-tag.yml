@@ -1,0 +1,53 @@
+# On merge to main, tags baseline/<VERSION> if absent. No-op if the tag exists
+# and matches; fails if it exists but the baseline tree differs.
+
+name: baseline-tag
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'baseline/**/*.go'
+      - 'baseline/go.mod'
+      - 'baseline/go.sum'
+      - 'baseline/VERSION'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: baseline-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+      - name: Tag baseline at VERSION
+        run: |
+          set -euo pipefail
+          source .github/workflows/scripts/baseline-version.sh
+
+          version="$(read_version)"
+          tag="baseline/${version}"
+
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            if baseline_shipping_changed "$tag"; then
+              echo "::error::${tag} already exists but the baseline tree differs. An untagged baseline change reached main; bump baseline/VERSION."
+              exit 1
+            fi
+            echo "${tag} already exists and matches HEAD; nothing to do."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          echo ">>> Creating tag ${tag} at $(git rev-parse HEAD) ..."
+          git tag -a "$tag" -m "Release ${tag}"
+          git push origin "$tag"

@@ -1,0 +1,55 @@
+# Fails a PR that changes baseline's shipping files without bumping
+# baseline/VERSION above the latest published baseline tag.
+
+name: baseline-version-guard
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'baseline/**/*.go'
+      - 'baseline/go.mod'
+      - 'baseline/go.sum'
+      - 'baseline/VERSION'
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+      - name: Require VERSION bump when baseline shipping files change
+        run: |
+          set -euo pipefail
+          source .github/workflows/scripts/baseline-version.sh
+
+          base="${{ github.event.pull_request.base.sha }}"
+
+          if ! baseline_shipping_changed "$base"; then
+            echo "No baseline shipping changes; VERSION bump not required."
+            exit 0
+          fi
+
+          version="$(read_version)"
+          latest="$(latest_baseline_tag)"
+          latest_version="${latest#baseline/}"
+
+          if [ -z "$latest_version" ]; then
+            echo "OK: no prior baseline tag; baseline/VERSION=$version bootstraps the series."
+            exit 0
+          fi
+
+          if semver_gt "$version" "$latest_version"; then
+            echo "OK: baseline/VERSION=$version > latest tag $latest_version."
+            exit 0
+          fi
+
+          suggestion="$(next_patch_version "$latest_version")"
+          echo "::error file=baseline/VERSION::baseline shipping files changed but baseline/VERSION ($version) is not greater than the latest tag ($latest_version). Bump the version value in baseline/VERSION to $suggestion."
+          exit 1

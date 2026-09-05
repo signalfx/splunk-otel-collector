@@ -1,6 +1,7 @@
 monitors:
 - monitorType: prometheus/prometheus
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the prometheusreceiver instead.**
     This monitor scrapes [Prometheus server's own internal
     collector](https://prometheus.io/docs/prometheus/latest/getting_started/#configuring-prometheus-to-monitor-itself)
     metrics from a Prometheus exporter and sends them to SignalFx.  It is a

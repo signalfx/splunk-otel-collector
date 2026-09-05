@@ -25,6 +25,30 @@ describe 'splunk_otel_collector' do
   end
 
   linux_facts = on_supported_os.find { |os, _facts| !os.start_with?('windows') }.last
+  context 'with auto-instrumentation on Debian' do
+    let(:facts) do
+      on_supported_os.fetch('debian-12-x86_64').merge(
+        'service_provider' => 'systemd',
+        'local_groups' => '',
+        'local_users' => '',
+      )
+    end
+    let(:params) do
+      {
+        'splunk_access_token' => 'testing',
+        'splunk_realm' => 'test',
+        'with_auto_instrumentation' => true,
+        'auto_instrumentation_version' => 'latest',
+      }
+    end
+
+    it do
+      is_expected.to contain_file('/etc/opentelemetry')
+        .with_ensure('directory')
+        .with_require('Package[splunk-otel-auto-instrumentation]')
+    end
+  end
+
   context 'with Linux service owner resources' do
     let(:facts) do
       linux_facts.merge(service_provider: 'systemd', local_groups: '', local_users: '')

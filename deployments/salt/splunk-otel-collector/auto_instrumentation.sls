@@ -1,7 +1,10 @@
 {% set auto_instrumentation_version = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_version', 'latest') %}
 {% set auto_instrumentation_systemd = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_systemd', False) | to_bool %}
 {% set auto_instrumentation_sdks = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_sdks', ['java', 'nodejs', 'dotnet']) %}
-{% set auto_instrumentation_java_agent_path = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_java_agent_path', '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar') %}
+{% set auto_instrumentation_java_agent_path = salt['pillar.get'](
+    'splunk-otel-collector:auto_instrumentation_java_agent_path',
+    '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
+) %}
 {% set auto_instrumentation_npm_path = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_npm_path', 'npm') %}
 {% set auto_instrumentation_ld_so_preload = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_ld_so_preload') %}
 {% set auto_instrumentation_resource_attributes = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_resource_attributes') %}
@@ -19,7 +22,22 @@
 {% set auto_instrumentation_package_source = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_package_source', '') %}
 {% set zypper_local_artifact_testing_enabled = local_artifact_testing_enabled and salt['cmd.has_exec']('zypper') %}
 {% set with_new_instrumentation = auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.87.0') >= 0 %}
-{% set dotnet_supported = (auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.99.0') >= 0) and grains['cpuarch'] in ['amd64', 'x86_64'] %}
+{% set with_otel_injector = (
+    local_artifact_testing_enabled
+    or auto_instrumentation_version == 'latest'
+    or salt['pkg.version_cmp'](auto_instrumentation_version, '0.159.0') > 0
+) %}
+{% set dotnet_version_supported = (
+    auto_instrumentation_version == 'latest'
+    or salt['pkg.version_cmp'](auto_instrumentation_version, '0.99.0') >= 0
+) %}
+{% set dotnet_arch_supported = (
+    grains['cpuarch'] in ['amd64', 'x86_64']
+    or (with_otel_injector and grains['cpuarch'] in ['arm64', 'aarch64'])
+) %}
+{% set dotnet_supported = dotnet_version_supported and dotnet_arch_supported %}
+{% set auto_instrumentation_method = 'splunk.zc.method=splunk-otel-auto-instrumentation-' ~ auto_instrumentation_version %}
+{% set injector_method = auto_instrumentation_method ~ ('-systemd' if auto_instrumentation_systemd else '') %}
 {% set systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf' %}
 {% set old_instrumentation_config_path = '/usr/lib/splunk-instrumentation/instrumentation.conf' %}
 {% set java_config_path = '/etc/splunk/zeroconfig/java.conf' %}
@@ -27,6 +45,8 @@
 {% set dotnet_config_path = '/etc/splunk/zeroconfig/dotnet.conf' %}
 {% set nodejs_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js' %}
 {% set dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet' %}
+{% set injector_config_path = '/etc/opentelemetry/injector/injector.conf' %}
+{% set injector_default_env_path = '/etc/opentelemetry/injector/default_env.conf' %}
 
 {% if zypper_local_artifact_testing_enabled %}
 Install local splunk-otel-auto-instrumentation package:
@@ -68,7 +88,7 @@ splunk-otel-auto-instrumentation:
 
 Install splunk-otel-js:
   cmd.run:
-    - name: {{ auto_instrumentation_npm_path}} install --global=false /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
+    - name: {{ auto_instrumentation_npm_path }} install --global=false /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
     - cwd: {{ nodejs_prefix }}
     - require:
       - file: {{ nodejs_prefix }}/node_modules
@@ -78,7 +98,11 @@ Install splunk-otel-js:
   file.managed:
     - contents: |
         {% if not auto_instrumentation_systemd %}
+        {% if with_otel_injector %}
+        /usr/lib/splunk-instrumentation/libotelinject.so
+        {% else %}
         /usr/lib/splunk-instrumentation/libsplunk.so
+        {% endif %}
         {% endif %}
         {% if auto_instrumentation_ld_so_preload != "" %}
         {{ auto_instrumentation_ld_so_preload }}
@@ -86,6 +110,91 @@ Install splunk-otel-js:
     - makedirs: True
     - require:
       - pkg: splunk-otel-auto-instrumentation
+
+{% if with_otel_injector %}
+{{ injector_config_path }}:
+  file.managed:
+    - contents:
+        - jvm_auto_instrumentation_agent_path={{ auto_instrumentation_java_agent_path }}
+        - nodejs_auto_instrumentation_agent_path={{ nodejs_prefix }}/node_modules/@splunk/otel/instrument.js
+        - dotnet_auto_instrumentation_agent_path_prefix={{ dotnet_home }}
+        {% if 'java' not in auto_instrumentation_sdks %}
+        - auto_instrumentation_disabled=jvm
+        {% endif %}
+        {% if 'nodejs' not in auto_instrumentation_sdks %}
+        - auto_instrumentation_disabled=nodejs
+        {% endif %}
+        {% if 'dotnet' not in auto_instrumentation_sdks or not dotnet_supported %}
+        - auto_instrumentation_disabled=dotnet
+        {% endif %}
+    - makedirs: True
+    - require:
+      - pkg: splunk-otel-auto-instrumentation
+
+{{ injector_default_env_path }}:
+  file.managed:
+    - contents:
+        {% if 'dotnet' in auto_instrumentation_sdks and dotnet_supported %}
+        - OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
+        {% endif %}
+        {% if auto_instrumentation_resource_attributes != "" %}
+        - OTEL_RESOURCE_ATTRIBUTES={{ injector_method }},{{ auto_instrumentation_resource_attributes }}
+        {% else %}
+        - OTEL_RESOURCE_ATTRIBUTES={{ injector_method }}
+        {% endif %}
+        {% if auto_instrumentation_service_name != "" %}
+        - OTEL_SERVICE_NAME={{ auto_instrumentation_service_name }}
+        {% endif %}
+        - SPLUNK_PROFILER_ENABLED={{ auto_instrumentation_enable_profiler | string | lower }}
+        - SPLUNK_PROFILER_MEMORY_ENABLED={{ auto_instrumentation_enable_profiler_memory | string | lower }}
+        - SPLUNK_METRICS_ENABLED={{ auto_instrumentation_enable_metrics | string | lower }}
+        {% if auto_instrumentation_otlp_endpoint != "" %}
+        - OTEL_EXPORTER_OTLP_ENDPOINT={{ auto_instrumentation_otlp_endpoint }}
+        {% endif %}
+        {% if auto_instrumentation_otlp_endpoint_protocol != "" %}
+        - OTEL_EXPORTER_OTLP_PROTOCOL={{ auto_instrumentation_otlp_endpoint_protocol }}
+        {% endif %}
+        {% if auto_instrumentation_metrics_exporter != "" %}
+        - OTEL_METRICS_EXPORTER={{ auto_instrumentation_metrics_exporter }}
+        {% endif %}
+        {% if auto_instrumentation_logs_exporter != "" %}
+        - OTEL_LOGS_EXPORTER={{ auto_instrumentation_logs_exporter }}
+        {% endif %}
+    - makedirs: True
+    - require:
+      - pkg: splunk-otel-auto-instrumentation
+
+{% for config in [java_config_path, nodejs_config_path, dotnet_config_path, old_instrumentation_config_path] %}
+Delete legacy auto-instrumentation config {{ config }}:
+  file.absent:
+    - name: {{ config }}
+    - require:
+      - pkg: splunk-otel-auto-instrumentation
+{% endfor %}
+
+{% if auto_instrumentation_systemd %}
+{{ systemd_config_path }}:
+  file.managed:
+    - contents:
+        - "[Manager]"
+        - DefaultEnvironment="LD_PRELOAD=/usr/lib/splunk-instrumentation/libotelinject.so"
+    - makedirs: True
+    - require:
+      - pkg: splunk-otel-auto-instrumentation
+{% else %}
+Delete auto instrumentation systemd config:
+  file.absent:
+    - name: {{ systemd_config_path }}
+{% endif %}
+
+{% else %}
+{% for config in [injector_config_path, injector_default_env_path] %}
+Delete OpenTelemetry injector config {{ config }}:
+  file.absent:
+    - name: {{ config }}
+    - require:
+      - pkg: splunk-otel-auto-instrumentation
+{% endfor %}
 
 {% if auto_instrumentation_systemd %}
 {{ systemd_config_path }}:
@@ -109,7 +218,7 @@ Install splunk-otel-js:
         - DefaultEnvironment="OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation"
         {% endif %}
         {% if auto_instrumentation_resource_attributes != "" %}
-        - DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd,{{ auto_instrumentation_resource_attributes }}"
+        - DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES={{ auto_instrumentation_method }}-systemd,{{ auto_instrumentation_resource_attributes }}"
         {% else %}
         - DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd"
         {% endif %}
@@ -154,7 +263,7 @@ Delete auto instrumentation systemd config:
     - contents:
         - JAVA_TOOL_OPTIONS=-javaagent:{{ auto_instrumentation_java_agent_path }}
         {% if auto_instrumentation_resource_attributes != "" %}
-        - OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},{{ auto_instrumentation_resource_attributes }}
+        - OTEL_RESOURCE_ATTRIBUTES={{ auto_instrumentation_method }},{{ auto_instrumentation_resource_attributes }}
         {% else %}
         - OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}
         {% endif %}
@@ -192,7 +301,7 @@ Delete {{ java_config_path }}:
     - contents:
         - NODE_OPTIONS=-r {{ nodejs_prefix }}/node_modules/@splunk/otel/instrument
         {% if auto_instrumentation_resource_attributes != "" %}
-        - OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},{{ auto_instrumentation_resource_attributes }}
+        - OTEL_RESOURCE_ATTRIBUTES={{ auto_instrumentation_method }},{{ auto_instrumentation_resource_attributes }}
         {% else %}
         - OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}
         {% endif %}
@@ -237,7 +346,7 @@ Delete {{ nodejs_config_path }}:
         - OTEL_DOTNET_AUTO_HOME={{ dotnet_home }}
         - OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
         {% if auto_instrumentation_resource_attributes != "" %}
-        - OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},{{ auto_instrumentation_resource_attributes }}
+        - OTEL_RESOURCE_ATTRIBUTES={{ auto_instrumentation_method }},{{ auto_instrumentation_resource_attributes }}
         {% else %}
         - OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}
         {% endif %}
@@ -275,7 +384,7 @@ Delete {{ dotnet_config_path }}:
     - contents:
         - java_agent_jar={{ auto_instrumentation_java_agent_path }}
         {% if auto_instrumentation_resource_attributes != "" %}
-        - resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},{{ auto_instrumentation_resource_attributes }}
+        - resource_attributes={{ auto_instrumentation_method }},{{ auto_instrumentation_resource_attributes }}
         {% else %}
         - resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}
         {% endif %}
@@ -290,6 +399,7 @@ Delete {{ dotnet_config_path }}:
     - makedirs: True
     - require:
       - pkg: splunk-otel-auto-instrumentation
+{% endif %}
 {% endif %}
 {% endif %}
 

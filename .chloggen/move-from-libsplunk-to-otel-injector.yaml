@@ -1,0 +1,35 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: breaking
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: instrumentation
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Use the official OpenTelemetry injector release instead of the custom injector shim for auto-instrumentation.
+
+# One or more tracking issues related to the change
+issues: [7581]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  This is a breaking change for existing auto-instrumentation installations. Configuration files moved from
+  `/etc/splunk/zeroconfig/` to `/etc/opentelemetry/injector/` (`default_env.conf` and `injector.conf`). Existing
+  values are not migrated, and the legacy files are removed during upgrade and cannot be recovered.
+  Migrate custom `OTEL_*` and `SPLUNK_*` values from `java.conf`, `node.conf`, and `dotnet.conf` to `default_env.conf`
+  before upgrading; values with other prefixes, including `JAVA_TOOL_OPTIONS`, `NODE_OPTIONS`, `CORECLR_*`, and
+  `DOTNET_*`, are ignored. The injector derives activation settings from agent paths in `injector.conf` instead.
+  `default_env.conf` is shared by all runtimes, and runtime-specific values must be configured through the relevant
+  application or service environment. When a variable is set in both an application or service environment and
+  `default_env.conf`, the value from `default_env.conf` takes precedence, preserving the injector's behavior.
+
+  Package upgrades remove the legacy `/usr/lib/splunk-instrumentation/libsplunk.so` entry and delete an otherwise-empty
+  preload file. The installer adds the new entry and recreates the file when needed. Restart instrumented applications
+  or services, or reboot, after updating the preload entry or configuration.
+
+  .NET agent files are now installed under `splunk-otel-dotnet/glibc`, with `OTEL_DOTNET_AUTO_HOME` set to that
+  directory. The installer's `--with-instrumentation` option requires an auto-instrumentation package version greater
+  than 0.159.0.
+
+  .NET auto-instrumentation now supports arm64 in addition to amd64.

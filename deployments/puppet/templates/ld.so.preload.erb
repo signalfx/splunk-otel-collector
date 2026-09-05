@@ -1,5 +1,9 @@
 <% if defined?(@auto_instrumentation_systemd) && @auto_instrumentation_systemd.to_s.downcase == "false" -%>
-/usr/lib/splunk-instrumentation/libsplunk.so
+<% if @with_otel_injector -%>
+<%= @libotelinject_path %>
+<% else -%>
+<%= @libsplunk_path %>
+<% end -%>
 <% end -%>
 <% if defined?(@auto_instrumentation_ld_so_preload) && @auto_instrumentation_ld_so_preload != "" -%>
 <%= @auto_instrumentation_ld_so_preload %>

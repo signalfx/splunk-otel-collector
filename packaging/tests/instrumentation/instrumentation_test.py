@@ -44,31 +44,61 @@ COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 
 PKG_NAME = "splunk-otel-auto-instrumentation"
 LIB_DIR = "/usr/lib/splunk-instrumentation"
-LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
+LIBOTELINJECT_PATH = f"{LIB_DIR}/libotelinject.so"
 PRELOAD_PATH = "/etc/ld.so.preload"
-SYSTEMD_CONF_DIR = "/usr/lib/systemd/system.conf.d"
 
 JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
-JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
-CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
-
 NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
-NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
-CUSTOM_NODE_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-node-test.conf"
+DOTNET_AGENT_PATH_TEMPLATE = f"{LIB_DIR}/splunk-otel-dotnet/glibc/linux-{{arch}}/OpenTelemetry.AutoInstrumentation.Native.so"
 
-DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_CONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
-CUSTOM_DOTNET_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-dotnet-test.conf"
+INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
+INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
+
+# Custom config fixtures — overwrite default env var, copy per-language env vars
+CUSTOM_JAVA_ENV_PATH = TESTS_DIR / "instrumentation" / "test-java-env.conf"
+CUSTOM_NODE_ENV_PATH = TESTS_DIR / "instrumentation" / "test-node-env.conf"
+CUSTOM_DOTNET_ENV_PATH = TESTS_DIR / "instrumentation" / "test-dotnet-env.conf"
 
 INSTALLED_FILES = [
     JAVA_AGENT_PATH,
     NODE_AGENT_PATH,
-    DOTNET_AGENT_PATH,
-    LIBSPLUNK_PATH,
-    JAVA_CONFIG_PATH,
-    NODE_CONFIG_PATH,
-    DOTNET_CONFIG_PATH,
+    LIBOTELINJECT_PATH,
+    INJECTOR_CONFIG_PATH,
+    INJECTOR_DEFAULT_ENV_PATH,
 ]
+
+# Legacy (pre-injector) package that shipped libsplunk.so and config under
+# /etc/splunk/zeroconfig/ instead of libotelinject.so + /etc/opentelemetry/injector/.
+LEGACY_VERSION = "0.159.0"
+LEGACY_RELEASE_URL = f"https://github.com/signalfx/splunk-otel-collector/releases/download/v{LEGACY_VERSION}"
+LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
+ZEROCONFIG_DIR = "/etc/splunk/zeroconfig"
+LEGACY_FILES = [
+    LIBSPLUNK_PATH,
+    f"{ZEROCONFIG_DIR}/java.conf",
+    f"{ZEROCONFIG_DIR}/node.conf",
+]
+
+def legacy_files(arch):
+    # the legacy libsplunk.so-based package never supported dotnet on arm64;
+    # that support was only added along with the switch to libotelinject.so.
+    if arch == "arm64":
+        return LEGACY_FILES
+    return LEGACY_FILES + [f"{ZEROCONFIG_DIR}/dotnet.conf"]
+UPGRADE_WARNING = (
+    f"WARNING: Upgrading {PKG_NAME} from a version using libsplunk.so. "
+    "Auto-instrumentation is switching from libsplunk.so to libotelinject.so, "
+    "and configuration files have moved from /etc/splunk/zeroconfig/ to "
+    "/etc/opentelemetry/injector/. See the release notes for details."
+)
+
+
+def legacy_package_name(distro, arch):
+    if distro in DEB_DISTROS:
+        return f"{PKG_NAME}_{LEGACY_VERSION}_{arch}.deb"
+    rpm_arch = "aarch64" if arch == "arm64" else "x86_64"
+    return f"{PKG_NAME}-{LEGACY_VERSION}-1.{rpm_arch}.rpm"
+
 
 TOMCAT_PIDFILE = "/usr/local/tomcat/temp/tomcat.pid"
 TOMCAT_ENV = {
@@ -82,7 +112,10 @@ TOMCAT_ENV = {
 
 EXPRESS_PIDFILE = "/opt/express/express.pid"
 DOTNET_PIDFILE = "/opt/dotnet/dotnet.pid"
-
+DOTNET_ENV = {
+    "OTEL_INJECTOR_LOG_LEVEL": "debug",
+    "OTEL_LOG_LEVEL": "debug",
+}
 
 def get_dockerfile(distro):
     if distro in DEB_DISTROS:
@@ -120,11 +153,11 @@ def install_package(container, distro, path, arch="amd64"):
         run_container_cmd(container, f"rpm -ivh {path}")
 
     for path in INSTALLED_FILES:
-        if arch == "arm64" and path in [DOTNET_AGENT_PATH, DOTNET_CONFIG_PATH]:
-            # the arm64 package shouldn't include splunk-otel-dotnet files
-            assert not container_file_exists(container, path), f"{path} found"
-        else:
-            assert container_file_exists(container, path), f"{path} not found"
+        assert container_file_exists(container, path), f"{path} not found"
+
+    # dotnet agent path is arch-specific
+    dotnet_path = DOTNET_AGENT_PATH_TEMPLATE.format(arch="arm64" if arch == "arm64" else "x64")
+    assert container_file_exists(container, dotnet_path), f"{dotnet_path} not found"
 
 
 def verify_preload(container, line, exists=True):
@@ -140,20 +173,26 @@ def verify_preload(container, line, exists=True):
         assert not match, f"'{line}' found in {PRELOAD_PATH}"
 
 
-def start_app(container, app, timeout=300):
+def start_app(container, app, timeout=300, app_env=None):
     print(f"Starting {app} from a shell ...")
     if app == "tomcat":
-        run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=TOMCAT_ENV, user='tomcat:tomcat')
+        env = {**TOMCAT_ENV, **(app_env or {})}
+        run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=env, user='tomcat:tomcat')
     elif app == "express":
         run_container_cmd(
-            container, f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'", user='express:express',
+            container,
+            f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'",
+            env=app_env,
+            user='express:express',
         )
     elif app == "dotnet":
+        env = {**DOTNET_ENV, **(app_env or {})}
         run_container_cmd(
             container,
             f"bash -c '/opt/dotnet-sdk/dotnet /opt/dotnet/myWebApp.dll & echo $! > {DOTNET_PIDFILE}'",
             user='dotnet:dotnet',
             workdir="/opt/dotnet",
+            env=env,
         )
 
     if app == "tomcat":
@@ -208,7 +247,7 @@ def verify_attributes(stream, attributes, timeout=300):
         assert found[key], f"timed out waiting for '{key}: {value}'"
 
 
-def verify_app_instrumentation(container, app, attributes, otelcol_path=None, timeout=300):
+def verify_app_instrumentation(container, app, attributes, otelcol_path=None, timeout=300, app_env=None):
 
     try:
         stop_app(container, app)
@@ -228,10 +267,29 @@ def verify_app_instrumentation(container, app, attributes, otelcol_path=None, ti
         # start the collector from the shell and get the output stream
         stream = container.exec_run(f"{otelcol_path} --config=/test/config.yaml", stream=True).output
 
-    start_app(container, app)
+    start_app(container, app, app_env=app_env)
 
     # check the collector output stream for attributes
-    verify_attributes(stream, attributes, timeout=timeout)
+    try:
+        verify_attributes(stream, attributes, timeout=timeout)
+    except AssertionError:
+        log_files = ""
+        if app == "tomcat":
+            log_files = "/usr/local/tomcat/logs/catalina.out"
+            log_header = "Tomcat catalina.out"
+        elif app == "dotnet":
+            log_files = "/var/log/opentelemetry/dotnet/*"
+            log_header = "dotnet auto-instrumentation logs"
+
+        if log_files != "":
+            code, logs = container.exec_run(f"cat {log_files}")
+            if code == 0:
+                print(f"=== {log_header} ===")
+                print(logs.decode("utf-8"))
+            else:
+                print(f"Attempt to cat log files failed with: {code}")
+
+        raise
 
 
 @pytest.mark.parametrize(
@@ -264,8 +322,8 @@ def test_tomcat_instrumentation(distro, arch):
             r"service\.name": r"Str\(Hello, World Application\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
@@ -275,14 +333,26 @@ def test_tomcat_instrumentation(distro, arch):
             r"telemetry\.sdk\.language": r"Str\(java\)",
             r"service\.name": rf"Str\(service_name_from_java\)",
             r"deployment\.environment\.name": rf"Str\(deployment_environment_from_java\)",
-            r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
         }
 
-        # overwrite the default libsplunk config with the custom one for testing
-        copy_file_into_container(container, CUSTOM_JAVA_CONFIG_PATH, JAVA_CONFIG_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_JAVA_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "tomcat", attributes, otelcol_path=otelcol)
+
+        # verify default_env.conf takes precedence over an existing application environment value
+        precedence_attributes = {
+            **attributes,
+            r"service\.name": rf"Str\(service_name_from_java\)",
+        }
+        verify_app_instrumentation(
+            container,
+            "tomcat",
+            precedence_attributes,
+            otelcol_path=otelcol,
+            app_env={"OTEL_SERVICE_NAME": "service_name_from_app"},
+        )
 
 
 @pytest.mark.parametrize(
@@ -317,6 +387,8 @@ def test_express_instrumentation(distro, arch):
         # install splunk-otel-js to /usr/lib/splunk-instrumentation/splunk-otel-js
         run_container_cmd(container, f"mkdir -p {LIB_DIR}/splunk-otel-js")
         run_container_cmd(container, f"bash -l -c 'cd {LIB_DIR}/splunk-otel-js && npm install {NODE_AGENT_PATH}'")
+        run_container_cmd(container, "bash -c 'find / -name injector.conf'", user='root')
+        run_container_cmd(container, "bash -c 'find /usr/lib/splunk-instrumentation'", user='root')
 
         # attributes from default config
         attributes = {
@@ -324,8 +396,8 @@ def test_express_instrumentation(distro, arch):
             r"service\.name": r"Str\(unnamed-node-service\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
@@ -335,12 +407,10 @@ def test_express_instrumentation(distro, arch):
             r"telemetry\.sdk\.language": r"Str\(nodejs\)",
             r"service\.name": rf"Str\(service_name_from_node\)",
             r"deployment\.environment\.name": rf"Str\(deployment_environment_from_node\)",
-            r"com\.splunk\.sourcetype": None if node_version < 16 else r"Str\(otel\.profiling\)",
         }
 
-
-        # overwrite the default libsplunk config with the custom one for testing
-        copy_file_into_container(container, CUSTOM_NODE_CONFIG_PATH, NODE_CONFIG_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_NODE_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "express", attributes, otelcol_path=otelcol)
@@ -351,7 +421,7 @@ def test_express_instrumentation(distro, arch):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("arch", ["amd64"])
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_dotnet_instrumentation(distro, arch):
     otelcol_bin = f"otelcol_linux_{arch}"
     otelcol_bin_path = OTELCOL_BIN_DIR / otelcol_bin
@@ -376,8 +446,8 @@ def test_dotnet_instrumentation(distro, arch):
             r"service\.name": r"Str\(myWebApp\)",  # auto-generated for the sample app
         }
 
-        # add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
+        # add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} > /etc/ld.so.preload'")
 
         # verify default config
         verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)
@@ -387,11 +457,10 @@ def test_dotnet_instrumentation(distro, arch):
             r"telemetry\.sdk\.language": r"Str\(dotnet\)",
             r"service\.name": rf"Str\(service_name_from_dotnet\)",
             r"deployment\.environment\.name": rf"Str\(deployment_environment_from_dotnet\)",
-            r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
         }
 
-        # overwrite the default libsplunk config with the custom one for testing
-        copy_file_into_container(container, CUSTOM_DOTNET_CONFIG_PATH, DOTNET_CONFIG_PATH)
+        # overwrite default env var, copy per-language env vars
+        copy_file_into_container(container, CUSTOM_DOTNET_ENV_PATH, INJECTOR_DEFAULT_ENV_PATH)
 
         # verify custom config
         verify_app_instrumentation(container, "dotnet", attributes, otelcol_path=otelcol)
@@ -417,11 +486,11 @@ def test_package_uninstall(distro, arch):
 
         verify_preload(container, "# This line should be preserved")
 
-        # verify libsplunk.so was not automatically added to /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        # verify libotelinject.so was not automatically added to /etc/ld.so.preload
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
-        # explicitly add libsplunk.so to /etc/ld.so.preload
-        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} >> {PRELOAD_PATH}'")
+        # explicitly add libotelinject.so to /etc/ld.so.preload
+        run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} >> {PRELOAD_PATH}'")
 
         # uninstall the package
         if distro in DEB_DISTROS:
@@ -439,7 +508,59 @@ def test_package_uninstall(distro, arch):
         for path in INSTALLED_FILES:
             assert not container_file_exists(container, path)
 
-        # verify libsplunk.so was removed from /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        # verify libotelinject.so was removed from /etc/ld.so.preload
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
         verify_preload(container, "# This line should be preserved")
+
+
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_package_upgrade_from_libsplunk(distro, arch):
+    pkg_path = get_package(distro, PKG_NAME, arch)
+    assert pkg_path, f"{PKG_NAME} package not found"
+    pkg_base = os.path.basename(pkg_path)
+
+    legacy_pkg = legacy_package_name(distro, arch)
+    legacy_url = f"{LEGACY_RELEASE_URL}/{legacy_pkg}"
+    expected_legacy_files = legacy_files(arch)
+
+    with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch) as container:
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+
+        # download and install the legacy libsplunk.so-based package
+        # (not all distro images ship curl, so fall back to wget)
+        download_cmd = (
+            f"sh -c 'if command -v curl >/dev/null; then "
+            f"curl -sfL {legacy_url} -o /test/{legacy_pkg}; else "
+            f"wget -q {legacy_url} -O /test/{legacy_pkg}; fi'"
+        )
+        run_container_cmd(container, download_cmd)
+        if distro in DEB_DISTROS:
+            run_container_cmd(container, f"dpkg -i /test/{legacy_pkg}")
+        else:
+            run_container_cmd(container, f"rpm -ivh /test/{legacy_pkg}")
+
+        for path in expected_legacy_files:
+            assert container_file_exists(container, path), f"{path} not found after legacy install"
+
+        # upgrade to the locally-built package using libotelinject.so
+        if distro in DEB_DISTROS:
+            _, output = run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
+        else:
+            _, output = run_container_cmd(container, f"rpm -Uvh /test/{pkg_base}")
+
+        assert UPGRADE_WARNING in output.decode("utf-8"), \
+            f"expected upgrade warning not found in output:\n{output.decode('utf-8')}"
+
+        # verify legacy files were removed by the upgrade
+        for path in expected_legacy_files:
+            assert not container_file_exists(container, path), f"{path} still present after upgrade"
+
+        # verify new files were installed
+        for path in INSTALLED_FILES:
+            assert container_file_exists(container, path), f"{path} not found after upgrade"

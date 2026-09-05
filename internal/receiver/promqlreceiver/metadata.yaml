@@ -1,0 +1,11 @@
+type: promql
+display_name: PromQL Receiver
+
+status:
+  class: receiver
+  stability:
+    development: [metrics]
+  distributions: [splunk]
+  codeowners:
+    active: []
+

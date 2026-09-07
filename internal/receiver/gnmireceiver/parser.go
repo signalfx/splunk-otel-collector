@@ -32,10 +32,11 @@ import (
 )
 
 const (
-	infoMetricSuffix = "_info"
-	infoValueAttr    = "value"
-	// indexAttr identifies an element's position when a JSON array is flattened.
-	indexAttr = "index"
+	infoMetricSuffix  = "_info"
+	stateMetricSuffix = "_state"
+	infoValueAttr     = "value"
+	stateValueAttr    = "state"
+	indexAttr         = "index"
 )
 
 // metricParser converts gNMI SubscribeResponse messages into OTel metrics.
@@ -45,7 +46,27 @@ type metricParser struct {
 }
 
 func newMetricParser(endpoint string, subscriptions []SubscriptionConfig) *metricParser {
+	for i := range subscriptions {
+		sub := &subscriptions[i]
+		if sub.Default != nil {
+			cacheNormalizedEnumValues(sub.Default)
+		}
+		for leaf, cfg := range sub.Overrides {
+			cacheNormalizedEnumValues(&cfg)
+			sub.Overrides[leaf] = cfg
+		}
+	}
 	return &metricParser{endpoint: endpoint, subscriptions: subscriptions}
+}
+
+func cacheNormalizedEnumValues(cfg *MetricConfig) {
+	if len(cfg.EnumValues) == 0 {
+		return
+	}
+	cfg.normalizedEnumValues = make([]string, len(cfg.EnumValues))
+	for i, v := range cfg.EnumValues {
+		cfg.normalizedEnumValues[i] = normalizeEnumValue(v)
+	}
 }
 
 // parseBatch accumulates the metrics produced while converting a single SubscribeResponse.
@@ -205,7 +226,7 @@ func (p *metricParser) emitUint(
 			return err
 		}
 		return fmt.Errorf("value %d for %q exceeds int64 range; emitted as a double and lost precision",
-			value, metricName(origin, elems))
+			value, buildMetricName(origin, elems))
 	}
 	return p.emitInt(b, origin, elems, keys, int64(value), ts)
 }
@@ -241,6 +262,10 @@ func (p *metricParser) emitInfo(
 		return nil
 	}
 
+	if len(cfg.EnumValues) > 0 {
+		return p.writeEnumState(b, origin, elems, keys, cfg, value, ts)
+	}
+
 	if cfg.Type == metricTypeSum || cfg.Type == metricTypeGauge {
 		if n, err := strconv.ParseInt(value, 10, 64); err == nil {
 			return p.writeInt(b, origin, elems, keys, cfg, n, ts)
@@ -257,7 +282,7 @@ func (p *metricParser) writeInt(
 	b *parseBatch, origin string, elems []string,
 	keys map[string]string, cfg MetricConfig, value int64, ts pcommon.Timestamp,
 ) error {
-	dp, err := b.numberDataPoint(metricName(origin, elems), cfg.Unit, metricDataType(cfg.Type))
+	dp, err := b.numberDataPoint(buildMetricName(origin, elems), cfg.Unit, metricDataType(cfg.Type))
 	if err != nil {
 		return err
 	}
@@ -271,7 +296,7 @@ func (p *metricParser) writeDouble(
 	b *parseBatch, origin string, elems []string,
 	keys map[string]string, cfg MetricConfig, value float64, ts pcommon.Timestamp,
 ) error {
-	dp, err := b.numberDataPoint(metricName(origin, elems), cfg.Unit, metricDataType(cfg.Type))
+	dp, err := b.numberDataPoint(buildMetricName(origin, elems), cfg.Unit, metricDataType(cfg.Type))
 	if err != nil {
 		return err
 	}
@@ -285,7 +310,7 @@ func (p *metricParser) writeInfo(
 	b *parseBatch, origin string, elems []string,
 	keys map[string]string, _ MetricConfig, value string, ts pcommon.Timestamp,
 ) error {
-	name := metricName(origin, elems) + infoMetricSuffix
+	name := buildMetricName(origin, elems) + infoMetricSuffix
 	dp, err := b.numberDataPoint(name, "", pmetric.MetricTypeGauge)
 	if err != nil {
 		return err
@@ -295,6 +320,49 @@ func (p *metricParser) writeInfo(
 	dp.Attributes().PutStr(infoValueAttr, value)
 	putAttrs(dp.Attributes(), keys)
 	return nil
+}
+
+func (p *metricParser) writeEnumState(
+	b *parseBatch, origin string, elems []string,
+	keys map[string]string, cfg MetricConfig, value string, ts pcommon.Timestamp,
+) error {
+	metricName := buildMetricName(origin, elems) + stateMetricSuffix
+	unit := cfg.Unit
+	if unit == "" {
+		unit = "1"
+	}
+
+	normalized := normalizeEnumValue(value)
+	matched := false
+	for _, normalizedEnumValue := range cfg.normalizedEnumValues {
+		var n int64
+		if normalizedEnumValue == normalized {
+			n = 1
+			matched = true
+		}
+
+		dp, err := b.numberDataPoint(metricName, unit, pmetric.MetricTypeGauge)
+		if err != nil {
+			return err
+		}
+		dp.SetIntValue(n)
+		dp.SetTimestamp(ts)
+		dp.Attributes().PutStr(stateValueAttr, normalizedEnumValue)
+		putAttrs(dp.Attributes(), keys)
+	}
+
+	if !matched {
+		return fmt.Errorf("value %q for %q is not in enum_values %v; emitted all states as 0",
+			value, metricName, cfg.EnumValues)
+	}
+	return nil
+}
+
+func normalizeEnumValue(value string) string {
+	if idx := strings.LastIndexByte(value, ':'); idx >= 0 {
+		value = value[idx+1:]
+	}
+	return strings.TrimSpace(value)
 }
 
 func metricDataType(cfgType string) pmetric.MetricType {
@@ -352,7 +420,7 @@ func (p *metricParser) emitJSON(
 ) error {
 	var decoded any
 	if err := json.Unmarshal(raw, &decoded); err != nil {
-		return fmt.Errorf("invalid JSON payload at %q: %w", metricName(origin, elems), err)
+		return fmt.Errorf("invalid JSON payload at %q: %w", buildMetricName(origin, elems), err)
 	}
 	return p.flatten(b, origin, elems, keys, decoded, ts)
 }
@@ -442,7 +510,7 @@ func joinPath(prefix, path *gnmipb.Path) ([]string, map[string]string) {
 	return elems, keys
 }
 
-func metricName(origin string, elems []string) string {
+func buildMetricName(origin string, elems []string) string {
 	if origin == "" {
 		return strings.Join(elems, ".")
 	}

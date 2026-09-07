@@ -57,5 +57,27 @@ resourceMetrics:
                   timeUnixNano: "1000000"
               isMonotonic: true
             unit: By
+          - name: openconfig.interfaces.interface.state.oper-status_state
+            gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: name
+                      value:
+                        stringValue: eth0
+                    - key: state
+                      value:
+                        stringValue: UP
+                  timeUnixNano: "1000000"
+                - asInt: "0"
+                  attributes:
+                    - key: name
+                      value:
+                        stringValue: eth0
+                    - key: state
+                      value:
+                        stringValue: DOWN
+                  timeUnixNano: "1000000"
+            unit: "1"
         scope:
           name: github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver

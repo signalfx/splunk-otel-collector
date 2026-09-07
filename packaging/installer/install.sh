@@ -40,9 +40,6 @@ get_distro_codename() {
 
   if [ "$distro" = "debian" ] && [ -z "$codename" ]; then
     case "$( get_distro_version )" in
-      11)
-        codename="bullseye"
-        ;;
       12)
         codename="bookworm"
         ;;
@@ -1236,7 +1233,7 @@ distro_is_supported() {
       ;;
     debian)
       case "$distro_codename" in
-        bookworm|bullseye|trixie)
+        bookworm|trixie)
           return 0
           ;;
       esac

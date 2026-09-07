@@ -127,6 +127,10 @@ type MetricConfig struct {
 	// Applies only to leaves that arrive as strings; it has no effect
 	// on numeric or boolean values. Optional.
 	EnumValues []string `mapstructure:"enum_values"`
+
+	// normalizedEnumValues caches normalizeEnumValue(EnumValues[i]) at parser
+	// construction time. Populated by newMetricParser.
+	normalizedEnumValues []string
 }
 
 var (

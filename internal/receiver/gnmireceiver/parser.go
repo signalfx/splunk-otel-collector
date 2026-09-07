@@ -333,17 +333,16 @@ func (p *metricParser) writeEnumState(
 
 	if !matched {
 		return fmt.Errorf("value %q for %q is not in enum_values %v; emitted all states as 0",
-			value, metricName(origin, elems), cfg.EnumValues)
+			value, name, cfg.EnumValues)
 	}
 	return nil
 }
 
 func normalizeEnumValue(value string) string {
-	value = strings.TrimSpace(value)
 	if idx := strings.LastIndexByte(value, ':'); idx >= 0 {
-		return value[idx+1:]
+		value = value[idx+1:]
 	}
-	return value
+	return strings.TrimSpace(value)
 }
 
 func metricDataType(cfgType string) pmetric.MetricType {

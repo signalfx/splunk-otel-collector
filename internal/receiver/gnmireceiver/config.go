@@ -125,7 +125,7 @@ type MetricConfig struct {
 	// When set, the leaf is emitted as a "_state" metric with one datapoint
 	// per declared value (1 for the active value, 0 for the rest).
 	// Applies only to leaves that arrive as strings; it has no effect
-	// on numeric or boolean  values. Optional.
+	// on numeric or boolean values. Optional.
 	EnumValues []string `mapstructure:"enum_values"`
 }
 

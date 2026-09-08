@@ -14,7 +14,10 @@
 
     - name: Assert custom_config.yaml is created
       ansible.builtin.assert:
-        that: custom_collector_config.stat.exists
+        that:
+          - custom_collector_config.stat.exists
+          - custom_collector_config.stat.pw_name == 'custom-user'
+          - custom_collector_config.stat.gr_name == 'custom-group'
 
     - name: Assert custom_config.yaml is used
       ansible.builtin.lineinfile:
@@ -79,6 +82,15 @@
       register: config
       failed_when: config is changed
 
+    - name: Assert SPLUNK_OPAMP_SUPERVISOR_ENABLED env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_OPAMP_SUPERVISOR_ENABLED=true
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
     - name: Populate package facts
       ansible.builtin.package_facts:
 
@@ -126,6 +138,37 @@
       check_mode: yes
       register: config
       failed_when: config is changed
+
+    - name: Wait for supervisor and collector processes to run as the custom user
+      ansible.builtin.command: "pgrep -u custom-user -x {{ item }}"
+      loop:
+        - opampsupervisor
+        - otelcol
+      register: supervisor_process
+      changed_when: false
+      until: supervisor_process.rc == 0
+      retries: 20
+      delay: 1
+
+    - name: Get supervisor config and state path information
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - /etc/otel/collector
+        - /etc/otel/collector/supervisor
+        - /etc/otel/collector/supervisor/supervisor_config.yaml
+        - /var/lib/otelcol
+        - /var/lib/otelcol/supervisor
+      register: supervisor_paths
+
+    - name: Assert supervisor config and state paths use the custom service owner
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.pw_name == 'custom-user'
+          - item.stat.gr_name == 'custom-group'
+          - item.item not in ['/etc/otel/collector', '/var/lib/otelcol'] or item.stat.mode == '0755'
+      loop: "{{ supervisor_paths.results }}"
 
     - name: Send a test log message
       ansible.builtin.lineinfile:

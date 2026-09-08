@@ -111,18 +111,52 @@ file_log/varlog:
 
 See the [filelog receiver documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) for the full glob syntax and all available options.
 
+## Sourcetype assignment
+
+The collector assigns sourcetypes to log events in two stages:
+
+**1. Filename-based default (filelog receiver operators)**
+
+Each log line is tagged with a sourcetype derived from the filename stem which is Splunk's default behavior when ingesting data in a traditional way. For example, `/var/log/example.log` gets sourcetype `example`, `/var/log/syslog` gets `syslog`.
+
+**2. Path-based overrides (`transform/nix_sourcetype` processor)**
+
+After the filename fallback, the `transform/nix_sourcetype` processor overrides the sourcetype for well-known paths to match the sourcetypes used by the [Splunk Add-on for Unix and Linux](https://splunkbase.splunk.com/app/833) and Splunk's default `props.conf` FILE MATCH CONDITIONS. Examples:
+
+| Source path                      | Sourcetype      |
+|----------------------------------|-----------------|
+| `.../var/log/secure`             | `linux_secure`  |
+| `.../var/log/auth.log`           | `syslog`        |
+| `.../var/log/audit/audit.log`    | `linux_audit`   |
+| `.../var/log/boot.log`           | `linux_bootlog` |
+| `.../var/log/dmesg`              | `dmesg`         |
+| `.../var/log/messages`           | `syslog`        |
+| `.../var/log/syslog`             | `syslog`        |
+| `.../var/log/cups/access_log`    | `cups_access`   |
+| `.../var/log/cups/error_log`     | `cups_error`    |
+| `.../var/log/sa/sar*`            | `sar`           |
+| `.../var/log/rpmpkgs`            | `rpmpkgs`       |
+| `*.conf`, `*.cfg`, `*.ini`, etc. | `config_file`   |
+| `/etc/passwd*`, `/etc/shadow*`   | `ignored_type`  |
+
+Path patterns support log-rotation suffixes (e.g. `secure.1`, `secure.2`). For the full list of mappings, see the `transform/nix_sourcetype` processor in the [default configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/splunk_logs_config_linux.yaml).
+
+> **Note:** The sourcetype mappings mirror the full scope of Splunk's `props.conf` FILE MATCH CONDITIONS from the Splunk Add-on for Unix and Linux — which is broader than what the TA monitors by default. Paths like `/var/log/audit/audit.log` or `/var/log/cups/access_log` are not collected by default but will be assigned the correct sourcetype automatically if you add them to the `file_log/varlog` include list.
+
+> **Note:** This is not a direct replacement for the Splunk Add-on for Unix and Linux. Path-based sourcetype mappings cover the most common cases, but content-based detection, scripted inputs, and additional field extractions from the TA are not implemented. Validate sourcetype assignments if migrating from the TA.
+
 ## Verify log ingestion
-
-Search for events using the sourcetype set by the default receiver:
-
-```
-index="<your-index>" sourcetype="linux:varlog"
-```
 
 To see all sourcetypes currently being ingested:
 
 ```
-index="<your-index>" sourcetype="linux:*" | stats count by sourcetype
+index="<your-index>" | stats count by sourcetype
+```
+
+To search for a specific well-known sourcetype:
+
+```
+index="<your-index>" sourcetype=linux_secure
 ```
 
 To view the Collector's own logs:

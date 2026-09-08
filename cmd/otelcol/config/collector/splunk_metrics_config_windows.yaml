@@ -1,5 +1,5 @@
 receivers:
-  windowsperfcounters/cpu:
+  windows_perf_counters/cpu:
     collection_interval: 10s
     perfcounters:
       - object: Processor
@@ -20,7 +20,7 @@ receivers:
           - name: "C1 Transitions/sec"
           - name: "C2 Transitions/sec"
           - name: "C3 Transitions/sec"
-  windowsperfcounters/processor_information:
+  windows_perf_counters/processor_information:
     collection_interval: 10s
     perfcounters:
       - object: Processor Information
@@ -28,7 +28,7 @@ receivers:
         counters:
           - name: "% Processor Time"
           - name: "Processor Frequency"
-  windowsperfcounters/logical_disk:
+  windows_perf_counters/logical_disk:
     collection_interval: 10s
     perfcounters:
       - object: LogicalDisk
@@ -53,7 +53,7 @@ receivers:
           - name: "Disk Read Bytes/sec"
           - name: "Disk Write Bytes/sec"
           - name: "% Idle Time"
-  windowsperfcounters/physical_disk:
+  windows_perf_counters/physical_disk:
     collection_interval: 10s
     perfcounters:
       - object: PhysicalDisk
@@ -68,7 +68,7 @@ receivers:
           - name: "Disk Read Bytes/sec"
           - name: "Disk Write Bytes/sec"
           - name: "% Idle Time"
-  windowsperfcounters/memory:
+  windows_perf_counters/memory:
     collection_interval: 10s
     perfcounters:
       - object: Memory
@@ -86,7 +86,7 @@ receivers:
           - name: "Page Writes/sec"
           - name: "Available KBytes"
           - name: "Available MBytes"
-  windowsperfcounters/network:
+  windows_perf_counters/network:
     collection_interval: 10s
     perfcounters:
       - object: Network Interface
@@ -104,7 +104,7 @@ receivers:
           - name: "Packets Outbound Discarded"
           - name: "Packets Outbound Errors"
           - name: "Output Queue Length"
-  windowsperfcounters/process:
+  windows_perf_counters/process:
     collection_interval: 10s
     perfcounters:
       - object: Process
@@ -123,7 +123,7 @@ receivers:
           - name: "IO Write Operations/sec"
           - name: "IO Read Bytes/sec"
           - name: "IO Write Bytes/sec"
-  windowsperfcounters/system:
+  windows_perf_counters/system:
     collection_interval: 10s
     perfcounters:
       - object: System
@@ -136,7 +136,7 @@ receivers:
           - name: "Processor Queue Length"
           - name: "Processes"
           - name: "Threads"
-  windowsperfcounters/dfs_replicated_folders:
+  windows_perf_counters/dfs_replicated_folders:
     collection_interval: 30s
     perfcounters:
       - object: DFS Replicated Folders
@@ -148,7 +148,7 @@ receivers:
           - name: "Conflict Files Generated"
           - name: "Staging Files Generated"
           - name: "Updates Dropped"
-  windowsperfcounters/ntds:
+  windows_perf_counters/ntds:
     collection_interval: 10s
     perfcounters:
       - object: NTDS
@@ -164,7 +164,7 @@ receivers:
           - name: "DS Directory Writes/sec"
           - name: "DS Directory Searches/sec"
           - name: "DRA Pending Replication Synchronizations"
-  windowsperfcounters/dns:
+  windows_perf_counters/dns:
     collection_interval: 10s
     perfcounters:
       - object: DNS
@@ -285,46 +285,46 @@ exporters:
 service:
   pipelines:
     metrics/cpu:
-      receivers: [windowsperfcounters/cpu]
+      receivers: [windows_perf_counters/cpu]
       processors: [transform/perfcounters_cpu, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/processor_information:
-      receivers: [windowsperfcounters/processor_information]
+      receivers: [windows_perf_counters/processor_information]
       processors: [transform/perfcounters_processor_information, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/logical_disk:
-      receivers: [windowsperfcounters/logical_disk]
+      receivers: [windows_perf_counters/logical_disk]
       processors: [transform/perfcounters_logical_disk, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/physical_disk:
-      receivers: [windowsperfcounters/physical_disk]
+      receivers: [windows_perf_counters/physical_disk]
       processors: [transform/perfcounters_physical_disk, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/memory:
-      receivers: [windowsperfcounters/memory]
+      receivers: [windows_perf_counters/memory]
       processors: [transform/perfcounters_memory, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/network:
-      receivers: [windowsperfcounters/network]
+      receivers: [windows_perf_counters/network]
       processors: [transform/perfcounters_network, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/process:
-      receivers: [windowsperfcounters/process]
+      receivers: [windows_perf_counters/process]
       processors: [transform/perfcounters_process, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/system:
-      receivers: [windowsperfcounters/system]
+      receivers: [windows_perf_counters/system]
       processors: [transform/perfcounters_system, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/dfs_replicated_folders:
-      receivers: [windowsperfcounters/dfs_replicated_folders]
+      receivers: [windows_perf_counters/dfs_replicated_folders]
       processors: [transform/perfcounters_dfs_replicated_folders, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/ntds:
-      receivers: [windowsperfcounters/ntds]
+      receivers: [windows_perf_counters/ntds]
       processors: [transform/perfcounters_ntds, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/dns:
-      receivers: [windowsperfcounters/dns]
+      receivers: [windows_perf_counters/dns]
       processors: [transform/perfcounters_dns, resource_detection]
       exporters: [splunk_hec/metrics]

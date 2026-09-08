@@ -8,6 +8,13 @@ require 'spec_helper'
 
 describe 'splunk_otel_collector::default' do
   context 'on the Linux platform family' do
+    before do
+      stub_command(
+        'find /etc/otel/collector /var/lib/otelcol \( ! -user splunk-otel-collector ' \
+        '-o ! -group splunk-otel-collector \) -print -quit | grep -q .'
+      ).and_return(false)
+    end
+
     context 'on debian-family distro' do
       cached(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '22.04') do |node|

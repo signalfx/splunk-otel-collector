@@ -9,6 +9,7 @@ on:
       - '.github/workflows/linux-package-test.yml'
       - '.github/workflows/scripts/ecs-mock/**'
       - 'cmd/otelcol/**'
+      - 'cmd/otelcollauncher/**'
       - 'internal/**'
       - 'packaging/installer/**'
       - 'packaging/tests/images/**'

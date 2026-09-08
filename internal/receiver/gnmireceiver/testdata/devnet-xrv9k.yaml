@@ -1,0 +1,119 @@
+# Example configuration for manual validation against the Cisco DevNet sandbox
+# IOS XRv 9000 (10.10.20.35). Requires the sandbox VPN and gNMI enabled on the
+# device:
+#
+#   configure
+#    grpc
+#     port 57400
+#     no-tls
+#    !
+#   commit
+#
+# Confirm with "show grpc status" (TLS disabled, listening-port 57400).
+#
+# IMPORTANT (1): the sandbox VPN does not permit port 57400 directly, so tunnel it
+# through the DevBox and point this config at localhost:
+#
+#   ssh -L 57400:10.10.20.35:57400 developer@10.10.20.50   # leave running
+#   nc -vz localhost 57400                                  # should succeed
+#
+# IMPORTANT (2): gRPC honours HTTP_PROXY/HTTPS_PROXY. Export NO_PROXY before
+# running the collector or it will try to dial through the corporate proxy:
+#
+#   export NO_PROXY=localhost,127.0.0.1,10.10.20.0/24
+#
+# Run with:
+#   ./bin/otelcol --config internal/receiver/gnmireceiver/testdata/devnet-xrv9k.yaml
+receivers:
+  gnmi:
+    targets:
+      # Via the SSH tunnel above. Use 10.10.20.35:57400 instead when running the
+      # collector on the DevBox, where the port is directly reachable.
+      - endpoint: localhost:57400
+        username: developer
+        password: C1sco12345
+        # The device is configured with "no-tls", so request proto over plaintext.
+        encoding: proto
+        redial: 30s
+        tls:
+          insecure: true
+        subscriptions:
+          # OpenConfig interface counters. IOS-XR has good OpenConfig coverage,
+          # but confirm the leaves exist before relying on them (see notes below).
+          - path: /interfaces/interface/state/counters
+            origin: openconfig
+            mode: sample
+            sample_interval: 10s
+            overrides:
+              in-octets:
+                type: sum
+                unit: By
+              out-octets:
+                type: sum
+                unit: By
+              in-unicast-pkts:
+                type: sum
+                unit: "{packet}"
+              out-unicast-pkts:
+                type: sum
+                unit: "{packet}"
+              in-errors:
+                type: sum
+                unit: "{error}"
+              out-errors:
+                type: sum
+                unit: "{error}"
+              in-discards:
+                type: sum
+                unit: "{packet}"
+              out-discards:
+                type: sum
+                unit: "{packet}"
+
+          # Interface admin/oper state. Strings become info metrics.
+          - path: /interfaces/interface/state
+            origin: openconfig
+            mode: on_change
+            overrides:
+              oper-status:
+                type: gauge
+              admin-status:
+                type: gauge
+              enabled:
+                type: gauge
+
+          # --- Cisco IOS-XR native alternative -----------------------------
+          # Use this if the OpenConfig tree returns nothing. XR native models
+          # use a different origin and path shape.
+          # - path: /infra-statistics/interfaces/interface/latest/generic-counters
+          #   origin: Cisco-IOS-XR-infra-statsd-oper
+          #   mode: sample
+          #   sample_interval: 10s
+          #   default:
+          #     type: gauge
+          #   overrides:
+          #     bytes-received:
+          #       type: sum
+          #       unit: By
+          #     bytes-sent:
+          #       type: sum
+          #       unit: By
+          #     packets-received:
+          #       type: sum
+          #       unit: "{packet}"
+          #     packets-sent:
+          #       type: sum
+          #       unit: "{packet}"
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    metrics:
+      receivers: [gnmi]
+      exporters: [debug]

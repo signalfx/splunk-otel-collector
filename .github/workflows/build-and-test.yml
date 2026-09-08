@@ -69,9 +69,9 @@ jobs:
         with:
           check_filenames: true
           ignore_words_list: AKS
-          skip: "./internal/signalfx-agent,*.sum,*.mod"
+          skip: "./internal/signalfx-agent,*.sum,*.mod,*.json"
       - name: Spell check - crate-ci/typos
-        uses: crate-ci/typos@8a48f81b6c64dcfea44b3633223084c4be58ac5f # v1.49.0
+        uses: crate-ci/typos@d43b6c087ac471e2ea7b8af622ff15f05c0c365b # v1.50.1
         with:
           config: ./.typos.toml
 
@@ -164,7 +164,6 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
-      WITH_OPAMP_SUPERVISOR: ${{ contains(fromJSON('["binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-windows_arm64"]'), matrix.SYS_BINARIES) }}
 
   latest-dockerd-test:
     # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.

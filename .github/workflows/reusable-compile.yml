@@ -6,10 +6,6 @@ on:
       SYS_BINARY:
         required: true
         type: string
-      WITH_OPAMP_SUPERVISOR:
-        required: false
-        type: boolean
-        default: false
 
 env:
   GO_VERSION: 1.26.6
@@ -24,7 +20,7 @@ jobs:
 
       - name: Build Collector
         run: |
-          make ${{ inputs.SYS_BINARY }} WITH_OPAMP_SUPERVISOR=${{ inputs.WITH_OPAMP_SUPERVISOR }}
+          make ${{ inputs.SYS_BINARY }}
 
       - name: Uploading binaries
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

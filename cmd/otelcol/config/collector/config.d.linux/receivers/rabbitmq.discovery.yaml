@@ -9,12 +9,12 @@
 # rabbitmq:
 #   enabled: true
 #   rule:
-#     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)rabbitmq.*"}) and not (command matches "splunk.discovery")
-#     host_observer: type == "hostport" and command matches "(?i)rabbitmq.*" and not (command matches "splunk.discovery")
-#     k8s_observer: type == "port" and pod.name matches "(?i)rabbitmq.*"
+#     docker_observer: type == "container" and port == 15672 and any([name, image, command], {# matches "(?i)rabbitmq.*"}) and not (command matches "splunk.discovery")
+#     host_observer: type == "hostport" and port == 15672 and command matches "(?i)rabbitmq.*" and not (command matches "splunk.discovery")
+#     k8s_observer: type == "port" and port == 15672 and pod.name matches "(?i)rabbitmq.*"
 #   config:
 #     default:
-#       endpoint: '`endpoint`'
+#       endpoint: 'http://`endpoint`'
 #       username: splunk.discovery.default
 #       password: splunk.discovery.default
 #       collection_interval: 10s

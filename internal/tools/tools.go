@@ -22,6 +22,7 @@ import (
 	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
 	_ "github.com/jstemmer/go-junit-report"
+	_ "github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor"
 	_ "github.com/tcnksm/ghr"
 	_ "go.opentelemetry.io/build-tools/chloggen"
 	_ "go.opentelemetry.io/collector/cmd/mdatagen"

@@ -9,6 +9,7 @@ on:
       - '.github/workflows/linux-package-test.yml'
       - '.github/workflows/scripts/ecs-mock/**'
       - 'cmd/otelcol/**'
+      - 'cmd/otelcollauncher/**'
       - 'internal/**'
       - 'packaging/installer/**'
       - 'packaging/tests/images/**'
@@ -25,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.4
+  GO_VERSION: 1.26.6
 
 jobs:
   cross-compile:
@@ -52,7 +53,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get matrix
         id: get-matrix
@@ -80,7 +81,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
@@ -99,7 +100,7 @@ jobs:
           path: ./dist
 
       - name: Set up Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -129,7 +130,7 @@ jobs:
     needs: [cross-compile]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Multiarch images require more disk space
       - run: .github/workflows/scripts/free-disk-space.sh
@@ -138,7 +139,7 @@ jobs:
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@0234bb73ccb40f0c430b795634f9247e2b5c2d23 # v5.2.0
+        uses: docker/setup-docker-action@77e84dbf09b47d1e29270283c22f16145aa85ca1 # v5.4.0
         with:
           daemon-config: |
             {
@@ -148,14 +149,14 @@ jobs:
             }
 
       - name: Set up Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
       # Building multiarch container images requires qemu
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
         with:
           platforms: arm64,ppc64le
           image: tonistiigi/binfmt:qemu-v7.0.0
@@ -198,11 +199,11 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
-        uses: docker/setup-docker-action@0234bb73ccb40f0c430b795634f9247e2b5c2d23 # v5.2.0
+        uses: docker/setup-docker-action@77e84dbf09b47d1e29270283c22f16145aa85ca1 # v5.4.0
         with:
           daemon-config: |
             {
@@ -214,7 +215,7 @@ jobs:
       # There are no GH runners for ppc64le, so use qemu
       - name: Set up QEMU
         if: ${{ matrix.ARCH == 'ppc64le' }}
-        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0

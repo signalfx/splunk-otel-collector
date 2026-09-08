@@ -130,6 +130,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					"http_forwarder/opamp_splunk_o11y": map[string]any{
 						"egress": map[string]any{
 							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
+							"headers": map[string]any{
+								"X-SF-Token": "<redacted>",
+							},
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:4320", ip),
@@ -172,9 +175,17 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"check_interval": "2s",
 						"limit_mib":      460,
 					},
-					"resourcedetection/internal": map[string]any{
+					"resource_detection/internal": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
+					},
+					"transform/limit_histogram_buckets": map[string]any{
+						"metric_statements": []any{
+							map[string]any{
+								"context":    "datapoint",
+								"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
+							},
+						},
 					},
 				},
 				"receivers": map[string]any{
@@ -263,7 +274,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"level": "info",
 						},
 					},
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "http_forwarder/signalfx", "zpages", "config_source_telemetry"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "http_forwarder/signalfx", "opamp/splunk_o11y", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
@@ -281,12 +292,12 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch"},
+							"processors": []any{"memory_limiter", "transform/limit_histogram_buckets", "batch"},
 							"receivers":  []any{"otlp"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection/internal"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
@@ -408,6 +419,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"http_forwarder/opamp_splunk_o11y": map[string]any{
 						"egress": map[string]any{
 							"endpoint": "https://ingest.not.real.observability.splunkcloud.com",
+							"headers": map[string]any{
+								"X-SF-Token": "<redacted>",
+							},
 						},
 						"ingress": map[string]any{
 							"endpoint": fmt.Sprintf("%s:4320", ip),
@@ -441,9 +455,17 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"check_interval": "2s",
 						"limit_mib":      460,
 					},
-					"resourcedetection": map[string]any{
+					"resource_detection": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
+					},
+					"transform/limit_histogram_buckets": map[string]any{
+						"metric_statements": []any{
+							map[string]any{
+								"context":    "datapoint",
+								"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
+							},
+						},
 					},
 				},
 				"receivers": map[string]any{
@@ -507,36 +529,36 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "zpages", "config_source_telemetry"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "http_forwarder/opamp_splunk_o11y", "opamp/splunk_o11y", "zpages", "config_source_telemetry"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"receivers":  []any{"fluent_forward", "otlp"},
 						},
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"receivers":  []any{"smartagent/processlist"},
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "transform/limit_histogram_buckets", "batch", "resource_detection"},
 							"receivers":  []any{"host_metrics", "otlp"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
 							"exporters":  []any{"otlp_http"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},
 						"logs/entities": map[string]any{
 							"receivers":  []any{"nop"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resource_detection"},
 							"exporters":  []any{"otlp_http/entities"},
 						},
 					},

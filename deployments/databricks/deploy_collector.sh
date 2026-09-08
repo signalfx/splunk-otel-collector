@@ -135,7 +135,7 @@ processors:
   batch:
     send_batch_size: 10000
     timeout: 10s
-  resourcedetection:
+  resource_detection:
     detectors: [system]
   resource:
     attributes:
@@ -159,7 +159,7 @@ service:
   pipelines:
     metrics:
       receivers: [host_metrics$OPTIONAL_SPARK_RECEIVER]
-      processors: [batch, resourcedetection, resource]
+      processors: [batch, resource_detection, resource]
       exporters: [signalfx]
 "
 

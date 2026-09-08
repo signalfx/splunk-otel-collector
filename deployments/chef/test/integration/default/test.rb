@@ -16,7 +16,6 @@ if os[:family] == 'windows'
   collector_env_vars = [
     { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token },
     { name: 'SPLUNK_API_URL', type: :string, data: splunk_api_url },
-    { name: 'SPLUNK_CONFIG', type: :string, data: config_path },
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
@@ -31,6 +30,10 @@ if os[:family] == 'windows'
   collector_env_vars_strings.sort!
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
+    it { should have_property 'ImagePath' }
+    its('ImagePath') do
+      should match /^.*--config "#{Regexp.escape(config_path)}"$/i
+    end
   end
 else
   config_path = '/etc/otel/collector/agent_config.yaml'

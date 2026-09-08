@@ -162,11 +162,12 @@ func (t *TelemetryHook) observeConfigSourceUsage(_ context.Context, observer met
 }
 
 var customConfigSources = map[string]struct{}{
-	"env":       {},
-	"etcd2":     {},
-	"include":   {},
-	"vault":     {},
-	"zookeeper": {},
+	"env":           {},
+	"etcd2":         {},
+	"include":       {},
+	"splunk_secret": {},
+	"vault":         {},
+	"zookeeper":     {},
 }
 
 // isCustomConfigSource reports whether csType is one of the custom config sources

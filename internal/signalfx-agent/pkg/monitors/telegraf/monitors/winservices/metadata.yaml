@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the windows_service receiver instead.**
     (Windows Only) This monitor reports metrics about Windows services.
     This monitor is based on the Telegraf win_services plugin.  More information about the Telegraf plugin
     can be found [here](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/win_services).

@@ -1,5 +1,5 @@
 ---
-# Install Splunk OpenTelemetry Auto Instrumentation from apt repository
+# Install Splunk OpenTelemetry Auto Instrumentation with apt package manager
 
 - name: Install Splunk OpenTelemetry Auto Instrumentation via apt package manager
   ansible.builtin.apt:
@@ -9,3 +9,29 @@
     force: yes
     update_cache: yes
   register: apt_instrumentation_package
+  when: not local_artifact_testing_enabled
+
+- name: Copy Splunk OpenTelemetry Auto Instrumentation DEB artifact to remote machine
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/otel/
+    mode: '644'
+  loop: "{{ query('ansible.builtin.fileglob', auto_instrumentation_deb_artifact_pattern) }}"
+  vars:
+    auto_instrumentation_deb_artifact_pattern: >-
+      /tmp/splunk-otel-auto-instrumentation-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-deb/*.deb
+  register: local_apt_instrumentation_artifact
+  when: local_artifact_testing_enabled
+
+- name: Ensure local Splunk OpenTelemetry Auto Instrumentation DEB artifact was copied
+  ansible.builtin.assert:
+    that:
+      - local_apt_instrumentation_artifact.results | length == 1
+    fail_msg: Failed to find exactly one local Splunk OpenTelemetry Auto Instrumentation DEB artifact.
+  when: local_artifact_testing_enabled
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation via local DEB artifact
+  ansible.builtin.apt:
+    deb: "{{ local_apt_instrumentation_artifact.results[0].dest }}"
+  register: apt_instrumentation_package
+  when: local_artifact_testing_enabled

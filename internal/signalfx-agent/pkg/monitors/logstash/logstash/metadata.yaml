@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after October 2026**
     Monitors the health and performance of Logstash deployments through 
     Logstash's [Monitoring APIs](https://www.elastic.co/guide/en/logstash/current/monitoring-logstash.html).
     

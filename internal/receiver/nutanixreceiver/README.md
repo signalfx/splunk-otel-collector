@@ -1,12 +1,18 @@
 # Nutanix Receiver
 
-The Nutanix receiver collects Prism metrics through Prism v4 APIs and emits
-OTLP metrics directly. It replaces the `~/ai-tools/nutanix-splunk-lab0`
-Prometheus exporter scrape with native collector collection.
+The Nutanix receiver collects Prism metrics through either the Prism Element
+v2.0 APIs or the Prism Central v4 APIs and emits OTLP metrics directly. It
+replaces the `~/ai-tools/nutanix-splunk-lab0` Prometheus exporter scrape with
+native collector collection.
 
-The receiver uses `github.com/nutanix-cloud-native/prism-go-client/v4` and the
-generated Nutanix v4 Go clients. The SDK version currently used by the receiver
-is backed by v4.2 API paths.
+Set `api_version: v2.0` when `endpoint` is a Prism Element cluster. Set
+`api_version: v4` when `endpoint` is Prism Central. The v4 implementation uses
+`github.com/nutanix-cloud-native/prism-go-client/v4` and generated Nutanix v4
+clients; the PE implementation uses the cluster-local REST API directly.
+
+The v4.2 reference page is for the Prism Central API surface. Sending its
+`/api/clustermgmt/v4.2/...` paths to a Prism Element endpoint returns 404. PE
+inventory endpoints use `/api/nutanix/v2.0/...` instead.
 
 ## Prism v4 API Coverage
 
@@ -28,6 +34,21 @@ Runtime statistics are collected from:
 
 Each scrape queries the most recent collection interval with the v4 `LAST`
 down-sampling operator.
+
+## Prism Element v2.0 API Coverage
+
+When `api_version: v2.0` is selected, inventory is collected from the cluster
+local endpoints:
+
+- `/api/nutanix/v2.0/cluster`
+- `/api/nutanix/v2.0/hosts`
+- `/api/nutanix/v2.0/storage_containers`
+- `/api/nutanix/v2.0/vms`
+- `/api/nutanix/v2.0/volume_groups`
+
+The receiver flattens numeric values in the `stats` and `usage_stats` objects
+returned with those entities. This is the PE-compatible path used for a direct
+Prism Element 7.3.1.1 endpoint.
 
 ## Exporter Metric Discovery
 
@@ -77,6 +98,8 @@ Nutanix-specific values.
 receivers:
   nutanix:
     endpoint: ${env:NUTANIX_PRISM_HOST}
+    # v2.0 for Prism Element; use v4 for Prism Central.
+    api_version: v2.0
     port: 9440
     username: ${env:NUTANIX_PRISM_USERNAME}
     password: ${env:NUTANIX_PRISM_PASSWORD}
@@ -100,28 +123,25 @@ receivers:
 ## Test Plan
 
 1. Create a read-only Prism user that can read clusters, hosts, storage
-   containers, VMs, volume groups, and v4 stats endpoints.
+   containers, VMs, and volume groups.
 2. Verify API reachability from the collector host:
+
+   ```bash
+   curl -k -u "$NUTANIX_PRISM_USERNAME:$NUTANIX_PRISM_PASSWORD" \
+     "https://$NUTANIX_PRISM_HOST:9440/api/nutanix/v2.0/cluster"
+   curl -k -u "$NUTANIX_PRISM_USERNAME:$NUTANIX_PRISM_PASSWORD" \
+     "https://$NUTANIX_PRISM_HOST:9440/api/nutanix/v2.0/storage_containers"
+   ```
+
+3. If the endpoint is Prism Central and `api_version: v4` is configured,
+   verify the v4 API instead:
 
    ```bash
    curl -k -u "$NUTANIX_PRISM_USERNAME:$NUTANIX_PRISM_PASSWORD" \
      "https://$NUTANIX_PRISM_HOST:9440/api/clustermgmt/v4.2/config/clusters"
    ```
 
-3. Verify one stats endpoint:
-
-   ```bash
-   START="<UTC timestamp 5 minutes ago, for example YYYY-MM-DDTHH:MM:SSZ>"
-   END="<UTC timestamp now, for example YYYY-MM-DDTHH:MM:SSZ>"
-   curl -k -u "$NUTANIX_PRISM_USERNAME:$NUTANIX_PRISM_PASSWORD" \
-     -G "https://$NUTANIX_PRISM_HOST:9440/api/vmm/v4.2/ahv/stats/vms" \
-     --data-urlencode "\$startTime=$START" \
-     --data-urlencode "\$endTime=$END" \
-     --data-urlencode "\$samplingInterval=30" \
-     --data-urlencode "\$statType=LAST"
-   ```
-
-4. Run the collector with the debug exporter config below and confirm the log
+4. Run the collector with the exporter config below and confirm the log
    contains `nutanix.cluster.info`, `nutanix.cluster.stat`,
    `nutanix.host.stat`, `nutanix.storage.container.stat`,
    `nutanix.vm.stat`, `nutanix.vm.count`, and `nutanix.vm.vcpu.count`.
@@ -134,7 +154,7 @@ receivers:
    - storage container count
 
 6. Temporarily disable one metric category at a time and confirm the related
-   Prism v4 API calls stop and the related metrics disappear.
+   Prism API calls stop and the related metrics disappear.
 7. Run with the production exporter after debug validation.
 
 Full debug configuration:
@@ -147,6 +167,7 @@ extensions:
 receivers:
   nutanix:
     endpoint: ${env:NUTANIX_PRISM_HOST}
+    api_version: v2.0
     port: 9440
     username: ${env:NUTANIX_PRISM_USERNAME}
     password: ${env:NUTANIX_PRISM_PASSWORD}
@@ -213,6 +234,7 @@ extensions:
 receivers:
   nutanix:
     endpoint: ${env:NUTANIX_PRISM_HOST}
+    api_version: v2.0
     port: 9440
     username: ${env:NUTANIX_PRISM_USERNAME}
     password: ${env:NUTANIX_PRISM_PASSWORD}

@@ -31,7 +31,7 @@ monitors:
     `docker run -d -p 8080:8080 -p 80:80 -v $PWD/traefik.toml:/etc/traefik/traefik.toml`
 
     If the Traefik configuration file is not available use the sample configuration file
-    <a target="_blank" href="https://raw.githubusercontent.com/containous/traefik/master/traefik.sample.toml">here</a>
+    <a target="_blank" href="https://raw.githubusercontent.com/traefik/traefik/v3.0/traefik.sample.toml">here</a>
     to get started.
 
     See <a target="_blank" href="https://docs.traefik.io/">here</a> for complete Traefik docs.

@@ -115,7 +115,7 @@ func (m *Monitor) EmitDatapoints() {
 // on a varied interval
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
-
+	m.logger.Warn("The netio monitor is deprecated and will be removed on or after October 2026. Please use the hostmetricsreceiver instead.")
 	// create contexts for managing the plugin loop
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())

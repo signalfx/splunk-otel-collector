@@ -67,7 +67,7 @@ func (s *scraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 		return pmetric.NewMetrics(), err
 	}
 
-	builder := newMetricBuilder(s.client, s.startTime)
+	builder := newMetricBuilder(s.client, s.startTime, s.cfg.APIVersion)
 	builder.addSnapshot(snapshot, s.cfg)
 	return builder.metrics, nil
 }
@@ -183,14 +183,15 @@ func isSkippableStatsError(err error) bool {
 }
 
 type metricBuilder struct {
-	metrics   pmetric.Metrics
-	scope     pmetric.ScopeMetrics
-	byName    map[string]pmetric.Metric
-	startTime pcommon.Timestamp
-	now       pcommon.Timestamp
+	metrics    pmetric.Metrics
+	scope      pmetric.ScopeMetrics
+	byName     map[string]pmetric.Metric
+	startTime  pcommon.Timestamp
+	now        pcommon.Timestamp
+	apiVersion string
 }
 
-func newMetricBuilder(client nutanixClient, startTime pcommon.Timestamp) *metricBuilder {
+func newMetricBuilder(client nutanixClient, startTime pcommon.Timestamp, apiVersion string) *metricBuilder {
 	metrics := pmetric.NewMetrics()
 	rm := metrics.ResourceMetrics().AppendEmpty()
 	attrs := rm.Resource().Attributes()
@@ -198,14 +199,15 @@ func newMetricBuilder(client nutanixClient, startTime pcommon.Timestamp) *metric
 	attrs.PutStr("service.instance.id", fmt.Sprintf("%s:%d", client.serverAddress(), client.serverPort()))
 	attrs.PutStr("server.address", client.serverAddress())
 	attrs.PutInt("server.port", client.serverPort())
-	attrs.PutStr("nutanix.prism.api.version", "v4")
+	attrs.PutStr("nutanix.prism.api.version", apiVersion)
 
 	return &metricBuilder{
-		metrics:   metrics,
-		scope:     rm.ScopeMetrics().AppendEmpty(),
-		byName:    map[string]pmetric.Metric{},
-		startTime: startTime,
-		now:       pcommon.NewTimestampFromTime(time.Now()),
+		metrics:    metrics,
+		scope:      rm.ScopeMetrics().AppendEmpty(),
+		byName:     map[string]pmetric.Metric{},
+		startTime:  startTime,
+		now:        pcommon.NewTimestampFromTime(time.Now()),
+		apiVersion: apiVersion,
 	}
 }
 
@@ -231,7 +233,7 @@ func (b *metricBuilder) addClusterMetrics(snapshot prismSnapshot) {
 	for _, cluster := range snapshot.clusters {
 		attrs := clusterAttrs(cluster)
 		b.addInfo("nutanix.cluster.info", "Nutanix cluster information", attrs)
-		b.addEntityStats("nutanix.cluster.stat", "Nutanix cluster Prism v4 statistic", attrs, cluster.Stats)
+		b.addEntityStats("nutanix.cluster.stat", "Nutanix cluster statistic", attrs, cluster.Stats)
 
 		clusterVMs := filterVMsByCluster(snapshot.vms, cluster)
 		clusterVGs := filterVolumeGroupsByCluster(snapshot.volumeGroups, cluster)
@@ -243,7 +245,7 @@ func (b *metricBuilder) addClusterMetrics(snapshot prismSnapshot) {
 func (b *metricBuilder) addHostMetrics(hosts []nutanixHost, vms []nutanixVM) {
 	for _, host := range hosts {
 		attrs := hostAttrs(host)
-		b.addEntityStats("nutanix.host.stat", "Nutanix host Prism v4 statistic", attrs, host.Stats)
+		b.addEntityStats("nutanix.host.stat", "Nutanix host statistic", attrs, host.Stats)
 		b.addHostVMCounts(attrs, filterPoweredOnVMsByHost(vms, host))
 	}
 }
@@ -252,14 +254,14 @@ func (b *metricBuilder) addStorageContainerMetrics(storageContainers []nutanixSt
 	b.addGauge("nutanix.storage.container.count", "Number of Nutanix storage containers", "{storage_container}", nil, float64(len(storageContainers)))
 	for _, storageContainer := range storageContainers {
 		attrs := storageContainerAttrs(storageContainer)
-		b.addEntityStats("nutanix.storage.container.stat", "Nutanix storage container Prism v4 statistic", attrs, storageContainer.Stats)
+		b.addEntityStats("nutanix.storage.container.stat", "Nutanix storage container statistic", attrs, storageContainer.Stats)
 	}
 }
 
 func (b *metricBuilder) addVMStats(vms []nutanixVM) {
 	for i := range vms {
 		attrs := vmAttrs(vms[i])
-		b.addEntityStats("nutanix.vm.stat", "Nutanix VM Prism v4 statistic", attrs, vms[i].Stats)
+		b.addEntityStats("nutanix.vm.stat", "Nutanix VM statistic", attrs, vms[i].Stats)
 	}
 }
 
@@ -269,7 +271,7 @@ func (b *metricBuilder) addVolumeGroupMetrics(volumeGroups []nutanixVolumeGroup,
 	}
 	for _, volumeGroup := range volumeGroups {
 		attrs := volumeGroupAttrs(volumeGroup)
-		b.addEntityStats("nutanix.volume_group.stat", "Nutanix volume group Prism v4 statistic", attrs, volumeGroup.Stats)
+		b.addEntityStats("nutanix.volume_group.stat", "Nutanix volume group statistic", attrs, volumeGroup.Stats)
 	}
 }
 
@@ -309,10 +311,14 @@ func (b *metricBuilder) addHostVMCounts(baseAttrs map[string]string, poweredOnVM
 }
 
 func (b *metricBuilder) addEntityStats(metricName, description string, baseAttrs map[string]string, stats []metricStat) {
+	statKind := "v4.stats"
+	if b.apiVersion == "v2.0" {
+		statKind = "v2.stats"
+	}
 	for _, stat := range stats {
 		attrs := cloneAttrs(baseAttrs)
 		attrs["nutanix.stat.name"] = sanitizeAttributeValue(stat.Name)
-		attrs["nutanix.stat.kind"] = "v4.stats"
+		attrs["nutanix.stat.kind"] = statKind
 		b.addGauge(metricName, description, "1", attrs, stat.Value)
 	}
 }

@@ -32,18 +32,17 @@ while [ $SECONDS -lt $end ]; do
 done
 
 # create root user
-nohup gosu mongodb $MONGO DBNAME --eval "db.createUser({user: 'admin1', pwd: 'pass1', roles:[{ role: 'root', db: 'admin' }, { role: 'read', db: 'local' }]});"
+nohup $MONGO DBNAME --eval "db.createUser({user: 'admin1', pwd: 'pass1', roles:[{ role: 'root', db: 'admin' }, { role: 'read', db: 'local' }]});"
 
 # create app user/database
-nohup gosu mongodb $MONGO DBNAME --eval "db.createUser({ user: 'NEWUSER', pwd: 'PASSWORD', roles: [{ role: 'readWrite', db: 'admin' }, { role: 'read', db: 'local' }]});"
+nohup $MONGO DBNAME --eval "db.createUser({ user: 'NEWUSER', pwd: 'PASSWORD', roles: [{ role: 'readWrite', db: 'admin' }, { role: 'read', db: 'local' }]});"
 
 
-nohup gosu mongodb $MONGO DBNAME --eval "db.createUser({ user: 'testUser', pwd: 'testPass', roles: [{ role: 'clusterMonitor', db: 'admin' }, { role: 'read', db: 'local' }]});"
+nohup $MONGO DBNAME --eval "db.createUser({ user: 'testUser', pwd: 'testPass', roles: [{ role: 'clusterMonitor', db: 'admin' }, { role: 'read', db: 'local' }]});"
 
 
 echo "************************************************************"
 echo "Shutting down"
 echo "************************************************************"
-nohup gosu mongodb $MONGO admin --eval "db.shutdownServer();"
-
+nohup $MONGO admin --eval "db.shutdownServer();"
 

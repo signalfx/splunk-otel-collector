@@ -8,6 +8,7 @@
     <TargetFramework>net462</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <CustomActionContents>CustomAction.config</CustomActionContents>
+    <AcceptEula>wix7</AcceptEula>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
@@ -15,7 +16,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="WixToolset.Dtf.CustomAction" Version="6.0.2" />
+    <PackageReference Include="WixToolset.Dtf.CustomAction" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

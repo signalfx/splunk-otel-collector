@@ -55,6 +55,7 @@ func init() {
 // Configure monitor
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026")
 	m.timeout = time.Duration(conf.TimeoutSeconds) * time.Second
 	m.client = newConvivaClient(&http.Client{
 		Transport: &http.Transport{

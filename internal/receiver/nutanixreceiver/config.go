@@ -25,8 +25,9 @@ import (
 )
 
 const (
-	typeStr     = "nutanix"
-	defaultPort = 9440
+	typeStr           = "nutanix"
+	defaultPort       = 9440
+	defaultAPIVersion = "v4"
 )
 
 type TLSConfig struct {
@@ -46,9 +47,10 @@ type MetricsConfig struct {
 }
 
 type Config struct {
-	Endpoint string              `mapstructure:"endpoint"`
-	Username string              `mapstructure:"username"`
-	Password configopaque.String `mapstructure:"password"`
+	Endpoint   string              `mapstructure:"endpoint"`
+	APIVersion string              `mapstructure:"api_version"`
+	Username   string              `mapstructure:"username"`
+	Password   configopaque.String `mapstructure:"password"`
 
 	scraperhelper.ControllerConfig `mapstructure:",squash"`
 	Metrics                        MetricsConfig `mapstructure:"metrics"`
@@ -62,6 +64,7 @@ func createDefaultConfig() component.Config {
 	scs.Timeout = 30 * time.Second
 
 	return &Config{
+		APIVersion:       defaultAPIVersion,
 		ControllerConfig: scs,
 		Port:             defaultPort,
 		Metrics: MetricsConfig{
@@ -80,6 +83,9 @@ func (cfg *Config) Validate() error {
 	}
 	if cfg.Endpoint == "" {
 		return errors.New(`"endpoint" is required`)
+	}
+	if cfg.APIVersion != "v4" && cfg.APIVersion != "v2.0" {
+		return errors.New(`"api_version" must be either "v4" for Prism Central or "v2.0" for Prism Element`)
 	}
 	if cfg.Username == "" {
 		return errors.New(`"username" is required`)

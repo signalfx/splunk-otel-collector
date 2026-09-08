@@ -1,0 +1,123 @@
+default:
+all_set:
+  metrics:
+    nutanix.cluster.info:
+      enabled: true
+    nutanix.cluster.stat:
+      enabled: true
+    nutanix.host.stat:
+      enabled: true
+    nutanix.storage.container.count:
+      enabled: true
+    nutanix.storage.container.stat:
+      enabled: true
+    nutanix.vm.count:
+      enabled: true
+    nutanix.vm.disk.count:
+      enabled: true
+    nutanix.vm.memory.assigned:
+      enabled: true
+    nutanix.vm.nic.count:
+      enabled: true
+    nutanix.vm.stat:
+      enabled: true
+    nutanix.vm.vcpu.count:
+      enabled: true
+    nutanix.volume_group.count:
+      enabled: true
+    nutanix.volume_group.stat:
+      enabled: true
+  resource_attributes:
+    nutanix.prism.api.version:
+      enabled: true
+    server.address:
+      enabled: true
+    server.port:
+      enabled: true
+    service.instance.id:
+      enabled: true
+    service.name:
+      enabled: true
+none_set:
+  metrics:
+    nutanix.cluster.info:
+      enabled: false
+    nutanix.cluster.stat:
+      enabled: false
+    nutanix.host.stat:
+      enabled: false
+    nutanix.storage.container.count:
+      enabled: false
+    nutanix.storage.container.stat:
+      enabled: false
+    nutanix.vm.count:
+      enabled: false
+    nutanix.vm.disk.count:
+      enabled: false
+    nutanix.vm.memory.assigned:
+      enabled: false
+    nutanix.vm.nic.count:
+      enabled: false
+    nutanix.vm.stat:
+      enabled: false
+    nutanix.vm.vcpu.count:
+      enabled: false
+    nutanix.volume_group.count:
+      enabled: false
+    nutanix.volume_group.stat:
+      enabled: false
+  resource_attributes:
+    nutanix.prism.api.version:
+      enabled: false
+    server.address:
+      enabled: false
+    server.port:
+      enabled: false
+    service.instance.id:
+      enabled: false
+    service.name:
+      enabled: false
+filter_set_include:
+  resource_attributes:
+    nutanix.prism.api.version:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+    server.address:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+    server.port:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+    service.instance.id:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+    service.name:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+filter_set_exclude:
+  resource_attributes:
+    nutanix.prism.api.version:
+      enabled: true
+      metrics_exclude:
+        - strict: "nutanix.prism.api.version-val"
+    server.address:
+      enabled: true
+      metrics_exclude:
+        - strict: "server.address-val"
+    server.port:
+      enabled: true
+      metrics_exclude:
+        - regexp: ".*"
+    service.instance.id:
+      enabled: true
+      metrics_exclude:
+        - strict: "service.instance.id-val"
+    service.name:
+      enabled: true
+      metrics_exclude:
+        - strict: "service.name-val"

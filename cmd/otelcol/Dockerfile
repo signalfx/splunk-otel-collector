@@ -11,14 +11,8 @@ RUN chmod 755 /otelcol
 RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
 # create base dirs since we cannot chown in scratch image except via COPY
 RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
-# used by jmx receiver to pass tmp properties. Nested to avoid inheriting existing tmp files.
+# Nested to avoid inheriting existing tmp files.
 RUN chmod 755 /tmp/tmp
-
-FROM ${DOCKER_REPO}/alpine:3.17.0 AS jmx
-ARG JMX_METRIC_GATHERER_RELEASE
-RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics.jar && \
-    URL=https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/${JMX_METRIC_GATHERER_RELEASE}/${JMX_METRICS_JAR} && \
-    cd /tmp && wget "$URL";
 
 FROM ${DOCKER_REPO}/debian:13 as journalctl
 RUN apt update
@@ -34,7 +28,6 @@ COPY --from=otelcol --chown=999 /otelcol /
 COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
 COPY --from=otelcol --chown=999 /tmp/tmp /tmp
-COPY --from=jmx --chown=999 /tmp/opentelemetry-jmx-metrics.jar /opt/opentelemetry-java-contrib-jmx-metrics.jar
 
 COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl
 COPY --from=journalctl --chown=999 /opt/journalctl /

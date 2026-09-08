@@ -1,5 +1,5 @@
 ---
-# Install Splunk OpenTelemetry Auto Instrumentation from yum repository
+# Install Splunk OpenTelemetry Auto Instrumentation with yum package manager
 
 - name: Install Splunk OpenTelemetry Auto Instrumentation via yum package manager
   ansible.builtin.dnf:
@@ -9,3 +9,30 @@
     allow_downgrade: yes
     update_cache: yes
   register: yum_instrumentation_package
+  when: not local_artifact_testing_enabled
+
+- name: Copy Splunk OpenTelemetry Auto Instrumentation RPM artifact to remote machine
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/otel/
+    mode: '644'
+  loop: "{{ query('ansible.builtin.fileglob', auto_instrumentation_rpm_artifact_pattern) }}"
+  vars:
+    auto_instrumentation_rpm_artifact_pattern: >-
+      /tmp/splunk-otel-auto-instrumentation-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-rpm/*.rpm
+  register: local_yum_instrumentation_artifact
+  when: local_artifact_testing_enabled
+
+- name: Ensure local Splunk OpenTelemetry Auto Instrumentation RPM artifact was copied
+  ansible.builtin.assert:
+    that:
+      - local_yum_instrumentation_artifact.results | length == 1
+    fail_msg: Failed to find exactly one local Splunk OpenTelemetry Auto Instrumentation RPM artifact.
+  when: local_artifact_testing_enabled
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation via local RPM artifact
+  ansible.builtin.dnf:
+    name: "{{ local_yum_instrumentation_artifact.results[0].dest }}"
+    disable_gpg_check: true
+  register: yum_instrumentation_package
+  when: local_artifact_testing_enabled

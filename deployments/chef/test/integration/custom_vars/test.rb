@@ -41,10 +41,24 @@ if os[:family] == 'windows'
   end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'ImagePath' }
-    its('ImagePath') { should match /^.*--discovery --set=processors.batch.timeout=10s$/ }
+    its('ImagePath') do
+      should match /^.*--discovery --set=processors\.batch\.timeout=10s --config "#{Regexp.escape(config_path)}"$/i
+    end
   end
 else
   config_path = '/etc/otel/collector/agent_config.yaml'
+  describe file('/etc/otel/collector') do
+    it { should be_directory }
+    its('owner') { should eq 'custom-user' }
+    its('group') { should eq 'custom-group' }
+    its('mode') { should cmp '0755' }
+  end
+  describe file('/var/lib/otelcol') do
+    it { should be_directory }
+    its('owner') { should eq 'custom-user' }
+    its('group') { should eq 'custom-group' }
+    its('mode') { should cmp '0755' }
+  end
   describe file('/etc/otel/collector/splunk-otel-collector.conf') do
     its('content') { should match /^SPLUNK_ACCESS_TOKEN=#{splunk_access_token}$/ }
     its('content') { should match /^SPLUNK_API_URL=#{splunk_api_url}$/ }
@@ -57,11 +71,31 @@ else
     its('content') { should match /^SPLUNK_REALM=test$/ }
     its('content') { should match /^MY_CUSTOM_VAR1=value1$/ }
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
+    its('content') { should match /^SPLUNK_OPAMP_SUPERVISOR_ENABLED=true$/ }
     its('content') { should match /^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s$/ }
+  end
+  describe command("su -s /bin/sh -c 'test -w /etc/otel/collector' custom-user") do
+    its('exit_status') { should eq 0 }
   end
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=custom-user$/ }
     its('content') { should match /^Group=custom-group$/ }
+  end
+  process_check = "timeout 20 sh -c 'until pgrep -u custom-user -x opampsupervisor >/dev/null && " \
+                  "pgrep -u custom-user -x otelcol >/dev/null; do sleep 1; done'"
+  describe command(process_check) do
+    its('exit_status') { should eq 0 }
+  end
+  [
+    '/etc/otel/collector/supervisor',
+    '/etc/otel/collector/supervisor/supervisor_config.yaml',
+    '/var/lib/otelcol/supervisor',
+  ].each do |path|
+    describe file(path) do
+      it { should exist }
+      its('owner') { should eq 'custom-user' }
+      its('group') { should eq 'custom-group' }
+    end
   end
   describe package('splunk-otel-auto-instrumentation') do
     it { should_not be_installed }

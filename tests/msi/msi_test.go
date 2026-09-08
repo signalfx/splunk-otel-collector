@@ -35,6 +35,8 @@ import (
 	"golang.org/x/text/transform"
 )
 
+const supervisorEnabledProperty = "SPLUNK_OPAMP_SUPERVISOR_ENABLED"
+
 // Test structure for MSI installation tests
 type msiTest struct {
 	name                   string
@@ -107,6 +109,23 @@ func TestMSI(t *testing.T) {
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN": "fakeToken",
 				"SPLUNK_CONFIG":       `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`,
+			},
+		},
+		{
+			name: "platform-metrics",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":           "fakeToken",
+				"SPLUNK_PLATFORM_URL":           "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+				"SPLUNK_SETUP_COLLECTOR_MODE":   "agent",
+			},
+		},
+		{
+			name: "supervisor-enabled",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":     "fakeToken",
+				supervisorEnabledProperty: "true",
 			},
 		},
 	}
@@ -196,12 +215,14 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 	collectorConfigDir := filepath.Join(os.Getenv("PROGRAMDATA"), "Splunk", "OpenTelemetry Collector")
 	defaultConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "agent_config.yaml"))
 	logsConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "splunk_logs_config_windows.yaml"))
+	metricsConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "splunk_metrics_config_windows.yaml"))
 	mergeAppendFeatureGateArg := "--feature-gates=confmap.enableMergeAppendOption"
 
 	tests := []struct {
-		name          string
-		msiProperties map[string]string
-		expectedArgs  string
+		name                         string
+		msiProperties                map[string]string
+		expectedArgs                 string
+		expectMergeAppendFeatureGate bool
 	}{
 		{
 			name: "default-config-only",
@@ -211,7 +232,7 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 			expectedArgs: defaultConfigArg,
 		},
 		{
-			name: "logs-config-only",
+			name: "default-platform-logs-config-only",
 			msiProperties: map[string]string{
 				"SPLUNK_PLATFORM_URL":   "http://localhost:8088/services/collector",
 				"SPLUNK_PLATFORM_TOKEN": "platformToken",
@@ -219,13 +240,66 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 			expectedArgs: logsConfigArg,
 		},
 		{
-			name: "default-and-logs-configs",
+			name: "logs-index-config-only",
+			msiProperties: map[string]string{
+				"SPLUNK_PLATFORM_URL":        "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":      "platformToken",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "otel_logs",
+			},
+			expectedArgs: logsConfigArg,
+		},
+		{
+			name: "metrics-index-config-only",
+			msiProperties: map[string]string{
+				"SPLUNK_PLATFORM_URL":           "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedArgs: metricsConfigArg,
+		},
+		{
+			name: "logs-and-metrics-index-configs",
+			msiProperties: map[string]string{
+				"SPLUNK_PLATFORM_URL":           "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
+				"SPLUNK_PLATFORM_LOGS_INDEX":    "otel_logs",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedArgs:                 strings.Join([]string{logsConfigArg, metricsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			name: "default-and-default-platform-logs-configs",
 			msiProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN":   "fakeToken",
 				"SPLUNK_PLATFORM_URL":   "http://localhost:8088/services/collector",
 				"SPLUNK_PLATFORM_TOKEN": "platformToken",
 			},
-			expectedArgs: strings.Join([]string{defaultConfigArg, logsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectedArgs:                 strings.Join([]string{defaultConfigArg, logsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			name: "default-and-metrics-index-configs",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":           "fakeToken",
+				"SPLUNK_PLATFORM_URL":           "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedArgs:                 strings.Join([]string{defaultConfigArg, metricsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			name: "default-and-logs-and-metrics-index-configs",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":           "fakeToken",
+				"SPLUNK_PLATFORM_URL":           "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
+				"SPLUNK_PLATFORM_LOGS_INDEX":    "otel_logs",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedArgs:                 strings.Join([]string{defaultConfigArg, logsConfigArg, metricsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
 		},
 		{
 			// SPLUNK_CONFIG (set by the Puppet/Ansible modules) must be
@@ -254,9 +328,9 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 			assert.Equal(t, tt.expectedArgs, actualArgs)
 			assert.Equal(
 				t,
-				strings.Count(actualArgs, "--config") == 2,
+				tt.expectMergeAppendFeatureGate,
 				strings.Contains(actualArgs, mergeAppendFeatureGateArg),
-				"merge append feature gate must be present only when two --config entries are present",
+				"merge append feature gate presence does not match expectation",
 			)
 		})
 	}
@@ -408,6 +482,10 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	require.NotEmpty(t, programDataDir, "PROGRAMDATA environment variable is not set")
 	programFilesDir := os.Getenv("PROGRAMFILES")
 	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
+	installDir := filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector")
+	for _, executable := range []string{"otelcol.exe", "otelcollauncher.exe", "opampsupervisor.exe"} {
+		assert.FileExists(t, filepath.Join(installDir, executable))
+	}
 
 	installRealm := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_REALM", "us0")
 	ingestURL := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_INGEST_URL", "https://ingest."+installRealm+".observability.splunkcloud.com")
@@ -424,6 +502,9 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 		logsConfigFileName := "splunk_logs_config_windows.yaml"
 		assert.FileExists(t, filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", logsConfigFileName))
 		assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", logsConfigFileName))
+		metricsConfigFileName := "splunk_metrics_config_windows.yaml"
+		assert.FileExists(t, filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", metricsConfigFileName))
+		assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", metricsConfigFileName))
 	}
 
 	expectedEnvVars := map[string]string{
@@ -448,6 +529,8 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 		"SPLUNK_PLATFORM_URL",
 		"SPLUNK_PLATFORM_TOKEN",
 		"SPLUNK_PLATFORM_LOGS_INDEX",
+		"SPLUNK_PLATFORM_METRICS_INDEX",
+		supervisorEnabledProperty,
 	} {
 		if value, ok := msiProperties[key]; ok {
 			expectedEnvVars[key] = value
@@ -459,6 +542,15 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	assert.Equal(t, expectedEnvVars, svcEnvVars)
 
 	assert.Equal(t, expectedServiceCommand(t, expectedCollectorServiceArgs(t, msiProperties)), svcConfig.BinaryPathName)
+
+	if msiProperties[supervisorEnabledProperty] == "true" {
+		supervisorDir := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", "supervisor")
+		require.Eventually(t, func() bool {
+			_, configErr := os.Stat(filepath.Join(supervisorDir, "supervisor_config.yaml"))
+			_, runtimeConfigErr := os.Stat(filepath.Join(supervisorDir, "supervisor_runtime_config.yaml"))
+			return configErr == nil && runtimeConfigErr == nil
+		}, 10*time.Second, 500*time.Millisecond, "Supervisor configuration files were not created")
+	}
 }
 
 func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {
@@ -535,12 +627,23 @@ func expectedCollectorServiceArgs(t *testing.T, msiProperties map[string]string)
 		collectorServiceArgs = appendServiceArg(collectorServiceArgs, "--config "+quotedIfRequired(configFileFullName))
 	}
 
-	if msiProperties["SPLUNK_PLATFORM_URL"] != "" {
+	logsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" &&
+		(msiProperties["SPLUNK_PLATFORM_LOGS_INDEX"] != "" || msiProperties["SPLUNK_PLATFORM_METRICS_INDEX"] == "")
+	metricsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" && msiProperties["SPLUNK_PLATFORM_METRICS_INDEX"] != ""
+	mergeConfigsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" &&
+		(msiProperties["SPLUNK_ACCESS_TOKEN"] != "" || (logsEnabled && metricsEnabled))
+
+	if logsEnabled {
 		logsConfigFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", "splunk_logs_config_windows.yaml")
 		collectorServiceArgs = appendServiceArg(collectorServiceArgs, "--config "+quotedIfRequired(logsConfigFileFullName))
 	}
 
-	if msiProperties["SPLUNK_ACCESS_TOKEN"] != "" && msiProperties["SPLUNK_PLATFORM_URL"] != "" {
+	if metricsEnabled {
+		metricsConfigFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", "splunk_metrics_config_windows.yaml")
+		collectorServiceArgs = appendServiceArg(collectorServiceArgs, "--config "+quotedIfRequired(metricsConfigFileFullName))
+	}
+
+	if mergeConfigsEnabled {
 		collectorServiceArgs = appendServiceArg(collectorServiceArgs, "--feature-gates=confmap.enableMergeAppendOption")
 	}
 
@@ -559,7 +662,7 @@ func expectedServiceCommand(t *testing.T, collectorServiceArgs string) string {
 	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
 
 	collectorDir := filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector")
-	collectorExe := filepath.Join(collectorDir, "otelcol") + ".exe"
+	collectorExe := filepath.Join(collectorDir, "otelcollauncher.exe")
 
 	if collectorServiceArgs == "" {
 		return quotedIfRequired(collectorExe)

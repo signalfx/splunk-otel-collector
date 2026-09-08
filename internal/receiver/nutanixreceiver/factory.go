@@ -23,13 +23,15 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	scraperpkg "go.opentelemetry.io/collector/scraper"
 	"go.opentelemetry.io/collector/scraper/scraperhelper"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/nutanixreceiver/internal/metadata"
 )
 
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
-		component.MustNewType(typeStr),
+		metadata.Type,
 		createDefaultConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelAlpha),
+		receiver.WithMetrics(createMetricsReceiver, metadata.MetricsStability),
 	)
 }
 
@@ -51,6 +53,6 @@ func createMetricsReceiver(
 		&cfg.ControllerConfig,
 		params,
 		consumer,
-		scraperhelper.AddMetricsScraper(component.MustNewType(typeStr), scraper),
+		scraperhelper.AddMetricsScraper(metadata.Type, scraper),
 	)
 }

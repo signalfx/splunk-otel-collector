@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/config/configopaque"
 )
 
 func TestNormalizeEndpoint(t *testing.T) {
@@ -55,4 +56,19 @@ func TestNormalizeEndpoint(t *testing.T) {
 			require.Equal(t, tt.want, got.String())
 		})
 	}
+}
+
+func TestNewPrismClientDisablesVersionNegotiation(t *testing.T) {
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = "prism.example.com"
+	cfg.Username = "user"
+	cfg.Password = configopaque.String("password")
+
+	client, err := newPrismV4Client(cfg)
+	require.NoError(t, err)
+	require.False(t, client.v4Client.ClustersApiInstance.ApiClient.AllowVersionNegotiation)
+	require.False(t, client.v4Client.StorageContainerAPI.ApiClient.AllowVersionNegotiation)
+	require.False(t, client.v4Client.VmApiInstance.ApiClient.AllowVersionNegotiation)
+	require.False(t, client.v4Client.VolumeGroupsApiInstance.ApiClient.AllowVersionNegotiation)
+	require.False(t, client.vmStatsAPI.ApiClient.AllowVersionNegotiation)
 }

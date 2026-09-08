@@ -18,8 +18,8 @@ splunk_service_user:
     - shell: /sbin/nologin
 {% endif %}
     - createhome: /etc/otel/collector
-    - groups:
-      - {{ splunk_service_group }}
+    - gid: {{ splunk_service_group }}
+    - usergroup: False
     - unless: getent passwd {{ splunk_service_user }}
     - watch:
       - group: splunk_service_group

@@ -100,7 +100,7 @@
       ansible.builtin.lineinfile:
         line: "OTEL_RESOURCE_ATTRIBUTES=\
               splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},\
-              deployment.environment=test"
+              deployment.environment.name=test"
         dest: "/etc/splunk/zeroconfig/{{ item }}"
         state: present
       check_mode: yes

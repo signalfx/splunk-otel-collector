@@ -21,7 +21,6 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
-JMX_METRIC_GATHERER_RELEASE="${4:-}"
 
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
@@ -31,11 +30,9 @@ fi
 VERSION="${VERSION/'-'/'_'}"
 VERSION="${VERSION#v}"
 
-if [[ -z "$JMX_METRIC_GATHERER_RELEASE" ]]; then
-    JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
-fi
-
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
+otelcollauncher_path="$REPO_DIR/bin/otelcollauncher_linux_${ARCH}"
+opampsupervisor_path="$REPO_DIR/bin/opampsupervisor_linux_${ARCH}"
 
 buildroot="$(mktemp -d)"
 
@@ -45,9 +42,7 @@ elif [[ "$ARCH" = "amd64" ]]; then
     ARCH="x86_64"
 fi
 
-download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot"
-
-setup_files_and_permissions "$otelcol_path" "$buildroot"
+setup_files_and_permissions "$otelcol_path" "$otelcollauncher_path" "$opampsupervisor_path" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -59,6 +54,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --url "$PKG_URL" \
     --architecture "$ARCH" \
     --rpm-rpmbuild-define "_build_id_links none" \
+    --rpm-digest sha256 \
     --rpm-summary "$PKG_DESCRIPTION" \
     --rpm-use-file-permissions \
     --before-install "$PREINSTALL_PATH" \
@@ -70,4 +66,6 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --config-files "$METRICS_CONFIG_INSTALL_PATH" \
     "$buildroot/"=/
 
-rpm -qpli "${OUTPUT_DIR}/${PKG_NAME}-${VERSION}*.${ARCH}.rpm"
+rpm_path="${OUTPUT_DIR}/${PKG_NAME}-${VERSION}-1.${ARCH}.rpm"
+rpm -qpli "$rpm_path"
+"$SCRIPT_DIR/verify-digests.sh" "$rpm_path"

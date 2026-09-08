@@ -1,0 +1,13 @@
+exporters:
+  otlp_grpc:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    metrics:
+      exporters: [otlp_grpc]

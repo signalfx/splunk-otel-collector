@@ -23,6 +23,8 @@ platforms:
     box: generic/oracle9
   - name: oraclelinux10
     box: oraclebase/oracle-10
+  - name: opensuse16
+    box: bento/opensuse-leap-16.0
 provisioner:
   env:
     ANSIBLE_ROLES_PATH: ../../roles

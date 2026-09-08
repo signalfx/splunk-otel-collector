@@ -10,9 +10,6 @@ resourceMetrics:
         - key: label_one
           value:
             stringValue: actual.label.one.value.from.env.var
-        - key: label_three
-          value:
-            stringValue: actual.label.three.value.from.cmdline.property
         - key: label_two
           value:
             stringValue: actual.label.two.value.from.env.var
@@ -50,9 +47,6 @@ resourceMetrics:
                      - key: label_one
                        value:
                          stringValue: actual.label.one.value.from.env.var
-                     - key: label_three
-                       value:
-                         stringValue: actual.label.three.value.from.cmdline.property
                      - key: label_two
                        value:
                          stringValue: actual.label.two.value.from.env.var

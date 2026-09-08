@@ -1,0 +1,3 @@
+splunk:
+  hec:
+    ssl: False

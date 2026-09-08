@@ -23,8 +23,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
-	"go.opentelemetry.io/collector/confmap/xconfmap"
 )
 
 func TestValidConfig(t *testing.T) {
@@ -104,7 +104,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, component.MustNewType("receiver_creator"), factory.Type())
 
-	require.NoError(t, xconfmap.Validate(rCfg))
+	require.NoError(t, confmap.Validate(rCfg))
 
 	creatorCfg, ok := rCfg.(*receivercreator.Config)
 	require.True(t, ok)

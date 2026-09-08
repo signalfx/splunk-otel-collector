@@ -24,10 +24,8 @@ fi
 
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
-JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
 VERSION=""
-JMX_METRIC_GATHERER_RELEASE=""
 ARCH=""
 
 while [[ $# -gt 0 ]]; do
@@ -36,17 +34,13 @@ while [[ $# -gt 0 ]]; do
             VERSION="${2:-}"
             shift 2
             ;;
-        --jmx-metric-gatherer-release)
-            JMX_METRIC_GATHERER_RELEASE="${2:-}"
-            shift 2
-            ;;
         --arch)
             ARCH="${2:-}"
             shift 2
             ;;
         *)
             echo "Unknown flag: $1"
-            echo "Usage: $0 [--version <version>] [--jmx-metric-gatherer-release <release>] [--arch <arch>]"
+            echo "Usage: $0 [--version <version>] [--arch <arch>]"
             exit 1
             ;;
     esac
@@ -65,10 +59,6 @@ get_version() {
         echo "$commit_tag"
     fi
 }
-
-if [ -z "$JMX_METRIC_GATHERER_RELEASE" ]; then
-    JMX_METRIC_GATHERER_RELEASE=$(cat "$JMX_METRIC_GATHERER_RELEASE_PATH")
-fi
 
 if [ -z "$VERSION" ]; then
     VERSION="$( get_version )"
@@ -98,13 +88,13 @@ convert_version_for_msi() {
 MSI_VERSION=$(convert_version_for_msi "$VERSION")
 
 if ! wix_version="$(dotnet wix --version 2>/dev/null)"; then
-    echo "Error: dotnet wix not found or failed to run. Ensure WiX Toolset 6.x is installed via 'dotnet tool restore'."
+    echo "Error: dotnet wix not found or failed to run. Ensure WiX Toolset 7.x is installed via 'dotnet tool restore'."
     exit 1
 fi
-if [[ ! "$wix_version" =~ ^6\. ]]; then
+if [[ ! "$wix_version" =~ ^7\. ]]; then
     echo "Error: Unexpected WiX Toolset version."
     echo " Got:      '$wix_version'"
-    echo " Expected: '6.x'"
+    echo " Expected: '7.x'"
     exit 1
 fi
 
@@ -118,5 +108,4 @@ REPO_DIR="$REPO_DIR" \
 WORK_DIR="$REPO_DIR/work" \
 VERSION="$MSI_VERSION" \
 ARCH="$ARCH" \
-JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
     "$SCRIPT_DIR/msi-builder/build-launcher.sh"

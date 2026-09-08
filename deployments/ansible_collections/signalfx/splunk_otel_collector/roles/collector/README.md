@@ -224,8 +224,8 @@ to take effect.
 
 - `splunk_otel_auto_instrumentation_resource_attributes`:
   Configure the OpenTelemetry instrumentation resource attributes,
-  e.g. `deployment.environment=prod,my.key=value` (comma-separated
-  `key=value` pairs. (**default:** ``)
+  e.g. `deployment.environment.name=prod,my.key=value` (comma-separated
+  `key=value` pairs). (**default:** ``)
 
 - `splunk_otel_auto_instrumentation_service_name` (Linux only): Explicitly set
   the service name for ***all*** instrumented applications on the node, e.g.
@@ -351,7 +351,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"  # Required
   CORECLR_ENABLE_PROFILING: "1"  # Required
   CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"  # Required
-  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},{{ splunk_otel_auto_instrumentation_resource_attributes }},splunk.zc.method=splunk-otel-dotnet-1.8.0"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment.name={{ splunk_dotnet_auto_instrumentation_environment }},{{ splunk_otel_auto_instrumentation_resource_attributes }},splunk.zc.method=splunk-otel-dotnet-1.8.0"
   OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
   SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
   SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"
@@ -368,7 +368,13 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   example `production`. The value is assigned to the `OTEL_RESOURCE_ATTRIBUTES` environment
   variable in the Windows registry (**default:** ``, i.e. the "Environment"
   will appear as `unknown` in Splunk APM for the instrumented
-  service/application) using the `deployment.environment` attribute key.
+  service/application) using the `deployment.environment.name` attribute.
+  To retain the deprecated attribute, use the 
+  `splunk_dotnet_auto_instrumentation_additional_options` option instead:
+  ```yaml
+  splunk_dotnet_auto_instrumentation_additional_options:
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=<value>,my.key=my-value"
+  ```
 
 - `splunk_dotnet_auto_instrumentation_service_name` (Windows only): Configure
   this variable to override the [auto-generated service name](

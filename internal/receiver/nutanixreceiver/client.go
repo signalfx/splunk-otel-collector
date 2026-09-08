@@ -64,7 +64,14 @@ type prismClient struct {
 	statInterval time.Duration
 }
 
-func newPrismClient(cfg *Config) (*prismClient, error) {
+func newPrismClient(cfg *Config) (nutanixClient, error) {
+	if cfg.APIVersion == "v2.0" {
+		return newPrismElementClient(cfg)
+	}
+	return newPrismV4Client(cfg)
+}
+
+func newPrismV4Client(cfg *Config) (*prismClient, error) {
 	baseURL, err := normalizeEndpoint(cfg.Endpoint, cfg.Port)
 	if err != nil {
 		return nil, err
@@ -83,6 +90,7 @@ func newPrismClient(cfg *Config) (*prismClient, error) {
 	if err != nil {
 		return nil, err
 	}
+	disableVersionNegotiation(v4Client)
 
 	return &prismClient{
 		baseURL:      baseURL,
@@ -91,6 +99,15 @@ func newPrismClient(cfg *Config) (*prismClient, error) {
 		vmStatsAPI:   vmAPI.NewStatsApi(newVMAPIClient(baseURL, cfg, credentials)),
 		statInterval: cfg.ControllerConfig.CollectionInterval,
 	}, nil
+}
+
+// The receiver uses fixed v4.2 paths. Avoid the SDK's optional unversioned
+// version-discovery request because it is not available on every deployment.
+func disableVersionNegotiation(client *prismv4.Client) {
+	client.ClustersApiInstance.ApiClient.AllowVersionNegotiation = false
+	client.StorageContainerAPI.ApiClient.AllowVersionNegotiation = false
+	client.VmApiInstance.ApiClient.AllowVersionNegotiation = false
+	client.VolumeGroupsApiInstance.ApiClient.AllowVersionNegotiation = false
 }
 
 func normalizeEndpoint(endpoint string, port int) (*url.URL, error) {
@@ -122,6 +139,7 @@ func newVMAPIClient(baseURL *url.URL, cfg *Config, credentials prismgoclient.Cre
 	apiClient.VerifySSL = !cfg.TLS.InsecureSkipVerify
 	apiClient.ReadTimeout = cfg.ControllerConfig.Timeout
 	apiClient.ConnectTimeout = cfg.ControllerConfig.Timeout
+	apiClient.AllowVersionNegotiation = false
 	apiClient.SetUserName(credentials.Username)
 	apiClient.SetPassword(credentials.Password)
 	return apiClient

@@ -13,7 +13,7 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
-  GO_VERSION: 1.26.4
+  GO_VERSION: 1.26.6
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -25,13 +25,11 @@ variables:
   CREDS_HELPER_ALLOW_LEGACY: "true"
 
 include:
-  - project: 'prodsec/scp-scanning/gitlab-checkmarx'
-    ref: latest
-    file: '/templates/.sast_scan.yml'
   - project: 'ci-cd/templates'
     ref: main
     file:
       - '/prodsec/.oss-scan.yml'
+      - '/prodsec/.sast-scan.yml'
       - '/prodsec/.binary-scan.yml'
       - '/prodsec/.container-scan.yml'
   - project: 'core-ee/signing/api-integration'
@@ -113,6 +111,14 @@ fossa:
   variables:
     jira_automation: "true"
   # allow_failure: false
+
+sast-scan:
+  stage: test
+  extends: .sast_scan
+  needs: []
+  variables:
+    alert_mode: "policy"
+  allow_failure: false
 
 .docker-reader-role: &docker-reader-role |
   creds-helper init
@@ -290,17 +296,6 @@ update-javaagent:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-javaagent.sh
 
-update-jmx-metrics-gatherer:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  extends: .go-cache
-  tags: [large]
-  needs: []
-  script:
-    - .gitlab/install-yq.sh
-    - .gitlab/install-gh-cli.sh
-    - .gitlab/update-jmx-metrics-gatherer.sh
-
 update-nodejs-agent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -371,6 +366,8 @@ compile:
   artifacts:
     paths:
       - bin/otelcol_*
+      - bin/otelcollauncher_*
+      - bin/opampsupervisor_*
 
 otelcol-fips:
   image: '${DOCKER_CICD_REPO}/ci-container/golang-1.26:5.9.0'
@@ -486,18 +483,20 @@ sign-exe:
   parallel:
     matrix:
       - TARGET: otelcol
-        ARCH: amd64
-      - TARGET: otelcol
-        ARCH: arm64
+        ARCH: [amd64, arm64]
+        DOWNLOAD_DIR: dist/signed
       - TARGET: otelcol-fips
         ARCH: amd64
+        DOWNLOAD_DIR: dist/signed
+      - TARGET: [otelcollauncher, opampsupervisor]
+        ARCH: [amd64, arm64]
+        DOWNLOAD_DIR: dist/signed-msi-inputs
   variables:
     ARTIFACT: bin/${TARGET}_windows_${ARCH}.exe
     SIGN_TYPE: WIN
-    DOWNLOAD_DIR: dist/signed
   artifacts:
     paths:
-      - dist/signed/${TARGET}_windows_${ARCH}.exe
+      - ${DOWNLOAD_DIR}/${TARGET}_windows_${ARCH}.exe
 
 sign-osx:
   extends:
@@ -589,6 +588,27 @@ build-tar:
     paths:
       - dist/splunk-otel-collector*.tar.gz
 
+pack-otlpinput:
+  extends:
+    - .trigger-filter
+    - .go-cache
+  needs:
+    - job: sign-exe
+      artifacts: true
+    - job: compile
+      artifacts: true
+  script:
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        export VERSION="${VERSION_TAG}"
+      fi
+      echo "VERSION is set to $VERSION"
+    - cd packaging/otlpinput && make tgz
+  artifacts:
+    paths:
+      - packaging/otlpinput/out/distribution/
+
 pack-ta-v2:
   extends:
     - .trigger-filter
@@ -625,9 +645,11 @@ build-msi:
     matrix:
       - ARCH: [amd64, arm64]
   before_script:
-    # build the MSI with the signed exe
+    # Build the MSI with the signed executables
     - New-Item -Path bin -ItemType Directory -Force
     - Copy-Item -Force dist/signed/otelcol_windows_$($env:ARCH).exe bin/otelcol_windows_$($env:ARCH).exe
+    - Copy-Item -Force dist/signed-msi-inputs/otelcollauncher_windows_$($env:ARCH).exe bin/otelcollauncher_windows_$($env:ARCH).exe
+    - Copy-Item -Force dist/signed-msi-inputs/opampsupervisor_windows_$($env:ARCH).exe bin/opampsupervisor_windows_$($env:ARCH).exe
   tags:
     - windows2022
   script:
@@ -637,6 +659,7 @@ build-msi:
     - |
       # Install WiX toolset
       & dotnet tool restore
+      & dotnet wix eula accept wix7
     - |
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
@@ -647,7 +670,7 @@ build-msi:
           $VERSION_TAG = ""
       }
     - |
-      $bashCmd = "./packaging/msi/build.sh --version '$VERSION_TAG' --jmx-metric-gatherer-release $(Get-Content ./packaging/jmx-metric-gatherer-release.txt) --arch $($env:ARCH)"
+      $bashCmd = "./packaging/msi/build.sh --version '$VERSION_TAG' --arch $($env:ARCH)"
       & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCmd"
   artifacts:
     paths:
@@ -981,10 +1004,9 @@ build-push-windows-image:
         # Only push latest tag for main and stable releases
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -1116,10 +1138,9 @@ build-push-windows-fips-image:
         # Only push latest tag for main and stable releases (manual or tag)
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -1211,46 +1232,46 @@ sign-windows-image:
 release-debs:
   extends:
     - .trigger-filter
-    - .submit-signing-request
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   resource_group: artifactory-deb
   needs:
     - job: sign-debs
       artifacts: true
   retry: 2
+  timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
+  script:
     - |
       set -ex
-      for path in dist/signed/*.deb; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
-      done
-    - test -f Release
-  variables:
-    ARTIFACT: Release
-    SIGN_TYPE: GPG
-  after_script:
-    - *get-artifactory-stage
-    - |
-      set +x
-      set -euo pipefail
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
-        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+      shopt -s nullglob
+      paths=(dist/signed/*.deb)
+      shopt -u nullglob
+      if [ "${#paths[@]}" -eq 0 ]; then
+        echo "No signed debs found!"
+        exit 1
       fi
+      python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --paths "${paths[@]}"
   artifacts:
     paths:
       - dist/signed/*.deb
-      - signed/Release.asc
 
 release-rpms:
   extends:
     - .trigger-filter
-    - .submit-signing-request
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
@@ -1258,48 +1279,50 @@ release-rpms:
   needs:
     - job: sign-rpms
       artifacts: true
+  retry: 2
   timeout: 2h
   before_script:
     - *get-artifactory-stage
     - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
+  script:
     - |
       set -ex
       shopt -s nullglob
-      rpm_paths=(dist/signed/*"${ARCH}".rpm)
+      paths=(dist/signed/*${ARCH}.rpm)
       shopt -u nullglob
-      if [ "${#rpm_paths[@]}" -lt 2 ]; then
-        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
+      if [ "${#paths[@]}" -eq 0 ]; then
+        echo "No signed rpms found for ${ARCH}!"
         exit 1
       fi
-      for path in "${rpm_paths[@]}"; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-      done
-      python3 packaging/release/release.py --force --stage=${STAGE} --paths "${rpm_paths[@]}"
-    - test -f repomd.xml
-  variables:
-    ARTIFACT: repomd.xml
-    SIGN_TYPE: GPG
-    DOWNLOAD_DIR: signed/${ARCH}
-  after_script:
-    - *get-artifactory-stage
-    - |
-      set +x
-      set -euo pipefail
-      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
-        curl -fu "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN}" -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T "signed/${ARCH}/repomd.xml.asc"
-      fi
+      python3 packaging/release/release.py --force --stage=${STAGE} --timeout=5400 --paths "${paths[@]}"
   artifacts:
     paths:
       - dist/signed/*${ARCH}.rpm
-      - signed/${ARCH}/repomd.xml.asc
 
-# since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
-.verify-metadata:
+# Verify Artifactory-generated repo metadata signatures after package publish.
+verify-signed-metadata:
   extends: .trigger-filter
+  rules:
+    - *main-condition
+    - *manual-release-condition
+    - *no-schedules-condition
+    - *dry-run-condition
+  needs:
+    - job: release-debs
+      artifacts: false
+      optional: true
+    - job: release-rpms
+      artifacts: false
+      optional: true
+  retry: 2
+  parallel:
+    matrix:
+      - TARGET: deb
+      - TARGET: rpm
+        ARCH: x86_64
+      - TARGET: rpm
+        ARCH: aarch64
   variables:
     SPLUNK_RPM_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub"
     SPLUNK_DEB_GPG_KEY_URL: "https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg"
@@ -1319,124 +1342,70 @@ release-rpms:
       gpg --list-keys "${SPLUNK_GPG_FINGERPRINT}" >/dev/null \
         || { echo "Expected signing key ${SPLUNK_GPG_FINGERPRINT} not found at the published key URL(s)!"; exit 1; }
 
-      # Resolve this target's live metadata URL, its detached signature URL, and
-      # the signature this pipeline produced (from the release job artifacts).
       case "$TARGET" in
         deb)
           base="https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}"
-          data_url="${base}/Release"
-          sig_url="${base}/Release.gpg"
-          name="deb-Release"
-          local_sig="signed/Release.asc"
+          curl -fsSL "${base}/Release" -o metadata.deb-Release
+          curl -fsSL "${base}/Release.gpg" -o metadata.deb-Release.gpg
+          curl -fsSL "${base}/InRelease" -o metadata.deb-InRelease
+
+          gpg --status-fd=1 --verify metadata.deb-Release.gpg metadata.deb-Release \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB Release.gpg did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
+
+          gpg --status-fd=1 --verify metadata.deb-InRelease \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "DEB InRelease did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
           ;;
         rpm)
           base="https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata"
-          data_url="${base}/repomd.xml"
-          sig_url="${base}/repomd.xml.asc"
-          name="rpm-${ARCH}-repomd.xml"
-          local_sig="signed/${ARCH}/repomd.xml.asc"
+          curl -fsSL "${base}/repomd.xml" -o "metadata.rpm-${ARCH}-repomd.xml"
+          curl -fsSL "${base}/repomd.xml.asc" -o "metadata.rpm-${ARCH}-repomd.xml.asc"
+
+          gpg --status-fd=1 --verify "metadata.rpm-${ARCH}-repomd.xml.asc" "metadata.rpm-${ARCH}-repomd.xml" \
+            | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
+            || { echo "RPM ${ARCH} repomd.xml.asc did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
           ;;
         *)
           echo "Unknown TARGET '${TARGET}'"; exit 1
           ;;
       esac
 
-      echo "Verifying live signature for ${name} ..."
-      curl -fsSL "$data_url" -o "metadata.${name}"
-      curl -fsSL "$sig_url" -o "metadata.${name}.asc"
+      echo "Metadata signature OK for ${TARGET}${ARCH:+-${ARCH}}"
 
-      # The published signature must validate against the live metadata
-      # Artifactory is serving (catches the async-regeneration race).
-      gpg --status-fd=1 --verify "metadata.${name}.asc" "metadata.${name}" \
-        | grep -Eq "^\[GNUPG:\] VALIDSIG ${SPLUNK_GPG_FINGERPRINT}( |\$)" \
-        || { echo "Signature for ${name} did not validate against pinned key ${SPLUNK_GPG_FINGERPRINT}!"; exit 1; }
-
-      # The published signature is the one this pipeline uploaded (catches a
-      # failed upload or a stale/cached .asc).
-      if [ -n "$local_sig" ]; then
-        diff "metadata.${name}.asc" "$local_sig"
-      fi
-
-      echo "Signature OK for ${name}"
-
-# verify the deb repo metadata signature; only needs the deb release artifacts.
-verify-deb-metadata:
-  extends: .verify-metadata
-  needs:
-    - release-debs
-  variables:
-    TARGET: deb
-
-# verify the rpm repo metadata signatures per-arch; only needs the rpm release artifacts.
-verify-rpm-metadata:
-  extends: .verify-metadata
-  needs:
-    - release-rpms
-  parallel:
-    matrix:
-      - TARGET: rpm
-        ARCH: [x86_64, aarch64]
-
-verify-rpm-install:
-  extends: .trigger-filter
-  image: quay.io/rockylinux/rockylinux:9
+.verify-rpm-repository-install:
+  image: '${DOCKER_HUB_REPO}/rockylinux:9'
+  rules:
+    - *no-schedules-condition
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION == ""
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+-(beta|rc)\.[0-9]+$/
+    - *dry-run-condition
   needs:
     - job: release-rpms
-      artifacts: true
-    - job: verify-rpm-metadata
       artifacts: false
-  variables:
-    ARCH: x86_64
-  script:
+  retry: 2
+  parallel:
+    matrix:
+      - ARCH: x86_64
+        RUNNER_TAG: main
+      - ARCH: aarch64
+        RUNNER_TAG: arm
+  tags:
+    - $RUNNER_TAG
+  before_script:
     - *get-artifactory-stage
-    - |
-      set -euxo pipefail
+  script:
+    - RPM_REPO_GPGCHECK=1 RPM_REPO_STAGE="$STAGE" ./packaging/tests/verify-rpm-repository-install.sh "$RPM_TEST_CASE" "$ARCH"
 
-      shopt -s nullglob
-      rpm_paths=(dist/signed/*"${ARCH}".rpm)
-      shopt -u nullglob
-      if [ "${#rpm_paths[@]}" -lt 2 ]; then
-        echo "Expected collector and instrumentation RPMs for ${ARCH}, found ${#rpm_paths[@]}"
-        exit 1
-      fi
+verify-rpm-candidate-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: candidate
 
-      collector_nevra=""
-      instrumentation_nevra=""
-      instrumentation_rpm=""
-      for path in "${rpm_paths[@]}"; do
-        nevra="$(rpm -qp --queryformat '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}' "$path")"
-        case "$nevra" in
-          splunk-otel-collector-*) collector_nevra="$nevra" ;;
-          splunk-otel-auto-instrumentation-*)
-            instrumentation_nevra="$nevra"
-            instrumentation_rpm="$(basename "$path")"
-            ;;
-        esac
-      done
-      test -n "$collector_nevra"
-      test -n "$instrumentation_nevra"
-      test -n "$instrumentation_rpm"
-
-      printf '%s\n' \
-        '[splunk-otel-collector]' \
-        'name=Splunk OpenTelemetry Collector Repository' \
-        "baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/\$basearch" \
-        'gpgcheck=1' \
-        'repo_gpgcheck=1' \
-        'gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub' \
-        'enabled=1' \
-        > /etc/yum.repos.d/splunk-otel-collector.repo
-
-      dnf clean all
-      dnf -y --disablerepo='*' --enablerepo=splunk-otel-collector makecache
-      dnf -y install "$collector_nevra" "$instrumentation_nevra"
-      rpm -q "$collector_nevra" "$instrumentation_nevra"
-
-      # Direct rpm URL installs bypass repo_gpgcheck, but some users install this way.
-      instrumentation_url="https://splunk.jfrog.io/splunk/otel-collector-rpm/${STAGE}/${ARCH}/${instrumentation_rpm}"
-      rpm -e splunk-otel-auto-instrumentation
-      rpm -ivh "$instrumentation_url"
-      rpm -q "$instrumentation_nevra"
+verify-rpm-previous-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: previous
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -1565,7 +1534,7 @@ ta-v2-splunkbase-release:
           log=$(mktemp)
           echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
           log_files[$app_id]="$log"
-          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" \
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" APP_NAME="Add-On with Splunk OpenTelemetry Collector" \
             ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
           pid=$!
           echo "Started publication process with PID $pid for app ID $app_id"
@@ -1587,6 +1556,59 @@ ta-v2-splunkbase-release:
         exit "$overall_status"
       else
         echo "Skipping TA v2 release - not a stable release tag, manual release, or DRY_RUN is set"
+      fi
+
+otlpinput-splunkbase-release:
+  extends: .trigger-filter
+  needs:
+    - job: manual_release_trigger
+      optional: true
+    - job: pack-otlpinput
+      artifacts: true
+    - job: github-release
+      artifacts: false
+  script:
+    - |
+      # Only push the Splunk Connect for OTLP to Splunkbase for stable release tags or manual releases
+      should_release=false
+      if [[ "${RELEASE_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        should_release=true
+      fi
+      if [[ "$should_release" = true ]] && [[ -z "$DRY_RUN" ]]; then
+        echo "Releasing Splunk Connect for OTLP to Splunkbase"
+        TA_DIR=packaging/otlpinput/out/distribution
+
+        declare -A log_files pids
+        for entry in \
+            "8704:${TA_DIR}/splunk-connect-for-otlp.tgz"
+        do
+          app_id="${entry%%:*}"
+          package="${entry#*:}"
+          log=$(mktemp)
+          echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
+          log_files[$app_id]="$log"
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" APP_NAME="Splunk Connect for OTLP" \
+            ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
+          pid=$!
+          echo "Started publication process with PID $pid for app ID $app_id"
+          pids[$app_id]=$pid
+        done
+
+        overall_status=0
+        for app_id in "${!pids[@]}"; do
+          wait "${pids[$app_id]}" && publish_status=0 || publish_status=$?
+          if [[ "$publish_status" -ne 0 ]]; then
+            overall_status=1
+          fi
+          echo "Publication process for app ID $app_id completed with status ${publish_status}"
+          echo "*+*+*+*+* Logs for app ID $app_id *+*+*+*+*"
+          cat "${log_files[$app_id]}"
+          echo "End of logs for app ID $app_id"
+          rm -f "${log_files[$app_id]}"
+        done
+        exit "$overall_status"
+      else
+        echo "Skipping Splunk Connect for OTLP release - not a stable release tag, manual release, or DRY_RUN is set"
       fi
 
 push-multiarch-manifest:
@@ -1758,18 +1780,15 @@ github-release:
       artifacts: true
     - job: sign-osx
       artifacts: true
-    - job: release-debs
+    - job: sign-debs
       artifacts: true
     - job: build-nupkg
       artifacts: true
-    - job: release-rpms
+    - job: sign-rpms
       artifacts: true
-    - job: verify-deb-metadata
+    - job: verify-signed-metadata
       artifacts: false
-    - job: verify-rpm-metadata
-      artifacts: false
-    - job: verify-rpm-install
-      artifacts: false
+      optional: true
     - job: sign-msi
       artifacts: true
     - job: sign-tar
@@ -1786,6 +1805,8 @@ github-release:
       optional: true
     - job: pack-ta-v2
       artifacts: true
+    - job: pack-otlpinput
+      artifacts: true
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
@@ -1793,6 +1814,7 @@ github-release:
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - cp packaging/ta-v2/out/distribution/* dist/assets/
+    - cp packaging/otlpinput/out/distribution/* dist/assets/
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -1890,77 +1912,3 @@ chef-release:
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
-
-.trigger-dotnet-instrumentation-deployer:
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
-
-build-dotnet-instrumentation-deployer:
-  extends: .trigger-dotnet-instrumentation-deployer
-  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  needs: []
-  before_script:
-    - cd packaging/dotnet-instr-deployer-add-on
-  script:
-    - make download-dotnet-assets
-    - make build
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-
-sign-dotnet-instrumentation-deployer-exe:
-  extends:
-    - .trigger-dotnet-instrumentation-deployer
-    - .submit-signing-request
-  retry: 2
-  needs:
-    - job: build-dotnet-instrumentation-deployer
-      artifacts: true
-  variables:
-    ARTIFACT: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/splunk_otel_dotnet_deployer.exe
-    SIGN_TYPE: WIN
-    DOWNLOAD_DIR: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-
-
-pack-dotnet-instrumentation-deployer:
-  extends: .trigger-dotnet-instrumentation-deployer
-  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  needs:
-    - job: sign-dotnet-instrumentation-deployer-exe
-      artifacts: true
-  before_script:
-    - cd packaging/dotnet-instr-deployer-add-on
-  script:
-    - make pack
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-      - packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
-
-dotnet-instrumentation-deployer-release:
-  extends:
-    - .trigger-dotnet-instrumentation-deployer
-    - .go-cache # Use this image since this job uses the ghr tool
-  tags: [large]
-  needs:
-    - job: pack-dotnet-instrumentation-deployer
-      artifacts: true
-  script:
-    - export
-    - cd packaging/dotnet-instr-deployer-add-on
-    - pushd out/distribution/ && shasum -a 256 * > checksums.txt && popd
-    - |
-      set -e
-      if [[ "${CI_COMMIT_TAG:-}" =~ ^dotnet-instrumentation-deployer-ta-v([0-9]+\.[0-9]+\.[0-9]+[^ ]*) ]]; then
-        VERSION=${BASH_REMATCH[1]}
-        VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
-        SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
-        RELEASE_NOTES=$(echo -e "$VERSION_CHANGELOG\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
-        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
-      else
-        echo "Failed to get version from $CI_COMMIT_TAG"
-        exit 1
-      fi

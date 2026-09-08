@@ -22,7 +22,6 @@ import (
 
 	"github.com/signalfx/defaults"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"gopkg.in/yaml.v2"
 
 	_ "github.com/signalfx/signalfx-agent/pkg/core" // required to invoke monitor registration via init() calls
@@ -35,7 +34,7 @@ const defaultIntervalSeconds = 10
 
 var (
 	_ confmap.Unmarshaler = (*Config)(nil)
-	_ xconfmap.Validator  = (*Config)(nil)
+	_ confmap.Validator   = (*Config)(nil)
 )
 
 type Config struct {

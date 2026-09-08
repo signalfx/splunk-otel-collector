@@ -1,0 +1,55 @@
+receivers:
+  # Reads Windows Task Scheduler's Operational channel for task lifecycle
+  # events, including start, action launch, action completion, and task finish.
+  # Enable this channel before collecting it; start-example.ps1 does that for
+  # this container.
+  windows_event_log/task_scheduler:
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name='TaskName']='\BackupJob']]</Select>
+        </Query>
+      </QueryList>
+    start_at: beginning
+    raw: true
+
+  # Reads the demo job's own application log entries. In a real deployment,
+  # use the log channel where the scheduled task already writes.
+  windows_event_log/application:
+    query: |
+      <QueryList>
+        <Query Id="0">
+          <Select Path="Application">*[System[Provider[@Name='BackupJob']]]</Select>
+        </Query>
+      </QueryList>
+    start_at: beginning
+    raw: true
+
+  # Receives the exit-status metrics that run-scheduled-job-with-status.ps1
+  # pushes after each task run.
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Receives the duration/size metrics that backup-job.ps1 pushes directly
+  # after each run, as InfluxDB line protocol.
+  # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/influxdbreceiver/README.md
+  influxdb:
+    endpoint: 0.0.0.0:8086
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs/task_scheduler:
+      receivers: [windows_event_log/task_scheduler]
+      exporters: [debug]
+    logs/application:
+      receivers: [windows_event_log/application]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp, influxdb]
+      exporters: [debug]

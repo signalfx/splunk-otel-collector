@@ -3,7 +3,7 @@ resourceMetrics:
       attributes:
         - key: container.image.name
           value:
-            stringValue: quay.io/splunko11ytest/redis_server
+            stringValue: redis_server
         - key: container.name
           value:
             stringValue: docker-redis_server-1

@@ -1,0 +1,35 @@
+# Minimal pipeline for the histogram-bucket-limit integration test.
+#
+# Data flow:
+#   OTLP receiver (test pushes histograms here)
+#     → transform/limit_histogram_buckets  (caps to 32 total buckets)
+#       → OTLP exporter (test's OTLPReceiverSink validates the result)
+#
+# COLLECTOR_OTLP_PORT  – port the collector's OTLP/gRPC receiver listens on
+# OTLP_ENDPOINT        – address of the test's OTLPReceiverSink (set automatically by testutils)
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "127.0.0.1:${COLLECTOR_OTLP_PORT}"
+
+processors:
+  transform/limit_histogram_buckets:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - merge_histogram_buckets(32, method="limit_buckets")
+
+exporters:
+  otlp_grpc:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [transform/limit_histogram_buckets]
+      exporters: [otlp_grpc]

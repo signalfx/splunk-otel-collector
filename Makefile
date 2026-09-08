@@ -24,9 +24,8 @@ BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/int
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
-BUILD_JMX_GATHERER_HASH=-X github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver.MetricsGathererHash=e934a3788da32002dedb4c3f122d900648ba3ad5c9dceaf4d58709caa4d1e547
-BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_JMX_GATHERER_HASH}"
-BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION) ${BUILD_JMX_GATHERER_HASH}"
+BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
+BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 CGO_ENABLED?=0
 
 # This directory is used in tests hold code coverage results.
@@ -36,7 +35,6 @@ CGO_ENABLED?=0
 # access to host dir.
 MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 
-JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
 
@@ -126,14 +124,6 @@ integration-test-kafka-metrics-discovery:
 integration-test-kafka-metrics-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_kafka_metrics'
 
-.PHONY: integration-test-jmx/cassandra-discovery
-integration-test-jmx/cassandra-discovery:
-	@make integration-test-target TARGET='discovery_integration_jmx'
-
-.PHONY: integration-test-jmx/cassandra-discovery-with-cover
-integration-test-jmx/cassandra-discovery-with-cover:
-	@make integration-test-cover-target TARGET='discovery_integration_jmx'
-
 .PHONY: integration-test-apache-discovery
 integration-test-apache-discovery:
 	@make integration-test-target TARGET='discovery_integration_apachewebserver'
@@ -157,6 +147,14 @@ integration-test-nginx-discovery:
 .PHONY: integration-test-nginx-discovery-with-cover
 integration-test-nginx-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_nginx'
+
+.PHONY: integration-test-rabbitmq-discovery
+integration-test-rabbitmq-discovery:
+	@make integration-test-target TARGET='discovery_integration_rabbitmq'
+
+.PHONY: integration-test-rabbitmq-discovery-with-cover
+integration-test-rabbitmq-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_rabbitmq'
 
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
@@ -269,6 +267,24 @@ else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
 
+.PHONY: otelcollauncher
+otelcollauncher:
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcollauncher
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\otelcollauncher$(EXTENSION) .\bin\otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) otelcollauncher_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcollauncher$(EXTENSION)
+endif
+
+.PHONY: opampsupervisor
+opampsupervisor:
+	cd internal/tools && GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -mod=readonly -trimpath -o "$(CURDIR)/bin/opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)" github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\opampsupervisor$(EXTENSION) .\bin\opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) opampsupervisor_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/opampsupervisor$(EXTENSION)
+endif
+
 
 .PHONY: add-tag
 add-tag:
@@ -284,38 +300,77 @@ delete-tag:
 
 .PHONY: docker-otelcol
 docker-otelcol:
-	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./packaging/docker-otelcol.sh
+	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64
+binaries-all-sys: binaries-aix_ppc64 \
+	binaries-darwin_amd64 \
+	binaries-darwin_arm64 \
+	binaries-freebsd_amd64 \
+	binaries-linux_amd64 \
+	binaries-linux_arm64 \
+	binaries-linux_ppc64le \
+	binaries-linux_s390x \
+	binaries-solaris_amd64 \
+	binaries-windows_386 \
+	binaries-windows_amd64 \
+	binaries-windows_arm64
+
+.PHONY: binaries-aix_ppc64
+binaries-aix_ppc64:
+	GOOS=aix GOARCH=ppc64 $(MAKE) otelcol
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
-	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-darwin_arm64
 binaries-darwin_arm64:
-	GOOS=darwin  GOARCH=arm64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=arm64 $(MAKE) otelcol
+
+.PHONY: binaries-freebsd_amd64
+binaries-freebsd_amd64:
+	GOOS=freebsd GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=amd64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
-
-.PHONY: binaries-windows_amd64
-binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-
-.PHONY: binaries-windows_arm64
-binaries-windows_arm64:
-	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcol
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=arm64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
+
+.PHONY: binaries-linux_s390x
+binaries-linux_s390x:
+	GOOS=linux GOARCH=s390x $(MAKE) otelcol
+
+.PHONY: binaries-solaris_amd64
+binaries-solaris_amd64:
+	GOOS=solaris GOARCH=amd64 $(MAKE) otelcol
+
+.PHONY: binaries-windows_386
+binaries-windows_386:
+	GOOS=windows GOARCH=386 EXTENSION=.exe $(MAKE) otelcol
+
+.PHONY: binaries-windows_amd64
+binaries-windows_amd64:
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
+
+.PHONY: binaries-windows_arm64
+binaries-windows_arm64:
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
 
 .PHONY: deb-rpm-tar-package
 %-package:
@@ -323,7 +378,7 @@ ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)
 endif
 	docker build -t otelcol-fpm packaging/fpm
-	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm
+	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) otelcol-fpm
 
 .PHONY: update-examples
 update-examples:

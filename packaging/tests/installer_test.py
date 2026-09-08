@@ -566,7 +566,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
 
         config_attributes = ",".join((
             rf"splunk\.zc\.method={zc_method}",
-            rf"deployment\.environment={environment}",
+            rf"deployment\.environment\.name={environment}",
         ))
 
         if method == "preload":
@@ -784,7 +784,7 @@ def test_installer_splunk_platform_logs_missing_url(distro, arch):
                 run_container_cmd(container, "apt-get install -y libcap2-bin")
 
         _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
-        assert "--splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index or --splunk-platform-metrics-index is set" in output.decode("utf-8"), \
+        assert "--splunk-platform-url is required when --splunk-platform-token is set" in output.decode("utf-8"), \
             f"Expected missing url error message, got: {output.decode('utf-8')}"
 
 
@@ -812,5 +812,5 @@ def test_installer_splunk_platform_metrics_missing_url(distro, arch):
                 run_container_cmd(container, "apt-get install -y libcap2-bin")
 
         _, output = run_container_cmd(container, f"{install_cmd} 2>&1", exit_code=1, timeout=INSTALLER_TIMEOUT)
-        assert "--splunk-platform-url is required when --splunk-platform-token or --splunk-platform-logs-index or --splunk-platform-metrics-index is set" in output.decode("utf-8"), \
+        assert "--splunk-platform-url is required when --splunk-platform-token is set" in output.decode("utf-8"), \
             f"Expected missing url error message, got: {output.decode('utf-8')}"

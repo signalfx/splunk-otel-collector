@@ -51,6 +51,7 @@ type Monitor struct {
 // Configure the monitor and start collection
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026")
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())
 

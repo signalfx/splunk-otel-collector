@@ -1,44 +1,14 @@
 services:
   # Apache image for apache discovery test
   apache:
-    image: quay.io/splunko11ytest/apache:latest
+    image: apache:latest
     profiles:
       - integration-test-apache-discovery
     build: ./apache
     ports:
       - "18080:80"
-  # Cassandra  without auth
-  cassandra-jmx-noauth:
-    profiles:
-      - cassandra
-      - integration-test-jmx/cassandra-discovery
-    build:
-      dockerfile_inline: |
-        FROM cassandra:5
-        ENV LOCAL_JMX=no
-        RUN sed -ri 's/ -Dcom\.sun\.management\.jmxremote\.authenticate=true/ -Dcom\.sun\.management\.jmxremote\.authenticate=false/' /etc/cassandra/cassandra-env.sh
-        RUN sed -ri 's/ -Dcom\.sun\.management\.jmxremote\.password\.file=\/etc\/cassandra\/jmxremote\.password//' /etc/cassandra/cassandra-env.sh
-        # Escape $JVM_OPTS by including extra $
-        # This command prepends content to /etc/cassandra/cassandra-env.sh
-        RUN echo "`echo 'JVM_OPTS="$$JVM_OPTS -Djava.rmi.server.hostname=0.0.0.0"'; echo 'export LOCAL_JMX="no"'; cat /etc/cassandra/cassandra-env.sh`" > /etc/cassandra/cassandra-env.sh
-    environment:
-      LOCAL_JMX: no
-      JVM_EXTRA_OPTS: "-Dcom.sun.management.jmxremote.authenticate=false"
-      JMX_PORT: "${JMX_PORT:-7199}"
-    ports:
-      - "${JMX_PORT:-7199}:${JMX_PORT:-7199}"
-    healthcheck:
-      interval: 10s
-      timeout: 10s
-      retries: 20
-      test:
-        - "CMD"
-        - "grep"
-        - "-q"
-        - "Startup complete"
-        - "/var/log/cassandra/system.log"
   envoy:
-    image: quay.io/splunko11ytest/envoy:latest
+    image: envoy:latest
     profiles:
       - integration-test-envoy-discovery
     build: ./envoy
@@ -46,7 +16,7 @@ services:
       - "9901:9901"
   # httpd image for prometheus-exporter test
   httpd:
-    image: quay.io/splunko11ytest/httpd:latest
+    image: httpd:latest
     profiles:
       - smartagent
     build: ./httpd
@@ -54,7 +24,7 @@ services:
       - "8000:80"
   # httpd_basicauth image for lightprometheus test
   httpd_basicauth:
-    image: quay.io/splunko11ytest/httpd_basicauth:latest
+    image: httpd_basicauth:latest
     profiles:
       - integration
       - smartagent
@@ -90,14 +60,14 @@ services:
     profiles:
       - integration-test-kafka-metrics-discovery
   kong:
-    image: quay.io/splunko11ytest/kong:latest
+    image: kong:latest
     profiles:
       - integration
     build: ./kong
     ports:
       - "18001:8001"
   mongodb:
-    image: quay.io/splunko11ytest/mongodb:latest
+    image: mongodb:latest
     profiles:
       - integration-test-mongodb-discovery
     build:
@@ -107,7 +77,7 @@ services:
     ports:
       - "27017:27017"
   mysql:
-    image: quay.io/splunko11ytest/mysql:latest
+    image: mysql:latest
     profiles:
       - integration
       - integration-test-mysql-discovery
@@ -115,22 +85,37 @@ services:
     ports:
       - "3306:3306"
   nginx:
-    image: quay.io/splunko11ytest/nginx:latest
+    image: nginx:latest
     profiles:
       - integration-test-nginx-discovery
     build: ./nginx
     ports:
       - "8123:80"
   oracle:
-    image: quay.io/splunko11ytest/oracle:latest
+    image: oracle:latest
     profiles:
       - integration # there is no integration test for oracle upstream
       - integration-test-oracledb-discovery
     build: ./oracle
     ports:
       - "1521:1521"
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    profiles:
+      - integration-test-rabbitmq-discovery
+    environment:
+      RABBITMQ_DEFAULT_USER: splunk.discovery.default
+      RABBITMQ_DEFAULT_PASS: splunk.discovery.default
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
   redis_server:
-    image: quay.io/splunko11ytest/redis_server:latest
+    image: redis_server:latest
     profiles:
       - integration-test-redis-discovery
     build: ./redis_server

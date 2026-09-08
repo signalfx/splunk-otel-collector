@@ -90,7 +90,7 @@
       ansible.builtin.lineinfile:
         line: "DefaultEnvironment=\"OTEL_RESOURCE_ATTRIBUTES=\
               splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd,\
-              deployment.environment=test\""
+              deployment.environment.name=test\""
         dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
         state: present
       check_mode: yes

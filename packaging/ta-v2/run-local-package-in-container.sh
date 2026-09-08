@@ -21,7 +21,7 @@ APP_NAME="${APP_NAME:-Splunk_TA_otel_linux_x86_64}"
 ASSETS_DIR="${ASSETS_DIR:-${SCRIPT_DIR}/assets}"
 LOG_DIR="${SCRIPT_DIR}/local-test-logs/var/log/splunk"
 CONTAINER_NAME="${CONTAINER_NAME:-splunk-ta-otel-test}"
-SPLUNK_VERSION="${SPLUNK_VERSION:-9.4.0}"
+SPLUNK_VERSION="${SPLUNK_VERSION:-latest}"
 
 # Check if assets directory exists
 if [ ! -d "$ASSETS_DIR" ]; then
@@ -66,8 +66,8 @@ echo "  Splunk version: ${SPLUNK_VERSION}"
 echo "  Assets directory: ${ASSETS_DIR}"
 echo "  Log directory: ${LOG_DIR}"
 
-# Generate a random password
-SPLUNK_PASSWORD="$(uuidgen 2>/dev/null || openssl rand -hex 16)"
+# Generate a random password, unless one was already provided by the caller.
+SPLUNK_PASSWORD="${SPLUNK_PASSWORD:-$(uuidgen 2>/dev/null || openssl rand -hex 16)}"
 
 # Launch Splunk container
 docker run -d --name "${CONTAINER_NAME}" \

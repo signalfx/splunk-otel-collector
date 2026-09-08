@@ -25,7 +25,7 @@
       CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
       OTEL_RESOURCE_ATTRIBUTES:
-        "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }}\
+        "deployment.environment.name={{ splunk_dotnet_auto_instrumentation_environment }}\
         {{ ',' if splunk_otel_auto_instrumentation_resource_attributes else '' }}\
         {{ splunk_otel_auto_instrumentation_resource_attributes }}"
       OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"

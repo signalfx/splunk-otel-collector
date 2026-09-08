@@ -66,7 +66,7 @@ func TestSplunkPlatformMetricsEffectiveConfig(t *testing.T) {
 	metricsPlatform, ok := pipelines["metrics/platform"].(map[string]any)
 	require.True(t, ok)
 	require.Equal(t, []any{"host_metrics"}, metricsPlatform["receivers"])
-	require.Equal(t, []any{"memory_limiter", "resourcedetection"}, metricsPlatform["processors"])
+	require.Equal(t, []any{"memory_limiter", "resource_detection"}, metricsPlatform["processors"])
 	require.Equal(t, []any{"splunk_hec/metrics"}, metricsPlatform["exporters"])
 
 	// The platform HEC exporter points at the configured URL and index.
@@ -98,7 +98,7 @@ func TestSplunkPlatformMetricsEffectiveConfig(t *testing.T) {
 			"check_interval": "2s",
 			"limit_mib":      460,
 		},
-		"resourcedetection": map[string]any{
+		"resource_detection": map[string]any{
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 			"override":  true,
 		},
@@ -187,9 +187,17 @@ func TestSplunkPlatformMetricsWithO11yEffectiveConfig(t *testing.T) {
 			"check_interval": "2s",
 			"limit_mib":      460,
 		},
-		"resourcedetection": map[string]any{
+		"resource_detection": map[string]any{
 			"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 			"override":  true,
+		},
+		"transform/limit_histogram_buckets": map[string]any{
+			"metric_statements": []any{
+				map[string]any{
+					"context":    "datapoint",
+					"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
+				},
+			},
 		},
 	}, processors)
 }

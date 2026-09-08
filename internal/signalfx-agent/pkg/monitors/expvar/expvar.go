@@ -52,6 +52,7 @@ type metricVal struct {
 // Configure monitor
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026")
 	if m.Output.HasAnyExtraMetrics() {
 		conf.EnhancedMetrics = true
 	}

@@ -290,6 +290,7 @@ splunk-otel-collector:
   collector_additional_env_vars:
     MY_CUSTOM_VAR1: value1
     MY_CUSTOM_VAR2: value2
+    SPLUNK_OPAMP_SUPERVISOR_ENABLED: 'true'
   """
 
 
@@ -328,9 +329,26 @@ def test_salt_custom(distro):
             )
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "true")
             assert wait_for(lambda: service_is_running(container, service_owner="test-user"))
+            assert wait_for(lambda: service_is_running(
+                container,
+                service_owner="test-user",
+                process="opampsupervisor",
+            ))
             _, owner = run_container_cmd(container, f"stat -c '%U:%G' {SPLUNK_ENV_PATH}")
             assert owner.decode("utf-8").strip() == "test-user:test-user"
+            for path in [CONFIG_DIR, "/var/lib/otelcol"]:
+                _, owner = run_container_cmd(container, f"stat -c '%U:%G:%a' {path}")
+                assert owner.decode("utf-8").strip() == "test-user:test-user:755"
+            for path in [
+                SPLUNK_CONFIG,
+                f"{CONFIG_DIR}/supervisor",
+                f"{CONFIG_DIR}/supervisor/supervisor_config.yaml",
+                "/var/lib/otelcol/supervisor",
+            ]:
+                _, owner = run_container_cmd(container, f"stat -c '%U:%G' {path}")
+                assert owner.decode("utf-8").strip() == "test-user:test-user"
             if distro in DEB_DISTROS:
                 assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code != 0
             else:

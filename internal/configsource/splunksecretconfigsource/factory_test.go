@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/modularinput"
+	"github.com/signalfx/splunk-otel-collector/internal/modularinput"
 )
 
 func TestSplunkSecretFactory_CreateDefaultConfig(t *testing.T) {

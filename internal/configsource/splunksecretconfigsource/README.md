@@ -7,7 +7,7 @@ typically `8089`) and inject them into your collector configuration.
 
 This is primarily intended for use when the collector is launched as a Splunk TA
 modular input, where the `SPLUNK_MANAGEMENT_URI` and `SPLUNK_SESSION_KEY` environment
-variables are automatically set by the [TA launcher shim](../../../pkg/modularinput/ta_launcher.go).
+variables are automatically set by the [TA launcher shim](../../../internal/modularinput/ta_launcher.go).
 `endpoint` and `session_key` default to these environment variables, so the config
 source works out-of-the-box when running as a TA modular input.
 

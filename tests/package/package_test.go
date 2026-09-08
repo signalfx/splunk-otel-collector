@@ -94,6 +94,15 @@ func TestCollectorPackageInstall(t *testing.T) {
 				assertExec(t, container, time.Minute, "test -f "+agentConfigPath)
 				assertExec(t, container, time.Minute, "test -f "+gatewayConfigPath)
 				assertPackagedBinaries(t, container)
+				if packageType == "rpm" {
+					fileDigestAlgorithm := strings.TrimSpace(assertExec(
+						t,
+						container,
+						time.Minute,
+						"rpm -q --queryformat '%{FILEDIGESTALGO}' "+packageName,
+					))
+					require.Equal(t, "8", fileDigestAlgorithm, "RPM should use SHA-256 per-file digests")
+				}
 
 				time.Sleep(5 * time.Second)
 				require.False(t, serviceIsRunning(t, container), "service should not be running after package install without config")

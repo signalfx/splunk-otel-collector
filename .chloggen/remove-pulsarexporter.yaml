@@ -1,5 +1,0 @@
-change_type: breaking
-component: pulsarexporter
-note: Remove the `pulsar` exporter from the collector.
-issues: [7920]
-subtext:

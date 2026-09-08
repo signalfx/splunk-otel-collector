@@ -64,6 +64,7 @@ func (e *Emitter) AddError(err error) {
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the [DNS check receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/dnscheckreceiver) instead.")
 
 	plugin := telegrafInputs.Inputs["dns_query"]().(*telegrafPlugin.DnsQuery)
 	plugin.Domains = conf.Domains

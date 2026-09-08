@@ -37,7 +37,6 @@ MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 
 SKIP_COMPILE=false
 ARCH?=amd64
-WITH_OPAMP_SUPERVISOR?=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -364,18 +363,14 @@ binaries-windows_386:
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
-endif
 
 .PHONY: binaries-windows_arm64
 binaries-windows_arm64:
 	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
 	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
 	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
-endif
 
 .PHONY: deb-rpm-tar-package
 %-package:

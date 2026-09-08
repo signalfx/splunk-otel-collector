@@ -83,9 +83,6 @@ func TestRunFromCmdLine(t *testing.T) {
 			args:         []string{"otelcol", "--config=config/collector/full_config_linux.yaml"},
 			timeout:      15 * time.Second,
 			validateOnly: true,
-			// scripted_inputs receiver is not supported on Windows, config validation fails when it's included.
-			// This can be removed when scripted_inputs is removed.
-			skipWindows: true,
 		},
 		{
 			name:    "gateway",

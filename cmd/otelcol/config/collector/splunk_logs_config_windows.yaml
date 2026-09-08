@@ -4,8 +4,10 @@ receivers:
       <QueryList>
         <Query Id="0">
           <Select Path="Application">*</Select>
+          <!--
           <Suppress Path="Application">*[System[Provider[@Name='XENAGENT']]]</Suppress>
           <Suppress Path="Application">*[System[Provider[@Name='Tenable Nessus Agent']]]</Suppress>
+          -->
         </Query>
       </QueryList>
     start_at: beginning
@@ -13,8 +15,6 @@ receivers:
     ignore_channel_errors: true
     # Suppresses events from providers whose metadata DLL is not accessible
     # to the collector process.
-    # Remove the Suppress clause if you want to collect those events despite
-    # the error.
 
   windows_event_log/security:
     query: |
@@ -30,7 +30,7 @@ receivers:
     start_at: beginning
     raw: true
     ignore_channel_errors: true
-    # NOTE: Splunk blacklists the following with a message-body regex condition:
+    # NOTE: Splunk denies the following with a message-body regex condition:
     #   EventCode 4662 where Object Type != groupPolicyContainer
     #   EventCode 566  where Object Type != groupPolicyContainer
     # The commented Suppress clause in the query above would drop ALL

@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The baseline component set. Hand-maintained until a follow-up adds the
-// generator that produces this file from an ocb manifest.
+// The baseline component factory set. Its matching module paths and test-only
+// fallback references are generated from these imports and baseline/go.mod;
+// run `make generate-baseline-modules` from the repository root after changing
+// the factory set, dependency versions, or module boundaries.
 
 package baseline
 
@@ -159,8 +161,8 @@ import (
 // NewBaseline returns the shared baseline component set: upstream collector
 // core and contrib components only, with no Splunk-specific components. It is
 // the common denominator every flavor layers onto and is not shipped on its own.
-func NewBaseline() *Baseline {
-	return &Baseline{
+func NewBaseline(options ...Option) *Baseline {
+	baseline := &Baseline{
 		extensions: []extension.Factory{
 			ackextension.NewFactory(),
 			basicauthextension.NewFactory(),
@@ -182,6 +184,7 @@ func NewBaseline() *Baseline {
 			textencodingextension.NewFactory(),
 			zpagesextension.NewFactory(),
 		},
+		extensionModules: append([]moduleMetadata(nil), baselineExtensionModules...),
 		receivers: []receiver.Factory{
 			activedirectorydsreceiver.NewFactory(),
 			apachereceiver.NewFactory(),
@@ -260,6 +263,7 @@ func NewBaseline() *Baseline {
 			zipkinreceiver.NewFactory(),
 			zookeeperreceiver.NewFactory(),
 		},
+		receiverModules: append([]moduleMetadata(nil), baselineReceiverModules...),
 		processors: []processor.Factory{
 			attributesprocessor.NewFactory(),
 			batchprocessor.NewFactory(),
@@ -280,6 +284,7 @@ func NewBaseline() *Baseline {
 			tailsamplingprocessor.NewFactory(),
 			transformprocessor.NewFactory(),
 		},
+		processorModules: append([]moduleMetadata(nil), baselineProcessorModules...),
 		exporters: []exporter.Factory{
 			awss3exporter.NewFactory(),
 			debugexporter.NewFactory(),
@@ -294,6 +299,7 @@ func NewBaseline() *Baseline {
 			signalfxexporter.NewFactory(),
 			splunkhecexporter.NewFactory(),
 		},
+		exporterModules: append([]moduleMetadata(nil), baselineExporterModules...),
 		connectors: []connector.Factory{
 			countconnector.NewFactory(),
 			forwardconnector.NewFactory(),
@@ -301,5 +307,10 @@ func NewBaseline() *Baseline {
 			spanmetricsconnector.NewFactory(),
 			sumconnector.NewFactory(),
 		},
+		connectorModules: append([]moduleMetadata(nil), baselineConnectorModules...),
 	}
+	for _, option := range options {
+		option(baseline)
+	}
+	return baseline
 }

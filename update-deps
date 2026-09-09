@@ -57,3 +57,7 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
     update_gomod "$gomod" "$CONTRIB_PKGS" "$CONTRIB_VERSION"
     make -C "$REPO_DIR" tidy-all
 done
+
+# Keep the baseline component-to-module path inventory and test fallbacks in
+# lockstep with dependency updates.
+make -C "$REPO_DIR" generate-baseline-modules

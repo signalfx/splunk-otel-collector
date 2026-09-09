@@ -258,6 +258,10 @@ generate-metrics:
 	go generate -tags mdatagen ./...
 	$(MAKE) fmt
 
+.PHONY: generate-baseline-modules
+generate-baseline-modules:
+	cd ./baseline && go generate ./internal/genmodules
+
 .PHONY: otelcol
 otelcol:
 	go generate ./...

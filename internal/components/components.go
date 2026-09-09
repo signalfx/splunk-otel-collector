@@ -27,6 +27,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/version"
 	"github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
@@ -37,7 +38,15 @@ import (
 )
 
 const (
-	enableTARunnerFeatureGateID = "enableTARunner"
+	enableTARunnerFeatureGateID       = "enableTARunner"
+	splunkCollectorModule             = "github.com/signalfx/splunk-otel-collector"
+	splunkOutputsExporterModule       = splunkCollectorModule + "/pkg/exporter/splunkoutputsexporter"
+	oracleEncodingExtensionModule     = splunkCollectorModule + "/pkg/extension/oracleencodingextension"
+	smartAgentExtensionModule         = splunkCollectorModule + "/pkg/extension/smartagentextension"
+	rollingSpanLatencyProcessorModule = splunkCollectorModule + "/pkg/processor/rollingspanlatencyprocessor"
+	timestampProcessorModule          = splunkCollectorModule + "/pkg/processor/timestampprocessor"
+	smartAgentReceiverModule          = splunkCollectorModule + "/pkg/receiver/smartagentreceiver"
+	splunkInputsReceiverModule        = splunkCollectorModule + "/pkg/receiver/splunkinputsreceiver"
 )
 
 var enableTARunner = featuregate.GlobalRegistry().MustRegister(
@@ -56,30 +65,41 @@ var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 // onto baseline.NewBaseline(), exactly as a private flavor (appd, UC) would
 // layer its own delta. Feature-gated components are appended inline.
 func Get() (otelcol.Factories, error) {
-	b := baseline.NewBaseline()
+	// Every module in this repository is released at version.Version. The
+	// explicit versions cover source-built main modules and test binaries whose
+	// Go build information omits locally replaced dependencies; release builds
+	// still prefer the selected dependency versions recorded by Go.
+	b := baseline.NewBaseline(
+		baseline.WithModuleVersion(splunkCollectorModule, version.Version),
+		baseline.WithModuleVersion(splunkOutputsExporterModule, version.Version),
+		baseline.WithModuleVersion(oracleEncodingExtensionModule, version.Version),
+		baseline.WithModuleVersion(smartAgentExtensionModule, version.Version),
+		baseline.WithModuleVersion(rollingSpanLatencyProcessorModule, version.Version),
+		baseline.WithModuleVersion(timestampProcessorModule, version.Version),
+		baseline.WithModuleVersion(smartAgentReceiverModule, version.Version),
+		baseline.WithModuleVersion(splunkInputsReceiverModule, version.Version),
+	)
 
-	b.AddExtensions(
+	b.AddExtensionsWithModulePath(splunkCollectorModule,
 		configsourcetelemetryextension.NewFactory(),
-		oracleencodingextension.NewFactory(),
-		smartagentextension.NewFactory(),
 		diskqueuestorageextension.NewFactory(),
 	)
-	b.AddReceivers(
+	b.AddExtensionsWithModulePath(oracleEncodingExtensionModule, oracleencodingextension.NewFactory())
+	b.AddExtensionsWithModulePath(smartAgentExtensionModule, smartagentextension.NewFactory())
+	b.AddReceiversWithModulePath(splunkCollectorModule,
 		discoveryreceiver.NewFactory(),
 		gnmireceiver.NewFactory(),
 		lightprometheusreceiver.NewFactory(),
 		promqlreceiver.NewFactory(),
 		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
-		smartagentreceiver.NewFactory(),
 	)
+	b.AddReceiversWithModulePath(smartAgentReceiverModule, smartagentreceiver.NewFactory())
 	if enableTARunner.IsEnabled() {
-		b.AddReceivers(splunkinputsreceiver.NewFactory())
-		b.AddExporters(splunkoutputsexporter.NewFactory())
+		b.AddReceiversWithModulePath(splunkInputsReceiverModule, splunkinputsreceiver.NewFactory())
+		b.AddExportersWithModulePath(splunkOutputsExporterModule, splunkoutputsexporter.NewFactory())
 	}
-	b.AddProcessors(
-		timestampprocessor.NewFactory(),
-		rollingspanlatencyprocessor.NewFactory(),
-	)
+	b.AddProcessorsWithModulePath(timestampProcessorModule, timestampprocessor.NewFactory())
+	b.AddProcessorsWithModulePath(rollingSpanLatencyProcessorModule, rollingspanlatencyprocessor.NewFactory())
 
 	return b.Build()
 }

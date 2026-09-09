@@ -16,11 +16,15 @@
 package components
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/featuregate"
+	"go.opentelemetry.io/collector/otelcol"
 )
 
 func TestDefaultComponents(t *testing.T) {
@@ -296,4 +300,70 @@ func TestDefaultComponents(t *testing.T) {
 		require.True(t, ok, "Missing expected connector alias "+alias)
 		assert.Equal(t, actual, v.Type().String())
 	}
+
+	assertModuleMetadata(t, factories.Receivers, factories.ReceiverModules)
+	assertModuleMetadata(t, factories.Processors, factories.ProcessorModules)
+	assertModuleMetadata(t, factories.Exporters, factories.ExporterModules)
+	assertModuleMetadata(t, factories.Extensions, factories.ExtensionModules)
+	assertModuleMetadata(t, factories.Connectors, factories.ConnectorModules)
+	assertModulePath(t, factories.ReceiverModules[component.MustNewType("smartagent")], smartAgentReceiverModule)
+	assertModulePath(t, factories.ReceiverModules[component.MustNewType("discovery")], splunkCollectorModule)
+}
+
+func TestTARunnerComponentModuleMetadata(t *testing.T) {
+	previous := enableTARunner.IsEnabled()
+	t.Cleanup(func() {
+		assert.NoError(t, featuregate.GlobalRegistry().Set(enableTARunnerFeatureGateID, previous))
+	})
+	require.NoError(t, featuregate.GlobalRegistry().Set(enableTARunnerFeatureGateID, true))
+
+	factories, err := Get()
+	require.NoError(t, err)
+
+	assertModulePath(
+		t,
+		factories.ReceiverModules[component.MustNewType("splunk_inputs")],
+		splunkInputsReceiverModule,
+	)
+	assertModulePath(
+		t,
+		factories.ExporterModules[component.MustNewType("splunk_outputs")],
+		splunkOutputsExporterModule,
+	)
+}
+
+func TestComponentsCommandIncludesModuleMetadata(t *testing.T) {
+	command := otelcol.NewCommand(otelcol.CollectorSettings{
+		BuildInfo: component.BuildInfo{Command: "otelcol-test"},
+		Factories: Get,
+	})
+	var output bytes.Buffer
+	command.SetOut(&output)
+	command.SetErr(&output)
+	command.SetArgs([]string{"components"})
+
+	require.NoError(t, command.Execute())
+	assert.Contains(t, output.String(), "module: "+splunkCollectorModule+" ")
+	assert.Contains(t, output.String(), "module: "+smartAgentReceiverModule+" ")
+	assert.NotContains(t, output.String(), "module: \"\"")
+}
+
+func assertModuleMetadata[T component.Factory](
+	t *testing.T,
+	factories map[component.Type]T,
+	modules map[component.Type]string,
+) {
+	t.Helper()
+	assert.Len(t, modules, len(factories))
+	for componentType, factory := range factories {
+		module, ok := modules[componentType]
+		require.True(t, ok, "missing module for %s", componentType)
+		assert.NotEmpty(t, module, "empty module for %s", componentType)
+		assert.Equal(t, modules[factory.Type()], module, "alias module differs for %s", componentType)
+	}
+}
+
+func assertModulePath(t *testing.T, moduleRef, modulePath string) {
+	t.Helper()
+	assert.True(t, strings.HasPrefix(moduleRef, modulePath+" "), "module reference %q does not use path %q", moduleRef, modulePath)
 }

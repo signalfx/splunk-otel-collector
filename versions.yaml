@@ -30,15 +30,11 @@ module-sets:
       - github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
       - github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver
 excluded-modules:
-  # Vendored agent fork with its own module identity; released upstream.
   - github.com/signalfx/signalfx-agent
-  # Build/lint/codegen tooling; never consumed as a library.
   - github.com/signalfx/splunk-otel-collector/internal/tools
-  # Test suites; run in-tree, not consumed as libraries.
   - github.com/signalfx/splunk-otel-collector/tests
   - github.com/signalfx/splunk-otel-collector/tests/tools
   - github.com/signalfx/splunk-otel-collector/packaging/ta-v2/tests
-  # Standalone example programs; copied out, never imported.
   - github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter
   - github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/tracing
   - github.com/signalfx/splunk-otel-collector/examples/splunk-hec/logging

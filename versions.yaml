@@ -18,7 +18,7 @@
 # the release job fails if it is still at an already-tagged version.
 module-sets:
   splunk-otel-collector:
-    version: v0.159.0
+    version: v0.160.0
     modules:
       - github.com/signalfx/splunk-otel-collector
       - github.com/signalfx/splunk-otel-collector/baseline

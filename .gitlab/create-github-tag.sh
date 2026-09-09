@@ -4,9 +4,10 @@ set -euo pipefail
 # Tags a commit on GitHub for the whole splunk-otel-collector Go module set
 # (root, baseline, and the pkg/* modules) and pushes the tags.
 #
-# The module set and its version live in versions.yaml. This asserts the set
-# version matches the requested release, then uses `multimod tag` to create the
-# signed per-module tags (vX.Y.Z, baseline/vX.Y.Z, pkg/*/vX.Y.Z) and pushes them.
+# The module set and its version live in versions.yaml, already validated
+# against the release by the manual_release_trigger job. This uses `multimod
+# tag` to create the signed per-module tags (vX.Y.Z, baseline/vX.Y.Z,
+# pkg/*/vX.Y.Z) and pushes them.
 #
 # Usage: ./create-github-tag.sh <version_tag> <commit_sha>
 
@@ -41,14 +42,7 @@ cd repo-tmp
 git fetch origin
 git checkout "$COMMIT_SHA"
 
-set_version="$( awk '/^  '"$MODULE_SET"':/{f=1} f&&/^    version:/{print $2; exit}' versions.yaml )"
-if [[ "$set_version" != "$VERSION_TAG" ]]; then
-  echo ">> versions.yaml has module set '$MODULE_SET' at '$set_version' but release is '$VERSION_TAG'." >&2
-  echo ">> Bump the version value in versions.yaml to '$VERSION_TAG' before releasing." >&2
-  exit 1
-fi
-
-echo ">>> Creating signed tags for module set $MODULE_SET at $COMMIT_SHA ..."
+echo ">>> Creating signed tags for module set $MODULE_SET ($VERSION_TAG) at $COMMIT_SHA ..."
 "$MULTIMOD" tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags \
   | sort -u \
   | while IFS= read -r tag; do

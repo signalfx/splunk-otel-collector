@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter
 
-go 1.26.4
+go 1.26.6
 
 require (
 	github.com/splunk/tarunner v0.5.2-0.20260904224642-39b84b2ff193

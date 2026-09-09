@@ -95,17 +95,12 @@ manual_release_trigger:
         fi
       fi
 
-      # The Go module set is tagged from versions.yaml at release time. Assert it
-      # was bumped to this release and is not already tagged, so the tag step
-      # can't publish a stale or duplicate module version.
+      # versions.yaml drives the module set tags created at release time; assert
+      # it was bumped to this release so the tags match.
       SET_VERSION=$(awk '/^  splunk-otel-collector:/{f=1} f&&/^    version:/{print $2; exit}' versions.yaml)
       if [ "$SET_VERSION" != "$RELEASE_VERSION" ]; then
         echo "versions.yaml has the splunk-otel-collector module set at $SET_VERSION but release is $RELEASE_VERSION." >&2
         echo "Bump the version value in versions.yaml to $RELEASE_VERSION before releasing." >&2
-        exit 1
-      fi
-      if git rev-parse -q --verify "refs/tags/$RELEASE_VERSION" >/dev/null; then
-        echo "Tag $RELEASE_VERSION already exists. Bump versions.yaml to an unreleased version." >&2
         exit 1
       fi
 

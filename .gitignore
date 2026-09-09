@@ -46,15 +46,11 @@ __pycache__
 deployments/heroku/test/.git
 deployments/heroku/test/node_modules
 
-# libsplunk
+# instrumentation build artifacts
 /instrumentation/dist/
 /instrumentation/obj/
 /instrumentation/so/
 /instrumentation/build/
-/instrumentation/tests/dotnet/libsplunk.so
-/instrumentation/tests/dotnet/obj/
-/instrumentation/tests/java/libsplunk.so
-/instrumentation/tests/nodejs/libsplunk.so
 
 # temp file created during testing
 tests/installation/testdata/systemd/splunk-otel-collector.conf

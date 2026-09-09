@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/splunk/tarunner v0.5.2-0.20260904224642-39b84b2ff193
+	github.com/splunk/tarunner v0.5.2-0.20260909084922-d02823093a38
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.65.0
 	go.opentelemetry.io/collector/consumer v1.65.0

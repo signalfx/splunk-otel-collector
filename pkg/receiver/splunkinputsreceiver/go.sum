@@ -182,8 +182,8 @@ github.com/shirou/gopsutil/v4 v4.26.6 h1:Mzr/npDtQC/xpeEuQKHZt8Zo9CmPvhTj8nkR8w5
 github.com/shirou/gopsutil/v4 v4.26.6/go.mod h1:LZ6ewCSkBqUpvSOf+LsTGnRinC6iaNUNMGBtDkJBaLQ=
 github.com/sirupsen/logrus v1.9.4 h1:TsZE7l11zFCLZnZ+teH4Umoq5BhEIfIzfRDZ1Uzql2w=
 github.com/sirupsen/logrus v1.9.4/go.mod h1:ftWc9WdOfJ0a92nsE2jF5u5ZwH8Bv2zdeOC42RjbV2g=
-github.com/splunk/tarunner v0.5.2-0.20260904224642-39b84b2ff193 h1:mi63RlTtvjvl2qtt1NMp5Xu83o5x8ORmMXJX+mOpWuE=
-github.com/splunk/tarunner v0.5.2-0.20260904224642-39b84b2ff193/go.mod h1:tQoD0ZjuYuGp/PeJp+yAlsPX39yxq/tmFn33NxIEL9g=
+github.com/splunk/tarunner v0.5.2-0.20260909084922-d02823093a38 h1:nNzlixwANbPcOzalrWSj7JYFX8k0MeZGIwOdr4DsWBE=
+github.com/splunk/tarunner v0.5.2-0.20260909084922-d02823093a38/go.mod h1:tQoD0ZjuYuGp/PeJp+yAlsPX39yxq/tmFn33NxIEL9g=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=

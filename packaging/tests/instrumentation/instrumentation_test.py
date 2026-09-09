@@ -510,6 +510,19 @@ def test_package_uninstall(distro, arch):
         )
         assert not container_file_exists(container, LEGACY_CONFIG_DIR)
 
+        # verify REMOVE_LEGACY_CONFIG is ignored on a package upgrade: the backup should only
+        # ever be deleted on an actual removal, not because the env var was left set
+        run_container_cmd(container, f"mkdir -p {LEGACY_CONFIG_DIR}")
+        run_container_cmd(container, f"touch {LEGACY_CONFIG_DIR}/java.conf")
+        run_container_cmd(
+            container,
+            "sh /test/preuninstall.sh upgrade",
+            env={"REMOVE_LEGACY_CONFIG": "true"},
+        )
+        assert container_file_exists(container, LEGACY_CONFIG_DIR)
+        run_container_cmd(container, "sh /test/preuninstall.sh --remove-legacy-config")
+        assert not container_file_exists(container, LEGACY_CONFIG_DIR)
+
         verify_preload(container, "# This line should be preserved")
 
         # verify libotelinject.so was not automatically added to /etc/ld.so.preload

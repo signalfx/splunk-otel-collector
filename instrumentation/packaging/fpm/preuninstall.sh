@@ -18,21 +18,6 @@ PRELOAD_PATH="/etc/ld.so.preload"
 LIBOTELINJECT_PATH="/usr/lib/splunk-instrumentation/libotelinject.so"
 LEGACY_CONFIG_DIR="/usr/lib/splunk-instrumentation/legacy-zeroconfig"
 
-# Set REMOVE_LEGACY_CONFIG=true when the package is explicitly being removed
-# to delete the configuration backup created during migration. The command
-# line option is useful when invoking this hook directly.
-REMOVE_LEGACY_CONFIG="${REMOVE_LEGACY_CONFIG:-false}"
-for option in "$@"; do
-    if [ "$option" = "--remove-legacy-config" ]; then
-        REMOVE_LEGACY_CONFIG=true
-    fi
-done
-
-if [ "$REMOVE_LEGACY_CONFIG" = "true" ] && [ -d "$LEGACY_CONFIG_DIR" ]; then
-    echo "Removing legacy configuration backup from $LEGACY_CONFIG_DIR"
-    rm -rf "$LEGACY_CONFIG_DIR"
-fi
-
 # This script runs as the Debian prerm/RPM %preun hook (fpm --before-remove), which fires on a
 # package upgrade as well as an actual uninstall. dpkg passes "upgrade"/"failed-upgrade" (vs.
 # "remove") as $1 to prerm; rpm passes the count of package instances that will remain after this
@@ -55,6 +40,22 @@ case "$ACTION" in
         IS_UNINSTALL=true
         ;;
 esac
+
+# Set REMOVE_LEGACY_CONFIG=true when the package is explicitly being removed
+# to delete the configuration backup created during migration. The command
+# line option is useful when invoking this hook directly. Gated on IS_UNINSTALL
+# so that leaving this flag set doesn't wipe the backup on a routine upgrade.
+REMOVE_LEGACY_CONFIG="${REMOVE_LEGACY_CONFIG:-false}"
+for option in "$@"; do
+    if [ "$option" = "--remove-legacy-config" ]; then
+        REMOVE_LEGACY_CONFIG=true
+    fi
+done
+
+if [ "$IS_UNINSTALL" = "true" ] && [ "$REMOVE_LEGACY_CONFIG" = "true" ] && [ -d "$LEGACY_CONFIG_DIR" ]; then
+    echo "Removing legacy configuration backup from $LEGACY_CONFIG_DIR"
+    rm -rf "$LEGACY_CONFIG_DIR"
+fi
 
 if [ "$IS_UNINSTALL" = "true" ] && [ -f "$PRELOAD_PATH" ] && grep -q "$LIBOTELINJECT_PATH" "$PRELOAD_PATH"; then
     echo "Removing $LIBOTELINJECT_PATH from $PRELOAD_PATH"

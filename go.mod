@@ -41,6 +41,7 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.0.0-00010101000000-000000000000
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
+	github.com/splunk/tarunner/pkg/splunkoutputsexporter v0.0.0-20260908182652-2f25219ad063
 	github.com/stretchr/testify v1.12.1
 	go.etcd.io/etcd/client/v2 v2.305.33
 	go.opentelemetry.io/collector/component/componentstatus v0.160.0

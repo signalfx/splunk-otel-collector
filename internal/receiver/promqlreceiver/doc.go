@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build mdatagen
+
+// Package promqlreceiver implements a receiver that queries periodically PromQL API endpoints
+// and consumes results as metrics
 package promqlreceiver
 
-import (
-	"testing"
-
-	"go.uber.org/goleak"
-)
-
-func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m)
-}
+//go:generate mdatagen metadata.yaml

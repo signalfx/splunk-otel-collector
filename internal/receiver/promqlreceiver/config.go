@@ -21,8 +21,13 @@ import (
 	"go.opentelemetry.io/collector/scraper/scraperhelper"
 )
 
+type Query struct {
+	Query              string `mapstructure:"query"`
+	MetricNameFallback string `mapstructure:"metric_name_fallback"`
+}
+
 type Config struct {
-	Queries          []string                       `mapstructure:"queries"`
+	Queries          []Query                        `mapstructure:"queries"`
 	ClientConfig     confighttp.ClientConfig        `mapstructure:",squash"`
 	ControllerConfig scraperhelper.ControllerConfig `mapstructure:",squash"`
 }
@@ -30,6 +35,11 @@ type Config struct {
 func (c *Config) Validate() error {
 	if len(c.Queries) == 0 {
 		return errors.New("queries cannot be empty")
+	}
+	for _, q := range c.Queries {
+		if q.Query == "" {
+			return errors.New("query cannot be empty")
+		}
 	}
 	if c.ClientConfig.Endpoint == "" {
 		return errors.New("endpoint is required")

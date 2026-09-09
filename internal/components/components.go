@@ -32,6 +32,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
+	"github.com/splunk/tarunner/pkg/splunkoutputsexporter"
 )
 
 const (
@@ -71,6 +72,7 @@ func Get() (otelcol.Factories, error) {
 	)
 	if enableTARunner.IsEnabled() {
 		b.AddReceivers(splunkinputsreceiver.NewFactory())
+		b.AddExporters(splunkoutputsexporter.NewFactory())
 	}
 	b.AddProcessors(
 		timestampprocessor.NewFactory(),

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
@@ -22,7 +21,7 @@ const debounceDuration = 500 * time.Millisecond
 
 type splunkInputsReceiver struct {
 	handler    *observerHandler
-	watcher    *fsnotify.Watcher
+	watcher    fileWatcher
 	doneCh     chan struct{}
 	splunkHome string
 }
@@ -46,7 +45,7 @@ func (r *splunkInputsReceiver) Start(ctx context.Context, host component.Host) e
 		return addErr
 	}
 
-	watcher, err := fsnotify.NewWatcher()
+	watcher, err := newFSNotifyWatcher()
 	if err != nil {
 		return err
 	}
@@ -89,7 +88,7 @@ func (r *splunkInputsReceiver) watchLoop(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case event, ok := <-r.watcher.Events:
+		case event, ok := <-r.watcher.Events():
 			if !ok {
 				return
 			}
@@ -121,7 +120,7 @@ func (r *splunkInputsReceiver) watchLoop(ctx context.Context) {
 				}
 			}
 			debounce = time.After(debounceDuration)
-		case err, ok := <-r.watcher.Errors:
+		case err, ok := <-r.watcher.Errors():
 			if !ok {
 				return
 			}

@@ -24,6 +24,41 @@ type testNopConsumer struct{}
 func (testNopConsumer) Capabilities() consumer.Capabilities          { return consumer.Capabilities{} }
 func (testNopConsumer) ConsumeLogs(context.Context, plog.Logs) error { return nil }
 
+// fakeWatcher is an in-memory fileWatcher for unit tests. It records the paths
+// passed to Add so reconcile can be exercised without spinning fsnotify's
+// background OS watcher, which panics on Windows under fsnotify v1.10.1.
+type fakeWatcher struct {
+	added  map[string]struct{}
+	events chan fsnotify.Event
+	errors chan error
+}
+
+func newFakeWatcher() *fakeWatcher {
+	return &fakeWatcher{
+		added:  map[string]struct{}{},
+		events: make(chan fsnotify.Event),
+		errors: make(chan error),
+	}
+}
+
+func (f *fakeWatcher) Add(name string) error {
+	f.added[name] = struct{}{}
+	return nil
+}
+
+func (f *fakeWatcher) Close() error { return nil }
+
+func (f *fakeWatcher) WatchList() []string {
+	list := make([]string, 0, len(f.added))
+	for name := range f.added {
+		list = append(list, name)
+	}
+	return list
+}
+
+func (f *fakeWatcher) Events() <-chan fsnotify.Event { return f.events }
+func (f *fakeWatcher) Errors() <-chan error          { return f.errors }
+
 // mockReceiver is a mock receiver.Logs that tracks Start and Shutdown calls.
 type mockReceiver struct {
 	startCount    int
@@ -71,19 +106,15 @@ func makeTA(t *testing.T, splunkHome, taName string) string {
 }
 
 // newTestSplunkInputsReceiver builds a splunkInputsReceiver wired with the given mock factory
-// and a real (but idle) fsnotify watcher so reconcile can call watcher.Add without panicking.
-func newTestSplunkInputsReceiver(t *testing.T, splunkHome string, factory *mockSubReceiverFactory) *splunkInputsReceiver {
-	t.Helper()
+// and a fake watcher so reconcile can call watcher.Add without spinning a real OS watcher.
+func newTestSplunkInputsReceiver(_ *testing.T, splunkHome string, factory *mockSubReceiverFactory) *splunkInputsReceiver {
 	options := newFactoryOptions(WithSubReceiver(factory))
 	settings := receiver.Settings{
 		ID:                component.MustNewID("splunk_inputs"),
 		TelemetrySettings: component.TelemetrySettings{Logger: zap.NewNop()},
 	}
-	watcher, err := fsnotify.NewWatcher()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = watcher.Close() })
 	r := newSplunkInputsReceiver(splunkHome, options, settings, testNopConsumer{})
-	r.watcher = watcher
+	r.watcher = newFakeWatcher()
 	return r
 }
 

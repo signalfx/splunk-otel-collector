@@ -10,8 +10,22 @@ nutanix:
   metrics:
     clusters:
       enabled: true
+    data_protection:
+      enabled: false
+    disks:
+      enabled: false
+    files:
+      enabled: false
     hosts:
       enabled: true
+    microsegmentation:
+      enabled: false
+    networking:
+      enabled: false
+    objects:
+      enabled: false
+    prism_central:
+      enabled: false
     storage_containers:
       enabled: true
     vms:

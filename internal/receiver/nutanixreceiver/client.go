@@ -17,6 +17,7 @@ package nutanixreceiver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net"
@@ -25,20 +26,10 @@ import (
 	"strings"
 	"time"
 
-	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
-	v4converged "github.com/nutanix-cloud-native/prism-go-client/converged/v4"
-	prismv4 "github.com/nutanix-cloud-native/prism-go-client/v4"
 	clusterConfig "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
-	clusterStats "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/stats"
-	clusterCommonStats "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/common/v1/stats"
-	vmAPI "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
-	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
-	vmCommonStats "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/common/v1/stats"
+	networkConfig "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	vmConfig "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
-	vmStats "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/stats"
-	volumeCommonStats "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/common/v1/stats"
 	volumeConfig "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
-	volumeStats "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/stats"
 )
 
 type nutanixClient interface {
@@ -49,19 +40,20 @@ type nutanixClient interface {
 	listStorageContainers(context.Context) ([]nutanixStorageContainer, error)
 	listVMs(context.Context) ([]nutanixVM, error)
 	listVolumeGroups(context.Context) ([]nutanixVolumeGroup, error)
+	listDisks(context.Context) ([]nutanixDisk, error)
+	listSubnets(context.Context) ([]nutanixSubnet, error)
 	getClusterStats(context.Context, nutanixCluster) ([]metricStat, error)
 	getHostStats(context.Context, nutanixHost) ([]metricStat, error)
 	getStorageContainerStats(context.Context, nutanixStorageContainer) ([]metricStat, error)
 	listVMStats(context.Context) (map[string][]metricStat, error)
 	getVolumeGroupStats(context.Context, nutanixVolumeGroup) ([]metricStat, error)
+	getDiskStats(context.Context, nutanixDisk) ([]metricStat, error)
+	collectAdditionalMetrics(context.Context, additionalMetricsRequest) (additionalSnapshot, error)
 }
 
 type prismClient struct {
-	baseURL      *url.URL
-	v4Client     *prismv4.Client
-	services     *v4converged.Client
-	vmStatsAPI   *vmAPI.StatsApi
-	statInterval time.Duration
+	baseURL    *url.URL
+	restClient *v4RESTClient
 }
 
 func newPrismClient(cfg *Config) (nutanixClient, error) {
@@ -77,37 +69,10 @@ func newPrismV4Client(cfg *Config) (*prismClient, error) {
 		return nil, err
 	}
 
-	credentials := prismgoclient.Credentials{
-		Endpoint: baseURL.Host,
-		Port:     baseURL.Port(),
-		URL:      baseURL.String(),
-		Username: cfg.Username,
-		Password: string(cfg.Password),
-		Insecure: cfg.TLS.InsecureSkipVerify,
-	}
-
-	v4Client, err := prismv4.NewV4Client(credentials)
-	if err != nil {
-		return nil, err
-	}
-	disableVersionNegotiation(v4Client)
-
 	return &prismClient{
-		baseURL:      baseURL,
-		v4Client:     v4Client,
-		services:     v4converged.NewClientFromV4SDKClient(v4Client),
-		vmStatsAPI:   vmAPI.NewStatsApi(newVMAPIClient(baseURL, cfg, credentials)),
-		statInterval: cfg.ControllerConfig.CollectionInterval,
+		baseURL:    baseURL,
+		restClient: newV4RESTClient(baseURL, cfg),
 	}, nil
-}
-
-// The receiver uses fixed v4.2 paths. Avoid the SDK's optional unversioned
-// version-discovery request because it is not available on every deployment.
-func disableVersionNegotiation(client *prismv4.Client) {
-	client.ClustersApiInstance.ApiClient.AllowVersionNegotiation = false
-	client.StorageContainerAPI.ApiClient.AllowVersionNegotiation = false
-	client.VmApiInstance.ApiClient.AllowVersionNegotiation = false
-	client.VolumeGroupsApiInstance.ApiClient.AllowVersionNegotiation = false
 }
 
 func normalizeEndpoint(endpoint string, port int) (*url.URL, error) {
@@ -132,19 +97,6 @@ func normalizeEndpoint(endpoint string, port int) (*url.URL, error) {
 	return u, nil
 }
 
-func newVMAPIClient(baseURL *url.URL, cfg *Config, credentials prismgoclient.Credentials) *vmClient.ApiClient {
-	apiClient := vmClient.NewApiClient()
-	apiClient.Host = baseURL.Hostname()
-	apiClient.Port = int(serverPort(baseURL))
-	apiClient.VerifySSL = !cfg.TLS.InsecureSkipVerify
-	apiClient.ReadTimeout = cfg.ControllerConfig.Timeout
-	apiClient.ConnectTimeout = cfg.ControllerConfig.Timeout
-	apiClient.AllowVersionNegotiation = false
-	apiClient.SetUserName(credentials.Username)
-	apiClient.SetPassword(credentials.Password)
-	return apiClient
-}
-
 func (c *prismClient) serverAddress() string {
 	return c.baseURL.Hostname()
 }
@@ -162,78 +114,41 @@ func serverPort(u *url.URL) int64 {
 }
 
 func (c *prismClient) listClusters(ctx context.Context) ([]nutanixCluster, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	clusters, err := c.services.Clusters.List(ctx)
+	clusters, err := listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/clusters", clusterFromV4)
 	if err != nil {
 		return nil, err
 	}
 	result := make([]nutanixCluster, 0, len(clusters))
-	for i := range clusters {
-		result = append(result, clusterFromV4(clusters[i]))
+	for _, cluster := range clusters {
+		if !isPrismCentralCluster(cluster) {
+			result = append(result, cluster)
+		}
 	}
 	return result, nil
 }
 
 func (c *prismClient) listHosts(ctx context.Context) ([]nutanixHost, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	hosts, err := c.services.Clusters.ListAllHosts(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]nutanixHost, 0, len(hosts))
-	for i := range hosts {
-		result = append(result, hostFromV4(hosts[i]))
-	}
-	return result, nil
+	return listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/hosts", hostFromV4)
 }
 
 func (c *prismClient) listStorageContainers(ctx context.Context) ([]nutanixStorageContainer, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	containers, err := c.services.StorageContainers.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]nutanixStorageContainer, 0, len(containers))
-	for i := range containers {
-		result = append(result, storageContainerFromV4(containers[i]))
-	}
-	return result, nil
+	return listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/storage-containers", storageContainerFromV4)
 }
 
 func (c *prismClient) listVMs(ctx context.Context) ([]nutanixVM, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	vms, err := c.services.VMs.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]nutanixVM, 0, len(vms))
-	for i := range vms {
-		result = append(result, vmFromV4(vms[i]))
-	}
-	return result, nil
+	return listV4Entities(ctx, c.restClient, "/api/vmm/v4.2/ahv/config/vms", vmFromV4)
 }
 
 func (c *prismClient) listVolumeGroups(ctx context.Context) ([]nutanixVolumeGroup, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	volumeGroups, err := c.services.VolumeGroups.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]nutanixVolumeGroup, 0, len(volumeGroups))
-	for i := range volumeGroups {
-		result = append(result, volumeGroupFromV4(volumeGroups[i]))
-	}
-	return result, nil
+	return listV4Entities(ctx, c.restClient, "/api/volumes/v4.2/config/volume-groups", volumeGroupFromV4)
+}
+
+func (c *prismClient) listDisks(ctx context.Context) ([]nutanixDisk, error) {
+	return listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/disks", diskFromV4)
+}
+
+func (c *prismClient) listSubnets(ctx context.Context) ([]nutanixSubnet, error) {
+	return listV4Entities(ctx, c.restClient, "/api/networking/v4.2/config/subnets", subnetFromV4)
 }
 
 func (c *prismClient) getClusterStats(ctx context.Context, cluster nutanixCluster) ([]metricStat, error) {
@@ -243,15 +158,7 @@ func (c *prismClient) getClusterStats(ctx context.Context, cluster nutanixCluste
 	if cluster.ID == "" {
 		return nil, nil
 	}
-	start, end, sampling := c.statQuery()
-	statType := clusterCommonStats.DOWNSAMPLINGOPERATOR_LAST
-	stats, err := v4converged.CallAPI[*clusterStats.ClusterStatsApiResponse, clusterStats.ClusterStats](
-		c.v4Client.ClustersApiInstance.GetClusterStats(&cluster.ID, start, end, sampling, &statType, nil),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return statsFromStruct(stats), nil
+	return c.restClient.stats(ctx, "/api/clustermgmt/v4.2/stats/clusters/"+url.PathEscape(cluster.ID))
 }
 
 func (c *prismClient) getHostStats(ctx context.Context, host nutanixHost) ([]metricStat, error) {
@@ -261,15 +168,11 @@ func (c *prismClient) getHostStats(ctx context.Context, host nutanixHost) ([]met
 	if host.ClusterID == "" || host.ID == "" {
 		return nil, nil
 	}
-	start, end, sampling := c.statQuery()
-	statType := clusterCommonStats.DOWNSAMPLINGOPERATOR_LAST
-	stats, err := v4converged.CallAPI[*clusterStats.HostStatsApiResponse, clusterStats.HostStats](
-		c.v4Client.ClustersApiInstance.GetHostStats(&host.ClusterID, &host.ID, start, end, sampling, &statType, nil),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return statsFromStruct(stats), nil
+	return c.restClient.stats(ctx, fmt.Sprintf(
+		"/api/clustermgmt/v4.2/stats/clusters/%s/hosts/%s",
+		url.PathEscape(host.ClusterID),
+		url.PathEscape(host.ID),
+	))
 }
 
 func (c *prismClient) getStorageContainerStats(ctx context.Context, container nutanixStorageContainer) ([]metricStat, error) {
@@ -279,15 +182,7 @@ func (c *prismClient) getStorageContainerStats(ctx context.Context, container nu
 	if container.ID == "" {
 		return nil, nil
 	}
-	start, end, sampling := c.statQuery()
-	statType := clusterCommonStats.DOWNSAMPLINGOPERATOR_LAST
-	stats, err := v4converged.CallAPI[*clusterStats.GetStorageContainerStatsApiResponse, clusterStats.StorageContainerStats](
-		c.v4Client.StorageContainerAPI.GetStorageContainerStats(&container.ID, start, end, sampling, &statType),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return statsFromStruct(stats), nil
+	return c.restClient.stats(ctx, "/api/clustermgmt/v4.2/stats/storage-containers/"+url.PathEscape(container.ID))
 }
 
 func (c *prismClient) listVMStats(ctx context.Context) (map[string][]metricStat, error) {
@@ -296,23 +191,34 @@ func (c *prismClient) listVMStats(ctx context.Context) (map[string][]metricStat,
 	}
 
 	start, end, sampling := c.statQuery()
-	statType := vmCommonStats.DOWNSAMPLINGOPERATOR_LAST
 	result := map[string][]metricStat{}
 	page := 0
+	processed := 0
 
 	for {
-		response, err := c.vmStatsAPI.ListVmStats(start, end, sampling, &statType, &page, nil, nil, nil, nil)
-		items, total, err := v4converged.CallListAPI[*vmStats.ListVmStatsApiResponse, vmStats.VmStats](response, err)
+		response, err := c.restClient.get(ctx, "/api/vmm/v4.2/ahv/stats/vms", url.Values{
+			"$startTime":        []string{start.Format(time.RFC3339Nano)},
+			"$endTime":          []string{end.Format(time.RFC3339Nano)},
+			"$samplingInterval": []string{strconv.Itoa(sampling)},
+			"$statType":         []string{"LAST"},
+			"$page":             []string{strconv.Itoa(page)},
+			"$limit":            []string{strconv.Itoa(v4PageSize)},
+		})
 		if err != nil {
 			return nil, err
 		}
+		items := responseDataMaps(response)
 		for _, item := range items {
-			if item.ExtId == nil || len(item.Stats) == 0 {
+			vmID := firstString(item, "extId", "ext_id", "id")
+			stats := mapList(item, "stats")
+			if vmID == "" || len(stats) == 0 {
 				continue
 			}
-			result[*item.ExtId] = statsFromStruct(item.Stats[len(item.Stats)-1])
+			result[vmID] = statsFromMap(stats[len(stats)-1])
 		}
-		if len(result) >= total || len(items) == 0 {
+		processed += len(items)
+		total, hasTotal := responseTotal(response)
+		if len(items) == 0 || (hasTotal && processed >= total) || (!hasTotal && len(items) < v4PageSize) {
 			break
 		}
 		page++
@@ -328,33 +234,62 @@ func (c *prismClient) getVolumeGroupStats(ctx context.Context, volumeGroup nutan
 	if volumeGroup.ID == "" {
 		return nil, nil
 	}
-	start, end, sampling := c.statQuery()
-	statType := volumeCommonStats.DOWNSAMPLINGOPERATOR_LAST
-	stats, err := v4converged.CallAPI[*volumeStats.GetVolumeGroupStatsApiResponse, volumeStats.VolumeGroupStats](
-		c.v4Client.VolumeGroupsApiInstance.GetVolumeGroupStats(&volumeGroup.ID, start, end, sampling, &statType, nil),
-	)
+	return c.restClient.stats(ctx, "/api/volumes/v4.2/stats/volume-groups/"+url.PathEscape(volumeGroup.ID))
+}
+
+func (c *prismClient) getDiskStats(ctx context.Context, disk nutanixDisk) ([]metricStat, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if disk.ID == "" {
+		return nil, nil
+	}
+	return c.restClient.stats(ctx, "/api/clustermgmt/v4.2/stats/disks/"+url.PathEscape(disk.ID))
+}
+
+func listV4Entities[T, R any](ctx context.Context, client *v4RESTClient, path string, convert func(T) R) ([]R, error) {
+	entities, err := client.listAll(ctx, path)
 	if err != nil {
 		return nil, err
 	}
-	return statsFromStruct(stats), nil
+	result := make([]R, 0, len(entities))
+	for i, entity := range entities {
+		data, err := json.Marshal(entity)
+		if err != nil {
+			return nil, fmt.Errorf("encode %s response item %d: %w", path, i, err)
+		}
+		var model T
+		if err := json.Unmarshal(data, &model); err != nil {
+			return nil, fmt.Errorf("decode %s response item %d: %w", path, i, err)
+		}
+		result = append(result, convert(model))
+	}
+	return result, nil
 }
 
-func (c *prismClient) statQuery() (*time.Time, *time.Time, *int) {
-	interval := c.statInterval
+func (c *prismClient) statQuery() (time.Time, time.Time, int) {
+	interval := c.restClient.interval
 	if interval <= 0 {
 		interval = 30 * time.Second
 	}
 	end := time.Now()
 	start := end.Add(-interval)
 	sampling := int(math.Max(1, interval.Seconds()))
-	return &start, &end, &sampling
+	return start, end, sampling
 }
 
 func clusterFromV4(cluster clusterConfig.Cluster) nutanixCluster {
-	return nutanixCluster{
+	result := nutanixCluster{
 		ID:   stringValue(cluster.ExtId),
 		Name: stringValue(cluster.Name),
 	}
+	if cluster.Config != nil {
+		result.Functions = make([]string, 0, len(cluster.Config.ClusterFunction))
+		for _, function := range cluster.Config.ClusterFunction {
+			result.Functions = append(result.Functions, function.GetName())
+		}
+	}
+	return result
 }
 
 func hostFromV4(host clusterConfig.Host) nutanixHost {
@@ -375,10 +310,12 @@ func storageContainerFromV4(container clusterConfig.StorageContainer) nutanixSto
 		id = stringValue(container.ContainerExtId)
 	}
 	return nutanixStorageContainer{
-		ID:          id,
-		Name:        stringValue(container.Name),
-		ClusterID:   stringValue(container.ClusterExtId),
-		ClusterName: stringValue(container.ClusterName),
+		ID:                id,
+		Name:              stringValue(container.Name),
+		ClusterID:         stringValue(container.ClusterExtId),
+		ClusterName:       stringValue(container.ClusterName),
+		Encrypted:         container.IsEncrypted,
+		ReplicationFactor: intValue(container.ReplicationFactor),
 	}
 }
 
@@ -390,6 +327,7 @@ func vmFromV4(vm vmConfig.Vm) nutanixVM {
 		NumCoresPerSocket: intValue(vm.NumCoresPerSocket),
 		MemoryBytes:       int64Value(vm.MemorySizeBytes),
 		NICCount:          len(vm.Nics),
+		HasGPU:            len(vm.Gpus) > 0,
 	}
 	if vm.Cluster != nil {
 		result.ClusterID = stringValue(vm.Cluster.ExtId)
@@ -399,6 +337,28 @@ func vmFromV4(vm vmConfig.Vm) nutanixVM {
 	}
 	if vm.PowerState != nil {
 		result.PowerState = normalizeEnumName(vm.PowerState.GetName())
+	}
+	if vm.BootConfig != nil {
+		switch vm.BootConfig.GetValue().(type) {
+		case *vmConfig.LegacyBoot, vmConfig.LegacyBoot:
+			result.BootType = "legacy"
+		case *vmConfig.UefiBoot, vmConfig.UefiBoot:
+			result.BootType = "uefi"
+		}
+	}
+	if vm.ProtectionType != nil {
+		result.ProtectionType = normalizeEnumName(vm.ProtectionType.GetName())
+	}
+	if vm.ProtectionPolicyState != nil && vm.ProtectionPolicyState.Policy != nil {
+		result.ProtectionPolicyID = stringValue(vm.ProtectionPolicyState.Policy.ExtId)
+	}
+	if vm.GuestTools != nil {
+		result.GuestTools = nutanixGuestTools{
+			Installed:          vm.GuestTools.IsInstalled,
+			Enabled:            vm.GuestTools.IsEnabled,
+			Reachable:          vm.GuestTools.IsReachable,
+			VSSSnapshotCapable: vm.GuestTools.IsVssSnapshotCapable,
+		}
 	}
 	for _, disk := range vm.Disks {
 		if disk.DiskAddress == nil || disk.DiskAddress.BusType == nil {
@@ -411,9 +371,45 @@ func vmFromV4(vm vmConfig.Vm) nutanixVM {
 }
 
 func volumeGroupFromV4(volumeGroup volumeConfig.VolumeGroup) nutanixVolumeGroup {
-	return nutanixVolumeGroup{
+	result := nutanixVolumeGroup{
 		ID:        stringValue(volumeGroup.ExtId),
 		Name:      stringValue(volumeGroup.Name),
 		ClusterID: stringValue(volumeGroup.ClusterReference),
 	}
+	if volumeGroup.SharingStatus != nil {
+		result.SharingStatus = normalizeEnumName(volumeGroup.SharingStatus.GetName())
+	}
+	return result
+}
+
+func diskFromV4(disk clusterConfig.Disk) nutanixDisk {
+	result := nutanixDisk{
+		ID:          stringValue(disk.ExtId),
+		Serial:      stringValue(disk.SerialNumber),
+		ClusterID:   stringValue(disk.ClusterExtId),
+		ClusterName: stringValue(disk.ClusterName),
+		HostID:      stringValue(disk.NodeExtId),
+		HostName:    stringValue(disk.HostName),
+	}
+	if disk.StorageTier != nil {
+		result.StorageTier = normalizeEnumName(disk.StorageTier.GetName())
+	}
+	return result
+}
+
+func subnetFromV4(subnet networkConfig.Subnet) nutanixSubnet {
+	result := nutanixSubnet{
+		ID:                 stringValue(subnet.ExtId),
+		Name:               stringValue(subnet.Name),
+		AdvancedNetworking: subnet.IsAdvancedNetworking,
+		External:           subnet.IsExternal,
+	}
+	if subnet.ClusterReference != nil {
+		result.ClusterIDs = append(result.ClusterIDs, *subnet.ClusterReference)
+	}
+	result.ClusterIDs = append(result.ClusterIDs, subnet.ClusterReferenceList...)
+	if subnet.SubnetType != nil {
+		result.SubnetType = normalizeEnumName(subnet.SubnetType.GetName())
+	}
+	return result
 }

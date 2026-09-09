@@ -1,18 +1,16 @@
 # Nutanix Receiver
 
 The Nutanix receiver collects Prism metrics through either the Prism Element
-v2.0 APIs or the Prism Central v4 APIs and emits OTLP metrics directly. It
-replaces the `~/ai-tools/nutanix-splunk-lab0` Prometheus exporter scrape with
-native collector collection.
+v2.0 APIs or the Prism Central v4 APIs and emits OTLP metrics directly.
 
 Set `api_version: v2.0` when `endpoint` is a Prism Element cluster. Set
-`api_version: v4` when `endpoint` is Prism Central. The v4 implementation uses
-`github.com/nutanix-cloud-native/prism-go-client/v4` and generated Nutanix v4
-clients; the PE implementation uses the cluster-local REST API directly.
+`api_version: v4` when `endpoint` is Prism Central. Both implementations use
+the Nutanix REST APIs directly; the v4 implementation decodes responses into
+the generated Nutanix v4 model types.
 
 The v4.2 reference page is for the Prism Central API surface. Sending its
 `/api/clustermgmt/v4.2/...` paths to a Prism Element endpoint returns 404. PE
-inventory endpoints use `/api/nutanix/v2.0/...` instead.
+inventory endpoints use `/PrismGateway/services/rest/v2.0/...` instead.
 
 ## Prism v4 API Coverage
 
@@ -21,6 +19,8 @@ Inventory and count data is collected from:
 - `/api/clustermgmt/v4.2/config/clusters`
 - `/api/clustermgmt/v4.2/config/hosts`
 - `/api/clustermgmt/v4.2/config/storage-containers`
+- `/api/clustermgmt/v4.2/config/disks`
+- `/api/networking/v4.2/config/subnets`
 - `/api/vmm/v4.2/ahv/config/vms`
 - `/api/volumes/v4.2/config/volume-groups`
 
@@ -29,22 +29,32 @@ Runtime statistics are collected from:
 - `/api/clustermgmt/v4.2/stats/clusters/{extId}`
 - `/api/clustermgmt/v4.2/stats/clusters/{clusterExtId}/hosts/{extId}`
 - `/api/clustermgmt/v4.2/stats/storage-containers/{extId}`
+- `/api/clustermgmt/v4.2/stats/disks/{extId}`
 - `/api/vmm/v4.2/ahv/stats/vms`
 - `/api/volumes/v4.2/stats/volume-groups/{extId}`
 
 Each scrape queries the most recent collection interval with the v4 `LAST`
 down-sampling operator.
 
+Optional Prism Central categories add networking entity counts and statistics,
+Prism categories/tasks/alerts, protection-policy schedules, protected-VM RPO
+counts, recovery-point counts,
+microsegmentation inventory, Files inventory and statistics, and Objects
+inventory and statistics. These categories are disabled by default because
+they require additional Nutanix services and read permissions. Failure of one
+optional API is logged and does not discard metrics collected from healthy
+services.
+
 ## Prism Element v2.0 API Coverage
 
 When `api_version: v2.0` is selected, inventory is collected from the cluster
 local endpoints:
 
-- `/api/nutanix/v2.0/cluster`
-- `/api/nutanix/v2.0/hosts`
-- `/api/nutanix/v2.0/storage_containers`
-- `/api/nutanix/v2.0/vms`
-- `/api/nutanix/v2.0/volume_groups`
+- `/PrismGateway/services/rest/v2.0/cluster/` (with a compatibility fallback to `/clusters/`)
+- `/PrismGateway/services/rest/v2.0/hosts/`
+- `/PrismGateway/services/rest/v2.0/storage_containers/`
+- `/PrismGateway/services/rest/v2.0/vms/?include_vm_disk_config=true&include_vm_nic_config=true`
+- `/PrismGateway/services/rest/v2.0/volume_groups/`
 
 The receiver flattens numeric values in the `stats` and `usage_stats` objects
 returned with those entities. This is the PE-compatible path used for a direct
@@ -76,7 +86,10 @@ The v4 APIs expose typed stat names such as `controllerNumIops`,
 `hypervisorCpuUsagePpm`, and `storageUsageBytes` instead of the exporter v2
 snake_case keys. The receiver keeps those source stat names in
 `nutanix.stat.name` so one OTel metric can carry many Nutanix stat series
-without encoding units or states into the metric name.
+without encoding units or states into the metric name. Raw API statistic
+families intentionally leave the OpenTelemetry unit unspecified because one
+family can contain source fields with different units; the source field name
+continues to identify bytes, IOPS, microseconds, ppm, and other measurements.
 
 The exporter metric names are valid Prometheus names, but they do not follow
 OpenTelemetry metric naming style: they use underscore-separated names, encode
@@ -92,6 +105,30 @@ OTLP pipeline use `deployment.environment.name` or your deployment's established
 resource attribute name, and prefer vendor-scoped custom attributes for
 Nutanix-specific values.
 
+## Build and run locally
+
+From the repository root, build the collector and start it with the local
+SignalFx configuration:
+
+```bash
+make otelcol
+
+export NUTANIX_PRISM_HOST="<prism-host-or-ip>"
+export NUTANIX_PRISM_USERNAME="<read-only-user>"
+export NUTANIX_PRISM_PASSWORD="<password>"
+export SPLUNK_ACCESS_TOKEN="<access-token>"
+export SPLUNK_API_URL="https://api.<realm>.observability.splunkcloud.com"
+export SPLUNK_INGEST_URL="https://ingest.<realm>.observability.splunkcloud.com"
+
+./bin/otelcol --config ./config.yaml
+```
+
+The collector reports `Everything is ready` after startup. Check the local
+health endpoint with `curl http://localhost:13133/`, and stop the collector
+with Ctrl-C. For Prism Element, keep `api_version: v2.0`; for Prism Central,
+set it to `v4` and enable optional metric categories only when the associated
+services are installed and the account has read permission.
+
 ## Configuration
 
 ```yaml
@@ -99,7 +136,7 @@ receivers:
   nutanix:
     endpoint: ${env:NUTANIX_PRISM_HOST}
     # v2.0 for Prism Element; use v4 for Prism Central.
-    api_version: v2.0
+    api_version: v4
     port: 9440
     username: ${env:NUTANIX_PRISM_USERNAME}
     password: ${env:NUTANIX_PRISM_PASSWORD}
@@ -110,14 +147,28 @@ receivers:
     metrics:
       clusters:
         enabled: true
+      disks:
+        enabled: false
       hosts:
         enabled: true
+      networking:
+        enabled: false
       storage_containers:
         enabled: true
       vms:
         enabled: true
       volume_groups:
         enabled: true
+      prism_central:
+        enabled: false
+      data_protection:
+        enabled: false
+      microsegmentation:
+        enabled: false
+      files:
+        enabled: false
+      objects:
+        enabled: false
 ```
 
 ## Test Plan
@@ -128,9 +179,9 @@ receivers:
 
    ```bash
    curl -k -u "$NUTANIX_PRISM_USERNAME:$NUTANIX_PRISM_PASSWORD" \
-     "https://$NUTANIX_PRISM_HOST:9440/api/nutanix/v2.0/cluster"
+     "https://$NUTANIX_PRISM_HOST:9440/PrismGateway/services/rest/v2.0/cluster/"
    curl -k -u "$NUTANIX_PRISM_USERNAME:$NUTANIX_PRISM_PASSWORD" \
-     "https://$NUTANIX_PRISM_HOST:9440/api/nutanix/v2.0/storage_containers"
+     "https://$NUTANIX_PRISM_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers/"
    ```
 
 3. If the endpoint is Prism Central and `api_version: v4` is configured,
@@ -141,10 +192,11 @@ receivers:
      "https://$NUTANIX_PRISM_HOST:9440/api/clustermgmt/v4.2/config/clusters"
    ```
 
-4. Run the collector with the exporter config below and confirm the log
-   contains `nutanix.cluster.info`, `nutanix.cluster.stat`,
-   `nutanix.host.stat`, `nutanix.storage.container.stat`,
-   `nutanix.vm.stat`, `nutanix.vm.count`, and `nutanix.vm.vcpu.count`.
+4. Run the collector with the SignalFx exporter configuration below and
+   confirm Splunk Observability Cloud receives `nutanix.cluster.info`,
+   `nutanix.cluster.stat`, `nutanix.host.stat`,
+   `nutanix.storage.container.stat`, `nutanix.vm.stat`,
+   `nutanix.vm.count`, and `nutanix.vm.vcpu.count`.
 5. Compare counts against Prism UI inventory:
 
    - VM total, on, and off counts
@@ -155,9 +207,11 @@ receivers:
 
 6. Temporarily disable one metric category at a time and confirm the related
    Prism API calls stop and the related metrics disappear.
-7. Run with the production exporter after debug validation.
+7. Enable optional Prism Central categories individually and confirm failures
+   from unavailable or unlicensed services are warnings while core metrics
+   continue to arrive.
 
-Full debug configuration:
+Full local Splunk Observability Cloud configuration:
 
 ```yaml
 extensions:
@@ -191,73 +245,6 @@ processors:
   memory_limiter:
     check_interval: 1s
     limit_mib: 512
-    spike_limit_mib: 128
-  resource/nutanix:
-    attributes:
-      - key: service.name
-        value: nutanix-prism
-        action: upsert
-      - key: deployment.environment.name
-        value: dev
-        action: upsert
-      - key: splunk.realm
-        value: lab0
-        action: upsert
-  batch:
-    timeout: 10s
-
-exporters:
-  debug:
-    verbosity: detailed
-
-service:
-  extensions: [health_check]
-  telemetry:
-    logs:
-      level: info
-    metrics:
-      address: 0.0.0.0:8888
-  pipelines:
-    metrics:
-      receivers: [nutanix]
-      processors: [memory_limiter, resource/nutanix, batch]
-      exporters: [debug]
-```
-
-Full Splunk Observability Cloud configuration:
-
-```yaml
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:13133
-
-receivers:
-  nutanix:
-    endpoint: ${env:NUTANIX_PRISM_HOST}
-    api_version: v2.0
-    port: 9440
-    username: ${env:NUTANIX_PRISM_USERNAME}
-    password: ${env:NUTANIX_PRISM_PASSWORD}
-    collection_interval: 30s
-    timeout: 20s
-    tls:
-      insecure_skip_verify: true
-    metrics:
-      clusters:
-        enabled: true
-      hosts:
-        enabled: true
-      storage_containers:
-        enabled: true
-      vms:
-        enabled: true
-      volume_groups:
-        enabled: true
-
-processors:
-  memory_limiter:
-    check_interval: 1s
-    limit_mib: ${env:SPLUNK_MEMORY_LIMIT_MIB}
     spike_limit_mib: 128
   resource/nutanix:
     attributes:

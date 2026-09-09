@@ -15,8 +15,8 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/knadh/koanf v1.5.0
-	github.com/nutanix-cloud-native/prism-go-client v0.8.1
 	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.2.2
+	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.2.1
 	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.2.2
 	github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 v4.2.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/googlesecretmanagerprovider v0.160.0
@@ -64,6 +64,7 @@ require (
 	go.opentelemetry.io/collector/extension v1.66.0
 	go.opentelemetry.io/collector/extension/extensionauth v1.66.0
 	go.opentelemetry.io/collector/extension/extensiontest v0.160.0
+	go.opentelemetry.io/collector/filter v0.160.0
 	go.opentelemetry.io/collector/otelcol v0.160.0
 	go.opentelemetry.io/collector/pdata v1.66.0
 	go.opentelemetry.io/collector/pipeline v1.66.0
@@ -137,7 +138,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.33.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.19.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/rds/auth v1.7.1 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.19.5 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager v0.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.69.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.84.1 // indirect
@@ -278,11 +278,6 @@ require (
 	github.com/moby/sys/mountinfo v0.7.2 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/nginx/nginx-prometheus-exporter v1.5.3 // indirect
-	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.2.1 // indirect
-	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.0.1 // indirect
-	github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 v4.2.2 // indirect
-	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.2.1 // indirect
-	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.2.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/onsi/ginkgo/v2 v2.28.0 // indirect
 	github.com/open-telemetry/opamp-go v0.23.0 // indirect
@@ -528,7 +523,6 @@ require (
 	go.opentelemetry.io/collector/extension/extensionmiddleware v0.160.0 // indirect
 	go.opentelemetry.io/collector/extension/xextension v0.160.0 // indirect
 	go.opentelemetry.io/collector/extension/zpagesextension v0.160.0 // indirect
-	go.opentelemetry.io/collector/filter v0.160.0 // indirect
 	go.opentelemetry.io/collector/internal/componentalias v0.160.0 // indirect
 	go.opentelemetry.io/collector/internal/fanoutconsumer v0.160.0 // indirect
 	go.opentelemetry.io/collector/internal/memorylimiter v0.160.0 // indirect
@@ -662,7 +656,7 @@ require (
 	github.com/golang/snappy v1.0.0
 	github.com/google/cadvisor v0.57.0 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.20 // indirect

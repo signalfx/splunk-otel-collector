@@ -4,6 +4,13 @@ $defs:
     description: MetricsConfig provides config for nutanix metrics.
     type: object
     properties:
+      nutanix.cluster.count:
+        description: "NutanixClusterCountMetricConfig provides config for the nutanix.cluster.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
       nutanix.cluster.info:
         description: "NutanixClusterInfoMetricConfig provides config for the nutanix.cluster.info metric."
         type: object
@@ -18,8 +25,99 @@ $defs:
           enabled:
             type: boolean
             default: true
+      nutanix.data_protection.entity.count:
+        description: "NutanixDataProtectionEntityCountMetricConfig provides config for the nutanix.data_protection.entity.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.disk.count:
+        description: "NutanixDiskCountMetricConfig provides config for the nutanix.disk.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.disk.stat:
+        description: "NutanixDiskStatMetricConfig provides config for the nutanix.disk.stat metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.files.entity.count:
+        description: "NutanixFilesEntityCountMetricConfig provides config for the nutanix.files.entity.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.files.entity.stat:
+        description: "NutanixFilesEntityStatMetricConfig provides config for the nutanix.files.entity.stat metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.host.count:
+        description: "NutanixHostCountMetricConfig provides config for the nutanix.host.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
       nutanix.host.stat:
         description: "NutanixHostStatMetricConfig provides config for the nutanix.host.stat metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.microseg.entity.count:
+        description: "NutanixMicrosegEntityCountMetricConfig provides config for the nutanix.microseg.entity.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.monitoring.entity.count:
+        description: "NutanixMonitoringEntityCountMetricConfig provides config for the nutanix.monitoring.entity.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.networking.entity.count:
+        description: "NutanixNetworkingEntityCountMetricConfig provides config for the nutanix.networking.entity.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.networking.entity.stat:
+        description: "NutanixNetworkingEntityStatMetricConfig provides config for the nutanix.networking.entity.stat metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.objects.entity.count:
+        description: "NutanixObjectsEntityCountMetricConfig provides config for the nutanix.objects.entity.count metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.objects.entity.stat:
+        description: "NutanixObjectsEntityStatMetricConfig provides config for the nutanix.objects.entity.stat metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.prism.entity.count:
+        description: "NutanixPrismEntityCountMetricConfig provides config for the nutanix.prism.entity.count metric."
         type: object
         properties:
           enabled:
@@ -34,6 +132,13 @@ $defs:
             default: true
       nutanix.storage.container.stat:
         description: "NutanixStorageContainerStatMetricConfig provides config for the nutanix.storage.container.stat metric."
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            default: true
+      nutanix.subnet.count:
+        description: "NutanixSubnetCountMetricConfig provides config for the nutanix.subnet.count metric."
         type: object
         properties:
           enabled:

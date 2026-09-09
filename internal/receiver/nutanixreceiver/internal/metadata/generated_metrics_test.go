@@ -69,6 +69,10 @@ func TestMetricsBuilder(t *testing.T) {
 
 			defaultMetricsCount++
 			allMetricsCount++
+			mb.RecordNutanixClusterCountDataPoint(ts, 1)
+
+			defaultMetricsCount++
+			allMetricsCount++
 			mb.RecordNutanixClusterInfoDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val")
 
 			defaultMetricsCount++
@@ -77,11 +81,63 @@ func TestMetricsBuilder(t *testing.T) {
 
 			defaultMetricsCount++
 			allMetricsCount++
+			mb.RecordNutanixDataProtectionEntityCountDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.state_type-val", "nutanix.entity.state-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixDiskCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val", AttributeNutanixDiskStorageTierSsdPcie)
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixDiskStatDataPoint(ts, 1, "nutanix.disk.id-val", "nutanix.disk.serial-val", AttributeNutanixDiskStorageTierSsdPcie, "nutanix.host.id-val", "nutanix.host.name-val", "nutanix.cluster.id-val", "nutanix.cluster.name-val", "nutanix.stat.name-val", AttributeNutanixStatKindV2Stats)
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixFilesEntityCountDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.state_type-val", "nutanix.entity.state-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixFilesEntityStatDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.id-val", "nutanix.entity.name-val", "nutanix.stat.name-val", AttributeNutanixStatKindV2Stats)
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixHostCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
 			mb.RecordNutanixHostStatDataPoint(ts, 1, "nutanix.host.id-val", "nutanix.host.name-val", "nutanix.cluster.id-val", "nutanix.cluster.name-val", "nutanix.stat.name-val", AttributeNutanixStatKindV2Stats)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordNutanixStorageContainerCountDataPoint(ts, 1)
+			mb.RecordNutanixMicrosegEntityCountDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.state_type-val", "nutanix.entity.state-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixMonitoringEntityCountDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.state_type-val", "nutanix.entity.state-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixNetworkingEntityCountDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.state_type-val", "nutanix.entity.state-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixNetworkingEntityStatDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.id-val", "nutanix.entity.name-val", "nutanix.stat.name-val", AttributeNutanixStatKindV2Stats)
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixObjectsEntityCountDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.state_type-val", "nutanix.entity.state-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixObjectsEntityStatDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.id-val", "nutanix.entity.name-val", "nutanix.stat.name-val", AttributeNutanixStatKindV2Stats)
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixPrismEntityCountDataPoint(ts, 1, "nutanix.entity.type-val", "nutanix.entity.state_type-val", "nutanix.entity.state-val")
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixStorageContainerCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val", AttributeNutanixStorageContainerEncryptedTrue, AttributeNutanixStorageContainerReplicationFactor1)
 
 			defaultMetricsCount++
 			allMetricsCount++
@@ -89,7 +145,11 @@ func TestMetricsBuilder(t *testing.T) {
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordNutanixVMCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val", "nutanix.host.id-val", "nutanix.host.name-val", AttributeNutanixVMPowerStateOn)
+			mb.RecordNutanixSubnetCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val", AttributeNutanixSubnetExternalTrue, AttributeNutanixSubnetNetworkingModeBasic, AttributeNutanixSubnetTypeOverlay)
+
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordNutanixVMCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val", "nutanix.host.id-val", "nutanix.host.name-val", AttributeNutanixVMPowerStateOn, AttributeNutanixVMBootTypeLegacy, AttributeNutanixVMGpuPresentTrue, AttributeNutanixVMGuestToolsStateInstalled, AttributeNutanixVMProtectionTypeUnprotected)
 
 			defaultMetricsCount++
 			allMetricsCount++
@@ -113,7 +173,7 @@ func TestMetricsBuilder(t *testing.T) {
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordNutanixVolumeGroupCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val")
+			mb.RecordNutanixVolumeGroupCountDataPoint(ts, 1, "nutanix.cluster.id-val", "nutanix.cluster.name-val", AttributeNutanixVolumeGroupSharingStatusShared)
 
 			defaultMetricsCount++
 			allMetricsCount++
@@ -153,6 +213,18 @@ func TestMetricsBuilder(t *testing.T) {
 			validatedMetrics := make(map[string]bool)
 			for _, mi := range allMetricsList {
 				switch mi.Name() {
+				case "nutanix.cluster.count":
+					assert.False(t, validatedMetrics["nutanix.cluster.count"], "Found a duplicate in the metrics slice: nutanix.cluster.count")
+					validatedMetrics["nutanix.cluster.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of managed Nutanix clusters.", mi.Description())
+					assert.Equal(t, "{cluster}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
 				case "nutanix.cluster.info":
 					assert.False(t, validatedMetrics["nutanix.cluster.info"], "Found a duplicate in the metrics slice: nutanix.cluster.info")
 					validatedMetrics["nutanix.cluster.info"] = true
@@ -177,7 +249,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
 					assert.Equal(t, "Latest Nutanix Prism statistic for a cluster.", mi.Description())
-					assert.Equal(t, "1", mi.Unit())
+					assert.Empty(t, mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -195,13 +267,160 @@ func TestMetricsBuilder(t *testing.T) {
 					nutanixStatKindAttrVal, ok := dp.Attributes().Get("nutanix.stat.kind")
 					assert.True(t, ok)
 					assert.Equal(t, "v2.stats", nutanixStatKindAttrVal.Str())
+				case "nutanix.data_protection.entity.count":
+					assert.False(t, validatedMetrics["nutanix.data_protection.entity.count"], "Found a duplicate in the metrics slice: nutanix.data_protection.entity.count")
+					validatedMetrics["nutanix.data_protection.entity.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix data protection entities.", mi.Description())
+					assert.Equal(t, "{entity}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityStateTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.state_type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state_type-val", nutanixEntityStateTypeAttrVal.Str())
+					nutanixEntityStateAttrVal, ok := dp.Attributes().Get("nutanix.entity.state")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state-val", nutanixEntityStateAttrVal.Str())
+				case "nutanix.disk.count":
+					assert.False(t, validatedMetrics["nutanix.disk.count"], "Found a duplicate in the metrics slice: nutanix.disk.count")
+					validatedMetrics["nutanix.disk.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix physical disks.", mi.Description())
+					assert.Equal(t, "{disk}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixClusterIDAttrVal, ok := dp.Attributes().Get("nutanix.cluster.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.id-val", nutanixClusterIDAttrVal.Str())
+					nutanixClusterNameAttrVal, ok := dp.Attributes().Get("nutanix.cluster.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.name-val", nutanixClusterNameAttrVal.Str())
+					nutanixDiskStorageTierAttrVal, ok := dp.Attributes().Get("nutanix.disk.storage_tier")
+					assert.True(t, ok)
+					assert.Equal(t, "ssd_pcie", nutanixDiskStorageTierAttrVal.Str())
+				case "nutanix.disk.stat":
+					assert.False(t, validatedMetrics["nutanix.disk.stat"], "Found a duplicate in the metrics slice: nutanix.disk.stat")
+					validatedMetrics["nutanix.disk.stat"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Latest Nutanix Prism statistic for a physical disk.", mi.Description())
+					assert.Empty(t, mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixDiskIDAttrVal, ok := dp.Attributes().Get("nutanix.disk.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.disk.id-val", nutanixDiskIDAttrVal.Str())
+					nutanixDiskSerialAttrVal, ok := dp.Attributes().Get("nutanix.disk.serial")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.disk.serial-val", nutanixDiskSerialAttrVal.Str())
+					nutanixDiskStorageTierAttrVal, ok := dp.Attributes().Get("nutanix.disk.storage_tier")
+					assert.True(t, ok)
+					assert.Equal(t, "ssd_pcie", nutanixDiskStorageTierAttrVal.Str())
+					nutanixHostIDAttrVal, ok := dp.Attributes().Get("nutanix.host.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.host.id-val", nutanixHostIDAttrVal.Str())
+					nutanixHostNameAttrVal, ok := dp.Attributes().Get("nutanix.host.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.host.name-val", nutanixHostNameAttrVal.Str())
+					nutanixClusterIDAttrVal, ok := dp.Attributes().Get("nutanix.cluster.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.id-val", nutanixClusterIDAttrVal.Str())
+					nutanixClusterNameAttrVal, ok := dp.Attributes().Get("nutanix.cluster.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.name-val", nutanixClusterNameAttrVal.Str())
+					nutanixStatNameAttrVal, ok := dp.Attributes().Get("nutanix.stat.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.stat.name-val", nutanixStatNameAttrVal.Str())
+					nutanixStatKindAttrVal, ok := dp.Attributes().Get("nutanix.stat.kind")
+					assert.True(t, ok)
+					assert.Equal(t, "v2.stats", nutanixStatKindAttrVal.Str())
+				case "nutanix.files.entity.count":
+					assert.False(t, validatedMetrics["nutanix.files.entity.count"], "Found a duplicate in the metrics slice: nutanix.files.entity.count")
+					validatedMetrics["nutanix.files.entity.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix Files entities.", mi.Description())
+					assert.Equal(t, "{entity}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityStateTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.state_type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state_type-val", nutanixEntityStateTypeAttrVal.Str())
+					nutanixEntityStateAttrVal, ok := dp.Attributes().Get("nutanix.entity.state")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state-val", nutanixEntityStateAttrVal.Str())
+				case "nutanix.files.entity.stat":
+					assert.False(t, validatedMetrics["nutanix.files.entity.stat"], "Found a duplicate in the metrics slice: nutanix.files.entity.stat")
+					validatedMetrics["nutanix.files.entity.stat"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Latest statistic for a Nutanix Files entity.", mi.Description())
+					assert.Empty(t, mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityIDAttrVal, ok := dp.Attributes().Get("nutanix.entity.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.id-val", nutanixEntityIDAttrVal.Str())
+					nutanixEntityNameAttrVal, ok := dp.Attributes().Get("nutanix.entity.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.name-val", nutanixEntityNameAttrVal.Str())
+					nutanixStatNameAttrVal, ok := dp.Attributes().Get("nutanix.stat.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.stat.name-val", nutanixStatNameAttrVal.Str())
+					nutanixStatKindAttrVal, ok := dp.Attributes().Get("nutanix.stat.kind")
+					assert.True(t, ok)
+					assert.Equal(t, "v2.stats", nutanixStatKindAttrVal.Str())
+				case "nutanix.host.count":
+					assert.False(t, validatedMetrics["nutanix.host.count"], "Found a duplicate in the metrics slice: nutanix.host.count")
+					validatedMetrics["nutanix.host.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix hosts.", mi.Description())
+					assert.Equal(t, "{host}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixClusterIDAttrVal, ok := dp.Attributes().Get("nutanix.cluster.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.id-val", nutanixClusterIDAttrVal.Str())
+					nutanixClusterNameAttrVal, ok := dp.Attributes().Get("nutanix.cluster.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.name-val", nutanixClusterNameAttrVal.Str())
 				case "nutanix.host.stat":
 					assert.False(t, validatedMetrics["nutanix.host.stat"], "Found a duplicate in the metrics slice: nutanix.host.stat")
 					validatedMetrics["nutanix.host.stat"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
 					assert.Equal(t, "Latest Nutanix Prism statistic for a host.", mi.Description())
-					assert.Equal(t, "1", mi.Unit())
+					assert.Empty(t, mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -225,6 +444,165 @@ func TestMetricsBuilder(t *testing.T) {
 					nutanixStatKindAttrVal, ok := dp.Attributes().Get("nutanix.stat.kind")
 					assert.True(t, ok)
 					assert.Equal(t, "v2.stats", nutanixStatKindAttrVal.Str())
+				case "nutanix.microseg.entity.count":
+					assert.False(t, validatedMetrics["nutanix.microseg.entity.count"], "Found a duplicate in the metrics slice: nutanix.microseg.entity.count")
+					validatedMetrics["nutanix.microseg.entity.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix microsegmentation entities.", mi.Description())
+					assert.Equal(t, "{entity}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityStateTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.state_type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state_type-val", nutanixEntityStateTypeAttrVal.Str())
+					nutanixEntityStateAttrVal, ok := dp.Attributes().Get("nutanix.entity.state")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state-val", nutanixEntityStateAttrVal.Str())
+				case "nutanix.monitoring.entity.count":
+					assert.False(t, validatedMetrics["nutanix.monitoring.entity.count"], "Found a duplicate in the metrics slice: nutanix.monitoring.entity.count")
+					validatedMetrics["nutanix.monitoring.entity.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix monitoring entities.", mi.Description())
+					assert.Equal(t, "{entity}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityStateTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.state_type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state_type-val", nutanixEntityStateTypeAttrVal.Str())
+					nutanixEntityStateAttrVal, ok := dp.Attributes().Get("nutanix.entity.state")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state-val", nutanixEntityStateAttrVal.Str())
+				case "nutanix.networking.entity.count":
+					assert.False(t, validatedMetrics["nutanix.networking.entity.count"], "Found a duplicate in the metrics slice: nutanix.networking.entity.count")
+					validatedMetrics["nutanix.networking.entity.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix networking entities.", mi.Description())
+					assert.Equal(t, "{entity}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityStateTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.state_type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state_type-val", nutanixEntityStateTypeAttrVal.Str())
+					nutanixEntityStateAttrVal, ok := dp.Attributes().Get("nutanix.entity.state")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state-val", nutanixEntityStateAttrVal.Str())
+				case "nutanix.networking.entity.stat":
+					assert.False(t, validatedMetrics["nutanix.networking.entity.stat"], "Found a duplicate in the metrics slice: nutanix.networking.entity.stat")
+					validatedMetrics["nutanix.networking.entity.stat"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Latest statistic for a Nutanix networking entity.", mi.Description())
+					assert.Empty(t, mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityIDAttrVal, ok := dp.Attributes().Get("nutanix.entity.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.id-val", nutanixEntityIDAttrVal.Str())
+					nutanixEntityNameAttrVal, ok := dp.Attributes().Get("nutanix.entity.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.name-val", nutanixEntityNameAttrVal.Str())
+					nutanixStatNameAttrVal, ok := dp.Attributes().Get("nutanix.stat.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.stat.name-val", nutanixStatNameAttrVal.Str())
+					nutanixStatKindAttrVal, ok := dp.Attributes().Get("nutanix.stat.kind")
+					assert.True(t, ok)
+					assert.Equal(t, "v2.stats", nutanixStatKindAttrVal.Str())
+				case "nutanix.objects.entity.count":
+					assert.False(t, validatedMetrics["nutanix.objects.entity.count"], "Found a duplicate in the metrics slice: nutanix.objects.entity.count")
+					validatedMetrics["nutanix.objects.entity.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix Objects entities.", mi.Description())
+					assert.Equal(t, "{entity}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityStateTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.state_type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state_type-val", nutanixEntityStateTypeAttrVal.Str())
+					nutanixEntityStateAttrVal, ok := dp.Attributes().Get("nutanix.entity.state")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state-val", nutanixEntityStateAttrVal.Str())
+				case "nutanix.objects.entity.stat":
+					assert.False(t, validatedMetrics["nutanix.objects.entity.stat"], "Found a duplicate in the metrics slice: nutanix.objects.entity.stat")
+					validatedMetrics["nutanix.objects.entity.stat"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Latest statistic for a Nutanix Objects entity.", mi.Description())
+					assert.Empty(t, mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityIDAttrVal, ok := dp.Attributes().Get("nutanix.entity.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.id-val", nutanixEntityIDAttrVal.Str())
+					nutanixEntityNameAttrVal, ok := dp.Attributes().Get("nutanix.entity.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.name-val", nutanixEntityNameAttrVal.Str())
+					nutanixStatNameAttrVal, ok := dp.Attributes().Get("nutanix.stat.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.stat.name-val", nutanixStatNameAttrVal.Str())
+					nutanixStatKindAttrVal, ok := dp.Attributes().Get("nutanix.stat.kind")
+					assert.True(t, ok)
+					assert.Equal(t, "v2.stats", nutanixStatKindAttrVal.Str())
+				case "nutanix.prism.entity.count":
+					assert.False(t, validatedMetrics["nutanix.prism.entity.count"], "Found a duplicate in the metrics slice: nutanix.prism.entity.count")
+					validatedMetrics["nutanix.prism.entity.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix Prism Central entities.", mi.Description())
+					assert.Equal(t, "{entity}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixEntityTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.type-val", nutanixEntityTypeAttrVal.Str())
+					nutanixEntityStateTypeAttrVal, ok := dp.Attributes().Get("nutanix.entity.state_type")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state_type-val", nutanixEntityStateTypeAttrVal.Str())
+					nutanixEntityStateAttrVal, ok := dp.Attributes().Get("nutanix.entity.state")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.entity.state-val", nutanixEntityStateAttrVal.Str())
 				case "nutanix.storage.container.count":
 					assert.False(t, validatedMetrics["nutanix.storage.container.count"], "Found a duplicate in the metrics slice: nutanix.storage.container.count")
 					validatedMetrics["nutanix.storage.container.count"] = true
@@ -237,13 +615,25 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, ts, dp.Timestamp())
 					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
 					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixClusterIDAttrVal, ok := dp.Attributes().Get("nutanix.cluster.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.id-val", nutanixClusterIDAttrVal.Str())
+					nutanixClusterNameAttrVal, ok := dp.Attributes().Get("nutanix.cluster.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.name-val", nutanixClusterNameAttrVal.Str())
+					nutanixStorageContainerEncryptedAttrVal, ok := dp.Attributes().Get("nutanix.storage.container.encrypted")
+					assert.True(t, ok)
+					assert.Equal(t, "true", nutanixStorageContainerEncryptedAttrVal.Str())
+					nutanixStorageContainerReplicationFactorAttrVal, ok := dp.Attributes().Get("nutanix.storage.container.replication_factor")
+					assert.True(t, ok)
+					assert.Equal(t, "1", nutanixStorageContainerReplicationFactorAttrVal.Str())
 				case "nutanix.storage.container.stat":
 					assert.False(t, validatedMetrics["nutanix.storage.container.stat"], "Found a duplicate in the metrics slice: nutanix.storage.container.stat")
 					validatedMetrics["nutanix.storage.container.stat"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
 					assert.Equal(t, "Latest Nutanix Prism statistic for a storage container.", mi.Description())
-					assert.Equal(t, "1", mi.Unit())
+					assert.Empty(t, mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -267,6 +657,33 @@ func TestMetricsBuilder(t *testing.T) {
 					nutanixStatKindAttrVal, ok := dp.Attributes().Get("nutanix.stat.kind")
 					assert.True(t, ok)
 					assert.Equal(t, "v2.stats", nutanixStatKindAttrVal.Str())
+				case "nutanix.subnet.count":
+					assert.False(t, validatedMetrics["nutanix.subnet.count"], "Found a duplicate in the metrics slice: nutanix.subnet.count")
+					validatedMetrics["nutanix.subnet.count"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Number of Nutanix subnets.", mi.Description())
+					assert.Equal(t, "{subnet}", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+					nutanixClusterIDAttrVal, ok := dp.Attributes().Get("nutanix.cluster.id")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.id-val", nutanixClusterIDAttrVal.Str())
+					nutanixClusterNameAttrVal, ok := dp.Attributes().Get("nutanix.cluster.name")
+					assert.True(t, ok)
+					assert.Equal(t, "nutanix.cluster.name-val", nutanixClusterNameAttrVal.Str())
+					nutanixSubnetExternalAttrVal, ok := dp.Attributes().Get("nutanix.subnet.external")
+					assert.True(t, ok)
+					assert.Equal(t, "true", nutanixSubnetExternalAttrVal.Str())
+					nutanixSubnetNetworkingModeAttrVal, ok := dp.Attributes().Get("nutanix.subnet.networking_mode")
+					assert.True(t, ok)
+					assert.Equal(t, "basic", nutanixSubnetNetworkingModeAttrVal.Str())
+					nutanixSubnetTypeAttrVal, ok := dp.Attributes().Get("nutanix.subnet.type")
+					assert.True(t, ok)
+					assert.Equal(t, "overlay", nutanixSubnetTypeAttrVal.Str())
 				case "nutanix.vm.count":
 					assert.False(t, validatedMetrics["nutanix.vm.count"], "Found a duplicate in the metrics slice: nutanix.vm.count")
 					validatedMetrics["nutanix.vm.count"] = true
@@ -294,6 +711,18 @@ func TestMetricsBuilder(t *testing.T) {
 					nutanixVMPowerStateAttrVal, ok := dp.Attributes().Get("nutanix.vm.power_state")
 					assert.True(t, ok)
 					assert.Equal(t, "on", nutanixVMPowerStateAttrVal.Str())
+					nutanixVMBootTypeAttrVal, ok := dp.Attributes().Get("nutanix.vm.boot.type")
+					assert.True(t, ok)
+					assert.Equal(t, "legacy", nutanixVMBootTypeAttrVal.Str())
+					nutanixVMGpuPresentAttrVal, ok := dp.Attributes().Get("nutanix.vm.gpu.present")
+					assert.True(t, ok)
+					assert.Equal(t, "true", nutanixVMGpuPresentAttrVal.Str())
+					nutanixVMGuestToolsStateAttrVal, ok := dp.Attributes().Get("nutanix.vm.guest_tools.state")
+					assert.True(t, ok)
+					assert.Equal(t, "installed", nutanixVMGuestToolsStateAttrVal.Str())
+					nutanixVMProtectionTypeAttrVal, ok := dp.Attributes().Get("nutanix.vm.protection.type")
+					assert.True(t, ok)
+					assert.Equal(t, "unprotected", nutanixVMProtectionTypeAttrVal.Str())
 				case "nutanix.vm.disk.count":
 					assert.False(t, validatedMetrics["nutanix.vm.disk.count"], "Found a duplicate in the metrics slice: nutanix.vm.disk.count")
 					validatedMetrics["nutanix.vm.disk.count"] = true
@@ -375,7 +804,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
 					assert.Equal(t, "Latest Nutanix Prism statistic for a virtual machine.", mi.Description())
-					assert.Equal(t, "1", mi.Unit())
+					assert.Empty(t, mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -444,13 +873,16 @@ func TestMetricsBuilder(t *testing.T) {
 					nutanixClusterNameAttrVal, ok := dp.Attributes().Get("nutanix.cluster.name")
 					assert.True(t, ok)
 					assert.Equal(t, "nutanix.cluster.name-val", nutanixClusterNameAttrVal.Str())
+					nutanixVolumeGroupSharingStatusAttrVal, ok := dp.Attributes().Get("nutanix.volume_group.sharing_status")
+					assert.True(t, ok)
+					assert.Equal(t, "shared", nutanixVolumeGroupSharingStatusAttrVal.Str())
 				case "nutanix.volume_group.stat":
 					assert.False(t, validatedMetrics["nutanix.volume_group.stat"], "Found a duplicate in the metrics slice: nutanix.volume_group.stat")
 					validatedMetrics["nutanix.volume_group.stat"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
 					assert.Equal(t, "Latest Nutanix Prism statistic for a volume group.", mi.Description())
-					assert.Equal(t, "1", mi.Unit())
+					assert.Empty(t, mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())

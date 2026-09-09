@@ -16,7 +16,7 @@
 package nutanixreceiver
 
 import (
-	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -26,9 +26,10 @@ type metricStat struct {
 }
 
 type nutanixCluster struct {
-	ID    string
-	Name  string
-	Stats []metricStat
+	ID        string
+	Name      string
+	Functions []string
+	Stats     []metricStat
 }
 
 type nutanixHost struct {
@@ -40,32 +41,91 @@ type nutanixHost struct {
 }
 
 type nutanixStorageContainer struct {
-	ID          string
-	Name        string
-	ClusterID   string
-	ClusterName string
-	Stats       []metricStat
-}
-
-type nutanixVM struct {
+	Encrypted         *bool
 	ID                string
 	Name              string
 	ClusterID         string
-	HostID            string
-	PowerState        string
-	DiskBuses         []string
+	ClusterName       string
 	Stats             []metricStat
-	MemoryBytes       int64
-	NumSockets        int
-	NumCoresPerSocket int
-	NICCount          int
+	ReplicationFactor int
+}
+
+type nutanixVM struct {
+	GuestTools         nutanixGuestTools
+	BootType           string
+	Name               string
+	ClusterID          string
+	HostID             string
+	PowerState         string
+	ID                 string
+	ProtectionPolicyID string
+	ProtectionType     string
+	DiskBuses          []string
+	Stats              []metricStat
+	NumSockets         int
+	NICCount           int
+	NumCoresPerSocket  int
+	MemoryBytes        int64
+	HasGPU             bool
+}
+
+type nutanixGuestTools struct {
+	Installed          *bool
+	Enabled            *bool
+	Reachable          *bool
+	VSSSnapshotCapable *bool
 }
 
 type nutanixVolumeGroup struct {
-	ID        string
-	Name      string
-	ClusterID string
-	Stats     []metricStat
+	ID            string
+	Name          string
+	ClusterID     string
+	SharingStatus string
+	Stats         []metricStat
+}
+
+type nutanixDisk struct {
+	ID          string
+	Serial      string
+	ClusterID   string
+	ClusterName string
+	HostID      string
+	HostName    string
+	StorageTier string
+	Stats       []metricStat
+}
+
+type nutanixSubnet struct {
+	AdvancedNetworking *bool
+	External           *bool
+	ID                 string
+	Name               string
+	SubnetType         string
+	ClusterIDs         []string
+}
+
+type additionalMetricsRequest struct {
+	VMs               []nutanixVM
+	DataProtection    bool
+	Files             bool
+	Microsegmentation bool
+	Networking        bool
+	Objects           bool
+	PrismCentral      bool
+}
+
+type additionalSnapshot struct {
+	Metrics []additionalMetric
+	Errors  []error
+}
+
+type additionalMetric struct {
+	Attributes  map[string]string
+	Name        string
+	Description string
+	Unit        string
+	Stats       []metricStat
+	Value       float64
 }
 
 func stringValue(value *string) string {
@@ -87,6 +147,20 @@ func int64Value(value *int64) int64 {
 		return 0
 	}
 	return *value
+}
+
+func boolString(value *bool) string {
+	if value == nil {
+		return ""
+	}
+	return strconv.FormatBool(*value)
+}
+
+func positiveIntString(value int) string {
+	if value <= 0 {
+		return ""
+	}
+	return strconv.Itoa(value)
 }
 
 func cloneAttrs(attrs map[string]string) map[string]string {
@@ -113,117 +187,11 @@ func normalizeEnumName(value string) string {
 	return strings.ToLower(value)
 }
 
-func statsFromStruct(value any) []metricStat {
-	rv := reflect.ValueOf(value)
-	for rv.IsValid() && rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return nil
-		}
-		rv = rv.Elem()
-	}
-	if !rv.IsValid() || rv.Kind() != reflect.Struct {
-		return nil
-	}
-
-	rt := rv.Type()
-	stats := make([]metricStat, 0)
-	for i := 0; i < rv.NumField(); i++ {
-		field := rt.Field(i)
-		name := jsonFieldName(field)
-		if name == "" || skipStatField(name) {
-			continue
-		}
-
-		fieldValue := rv.Field(i)
-		if value, ok := latestValueFromSeries(fieldValue); ok {
-			stats = append(stats, metricStat{Name: name, Value: value})
-			continue
-		}
-		if value, ok := numberFromValue(fieldValue); ok {
-			stats = append(stats, metricStat{Name: name, Value: value})
+func isPrismCentralCluster(cluster nutanixCluster) bool {
+	for _, function := range cluster.Functions {
+		if normalizeEnumName(function) == "prism_central" {
+			return true
 		}
 	}
-	return stats
-}
-
-func jsonFieldName(field reflect.StructField) string {
-	tag := field.Tag.Get("json")
-	if tag == "-" {
-		return ""
-	}
-	if tag == "" {
-		return lowerFirst(field.Name)
-	}
-	name, _, _ := strings.Cut(tag, ",")
-	return name
-}
-
-func lowerFirst(value string) string {
-	if value == "" {
-		return ""
-	}
-	return strings.ToLower(value[:1]) + value[1:]
-}
-
-func skipStatField(name string) bool {
-	switch name {
-	case "$objectType", "$reserved", "$unknownFields", "extId", "tenantId", "links",
-		"timestamp", "cluster", "containerExtId", "volumeGroupExtId", "stats":
-		return true
-	default:
-		return false
-	}
-}
-
-func latestValueFromSeries(value reflect.Value) (float64, bool) {
-	for value.IsValid() && value.Kind() == reflect.Pointer {
-		if value.IsNil() {
-			return 0, false
-		}
-		value = value.Elem()
-	}
-	if !value.IsValid() || value.Kind() != reflect.Slice {
-		return 0, false
-	}
-
-	for i := value.Len() - 1; i >= 0; i-- {
-		item := value.Index(i)
-		for item.IsValid() && item.Kind() == reflect.Pointer {
-			if item.IsNil() {
-				return 0, false
-			}
-			item = item.Elem()
-		}
-		if !item.IsValid() || item.Kind() != reflect.Struct {
-			continue
-		}
-		valueField := item.FieldByName("Value")
-		if value, ok := numberFromValue(valueField); ok {
-			return value, true
-		}
-	}
-	return 0, false
-}
-
-func numberFromValue(value reflect.Value) (float64, bool) {
-	for value.IsValid() && value.Kind() == reflect.Pointer {
-		if value.IsNil() {
-			return 0, false
-		}
-		value = value.Elem()
-	}
-	if !value.IsValid() {
-		return 0, false
-	}
-
-	switch value.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return float64(value.Int()), true
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return float64(value.Uint()), true
-	case reflect.Float32, reflect.Float64:
-		return value.Float(), true
-	default:
-		return 0, false
-	}
+	return false
 }

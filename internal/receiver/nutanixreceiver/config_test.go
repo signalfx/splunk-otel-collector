@@ -83,3 +83,14 @@ func TestInvalidConfig(t *testing.T) {
 	cfg.Metrics = MetricsConfig{}
 	require.ErrorContains(t, cfg.Validate(), "at least one")
 }
+
+func TestPrismElementRejectsPrismCentralOnlyMetrics(t *testing.T) {
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = "prism-element.example.com"
+	cfg.APIVersion = "v2.0"
+	cfg.Username = "readonly"
+	cfg.Password = "secret"
+	cfg.Metrics.Networking.Enabled = true
+
+	require.ErrorContains(t, cfg.Validate(), "require api_version v4")
+}

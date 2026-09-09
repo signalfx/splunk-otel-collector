@@ -27,19 +27,64 @@ func TestMetricsBuilderConfig(t *testing.T) {
 			name: "all_set",
 			want: MetricsBuilderConfig{
 				Metrics: MetricsConfig{
+					NutanixClusterCount: MetricConfig{
+						Enabled: true,
+					},
 					NutanixClusterInfo: MetricConfig{
 						Enabled: true,
 					},
 					NutanixClusterStat: MetricConfig{
 						Enabled: true,
 					},
+					NutanixDataProtectionEntityCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixDiskCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixDiskStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixFilesEntityCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixFilesEntityStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixHostCount: MetricConfig{
+						Enabled: true,
+					},
 					NutanixHostStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixMicrosegEntityCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixMonitoringEntityCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingEntityCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingEntityStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixObjectsEntityCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixObjectsEntityStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixPrismEntityCount: MetricConfig{
 						Enabled: true,
 					},
 					NutanixStorageContainerCount: MetricConfig{
 						Enabled: true,
 					},
 					NutanixStorageContainerStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixSubnetCount: MetricConfig{
 						Enabled: true,
 					},
 					NutanixVMCount: MetricConfig{
@@ -80,19 +125,64 @@ func TestMetricsBuilderConfig(t *testing.T) {
 			name: "none_set",
 			want: MetricsBuilderConfig{
 				Metrics: MetricsConfig{
+					NutanixClusterCount: MetricConfig{
+						Enabled: false,
+					},
 					NutanixClusterInfo: MetricConfig{
 						Enabled: false,
 					},
 					NutanixClusterStat: MetricConfig{
 						Enabled: false,
 					},
+					NutanixDataProtectionEntityCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixDiskCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixDiskStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixFilesEntityCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixFilesEntityStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixHostCount: MetricConfig{
+						Enabled: false,
+					},
 					NutanixHostStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixMicrosegEntityCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixMonitoringEntityCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingEntityCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingEntityStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixObjectsEntityCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixObjectsEntityStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixPrismEntityCount: MetricConfig{
 						Enabled: false,
 					},
 					NutanixStorageContainerCount: MetricConfig{
 						Enabled: false,
 					},
 					NutanixStorageContainerStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixSubnetCount: MetricConfig{
 						Enabled: false,
 					},
 					NutanixVMCount: MetricConfig{

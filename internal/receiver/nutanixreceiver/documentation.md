@@ -12,6 +12,14 @@ metrics:
     enabled: false
 ```
 
+### nutanix.cluster.count
+
+Number of managed Nutanix clusters.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {cluster} | Gauge | Double | Alpha |
+
 ### nutanix.cluster.info
 
 Information marker for a Nutanix cluster.
@@ -33,7 +41,7 @@ Latest Nutanix Prism statistic for a cluster.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| 1 | Gauge | Double | Alpha |
+|  | Gauge | Double | Alpha |
 
 #### Attributes
 
@@ -44,13 +52,116 @@ Latest Nutanix Prism statistic for a cluster.
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
 
+### nutanix.data_protection.entity.count
+
+Number of Nutanix data protection entities.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {entity} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
+| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+
+### nutanix.disk.count
+
+Number of Nutanix physical disks.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {disk} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.cluster.id | Unique identifier of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.cluster.name | Name of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.disk.storage_tier | Storage tier of the Nutanix physical disk. | Str: ``ssd_pcie``, ``ssd_sata``, ``das_sata``, ``ssd_mem_nvme``, ``cloud`` | Recommended |
+
+### nutanix.disk.stat
+
+Latest Nutanix Prism statistic for a physical disk.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.disk.id | Unique identifier of the Nutanix physical disk. | Any Str | Recommended |
+| nutanix.disk.serial | Serial number of the Nutanix physical disk. | Any Str | Recommended |
+| nutanix.disk.storage_tier | Storage tier of the Nutanix physical disk. | Str: ``ssd_pcie``, ``ssd_sata``, ``das_sata``, ``ssd_mem_nvme``, ``cloud`` | Recommended |
+| nutanix.host.id | Unique identifier of the Nutanix host. | Any Str | Recommended |
+| nutanix.host.name | Name of the Nutanix host. | Any Str | Recommended |
+| nutanix.cluster.id | Unique identifier of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.cluster.name | Name of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.files.entity.count
+
+Number of Nutanix Files entities.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {entity} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
+| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+
+### nutanix.files.entity.stat
+
+Latest statistic for a Nutanix Files entity.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.id | Unique identifier of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.name | Name of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.host.count
+
+Number of Nutanix hosts.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {host} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.cluster.id | Unique identifier of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.cluster.name | Name of the Nutanix cluster. | Any Str | Recommended |
+
 ### nutanix.host.stat
 
 Latest Nutanix Prism statistic for a host.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| 1 | Gauge | Double | Alpha |
+|  | Gauge | Double | Alpha |
 
 #### Attributes
 
@@ -63,6 +174,122 @@ Latest Nutanix Prism statistic for a host.
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
 
+### nutanix.microseg.entity.count
+
+Number of Nutanix microsegmentation entities.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {entity} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
+| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+
+### nutanix.monitoring.entity.count
+
+Number of Nutanix monitoring entities.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {entity} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
+| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+
+### nutanix.networking.entity.count
+
+Number of Nutanix networking entities.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {entity} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
+| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+
+### nutanix.networking.entity.stat
+
+Latest statistic for a Nutanix networking entity.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.id | Unique identifier of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.name | Name of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.objects.entity.count
+
+Number of Nutanix Objects entities.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {entity} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
+| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+
+### nutanix.objects.entity.stat
+
+Latest statistic for a Nutanix Objects entity.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.id | Unique identifier of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.name | Name of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.prism.entity.count
+
+Number of Nutanix Prism Central entities.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {entity} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
+| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+
 ### nutanix.storage.container.count
 
 Number of Nutanix storage containers.
@@ -71,13 +298,22 @@ Number of Nutanix storage containers.
 | ---- | ----------- | ---------- | --------- |
 | {storage_container} | Gauge | Double | Alpha |
 
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.cluster.id | Unique identifier of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.cluster.name | Name of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.storage.container.encrypted | Whether the Nutanix storage container is encrypted. | Str: ``true``, ``false`` | Recommended |
+| nutanix.storage.container.replication_factor | Replication factor configured for the Nutanix storage container. | Str: ``1``, ``2``, ``3`` | Recommended |
+
 ### nutanix.storage.container.stat
 
 Latest Nutanix Prism statistic for a storage container.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| 1 | Gauge | Double | Alpha |
+|  | Gauge | Double | Alpha |
 
 #### Attributes
 
@@ -89,6 +325,24 @@ Latest Nutanix Prism statistic for a storage container.
 | nutanix.cluster.name | Name of the Nutanix cluster. | Any Str | Recommended |
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.subnet.count
+
+Number of Nutanix subnets.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {subnet} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.cluster.id | Unique identifier of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.cluster.name | Name of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.subnet.external | Whether the Nutanix subnet is external. | Str: ``true``, ``false`` | Recommended |
+| nutanix.subnet.networking_mode | Whether the Nutanix subnet uses basic or advanced networking. | Str: ``basic``, ``advanced`` | Recommended |
+| nutanix.subnet.type | Type of the Nutanix subnet. | Str: ``overlay``, ``vlan`` | Recommended |
 
 ### nutanix.vm.count
 
@@ -107,6 +361,10 @@ Number of Nutanix virtual machines.
 | nutanix.host.id | Unique identifier of the Nutanix host. | Any Str | Recommended |
 | nutanix.host.name | Name of the Nutanix host. | Any Str | Recommended |
 | nutanix.vm.power_state | Power state of the Nutanix virtual machine. | Str: ``on``, ``off`` | Recommended |
+| nutanix.vm.boot.type | Firmware boot type configured for the Nutanix virtual machine. | Str: ``legacy``, ``uefi`` | Recommended |
+| nutanix.vm.gpu.present | Whether the Nutanix virtual machine has at least one GPU. | Str: ``true``, ``false`` | Recommended |
+| nutanix.vm.guest_tools.state | Nutanix Guest Tools capability counted for virtual machines. | Str: ``installed``, ``enabled``, ``reachable``, ``vss_snapshot_capable`` | Recommended |
+| nutanix.vm.protection.type | Protection type configured for the Nutanix virtual machine. | Str: ``unprotected``, ``pd_protected``, ``rule_protected`` | Recommended |
 
 ### nutanix.vm.disk.count
 
@@ -166,7 +424,7 @@ Latest Nutanix Prism statistic for a virtual machine.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| 1 | Gauge | Double | Alpha |
+|  | Gauge | Double | Alpha |
 
 #### Attributes
 
@@ -211,6 +469,7 @@ Number of Nutanix volume groups.
 | ---- | ----------- | ------ | -------- |
 | nutanix.cluster.id | Unique identifier of the Nutanix cluster. | Any Str | Recommended |
 | nutanix.cluster.name | Name of the Nutanix cluster. | Any Str | Recommended |
+| nutanix.volume_group.sharing_status | Sharing status of the Nutanix volume group. | Str: ``shared``, ``not_shared`` | Recommended |
 
 ### nutanix.volume_group.stat
 
@@ -218,7 +477,7 @@ Latest Nutanix Prism statistic for a volume group.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| 1 | Gauge | Double | Alpha |
+|  | Gauge | Double | Alpha |
 
 #### Attributes
 

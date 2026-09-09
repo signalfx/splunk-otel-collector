@@ -19,6 +19,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -30,11 +31,23 @@ import (
 // prismElementClient uses the cluster-local Prism Element v2.0 REST API.
 // Prism Element does not expose the Prism Central v4 API namespaces.
 type prismElementClient struct {
-	baseURL    *url.URL
-	httpClient *http.Client
-	username   string
-	password   string
-	cluster    nutanixCluster
+	baseURL     *url.URL
+	httpClient  *http.Client
+	username    string
+	password    string
+	clusterPath string
+	cluster     nutanixCluster
+}
+
+type prismElementHTTPError struct {
+	path       string
+	status     string
+	body       string
+	statusCode int
+}
+
+func (e *prismElementHTTPError) Error() string {
+	return fmt.Sprintf("request %s returned %s: %s", e.path, e.status, e.body)
 }
 
 func newPrismElementClient(cfg *Config) (*prismElementClient, error) {
@@ -66,10 +79,10 @@ func (c *prismElementClient) serverPort() int64 {
 
 func (c *prismElementClient) request(ctx context.Context, path string, query url.Values, result any) error {
 	requestURL := *c.baseURL
-	requestURL.Path = "/api/nutanix/v2.0/" + strings.Trim(path, "/")
+	requestURL.Path = "/PrismGateway/services/rest/v2.0/" + strings.Trim(path, "/") + "/"
 	requestURL.RawQuery = query.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL.String(), http.NoBody)
 	if err != nil {
 		return err
 	}
@@ -85,7 +98,12 @@ func (c *prismElementClient) request(ctx context.Context, path string, query url
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 16*1024))
-		return fmt.Errorf("request %s returned %s: %s", requestURL.Path, resp.Status, strings.TrimSpace(string(body)))
+		return &prismElementHTTPError{
+			path:       requestURL.Path,
+			statusCode: resp.StatusCode,
+			status:     resp.Status,
+			body:       strings.TrimSpace(string(body)),
+		}
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
@@ -104,8 +122,27 @@ func (c *prismElementClient) ensureCluster(ctx context.Context) error {
 
 func (c *prismElementClient) listClusters(ctx context.Context) ([]nutanixCluster, error) {
 	var response map[string]any
-	if err := c.request(ctx, "cluster", nil, &response); err != nil {
-		return nil, err
+	paths := []string{"cluster", "clusters"}
+	if c.clusterPath != "" {
+		paths = []string{c.clusterPath}
+	}
+	var lastErr error
+	for _, path := range paths {
+		response = nil
+		if err := c.request(ctx, path, nil, &response); err != nil {
+			lastErr = err
+			var httpErr *prismElementHTTPError
+			if !errors.As(err, &httpErr) || httpErr.statusCode != http.StatusNotFound {
+				return nil, err
+			}
+			continue
+		}
+		c.clusterPath = path
+		lastErr = nil
+		break
+	}
+	if lastErr != nil {
+		return nil, lastErr
 	}
 
 	entity := response
@@ -174,7 +211,11 @@ func (c *prismElementClient) listVMs(ctx context.Context) ([]nutanixVM, error) {
 		return nil, err
 	}
 	var response map[string]any
-	if err := c.request(ctx, "vms", nil, &response); err != nil {
+	query := url.Values{
+		"include_vm_disk_config": []string{"true"},
+		"include_vm_nic_config":  []string{"true"},
+	}
+	if err := c.request(ctx, "vms", query, &response); err != nil {
 		return nil, err
 	}
 
@@ -226,14 +267,30 @@ func (c *prismElementClient) listVMStats(ctx context.Context) (map[string][]metr
 		return nil, err
 	}
 	result := make(map[string][]metricStat, len(vms))
-	for _, vm := range vms {
-		result[vm.ID] = vm.Stats
+	for i := range vms {
+		result[vms[i].ID] = vms[i].Stats
 	}
 	return result, nil
 }
 
 func (c *prismElementClient) getVolumeGroupStats(_ context.Context, volumeGroup nutanixVolumeGroup) ([]metricStat, error) {
 	return volumeGroup.Stats, nil
+}
+
+func (c *prismElementClient) listDisks(context.Context) ([]nutanixDisk, error) {
+	return nil, nil
+}
+
+func (c *prismElementClient) listSubnets(context.Context) ([]nutanixSubnet, error) {
+	return nil, nil
+}
+
+func (c *prismElementClient) getDiskStats(context.Context, nutanixDisk) ([]metricStat, error) {
+	return nil, nil
+}
+
+func (c *prismElementClient) collectAdditionalMetrics(context.Context, additionalMetricsRequest) (additionalSnapshot, error) {
+	return additionalSnapshot{}, nil
 }
 
 func vmFromElement(entity map[string]any, cluster nutanixCluster) nutanixVM {
@@ -345,6 +402,10 @@ func legacyStats(entity map[string]any) []metricStat {
 func appendNumericStats(result *[]metricStat, prefix string, value any) {
 	switch value := value.(type) {
 	case map[string]any:
+		if sampleValue, ok := value["value"]; ok {
+			appendNumericStats(result, prefix, sampleValue)
+			return
+		}
 		for key, nested := range value {
 			appendNumericStats(result, prefix+"_"+key, nested)
 		}

@@ -51,6 +51,39 @@ attributes:
     description: Name of the Nutanix cluster.
     type: string
 
+  nutanix.disk.id:
+    description: Unique identifier of the Nutanix physical disk.
+    type: string
+
+  nutanix.disk.serial:
+    description: Serial number of the Nutanix physical disk.
+    type: string
+
+  nutanix.disk.storage_tier:
+    description: Storage tier of the Nutanix physical disk.
+    type: string
+    enum: [ssd_pcie, ssd_sata, das_sata, ssd_mem_nvme, cloud]
+
+  nutanix.entity.id:
+    description: Unique identifier of an entity returned by an optional Nutanix Prism Central API.
+    type: string
+
+  nutanix.entity.name:
+    description: Name of an entity returned by an optional Nutanix Prism Central API.
+    type: string
+
+  nutanix.entity.state:
+    description: State value used when grouping optional Nutanix entity counts.
+    type: string
+
+  nutanix.entity.state_type:
+    description: Property represented by nutanix.entity.state.
+    type: string
+
+  nutanix.entity.type:
+    description: Type of entity returned by an optional Nutanix Prism Central API.
+    type: string
+
   nutanix.host.id:
     description: Unique identifier of the Nutanix host.
     type: string
@@ -68,6 +101,11 @@ attributes:
     description: Name of the statistic returned by the Nutanix Prism API.
     type: string
 
+  nutanix.storage.container.encrypted:
+    description: Whether the Nutanix storage container is encrypted.
+    type: string
+    enum: ["true", "false"]
+
   nutanix.storage.container.id:
     description: Unique identifier of the Nutanix storage container.
     type: string
@@ -76,10 +114,45 @@ attributes:
     description: Name of the Nutanix storage container.
     type: string
 
+  nutanix.storage.container.replication_factor:
+    description: Replication factor configured for the Nutanix storage container.
+    type: string
+    enum: ["1", "2", "3"]
+
+  nutanix.subnet.external:
+    description: Whether the Nutanix subnet is external.
+    type: string
+    enum: ["true", "false"]
+
+  nutanix.subnet.networking_mode:
+    description: Whether the Nutanix subnet uses basic or advanced networking.
+    type: string
+    enum: [basic, advanced]
+
+  nutanix.subnet.type:
+    description: Type of the Nutanix subnet.
+    type: string
+    enum: [overlay, vlan]
+
+  nutanix.vm.boot.type:
+    description: Firmware boot type configured for the Nutanix virtual machine.
+    type: string
+    enum: [legacy, uefi]
+
   nutanix.vm.disk.bus:
     description: Disk bus type of the Nutanix virtual machine disks.
     type: string
     enum: [ide, sata, scsi]
+
+  nutanix.vm.gpu.present:
+    description: Whether the Nutanix virtual machine has at least one GPU.
+    type: string
+    enum: ["true", "false"]
+
+  nutanix.vm.guest_tools.state:
+    description: Nutanix Guest Tools capability counted for virtual machines.
+    type: string
+    enum: [installed, enabled, reachable, vss_snapshot_capable]
 
   nutanix.vm.id:
     description: Unique identifier of the Nutanix virtual machine.
@@ -94,6 +167,11 @@ attributes:
     type: string
     enum: [on, off]
 
+  nutanix.vm.protection.type:
+    description: Protection type configured for the Nutanix virtual machine.
+    type: string
+    enum: [unprotected, pd_protected, rule_protected]
+
   nutanix.volume_group.id:
     description: Unique identifier of the Nutanix volume group.
     type: string
@@ -102,7 +180,20 @@ attributes:
     description: Name of the Nutanix volume group.
     type: string
 
+  nutanix.volume_group.sharing_status:
+    description: Sharing status of the Nutanix volume group.
+    type: string
+    enum: [shared, not_shared]
+
 metrics:
+  nutanix.cluster.count:
+    enabled: true
+    description: Number of managed Nutanix clusters.
+    stability: alpha
+    unit: "{cluster}"
+    gauge:
+      value_type: double
+
   nutanix.cluster.info:
     enabled: true
     description: Information marker for a Nutanix cluster.
@@ -116,21 +207,139 @@ metrics:
     enabled: true
     description: Latest Nutanix Prism statistic for a cluster.
     stability: alpha
-    unit: "1"
+    unit: ""
     gauge:
       value_type: double
     attributes:
       [nutanix.cluster.id, nutanix.cluster.name, nutanix.stat.name, nutanix.stat.kind]
 
+  nutanix.data_protection.entity.count:
+    enabled: true
+    description: Number of Nutanix data protection entities.
+    stability: alpha
+    unit: "{entity}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+
+  nutanix.disk.count:
+    enabled: true
+    description: Number of Nutanix physical disks.
+    stability: alpha
+    unit: "{disk}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.cluster.id, nutanix.cluster.name, nutanix.disk.storage_tier]
+
+  nutanix.disk.stat:
+    enabled: true
+    description: Latest Nutanix Prism statistic for a physical disk.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes:
+      [nutanix.disk.id, nutanix.disk.serial, nutanix.disk.storage_tier, nutanix.host.id, nutanix.host.name, nutanix.cluster.id, nutanix.cluster.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.files.entity.count:
+    enabled: true
+    description: Number of Nutanix Files entities.
+    stability: alpha
+    unit: "{entity}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+
+  nutanix.files.entity.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix Files entity.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.id, nutanix.entity.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.host.count:
+    enabled: true
+    description: Number of Nutanix hosts.
+    stability: alpha
+    unit: "{host}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.cluster.id, nutanix.cluster.name]
+
   nutanix.host.stat:
     enabled: true
     description: Latest Nutanix Prism statistic for a host.
     stability: alpha
-    unit: "1"
+    unit: ""
     gauge:
       value_type: double
     attributes:
       [nutanix.host.id, nutanix.host.name, nutanix.cluster.id, nutanix.cluster.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.microseg.entity.count:
+    enabled: true
+    description: Number of Nutanix microsegmentation entities.
+    stability: alpha
+    unit: "{entity}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+
+  nutanix.monitoring.entity.count:
+    enabled: true
+    description: Number of Nutanix monitoring entities.
+    stability: alpha
+    unit: "{entity}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+
+  nutanix.networking.entity.count:
+    enabled: true
+    description: Number of Nutanix networking entities.
+    stability: alpha
+    unit: "{entity}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+
+  nutanix.networking.entity.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix networking entity.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.id, nutanix.entity.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.objects.entity.count:
+    enabled: true
+    description: Number of Nutanix Objects entities.
+    stability: alpha
+    unit: "{entity}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+
+  nutanix.objects.entity.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix Objects entity.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.id, nutanix.entity.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.prism.entity.count:
+    enabled: true
+    description: Number of Nutanix Prism Central entities.
+    stability: alpha
+    unit: "{entity}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
 
   nutanix.storage.container.count:
     enabled: true
@@ -139,16 +348,27 @@ metrics:
     unit: "{storage_container}"
     gauge:
       value_type: double
+    attributes:
+      [nutanix.cluster.id, nutanix.cluster.name, nutanix.storage.container.encrypted, nutanix.storage.container.replication_factor]
 
   nutanix.storage.container.stat:
     enabled: true
     description: Latest Nutanix Prism statistic for a storage container.
     stability: alpha
-    unit: "1"
+    unit: ""
     gauge:
       value_type: double
     attributes:
       [nutanix.storage.container.id, nutanix.storage.container.name, nutanix.cluster.id, nutanix.cluster.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.subnet.count:
+    enabled: true
+    description: Number of Nutanix subnets.
+    stability: alpha
+    unit: "{subnet}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.cluster.id, nutanix.cluster.name, nutanix.subnet.external, nutanix.subnet.networking_mode, nutanix.subnet.type]
 
   nutanix.vm.count:
     enabled: true
@@ -158,7 +378,7 @@ metrics:
     gauge:
       value_type: double
     attributes:
-      [nutanix.cluster.id, nutanix.cluster.name, nutanix.host.id, nutanix.host.name, nutanix.vm.power_state]
+      [nutanix.cluster.id, nutanix.cluster.name, nutanix.host.id, nutanix.host.name, nutanix.vm.power_state, nutanix.vm.boot.type, nutanix.vm.gpu.present, nutanix.vm.guest_tools.state, nutanix.vm.protection.type]
 
   nutanix.vm.disk.count:
     enabled: true
@@ -194,7 +414,7 @@ metrics:
     enabled: true
     description: Latest Nutanix Prism statistic for a virtual machine.
     stability: alpha
-    unit: "1"
+    unit: ""
     gauge:
       value_type: double
     attributes:
@@ -217,13 +437,13 @@ metrics:
     unit: "{volume_group}"
     gauge:
       value_type: double
-    attributes: [nutanix.cluster.id, nutanix.cluster.name]
+    attributes: [nutanix.cluster.id, nutanix.cluster.name, nutanix.volume_group.sharing_status]
 
   nutanix.volume_group.stat:
     enabled: true
     description: Latest Nutanix Prism statistic for a volume group.
     stability: alpha
-    unit: "1"
+    unit: ""
     gauge:
       value_type: double
     attributes:

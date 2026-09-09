@@ -1,15 +1,45 @@
 default:
 all_set:
   metrics:
+    nutanix.cluster.count:
+      enabled: true
     nutanix.cluster.info:
       enabled: true
     nutanix.cluster.stat:
       enabled: true
+    nutanix.data_protection.entity.count:
+      enabled: true
+    nutanix.disk.count:
+      enabled: true
+    nutanix.disk.stat:
+      enabled: true
+    nutanix.files.entity.count:
+      enabled: true
+    nutanix.files.entity.stat:
+      enabled: true
+    nutanix.host.count:
+      enabled: true
     nutanix.host.stat:
+      enabled: true
+    nutanix.microseg.entity.count:
+      enabled: true
+    nutanix.monitoring.entity.count:
+      enabled: true
+    nutanix.networking.entity.count:
+      enabled: true
+    nutanix.networking.entity.stat:
+      enabled: true
+    nutanix.objects.entity.count:
+      enabled: true
+    nutanix.objects.entity.stat:
+      enabled: true
+    nutanix.prism.entity.count:
       enabled: true
     nutanix.storage.container.count:
       enabled: true
     nutanix.storage.container.stat:
+      enabled: true
+    nutanix.subnet.count:
       enabled: true
     nutanix.vm.count:
       enabled: true
@@ -40,15 +70,45 @@ all_set:
       enabled: true
 none_set:
   metrics:
+    nutanix.cluster.count:
+      enabled: false
     nutanix.cluster.info:
       enabled: false
     nutanix.cluster.stat:
       enabled: false
+    nutanix.data_protection.entity.count:
+      enabled: false
+    nutanix.disk.count:
+      enabled: false
+    nutanix.disk.stat:
+      enabled: false
+    nutanix.files.entity.count:
+      enabled: false
+    nutanix.files.entity.stat:
+      enabled: false
+    nutanix.host.count:
+      enabled: false
     nutanix.host.stat:
+      enabled: false
+    nutanix.microseg.entity.count:
+      enabled: false
+    nutanix.monitoring.entity.count:
+      enabled: false
+    nutanix.networking.entity.count:
+      enabled: false
+    nutanix.networking.entity.stat:
+      enabled: false
+    nutanix.objects.entity.count:
+      enabled: false
+    nutanix.objects.entity.stat:
+      enabled: false
+    nutanix.prism.entity.count:
       enabled: false
     nutanix.storage.container.count:
       enabled: false
     nutanix.storage.container.stat:
+      enabled: false
+    nutanix.subnet.count:
       enabled: false
     nutanix.vm.count:
       enabled: false

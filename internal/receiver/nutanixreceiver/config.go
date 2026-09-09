@@ -40,7 +40,14 @@ type MetricCategoryConfig struct {
 
 type MetricsConfig struct {
 	Clusters          MetricCategoryConfig `mapstructure:"clusters"`
+	DataProtection    MetricCategoryConfig `mapstructure:"data_protection"`
+	Disks             MetricCategoryConfig `mapstructure:"disks"`
+	Files             MetricCategoryConfig `mapstructure:"files"`
 	Hosts             MetricCategoryConfig `mapstructure:"hosts"`
+	Microsegmentation MetricCategoryConfig `mapstructure:"microsegmentation"`
+	Networking        MetricCategoryConfig `mapstructure:"networking"`
+	Objects           MetricCategoryConfig `mapstructure:"objects"`
+	PrismCentral      MetricCategoryConfig `mapstructure:"prism_central"`
 	StorageContainers MetricCategoryConfig `mapstructure:"storage_containers"`
 	VMs               MetricCategoryConfig `mapstructure:"vms"`
 	VolumeGroups      MetricCategoryConfig `mapstructure:"volume_groups"`
@@ -97,11 +104,27 @@ func (cfg *Config) Validate() error {
 		return errors.New(`"port" must be between 1 and 65535`)
 	}
 	if !cfg.Metrics.Clusters.Enabled &&
+		!cfg.Metrics.DataProtection.Enabled &&
+		!cfg.Metrics.Disks.Enabled &&
+		!cfg.Metrics.Files.Enabled &&
 		!cfg.Metrics.Hosts.Enabled &&
+		!cfg.Metrics.Microsegmentation.Enabled &&
+		!cfg.Metrics.Networking.Enabled &&
+		!cfg.Metrics.Objects.Enabled &&
+		!cfg.Metrics.PrismCentral.Enabled &&
 		!cfg.Metrics.StorageContainers.Enabled &&
 		!cfg.Metrics.VMs.Enabled &&
 		!cfg.Metrics.VolumeGroups.Enabled {
 		return errors.New("at least one metric category must be enabled")
+	}
+	if cfg.APIVersion == "v2.0" && (cfg.Metrics.DataProtection.Enabled ||
+		cfg.Metrics.Disks.Enabled ||
+		cfg.Metrics.Files.Enabled ||
+		cfg.Metrics.Microsegmentation.Enabled ||
+		cfg.Metrics.Networking.Enabled ||
+		cfg.Metrics.Objects.Enabled ||
+		cfg.Metrics.PrismCentral.Enabled) {
+		return errors.New("disks, networking, prism_central, data_protection, microsegmentation, files, and objects metrics require api_version v4")
 	}
 	return nil
 }

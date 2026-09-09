@@ -45,6 +45,10 @@
     instrumentation_method: "splunk.zc.method=splunk-otel-auto-instrumentation-{{ installed_instrumentation_version }}"
     instrumentation_method_suffix: "{{ '-systemd' if expected_instrumentation_systemd else '' }}"
     instrumentation_custom_attributes: "{{ ',deployment.environment.name=test' if expected_custom_instrumentation else '' }}"
+    expected_disabled_runtimes: >-
+      {{ (['jvm'] if 'java' not in expected_instrumentation_sdks else [])
+      + (['nodejs'] if 'nodejs' not in expected_instrumentation_sdks else [])
+      + (['dotnet'] if 'dotnet' not in expected_instrumentation_sdks else []) }}
     dotnet_plugin_line: >-
       OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
 
@@ -60,9 +64,11 @@
 - name: Assert OpenTelemetry injector SDK selection
   ansible.builtin.assert:
     that:
-      - "('auto_instrumentation_disabled=jvm' in injector_config_lines) == ('java' not in expected_instrumentation_sdks)"
-      - "('auto_instrumentation_disabled=nodejs' in injector_config_lines) == ('nodejs' not in expected_instrumentation_sdks)"
-      - "('auto_instrumentation_disabled=dotnet' in injector_config_lines) == ('dotnet' not in expected_instrumentation_sdks)"
+      - >-
+        (('auto_instrumentation_disabled=' + (expected_disabled_runtimes | join(','))) in injector_config_lines)
+        == (expected_disabled_runtimes | length > 0)
+      - >-
+        (injector_config_lines | select('match', '^auto_instrumentation_disabled=') | list | length) <= 1
 
 - name: Assert OpenTelemetry injector environment
   vars:

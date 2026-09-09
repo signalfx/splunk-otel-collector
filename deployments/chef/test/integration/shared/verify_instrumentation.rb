@@ -50,12 +50,13 @@ def verify_instrumentation(sdks:, systemd:, custom: false, custom_preload: false
     its('content') do
       should match %r{^dotnet_auto_instrumentation_agent_path_prefix=/usr/lib/splunk-instrumentation/splunk-otel-dotnet$}
     end
-    { 'java' => 'jvm', 'nodejs' => 'nodejs', 'dotnet' => 'dotnet' }.each do |sdk, injector_name|
-      if sdks.include?(sdk)
-        its('content') { should_not match(/^auto_instrumentation_disabled=#{injector_name}$/) }
-      else
-        its('content') { should match(/^auto_instrumentation_disabled=#{injector_name}$/) }
-      end
+    disabled_runtimes = { 'java' => 'jvm', 'nodejs' => 'nodejs', 'dotnet' => 'dotnet' }
+      .select { |sdk, _runtime| !sdks.include?(sdk) }
+      .map { |_sdk, runtime| runtime }
+    if disabled_runtimes.empty?
+      its('content') { should_not match(/^auto_instrumentation_disabled=/) }
+    else
+      its('content') { should match(/^auto_instrumentation_disabled=#{disabled_runtimes.join(',')}$/) }
     end
   end
 

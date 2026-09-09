@@ -47,6 +47,10 @@
 {% set dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet' %}
 {% set injector_config_path = '/etc/opentelemetry/injector/injector.conf' %}
 {% set injector_default_env_path = '/etc/opentelemetry/injector/default_env.conf' %}
+{% set disabled_runtimes = [] %}
+{% if 'java' not in auto_instrumentation_sdks %}{% set _ = disabled_runtimes.append('jvm') %}{% endif %}
+{% if 'nodejs' not in auto_instrumentation_sdks %}{% set _ = disabled_runtimes.append('nodejs') %}{% endif %}
+{% if 'dotnet' not in auto_instrumentation_sdks or not dotnet_supported %}{% set _ = disabled_runtimes.append('dotnet') %}{% endif %}
 
 {% if zypper_local_artifact_testing_enabled %}
 Install local splunk-otel-auto-instrumentation package:
@@ -118,14 +122,8 @@ Install splunk-otel-js:
         - jvm_auto_instrumentation_agent_path={{ auto_instrumentation_java_agent_path }}
         - nodejs_auto_instrumentation_agent_path={{ nodejs_prefix }}/node_modules/@splunk/otel/instrument.js
         - dotnet_auto_instrumentation_agent_path_prefix={{ dotnet_home }}
-        {% if 'java' not in auto_instrumentation_sdks %}
-        - auto_instrumentation_disabled=jvm
-        {% endif %}
-        {% if 'nodejs' not in auto_instrumentation_sdks %}
-        - auto_instrumentation_disabled=nodejs
-        {% endif %}
-        {% if 'dotnet' not in auto_instrumentation_sdks or not dotnet_supported %}
-        - auto_instrumentation_disabled=dotnet
+        {% if disabled_runtimes %}
+        - auto_instrumentation_disabled={{ disabled_runtimes | join(',') }}
         {% endif %}
     - makedirs: True
     - require:

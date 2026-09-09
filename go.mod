@@ -32,6 +32,7 @@ require (
 	github.com/prometheus/prometheus v0.314.0
 	github.com/shirou/gopsutil/v4 v4.26.8
 	github.com/signalfx/splunk-otel-collector/baseline v0.0.0
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.0.0-00010101000000-000000000000
@@ -820,6 +821,7 @@ require (
 replace (
 	github.com/signalfx/signalfx-agent => ./internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/baseline => ./baseline
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter => ./pkg/exporter/splunkoutputsexporter
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension => ./pkg/extension/oracleencodingextension
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor => ./pkg/processor/rollingspanlatencyprocessor

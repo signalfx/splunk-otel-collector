@@ -28,3 +28,4 @@ gnmi:
           overrides:
             oper-status:
               type: gauge
+              enum_values: [UP, DOWN, TESTING]

@@ -25,7 +25,7 @@ create_collector_pr() {
   setup_branch "$branch" "$repo_url"
 
   echo ">>> Getting latest opentelemetry-injector release ..."
-  tag="$( gh release view --repo "https://github.com/open-telemetry/opentelemetry-injector" --json tagName --jq 'select(.isDraft|not and .isPrelease|not) | .tagName' )"
+  tag="$( gh release view --repo "https://github.com/open-telemetry/opentelemetry-injector" --json tagName,isDraft,isPrerelease --jq 'select((.isDraft|not) and (.isPrerelease|not)) | .tagName' )"
   if [[ -n "$tag" ]]; then
     echo ">>> Updating opentelemetry-injector version to $tag ..."
     echo "$tag" > instrumentation/packaging/injector-release.txt

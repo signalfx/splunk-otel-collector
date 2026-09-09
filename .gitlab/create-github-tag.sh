@@ -39,9 +39,10 @@ git fetch origin
 git checkout "$COMMIT_SHA"
 
 echo ">>> Creating signed tags for module set $MODULE_SET ($VERSION_TAG) at $COMMIT_SHA ..."
-multimod tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags \
-  | sort -u \
-  | while IFS= read -r tag; do
-      echo ">>> Pushing tag $tag to GitHub ..."
-      git push origin "$tag"
-    done
+tags="$( multimod tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags | sort -u )"
+
+echo ">>> Pushing tags to GitHub: $tags"
+# Word-split $tags into args; module tags never contain spaces. --atomic so the
+# whole module set is published or none of it is.
+# shellcheck disable=SC2086
+git push --atomic origin $tags

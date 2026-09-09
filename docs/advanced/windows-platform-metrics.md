@@ -48,7 +48,7 @@ To also send metrics and traces to Splunk Observability Cloud at the same time, 
 
 ## What gets collected
 
-By default, the Collector uses the `windowsperfcounters` receiver to collect system metrics from the Windows host at `10s` or `30s` collection interval. Metrics collected by default come from following objects:
+By default, the Collector uses the `windows_perf_counters` receiver to collect system metrics from the Windows host at `10s` or `30s` collection interval. Metrics collected by default come from following objects:
 
 - Processor
 - Processor Information
@@ -67,7 +67,7 @@ By default, the Collector uses the `windowsperfcounters` receiver to collect sys
 Edit `C:\ProgramData\Splunk\OpenTelemetry Collector\splunk_metrics_config_windows.yaml` and comment/add counters:
 
 ```yaml
-  windowsperfcounters/cpu:
+  windows_perf_counters/cpu:
     collection_interval: 10s
     perfcounters:
       - object: Processor

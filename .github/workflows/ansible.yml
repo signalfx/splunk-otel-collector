@@ -137,7 +137,6 @@ jobs:
           - amazonlinux2023
           - centos9
           - centos10
-          - debian11
           - debian12
           - debian13
           - oraclelinux9

@@ -141,7 +141,14 @@ after installation/configuration in order for any changes to take effect.
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation)
   provided by the `splunk-otel-auto-instrumentation` package to activate and
   configure auto instrumentation system-wide for all supported applications.
-  Package versions through `0.159.0` use `libsplunk.so` instead.
+  Package versions through `0.159.0` use `libsplunk.so` instead. When
+  upgrading a node from a `libsplunk.so`-based version, the package preserves
+  the legacy `/etc/splunk/zeroconfig/` files under
+  `/usr/lib/splunk-instrumentation/legacy-zeroconfig/` before removing them.
+  This formula does not manage or clean up that backup directory across the
+  fleet; remove it manually on each node (or via the package's
+  `preuninstall.sh` with `REMOVE_LEGACY_CONFIG=true`) once any custom
+  settings have been migrated.
   Alternatively, set this option to `True` to activate and configure auto
   instrumentation ***only*** for supported applications running as `systemd`
   services. If this option is set to `True`,

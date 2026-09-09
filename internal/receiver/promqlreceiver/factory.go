@@ -18,22 +18,26 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/scraper/scraperhelper"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver/internal/metadata"
 )
 
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
-		component.MustNewType("promql"),
+		metadata.Type,
 		createDefaultConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelDevelopment),
+		receiver.WithMetrics(createMetricsReceiver, metadata.MetricsStability),
 	)
 }
 
 func createDefaultConfig() component.Config {
 	return &Config{
 		ControllerConfig: scraperhelper.NewDefaultControllerConfig(),
+		ClientConfig:     confighttp.NewDefaultClientConfig(),
 	}
 }
 

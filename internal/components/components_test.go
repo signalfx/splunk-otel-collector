@@ -103,6 +103,7 @@ func TestDefaultComponents(t *testing.T) {
 		"prometheus",
 		"prometheus_remote_write",
 		"prometheus_simple",
+		"promql",
 		"purefa",
 		"rabbitmq",
 		"receiver_creator",

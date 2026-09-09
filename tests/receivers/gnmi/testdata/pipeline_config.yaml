@@ -23,6 +23,14 @@ receivers:
             default:
               type: sum
               unit: By
+          - path: /interfaces/interface/state
+            origin: openconfig
+            mode: sample
+            sample_interval: 1s
+            overrides:
+              oper-status:
+                type: gauge
+                enum_values: ["UP", "DOWN"]
 
 exporters:
   otlp_grpc:

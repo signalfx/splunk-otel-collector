@@ -63,7 +63,7 @@ func TestLoadConfig(t *testing.T) {
 		Mode:              modeOnChange,
 		HeartbeatInterval: 60 * time.Second,
 		Overrides: map[string]MetricConfig{
-			"oper-status": {Type: metricTypeGauge},
+			"oper-status": {Type: metricTypeGauge, EnumValues: []string{"UP", "DOWN", "TESTING"}},
 		},
 	}, target.Subscriptions[1])
 }
@@ -241,6 +241,43 @@ func TestValidate(t *testing.T) {
 				c.Targets[0].Subscriptions[0].Overrides = map[string]MetricConfig{
 					"in-octets": {Type: metricTypeSum, Unit: "By"},
 				}
+			},
+		},
+		{
+			name: "enum_values with sum type",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Default = &MetricConfig{Type: metricTypeSum, EnumValues: []string{"UP", "DOWN"}}
+			},
+			expectedErr: "enum_values is not supported with type \"sum\"",
+		},
+		{
+			name: "enum_values with empty entry",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Default = &MetricConfig{Type: metricTypeGauge, EnumValues: []string{"UP", ""}}
+			},
+			expectedErr: "enum_values must not contain empty values",
+		},
+		{
+			name: "enum_values with duplicate entry",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Default = &MetricConfig{Type: metricTypeGauge, EnumValues: []string{"UP", "UP"}}
+			},
+			expectedErr: "enum_values contains duplicate values",
+		},
+		{
+			name: "enum_values with duplicate after module-prefix normalization",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Default = &MetricConfig{
+					Type:       metricTypeGauge,
+					EnumValues: []string{"openconfig-interfaces:UP", "UP"},
+				}
+			},
+			expectedErr: "enum_values contains duplicate values",
+		},
+		{
+			name: "enum_values with gauge type is valid",
+			mutate: func(c *Config) {
+				c.Targets[0].Subscriptions[0].Default = &MetricConfig{Type: metricTypeGauge, EnumValues: []string{"UP", "DOWN", "TESTING"}}
 			},
 		},
 	}

@@ -26,6 +26,7 @@ exclude = [
     "^https://dev.mysql.com",
     "https://developers.redhat.com/*", # Failing with 403 Forbidden
     "https://cloud-native.slack.com/archives/*", # Channel archives require an authenticated Slack session
+    "https://github.com/signalfx/signalfx-agent/*", # The repository is private, preserving the links
 ]
 
 include-fragments = true

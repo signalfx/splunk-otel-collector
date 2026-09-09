@@ -1,0 +1,66 @@
+<endpoint name="data/inputs/splunk-connect-for-otlp">
+    <header>OTLP Input</header>
+    <breadcrumb>
+        <parent hidecurrent="False">datainputstats</parent>
+        <name>OTLP Input</name>
+    </breadcrumb>
+    <elements>
+        <element name="configFields" type="fieldset">
+            <key name="legend">OTLP</key>
+            <view name="list"/>
+            <view name="edit"/>
+            <view name="create"/>
+            <elements>
+                <element name="name" label="Name" required="true">
+                    <view name="list"/>
+                    <view name="create"/>
+                    <key name="helpText">Name of the input (required)</key>
+                </element>
+                <element name="grpc_port" label="gRPC port">
+                    <view name="list"/>
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">4317</key>
+                    <key name="helpText">Port on which the receiver will listen for gRPC OTLP traffic</key>
+                </element>
+                <element name="http_port" label="HTTP port">
+                    <view name="list"/>
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">4318</key>
+                    <key name="helpText">Port on which the receiver will listen for HTTP OTLP traffic</key>
+                </element>
+                <element name="listen_address" label="Listening address">
+                    <view name="list"/>
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">0.0.0.0</key>
+                    <key name="helpText">The listening address to bind the receiver to</key>
+                </element>
+                <element name="enableSSL" label="Enable SSL" required="false">
+                    <view name="list"/>
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="helpText">Secure traffic by changing the protocol from HTTP to HTTPS, requires a certificate</key>
+                </element>
+
+                <element name="serverCert" label="Server Certificate" required="false">
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="helpText">File location of SSL certificate to secure connections, required if SSL is enabled</key>
+                </element>
+
+                <element name="serverKey" label="Server Key" required="false">
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="helpText">File location of SSL key to secure connections, required if SSL is enabled</key>
+                </element>
+            </elements>
+        </element>
+        <element name="eai:acl.app" label="App">
+            <view name="list"/>
+            <key name="processValueList">entity['eai:acl']['app'] or ""</key>
+        </element>
+
+    </elements>
+</endpoint>

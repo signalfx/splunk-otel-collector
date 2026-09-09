@@ -1,7 +1,7 @@
 monitors:
 - dimensions:
   doc: |
-    **This monitor is deprecated and will be removed on or after October 2026. Please use the windowsperfcounters receiver instead.**
+    **This monitor is deprecated and will be removed on or after October 2026. Please use the windows_perf_counters receiver instead.**
     This monitor reads Windows performance
     counters
 

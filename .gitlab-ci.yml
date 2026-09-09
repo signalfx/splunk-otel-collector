@@ -588,6 +588,27 @@ build-tar:
     paths:
       - dist/splunk-otel-collector*.tar.gz
 
+pack-otlpinput:
+  extends:
+    - .trigger-filter
+    - .go-cache
+  needs:
+    - job: sign-exe
+      artifacts: true
+    - job: compile
+      artifacts: true
+  script:
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        export VERSION="${VERSION_TAG}"
+      fi
+      echo "VERSION is set to $VERSION"
+    - cd packaging/otlpinput && make tgz
+  artifacts:
+    paths:
+      - packaging/otlpinput/out/distribution/
+
 pack-ta-v2:
   extends:
     - .trigger-filter
@@ -1352,6 +1373,40 @@ verify-signed-metadata:
 
       echo "Metadata signature OK for ${TARGET}${ARCH:+-${ARCH}}"
 
+.verify-rpm-repository-install:
+  image: '${DOCKER_HUB_REPO}/rockylinux:9'
+  rules:
+    - *no-schedules-condition
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION == ""
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+-(beta|rc)\.[0-9]+$/
+    - *dry-run-condition
+  needs:
+    - job: release-rpms
+      artifacts: false
+  retry: 2
+  parallel:
+    matrix:
+      - ARCH: x86_64
+        RUNNER_TAG: main
+      - ARCH: aarch64
+        RUNNER_TAG: arm
+  tags:
+    - $RUNNER_TAG
+  before_script:
+    - *get-artifactory-stage
+  script:
+    - RPM_REPO_GPGCHECK=1 RPM_REPO_STAGE="$STAGE" ./packaging/tests/verify-rpm-repository-install.sh "$RPM_TEST_CASE" "$ARCH"
+
+verify-rpm-candidate-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: candidate
+
+verify-rpm-previous-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: previous
+
 # only upload the msi to S3 for stable release tags
 release-msi:
   rules:
@@ -1479,7 +1534,7 @@ ta-v2-splunkbase-release:
           log=$(mktemp)
           echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
           log_files[$app_id]="$log"
-          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" \
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" APP_NAME="Add-On with Splunk OpenTelemetry Collector" \
             ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
           pid=$!
           echo "Started publication process with PID $pid for app ID $app_id"
@@ -1501,6 +1556,59 @@ ta-v2-splunkbase-release:
         exit "$overall_status"
       else
         echo "Skipping TA v2 release - not a stable release tag, manual release, or DRY_RUN is set"
+      fi
+
+otlpinput-splunkbase-release:
+  extends: .trigger-filter
+  needs:
+    - job: manual_release_trigger
+      optional: true
+    - job: pack-otlpinput
+      artifacts: true
+    - job: github-release
+      artifacts: false
+  script:
+    - |
+      # Only push the Splunk Connect for OTLP to Splunkbase for stable release tags or manual releases
+      should_release=false
+      if [[ "${RELEASE_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        should_release=true
+      fi
+      if [[ "$should_release" = true ]] && [[ -z "$DRY_RUN" ]]; then
+        echo "Releasing Splunk Connect for OTLP to Splunkbase"
+        TA_DIR=packaging/otlpinput/out/distribution
+
+        declare -A log_files pids
+        for entry in \
+            "8704:${TA_DIR}/splunk-connect-for-otlp.tgz"
+        do
+          app_id="${entry%%:*}"
+          package="${entry#*:}"
+          log=$(mktemp)
+          echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
+          log_files[$app_id]="$log"
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" APP_NAME="Splunk Connect for OTLP" \
+            ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
+          pid=$!
+          echo "Started publication process with PID $pid for app ID $app_id"
+          pids[$app_id]=$pid
+        done
+
+        overall_status=0
+        for app_id in "${!pids[@]}"; do
+          wait "${pids[$app_id]}" && publish_status=0 || publish_status=$?
+          if [[ "$publish_status" -ne 0 ]]; then
+            overall_status=1
+          fi
+          echo "Publication process for app ID $app_id completed with status ${publish_status}"
+          echo "*+*+*+*+* Logs for app ID $app_id *+*+*+*+*"
+          cat "${log_files[$app_id]}"
+          echo "End of logs for app ID $app_id"
+          rm -f "${log_files[$app_id]}"
+        done
+        exit "$overall_status"
+      else
+        echo "Skipping Splunk Connect for OTLP release - not a stable release tag, manual release, or DRY_RUN is set"
       fi
 
 push-multiarch-manifest:
@@ -1697,6 +1805,8 @@ github-release:
       optional: true
     - job: pack-ta-v2
       artifacts: true
+    - job: pack-otlpinput
+      artifacts: true
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
@@ -1704,6 +1814,7 @@ github-release:
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - cp packaging/ta-v2/out/distribution/* dist/assets/
+    - cp packaging/otlpinput/out/distribution/* dist/assets/
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"

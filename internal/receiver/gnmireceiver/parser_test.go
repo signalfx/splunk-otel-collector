@@ -46,6 +46,20 @@ func countersSubscription() SubscriptionConfig {
 	}
 }
 
+// operStatusSubscription matches /interfaces/interface/state/counters with
+// oper-status configured as a closed enum. Kept separate from
+// countersSubscription so enum_values doesn't affect the plain "_info"
+// tests, which use the same leaf name.
+func operStatusSubscription() SubscriptionConfig {
+	return SubscriptionConfig{
+		Path: "/interfaces/interface/state/counters",
+		Mode: modeSample,
+		Overrides: map[string]MetricConfig{
+			"oper-status": {Type: metricTypeGauge, EnumValues: []string{"UP", "DOWN", "TESTING"}},
+		},
+	}
+}
+
 func testParser(subs ...SubscriptionConfig) *metricParser {
 	if len(subs) == 0 {
 		subs = []SubscriptionConfig{countersSubscription()}
@@ -83,6 +97,32 @@ func onlyMetric(t *testing.T, m pmetric.Metrics) pmetric.Metric {
 	require.Equal(t, 1, sm.Len())
 	require.Equal(t, 1, sm.At(0).Metrics().Len())
 	return sm.At(0).Metrics().At(0)
+}
+
+// metricsByName indexes every metric in m by name, for batches with more
+// than one metric.
+func metricsByName(m pmetric.Metrics) map[string]pmetric.Metric {
+	byName := map[string]pmetric.Metric{}
+	ms := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < ms.Len(); i++ {
+		byName[ms.At(i).Name()] = ms.At(i)
+	}
+	return byName
+}
+
+// stateValue returns the IntValue of the datapoint in metric whose "state"
+// attribute equals state, failing the test if none matches.
+func stateValue(t *testing.T, metric pmetric.Metric, state string) int64 {
+	t.Helper()
+	dps := metric.Gauge().DataPoints()
+	for i := 0; i < dps.Len(); i++ {
+		dp := dps.At(i)
+		if v, ok := dp.Attributes().Get("state"); ok && v.Str() == state {
+			return dp.IntValue()
+		}
+	}
+	require.Failf(t, "no matching datapoint", "no datapoint with state %q", state)
+	return 0
 }
 
 func TestParseSyncResponseYieldsNoMetrics(t *testing.T) {
@@ -237,6 +277,168 @@ func TestParseStringEmitsInfoMetric(t *testing.T) {
 	value, ok := dp.Attributes().Get("value")
 	require.True(t, ok)
 	assert.Equal(t, "UP", value.Str())
+}
+
+func TestParseEnumEmitsStateForEachDeclaredValue(t *testing.T) {
+	m, err := testParser(operStatusSubscription()).parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "UP"}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.oper-status_state", metric.Name())
+	assert.Equal(t, "1", metric.Unit())
+	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
+
+	dps := metric.Gauge().DataPoints()
+	require.Equal(t, 3, dps.Len())
+	for i := 0; i < dps.Len(); i++ {
+		name, ok := dps.At(i).Attributes().Get("name")
+		require.True(t, ok)
+		assert.Equal(t, "eth0", name.Str())
+	}
+	assert.Equal(t, int64(1), stateValue(t, metric, "UP"))
+	assert.Equal(t, int64(0), stateValue(t, metric, "DOWN"))
+	assert.Equal(t, int64(0), stateValue(t, metric, "TESTING"))
+}
+
+func TestParseEnumTransitionClearsPreviousState(t *testing.T) {
+	p := testParser(operStatusSubscription())
+
+	up, err := p.parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "UP"}}))
+	require.NoError(t, err)
+	upMetric := onlyMetric(t, up)
+	assert.Equal(t, int64(1), stateValue(t, upMetric, "UP"))
+	assert.Equal(t, int64(0), stateValue(t, upMetric, "DOWN"))
+
+	down, err := p.parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "DOWN"}}))
+	require.NoError(t, err)
+	downMetric := onlyMetric(t, down)
+	assert.Equal(t, int64(0), stateValue(t, downMetric, "UP"))
+	assert.Equal(t, int64(1), stateValue(t, downMetric, "DOWN"))
+}
+
+func TestParseEnumUnknownValueEmitsAllZerosAndError(t *testing.T) {
+	m, err := testParser(operStatusSubscription()).parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "LOWER_LAYER_DOWN"}}))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "LOWER_LAYER_DOWN")
+	assert.Contains(t, err.Error(), "not in enum_values")
+
+	metric := onlyMetric(t, m)
+	dps := metric.Gauge().DataPoints()
+	require.Equal(t, 3, dps.Len())
+	for i := 0; i < dps.Len(); i++ {
+		assert.Equal(t, int64(0), dps.At(i).IntValue())
+	}
+}
+
+func TestParseEnumStripsModulePrefix(t *testing.T) {
+	m, err := testParser(operStatusSubscription()).parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "openconfig-interfaces:UP"}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, int64(1), stateValue(t, metric, "UP"))
+	assert.Equal(t, int64(0), stateValue(t, metric, "DOWN"))
+}
+
+func TestParseEnumIsCaseSensitive(t *testing.T) {
+	m, err := testParser(operStatusSubscription()).parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "up"}}))
+	require.Error(t, err, "case mismatch must be treated as an unknown value")
+
+	metric := onlyMetric(t, m)
+	dps := metric.Gauge().DataPoints()
+	for i := 0; i < dps.Len(); i++ {
+		assert.Equal(t, int64(0), dps.At(i).IntValue())
+	}
+}
+
+func TestParseEnumTakesPrecedenceOverNumericString(t *testing.T) {
+	sub := SubscriptionConfig{
+		Path: "/interfaces/interface/state/counters",
+		Mode: modeSample,
+		Overrides: map[string]MetricConfig{
+			"oper-status": {Type: metricTypeGauge, EnumValues: []string{"0", "1"}},
+		},
+	}
+	m, err := testParser(sub).parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "1"}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.oper-status_state", metric.Name())
+	assert.Equal(t, int64(1), stateValue(t, metric, "1"))
+	assert.Equal(t, int64(0), stateValue(t, metric, "0"))
+}
+
+func TestParseEnumLeafWithIntValueBypassesEnumHandling(t *testing.T) {
+	m, err := testParser(operStatusSubscription()).parse(updateResponse("oper-status",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_IntVal{IntVal: 1}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.oper-status", metric.Name())
+	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
+	assert.Equal(t, int64(1), metric.Gauge().DataPoints().At(0).IntValue())
+}
+
+func TestParseEnumAndInfoCoexistInSameBatch(t *testing.T) {
+	sub := SubscriptionConfig{
+		Path: "/interfaces/interface/state/counters",
+		Mode: modeSample,
+		Overrides: map[string]MetricConfig{
+			"oper-status":  {Type: metricTypeGauge, EnumValues: []string{"UP", "DOWN"}},
+			"admin-status": {Type: metricTypeGauge},
+		},
+	}
+	m, err := testParser(sub).parse(multiUpdateResponse(
+		updateResponseFor("eth0", "oper-status", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "UP"}}),
+		updateResponseFor("eth0", "admin-status", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "UP"}}),
+	))
+	require.NoError(t, err)
+
+	byName := metricsByName(m)
+	require.Len(t, byName, 2)
+
+	state := byName["interfaces.interface.state.counters.oper-status_state"]
+	require.Equal(t, pmetric.MetricTypeGauge, state.Type())
+	assert.Equal(t, 2, state.Gauge().DataPoints().Len())
+
+	info := byName["interfaces.interface.state.counters.admin-status_info"]
+	require.Equal(t, pmetric.MetricTypeGauge, info.Type())
+	value, ok := info.Gauge().DataPoints().At(0).Attributes().Get("value")
+	require.True(t, ok)
+	assert.Equal(t, "UP", value.Str())
+}
+
+func TestParseEnumMergesAcrossInterfaces(t *testing.T) {
+	m, err := testParser(operStatusSubscription()).parse(multiUpdateResponse(
+		updateResponseFor("eth0", "oper-status", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "UP"}}),
+		updateResponseFor("eth1", "oper-status", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "DOWN"}}),
+	))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	dps := metric.Gauge().DataPoints()
+	require.Equal(t, 6, dps.Len())
+
+	type key struct{ iface, state string }
+	values := map[key]int64{}
+	for i := 0; i < dps.Len(); i++ {
+		dp := dps.At(i)
+		iface, ok := dp.Attributes().Get("name")
+		require.True(t, ok)
+		state, ok := dp.Attributes().Get("state")
+		require.True(t, ok)
+		values[key{iface.Str(), state.Str()}] = dp.IntValue()
+	}
+	assert.Equal(t, map[key]int64{
+		{"eth0", "UP"}: 1, {"eth0", "DOWN"}: 0, {"eth0", "TESTING"}: 0,
+		{"eth1", "UP"}: 0, {"eth1", "DOWN"}: 1, {"eth1", "TESTING"}: 0,
+	}, values)
 }
 
 func TestParseDropsUnconfiguredLeaf(t *testing.T) {
@@ -469,13 +671,15 @@ func TestParseJSONArrayUsesIndexAttribute(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ms := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	require.Equal(t, 2, ms.Len())
+	// Both array elements share the same leaf name, so they merge into a
+	// single Metric with one datapoint per element, per the general OTel
+	// recommendation to reuse a Metric across identical series.
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.queue", metric.Name())
+	require.Equal(t, 2, metric.Sum().DataPoints().Len())
 	indexes := map[string]int64{}
-	for i := 0; i < ms.Len(); i++ {
-		metric := ms.At(i)
-		assert.Equal(t, "interfaces.interface.state.counters.queue", metric.Name())
-		dp := metric.Sum().DataPoints().At(0)
+	for i := 0; i < metric.Sum().DataPoints().Len(); i++ {
+		dp := metric.Sum().DataPoints().At(i)
 		idx, ok := dp.Attributes().Get(indexAttr)
 		require.True(t, ok, "array element must carry an index attribute")
 		indexes[idx.Str()] = dp.IntValue()
@@ -514,14 +718,15 @@ func TestParseLeafListUsesIndexAttribute(t *testing.T) {
 		}}))
 	require.NoError(t, err)
 
-	ms := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	require.Equal(t, 2, ms.Len())
+	// Both leaf-list elements share the same leaf name, so they merge into a
+	// single Metric with one datapoint per element.
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	require.Equal(t, 2, metric.Sum().DataPoints().Len())
 	byIndex := map[string]int64{}
-	for i := 0; i < ms.Len(); i++ {
-		metric := ms.At(i)
-		assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
-		require.Equal(t, pmetric.MetricTypeSum, metric.Type())
-		dp := metric.Sum().DataPoints().At(0)
+	for i := 0; i < metric.Sum().DataPoints().Len(); i++ {
+		dp := metric.Sum().DataPoints().At(i)
 		assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
 		idx, ok := dp.Attributes().Get(indexAttr)
 		require.True(t, ok, "leaf-list element must carry an index attribute")
@@ -544,13 +749,14 @@ func TestParseLeafListOfStringsEmitsInfoMetrics(t *testing.T) {
 		}}))
 	require.NoError(t, err)
 
-	ms := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	require.Equal(t, 2, ms.Len())
+	// Both leaf-list elements share the same _info metric name, so they merge
+	// into a single Metric with one datapoint per element.
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
+	require.Equal(t, 2, metric.Gauge().DataPoints().Len())
 	values := map[string]string{}
-	for i := 0; i < ms.Len(); i++ {
-		metric := ms.At(i)
-		assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
-		dp := metric.Gauge().DataPoints().At(0)
+	for i := 0; i < metric.Gauge().DataPoints().Len(); i++ {
+		dp := metric.Gauge().DataPoints().At(i)
 		idx, _ := dp.Attributes().Get(indexAttr)
 		val, ok := dp.Attributes().Get(infoValueAttr)
 		require.True(t, ok)
@@ -743,8 +949,113 @@ func TestParseUsesNotificationTimestamp(t *testing.T) {
 	assert.Equal(t, int64(1234), dp.Timestamp().AsTime().UnixNano())
 }
 
+func TestParseDisambiguatesCollidingKeyNames(t *testing.T) {
+	sub := SubscriptionConfig{
+		Path:    "/interfaces/interface/subinterfaces/subinterface/queues/queue/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}
+	m, err := testParser(sub).parse(&gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{
+			Update: &gnmipb.Notification{
+				Update: []*gnmipb.Update{{
+					Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
+						{Name: "interfaces"},
+						{Name: "interface", Key: map[string]string{"name": "eth0"}},
+						{Name: "subinterfaces"},
+						{Name: "subinterface", Key: map[string]string{"index": "0"}},
+						{Name: "queues"},
+						{Name: "queue", Key: map[string]string{"index": "3"}},
+						{Name: "state"},
+						{Name: "counters"},
+						{Name: "in-octets"},
+					}},
+					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 1}},
+				}},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	dp := onlyMetric(t, m).Sum().DataPoints().At(0)
+
+	name, ok := dp.Attributes().Get("name")
+	require.True(t, ok, "the unique key name must keep its plain name")
+	assert.Equal(t, "eth0", name.Str())
+
+	_, ok = dp.Attributes().Get("index")
+	assert.False(t, ok, "the colliding key name must not be present unqualified")
+
+	subIndex, ok := dp.Attributes().Get("subinterface.index")
+	require.True(t, ok, "the subinterface's index must be namespaced by its element name")
+	assert.Equal(t, "0", subIndex.Str())
+
+	queueIndex, ok := dp.Attributes().Get("queue.index")
+	require.True(t, ok, "the queue's index must be namespaced by its element name")
+	assert.Equal(t, "3", queueIndex.Str())
+}
+
 func TestPathElemNames(t *testing.T) {
 	assert.Equal(t, []string{"interfaces", "interface", "state"},
 		pathElemNames("/interfaces/interface[name=eth0]/state"))
 	assert.Nil(t, pathElemNames("/"))
+}
+
+// updateResponseFor builds a SubscribeResponse with one update for the given
+// leaf under /interfaces/interface[name=<iface>]/state/counters/<leaf>. Used
+// where updateResponse's hardcoded "eth0" interface isn't enough, e.g. to
+// exercise two leaves merging into one metric across different interfaces.
+func updateResponseFor(iface, leaf string, val *gnmipb.TypedValue) *gnmipb.Update {
+	return &gnmipb.Update{
+		Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{
+			{Name: "interfaces"},
+			{Name: "interface", Key: map[string]string{"name": iface}},
+			{Name: "state"},
+			{Name: "counters"},
+			{Name: leaf},
+		}},
+		Val: val,
+	}
+}
+
+func multiUpdateResponse(updates ...*gnmipb.Update) *gnmipb.SubscribeResponse {
+	return &gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{
+			Update: &gnmipb.Notification{
+				Timestamp: time.Unix(0, 1234).UnixNano(),
+				Update:    updates,
+			},
+		},
+	}
+}
+
+// TestParseMergesSameLeafAcrossInterfacesIntoOneMetric covers review comment
+// #1 on PR #7918
+// (https://github.com/signalfx/splunk-otel-collector/pull/7918#discussion_r3769566400):
+// the same leaf reported for two different interfaces in one notification
+// (e.g. in-octets for eth0 and eth1) has the same path-derived name in both
+// cases, and must merge into a single pmetric.Metric with one datapoint per
+// interface, rather than two separate same-named Metric objects. This is the
+// general OpenTelemetry recommendation to reuse a Metric across identical
+// series.
+func TestParseMergesSameLeafAcrossInterfacesIntoOneMetric(t *testing.T) {
+	m, err := testParser().parse(multiUpdateResponse(
+		updateResponseFor("eth0", "in-octets", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 10}}),
+		updateResponseFor("eth1", "in-octets", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 20}}),
+	))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	require.Equal(t, 2, metric.Sum().DataPoints().Len())
+
+	byInterface := map[string]int64{}
+	for i := 0; i < metric.Sum().DataPoints().Len(); i++ {
+		dp := metric.Sum().DataPoints().At(i)
+		name, ok := dp.Attributes().Get("name")
+		require.True(t, ok)
+		byInterface[name.Str()] = dp.IntValue()
+	}
+	assert.Equal(t, map[string]int64{"eth0": 10, "eth1": 20}, byInterface)
 }

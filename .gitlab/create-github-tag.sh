@@ -28,10 +28,6 @@ source "$SCRIPT_DIR/common.sh"
 ROOT_DIR="${SCRIPT_DIR}/../"
 cd "${ROOT_DIR}"
 
-echo ">>> Installing multimod ..."
-( cd ./internal/tools && go install go.opentelemetry.io/build-tools/multimod )
-MULTIMOD="$(go env GOPATH)/bin/multimod"
-
 setup_gpg
 import_gpg_secret_key "$GITHUB_BOT_GPG_KEY"
 setup_git
@@ -43,7 +39,7 @@ git fetch origin
 git checkout "$COMMIT_SHA"
 
 echo ">>> Creating signed tags for module set $MODULE_SET ($VERSION_TAG) at $COMMIT_SHA ..."
-"$MULTIMOD" tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags \
+multimod tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags \
   | sort -u \
   | while IFS= read -r tag; do
       echo ">>> Pushing tag $tag to GitHub ..."

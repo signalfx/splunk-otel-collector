@@ -112,8 +112,15 @@ if node['splunk_otel_collector']['local_artifact_testing_enabled']
   end
 else
   package 'splunk-otel-auto-instrumentation' do
-    action :install
-    version node['splunk_otel_collector']['auto_instrumentation_version'] if node['splunk_otel_collector']['auto_instrumentation_version'] != 'latest'
+    # :install leaves an already-installed package version in place when no
+    # version is pinned. That's wrong for 'latest': with_otel_injector and the
+    # other with_* flags above are derived from the requested version, so a
+    # stale install would leave the recipe deleting legacy config/pointing
+    # /etc/ld.so.preload at libotelinject.so while the old libsplunk.so-only
+    # package is still what's actually on disk. :upgrade guarantees the
+    # newest available version is installed.
+    action requested_version == 'latest' ? :upgrade : :install
+    version requested_version if requested_version != 'latest'
     flush_cache [ :before ] if platform_family?('amazon', 'rhel')
     options '--allow-downgrades' if platform_family?('debian') \
       && node['packages'] \

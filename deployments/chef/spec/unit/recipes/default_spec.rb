@@ -114,6 +114,13 @@ describe 'splunk_otel_collector::default' do
         expect(chef_run).to_not create_template('/etc/opentelemetry/injector/injector.conf')
         expect(chef_run).to delete_file('/etc/opentelemetry/injector/injector.conf')
       end
+
+      it 'pins the package to the requested version via :install' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to install_package('splunk-otel-auto-instrumentation').with(version: '0.159.0')
+      end
     end
 
     context 'with an OpenTelemetry injector auto-instrumentation release' do
@@ -136,6 +143,33 @@ describe 'splunk_otel_collector::default' do
         expect(chef_run).to create_template('/etc/opentelemetry/injector/injector.conf')
         expect(chef_run).to create_template('/etc/opentelemetry/injector/default_env.conf')
         expect(chef_run).to delete_file('/etc/splunk/zeroconfig/java.conf')
+      end
+
+      it 'pins the package to the requested version via :install' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to install_package('splunk-otel-auto-instrumentation').with(version: '0.160.0')
+      end
+    end
+
+    context 'with the default (latest) auto-instrumentation version' do
+      cached(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '22.04') do |node|
+          node.normal['splunk_otel_collector'] = {
+            'splunk_access_token' => 'test123',
+            'splunk_realm' => 'test',
+            'with_auto_instrumentation' => true,
+            'with_auto_instrumentation_sdks' => %w(java),
+          }
+        end.converge described_recipe
+      end
+
+      it 'forces the newest available version via :upgrade instead of a no-op :install' do
+        stub_command('getent group splunk-otel-collector').and_return(true)
+        stub_command('getent passwd splunk-otel-collector').and_return(true)
+        stub_command("bash -c 'command -v npm'").and_return(false)
+        expect(chef_run).to upgrade_package('splunk-otel-auto-instrumentation')
       end
     end
 

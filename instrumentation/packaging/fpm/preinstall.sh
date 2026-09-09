@@ -17,6 +17,7 @@
 PKG_NAME="splunk-otel-auto-instrumentation"
 LIBSPLUNK_PATH="/usr/lib/splunk-instrumentation/libsplunk.so"
 ZEROCONFIG_DIR="/etc/splunk/zeroconfig"
+PRELOAD_PATH="/etc/ld.so.preload"
 
 # Detect an upgrade from a legacy (pre-injector) install by checking for the
 # old libsplunk.so file on disk rather than querying the installed package
@@ -32,4 +33,20 @@ if [ -f "$LIBSPLUNK_PATH" ]; then
     # new package no longer ships them. Remove them here so they don't
     # linger on disk after the switch to libotelinject.so.
     rm -rf "$ZEROCONFIG_DIR"
+
+    # libsplunk.so itself is removed automatically once the transaction
+    # completes, since it is not shipped by the new package and is not a
+    # conffile. But nothing else in this package rewrites /etc/ld.so.preload
+    # on a plain package-manager upgrade (that's left to config-management
+    # tools/the installer script, which fully re-render the file), so strip
+    # the stale entry here to avoid leaving a dangling reference to a
+    # deleted library in the interim.
+    if [ -f "$PRELOAD_PATH" ] && grep -q "$LIBSPLUNK_PATH" "$PRELOAD_PATH"; then
+        echo "Removing $LIBSPLUNK_PATH from $PRELOAD_PATH"
+        sed -i -e "s|$LIBSPLUNK_PATH||" "$PRELOAD_PATH"
+        if [ ! -s "$PRELOAD_PATH" ] || ! grep -q '[^[:space:]]' "$PRELOAD_PATH"; then
+            echo "Removing empty $PRELOAD_PATH"
+            rm -f "$PRELOAD_PATH"
+        fi
+    fi
 fi

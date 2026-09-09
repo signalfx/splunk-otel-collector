@@ -548,6 +548,11 @@ def test_package_upgrade_from_libsplunk(distro, arch):
         for path in expected_legacy_files:
             assert container_file_exists(container, path), f"{path} not found after legacy install"
 
+        # simulate the legacy install having activated preload-based instrumentation,
+        # alongside an unrelated entry that must survive the upgrade
+        run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
+        run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} >> {PRELOAD_PATH}'")
+
         # upgrade to the locally-built package using libotelinject.so
         if distro in DEB_DISTROS:
             _, output = run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
@@ -564,3 +569,13 @@ def test_package_upgrade_from_libsplunk(distro, arch):
         # verify new files were installed
         for path in INSTALLED_FILES:
             assert container_file_exists(container, path), f"{path} not found after upgrade"
+
+        # verify the stale libsplunk.so entry was removed from /etc/ld.so.preload by the
+        # upgrade itself, without waiting for a config-management/installer reconverge,
+        # while the unrelated pre-existing entry was preserved
+        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        verify_preload(container, "# This line should be preserved")
+
+        # verify libotelinject.so was not automatically added; enabling preload-based
+        # instrumentation remains the responsibility of config-management/the installer
+        verify_preload(container, LIBOTELINJECT_PATH, exists=False)

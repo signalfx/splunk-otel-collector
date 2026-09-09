@@ -502,7 +502,11 @@ def test_package_uninstall(distro, arch):
         assert not container_file_exists(container, LEGACY_CONFIG_DIR)
         run_container_cmd(container, f"mkdir -p {LEGACY_CONFIG_DIR}")
         run_container_cmd(container, f"touch {LEGACY_CONFIG_DIR}/java.conf")
-        run_container_cmd(container, "REMOVE_LEGACY_CONFIG=true sh /test/preuninstall.sh")
+        run_container_cmd(
+            container,
+            "sh /test/preuninstall.sh",
+            env={"REMOVE_LEGACY_CONFIG": "true"},
+        )
         assert not container_file_exists(container, LEGACY_CONFIG_DIR)
 
         verify_preload(container, "# This line should be preserved")

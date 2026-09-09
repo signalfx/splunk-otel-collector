@@ -33,7 +33,7 @@ The [`installer-script-test.yml`](../../.github/workflows/installer-script-test.
 `splunk-otel-collector` deb/rpm package, then runs [`installer_test.py`](installer_test.py) against it in distro
 containers using the [Linux Installer Script](../installer/install.sh). To reproduce a single
 `linux-installer-script-test (<distro>, <arch>, <instrumentation>)` job locally (e.g.
-`linux-installer-script-test (debian-bullseye, arm64, none)`):
+`linux-installer-script-test (debian-bookworm, arm64, none)`):
 
 1. Build the collector binary for the target arch (from the repo root):
 
@@ -43,7 +43,7 @@ containers using the [Linux Installer Script](../installer/install.sh). To repro
 
    Produces `bin/otelcol_linux_<arch>`.
 
-2. Build the deb/rpm package for the target distro's package type (`debian-bullseye` uses `deb`, see
+2. Build the deb/rpm package for the target distro's package type (`debian-bookworm` uses `deb`, see
    `packaging/tests/images/{deb,rpm}/Dockerfile.<distro>` to determine the type for other distros):
 
    ```bash
@@ -70,7 +70,7 @@ containers using the [Linux Installer Script](../installer/install.sh). To repro
    export LOCAL_COLLECTOR_PACKAGE=$(realpath "$package_path")
 
    python3 -u -m pytest -s --verbose \
-     -k "debian-bullseye and arm64 and not instrumentation" \
+     -k "debian-bookworm and arm64 and not instrumentation" \
      packaging/tests/installer_test.py
    ```
 

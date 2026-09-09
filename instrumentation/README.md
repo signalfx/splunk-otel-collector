@@ -114,7 +114,7 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
 The [`auto-instrumentation.yml`](../.github/workflows/auto-instrumentation.yml) workflow builds the collector binary
 and the `splunk-otel-auto-instrumentation` package, then runs `packaging/tests/instrumentation/instrumentation_test.py`
 against them in distro containers. To reproduce a single `test-package (<distro>, <arch>, <testcase>)` job locally
-(e.g. `test-package (debian-bullseye, arm64, dotnet)`):
+(e.g. `test-package (debian-bookworm, arm64, dotnet)`):
 
 1. Build the collector binary for the target arch (from the repo root):
 
@@ -146,7 +146,7 @@ against them in distro containers. To reproduce a single `test-package (<distro>
 
    ```bash
    python3 -u -m pytest -s --verbose \
-     -k "debian-bullseye and arm64 and (dotnet or uninstall)" \
+     -k "debian-bookworm and arm64 and (dotnet or uninstall)" \
      packaging/tests/instrumentation/instrumentation_test.py
    ```
 

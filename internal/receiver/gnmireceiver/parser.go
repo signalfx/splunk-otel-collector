@@ -21,12 +21,14 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver/internal/metadata"
 )
@@ -41,11 +43,14 @@ const (
 
 // metricParser converts gNMI SubscribeResponse messages into OTel metrics.
 type metricParser struct {
+	schema        *yangSchema
+	logger        *zap.Logger
+	unresolved    sync.Map
 	endpoint      string
 	subscriptions []SubscriptionConfig
 }
 
-func newMetricParser(endpoint string, subscriptions []SubscriptionConfig) *metricParser {
+func newMetricParser(endpoint string, subscriptions []SubscriptionConfig, schema *yangSchema, logger *zap.Logger) *metricParser {
 	for i := range subscriptions {
 		sub := &subscriptions[i]
 		if sub.Default != nil {
@@ -56,7 +61,10 @@ func newMetricParser(endpoint string, subscriptions []SubscriptionConfig) *metri
 			sub.Overrides[leaf] = cfg
 		}
 	}
-	return &metricParser{endpoint: endpoint, subscriptions: subscriptions}
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	return &metricParser{endpoint: endpoint, subscriptions: subscriptions, schema: schema, logger: logger}
 }
 
 func cacheNormalizedEnumValues(cfg *MetricConfig) {
@@ -235,43 +243,57 @@ func (p *metricParser) emitInt(
 	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value int64, ts pcommon.Timestamp,
 ) error {
-	cfg, ok := p.resolve(origin, elems)
+	rm, ok := p.resolve(origin, elems)
 	if !ok {
 		return nil
 	}
-	return p.writeInt(b, origin, elems, keys, cfg, value, ts)
+	return p.writeInt(b, origin, elems, keys, rm.MetricConfig, value, ts)
 }
 
 func (p *metricParser) emitDouble(
 	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value float64, ts pcommon.Timestamp,
 ) error {
-	cfg, ok := p.resolve(origin, elems)
+	rm, ok := p.resolve(origin, elems)
 	if !ok {
 		return nil
 	}
-	return p.writeDouble(b, origin, elems, keys, cfg, value, ts)
+	return p.writeDouble(b, origin, elems, keys, rm.MetricConfig, value, ts)
 }
 
 func (p *metricParser) emitInfo(
 	b *parseBatch, origin string, elems []string,
 	keys map[string]string, value string, ts pcommon.Timestamp,
 ) error {
-	cfg, ok := p.resolve(origin, elems)
+	rm, ok := p.resolve(origin, elems)
 	if !ok {
 		return nil
 	}
+	cfg := rm.MetricConfig
 
 	if len(cfg.EnumValues) > 0 {
 		return p.writeEnumState(b, origin, elems, keys, cfg, value, ts)
 	}
 
-	if cfg.Type == metricTypeSum || cfg.Type == metricTypeGauge {
+	switch rm.kind {
+	case valueKindString:
+		// The schema says this leaf is a string; never coerce it to a number.
+	case valueKindInt:
 		if n, err := strconv.ParseInt(value, 10, 64); err == nil {
 			return p.writeInt(b, origin, elems, keys, cfg, n, ts)
 		}
+	case valueKindFloat:
 		if f, err := strconv.ParseFloat(value, 64); err == nil {
 			return p.writeDouble(b, origin, elems, keys, cfg, f, ts)
+		}
+	case valueKindUnknown:
+		if cfg.Type == metricTypeSum || cfg.Type == metricTypeGauge {
+			if n, err := strconv.ParseInt(value, 10, 64); err == nil {
+				return p.writeInt(b, origin, elems, keys, cfg, n, ts)
+			}
+			if f, err := strconv.ParseFloat(value, 64); err == nil {
+				return p.writeDouble(b, origin, elems, keys, cfg, f, ts)
+			}
 		}
 	}
 
@@ -372,19 +394,44 @@ func metricDataType(cfgType string) pmetric.MetricType {
 	return pmetric.MetricTypeGauge
 }
 
-func (p *metricParser) resolve(origin string, elems []string) (MetricConfig, bool) {
+func (p *metricParser) resolve(origin string, elems []string) (resolvedMetric, bool) {
 	sub := p.subscriptionFor(origin, elems)
 	if sub == nil {
-		return MetricConfig{}, false
+		return resolvedMetric{}, false
 	}
+
 	leaf := elems[len(elems)-1]
-	if cfg, ok := sub.Overrides[leaf]; ok {
-		return cfg, true
+	if override, ok := sub.Overrides[leaf]; ok {
+		return resolvedMetric{MetricConfig: override}, true
 	}
+
+	if rm, ok := p.schema.lookup(elems); ok {
+		if sub.Default != nil {
+			if rm.Unit == "" {
+				rm.Unit = sub.Default.Unit
+			}
+			if len(rm.EnumValues) == 0 {
+				rm.EnumValues = sub.Default.EnumValues
+				rm.normalizedEnumValues = sub.Default.normalizedEnumValues
+			}
+		}
+		return rm, true
+	}
+
 	if sub.Default != nil {
-		return *sub.Default, true
+		return resolvedMetric{MetricConfig: *sub.Default}, true
 	}
-	return MetricConfig{}, false
+
+	p.logUnresolved(origin, elems)
+	return resolvedMetric{}, false
+}
+
+func (p *metricParser) logUnresolved(origin string, elems []string) {
+	path := buildMetricName(origin, elems)
+	if _, alreadyLogged := p.unresolved.LoadOrStore(path, struct{}{}); alreadyLogged {
+		return
+	}
+	p.logger.Warn("dropping gNMI leaf: no override, schema entry, or default matched it", zap.String("path", path))
 }
 
 func (p *metricParser) subscriptionFor(origin string, elems []string) *SubscriptionConfig {
@@ -455,10 +502,19 @@ func (p *metricParser) flatten(
 		}
 		return nil
 	case float64:
-		if v == float64(int64(v)) {
+		rm, ok := p.resolve(origin, elems)
+		switch {
+		case ok && rm.kind == valueKindInt:
 			return p.emitInt(b, origin, elems, keys, int64(v), ts)
+		case ok && rm.kind == valueKindFloat:
+			return p.emitDouble(b, origin, elems, keys, v, ts)
+		case v == float64(int64(v)):
+			// No schema-derived kind: fall back to the legacy heuristic of
+			// treating whole numbers as ints.
+			return p.emitInt(b, origin, elems, keys, int64(v), ts)
+		default:
+			return p.emitDouble(b, origin, elems, keys, v, ts)
 		}
-		return p.emitDouble(b, origin, elems, keys, v, ts)
 	case bool:
 		var n int64
 		if v {

@@ -24,6 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver/internal/metadata"
 )
@@ -64,7 +66,17 @@ func testParser(subs ...SubscriptionConfig) *metricParser {
 	if len(subs) == 0 {
 		subs = []SubscriptionConfig{countersSubscription()}
 	}
-	return newMetricParser(testEndpoint, subs)
+	return newMetricParser(testEndpoint, subs, nil, nil)
+}
+
+// testParserWithSchema is like testParser but resolves leaves against schema
+// in addition to the given subscriptions, exercising the schema-first,
+// config-overrides layering in resolve.
+func testParserWithSchema(schema *yangSchema, subs ...SubscriptionConfig) *metricParser {
+	if len(subs) == 0 {
+		subs = []SubscriptionConfig{countersSubscription()}
+	}
+	return newMetricParser(testEndpoint, subs, schema, nil)
 }
 
 // updateResponse builds a SubscribeResponse for a single leaf under
@@ -165,9 +177,6 @@ func TestParsePreservesCounter64Precision(t *testing.T) {
 	assert.Equal(t, int64(large), dp.IntValue())
 }
 
-// TestParseUintAtInt64BoundaryConvertsExactly pins the boundary: a uint64
-// equal to math.MaxInt64 fits exactly and must not trigger the overflow
-// fallback.
 func TestParseUintAtInt64BoundaryConvertsExactly(t *testing.T) {
 	m, err := testParser().parse(updateResponse("in-octets",
 		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: math.MaxInt64}}))
@@ -178,12 +187,6 @@ func TestParseUintAtInt64BoundaryConvertsExactly(t *testing.T) {
 	assert.Equal(t, int64(math.MaxInt64), dp.IntValue())
 }
 
-// TestParseUintOverflowFallsBackToDoubleWithError covers a review comment on
-// PR #7918: converting a uint64 above math.MaxInt64 to int64 does not just
-// lose precision, it wraps to a negative number (int64(math.MaxInt64+1) is
-// negative). The receiver must not emit that silently wrong value. Instead it
-// falls back to a double, at the cost of precision above 2^53, and returns an
-// error so the caller logs it rather than the corruption passing unnoticed.
 func TestParseUintOverflowFallsBackToDoubleWithError(t *testing.T) {
 	overflow := uint64(math.MaxInt64) + 1
 	m, err := testParser().parse(updateResponse("in-octets",
@@ -199,9 +202,6 @@ func TestParseUintOverflowFallsBackToDoubleWithError(t *testing.T) {
 	assert.InDelta(t, float64(overflow), dp.DoubleValue(), float64(overflow)*1e-9)
 }
 
-// TestParseUintMaxValueFallsBackToDouble exercises the true maximum uint64
-// (a plausible counter64 wraparound value), confirming it does not panic or
-// wrap and is reported as a positive double rather than a negative int64.
 func TestParseUintMaxValueFallsBackToDouble(t *testing.T) {
 	m, err := testParser().parse(updateResponse("in-octets",
 		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: math.MaxUint64}}))
@@ -590,12 +590,6 @@ func TestParseJSONFlattensObject(t *testing.T) {
 	assert.True(t, hasInfo, "string leaf should become an info metric")
 }
 
-// TestParseJSONIETFQuotedNumberRespectsConfiguredType reproduces the specific
-// scenario raised in review on PR #7918: a json_ietf payload that quotes a
-// numeric leaf as a JSON string (rather than a JSON number), which some
-// targets do for large integers. The leaf is configured as "sum" via
-// countersSubscription's "in-octets" override and must be emitted as a
-// numeric datapoint, not silently become an _info metric.
 func TestParseJSONIETFQuotedNumberRespectsConfiguredType(t *testing.T) {
 	payload := []byte(`{"in-octets": "10"}`)
 	m, err := testParser().parse(&gnmipb.SubscribeResponse{
@@ -781,12 +775,6 @@ func TestParseUnsupportedValueTypeIsSkipped(t *testing.T) {
 	assert.Equal(t, 0, m.DataPointCount())
 }
 
-// TestParseUsesOriginToDisambiguateSameSubscriptionPath covers a review
-// comment on PR #7918: two subscriptions can share a path under different
-// origins (e.g. the same counters path modeled once in "openconfig" and once
-// in a vendor-native tree). Origin must be consulted when selecting which
-// subscription's type/unit configuration applies, or whichever subscription
-// happens to be listed first would silently win for both.
 func TestParseUsesOriginToDisambiguateSameSubscriptionPath(t *testing.T) {
 	ocSub := SubscriptionConfig{
 		Path:    "/interfaces/interface/state/counters",
@@ -837,10 +825,6 @@ func TestParseUsesOriginToDisambiguateSameSubscriptionPath(t *testing.T) {
 	assert.Equal(t, "1", onlyMetric(t, nativeMetric).Unit())
 }
 
-// TestParseOriginlessSubscriptionMatchesAnyOrigin ensures the origin match is
-// not stricter than before for the common single-model case: a subscription
-// that does not declare an origin should still match updates regardless of
-// what origin the target reports.
 func TestParseOriginlessSubscriptionMatchesAnyOrigin(t *testing.T) {
 	sub := SubscriptionConfig{
 		Path:    "/interfaces/interface/state/counters",
@@ -870,11 +854,6 @@ func TestParseOriginlessSubscriptionMatchesAnyOrigin(t *testing.T) {
 	assert.Equal(t, 1, m.DataPointCount())
 }
 
-// TestParseJSONIETFNumericStringRespectsConfiguredType covers a review
-// comment on PR #7918: json_ietf targets sometimes encode numeric leaves as
-// JSON strings (e.g. `"in-octets": "123"`) rather than JSON numbers. A leaf
-// explicitly configured as numeric must not be silently downgraded to an
-// info metric just because the wire encoding used a string.
 func TestParseJSONIETFNumericStringRespectsConfiguredType(t *testing.T) {
 	m, err := testParser().parse(updateResponse("in-octets",
 		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "123"}}))
@@ -889,9 +868,6 @@ func TestParseJSONIETFNumericStringRespectsConfiguredType(t *testing.T) {
 	assert.Equal(t, int64(123), dp.IntValue())
 }
 
-// TestParseJSONIETFNumericStringGauge covers the gauge-configured leaf case
-// (in-octets-rate is configured as a gauge in countersSubscription), and a
-// non-integer numeric string, to exercise the float64 fallback.
 func TestParseJSONIETFNumericStringGauge(t *testing.T) {
 	m, err := testParser().parse(updateResponse("in-octets-rate",
 		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "1.5"}}))
@@ -905,10 +881,6 @@ func TestParseJSONIETFNumericStringGauge(t *testing.T) {
 	assert.InDelta(t, 1.5, dp.DoubleValue(), 0.0001)
 }
 
-// TestParseNonNumericStringStillBecomesInfoMetric ensures the numeric-string
-// fallback doesn't change behavior for a leaf that is genuinely non-numeric
-// (oper-status is configured as a gauge but the value "UP" never parses as a
-// number), and for a leaf with no numeric type configured at all.
 func TestParseNonNumericStringStillBecomesInfoMetric(t *testing.T) {
 	m, err := testParser().parse(updateResponse("oper-status",
 		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "UP"}}))
@@ -1029,15 +1001,6 @@ func multiUpdateResponse(updates ...*gnmipb.Update) *gnmipb.SubscribeResponse {
 	}
 }
 
-// TestParseMergesSameLeafAcrossInterfacesIntoOneMetric covers review comment
-// #1 on PR #7918
-// (https://github.com/signalfx/splunk-otel-collector/pull/7918#discussion_r3769566400):
-// the same leaf reported for two different interfaces in one notification
-// (e.g. in-octets for eth0 and eth1) has the same path-derived name in both
-// cases, and must merge into a single pmetric.Metric with one datapoint per
-// interface, rather than two separate same-named Metric objects. This is the
-// general OpenTelemetry recommendation to reuse a Metric across identical
-// series.
 func TestParseMergesSameLeafAcrossInterfacesIntoOneMetric(t *testing.T) {
 	m, err := testParser().parse(multiUpdateResponse(
 		updateResponseFor("eth0", "in-octets", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 10}}),
@@ -1058,4 +1021,136 @@ func TestParseMergesSameLeafAcrossInterfacesIntoOneMetric(t *testing.T) {
 		byInterface[name.Str()] = dp.IntValue()
 	}
 	assert.Equal(t, map[string]int64{"eth0": 10, "eth1": 20}, byInterface)
+}
+
+// counterSchema builds a minimal *yangSchema with a single resolved leaf,
+// as if it had come from parsing YANG modules.
+func counterSchema(leaf string, rm resolvedMetric) *yangSchema {
+	return &yangSchema{byPath: map[string]resolvedMetric{
+		"interfaces/interface/state/counters/" + leaf: rm,
+	}}
+}
+
+func TestParseSchemaResolvesTypeAndUnitOverridingWrongDefault(t *testing.T) {
+	schema := counterSchema("in-octets", resolvedMetric{
+		MetricConfig: MetricConfig{Type: metricTypeSum, Unit: "By"},
+		kind:         valueKindInt,
+	})
+	sub := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeGauge, Unit: "1"},
+	}
+
+	m, err := testParserWithSchema(schema, sub).parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 42}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	assert.Equal(t, "By", metric.Unit())
+}
+
+func TestParseOverrideBeatsSchema(t *testing.T) {
+	schema := counterSchema("in-octets", resolvedMetric{
+		MetricConfig: MetricConfig{Type: metricTypeSum, Unit: "By"},
+		kind:         valueKindInt,
+	})
+	sub := SubscriptionConfig{
+		Path: "/interfaces/interface/state/counters",
+		Mode: modeSample,
+		Overrides: map[string]MetricConfig{
+			"in-octets": {Type: metricTypeGauge, Unit: "pkts"},
+		},
+	}
+
+	m, err := testParserWithSchema(schema, sub).parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 42}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
+	assert.Equal(t, "pkts", metric.Unit())
+}
+
+func TestParseDefaultFillsGapWhenLeafNotInSchema(t *testing.T) {
+	schema := counterSchema("in-octets", resolvedMetric{
+		MetricConfig: MetricConfig{Type: metricTypeSum, Unit: "By"},
+		kind:         valueKindInt,
+	})
+	sub := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "1"},
+	}
+
+	m, err := testParserWithSchema(schema, sub).parse(updateResponse("custom-counter",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 7}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	assert.Equal(t, "1", metric.Unit())
+}
+
+func TestParseSchemaEmptyUnitDoesNotClobberConfiguredUnit(t *testing.T) {
+	schema := counterSchema("in-octets", resolvedMetric{
+		MetricConfig: MetricConfig{Type: metricTypeSum, Unit: ""},
+		kind:         valueKindInt,
+	})
+	sub := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeGauge, Unit: "By"},
+	}
+
+	m, err := testParserWithSchema(schema, sub).parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 42}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type(), "schema still supplies the type")
+	assert.Equal(t, "By", metric.Unit(), "default's unit must fill the schema's empty unit, not be blanked by it")
+}
+
+func TestParseSchemaStringLeafWithNumericLookingValueStaysInfo(t *testing.T) {
+	schema := counterSchema("board-id", resolvedMetric{
+		MetricConfig: MetricConfig{Type: metricTypeGauge},
+		kind:         valueKindString,
+	})
+	sub := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeGauge},
+	}
+
+	m, err := testParserWithSchema(schema, sub).parse(updateResponse("board-id",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "42"}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, "interfaces.interface.state.counters.board-id_info", metric.Name(),
+		"a schema-typed string leaf must not be coerced to a number just because its value looks numeric")
+	value, ok := metric.Gauge().DataPoints().At(0).Attributes().Get("value")
+	require.True(t, ok)
+	assert.Equal(t, "42", value.Str())
+}
+
+func TestParseUnresolvedLeafDropsAndLogsOnceAcrossRepeatedSamples(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	sub := SubscriptionConfig{
+		Path:      "/interfaces/interface/state/counters",
+		Mode:      modeSample,
+		Overrides: map[string]MetricConfig{"in-octets": {Type: metricTypeSum}},
+	}
+	parser := newMetricParser(testEndpoint, []SubscriptionConfig{sub}, nil, zap.New(core))
+
+	for i := 0; i < 3; i++ {
+		m, err := parser.parse(updateResponse("unmapped",
+			&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: uint64(i)}})) //nolint:gosec // disable G115: loop bound is small and non-negative
+		require.NoError(t, err)
+		assert.Equal(t, 0, m.MetricCount())
+	}
+
+	assert.Len(t, logs.All(), 1, "the unresolved leaf must be logged once, not once per sample")
 }

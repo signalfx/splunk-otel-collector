@@ -190,17 +190,64 @@ Notes:
 ### Metric type, unit, and enum resolution
 
 gNMI carries a value's data type but not whether it is a counter or a gauge, nor its
-unit or possible values — that information lives in the YANG schema. The receiver
-resolves it from configuration instead:
+unit or possible values — that information lives in the YANG schema:
 
 - `type`: `sum` (emitted as a monotonic Sum) or `gauge` (emitted as a Gauge).
 - `unit`: metric unit, ideally [UCUM] (e.g. `By`, `1`, `By/s`).
 - `enum_values`: closed set of string values, for leaves emitted as a state metric
   (see [Enum leaves](#enum-leaves)).
 
-For each leaf the receiver applies the matching `overrides` entry if present, otherwise
-`default`. **A leaf matched by neither is dropped** (no metric is emitted). A subscription
-must therefore define at least one of `default` or `overrides`.
+The receiver resolves these either from the YANG schema (`yang_modules`, below) or from
+configuration, with an explicit `overrides` entry always taking precedence over both:
+
+1. `overrides[<leaf name>]`, if present, wins outright.
+2. Otherwise, the loaded YANG schema, if `yang_modules` is set and it resolves the leaf.
+   `default` still fills in any of `type`/`unit`/`enum_values` the schema left blank
+   (most commonly `unit`: OpenConfig models rarely declare a `units` statement).
+3. Otherwise, `default`, if present.
+
+**A leaf matched by none of the above is dropped** (no metric is emitted), and logged
+once per distinct path. Without `yang_modules`, a subscription must define at least one
+of `default` or `overrides`, and every `default`/`overrides` entry must set `type`; with
+`yang_modules` set, both become optional.
+
+#### YANG schema resolution (`yang_modules`)
+
+```yaml
+receivers:
+  gnmi:
+    yang_modules:
+      - /etc/yang/openconfig-interfaces.yang
+      - /etc/yang/vendor-models/          # directory: every *.yang file in it, searched recursively
+    targets:
+      - endpoint: 10.0.0.1:57400
+        ...
+```
+
+`yang_modules` is a top-level, receiver-wide list of YANG module files and/or
+directories, loaded once at startup. A directory is searched recursively for
+`*.yang` files and is also added as an import/include search path, so a module that
+only exists to satisfy another module's `import` statement does not need to be listed
+explicitly — only the top-level modules you actually subscribe under do.
+
+From the loaded schema, the receiver derives, per leaf:
+
+- **`type`**: a leaf typed (directly or via a typedef chain) as `counter32`/`counter64`
+  resolves to `sum`; every other numeric type resolves to `gauge`.
+- **`unit`**: from the leaf's or its type's `units` statement, when present.
+- **`enum_values`**: from an `enumeration` type's declared enum names, or from an
+  `identityref` type's set of identities derived from its base — either way replacing
+  a hand-maintained `enum_values` list, including the "stale enum list" failure mode
+  from a vendor adding a new value.
+- **Numeric string leaves**: a leaf resolved by the schema as a genuine YANG `string`
+  is emitted as an info metric even if its value happens to look numeric (e.g. `"42"`),
+  instead of the value-guessing behavior used for unconfigured/legacy `type` leaves.
+
+A `union` or `leafref` that cannot be followed to a concrete type, and `binary`/`empty`
+leaves, are not resolved by the schema; such a leaf falls back to `overrides`/`default`
+exactly as if no `yang_modules` were configured. Startup fails if a listed file is
+missing, fails to parse, or the module set has unresolved imports — every
+`import`ed/`include`d module must be reachable via `yang_modules`.
 
 ### Credentials
 

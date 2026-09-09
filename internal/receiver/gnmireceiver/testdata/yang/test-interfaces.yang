@@ -1,0 +1,90 @@
+module test-interfaces {
+  yang-version 1.1;
+  namespace "urn:test:interfaces";
+  prefix ti;
+
+  import test-identities { prefix tid; }
+
+  typedef counter64 {
+    type uint64;
+    units "bytes";
+    description "Mirrors ietf-yang-types:counter64 for test purposes.";
+  }
+
+  typedef counter32 {
+    type uint32;
+    description "Mirrors ietf-yang-types:counter32 for test purposes.";
+  }
+
+  container interfaces {
+    list interface {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      container state {
+        leaf oper-status {
+          type enumeration {
+            enum UP;
+            enum DOWN;
+            enum TESTING;
+          }
+        }
+
+        leaf oper-status-ref {
+          type leafref {
+            path "../oper-status";
+          }
+        }
+
+        leaf negotiated-speed {
+          type identityref {
+            base tid:ETH_SPEED;
+          }
+        }
+
+        container counters {
+          leaf in-octets {
+            type counter64;
+          }
+
+          leaf in-pkts {
+            type uint64;
+          }
+
+          leaf in-errors {
+            type counter32;
+          }
+
+          leaf temperature {
+            type decimal64 {
+              fraction-digits 2;
+            }
+          }
+
+          leaf raw-id {
+            type union {
+              type uint32;
+              type string;
+            }
+          }
+        }
+
+        choice link-mode {
+          case fixed {
+            leaf speed {
+              type uint32;
+            }
+          }
+          case auto {
+            leaf auto-negotiate {
+              type boolean;
+            }
+          }
+        }
+      }
+    }
+  }
+}

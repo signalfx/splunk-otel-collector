@@ -510,6 +510,24 @@ def test_package_uninstall(distro, arch):
         # verify libotelinject.so was not automatically added to /etc/ld.so.preload
         verify_preload(container, LIBOTELINJECT_PATH, exists=False)
 
+        # verify the hook leaves the preload entry alone when invoked the way dpkg/rpm do on a
+        # package upgrade: dpkg passes "upgrade"/"failed-upgrade" as $1 to prerm, rpm passes the
+        # count of instances remaining after the action to %preun (">=1" mid-upgrade)
+        for upgrade_action in ("upgrade", "failed-upgrade", "1", "2"):
+            run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} >> {PRELOAD_PATH}'")
+            run_container_cmd(container, f"sh /test/preuninstall.sh {upgrade_action}")
+            verify_preload(container, LIBOTELINJECT_PATH, exists=True)
+            run_container_cmd(container, f"sed -i -e 's|{LIBOTELINJECT_PATH}||' {PRELOAD_PATH}")
+
+        # verify the hook still strips the entry on an actual removal: dpkg passes "remove",
+        # rpm passes "0" (no instances remaining), and manual invocation with no argument
+        for remove_action in ("remove", "0", ""):
+            run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} >> {PRELOAD_PATH}'")
+            run_container_cmd(container, f"sh /test/preuninstall.sh {remove_action}")
+            verify_preload(container, LIBOTELINJECT_PATH, exists=False)
+
+        verify_preload(container, "# This line should be preserved")
+
         # explicitly add libotelinject.so to /etc/ld.so.preload
         run_container_cmd(container, f"sh -c 'echo {LIBOTELINJECT_PATH} >> {PRELOAD_PATH}'")
 

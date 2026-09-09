@@ -97,6 +97,14 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
    See the [OpenTelemetry injector README](https://github.com/open-telemetry/opentelemetry-injector#readme) for
    additional configuration options, such as selectively enabling/disabling auto-instrumentation for specific runtimes
    or programs, and Kubernetes-related resource attribute mapping.
+
+   When upgrading from a package that used `libsplunk.so`, the package preserves the existing files from
+   `/etc/splunk/zeroconfig/` in `/usr/lib/splunk-instrumentation/legacy-zeroconfig/` before removing the legacy
+   directory. Existing settings are not migrated automatically into the injector configuration.
+
+   To remove this legacy configuration backup during an explicit package removal, set
+   `REMOVE_LEGACY_CONFIG=true` when invoking the package manager. The cleanup is skipped when the backup directory is
+   absent.
 3. Reboot the system or restart the applications/services for any changes to take effect. The `libotelinject.so`
    shared object library will then be preloaded for all subsequent processes and inject the environment variables from
    the `/etc/opentelemetry/injector/` configuration files for Java, Node.js, and .NET processes.

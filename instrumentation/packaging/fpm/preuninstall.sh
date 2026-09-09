@@ -16,6 +16,22 @@
 
 PRELOAD_PATH="/etc/ld.so.preload"
 LIBOTELINJECT_PATH="/usr/lib/splunk-instrumentation/libotelinject.so"
+LEGACY_CONFIG_DIR="/usr/lib/splunk-instrumentation/legacy-zeroconfig"
+
+# Set REMOVE_LEGACY_CONFIG=true when the package is explicitly being removed
+# to delete the configuration backup created during migration. The command
+# line option is useful when invoking this hook directly.
+REMOVE_LEGACY_CONFIG="${REMOVE_LEGACY_CONFIG:-false}"
+for option in "$@"; do
+    if [ "$option" = "--remove-legacy-config" ]; then
+        REMOVE_LEGACY_CONFIG=true
+    fi
+done
+
+if [ "$REMOVE_LEGACY_CONFIG" = "true" ] && [ -d "$LEGACY_CONFIG_DIR" ]; then
+    echo "Removing legacy configuration backup from $LEGACY_CONFIG_DIR"
+    rm -rf "$LEGACY_CONFIG_DIR"
+fi
 
 if [ -f "$PRELOAD_PATH" ] && grep -q "$LIBOTELINJECT_PATH" "$PRELOAD_PATH"; then
     echo "Removing $LIBOTELINJECT_PATH from $PRELOAD_PATH"

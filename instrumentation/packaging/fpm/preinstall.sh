@@ -16,6 +16,7 @@
 
 PKG_NAME="splunk-otel-auto-instrumentation"
 LIBSPLUNK_PATH="/usr/lib/splunk-instrumentation/libsplunk.so"
+LEGACY_CONFIG_DIR="/usr/lib/splunk-instrumentation/legacy-zeroconfig"
 ZEROCONFIG_DIR="/etc/splunk/zeroconfig"
 PRELOAD_PATH="/etc/ld.so.preload"
 
@@ -27,6 +28,14 @@ PRELOAD_PATH="/etc/ld.so.preload"
 # the same way for both deb (preinst) and rpm (%pre).
 if [ -f "$LIBSPLUNK_PATH" ]; then
     echo "WARNING: Upgrading $PKG_NAME from a version using libsplunk.so. Auto-instrumentation is switching from libsplunk.so to libotelinject.so, and configuration files have moved from /etc/splunk/zeroconfig/ to /etc/opentelemetry/injector/. See the release notes for details." >&2
+
+    # Preserve the legacy configuration files alongside libotelinject.so
+    # before removing the old configuration directory. The files may contain
+    # operator-provided settings that are useful when completing the migration.
+    if [ -d "$ZEROCONFIG_DIR" ]; then
+        mkdir -p "$LEGACY_CONFIG_DIR"
+        cp -a "$ZEROCONFIG_DIR"/. "$LEGACY_CONFIG_DIR"/
+    fi
 
     # The legacy package's config files are declared as conffiles/%config,
     # so neither dpkg nor rpm remove them automatically on upgrade when the

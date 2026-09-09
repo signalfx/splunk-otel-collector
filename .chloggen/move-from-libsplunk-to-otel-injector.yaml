@@ -16,7 +16,8 @@ issues: [7581]
 subtext: |
   This is a breaking change for existing auto-instrumentation installations. Configuration files moved from
   `/etc/splunk/zeroconfig/` to `/etc/opentelemetry/injector/` (`default_env.conf` and `injector.conf`). Existing
-  values are not migrated, and the legacy files are removed during upgrade and cannot be recovered.
+  values are not migrated automatically. During upgrade, the legacy files are copied to
+  `/usr/lib/splunk-instrumentation/legacy-zeroconfig/` before `/etc/splunk/zeroconfig/` is removed.
   Migrate custom `OTEL_*` and `SPLUNK_*` values from `java.conf`, `node.conf`, and `dotnet.conf` to `default_env.conf`
   before upgrading; values with other prefixes, including `JAVA_TOOL_OPTIONS`, `NODE_OPTIONS`, `CORECLR_*`, and
   `DOTNET_*`, are ignored. The injector derives activation settings from agent paths in `injector.conf` instead.
@@ -27,6 +28,9 @@ subtext: |
   Package upgrades remove the legacy `/usr/lib/splunk-instrumentation/libsplunk.so` entry and delete an otherwise-empty
   preload file. The installer adds the new entry and recreates the file when needed. Restart instrumented applications
   or services, or reboot, after updating the preload entry or configuration.
+
+  To remove the preserved legacy configuration during an explicit package removal, set
+  `REMOVE_LEGACY_CONFIG=true` when invoking the package manager. Cleanup is skipped if the backup directory is absent.
 
   .NET agent files are now installed under `splunk-otel-dotnet/glibc`, with `OTEL_DOTNET_AUTO_HOME` set to that
   directory. The installer's `--with-instrumentation` option requires an auto-instrumentation package version greater

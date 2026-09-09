@@ -53,6 +53,7 @@ DOTNET_AGENT_PATH_TEMPLATE = f"{LIB_DIR}/splunk-otel-dotnet/glibc/linux-{{arch}}
 
 INJECTOR_CONFIG_PATH = "/etc/opentelemetry/injector/injector.conf"
 INJECTOR_DEFAULT_ENV_PATH = "/etc/opentelemetry/injector/default_env.conf"
+PREUNINSTALL_SCRIPT_PATH = REPO_DIR / "instrumentation" / "packaging" / "fpm" / "preuninstall.sh"
 
 # Custom config fixtures — overwrite default env var, copy per-language env vars
 CUSTOM_JAVA_ENV_PATH = TESTS_DIR / "instrumentation" / "test-java-env.conf"
@@ -73,11 +74,18 @@ LEGACY_VERSION = "0.159.0"
 LEGACY_RELEASE_URL = f"https://github.com/signalfx/splunk-otel-collector/releases/download/v{LEGACY_VERSION}"
 LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
 ZEROCONFIG_DIR = "/etc/splunk/zeroconfig"
+LEGACY_CONFIG_DIR = f"{LIB_DIR}/legacy-zeroconfig"
 LEGACY_FILES = [
     LIBSPLUNK_PATH,
     f"{ZEROCONFIG_DIR}/java.conf",
     f"{ZEROCONFIG_DIR}/node.conf",
 ]
+
+MIGRATED_LEGACY_CONFIG_FILES = [
+    f"{LEGACY_CONFIG_DIR}/java.conf",
+    f"{LEGACY_CONFIG_DIR}/node.conf",
+]
+
 
 def legacy_files(arch):
     # the legacy libsplunk.so-based package never supported dotnet on arm64;
@@ -85,6 +93,8 @@ def legacy_files(arch):
     if arch == "arm64":
         return LEGACY_FILES
     return LEGACY_FILES + [f"{ZEROCONFIG_DIR}/dotnet.conf"]
+
+
 UPGRADE_WARNING = (
     f"WARNING: Upgrading {PKG_NAME} from a version using libsplunk.so. "
     "Auto-instrumentation is switching from libsplunk.so to libotelinject.so, "
@@ -484,6 +494,17 @@ def test_package_uninstall(distro, arch):
         # install the package
         install_package(container, distro, f"/test/{pkg_base}", arch=arch)
 
+        # verify the explicit legacy config cleanup option and its no-op behavior
+        copy_file_into_container(container, PREUNINSTALL_SCRIPT_PATH, "/test/preuninstall.sh")
+        run_container_cmd(container, f"mkdir -p {LEGACY_CONFIG_DIR}")
+        run_container_cmd(container, f"touch {LEGACY_CONFIG_DIR}/java.conf")
+        run_container_cmd(container, "sh /test/preuninstall.sh --remove-legacy-config")
+        assert not container_file_exists(container, LEGACY_CONFIG_DIR)
+        run_container_cmd(container, f"mkdir -p {LEGACY_CONFIG_DIR}")
+        run_container_cmd(container, f"touch {LEGACY_CONFIG_DIR}/java.conf")
+        run_container_cmd(container, "REMOVE_LEGACY_CONFIG=true sh /test/preuninstall.sh")
+        assert not container_file_exists(container, LEGACY_CONFIG_DIR)
+
         verify_preload(container, "# This line should be preserved")
 
         # verify libotelinject.so was not automatically added to /etc/ld.so.preload
@@ -548,6 +569,12 @@ def test_package_upgrade_from_libsplunk(distro, arch):
         for path in expected_legacy_files:
             assert container_file_exists(container, path), f"{path} not found after legacy install"
 
+        legacy_config_contents = {}
+        for path in expected_legacy_files:
+            if path != LIBSPLUNK_PATH:
+                _, output = run_container_cmd(container, f"cat {path}")
+                legacy_config_contents[path.rsplit("/", 1)[-1]] = output
+
         # simulate the legacy install having activated preload-based instrumentation,
         # alongside an unrelated entry that must survive the upgrade
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
@@ -565,6 +592,16 @@ def test_package_upgrade_from_libsplunk(distro, arch):
         # verify legacy files were removed by the upgrade
         for path in expected_legacy_files:
             assert not container_file_exists(container, path), f"{path} still present after upgrade"
+
+        # verify legacy configs were preserved alongside libotelinject.so
+        expected_migrated_files = list(MIGRATED_LEGACY_CONFIG_FILES)
+        if arch == "amd64":
+            expected_migrated_files.append(f"{LEGACY_CONFIG_DIR}/dotnet.conf")
+        for path in expected_migrated_files:
+            assert container_file_exists(container, path), f"{path} not found after upgrade"
+            _, output = run_container_cmd(container, f"cat {path}")
+            filename = path.rsplit("/", 1)[-1]
+            assert output == legacy_config_contents[filename], f"{path} contents changed during upgrade"
 
         # verify new files were installed
         for path in INSTALLED_FILES:

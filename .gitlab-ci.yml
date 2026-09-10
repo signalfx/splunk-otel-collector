@@ -95,6 +95,15 @@ manual_release_trigger:
         fi
       fi
 
+      # versions.yaml drives the module set tags created at release time; assert
+      # it was bumped to this release so the tags match.
+      SET_VERSION=$(awk '/^  splunk-otel-collector:/{f=1} f&&/^    version:/{print $2; exit}' versions.yaml)
+      if [ "$SET_VERSION" != "$RELEASE_VERSION" ]; then
+        echo "versions.yaml has the splunk-otel-collector module set at $SET_VERSION but release is $RELEASE_VERSION." >&2
+        echo "Bump the version value in versions.yaml to $RELEASE_VERSION before releasing." >&2
+        exit 1
+      fi
+
       echo "Manual release triggered for version $RELEASE_VERSION"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'

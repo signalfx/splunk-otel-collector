@@ -4,15 +4,25 @@ The Nutanix receiver collects Prism metrics through either the Prism Element
 v2.0 APIs or the Prism Central v4 APIs and emits OTLP metrics directly.
 
 Set `api_version: v2.0` when `endpoint` is a Prism Element cluster. Set
-`api_version: v4` when `endpoint` is Prism Central. Both implementations use
-the Nutanix REST APIs directly; the v4 implementation decodes responses into
-the generated Nutanix v4 model types.
+`api_version: v4` when `endpoint` is Prism Central. The Prism Element
+implementation uses its v2.0 REST API. The Prism Central implementation uses
+the generated Nutanix v4 Go clients for API paths, pagination, authentication,
+retries, and version negotiation.
+
+The receiver redirects the generated clients' request logging to
+`io.Discard`, so routine HTTP traffic does not appear in the collector console.
+Receiver warnings and errors still use the collector logger.
 
 The v4.2 reference page is for the Prism Central API surface. Sending its
 `/api/clustermgmt/v4.2/...` paths to a Prism Element endpoint returns 404. PE
 inventory endpoints use `/PrismGateway/services/rest/v2.0/...` instead.
 
 ## Prism v4 API Coverage
+
+The paths below use v4.2 to match the public API reference. The generated
+client for each namespace owns the actual path and minor version used by the
+collector and negotiates a supported version with Prism Central when that
+endpoint is available; these paths are not hardcoded in the receiver.
 
 Inventory and count data is collected from:
 

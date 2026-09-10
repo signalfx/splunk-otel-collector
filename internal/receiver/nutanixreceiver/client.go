@@ -27,9 +27,19 @@ import (
 	"time"
 
 	clusterConfig "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
+	clusterRequests "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/request/clusters"
+	diskRequests "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/request/disks"
+	storageContainerRequests "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/request/storagecontainers"
+	clusterStatsCommon "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/common/v1/stats"
 	networkConfig "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
+	subnetRequests "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/request/subnets"
+	vmStatsCommon "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/common/v1/stats"
 	vmConfig "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
+	vmStatsRequests "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/request/stats"
+	vmRequests "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/request/vm"
+	volumeStatsCommon "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/common/v1/stats"
 	volumeConfig "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
+	volumeGroupRequests "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/request/volumegroups"
 )
 
 type nutanixClient interface {
@@ -51,28 +61,11 @@ type nutanixClient interface {
 	collectAdditionalMetrics(context.Context, additionalMetricsRequest) (additionalSnapshot, error)
 }
 
-type prismClient struct {
-	baseURL    *url.URL
-	restClient *v4RESTClient
-}
-
 func newPrismClient(cfg *Config) (nutanixClient, error) {
 	if cfg.APIVersion == "v2.0" {
 		return newPrismElementClient(cfg)
 	}
 	return newPrismV4Client(cfg)
-}
-
-func newPrismV4Client(cfg *Config) (*prismClient, error) {
-	baseURL, err := normalizeEndpoint(cfg.Endpoint, cfg.Port)
-	if err != nil {
-		return nil, err
-	}
-
-	return &prismClient{
-		baseURL:    baseURL,
-		restClient: newV4RESTClient(baseURL, cfg),
-	}, nil
 }
 
 func normalizeEndpoint(endpoint string, port int) (*url.URL, error) {
@@ -114,7 +107,9 @@ func serverPort(u *url.URL) int64 {
 }
 
 func (c *prismClient) listClusters(ctx context.Context) ([]nutanixCluster, error) {
-	clusters, err := listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/clusters", clusterFromV4)
+	clusters, err := listSDKModels(ctx, "clusters", func(ctx context.Context, page, limit int) (any, error) {
+		return c.clusters.ListClusters(ctx, &clusterRequests.ListClustersRequest{Page_: &page, Limit_: &limit})
+	}, clusterFromV4)
 	if err != nil {
 		return nil, err
 	}
@@ -128,27 +123,39 @@ func (c *prismClient) listClusters(ctx context.Context) ([]nutanixCluster, error
 }
 
 func (c *prismClient) listHosts(ctx context.Context) ([]nutanixHost, error) {
-	return listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/hosts", hostFromV4)
+	return listSDKModels(ctx, "hosts", func(ctx context.Context, page, limit int) (any, error) {
+		return c.clusters.ListHosts(ctx, &clusterRequests.ListHostsRequest{Page_: &page, Limit_: &limit})
+	}, hostFromV4)
 }
 
 func (c *prismClient) listStorageContainers(ctx context.Context) ([]nutanixStorageContainer, error) {
-	return listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/storage-containers", storageContainerFromV4)
+	return listSDKModels(ctx, "storage containers", func(ctx context.Context, page, limit int) (any, error) {
+		return c.storageContainers.ListStorageContainers(ctx, &storageContainerRequests.ListStorageContainersRequest{Page_: &page, Limit_: &limit})
+	}, storageContainerFromV4)
 }
 
 func (c *prismClient) listVMs(ctx context.Context) ([]nutanixVM, error) {
-	return listV4Entities(ctx, c.restClient, "/api/vmm/v4.2/ahv/config/vms", vmFromV4)
+	return listSDKModels(ctx, "virtual machines", func(ctx context.Context, page, limit int) (any, error) {
+		return c.virtualMachines.ListVms(ctx, &vmRequests.ListVmsRequest{Page_: &page, Limit_: &limit})
+	}, vmFromV4)
 }
 
 func (c *prismClient) listVolumeGroups(ctx context.Context) ([]nutanixVolumeGroup, error) {
-	return listV4Entities(ctx, c.restClient, "/api/volumes/v4.2/config/volume-groups", volumeGroupFromV4)
+	return listSDKModels(ctx, "volume groups", func(ctx context.Context, page, limit int) (any, error) {
+		return c.volumeGroups.ListVolumeGroups(ctx, &volumeGroupRequests.ListVolumeGroupsRequest{Page_: &page, Limit_: &limit})
+	}, volumeGroupFromV4)
 }
 
 func (c *prismClient) listDisks(ctx context.Context) ([]nutanixDisk, error) {
-	return listV4Entities(ctx, c.restClient, "/api/clustermgmt/v4.2/config/disks", diskFromV4)
+	return listSDKModels(ctx, "disks", func(ctx context.Context, page, limit int) (any, error) {
+		return c.disks.ListDisks(ctx, &diskRequests.ListDisksRequest{Page_: &page, Limit_: &limit})
+	}, diskFromV4)
 }
 
 func (c *prismClient) listSubnets(ctx context.Context) ([]nutanixSubnet, error) {
-	return listV4Entities(ctx, c.restClient, "/api/networking/v4.2/config/subnets", subnetFromV4)
+	return listSDKModels(ctx, "subnets", func(ctx context.Context, page, limit int) (any, error) {
+		return c.subnets.ListSubnets(ctx, &subnetRequests.ListSubnetsRequest{Page_: &page, Limit_: &limit})
+	}, subnetFromV4)
 }
 
 func (c *prismClient) getClusterStats(ctx context.Context, cluster nutanixCluster) ([]metricStat, error) {
@@ -158,7 +165,16 @@ func (c *prismClient) getClusterStats(ctx context.Context, cluster nutanixCluste
 	if cluster.ID == "" {
 		return nil, nil
 	}
-	return c.restClient.stats(ctx, "/api/clustermgmt/v4.2/stats/clusters/"+url.PathEscape(cluster.ID))
+	start, end, sampling := c.statQuery()
+	statType := clusterStatsCommon.DOWNSAMPLINGOPERATOR_LAST
+	response, err := c.clusters.GetClusterStats(ctx, &clusterRequests.GetClusterStatsRequest{
+		ExtId:             &cluster.ID,
+		StartTime_:        &start,
+		EndTime_:          &end,
+		SamplingInterval_: &sampling,
+		StatType_:         &statType,
+	})
+	return statsFromSDKResponse(response, err)
 }
 
 func (c *prismClient) getHostStats(ctx context.Context, host nutanixHost) ([]metricStat, error) {
@@ -168,11 +184,17 @@ func (c *prismClient) getHostStats(ctx context.Context, host nutanixHost) ([]met
 	if host.ClusterID == "" || host.ID == "" {
 		return nil, nil
 	}
-	return c.restClient.stats(ctx, fmt.Sprintf(
-		"/api/clustermgmt/v4.2/stats/clusters/%s/hosts/%s",
-		url.PathEscape(host.ClusterID),
-		url.PathEscape(host.ID),
-	))
+	start, end, sampling := c.statQuery()
+	statType := clusterStatsCommon.DOWNSAMPLINGOPERATOR_LAST
+	response, err := c.clusters.GetHostStats(ctx, &clusterRequests.GetHostStatsRequest{
+		ClusterExtId:      &host.ClusterID,
+		ExtId:             &host.ID,
+		StartTime_:        &start,
+		EndTime_:          &end,
+		SamplingInterval_: &sampling,
+		StatType_:         &statType,
+	})
+	return statsFromSDKResponse(response, err)
 }
 
 func (c *prismClient) getStorageContainerStats(ctx context.Context, container nutanixStorageContainer) ([]metricStat, error) {
@@ -182,7 +204,16 @@ func (c *prismClient) getStorageContainerStats(ctx context.Context, container nu
 	if container.ID == "" {
 		return nil, nil
 	}
-	return c.restClient.stats(ctx, "/api/clustermgmt/v4.2/stats/storage-containers/"+url.PathEscape(container.ID))
+	start, end, sampling := c.statQuery()
+	statType := clusterStatsCommon.DOWNSAMPLINGOPERATOR_LAST
+	response, err := c.storageContainers.GetStorageContainerStats(ctx, &storageContainerRequests.GetStorageContainerStatsRequest{
+		ExtId:             &container.ID,
+		StartTime_:        &start,
+		EndTime_:          &end,
+		SamplingInterval_: &sampling,
+		StatType_:         &statType,
+	})
+	return statsFromSDKResponse(response, err)
 }
 
 func (c *prismClient) listVMStats(ctx context.Context) (map[string][]metricStat, error) {
@@ -191,23 +222,29 @@ func (c *prismClient) listVMStats(ctx context.Context) (map[string][]metricStat,
 	}
 
 	start, end, sampling := c.statQuery()
+	statType := vmStatsCommon.DOWNSAMPLINGOPERATOR_LAST
 	result := map[string][]metricStat{}
 	page := 0
 	processed := 0
 
 	for {
-		response, err := c.restClient.get(ctx, "/api/vmm/v4.2/ahv/stats/vms", url.Values{
-			"$startTime":        []string{start.Format(time.RFC3339Nano)},
-			"$endTime":          []string{end.Format(time.RFC3339Nano)},
-			"$samplingInterval": []string{strconv.Itoa(sampling)},
-			"$statType":         []string{"LAST"},
-			"$page":             []string{strconv.Itoa(page)},
-			"$limit":            []string{strconv.Itoa(v4PageSize)},
+		limit := v4PageSize
+		response, err := c.virtualMachineStats.ListVmStats(ctx, &vmStatsRequests.ListVmStatsRequest{
+			StartTime_:        &start,
+			EndTime_:          &end,
+			SamplingInterval_: &sampling,
+			StatType_:         &statType,
+			Page_:             &page,
+			Limit_:            &limit,
 		})
 		if err != nil {
 			return nil, err
 		}
-		items := responseDataMaps(response)
+		responseMap, err := sdkResponseMap(response)
+		if err != nil {
+			return nil, fmt.Errorf("decode virtual machine stats response: %w", err)
+		}
+		items := responseDataMaps(responseMap)
 		for _, item := range items {
 			vmID := firstString(item, "extId", "ext_id", "id")
 			stats := mapList(item, "stats")
@@ -217,7 +254,7 @@ func (c *prismClient) listVMStats(ctx context.Context) (map[string][]metricStat,
 			result[vmID] = statsFromMap(stats[len(stats)-1])
 		}
 		processed += len(items)
-		total, hasTotal := responseTotal(response)
+		total, hasTotal := responseTotal(responseMap)
 		if len(items) == 0 || (hasTotal && processed >= total) || (!hasTotal && len(items) < v4PageSize) {
 			break
 		}
@@ -234,7 +271,16 @@ func (c *prismClient) getVolumeGroupStats(ctx context.Context, volumeGroup nutan
 	if volumeGroup.ID == "" {
 		return nil, nil
 	}
-	return c.restClient.stats(ctx, "/api/volumes/v4.2/stats/volume-groups/"+url.PathEscape(volumeGroup.ID))
+	start, end, sampling := c.statQuery()
+	statType := volumeStatsCommon.DOWNSAMPLINGOPERATOR_LAST
+	response, err := c.volumeGroups.GetVolumeGroupStats(ctx, &volumeGroupRequests.GetVolumeGroupStatsRequest{
+		ExtId:             &volumeGroup.ID,
+		StartTime_:        &start,
+		EndTime_:          &end,
+		SamplingInterval_: &sampling,
+		StatType_:         &statType,
+	})
+	return statsFromSDKResponse(response, err)
 }
 
 func (c *prismClient) getDiskStats(ctx context.Context, disk nutanixDisk) ([]metricStat, error) {
@@ -244,11 +290,22 @@ func (c *prismClient) getDiskStats(ctx context.Context, disk nutanixDisk) ([]met
 	if disk.ID == "" {
 		return nil, nil
 	}
-	return c.restClient.stats(ctx, "/api/clustermgmt/v4.2/stats/disks/"+url.PathEscape(disk.ID))
+	start, end, sampling := c.statQuery()
+	statType := clusterStatsCommon.DOWNSAMPLINGOPERATOR_LAST
+	response, err := c.disks.GetDiskStats(ctx, &diskRequests.GetDiskStatsRequest{
+		ExtId:             &disk.ID,
+		StartTime_:        &start,
+		EndTime_:          &end,
+		SamplingInterval_: &sampling,
+		StatType_:         &statType,
+	})
+	return statsFromSDKResponse(response, err)
 }
 
-func listV4Entities[T, R any](ctx context.Context, client *v4RESTClient, path string, convert func(T) R) ([]R, error) {
-	entities, err := client.listAll(ctx, path)
+type sdkPageFetcher func(context.Context, int, int) (any, error)
+
+func listSDKModels[T, R any](ctx context.Context, name string, fetch sdkPageFetcher, convert func(T) R) ([]R, error) {
+	entities, err := listSDKEntities(ctx, name, fetch)
 	if err != nil {
 		return nil, err
 	}
@@ -256,19 +313,69 @@ func listV4Entities[T, R any](ctx context.Context, client *v4RESTClient, path st
 	for i, entity := range entities {
 		data, err := json.Marshal(entity)
 		if err != nil {
-			return nil, fmt.Errorf("encode %s response item %d: %w", path, i, err)
+			return nil, fmt.Errorf("encode %s response item %d: %w", name, i, err)
 		}
 		var model T
 		if err := json.Unmarshal(data, &model); err != nil {
-			return nil, fmt.Errorf("decode %s response item %d: %w", path, i, err)
+			return nil, fmt.Errorf("decode %s response item %d: %w", name, i, err)
 		}
 		result = append(result, convert(model))
 	}
 	return result, nil
 }
 
+func listSDKEntities(ctx context.Context, name string, fetch sdkPageFetcher) ([]map[string]any, error) {
+	var result []map[string]any
+	for page := 0; ; page++ {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		response, err := fetch(ctx, page, v4PageSize)
+		if err != nil {
+			return nil, err
+		}
+		responseMap, err := sdkResponseMap(response)
+		if err != nil {
+			return nil, fmt.Errorf("decode %s response: %w", name, err)
+		}
+		entities := responseDataMaps(responseMap)
+		result = append(result, entities...)
+		total, hasTotal := responseTotal(responseMap)
+		if len(entities) == 0 || (hasTotal && len(result) >= total) || len(entities) < v4PageSize {
+			return result, nil
+		}
+	}
+}
+
+func sdkResponseMap(response any) (map[string]any, error) {
+	data, err := json.Marshal(response)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]any
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func statsFromSDKResponse(response any, callErr error) ([]metricStat, error) {
+	if callErr != nil {
+		return nil, callErr
+	}
+	responseMap, err := sdkResponseMap(response)
+	if err != nil {
+		return nil, err
+	}
+	items := responseDataMaps(responseMap)
+	if len(items) == 0 {
+		return nil, nil
+	}
+	return statsFromMap(items[len(items)-1]), nil
+}
+
 func (c *prismClient) statQuery() (time.Time, time.Time, int) {
-	interval := c.restClient.interval
+	interval := c.interval
 	if interval <= 0 {
 		interval = 30 * time.Second
 	}

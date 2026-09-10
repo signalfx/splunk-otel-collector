@@ -17,6 +17,7 @@ package nutanixreceiver
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -182,7 +183,11 @@ func TestPrismV4ClientDoesNotLogHTTPRequests(t *testing.T) {
 
 func TestPrismV4ClientListsVMStats(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/vmm/v4.2/ahv/stats/vms", r.URL.Path)
+		if r.Method == http.MethodOptions {
+			http.NotFound(w, r)
+			return
+		}
+		assert.Equal(t, "/api/vmm/v4.3/ahv/stats/vms", r.URL.Path)
 		assert.NotEmpty(t, r.URL.Query().Get("$startTime"))
 		assert.Equal(t, "LAST", r.URL.Query().Get("$statType"))
 
@@ -204,11 +209,41 @@ func TestPrismV4ClientListsVMStats(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &prismClient{restClient: testV4RESTClient(t, server)}
+	client := testPrismV4Client(t, server)
 	stats, err := client.listVMStats(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, map[string][]metricStat{
 		"vm-1": {{Name: "hypervisorNumIops", Value: 7}},
 		"vm-2": {{Name: "hypervisorNumIops", Value: 7}},
 	}, stats)
+}
+
+func TestPrismV4ClientFetchesStatsConcurrently(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			http.NotFound(w, r)
+			return
+		}
+		writeJSON(t, w, map[string]any{
+			"data": map[string]any{"numberOfOperations": 7},
+		})
+	}))
+	defer server.Close()
+
+	client := testPrismV4Client(t, server)
+	_, err := client.getClusterStats(context.Background(), nutanixCluster{ID: "warmup"})
+	require.NoError(t, err)
+
+	clusters := make([]nutanixCluster, 20)
+	for i := range clusters {
+		clusters[i].ID = fmt.Sprintf("cluster-%d", i)
+	}
+	stats, errs, err := fetchStatsConcurrently(context.Background(), "cluster", clusters, func(cluster nutanixCluster) string {
+		return cluster.ID
+	}, client.getClusterStats)
+	require.NoError(t, err)
+	require.Empty(t, compactErrors(errs))
+	for i := range stats {
+		require.Equal(t, []metricStat{{Name: "numberOfOperations", Value: 7}}, stats[i])
+	}
 }

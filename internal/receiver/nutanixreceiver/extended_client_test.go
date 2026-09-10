@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strconv"
 	"sync/atomic"
 	"testing"
@@ -30,9 +29,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestV4RESTClientListAllPaginates(t *testing.T) {
+func TestSDKClientListAllPaginates(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/test/v4.2/config/entities", r.URL.Path)
+		if r.Method == http.MethodOptions {
+			http.NotFound(w, r)
+			return
+		}
+		assert.Equal(t, "/api/clustermgmt/v4.3/config/clusters", r.URL.Path)
 		page, err := strconv.Atoi(r.URL.Query().Get("$page"))
 		assert.NoError(t, err)
 		count := v4PageSize
@@ -50,14 +53,18 @@ func TestV4RESTClientListAllPaginates(t *testing.T) {
 	}))
 	defer server.Close()
 
-	entities, err := testV4RESTClient(t, server).listAll(context.Background(), "/api/test/v4.2/config/entities")
+	entities, err := testPrismV4Client(t, server).listClusters(context.Background())
 	require.NoError(t, err)
 	require.Len(t, entities, 101)
 }
 
-func TestV4RESTClientRetriesServerErrors(t *testing.T) {
+func TestSDKClientRetriesServerErrors(t *testing.T) {
 	var requests atomic.Int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			http.NotFound(w, r)
+			return
+		}
 		if requests.Add(1) < 3 {
 			http.Error(w, "retry", http.StatusServiceUnavailable)
 			return
@@ -66,18 +73,22 @@ func TestV4RESTClientRetriesServerErrors(t *testing.T) {
 	}))
 	defer server.Close()
 
-	count, err := testV4RESTClient(t, server).count(context.Background(), "/api/test")
+	clusters, err := testPrismV4Client(t, server).listClusters(context.Background())
 	require.NoError(t, err)
-	require.Zero(t, count)
+	require.Empty(t, clusters)
 	require.Equal(t, int32(3), requests.Load())
 }
 
 func TestCollectPrismCentralContinuesAfterEndpointFailure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/api/prism/v4.2/config/categories":
+		if r.Method == http.MethodOptions {
 			http.NotFound(w, r)
-		case "/api/prism/v4.2/config/tasks":
+			return
+		}
+		switch r.URL.Path {
+		case "/api/prism/v4.4/config/categories":
+			http.NotFound(w, r)
+		case "/api/prism/v4.4/config/tasks":
 			total := 2
 			if r.URL.Query().Get("$filter") != "" {
 				total = 1
@@ -86,7 +97,7 @@ func TestCollectPrismCentralContinuesAfterEndpointFailure(t *testing.T) {
 				"data":     []any{map[string]any{"status": "RUNNING"}},
 				"metadata": map[string]any{"totalAvailableResults": total},
 			})
-		case "/api/monitoring/v4.2/serviceability/alerts":
+		case "/api/monitoring/v4.3/serviceability/alerts":
 			writeJSON(t, w, map[string]any{
 				"data":     []any{map[string]any{"severity": "CRITICAL", "isResolved": false, "isAcknowledged": true}},
 				"metadata": map[string]any{"totalAvailableResults": 1},
@@ -97,7 +108,7 @@ func TestCollectPrismCentralContinuesAfterEndpointFailure(t *testing.T) {
 	}))
 	defer server.Close()
 
-	snapshot := testV4RESTClient(t, server).collectPrismCentral(context.Background())
+	snapshot := testPrismV4Client(t, server).collectPrismCentral(context.Background())
 	require.Len(t, snapshot.Errors, 1)
 	require.InDelta(t, 1, additionalMetricValue(t, snapshot.Metrics, "nutanix.prism.entity.count", map[string]string{
 		"nutanix.entity.type":       "task",
@@ -111,8 +122,13 @@ func TestCollectPrismCentralContinuesAfterEndpointFailure(t *testing.T) {
 	}), 0.001)
 }
 
-func TestV4RESTClientStatsExtractsLatestValue(t *testing.T) {
+func TestSDKClientStatsExtractsLatestValue(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			http.NotFound(w, r)
+			return
+		}
+		assert.Equal(t, "/api/clustermgmt/v4.3/stats/clusters/cluster-1", r.URL.Path)
 		assert.NotEmpty(t, r.URL.Query().Get("$startTime"))
 		assert.Equal(t, "LAST", r.URL.Query().Get("$statType"))
 		writeJSON(t, w, map[string]any{
@@ -126,7 +142,7 @@ func TestV4RESTClientStatsExtractsLatestValue(t *testing.T) {
 	}))
 	defer server.Close()
 
-	stats, err := testV4RESTClient(t, server).stats(context.Background(), "/api/test/stats/entity")
+	stats, err := testPrismV4Client(t, server).getClusterStats(context.Background(), nutanixCluster{ID: "cluster-1"})
 	require.NoError(t, err)
 	require.Equal(t, []metricStat{{Name: "numberOfOperations", Value: 7}}, stats)
 }
@@ -138,7 +154,7 @@ func TestCollectAdditionalMetricsDisabledMakesNoRequests(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &prismClient{restClient: testV4RESTClient(t, server)}
+	client := testPrismV4Client(t, server)
 	snapshot, err := client.collectAdditionalMetrics(context.Background(), additionalMetricsRequest{})
 	require.NoError(t, err)
 	require.Empty(t, snapshot.Metrics)
@@ -155,7 +171,7 @@ func TestCollectAdditionalMetricsCoversEveryOptionalDomain(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &prismClient{restClient: testV4RESTClient(t, server)}
+	client := testPrismV4Client(t, server)
 	snapshot, err := client.collectAdditionalMetrics(context.Background(), additionalMetricsRequest{
 		DataProtection:    true,
 		Files:             true,
@@ -259,15 +275,16 @@ func TestMicrosegmentationScopeGroupsAPIEnums(t *testing.T) {
 	require.Equal(t, 2, countMicrosegPoliciesByScope(policies, "vpc", "all_vpc", "vpc_list"))
 }
 
-func testV4RESTClient(t *testing.T, server *httptest.Server) *v4RESTClient {
+func testPrismV4Client(t *testing.T, server *httptest.Server) *prismClient {
 	t.Helper()
-	baseURL, err := url.Parse(server.URL)
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = server.URL
+	cfg.Username = "user"
+	cfg.Password = "password"
+	cfg.ControllerConfig.CollectionInterval = 30 * time.Second
+	client, err := newPrismV4Client(cfg)
 	require.NoError(t, err)
-	return &v4RESTClient{
-		baseURL:    baseURL,
-		httpClient: server.Client(),
-		interval:   30 * time.Second,
-	}
+	return client
 }
 
 func writeJSON(t *testing.T, w http.ResponseWriter, value any) {

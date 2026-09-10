@@ -33,14 +33,15 @@ require (
 	github.com/prometheus/prometheus v0.314.0
 	github.com/shirou/gopsutil/v4 v4.26.8
 	github.com/signalfx/splunk-otel-collector/baseline v0.0.0
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.0.0-00010101000000-000000000000
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
-	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1
 	github.com/stretchr/testify v1.12.1
 	go.etcd.io/etcd/client/v2 v2.305.33
 	go.opentelemetry.io/collector/component/componentstatus v0.160.0
@@ -468,7 +469,7 @@ require (
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.7.0 // indirect
-	github.com/splunk/tarunner v0.5.0 // indirect
+	github.com/splunk/tarunner v0.5.2-0.20260904224642-39b84b2ff193 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.26.0 // indirect
 	github.com/tg123/go-htpasswd v1.2.5 // indirect
 	github.com/thda/tds v0.1.7 // indirect
@@ -820,11 +821,13 @@ require (
 replace (
 	github.com/signalfx/signalfx-agent => ./internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/baseline => ./baseline
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter => ./pkg/exporter/splunkoutputsexporter
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension => ./pkg/extension/oracleencodingextension
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor => ./pkg/processor/rollingspanlatencyprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver => ./pkg/receiver/splunkinputsreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )
 

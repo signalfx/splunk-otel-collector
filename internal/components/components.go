@@ -19,8 +19,6 @@ import (
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 
-	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
-
 	"github.com/signalfx/splunk-otel-collector/baseline"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
@@ -28,11 +26,13 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
 )
 
 const (
@@ -42,8 +42,8 @@ const (
 var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 	enableTARunnerFeatureGateID,
 	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver. "+
-		"When disabled (default), the `splunk_inputs` receiver is not available and the collector will crash if it tries to run it."),
+	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver and `splunk_outputs` exporter. "+
+		"When disabled (default), the `splunk_inputs` receiver and `splunk_outputs` exporter are not available and the collector will crash if it tries to run them."),
 	featuregate.WithRegisterFromVersion("v0.158.0"),
 )
 
@@ -72,6 +72,7 @@ func Get() (otelcol.Factories, error) {
 	)
 	if enableTARunner.IsEnabled() {
 		b.AddReceivers(splunkinputsreceiver.NewFactory())
+		b.AddExporters(splunkoutputsexporter.NewFactory())
 	}
 	b.AddProcessors(
 		timestampprocessor.NewFactory(),

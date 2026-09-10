@@ -8,6 +8,12 @@ DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
+
+# Module set released by multimod; must match a set in versions.yaml. The release
+# version is read from that set so versions.yaml stays the single source of truth.
+MODSET?=splunk-otel-collector
+RELEASE_VERSION=$(shell awk '/^  $(MODSET):/{f=1} f&&/^    version:/{print $$2; exit}' versions.yaml)
+
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
@@ -437,12 +443,25 @@ chlog-preview:
 chlog-update:
 	$(CHLOGGEN) update -v $(VERSION)
 
-.PHONY: prepare-changelog
-prepare-changelog:
-	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
-		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
+.PHONY: multimod-verify
+multimod-verify:
+	$(MULTIMOD) verify
+
+.PHONY: multimod-prerelease
+multimod-prerelease:
+	$(MULTIMOD) prerelease -s=true -b=false -v ./versions.yaml -m $(MODSET)
+
+# prepare-release rolls up the changelog and rewrites intra-set module requires
+# to the release version read from versions.yaml. Bump versions.yaml to the next
+# release first. Run on a clean tree: multimod-prerelease commits the go.mod
+# changes; the changelog edits are left staged for review.
+.PHONY: prepare-release
+prepare-release:
+	@if [ -z "$(RELEASE_VERSION)" ]; then \
+		echo "Error: could not read a version for module set $(MODSET) from versions.yaml"; \
 		exit 1; \
 	fi
-	@make chlog-update
-	@echo "Preparing changelog for $(VERSION)..."
-	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)
+	@echo "Preparing release $(RELEASE_VERSION) for module set $(MODSET)..."
+	@$(MAKE) multimod-prerelease
+	@$(MAKE) chlog-update VERSION=$(RELEASE_VERSION)
+	@./.github/workflows/scripts/prepare-changelog.sh $(RELEASE_VERSION)

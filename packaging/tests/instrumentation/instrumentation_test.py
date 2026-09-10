@@ -153,7 +153,7 @@ def get_package(distro, name, arch):
 
 
 def container_file_exists(container, path):
-    return container.exec_run(f"test -f {path}").exit_code == 0
+    return container.exec_run(f"test -e {path}").exit_code == 0
 
 
 def install_package(container, distro, path, arch="amd64"):

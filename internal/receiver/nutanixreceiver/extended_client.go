@@ -40,17 +40,135 @@ func statsFromMap(entity map[string]any) []metricStat {
 }
 
 func inventoryCountMetric(domain, entityType, stateType, state string, count int) additionalMetric {
-	attrs := map[string]string{"nutanix.entity.type": entityType}
+	attrs := map[string]string{}
 	if stateType != "" {
-		attrs["nutanix.entity.state_type"] = stateType
-		attrs["nutanix.entity.state"] = state
+		attribute := inventoryMetricPrefix(domain, entityType) + "." + stateType
+		if domain == "files" && stateType == "file_server" {
+			attribute = "nutanix.files.file_server.id"
+		}
+		attrs[attribute] = state
 	}
 	return additionalMetric{
-		Name:        "nutanix." + domain + ".entity.count",
-		Description: "Number of Nutanix " + strings.ReplaceAll(domain, "_", " ") + " entities",
-		Unit:        "{entity}",
+		Name:        inventoryMetricPrefix(domain, entityType) + ".count",
+		Description: inventoryMetricDescription(entityType),
+		Unit:        inventoryMetricUnit(entityType),
 		Attributes:  attrs,
 		Value:       float64(count),
+	}
+}
+
+func inventoryMetricDescription(entityType string) string {
+	switch entityType {
+	case "address_group":
+		return "Number of Nutanix microsegmentation address groups."
+	case "alert":
+		return "Number of Nutanix monitoring alerts."
+	case "antivirus_server":
+		return "Number of Nutanix Files antivirus servers."
+	case "bgp_session":
+		return "Number of Nutanix BGP sessions."
+	case "category":
+		return "Number of Nutanix Prism Central categories."
+	case "category_key":
+		return "Number of unique category keys in Nutanix Prism Central."
+	case "gateway":
+		return "Number of Nutanix gateways."
+	case "layer2_stretch":
+		return "Number of Nutanix Layer 2 stretches."
+	case "mount_target":
+		return "Number of Nutanix Files mount targets."
+	case "network_controller":
+		return "Number of Nutanix network controllers."
+	case "network_security_policy":
+		return "Number of Nutanix network security policies."
+	case "object_store":
+		return "Number of Nutanix Objects object stores."
+	case "protected_vm":
+		return "Number of Nutanix virtual machines protected by a data protection policy."
+	case "protection_policy":
+		return "Number of Nutanix data protection policies."
+	case "protection_policy_schedule":
+		return "Number of schedules configured for Nutanix data protection policies."
+	case "recovery_point":
+		return "Number of Nutanix data protection recovery points."
+	case "routing_policy":
+		return "Number of Nutanix routing policies."
+	case "service_group":
+		return "Number of Nutanix microsegmentation service groups."
+	case "task":
+		return "Number of Nutanix Prism Central tasks."
+	case "traffic_mirror":
+		return "Number of Nutanix traffic mirrors."
+	case "unified_namespace":
+		return "Number of Nutanix Files unified namespaces."
+	case "uplink_bond":
+		return "Number of Nutanix uplink bonds."
+	case "virtual_switch":
+		return "Number of Nutanix virtual switches."
+	case "vpc":
+		return "Number of Nutanix virtual private clouds."
+	case "vpn_connection":
+		return "Number of Nutanix VPN connections."
+	default:
+		return "Number of Nutanix " + strings.ReplaceAll(entityType, "_", " ") + "."
+	}
+}
+
+func inventoryMetricPrefix(domain, entityType string) string {
+	if domain == "networking" && entityType == "vpc_external_subnet" {
+		entityType = "vpc.external_subnet"
+	}
+	return "nutanix." + domain + "." + entityType
+}
+
+func inventoryMetricUnit(entityType string) string {
+	switch entityType {
+	case "address_group", "service_group":
+		return "{group}"
+	case "alert":
+		return "{alert}"
+	case "antivirus_server", "file_server":
+		return "{server}"
+	case "bgp_session":
+		return "{session}"
+	case "category":
+		return "{category}"
+	case "category_key":
+		return "{key}"
+	case "gateway":
+		return "{gateway}"
+	case "layer2_stretch":
+		return "{stretch}"
+	case "mount_target":
+		return "{target}"
+	case "network_controller":
+		return "{controller}"
+	case "network_security_policy", "protection_policy", "routing_policy":
+		return "{policy}"
+	case "object_store":
+		return "{store}"
+	case "protected_vm":
+		return "{vm}"
+	case "recovery_point":
+		return "{recovery_point}"
+	case "protection_policy_schedule":
+		return "{schedule}"
+	case "task":
+		return "{task}"
+	case "traffic_mirror":
+		return "{mirror}"
+	case "unified_namespace":
+		return "{namespace}"
+	case "uplink_bond":
+		return "{bond}"
+	case "virtual_switch":
+		return "{switch}"
+	case "vpc":
+		return "{vpc}"
+	case "vpn_connection":
+		return "{connection}"
+	default:
+		return "{" + entityType + "}"
 	}
 }
 

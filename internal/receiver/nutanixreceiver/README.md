@@ -89,7 +89,7 @@ The legacy lab exporter creates Prometheus gauges from Prism payload keys:
 | `nutanix_count_vcpu` | VM CPU allocation | `nutanix.vm.vcpu.count` |
 | `nutanix_count_vram_mib` | VM memory allocation | `nutanix.vm.memory.assigned` |
 | `nutanix_count_vdisk`, `nutanix_count_vdisk_ide`, `nutanix_count_vdisk_sata`, `nutanix_count_vdisk_scsi` | VM disk config | `nutanix.vm.disk.count` with optional `nutanix.vm.disk.bus` |
-| `nutanix_count_vnic` | VM NIC config | `nutanix.vm.nic.count` |
+| `nutanix_count_vnic` | VM NIC config | `nutanix.vm.nics.count` |
 | `nutanix_cluster_info` | cluster metadata | `nutanix.cluster.info` |
 
 The v4 APIs expose typed stat names such as `controllerNumIops`,

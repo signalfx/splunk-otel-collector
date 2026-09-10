@@ -36,7 +36,16 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixClusterStat: MetricConfig{
 						Enabled: true,
 					},
-					NutanixDataProtectionEntityCount: MetricConfig{
+					NutanixDataProtectionProtectedVMCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixDataProtectionProtectionPolicyCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixDataProtectionProtectionPolicyScheduleCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixDataProtectionRecoveryPointCount: MetricConfig{
 						Enabled: true,
 					},
 					NutanixDiskCount: MetricConfig{
@@ -45,10 +54,25 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixDiskStat: MetricConfig{
 						Enabled: true,
 					},
-					NutanixFilesEntityCount: MetricConfig{
+					NutanixFilesAntivirusServerCount: MetricConfig{
 						Enabled: true,
 					},
-					NutanixFilesEntityStat: MetricConfig{
+					NutanixFilesAntivirusServerStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixFilesFileServerCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixFilesFileServerStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixFilesMountTargetCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixFilesMountTargetStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixFilesUnifiedNamespaceCount: MetricConfig{
 						Enabled: true,
 					},
 					NutanixHostCount: MetricConfig{
@@ -57,25 +81,73 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixHostStat: MetricConfig{
 						Enabled: true,
 					},
-					NutanixMicrosegEntityCount: MetricConfig{
+					NutanixMicrosegAddressGroupCount: MetricConfig{
 						Enabled: true,
 					},
-					NutanixMonitoringEntityCount: MetricConfig{
+					NutanixMicrosegNetworkSecurityPolicyCount: MetricConfig{
 						Enabled: true,
 					},
-					NutanixNetworkingEntityCount: MetricConfig{
+					NutanixMicrosegServiceGroupCount: MetricConfig{
 						Enabled: true,
 					},
-					NutanixNetworkingEntityStat: MetricConfig{
+					NutanixMonitoringAlertCount: MetricConfig{
 						Enabled: true,
 					},
-					NutanixObjectsEntityCount: MetricConfig{
+					NutanixNetworkingBgpSessionCount: MetricConfig{
 						Enabled: true,
 					},
-					NutanixObjectsEntityStat: MetricConfig{
+					NutanixNetworkingGatewayCount: MetricConfig{
 						Enabled: true,
 					},
-					NutanixPrismEntityCount: MetricConfig{
+					NutanixNetworkingLayer2StretchCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingLayer2StretchStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingNetworkControllerCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingRoutingPolicyCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingTrafficMirrorCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingTrafficMirrorStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingUplinkBondCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingVirtualSwitchCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingVpcCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingVpcExternalSubnetStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingVpnConnectionCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixNetworkingVpnConnectionStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixObjectsObjectStoreCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixObjectsObjectStoreStat: MetricConfig{
+						Enabled: true,
+					},
+					NutanixPrismCategoryCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixPrismCategoryKeyCount: MetricConfig{
+						Enabled: true,
+					},
+					NutanixPrismTaskCount: MetricConfig{
 						Enabled: true,
 					},
 					NutanixStorageContainerCount: MetricConfig{
@@ -96,7 +168,7 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixVMMemoryAssigned: MetricConfig{
 						Enabled: true,
 					},
-					NutanixVMNicCount: MetricConfig{
+					NutanixVMNicsCount: MetricConfig{
 						Enabled: true,
 					},
 					NutanixVMStat: MetricConfig{
@@ -134,7 +206,16 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixClusterStat: MetricConfig{
 						Enabled: false,
 					},
-					NutanixDataProtectionEntityCount: MetricConfig{
+					NutanixDataProtectionProtectedVMCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixDataProtectionProtectionPolicyCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixDataProtectionProtectionPolicyScheduleCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixDataProtectionRecoveryPointCount: MetricConfig{
 						Enabled: false,
 					},
 					NutanixDiskCount: MetricConfig{
@@ -143,10 +224,25 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixDiskStat: MetricConfig{
 						Enabled: false,
 					},
-					NutanixFilesEntityCount: MetricConfig{
+					NutanixFilesAntivirusServerCount: MetricConfig{
 						Enabled: false,
 					},
-					NutanixFilesEntityStat: MetricConfig{
+					NutanixFilesAntivirusServerStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixFilesFileServerCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixFilesFileServerStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixFilesMountTargetCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixFilesMountTargetStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixFilesUnifiedNamespaceCount: MetricConfig{
 						Enabled: false,
 					},
 					NutanixHostCount: MetricConfig{
@@ -155,25 +251,73 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixHostStat: MetricConfig{
 						Enabled: false,
 					},
-					NutanixMicrosegEntityCount: MetricConfig{
+					NutanixMicrosegAddressGroupCount: MetricConfig{
 						Enabled: false,
 					},
-					NutanixMonitoringEntityCount: MetricConfig{
+					NutanixMicrosegNetworkSecurityPolicyCount: MetricConfig{
 						Enabled: false,
 					},
-					NutanixNetworkingEntityCount: MetricConfig{
+					NutanixMicrosegServiceGroupCount: MetricConfig{
 						Enabled: false,
 					},
-					NutanixNetworkingEntityStat: MetricConfig{
+					NutanixMonitoringAlertCount: MetricConfig{
 						Enabled: false,
 					},
-					NutanixObjectsEntityCount: MetricConfig{
+					NutanixNetworkingBgpSessionCount: MetricConfig{
 						Enabled: false,
 					},
-					NutanixObjectsEntityStat: MetricConfig{
+					NutanixNetworkingGatewayCount: MetricConfig{
 						Enabled: false,
 					},
-					NutanixPrismEntityCount: MetricConfig{
+					NutanixNetworkingLayer2StretchCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingLayer2StretchStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingNetworkControllerCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingRoutingPolicyCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingTrafficMirrorCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingTrafficMirrorStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingUplinkBondCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingVirtualSwitchCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingVpcCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingVpcExternalSubnetStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingVpnConnectionCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixNetworkingVpnConnectionStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixObjectsObjectStoreCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixObjectsObjectStoreStat: MetricConfig{
+						Enabled: false,
+					},
+					NutanixPrismCategoryCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixPrismCategoryKeyCount: MetricConfig{
+						Enabled: false,
+					},
+					NutanixPrismTaskCount: MetricConfig{
 						Enabled: false,
 					},
 					NutanixStorageContainerCount: MetricConfig{
@@ -194,7 +338,7 @@ func TestMetricsBuilderConfig(t *testing.T) {
 					NutanixVMMemoryAssigned: MetricConfig{
 						Enabled: false,
 					},
-					NutanixVMNicCount: MetricConfig{
+					NutanixVMNicsCount: MetricConfig{
 						Enabled: false,
 					},
 					NutanixVMStat: MetricConfig{

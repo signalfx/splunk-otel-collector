@@ -51,6 +51,21 @@ attributes:
     description: Name of the Nutanix cluster.
     type: string
 
+  nutanix.data_protection.protected_vm.rpo:
+    description: Recovery point objective class of the protection policy protecting the virtual machine.
+    type: string
+    enum: [sync, nearsync, async]
+
+  nutanix.data_protection.protection_policy_schedule.consistency:
+    description: Consistency type configured for the data protection policy schedule.
+    type: string
+    enum: [crash_consistent, application_consistent]
+
+  nutanix.data_protection.protection_policy_schedule.rpo:
+    description: Recovery point objective class configured for the data protection policy schedule.
+    type: string
+    enum: [sync, nearsync, async]
+
   nutanix.disk.id:
     description: Unique identifier of the Nutanix physical disk.
     type: string
@@ -64,24 +79,28 @@ attributes:
     type: string
     enum: [ssd_pcie, ssd_sata, das_sata, ssd_mem_nvme, cloud]
 
-  nutanix.entity.id:
-    description: Unique identifier of an entity returned by an optional Nutanix Prism Central API.
+  nutanix.files.antivirus_server.id:
+    description: Unique identifier of the Nutanix Files antivirus server.
     type: string
 
-  nutanix.entity.name:
-    description: Name of an entity returned by an optional Nutanix Prism Central API.
+  nutanix.files.antivirus_server.name:
+    description: Name of the Nutanix Files antivirus server.
     type: string
 
-  nutanix.entity.state:
-    description: State value used when grouping optional Nutanix entity counts.
+  nutanix.files.file_server.id:
+    description: Unique identifier of the Nutanix Files file server.
     type: string
 
-  nutanix.entity.state_type:
-    description: Property represented by nutanix.entity.state.
+  nutanix.files.file_server.name:
+    description: Name of the Nutanix Files file server.
     type: string
 
-  nutanix.entity.type:
-    description: Type of entity returned by an optional Nutanix Prism Central API.
+  nutanix.files.mount_target.id:
+    description: Unique identifier of the Nutanix Files mount target.
+    type: string
+
+  nutanix.files.mount_target.name:
+    description: Name of the Nutanix Files mount target.
     type: string
 
   nutanix.host.id:
@@ -91,6 +110,99 @@ attributes:
   nutanix.host.name:
     description: Name of the Nutanix host.
     type: string
+
+  nutanix.microseg.network_security_policy.scope:
+    description: Network scope of the Nutanix network security policy.
+    type: string
+    enum: [vlan, vpc]
+
+  nutanix.microseg.network_security_policy.state:
+    description: Enforcement state of the Nutanix network security policy.
+    type: string
+    enum: [save, monitor, enforce]
+
+  nutanix.microseg.network_security_policy.type:
+    description: Type of the Nutanix network security policy.
+    type: string
+    enum: [quarantine, isolation, application]
+
+  nutanix.monitoring.alert.acknowledged:
+    description: Whether the Nutanix monitoring alert has been acknowledged.
+    type: string
+    enum: ["true", "false"]
+
+  nutanix.monitoring.alert.resolved:
+    description: Whether the Nutanix monitoring alert has been resolved.
+    type: string
+    enum: ["true", "false"]
+
+  nutanix.monitoring.alert.severity:
+    description: Severity of the Nutanix monitoring alert.
+    type: string
+    enum: [info, warning, critical]
+
+  nutanix.monitoring.alert.unresolved_severity:
+    description: Severity of an unresolved Nutanix monitoring alert.
+    type: string
+    enum: [info, warning, critical]
+
+  nutanix.networking.layer2_stretch.id:
+    description: Unique identifier of the Nutanix Layer 2 stretch.
+    type: string
+
+  nutanix.networking.layer2_stretch.name:
+    description: Name of the Nutanix Layer 2 stretch.
+    type: string
+
+  nutanix.networking.traffic_mirror.id:
+    description: Unique identifier of the Nutanix traffic mirror.
+    type: string
+
+  nutanix.networking.traffic_mirror.name:
+    description: Name of the Nutanix traffic mirror.
+    type: string
+
+  nutanix.networking.vpc.external_subnet.id:
+    description: Unique identifier of the external subnet attached to a Nutanix VPC.
+    type: string
+
+  nutanix.networking.vpc.external_subnet.name:
+    description: Name of the external subnet attached to a Nutanix VPC.
+    type: string
+
+  nutanix.networking.vpc.id:
+    description: Unique identifier of the Nutanix VPC containing the external subnet.
+    type: string
+
+  nutanix.networking.vpc.name:
+    description: Name of the Nutanix VPC containing the external subnet.
+    type: string
+
+  nutanix.networking.vpn_connection.id:
+    description: Unique identifier of the Nutanix VPN connection.
+    type: string
+
+  nutanix.networking.vpn_connection.name:
+    description: Name of the Nutanix VPN connection.
+    type: string
+
+  nutanix.objects.object_store.id:
+    description: Unique identifier of the Nutanix Objects object store.
+    type: string
+
+  nutanix.objects.object_store.name:
+    description: Name of the Nutanix Objects object store.
+    type: string
+
+  nutanix.prism.category.type:
+    description: Type of the Nutanix Prism Central category.
+    type: string
+    enum: [system, user, internal]
+
+  nutanix.prism.task.status:
+    description: Status of the Nutanix Prism Central task.
+    type: string
+    enum: [queued, running, canceling, succeeded, failed, canceled, suspended]
 
   nutanix.stat.kind:
     description: Kind of statistic returned by the Nutanix Prism API.
@@ -213,14 +325,40 @@ metrics:
     attributes:
       [nutanix.cluster.id, nutanix.cluster.name, nutanix.stat.name, nutanix.stat.kind]
 
-  nutanix.data_protection.entity.count:
+  nutanix.data_protection.protected_vm.count:
     enabled: true
-    description: Number of Nutanix data protection entities.
+    description: Number of Nutanix virtual machines protected by a data protection policy.
     stability: alpha
-    unit: "{entity}"
+    unit: "{vm}"
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+    attributes: [nutanix.data_protection.protected_vm.rpo]
+
+  nutanix.data_protection.protection_policy.count:
+    enabled: true
+    description: Number of Nutanix data protection policies.
+    stability: alpha
+    unit: "{policy}"
+    gauge:
+      value_type: double
+
+  nutanix.data_protection.protection_policy_schedule.count:
+    enabled: true
+    description: Number of schedules configured for Nutanix data protection policies.
+    stability: alpha
+    unit: "{schedule}"
+    gauge:
+      value_type: double
+    attributes:
+      [nutanix.data_protection.protection_policy_schedule.consistency, nutanix.data_protection.protection_policy_schedule.rpo]
+
+  nutanix.data_protection.recovery_point.count:
+    enabled: true
+    description: Number of Nutanix data protection recovery points.
+    stability: alpha
+    unit: "{recovery_point}"
+    gauge:
+      value_type: double
 
   nutanix.disk.count:
     enabled: true
@@ -241,23 +379,68 @@ metrics:
     attributes:
       [nutanix.disk.id, nutanix.disk.serial, nutanix.disk.storage_tier, nutanix.host.id, nutanix.host.name, nutanix.cluster.id, nutanix.cluster.name, nutanix.stat.name, nutanix.stat.kind]
 
-  nutanix.files.entity.count:
+  nutanix.files.antivirus_server.count:
     enabled: true
-    description: Number of Nutanix Files entities.
+    description: Number of Nutanix Files antivirus servers.
     stability: alpha
-    unit: "{entity}"
+    unit: "{server}"
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+    attributes: [nutanix.files.file_server.id, nutanix.files.file_server.name]
 
-  nutanix.files.entity.stat:
+  nutanix.files.antivirus_server.stat:
     enabled: true
-    description: Latest statistic for a Nutanix Files entity.
+    description: Latest statistic for a Nutanix Files antivirus server.
     stability: alpha
     unit: ""
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.id, nutanix.entity.name, nutanix.stat.name, nutanix.stat.kind]
+    attributes:
+      [nutanix.files.antivirus_server.id, nutanix.files.antivirus_server.name, nutanix.files.file_server.id, nutanix.files.file_server.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.files.file_server.count:
+    enabled: true
+    description: Number of Nutanix Files file servers.
+    stability: alpha
+    unit: "{server}"
+    gauge:
+      value_type: double
+
+  nutanix.files.file_server.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix Files file server.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes: [nutanix.files.file_server.id, nutanix.files.file_server.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.files.mount_target.count:
+    enabled: true
+    description: Number of Nutanix Files mount targets.
+    stability: alpha
+    unit: "{target}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.files.file_server.id, nutanix.files.file_server.name]
+
+  nutanix.files.mount_target.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix Files mount target.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes:
+      [nutanix.files.mount_target.id, nutanix.files.mount_target.name, nutanix.files.file_server.id, nutanix.files.file_server.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.files.unified_namespace.count:
+    enabled: true
+    description: Number of Nutanix Files unified namespaces.
+    stability: alpha
+    unit: "{namespace}"
+    gauge:
+      value_type: double
 
   nutanix.host.count:
     enabled: true
@@ -278,68 +461,205 @@ metrics:
     attributes:
       [nutanix.host.id, nutanix.host.name, nutanix.cluster.id, nutanix.cluster.name, nutanix.stat.name, nutanix.stat.kind]
 
-  nutanix.microseg.entity.count:
+  nutanix.microseg.address_group.count:
     enabled: true
-    description: Number of Nutanix microsegmentation entities.
+    description: Number of Nutanix microsegmentation address groups.
     stability: alpha
-    unit: "{entity}"
+    unit: "{group}"
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
 
-  nutanix.monitoring.entity.count:
+  nutanix.microseg.network_security_policy.count:
     enabled: true
-    description: Number of Nutanix monitoring entities.
+    description: Number of Nutanix network security policies.
     stability: alpha
-    unit: "{entity}"
+    unit: "{policy}"
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+    attributes:
+      [nutanix.microseg.network_security_policy.scope, nutanix.microseg.network_security_policy.state, nutanix.microseg.network_security_policy.type]
 
-  nutanix.networking.entity.count:
+  nutanix.microseg.service_group.count:
     enabled: true
-    description: Number of Nutanix networking entities.
+    description: Number of Nutanix microsegmentation service groups.
     stability: alpha
-    unit: "{entity}"
+    unit: "{group}"
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
 
-  nutanix.networking.entity.stat:
+  nutanix.monitoring.alert.count:
     enabled: true
-    description: Latest statistic for a Nutanix networking entity.
+    description: Number of Nutanix monitoring alerts.
+    stability: alpha
+    unit: "{alert}"
+    gauge:
+      value_type: double
+    attributes:
+      [nutanix.monitoring.alert.acknowledged, nutanix.monitoring.alert.resolved, nutanix.monitoring.alert.severity, nutanix.monitoring.alert.unresolved_severity]
+
+  nutanix.networking.bgp_session.count:
+    enabled: true
+    description: Number of Nutanix BGP sessions.
+    stability: alpha
+    unit: "{session}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.gateway.count:
+    enabled: true
+    description: Number of Nutanix gateways.
+    stability: alpha
+    unit: "{gateway}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.layer2_stretch.count:
+    enabled: true
+    description: Number of Nutanix Layer 2 stretches.
+    stability: alpha
+    unit: "{stretch}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.layer2_stretch.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix Layer 2 stretch.
     stability: alpha
     unit: ""
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.id, nutanix.entity.name, nutanix.stat.name, nutanix.stat.kind]
+    attributes:
+      [nutanix.networking.layer2_stretch.id, nutanix.networking.layer2_stretch.name, nutanix.stat.name, nutanix.stat.kind]
 
-  nutanix.objects.entity.count:
+  nutanix.networking.network_controller.count:
     enabled: true
-    description: Number of Nutanix Objects entities.
+    description: Number of Nutanix network controllers.
     stability: alpha
-    unit: "{entity}"
+    unit: "{controller}"
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
 
-  nutanix.objects.entity.stat:
+  nutanix.networking.routing_policy.count:
     enabled: true
-    description: Latest statistic for a Nutanix Objects entity.
+    description: Number of Nutanix routing policies.
+    stability: alpha
+    unit: "{policy}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.traffic_mirror.count:
+    enabled: true
+    description: Number of Nutanix traffic mirrors.
+    stability: alpha
+    unit: "{mirror}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.traffic_mirror.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix traffic mirror.
     stability: alpha
     unit: ""
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.id, nutanix.entity.name, nutanix.stat.name, nutanix.stat.kind]
+    attributes:
+      [nutanix.networking.traffic_mirror.id, nutanix.networking.traffic_mirror.name, nutanix.stat.name, nutanix.stat.kind]
 
-  nutanix.prism.entity.count:
+  nutanix.networking.uplink_bond.count:
     enabled: true
-    description: Number of Nutanix Prism Central entities.
+    description: Number of Nutanix uplink bonds.
     stability: alpha
-    unit: "{entity}"
+    unit: "{bond}"
     gauge:
       value_type: double
-    attributes: [nutanix.entity.type, nutanix.entity.state_type, nutanix.entity.state]
+
+  nutanix.networking.virtual_switch.count:
+    enabled: true
+    description: Number of Nutanix virtual switches.
+    stability: alpha
+    unit: "{switch}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.vpc.count:
+    enabled: true
+    description: Number of Nutanix virtual private clouds.
+    stability: alpha
+    unit: "{vpc}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.vpc.external_subnet.stat:
+    enabled: true
+    description: Latest statistic for an external subnet attached to a Nutanix VPC.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes:
+      [nutanix.networking.vpc.external_subnet.id, nutanix.networking.vpc.external_subnet.name, nutanix.networking.vpc.id, nutanix.networking.vpc.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.networking.vpn_connection.count:
+    enabled: true
+    description: Number of Nutanix VPN connections.
+    stability: alpha
+    unit: "{connection}"
+    gauge:
+      value_type: double
+
+  nutanix.networking.vpn_connection.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix VPN connection.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes:
+      [nutanix.networking.vpn_connection.id, nutanix.networking.vpn_connection.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.objects.object_store.count:
+    enabled: true
+    description: Number of Nutanix Objects object stores.
+    stability: alpha
+    unit: "{store}"
+    gauge:
+      value_type: double
+
+  nutanix.objects.object_store.stat:
+    enabled: true
+    description: Latest statistic for a Nutanix Objects object store.
+    stability: alpha
+    unit: ""
+    gauge:
+      value_type: double
+    attributes:
+      [nutanix.objects.object_store.id, nutanix.objects.object_store.name, nutanix.stat.name, nutanix.stat.kind]
+
+  nutanix.prism.category.count:
+    enabled: true
+    description: Number of Nutanix Prism Central categories.
+    stability: alpha
+    unit: "{category}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.prism.category.type]
+
+  nutanix.prism.category_key.count:
+    enabled: true
+    description: Number of unique category keys in Nutanix Prism Central.
+    stability: alpha
+    unit: "{key}"
+    gauge:
+      value_type: double
+
+  nutanix.prism.task.count:
+    enabled: true
+    description: Number of Nutanix Prism Central tasks.
+    stability: alpha
+    unit: "{task}"
+    gauge:
+      value_type: double
+    attributes: [nutanix.prism.task.status]
 
   nutanix.storage.container.count:
     enabled: true
@@ -400,7 +720,7 @@ metrics:
     attributes:
       [nutanix.cluster.id, nutanix.cluster.name, nutanix.host.id, nutanix.host.name]
 
-  nutanix.vm.nic.count:
+  nutanix.vm.nics.count:
     enabled: true
     description: Number of network interfaces attached to Nutanix virtual machines.
     stability: alpha

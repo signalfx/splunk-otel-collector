@@ -52,21 +52,50 @@ Latest Nutanix Prism statistic for a cluster.
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
 
-### nutanix.data_protection.entity.count
+### nutanix.data_protection.protected_vm.count
 
-Number of Nutanix data protection entities.
+Number of Nutanix virtual machines protected by a data protection policy.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| {entity} | Gauge | Double | Alpha |
+| {vm} | Gauge | Double | Alpha |
 
 #### Attributes
 
 | Name | Description | Values | Requirement Level |
 | ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
-| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+| nutanix.data_protection.protected_vm.rpo | Recovery point objective class of the protection policy protecting the virtual machine. | Str: ``sync``, ``nearsync``, ``async`` | Recommended |
+
+### nutanix.data_protection.protection_policy.count
+
+Number of Nutanix data protection policies.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {policy} | Gauge | Double | Alpha |
+
+### nutanix.data_protection.protection_policy_schedule.count
+
+Number of schedules configured for Nutanix data protection policies.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {schedule} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.data_protection.protection_policy_schedule.consistency | Consistency type configured for the data protection policy schedule. | Str: ``crash_consistent``, ``application_consistent`` | Recommended |
+| nutanix.data_protection.protection_policy_schedule.rpo | Recovery point objective class configured for the data protection policy schedule. | Str: ``sync``, ``nearsync``, ``async`` | Recommended |
+
+### nutanix.data_protection.recovery_point.count
+
+Number of Nutanix data protection recovery points.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {recovery_point} | Gauge | Double | Alpha |
 
 ### nutanix.disk.count
 
@@ -106,25 +135,24 @@ Latest Nutanix Prism statistic for a physical disk.
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
 
-### nutanix.files.entity.count
+### nutanix.files.antivirus_server.count
 
-Number of Nutanix Files entities.
+Number of Nutanix Files antivirus servers.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| {entity} | Gauge | Double | Alpha |
+| {server} | Gauge | Double | Alpha |
 
 #### Attributes
 
 | Name | Description | Values | Requirement Level |
 | ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
-| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+| nutanix.files.file_server.id | Unique identifier of the Nutanix Files file server. | Any Str | Recommended |
+| nutanix.files.file_server.name | Name of the Nutanix Files file server. | Any Str | Recommended |
 
-### nutanix.files.entity.stat
+### nutanix.files.antivirus_server.stat
 
-Latest statistic for a Nutanix Files entity.
+Latest statistic for a Nutanix Files antivirus server.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
@@ -134,11 +162,79 @@ Latest statistic for a Nutanix Files entity.
 
 | Name | Description | Values | Requirement Level |
 | ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.id | Unique identifier of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.name | Name of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.files.antivirus_server.id | Unique identifier of the Nutanix Files antivirus server. | Any Str | Recommended |
+| nutanix.files.antivirus_server.name | Name of the Nutanix Files antivirus server. | Any Str | Recommended |
+| nutanix.files.file_server.id | Unique identifier of the Nutanix Files file server. | Any Str | Recommended |
+| nutanix.files.file_server.name | Name of the Nutanix Files file server. | Any Str | Recommended |
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.files.file_server.count
+
+Number of Nutanix Files file servers.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {server} | Gauge | Double | Alpha |
+
+### nutanix.files.file_server.stat
+
+Latest statistic for a Nutanix Files file server.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.files.file_server.id | Unique identifier of the Nutanix Files file server. | Any Str | Recommended |
+| nutanix.files.file_server.name | Name of the Nutanix Files file server. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.files.mount_target.count
+
+Number of Nutanix Files mount targets.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {target} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.files.file_server.id | Unique identifier of the Nutanix Files file server. | Any Str | Recommended |
+| nutanix.files.file_server.name | Name of the Nutanix Files file server. | Any Str | Recommended |
+
+### nutanix.files.mount_target.stat
+
+Latest statistic for a Nutanix Files mount target.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.files.mount_target.id | Unique identifier of the Nutanix Files mount target. | Any Str | Recommended |
+| nutanix.files.mount_target.name | Name of the Nutanix Files mount target. | Any Str | Recommended |
+| nutanix.files.file_server.id | Unique identifier of the Nutanix Files file server. | Any Str | Recommended |
+| nutanix.files.file_server.name | Name of the Nutanix Files file server. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.files.unified_namespace.count
+
+Number of Nutanix Files unified namespaces.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {namespace} | Gauge | Double | Alpha |
 
 ### nutanix.host.count
 
@@ -174,91 +270,82 @@ Latest Nutanix Prism statistic for a host.
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
 
-### nutanix.microseg.entity.count
+### nutanix.microseg.address_group.count
 
-Number of Nutanix microsegmentation entities.
+Number of Nutanix microsegmentation address groups.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| {entity} | Gauge | Double | Alpha |
+| {group} | Gauge | Double | Alpha |
+
+### nutanix.microseg.network_security_policy.count
+
+Number of Nutanix network security policies.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {policy} | Gauge | Double | Alpha |
 
 #### Attributes
 
 | Name | Description | Values | Requirement Level |
 | ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
-| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+| nutanix.microseg.network_security_policy.scope | Network scope of the Nutanix network security policy. | Str: ``vlan``, ``vpc`` | Recommended |
+| nutanix.microseg.network_security_policy.state | Enforcement state of the Nutanix network security policy. | Str: ``save``, ``monitor``, ``enforce`` | Recommended |
+| nutanix.microseg.network_security_policy.type | Type of the Nutanix network security policy. | Str: ``quarantine``, ``isolation``, ``application`` | Recommended |
 
-### nutanix.monitoring.entity.count
+### nutanix.microseg.service_group.count
 
-Number of Nutanix monitoring entities.
+Number of Nutanix microsegmentation service groups.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| {entity} | Gauge | Double | Alpha |
+| {group} | Gauge | Double | Alpha |
+
+### nutanix.monitoring.alert.count
+
+Number of Nutanix monitoring alerts.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {alert} | Gauge | Double | Alpha |
 
 #### Attributes
 
 | Name | Description | Values | Requirement Level |
 | ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
-| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+| nutanix.monitoring.alert.acknowledged | Whether the Nutanix monitoring alert has been acknowledged. | Str: ``true``, ``false`` | Recommended |
+| nutanix.monitoring.alert.resolved | Whether the Nutanix monitoring alert has been resolved. | Str: ``true``, ``false`` | Recommended |
+| nutanix.monitoring.alert.severity | Severity of the Nutanix monitoring alert. | Str: ``info``, ``warning``, ``critical`` | Recommended |
+| nutanix.monitoring.alert.unresolved_severity | Severity of an unresolved Nutanix monitoring alert. | Str: ``info``, ``warning``, ``critical`` | Recommended |
 
-### nutanix.networking.entity.count
+### nutanix.networking.bgp_session.count
 
-Number of Nutanix networking entities.
-
-| Unit | Metric Type | Value Type | Stability |
-| ---- | ----------- | ---------- | --------- |
-| {entity} | Gauge | Double | Alpha |
-
-#### Attributes
-
-| Name | Description | Values | Requirement Level |
-| ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
-| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
-
-### nutanix.networking.entity.stat
-
-Latest statistic for a Nutanix networking entity.
+Number of Nutanix BGP sessions.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-|  | Gauge | Double | Alpha |
+| {session} | Gauge | Double | Alpha |
 
-#### Attributes
+### nutanix.networking.gateway.count
 
-| Name | Description | Values | Requirement Level |
-| ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.id | Unique identifier of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.name | Name of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
-| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
-
-### nutanix.objects.entity.count
-
-Number of Nutanix Objects entities.
+Number of Nutanix gateways.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| {entity} | Gauge | Double | Alpha |
+| {gateway} | Gauge | Double | Alpha |
 
-#### Attributes
+### nutanix.networking.layer2_stretch.count
 
-| Name | Description | Values | Requirement Level |
-| ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
-| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+Number of Nutanix Layer 2 stretches.
 
-### nutanix.objects.entity.stat
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {stretch} | Gauge | Double | Alpha |
 
-Latest statistic for a Nutanix Objects entity.
+### nutanix.networking.layer2_stretch.stat
+
+Latest statistic for a Nutanix Layer 2 stretch.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
@@ -268,27 +355,180 @@ Latest statistic for a Nutanix Objects entity.
 
 | Name | Description | Values | Requirement Level |
 | ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.id | Unique identifier of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.name | Name of an entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
+| nutanix.networking.layer2_stretch.id | Unique identifier of the Nutanix Layer 2 stretch. | Any Str | Recommended |
+| nutanix.networking.layer2_stretch.name | Name of the Nutanix Layer 2 stretch. | Any Str | Recommended |
 | nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
 | nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
 
-### nutanix.prism.entity.count
+### nutanix.networking.network_controller.count
 
-Number of Nutanix Prism Central entities.
+Number of Nutanix network controllers.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| {entity} | Gauge | Double | Alpha |
+| {controller} | Gauge | Double | Alpha |
+
+### nutanix.networking.routing_policy.count
+
+Number of Nutanix routing policies.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {policy} | Gauge | Double | Alpha |
+
+### nutanix.networking.traffic_mirror.count
+
+Number of Nutanix traffic mirrors.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {mirror} | Gauge | Double | Alpha |
+
+### nutanix.networking.traffic_mirror.stat
+
+Latest statistic for a Nutanix traffic mirror.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
 
 #### Attributes
 
 | Name | Description | Values | Requirement Level |
 | ---- | ----------- | ------ | -------- |
-| nutanix.entity.type | Type of entity returned by an optional Nutanix Prism Central API. | Any Str | Recommended |
-| nutanix.entity.state_type | Property represented by nutanix.entity.state. | Any Str | Recommended |
-| nutanix.entity.state | State value used when grouping optional Nutanix entity counts. | Any Str | Recommended |
+| nutanix.networking.traffic_mirror.id | Unique identifier of the Nutanix traffic mirror. | Any Str | Recommended |
+| nutanix.networking.traffic_mirror.name | Name of the Nutanix traffic mirror. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.networking.uplink_bond.count
+
+Number of Nutanix uplink bonds.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {bond} | Gauge | Double | Alpha |
+
+### nutanix.networking.virtual_switch.count
+
+Number of Nutanix virtual switches.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {switch} | Gauge | Double | Alpha |
+
+### nutanix.networking.vpc.count
+
+Number of Nutanix virtual private clouds.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {vpc} | Gauge | Double | Alpha |
+
+### nutanix.networking.vpc.external_subnet.stat
+
+Latest statistic for an external subnet attached to a Nutanix VPC.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.networking.vpc.external_subnet.id | Unique identifier of the external subnet attached to a Nutanix VPC. | Any Str | Recommended |
+| nutanix.networking.vpc.external_subnet.name | Name of the external subnet attached to a Nutanix VPC. | Any Str | Recommended |
+| nutanix.networking.vpc.id | Unique identifier of the Nutanix VPC containing the external subnet. | Any Str | Recommended |
+| nutanix.networking.vpc.name | Name of the Nutanix VPC containing the external subnet. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.networking.vpn_connection.count
+
+Number of Nutanix VPN connections.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {connection} | Gauge | Double | Alpha |
+
+### nutanix.networking.vpn_connection.stat
+
+Latest statistic for a Nutanix VPN connection.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.networking.vpn_connection.id | Unique identifier of the Nutanix VPN connection. | Any Str | Recommended |
+| nutanix.networking.vpn_connection.name | Name of the Nutanix VPN connection. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.objects.object_store.count
+
+Number of Nutanix Objects object stores.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {store} | Gauge | Double | Alpha |
+
+### nutanix.objects.object_store.stat
+
+Latest statistic for a Nutanix Objects object store.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+|  | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.objects.object_store.id | Unique identifier of the Nutanix Objects object store. | Any Str | Recommended |
+| nutanix.objects.object_store.name | Name of the Nutanix Objects object store. | Any Str | Recommended |
+| nutanix.stat.name | Name of the statistic returned by the Nutanix Prism API. | Any Str | Recommended |
+| nutanix.stat.kind | Kind of statistic returned by the Nutanix Prism API. | Str: ``v2.stats``, ``v4.stats`` | Recommended |
+
+### nutanix.prism.category.count
+
+Number of Nutanix Prism Central categories.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {category} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.prism.category.type | Type of the Nutanix Prism Central category. | Str: ``system``, ``user``, ``internal`` | Recommended |
+
+### nutanix.prism.category_key.count
+
+Number of unique category keys in Nutanix Prism Central.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {key} | Gauge | Double | Alpha |
+
+### nutanix.prism.task.count
+
+Number of Nutanix Prism Central tasks.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| {task} | Gauge | Double | Alpha |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level |
+| ---- | ----------- | ------ | -------- |
+| nutanix.prism.task.status | Status of the Nutanix Prism Central task. | Str: ``queued``, ``running``, ``canceling``, ``succeeded``, ``failed``, ``canceled``, ``suspended`` | Recommended |
 
 ### nutanix.storage.container.count
 
@@ -401,7 +641,7 @@ Memory assigned to Nutanix virtual machines.
 | nutanix.host.id | Unique identifier of the Nutanix host. | Any Str | Recommended |
 | nutanix.host.name | Name of the Nutanix host. | Any Str | Recommended |
 
-### nutanix.vm.nic.count
+### nutanix.vm.nics.count
 
 Number of network interfaces attached to Nutanix virtual machines.
 

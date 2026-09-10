@@ -481,7 +481,7 @@ func (b *metricBuilder) addVMCounts(baseAttrs map[string]string, vms []nutanixVM
 		attrs["nutanix.vm.disk.bus"] = bus
 		b.addGauge("nutanix.vm.disk.count", "Number of Nutanix VM disks", "{disk}", attrs, float64(countVMDisks(vms, bus)))
 	}
-	b.addGauge("nutanix.vm.nic.count", "Number of Nutanix VM NICs", "{nic}", baseAttrs, float64(countVMNICs(vms)))
+	b.addGauge("nutanix.vm.nics.count", "Number of Nutanix VM NICs", "{nic}", baseAttrs, float64(countVMNICs(vms)))
 }
 
 func (b *metricBuilder) addDiskMetrics(disks []nutanixDisk) {
@@ -539,7 +539,7 @@ func (b *metricBuilder) addHostVMCounts(baseAttrs map[string]string, poweredOnVM
 		diskAttrs["nutanix.vm.disk.bus"] = bus
 		b.addGauge("nutanix.vm.disk.count", "Number of Nutanix VM disks", "{disk}", diskAttrs, float64(countVMDisks(poweredOnVMs, bus)))
 	}
-	b.addGauge("nutanix.vm.nic.count", "Number of Nutanix VM NICs", "{nic}", baseAttrs, float64(countVMNICs(poweredOnVMs)))
+	b.addGauge("nutanix.vm.nics.count", "Number of Nutanix VM NICs", "{nic}", baseAttrs, float64(countVMNICs(poweredOnVMs)))
 	for _, bootType := range []string{"legacy", "uefi"} {
 		stateAttrs := cloneAttrs(baseAttrs)
 		stateAttrs["nutanix.vm.boot.type"] = bootType

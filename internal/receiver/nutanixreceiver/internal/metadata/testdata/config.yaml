@@ -7,33 +7,81 @@ all_set:
       enabled: true
     nutanix.cluster.stat:
       enabled: true
-    nutanix.data_protection.entity.count:
+    nutanix.data_protection.protected_vm.count:
+      enabled: true
+    nutanix.data_protection.protection_policy.count:
+      enabled: true
+    nutanix.data_protection.protection_policy_schedule.count:
+      enabled: true
+    nutanix.data_protection.recovery_point.count:
       enabled: true
     nutanix.disk.count:
       enabled: true
     nutanix.disk.stat:
       enabled: true
-    nutanix.files.entity.count:
+    nutanix.files.antivirus_server.count:
       enabled: true
-    nutanix.files.entity.stat:
+    nutanix.files.antivirus_server.stat:
+      enabled: true
+    nutanix.files.file_server.count:
+      enabled: true
+    nutanix.files.file_server.stat:
+      enabled: true
+    nutanix.files.mount_target.count:
+      enabled: true
+    nutanix.files.mount_target.stat:
+      enabled: true
+    nutanix.files.unified_namespace.count:
       enabled: true
     nutanix.host.count:
       enabled: true
     nutanix.host.stat:
       enabled: true
-    nutanix.microseg.entity.count:
+    nutanix.microseg.address_group.count:
       enabled: true
-    nutanix.monitoring.entity.count:
+    nutanix.microseg.network_security_policy.count:
       enabled: true
-    nutanix.networking.entity.count:
+    nutanix.microseg.service_group.count:
       enabled: true
-    nutanix.networking.entity.stat:
+    nutanix.monitoring.alert.count:
       enabled: true
-    nutanix.objects.entity.count:
+    nutanix.networking.bgp_session.count:
       enabled: true
-    nutanix.objects.entity.stat:
+    nutanix.networking.gateway.count:
       enabled: true
-    nutanix.prism.entity.count:
+    nutanix.networking.layer2_stretch.count:
+      enabled: true
+    nutanix.networking.layer2_stretch.stat:
+      enabled: true
+    nutanix.networking.network_controller.count:
+      enabled: true
+    nutanix.networking.routing_policy.count:
+      enabled: true
+    nutanix.networking.traffic_mirror.count:
+      enabled: true
+    nutanix.networking.traffic_mirror.stat:
+      enabled: true
+    nutanix.networking.uplink_bond.count:
+      enabled: true
+    nutanix.networking.virtual_switch.count:
+      enabled: true
+    nutanix.networking.vpc.count:
+      enabled: true
+    nutanix.networking.vpc.external_subnet.stat:
+      enabled: true
+    nutanix.networking.vpn_connection.count:
+      enabled: true
+    nutanix.networking.vpn_connection.stat:
+      enabled: true
+    nutanix.objects.object_store.count:
+      enabled: true
+    nutanix.objects.object_store.stat:
+      enabled: true
+    nutanix.prism.category.count:
+      enabled: true
+    nutanix.prism.category_key.count:
+      enabled: true
+    nutanix.prism.task.count:
       enabled: true
     nutanix.storage.container.count:
       enabled: true
@@ -47,7 +95,7 @@ all_set:
       enabled: true
     nutanix.vm.memory.assigned:
       enabled: true
-    nutanix.vm.nic.count:
+    nutanix.vm.nics.count:
       enabled: true
     nutanix.vm.stat:
       enabled: true
@@ -76,33 +124,81 @@ none_set:
       enabled: false
     nutanix.cluster.stat:
       enabled: false
-    nutanix.data_protection.entity.count:
+    nutanix.data_protection.protected_vm.count:
+      enabled: false
+    nutanix.data_protection.protection_policy.count:
+      enabled: false
+    nutanix.data_protection.protection_policy_schedule.count:
+      enabled: false
+    nutanix.data_protection.recovery_point.count:
       enabled: false
     nutanix.disk.count:
       enabled: false
     nutanix.disk.stat:
       enabled: false
-    nutanix.files.entity.count:
+    nutanix.files.antivirus_server.count:
       enabled: false
-    nutanix.files.entity.stat:
+    nutanix.files.antivirus_server.stat:
+      enabled: false
+    nutanix.files.file_server.count:
+      enabled: false
+    nutanix.files.file_server.stat:
+      enabled: false
+    nutanix.files.mount_target.count:
+      enabled: false
+    nutanix.files.mount_target.stat:
+      enabled: false
+    nutanix.files.unified_namespace.count:
       enabled: false
     nutanix.host.count:
       enabled: false
     nutanix.host.stat:
       enabled: false
-    nutanix.microseg.entity.count:
+    nutanix.microseg.address_group.count:
       enabled: false
-    nutanix.monitoring.entity.count:
+    nutanix.microseg.network_security_policy.count:
       enabled: false
-    nutanix.networking.entity.count:
+    nutanix.microseg.service_group.count:
       enabled: false
-    nutanix.networking.entity.stat:
+    nutanix.monitoring.alert.count:
       enabled: false
-    nutanix.objects.entity.count:
+    nutanix.networking.bgp_session.count:
       enabled: false
-    nutanix.objects.entity.stat:
+    nutanix.networking.gateway.count:
       enabled: false
-    nutanix.prism.entity.count:
+    nutanix.networking.layer2_stretch.count:
+      enabled: false
+    nutanix.networking.layer2_stretch.stat:
+      enabled: false
+    nutanix.networking.network_controller.count:
+      enabled: false
+    nutanix.networking.routing_policy.count:
+      enabled: false
+    nutanix.networking.traffic_mirror.count:
+      enabled: false
+    nutanix.networking.traffic_mirror.stat:
+      enabled: false
+    nutanix.networking.uplink_bond.count:
+      enabled: false
+    nutanix.networking.virtual_switch.count:
+      enabled: false
+    nutanix.networking.vpc.count:
+      enabled: false
+    nutanix.networking.vpc.external_subnet.stat:
+      enabled: false
+    nutanix.networking.vpn_connection.count:
+      enabled: false
+    nutanix.networking.vpn_connection.stat:
+      enabled: false
+    nutanix.objects.object_store.count:
+      enabled: false
+    nutanix.objects.object_store.stat:
+      enabled: false
+    nutanix.prism.category.count:
+      enabled: false
+    nutanix.prism.category_key.count:
+      enabled: false
+    nutanix.prism.task.count:
       enabled: false
     nutanix.storage.container.count:
       enabled: false
@@ -116,7 +212,7 @@ none_set:
       enabled: false
     nutanix.vm.memory.assigned:
       enabled: false
-    nutanix.vm.nic.count:
+    nutanix.vm.nics.count:
       enabled: false
     nutanix.vm.stat:
       enabled: false

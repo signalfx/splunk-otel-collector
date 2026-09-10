@@ -29,34 +29,58 @@ func (ms *MetricConfig) Unmarshal(parser *confmap.Conf) error {
 
 // MetricsConfig provides config for nutanix metrics.
 type MetricsConfig struct {
-	NutanixClusterCount              MetricConfig `mapstructure:"nutanix.cluster.count"`
-	NutanixClusterInfo               MetricConfig `mapstructure:"nutanix.cluster.info"`
-	NutanixClusterStat               MetricConfig `mapstructure:"nutanix.cluster.stat"`
-	NutanixDataProtectionEntityCount MetricConfig `mapstructure:"nutanix.data_protection.entity.count"`
-	NutanixDiskCount                 MetricConfig `mapstructure:"nutanix.disk.count"`
-	NutanixDiskStat                  MetricConfig `mapstructure:"nutanix.disk.stat"`
-	NutanixFilesEntityCount          MetricConfig `mapstructure:"nutanix.files.entity.count"`
-	NutanixFilesEntityStat           MetricConfig `mapstructure:"nutanix.files.entity.stat"`
-	NutanixHostCount                 MetricConfig `mapstructure:"nutanix.host.count"`
-	NutanixHostStat                  MetricConfig `mapstructure:"nutanix.host.stat"`
-	NutanixMicrosegEntityCount       MetricConfig `mapstructure:"nutanix.microseg.entity.count"`
-	NutanixMonitoringEntityCount     MetricConfig `mapstructure:"nutanix.monitoring.entity.count"`
-	NutanixNetworkingEntityCount     MetricConfig `mapstructure:"nutanix.networking.entity.count"`
-	NutanixNetworkingEntityStat      MetricConfig `mapstructure:"nutanix.networking.entity.stat"`
-	NutanixObjectsEntityCount        MetricConfig `mapstructure:"nutanix.objects.entity.count"`
-	NutanixObjectsEntityStat         MetricConfig `mapstructure:"nutanix.objects.entity.stat"`
-	NutanixPrismEntityCount          MetricConfig `mapstructure:"nutanix.prism.entity.count"`
-	NutanixStorageContainerCount     MetricConfig `mapstructure:"nutanix.storage.container.count"`
-	NutanixStorageContainerStat      MetricConfig `mapstructure:"nutanix.storage.container.stat"`
-	NutanixSubnetCount               MetricConfig `mapstructure:"nutanix.subnet.count"`
-	NutanixVMCount                   MetricConfig `mapstructure:"nutanix.vm.count"`
-	NutanixVMDiskCount               MetricConfig `mapstructure:"nutanix.vm.disk.count"`
-	NutanixVMMemoryAssigned          MetricConfig `mapstructure:"nutanix.vm.memory.assigned"`
-	NutanixVMNicCount                MetricConfig `mapstructure:"nutanix.vm.nic.count"`
-	NutanixVMStat                    MetricConfig `mapstructure:"nutanix.vm.stat"`
-	NutanixVMVcpuCount               MetricConfig `mapstructure:"nutanix.vm.vcpu.count"`
-	NutanixVolumeGroupCount          MetricConfig `mapstructure:"nutanix.volume_group.count"`
-	NutanixVolumeGroupStat           MetricConfig `mapstructure:"nutanix.volume_group.stat"`
+	NutanixClusterCount                                MetricConfig `mapstructure:"nutanix.cluster.count"`
+	NutanixClusterInfo                                 MetricConfig `mapstructure:"nutanix.cluster.info"`
+	NutanixClusterStat                                 MetricConfig `mapstructure:"nutanix.cluster.stat"`
+	NutanixDataProtectionProtectedVMCount              MetricConfig `mapstructure:"nutanix.data_protection.protected_vm.count"`
+	NutanixDataProtectionProtectionPolicyCount         MetricConfig `mapstructure:"nutanix.data_protection.protection_policy.count"`
+	NutanixDataProtectionProtectionPolicyScheduleCount MetricConfig `mapstructure:"nutanix.data_protection.protection_policy_schedule.count"`
+	NutanixDataProtectionRecoveryPointCount            MetricConfig `mapstructure:"nutanix.data_protection.recovery_point.count"`
+	NutanixDiskCount                                   MetricConfig `mapstructure:"nutanix.disk.count"`
+	NutanixDiskStat                                    MetricConfig `mapstructure:"nutanix.disk.stat"`
+	NutanixFilesAntivirusServerCount                   MetricConfig `mapstructure:"nutanix.files.antivirus_server.count"`
+	NutanixFilesAntivirusServerStat                    MetricConfig `mapstructure:"nutanix.files.antivirus_server.stat"`
+	NutanixFilesFileServerCount                        MetricConfig `mapstructure:"nutanix.files.file_server.count"`
+	NutanixFilesFileServerStat                         MetricConfig `mapstructure:"nutanix.files.file_server.stat"`
+	NutanixFilesMountTargetCount                       MetricConfig `mapstructure:"nutanix.files.mount_target.count"`
+	NutanixFilesMountTargetStat                        MetricConfig `mapstructure:"nutanix.files.mount_target.stat"`
+	NutanixFilesUnifiedNamespaceCount                  MetricConfig `mapstructure:"nutanix.files.unified_namespace.count"`
+	NutanixHostCount                                   MetricConfig `mapstructure:"nutanix.host.count"`
+	NutanixHostStat                                    MetricConfig `mapstructure:"nutanix.host.stat"`
+	NutanixMicrosegAddressGroupCount                   MetricConfig `mapstructure:"nutanix.microseg.address_group.count"`
+	NutanixMicrosegNetworkSecurityPolicyCount          MetricConfig `mapstructure:"nutanix.microseg.network_security_policy.count"`
+	NutanixMicrosegServiceGroupCount                   MetricConfig `mapstructure:"nutanix.microseg.service_group.count"`
+	NutanixMonitoringAlertCount                        MetricConfig `mapstructure:"nutanix.monitoring.alert.count"`
+	NutanixNetworkingBgpSessionCount                   MetricConfig `mapstructure:"nutanix.networking.bgp_session.count"`
+	NutanixNetworkingGatewayCount                      MetricConfig `mapstructure:"nutanix.networking.gateway.count"`
+	NutanixNetworkingLayer2StretchCount                MetricConfig `mapstructure:"nutanix.networking.layer2_stretch.count"`
+	NutanixNetworkingLayer2StretchStat                 MetricConfig `mapstructure:"nutanix.networking.layer2_stretch.stat"`
+	NutanixNetworkingNetworkControllerCount            MetricConfig `mapstructure:"nutanix.networking.network_controller.count"`
+	NutanixNetworkingRoutingPolicyCount                MetricConfig `mapstructure:"nutanix.networking.routing_policy.count"`
+	NutanixNetworkingTrafficMirrorCount                MetricConfig `mapstructure:"nutanix.networking.traffic_mirror.count"`
+	NutanixNetworkingTrafficMirrorStat                 MetricConfig `mapstructure:"nutanix.networking.traffic_mirror.stat"`
+	NutanixNetworkingUplinkBondCount                   MetricConfig `mapstructure:"nutanix.networking.uplink_bond.count"`
+	NutanixNetworkingVirtualSwitchCount                MetricConfig `mapstructure:"nutanix.networking.virtual_switch.count"`
+	NutanixNetworkingVpcCount                          MetricConfig `mapstructure:"nutanix.networking.vpc.count"`
+	NutanixNetworkingVpcExternalSubnetStat             MetricConfig `mapstructure:"nutanix.networking.vpc.external_subnet.stat"`
+	NutanixNetworkingVpnConnectionCount                MetricConfig `mapstructure:"nutanix.networking.vpn_connection.count"`
+	NutanixNetworkingVpnConnectionStat                 MetricConfig `mapstructure:"nutanix.networking.vpn_connection.stat"`
+	NutanixObjectsObjectStoreCount                     MetricConfig `mapstructure:"nutanix.objects.object_store.count"`
+	NutanixObjectsObjectStoreStat                      MetricConfig `mapstructure:"nutanix.objects.object_store.stat"`
+	NutanixPrismCategoryCount                          MetricConfig `mapstructure:"nutanix.prism.category.count"`
+	NutanixPrismCategoryKeyCount                       MetricConfig `mapstructure:"nutanix.prism.category_key.count"`
+	NutanixPrismTaskCount                              MetricConfig `mapstructure:"nutanix.prism.task.count"`
+	NutanixStorageContainerCount                       MetricConfig `mapstructure:"nutanix.storage.container.count"`
+	NutanixStorageContainerStat                        MetricConfig `mapstructure:"nutanix.storage.container.stat"`
+	NutanixSubnetCount                                 MetricConfig `mapstructure:"nutanix.subnet.count"`
+	NutanixVMCount                                     MetricConfig `mapstructure:"nutanix.vm.count"`
+	NutanixVMDiskCount                                 MetricConfig `mapstructure:"nutanix.vm.disk.count"`
+	NutanixVMMemoryAssigned                            MetricConfig `mapstructure:"nutanix.vm.memory.assigned"`
+	NutanixVMNicsCount                                 MetricConfig `mapstructure:"nutanix.vm.nics.count"`
+	NutanixVMStat                                      MetricConfig `mapstructure:"nutanix.vm.stat"`
+	NutanixVMVcpuCount                                 MetricConfig `mapstructure:"nutanix.vm.vcpu.count"`
+	NutanixVolumeGroupCount                            MetricConfig `mapstructure:"nutanix.volume_group.count"`
+	NutanixVolumeGroupStat                             MetricConfig `mapstructure:"nutanix.volume_group.stat"`
 }
 
 func DefaultMetricsConfig() MetricsConfig {
@@ -70,7 +94,16 @@ func DefaultMetricsConfig() MetricsConfig {
 		NutanixClusterStat: MetricConfig{
 			Enabled: true,
 		},
-		NutanixDataProtectionEntityCount: MetricConfig{
+		NutanixDataProtectionProtectedVMCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixDataProtectionProtectionPolicyCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixDataProtectionProtectionPolicyScheduleCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixDataProtectionRecoveryPointCount: MetricConfig{
 			Enabled: true,
 		},
 		NutanixDiskCount: MetricConfig{
@@ -79,10 +112,25 @@ func DefaultMetricsConfig() MetricsConfig {
 		NutanixDiskStat: MetricConfig{
 			Enabled: true,
 		},
-		NutanixFilesEntityCount: MetricConfig{
+		NutanixFilesAntivirusServerCount: MetricConfig{
 			Enabled: true,
 		},
-		NutanixFilesEntityStat: MetricConfig{
+		NutanixFilesAntivirusServerStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixFilesFileServerCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixFilesFileServerStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixFilesMountTargetCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixFilesMountTargetStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixFilesUnifiedNamespaceCount: MetricConfig{
 			Enabled: true,
 		},
 		NutanixHostCount: MetricConfig{
@@ -91,25 +139,73 @@ func DefaultMetricsConfig() MetricsConfig {
 		NutanixHostStat: MetricConfig{
 			Enabled: true,
 		},
-		NutanixMicrosegEntityCount: MetricConfig{
+		NutanixMicrosegAddressGroupCount: MetricConfig{
 			Enabled: true,
 		},
-		NutanixMonitoringEntityCount: MetricConfig{
+		NutanixMicrosegNetworkSecurityPolicyCount: MetricConfig{
 			Enabled: true,
 		},
-		NutanixNetworkingEntityCount: MetricConfig{
+		NutanixMicrosegServiceGroupCount: MetricConfig{
 			Enabled: true,
 		},
-		NutanixNetworkingEntityStat: MetricConfig{
+		NutanixMonitoringAlertCount: MetricConfig{
 			Enabled: true,
 		},
-		NutanixObjectsEntityCount: MetricConfig{
+		NutanixNetworkingBgpSessionCount: MetricConfig{
 			Enabled: true,
 		},
-		NutanixObjectsEntityStat: MetricConfig{
+		NutanixNetworkingGatewayCount: MetricConfig{
 			Enabled: true,
 		},
-		NutanixPrismEntityCount: MetricConfig{
+		NutanixNetworkingLayer2StretchCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingLayer2StretchStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingNetworkControllerCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingRoutingPolicyCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingTrafficMirrorCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingTrafficMirrorStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingUplinkBondCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingVirtualSwitchCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingVpcCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingVpcExternalSubnetStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingVpnConnectionCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixNetworkingVpnConnectionStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixObjectsObjectStoreCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixObjectsObjectStoreStat: MetricConfig{
+			Enabled: true,
+		},
+		NutanixPrismCategoryCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixPrismCategoryKeyCount: MetricConfig{
+			Enabled: true,
+		},
+		NutanixPrismTaskCount: MetricConfig{
 			Enabled: true,
 		},
 		NutanixStorageContainerCount: MetricConfig{
@@ -130,7 +226,7 @@ func DefaultMetricsConfig() MetricsConfig {
 		NutanixVMMemoryAssigned: MetricConfig{
 			Enabled: true,
 		},
-		NutanixVMNicCount: MetricConfig{
+		NutanixVMNicsCount: MetricConfig{
 			Enabled: true,
 		},
 		NutanixVMStat: MetricConfig{

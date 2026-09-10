@@ -12,6 +12,92 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 )
 
+// AttributeNutanixDataProtectionProtectedVMRpo specifies the value nutanix.data_protection.protected_vm.rpo attribute.
+type AttributeNutanixDataProtectionProtectedVMRpo int
+
+const (
+	_ AttributeNutanixDataProtectionProtectedVMRpo = iota
+	AttributeNutanixDataProtectionProtectedVMRpoSync
+	AttributeNutanixDataProtectionProtectedVMRpoNearsync
+	AttributeNutanixDataProtectionProtectedVMRpoAsync
+)
+
+// String returns the string representation of the AttributeNutanixDataProtectionProtectedVMRpo.
+func (av AttributeNutanixDataProtectionProtectedVMRpo) String() string {
+	switch av {
+	case AttributeNutanixDataProtectionProtectedVMRpoSync:
+		return "sync"
+	case AttributeNutanixDataProtectionProtectedVMRpoNearsync:
+		return "nearsync"
+	case AttributeNutanixDataProtectionProtectedVMRpoAsync:
+		return "async"
+	}
+	return ""
+}
+
+// MapAttributeNutanixDataProtectionProtectedVMRpo is a helper map of string to AttributeNutanixDataProtectionProtectedVMRpo attribute value.
+var MapAttributeNutanixDataProtectionProtectedVMRpo = map[string]AttributeNutanixDataProtectionProtectedVMRpo{
+	"sync":     AttributeNutanixDataProtectionProtectedVMRpoSync,
+	"nearsync": AttributeNutanixDataProtectionProtectedVMRpoNearsync,
+	"async":    AttributeNutanixDataProtectionProtectedVMRpoAsync,
+}
+
+// AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency specifies the value nutanix.data_protection.protection_policy_schedule.consistency attribute.
+type AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency int
+
+const (
+	_ AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency = iota
+	AttributeNutanixDataProtectionProtectionPolicyScheduleConsistencyCrashConsistent
+	AttributeNutanixDataProtectionProtectionPolicyScheduleConsistencyApplicationConsistent
+)
+
+// String returns the string representation of the AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency.
+func (av AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency) String() string {
+	switch av {
+	case AttributeNutanixDataProtectionProtectionPolicyScheduleConsistencyCrashConsistent:
+		return "crash_consistent"
+	case AttributeNutanixDataProtectionProtectionPolicyScheduleConsistencyApplicationConsistent:
+		return "application_consistent"
+	}
+	return ""
+}
+
+// MapAttributeNutanixDataProtectionProtectionPolicyScheduleConsistency is a helper map of string to AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency attribute value.
+var MapAttributeNutanixDataProtectionProtectionPolicyScheduleConsistency = map[string]AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency{
+	"crash_consistent":       AttributeNutanixDataProtectionProtectionPolicyScheduleConsistencyCrashConsistent,
+	"application_consistent": AttributeNutanixDataProtectionProtectionPolicyScheduleConsistencyApplicationConsistent,
+}
+
+// AttributeNutanixDataProtectionProtectionPolicyScheduleRpo specifies the value nutanix.data_protection.protection_policy_schedule.rpo attribute.
+type AttributeNutanixDataProtectionProtectionPolicyScheduleRpo int
+
+const (
+	_ AttributeNutanixDataProtectionProtectionPolicyScheduleRpo = iota
+	AttributeNutanixDataProtectionProtectionPolicyScheduleRpoSync
+	AttributeNutanixDataProtectionProtectionPolicyScheduleRpoNearsync
+	AttributeNutanixDataProtectionProtectionPolicyScheduleRpoAsync
+)
+
+// String returns the string representation of the AttributeNutanixDataProtectionProtectionPolicyScheduleRpo.
+func (av AttributeNutanixDataProtectionProtectionPolicyScheduleRpo) String() string {
+	switch av {
+	case AttributeNutanixDataProtectionProtectionPolicyScheduleRpoSync:
+		return "sync"
+	case AttributeNutanixDataProtectionProtectionPolicyScheduleRpoNearsync:
+		return "nearsync"
+	case AttributeNutanixDataProtectionProtectionPolicyScheduleRpoAsync:
+		return "async"
+	}
+	return ""
+}
+
+// MapAttributeNutanixDataProtectionProtectionPolicyScheduleRpo is a helper map of string to AttributeNutanixDataProtectionProtectionPolicyScheduleRpo attribute value.
+var MapAttributeNutanixDataProtectionProtectionPolicyScheduleRpo = map[string]AttributeNutanixDataProtectionProtectionPolicyScheduleRpo{
+	"sync":     AttributeNutanixDataProtectionProtectionPolicyScheduleRpoSync,
+	"nearsync": AttributeNutanixDataProtectionProtectionPolicyScheduleRpoNearsync,
+	"async":    AttributeNutanixDataProtectionProtectionPolicyScheduleRpoAsync,
+}
+
 // AttributeNutanixDiskStorageTier specifies the value nutanix.disk.storage_tier attribute.
 type AttributeNutanixDiskStorageTier int
 
@@ -48,6 +134,280 @@ var MapAttributeNutanixDiskStorageTier = map[string]AttributeNutanixDiskStorageT
 	"das_sata":     AttributeNutanixDiskStorageTierDasSata,
 	"ssd_mem_nvme": AttributeNutanixDiskStorageTierSsdMemNvme,
 	"cloud":        AttributeNutanixDiskStorageTierCloud,
+}
+
+// AttributeNutanixMicrosegNetworkSecurityPolicyScope specifies the value nutanix.microseg.network_security_policy.scope attribute.
+type AttributeNutanixMicrosegNetworkSecurityPolicyScope int
+
+const (
+	_ AttributeNutanixMicrosegNetworkSecurityPolicyScope = iota
+	AttributeNutanixMicrosegNetworkSecurityPolicyScopeVlan
+	AttributeNutanixMicrosegNetworkSecurityPolicyScopeVpc
+)
+
+// String returns the string representation of the AttributeNutanixMicrosegNetworkSecurityPolicyScope.
+func (av AttributeNutanixMicrosegNetworkSecurityPolicyScope) String() string {
+	switch av {
+	case AttributeNutanixMicrosegNetworkSecurityPolicyScopeVlan:
+		return "vlan"
+	case AttributeNutanixMicrosegNetworkSecurityPolicyScopeVpc:
+		return "vpc"
+	}
+	return ""
+}
+
+// MapAttributeNutanixMicrosegNetworkSecurityPolicyScope is a helper map of string to AttributeNutanixMicrosegNetworkSecurityPolicyScope attribute value.
+var MapAttributeNutanixMicrosegNetworkSecurityPolicyScope = map[string]AttributeNutanixMicrosegNetworkSecurityPolicyScope{
+	"vlan": AttributeNutanixMicrosegNetworkSecurityPolicyScopeVlan,
+	"vpc":  AttributeNutanixMicrosegNetworkSecurityPolicyScopeVpc,
+}
+
+// AttributeNutanixMicrosegNetworkSecurityPolicyState specifies the value nutanix.microseg.network_security_policy.state attribute.
+type AttributeNutanixMicrosegNetworkSecurityPolicyState int
+
+const (
+	_ AttributeNutanixMicrosegNetworkSecurityPolicyState = iota
+	AttributeNutanixMicrosegNetworkSecurityPolicyStateSave
+	AttributeNutanixMicrosegNetworkSecurityPolicyStateMonitor
+	AttributeNutanixMicrosegNetworkSecurityPolicyStateEnforce
+)
+
+// String returns the string representation of the AttributeNutanixMicrosegNetworkSecurityPolicyState.
+func (av AttributeNutanixMicrosegNetworkSecurityPolicyState) String() string {
+	switch av {
+	case AttributeNutanixMicrosegNetworkSecurityPolicyStateSave:
+		return "save"
+	case AttributeNutanixMicrosegNetworkSecurityPolicyStateMonitor:
+		return "monitor"
+	case AttributeNutanixMicrosegNetworkSecurityPolicyStateEnforce:
+		return "enforce"
+	}
+	return ""
+}
+
+// MapAttributeNutanixMicrosegNetworkSecurityPolicyState is a helper map of string to AttributeNutanixMicrosegNetworkSecurityPolicyState attribute value.
+var MapAttributeNutanixMicrosegNetworkSecurityPolicyState = map[string]AttributeNutanixMicrosegNetworkSecurityPolicyState{
+	"save":    AttributeNutanixMicrosegNetworkSecurityPolicyStateSave,
+	"monitor": AttributeNutanixMicrosegNetworkSecurityPolicyStateMonitor,
+	"enforce": AttributeNutanixMicrosegNetworkSecurityPolicyStateEnforce,
+}
+
+// AttributeNutanixMicrosegNetworkSecurityPolicyType specifies the value nutanix.microseg.network_security_policy.type attribute.
+type AttributeNutanixMicrosegNetworkSecurityPolicyType int
+
+const (
+	_ AttributeNutanixMicrosegNetworkSecurityPolicyType = iota
+	AttributeNutanixMicrosegNetworkSecurityPolicyTypeQuarantine
+	AttributeNutanixMicrosegNetworkSecurityPolicyTypeIsolation
+	AttributeNutanixMicrosegNetworkSecurityPolicyTypeApplication
+)
+
+// String returns the string representation of the AttributeNutanixMicrosegNetworkSecurityPolicyType.
+func (av AttributeNutanixMicrosegNetworkSecurityPolicyType) String() string {
+	switch av {
+	case AttributeNutanixMicrosegNetworkSecurityPolicyTypeQuarantine:
+		return "quarantine"
+	case AttributeNutanixMicrosegNetworkSecurityPolicyTypeIsolation:
+		return "isolation"
+	case AttributeNutanixMicrosegNetworkSecurityPolicyTypeApplication:
+		return "application"
+	}
+	return ""
+}
+
+// MapAttributeNutanixMicrosegNetworkSecurityPolicyType is a helper map of string to AttributeNutanixMicrosegNetworkSecurityPolicyType attribute value.
+var MapAttributeNutanixMicrosegNetworkSecurityPolicyType = map[string]AttributeNutanixMicrosegNetworkSecurityPolicyType{
+	"quarantine":  AttributeNutanixMicrosegNetworkSecurityPolicyTypeQuarantine,
+	"isolation":   AttributeNutanixMicrosegNetworkSecurityPolicyTypeIsolation,
+	"application": AttributeNutanixMicrosegNetworkSecurityPolicyTypeApplication,
+}
+
+// AttributeNutanixMonitoringAlertAcknowledged specifies the value nutanix.monitoring.alert.acknowledged attribute.
+type AttributeNutanixMonitoringAlertAcknowledged int
+
+const (
+	_ AttributeNutanixMonitoringAlertAcknowledged = iota
+	AttributeNutanixMonitoringAlertAcknowledgedTrue
+	AttributeNutanixMonitoringAlertAcknowledgedFalse
+)
+
+// String returns the string representation of the AttributeNutanixMonitoringAlertAcknowledged.
+func (av AttributeNutanixMonitoringAlertAcknowledged) String() string {
+	switch av {
+	case AttributeNutanixMonitoringAlertAcknowledgedTrue:
+		return "true"
+	case AttributeNutanixMonitoringAlertAcknowledgedFalse:
+		return "false"
+	}
+	return ""
+}
+
+// MapAttributeNutanixMonitoringAlertAcknowledged is a helper map of string to AttributeNutanixMonitoringAlertAcknowledged attribute value.
+var MapAttributeNutanixMonitoringAlertAcknowledged = map[string]AttributeNutanixMonitoringAlertAcknowledged{
+	"true":  AttributeNutanixMonitoringAlertAcknowledgedTrue,
+	"false": AttributeNutanixMonitoringAlertAcknowledgedFalse,
+}
+
+// AttributeNutanixMonitoringAlertResolved specifies the value nutanix.monitoring.alert.resolved attribute.
+type AttributeNutanixMonitoringAlertResolved int
+
+const (
+	_ AttributeNutanixMonitoringAlertResolved = iota
+	AttributeNutanixMonitoringAlertResolvedTrue
+	AttributeNutanixMonitoringAlertResolvedFalse
+)
+
+// String returns the string representation of the AttributeNutanixMonitoringAlertResolved.
+func (av AttributeNutanixMonitoringAlertResolved) String() string {
+	switch av {
+	case AttributeNutanixMonitoringAlertResolvedTrue:
+		return "true"
+	case AttributeNutanixMonitoringAlertResolvedFalse:
+		return "false"
+	}
+	return ""
+}
+
+// MapAttributeNutanixMonitoringAlertResolved is a helper map of string to AttributeNutanixMonitoringAlertResolved attribute value.
+var MapAttributeNutanixMonitoringAlertResolved = map[string]AttributeNutanixMonitoringAlertResolved{
+	"true":  AttributeNutanixMonitoringAlertResolvedTrue,
+	"false": AttributeNutanixMonitoringAlertResolvedFalse,
+}
+
+// AttributeNutanixMonitoringAlertSeverity specifies the value nutanix.monitoring.alert.severity attribute.
+type AttributeNutanixMonitoringAlertSeverity int
+
+const (
+	_ AttributeNutanixMonitoringAlertSeverity = iota
+	AttributeNutanixMonitoringAlertSeverityInfo
+	AttributeNutanixMonitoringAlertSeverityWarning
+	AttributeNutanixMonitoringAlertSeverityCritical
+)
+
+// String returns the string representation of the AttributeNutanixMonitoringAlertSeverity.
+func (av AttributeNutanixMonitoringAlertSeverity) String() string {
+	switch av {
+	case AttributeNutanixMonitoringAlertSeverityInfo:
+		return "info"
+	case AttributeNutanixMonitoringAlertSeverityWarning:
+		return "warning"
+	case AttributeNutanixMonitoringAlertSeverityCritical:
+		return "critical"
+	}
+	return ""
+}
+
+// MapAttributeNutanixMonitoringAlertSeverity is a helper map of string to AttributeNutanixMonitoringAlertSeverity attribute value.
+var MapAttributeNutanixMonitoringAlertSeverity = map[string]AttributeNutanixMonitoringAlertSeverity{
+	"info":     AttributeNutanixMonitoringAlertSeverityInfo,
+	"warning":  AttributeNutanixMonitoringAlertSeverityWarning,
+	"critical": AttributeNutanixMonitoringAlertSeverityCritical,
+}
+
+// AttributeNutanixMonitoringAlertUnresolvedSeverity specifies the value nutanix.monitoring.alert.unresolved_severity attribute.
+type AttributeNutanixMonitoringAlertUnresolvedSeverity int
+
+const (
+	_ AttributeNutanixMonitoringAlertUnresolvedSeverity = iota
+	AttributeNutanixMonitoringAlertUnresolvedSeverityInfo
+	AttributeNutanixMonitoringAlertUnresolvedSeverityWarning
+	AttributeNutanixMonitoringAlertUnresolvedSeverityCritical
+)
+
+// String returns the string representation of the AttributeNutanixMonitoringAlertUnresolvedSeverity.
+func (av AttributeNutanixMonitoringAlertUnresolvedSeverity) String() string {
+	switch av {
+	case AttributeNutanixMonitoringAlertUnresolvedSeverityInfo:
+		return "info"
+	case AttributeNutanixMonitoringAlertUnresolvedSeverityWarning:
+		return "warning"
+	case AttributeNutanixMonitoringAlertUnresolvedSeverityCritical:
+		return "critical"
+	}
+	return ""
+}
+
+// MapAttributeNutanixMonitoringAlertUnresolvedSeverity is a helper map of string to AttributeNutanixMonitoringAlertUnresolvedSeverity attribute value.
+var MapAttributeNutanixMonitoringAlertUnresolvedSeverity = map[string]AttributeNutanixMonitoringAlertUnresolvedSeverity{
+	"info":     AttributeNutanixMonitoringAlertUnresolvedSeverityInfo,
+	"warning":  AttributeNutanixMonitoringAlertUnresolvedSeverityWarning,
+	"critical": AttributeNutanixMonitoringAlertUnresolvedSeverityCritical,
+}
+
+// AttributeNutanixPrismCategoryType specifies the value nutanix.prism.category.type attribute.
+type AttributeNutanixPrismCategoryType int
+
+const (
+	_ AttributeNutanixPrismCategoryType = iota
+	AttributeNutanixPrismCategoryTypeSystem
+	AttributeNutanixPrismCategoryTypeUser
+	AttributeNutanixPrismCategoryTypeInternal
+)
+
+// String returns the string representation of the AttributeNutanixPrismCategoryType.
+func (av AttributeNutanixPrismCategoryType) String() string {
+	switch av {
+	case AttributeNutanixPrismCategoryTypeSystem:
+		return "system"
+	case AttributeNutanixPrismCategoryTypeUser:
+		return "user"
+	case AttributeNutanixPrismCategoryTypeInternal:
+		return "internal"
+	}
+	return ""
+}
+
+// MapAttributeNutanixPrismCategoryType is a helper map of string to AttributeNutanixPrismCategoryType attribute value.
+var MapAttributeNutanixPrismCategoryType = map[string]AttributeNutanixPrismCategoryType{
+	"system":   AttributeNutanixPrismCategoryTypeSystem,
+	"user":     AttributeNutanixPrismCategoryTypeUser,
+	"internal": AttributeNutanixPrismCategoryTypeInternal,
+}
+
+// AttributeNutanixPrismTaskStatus specifies the value nutanix.prism.task.status attribute.
+type AttributeNutanixPrismTaskStatus int
+
+const (
+	_ AttributeNutanixPrismTaskStatus = iota
+	AttributeNutanixPrismTaskStatusQueued
+	AttributeNutanixPrismTaskStatusRunning
+	AttributeNutanixPrismTaskStatusCanceling
+	AttributeNutanixPrismTaskStatusSucceeded
+	AttributeNutanixPrismTaskStatusFailed
+	AttributeNutanixPrismTaskStatusCanceled
+	AttributeNutanixPrismTaskStatusSuspended
+)
+
+// String returns the string representation of the AttributeNutanixPrismTaskStatus.
+func (av AttributeNutanixPrismTaskStatus) String() string {
+	switch av {
+	case AttributeNutanixPrismTaskStatusQueued:
+		return "queued"
+	case AttributeNutanixPrismTaskStatusRunning:
+		return "running"
+	case AttributeNutanixPrismTaskStatusCanceling:
+		return "canceling"
+	case AttributeNutanixPrismTaskStatusSucceeded:
+		return "succeeded"
+	case AttributeNutanixPrismTaskStatusFailed:
+		return "failed"
+	case AttributeNutanixPrismTaskStatusCanceled:
+		return "canceled"
+	case AttributeNutanixPrismTaskStatusSuspended:
+		return "suspended"
+	}
+	return ""
+}
+
+// MapAttributeNutanixPrismTaskStatus is a helper map of string to AttributeNutanixPrismTaskStatus attribute value.
+var MapAttributeNutanixPrismTaskStatus = map[string]AttributeNutanixPrismTaskStatus{
+	"queued":    AttributeNutanixPrismTaskStatusQueued,
+	"running":   AttributeNutanixPrismTaskStatusRunning,
+	"canceling": AttributeNutanixPrismTaskStatusCanceling,
+	"succeeded": AttributeNutanixPrismTaskStatusSucceeded,
+	"failed":    AttributeNutanixPrismTaskStatusFailed,
+	"canceled":  AttributeNutanixPrismTaskStatusCanceled,
+	"suspended": AttributeNutanixPrismTaskStatusSuspended,
 }
 
 // AttributeNutanixStatKind specifies the value nutanix.stat.kind attribute.
@@ -418,8 +778,17 @@ var MetricsInfo = metricsInfo{
 	NutanixClusterStat: metricInfo{
 		Name: "nutanix.cluster.stat",
 	},
-	NutanixDataProtectionEntityCount: metricInfo{
-		Name: "nutanix.data_protection.entity.count",
+	NutanixDataProtectionProtectedVMCount: metricInfo{
+		Name: "nutanix.data_protection.protected_vm.count",
+	},
+	NutanixDataProtectionProtectionPolicyCount: metricInfo{
+		Name: "nutanix.data_protection.protection_policy.count",
+	},
+	NutanixDataProtectionProtectionPolicyScheduleCount: metricInfo{
+		Name: "nutanix.data_protection.protection_policy_schedule.count",
+	},
+	NutanixDataProtectionRecoveryPointCount: metricInfo{
+		Name: "nutanix.data_protection.recovery_point.count",
 	},
 	NutanixDiskCount: metricInfo{
 		Name: "nutanix.disk.count",
@@ -427,11 +796,26 @@ var MetricsInfo = metricsInfo{
 	NutanixDiskStat: metricInfo{
 		Name: "nutanix.disk.stat",
 	},
-	NutanixFilesEntityCount: metricInfo{
-		Name: "nutanix.files.entity.count",
+	NutanixFilesAntivirusServerCount: metricInfo{
+		Name: "nutanix.files.antivirus_server.count",
 	},
-	NutanixFilesEntityStat: metricInfo{
-		Name: "nutanix.files.entity.stat",
+	NutanixFilesAntivirusServerStat: metricInfo{
+		Name: "nutanix.files.antivirus_server.stat",
+	},
+	NutanixFilesFileServerCount: metricInfo{
+		Name: "nutanix.files.file_server.count",
+	},
+	NutanixFilesFileServerStat: metricInfo{
+		Name: "nutanix.files.file_server.stat",
+	},
+	NutanixFilesMountTargetCount: metricInfo{
+		Name: "nutanix.files.mount_target.count",
+	},
+	NutanixFilesMountTargetStat: metricInfo{
+		Name: "nutanix.files.mount_target.stat",
+	},
+	NutanixFilesUnifiedNamespaceCount: metricInfo{
+		Name: "nutanix.files.unified_namespace.count",
 	},
 	NutanixHostCount: metricInfo{
 		Name: "nutanix.host.count",
@@ -439,26 +823,74 @@ var MetricsInfo = metricsInfo{
 	NutanixHostStat: metricInfo{
 		Name: "nutanix.host.stat",
 	},
-	NutanixMicrosegEntityCount: metricInfo{
-		Name: "nutanix.microseg.entity.count",
+	NutanixMicrosegAddressGroupCount: metricInfo{
+		Name: "nutanix.microseg.address_group.count",
 	},
-	NutanixMonitoringEntityCount: metricInfo{
-		Name: "nutanix.monitoring.entity.count",
+	NutanixMicrosegNetworkSecurityPolicyCount: metricInfo{
+		Name: "nutanix.microseg.network_security_policy.count",
 	},
-	NutanixNetworkingEntityCount: metricInfo{
-		Name: "nutanix.networking.entity.count",
+	NutanixMicrosegServiceGroupCount: metricInfo{
+		Name: "nutanix.microseg.service_group.count",
 	},
-	NutanixNetworkingEntityStat: metricInfo{
-		Name: "nutanix.networking.entity.stat",
+	NutanixMonitoringAlertCount: metricInfo{
+		Name: "nutanix.monitoring.alert.count",
 	},
-	NutanixObjectsEntityCount: metricInfo{
-		Name: "nutanix.objects.entity.count",
+	NutanixNetworkingBgpSessionCount: metricInfo{
+		Name: "nutanix.networking.bgp_session.count",
 	},
-	NutanixObjectsEntityStat: metricInfo{
-		Name: "nutanix.objects.entity.stat",
+	NutanixNetworkingGatewayCount: metricInfo{
+		Name: "nutanix.networking.gateway.count",
 	},
-	NutanixPrismEntityCount: metricInfo{
-		Name: "nutanix.prism.entity.count",
+	NutanixNetworkingLayer2StretchCount: metricInfo{
+		Name: "nutanix.networking.layer2_stretch.count",
+	},
+	NutanixNetworkingLayer2StretchStat: metricInfo{
+		Name: "nutanix.networking.layer2_stretch.stat",
+	},
+	NutanixNetworkingNetworkControllerCount: metricInfo{
+		Name: "nutanix.networking.network_controller.count",
+	},
+	NutanixNetworkingRoutingPolicyCount: metricInfo{
+		Name: "nutanix.networking.routing_policy.count",
+	},
+	NutanixNetworkingTrafficMirrorCount: metricInfo{
+		Name: "nutanix.networking.traffic_mirror.count",
+	},
+	NutanixNetworkingTrafficMirrorStat: metricInfo{
+		Name: "nutanix.networking.traffic_mirror.stat",
+	},
+	NutanixNetworkingUplinkBondCount: metricInfo{
+		Name: "nutanix.networking.uplink_bond.count",
+	},
+	NutanixNetworkingVirtualSwitchCount: metricInfo{
+		Name: "nutanix.networking.virtual_switch.count",
+	},
+	NutanixNetworkingVpcCount: metricInfo{
+		Name: "nutanix.networking.vpc.count",
+	},
+	NutanixNetworkingVpcExternalSubnetStat: metricInfo{
+		Name: "nutanix.networking.vpc.external_subnet.stat",
+	},
+	NutanixNetworkingVpnConnectionCount: metricInfo{
+		Name: "nutanix.networking.vpn_connection.count",
+	},
+	NutanixNetworkingVpnConnectionStat: metricInfo{
+		Name: "nutanix.networking.vpn_connection.stat",
+	},
+	NutanixObjectsObjectStoreCount: metricInfo{
+		Name: "nutanix.objects.object_store.count",
+	},
+	NutanixObjectsObjectStoreStat: metricInfo{
+		Name: "nutanix.objects.object_store.stat",
+	},
+	NutanixPrismCategoryCount: metricInfo{
+		Name: "nutanix.prism.category.count",
+	},
+	NutanixPrismCategoryKeyCount: metricInfo{
+		Name: "nutanix.prism.category_key.count",
+	},
+	NutanixPrismTaskCount: metricInfo{
+		Name: "nutanix.prism.task.count",
 	},
 	NutanixStorageContainerCount: metricInfo{
 		Name: "nutanix.storage.container.count",
@@ -478,8 +910,8 @@ var MetricsInfo = metricsInfo{
 	NutanixVMMemoryAssigned: metricInfo{
 		Name: "nutanix.vm.memory.assigned",
 	},
-	NutanixVMNicCount: metricInfo{
-		Name: "nutanix.vm.nic.count",
+	NutanixVMNicsCount: metricInfo{
+		Name: "nutanix.vm.nics.count",
 	},
 	NutanixVMStat: metricInfo{
 		Name: "nutanix.vm.stat",
@@ -496,34 +928,58 @@ var MetricsInfo = metricsInfo{
 }
 
 type metricsInfo struct {
-	NutanixClusterCount              metricInfo
-	NutanixClusterInfo               metricInfo
-	NutanixClusterStat               metricInfo
-	NutanixDataProtectionEntityCount metricInfo
-	NutanixDiskCount                 metricInfo
-	NutanixDiskStat                  metricInfo
-	NutanixFilesEntityCount          metricInfo
-	NutanixFilesEntityStat           metricInfo
-	NutanixHostCount                 metricInfo
-	NutanixHostStat                  metricInfo
-	NutanixMicrosegEntityCount       metricInfo
-	NutanixMonitoringEntityCount     metricInfo
-	NutanixNetworkingEntityCount     metricInfo
-	NutanixNetworkingEntityStat      metricInfo
-	NutanixObjectsEntityCount        metricInfo
-	NutanixObjectsEntityStat         metricInfo
-	NutanixPrismEntityCount          metricInfo
-	NutanixStorageContainerCount     metricInfo
-	NutanixStorageContainerStat      metricInfo
-	NutanixSubnetCount               metricInfo
-	NutanixVMCount                   metricInfo
-	NutanixVMDiskCount               metricInfo
-	NutanixVMMemoryAssigned          metricInfo
-	NutanixVMNicCount                metricInfo
-	NutanixVMStat                    metricInfo
-	NutanixVMVcpuCount               metricInfo
-	NutanixVolumeGroupCount          metricInfo
-	NutanixVolumeGroupStat           metricInfo
+	NutanixClusterCount                                metricInfo
+	NutanixClusterInfo                                 metricInfo
+	NutanixClusterStat                                 metricInfo
+	NutanixDataProtectionProtectedVMCount              metricInfo
+	NutanixDataProtectionProtectionPolicyCount         metricInfo
+	NutanixDataProtectionProtectionPolicyScheduleCount metricInfo
+	NutanixDataProtectionRecoveryPointCount            metricInfo
+	NutanixDiskCount                                   metricInfo
+	NutanixDiskStat                                    metricInfo
+	NutanixFilesAntivirusServerCount                   metricInfo
+	NutanixFilesAntivirusServerStat                    metricInfo
+	NutanixFilesFileServerCount                        metricInfo
+	NutanixFilesFileServerStat                         metricInfo
+	NutanixFilesMountTargetCount                       metricInfo
+	NutanixFilesMountTargetStat                        metricInfo
+	NutanixFilesUnifiedNamespaceCount                  metricInfo
+	NutanixHostCount                                   metricInfo
+	NutanixHostStat                                    metricInfo
+	NutanixMicrosegAddressGroupCount                   metricInfo
+	NutanixMicrosegNetworkSecurityPolicyCount          metricInfo
+	NutanixMicrosegServiceGroupCount                   metricInfo
+	NutanixMonitoringAlertCount                        metricInfo
+	NutanixNetworkingBgpSessionCount                   metricInfo
+	NutanixNetworkingGatewayCount                      metricInfo
+	NutanixNetworkingLayer2StretchCount                metricInfo
+	NutanixNetworkingLayer2StretchStat                 metricInfo
+	NutanixNetworkingNetworkControllerCount            metricInfo
+	NutanixNetworkingRoutingPolicyCount                metricInfo
+	NutanixNetworkingTrafficMirrorCount                metricInfo
+	NutanixNetworkingTrafficMirrorStat                 metricInfo
+	NutanixNetworkingUplinkBondCount                   metricInfo
+	NutanixNetworkingVirtualSwitchCount                metricInfo
+	NutanixNetworkingVpcCount                          metricInfo
+	NutanixNetworkingVpcExternalSubnetStat             metricInfo
+	NutanixNetworkingVpnConnectionCount                metricInfo
+	NutanixNetworkingVpnConnectionStat                 metricInfo
+	NutanixObjectsObjectStoreCount                     metricInfo
+	NutanixObjectsObjectStoreStat                      metricInfo
+	NutanixPrismCategoryCount                          metricInfo
+	NutanixPrismCategoryKeyCount                       metricInfo
+	NutanixPrismTaskCount                              metricInfo
+	NutanixStorageContainerCount                       metricInfo
+	NutanixStorageContainerStat                        metricInfo
+	NutanixSubnetCount                                 metricInfo
+	NutanixVMCount                                     metricInfo
+	NutanixVMDiskCount                                 metricInfo
+	NutanixVMMemoryAssigned                            metricInfo
+	NutanixVMNicsCount                                 metricInfo
+	NutanixVMStat                                      metricInfo
+	NutanixVMVcpuCount                                 metricInfo
+	NutanixVolumeGroupCount                            metricInfo
+	NutanixVolumeGroupStat                             metricInfo
 }
 
 type metricInfo struct {
@@ -688,22 +1144,22 @@ func newMetricNutanixClusterStat(cfg MetricConfig) metricNutanixClusterStat {
 	return m
 }
 
-type metricNutanixDataProtectionEntityCount struct {
+type metricNutanixDataProtectionProtectedVMCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.data_protection.entity.count metric with initial data.
-func (m *metricNutanixDataProtectionEntityCount) init() {
-	m.data.SetName("nutanix.data_protection.entity.count")
-	m.data.SetDescription("Number of Nutanix data protection entities.")
-	m.data.SetUnit("{entity}")
+// init fills nutanix.data_protection.protected_vm.count metric with initial data.
+func (m *metricNutanixDataProtectionProtectedVMCount) init() {
+	m.data.SetName("nutanix.data_protection.protected_vm.count")
+	m.data.SetDescription("Number of Nutanix virtual machines protected by a data protection policy.")
+	m.data.SetUnit("{vm}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixDataProtectionEntityCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
+func (m *metricNutanixDataProtectionProtectedVMCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixDataProtectionProtectedVMRpoAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -711,20 +1167,18 @@ func (m *metricNutanixDataProtectionEntityCount) recordDataPoint(start pcommon.T
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state_type", nutanixEntityStateTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state", nutanixEntityStateAttributeValue)
+	dp.Attributes().PutStr("nutanix.data_protection.protected_vm.rpo", nutanixDataProtectionProtectedVMRpoAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixDataProtectionEntityCount) updateCapacity() {
+func (m *metricNutanixDataProtectionProtectedVMCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixDataProtectionEntityCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixDataProtectionProtectedVMCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -732,8 +1186,161 @@ func (m *metricNutanixDataProtectionEntityCount) emit(metrics pmetric.MetricSlic
 	}
 }
 
-func newMetricNutanixDataProtectionEntityCount(cfg MetricConfig) metricNutanixDataProtectionEntityCount {
-	m := metricNutanixDataProtectionEntityCount{config: cfg}
+func newMetricNutanixDataProtectionProtectedVMCount(cfg MetricConfig) metricNutanixDataProtectionProtectedVMCount {
+	m := metricNutanixDataProtectionProtectedVMCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixDataProtectionProtectionPolicyCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.data_protection.protection_policy.count metric with initial data.
+func (m *metricNutanixDataProtectionProtectionPolicyCount) init() {
+	m.data.SetName("nutanix.data_protection.protection_policy.count")
+	m.data.SetDescription("Number of Nutanix data protection policies.")
+	m.data.SetUnit("{policy}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixDataProtectionProtectionPolicyCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixDataProtectionProtectionPolicyCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixDataProtectionProtectionPolicyCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixDataProtectionProtectionPolicyCount(cfg MetricConfig) metricNutanixDataProtectionProtectionPolicyCount {
+	m := metricNutanixDataProtectionProtectionPolicyCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixDataProtectionProtectionPolicyScheduleCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.data_protection.protection_policy_schedule.count metric with initial data.
+func (m *metricNutanixDataProtectionProtectionPolicyScheduleCount) init() {
+	m.data.SetName("nutanix.data_protection.protection_policy_schedule.count")
+	m.data.SetDescription("Number of schedules configured for Nutanix data protection policies.")
+	m.data.SetUnit("{schedule}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixDataProtectionProtectionPolicyScheduleCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixDataProtectionProtectionPolicyScheduleConsistencyAttributeValue string, nutanixDataProtectionProtectionPolicyScheduleRpoAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.data_protection.protection_policy_schedule.consistency", nutanixDataProtectionProtectionPolicyScheduleConsistencyAttributeValue)
+	dp.Attributes().PutStr("nutanix.data_protection.protection_policy_schedule.rpo", nutanixDataProtectionProtectionPolicyScheduleRpoAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixDataProtectionProtectionPolicyScheduleCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixDataProtectionProtectionPolicyScheduleCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixDataProtectionProtectionPolicyScheduleCount(cfg MetricConfig) metricNutanixDataProtectionProtectionPolicyScheduleCount {
+	m := metricNutanixDataProtectionProtectionPolicyScheduleCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixDataProtectionRecoveryPointCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.data_protection.recovery_point.count metric with initial data.
+func (m *metricNutanixDataProtectionRecoveryPointCount) init() {
+	m.data.SetName("nutanix.data_protection.recovery_point.count")
+	m.data.SetDescription("Number of Nutanix data protection recovery points.")
+	m.data.SetUnit("{recovery_point}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixDataProtectionRecoveryPointCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixDataProtectionRecoveryPointCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixDataProtectionRecoveryPointCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixDataProtectionRecoveryPointCount(cfg MetricConfig) metricNutanixDataProtectionRecoveryPointCount {
+	m := metricNutanixDataProtectionRecoveryPointCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -856,22 +1463,22 @@ func newMetricNutanixDiskStat(cfg MetricConfig) metricNutanixDiskStat {
 	return m
 }
 
-type metricNutanixFilesEntityCount struct {
+type metricNutanixFilesAntivirusServerCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.files.entity.count metric with initial data.
-func (m *metricNutanixFilesEntityCount) init() {
-	m.data.SetName("nutanix.files.entity.count")
-	m.data.SetDescription("Number of Nutanix Files entities.")
-	m.data.SetUnit("{entity}")
+// init fills nutanix.files.antivirus_server.count metric with initial data.
+func (m *metricNutanixFilesAntivirusServerCount) init() {
+	m.data.SetName("nutanix.files.antivirus_server.count")
+	m.data.SetDescription("Number of Nutanix Files antivirus servers.")
+	m.data.SetUnit("{server}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixFilesEntityCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
+func (m *metricNutanixFilesAntivirusServerCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -879,20 +1486,19 @@ func (m *metricNutanixFilesEntityCount) recordDataPoint(start pcommon.Timestamp,
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state_type", nutanixEntityStateTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state", nutanixEntityStateAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.id", nutanixFilesFileServerIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.name", nutanixFilesFileServerNameAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixFilesEntityCount) updateCapacity() {
+func (m *metricNutanixFilesAntivirusServerCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixFilesEntityCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixFilesAntivirusServerCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -900,8 +1506,8 @@ func (m *metricNutanixFilesEntityCount) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixFilesEntityCount(cfg MetricConfig) metricNutanixFilesEntityCount {
-	m := metricNutanixFilesEntityCount{config: cfg}
+func newMetricNutanixFilesAntivirusServerCount(cfg MetricConfig) metricNutanixFilesAntivirusServerCount {
+	m := metricNutanixFilesAntivirusServerCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -910,22 +1516,22 @@ func newMetricNutanixFilesEntityCount(cfg MetricConfig) metricNutanixFilesEntity
 	return m
 }
 
-type metricNutanixFilesEntityStat struct {
+type metricNutanixFilesAntivirusServerStat struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.files.entity.stat metric with initial data.
-func (m *metricNutanixFilesEntityStat) init() {
-	m.data.SetName("nutanix.files.entity.stat")
-	m.data.SetDescription("Latest statistic for a Nutanix Files entity.")
+// init fills nutanix.files.antivirus_server.stat metric with initial data.
+func (m *metricNutanixFilesAntivirusServerStat) init() {
+	m.data.SetName("nutanix.files.antivirus_server.stat")
+	m.data.SetDescription("Latest statistic for a Nutanix Files antivirus server.")
 	m.data.SetUnit("")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixFilesEntityStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityIDAttributeValue string, nutanixEntityNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+func (m *metricNutanixFilesAntivirusServerStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixFilesAntivirusServerIDAttributeValue string, nutanixFilesAntivirusServerNameAttributeValue string, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -933,22 +1539,23 @@ func (m *metricNutanixFilesEntityStat) recordDataPoint(start pcommon.Timestamp, 
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.id", nutanixEntityIDAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.name", nutanixEntityNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.antivirus_server.id", nutanixFilesAntivirusServerIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.antivirus_server.name", nutanixFilesAntivirusServerNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.id", nutanixFilesFileServerIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.name", nutanixFilesFileServerNameAttributeValue)
 	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
 	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixFilesEntityStat) updateCapacity() {
+func (m *metricNutanixFilesAntivirusServerStat) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixFilesEntityStat) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixFilesAntivirusServerStat) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -956,8 +1563,273 @@ func (m *metricNutanixFilesEntityStat) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixFilesEntityStat(cfg MetricConfig) metricNutanixFilesEntityStat {
-	m := metricNutanixFilesEntityStat{config: cfg}
+func newMetricNutanixFilesAntivirusServerStat(cfg MetricConfig) metricNutanixFilesAntivirusServerStat {
+	m := metricNutanixFilesAntivirusServerStat{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixFilesFileServerCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.files.file_server.count metric with initial data.
+func (m *metricNutanixFilesFileServerCount) init() {
+	m.data.SetName("nutanix.files.file_server.count")
+	m.data.SetDescription("Number of Nutanix Files file servers.")
+	m.data.SetUnit("{server}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixFilesFileServerCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixFilesFileServerCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixFilesFileServerCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixFilesFileServerCount(cfg MetricConfig) metricNutanixFilesFileServerCount {
+	m := metricNutanixFilesFileServerCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixFilesFileServerStat struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.files.file_server.stat metric with initial data.
+func (m *metricNutanixFilesFileServerStat) init() {
+	m.data.SetName("nutanix.files.file_server.stat")
+	m.data.SetDescription("Latest statistic for a Nutanix Files file server.")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixFilesFileServerStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.files.file_server.id", nutanixFilesFileServerIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.name", nutanixFilesFileServerNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixFilesFileServerStat) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixFilesFileServerStat) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixFilesFileServerStat(cfg MetricConfig) metricNutanixFilesFileServerStat {
+	m := metricNutanixFilesFileServerStat{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixFilesMountTargetCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.files.mount_target.count metric with initial data.
+func (m *metricNutanixFilesMountTargetCount) init() {
+	m.data.SetName("nutanix.files.mount_target.count")
+	m.data.SetDescription("Number of Nutanix Files mount targets.")
+	m.data.SetUnit("{target}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixFilesMountTargetCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.files.file_server.id", nutanixFilesFileServerIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.name", nutanixFilesFileServerNameAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixFilesMountTargetCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixFilesMountTargetCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixFilesMountTargetCount(cfg MetricConfig) metricNutanixFilesMountTargetCount {
+	m := metricNutanixFilesMountTargetCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixFilesMountTargetStat struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.files.mount_target.stat metric with initial data.
+func (m *metricNutanixFilesMountTargetStat) init() {
+	m.data.SetName("nutanix.files.mount_target.stat")
+	m.data.SetDescription("Latest statistic for a Nutanix Files mount target.")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixFilesMountTargetStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixFilesMountTargetIDAttributeValue string, nutanixFilesMountTargetNameAttributeValue string, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.files.mount_target.id", nutanixFilesMountTargetIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.mount_target.name", nutanixFilesMountTargetNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.id", nutanixFilesFileServerIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.files.file_server.name", nutanixFilesFileServerNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixFilesMountTargetStat) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixFilesMountTargetStat) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixFilesMountTargetStat(cfg MetricConfig) metricNutanixFilesMountTargetStat {
+	m := metricNutanixFilesMountTargetStat{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixFilesUnifiedNamespaceCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.files.unified_namespace.count metric with initial data.
+func (m *metricNutanixFilesUnifiedNamespaceCount) init() {
+	m.data.SetName("nutanix.files.unified_namespace.count")
+	m.data.SetDescription("Number of Nutanix Files unified namespaces.")
+	m.data.SetUnit("{namespace}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixFilesUnifiedNamespaceCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixFilesUnifiedNamespaceCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixFilesUnifiedNamespaceCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixFilesUnifiedNamespaceCount(cfg MetricConfig) metricNutanixFilesUnifiedNamespaceCount {
+	m := metricNutanixFilesUnifiedNamespaceCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1076,22 +1948,21 @@ func newMetricNutanixHostStat(cfg MetricConfig) metricNutanixHostStat {
 	return m
 }
 
-type metricNutanixMicrosegEntityCount struct {
+type metricNutanixMicrosegAddressGroupCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.microseg.entity.count metric with initial data.
-func (m *metricNutanixMicrosegEntityCount) init() {
-	m.data.SetName("nutanix.microseg.entity.count")
-	m.data.SetDescription("Number of Nutanix microsegmentation entities.")
-	m.data.SetUnit("{entity}")
+// init fills nutanix.microseg.address_group.count metric with initial data.
+func (m *metricNutanixMicrosegAddressGroupCount) init() {
+	m.data.SetName("nutanix.microseg.address_group.count")
+	m.data.SetDescription("Number of Nutanix microsegmentation address groups.")
+	m.data.SetUnit("{group}")
 	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixMicrosegEntityCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
+func (m *metricNutanixMicrosegAddressGroupCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1099,20 +1970,17 @@ func (m *metricNutanixMicrosegEntityCount) recordDataPoint(start pcommon.Timesta
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state_type", nutanixEntityStateTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state", nutanixEntityStateAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixMicrosegEntityCount) updateCapacity() {
+func (m *metricNutanixMicrosegAddressGroupCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixMicrosegEntityCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixMicrosegAddressGroupCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1120,8 +1988,8 @@ func (m *metricNutanixMicrosegEntityCount) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixMicrosegEntityCount(cfg MetricConfig) metricNutanixMicrosegEntityCount {
-	m := metricNutanixMicrosegEntityCount{config: cfg}
+func newMetricNutanixMicrosegAddressGroupCount(cfg MetricConfig) metricNutanixMicrosegAddressGroupCount {
+	m := metricNutanixMicrosegAddressGroupCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1130,22 +1998,22 @@ func newMetricNutanixMicrosegEntityCount(cfg MetricConfig) metricNutanixMicroseg
 	return m
 }
 
-type metricNutanixMonitoringEntityCount struct {
+type metricNutanixMicrosegNetworkSecurityPolicyCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.monitoring.entity.count metric with initial data.
-func (m *metricNutanixMonitoringEntityCount) init() {
-	m.data.SetName("nutanix.monitoring.entity.count")
-	m.data.SetDescription("Number of Nutanix monitoring entities.")
-	m.data.SetUnit("{entity}")
+// init fills nutanix.microseg.network_security_policy.count metric with initial data.
+func (m *metricNutanixMicrosegNetworkSecurityPolicyCount) init() {
+	m.data.SetName("nutanix.microseg.network_security_policy.count")
+	m.data.SetDescription("Number of Nutanix network security policies.")
+	m.data.SetUnit("{policy}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixMonitoringEntityCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
+func (m *metricNutanixMicrosegNetworkSecurityPolicyCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixMicrosegNetworkSecurityPolicyScopeAttributeValue string, nutanixMicrosegNetworkSecurityPolicyStateAttributeValue string, nutanixMicrosegNetworkSecurityPolicyTypeAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1153,20 +2021,20 @@ func (m *metricNutanixMonitoringEntityCount) recordDataPoint(start pcommon.Times
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state_type", nutanixEntityStateTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state", nutanixEntityStateAttributeValue)
+	dp.Attributes().PutStr("nutanix.microseg.network_security_policy.scope", nutanixMicrosegNetworkSecurityPolicyScopeAttributeValue)
+	dp.Attributes().PutStr("nutanix.microseg.network_security_policy.state", nutanixMicrosegNetworkSecurityPolicyStateAttributeValue)
+	dp.Attributes().PutStr("nutanix.microseg.network_security_policy.type", nutanixMicrosegNetworkSecurityPolicyTypeAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixMonitoringEntityCount) updateCapacity() {
+func (m *metricNutanixMicrosegNetworkSecurityPolicyCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixMonitoringEntityCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixMicrosegNetworkSecurityPolicyCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1174,8 +2042,8 @@ func (m *metricNutanixMonitoringEntityCount) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixMonitoringEntityCount(cfg MetricConfig) metricNutanixMonitoringEntityCount {
-	m := metricNutanixMonitoringEntityCount{config: cfg}
+func newMetricNutanixMicrosegNetworkSecurityPolicyCount(cfg MetricConfig) metricNutanixMicrosegNetworkSecurityPolicyCount {
+	m := metricNutanixMicrosegNetworkSecurityPolicyCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1184,22 +2052,21 @@ func newMetricNutanixMonitoringEntityCount(cfg MetricConfig) metricNutanixMonito
 	return m
 }
 
-type metricNutanixNetworkingEntityCount struct {
+type metricNutanixMicrosegServiceGroupCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.networking.entity.count metric with initial data.
-func (m *metricNutanixNetworkingEntityCount) init() {
-	m.data.SetName("nutanix.networking.entity.count")
-	m.data.SetDescription("Number of Nutanix networking entities.")
-	m.data.SetUnit("{entity}")
+// init fills nutanix.microseg.service_group.count metric with initial data.
+func (m *metricNutanixMicrosegServiceGroupCount) init() {
+	m.data.SetName("nutanix.microseg.service_group.count")
+	m.data.SetDescription("Number of Nutanix microsegmentation service groups.")
+	m.data.SetUnit("{group}")
 	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixNetworkingEntityCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
+func (m *metricNutanixMicrosegServiceGroupCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1207,20 +2074,17 @@ func (m *metricNutanixNetworkingEntityCount) recordDataPoint(start pcommon.Times
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state_type", nutanixEntityStateTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state", nutanixEntityStateAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixNetworkingEntityCount) updateCapacity() {
+func (m *metricNutanixMicrosegServiceGroupCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixNetworkingEntityCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixMicrosegServiceGroupCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1228,8 +2092,8 @@ func (m *metricNutanixNetworkingEntityCount) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixNetworkingEntityCount(cfg MetricConfig) metricNutanixNetworkingEntityCount {
-	m := metricNutanixNetworkingEntityCount{config: cfg}
+func newMetricNutanixMicrosegServiceGroupCount(cfg MetricConfig) metricNutanixMicrosegServiceGroupCount {
+	m := metricNutanixMicrosegServiceGroupCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1238,22 +2102,227 @@ func newMetricNutanixNetworkingEntityCount(cfg MetricConfig) metricNutanixNetwor
 	return m
 }
 
-type metricNutanixNetworkingEntityStat struct {
+type metricNutanixMonitoringAlertCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.networking.entity.stat metric with initial data.
-func (m *metricNutanixNetworkingEntityStat) init() {
-	m.data.SetName("nutanix.networking.entity.stat")
-	m.data.SetDescription("Latest statistic for a Nutanix networking entity.")
+// init fills nutanix.monitoring.alert.count metric with initial data.
+func (m *metricNutanixMonitoringAlertCount) init() {
+	m.data.SetName("nutanix.monitoring.alert.count")
+	m.data.SetDescription("Number of Nutanix monitoring alerts.")
+	m.data.SetUnit("{alert}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixMonitoringAlertCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixMonitoringAlertAcknowledgedAttributeValue string, nutanixMonitoringAlertResolvedAttributeValue string, nutanixMonitoringAlertSeverityAttributeValue string, nutanixMonitoringAlertUnresolvedSeverityAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.monitoring.alert.acknowledged", nutanixMonitoringAlertAcknowledgedAttributeValue)
+	dp.Attributes().PutStr("nutanix.monitoring.alert.resolved", nutanixMonitoringAlertResolvedAttributeValue)
+	dp.Attributes().PutStr("nutanix.monitoring.alert.severity", nutanixMonitoringAlertSeverityAttributeValue)
+	dp.Attributes().PutStr("nutanix.monitoring.alert.unresolved_severity", nutanixMonitoringAlertUnresolvedSeverityAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixMonitoringAlertCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixMonitoringAlertCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixMonitoringAlertCount(cfg MetricConfig) metricNutanixMonitoringAlertCount {
+	m := metricNutanixMonitoringAlertCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingBgpSessionCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.bgp_session.count metric with initial data.
+func (m *metricNutanixNetworkingBgpSessionCount) init() {
+	m.data.SetName("nutanix.networking.bgp_session.count")
+	m.data.SetDescription("Number of Nutanix BGP sessions.")
+	m.data.SetUnit("{session}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingBgpSessionCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingBgpSessionCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingBgpSessionCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingBgpSessionCount(cfg MetricConfig) metricNutanixNetworkingBgpSessionCount {
+	m := metricNutanixNetworkingBgpSessionCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingGatewayCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.gateway.count metric with initial data.
+func (m *metricNutanixNetworkingGatewayCount) init() {
+	m.data.SetName("nutanix.networking.gateway.count")
+	m.data.SetDescription("Number of Nutanix gateways.")
+	m.data.SetUnit("{gateway}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingGatewayCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingGatewayCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingGatewayCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingGatewayCount(cfg MetricConfig) metricNutanixNetworkingGatewayCount {
+	m := metricNutanixNetworkingGatewayCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingLayer2StretchCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.layer2_stretch.count metric with initial data.
+func (m *metricNutanixNetworkingLayer2StretchCount) init() {
+	m.data.SetName("nutanix.networking.layer2_stretch.count")
+	m.data.SetDescription("Number of Nutanix Layer 2 stretches.")
+	m.data.SetUnit("{stretch}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingLayer2StretchCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingLayer2StretchCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingLayer2StretchCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingLayer2StretchCount(cfg MetricConfig) metricNutanixNetworkingLayer2StretchCount {
+	m := metricNutanixNetworkingLayer2StretchCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingLayer2StretchStat struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.layer2_stretch.stat metric with initial data.
+func (m *metricNutanixNetworkingLayer2StretchStat) init() {
+	m.data.SetName("nutanix.networking.layer2_stretch.stat")
+	m.data.SetDescription("Latest statistic for a Nutanix Layer 2 stretch.")
 	m.data.SetUnit("")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixNetworkingEntityStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityIDAttributeValue string, nutanixEntityNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+func (m *metricNutanixNetworkingLayer2StretchStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixNetworkingLayer2StretchIDAttributeValue string, nutanixNetworkingLayer2StretchNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1261,22 +2330,21 @@ func (m *metricNutanixNetworkingEntityStat) recordDataPoint(start pcommon.Timest
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.id", nutanixEntityIDAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.name", nutanixEntityNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.layer2_stretch.id", nutanixNetworkingLayer2StretchIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.layer2_stretch.name", nutanixNetworkingLayer2StretchNameAttributeValue)
 	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
 	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixNetworkingEntityStat) updateCapacity() {
+func (m *metricNutanixNetworkingLayer2StretchStat) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixNetworkingEntityStat) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixNetworkingLayer2StretchStat) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1284,8 +2352,8 @@ func (m *metricNutanixNetworkingEntityStat) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixNetworkingEntityStat(cfg MetricConfig) metricNutanixNetworkingEntityStat {
-	m := metricNutanixNetworkingEntityStat{config: cfg}
+func newMetricNutanixNetworkingLayer2StretchStat(cfg MetricConfig) metricNutanixNetworkingLayer2StretchStat {
+	m := metricNutanixNetworkingLayer2StretchStat{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1294,22 +2362,21 @@ func newMetricNutanixNetworkingEntityStat(cfg MetricConfig) metricNutanixNetwork
 	return m
 }
 
-type metricNutanixObjectsEntityCount struct {
+type metricNutanixNetworkingNetworkControllerCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.objects.entity.count metric with initial data.
-func (m *metricNutanixObjectsEntityCount) init() {
-	m.data.SetName("nutanix.objects.entity.count")
-	m.data.SetDescription("Number of Nutanix Objects entities.")
-	m.data.SetUnit("{entity}")
+// init fills nutanix.networking.network_controller.count metric with initial data.
+func (m *metricNutanixNetworkingNetworkControllerCount) init() {
+	m.data.SetName("nutanix.networking.network_controller.count")
+	m.data.SetDescription("Number of Nutanix network controllers.")
+	m.data.SetUnit("{controller}")
 	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixObjectsEntityCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
+func (m *metricNutanixNetworkingNetworkControllerCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1317,20 +2384,17 @@ func (m *metricNutanixObjectsEntityCount) recordDataPoint(start pcommon.Timestam
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state_type", nutanixEntityStateTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state", nutanixEntityStateAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixObjectsEntityCount) updateCapacity() {
+func (m *metricNutanixNetworkingNetworkControllerCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixObjectsEntityCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixNetworkingNetworkControllerCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1338,8 +2402,8 @@ func (m *metricNutanixObjectsEntityCount) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixObjectsEntityCount(cfg MetricConfig) metricNutanixObjectsEntityCount {
-	m := metricNutanixObjectsEntityCount{config: cfg}
+func newMetricNutanixNetworkingNetworkControllerCount(cfg MetricConfig) metricNutanixNetworkingNetworkControllerCount {
+	m := metricNutanixNetworkingNetworkControllerCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1348,22 +2412,122 @@ func newMetricNutanixObjectsEntityCount(cfg MetricConfig) metricNutanixObjectsEn
 	return m
 }
 
-type metricNutanixObjectsEntityStat struct {
+type metricNutanixNetworkingRoutingPolicyCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.objects.entity.stat metric with initial data.
-func (m *metricNutanixObjectsEntityStat) init() {
-	m.data.SetName("nutanix.objects.entity.stat")
-	m.data.SetDescription("Latest statistic for a Nutanix Objects entity.")
+// init fills nutanix.networking.routing_policy.count metric with initial data.
+func (m *metricNutanixNetworkingRoutingPolicyCount) init() {
+	m.data.SetName("nutanix.networking.routing_policy.count")
+	m.data.SetDescription("Number of Nutanix routing policies.")
+	m.data.SetUnit("{policy}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingRoutingPolicyCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingRoutingPolicyCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingRoutingPolicyCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingRoutingPolicyCount(cfg MetricConfig) metricNutanixNetworkingRoutingPolicyCount {
+	m := metricNutanixNetworkingRoutingPolicyCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingTrafficMirrorCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.traffic_mirror.count metric with initial data.
+func (m *metricNutanixNetworkingTrafficMirrorCount) init() {
+	m.data.SetName("nutanix.networking.traffic_mirror.count")
+	m.data.SetDescription("Number of Nutanix traffic mirrors.")
+	m.data.SetUnit("{mirror}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingTrafficMirrorCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingTrafficMirrorCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingTrafficMirrorCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingTrafficMirrorCount(cfg MetricConfig) metricNutanixNetworkingTrafficMirrorCount {
+	m := metricNutanixNetworkingTrafficMirrorCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingTrafficMirrorStat struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.traffic_mirror.stat metric with initial data.
+func (m *metricNutanixNetworkingTrafficMirrorStat) init() {
+	m.data.SetName("nutanix.networking.traffic_mirror.stat")
+	m.data.SetDescription("Latest statistic for a Nutanix traffic mirror.")
 	m.data.SetUnit("")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixObjectsEntityStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityIDAttributeValue string, nutanixEntityNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+func (m *metricNutanixNetworkingTrafficMirrorStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixNetworkingTrafficMirrorIDAttributeValue string, nutanixNetworkingTrafficMirrorNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1371,22 +2535,21 @@ func (m *metricNutanixObjectsEntityStat) recordDataPoint(start pcommon.Timestamp
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.id", nutanixEntityIDAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.name", nutanixEntityNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.traffic_mirror.id", nutanixNetworkingTrafficMirrorIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.traffic_mirror.name", nutanixNetworkingTrafficMirrorNameAttributeValue)
 	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
 	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixObjectsEntityStat) updateCapacity() {
+func (m *metricNutanixNetworkingTrafficMirrorStat) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixObjectsEntityStat) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixNetworkingTrafficMirrorStat) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1394,8 +2557,8 @@ func (m *metricNutanixObjectsEntityStat) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixObjectsEntityStat(cfg MetricConfig) metricNutanixObjectsEntityStat {
-	m := metricNutanixObjectsEntityStat{config: cfg}
+func newMetricNutanixNetworkingTrafficMirrorStat(cfg MetricConfig) metricNutanixNetworkingTrafficMirrorStat {
+	m := metricNutanixNetworkingTrafficMirrorStat{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1404,22 +2567,21 @@ func newMetricNutanixObjectsEntityStat(cfg MetricConfig) metricNutanixObjectsEnt
 	return m
 }
 
-type metricNutanixPrismEntityCount struct {
+type metricNutanixNetworkingUplinkBondCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.prism.entity.count metric with initial data.
-func (m *metricNutanixPrismEntityCount) init() {
-	m.data.SetName("nutanix.prism.entity.count")
-	m.data.SetDescription("Number of Nutanix Prism Central entities.")
-	m.data.SetUnit("{entity}")
+// init fills nutanix.networking.uplink_bond.count metric with initial data.
+func (m *metricNutanixNetworkingUplinkBondCount) init() {
+	m.data.SetName("nutanix.networking.uplink_bond.count")
+	m.data.SetDescription("Number of Nutanix uplink bonds.")
+	m.data.SetUnit("{bond}")
 	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixPrismEntityCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
+func (m *metricNutanixNetworkingUplinkBondCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1427,20 +2589,17 @@ func (m *metricNutanixPrismEntityCount) recordDataPoint(start pcommon.Timestamp,
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
-	dp.Attributes().PutStr("nutanix.entity.type", nutanixEntityTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state_type", nutanixEntityStateTypeAttributeValue)
-	dp.Attributes().PutStr("nutanix.entity.state", nutanixEntityStateAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixPrismEntityCount) updateCapacity() {
+func (m *metricNutanixNetworkingUplinkBondCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixPrismEntityCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixNetworkingUplinkBondCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1448,8 +2607,529 @@ func (m *metricNutanixPrismEntityCount) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixPrismEntityCount(cfg MetricConfig) metricNutanixPrismEntityCount {
-	m := metricNutanixPrismEntityCount{config: cfg}
+func newMetricNutanixNetworkingUplinkBondCount(cfg MetricConfig) metricNutanixNetworkingUplinkBondCount {
+	m := metricNutanixNetworkingUplinkBondCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingVirtualSwitchCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.virtual_switch.count metric with initial data.
+func (m *metricNutanixNetworkingVirtualSwitchCount) init() {
+	m.data.SetName("nutanix.networking.virtual_switch.count")
+	m.data.SetDescription("Number of Nutanix virtual switches.")
+	m.data.SetUnit("{switch}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingVirtualSwitchCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingVirtualSwitchCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingVirtualSwitchCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingVirtualSwitchCount(cfg MetricConfig) metricNutanixNetworkingVirtualSwitchCount {
+	m := metricNutanixNetworkingVirtualSwitchCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingVpcCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.vpc.count metric with initial data.
+func (m *metricNutanixNetworkingVpcCount) init() {
+	m.data.SetName("nutanix.networking.vpc.count")
+	m.data.SetDescription("Number of Nutanix virtual private clouds.")
+	m.data.SetUnit("{vpc}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingVpcCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingVpcCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingVpcCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingVpcCount(cfg MetricConfig) metricNutanixNetworkingVpcCount {
+	m := metricNutanixNetworkingVpcCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingVpcExternalSubnetStat struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.vpc.external_subnet.stat metric with initial data.
+func (m *metricNutanixNetworkingVpcExternalSubnetStat) init() {
+	m.data.SetName("nutanix.networking.vpc.external_subnet.stat")
+	m.data.SetDescription("Latest statistic for an external subnet attached to a Nutanix VPC.")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixNetworkingVpcExternalSubnetStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixNetworkingVpcExternalSubnetIDAttributeValue string, nutanixNetworkingVpcExternalSubnetNameAttributeValue string, nutanixNetworkingVpcIDAttributeValue string, nutanixNetworkingVpcNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.networking.vpc.external_subnet.id", nutanixNetworkingVpcExternalSubnetIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.vpc.external_subnet.name", nutanixNetworkingVpcExternalSubnetNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.vpc.id", nutanixNetworkingVpcIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.vpc.name", nutanixNetworkingVpcNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingVpcExternalSubnetStat) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingVpcExternalSubnetStat) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingVpcExternalSubnetStat(cfg MetricConfig) metricNutanixNetworkingVpcExternalSubnetStat {
+	m := metricNutanixNetworkingVpcExternalSubnetStat{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingVpnConnectionCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.vpn_connection.count metric with initial data.
+func (m *metricNutanixNetworkingVpnConnectionCount) init() {
+	m.data.SetName("nutanix.networking.vpn_connection.count")
+	m.data.SetDescription("Number of Nutanix VPN connections.")
+	m.data.SetUnit("{connection}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixNetworkingVpnConnectionCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingVpnConnectionCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingVpnConnectionCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingVpnConnectionCount(cfg MetricConfig) metricNutanixNetworkingVpnConnectionCount {
+	m := metricNutanixNetworkingVpnConnectionCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixNetworkingVpnConnectionStat struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.networking.vpn_connection.stat metric with initial data.
+func (m *metricNutanixNetworkingVpnConnectionStat) init() {
+	m.data.SetName("nutanix.networking.vpn_connection.stat")
+	m.data.SetDescription("Latest statistic for a Nutanix VPN connection.")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixNetworkingVpnConnectionStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixNetworkingVpnConnectionIDAttributeValue string, nutanixNetworkingVpnConnectionNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.networking.vpn_connection.id", nutanixNetworkingVpnConnectionIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.networking.vpn_connection.name", nutanixNetworkingVpnConnectionNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixNetworkingVpnConnectionStat) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixNetworkingVpnConnectionStat) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixNetworkingVpnConnectionStat(cfg MetricConfig) metricNutanixNetworkingVpnConnectionStat {
+	m := metricNutanixNetworkingVpnConnectionStat{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixObjectsObjectStoreCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.objects.object_store.count metric with initial data.
+func (m *metricNutanixObjectsObjectStoreCount) init() {
+	m.data.SetName("nutanix.objects.object_store.count")
+	m.data.SetDescription("Number of Nutanix Objects object stores.")
+	m.data.SetUnit("{store}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixObjectsObjectStoreCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixObjectsObjectStoreCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixObjectsObjectStoreCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixObjectsObjectStoreCount(cfg MetricConfig) metricNutanixObjectsObjectStoreCount {
+	m := metricNutanixObjectsObjectStoreCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixObjectsObjectStoreStat struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.objects.object_store.stat metric with initial data.
+func (m *metricNutanixObjectsObjectStoreStat) init() {
+	m.data.SetName("nutanix.objects.object_store.stat")
+	m.data.SetDescription("Latest statistic for a Nutanix Objects object store.")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixObjectsObjectStoreStat) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixObjectsObjectStoreIDAttributeValue string, nutanixObjectsObjectStoreNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.objects.object_store.id", nutanixObjectsObjectStoreIDAttributeValue)
+	dp.Attributes().PutStr("nutanix.objects.object_store.name", nutanixObjectsObjectStoreNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.name", nutanixStatNameAttributeValue)
+	dp.Attributes().PutStr("nutanix.stat.kind", nutanixStatKindAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixObjectsObjectStoreStat) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixObjectsObjectStoreStat) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixObjectsObjectStoreStat(cfg MetricConfig) metricNutanixObjectsObjectStoreStat {
+	m := metricNutanixObjectsObjectStoreStat{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixPrismCategoryCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.prism.category.count metric with initial data.
+func (m *metricNutanixPrismCategoryCount) init() {
+	m.data.SetName("nutanix.prism.category.count")
+	m.data.SetDescription("Number of Nutanix Prism Central categories.")
+	m.data.SetUnit("{category}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixPrismCategoryCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixPrismCategoryTypeAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.prism.category.type", nutanixPrismCategoryTypeAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixPrismCategoryCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixPrismCategoryCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixPrismCategoryCount(cfg MetricConfig) metricNutanixPrismCategoryCount {
+	m := metricNutanixPrismCategoryCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixPrismCategoryKeyCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.prism.category_key.count metric with initial data.
+func (m *metricNutanixPrismCategoryKeyCount) init() {
+	m.data.SetName("nutanix.prism.category_key.count")
+	m.data.SetDescription("Number of unique category keys in Nutanix Prism Central.")
+	m.data.SetUnit("{key}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricNutanixPrismCategoryKeyCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixPrismCategoryKeyCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixPrismCategoryKeyCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixPrismCategoryKeyCount(cfg MetricConfig) metricNutanixPrismCategoryKeyCount {
+	m := metricNutanixPrismCategoryKeyCount{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricNutanixPrismTaskCount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills nutanix.prism.task.count metric with initial data.
+func (m *metricNutanixPrismTaskCount) init() {
+	m.data.SetName("nutanix.prism.task.count")
+	m.data.SetDescription("Number of Nutanix Prism Central tasks.")
+	m.data.SetUnit("{task}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricNutanixPrismTaskCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixPrismTaskStatusAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("nutanix.prism.task.status", nutanixPrismTaskStatusAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricNutanixPrismTaskCount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricNutanixPrismTaskCount) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricNutanixPrismTaskCount(cfg MetricConfig) metricNutanixPrismTaskCount {
+	m := metricNutanixPrismTaskCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -1797,22 +3477,22 @@ func newMetricNutanixVMMemoryAssigned(cfg MetricConfig) metricNutanixVMMemoryAss
 	return m
 }
 
-type metricNutanixVMNicCount struct {
+type metricNutanixVMNicsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills nutanix.vm.nic.count metric with initial data.
-func (m *metricNutanixVMNicCount) init() {
-	m.data.SetName("nutanix.vm.nic.count")
+// init fills nutanix.vm.nics.count metric with initial data.
+func (m *metricNutanixVMNicsCount) init() {
+	m.data.SetName("nutanix.vm.nics.count")
 	m.data.SetDescription("Number of network interfaces attached to Nutanix virtual machines.")
 	m.data.SetUnit("{nic}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricNutanixVMNicCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixClusterIDAttributeValue string, nutanixClusterNameAttributeValue string, nutanixHostIDAttributeValue string, nutanixHostNameAttributeValue string) {
+func (m *metricNutanixVMNicsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, nutanixClusterIDAttributeValue string, nutanixClusterNameAttributeValue string, nutanixHostIDAttributeValue string, nutanixHostNameAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -1827,14 +3507,14 @@ func (m *metricNutanixVMNicCount) recordDataPoint(start pcommon.Timestamp, ts pc
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricNutanixVMNicCount) updateCapacity() {
+func (m *metricNutanixVMNicsCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricNutanixVMNicCount) emit(metrics pmetric.MetricSlice) {
+func (m *metricNutanixVMNicsCount) emit(metrics pmetric.MetricSlice) {
 	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1842,8 +3522,8 @@ func (m *metricNutanixVMNicCount) emit(metrics pmetric.MetricSlice) {
 	}
 }
 
-func newMetricNutanixVMNicCount(cfg MetricConfig) metricNutanixVMNicCount {
-	m := metricNutanixVMNicCount{config: cfg}
+func newMetricNutanixVMNicsCount(cfg MetricConfig) metricNutanixVMNicsCount {
+	m := metricNutanixVMNicsCount{config: cfg}
 
 	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
@@ -2078,41 +3758,65 @@ func newMetricNutanixVolumeGroupStat(cfg MetricConfig) metricNutanixVolumeGroupS
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user config.
 type MetricsBuilder struct {
-	config                                 MetricsBuilderConfig // config of the metrics builder.
-	startTime                              pcommon.Timestamp    // start time that will be applied to all recorded data points.
-	metricsCapacity                        int                  // maximum observed number of metrics per resource.
-	metricsBuffer                          pmetric.Metrics      // accumulates metrics data before emitting.
-	buildInfo                              component.BuildInfo  // contains version information.
-	resourceAttributeIncludeFilter         map[string]filter.Filter
-	resourceAttributeExcludeFilter         map[string]filter.Filter
-	metricNutanixClusterCount              metricNutanixClusterCount
-	metricNutanixClusterInfo               metricNutanixClusterInfo
-	metricNutanixClusterStat               metricNutanixClusterStat
-	metricNutanixDataProtectionEntityCount metricNutanixDataProtectionEntityCount
-	metricNutanixDiskCount                 metricNutanixDiskCount
-	metricNutanixDiskStat                  metricNutanixDiskStat
-	metricNutanixFilesEntityCount          metricNutanixFilesEntityCount
-	metricNutanixFilesEntityStat           metricNutanixFilesEntityStat
-	metricNutanixHostCount                 metricNutanixHostCount
-	metricNutanixHostStat                  metricNutanixHostStat
-	metricNutanixMicrosegEntityCount       metricNutanixMicrosegEntityCount
-	metricNutanixMonitoringEntityCount     metricNutanixMonitoringEntityCount
-	metricNutanixNetworkingEntityCount     metricNutanixNetworkingEntityCount
-	metricNutanixNetworkingEntityStat      metricNutanixNetworkingEntityStat
-	metricNutanixObjectsEntityCount        metricNutanixObjectsEntityCount
-	metricNutanixObjectsEntityStat         metricNutanixObjectsEntityStat
-	metricNutanixPrismEntityCount          metricNutanixPrismEntityCount
-	metricNutanixStorageContainerCount     metricNutanixStorageContainerCount
-	metricNutanixStorageContainerStat      metricNutanixStorageContainerStat
-	metricNutanixSubnetCount               metricNutanixSubnetCount
-	metricNutanixVMCount                   metricNutanixVMCount
-	metricNutanixVMDiskCount               metricNutanixVMDiskCount
-	metricNutanixVMMemoryAssigned          metricNutanixVMMemoryAssigned
-	metricNutanixVMNicCount                metricNutanixVMNicCount
-	metricNutanixVMStat                    metricNutanixVMStat
-	metricNutanixVMVcpuCount               metricNutanixVMVcpuCount
-	metricNutanixVolumeGroupCount          metricNutanixVolumeGroupCount
-	metricNutanixVolumeGroupStat           metricNutanixVolumeGroupStat
+	config                                                   MetricsBuilderConfig // config of the metrics builder.
+	startTime                                                pcommon.Timestamp    // start time that will be applied to all recorded data points.
+	metricsCapacity                                          int                  // maximum observed number of metrics per resource.
+	metricsBuffer                                            pmetric.Metrics      // accumulates metrics data before emitting.
+	buildInfo                                                component.BuildInfo  // contains version information.
+	resourceAttributeIncludeFilter                           map[string]filter.Filter
+	resourceAttributeExcludeFilter                           map[string]filter.Filter
+	metricNutanixClusterCount                                metricNutanixClusterCount
+	metricNutanixClusterInfo                                 metricNutanixClusterInfo
+	metricNutanixClusterStat                                 metricNutanixClusterStat
+	metricNutanixDataProtectionProtectedVMCount              metricNutanixDataProtectionProtectedVMCount
+	metricNutanixDataProtectionProtectionPolicyCount         metricNutanixDataProtectionProtectionPolicyCount
+	metricNutanixDataProtectionProtectionPolicyScheduleCount metricNutanixDataProtectionProtectionPolicyScheduleCount
+	metricNutanixDataProtectionRecoveryPointCount            metricNutanixDataProtectionRecoveryPointCount
+	metricNutanixDiskCount                                   metricNutanixDiskCount
+	metricNutanixDiskStat                                    metricNutanixDiskStat
+	metricNutanixFilesAntivirusServerCount                   metricNutanixFilesAntivirusServerCount
+	metricNutanixFilesAntivirusServerStat                    metricNutanixFilesAntivirusServerStat
+	metricNutanixFilesFileServerCount                        metricNutanixFilesFileServerCount
+	metricNutanixFilesFileServerStat                         metricNutanixFilesFileServerStat
+	metricNutanixFilesMountTargetCount                       metricNutanixFilesMountTargetCount
+	metricNutanixFilesMountTargetStat                        metricNutanixFilesMountTargetStat
+	metricNutanixFilesUnifiedNamespaceCount                  metricNutanixFilesUnifiedNamespaceCount
+	metricNutanixHostCount                                   metricNutanixHostCount
+	metricNutanixHostStat                                    metricNutanixHostStat
+	metricNutanixMicrosegAddressGroupCount                   metricNutanixMicrosegAddressGroupCount
+	metricNutanixMicrosegNetworkSecurityPolicyCount          metricNutanixMicrosegNetworkSecurityPolicyCount
+	metricNutanixMicrosegServiceGroupCount                   metricNutanixMicrosegServiceGroupCount
+	metricNutanixMonitoringAlertCount                        metricNutanixMonitoringAlertCount
+	metricNutanixNetworkingBgpSessionCount                   metricNutanixNetworkingBgpSessionCount
+	metricNutanixNetworkingGatewayCount                      metricNutanixNetworkingGatewayCount
+	metricNutanixNetworkingLayer2StretchCount                metricNutanixNetworkingLayer2StretchCount
+	metricNutanixNetworkingLayer2StretchStat                 metricNutanixNetworkingLayer2StretchStat
+	metricNutanixNetworkingNetworkControllerCount            metricNutanixNetworkingNetworkControllerCount
+	metricNutanixNetworkingRoutingPolicyCount                metricNutanixNetworkingRoutingPolicyCount
+	metricNutanixNetworkingTrafficMirrorCount                metricNutanixNetworkingTrafficMirrorCount
+	metricNutanixNetworkingTrafficMirrorStat                 metricNutanixNetworkingTrafficMirrorStat
+	metricNutanixNetworkingUplinkBondCount                   metricNutanixNetworkingUplinkBondCount
+	metricNutanixNetworkingVirtualSwitchCount                metricNutanixNetworkingVirtualSwitchCount
+	metricNutanixNetworkingVpcCount                          metricNutanixNetworkingVpcCount
+	metricNutanixNetworkingVpcExternalSubnetStat             metricNutanixNetworkingVpcExternalSubnetStat
+	metricNutanixNetworkingVpnConnectionCount                metricNutanixNetworkingVpnConnectionCount
+	metricNutanixNetworkingVpnConnectionStat                 metricNutanixNetworkingVpnConnectionStat
+	metricNutanixObjectsObjectStoreCount                     metricNutanixObjectsObjectStoreCount
+	metricNutanixObjectsObjectStoreStat                      metricNutanixObjectsObjectStoreStat
+	metricNutanixPrismCategoryCount                          metricNutanixPrismCategoryCount
+	metricNutanixPrismCategoryKeyCount                       metricNutanixPrismCategoryKeyCount
+	metricNutanixPrismTaskCount                              metricNutanixPrismTaskCount
+	metricNutanixStorageContainerCount                       metricNutanixStorageContainerCount
+	metricNutanixStorageContainerStat                        metricNutanixStorageContainerStat
+	metricNutanixSubnetCount                                 metricNutanixSubnetCount
+	metricNutanixVMCount                                     metricNutanixVMCount
+	metricNutanixVMDiskCount                                 metricNutanixVMDiskCount
+	metricNutanixVMMemoryAssigned                            metricNutanixVMMemoryAssigned
+	metricNutanixVMNicsCount                                 metricNutanixVMNicsCount
+	metricNutanixVMStat                                      metricNutanixVMStat
+	metricNutanixVMVcpuCount                                 metricNutanixVMVcpuCount
+	metricNutanixVolumeGroupCount                            metricNutanixVolumeGroupCount
+	metricNutanixVolumeGroupStat                             metricNutanixVolumeGroupStat
 }
 
 // MetricBuilderOption applies changes to default metrics builder.
@@ -2134,40 +3838,64 @@ func WithStartTime(startTime pcommon.Timestamp) MetricBuilderOption {
 }
 func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.Settings, options ...MetricBuilderOption) *MetricsBuilder {
 	mb := &MetricsBuilder{
-		config:                                 mbc,
-		startTime:                              pcommon.NewTimestampFromTime(time.Now()),
-		metricsBuffer:                          pmetric.NewMetrics(),
-		buildInfo:                              settings.BuildInfo,
-		metricNutanixClusterCount:              newMetricNutanixClusterCount(mbc.Metrics.NutanixClusterCount),
-		metricNutanixClusterInfo:               newMetricNutanixClusterInfo(mbc.Metrics.NutanixClusterInfo),
-		metricNutanixClusterStat:               newMetricNutanixClusterStat(mbc.Metrics.NutanixClusterStat),
-		metricNutanixDataProtectionEntityCount: newMetricNutanixDataProtectionEntityCount(mbc.Metrics.NutanixDataProtectionEntityCount),
-		metricNutanixDiskCount:                 newMetricNutanixDiskCount(mbc.Metrics.NutanixDiskCount),
-		metricNutanixDiskStat:                  newMetricNutanixDiskStat(mbc.Metrics.NutanixDiskStat),
-		metricNutanixFilesEntityCount:          newMetricNutanixFilesEntityCount(mbc.Metrics.NutanixFilesEntityCount),
-		metricNutanixFilesEntityStat:           newMetricNutanixFilesEntityStat(mbc.Metrics.NutanixFilesEntityStat),
-		metricNutanixHostCount:                 newMetricNutanixHostCount(mbc.Metrics.NutanixHostCount),
-		metricNutanixHostStat:                  newMetricNutanixHostStat(mbc.Metrics.NutanixHostStat),
-		metricNutanixMicrosegEntityCount:       newMetricNutanixMicrosegEntityCount(mbc.Metrics.NutanixMicrosegEntityCount),
-		metricNutanixMonitoringEntityCount:     newMetricNutanixMonitoringEntityCount(mbc.Metrics.NutanixMonitoringEntityCount),
-		metricNutanixNetworkingEntityCount:     newMetricNutanixNetworkingEntityCount(mbc.Metrics.NutanixNetworkingEntityCount),
-		metricNutanixNetworkingEntityStat:      newMetricNutanixNetworkingEntityStat(mbc.Metrics.NutanixNetworkingEntityStat),
-		metricNutanixObjectsEntityCount:        newMetricNutanixObjectsEntityCount(mbc.Metrics.NutanixObjectsEntityCount),
-		metricNutanixObjectsEntityStat:         newMetricNutanixObjectsEntityStat(mbc.Metrics.NutanixObjectsEntityStat),
-		metricNutanixPrismEntityCount:          newMetricNutanixPrismEntityCount(mbc.Metrics.NutanixPrismEntityCount),
-		metricNutanixStorageContainerCount:     newMetricNutanixStorageContainerCount(mbc.Metrics.NutanixStorageContainerCount),
-		metricNutanixStorageContainerStat:      newMetricNutanixStorageContainerStat(mbc.Metrics.NutanixStorageContainerStat),
-		metricNutanixSubnetCount:               newMetricNutanixSubnetCount(mbc.Metrics.NutanixSubnetCount),
-		metricNutanixVMCount:                   newMetricNutanixVMCount(mbc.Metrics.NutanixVMCount),
-		metricNutanixVMDiskCount:               newMetricNutanixVMDiskCount(mbc.Metrics.NutanixVMDiskCount),
-		metricNutanixVMMemoryAssigned:          newMetricNutanixVMMemoryAssigned(mbc.Metrics.NutanixVMMemoryAssigned),
-		metricNutanixVMNicCount:                newMetricNutanixVMNicCount(mbc.Metrics.NutanixVMNicCount),
-		metricNutanixVMStat:                    newMetricNutanixVMStat(mbc.Metrics.NutanixVMStat),
-		metricNutanixVMVcpuCount:               newMetricNutanixVMVcpuCount(mbc.Metrics.NutanixVMVcpuCount),
-		metricNutanixVolumeGroupCount:          newMetricNutanixVolumeGroupCount(mbc.Metrics.NutanixVolumeGroupCount),
-		metricNutanixVolumeGroupStat:           newMetricNutanixVolumeGroupStat(mbc.Metrics.NutanixVolumeGroupStat),
-		resourceAttributeIncludeFilter:         make(map[string]filter.Filter),
-		resourceAttributeExcludeFilter:         make(map[string]filter.Filter),
+		config:                    mbc,
+		startTime:                 pcommon.NewTimestampFromTime(time.Now()),
+		metricsBuffer:             pmetric.NewMetrics(),
+		buildInfo:                 settings.BuildInfo,
+		metricNutanixClusterCount: newMetricNutanixClusterCount(mbc.Metrics.NutanixClusterCount),
+		metricNutanixClusterInfo:  newMetricNutanixClusterInfo(mbc.Metrics.NutanixClusterInfo),
+		metricNutanixClusterStat:  newMetricNutanixClusterStat(mbc.Metrics.NutanixClusterStat),
+		metricNutanixDataProtectionProtectedVMCount:              newMetricNutanixDataProtectionProtectedVMCount(mbc.Metrics.NutanixDataProtectionProtectedVMCount),
+		metricNutanixDataProtectionProtectionPolicyCount:         newMetricNutanixDataProtectionProtectionPolicyCount(mbc.Metrics.NutanixDataProtectionProtectionPolicyCount),
+		metricNutanixDataProtectionProtectionPolicyScheduleCount: newMetricNutanixDataProtectionProtectionPolicyScheduleCount(mbc.Metrics.NutanixDataProtectionProtectionPolicyScheduleCount),
+		metricNutanixDataProtectionRecoveryPointCount:            newMetricNutanixDataProtectionRecoveryPointCount(mbc.Metrics.NutanixDataProtectionRecoveryPointCount),
+		metricNutanixDiskCount:                                   newMetricNutanixDiskCount(mbc.Metrics.NutanixDiskCount),
+		metricNutanixDiskStat:                                    newMetricNutanixDiskStat(mbc.Metrics.NutanixDiskStat),
+		metricNutanixFilesAntivirusServerCount:                   newMetricNutanixFilesAntivirusServerCount(mbc.Metrics.NutanixFilesAntivirusServerCount),
+		metricNutanixFilesAntivirusServerStat:                    newMetricNutanixFilesAntivirusServerStat(mbc.Metrics.NutanixFilesAntivirusServerStat),
+		metricNutanixFilesFileServerCount:                        newMetricNutanixFilesFileServerCount(mbc.Metrics.NutanixFilesFileServerCount),
+		metricNutanixFilesFileServerStat:                         newMetricNutanixFilesFileServerStat(mbc.Metrics.NutanixFilesFileServerStat),
+		metricNutanixFilesMountTargetCount:                       newMetricNutanixFilesMountTargetCount(mbc.Metrics.NutanixFilesMountTargetCount),
+		metricNutanixFilesMountTargetStat:                        newMetricNutanixFilesMountTargetStat(mbc.Metrics.NutanixFilesMountTargetStat),
+		metricNutanixFilesUnifiedNamespaceCount:                  newMetricNutanixFilesUnifiedNamespaceCount(mbc.Metrics.NutanixFilesUnifiedNamespaceCount),
+		metricNutanixHostCount:                                   newMetricNutanixHostCount(mbc.Metrics.NutanixHostCount),
+		metricNutanixHostStat:                                    newMetricNutanixHostStat(mbc.Metrics.NutanixHostStat),
+		metricNutanixMicrosegAddressGroupCount:                   newMetricNutanixMicrosegAddressGroupCount(mbc.Metrics.NutanixMicrosegAddressGroupCount),
+		metricNutanixMicrosegNetworkSecurityPolicyCount:          newMetricNutanixMicrosegNetworkSecurityPolicyCount(mbc.Metrics.NutanixMicrosegNetworkSecurityPolicyCount),
+		metricNutanixMicrosegServiceGroupCount:                   newMetricNutanixMicrosegServiceGroupCount(mbc.Metrics.NutanixMicrosegServiceGroupCount),
+		metricNutanixMonitoringAlertCount:                        newMetricNutanixMonitoringAlertCount(mbc.Metrics.NutanixMonitoringAlertCount),
+		metricNutanixNetworkingBgpSessionCount:                   newMetricNutanixNetworkingBgpSessionCount(mbc.Metrics.NutanixNetworkingBgpSessionCount),
+		metricNutanixNetworkingGatewayCount:                      newMetricNutanixNetworkingGatewayCount(mbc.Metrics.NutanixNetworkingGatewayCount),
+		metricNutanixNetworkingLayer2StretchCount:                newMetricNutanixNetworkingLayer2StretchCount(mbc.Metrics.NutanixNetworkingLayer2StretchCount),
+		metricNutanixNetworkingLayer2StretchStat:                 newMetricNutanixNetworkingLayer2StretchStat(mbc.Metrics.NutanixNetworkingLayer2StretchStat),
+		metricNutanixNetworkingNetworkControllerCount:            newMetricNutanixNetworkingNetworkControllerCount(mbc.Metrics.NutanixNetworkingNetworkControllerCount),
+		metricNutanixNetworkingRoutingPolicyCount:                newMetricNutanixNetworkingRoutingPolicyCount(mbc.Metrics.NutanixNetworkingRoutingPolicyCount),
+		metricNutanixNetworkingTrafficMirrorCount:                newMetricNutanixNetworkingTrafficMirrorCount(mbc.Metrics.NutanixNetworkingTrafficMirrorCount),
+		metricNutanixNetworkingTrafficMirrorStat:                 newMetricNutanixNetworkingTrafficMirrorStat(mbc.Metrics.NutanixNetworkingTrafficMirrorStat),
+		metricNutanixNetworkingUplinkBondCount:                   newMetricNutanixNetworkingUplinkBondCount(mbc.Metrics.NutanixNetworkingUplinkBondCount),
+		metricNutanixNetworkingVirtualSwitchCount:                newMetricNutanixNetworkingVirtualSwitchCount(mbc.Metrics.NutanixNetworkingVirtualSwitchCount),
+		metricNutanixNetworkingVpcCount:                          newMetricNutanixNetworkingVpcCount(mbc.Metrics.NutanixNetworkingVpcCount),
+		metricNutanixNetworkingVpcExternalSubnetStat:             newMetricNutanixNetworkingVpcExternalSubnetStat(mbc.Metrics.NutanixNetworkingVpcExternalSubnetStat),
+		metricNutanixNetworkingVpnConnectionCount:                newMetricNutanixNetworkingVpnConnectionCount(mbc.Metrics.NutanixNetworkingVpnConnectionCount),
+		metricNutanixNetworkingVpnConnectionStat:                 newMetricNutanixNetworkingVpnConnectionStat(mbc.Metrics.NutanixNetworkingVpnConnectionStat),
+		metricNutanixObjectsObjectStoreCount:                     newMetricNutanixObjectsObjectStoreCount(mbc.Metrics.NutanixObjectsObjectStoreCount),
+		metricNutanixObjectsObjectStoreStat:                      newMetricNutanixObjectsObjectStoreStat(mbc.Metrics.NutanixObjectsObjectStoreStat),
+		metricNutanixPrismCategoryCount:                          newMetricNutanixPrismCategoryCount(mbc.Metrics.NutanixPrismCategoryCount),
+		metricNutanixPrismCategoryKeyCount:                       newMetricNutanixPrismCategoryKeyCount(mbc.Metrics.NutanixPrismCategoryKeyCount),
+		metricNutanixPrismTaskCount:                              newMetricNutanixPrismTaskCount(mbc.Metrics.NutanixPrismTaskCount),
+		metricNutanixStorageContainerCount:                       newMetricNutanixStorageContainerCount(mbc.Metrics.NutanixStorageContainerCount),
+		metricNutanixStorageContainerStat:                        newMetricNutanixStorageContainerStat(mbc.Metrics.NutanixStorageContainerStat),
+		metricNutanixSubnetCount:                                 newMetricNutanixSubnetCount(mbc.Metrics.NutanixSubnetCount),
+		metricNutanixVMCount:                                     newMetricNutanixVMCount(mbc.Metrics.NutanixVMCount),
+		metricNutanixVMDiskCount:                                 newMetricNutanixVMDiskCount(mbc.Metrics.NutanixVMDiskCount),
+		metricNutanixVMMemoryAssigned:                            newMetricNutanixVMMemoryAssigned(mbc.Metrics.NutanixVMMemoryAssigned),
+		metricNutanixVMNicsCount:                                 newMetricNutanixVMNicsCount(mbc.Metrics.NutanixVMNicsCount),
+		metricNutanixVMStat:                                      newMetricNutanixVMStat(mbc.Metrics.NutanixVMStat),
+		metricNutanixVMVcpuCount:                                 newMetricNutanixVMVcpuCount(mbc.Metrics.NutanixVMVcpuCount),
+		metricNutanixVolumeGroupCount:                            newMetricNutanixVolumeGroupCount(mbc.Metrics.NutanixVolumeGroupCount),
+		metricNutanixVolumeGroupStat:                             newMetricNutanixVolumeGroupStat(mbc.Metrics.NutanixVolumeGroupStat),
+		resourceAttributeIncludeFilter:                           make(map[string]filter.Filter),
+		resourceAttributeExcludeFilter:                           make(map[string]filter.Filter),
 	}
 	if mbc.ResourceAttributes.NutanixPrismAPIVersion.MetricsInclude != nil {
 		mb.resourceAttributeIncludeFilter["nutanix.prism.api.version"] = filter.CreateFilter(mbc.ResourceAttributes.NutanixPrismAPIVersion.MetricsInclude)
@@ -2271,27 +3999,51 @@ func (mb *MetricsBuilder) EmitForResource(options ...ResourceMetricsOption) {
 	mb.metricNutanixClusterCount.emit(ils.Metrics())
 	mb.metricNutanixClusterInfo.emit(ils.Metrics())
 	mb.metricNutanixClusterStat.emit(ils.Metrics())
-	mb.metricNutanixDataProtectionEntityCount.emit(ils.Metrics())
+	mb.metricNutanixDataProtectionProtectedVMCount.emit(ils.Metrics())
+	mb.metricNutanixDataProtectionProtectionPolicyCount.emit(ils.Metrics())
+	mb.metricNutanixDataProtectionProtectionPolicyScheduleCount.emit(ils.Metrics())
+	mb.metricNutanixDataProtectionRecoveryPointCount.emit(ils.Metrics())
 	mb.metricNutanixDiskCount.emit(ils.Metrics())
 	mb.metricNutanixDiskStat.emit(ils.Metrics())
-	mb.metricNutanixFilesEntityCount.emit(ils.Metrics())
-	mb.metricNutanixFilesEntityStat.emit(ils.Metrics())
+	mb.metricNutanixFilesAntivirusServerCount.emit(ils.Metrics())
+	mb.metricNutanixFilesAntivirusServerStat.emit(ils.Metrics())
+	mb.metricNutanixFilesFileServerCount.emit(ils.Metrics())
+	mb.metricNutanixFilesFileServerStat.emit(ils.Metrics())
+	mb.metricNutanixFilesMountTargetCount.emit(ils.Metrics())
+	mb.metricNutanixFilesMountTargetStat.emit(ils.Metrics())
+	mb.metricNutanixFilesUnifiedNamespaceCount.emit(ils.Metrics())
 	mb.metricNutanixHostCount.emit(ils.Metrics())
 	mb.metricNutanixHostStat.emit(ils.Metrics())
-	mb.metricNutanixMicrosegEntityCount.emit(ils.Metrics())
-	mb.metricNutanixMonitoringEntityCount.emit(ils.Metrics())
-	mb.metricNutanixNetworkingEntityCount.emit(ils.Metrics())
-	mb.metricNutanixNetworkingEntityStat.emit(ils.Metrics())
-	mb.metricNutanixObjectsEntityCount.emit(ils.Metrics())
-	mb.metricNutanixObjectsEntityStat.emit(ils.Metrics())
-	mb.metricNutanixPrismEntityCount.emit(ils.Metrics())
+	mb.metricNutanixMicrosegAddressGroupCount.emit(ils.Metrics())
+	mb.metricNutanixMicrosegNetworkSecurityPolicyCount.emit(ils.Metrics())
+	mb.metricNutanixMicrosegServiceGroupCount.emit(ils.Metrics())
+	mb.metricNutanixMonitoringAlertCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingBgpSessionCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingGatewayCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingLayer2StretchCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingLayer2StretchStat.emit(ils.Metrics())
+	mb.metricNutanixNetworkingNetworkControllerCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingRoutingPolicyCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingTrafficMirrorCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingTrafficMirrorStat.emit(ils.Metrics())
+	mb.metricNutanixNetworkingUplinkBondCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingVirtualSwitchCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingVpcCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingVpcExternalSubnetStat.emit(ils.Metrics())
+	mb.metricNutanixNetworkingVpnConnectionCount.emit(ils.Metrics())
+	mb.metricNutanixNetworkingVpnConnectionStat.emit(ils.Metrics())
+	mb.metricNutanixObjectsObjectStoreCount.emit(ils.Metrics())
+	mb.metricNutanixObjectsObjectStoreStat.emit(ils.Metrics())
+	mb.metricNutanixPrismCategoryCount.emit(ils.Metrics())
+	mb.metricNutanixPrismCategoryKeyCount.emit(ils.Metrics())
+	mb.metricNutanixPrismTaskCount.emit(ils.Metrics())
 	mb.metricNutanixStorageContainerCount.emit(ils.Metrics())
 	mb.metricNutanixStorageContainerStat.emit(ils.Metrics())
 	mb.metricNutanixSubnetCount.emit(ils.Metrics())
 	mb.metricNutanixVMCount.emit(ils.Metrics())
 	mb.metricNutanixVMDiskCount.emit(ils.Metrics())
 	mb.metricNutanixVMMemoryAssigned.emit(ils.Metrics())
-	mb.metricNutanixVMNicCount.emit(ils.Metrics())
+	mb.metricNutanixVMNicsCount.emit(ils.Metrics())
 	mb.metricNutanixVMStat.emit(ils.Metrics())
 	mb.metricNutanixVMVcpuCount.emit(ils.Metrics())
 	mb.metricNutanixVolumeGroupCount.emit(ils.Metrics())
@@ -2342,9 +4094,24 @@ func (mb *MetricsBuilder) RecordNutanixClusterStatDataPoint(ts pcommon.Timestamp
 	mb.metricNutanixClusterStat.recordDataPoint(mb.startTime, ts, val, nutanixClusterIDAttributeValue, nutanixClusterNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
 }
 
-// RecordNutanixDataProtectionEntityCountDataPoint adds a data point to nutanix.data_protection.entity.count metric.
-func (mb *MetricsBuilder) RecordNutanixDataProtectionEntityCountDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
-	mb.metricNutanixDataProtectionEntityCount.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityStateTypeAttributeValue, nutanixEntityStateAttributeValue)
+// RecordNutanixDataProtectionProtectedVMCountDataPoint adds a data point to nutanix.data_protection.protected_vm.count metric.
+func (mb *MetricsBuilder) RecordNutanixDataProtectionProtectedVMCountDataPoint(ts pcommon.Timestamp, val float64, nutanixDataProtectionProtectedVMRpoAttributeValue AttributeNutanixDataProtectionProtectedVMRpo) {
+	mb.metricNutanixDataProtectionProtectedVMCount.recordDataPoint(mb.startTime, ts, val, nutanixDataProtectionProtectedVMRpoAttributeValue.String())
+}
+
+// RecordNutanixDataProtectionProtectionPolicyCountDataPoint adds a data point to nutanix.data_protection.protection_policy.count metric.
+func (mb *MetricsBuilder) RecordNutanixDataProtectionProtectionPolicyCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixDataProtectionProtectionPolicyCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixDataProtectionProtectionPolicyScheduleCountDataPoint adds a data point to nutanix.data_protection.protection_policy_schedule.count metric.
+func (mb *MetricsBuilder) RecordNutanixDataProtectionProtectionPolicyScheduleCountDataPoint(ts pcommon.Timestamp, val float64, nutanixDataProtectionProtectionPolicyScheduleConsistencyAttributeValue AttributeNutanixDataProtectionProtectionPolicyScheduleConsistency, nutanixDataProtectionProtectionPolicyScheduleRpoAttributeValue AttributeNutanixDataProtectionProtectionPolicyScheduleRpo) {
+	mb.metricNutanixDataProtectionProtectionPolicyScheduleCount.recordDataPoint(mb.startTime, ts, val, nutanixDataProtectionProtectionPolicyScheduleConsistencyAttributeValue.String(), nutanixDataProtectionProtectionPolicyScheduleRpoAttributeValue.String())
+}
+
+// RecordNutanixDataProtectionRecoveryPointCountDataPoint adds a data point to nutanix.data_protection.recovery_point.count metric.
+func (mb *MetricsBuilder) RecordNutanixDataProtectionRecoveryPointCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixDataProtectionRecoveryPointCount.recordDataPoint(mb.startTime, ts, val)
 }
 
 // RecordNutanixDiskCountDataPoint adds a data point to nutanix.disk.count metric.
@@ -2357,14 +4124,39 @@ func (mb *MetricsBuilder) RecordNutanixDiskStatDataPoint(ts pcommon.Timestamp, v
 	mb.metricNutanixDiskStat.recordDataPoint(mb.startTime, ts, val, nutanixDiskIDAttributeValue, nutanixDiskSerialAttributeValue, nutanixDiskStorageTierAttributeValue.String(), nutanixHostIDAttributeValue, nutanixHostNameAttributeValue, nutanixClusterIDAttributeValue, nutanixClusterNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
 }
 
-// RecordNutanixFilesEntityCountDataPoint adds a data point to nutanix.files.entity.count metric.
-func (mb *MetricsBuilder) RecordNutanixFilesEntityCountDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
-	mb.metricNutanixFilesEntityCount.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityStateTypeAttributeValue, nutanixEntityStateAttributeValue)
+// RecordNutanixFilesAntivirusServerCountDataPoint adds a data point to nutanix.files.antivirus_server.count metric.
+func (mb *MetricsBuilder) RecordNutanixFilesAntivirusServerCountDataPoint(ts pcommon.Timestamp, val float64, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string) {
+	mb.metricNutanixFilesAntivirusServerCount.recordDataPoint(mb.startTime, ts, val, nutanixFilesFileServerIDAttributeValue, nutanixFilesFileServerNameAttributeValue)
 }
 
-// RecordNutanixFilesEntityStatDataPoint adds a data point to nutanix.files.entity.stat metric.
-func (mb *MetricsBuilder) RecordNutanixFilesEntityStatDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityIDAttributeValue string, nutanixEntityNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
-	mb.metricNutanixFilesEntityStat.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityIDAttributeValue, nutanixEntityNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+// RecordNutanixFilesAntivirusServerStatDataPoint adds a data point to nutanix.files.antivirus_server.stat metric.
+func (mb *MetricsBuilder) RecordNutanixFilesAntivirusServerStatDataPoint(ts pcommon.Timestamp, val float64, nutanixFilesAntivirusServerIDAttributeValue string, nutanixFilesAntivirusServerNameAttributeValue string, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixFilesAntivirusServerStat.recordDataPoint(mb.startTime, ts, val, nutanixFilesAntivirusServerIDAttributeValue, nutanixFilesAntivirusServerNameAttributeValue, nutanixFilesFileServerIDAttributeValue, nutanixFilesFileServerNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixFilesFileServerCountDataPoint adds a data point to nutanix.files.file_server.count metric.
+func (mb *MetricsBuilder) RecordNutanixFilesFileServerCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixFilesFileServerCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixFilesFileServerStatDataPoint adds a data point to nutanix.files.file_server.stat metric.
+func (mb *MetricsBuilder) RecordNutanixFilesFileServerStatDataPoint(ts pcommon.Timestamp, val float64, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixFilesFileServerStat.recordDataPoint(mb.startTime, ts, val, nutanixFilesFileServerIDAttributeValue, nutanixFilesFileServerNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixFilesMountTargetCountDataPoint adds a data point to nutanix.files.mount_target.count metric.
+func (mb *MetricsBuilder) RecordNutanixFilesMountTargetCountDataPoint(ts pcommon.Timestamp, val float64, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string) {
+	mb.metricNutanixFilesMountTargetCount.recordDataPoint(mb.startTime, ts, val, nutanixFilesFileServerIDAttributeValue, nutanixFilesFileServerNameAttributeValue)
+}
+
+// RecordNutanixFilesMountTargetStatDataPoint adds a data point to nutanix.files.mount_target.stat metric.
+func (mb *MetricsBuilder) RecordNutanixFilesMountTargetStatDataPoint(ts pcommon.Timestamp, val float64, nutanixFilesMountTargetIDAttributeValue string, nutanixFilesMountTargetNameAttributeValue string, nutanixFilesFileServerIDAttributeValue string, nutanixFilesFileServerNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixFilesMountTargetStat.recordDataPoint(mb.startTime, ts, val, nutanixFilesMountTargetIDAttributeValue, nutanixFilesMountTargetNameAttributeValue, nutanixFilesFileServerIDAttributeValue, nutanixFilesFileServerNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixFilesUnifiedNamespaceCountDataPoint adds a data point to nutanix.files.unified_namespace.count metric.
+func (mb *MetricsBuilder) RecordNutanixFilesUnifiedNamespaceCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixFilesUnifiedNamespaceCount.recordDataPoint(mb.startTime, ts, val)
 }
 
 // RecordNutanixHostCountDataPoint adds a data point to nutanix.host.count metric.
@@ -2377,39 +4169,119 @@ func (mb *MetricsBuilder) RecordNutanixHostStatDataPoint(ts pcommon.Timestamp, v
 	mb.metricNutanixHostStat.recordDataPoint(mb.startTime, ts, val, nutanixHostIDAttributeValue, nutanixHostNameAttributeValue, nutanixClusterIDAttributeValue, nutanixClusterNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
 }
 
-// RecordNutanixMicrosegEntityCountDataPoint adds a data point to nutanix.microseg.entity.count metric.
-func (mb *MetricsBuilder) RecordNutanixMicrosegEntityCountDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
-	mb.metricNutanixMicrosegEntityCount.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityStateTypeAttributeValue, nutanixEntityStateAttributeValue)
+// RecordNutanixMicrosegAddressGroupCountDataPoint adds a data point to nutanix.microseg.address_group.count metric.
+func (mb *MetricsBuilder) RecordNutanixMicrosegAddressGroupCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixMicrosegAddressGroupCount.recordDataPoint(mb.startTime, ts, val)
 }
 
-// RecordNutanixMonitoringEntityCountDataPoint adds a data point to nutanix.monitoring.entity.count metric.
-func (mb *MetricsBuilder) RecordNutanixMonitoringEntityCountDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
-	mb.metricNutanixMonitoringEntityCount.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityStateTypeAttributeValue, nutanixEntityStateAttributeValue)
+// RecordNutanixMicrosegNetworkSecurityPolicyCountDataPoint adds a data point to nutanix.microseg.network_security_policy.count metric.
+func (mb *MetricsBuilder) RecordNutanixMicrosegNetworkSecurityPolicyCountDataPoint(ts pcommon.Timestamp, val float64, nutanixMicrosegNetworkSecurityPolicyScopeAttributeValue AttributeNutanixMicrosegNetworkSecurityPolicyScope, nutanixMicrosegNetworkSecurityPolicyStateAttributeValue AttributeNutanixMicrosegNetworkSecurityPolicyState, nutanixMicrosegNetworkSecurityPolicyTypeAttributeValue AttributeNutanixMicrosegNetworkSecurityPolicyType) {
+	mb.metricNutanixMicrosegNetworkSecurityPolicyCount.recordDataPoint(mb.startTime, ts, val, nutanixMicrosegNetworkSecurityPolicyScopeAttributeValue.String(), nutanixMicrosegNetworkSecurityPolicyStateAttributeValue.String(), nutanixMicrosegNetworkSecurityPolicyTypeAttributeValue.String())
 }
 
-// RecordNutanixNetworkingEntityCountDataPoint adds a data point to nutanix.networking.entity.count metric.
-func (mb *MetricsBuilder) RecordNutanixNetworkingEntityCountDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
-	mb.metricNutanixNetworkingEntityCount.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityStateTypeAttributeValue, nutanixEntityStateAttributeValue)
+// RecordNutanixMicrosegServiceGroupCountDataPoint adds a data point to nutanix.microseg.service_group.count metric.
+func (mb *MetricsBuilder) RecordNutanixMicrosegServiceGroupCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixMicrosegServiceGroupCount.recordDataPoint(mb.startTime, ts, val)
 }
 
-// RecordNutanixNetworkingEntityStatDataPoint adds a data point to nutanix.networking.entity.stat metric.
-func (mb *MetricsBuilder) RecordNutanixNetworkingEntityStatDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityIDAttributeValue string, nutanixEntityNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
-	mb.metricNutanixNetworkingEntityStat.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityIDAttributeValue, nutanixEntityNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+// RecordNutanixMonitoringAlertCountDataPoint adds a data point to nutanix.monitoring.alert.count metric.
+func (mb *MetricsBuilder) RecordNutanixMonitoringAlertCountDataPoint(ts pcommon.Timestamp, val float64, nutanixMonitoringAlertAcknowledgedAttributeValue AttributeNutanixMonitoringAlertAcknowledged, nutanixMonitoringAlertResolvedAttributeValue AttributeNutanixMonitoringAlertResolved, nutanixMonitoringAlertSeverityAttributeValue AttributeNutanixMonitoringAlertSeverity, nutanixMonitoringAlertUnresolvedSeverityAttributeValue AttributeNutanixMonitoringAlertUnresolvedSeverity) {
+	mb.metricNutanixMonitoringAlertCount.recordDataPoint(mb.startTime, ts, val, nutanixMonitoringAlertAcknowledgedAttributeValue.String(), nutanixMonitoringAlertResolvedAttributeValue.String(), nutanixMonitoringAlertSeverityAttributeValue.String(), nutanixMonitoringAlertUnresolvedSeverityAttributeValue.String())
 }
 
-// RecordNutanixObjectsEntityCountDataPoint adds a data point to nutanix.objects.entity.count metric.
-func (mb *MetricsBuilder) RecordNutanixObjectsEntityCountDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
-	mb.metricNutanixObjectsEntityCount.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityStateTypeAttributeValue, nutanixEntityStateAttributeValue)
+// RecordNutanixNetworkingBgpSessionCountDataPoint adds a data point to nutanix.networking.bgp_session.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingBgpSessionCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingBgpSessionCount.recordDataPoint(mb.startTime, ts, val)
 }
 
-// RecordNutanixObjectsEntityStatDataPoint adds a data point to nutanix.objects.entity.stat metric.
-func (mb *MetricsBuilder) RecordNutanixObjectsEntityStatDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityIDAttributeValue string, nutanixEntityNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
-	mb.metricNutanixObjectsEntityStat.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityIDAttributeValue, nutanixEntityNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+// RecordNutanixNetworkingGatewayCountDataPoint adds a data point to nutanix.networking.gateway.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingGatewayCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingGatewayCount.recordDataPoint(mb.startTime, ts, val)
 }
 
-// RecordNutanixPrismEntityCountDataPoint adds a data point to nutanix.prism.entity.count metric.
-func (mb *MetricsBuilder) RecordNutanixPrismEntityCountDataPoint(ts pcommon.Timestamp, val float64, nutanixEntityTypeAttributeValue string, nutanixEntityStateTypeAttributeValue string, nutanixEntityStateAttributeValue string) {
-	mb.metricNutanixPrismEntityCount.recordDataPoint(mb.startTime, ts, val, nutanixEntityTypeAttributeValue, nutanixEntityStateTypeAttributeValue, nutanixEntityStateAttributeValue)
+// RecordNutanixNetworkingLayer2StretchCountDataPoint adds a data point to nutanix.networking.layer2_stretch.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingLayer2StretchCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingLayer2StretchCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingLayer2StretchStatDataPoint adds a data point to nutanix.networking.layer2_stretch.stat metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingLayer2StretchStatDataPoint(ts pcommon.Timestamp, val float64, nutanixNetworkingLayer2StretchIDAttributeValue string, nutanixNetworkingLayer2StretchNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixNetworkingLayer2StretchStat.recordDataPoint(mb.startTime, ts, val, nutanixNetworkingLayer2StretchIDAttributeValue, nutanixNetworkingLayer2StretchNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixNetworkingNetworkControllerCountDataPoint adds a data point to nutanix.networking.network_controller.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingNetworkControllerCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingNetworkControllerCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingRoutingPolicyCountDataPoint adds a data point to nutanix.networking.routing_policy.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingRoutingPolicyCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingRoutingPolicyCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingTrafficMirrorCountDataPoint adds a data point to nutanix.networking.traffic_mirror.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingTrafficMirrorCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingTrafficMirrorCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingTrafficMirrorStatDataPoint adds a data point to nutanix.networking.traffic_mirror.stat metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingTrafficMirrorStatDataPoint(ts pcommon.Timestamp, val float64, nutanixNetworkingTrafficMirrorIDAttributeValue string, nutanixNetworkingTrafficMirrorNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixNetworkingTrafficMirrorStat.recordDataPoint(mb.startTime, ts, val, nutanixNetworkingTrafficMirrorIDAttributeValue, nutanixNetworkingTrafficMirrorNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixNetworkingUplinkBondCountDataPoint adds a data point to nutanix.networking.uplink_bond.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingUplinkBondCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingUplinkBondCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingVirtualSwitchCountDataPoint adds a data point to nutanix.networking.virtual_switch.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingVirtualSwitchCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingVirtualSwitchCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingVpcCountDataPoint adds a data point to nutanix.networking.vpc.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingVpcCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingVpcCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingVpcExternalSubnetStatDataPoint adds a data point to nutanix.networking.vpc.external_subnet.stat metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingVpcExternalSubnetStatDataPoint(ts pcommon.Timestamp, val float64, nutanixNetworkingVpcExternalSubnetIDAttributeValue string, nutanixNetworkingVpcExternalSubnetNameAttributeValue string, nutanixNetworkingVpcIDAttributeValue string, nutanixNetworkingVpcNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixNetworkingVpcExternalSubnetStat.recordDataPoint(mb.startTime, ts, val, nutanixNetworkingVpcExternalSubnetIDAttributeValue, nutanixNetworkingVpcExternalSubnetNameAttributeValue, nutanixNetworkingVpcIDAttributeValue, nutanixNetworkingVpcNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixNetworkingVpnConnectionCountDataPoint adds a data point to nutanix.networking.vpn_connection.count metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingVpnConnectionCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixNetworkingVpnConnectionCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixNetworkingVpnConnectionStatDataPoint adds a data point to nutanix.networking.vpn_connection.stat metric.
+func (mb *MetricsBuilder) RecordNutanixNetworkingVpnConnectionStatDataPoint(ts pcommon.Timestamp, val float64, nutanixNetworkingVpnConnectionIDAttributeValue string, nutanixNetworkingVpnConnectionNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixNetworkingVpnConnectionStat.recordDataPoint(mb.startTime, ts, val, nutanixNetworkingVpnConnectionIDAttributeValue, nutanixNetworkingVpnConnectionNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixObjectsObjectStoreCountDataPoint adds a data point to nutanix.objects.object_store.count metric.
+func (mb *MetricsBuilder) RecordNutanixObjectsObjectStoreCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixObjectsObjectStoreCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixObjectsObjectStoreStatDataPoint adds a data point to nutanix.objects.object_store.stat metric.
+func (mb *MetricsBuilder) RecordNutanixObjectsObjectStoreStatDataPoint(ts pcommon.Timestamp, val float64, nutanixObjectsObjectStoreIDAttributeValue string, nutanixObjectsObjectStoreNameAttributeValue string, nutanixStatNameAttributeValue string, nutanixStatKindAttributeValue AttributeNutanixStatKind) {
+	mb.metricNutanixObjectsObjectStoreStat.recordDataPoint(mb.startTime, ts, val, nutanixObjectsObjectStoreIDAttributeValue, nutanixObjectsObjectStoreNameAttributeValue, nutanixStatNameAttributeValue, nutanixStatKindAttributeValue.String())
+}
+
+// RecordNutanixPrismCategoryCountDataPoint adds a data point to nutanix.prism.category.count metric.
+func (mb *MetricsBuilder) RecordNutanixPrismCategoryCountDataPoint(ts pcommon.Timestamp, val float64, nutanixPrismCategoryTypeAttributeValue AttributeNutanixPrismCategoryType) {
+	mb.metricNutanixPrismCategoryCount.recordDataPoint(mb.startTime, ts, val, nutanixPrismCategoryTypeAttributeValue.String())
+}
+
+// RecordNutanixPrismCategoryKeyCountDataPoint adds a data point to nutanix.prism.category_key.count metric.
+func (mb *MetricsBuilder) RecordNutanixPrismCategoryKeyCountDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricNutanixPrismCategoryKeyCount.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordNutanixPrismTaskCountDataPoint adds a data point to nutanix.prism.task.count metric.
+func (mb *MetricsBuilder) RecordNutanixPrismTaskCountDataPoint(ts pcommon.Timestamp, val float64, nutanixPrismTaskStatusAttributeValue AttributeNutanixPrismTaskStatus) {
+	mb.metricNutanixPrismTaskCount.recordDataPoint(mb.startTime, ts, val, nutanixPrismTaskStatusAttributeValue.String())
 }
 
 // RecordNutanixStorageContainerCountDataPoint adds a data point to nutanix.storage.container.count metric.
@@ -2442,9 +4314,9 @@ func (mb *MetricsBuilder) RecordNutanixVMMemoryAssignedDataPoint(ts pcommon.Time
 	mb.metricNutanixVMMemoryAssigned.recordDataPoint(mb.startTime, ts, val, nutanixClusterIDAttributeValue, nutanixClusterNameAttributeValue, nutanixHostIDAttributeValue, nutanixHostNameAttributeValue)
 }
 
-// RecordNutanixVMNicCountDataPoint adds a data point to nutanix.vm.nic.count metric.
-func (mb *MetricsBuilder) RecordNutanixVMNicCountDataPoint(ts pcommon.Timestamp, val float64, nutanixClusterIDAttributeValue string, nutanixClusterNameAttributeValue string, nutanixHostIDAttributeValue string, nutanixHostNameAttributeValue string) {
-	mb.metricNutanixVMNicCount.recordDataPoint(mb.startTime, ts, val, nutanixClusterIDAttributeValue, nutanixClusterNameAttributeValue, nutanixHostIDAttributeValue, nutanixHostNameAttributeValue)
+// RecordNutanixVMNicsCountDataPoint adds a data point to nutanix.vm.nics.count metric.
+func (mb *MetricsBuilder) RecordNutanixVMNicsCountDataPoint(ts pcommon.Timestamp, val float64, nutanixClusterIDAttributeValue string, nutanixClusterNameAttributeValue string, nutanixHostIDAttributeValue string, nutanixHostNameAttributeValue string) {
+	mb.metricNutanixVMNicsCount.recordDataPoint(mb.startTime, ts, val, nutanixClusterIDAttributeValue, nutanixClusterNameAttributeValue, nutanixHostIDAttributeValue, nutanixHostNameAttributeValue)
 }
 
 // RecordNutanixVMStatDataPoint adds a data point to nutanix.vm.stat metric.

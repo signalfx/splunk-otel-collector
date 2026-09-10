@@ -110,15 +110,11 @@ func TestCollectPrismCentralContinuesAfterEndpointFailure(t *testing.T) {
 
 	snapshot := testPrismV4Client(t, server).collectPrismCentral(context.Background())
 	require.Len(t, snapshot.Errors, 1)
-	require.InDelta(t, 1, additionalMetricValue(t, snapshot.Metrics, "nutanix.prism.entity.count", map[string]string{
-		"nutanix.entity.type":       "task",
-		"nutanix.entity.state_type": "status",
-		"nutanix.entity.state":      "running",
+	require.InDelta(t, 1, additionalMetricValue(t, snapshot.Metrics, "nutanix.prism.task.count", map[string]string{
+		"nutanix.prism.task.status": "running",
 	}), 0.001)
-	require.InDelta(t, 1, additionalMetricValue(t, snapshot.Metrics, "nutanix.monitoring.entity.count", map[string]string{
-		"nutanix.entity.type":       "alert",
-		"nutanix.entity.state_type": "unresolved_severity",
-		"nutanix.entity.state":      "critical",
+	require.InDelta(t, 1, additionalMetricValue(t, snapshot.Metrics, "nutanix.monitoring.alert.count", map[string]string{
+		"nutanix.monitoring.alert.unresolved_severity": "critical",
 	}), 0.001)
 }
 
@@ -188,13 +184,13 @@ func TestCollectAdditionalMetricsCoversEveryOptionalDomain(t *testing.T) {
 		metricNames[metric.Name] = true
 	}
 	for _, name := range []string{
-		"nutanix.data_protection.entity.count",
-		"nutanix.files.entity.count",
-		"nutanix.microseg.entity.count",
-		"nutanix.monitoring.entity.count",
-		"nutanix.networking.entity.count",
-		"nutanix.objects.entity.count",
-		"nutanix.prism.entity.count",
+		"nutanix.data_protection.protection_policy.count",
+		"nutanix.files.file_server.count",
+		"nutanix.microseg.network_security_policy.count",
+		"nutanix.monitoring.alert.count",
+		"nutanix.networking.gateway.count",
+		"nutanix.objects.object_store.count",
+		"nutanix.prism.task.count",
 	} {
 		require.Truef(t, metricNames[name], "expected %s", name)
 	}

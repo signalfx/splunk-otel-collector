@@ -829,17 +829,17 @@ require (
 )
 
 replace (
-	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/dataprotection-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/dataprotection-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/files-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/files-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/microseg-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/microseg-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/monitoring-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/networking-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/objects-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/objects-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/prism-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/vmm-go-client/v4 v4.0.0-20260910045924-797370560888
-	github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/volumes-go-client/v4 v4.0.0-20260910045924-797370560888
+	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/dataprotection-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/dataprotection-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/files-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/files-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/microseg-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/microseg-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/monitoring-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/networking-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/objects-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/objects-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/prism-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/vmm-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
+	github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 => github.com/akhileshsingh85/ntnx-api-golang-clients/volumes-go-client/v4 v4.0.0-20260910052022-be5aba33ce4d
 )
 
 replace (

@@ -395,7 +395,13 @@ func (c *prismClient) collectFiles(ctx context.Context) additionalSnapshot {
 				result.Errors = append(result.Errors, fmt.Errorf("list files %s for %s: %w", endpoint.entityType, fileServerID, listErr))
 				continue
 			}
-			result.Metrics = append(result.Metrics, inventoryCountMetric("files", endpoint.entityType, "file_server", fileServerID, len(entities)))
+			countMetric := inventoryCountMetric("files", endpoint.entityType, "file_server", fileServerID, len(entities))
+			countMetric.Attributes["nutanix.files.file_server.name"] = firstString(fileServer, "name")
+			result.Metrics = append(result.Metrics, countMetric)
+			for _, entity := range entities {
+				entity["fileServerID"] = fileServerID
+				entity["fileServerName"] = firstString(fileServer, "name")
+			}
 			stats, errs := c.collectEntityStats(ctx, "files", endpoint.entityType, entities, endpoint.stats)
 			result.Metrics = append(result.Metrics, stats...)
 			result.Errors = append(result.Errors, errs...)
@@ -504,20 +510,52 @@ func (c *prismClient) collectEntityStats(
 				errorsByIndex[index] = fmt.Errorf("get %s %s stats for %s: %w", domain, entityType, entityID, err)
 				return
 			}
+			metricPrefix := inventoryMetricPrefix(domain, entityType)
+			attributes := map[string]string{
+				metricPrefix + ".id":   entityID,
+				metricPrefix + ".name": firstString(entity, "name"),
+			}
+			if domain == "networking" && entityType == "vpc_external_subnet" {
+				attributes["nutanix.networking.vpc.id"] = firstString(entity, "vpcExtId")
+				attributes["nutanix.networking.vpc.name"] = firstString(entity, "vpcName")
+			}
+			if domain == "files" && entityType != "file_server" {
+				attributes["nutanix.files.file_server.id"] = firstString(entity, "fileServerID")
+				attributes["nutanix.files.file_server.name"] = firstString(entity, "fileServerName")
+			}
 			metrics[index] = additionalMetric{
-				Name:        "nutanix." + domain + ".entity.stat",
-				Description: "Latest Nutanix " + strings.ReplaceAll(domain, "_", " ") + " entity statistic",
-				Attributes: map[string]string{
-					"nutanix.entity.type": entityType,
-					"nutanix.entity.id":   entityID,
-					"nutanix.entity.name": firstString(entity, "name", "vpcName"),
-				},
-				Stats: stats,
+				Name:        metricPrefix + ".stat",
+				Description: entityStatsDescription(domain, entityType),
+				Attributes:  attributes,
+				Stats:       stats,
 			}
 		}(i)
 	}
 	wg.Wait()
 	return compactAdditionalMetrics(metrics), compactErrors(errorsByIndex)
+}
+
+func entityStatsDescription(domain, entityType string) string {
+	switch {
+	case domain == "files" && entityType == "antivirus_server":
+		return "Latest statistic for a Nutanix Files antivirus server."
+	case domain == "files" && entityType == "file_server":
+		return "Latest statistic for a Nutanix Files file server."
+	case domain == "files" && entityType == "mount_target":
+		return "Latest statistic for a Nutanix Files mount target."
+	case domain == "networking" && entityType == "layer2_stretch":
+		return "Latest statistic for a Nutanix Layer 2 stretch."
+	case domain == "networking" && entityType == "traffic_mirror":
+		return "Latest statistic for a Nutanix traffic mirror."
+	case domain == "networking" && entityType == "vpc_external_subnet":
+		return "Latest statistic for an external subnet attached to a Nutanix VPC."
+	case domain == "networking" && entityType == "vpn_connection":
+		return "Latest statistic for a Nutanix VPN connection."
+	case domain == "objects" && entityType == "object_store":
+		return "Latest statistic for a Nutanix Objects object store."
+	default:
+		return "Latest statistic for a Nutanix " + strings.ReplaceAll(entityType, "_", " ") + "."
+	}
 }
 
 func countSDKEntities(ctx context.Context, name, filter string, fetch sdkFilteredPageFetcher) (int, error) {

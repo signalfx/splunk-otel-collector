@@ -160,6 +160,42 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### Upgrading to 0.160.0
+
+The Linux DEB/RPM `splunk-otel-auto-instrumentation` package now installs the official [OpenTelemetry
+injector](https://github.com/open-telemetry/opentelemetry-injector) (`libotelinject.so`) instead of the previous
+`libsplunk.so` shim. This is a breaking change for existing auto-instrumentation installations:
+
+- Configuration moves from `/etc/splunk/zeroconfig/` (`java.conf`, `node.conf`, `dotnet.conf`) to
+  `/etc/opentelemetry/injector/` (`default_env.conf` and `injector.conf`). Existing values are not migrated
+  automatically. Before upgrading, migrate any customized `OTEL_*` and `SPLUNK_*` values from `java.conf`,
+  `node.conf`, and `dotnet.conf` into `default_env.conf`; other variables, including `JAVA_TOOL_OPTIONS`,
+  `NODE_OPTIONS`, `CORECLR_*`, and `DOTNET_*`, are ignored going forward. Agent activation paths are now configured
+  in `injector.conf` instead. `default_env.conf` is shared by all runtimes, and runtime-specific values must be set
+  through the relevant application or service environment; if a variable is set in both places, the value in
+  `default_env.conf` takes precedence.
+- During the package upgrade, the legacy `/etc/splunk/zeroconfig/` files are preserved under
+  `/usr/lib/splunk-instrumentation/legacy-zeroconfig/` before that directory is removed, and the `libsplunk.so`
+  entry in `/etc/ld.so.preload` is removed. To remove the preserved legacy configuration during an
+  explicit package removal, set `REMOVE_LEGACY_CONFIG=true` when invoking the package manager; cleanup is skipped if
+  the backup directory is absent. Restart instrumented applications or services, or reboot, after the upgrade.
+- .NET agent files are now installed under `splunk-otel-dotnet/glibc`, with `OTEL_DOTNET_AUTO_HOME` set to that
+  directory, and .NET auto-instrumentation now supports arm64 in addition to amd64.
+- When using the `install.sh` script with `--with-instrumentation` or `--with-systemd-instrumentation` options the
+  script requires an auto-instrumentation package version greater than 0.159.0 and during installation adds the
+  `libotelinject.so` to the `/etc/ld.so.preload` file.
+- When using Ansible, Chef, Puppet, or Salt, do not edit the generated `default_env.conf` directly. Move the settings
+  into the corresponding deployment-tool parameters and upgrade to an injector-compatible version of that deployment
+  module before promoting the new auto-instrumentation package.
+- Support for the new package requires use of the following minimum versions:
+  - Ansible playbook v1.3.0
+  - Chef recipe v0.22.0
+  - Puppet module v0.23.0
+  - Salt module is published with the merge of the `libotelinject.so` [migration](https://github.com/signalfx/splunk-otel-collector/pull/7581) 
+
+
+See the [instrumentation README](instrumentation/README.md) for full activation and configuration details.
+
 ### From 0.158.0 to 0.159.0
 
 Linux DEB and RPM packages and Windows installations through MSI or Chocolatey now use `otelcollauncher` as the service entrypoint

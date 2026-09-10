@@ -9,14 +9,18 @@ on:
   push:
     paths:
       - '.github/workflows/ansible.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml'
+      - 'instrumentation/**'
       - 'packaging/msi/**'
     branches:
       - main
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
+      - 'instrumentation/**'
       - 'packaging/msi/**'
       - '!**.md'
   schedule:
@@ -51,26 +55,15 @@ jobs:
       ARCH: ${{ matrix.ARCH }}
 
   build-auto-instrumentation-package:
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
         ARCH: [ "amd64" ]
       fail-fast: false
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Build ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} auto-instrumentation package
-        run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
-
-      - name: Upload ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} auto-instrumentation package
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
-          path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
+    uses: ./.github/workflows/reusable-build-instrumentation-package.yml
+    with:
+      SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
+      ARCH: ${{ matrix.ARCH }}
 
   msi-custom-actions:
     needs: lint

@@ -153,16 +153,16 @@ if [[ "$test_case" == "candidate" ]]; then
         fi
     done
 
+    dotnet_arch="x64"
+    if [[ "$arch" == "aarch64" ]]; then
+        dotnet_arch="arm64"
+    fi
     instrumentation_files=(
-        /usr/lib/splunk-instrumentation/libsplunk.so
+        /usr/lib/splunk-instrumentation/libotelinject.so
         /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
         /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
+        "/usr/lib/splunk-instrumentation/splunk-otel-dotnet/glibc/linux-${dotnet_arch}/OpenTelemetry.AutoInstrumentation.Native.so"
     )
-    if [[ "$arch" == "x86_64" ]]; then
-        instrumentation_files+=(
-            /usr/lib/splunk-instrumentation/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so
-        )
-    fi
     for instrumentation_file in "${instrumentation_files[@]}"; do
         verify_candidate_file "${packages[1]}" "$instrumentation_file"
     done

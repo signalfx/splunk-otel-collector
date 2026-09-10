@@ -8,7 +8,7 @@ component: receiver/gnmireceiver
 note: Add `yang_modules` config option to derive each leaf's metric type (gauge/sum), unit, and enum/identityref value set directly from YANG schema files instead of requiring them in `default`/`overrides`.
 
 # One or more tracking issues related to the change
-issues: []
+issues: [8047]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

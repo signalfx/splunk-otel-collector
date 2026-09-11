@@ -397,6 +397,7 @@ func ReadOutputGroups(splunkHome string) ([]conf.Output, error) {
 	return conf.OutputGroups(merged)
 }
 
+// HTTPOut returns the [httpout] stanza from a merged outputs.conf map.
 func HTTPOut(merged conf.ConfMap) (*conf.Output, error) {
 	return conf.HTTPOut(merged)
 }

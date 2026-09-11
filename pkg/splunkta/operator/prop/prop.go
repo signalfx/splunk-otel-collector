@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+// Package prop implements prop operator configuration for the splunkta package.
 package prop
 
 import (
@@ -21,6 +22,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 )
 
+// CreateOperatorConfigs creates operator configs for the given property and transforms.
 func CreateOperatorConfigs(pCfg conf.Prop, transforms []conf.Transform) []operator.Config {
 	var operators []operator.Config
 	start := noop.NewConfigWithID(fmt.Sprintf("%s-start", pCfg.Name))

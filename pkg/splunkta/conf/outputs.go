@@ -17,6 +17,7 @@ var ErrNoHTTPOut = errors.New("no [httpout] stanza found in outputs.conf")
 var ErrNoOutputStanzas = errors.New("no output stanzas found in outputs.conf")
 
 // ConfMap is a parsed .conf file: stanza name -> key -> value.
+//nolint:revive // var-naming: renaming is a breaking API change; this type is consumed by tarunner
 type ConfMap map[string]map[string]string
 
 // Output holds the settings from outputs.conf stanza.
@@ -24,6 +25,7 @@ type Output struct {
 	Configuration Configuration
 }
 
+// ParseConf parses a .conf file payload into a ConfMap.
 func ParseConf(payload []byte) (ConfMap, error) {
 	f, err := ini.Load(payload)
 	if err != nil {
@@ -44,6 +46,7 @@ func ParseConf(payload []byte) (ConfMap, error) {
 	return result, nil
 }
 
+// ParseAndMergeConf parses and merges multiple .conf payloads.
 func ParseAndMergeConf(payloads [][]byte) (ConfMap, error) {
 	var layers []ConfMap
 	for _, b := range payloads {
@@ -56,6 +59,7 @@ func ParseAndMergeConf(payloads [][]byte) (ConfMap, error) {
 	return MergeConf(layers), nil
 }
 
+// MergeConf merges multiple ConfMap layers; later layers take precedence.
 func MergeConf(layers []ConfMap) ConfMap {
 	merged := make(ConfMap)
 	for _, layer := range layers {

@@ -17,6 +17,7 @@ var ErrNoHTTPOut = errors.New("no [httpout] stanza found in outputs.conf")
 var ErrNoOutputStanzas = errors.New("no output stanzas found in outputs.conf")
 
 // ConfMap is a parsed .conf file: stanza name -> key -> value.
+//
 //nolint:revive // var-naming: renaming is a breaking API change; this type is consumed by tarunner
 type ConfMap map[string]map[string]string
 

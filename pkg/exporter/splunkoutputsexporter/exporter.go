@@ -121,6 +121,10 @@ func (e *splunkOutputsExporter) watchLoop(ctx context.Context) {
 			return
 		case _, ok := <-e.watcher.Events():
 			if !ok {
+				if debounce != nil {
+					<-debounce
+					e.reconcile(ctx)
+				}
 				return
 			}
 			debounce = time.After(debounceDuration)

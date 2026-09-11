@@ -27,10 +27,10 @@ import (
 type ScriptedInput struct {
 	logger   *zap.Logger
 	doneChan chan struct{}
-	mu       sync.Mutex
 	command  *exec.Cmd
 	cfg      Config
 	helper.InputOperator
+	mu sync.Mutex
 }
 
 func (si *ScriptedInput) Start(_ operator.Persister) error {

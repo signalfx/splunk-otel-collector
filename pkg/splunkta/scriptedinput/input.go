@@ -9,6 +9,7 @@ import (
 	"io"
 	"os/exec"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 type ScriptedInput struct {
 	logger   *zap.Logger
 	doneChan chan struct{}
+	mu       sync.Mutex
 	command  *exec.Cmd
 	cfg      Config
 	helper.InputOperator
@@ -39,9 +41,11 @@ func (si *ScriptedInput) Start(_ operator.Persister) error {
 }
 
 func (si *ScriptedInput) Stop() error {
+	si.mu.Lock()
 	if si.command != nil {
 		_ = si.command.Process.Signal(syscall.SIGTERM)
 	}
+	si.mu.Unlock()
 	close(si.doneChan)
 
 	return nil
@@ -130,35 +134,6 @@ func (si *ScriptedInput) _execute(baseDir string, input conf.Input) error {
 		return err
 	}
 
-	stopRead := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-si.doneChan:
-				return
-			case <-stopRead:
-				return
-			default:
-				b, ioErr := io.ReadAll(stdout)
-				if len(b) == 0 {
-					return
-				}
-				e := entry.New()
-				e.Body = string(b)
-				if err := si.Attribute(e); err != nil {
-					si.logger.Error("Error setting attributes", zap.Error(err))
-				}
-
-				if err = si.Write(context.Background(), e); err != nil {
-					si.logger.Error("Error consuming logs", zap.Error(err))
-				}
-				if ioErr != nil {
-					return
-				}
-			}
-		}
-	}()
-
 	var inputXML []byte
 	if inputXML, err = input.ToXML(); err != nil {
 		return err
@@ -173,10 +148,29 @@ func (si *ScriptedInput) _execute(baseDir string, input conf.Input) error {
 	if err = cmd.Start(); err != nil {
 		return err
 	}
+	si.mu.Lock()
 	si.command = cmd
+	si.mu.Unlock()
 
-	err = cmd.Wait()
-	close(stopRead)
+	// Read stdout to EOF before Wait: exec.Cmd.StdoutPipe closes the pipe once
+	// the process exits, so reads must complete first. Reading synchronously
+	// here (rather than in a separate goroutine racing cmd.Wait) avoids both
+	// the data race and dropped output when the process exits quickly.
+	b, readErr := io.ReadAll(stdout)
+	if len(b) > 0 {
+		e := entry.New()
+		e.Body = string(b)
+		if attrErr := si.Attribute(e); attrErr != nil {
+			si.logger.Error("Error setting attributes", zap.Error(attrErr))
+		}
+		if writeErr := si.Write(context.Background(), e); writeErr != nil {
+			si.logger.Error("Error consuming logs", zap.Error(writeErr))
+		}
+	}
 
-	return err
+	waitErr := cmd.Wait()
+	if readErr != nil {
+		return readErr
+	}
+	return waitErr
 }

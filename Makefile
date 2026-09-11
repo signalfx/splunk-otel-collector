@@ -451,10 +451,8 @@ multimod-verify:
 multimod-prerelease:
 	$(MULTIMOD) prerelease -s=true -b=false -v ./versions.yaml -m $(MODSET)
 
-# prepare-release rolls up the changelog and rewrites intra-set module requires
-# to the release version read from versions.yaml. Bump versions.yaml to the next
-# release first. Run on a clean tree: multimod-prerelease commits the go.mod
-# changes; the changelog edits are left staged for review.
+# Rolls up the changelog and rewrites intra-set module requires to the release
+# version read from versions.yaml.
 .PHONY: prepare-release
 prepare-release:
 	@if [ -z "$(RELEASE_VERSION)" ]; then \

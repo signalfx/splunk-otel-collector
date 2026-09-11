@@ -22,12 +22,6 @@ func Test_ScriptedInput(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping test on Windows because scripts use bash")
 	}
-	if raceDetectorEnabled {
-		// ScriptedInput has a known data race between _execute's cmd.Wait and the
-		// stdout reader goroutine, carried over verbatim from github.com/splunk/tarunner.
-		// The concurrency rework is a follow-up.
-		t.Skip("Skipping under the race detector: known data race in the moved scriptedinput code")
-	}
 
 	tests := []struct {
 		name      string

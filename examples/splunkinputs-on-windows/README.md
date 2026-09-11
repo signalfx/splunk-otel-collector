@@ -2,10 +2,30 @@
 
 This is the Windows counterpart to the [`splunkinputs`](../splunkinputs/README.md)
 example. It uses the [`splunk_inputs`](https://github.com/splunk/tarunner/tree/main/pkg/splunkinputsreceiver)
-receiver to read a TA's `inputs.conf`, `transforms.conf`, and `props.conf`
-directly, emulating its modular input(s) without running a real `splunkd`.
-Like `splunkinputs`'s `/var/ta`, `C:\var\ta` is a generic mount point for any
-TA; this example just happens to use the
+receiver and [`splunk_outputs`](https://github.com/splunk/tarunner/tree/main/pkg/splunkoutputsexporter)
+exporter together to read a TA's configuration and forward its logs without
+running a real `splunkd`.
+
+Both components use the same `base_dir`, which is the root of a standard
+Splunk Universal Forwarder directory tree:
+
+```
+C:\var\splunk_home\
+  etc\
+    apps\
+      Splunk_TA_windows\
+        default\
+        local\
+    system\
+      local\
+        outputs.conf
+```
+
+The script stages the TA under `etc/apps/Splunk_TA_windows`, enables its
+inputs, and writes `outputs.conf` under `etc/system/local` using the HEC URL
+and token supplied on the command line. Like `splunkinputs`'s
+`/var/splunk_home`, `C:\var\splunk_home` is a generic mount point; this example
+just happens to use the
 [Splunk Add-on for Microsoft Windows](https://splunkbase.splunk.com/app/742)
 as its example TA.
 
@@ -20,11 +40,11 @@ for this example to know that in advance.
 
 ## Download a TA
 
-`run-example.ps1` (below) takes the path to a TA package, extracts it to
-`C:\var\ta` in the container, and enables its inputs for you. This example
+`run-example.ps1` (below) takes the path to a TA package, extracts it into the
+staged Splunk home, and enables its inputs for you. This example
 uses the Splunk Add-on for Microsoft Windows, but any TA compatible with the
-`splunk_inputs` receiver can be used instead. The receiver only reads a
-single TA per configured path, so only one TA package can be used at a time.
+`splunk_inputs` receiver can be used instead. Only one TA package can be used
+at a time by this script.
 
 By default every stanza in the TA's `inputs.conf` is enabled. To keep some
 disabled, pass their stanza names (the part of the bracketed header before
@@ -40,8 +60,9 @@ automatically. Download it yourself as a `.tgz`/`.spl` file from
 Before building the image, place a Windows collector binary named
 `otelcol.exe` in this directory.
 
-The `splunk_inputs` receiver this example depends on is only registered from
-`v0.158.0` onward (see the `enableTARunner` feature gate in
+The `splunk_inputs` receiver and `splunk_outputs` exporter this example uses
+are only registered from `v0.158.0` onward (see the `enableTARunner` feature
+gate in
 [`internal/components/components.go`](../../internal/components/components.go)),
 so download the latest release from the
 [project's GitHub releases page](https://github.com/signalfx/splunk-otel-collector/releases)
@@ -89,11 +110,13 @@ you downloaded and the HEC endpoint/token to send data to:
 
 This extracts the TA to a local `ta` folder, copies its `default/` directory
 to `local/` and enables every input by rewriting `disabled = 1` to
-`disabled = 0`, then builds and runs the container with that folder mounted at
-`C:\var\ta` and the HEC endpoint/token passed in as environment variables.
+`disabled = 0`. It then stages the TA at
+`C:\var\splunk_home\etc\apps\Splunk_TA_windows`, writes
+`C:\var\splunk_home\etc\system\local\outputs.conf`, and builds and runs the
+container with the staged Splunk home mounted at `C:\var\splunk_home`.
 
-The container waits for the mounted TA, then starts the collector with the
-`splunk_inputs` receiver reading it and exporting to `splunk_hec`. See
+The container starts the collector with the `splunk_inputs` receiver reading
+the TA and the `splunk_outputs` exporter reading `outputs.conf`. See
 [`otel-collector-config.yaml`](./otel-collector-config.yaml) for the full
 configuration.
 
@@ -103,10 +126,10 @@ configuration.
   destination via Docker Compose, this example has no bundled destination.
   Point `-SplunkHecUrl`/`-SplunkHecToken` at any HEC endpoint reachable from
   the container, including a Splunk instance running on the host.
-- Like `splunkinputs`'s `/var/ta`, `C:\var\ta` is a generic mount point for
-  any TA compatible with the `splunk_inputs` receiver, not just the Splunk
-  Add-on for Microsoft Windows used here. The receiver reads a single TA per
-  configured path, so only one TA can be mounted there at a time.
+- Like `splunkinputs`'s `/var/splunk_home`, `C:\var\splunk_home` is a generic
+  mount point for any TA compatible with the `splunk_inputs` receiver, not just the Splunk
+  Add-on for Microsoft Windows used here. This script stages one TA, but the
+  receiver can discover multiple TAs under `etc/apps`.
 - The `splunk_inputs` receiver parses the TA's configuration files directly;
   no Splunk Universal Forwarder process runs in this container. See
   [`packaging/ta-v2`](../../packaging/ta-v2/) for examples that install and

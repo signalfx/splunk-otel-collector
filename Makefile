@@ -9,10 +9,8 @@ VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
 
-# Module set released by multimod; must match a set in versions.yaml. The release
-# version is read from that set so versions.yaml stays the single source of truth.
+# Module set released by multimod; must match a set in versions.yaml.
 MODSET?=splunk-otel-collector
-RELEASE_VERSION=$(shell awk '/^  $(MODSET):/{f=1} f&&/^    version:/{print $$2; exit}' versions.yaml)
 
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
@@ -455,11 +453,11 @@ multimod-prerelease:
 # version read from versions.yaml.
 .PHONY: prepare-release
 prepare-release:
-	@if [ -z "$(RELEASE_VERSION)" ]; then \
-		echo "Error: could not read a version for module set $(MODSET) from versions.yaml"; \
+	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
+		echo "Error: VERSION is required. Usage: make prepare-release VERSION=v0.132.0"; \
 		exit 1; \
 	fi
-	@echo "Preparing release $(RELEASE_VERSION) for module set $(MODSET)..."
+	@echo "Preparing release $(VERSION) for module set $(MODSET)..."
 	@$(MAKE) multimod-prerelease
-	@$(MAKE) chlog-update VERSION=$(RELEASE_VERSION)
-	@./.github/workflows/scripts/prepare-changelog.sh $(RELEASE_VERSION)
+	@$(MAKE) chlog-update
+	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

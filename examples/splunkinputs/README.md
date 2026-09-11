@@ -1,15 +1,16 @@
 # Example of deployment with a Splunk instance
 
-This example shows how to use the `splunk_inputs` receiver to run a Splunk
-Technology Add-on (TA) without a real `splunkd`. The receiver reads the TA's
-`inputs.conf`, `transforms.conf`, and `props.conf` directly, layered using
-standard Splunk conf precedence, and forwards collected logs to a Splunk HEC
-endpoint via the `splunk_hec` exporter.
+This example shows how to use the `splunk_inputs` receiver and `splunk_outputs`
+exporter together to run a Splunk Technology Add-on (TA) without a real
+`splunkd`. The receiver reads the TA's `inputs.conf`, `transforms.conf`, and
+`props.conf` directly; the exporter reads `outputs.conf` to determine where to
+send the collected logs. Both components layer conf files using standard Splunk
+conf precedence.
 
 ## Directory layout
 
-The `splunk_inputs` receiver expects a standard Splunk Universal Forwarder
-directory tree rooted at `base_dir`:
+Both `splunk_inputs` and `splunk_outputs` share the same `base_dir`, which is
+the root of a standard Splunk Universal Forwarder directory tree:
 
 ```
 <base_dir>/
@@ -25,15 +26,19 @@ directory tree rooted at `base_dir`:
     system/
       default/              # built-in system-level defaults
       local/                # optional — site-wide overrides for all TAs
+          outputs.conf
 ```
 
 Conf files are layered in Splunk precedence order: `etc/system/default` <
 `etc/apps/<TA>/default` < `etc/apps/<TA>/local` < `etc/system/local`.
 
-In this example, `Splunk_TA_nix` is mounted at
-`/var/splunk_home/etc/apps/Splunk_TA_nix` and `base_dir` is set to
-`/var/splunk_home`. Multiple TAs can be mounted under `etc/apps/` at the same
-time; the receiver discovers and starts them all.
+In this example:
+- `Splunk_TA_nix` is mounted at `/var/splunk_home/etc/apps/Splunk_TA_nix`
+- `outputs.conf` is mounted at `/var/splunk_home/etc/system/local/outputs.conf`
+- `base_dir` for both components is `/var/splunk_home`
+
+Multiple TAs can be mounted under `etc/apps/` at the same time; the receiver
+discovers and starts them all.
 
 ## Deploy a local Splunk instance
 
@@ -94,10 +99,10 @@ make otelcol
 
 or copy an existing Linux amd64 binary to `bin/otelcol_linux_amd64`.
 
-The `splunk_inputs` receiver requires the `enableTARunner` feature gate, which
-is enabled via `--feature-gates=+enableTARunner` in the collector command
-(already set in `docker-compose.yml`). The receiver is available from
-`v0.158.0` onward.
+Both the `splunk_inputs` receiver and `splunk_outputs` exporter require the
+`enableTARunner` feature gate, which is enabled via
+`--feature-gates=+enableTARunner` in the collector command (already set in
+`docker-compose.yml`). Both components are available from `v0.158.0` onward.
 
 ## Start the example
 

@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -94,6 +95,10 @@ func runInteractive(args, env []string, paths launcher.Paths) error {
 		return errors.Join(result.outputErr, result.waitErr)
 	case <-interrupt:
 		result := child.shutdown(gracefulShutdownTimeout)
+		// Log the non-fatal shutdown warnings here
+		if result.shutdownWarning != nil {
+			log.Printf("Warnings occurred while shutting down: %v\n", result.shutdownWarning)
+		}
 		return errors.Join(result.outputErr, result.waitErr)
 	}
 }
@@ -164,6 +169,9 @@ func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.Chang
 			case svc.Stop, svc.Shutdown:
 				status <- svc.Status{State: svc.StopPending, WaitHint: uint32(gracefulShutdownTimeout / time.Millisecond)}
 				result := child.shutdown(gracefulShutdownTimeout)
+				if result.shutdownWarning != nil {
+					_ = elog.Warning(2, fmt.Sprintf("warnings occurred while shutting down the service: %v", result.shutdownWarning))
+				}
 				if result.outputErr != nil {
 					_ = elog.Error(3, fmt.Sprintf("errors occurred while forwarding child output: %v", result.outputErr))
 				}
@@ -185,6 +193,7 @@ func (h *serviceHandler) Execute(serviceArgs []string, requests <-chan svc.Chang
 // to bridge service-mode child stdout and stderr.
 type windowsEventLog interface {
 	Info(eid uint32, msg string) error
+	Warning(eid uint32, msg string) error
 	Error(eid uint32, msg string) error
 }
 
@@ -202,11 +211,12 @@ func (s eventLogSink) Error(msg string) {
 	_ = s.elog.Error(3, msg)
 }
 
-// childResult keeps process wait errors separate from child output forwarding
-// errors so logging failures do not look like child process failures.
+// childResult separates fatal process and output errors from non-fatal
+// problems encountered while shutting down the child.
 type childResult struct {
-	waitErr   error
-	outputErr error
+	waitErr         error
+	outputErr       error
+	shutdownWarning error
 }
 
 // childProcess wraps the immediate child selected by the launcher. The child is
@@ -291,14 +301,21 @@ func (p *childProcess) shutdown(timeout time.Duration) childResult {
 	}
 
 	if err := sendShutdownSignal(p.cmd.Process); err != nil {
+		shutdownWarning := fmt.Errorf("failed to send graceful shutdown signal to child process: %w", err)
+		// A failed signal send is non-fatal if forcible termination succeeds.
+		// Recheck for a process exit, then kill immediately since the
+		// graceful shutdown signal was not delivered.
 		select {
 		case result := <-p.done:
-			result.waitErr = errors.Join(fmt.Errorf("failed to send graceful shutdown signal: %w", err), result.waitErr)
+			if isControlCExit(result.waitErr) {
+				result.waitErr = nil
+			}
+			result.shutdownWarning = shutdownWarning
 			return result
 		default:
 		}
 		result := p.killAndWait()
-		result.waitErr = errors.Join(fmt.Errorf("failed to send graceful shutdown signal: %w", err), result.waitErr)
+		result.shutdownWarning = shutdownWarning
 		return result
 	}
 
@@ -313,7 +330,13 @@ func (p *childProcess) shutdown(timeout time.Duration) childResult {
 		return result
 	case <-timer.C:
 		result := p.killAndWait()
-		result.waitErr = errors.Join(fmt.Errorf("child process did not exit within %s", timeout), result.waitErr)
+		if result.shutdownWarning != nil {
+			result.shutdownWarning = fmt.Errorf("child process did not exit within %s: %w", timeout, result.shutdownWarning)
+		} else if result.waitErr != nil {
+			result.shutdownWarning = fmt.Errorf("child process did not exit within %s and forcible termination failed", timeout)
+		} else {
+			result.shutdownWarning = fmt.Errorf("child process did not exit within %s and was forcibly terminated", timeout)
+		}
 		return result
 	}
 }
@@ -339,10 +362,47 @@ func (p *childProcess) killAndWait() childResult {
 	for _, closer := range p.outputClosers {
 		_ = closer.Close()
 	}
-	err := p.cmd.Process.Kill()
-	result := <-p.done
-	result.waitErr = errors.Join(err, result.waitErr)
+	killErr := p.cmd.Process.Kill()
+	return waitForKilledChild(killErr, p.done)
+}
+
+func waitForKilledChild(killErr error, done <-chan childResult) childResult {
+	// Return immediately when forcible termination fails to ensure launcher
+	// doesn't wait forever for an exit that will never come.
+	if killErr != nil && !isAlreadyTerminatedError(killErr) {
+		return childResult{waitErr: fmt.Errorf("failed to forcibly terminate child process: %w", killErr)}
+	}
+
+	result := <-done
+	if killErr != nil {
+		if isControlCExit(result.waitErr) {
+			result.waitErr = nil
+		}
+		result.shutdownWarning = errors.New("child exited before forcible termination was needed")
+		return result
+	}
+
+	if _, ok := errors.AsType[*exec.ExitError](result.waitErr); ok {
+		// A successful force-kill causes cmd.Wait to return an ExitError. That
+		// exit is expected during launcher-requested shutdown.
+		result.waitErr = nil
+	} else if result.waitErr != nil {
+		result.shutdownWarning = errors.New("forcible termination was requested but waiting for the child failed")
+	}
 	return result
+}
+
+func isAlreadyTerminatedError(err error) bool {
+	// Check for cases where process status is done or released
+	if errors.Is(err, os.ErrProcessDone) || errors.Is(err, syscall.EINVAL) {
+		return true
+	}
+
+	// After a process has terminated, calls to TerminateProcess fail with ERROR_ACCESS_DENIED
+	var syscallErr *os.SyscallError
+	return errors.As(err, &syscallErr) &&
+		syscallErr.Syscall == "TerminateProcess" &&
+		errors.Is(syscallErr.Err, windows.ERROR_ACCESS_DENIED)
 }
 
 // sendShutdownSignal uses the Windows console API because os.Interrupt is not

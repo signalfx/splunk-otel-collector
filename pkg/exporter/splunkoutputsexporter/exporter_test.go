@@ -7,6 +7,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -42,17 +43,22 @@ func (f *fakeWatcher) Errors() <-chan error          { return f.errors }
 
 // mockExporter tracks Start and Shutdown calls.
 type mockExporter struct {
+	mu            sync.Mutex
 	startCount    int
 	shutdownCount int
 	consumeCount  int
 }
 
 func (m *mockExporter) Start(context.Context, component.Host) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.startCount++
 	return nil
 }
 
 func (m *mockExporter) Shutdown(context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.shutdownCount++
 	return nil
 }
@@ -60,8 +66,16 @@ func (m *mockExporter) Shutdown(context.Context) error {
 func (m *mockExporter) Capabilities() consumer.Capabilities { return consumer.Capabilities{} }
 
 func (m *mockExporter) ConsumeLogs(_ context.Context, _ plog.Logs) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.consumeCount++
 	return nil
+}
+
+func (m *mockExporter) shutdowns() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.shutdownCount
 }
 
 // mockSubExporterFactory returns a new mockExporter for every CreateLogs call
@@ -192,7 +206,7 @@ func TestWatchLoopTriggersReconcileAfterDebounce(t *testing.T) {
 
 	// Wait for debounce + reconcile. debounceDuration is 500ms; give it 2s total.
 	assert.Eventually(t, func() bool {
-		return first.shutdownCount >= 1
+		return first.shutdowns() >= 1
 	}, 2*time.Second, 50*time.Millisecond, "expected exporter to reconcile after debounce")
 }
 

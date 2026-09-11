@@ -449,8 +449,8 @@ multimod-verify:
 multimod-prerelease:
 	$(MULTIMOD) prerelease -s=true -b=false -v ./versions.yaml -m $(MODSET)
 
-# Rolls up the changelog and rewrites intra-set module requires to the release
-# version read from versions.yaml.
+# Bumps the module set version in versions.yaml, rewrites intra-set module
+# requires to it via multimod, and rolls up the changelog.
 .PHONY: prepare-release
 prepare-release:
 	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
@@ -458,6 +458,10 @@ prepare-release:
 		exit 1; \
 	fi
 	@echo "Preparing release $(VERSION) for module set $(MODSET)..."
+	awk -v set="$(MODSET)" -v ver="$(VERSION)" \
+		'$$0 ~ "^  " set ":" {inset=1} inset && /^    version:/ {sub(/version:.*/, "version: " ver); inset=0} {print}' \
+		versions.yaml > versions.yaml.tmp && mv versions.yaml.tmp versions.yaml
+	git add versions.yaml && git commit -m "Prepare $(MODSET) $(VERSION)"
 	@$(MAKE) multimod-prerelease
 	@$(MAKE) chlog-update
 	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

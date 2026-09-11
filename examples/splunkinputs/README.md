@@ -1,43 +1,112 @@
 # Example of deployment with a Splunk instance
 
-Please follow the steps below to run this example.
+This example shows how to use the `splunk_inputs` receiver to run a Splunk
+Technology Add-on (TA) without a real `splunkd`. The receiver reads the TA's
+`inputs.conf`, `transforms.conf`, and `props.conf` directly, layered using
+standard Splunk conf precedence, and forwards collected logs to a Splunk HEC
+endpoint via the `splunk_hec` exporter.
+
+## Directory layout
+
+The `splunk_inputs` receiver expects a standard Splunk Universal Forwarder
+directory tree rooted at `base_dir`:
+
+```
+<base_dir>/
+  etc/
+    apps/
+      <TA_name>/
+        default/
+          inputs.conf
+          transforms.conf   # optional
+          props.conf        # optional
+        local/              # optional — overrides default/
+          inputs.conf
+    system/
+      default/              # built-in system-level defaults
+      local/                # optional — site-wide overrides for all TAs
+```
+
+Conf files are layered in Splunk precedence order: `etc/system/default` <
+`etc/apps/<TA>/default` < `etc/apps/<TA>/local` < `etc/system/local`.
+
+In this example, `Splunk_TA_nix` is mounted at
+`/var/splunk_home/etc/apps/Splunk_TA_nix` and `base_dir` is set to
+`/var/splunk_home`. Multiple TAs can be mounted under `etc/apps/` at the same
+time; the receiver discovers and starts them all.
 
 ## Deploy a local Splunk instance
 
 In this folder, run:
 
-```> docker compose up -d```
+```
+docker compose up -d
+```
 
-This will deploy a Splunk instance locally. The instance will start up and be available over localhost:18000 with the credentials `admin` and `changeme`.
+This deploys a Splunk instance locally available at `http://localhost:18000`
+with credentials `admin` / `changeme`.
 
-## Download the Splunk addon for Linux
+## Download the Splunk Add-on for Unix and Linux
 
-Install the TA for Linux, downloading it from https://splunkbase.splunk.com/app/833
+Download the TA from https://splunkbase.splunk.com/app/833 (requires a
+Splunk account). Save the downloaded `.tgz` file locally.
 
-## Install the TA for Linux on the Splunk instance
+## Install the TA on the Splunk instance
 
-Go to `Manage Apps`, install it from your download as a tgz file.
+Go to **Manage Apps** in Splunk Web and install the TA from your downloaded
+`.tgz` file. This makes Splunk aware of the TA's data models and field
+extractions so results display correctly.
 
 ## Install The Splunk App for Content Packs (optional)
 
-Download and install this Splunk app from https://splunkbase.splunk.com/app/5391
+Download and install this app from https://splunkbase.splunk.com/app/5391 to
+get the dashboards that come with the TA's data.
 
-This app will show the dashboards associated with the data from the TA.
+See https://help.splunk.com/en/splunk-it-service-intelligence/content-packs-for-itsi-and-ite/unix-dashboards-and-reports/1.3/install-the-content-pack-for-unix-dashboards-and-reports
+for more information.
 
-See https://help.splunk.com/en/splunk-it-service-intelligence/content-packs-for-itsi-and-ite/unix-dashboards-and-reports/1.3/install-the-content-pack-for-unix-dashboards-and-reports for more information.
+## Set up the TA for the collector
 
-## Set up the linux TA for the collector
+Extract the downloaded TA into this folder (replace the path as needed):
 
-In this folder, run (replace the location as per your download for the Linux TA):
+```
+tar xzvf ~/Downloads/splunk-add-on-for-unix-and-linux_1020.tgz
+```
 
-```> tar xzvf ~/Downloads/splunk-add-on-for-unix-and-linux_1020.tgz```
+This creates a `Splunk_TA_nix` directory. Copy `default/` to `local/` and
+enable the inputs you want to collect:
 
-In the `Splunk_TA_nix` folder created, copy the `default` folder as `local`.
+```
+cd Splunk_TA_nix && cp -r default local
+```
 
-```> cd Splunk_TA_nix && cp -r default local```
+Open `local/inputs.conf` and change `disabled = 1` to `disabled = 0` for
+each stanza you want to enable.
 
-Open local/inputs.conf and edit each `disabled = 1` line to `disabled = 0`.
+## Build the collector binary
+
+The example Dockerfile copies the collector binary from `bin/otelcol_linux_amd64`.
+Build it from the repository root first:
+
+```
+make otelcol
+```
+
+or copy an existing Linux amd64 binary to `bin/otelcol_linux_amd64`.
+
+The `splunk_inputs` receiver requires the `enableTARunner` feature gate, which
+is enabled via `--feature-gates=+enableTARunner` in the collector command
+(already set in `docker-compose.yml`). The receiver is available from
+`v0.158.0` onward.
+
+## Start the example
+
+From this directory:
+
+```
+docker compose up -d
+```
 
 ## Search the main index
 
-Go to the search view and enjoy your TA data by searching for `index=main`
+Go to Splunk Web and search `index=main` to see the collected TA data.

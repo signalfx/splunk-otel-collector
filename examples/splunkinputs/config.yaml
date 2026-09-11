@@ -1,6 +1,7 @@
 receivers:
   splunk_inputs:
-    path: /var/ta
+    base_dir: /var/splunk_home
+
 exporters:
   splunk_hec:
     endpoint: http://splunk:8088/services/collector/event

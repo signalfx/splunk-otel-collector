@@ -23,7 +23,7 @@ import (
 
 func CreateOperatorConfigs(pCfg conf.Prop, transforms []conf.Transform) []operator.Config {
 	var operators []operator.Config
-	start := noop.NewConfigWithID(fmt.Sprintf("%s-start", pCfg.Name))
+	start := noop.NewConfigWithID(pCfg.Name + "-start")
 	switch pCfg.Type() {
 	case conf.SourceType:
 		start.IfExpr = fmt.Sprintf("attributes['sourcetype'] == %q", pCfg.Name)
@@ -61,7 +61,7 @@ func CreateOperatorConfigs(pCfg conf.Prop, transforms []conf.Transform) []operat
 		}
 
 		for _, fa := range pCfg.FieldAliases {
-			copyOp := copy.NewConfigWithID(fmt.Sprintf("%s-copy", fa.Name))
+			copyOp := copy.NewConfigWithID(fa.Name + "-copy")
 			copyOp.From, _ = entry.NewField(fmt.Sprintf("attributes[%q]", fa.From))
 			copyOp.To, _ = entry.NewField(fmt.Sprintf("attributes[%q]", fa.To))
 
@@ -71,7 +71,7 @@ func CreateOperatorConfigs(pCfg conf.Prop, transforms []conf.Transform) []operat
 		}
 
 		if pCfg.SourceType != "" {
-			sourceTypeOp := copy.NewConfigWithID(fmt.Sprintf("%s-sourcetype", pCfg.Name))
+			sourceTypeOp := copy.NewConfigWithID(pCfg.Name + "-sourcetype")
 
 			previous.OutputIDs = []string{sourceTypeOp.OperatorID}
 			operators = append(operators, operator.NewConfig(sourceTypeOp))
@@ -81,7 +81,7 @@ func CreateOperatorConfigs(pCfg conf.Prop, transforms []conf.Transform) []operat
 		// TODO add code to move source, sourcetype, host to cooked fields.
 	}
 
-	endNoop := noop.NewConfigWithID(fmt.Sprintf("%s-end", pCfg.Name))
+	endNoop := noop.NewConfigWithID(pCfg.Name + "-end")
 	previous.OutputIDs = []string{endNoop.OperatorID}
 	endNoop.OutputIDs = []string{"end"}
 	operators = append(operators, operator.NewConfig(endNoop))

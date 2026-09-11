@@ -5,7 +5,6 @@ package batchreceiver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -73,7 +72,7 @@ func TestReadFile(t *testing.T) {
 	require.Equal(t, "foo\n", received.Body)
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		_, err = os.Stat(file)
-		require.True(tt, errors.Is(err, fs.ErrNotExist), err)
+		require.ErrorIs(tt, err, fs.ErrNotExist)
 	}, 1*time.Second, 100*time.Millisecond)
 }
 

@@ -112,7 +112,7 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
 ## Running the `auto-instrumentation` CI Workflow Locally
 
 The [`auto-instrumentation.yml`](../.github/workflows/auto-instrumentation.yml) workflow builds the collector binary
-and the `splunk-otel-auto-instrumentation` package, then runs `packaging/tests/instrumentation/instrumentation_test.py`
+and the `splunk-otel-auto-instrumentation` package, then runs the Go tests under `tests/instrumentation`
 against them in distro containers. To reproduce a single `test-package (<distro>, <arch>, <testcase>)` job locally
 (e.g. `test-package (debian-bookworm, arm64, dotnet)`):
 
@@ -135,19 +135,26 @@ against them in distro containers. To reproduce a single `test-package (<distro>
 
    Produces `instrumentation/dist/*.deb` (or `.rpm`).
 
-3. Install the test dependencies:
+3. Set up Go:
 
    ```bash
-   python3 -m venv .venv && source .venv/bin/activate
-   pip install -r packaging/tests/requirements.txt
+   cd tests
+   go version
    ```
 
-4. Run pytest with the same `-k` filter CI uses (distro, arch, testcase):
+4. Run the Go test with the same distro, architecture, and test case selection CI uses:
 
    ```bash
-   python3 -u -m pytest -s --verbose \
-     -k "debian-bookworm and arm64 and (dotnet or uninstall)" \
-     packaging/tests/instrumentation/instrumentation_test.py
+   PACKAGE_TEST_TYPE=deb \
+   PACKAGE_TEST_DISTRO=debian-bookworm \
+   PACKAGE_TEST_ARCH=arm64 \
+   go test -tags integration -v -timeout 55m -count 1 ./instrumentation \
+     -run '^TestDotnetInstrumentation/debian-bookworm/arm64$'
+   PACKAGE_TEST_TYPE=deb \
+   PACKAGE_TEST_DISTRO=debian-bookworm \
+   PACKAGE_TEST_ARCH=arm64 \
+   go test -tags integration -v -timeout 55m -count 1 ./instrumentation \
+     -run '^TestPackage(Uninstall|UpgradeFromLibsplunk)/debian-bookworm/arm64$'
    ```
 
 Notes:

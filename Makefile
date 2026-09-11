@@ -441,10 +441,6 @@ chlog-preview:
 chlog-update:
 	$(CHLOGGEN) update -v $(VERSION)
 
-.PHONY: multimod-verify
-multimod-verify:
-	$(MULTIMOD) verify
-
 .PHONY: multimod-prerelease
 multimod-prerelease:
 	$(MULTIMOD) prerelease -s=true -b=false -v ./versions.yaml -m $(MODSET)

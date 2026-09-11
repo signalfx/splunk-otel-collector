@@ -1,0 +1,18 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+# This package is moved verbatim from github.com/splunk/tarunner. The linters
+# below are relaxed so the move lands as a pure copy; cleanup is a follow-up.
+linters:
+  disable:
+    - gocritic
+    - gosec
+    - perfsprint
+    - revive
+    - testifylint
+  settings:
+    govet:
+      disable:
+        - shadow

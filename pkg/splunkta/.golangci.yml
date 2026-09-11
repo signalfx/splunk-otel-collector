@@ -14,5 +14,5 @@ linters:
     - testifylint
   settings:
     govet:
-      disable:
+      enable:
         - shadow

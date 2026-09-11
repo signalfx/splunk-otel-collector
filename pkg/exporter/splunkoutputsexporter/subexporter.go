@@ -80,16 +80,7 @@ func (o factoryOptions) createLogsFunc(ctx context.Context, settings exporter.Se
 		return nil, fmt.Errorf("splunk_outputs: %w", err)
 	}
 
-	outputs, err := tabuilder.ReadOutputGroups(splunkHome)
-	if err != nil {
-		return nil, fmt.Errorf("splunk_outputs: %w (base_dir: %s)", err, splunkHome)
-	}
-
-	exporters, err := o.createExporters(ctx, splunkHome, outputs, settings)
-	if err != nil {
-		return nil, fmt.Errorf("splunk_outputs: %w", err)
-	}
-	return packExporters(exporters), nil
+	return newSplunkOutputsExporter(ctx, splunkHome, o, settings), nil
 }
 
 func (o factoryOptions) createExporters(ctx context.Context, baseDir string, outputs []Output, settings exporter.Settings) ([]exporter.Logs, error) {

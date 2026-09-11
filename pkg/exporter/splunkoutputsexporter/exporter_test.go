@@ -90,12 +90,13 @@ func newTestSettings() exporter.Settings {
 	}
 }
 
-func makeSystemOutputsConf(t *testing.T, content string) string {
+func makeSystemOutputsConf(t *testing.T) string {
 	t.Helper()
 	splunkHome := t.TempDir()
 	dir := filepath.Join(splunkHome, "etc", "system", "default")
 	require.NoError(t, os.MkdirAll(dir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "outputs.conf"), []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "outputs.conf"),
+		[]byte("[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n"), 0o600))
 	return splunkHome
 }
 
@@ -121,7 +122,7 @@ func TestShutdownWithoutStart(t *testing.T) {
 
 func TestStartBuildsInitialExporter(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
-	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+	splunkHome := makeSystemOutputsConf(t)
 
 	e, _ := newTestExporter(t, splunkHome, factory)
 	require.NoError(t, e.Start(context.Background(), nil))
@@ -148,7 +149,7 @@ func TestStartNoOutputsConf(t *testing.T) {
 
 func TestConsumeLogsDelegatesToActive(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
-	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+	splunkHome := makeSystemOutputsConf(t)
 
 	e, _ := newTestExporter(t, splunkHome, factory)
 	require.NoError(t, e.Start(context.Background(), nil))
@@ -160,7 +161,7 @@ func TestConsumeLogsDelegatesToActive(t *testing.T) {
 
 func TestReconcileSwapsExporter(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
-	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+	splunkHome := makeSystemOutputsConf(t)
 
 	e, _ := newTestExporter(t, splunkHome, factory)
 	require.NoError(t, e.Start(context.Background(), nil))
@@ -178,7 +179,7 @@ func TestReconcileSwapsExporter(t *testing.T) {
 
 func TestWatchLoopTriggersReconcileAfterDebounce(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
-	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+	splunkHome := makeSystemOutputsConf(t)
 
 	e, fake := newTestExporter(t, splunkHome, factory)
 	require.NoError(t, e.Start(context.Background(), nil))
@@ -197,7 +198,7 @@ func TestWatchLoopTriggersReconcileAfterDebounce(t *testing.T) {
 
 func TestShutdownDrainsWatchLoop(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
-	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+	splunkHome := makeSystemOutputsConf(t)
 
 	e, _ := newTestExporter(t, splunkHome, factory)
 	require.NoError(t, e.Start(context.Background(), nil))
@@ -217,7 +218,7 @@ func TestShutdownDrainsWatchLoop(t *testing.T) {
 
 func TestWatchedDirsRegistered(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
-	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+	splunkHome := makeSystemOutputsConf(t)
 
 	e, fake := newTestExporter(t, splunkHome, factory)
 	require.NoError(t, e.Start(context.Background(), nil))
@@ -231,7 +232,7 @@ func TestWatchedDirsRegistered(t *testing.T) {
 
 func TestReconcileRegistersLateLocalDir(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
-	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+	splunkHome := makeSystemOutputsConf(t)
 
 	e, fake := newTestExporter(t, splunkHome, factory)
 	require.NoError(t, e.Start(context.Background(), nil))

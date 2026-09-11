@@ -23,16 +23,14 @@ const debounceDuration = 500 * time.Millisecond
 // splunkOutputsExporter watches etc/system/default and etc/system/local for
 // outputs.conf changes and hot-reloads the underlying exporter on any change.
 type splunkOutputsExporter struct {
+	host       component.Host
+	active     exporter.Logs // currently running exporter; nopInstance when no outputs configured
+	watcher    fileWatcher
+	doneCh     chan struct{}
 	splunkHome string
 	options    factoryOptions
 	settings   exporter.Settings
-	host       component.Host
-
-	mu     sync.RWMutex
-	active exporter.Logs // currently running exporter; nopInstance when no outputs configured
-
-	watcher fileWatcher
-	doneCh  chan struct{}
+	mu         sync.RWMutex
 }
 
 func newSplunkOutputsExporter(_ context.Context, splunkHome string, options factoryOptions, settings exporter.Settings) *splunkOutputsExporter {

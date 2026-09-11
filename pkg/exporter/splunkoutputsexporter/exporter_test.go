@@ -124,7 +124,7 @@ func makeSystemOutputsConf(t *testing.T, content string) string {
 }
 
 // newTestExporter builds a splunkOutputsExporter pre-wired with a fake watcher
-// so tests can exercise reload without a real OS watcher.
+// so tests can exercise reconcile without a real OS watcher.
 func newTestExporter(t *testing.T, splunkHome string, factory SubExporterFactory) (*splunkOutputsExporter, *fakeWatcher) {
 	t.Helper()
 	opts := newFactoryOptions(WithSubExporter(factory))
@@ -182,7 +182,7 @@ func TestConsumeLogsDelegatesToActive(t *testing.T) {
 	assert.Equal(t, 1, factory.created[0].consumeCount)
 }
 
-func TestReloadSwapsExporter(t *testing.T) {
+func TestReconcileSwapsExporter(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
 	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
 
@@ -191,7 +191,7 @@ func TestReloadSwapsExporter(t *testing.T) {
 	defer e.Shutdown(context.Background()) //nolint:errcheck
 
 	first := factory.created[0]
-	e.reload(context.Background())
+	e.reconcile(context.Background())
 
 	// Old exporter should have been shut down.
 	assert.Equal(t, 1, first.shutdownCount)
@@ -200,7 +200,7 @@ func TestReloadSwapsExporter(t *testing.T) {
 	assert.NotSame(t, first, factory.last())
 }
 
-func TestWatchLoopTriggersReloadAfterDebounce(t *testing.T) {
+func TestWatchLoopTriggersReconcileAfterDebounce(t *testing.T) {
 	factory := &mockSubExporterFactory{scheme: "httpout"}
 	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
 
@@ -213,10 +213,10 @@ func TestWatchLoopTriggersReloadAfterDebounce(t *testing.T) {
 	// Send a filesystem event into the fake watcher.
 	fake.events <- fsnotify.Event{Name: filepath.Join(splunkHome, "etc", "system", "default", "outputs.conf")}
 
-	// Wait for debounce + reload. debounceDuration is 500ms; give it 2s total.
+	// Wait for debounce + reconcile. debounceDuration is 500ms; give it 2s total.
 	assert.Eventually(t, func() bool {
 		return first.shutdownCount >= 1
-	}, 2*time.Second, 50*time.Millisecond, "expected exporter to reload after debounce")
+	}, 2*time.Second, 50*time.Millisecond, "expected exporter to reconcile after debounce")
 }
 
 func TestShutdownDrainsWatchLoop(t *testing.T) {

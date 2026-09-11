@@ -73,8 +73,8 @@ func TestMonitorDirectoryWithSplunkRegexWhitelist(t *testing.T) {
 	require.NoError(t, o.Start(nil))
 	defer func() { require.NoError(t, o.Stop()) }()
 
-	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog.log"), []byte("line1\n"), 0o644))
-	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "auth"), []byte("line2\n"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog.log"), []byte("line1\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "auth"), []byte("line2\n"), 0o600))
 
 	// The regex whitelist is not a valid glob; the receiver falls back to dir/*
 	// so both files must be ingested.
@@ -135,7 +135,7 @@ func TestMonitorDirectoryEmptyWhitelist(t *testing.T) {
 	require.NoError(t, o.Start(nil))
 	defer func() { require.NoError(t, o.Stop()) }()
 
-	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog"), []byte("hello log\n"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog"), []byte("hello log\n"), 0o600))
 	received := <-output.Received
 	require.Equal(t, "hello log\n", received.Body)
 	// InputConfig sets the raw "index" attribute; renameMetadata (wired by the adapter)
@@ -176,7 +176,7 @@ func TestMonitorDirectoryNoWhitelist(t *testing.T) {
 	require.NoError(t, o.Start(nil))
 	defer func() { require.NoError(t, o.Stop()) }()
 
-	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog"), []byte("hello log\n"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog"), []byte("hello log\n"), 0o600))
 	received := <-output.Received
 	require.Equal(t, "hello log\n", received.Body)
 }
@@ -220,7 +220,7 @@ func TestReadFile(t *testing.T) {
 		require.NoError(t, o.Stop())
 	}()
 
-	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "foo.txt"), []byte("foo\n"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "foo.txt"), []byte("foo\n"), 0o600))
 	received := <-output.Received
 	require.Equal(t, "foo\n", received.Body)
 }

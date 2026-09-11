@@ -120,6 +120,7 @@ func (si *ScriptedInput) _execute(baseDir string, input conf.Input) error {
 	if err != nil {
 		return err
 	}
+	//nolint:gosec // G204: executing configured scripts is the intentional purpose of this component
 	cmd := exec.Command(command)
 	var stdin io.WriteCloser
 	var stdout io.ReadCloser

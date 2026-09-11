@@ -10,7 +10,6 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.uber.org/zap"
@@ -73,7 +72,7 @@ func Test_ScriptedInput(t *testing.T) {
 			settings := componenttest.NewNopTelemetrySettings()
 			settings.Logger, _ = zap.NewDevelopment()
 			o, err := c.Build(settings)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			require.NotNil(t, o)
 			fakeOut := testutil.NewFakeOutput(t)
 			require.NoError(t, fakeOut.Start(nil))
@@ -97,7 +96,7 @@ func Test_ScriptedInput(t *testing.T) {
 				}
 			} else {
 				time.Sleep(time.Millisecond * 100)
-				require.Len(t, fakeOut.Received, 0)
+				require.Empty(t, fakeOut.Received)
 			}
 			require.NoError(t, o.Stop())
 		})

@@ -214,6 +214,7 @@ func benchParseInput() (patterns []string) {
 	for i := 1; i <= 100; i++ {
 		b := make([]byte, 15)
 		for i := range b {
+			//nolint:gosec // G404: benchParseInput is a test benchmark helper; weak RNG is acceptable
 			b[i] = letterBytes[rand.IntN(len(letterBytes))]
 		}
 		randomStr := string(b)

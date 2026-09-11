@@ -98,6 +98,7 @@ func (m *memoryCache) copy() map[string]any {
 
 // maxSize returns the max size of the cache
 func (m *memoryCache) maxSize() uint16 {
+	//nolint:gosec // G115: cap(m.keys) is bounded by uint16 at creation time
 	return uint16(cap(m.keys))
 }
 
@@ -124,8 +125,9 @@ func newStartedAtomicLimiter(maxVal, interval uint64) *atomicLimiter {
 	}
 
 	a := &atomicLimiter{
-		count:    &atomic.Uint64{},
-		max:      maxVal,
+		count: &atomic.Uint64{},
+		max:   maxVal,
+		//nolint:gosec // G115: interval is a duration in seconds, safe to convert
 		interval: time.Second * time.Duration(interval),
 		done:     make(chan struct{}),
 	}

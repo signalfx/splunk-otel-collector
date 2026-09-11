@@ -244,6 +244,7 @@ func TestThrottledCache(t *testing.T) {
 	c := newMemoryCache(3, 120)
 	defer c.stop()
 	require.False(t, c.limiter.throttled())
+	//nolint:gosec // G115: c.limiter.limit() returns uint64 from uint16 cache, safe to convert
 	require.Equal(t, 4, int(c.limiter.limit()), "expected limit be cache size + 1")
 	require.InEpsilon(t, float64(120), c.limiter.resetInterval().Seconds(), 1e-6, "expected reset interval to be 120 seconds")
 
@@ -257,6 +258,7 @@ func TestThrottledCache(t *testing.T) {
 
 	// limiter is incremented after cache is full. a cache of size 3
 	// with 6 additions will cause the limiter to be set to 3.
+	//nolint:gosec // G115: c.limiter.currentCount() returns uint64, safe to convert to int
 	require.Equal(t, 3, int(c.limiter.currentCount()), "expected limit count to be 3 after 6 additions to the cache")
 
 	// 7th addition will be throttled because the cache

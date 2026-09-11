@@ -3,6 +3,7 @@ module github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexpor
 go 1.26.6
 
 require (
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/splunk/tarunner v0.5.2-0.20260904224642-39b84b2ff193
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.65.0

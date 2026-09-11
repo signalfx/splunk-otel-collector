@@ -5,6 +5,7 @@ package splunkoutputsexporter
 
 import (
 	"context"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -63,8 +64,12 @@ func (e *splunkOutputsExporter) Start(ctx context.Context, host component.Host) 
 		e.watcher = watcher
 	}
 
+	// Watch etc/system itself so we detect when default/ or local/ are created.
+	// Also watch default/ and local/ directly for changes to outputs.conf within them.
+	// All adds are best-effort — dirs may not exist yet.
+	_ = e.watcher.Add(filepath.Join(e.splunkHome, "etc", "system"))
 	for _, dir := range tabuilder.SystemDirs(e.splunkHome) {
-		_ = e.watcher.Add(dir) // best-effort; dirs may not exist yet
+		_ = e.watcher.Add(dir)
 	}
 
 	go e.watchLoop(ctx)
@@ -131,6 +136,12 @@ func (e *splunkOutputsExporter) watchLoop(ctx context.Context) {
 
 func (e *splunkOutputsExporter) reconcile(ctx context.Context) {
 	logger := e.settings.Logger
+
+	// Retry watching system dirs in case they were created after Start.
+	_ = e.watcher.Add(filepath.Join(e.splunkHome, "etc", "system"))
+	for _, dir := range tabuilder.SystemDirs(e.splunkHome) {
+		_ = e.watcher.Add(dir)
+	}
 
 	newExp, err := e.startExporters(ctx)
 	if err != nil {

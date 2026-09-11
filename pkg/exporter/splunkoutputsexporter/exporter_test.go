@@ -247,6 +247,24 @@ func TestWatchedDirsRegistered(t *testing.T) {
 	require.NoError(t, e.Start(context.Background(), nil))
 	defer e.Shutdown(context.Background()) //nolint:errcheck
 
+	assert.Contains(t, fake.added, filepath.Join(splunkHome, "etc", "system"))
 	assert.Contains(t, fake.added, filepath.Join(splunkHome, "etc", "system", "default"))
 	assert.Contains(t, fake.added, filepath.Join(splunkHome, "etc", "system", "local"))
+}
+
+func TestReconcileRegistersLateLocalDir(t *testing.T) {
+	factory := &mockSubExporterFactory{scheme: "httpout"}
+	splunkHome := makeSystemOutputsConf(t, "[httpout]\nuri = https://hec.example.com\nhttpEventCollectorToken = tok\n")
+
+	e, fake := newTestExporter(t, splunkHome, factory)
+	require.NoError(t, e.Start(context.Background(), nil))
+	defer e.Shutdown(context.Background()) //nolint:errcheck
+
+	// local/ did not exist at Start time — simulate it being created later.
+	localDir := filepath.Join(splunkHome, "etc", "system", "local")
+	require.NoError(t, os.MkdirAll(localDir, 0o755))
+
+	e.reconcile(context.Background())
+
+	assert.Contains(t, fake.added, localDir)
 }

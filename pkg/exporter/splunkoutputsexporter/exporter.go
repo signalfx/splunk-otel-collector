@@ -27,7 +27,6 @@ type splunkOutputsExporter struct {
 	options    factoryOptions
 	settings   exporter.Settings
 	host       component.Host
-	createCtx  context.Context // context from factory creation, used for initial startExporters
 
 	mu     sync.RWMutex
 	active exporter.Logs // currently running exporter; nopInstance when no outputs configured
@@ -36,12 +35,11 @@ type splunkOutputsExporter struct {
 	doneCh  chan struct{}
 }
 
-func newSplunkOutputsExporter(ctx context.Context, splunkHome string, options factoryOptions, settings exporter.Settings) *splunkOutputsExporter {
+func newSplunkOutputsExporter(_ context.Context, splunkHome string, options factoryOptions, settings exporter.Settings) *splunkOutputsExporter {
 	return &splunkOutputsExporter{
 		splunkHome: splunkHome,
 		options:    options,
 		settings:   settings,
-		createCtx:  ctx,
 		doneCh:     make(chan struct{}),
 	}
 }
@@ -49,7 +47,7 @@ func newSplunkOutputsExporter(ctx context.Context, splunkHome string, options fa
 func (e *splunkOutputsExporter) Start(ctx context.Context, host component.Host) error {
 	e.host = host
 
-	initial, err := e.startExporters(e.createCtx)
+	initial, err := e.startExporters(ctx)
 	if err != nil {
 		return err
 	}

@@ -21,13 +21,10 @@ import (
 )
 
 // fakeWatcher is an in-memory fileWatcher for unit tests.
-// Close signals the watch loop to exit via a separate done channel so that
-// in-flight events are not lost when the channels are closed.
 type fakeWatcher struct {
 	added  map[string]struct{}
 	events chan fsnotify.Event
 	errors chan error
-	done   chan struct{}
 }
 
 func newFakeWatcher() *fakeWatcher {
@@ -35,34 +32,13 @@ func newFakeWatcher() *fakeWatcher {
 		added:  map[string]struct{}{},
 		events: make(chan fsnotify.Event, 1),
 		errors: make(chan error, 1),
-		done:   make(chan struct{}),
 	}
 }
 
-func (f *fakeWatcher) Add(name string) error { f.added[name] = struct{}{}; return nil }
-func (f *fakeWatcher) Close() error          { close(f.done); return nil }
-
-func (f *fakeWatcher) Events() <-chan fsnotify.Event {
-	// Return a channel that is closed when done is closed, so watchLoop exits.
-	ch := make(chan fsnotify.Event, 1)
-	go func() {
-		for {
-			select {
-			case <-f.done:
-				close(ch)
-				return
-			case ev, ok := <-f.events:
-				if !ok {
-					return
-				}
-				ch <- ev
-			}
-		}
-	}()
-	return ch
-}
-
-func (f *fakeWatcher) Errors() <-chan error { return f.errors }
+func (f *fakeWatcher) Add(name string) error         { f.added[name] = struct{}{}; return nil }
+func (f *fakeWatcher) Close() error                  { close(f.events); return nil }
+func (f *fakeWatcher) Events() <-chan fsnotify.Event { return f.events }
+func (f *fakeWatcher) Errors() <-chan error          { return f.errors }
 
 // mockExporter tracks Start and Shutdown calls.
 type mockExporter struct {

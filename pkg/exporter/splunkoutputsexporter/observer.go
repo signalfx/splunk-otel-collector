@@ -115,8 +115,12 @@ func (e *splunkOutputsExporter) Shutdown(ctx context.Context) error {
 
 func (e *splunkOutputsExporter) Capabilities() consumer.Capabilities {
 	e.mu.RLock()
-	defer e.mu.RUnlock()
-	return e.active.Capabilities()
+	active := e.active
+	e.mu.RUnlock()
+	if active == nil {
+		return consumer.Capabilities{}
+	}
+	return active.Capabilities()
 }
 
 func (e *splunkOutputsExporter) ConsumeLogs(ctx context.Context, logs plog.Logs) error {

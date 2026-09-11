@@ -209,35 +209,36 @@ func TestShutdown_PreservesAlreadyCompletedWaitError(t *testing.T) {
 }
 
 func TestShutdown_KillsImmediatelyWhenShutdownSignalFails(t *testing.T) {
+	signalErr := errors.New("signal failed")
 	readyFile := filepath.Join(t.TempDir(), "ready")
-	cmd := exec.Command(os.Args[0])
-	cmd.Env = append(os.Environ(),
-		launcherTestModeEnv+"="+ignoreInterruptsTestMode,
-		launcherTestReadyFileEnv+"="+readyFile,
-	)
-	require.NoError(t, cmd.Start())
+	child, err := startChild(launcher.Command{
+		Path: os.Args[0],
+		Env: append(os.Environ(),
+			launcherTestModeEnv+"="+ignoreInterruptsTestMode,
+			launcherTestReadyFileEnv+"="+readyFile,
+		),
+	}, nil)
+	require.NoError(t, err)
 	t.Cleanup(func() {
-		_ = cmd.Process.Kill()
+		_ = child.cmd.Process.Kill()
 	})
-
-	child := &childProcess{
-		cmd:  cmd,
-		done: waitForChild(nil, cmd.Wait),
-	}
 	require.Eventually(t, func() bool {
 		_, err := os.Stat(readyFile)
 		return err == nil
 	}, 10*time.Second, 10*time.Millisecond, "timed out waiting for child process to be ready")
 
-	result := waitForShutdown(t, child, gracefulShutdownTimeout)
+	result := waitForShutdown(t, func() childResult {
+		return child.handleShutdownSignalResult(gracefulShutdownTimeout, signalErr)
+	})
 
 	require.Error(t, result.shutdownWarning)
 	require.Contains(t, result.shutdownWarning.Error(), "failed to send graceful shutdown signal")
+	require.ErrorIs(t, result.shutdownWarning, signalErr)
 	require.NoError(t, result.outputErr)
 	require.NoError(t, result.waitErr)
 
-	require.NotNil(t, cmd.ProcessState)
-	require.True(t, cmd.ProcessState.Exited())
+	require.NotNil(t, child.cmd.ProcessState)
+	require.True(t, child.cmd.ProcessState.Exited())
 }
 
 func TestShutdown_KillsChildThatIgnoresShutdownSignal(t *testing.T) {
@@ -258,7 +259,9 @@ func TestShutdown_KillsChildThatIgnoresShutdownSignal(t *testing.T) {
 		return err == nil
 	}, 10*time.Second, 10*time.Millisecond, "timed out waiting for child process to be ready")
 
-	result := waitForShutdown(t, child, time.Second) // setting shorter grace period to not slow down tests too much
+	result := waitForShutdown(t, func() childResult {
+		return child.shutdown(time.Second) // setting shorter grace period to not slow down tests too much
+	})
 
 	require.Error(t, result.shutdownWarning)
 	require.Contains(t, result.shutdownWarning.Error(), "did not exit within 1s and was forcibly terminated")
@@ -269,12 +272,12 @@ func TestShutdown_KillsChildThatIgnoresShutdownSignal(t *testing.T) {
 	require.True(t, child.cmd.ProcessState.Exited())
 }
 
-func waitForShutdown(t *testing.T, child *childProcess, gracePeriod time.Duration) childResult {
+func waitForShutdown(t *testing.T, shutdown func() childResult) childResult {
 	t.Helper()
 
 	resultCh := make(chan childResult, 1)
 	go func() {
-		resultCh <- child.shutdown(gracePeriod)
+		resultCh <- shutdown()
 	}()
 
 	select {

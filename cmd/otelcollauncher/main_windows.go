@@ -300,8 +300,13 @@ func (p *childProcess) shutdown(timeout time.Duration) childResult {
 	default:
 	}
 
-	if err := sendShutdownSignal(p.cmd.Process); err != nil {
-		shutdownWarning := fmt.Errorf("failed to send graceful shutdown signal to child process: %w", err)
+	signalErr := sendShutdownSignal(p.cmd.Process)
+	return p.handleShutdownSignalResult(timeout, signalErr)
+}
+
+func (p *childProcess) handleShutdownSignalResult(timeout time.Duration, signalErr error) childResult {
+	if signalErr != nil {
+		shutdownWarning := fmt.Errorf("failed to send graceful shutdown signal to child process: %w", signalErr)
 		// A failed signal send is non-fatal if forcible termination succeeds.
 		// Recheck for a process exit, then kill immediately since the
 		// graceful shutdown signal was not delivered.

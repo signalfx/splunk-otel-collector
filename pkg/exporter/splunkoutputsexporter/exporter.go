@@ -64,13 +64,7 @@ func (e *splunkOutputsExporter) Start(ctx context.Context, host component.Host) 
 		e.watcher = watcher
 	}
 
-	// Watch etc/system itself so we detect when default/ or local/ are created.
-	// Also watch default/ and local/ directly for changes to outputs.conf within them.
-	// All adds are best-effort — dirs may not exist yet.
-	_ = e.watcher.Add(filepath.Join(e.splunkHome, "etc", "system"))
-	for _, dir := range tabuilder.SystemDirs(e.splunkHome) {
-		_ = e.watcher.Add(dir)
-	}
+	e.watchSystemDirs()
 
 	go e.watchLoop(ctx)
 	return nil
@@ -107,6 +101,18 @@ func (e *splunkOutputsExporter) ConsumeLogs(ctx context.Context, logs plog.Logs)
 	return active.ConsumeLogs(ctx, logs)
 }
 
+// watchSystemDirs registers all directories in the etc/system hierarchy with
+// the watcher. All adds are best-effort — dirs may not exist yet. Called at
+// Start and retried on every reconcile so newly created dirs are picked up.
+func (e *splunkOutputsExporter) watchSystemDirs() {
+	etcDir := filepath.Join(e.splunkHome, "etc")
+	_ = e.watcher.Add(etcDir)
+	_ = e.watcher.Add(filepath.Join(etcDir, "system"))
+	for _, dir := range tabuilder.SystemDirs(e.splunkHome) {
+		_ = e.watcher.Add(dir)
+	}
+}
+
 func (e *splunkOutputsExporter) watchLoop(ctx context.Context) {
 	defer close(e.doneCh)
 
@@ -137,11 +143,8 @@ func (e *splunkOutputsExporter) watchLoop(ctx context.Context) {
 func (e *splunkOutputsExporter) reconcile(ctx context.Context) {
 	logger := e.settings.Logger
 
-	// Retry watching system dirs in case they were created after Start.
-	_ = e.watcher.Add(filepath.Join(e.splunkHome, "etc", "system"))
-	for _, dir := range tabuilder.SystemDirs(e.splunkHome) {
-		_ = e.watcher.Add(dir)
-	}
+	// Retry watching in case dirs were created or re-created after Start.
+	e.watchSystemDirs()
 
 	newExp, err := e.startExporters(ctx)
 	if err != nil {

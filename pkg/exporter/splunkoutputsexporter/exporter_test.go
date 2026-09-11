@@ -247,6 +247,7 @@ func TestWatchedDirsRegistered(t *testing.T) {
 	require.NoError(t, e.Start(context.Background(), nil))
 	defer e.Shutdown(context.Background()) //nolint:errcheck
 
+	assert.Contains(t, fake.added, filepath.Join(splunkHome, "etc"))
 	assert.Contains(t, fake.added, filepath.Join(splunkHome, "etc", "system"))
 	assert.Contains(t, fake.added, filepath.Join(splunkHome, "etc", "system", "default"))
 	assert.Contains(t, fake.added, filepath.Join(splunkHome, "etc", "system", "local"))

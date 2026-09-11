@@ -8,6 +8,10 @@ DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
+
+# Module set released by multimod; must match a set in versions.yaml.
+MODSET?=splunk-otel-collector
+
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
@@ -437,12 +441,23 @@ chlog-preview:
 chlog-update:
 	$(CHLOGGEN) update -v $(VERSION)
 
-.PHONY: prepare-changelog
-prepare-changelog:
+.PHONY: multimod-prerelease
+multimod-prerelease:
+	$(MULTIMOD) prerelease -s=true -b=false -v ./versions.yaml -m $(MODSET)
+
+# Bumps the module set version in versions.yaml, rewrites intra-set module
+# requires to it via multimod, and rolls up the changelog.
+.PHONY: prepare-release
+prepare-release:
 	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
-		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
+		echo "Error: VERSION is required. Usage: make prepare-release VERSION=v0.132.0"; \
 		exit 1; \
 	fi
-	@make chlog-update
-	@echo "Preparing changelog for $(VERSION)..."
+	@echo "Preparing release $(VERSION) for module set $(MODSET)..."
+	awk -v set="$(MODSET)" -v ver="$(VERSION)" \
+		'$$0 ~ "^  " set ":" {inset=1} inset && /^    version:/ {sub(/version:.*/, "version: " ver); inset=0} {print}' \
+		versions.yaml > versions.yaml.tmp && mv versions.yaml.tmp versions.yaml
+	git add versions.yaml && git commit -m "Prepare $(MODSET) $(VERSION)"
+	@$(MAKE) multimod-prerelease
+	@$(MAKE) chlog-update
 	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

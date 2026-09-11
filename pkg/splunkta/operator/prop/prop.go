@@ -42,9 +42,9 @@ func CreateOperatorConfigs(pCfg conf.Prop, transforms []conf.Transform) []operat
 
 	if featuregates.CookFeatureGate.IsEnabled() {
 		// TODO implement a split parser.
-		//if !pCfg.ShouldLineMerge {
+		// if !pCfg.ShouldLineMerge {
 		//
-		//}
+		// }
 
 		for _, tCfg := range pCfg.Transforms {
 			for _, stanza := range tCfg.Stanza {

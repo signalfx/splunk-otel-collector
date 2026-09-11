@@ -4,8 +4,7 @@ run:
   timeout: 5m
 
 # This package is moved verbatim from github.com/splunk/tarunner. The linters
-# below are relaxed so the move lands as a pure copy; cleanup is tracked in
-# https://splunk.atlassian.net/browse/OTL-4599.
+# below are relaxed so the move lands as a pure copy; cleanup is a follow-up.
 linters:
   disable:
     - gocritic

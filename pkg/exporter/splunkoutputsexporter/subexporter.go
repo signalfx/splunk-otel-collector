@@ -121,6 +121,6 @@ func (o factoryOptions) createExporter(ctx context.Context, baseDir string, outp
 		})
 	}
 	// CreateOutputExporter does not take a context; threading it through the moved
-	// tabuilder API is tracked in https://splunk.atlassian.net/browse/OTL-4599.
+	// tabuilder API is a follow-up.
 	return tabuilder.CreateOutputExporter(&output, settings.Logger, settings.TelemetrySettings) //nolint:contextcheck
 }

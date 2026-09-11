@@ -25,8 +25,8 @@ func Test_ScriptedInput(t *testing.T) {
 	if raceDetectorEnabled {
 		// ScriptedInput has a known data race between _execute's cmd.Wait and the
 		// stdout reader goroutine, carried over verbatim from github.com/splunk/tarunner.
-		// The concurrency rework is tracked in https://splunk.atlassian.net/browse/OTL-4599.
-		t.Skip("Skipping under the race detector: known data race tracked in OTL-4599")
+		// The concurrency rework is a follow-up.
+		t.Skip("Skipping under the race detector: known data race in the moved scriptedinput code")
 	}
 
 	tests := []struct {

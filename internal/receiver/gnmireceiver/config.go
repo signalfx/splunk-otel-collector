@@ -53,6 +53,18 @@ const defaultRedial = 10 * time.Second
 type Config struct {
 	// Targets is the list of gNMI devices to subscribe to.
 	Targets []TargetConfig `mapstructure:"targets"`
+
+	// YangModules is a list of YANG module files and/or directories used to
+	// derive each leaf's metric type (gauge/sum), unit, and enum/identityref
+	// value set directly from the schema. Directories are searched
+	// recursively for "*.yang" files and are also added as import/include
+	// search paths, so a module that only exists to satisfy another module's
+	// "import" statement does not need to be listed explicitly. When set,
+	// "default"/"overrides" and their "type" become optional: an explicit
+	// "overrides" entry still wins outright over the schema, and "default"
+	// still fills in whatever the schema left blank (e.g. "unit", which most
+	// OpenConfig models omit). Optional.
+	YangModules []string `mapstructure:"yang_modules"`
 }
 
 // TargetConfig defines connectivity, authentication, and subscriptions for a
@@ -153,6 +165,29 @@ func (cfg *Config) Validate() error {
 	if len(cfg.Targets) == 0 {
 		return errors.New("at least one target must be specified")
 	}
+	if len(cfg.YangModules) == 0 {
+		return validateMetricConfigRequired(cfg.Targets)
+	}
+	return nil
+}
+
+func validateMetricConfigRequired(targets []TargetConfig) error {
+	for ti := range targets {
+		for si, sub := range targets[ti].Subscriptions {
+			prefix := fmt.Sprintf("targets[%d].subscriptions[%d]", ti, si)
+			if sub.Default == nil && len(sub.Overrides) == 0 {
+				return fmt.Errorf("%s: at least one of \"default\" or \"overrides\" must be specified when yang_modules is not set", prefix)
+			}
+			if sub.Default != nil && sub.Default.Type == "" {
+				return fmt.Errorf("%s.default: type is required when yang_modules is not set", prefix)
+			}
+			for leaf, override := range sub.Overrides {
+				if override.Type == "" {
+					return fmt.Errorf("%s.overrides[%q]: type is required when yang_modules is not set", prefix, leaf)
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -214,18 +249,12 @@ func (s *SubscriptionConfig) Validate() error {
 	if s.HeartbeatInterval < 0 {
 		return errors.New("heartbeat_interval must be >= 0")
 	}
-
-	if s.Default == nil && len(s.Overrides) == 0 {
-		return errors.New("at least one of \"default\" or \"overrides\" must be specified")
-	}
 	return nil
 }
 
 func (m *MetricConfig) Validate() error {
 	switch m.Type {
-	case metricTypeGauge, metricTypeSum:
-	case "":
-		return errors.New("type is required")
+	case metricTypeGauge, metricTypeSum, "":
 	default:
 		return fmt.Errorf("invalid type %q (supported: %q, %q)",
 			m.Type, metricTypeGauge, metricTypeSum)

@@ -64,6 +64,11 @@ tests/receivers/istio/istio-*/
 # Splunk_TA_nix addon contents
 examples/splunkinputs/Splunk_TA_nix/
 
+# splunkinputs-on-windows example artifacts
+examples/splunkinputs-on-windows/otelcol.exe
+examples/splunkinputs-on-windows/ta/
+examples/splunkinputs-on-windows/splunk_home/
+
 # Splunk Connect for OTLP binaries, tgz and test file
 packaging/otlpinput/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp
 packaging/otlpinput/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp

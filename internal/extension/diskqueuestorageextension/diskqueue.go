@@ -41,15 +41,15 @@ type message struct {
 }
 
 type metadata struct {
+	metadata atomic.Value
 	fileNum  int64
 	pos      int64
-	metadata atomic.Value
 }
 
 type callback struct {
+	metadata []byte
 	pos      int64
 	fileNum  int64
-	metadata []byte
 }
 
 type writeMessage struct {
@@ -60,21 +60,21 @@ type writeMessage struct {
 // diskQueue implements a filesystem backed FIFO queue
 type diskQueue struct {
 	writeFile             *os.File
-	writeChan             chan writeMessage
 	exitChan              chan int
+	peekFile              *os.File
 	peekRequestChan       chan []byte
 	waitForWriteChan      chan struct{}
 	logger                *zap.Logger
-	peekFile              *os.File
+	callbackChan          chan callback
 	metadataFile          *os.File
 	peekMetadataFile      *os.File
 	peekChan              chan message
+	writeChan             chan writeMessage
 	writeResponseChan     chan error
-	callbackChan          chan callback
 	dataPath              string
 	name                  string
-	metadata              metadata
 	peekMetadata          metadata
+	metadata              metadata
 	exitWG                sync.WaitGroup
 	maxBytesPerFile       int64
 	syncTimeout           time.Duration
@@ -123,7 +123,7 @@ func newQueue(name, dataPath string, maxBytesPerFile int64,
 	return &d, nil
 }
 
-func (d *diskQueue) put(metadata []byte, data []byte) error {
+func (d *diskQueue) put(metadata, data []byte) error {
 	if d.exitFlag.Load() {
 		return errors.New("exiting")
 	}
@@ -204,7 +204,7 @@ func (d *diskQueue) peekData() ([]byte, error) {
 	return readBuf, nil
 }
 
-func (d *diskQueue) write(metadata []byte, data []byte) error {
+func (d *diskQueue) write(metadata, data []byte) error {
 	dataLen := int64(len(data))
 
 	if d.writeFile == nil {
@@ -252,6 +252,8 @@ func (d *diskQueue) write(metadata []byte, data []byte) error {
 	if writePos > 0 && writePos > d.maxBytesPerFile {
 		writeFileNum++
 		writePos = 0
+		d.metadata.pos = writePos
+		d.metadata.fileNum = writeFileNum
 
 		// sync every time we start writing to a new file
 		err = d.sync()
@@ -373,7 +375,7 @@ func (d *diskQueue) retrieveMetaData(fileName string) (*metadata, error) {
 		return nil, err
 	}
 	metadataLen := binary.BigEndian.Uint64(buf.Bytes()[0:8])
-	_, err = f.Seek(-8-int64(metadataLen)-16, io.SeekEnd)
+	_, err = f.Seek(-8-int64(metadataLen)-16, io.SeekEnd) //nolint:gosec // disable G115
 	if err != nil {
 		return nil, err
 	}
@@ -531,7 +533,7 @@ func (d *diskQueue) persistMetaData() error {
 	mb := d.metadata.metadata.Load().([]byte)
 	buf.Write(mb)
 	// we read from the end of the file, so place length after.
-	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(len(mb)))) //nolint:gosec // disable G115
+	buf.Write(binary.BigEndian.AppendUint64(nil, uint64(len(mb))))
 	_, err := d.metadataFile.Write(buf.Bytes())
 	if err != nil {
 		_ = d.metadataFile.Close()

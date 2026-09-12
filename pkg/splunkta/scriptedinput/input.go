@@ -23,6 +23,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 )
 
+// ScriptedInput is an operator that executes scripts and processes their output.
 type ScriptedInput struct {
 	logger   *zap.Logger
 	doneChan chan struct{}
@@ -31,6 +32,7 @@ type ScriptedInput struct {
 	helper.InputOperator
 }
 
+// Start starts the ScriptedInput.
 func (si *ScriptedInput) Start(_ operator.Persister) error {
 	if _, err := si.scheduleInput(si.cfg.BaseDir, si.cfg.Input); err != nil {
 		return err
@@ -38,6 +40,7 @@ func (si *ScriptedInput) Start(_ operator.Persister) error {
 	return nil
 }
 
+// Stop stops the ScriptedInput.
 func (si *ScriptedInput) Stop() error {
 	if si.command != nil {
 		_ = si.command.Process.Signal(syscall.SIGTERM)

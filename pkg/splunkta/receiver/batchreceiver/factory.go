@@ -15,6 +15,7 @@ func init() {
 	_ = featuregate.GlobalRegistry().Set("filelog.allowFileDeletion", true)
 }
 
+// NewFactory creates a new factory for the batch receiver.
 func NewFactory() receiver.Factory {
 	return adapter.NewFactory(batch{
 		logger: zap.NewNop(),

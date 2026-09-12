@@ -21,6 +21,7 @@ type Parser struct {
 	parseValues bool
 }
 
+// Stop stops the parser.
 func (p *Parser) Stop() error {
 	if p.cache != nil {
 		p.cache.stop()
@@ -28,6 +29,7 @@ func (p *Parser) Stop() error {
 	return nil
 }
 
+// ProcessBatch processes a batch of entries.
 func (p *Parser) ProcessBatch(ctx context.Context, entries []*entry.Entry) error {
 	return p.ProcessBatchWith(ctx, entries, p.parse)
 }

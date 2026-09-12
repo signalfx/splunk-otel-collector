@@ -1,6 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package conf handles parsing of Splunk configuration files.
 package conf
 
 import (
@@ -15,6 +16,7 @@ const (
 `
 )
 
+// Input represents a scripted input configuration.
 type Input struct {
 	ServerHost    string        `xml:"server_host"`
 	ServerURI     string        `xml:"server_uri"`
@@ -30,6 +32,7 @@ func (s *Stanza) IsDisabled() bool {
 	return p != nil && (p.Value == "1" || p.Value == "true")
 }
 
+// ReadInput parses a payload of input configurations and returns them.
 func ReadInput(payload []byte, appDir string) ([]Input, error) {
 	f, err := ini.Load(payload)
 	if err != nil {
@@ -103,6 +106,7 @@ func mergeInput(base, override Input) Input {
 	return merged
 }
 
+// ToXML marshals the Input to XML format.
 func (i *Input) ToXML() ([]byte, error) {
 	b, err := xml.MarshalIndent(i, "", "  ")
 	return append([]byte(xmlDeclaration), b...), err

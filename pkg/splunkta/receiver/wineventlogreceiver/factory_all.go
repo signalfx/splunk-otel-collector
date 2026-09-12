@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 )
 
+// NewFactory creates a new factory for the Windows Event Log receiver (non-Windows stub).
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		component.MustNewType("wineventlog"),
@@ -21,7 +22,7 @@ func NewFactory() receiver.Factory {
 			return nil
 		},
 		receiver.WithLogs(
-			func(ctx context.Context, settings receiver.Settings, config component.Config, logs consumer.Logs) (receiver.Logs, error) {
+			func(_ context.Context, _ receiver.Settings, _ component.Config, _ consumer.Logs) (receiver.Logs, error) {
 				return nil, errors.New("wineventlog is not supported outside Windows environments")
 			},
 			component.StabilityLevelAlpha,

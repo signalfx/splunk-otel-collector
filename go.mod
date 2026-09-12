@@ -42,7 +42,6 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.160.0
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
-	github.com/splunk/tarunner/pkg/splunkinputsreceiver v0.5.1
 	github.com/stretchr/testify v1.12.1
 	go.etcd.io/etcd/client/v2 v2.305.33
 	go.opentelemetry.io/collector/component/componentstatus v0.160.0
@@ -475,7 +474,6 @@ require (
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.7.0 // indirect
-	github.com/splunk/tarunner v0.5.0 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.26.0 // indirect
 	github.com/tg123/go-htpasswd v1.2.5 // indirect
 	github.com/thda/tds v0.1.7 // indirect

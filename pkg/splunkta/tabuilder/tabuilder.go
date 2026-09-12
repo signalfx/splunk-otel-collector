@@ -379,7 +379,7 @@ func ReadProps(dirs []string) ([]conf.Prop, error) {
 
 // ReadOutputs merges outputs.conf across $SPLUNK_HOME using standard Splunk
 // precedence. Use HTTPOut (or future TCPOut, etc.) to extract a specific type.
-func ReadOutputs(splunkHome string) (conf.ConfMap, error) {
+func ReadOutputs(splunkHome string) (conf.Map, error) {
 	payloads, err := readConfFiles(confFilePaths(ConfDirs(splunkHome), "outputs.conf"))
 	if err != nil {
 		return nil, err
@@ -397,12 +397,13 @@ func ReadOutputGroups(splunkHome string) ([]conf.Output, error) {
 	return conf.OutputGroups(merged)
 }
 
-func HTTPOut(merged conf.ConfMap) (*conf.Output, error) {
+// HTTPOut returns the [httpout] stanza from a merged outputs.conf map.
+func HTTPOut(merged conf.Map) (*conf.Output, error) {
 	return conf.HTTPOut(merged)
 }
 
 // CreateExporter builds a logs exporter from a merged outputs conf map.
-func CreateExporter(merged conf.ConfMap, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
+func CreateExporter(merged conf.Map, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
 	output, err := conf.HTTPOut(merged)
 	if err != nil {
 		return nil, err

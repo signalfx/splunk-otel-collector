@@ -16,20 +16,21 @@ var ErrNoHTTPOut = errors.New("no [httpout] stanza found in outputs.conf")
 // ErrNoOutputStanzas is returned when outputs.conf contains no output stanzas.
 var ErrNoOutputStanzas = errors.New("no output stanzas found in outputs.conf")
 
-// ConfMap is a parsed .conf file: stanza name -> key -> value.
-type ConfMap map[string]map[string]string
+// Map is a parsed .conf file: stanza name -> key -> value.
+type Map map[string]map[string]string
 
 // Output holds the settings from outputs.conf stanza.
 type Output struct {
 	Configuration Configuration
 }
 
-func ParseConf(payload []byte) (ConfMap, error) {
+// ParseConf parses a .conf file payload into a Map.
+func ParseConf(payload []byte) (Map, error) {
 	f, err := ini.Load(payload)
 	if err != nil {
 		return nil, err
 	}
-	result := make(ConfMap)
+	result := make(Map)
 	for _, section := range f.Sections() {
 		name := section.Name()
 		if name == ini.DefaultSection {
@@ -44,8 +45,9 @@ func ParseConf(payload []byte) (ConfMap, error) {
 	return result, nil
 }
 
-func ParseAndMergeConf(payloads [][]byte) (ConfMap, error) {
-	var layers []ConfMap
+// ParseAndMergeConf parses and merges multiple .conf payloads.
+func ParseAndMergeConf(payloads [][]byte) (Map, error) {
+	var layers []Map
 	for _, b := range payloads {
 		parsed, err := ParseConf(b)
 		if err != nil {
@@ -56,8 +58,9 @@ func ParseAndMergeConf(payloads [][]byte) (ConfMap, error) {
 	return MergeConf(layers), nil
 }
 
-func MergeConf(layers []ConfMap) ConfMap {
-	merged := make(ConfMap)
+// MergeConf merges multiple Map layers; later layers take precedence.
+func MergeConf(layers []Map) Map {
+	merged := make(Map)
 	for _, layer := range layers {
 		for stanza, keys := range layer {
 			if merged[stanza] == nil {
@@ -82,7 +85,7 @@ func ReadOutputGroups(payload []byte) ([]Output, error) {
 }
 
 // OutputGroups converts merged outputs.conf stanzas to Output values.
-func OutputGroups(merged ConfMap) ([]Output, error) {
+func OutputGroups(merged Map) ([]Output, error) {
 	if len(merged) == 0 {
 		return nil, ErrNoOutputStanzas
 	}
@@ -101,7 +104,7 @@ func OutputGroups(merged ConfMap) ([]Output, error) {
 }
 
 // HTTPOut extracts the [httpout] stanza from a merged outputs.conf map.
-func HTTPOut(merged ConfMap) (*Output, error) {
+func HTTPOut(merged Map) (*Output, error) {
 	keys, ok := merged["httpout"]
 	if !ok {
 		return nil, ErrNoHTTPOut

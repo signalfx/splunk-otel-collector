@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+// Package transform implements the transform operator for the splunkta package.
 package transform
 
 import (

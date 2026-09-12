@@ -9,7 +9,6 @@ linters:
   disable:
     - gosec
     - perfsprint
-    - revive
   settings:
     govet:
       disable:

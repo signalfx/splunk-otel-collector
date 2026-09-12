@@ -11,5 +11,5 @@ linters:
     - perfsprint
   settings:
     govet:
-      disable:
+      enable:
         - shadow

@@ -103,9 +103,10 @@ you downloaded and the HEC endpoint/token to send data to:
 
 ```powershell
 .\run-example.ps1 `
-    -TaPackagePath 'C:\Users\you\Downloads\splunk-add-on-for-microsoft-windows_1100.spl' `
+    -TaPackagePath "$env:USERPROFILE\Downloads\splunk-add-on-for-microsoft-windows_1100.spl" `
     -SplunkHecUrl 'https://your-splunk-host:8088/services/collector/event' `
-    -SplunkHecToken '00000000-0000-0000-0000-0000000000000'
+    -SplunkHecToken '00000000-0000-0000-0000-0000000000000' `
+    -DisabledStanzaNames WinEventLog,powershell,MonitorNoHandle,WinHostMon,WinPrintMon,WinNetMon,perfmon,admon,WinRegMon
 ```
 
 This extracts the TA to a local `ta` folder, copies its `default/` directory

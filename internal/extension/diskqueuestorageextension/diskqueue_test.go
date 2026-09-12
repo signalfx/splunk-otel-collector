@@ -33,7 +33,7 @@ func newQueueForTesting(t *testing.T) *diskQueue {
 func TestEmptyQueue(t *testing.T) {
 	empty := newQueueForTesting(t)
 	select {
-	case <-empty.peek():
+	case <-empty.peek([]byte{}):
 		assert.Fail(t, "should not peek")
 	default:
 	}
@@ -42,110 +42,110 @@ func TestEmptyQueue(t *testing.T) {
 
 func TestPutPeekConsume(t *testing.T) {
 	q := newQueueForTesting(t)
-	require.NoError(t, q.put([]byte("hello world")))
-	msg := <-q.peek()
-	msg.consumeCallback()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	msg := <-q.peek([]byte{})
+	msg.consumeCallback([]byte{})
 	require.NoError(t, q.close())
 }
 
 func TestCatchUpToHeadAndReadOne(t *testing.T) {
 	q := newQueueForTesting(t)
-	require.NoError(t, q.put([]byte("hello world")))
-	msg := <-q.peek()
-	msg.consumeCallback()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	msg := <-q.peek([]byte{})
+	msg.consumeCallback([]byte{})
 	// we caught up to tip, now do one more
-	require.NoError(t, q.put([]byte("hello world")))
-	msg = <-q.peek()
-	msg.consumeCallback()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	msg = <-q.peek([]byte{})
+	msg.consumeCallback([]byte{})
 	require.NoError(t, q.close())
 }
 
 func TestWaitForOneMore(t *testing.T) {
 	q := newQueueForTesting(t)
-	require.NoError(t, q.put([]byte("hello world")))
-	msg := <-q.peek()
-	msg.consumeCallback()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	msg := <-q.peek([]byte{})
+	msg.consumeCallback([]byte{})
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		_ = q.put([]byte("hello world"))
+		_ = q.put([]byte{}, []byte("hello world"))
 	}()
-	msg = <-q.peek()
+	msg = <-q.peek([]byte{})
 
-	msg.consumeCallback()
+	msg.consumeCallback([]byte{})
 	require.NoError(t, q.close())
 }
 
 func TestTwoPutsPeek(t *testing.T) {
 	q := newQueueForTesting(t)
-	require.NoError(t, q.put([]byte("hello world")))
-	require.NoError(t, q.put([]byte("hello world2")))
-	msg := <-q.peek()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world2")))
+	msg := <-q.peek([]byte{})
 	require.NoError(t, q.close())
 	require.Equal(t, "hello world", string(msg.payload))
 }
 
 func TestThreePutsThreeConsumes(t *testing.T) {
 	q := newQueueForTesting(t)
-	require.NoError(t, q.put([]byte("hello world")))
-	require.NoError(t, q.put([]byte("hello world2")))
-	require.NoError(t, q.put([]byte("hello world3")))
-	msg := <-q.peek()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world2")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world3")))
+	msg := <-q.peek([]byte{})
 	require.Equal(t, "hello world", string(msg.payload))
 	// do it again
-	msg = <-q.peek()
+	msg = <-q.peek([]byte{})
 	require.Equal(t, "hello world2", string(msg.payload))
-	msg = <-q.peek()
+	msg = <-q.peek([]byte{})
 	assert.Equal(t, "hello world3", string(msg.payload))
-	msg.consumeCallback()
+	msg.consumeCallback([]byte{})
 	require.NoError(t, q.close())
 }
 
 func TestThreePutsThreeConsumesOutOfOrder(t *testing.T) {
 	q := newQueueForTesting(t)
-	require.NoError(t, q.put([]byte("hello world")))
-	require.NoError(t, q.put([]byte("hello world2")))
-	require.NoError(t, q.put([]byte("hello world3")))
-	msg1 := <-q.peek()
-	msg1.consumeCallback()
-	msg2 := <-q.peek()
-	msg3 := <-q.peek()
-	msg3.consumeCallback()
-	msg2.consumeCallback()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world2")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world3")))
+	msg1 := <-q.peek([]byte{})
+	msg1.consumeCallback([]byte{})
+	msg2 := <-q.peek([]byte{})
+	msg3 := <-q.peek([]byte{})
+	msg3.consumeCallback([]byte{})
+	msg2.consumeCallback([]byte{})
 	require.NoError(t, q.close())
 }
 
 func TestMultipleWorkers(t *testing.T) {
 	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
-	require.NoError(t, q.put([]byte("hello world")))
-	require.NoError(t, q.put([]byte("hello world2")))
-	require.NoError(t, q.put([]byte("hello world3")))
-	msg := <-q.peek()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world2")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world3")))
+	msg := <-q.peek([]byte{})
 	require.Equal(t, "hello world", string(msg.payload))
-	msg.consumeCallback()
-	msg = <-q.peek()
+	msg.consumeCallback([]byte{})
+	msg = <-q.peek([]byte{})
 	require.Equal(t, "hello world2", string(msg.payload))
-	msg.consumeCallback()
-	msg = <-q.peek()
+	msg.consumeCallback([]byte{})
+	msg = <-q.peek([]byte{})
 	require.Equal(t, "hello world3", string(msg.payload))
-	msg.consumeCallback()
+	msg.consumeCallback([]byte{})
 	require.NoError(t, q.close())
 }
 
 func TestMultipleWorkersOutOfOrder(t *testing.T) {
 	q, _ := newQueue("foo", t.TempDir(), 10_000_000, 1, 1*time.Second, zap.NewNop())
-	require.NoError(t, q.put([]byte("hello world")))
-	require.NoError(t, q.put([]byte("hello world2")))
-	require.NoError(t, q.put([]byte("hello world3")))
-	msg1 := <-q.peek()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world2")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world3")))
+	msg1 := <-q.peek([]byte{})
 	m1 := slices.Clone(msg1.payload)
-	msg1.consumeCallback()
-	msg2 := <-q.peek()
+	msg1.consumeCallback([]byte{})
+	msg2 := <-q.peek([]byte{})
 	m2 := slices.Clone(msg2.payload)
-	msg3 := <-q.peek()
+	msg3 := <-q.peek([]byte{})
 	m3 := slices.Clone(msg3.payload)
-	msg3.consumeCallback()
-	msg2.consumeCallback()
+	msg3.consumeCallback([]byte{})
+	msg2.consumeCallback([]byte{})
 	require.NoError(t, q.close())
 
 	assert.Equal(t, "hello world", string(m1))
@@ -157,14 +157,15 @@ func TestStartStopRestart(t *testing.T) {
 	dir := t.TempDir()
 	logger, _ := zap.NewDevelopment()
 	q, _ := newQueue("foo", dir, 10_000_000, 1, 1*time.Second, logger)
-	require.NoError(t, q.put([]byte("hello world")))
-	require.NoError(t, q.put([]byte("hello world2")))
-	require.NoError(t, q.put([]byte("hello world3")))
-	msg1 := <-q.peek()
-	msg1.consumeCallback()
+	require.NoError(t, q.put([]byte{}, []byte("hello world")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world2")))
+	require.NoError(t, q.put([]byte{}, []byte("hello world3")))
+	msg1 := <-q.peek([]byte{})
+	msg1.consumeCallback([]byte{})
 	require.NoError(t, q.close())
-	q, _ = newQueue("foo", dir, 10_000_000, 1, 1*time.Second, logger)
-	msg2 := <-q.peek()
+	q, err := newQueue("foo", dir, 10_000_000, 1, 1*time.Second, logger)
+	require.NoError(t, err)
+	msg2 := <-q.peek([]byte{})
 	require.Equal(t, "hello world2", string(msg2.payload))
 	require.NoError(t, q.close())
 }

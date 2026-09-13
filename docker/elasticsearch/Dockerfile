@@ -1,4 +1,4 @@
-FROM elasticsearch:9.5.2
+FROM elasticsearch:9.5.3
 
 ENV discovery.type=single-node
 

@@ -53,13 +53,11 @@ type diskQueueStorageExtension struct {
 }
 
 type client struct {
-	queue                 *diskQueue
-	logger                *zap.Logger
-	name                  string
-	path                  string
-	callbacks             []map[string]func(metadata []byte)
-	metadataWrites        int
-	metadataTruncateEvery int
+	queue     *diskQueue
+	logger    *zap.Logger
+	name      string
+	path      string
+	callbacks []map[string]func(metadata []byte)
 }
 
 func (c *client) Get(_ context.Context, key string) ([]byte, error) {
@@ -169,7 +167,6 @@ func (d *diskQueueStorageExtension) GetClient(_ context.Context, _ component.Kin
 		callbacks: []map[string]func([]byte){
 			make(map[string]func([]byte), callbacksSize),
 		},
-		metadataTruncateEvery: 1000,
 	}, nil
 }
 

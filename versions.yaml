@@ -29,6 +29,7 @@ module-sets:
       - github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor
       - github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
       - github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver
+      - github.com/signalfx/splunk-otel-collector/pkg/splunkta
 excluded-modules:
   - github.com/signalfx/signalfx-agent
   - github.com/signalfx/splunk-otel-collector/internal/tools

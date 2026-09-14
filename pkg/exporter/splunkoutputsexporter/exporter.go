@@ -15,7 +15,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 
-	"github.com/splunk/tarunner/pkg/splunkta/tabuilder"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
 const debounceDuration = 500 * time.Millisecond

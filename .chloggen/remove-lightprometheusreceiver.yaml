@@ -1,6 +1,6 @@
 change_type: breaking
 component: receiver/lightprometheus
 note: Remove the deprecated `lightprometheus` receiver.
-issues: []
+issues: [8086]
 subtext: |
   Use the `prometheus` or `prometheus_simple` receiver instead.

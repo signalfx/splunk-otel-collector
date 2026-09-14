@@ -89,7 +89,6 @@ func TestDefaultComponents(t *testing.T) {
 		"kafka",
 		"kafka_metrics",
 		"kubelet_stats",
-		"lightprometheus",
 		"memcached",
 		"mongodb",
 		"mongodb_atlas",

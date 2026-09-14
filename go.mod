@@ -27,7 +27,6 @@ require (
 	github.com/openconfig/gnmi v0.14.1
 	github.com/openconfig/ygot v0.35.0
 	github.com/prometheus/client_golang v1.24.1
-	github.com/prometheus/client_model v0.6.3
 	github.com/prometheus/common v0.71.0
 	github.com/prometheus/prometheus v0.314.0
 	github.com/shirou/gopsutil/v4 v4.26.8
@@ -68,7 +67,6 @@ require (
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.160.0
 	go.opentelemetry.io/collector/receiver/receiverhelper v0.160.0
 	go.opentelemetry.io/collector/receiver/receivertest v0.160.0
-	go.opentelemetry.io/collector/scraper v0.160.0
 	go.opentelemetry.io/collector/scraper/scraperhelper v0.160.0
 	go.opentelemetry.io/collector/service v0.160.0
 	go.opentelemetry.io/otel/metric v1.46.0
@@ -447,6 +445,7 @@ require (
 	github.com/prometheus-community/pro-bing v0.9.1 // indirect
 	github.com/prometheus/alertmanager v0.33.1 // indirect
 	github.com/prometheus/client_golang/exp v0.0.0-20260724065723-ecdb8254ba61 // indirect
+	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/common/assets v0.2.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.17.1 // indirect
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
@@ -538,6 +537,7 @@ require (
 	go.opentelemetry.io/collector/processor/xprocessor v0.160.0 // indirect
 	go.opentelemetry.io/collector/receiver/nopreceiver v0.160.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.160.0 // indirect
+	go.opentelemetry.io/collector/scraper v0.160.0 // indirect
 	go.opentelemetry.io/collector/service/hostcapabilities v0.160.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.20.0 // indirect
 	go.opentelemetry.io/contrib/detectors/aws/ecs v1.45.0 // indirect

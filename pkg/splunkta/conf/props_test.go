@@ -111,8 +111,8 @@ func TestOrderProps(t *testing.T) {
 
 func TestParseFieldAliasExpr(t *testing.T) {
 	from, to := parseFieldAliasExpr("foo as bar")
-	assert.Equal(t, from, "foo")
-	assert.Equal(t, to, "bar")
+	assert.Equal(t, "foo", from)
+	assert.Equal(t, "bar", to)
 }
 
 func TestReadFieldAliases(t *testing.T) {

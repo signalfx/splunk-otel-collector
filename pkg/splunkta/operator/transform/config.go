@@ -20,6 +20,7 @@ import (
 
 const operatorType = "transform"
 
+// NewConfig creates a new Config for the given scope and transform.
 func NewConfig(scope string, t conf.Transform) *Config {
 	return &Config{
 		Regex:        t.Regex,

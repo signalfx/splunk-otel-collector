@@ -5,6 +5,7 @@ package conf
 
 import "gopkg.in/ini.v1"
 
+// Transform represents a transforms.conf stanza.
 type Transform struct {
 	Name   string
 	Regex  string
@@ -29,6 +30,7 @@ func MergeTransforms(layers [][]Transform) []Transform {
 	return result
 }
 
+// ReadTransforms parses a transforms.conf payload and returns the transforms.
 func ReadTransforms(payload []byte) ([]Transform, error) {
 	f, err := ini.Load(payload)
 	if err != nil {

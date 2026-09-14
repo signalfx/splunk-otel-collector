@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// NewFactory creates a new factory for the monitor receiver.
 func NewFactory() receiver.Factory {
 	return adapter.NewFactory(monitor{
 		logger: zap.NewNop(),

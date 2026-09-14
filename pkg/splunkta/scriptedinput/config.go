@@ -1,6 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package scriptedinput implements the scripted input operator.
 package scriptedinput
 
 import (
@@ -29,12 +30,14 @@ func NewConfigWithID(operatorID string) *Config {
 	}
 }
 
+// Config holds the configuration for the ScriptedInput operator.
 type Config struct {
 	BaseDir            string
 	conf.Input         `mapstructure:"-"`
 	helper.InputConfig `mapstructure:"-"`
 }
 
+// Build builds the Config into a ScriptedInput operator.
 func (c Config) Build(set component.TelemetrySettings) (operator.Operator, error) {
 	inputOperator, err := c.InputConfig.Build(set)
 	if err != nil {

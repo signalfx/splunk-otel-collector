@@ -1,6 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package script contains utilities for script command execution.
 package script
 
 import (
@@ -13,6 +14,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 )
 
+// DetermineCommandName determines the command name from the input configuration.
 func DetermineCommandName(baseDir string, input conf.Input) (string, error) {
 	parsed, err := stanza.ParseName(input.Configuration.Stanza.Name)
 	if err != nil {
@@ -40,6 +42,7 @@ func DetermineCommandName(baseDir string, input conf.Input) (string, error) {
 	}
 }
 
+// GetPath resolves a path relative to baseDir, ensuring it stays within baseDir.
 func GetPath(baseDir, path string) (string, error) {
 	var resolvedPath string
 	if filepath.IsAbs(path) {

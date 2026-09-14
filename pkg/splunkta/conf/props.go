@@ -11,17 +11,23 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// PropType represents the category of a property specification in props.conf.
 type PropType int
 
 const (
+	// Source is a source-specific property.
 	Source = iota
+	// Host is a host-specific property.
 	Host
+	// SourceType is a source type property.
 	SourceType
+	// Default is the default property.
 	Default
 )
 
 var fieldAliasRegex = regexp.MustCompile(`(\w+) as (\w+)`)
 
+// Prop represents a props.conf stanza.
 type Prop struct {
 	Name                  string
 	TimePrefix            string
@@ -36,17 +42,20 @@ type Prop struct {
 	ShouldLineMerge       bool
 }
 
+// FieldAlias represents a FIELDALIAS configuration in props.conf.
 type FieldAlias struct {
 	Name string
 	From string
 	To   string
 }
 
+// PropsTransforms represents a TRANSFORMS configuration in props.conf.
 type PropsTransforms struct {
 	Class  string
 	Stanza []string
 }
 
+// Type returns the PropType of the Prop.
 func (p *Prop) Type() PropType {
 	switch {
 	case strings.HasPrefix(p.Name, "source::"):
@@ -80,6 +89,7 @@ func MergeProps(layers [][]Prop) []Prop {
 	return result
 }
 
+// ReadProps parses a props.conf payload and returns the props.
 func ReadProps(payload []byte) ([]Prop, error) {
 	f, err := ini.Load(payload)
 	if err != nil {

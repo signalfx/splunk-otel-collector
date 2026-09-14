@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 )
 
+// NewFactory creates a new factory for the TCP receiver.
 func NewFactory() receiver.Factory {
 	return adapter.NewFactory(monitor{}, component.StabilityLevelAlpha)
 }

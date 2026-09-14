@@ -21,6 +21,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.160.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk v0.160.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.160.0
@@ -53,14 +54,17 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.66.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.66.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.66.0
+	go.opentelemetry.io/collector/consumer/consumererror v0.160.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.160.0
 	go.opentelemetry.io/collector/exporter v1.66.0
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.160.0
 	go.opentelemetry.io/collector/exporter/exportertest v0.160.0
+	go.opentelemetry.io/collector/exporter/otlpexporter v0.160.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.160.0
 	go.opentelemetry.io/collector/extension v1.66.0
 	go.opentelemetry.io/collector/extension/extensionauth v1.66.0
 	go.opentelemetry.io/collector/extension/extensiontest v0.160.0
+	go.opentelemetry.io/collector/extension/xextension v0.160.0
 	go.opentelemetry.io/collector/otelcol v0.160.0
 	go.opentelemetry.io/collector/pdata v1.66.0
 	go.opentelemetry.io/collector/pipeline v1.66.0
@@ -307,7 +311,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampcustommessages v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.160.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/k8s v0.160.0 // indirect
@@ -441,6 +444,7 @@ require (
 	github.com/pb33f/libopenapi v0.38.7 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.1 // indirect
 	github.com/petermattis/goid v0.0.0-20250721140440-ea1c0173183e // indirect
+	github.com/pierrec/lz4/v4 v4.1.29 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.11 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
@@ -507,17 +511,14 @@ require (
 	go.opentelemetry.io/collector/connector/connectortest v0.160.0 // indirect
 	go.opentelemetry.io/collector/connector/forwardconnector v0.160.0 // indirect
 	go.opentelemetry.io/collector/connector/xconnector v0.160.0 // indirect
-	go.opentelemetry.io/collector/consumer/consumererror v0.160.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/xconsumererror v0.160.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.160.0 // indirect
 	go.opentelemetry.io/collector/exporter/debugexporter v0.160.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/xexporterhelper v0.160.0 // indirect
 	go.opentelemetry.io/collector/exporter/nopexporter v0.160.0 // indirect
-	go.opentelemetry.io/collector/exporter/otlpexporter v0.160.0 // indirect
 	go.opentelemetry.io/collector/exporter/xexporter v0.160.0 // indirect
 	go.opentelemetry.io/collector/extension/extensioncapabilities v0.160.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionmiddleware v0.160.0 // indirect
-	go.opentelemetry.io/collector/extension/xextension v0.160.0 // indirect
 	go.opentelemetry.io/collector/extension/zpagesextension v0.160.0 // indirect
 	go.opentelemetry.io/collector/filter v0.160.0 // indirect
 	go.opentelemetry.io/collector/internal/componentalias v0.160.0 // indirect
@@ -748,7 +749,6 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
-	github.com/pierrec/lz4/v4 v4.1.29 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect

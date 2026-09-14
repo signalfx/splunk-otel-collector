@@ -1196,8 +1196,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/gopsutilenv v
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/gopsutilenv v0.160.0/go.mod h1:yCNeJ0HFgxOyFzi1B/qEijyub0LVlyuJ5Egl2UHSzsk=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/healthcheck v0.160.0 h1:SuW/UQn3F3t69saZPcIzpgsRBsOR9JtNhx1jexm9cpY=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/healthcheck v0.160.0/go.mod h1:rH/GP010UQ1N22CRKEF3gwFpqRCcLpoo/u4Fuwe0mCs=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.0 h1:d1+wYyM/cWn48IYlSJMsbhw2HkodYS+N4PPB0j0qems=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.0/go.mod h1:GmHiRXgv8mYjtKc5Baq1geissS477dhRosMGxqdRBG4=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.1-0.20260911234939-933f7c7ff041 h1:XrlP6PFaM9sk9glzsRPWNFTnceB2jBVTatGd/cYFRgs=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.1-0.20260911234939-933f7c7ff041/go.mod h1:uk3Df7D6LxBgancylthoR0U011UvgdvOsq940ECiqrg=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sinventory v0.160.0 h1:yX6b2VP+r6LC51PXQmGVXUJdc5dtKY+PlX3q10y/HBo=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sinventory v0.160.0/go.mod h1:QP1ZYQQbgyKIB7b1cN58nHGviq5VriAu09wDpL7WFSU=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sleaderelectortest v0.160.0 h1:1BSodp8Q8nn0KDwTsMIETxCvsXHQwVAiwelPNprdzLc=

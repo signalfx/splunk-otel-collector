@@ -21,11 +21,10 @@ C:\var\splunk_home\
         outputs.conf
 ```
 
-The script stages the TA under `etc/apps/Splunk_TA_windows`, enables its
-inputs, and writes `outputs.conf` under `etc/system/local` using the HEC URL
-and token supplied on the command line. Like `splunkinputs`'s
-`/var/splunk_home`, `C:\var\splunk_home` is a generic mount point; this example
-just happens to use the
+The script stages the TA under `C:\var\splunk_home\etc\apps\Splunk_TA_windows`, enables its
+inputs, and writes `outputs.conf` under `C:\var\splunk_home\etc\system\local` using the HEC URL
+and token supplied on the command line. 
+`C:\var\splunk_home` is a generic mount point; this example just happens to use the
 [Splunk Add-on for Microsoft Windows](https://splunkbase.splunk.com/app/742)
 as its example TA.
 

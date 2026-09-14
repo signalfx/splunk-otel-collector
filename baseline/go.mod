@@ -448,7 +448,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/filter v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/gopsutilenv v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/healthcheck v0.160.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.1-0.20260911234939-933f7c7ff041 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sinventory v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kafka v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.160.0 // indirect
@@ -700,9 +700,9 @@ require (
 	gopkg.in/ini.v1 v1.67.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.36.4 // indirect
-	k8s.io/apimachinery v0.36.4 // indirect
-	k8s.io/client-go v0.36.4 // indirect
+	k8s.io/api v0.37.0 // indirect
+	k8s.io/apimachinery v0.37.0 // indirect
+	k8s.io/client-go v0.37.0 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad // indirect
 	k8s.io/kubelet v0.36.4 // indirect

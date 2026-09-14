@@ -730,7 +730,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/filter v0.160.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.160.1-0.20260911234939-933f7c7ff041 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/metadataproviders v0.160.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.160.0 // indirect

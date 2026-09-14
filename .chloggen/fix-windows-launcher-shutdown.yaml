@@ -5,7 +5,7 @@ change_type: bug_fix
 component: otelcollauncher
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Update the Windows launcher to report successful shutdown when forcible child-process termination succeeds and avoid hanging when forcible termination fails.
+note: Fix the Windows launcher shutdown behavior that could leave child processes running despite launcher exit
 
 # One or more tracking issues related to the change
 issues: [8067]
@@ -13,4 +13,6 @@ issues: [8067]
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
-subtext:
+subtext: |
+  The Windows launcher is now placed in a Job Object to ensure child processes terminate if launcher crashes.
+  Windows launcher will report successful shutdown when forcible child process termination succeeds and avoid hanging when termination fails.

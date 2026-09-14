@@ -26,6 +26,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"unsafe"
 
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
@@ -48,6 +49,10 @@ var (
 // run starts as a Windows service when invoked by the Service Control Manager
 // and falls back to interactive mode for command-line runs.
 func run(args, env []string, paths launcher.Paths) error {
+	if err := createKillOnCloseJob(); err != nil {
+		return fmt.Errorf("failed to create launcher job object: %w", err)
+	}
+
 	// Allocate a console so it can later deliver CTRL_BREAK_EVENT to a child process group.
 	// Only free the console if we allocated it successfully; otherwise we may detach
 	// an existing interactive console and lose stderr output.
@@ -71,6 +76,36 @@ func run(args, env []string, paths launcher.Paths) error {
 		}
 		return fmt.Errorf("failed to start launcher service handler: %w", err)
 	}
+	return nil
+}
+
+// createKillOnCloseJob places the launcher in a job that Windows terminates
+// when the launcher exits. Descendant processes inherit membership in the job.
+func createKillOnCloseJob() error {
+	job, err := windows.CreateJobObject(nil, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create job object: %w", err)
+	}
+
+	info := windows.JOBOBJECT_EXTENDED_LIMIT_INFORMATION{}
+	info.BasicLimitInformation.LimitFlags = windows.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+	if _, err = windows.SetInformationJobObject(
+		job,
+		windows.JobObjectExtendedLimitInformation,
+		uintptr(unsafe.Pointer(&info)),
+		uint32(unsafe.Sizeof(info)),
+	); err != nil {
+		_ = windows.CloseHandle(job)
+		return fmt.Errorf("failed to configure job object: %w", err)
+	}
+
+	if err = windows.AssignProcessToJobObject(job, windows.CurrentProcess()); err != nil {
+		_ = windows.CloseHandle(job)
+		return fmt.Errorf("failed to assign launcher to job object: %w", err)
+	}
+
+	// The handle must remain open for the process lifetime. Windows closes it
+	// when the launcher terminates, triggering JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE.
 	return nil
 }
 

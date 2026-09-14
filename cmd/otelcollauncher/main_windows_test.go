@@ -22,6 +22,8 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -37,11 +39,14 @@ import (
 const (
 	launcherTestModeEnv      = "SPLUNK_OTEL_LAUNCHER_TEST_MODE"
 	launcherTestReadyFileEnv = "SPLUNK_OTEL_LAUNCHER_TEST_READY_FILE"
+	launcherTestPIDFileEnv   = "SPLUNK_OTEL_LAUNCHER_TEST_PID_FILE"
 	ignoreInterruptsTestMode = "ignore-interrupts"
+	jobOwnerTestMode         = "job-owner"
 )
 
 func TestMain(m *testing.M) {
-	if os.Getenv(launcherTestModeEnv) == ignoreInterruptsTestMode {
+	switch os.Getenv(launcherTestModeEnv) {
+	case ignoreInterruptsTestMode:
 		// Re-run this test binary as the child process so the test can verify the
 		// force shutdown. This will swallow shutdown signals so the process can only
 		// be terminated forcibly. Registers a handler rather than calling signal.Ignore
@@ -55,8 +60,78 @@ func TestMain(m *testing.M) {
 		for {
 			<-interrupts
 		}
+	case jobOwnerTestMode:
+		// Re-run this test binary as a launcher-like job owner. It starts a
+		// long-running descendant so the parent test can verify that terminating
+		// the job owner also terminates the descendant through kill-on-close.
+		if err := createKillOnCloseJob(); err != nil {
+			os.Exit(2)
+		}
+		child, err := startChild(launcher.Command{
+			Path: os.Args[0],
+			Env:  append(os.Environ(), launcherTestModeEnv+"="+ignoreInterruptsTestMode),
+		}, nil)
+		if err != nil {
+			os.Exit(2)
+		}
+		if err := os.WriteFile(
+			os.Getenv(launcherTestPIDFileEnv),
+			[]byte(strconv.Itoa(child.cmd.Process.Pid)),
+			0o600,
+		); err != nil {
+			os.Exit(2)
+		}
+		<-child.done
+		os.Exit(2)
 	}
 	os.Exit(m.Run())
+}
+
+func TestJobObjectTerminatesDescendantWhenLauncherExits(t *testing.T) {
+	testDir := t.TempDir()
+	readyFile := filepath.Join(testDir, "descendant-ready")
+	pidFile := filepath.Join(testDir, "descendant-pid")
+
+	owner, err := startChild(launcher.Command{
+		Path: os.Args[0],
+		Env: append(os.Environ(),
+			launcherTestModeEnv+"="+jobOwnerTestMode,
+			launcherTestReadyFileEnv+"="+readyFile,
+			launcherTestPIDFileEnv+"="+pidFile,
+		),
+	}, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = owner.cmd.Process.Kill()
+	})
+
+	require.Eventually(t, func() bool {
+		_, err := os.Stat(readyFile)
+		return err == nil
+	}, 10*time.Second, 10*time.Millisecond, "timed out waiting for descendant process to be ready")
+
+	var pid int
+	require.Eventually(t, func() bool {
+		pidBytes, err := os.ReadFile(pidFile)
+		if err != nil {
+			return false
+		}
+		pid, err = strconv.Atoi(strings.TrimSpace(string(pidBytes)))
+		return err == nil
+	}, 10*time.Second, 10*time.Millisecond, "timed out waiting for descendant PID")
+
+	descendant, err := windows.OpenProcess(windows.SYNCHRONIZE, false, uint32(pid))
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = windows.CloseHandle(descendant)
+	})
+
+	require.NoError(t, owner.cmd.Process.Kill())
+	<-owner.done
+
+	event, err := windows.WaitForSingleObject(descendant, uint32((10*time.Second)/time.Millisecond))
+	require.NoError(t, err)
+	require.Equal(t, uint32(windows.WAIT_OBJECT_0), event, "descendant was not terminated when the job owner exited")
 }
 
 func TestWaitForChildWaitsForOutputForwarding(t *testing.T) {

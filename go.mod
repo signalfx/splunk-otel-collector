@@ -32,14 +32,14 @@ require (
 	github.com/prometheus/common v0.71.0
 	github.com/prometheus/prometheus v0.314.0
 	github.com/shirou/gopsutil/v4 v4.26.8
-	github.com/signalfx/splunk-otel-collector/baseline v0.0.0
-	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/baseline v0.160.0
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.160.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.160.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.160.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.160.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.160.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.160.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.160.0
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
@@ -77,7 +77,7 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/sys v0.47.0
+	golang.org/x/sys v0.48.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -465,11 +465,11 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
 	github.com/signalfx/golib/v3 v3.5.0 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.0.0-00010101000000-000000000000 // indirect
 	github.com/snowflakedb/gosnowflake/v2 v2.2.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.7.0 // indirect
-	github.com/splunk/tarunner v0.5.2-0.20260904224642-39b84b2ff193 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.26.0 // indirect
 	github.com/tg123/go-htpasswd v1.2.5 // indirect
 	github.com/thda/tds v0.1.7 // indirect
@@ -787,14 +787,14 @@ require (
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0
-	golang.org/x/crypto v0.56.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20260727155853-b88d891fe743
-	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/term v0.45.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/term v0.46.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
@@ -828,6 +828,7 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver => ./pkg/receiver/splunkinputsreceiver
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta => ./pkg/splunkta
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )
 

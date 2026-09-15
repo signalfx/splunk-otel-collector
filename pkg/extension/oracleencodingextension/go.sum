@@ -38,8 +38,8 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJ
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=
 github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.160.0 h1:9DB2aUIid1BjtYOsXU0o9mIEl6u0UE+4MQRgmHDYv/o=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.160.0/go.mod h1:oL61j8Ea1AjFoiKlZmb9f47CcyEAOWXdaFu5NThpXxs=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.161.0 h1:dUQXyV94sMvKYu1d+neSQq7zwWq0ej52vAZrjybT/XE=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.161.0/go.mod h1:27IS3eIgpuKROv0bkZ4WOLsIGJKW7wkWrhHeMAOf5Bw=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
@@ -65,8 +65,8 @@ go.opentelemetry.io/collector/internal/testutil v0.161.0 h1:eNQHH/z5E6M15aQ409cF
 go.opentelemetry.io/collector/internal/testutil v0.161.0/go.mod h1:FV43FoAsh4fP615Sc5ZSh7iPMgZaSgha6ngavix9OEI=
 go.opentelemetry.io/collector/pdata v1.67.0 h1:dL654J7PNHc6EGHRa7j6gYtbSDBC7zs8Xl6Dcn4XH2E=
 go.opentelemetry.io/collector/pdata v1.67.0/go.mod h1:2CSCUtdgTXIGIk7GXoYuBZG2VjkrTzqcGIh6ukgXLwc=
-go.opentelemetry.io/collector/pdata/pprofile v0.160.0 h1:+8euxO2GcGN7CRB0wa/ddloU6AWCMjW0vanbwUIQicE=
-go.opentelemetry.io/collector/pdata/pprofile v0.160.0/go.mod h1:8lEJ1b9wLMl9nqlGdwXdXEp4a1eGWzkJ85E1HgvdXnE=
+go.opentelemetry.io/collector/pdata/pprofile v0.161.0 h1:69LCTV6/WcKM/sOCa4hSKX1fzcbag/4MenbRS6OoRA0=
+go.opentelemetry.io/collector/pdata/pprofile v0.161.0/go.mod h1:gusNvsJ88nRPRq4F3Azjep37O55EENifSiuwE1p1Zk0=
 go.opentelemetry.io/otel v1.46.0 h1:FHt5/CDyVxi/8IM1CH7VE/rRgq3kLHa2mSTVMO8AWyc=
 go.opentelemetry.io/otel v1.46.0/go.mod h1:Gj3SEScelsNC45tp4nSxRYlS+f5iez7W8XPMCt905kE=
 go.opentelemetry.io/otel/metric v1.46.0 h1:yBnkXvgV7AXFILZc5K6IZe/CBFF3OS7BJ8ov6/lj0K8=

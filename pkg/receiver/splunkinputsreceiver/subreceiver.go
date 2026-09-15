@@ -6,6 +6,7 @@ package splunkinputsreceiver
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -28,6 +29,24 @@ type (
 	FieldAlias    = conf.FieldAlias
 	PropType      = conf.PropType
 )
+
+// receiverSpec is the effective configuration for one TA input stanza. The
+// transforms and props are included because they are compiled into the
+// receiver's operator pipeline and therefore changing either changes the
+// receiver even when the input stanza itself is unchanged.
+type receiverSpec struct {
+	name       string
+	input      Input
+	transforms []Transform
+	props      []Prop
+}
+
+func (s receiverSpec) equal(other receiverSpec) bool {
+	return s.name == other.name &&
+		reflect.DeepEqual(s.input, other.input) &&
+		reflect.DeepEqual(s.transforms, other.transforms) &&
+		reflect.DeepEqual(s.props, other.props)
+}
 
 // ReceiverRequest is passed to a sub-receiver factory for one inputs.conf
 // stanza. Path is the parsed target from the stanza name. Empty-kind stanzas
@@ -97,6 +116,22 @@ func (o factoryOptions) createLogsFunc(_ context.Context, settings receiver.Sett
 const systemKey = "\x00system"
 
 func (o factoryOptions) startReceivers(ctx context.Context, host component.Host, splunkHome, taDir string, next consumer.Logs, settings receiver.Settings) ([]receiver.Logs, error) {
+	specs, err := o.receiverSpecs(splunkHome, taDir)
+	if err != nil {
+		return nil, err
+	}
+	started, err := o.startReceiverSpecs(ctx, host, taDir, next, settings, specs)
+	if err != nil {
+		return nil, err
+	}
+	rcvrs := make([]receiver.Logs, 0, len(started))
+	for _, r := range started {
+		rcvrs = append(rcvrs, r.receiver)
+	}
+	return rcvrs, nil
+}
+
+func (o factoryOptions) receiverSpecs(splunkHome, taDir string) ([]receiverSpec, error) {
 	var inputs []Input
 	var dirs []string
 	var err error
@@ -118,18 +153,48 @@ func (o factoryOptions) startReceivers(ctx context.Context, host component.Host,
 	if err != nil {
 		return nil, err
 	}
-	rcvrs, err := o.createReceivers(ctx, inputs, transforms, props, taDir, next, settings)
-	if err != nil {
-		return nil, err
-	}
-	var started []receiver.Logs
-	for _, r := range rcvrs {
-		if err := r.Start(ctx, host); err != nil {
-			settings.Logger.Error("splunk_inputs: failed to start receiver",
-				zap.String("ta", taDir), zap.Error(err))
+
+	specs := make([]receiverSpec, 0, len(inputs))
+	for _, input := range inputs {
+		if input.Configuration.Stanza.IsDisabled() {
 			continue
 		}
-		started = append(started, r)
+		name := input.Configuration.Stanza.Name
+		_, parseErr := stanza.ParseName(name)
+		if parseErr != nil {
+			return nil, fmt.Errorf("failed to parse receiver %q: %w", name, parseErr)
+		}
+		specs = append(specs, receiverSpec{
+			name:       name,
+			input:      input,
+			transforms: transforms,
+			props:      props,
+		})
+	}
+	return specs, nil
+}
+
+type startedReceiver struct {
+	spec     receiverSpec
+	receiver receiver.Logs
+}
+
+func (o factoryOptions) startReceiverSpecs(ctx context.Context, host component.Host, baseDir string, next consumer.Logs, settings receiver.Settings, specs []receiverSpec) ([]startedReceiver, error) {
+	started := make([]startedReceiver, 0, len(specs))
+	for _, spec := range specs {
+		r, err := o.createReceiver(ctx, baseDir, next, spec.input, spec.transforms, spec.props, settings)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create receiver %q: %w", spec.name, err)
+		}
+		if r == nil {
+			continue
+		}
+		if err := r.Start(ctx, host); err != nil {
+			settings.Logger.Error("splunk_inputs: failed to start receiver",
+				zap.String("ta", baseDir), zap.String("stanza", spec.name), zap.Error(err))
+			continue
+		}
+		started = append(started, startedReceiver{spec: spec, receiver: r})
 	}
 	return started, nil
 }

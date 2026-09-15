@@ -5,6 +5,15 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.160.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.160.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.160.0)
+and the [opentelemetry-collector-contrib v0.160.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.160.0) releases where appropriate.
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `internal/k8sconfig`: Prevent Kubernetes API clients from using environment proxy settings ([#50939](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/50939))
+
 ## v0.160.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.160.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.160.0)

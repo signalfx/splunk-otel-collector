@@ -26,4 +26,5 @@ services:
       - --feature-gates=+enableTARunner
     volumes:
       - ./config.yaml:/etc/config.yaml
-      - ./Splunk_TA_nix:/var/ta
+      - ./Splunk_TA_nix:/var/splunk_home/etc/apps/Splunk_TA_nix
+      - ./outputs.conf:/var/splunk_home/etc/system/local/outputs.conf

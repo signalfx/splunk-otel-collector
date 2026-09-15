@@ -205,6 +205,7 @@ func taDirsWithSystem(splunkHome, taDir string) []string {
 func readConfFiles(paths []string) ([][]byte, error) {
 	var payloads [][]byte
 	for _, path := range paths {
+		//nolint:gosec // G304: paths are constructed by filepath.Join from validated dirs
 		b, err := os.ReadFile(path)
 		if errors.Is(err, os.ErrNotExist) {
 			continue
@@ -251,6 +252,7 @@ func ConfDirsWithSystem(splunkHome, taDir string) []string {
 func ReadInputs(dirs []string) ([]conf.Input, error) {
 	var layers [][]conf.Input
 	for _, path := range confFilePaths(dirs, "inputs.conf") {
+		//nolint:gosec // G304: paths are constructed by filepath.Join from validated dirs
 		b, err := os.ReadFile(path)
 		if errors.Is(err, os.ErrNotExist) {
 			continue

@@ -125,8 +125,8 @@ func (o factoryOptions) startReceivers(ctx context.Context, host component.Host,
 		return nil, err
 	}
 	rcvrs := make([]receiver.Logs, 0, len(started))
-	for _, r := range started {
-		rcvrs = append(rcvrs, r.receiver)
+	for i := range started {
+		rcvrs = append(rcvrs, started[i].receiver)
 	}
 	return rcvrs, nil
 }
@@ -155,7 +155,8 @@ func (o factoryOptions) receiverSpecs(splunkHome, taDir string) ([]receiverSpec,
 	}
 
 	specs := make([]receiverSpec, 0, len(inputs))
-	for _, input := range inputs {
+	for i := range inputs {
+		input := &inputs[i]
 		if input.Configuration.Stanza.IsDisabled() {
 			continue
 		}
@@ -166,7 +167,7 @@ func (o factoryOptions) receiverSpecs(splunkHome, taDir string) ([]receiverSpec,
 		}
 		specs = append(specs, receiverSpec{
 			name:       name,
-			input:      input,
+			input:      *input,
 			transforms: transforms,
 			props:      props,
 		})
@@ -175,13 +176,14 @@ func (o factoryOptions) receiverSpecs(splunkHome, taDir string) ([]receiverSpec,
 }
 
 type startedReceiver struct {
-	spec     receiverSpec
 	receiver receiver.Logs
+	spec     receiverSpec
 }
 
 func (o factoryOptions) startReceiverSpecs(ctx context.Context, host component.Host, baseDir string, next consumer.Logs, settings receiver.Settings, specs []receiverSpec) ([]startedReceiver, error) {
 	started := make([]startedReceiver, 0, len(specs))
-	for _, spec := range specs {
+	for i := range specs {
+		spec := &specs[i]
 		r, err := o.createReceiver(ctx, baseDir, next, spec.input, spec.transforms, spec.props, settings)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create receiver %q: %w", spec.name, err)
@@ -194,31 +196,9 @@ func (o factoryOptions) startReceiverSpecs(ctx context.Context, host component.H
 				zap.String("ta", baseDir), zap.String("stanza", spec.name), zap.Error(err))
 			continue
 		}
-		started = append(started, startedReceiver{spec: spec, receiver: r})
+		started = append(started, startedReceiver{spec: *spec, receiver: r})
 	}
 	return started, nil
-}
-
-func (o factoryOptions) createReceivers(ctx context.Context, inputs []Input, transforms []Transform, props []Prop, baseDir string, next consumer.Logs, settings receiver.Settings) ([]receiver.Logs, error) {
-	var receivers []receiver.Logs
-	for i := range inputs {
-		input := inputs[i]
-		name := input.Configuration.Stanza.Name
-		if input.Configuration.Stanza.IsDisabled() {
-			settings.Logger.Info("splunk_inputs: skipping disabled stanza", zap.String("stanza", name))
-			continue
-		}
-		l, err := o.createReceiver(ctx, baseDir, next, input, transforms, props, settings)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create receiver %q: %w", name, err)
-		}
-		if l == nil {
-			settings.Logger.Info("splunk_inputs: skipping unsupported input stanza", zap.String("stanza", name))
-			continue
-		}
-		receivers = append(receivers, l)
-	}
-	return receivers, nil
 }
 
 func (o factoryOptions) createReceiver(ctx context.Context, baseDir string, next consumer.Logs, input Input, transforms []Transform, props []Prop, settings receiver.Settings) (receiver.Logs, error) {

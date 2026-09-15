@@ -89,7 +89,8 @@ func (h *observerHandler) add(ctx context.Context, taDirs []string) error {
 		rcvrs := make([]receiver.Logs, 0, len(started))
 		configs := make(map[string]receiverSpec, len(started))
 		names := make([]string, 0, len(started))
-		for _, startedReceiver := range started {
+		for i := range started {
+			startedReceiver := &started[i]
 			rcvrs = append(rcvrs, startedReceiver.receiver)
 			configs[startedReceiver.spec.name] = startedReceiver.spec
 			names = append(names, startedReceiver.spec.name)
@@ -121,12 +122,13 @@ func (h *observerHandler) change(ctx context.Context, taDir string) error {
 	newConfigs := make(map[string]receiverSpec, len(specs))
 	var errs []error
 
-	for _, spec := range specs {
+	for i := range specs {
+		spec := &specs[i]
 		old, exists := oldReceivers[spec.name]
 		oldSpec, hasSpec := oldConfigs[spec.name]
-		if exists && hasSpec && oldSpec.equal(spec) {
+		if exists && hasSpec && oldSpec.equal(*spec) {
 			newReceivers = append(newReceivers, old)
-			newConfigs[spec.name] = spec
+			newConfigs[spec.name] = *spec
 			delete(oldReceivers, spec.name)
 			continue
 		}
@@ -136,7 +138,7 @@ func (h *observerHandler) change(ctx context.Context, taDir string) error {
 			delete(oldReceivers, spec.name)
 		}
 
-		started, startErr := h.options.startReceiverSpecs(ctx, h.host, taDir, h.next, h.settings, []receiverSpec{spec})
+		started, startErr := h.options.startReceiverSpecs(ctx, h.host, taDir, h.next, h.settings, []receiverSpec{*spec})
 		if startErr != nil {
 			errs = append(errs, startErr)
 			continue
@@ -169,7 +171,8 @@ func (h *observerHandler) change(ctx context.Context, taDir string) error {
 		h.active[taDir] = newReceivers
 		h.configs[taDir] = newConfigs
 		h.names[taDir] = make([]string, 0, len(newReceivers))
-		for _, spec := range specs {
+		for i := range specs {
+			spec := &specs[i]
 			if _, ok := newConfigs[spec.name]; ok {
 				h.names[taDir] = append(h.names[taDir], spec.name)
 			}

@@ -150,35 +150,6 @@ func (si *ScriptedInput) _execute(ctx context.Context, baseDir string, input con
 		return err
 	}
 
-	stopRead := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-stopRead:
-				return
-			default:
-				b, ioErr := io.ReadAll(stdout)
-				if len(b) == 0 {
-					return
-				}
-				e := entry.New()
-				e.Body = string(b)
-				if attrErr := si.Attribute(e); attrErr != nil {
-					si.logger.Error("Error setting attributes", zap.Error(attrErr))
-				}
-
-				if err = si.Write(context.Background(), e); err != nil {
-					si.logger.Error("Error consuming logs", zap.Error(err))
-				}
-				if ioErr != nil {
-					return
-				}
-			}
-		}
-	}()
-
 	var inputXML []byte
 	if inputXML, err = input.ToXML(); err != nil {
 		return err
@@ -194,8 +165,25 @@ func (si *ScriptedInput) _execute(ctx context.Context, baseDir string, input con
 		return err
 	}
 
-	err = cmd.Wait()
-	close(stopRead)
+	// Read stdout to EOF before Wait: exec.Cmd.StdoutPipe closes the pipe once
+	// the process exits, so reads must complete first. Reading synchronously
+	// here (rather than in a separate goroutine racing cmd.Wait) avoids both
+	// the data race and dropped output when the process exits quickly.
+	b, readErr := io.ReadAll(stdout)
+	if len(b) > 0 {
+		e := entry.New()
+		e.Body = string(b)
+		if attrErr := si.Attribute(e); attrErr != nil {
+			si.logger.Error("Error setting attributes", zap.Error(attrErr))
+		}
+		if writeErr := si.Write(context.Background(), e); writeErr != nil {
+			si.logger.Error("Error consuming logs", zap.Error(writeErr))
+		}
+	}
 
-	return err
+	waitErr := cmd.Wait()
+	if readErr != nil {
+		return readErr
+	}
+	return waitErr
 }

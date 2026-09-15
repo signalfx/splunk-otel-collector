@@ -11,9 +11,9 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.uber.org/zap"
 
-	"github.com/splunk/tarunner/pkg/splunkta/conf"
-	"github.com/splunk/tarunner/pkg/splunkta/stanza"
-	"github.com/splunk/tarunner/pkg/splunkta/tabuilder"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
 type (
@@ -120,5 +120,7 @@ func (o factoryOptions) createExporter(ctx context.Context, baseDir string, outp
 			Output:  output,
 		})
 	}
-	return tabuilder.CreateOutputExporter(&output, settings.Logger, settings.TelemetrySettings)
+	// CreateOutputExporter does not take a context; threading it through the moved
+	// tabuilder API is a follow-up.
+	return tabuilder.CreateOutputExporter(&output, settings.Logger, settings.TelemetrySettings) //nolint:contextcheck
 }

@@ -294,6 +294,16 @@ update-otel-deps:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
+update-otel-deps-nightly:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
+
 update-javaagent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -311,9 +321,6 @@ update-nodejs-agent:
   extends: .go-cache
   tags: [large]
   needs: []
-  before_script:
-    - !reference [.go-cache, before_script]
-    - apt update && apt install -y jq
   script:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
@@ -329,6 +336,16 @@ update-dotnet-agent:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
+
+update-injector:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-injector.sh
 
 check-mass-deployments-release:
   rules:
@@ -410,7 +427,7 @@ otelcol-fips:
     paths:
       - bin/otelcol-fips_*
 
-libsplunk:
+libotelinject:
   extends: .trigger-filter
   needs:
     - job: manual_release_trigger
@@ -418,21 +435,26 @@ libsplunk:
   retry: 2
   parallel:
     matrix:
-      - ARCH: ["amd64", "arm64"]
+      - ARCH: amd64
+        TAG: main
+      - ARCH: arm64
+        TAG: arm
+  tags:
+    - $TAG
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
   script:
     - *docker-reader-role
-    - make -C instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - make -C instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO} INJECTOR_GIT_REPO=https://github.com/open-telemetry/opentelemetry-injector.git
   artifacts:
     paths:
-      - instrumentation/dist/libsplunk_*.so
+      - instrumentation/dist/libotelinject_*.so
 
 .instrumentation-deb-rpm:
   extends: .trigger-filter
   needs:
-    - libsplunk
+    - libotelinject
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -1783,7 +1805,7 @@ github-release:
       artifacts: true
     - job: otelcol-fips
       artifacts: true
-    - job: libsplunk
+    - job: libotelinject
       artifacts: true
     - job: sign-exe
       artifacts: true
@@ -1820,7 +1842,7 @@ github-release:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
     - cp bin/otelcol-fips_linux_* dist/assets/
-    - cp instrumentation/dist/libsplunk_*.so dist/assets/
+    - cp instrumentation/dist/libotelinject_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - cp packaging/ta-v2/out/distribution/* dist/assets/
     - cp packaging/otlpinput/out/distribution/* dist/assets/

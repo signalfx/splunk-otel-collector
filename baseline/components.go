@@ -60,6 +60,7 @@ import (
 	groupbyattrsprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor"
 	k8sattributesprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor"
 	logstransformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor"
+	lookupprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/lookupprocessor"
 	metricsgenerationprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricsgenerationprocessor"
 	metricstransformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 	probabilisticsamplerprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
@@ -266,6 +267,7 @@ func NewBaseline() *Baseline {
 			filterprocessor.NewFactory(),
 			groupbyattrsprocessor.NewFactory(),
 			k8sattributesprocessor.NewFactory(),
+			lookupprocessor.NewFactory(),
 			logstransformprocessor.NewFactory(),
 			memorylimiterprocessor.NewFactory(),
 			metricsgenerationprocessor.NewFactory(),

@@ -1073,6 +1073,28 @@ func TestParseOverrideBeatsSchema(t *testing.T) {
 	assert.Equal(t, "pkts", metric.Unit())
 }
 
+func TestParseUnitOnlyOverrideMergesWithSchemaType(t *testing.T) {
+	schema := counterSchema("in-octets", resolvedMetric{
+		MetricConfig: MetricConfig{Type: metricTypeSum, Unit: "octets"},
+		kind:         valueKindInt,
+	})
+	sub := SubscriptionConfig{
+		Path: "/interfaces/interface/state/counters",
+		Mode: modeSample,
+		Overrides: map[string]MetricConfig{
+			"in-octets": {Unit: "By"},
+		},
+	}
+
+	m, err := testParserWithSchema(schema, sub).parse(updateResponse("in-octets",
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 42}}))
+	require.NoError(t, err)
+
+	metric := onlyMetric(t, m)
+	assert.Equal(t, pmetric.MetricTypeSum, metric.Type(), "a unit-only override must not lose the schema-derived type")
+	assert.Equal(t, "By", metric.Unit(), "the override's unit must still win over the schema's")
+}
+
 func TestParseDefaultFillsGapWhenLeafNotInSchema(t *testing.T) {
 	schema := counterSchema("in-octets", resolvedMetric{
 		MetricConfig: MetricConfig{Type: metricTypeSum, Unit: "By"},

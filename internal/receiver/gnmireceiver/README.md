@@ -198,13 +198,15 @@ unit or possible values — that information lives in the YANG schema:
   (see [Enum leaves](#enum-leaves)).
 
 The receiver resolves these either from the YANG schema (`yang_modules`, below) or from
-configuration, with an explicit `overrides` entry always taking precedence over both:
+configuration, with an explicit `overrides` entry taking precedence over both, per field:
 
-1. `overrides[<leaf name>]`, if present, wins outright.
-2. Otherwise, the loaded YANG schema, if `yang_modules` is set and it resolves the leaf.
-   `default` still fills in any of `type`/`unit`/`enum_values` the schema left blank
+1. `overrides[<leaf name>]`, if present, is applied first. Any of `type`/`unit`/
+   `enum_values` it does not set falls through to the next layer below — a
+   unit-only override, for example, still gets its `type` from the schema.
+2. The loaded YANG schema, if `yang_modules` is set and it resolves the leaf, fills in
+   anything the override left blank.
+3. `default` fills in anything both the override and the schema left blank
    (most commonly `unit`: OpenConfig models rarely declare a `units` statement).
-3. Otherwise, `default`, if present.
 
 **A leaf matched by none of the above is dropped** (no metric is emitted), and logged
 once per distinct path. Without `yang_modules`, a subscription must define at least one

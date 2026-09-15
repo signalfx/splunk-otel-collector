@@ -401,21 +401,23 @@ func (p *metricParser) resolve(origin string, elems []string) (resolvedMetric, b
 	}
 
 	leaf := elems[len(elems)-1]
+	schemaRM, schemaOK := p.schema.lookup(elems)
+
 	if override, ok := sub.Overrides[leaf]; ok {
-		return resolvedMetric{MetricConfig: override}, true
+		return mergeOverride(override, schemaRM, schemaOK, sub.Default), true
 	}
 
-	if rm, ok := p.schema.lookup(elems); ok {
+	if schemaOK {
 		if sub.Default != nil {
-			if rm.Unit == "" {
-				rm.Unit = sub.Default.Unit
+			if schemaRM.Unit == "" {
+				schemaRM.Unit = sub.Default.Unit
 			}
-			if len(rm.EnumValues) == 0 {
-				rm.EnumValues = sub.Default.EnumValues
-				rm.normalizedEnumValues = sub.Default.normalizedEnumValues
+			if len(schemaRM.EnumValues) == 0 {
+				schemaRM.EnumValues = sub.Default.EnumValues
+				schemaRM.normalizedEnumValues = sub.Default.normalizedEnumValues
 			}
 		}
-		return rm, true
+		return schemaRM, true
 	}
 
 	if sub.Default != nil {
@@ -424,6 +426,41 @@ func (p *metricParser) resolve(origin string, elems []string) (resolvedMetric, b
 
 	p.logUnresolved(origin, elems)
 	return resolvedMetric{}, false
+}
+
+func mergeOverride(override MetricConfig, schemaRM resolvedMetric, schemaOK bool, def *MetricConfig) resolvedMetric {
+	rm := resolvedMetric{MetricConfig: override}
+	if schemaOK {
+		rm.kind = schemaRM.kind
+	}
+
+	if rm.Type == "" {
+		switch {
+		case schemaOK && schemaRM.Type != "":
+			rm.Type = schemaRM.Type
+		case def != nil:
+			rm.Type = def.Type
+		}
+	}
+	if rm.Unit == "" {
+		switch {
+		case schemaOK && schemaRM.Unit != "":
+			rm.Unit = schemaRM.Unit
+		case def != nil:
+			rm.Unit = def.Unit
+		}
+	}
+	if len(rm.EnumValues) == 0 {
+		switch {
+		case schemaOK && len(schemaRM.EnumValues) > 0:
+			rm.EnumValues = schemaRM.EnumValues
+			rm.normalizedEnumValues = schemaRM.normalizedEnumValues
+		case def != nil && len(def.EnumValues) > 0:
+			rm.EnumValues = def.EnumValues
+			rm.normalizedEnumValues = def.normalizedEnumValues
+		}
+	}
+	return rm
 }
 
 func (p *metricParser) logUnresolved(origin string, elems []string) {

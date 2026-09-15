@@ -5,6 +5,9 @@
 Install Docker and Go on your workstation. Package tests are Go tests and do not require
 the Python virtualenv used by the installer tests.
 
+Instrumentation package tests are also Go tests under `tests/instrumentation` and require
+the collector binary in `bin/` and the auto-instrumentation package in `instrumentation/dist/`.
+
 ## Running tests
 
 1. To run the package tests, execute the following commands:

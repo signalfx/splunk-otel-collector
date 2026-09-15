@@ -171,6 +171,10 @@ func (cfg *Config) Validate() error {
 	return nil
 }
 
+// validateMetricConfigRequired enforces that every leaf has a source of  "type"
+// when there is no YANG schema to supply one. It is skipped entirely when yang_modules is set:
+// at runtime, resolve() merges an "overrides" (or "default") entry onto the schema result per field,
+// so a "type" left blank there is expected to be filled in by the schema, not a validation gap.
 func validateMetricConfigRequired(targets []TargetConfig) error {
 	for ti := range targets {
 		for si, sub := range targets[ti].Subscriptions {

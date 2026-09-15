@@ -1028,6 +1028,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattribute
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.160.0/go.mod h1:t3sFIUSU8sqel43V+HYcB6RZ9TQZAnjg/vfvL/maJVI=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor v0.160.0 h1:JwuPzurPJZsLseweoPkscRpLhX/FwevPdnsWEh35Ljg=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor v0.160.0/go.mod h1:tM80FsQpIdQvXqHWwB38X4aysvSqXDMDqbX3kcmZUxI=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/lookupprocessor v0.160.0 h1:q1gpx0Z79YQ5CUsEFyel98qU1nFM8MYIIEyQHfCXKA4=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/lookupprocessor v0.160.0/go.mod h1:l/OC8eCIsGn/Rmn2fC5rPeKAvxVAebMXXtmkyB0Gqe8=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricsgenerationprocessor v0.160.0 h1:MnpiAbwAopgSnFfG4PDnbvtzTp2Xrk1YrJ/tIk+By/o=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricsgenerationprocessor v0.160.0/go.mod h1:HjNo1i1mCunixmjarMFqXyk8lUBmfPcmAEGEapVkELM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.160.0 h1:tkUCnPeYzRJRYZPT4GHEc2iFK5QB0PHk1lL/kHW4V2k=

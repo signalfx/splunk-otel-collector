@@ -1,3 +1,2 @@
 #!/bin/bash
-sleep 60
-echo "done"
+exec sleep 60

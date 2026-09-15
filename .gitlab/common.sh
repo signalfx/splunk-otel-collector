@@ -72,6 +72,23 @@ validate_version() {
   fi
 }
 
+get_latest_github_release() {
+  local repo="$1"
+  local tag
+
+  if ! tag="$(gh api "repos/${repo}/releases/latest" --jq '.tag_name // empty')"; then
+    echo "ERROR: Failed to get the latest release from https://github.com/${repo}!" >&2
+    return 1
+  fi
+
+  if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "ERROR: Invalid latest release tag for ${repo}: '${tag}'" >&2
+    return 1
+  fi
+
+  echo "$tag"
+}
+
 get_pr_count() {
   local branch="$1"
   local repo_url="$2"

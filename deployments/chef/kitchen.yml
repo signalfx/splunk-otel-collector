@@ -41,11 +41,6 @@ platforms:
       image: dokken/rockylinux-9
       pid_one_command: /usr/lib/systemd/systemd
 
-  - name: debian-11
-    driver:
-      image: dokken/debian-11
-      pid_one_command: /bin/systemd
-
   - name: debian-12
     driver:
       image: dokken/debian-12
@@ -124,6 +119,7 @@ suites:
         collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2
+          SPLUNK_OPAMP_SUPERVISOR_ENABLED: "true"
         collector_command_line_args: --discovery --set=processors.batch.timeout=10s
 
   - name: with_default_preload_instrumentation

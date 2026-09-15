@@ -1,14 +1,14 @@
 services:
   # Apache image for apache discovery test
   apache:
-    image: quay.io/splunko11ytest/apache:latest
+    image: apache:latest
     profiles:
       - integration-test-apache-discovery
     build: ./apache
     ports:
       - "18080:80"
   envoy:
-    image: quay.io/splunko11ytest/envoy:latest
+    image: envoy:latest
     profiles:
       - integration-test-envoy-discovery
     build: ./envoy
@@ -16,7 +16,7 @@ services:
       - "9901:9901"
   # httpd image for prometheus-exporter test
   httpd:
-    image: quay.io/splunko11ytest/httpd:latest
+    image: httpd:latest
     profiles:
       - smartagent
     build: ./httpd
@@ -24,7 +24,7 @@ services:
       - "8000:80"
   # httpd_basicauth image for lightprometheus test
   httpd_basicauth:
-    image: quay.io/splunko11ytest/httpd_basicauth:latest
+    image: httpd_basicauth:latest
     profiles:
       - integration
       - smartagent
@@ -60,14 +60,14 @@ services:
     profiles:
       - integration-test-kafka-metrics-discovery
   kong:
-    image: quay.io/splunko11ytest/kong:latest
+    image: kong:latest
     profiles:
       - integration
     build: ./kong
     ports:
       - "18001:8001"
   mongodb:
-    image: quay.io/splunko11ytest/mongodb:latest
+    image: mongodb:latest
     profiles:
       - integration-test-mongodb-discovery
     build:
@@ -77,7 +77,7 @@ services:
     ports:
       - "27017:27017"
   mysql:
-    image: quay.io/splunko11ytest/mysql:latest
+    image: mysql:latest
     profiles:
       - integration
       - integration-test-mysql-discovery
@@ -85,14 +85,14 @@ services:
     ports:
       - "3306:3306"
   nginx:
-    image: quay.io/splunko11ytest/nginx:latest
+    image: nginx:latest
     profiles:
       - integration-test-nginx-discovery
     build: ./nginx
     ports:
       - "8123:80"
   oracle:
-    image: quay.io/splunko11ytest/oracle:latest
+    image: oracle:latest
     profiles:
       - integration # there is no integration test for oracle upstream
       - integration-test-oracledb-discovery
@@ -115,7 +115,7 @@ services:
       timeout: 10s
       retries: 20
   redis_server:
-    image: quay.io/splunko11ytest/redis_server:latest
+    image: redis_server:latest
     profiles:
       - integration-test-redis-discovery
     build: ./redis_server

@@ -7,6 +7,7 @@
 #   APP_ID              - Splunk Base application ID
 #   TA_PACKAGE          - Path to the .tgz package to publish
 #   VERSION_TAG         - Version tag for release notes (e.g. v0.148.0)
+#.  APP_NAME            - Splunk Base Application name
 #
 # Optional environment variables:
 #   SUPPORTED_SPLUNK_VERSIONS_FOR_COLLECTOR_TA - Overrides the default list of
@@ -165,7 +166,7 @@ fi
 echo "Step 3: Updating release notes for release_file ${release_file}..."
 if ! curl_json -u "${AUTH}" \
     --request PUT "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/releases/${release_file}/" \
-    --json "{\"public\":true,\"release_notes\": \"Add-On with Splunk OpenTelemetry Collector ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}"; then
+    --json "{\"public\":true,\"release_notes\": \"${APP_NAME} ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}"; then
     echo "Failed to update release notes for ${file_name}"
     exit 1
 fi

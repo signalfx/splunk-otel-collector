@@ -179,6 +179,14 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
+					"transform/limit_histogram_buckets": map[string]any{
+						"metric_statements": []any{
+							map[string]any{
+								"context":    "datapoint",
+								"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
+							},
+						},
+					},
 				},
 				"receivers": map[string]any{
 					"jaeger": map[string]any{
@@ -284,7 +292,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch"},
+							"processors": []any{"memory_limiter", "transform/limit_histogram_buckets", "batch"},
 							"receivers":  []any{"otlp"},
 						},
 						"metrics/internal": map[string]any{
@@ -451,6 +459,14 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
+					"transform/limit_histogram_buckets": map[string]any{
+						"metric_statements": []any{
+							map[string]any{
+								"context":    "datapoint",
+								"statements": []any{`merge_histogram_buckets(32, method="limit_buckets")`},
+							},
+						},
+					},
 				},
 				"receivers": map[string]any{
 					"fluent_forward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
@@ -527,7 +543,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resource_detection"},
+							"processors": []any{"memory_limiter", "transform/limit_histogram_buckets", "batch", "resource_detection"},
 							"receivers":  []any{"host_metrics", "otlp"},
 						},
 						"metrics/internal": map[string]any{

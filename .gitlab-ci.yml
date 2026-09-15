@@ -13,7 +13,7 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
-  GO_VERSION: 1.26.5
+  GO_VERSION: 1.26.6
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -93,6 +93,15 @@ manual_release_trigger:
           echo "Version $RELEASE_VERSION not found in CHANGELOG.md" >&2
           exit 1
         fi
+      fi
+
+      # versions.yaml drives the module set tags created at release time; assert
+      # it was bumped to this release so the tags match.
+      SET_VERSION=$(awk '/^  splunk-otel-collector:/{f=1} f&&/^    version:/{print $2; exit}' versions.yaml)
+      if [ "$SET_VERSION" != "$RELEASE_VERSION" ]; then
+        echo "versions.yaml has the splunk-otel-collector module set at $SET_VERSION but release is $RELEASE_VERSION." >&2
+        echo "Bump the version value in versions.yaml to $RELEASE_VERSION before releasing." >&2
+        exit 1
       fi
 
       echo "Manual release triggered for version $RELEASE_VERSION"
@@ -285,6 +294,16 @@ update-otel-deps:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
 
+update-otel-deps-nightly:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
+
 update-javaagent:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -302,9 +321,6 @@ update-nodejs-agent:
   extends: .go-cache
   tags: [large]
   needs: []
-  before_script:
-    - !reference [.go-cache, before_script]
-    - apt update && apt install -y jq
   script:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
@@ -320,6 +336,16 @@ update-dotnet-agent:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
+
+update-injector:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: .go-cache
+  tags: [large]
+  needs: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-injector.sh
 
 check-mass-deployments-release:
   rules:
@@ -352,17 +378,14 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64]
-        WITH_OPAMP_SUPERVISOR: "true"
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_ppc64le]
-        WITH_OPAMP_SUPERVISOR: "false"
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG:-}" ]]; then
-        make $TARGET VERSION=${VERSION_TAG} WITH_OPAMP_SUPERVISOR=${WITH_OPAMP_SUPERVISOR}
+        make $TARGET VERSION=${VERSION_TAG}
       else
-        make $TARGET WITH_OPAMP_SUPERVISOR=${WITH_OPAMP_SUPERVISOR}
+        make $TARGET
       fi
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
@@ -404,7 +427,7 @@ otelcol-fips:
     paths:
       - bin/otelcol-fips_*
 
-libsplunk:
+libotelinject:
   extends: .trigger-filter
   needs:
     - job: manual_release_trigger
@@ -412,21 +435,26 @@ libsplunk:
   retry: 2
   parallel:
     matrix:
-      - ARCH: ["amd64", "arm64"]
+      - ARCH: amd64
+        TAG: main
+      - ARCH: arm64
+        TAG: arm
+  tags:
+    - $TAG
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
   script:
     - *docker-reader-role
-    - make -C instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - make -C instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO} INJECTOR_GIT_REPO=https://github.com/open-telemetry/opentelemetry-injector.git
   artifacts:
     paths:
-      - instrumentation/dist/libsplunk_*.so
+      - instrumentation/dist/libotelinject_*.so
 
 .instrumentation-deb-rpm:
   extends: .trigger-filter
   needs:
-    - libsplunk
+    - libotelinject
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -591,6 +619,27 @@ build-tar:
     paths:
       - dist/splunk-otel-collector*.tar.gz
 
+pack-otlpinput:
+  extends:
+    - .trigger-filter
+    - .go-cache
+  needs:
+    - job: sign-exe
+      artifacts: true
+    - job: compile
+      artifacts: true
+  script:
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        export VERSION="${VERSION_TAG}"
+      fi
+      echo "VERSION is set to $VERSION"
+    - cd packaging/otlpinput && make tgz
+  artifacts:
+    paths:
+      - packaging/otlpinput/out/distribution/
+
 pack-ta-v2:
   extends:
     - .trigger-filter
@@ -627,9 +676,11 @@ build-msi:
     matrix:
       - ARCH: [amd64, arm64]
   before_script:
-    # build the MSI with the signed exe
+    # Build the MSI with the signed executables
     - New-Item -Path bin -ItemType Directory -Force
     - Copy-Item -Force dist/signed/otelcol_windows_$($env:ARCH).exe bin/otelcol_windows_$($env:ARCH).exe
+    - Copy-Item -Force dist/signed-msi-inputs/otelcollauncher_windows_$($env:ARCH).exe bin/otelcollauncher_windows_$($env:ARCH).exe
+    - Copy-Item -Force dist/signed-msi-inputs/opampsupervisor_windows_$($env:ARCH).exe bin/opampsupervisor_windows_$($env:ARCH).exe
   tags:
     - windows2022
   script:
@@ -1353,6 +1404,40 @@ verify-signed-metadata:
 
       echo "Metadata signature OK for ${TARGET}${ARCH:+-${ARCH}}"
 
+.verify-rpm-repository-install:
+  image: '${DOCKER_HUB_REPO}/rockylinux:9'
+  rules:
+    - *no-schedules-condition
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION == ""
+    - if: $CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+-(beta|rc)\.[0-9]+$/
+    - *dry-run-condition
+  needs:
+    - job: release-rpms
+      artifacts: false
+  retry: 2
+  parallel:
+    matrix:
+      - ARCH: x86_64
+        RUNNER_TAG: main
+      - ARCH: aarch64
+        RUNNER_TAG: arm
+  tags:
+    - $RUNNER_TAG
+  before_script:
+    - *get-artifactory-stage
+  script:
+    - RPM_REPO_GPGCHECK=1 RPM_REPO_STAGE="$STAGE" ./packaging/tests/verify-rpm-repository-install.sh "$RPM_TEST_CASE" "$ARCH"
+
+verify-rpm-candidate-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: candidate
+
+verify-rpm-previous-install:
+  extends: .verify-rpm-repository-install
+  variables:
+    RPM_TEST_CASE: previous
+
 # only upload the msi to S3 for stable release tags
 release-msi:
   rules:
@@ -1480,7 +1565,7 @@ ta-v2-splunkbase-release:
           log=$(mktemp)
           echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
           log_files[$app_id]="$log"
-          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" \
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" APP_NAME="Add-On with Splunk OpenTelemetry Collector" \
             ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
           pid=$!
           echo "Started publication process with PID $pid for app ID $app_id"
@@ -1502,6 +1587,59 @@ ta-v2-splunkbase-release:
         exit "$overall_status"
       else
         echo "Skipping TA v2 release - not a stable release tag, manual release, or DRY_RUN is set"
+      fi
+
+otlpinput-splunkbase-release:
+  extends: .trigger-filter
+  needs:
+    - job: manual_release_trigger
+      optional: true
+    - job: pack-otlpinput
+      artifacts: true
+    - job: github-release
+      artifacts: false
+  script:
+    - |
+      # Only push the Splunk Connect for OTLP to Splunkbase for stable release tags or manual releases
+      should_release=false
+      if [[ "${RELEASE_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        should_release=true
+      fi
+      if [[ "$should_release" = true ]] && [[ -z "$DRY_RUN" ]]; then
+        echo "Releasing Splunk Connect for OTLP to Splunkbase"
+        TA_DIR=packaging/otlpinput/out/distribution
+
+        declare -A log_files pids
+        for entry in \
+            "8704:${TA_DIR}/splunk-connect-for-otlp.tgz"
+        do
+          app_id="${entry%%:*}"
+          package="${entry#*:}"
+          log=$(mktemp)
+          echo "Publishing ${package} to Splunkbase with app ID ${app_id}. Logs at ${log}"
+          log_files[$app_id]="$log"
+          APP_ID="$app_id" TA_PACKAGE="$package" VERSION_TAG="${RELEASE_VERSION}" APP_NAME="Splunk Connect for OTLP" \
+            ./.gitlab/publish-ta-v2-to-splunkbase.sh >"$log" 2>&1 &
+          pid=$!
+          echo "Started publication process with PID $pid for app ID $app_id"
+          pids[$app_id]=$pid
+        done
+
+        overall_status=0
+        for app_id in "${!pids[@]}"; do
+          wait "${pids[$app_id]}" && publish_status=0 || publish_status=$?
+          if [[ "$publish_status" -ne 0 ]]; then
+            overall_status=1
+          fi
+          echo "Publication process for app ID $app_id completed with status ${publish_status}"
+          echo "*+*+*+*+* Logs for app ID $app_id *+*+*+*+*"
+          cat "${log_files[$app_id]}"
+          echo "End of logs for app ID $app_id"
+          rm -f "${log_files[$app_id]}"
+        done
+        exit "$overall_status"
+      else
+        echo "Skipping Splunk Connect for OTLP release - not a stable release tag, manual release, or DRY_RUN is set"
       fi
 
 push-multiarch-manifest:
@@ -1667,7 +1805,7 @@ github-release:
       artifacts: true
     - job: otelcol-fips
       artifacts: true
-    - job: libsplunk
+    - job: libotelinject
       artifacts: true
     - job: sign-exe
       artifacts: true
@@ -1698,13 +1836,16 @@ github-release:
       optional: true
     - job: pack-ta-v2
       artifacts: true
+    - job: pack-otlpinput
+      artifacts: true
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
     - cp bin/otelcol-fips_linux_* dist/assets/
-    - cp instrumentation/dist/libsplunk_*.so dist/assets/
+    - cp instrumentation/dist/libotelinject_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - cp packaging/ta-v2/out/distribution/* dist/assets/
+    - cp packaging/otlpinput/out/distribution/* dist/assets/
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -1802,77 +1943,3 @@ chef-release:
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
-
-.trigger-dotnet-instrumentation-deployer:
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
-
-build-dotnet-instrumentation-deployer:
-  extends: .trigger-dotnet-instrumentation-deployer
-  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  needs: []
-  before_script:
-    - cd packaging/dotnet-instr-deployer-add-on
-  script:
-    - make download-dotnet-assets
-    - make build
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-
-sign-dotnet-instrumentation-deployer-exe:
-  extends:
-    - .trigger-dotnet-instrumentation-deployer
-    - .submit-signing-request
-  retry: 2
-  needs:
-    - job: build-dotnet-instrumentation-deployer
-      artifacts: true
-  variables:
-    ARTIFACT: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/splunk_otel_dotnet_deployer.exe
-    SIGN_TYPE: WIN
-    DOWNLOAD_DIR: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-
-
-pack-dotnet-instrumentation-deployer:
-  extends: .trigger-dotnet-instrumentation-deployer
-  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  needs:
-    - job: sign-dotnet-instrumentation-deployer-exe
-      artifacts: true
-  before_script:
-    - cd packaging/dotnet-instr-deployer-add-on
-  script:
-    - make pack
-  artifacts:
-    paths:
-      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
-      - packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
-
-dotnet-instrumentation-deployer-release:
-  extends:
-    - .trigger-dotnet-instrumentation-deployer
-    - .go-cache # Use this image since this job uses the ghr tool
-  tags: [large]
-  needs:
-    - job: pack-dotnet-instrumentation-deployer
-      artifacts: true
-  script:
-    - export
-    - cd packaging/dotnet-instr-deployer-add-on
-    - pushd out/distribution/ && shasum -a 256 * > checksums.txt && popd
-    - |
-      set -e
-      if [[ "${CI_COMMIT_TAG:-}" =~ ^dotnet-instrumentation-deployer-ta-v([0-9]+\.[0-9]+\.[0-9]+[^ ]*) ]]; then
-        VERSION=${BASH_REMATCH[1]}
-        VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
-        SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
-        RELEASE_NOTES=$(echo -e "$VERSION_CHANGELOG\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
-        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
-      else
-        echo "Failed to get version from $CI_COMMIT_TAG"
-        exit 1
-      fi

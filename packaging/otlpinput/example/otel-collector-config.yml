@@ -1,0 +1,31 @@
+receivers:
+    file_log:
+      include: [ /output/file.log ]
+
+exporters:
+    otlp_http:
+      endpoint: "https://splunk:4318"
+      headers:
+        # Token value is loaded at startup from the secrets volume by the
+        # OTel file provider, keeping credentials out of the config file.
+        authorization: "Splunk ${file:/secrets/hec-token}"
+      tls:
+        # CA that signed the Splunk server certificate
+        ca_file: /certs/ca.crt
+
+processors:
+    resource:
+        attributes:
+          - key: com.splunk.sourcetype
+            value: "mysourcetype"
+            action: insert
+          - key: com.splunk.source
+            value: "mysource"
+            action: insert
+
+service:
+    pipelines:
+      logs:
+        receivers: [file_log]
+        processors: [resource]
+        exporters: [otlp_http]

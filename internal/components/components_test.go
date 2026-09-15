@@ -26,9 +26,11 @@ import (
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []string{
 		"ack",
+		"aws_iam_db_auth",
 		"basicauth",
 		"bearertokenauth",
 		"config_source_telemetry",
+		"disk_queue_storage",
 		"docker_observer",
 		"ecs_observer",
 		"file_storage",
@@ -41,6 +43,7 @@ func TestDefaultComponents(t *testing.T) {
 		"k8s_observer",
 		"oauth2client",
 		"opamp",
+		"oracle_encoding",
 		"pprof",
 		"smartagent",
 		"text_encoding",
@@ -65,6 +68,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cloud_foundry",
 		"collectd",
 		"discovery",
+		"dns_check",
 		"docker_stats",
 		"elasticsearch",
 		"file_log",
@@ -75,7 +79,7 @@ func TestDefaultComponents(t *testing.T) {
 		"haproxy",
 		"host_metrics",
 		"http_check",
-		"icmpcheckreceiver",
+		"icmp_check",
 		"iis",
 		"influxdb",
 		"jaeger",
@@ -100,12 +104,12 @@ func TestDefaultComponents(t *testing.T) {
 		"prometheus",
 		"prometheus_remote_write",
 		"prometheus_simple",
+		"promql",
 		"purefa",
 		"rabbitmq",
 		"receiver_creator",
 		"redis",
 		"saphana",
-		"scripted_inputs",
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
 		"snmp",
@@ -113,7 +117,7 @@ func TestDefaultComponents(t *testing.T) {
 		"solace",
 		"splunk_enterprise",
 		"splunk_hec",
-		"sqlquery",
+		"sql_query",
 		"sqlserver",
 		"ssh_check",
 		"statsd",
@@ -126,7 +130,7 @@ func TestDefaultComponents(t *testing.T) {
 		"vcenter",
 		"wavefront",
 		"windows_event_log",
-		"windowsperfcounters",
+		"windows_perf_counters",
 		"windows_service",
 		"yang_grpc",
 		"zipkin",
@@ -145,18 +149,21 @@ func TestDefaultComponents(t *testing.T) {
 		"fluentforward":         "fluent_forward",
 		"hostmetrics":           "host_metrics",
 		"httpcheck":             "http_check",
+		"icmpcheckreceiver":     "icmp_check",
 		"k8sobjects":            "k8s_objects",
 		"kafkametrics":          "kafka_metrics",
 		"kubeletstats":          "kubelet_stats",
 		"mongodbatlas":          "mongodb_atlas",
 		"prometheusremotewrite": "prometheus_remote_write",
 		"splunkenterprise":      "splunk_enterprise",
+		"sqlquery":              "sql_query",
 		"sshcheck":              "ssh_check",
 		"tcpcheck":              "tcp_check",
 		"tcplog":                "tcp_log",
 		"tlscheck":              "tls_check",
 		"udplog":                "udp_log",
 		"windowseventlog":       "windows_event_log",
+		"windowsperfcounters":   "windows_perf_counters",
 		"windowsservice":        "windows_service",
 		"yanggrpc":              "yang_grpc",
 	}
@@ -168,6 +175,7 @@ func TestDefaultComponents(t *testing.T) {
 		"groupbyattrs",
 		"k8s_attributes",
 		"logstransform",
+		"lookup",
 		"memory_limiter",
 		"metricsgeneration",
 		"metrics_transform",
@@ -175,6 +183,7 @@ func TestDefaultComponents(t *testing.T) {
 		"redaction",
 		"resource",
 		"resource_detection",
+		"rolling_span_latency",
 		"span",
 		"tail_sampling",
 		"timestamp",
@@ -197,7 +206,6 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp_grpc",
 		"otlp_http",
 		"prometheus_remote_write",
-		"pulsar",
 		"signalfx",
 		"splunk_hec",
 	}
@@ -236,8 +244,9 @@ func TestDefaultComponents(t *testing.T) {
 	}
 
 	recvs := factories.Receivers
+	t.Log(expectedReceivers)
 	assert.Len(t, recvs, len(expectedReceivers)+len(expectedReceiverAliases))
-
+	t.Log(expectedReceiverAliases)
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok, k)

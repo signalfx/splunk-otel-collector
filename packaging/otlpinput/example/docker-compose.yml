@@ -1,0 +1,96 @@
+services:
+  # One-shot container that generates mTLS certificates before anything else
+  # starts. Uses a named volume so the key files (mode 600) are never written
+  # to the host filesystem, reducing the risk of unintended exposure.
+  cert-init:
+    image: alpine/openssl:latest
+    container_name: cert-init
+    volumes:
+      - ./generate-certs.sh:/generate-certs.sh:ro
+      - certs:/certs
+    entrypoint: ["sh", "/generate-certs.sh", "/certs"]
+
+  # One-shot container that creates a Splunk HEC token and writes its value to
+  # a named volume so the OTel Collector can reference it without embedding
+  # credentials in the config file.
+  token-init:
+    image: alpine/curl:latest
+    container_name: token-init
+    profiles:
+      - splunk
+    depends_on:
+      splunk:
+        condition: service_healthy
+    environment:
+      - SPLUNK_PASSWORD=VH#ou812@5150
+    volumes:
+      - ./generate-hec-token.sh:/generate-hec-token.sh:ro
+      - secrets:/secrets
+    entrypoint: ["sh", "/generate-hec-token.sh", "/secrets"]
+
+  # Sample bash script producing logs.
+  logging:
+    image: bash:latest
+    container_name: logging
+    command: 'bash -c "while(true) do echo \"$$(date) new message\" >> /output/file.log ; sleep 1; done"'
+    depends_on:
+      otelcollector:
+        condition: service_started
+    volumes:
+      - ./output:/output
+
+  # OpenTelemetry Collector
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:latest
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml"]
+    depends_on:
+      cert-init:
+        condition: service_completed_successfully
+      token-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml:ro
+      - ./output:/output
+      # mTLS certs: named volume, private keys mode 600/640, never on the host.
+      - certs:/certs:ro
+      # HEC token written by token-init; mounted read-only.
+      - secrets:/secrets:ro
+
+  # Splunk instance
+  splunk:
+    image: splunk/splunk:9.4
+    profiles:
+      - splunk
+    container_name: splunk
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_PASSWORD=VH#ou812@5150
+      # Install the Splunk Connect for OTLP TA at startup from the latest
+      # GitHub release. Replace with a local path or pinned version as needed.
+      - SPLUNK_APPS_URL=https://github.com/splunk/splunk-connect-for-otlp/releases/latest/download/splunk-connect-for-otlp.tgz
+    ports:
+      - 18000:8000
+    depends_on:
+      cert-init:
+        condition: service_completed_successfully
+    volumes:
+      # mTLS certs (read-only inside Splunk; the TA reads server.crt/server.key)
+      - certs:/certs:ro
+      # Override inputs.conf to enable SSL and point to the cert files
+      - ./splunk-inputs-local.conf:/opt/splunk/etc/apps/splunk-connect-for-otlp/local/inputs.conf
+    # Healthcheck gates on port 8089 (management API) so token-init only
+    # starts once the REST API is genuinely ready to serve requests.
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sk -o /dev/null -w "%{http_code}" -u admin:VH#ou812@5150 https://localhost:8089/services/server/info | grep -q 200']
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+volumes:
+  # Named volume keeps cert files (including private keys) off the host
+  # filesystem. This aligns with the OTel security recommendation to store
+  # configuration (and secrets) securely rather than in plain bind-mounts.
+  certs:
+  # Named volume for the HEC token file written by token-init.
+  secrets:

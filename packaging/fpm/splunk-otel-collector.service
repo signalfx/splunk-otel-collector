@@ -4,7 +4,8 @@ After=network.target
 
 [Service]
 EnvironmentFile=/etc/otel/collector/splunk-otel-collector.conf
-ExecStart=/usr/bin/otelcol $OTELCOL_OPTIONS
+ExecStart=/usr/bin/otelcollauncher $OTELCOL_OPTIONS
+SyslogIdentifier=otelcol
 KillMode=mixed
 Restart=on-failure
 Type=simple

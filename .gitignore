@@ -46,14 +46,11 @@ __pycache__
 deployments/heroku/test/.git
 deployments/heroku/test/node_modules
 
-# libsplunk
+# instrumentation build artifacts
 /instrumentation/dist/
 /instrumentation/obj/
 /instrumentation/so/
-/instrumentation/tests/dotnet/libsplunk.so
-/instrumentation/tests/dotnet/obj/
-/instrumentation/tests/java/libsplunk.so
-/instrumentation/tests/nodejs/libsplunk.so
+/instrumentation/build/
 
 # temp file created during testing
 tests/installation/testdata/systemd/splunk-otel-collector.conf
@@ -66,3 +63,9 @@ tests/receivers/istio/istio-*/
 
 # Splunk_TA_nix addon contents
 examples/splunkinputs/Splunk_TA_nix/
+
+# Splunk Connect for OTLP binaries, tgz and test file
+packaging/otlpinput/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp
+packaging/otlpinput/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp
+packaging/otlpinput/out/distribution/splunk-connect-for-otlp.tgz
+packaging/otlpinput/example/output/file.log

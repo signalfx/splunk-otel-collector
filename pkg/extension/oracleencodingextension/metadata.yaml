@@ -1,0 +1,12 @@
+display_name: Oracle Encoding Extension
+type: oracle_encoding
+description: |
+  Oracle Cloud Infrastructure (OCI) encoding extension converts the
+  [OCI metric format](https://docs.oracle.com/en-us/iaas/Content/connector-hub/create-service-connector-monitoring-source.htm#api)
+  to the OTLP format.
+
+status:
+  class: extension
+  stability:
+    alpha: [extension]
+  distributions: [splunk]

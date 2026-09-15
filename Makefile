@@ -8,6 +8,10 @@ DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
+
+# Module set released by multimod; must match a set in versions.yaml.
+MODSET?=splunk-otel-collector
+
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
@@ -37,7 +41,6 @@ MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 
 SKIP_COMPILE=false
 ARCH?=amd64
-WITH_OPAMP_SUPERVISOR?=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -247,6 +250,7 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
 	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
+	cd ./internal/tools && go install go.opentelemetry.io/build-tools/multimod
 	cd ./internal/tools && go install mvdan.cc/gofumpt
 
 .PHONY: generate-metrics
@@ -304,51 +308,74 @@ docker-otelcol:
 	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) DOCKER_REPO=$(DOCKER_REPO) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le binaries-windows_arm64
+binaries-all-sys: binaries-aix_ppc64 \
+	binaries-darwin_amd64 \
+	binaries-darwin_arm64 \
+	binaries-freebsd_amd64 \
+	binaries-linux_amd64 \
+	binaries-linux_arm64 \
+	binaries-linux_ppc64le \
+	binaries-linux_s390x \
+	binaries-solaris_amd64 \
+	binaries-windows_386 \
+	binaries-windows_amd64 \
+	binaries-windows_arm64
+
+.PHONY: binaries-aix_ppc64
+binaries-aix_ppc64:
+	GOOS=aix GOARCH=ppc64 $(MAKE) otelcol
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
-	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-darwin_arm64
 binaries-darwin_arm64:
-	GOOS=darwin  GOARCH=arm64 $(MAKE) otelcol
+	GOOS=darwin GOARCH=arm64 $(MAKE) otelcol
+
+.PHONY: binaries-freebsd_amd64
+binaries-freebsd_amd64:
+	GOOS=freebsd GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcollauncher
-	GOOS=linux   GOARCH=amd64 $(MAKE) opampsupervisor
-endif
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux GOARCH=amd64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=amd64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcollauncher
-	GOOS=linux   GOARCH=arm64 $(MAKE) opampsupervisor
-endif
-
-.PHONY: binaries-windows_amd64
-binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
-endif
-
-.PHONY: binaries-windows_arm64
-binaries-windows_arm64:
-	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
-ifeq ($(WITH_OPAMP_SUPERVISOR), true)
-	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
-	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
-endif
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcol
+	GOOS=linux GOARCH=arm64 $(MAKE) otelcollauncher
+	GOOS=linux GOARCH=arm64 $(MAKE) opampsupervisor
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
+
+.PHONY: binaries-linux_s390x
+binaries-linux_s390x:
+	GOOS=linux GOARCH=s390x $(MAKE) otelcol
+
+.PHONY: binaries-solaris_amd64
+binaries-solaris_amd64:
+	GOOS=solaris GOARCH=amd64 $(MAKE) otelcol
+
+.PHONY: binaries-windows_386
+binaries-windows_386:
+	GOOS=windows GOARCH=386 EXTENSION=.exe $(MAKE) otelcol
+
+.PHONY: binaries-windows_amd64
+binaries-windows_amd64:
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) opampsupervisor
+
+.PHONY: binaries-windows_arm64
+binaries-windows_arm64:
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) otelcollauncher
+	GOOS=windows GOARCH=arm64 EXTENSION=.exe $(MAKE) opampsupervisor
 
 .PHONY: deb-rpm-tar-package
 %-package:
@@ -414,12 +441,28 @@ chlog-preview:
 chlog-update:
 	$(CHLOGGEN) update -v $(VERSION)
 
-.PHONY: prepare-changelog
-prepare-changelog:
+.PHONY: multimod-verify
+multimod-verify:
+	@echo "Validating versions.yaml"
+	$(MULTIMOD) verify
+
+.PHONY: multimod-prerelease
+multimod-prerelease:
+	$(MULTIMOD) prerelease -s=true -b=false -v ./versions.yaml -m $(MODSET)
+
+# Bumps the module set version in versions.yaml, rewrites intra-set module
+# requires to it via multimod, and rolls up the changelog.
+.PHONY: prepare-release
+prepare-release:
 	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
-		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
+		echo "Error: VERSION is required. Usage: make prepare-release VERSION=v0.132.0"; \
 		exit 1; \
 	fi
-	@make chlog-update
-	@echo "Preparing changelog for $(VERSION)..."
+	@echo "Preparing release $(VERSION) for module set $(MODSET)..."
+	awk -v set="$(MODSET)" -v ver="$(VERSION)" \
+		'$$0 ~ "^  " set ":" {inset=1} inset && /^    version:/ {sub(/version:.*/, "version: " ver); inset=0} {print}' \
+		versions.yaml > versions.yaml.tmp && mv versions.yaml.tmp versions.yaml
+	git add versions.yaml && git commit -m "Prepare $(MODSET) $(VERSION)"
+	@$(MAKE) multimod-prerelease
+	@$(MAKE) chlog-update
 	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

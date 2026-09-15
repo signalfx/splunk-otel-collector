@@ -7,7 +7,9 @@ on:
       - main
     paths:
       - '.github/workflows/puppet-test.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/puppet/**'
+      - 'instrumentation/**'
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
@@ -16,7 +18,9 @@ on:
   pull_request:
     paths:
       - '.github/workflows/puppet-test.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/puppet/**'
+      - 'instrumentation/**'
       - 'packaging/tests/deployments/puppet/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/requirements.txt'
@@ -105,6 +109,20 @@ jobs:
       SYS_PACKAGE: rpm
       ARCH: amd64
 
+  # Build DEB auto-instrumentation package
+  puppet-build-deb-local-auto-instrumentation-package:
+    uses: ./.github/workflows/reusable-build-instrumentation-package.yml
+    with:
+      SYS_PACKAGE: deb
+      ARCH: amd64
+
+  # Build RPM auto-instrumentation package
+  puppet-build-rpm-local-auto-instrumentation-package:
+    uses: ./.github/workflows/reusable-build-instrumentation-package.yml
+    with:
+      SYS_PACKAGE: rpm
+      ARCH: amd64
+
   puppet-test:
     name: puppet-test
     runs-on: ubuntu-24.04
@@ -114,6 +132,8 @@ jobs:
       - puppet-test-matrix
       - puppet-build-deb-local-package
       - puppet-build-rpm-local-package
+      - puppet-build-deb-local-auto-instrumentation-package
+      - puppet-build-rpm-local-auto-instrumentation-package
     strategy:
       matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
       fail-fast: false
@@ -133,6 +153,18 @@ jobs:
           name: rpm-amd64-package
           path: ./dist
 
+      - name: Download DEB auto-instrumentation package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-deb
+          path: ./dist
+
+      - name: Download RPM auto-instrumentation package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: splunk-otel-auto-instrumentation-amd64-rpm
+          path: ./dist
+
       - name: Setup python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -150,18 +182,24 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           DEB_VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
           RPM_VERSION: "${{ needs.puppet-build-rpm-local-package.outputs.version }}"
+          DEB_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-deb-local-auto-instrumentation-package.outputs.version }}"
+          RPM_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-rpm-local-auto-instrumentation-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           
-          # Determine VERSION based on distro type
+          # Determine package versions based on distro type
           case "$distro" in
             debian-*|ubuntu-*)
               export VERSION="$DEB_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$DEB_AUTO_INSTRUMENTATION_VERSION"
               echo "Using DEB version: $VERSION"
+              echo "Using DEB auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
               export VERSION="$RPM_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$RPM_AUTO_INSTRUMENTATION_VERSION"
               echo "Using RPM version: $VERSION"
+              echo "Using RPM auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             *)
               echo "Unknown distro: $distro"
@@ -184,18 +222,24 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           DEB_VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
           RPM_VERSION: "${{ needs.puppet-build-rpm-local-package.outputs.version }}"
+          DEB_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-deb-local-auto-instrumentation-package.outputs.version }}"
+          RPM_AUTO_INSTRUMENTATION_VERSION: "${{ needs.puppet-build-rpm-local-auto-instrumentation-package.outputs.version }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           
-          # Determine VERSION based on distro type
+          # Determine package versions based on distro type
           case "$distro" in
             debian-*|ubuntu-*)
               export VERSION="$DEB_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$DEB_AUTO_INSTRUMENTATION_VERSION"
               echo "Using DEB version: $VERSION"
+              echo "Using DEB auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             amazonlinux-*|centos-*|opensuse-*|oraclelinux-*)
               export VERSION="$RPM_VERSION"
+              export AUTO_INSTRUMENTATION_VERSION="$RPM_AUTO_INSTRUMENTATION_VERSION"
               echo "Using RPM version: $VERSION"
+              echo "Using RPM auto-instrumentation version: $AUTO_INSTRUMENTATION_VERSION"
               ;;
             *)
               echo "Unknown distro: $distro"

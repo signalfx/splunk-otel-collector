@@ -3,6 +3,7 @@ monitors:
     disk:
       description: The name of the disk that the metric describes
   doc: |
+    **The Windows implementation of this monitor is deprecated and will be removed on or after October 2026. Please use the [disk scraper in the hostmetrics receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/diskscraper/documentation.md) instead.**
     This monitor reports I/O metrics about disks.
 
     On Linux hosts, this monitor relies on the `/proc` filesystem.

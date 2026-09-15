@@ -85,6 +85,10 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
+// statConfigFile allows tests to simulate package config paths that do not
+// exist on the host running the tests.
+var statConfigFile = os.Stat
+
 var defaultFeatureGates = []string{}
 
 type Settings struct {
@@ -604,7 +608,7 @@ func checkInputConfigs(settings *Settings) error {
 			}
 			filePath = location
 		}
-		if _, err := os.Stat(filePath); err != nil {
+		if _, err := statConfigFile(filePath); err != nil {
 			return fmt.Errorf("unable to find the configuration file %s, ensure flag '--config' is set properly: %w", filePath, err)
 		}
 		configFilePaths = append(configFilePaths, filePath)
@@ -613,6 +617,8 @@ func checkInputConfigs(settings *Settings) error {
 	if len(configFilePaths) == 0 {
 		return nil
 	}
+
+	warnIfDeprecatedOTLPLinuxConfigUsed(configFilePaths)
 
 	if configPathVar != "" {
 		differingVals := true
@@ -638,7 +644,7 @@ func checkConfigPathEnvVar(settings *Settings) error {
 	configPath := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
-	if _, err := os.Stat(configPath); err != nil {
+	if _, err := statConfigFile(configPath); err != nil {
 		return fmt.Errorf("unable to find the configuration file (%s), ensure %s environment variable is set properly: %w", configPath, ConfigEnvVar, err)
 	}
 
@@ -650,7 +656,31 @@ func checkConfigPathEnvVar(settings *Settings) error {
 		_ = settings.configPaths.Set(configPath)
 	}
 
+	warnIfDeprecatedOTLPLinuxConfigUsed(settings.configPaths.value)
+
 	return confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value)
+}
+
+func warnIfDeprecatedOTLPLinuxConfigUsed(paths []string) {
+	for _, path := range paths {
+		if isDeprecatedOTLPLinuxConfig(path) {
+			logWarn(
+				"Configuration file %s is deprecated and will be removed in a future release. "+
+					"Use --config=%s instead. If you need receivers to listen outside the container, set %s=0.0.0.0 when migrating.",
+				path, DefaultAgentConfigLinux, ListenInterfaceEnvVar)
+			return
+		}
+	}
+}
+
+func isDeprecatedOTLPLinuxConfig(path string) bool {
+	scheme, location, isURI := parseURI(path)
+	if isURI && scheme == fileProviderScheme {
+		path = location
+	}
+
+	cleaned := filepath.Clean(path)
+	return path == DefaultOTLPLinuxConfig || cleaned == filepath.Clean(DefaultOTLPLinuxConfig)
 }
 
 func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {

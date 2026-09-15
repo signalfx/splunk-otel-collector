@@ -118,7 +118,6 @@ pytest -s --verbose -k "test_puppet_default and ubuntu-noble and not instrumenta
 ## Available Test Distros
 
 ### DEB Distros
-- `debian-bullseye`
 - `debian-bookworm`
 - `ubuntu-noble`
 

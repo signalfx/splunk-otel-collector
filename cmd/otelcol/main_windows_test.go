@@ -18,11 +18,56 @@
 package main
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/otelcol"
 	"golang.org/x/sys/windows/svc"
 )
+
+func TestIsParentProcessOtelcolLauncher(t *testing.T) {
+	// Save original functions and restore after test
+	originalParentProcessNameFn := parentProcessNameFn
+	t.Cleanup(func() {
+		parentProcessNameFn = originalParentProcessNameFn
+	})
+
+	tests := []struct {
+		err        error
+		name       string
+		parentName string
+		expected   bool
+	}{
+		{
+			name:       "launcher",
+			parentName: "otelcollauncher.exe",
+			expected:   true,
+		},
+		{
+			name:       "launcher case insensitive",
+			parentName: "OtelColLauncher.EXE",
+			expected:   true,
+		},
+		{
+			name:       "other process",
+			parentName: "opampsupervisor.exe",
+		},
+		{
+			name: "lookup error",
+			err:  errors.New("lookup failed"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			parentProcessNameFn = func() (string, error) {
+				return tt.parentName, tt.err
+			}
+			assert.Equal(t, tt.expected, isParentProcessOtelcolLauncher())
+		})
+	}
+}
 
 var svcRunError error // A global variable to prevent the compiler from optimizing the benchmark away.
 func BenchmarkSvcRunFail(b *testing.B) {

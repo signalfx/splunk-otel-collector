@@ -1,5 +1,6 @@
 param (
-    [string]$mode = "agent"
+    [string]$mode = "agent",
+    [switch]$with_supervisor
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,3 +20,10 @@ Test-Path -Path "\tmp\splunk-support-bundle\metrics\top.txt"
 Test-Path -Path "\tmp\splunk-support-bundle\zpages\tracez.html"
 Test-Path -Path "\tmp\splunk-support-bundle\config\${mode}_config.yaml"
 Test-Path -Path "\tmp\splunk-support-bundle\config\service_environment.txt"
+if ($with_supervisor) {
+    $supervisor_config = "\tmp\splunk-support-bundle\config\supervisor\supervisor_config.yaml"
+    $supervisor_runtime_config = "\tmp\splunk-support-bundle\config\supervisor\supervisor_runtime_config.yaml"
+    if (!(Test-Path -Path $supervisor_config) -or !(Test-Path -Path $supervisor_runtime_config)) {
+        throw "Supervisor configuration was not included in the support bundle."
+    }
+}

@@ -21,7 +21,7 @@
       <!-- Load the Splunk custom actions -->
       <Binary Id="SplunkCustomActionsDll" SourceFile="$(sys.SOURCEFILEDIR)/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll" />
       <CustomAction Id="CheckLaunchConditions" DllEntry="CheckLaunchConditions" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
-      <CustomAction Id="AddOptionalConfigurationsCustomActionData" Property="AddOptionalConfigurations" Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB];SPLUNK_PLATFORM_URL=[SPLUNK_PLATFORM_URL];SPLUNK_PLATFORM_TOKEN=[SPLUNK_PLATFORM_TOKEN];SPLUNK_PLATFORM_LOGS_INDEX=[SPLUNK_PLATFORM_LOGS_INDEX];SPLUNK_PLATFORM_METRICS_INDEX=[SPLUNK_PLATFORM_METRICS_INDEX]" />
+      <CustomAction Id="AddOptionalConfigurationsCustomActionData" Property="AddOptionalConfigurations" Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB];SPLUNK_OPAMP_SUPERVISOR_ENABLED=[SPLUNK_OPAMP_SUPERVISOR_ENABLED];SPLUNK_PLATFORM_URL=[SPLUNK_PLATFORM_URL];SPLUNK_PLATFORM_TOKEN=[SPLUNK_PLATFORM_TOKEN];SPLUNK_PLATFORM_LOGS_INDEX=[SPLUNK_PLATFORM_LOGS_INDEX];SPLUNK_PLATFORM_METRICS_INDEX=[SPLUNK_PLATFORM_METRICS_INDEX]" />
       <CustomAction Id="AddOptionalConfigurations" DllEntry="AddOptionalConfigurations" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
 
       <!-- Following name convention for this property to match upstream -->
@@ -44,6 +44,7 @@
       <Property Id="SPLUNK_API_URL" Secure="yes" />
       <Property Id="SPLUNK_INGEST_URL" Secure="yes" />
       <Property Id="SPLUNK_HEC_URL" Secure="yes" />
+      <Property Id="SPLUNK_OPAMP_SUPERVISOR_ENABLED" Secure="yes" />
       <Property Id="SPLUNK_PLATFORM_URL" Secure="yes" />
       <Property Id="SPLUNK_PLATFORM_TOKEN" Secure="yes" />
       <Property Id="SPLUNK_PLATFORM_LOGS_INDEX" Secure="yes" />
@@ -114,7 +115,9 @@
 
       <Feature Id="SplunkOtelCollector" Level="1">
          <Feature Id="SplunkCollectorConfiguration" Level="1">
-            <ComponentRef Id="ApplicationComponent" />
+            <ComponentRef Id="LauncherServiceComponent" />
+            <ComponentRef Id="OtelcolExecutableComponent" />
+            <ComponentRef Id="OpAMPSupervisorExecutableComponent" />
             <ComponentRef Id="RegistryComponent" />
          </Feature>
          <ComponentGroupRef Id="AssortedFiles" />
@@ -142,8 +145,8 @@
       <StandardDirectory Id="ProgramFiles64Folder">
          <Directory Id="COMPANYDIR" Name="Splunk">
             <Directory Id="INSTALLDIR" Name="OpenTelemetry Collector">
-               <Component Id="ApplicationComponent" Guid="484fa99a-2efe-41cd-a047-98bc1fc71e04">
-                  <File Id="OtelcolExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)" />
+               <Component Id="LauncherServiceComponent" Guid="dd8e6ff3-9136-4f45-9eeb-9dbbd5cd56c5">
+                  <File Id="OtelcolLauncherExecutableFile" Name="otelcollauncher.exe" KeyPath="yes" Source="$(var.OtelcolLauncher)" />
                   <ServiceInstall
                         Id="Service"
                         Name="splunk-otel-collector"
@@ -162,6 +165,12 @@
                         Stop="both"
                         Remove="uninstall"
                         Wait="yes" />
+               </Component>
+               <Component Id="OtelcolExecutableComponent" Guid="a865b2b1-5589-4a79-9ae7-4dc8fcbef974">
+                  <File Id="OtelcolExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)" />
+               </Component>
+               <Component Id="OpAMPSupervisorExecutableComponent" Guid="b31a5a2f-f610-423b-81d7-b460cc79ea11">
+                  <File Id="OpAMPSupervisorExecutableFile" Name="opampsupervisor.exe" KeyPath="yes" Source="$(var.OpAMPSupervisor)" />
                </Component>
             </Directory>
          </Directory>

@@ -117,6 +117,15 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
+  # Limit explicit histograms to at most 32 buckets before export through signalfx exporter.
+  # With `send_otlp_histograms: true`, the backend drops histograms above this limit.
+  # With `send_otlp_histograms: false`, this reduces the emitted `_bucket` series and `le` boundaries.
+  transform/limit_histogram_buckets:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - merge_histogram_buckets(32, method="limit_buckets")
+
 exporters:
   # Traces
   otlp_http:
@@ -186,7 +195,7 @@ service:
       exporters: [otlp_http]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, transform/limit_histogram_buckets, batch]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]

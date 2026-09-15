@@ -128,7 +128,7 @@ A variety of default configuration files are provided:
   Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
   documentation. `agent_config.yaml` is the recommended starting configuration for
-  most environments. To collect logs, see [Collect logs on Linux](docs/getting-started/linux-logs.md).
+  most environments. To collect logs, see [Collect logs on Linux](docs/getting-started/linux-logs.md) or [Collect logs on Windows](docs/getting-started/windows-logs.md).
 
 In addition, the following components can be configured:
 
@@ -159,6 +159,70 @@ compatibility on the fly, but configuration files will not be overridden, so you
 manually before the backward compatibility is dropped. For every configuration update use
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
+
+### Upgrading to 0.160.0
+
+The Linux DEB/RPM `splunk-otel-auto-instrumentation` package now installs the official [OpenTelemetry
+injector](https://github.com/open-telemetry/opentelemetry-injector) (`libotelinject.so`) instead of the previous
+`libsplunk.so` shim. This is a breaking change for existing auto-instrumentation installations:
+
+- Configuration moves from `/etc/splunk/zeroconfig/` (`java.conf`, `node.conf`, `dotnet.conf`) to
+  `/etc/opentelemetry/injector/` (`default_env.conf` and `injector.conf`). Existing values are not migrated
+  automatically. Before upgrading, migrate any customized `OTEL_*` and `SPLUNK_*` values from `java.conf`,
+  `node.conf`, and `dotnet.conf` into `default_env.conf`; other variables, including `JAVA_TOOL_OPTIONS`,
+  `NODE_OPTIONS`, `CORECLR_*`, and `DOTNET_*`, are ignored going forward. Agent activation paths are now configured
+  in `injector.conf` instead. `default_env.conf` is shared by all runtimes, and runtime-specific values must be set
+  through the relevant application or service environment; if a variable is set in both places, the value in
+  `default_env.conf` takes precedence.
+- During the package upgrade, the legacy `/etc/splunk/zeroconfig/` files are preserved under
+  `/usr/lib/splunk-instrumentation/legacy-zeroconfig/` before that directory is removed, and the `libsplunk.so`
+  entry in `/etc/ld.so.preload` is removed. To remove the preserved legacy configuration during an
+  explicit package removal, set `REMOVE_LEGACY_CONFIG=true` when invoking the package manager; cleanup is skipped if
+  the backup directory is absent. Restart instrumented applications or services, or reboot, after the upgrade.
+- .NET agent files are now installed under `splunk-otel-dotnet/glibc`, with `OTEL_DOTNET_AUTO_HOME` set to that
+  directory, and .NET auto-instrumentation now supports arm64 in addition to amd64.
+- When using the `install.sh` script with `--with-instrumentation` or `--with-systemd-instrumentation` options the
+  script requires an auto-instrumentation package version greater than 0.159.0 and during installation adds the
+  `libotelinject.so` to the `/etc/ld.so.preload` file.
+- When using Ansible, Chef, Puppet, or Salt, do not edit the generated `default_env.conf` directly. Move the settings
+  into the corresponding deployment-tool parameters and upgrade to an injector-compatible version of that deployment
+  module before promoting the new auto-instrumentation package.
+- Support for the new package requires use of the following minimum versions:
+  - Ansible playbook v1.3.0
+  - Chef recipe v0.22.0
+  - Puppet module v0.23.0
+  - Salt module is published with the merge of the `libotelinject.so` [migration](https://github.com/signalfx/splunk-otel-collector/pull/7581) 
+
+
+See the [instrumentation README](instrumentation/README.md) for full activation and configuration details.
+
+### From 0.158.0 to 0.159.0
+
+Linux DEB and RPM packages and Windows installations through MSI or Chocolatey now use `otelcollauncher` as the service entrypoint
+instead of `otelcol`. By default, the launcher starts `otelcol` directly and passes through the existing service arguments,
+so upgrades preserve the previous Collector service behavior. The launcher allows the service to start either `otelcol`
+directly or the OpAMP Supervisor, enabling additional Fleet Management capabilities. See
+[OpenTelemetry Fleet Management](https://help.splunk.com/en/splunk-observability-cloud/manage-data/manage-otel-agents-and-collectors/manage-opentelemetry-agents-and-collectors)
+for details.
+
+For a new Linux installation, pass `--with-supervisor` to the installer script. To enable the OpAMP Supervisor after
+upgrading, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in `/etc/otel/collector/splunk-otel-collector.conf` and restart the
+service.
+
+For a new Windows installation, pass `-with_supervisor $true` to the installer script. To enable the OpAMP Supervisor after
+upgrading, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=true` in the service's `Environment` value under
+`HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector` and restart the service.
+
+To stop running the Collector under OpAMP Supervisor, set `SPLUNK_OPAMP_SUPERVISOR_ENABLED=false` in:
+- Linux: `/etc/otel/collector/splunk-otel-collector.conf`
+- Windows: service's `Environment` value under `HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
+
+Restart the service after changing the setting. The launcher will return to starting `otelcol` directly, without the
+supervisor. When switched back to direct mode, remote configuration delivered through the supervisor is no longer applied.
+
+On Linux DEB and RPM installation or upgrade, the package also now recursively sets the ownership of `/var/lib/otelcol` to
+the service user and group. This ensures the Collector and OpAMP Supervisor can write files in existing
+and new subdirectories of the shared state directory.
 
 ### From 0.157.0 to 0.158.0
 

@@ -1,3 +1,5 @@
+//go:build !aix && !freebsd && !solaris
+
 package core
 
 // Do an import of all of the built-in observers and monitors

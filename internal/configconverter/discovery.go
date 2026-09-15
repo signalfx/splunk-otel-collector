@@ -25,9 +25,12 @@ import (
 )
 
 // SetupDiscovery will find `service::<extensions|receivers>/splunk.discovery` entries
-// provided by the discovery confmap.Provider and relocate them to
-// `service::extensions` and `service::pipelines::metrics::receivers`,
-// by appending them to existing sequences, if any.
+// provided by the discovery confmap.Provider. When the default
+// `service::pipelines::metrics` or continuous discovery
+// `service::pipelines::logs/entities` pipeline exists, it relocates discovery
+// extensions to `service::extensions` and discovery receivers to the applicable
+// pipeline receiver by appending them to existing sequences, if any.
+// Otherwise, it removes the temporary entries to avoid creating an invalid config.
 func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
@@ -55,22 +58,26 @@ func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 		return nil
 	}
 
-	if len(discoExtensions) > 0 {
-		service["extensions"] = appendUnique(serviceExtensions, discoExtensions)
-	}
-
-	pipelines := map[string]any{}
+	var pipelines map[string]any
 	if pl, ok := service["pipelines"]; ok && pl != nil {
 		pipelines = pl.(map[string]any)
 	}
-	service["pipelines"] = pipelines
 
 	metricsPipeline, metricsReceivers, err := getMetricsPipelineAndReceivers(pipelines)
 	if err != nil {
 		return err
 	}
+	_, entitiesPipelineIsSet := pipelines["logs/entities"].(map[string]any)
+	if metricsPipeline == nil && !entitiesPipelineIsSet {
+		*in = *confmap.NewFromStringMap(out)
+		return nil
+	}
 
-	if len(discoReceivers) > 0 {
+	if len(discoExtensions) > 0 {
+		service["extensions"] = appendUnique(serviceExtensions, discoExtensions)
+	}
+
+	if len(discoReceivers) > 0 && metricsPipeline != nil {
 		metricsPipeline["receivers"] = appendUnique(metricsReceivers, discoReceivers)
 	}
 
@@ -129,11 +136,14 @@ func getDiscoReceivers(service map[string]any) (bool, []any, error) {
 }
 
 func getMetricsPipelineAndReceivers(pipelines map[string]any) (map[string]any, []any, error) {
-	metricsPipeline := map[string]any{}
-	if mp, ok := pipelines["metrics"]; ok && mp != nil {
-		metricsPipeline = mp.(map[string]any)
+	mp, ok := pipelines["metrics"]
+	if !ok || mp == nil {
+		return nil, nil, nil
 	}
-	pipelines["metrics"] = metricsPipeline
+	metricsPipeline, ok := mp.(map[string]any)
+	if !ok {
+		return nil, nil, fmt.Errorf("metrics pipeline is of unexpected form (%T): %v", mp, mp)
+	}
 
 	var metricsReceivers []any
 	if mr, ok := metricsPipeline["receivers"]; ok && mr != nil {

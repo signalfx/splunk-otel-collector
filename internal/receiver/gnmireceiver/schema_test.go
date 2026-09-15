@@ -67,6 +67,14 @@ func TestLoadYangSchemaResolvesCounter32ToSum(t *testing.T) {
 	assert.Equal(t, valueKindInt, rm.kind)
 }
 
+func TestLoadYangSchemaResolvesChainedCounterTypedefToSum(t *testing.T) {
+	schema := loadTestSchema(t)
+	rm, ok := schema.lookup([]string{"interfaces", "interface", "state", "counters", "in-octets-zero-based"})
+	require.True(t, ok)
+	assert.Equal(t, metricTypeSum, rm.Type, "zero-based-counter64 is a typedef of counter64, two levels removed from uint64")
+	assert.Equal(t, valueKindInt, rm.kind)
+}
+
 func TestLoadYangSchemaResolvesPlainUint64ToGauge(t *testing.T) {
 	schema := loadTestSchema(t)
 	rm, ok := schema.lookup([]string{"interfaces", "interface", "state", "counters", "in-pkts"})
@@ -143,6 +151,13 @@ func TestLoadYangSchemaUnknownLeafIsUnresolved(t *testing.T) {
 }
 
 func TestIsCounterType(t *testing.T) {
+	uint64Type := &yang.YangType{Name: "uint64"}
+	counter64Type := &yang.YangType{Name: "counter64", Base: &yang.Type{YangType: uint64Type}}
+	// Mirrors the real goyang shape: Root would collapse to uint64Type here
+	// (the ultimate primitive), which is exactly why isCounterType must walk
+	// Base instead of relying on Root.
+	chainedType := &yang.YangType{Name: "zero-based-counter64", Root: uint64Type, Base: &yang.Type{YangType: counter64Type}}
+
 	tests := []struct {
 		typ  *yang.YangType
 		name string
@@ -150,15 +165,12 @@ func TestIsCounterType(t *testing.T) {
 	}{
 		{name: "direct counter64 name", typ: &yang.YangType{Name: "counter64"}, want: true},
 		{name: "direct counter32 name", typ: &yang.YangType{Name: "counter32"}, want: true},
-		{name: "plain uint64", typ: &yang.YangType{Name: "uint64"}, want: false},
+		{name: "plain uint64", typ: uint64Type, want: false},
+		{name: "typedef of counter64", typ: counter64Type, want: true},
+		{name: "typedef chain two levels through counter64", typ: chainedType, want: true},
 		{
-			name: "chained typedef falls back to root name",
-			typ:  &yang.YangType{Name: "my-octets", Root: &yang.YangType{Name: "counter64"}},
-			want: true,
-		},
-		{
-			name: "chained typedef with unrelated root",
-			typ:  &yang.YangType{Name: "my-octets", Root: &yang.YangType{Name: "uint64"}},
+			name: "typedef chain with unrelated base",
+			typ:  &yang.YangType{Name: "my-octets", Base: &yang.Type{YangType: uint64Type}},
 			want: false,
 		},
 	}

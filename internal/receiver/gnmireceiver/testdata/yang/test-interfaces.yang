@@ -16,6 +16,11 @@ module test-interfaces {
     description "Mirrors ietf-yang-types:counter32 for test purposes.";
   }
 
+  typedef zero-based-counter64 {
+    type counter64;
+    description "Mirrors ietf-yang-types:zero-based-counter64 for test purposes: a typedef chain two levels deep (zero-based-counter64 -> counter64 -> uint64).";
+  }
+
   container interfaces {
     list interface {
       key "name";
@@ -56,6 +61,10 @@ module test-interfaces {
 
           leaf in-errors {
             type counter32;
+          }
+
+          leaf in-octets-zero-based {
+            type zero-based-counter64;
           }
 
           leaf temperature {

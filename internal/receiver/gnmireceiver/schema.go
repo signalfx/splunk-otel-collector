@@ -259,7 +259,19 @@ func newEnumResolvedMetric(unit string, values []string) resolvedMetric {
 }
 
 func isCounterType(t *yang.YangType) bool {
-	return isCounterTypeName(t.Name) || (t.Root != nil && isCounterTypeName(t.Root.Name))
+	for cur := t; cur != nil; cur = baseYangType(cur) {
+		if isCounterTypeName(cur.Name) {
+			return true
+		}
+	}
+	return false
+}
+
+func baseYangType(t *yang.YangType) *yang.YangType {
+	if t.Base == nil {
+		return nil
+	}
+	return t.Base.YangType
 }
 
 func isCounterTypeName(name string) bool {

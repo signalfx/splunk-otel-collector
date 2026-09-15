@@ -40,6 +40,9 @@ jobs:
       - name: multimod-verify
         run: make multimod-verify
 
+      - name: module release scope tests
+        run: ./.gitlab/module-release-scope_test.sh
+
   gofmt:
     name: gofmt
     runs-on: ubuntu-24.04

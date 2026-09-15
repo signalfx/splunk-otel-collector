@@ -95,13 +95,11 @@ manual_release_trigger:
         fi
       fi
 
-      # versions.yaml drives the module set tags created at release time; assert
-      # it was bumped to this release so the tags match.
-      SET_VERSION=$(awk '/^  splunk-otel-collector:/{f=1} f&&/^    version:/{print $2; exit}' versions.yaml)
-      if [ "$SET_VERSION" != "$RELEASE_VERSION" ]; then
-        echo "versions.yaml has the splunk-otel-collector module set at $SET_VERSION but release is $RELEASE_VERSION." >&2
-        echo "Bump the version value in versions.yaml to $RELEASE_VERSION before releasing." >&2
-        exit 1
+      MODULE_RELEASE_SCOPE=$(./.gitlab/module-release-scope.sh "$RELEASE_VERSION")
+      if [ "$MODULE_RELEASE_SCOPE" = "root" ]; then
+        echo "Patch release $RELEASE_VERSION will tag only the root collector module."
+      else
+        echo "Release $RELEASE_VERSION will tag the complete module set."
       fi
 
       echo "Manual release triggered for version $RELEASE_VERSION"

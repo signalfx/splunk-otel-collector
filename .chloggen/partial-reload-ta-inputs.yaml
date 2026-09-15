@@ -1,6 +1,6 @@
 change_type: enhancement
 component: receiver/splunk_inputs
 note: Reconcile TA input stanzas independently during configuration reloads.
-issues: []
+issues: [8092]
 subtext: |
   Unchanged TA input receivers remain running while only added, removed, or changed stanzas are rebuilt. An explicit `Reload` method is also available through the `splunkinputsreceiver.Reloadable` interface for callers that already know a local configuration changed.

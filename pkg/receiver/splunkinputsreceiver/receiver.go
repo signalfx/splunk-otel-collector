@@ -166,6 +166,9 @@ func (r *splunkInputsReceiver) watchLoop(ctx context.Context) {
 // All adds are best-effort — default/ or local/ may not exist yet. Watching taDir
 // itself ensures we detect when they are created later.
 func (r *splunkInputsReceiver) watchTA(taDir string) {
+	if taDir == systemKey {
+		return
+	}
 	_ = r.watcher.Add(taDir)
 	_ = r.watcher.Add(filepath.Join(taDir, "default"))
 	_ = r.watcher.Add(filepath.Join(taDir, "local"))

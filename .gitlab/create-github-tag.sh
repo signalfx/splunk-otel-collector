@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Tags a commit on GitHub for the whole splunk-otel-collector Go module set
-# (root, baseline, and the pkg/* modules) and pushes the tags.
-#
-# The module set and its version live in versions.yaml, already validated
-# against the release by the manual_release_trigger job. This uses `multimod
-# tag` to create the signed per-module tags (vX.Y.Z, baseline/vX.Y.Z,
-# pkg/*/vX.Y.Z) and pushes them.
+# Tags a commit on GitHub and pushes the tags. When versions.yaml matches the
+# release, this tags the whole splunk-otel-collector Go module set (root,
+# baseline, and the pkg/* modules). A newer patch release in the same series
+# can leave versions.yaml unchanged and tag only the root collector module.
 #
 # Usage: ./create-github-tag.sh <version_tag> <commit_sha>
 
@@ -38,8 +35,15 @@ cd repo-tmp
 git fetch origin
 git checkout "$COMMIT_SHA"
 
-echo ">>> Creating signed tags for module set $MODULE_SET ($VERSION_TAG) at $COMMIT_SHA ..."
-tags="$( multimod tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags | sort -u )"
+MODULE_RELEASE_SCOPE=$(./.gitlab/module-release-scope.sh "$VERSION_TAG")
+if [[ "$MODULE_RELEASE_SCOPE" == "all" ]]; then
+  echo ">>> Creating signed tags for module set $MODULE_SET ($VERSION_TAG) at $COMMIT_SHA ..."
+  tags="$( multimod tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags | sort -u )"
+else
+  echo ">>> Creating signed root module tag $VERSION_TAG at $COMMIT_SHA ..."
+  git tag -s "$VERSION_TAG" "$COMMIT_SHA" -m "Release $VERSION_TAG"
+  tags="$VERSION_TAG"
+fi
 
 echo ">>> Pushing tags to GitHub: $tags"
 # Word-split $tags into args; module tags never contain spaces. --atomic so the

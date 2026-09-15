@@ -13,9 +13,9 @@
 # limitations under the License.
 
 # Module sets for the multimod releaser (go.opentelemetry.io/build-tools/multimod).
-# The release job tags every module in the splunk-otel-collector set at this
-# version on each release. Bump `version` to the next release before releasing;
-# the release job fails if it is still at an already-tagged version.
+# When this version matches the release, the release job tags every module in
+# the splunk-otel-collector set. It may remain unchanged for a patch release
+# that tags only the root collector module.
 module-sets:
   splunk-otel-collector:
     version: v0.160.0

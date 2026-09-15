@@ -5,6 +5,25 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.160.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.160.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.160.0)
+and the [opentelemetry-collector-contrib v0.160.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.160.0) releases where appropriate.
+
+### 🚀 New components 🚀
+
+- (Splunk) `processor/lookup`: Added Lookup Processor component to Splunk OTel Collector distribution ([#8088](https://github.com/signalfx/splunk-otel-collector/pull/8088))
+  See [Lookup Processor docs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/lookupprocessor).
+- (Splunk) `extension/disk_queue_storage`: Add a new experimental disk storage extension for exporter persistent queues ([#7956](https://github.com/signalfx/splunk-otel-collector/pull/7956))
+  This new extension is experimental and requires extensive testing. It allows fast writes and reads from disk by
+  using append-only writes and rotating files, removing files after they have been consumed.
+  The extension will only work if used as a persistent queue storage, and will crash the collector with an explicit
+  message if used otherwise.
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `internal/k8sconfig`: Prevent Kubernetes API clients from using environment proxy settings ([#50939](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/50939))
+
 ## v0.160.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.160.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.160.0)

@@ -134,6 +134,22 @@ func TestShutdownWithoutStart(t *testing.T) {
 }
 
 func TestReconcile(t *testing.T) {
+	t.Run("system_receiver_uses_filesystem_path", func(t *testing.T) {
+		splunkHome := t.TempDir()
+		factory := newMockFactory()
+		r := newTestSplunkInputsReceiver(t, splunkHome, factory)
+
+		systemDir := filepath.Join(splunkHome, "etc", "system", "local")
+		require.NoError(t, os.MkdirAll(systemDir, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(systemDir, "inputs.conf"),
+			[]byte("[monitor:///var/log/syslog]\nsourcetype = syslog\n"), 0o600))
+
+		r.reconcile(context.Background(), map[string]struct{}{})
+
+		assert.Contains(t, factory.receivers, filepath.Join(splunkHome, "etc", "system"))
+		assert.NotContains(t, r.watcher.WatchList(), systemKey)
+	})
+
 	t.Run("adds_new_ta", func(t *testing.T) {
 		splunkHome := t.TempDir()
 		factory := newMockFactory()

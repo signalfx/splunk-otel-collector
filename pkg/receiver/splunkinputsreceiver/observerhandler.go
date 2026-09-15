@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	"go.opentelemetry.io/collector/component"
@@ -81,7 +82,7 @@ func (h *observerHandler) add(ctx context.Context, taDirs []string) error {
 			errs = append(errs, err)
 			continue
 		}
-		started, err := h.options.startReceiverSpecs(ctx, h.host, taDir, h.next, h.settings, specs)
+		started, err := h.options.startReceiverSpecs(ctx, h.host, receiverBaseDir(h.splunkHome, taDir), h.next, h.settings, specs)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -138,7 +139,7 @@ func (h *observerHandler) change(ctx context.Context, taDir string) error {
 			delete(oldReceivers, spec.name)
 		}
 
-		started, startErr := h.options.startReceiverSpecs(ctx, h.host, taDir, h.next, h.settings, []receiverSpec{*spec})
+		started, startErr := h.options.startReceiverSpecs(ctx, h.host, receiverBaseDir(h.splunkHome, taDir), h.next, h.settings, []receiverSpec{*spec})
 		if startErr != nil {
 			errs = append(errs, startErr)
 			continue
@@ -179,6 +180,13 @@ func (h *observerHandler) change(ctx context.Context, taDir string) error {
 		}
 	}
 	return errors.Join(errs...)
+}
+
+func receiverBaseDir(splunkHome, taDir string) string {
+	if taDir == systemKey {
+		return filepath.Join(splunkHome, "etc", "system")
+	}
+	return taDir
 }
 
 func (h *observerHandler) remove(ctx context.Context, taDirs []string) {

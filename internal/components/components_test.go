@@ -175,6 +175,7 @@ func TestDefaultComponents(t *testing.T) {
 		"groupbyattrs",
 		"k8s_attributes",
 		"logstransform",
+		"lookup",
 		"memory_limiter",
 		"metricsgeneration",
 		"metrics_transform",

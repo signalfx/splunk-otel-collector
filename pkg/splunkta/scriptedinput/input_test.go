@@ -102,3 +102,50 @@ func Test_ScriptedInput(t *testing.T) {
 		})
 	}
 }
+
+// Test_ScriptedInput_StopCancelsRunningScript verifies that Stop terminates a
+// still-running script and returns promptly instead of leaking the child.
+func Test_ScriptedInput_StopCancelsRunningScript(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on Windows because scripts use bash")
+	}
+	if raceDetectorEnabled {
+		t.Skip("Skipping under the race detector: known data race in the moved scriptedinput code")
+	}
+
+	c := NewConfig()
+	c.BaseDir = "testdata"
+	c.Input = conf.Input{
+		Configuration: conf.Configuration{
+			Stanza: conf.Stanza{
+				Name: "script://./bin/sleep.sh",
+				Params: []conf.Param{
+					{Name: "interval", Value: "0"},
+				},
+			},
+		},
+	}
+	settings := componenttest.NewNopTelemetrySettings()
+	settings.Logger, _ = zap.NewDevelopment()
+	o, err := c.Build(settings)
+	require.NoError(t, err)
+	require.NotNil(t, o)
+	fakeOut := testutil.NewFakeOutput(t)
+	require.NoError(t, fakeOut.Start(nil))
+	t.Cleanup(func() {
+		require.NoError(t, fakeOut.Stop())
+	})
+	o.SetOutputIDs([]string{fakeOut.ID()})
+	require.NoError(t, o.SetOutputs([]operator.Operator{fakeOut}))
+	require.NoError(t, o.Start(nil))
+	time.Sleep(200 * time.Millisecond) // let the script start running
+
+	done := make(chan error, 1)
+	go func() { done <- o.Stop() }()
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "Stop did not return promptly; running script was not cancelled")
+	}
+}

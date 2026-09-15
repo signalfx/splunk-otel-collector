@@ -16,6 +16,7 @@
 package components
 
 import (
+	"github.com/splunk/tarunner/pkg/splunkinputsreceiver"
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/nutanixreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter"
@@ -68,6 +70,7 @@ func Get() (otelcol.Factories, error) {
 		discoveryreceiver.NewFactory(),
 		gnmireceiver.NewFactory(),
 		lightprometheusreceiver.NewFactory(),
+		nutanixreceiver.NewFactory(),
 		promqlreceiver.NewFactory(),
 		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),

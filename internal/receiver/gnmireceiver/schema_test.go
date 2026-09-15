@@ -50,6 +50,12 @@ func TestLoadYangSchemaSyntaxErrorFails(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestLoadYangSchemaConflictingPathAcrossModulesFails(t *testing.T) {
+	_, err := loadYangSchema([]string{"testdata/yang-conflict"})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "shared/value")
+}
+
 func TestLoadYangSchemaResolvesCounter64ToSum(t *testing.T) {
 	schema := loadTestSchema(t)
 	rm, ok := schema.lookup([]string{"interfaces", "interface", "state", "counters", "in-octets"})

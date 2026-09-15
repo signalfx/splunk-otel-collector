@@ -118,6 +118,7 @@ func loadYangSchema(paths []string) (*yangSchema, error) {
 	}
 
 	entryIndex := map[string]*yang.Entry{}
+	pathEntries := map[string][]*yang.Entry{}
 	seen := map[*yang.Module]bool{}
 	for _, mod := range ms.Modules {
 		if seen[mod] {
@@ -129,18 +130,49 @@ func loadYangSchema(paths []string) (*yangSchema, error) {
 			continue
 		}
 		for _, child := range root.Dir {
-			indexEntries(child, nil, entryIndex)
+			indexEntries(child, nil, entryIndex, pathEntries)
 		}
 	}
 
 	byPath := map[string]resolvedMetric{}
-	for path, entry := range entryIndex {
-		if rm, ok := resolveEntry(entry, entryIndex, 0); ok {
-			byPath[path] = rm
+	for path, entries := range pathEntries {
+		rm, ok := resolveEntry(entries[0], entryIndex, 0)
+		if !ok {
+			continue
 		}
+		if err := checkNoPathConflict(path, entries[1:], entryIndex, rm); err != nil {
+			return nil, err
+		}
+		byPath[path] = rm
 	}
 
 	return &yangSchema{byPath: byPath}, nil
+}
+
+func checkNoPathConflict(path string, rest []*yang.Entry, index map[string]*yang.Entry, first resolvedMetric) error {
+	for _, e := range rest {
+		rm, ok := resolveEntry(e, index, 0)
+		if !ok || sameResolution(first, rm) {
+			continue
+		}
+		return fmt.Errorf(
+			"yang_modules: leaf path %q is defined by more than one loaded module with different results "+
+				"(type=%q/unit=%q vs type=%q/unit=%q); rename the conflicting leaf or split yang_modules so only one definition loads",
+			path, first.Type, first.Unit, rm.Type, rm.Unit)
+	}
+	return nil
+}
+
+func sameResolution(a, b resolvedMetric) bool {
+	if a.Type != b.Type || a.Unit != b.Unit || a.kind != b.kind || len(a.EnumValues) != len(b.EnumValues) {
+		return false
+	}
+	for i := range a.EnumValues {
+		if a.EnumValues[i] != b.EnumValues[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func yangProcessError(errs []error) error {
@@ -158,10 +190,10 @@ func yangProcessError(errs []error) error {
 		strings.Join(msgs, "; "))
 }
 
-func indexEntries(e *yang.Entry, names []string, index map[string]*yang.Entry) {
+func indexEntries(e *yang.Entry, names []string, index map[string]*yang.Entry, pathEntries map[string][]*yang.Entry) {
 	if e.IsChoice() || e.IsCase() {
 		for _, child := range e.Dir {
-			indexEntries(child, names, index)
+			indexEntries(child, names, index, pathEntries)
 		}
 		return
 	}
@@ -169,12 +201,14 @@ func indexEntries(e *yang.Entry, names []string, index map[string]*yang.Entry) {
 	names = append(names[:len(names):len(names)], e.Name)
 
 	if e.IsLeaf() || e.IsLeafList() {
-		index[strings.Join(names, "/")] = e
+		path := strings.Join(names, "/")
+		index[path] = e
+		pathEntries[path] = append(pathEntries[path], e)
 		return
 	}
 
 	for _, child := range e.Dir {
-		indexEntries(child, names, index)
+		indexEntries(child, names, index, pathEntries)
 	}
 }
 

@@ -249,7 +249,10 @@ A `union` or `leafref` that cannot be followed to a concrete type, and `binary`/
 leaves, are not resolved by the schema; such a leaf falls back to `overrides`/`default`
 exactly as if no `yang_modules` were configured. Startup fails if a listed file is
 missing, fails to parse, or the module set has unresolved imports — every
-`import`ed/`include`d module must be reachable via `yang_modules`.
+`import`ed/`include`d module must be reachable via `yang_modules`. Startup also fails
+if two loaded modules define the same gNMI-visible path (leaf/container names are not
+module-qualified) with conflicting types, rather than silently letting one module's
+resolution win over the other's.
 
 ### Credentials
 

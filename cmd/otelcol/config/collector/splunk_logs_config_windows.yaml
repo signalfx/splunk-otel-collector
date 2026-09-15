@@ -361,7 +361,7 @@ extensions:
     directory: "${ProgramData}/Splunk/OpenTelemetry Collector/FileStorage"
     compaction:
       on_start: true
-      directory: ${env:TEMP}
+      directory: "${ProgramData}/Splunk/OpenTelemetry Collector/FileStorage/Temp"
     create_directory: true
 
 service:

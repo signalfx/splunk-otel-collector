@@ -47,6 +47,11 @@ type msiTest struct {
 	skipSvcStop            bool
 }
 
+const (
+	localSystemServiceAccount = "LocalSystem"
+	virtualServiceAccount     = `NT SERVICE\splunk-otel-collector`
+)
+
 func TestMSI(t *testing.T) {
 	msiInstallerPath := getInstallerPath(t)
 
@@ -62,6 +67,13 @@ func TestMSI(t *testing.T) {
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN": "fakeToken",
 				"COLLECTOR_SVC_ARGS":  "--discovery --set=processors.batch.timeout=10s",
+			},
+		},
+		{
+			name: "localsystem-service-account",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
+				"SPLUNK_SERVICE_ACCOUNT_TYPE": "localsystem",
 			},
 		},
 		{
@@ -551,6 +563,12 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 			return configErr == nil && runtimeConfigErr == nil
 		}, 10*time.Second, 500*time.Millisecond, "Supervisor configuration files were not created")
 	}
+
+	expectedServiceAccount := virtualServiceAccount
+	if msiProperties["SPLUNK_SERVICE_ACCOUNT_TYPE"] == "localsystem" {
+		expectedServiceAccount = localSystemServiceAccount
+	}
+	assert.Equal(t, expectedServiceAccount, svcConfig.ServiceStartName)
 }
 
 func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {

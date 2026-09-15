@@ -21,12 +21,23 @@
       <!-- Load the Splunk custom actions -->
       <Binary Id="SplunkCustomActionsDll" SourceFile="$(sys.SOURCEFILEDIR)/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll" />
       <CustomAction Id="CheckLaunchConditions" DllEntry="CheckLaunchConditions" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
+      <CustomAction Id="ValidateServiceAccountType" DllEntry="ValidateServiceAccountType" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
+      <CustomAction Id="DetectExistingServiceAccount" DllEntry="DetectExistingServiceAccount" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
+      <CustomAction Id="LogServiceAccountRecommendation" DllEntry="LogServiceAccountRecommendation" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
+      <CustomAction Id="ConfigureServiceAccountCustomActionData" Property="ConfigureServiceAccount" Value="SPLUNK_SERVICE_ACCOUNT_TYPE=[SPLUNK_SERVICE_ACCOUNT_TYPE];DETECTED_SERVICE_ACCOUNT=[DETECTED_SERVICE_ACCOUNT];PROGRAMDATA=[CommonAppDataFolder]" />
+      <CustomAction Id="ConfigureServiceAccount" DllEntry="ConfigureServiceAccount" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
       <CustomAction Id="AddOptionalConfigurationsCustomActionData" Property="AddOptionalConfigurations" Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB];SPLUNK_OPAMP_SUPERVISOR_ENABLED=[SPLUNK_OPAMP_SUPERVISOR_ENABLED];SPLUNK_PLATFORM_URL=[SPLUNK_PLATFORM_URL];SPLUNK_PLATFORM_TOKEN=[SPLUNK_PLATFORM_TOKEN];SPLUNK_PLATFORM_LOGS_INDEX=[SPLUNK_PLATFORM_LOGS_INDEX];SPLUNK_PLATFORM_METRICS_INDEX=[SPLUNK_PLATFORM_METRICS_INDEX]" />
       <CustomAction Id="AddOptionalConfigurations" DllEntry="AddOptionalConfigurations" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
 
       <!-- Following name convention for this property to match upstream -->
       <!-- On upstream it is required and has a default value, here it is optional -->
       <Property Id="COLLECTOR_SVC_ARGS" Secure="yes" />
+
+      <!-- Selects the service identity for either a fresh install or an upgrade. -->
+      <Property Id="SPLUNK_SERVICE_ACCOUNT_TYPE" Secure="yes" />
+      <!-- Used only by install.ps1, which removes the old MSI before installing the new one. -->
+      <Property Id="SPLUNK_PREVIOUS_SERVICE_ACCOUNT" Secure="yes" />
+      <Property Id="DETECTED_SERVICE_ACCOUNT" Secure="yes" />
 
       <!-- SPLUNK setup control properties -->
       <Property Id="SPLUNK_SETUP_COLLECTOR_MODE" Value="agent" Secure="yes" />
@@ -52,6 +63,7 @@
 
       <Launch Condition="NOT SPLUNK_PLATFORM_URL OR SPLUNK_PLATFORM_TOKEN" Message="SPLUNK_PLATFORM_TOKEN is required when SPLUNK_PLATFORM_URL is set." />
       <Launch Condition="NOT SPLUNK_PLATFORM_TOKEN OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_TOKEN is set." />
+      <Launch Condition="NOT SPLUNK_SERVICE_ACCOUNT_TYPE OR SPLUNK_SERVICE_ACCOUNT_TYPE=&quot;virtual&quot; OR SPLUNK_SERVICE_ACCOUNT_TYPE=&quot;localsystem&quot;" Message="SPLUNK_SERVICE_ACCOUNT_TYPE must be empty, 'virtual', or 'localsystem'." />
 
       <CustomAction Id="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="--config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml&quot;" />
       <CustomAction Id="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="[COLLECTOR_SVC_ARGS] --config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml&quot;" />
@@ -71,6 +83,9 @@
 
       <InstallExecuteSequence>
          <Custom Action="CheckLaunchConditions" After="LaunchConditions" />
+         <Custom Action="ValidateServiceAccountType" After="CheckLaunchConditions" Condition="NOT REMOVE=&quot;ALL&quot;" />
+         <Custom Action="DetectExistingServiceAccount" After="ValidateServiceAccountType" Condition="NOT REMOVE=&quot;ALL&quot;" />
+         <Custom Action="LogServiceAccountRecommendation" After="DetectExistingServiceAccount" Condition="NOT REMOVE=&quot;ALL&quot;" />
          <Custom Action="Set_SPLUNK_HEC_TOKEN" After="LaunchConditions" Condition="NOT SPLUNK_HEC_TOKEN" />
          <Custom Action="Set_SPLUNK_API_URL" After="LaunchConditions" Condition="NOT SPLUNK_API_URL" />
          <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions" Condition="NOT SPLUNK_INGEST_URL" />
@@ -93,6 +108,8 @@
          <Custom Action="AddOptionalConfigurations" After="WriteRegistryValues" />
          <Custom Action="CopyConfig" After="InstallFiles" Condition="NOT CONFIG_FILE_EXISTS AND NOT Installed" />
          <Custom Action="DeleteProgramFilesConfig" After="CopyConfig" />
+         <Custom Action="ConfigureServiceAccountCustomActionData" Before="ConfigureServiceAccount" />
+         <Custom Action="ConfigureServiceAccount" After="InstallServices" Condition="NOT REMOVE=&quot;ALL&quot;" />
       </InstallExecuteSequence>
 
       <MajorUpgrade DowngradeErrorMessage="A later version of the Splunk OpenTelemetry Collector is already installed. Setup will now exit." />

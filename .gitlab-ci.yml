@@ -321,9 +321,6 @@ update-nodejs-agent:
   extends: .go-cache
   tags: [large]
   needs: []
-  before_script:
-    - !reference [.go-cache, before_script]
-    - apt update && apt install -y jq
   script:
     - .gitlab/install-yq.sh
     - .gitlab/install-gh-cli.sh

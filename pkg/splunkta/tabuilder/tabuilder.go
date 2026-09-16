@@ -46,7 +46,7 @@ func ResolveSplunkHome(baseDir string) (string, error) {
 	if home := os.Getenv("SPLUNK_HOME"); home != "" {
 		return home, nil
 	}
-	return "", fmt.Errorf("base_dir is not set and $SPLUNK_HOME is not defined")
+	return "", errors.New("base_dir is not set and $SPLUNK_HOME is not defined")
 }
 
 // CreateReceivers builds a logs receiver for every enabled input stanza,

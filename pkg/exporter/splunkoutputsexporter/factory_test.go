@@ -27,6 +27,8 @@ func TestWithSubExporterOverridesBuiltInHTTPOut(t *testing.T) {
 	exp, err := factory.CreateLogs(context.Background(), newExporterSettings(), splunkoutputsexporter.Config{BaseDir: baseDir})
 	require.NoError(t, err)
 	require.NotNil(t, exp)
+	require.NoError(t, exp.Start(context.Background(), nil))
+	defer exp.Shutdown(context.Background()) //nolint:errcheck
 	require.Len(t, fake.requests, 1)
 	require.Equal(t, baseDir, fake.requests[0].BaseDir)
 	require.Empty(t, fake.requests[0].Path)
@@ -49,6 +51,8 @@ func TestWithSubExporterReadsRegisteredOutputSchemes(t *testing.T) {
 	exp, err := factory.CreateLogs(context.Background(), newExporterSettings(), splunkoutputsexporter.Config{BaseDir: baseDir})
 	require.NoError(t, err)
 	require.NotNil(t, exp)
+	require.NoError(t, exp.Start(context.Background(), nil))
+	defer exp.Shutdown(context.Background()) //nolint:errcheck
 	require.Len(t, httpout.requests, 1)
 	require.Len(t, tcpout.requests, 1)
 	require.Equal(t, "primary", tcpout.requests[0].Path)
@@ -65,6 +69,8 @@ func TestWithSubExporterRegistersCustomScheme(t *testing.T) {
 	exp, err := factory.CreateLogs(context.Background(), newExporterSettings(), splunkoutputsexporter.Config{BaseDir: baseDir})
 	require.NoError(t, err)
 	require.NotNil(t, exp)
+	require.NoError(t, exp.Start(context.Background(), nil))
+	defer exp.Shutdown(context.Background()) //nolint:errcheck
 	require.Len(t, fake.requests, 1)
 	require.Equal(t, "primary", fake.requests[0].Path)
 	require.Equal(t, "s2s://primary", fake.requests[0].Output.Configuration.Stanza.Name)

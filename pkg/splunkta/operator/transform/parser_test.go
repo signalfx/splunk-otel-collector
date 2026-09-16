@@ -4,7 +4,6 @@
 package transform
 
 import (
-	"fmt"
 	"math/rand/v2"
 	"sync"
 	"testing"
@@ -217,7 +216,7 @@ func benchParseInput() (patterns []string) {
 			b[i] = letterBytes[rand.IntN(len(letterBytes))]
 		}
 		randomStr := string(b)
-		p := fmt.Sprintf("%s-5644d7b6d9-mzngq_kube-system_coredns-901f7510281180a402936c92f5bc0f3557f5a21ccb5a4591c5bf98f3ddbffdd6.log", randomStr)
+		p := randomStr + "-5644d7b6d9-mzngq_kube-system_coredns-901f7510281180a402936c92f5bc0f3557f5a21ccb5a4591c5bf98f3ddbffdd6.log"
 		patterns = append(patterns, p)
 	}
 	return patterns

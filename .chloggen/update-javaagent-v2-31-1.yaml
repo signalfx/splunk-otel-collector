@@ -1,5 +1,0 @@
-change_type: enhancement
-component: packaging
-note: Update Splunk OpenTelemetry Java agent to v2.31.1
-issues: [8036]
-subtext: null

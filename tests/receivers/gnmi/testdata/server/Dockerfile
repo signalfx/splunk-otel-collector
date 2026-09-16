@@ -3,7 +3,7 @@
 # Builds the OpenConfig fake gNMI agent, which the openconfig/gnmi repository
 # ships for exactly this purpose: "implements a gRPC gNMI agent for testing
 # against a collector implementation".
-FROM golang:1.26-alpine
+FROM golang:1.27-alpine
 
 ARG GNMI_VERSION=v0.14.1
 

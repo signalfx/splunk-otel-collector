@@ -1,0 +1,66 @@
+name: setup Microsoft Go
+description: Install a pinned Microsoft build of Go for Windows builds and tests.
+
+inputs:
+  go-version:
+    description: Microsoft Go release, including its Microsoft revision.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Microsoft Go on Linux
+      if: runner.os == 'Linux'
+      shell: bash
+      env:
+        MICROSOFT_GO_VERSION: ${{ inputs.go-version }}
+      run: |
+        set -euo pipefail
+        case "${MICROSOFT_GO_VERSION}" in
+          1.26.6-1)
+            expected_sha256=d150752f0dfad988313e5dae993faac0f4adb3f253647714718383621a1f3362
+            ;;
+          *)
+            echo "No checksum is recorded for Microsoft Go ${MICROSOFT_GO_VERSION}." >&2
+            exit 1
+            ;;
+        esac
+        archive="${RUNNER_TEMP}/go${MICROSOFT_GO_VERSION}.linux-amd64.tar.gz"
+        install_dir="${RUNNER_TEMP}/microsoft-go-${MICROSOFT_GO_VERSION}-linux-amd64"
+        curl --fail --location --retry 3 --output "${archive}" "https://aka.ms/golang/release/latest/go${MICROSOFT_GO_VERSION}.linux-amd64.tar.gz"
+        echo "${expected_sha256}  ${archive}" | sha256sum --check --status
+        mkdir -p "${install_dir}"
+        tar -xzf "${archive}" -C "${install_dir}"
+        echo "${install_dir}/go/bin" >> "${GITHUB_PATH}"
+        "${install_dir}/go/bin/go" version
+
+    - name: Install Microsoft Go on Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        MICROSOFT_GO_VERSION: ${{ inputs.go-version }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $architecture = switch ($env:RUNNER_ARCH) {
+          'X64' { 'amd64' }
+          'ARM64' { 'arm64' }
+          default { throw "Unsupported Windows runner architecture: $env:RUNNER_ARCH" }
+        }
+        $expectedSha256 = switch ("$env:MICROSOFT_GO_VERSION-windows-$architecture") {
+          '1.26.6-1-windows-amd64' { '18dfcbb815383ef5533958a7d4c566301fe09067de7db6619ff90d7f0d78d332' }
+          '1.26.6-1-windows-arm64' { '4ebfc6c20cc91436b631e1e9c39499e0db0bb7e2261d29ee47b1e20b00f37d0a' }
+          default { throw "No checksum is recorded for Microsoft Go $env:MICROSOFT_GO_VERSION on Windows $architecture." }
+        }
+        $archive = Join-Path $env:RUNNER_TEMP "go$env:MICROSOFT_GO_VERSION.windows-$architecture.zip"
+        $installDir = Join-Path $env:RUNNER_TEMP "microsoft-go-$env:MICROSOFT_GO_VERSION-windows-$architecture"
+        Invoke-WebRequest -Uri "https://aka.ms/golang/release/latest/go$env:MICROSOFT_GO_VERSION.windows-$architecture.zip" -OutFile $archive
+        if ((Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant() -ne $expectedSha256) {
+          throw 'Microsoft Go archive checksum did not match the pinned value.'
+        }
+        Expand-Archive -Path $archive -DestinationPath $installDir
+        $goBin = Join-Path $installDir 'go\bin'
+        if ((Get-Content (Join-Path $installDir 'go\MICROSOFT_REVISION')).Trim() -ne '1') {
+          throw 'The downloaded archive is not the expected Microsoft Go revision.'
+        }
+        $goBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        & (Join-Path $goBin 'go.exe') version

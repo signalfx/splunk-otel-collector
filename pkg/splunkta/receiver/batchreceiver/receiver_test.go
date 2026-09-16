@@ -35,7 +35,7 @@ func TestReadFile(t *testing.T) {
 		Input: conf.Input{
 			Configuration: conf.Configuration{
 				Stanza: conf.Stanza{
-					Name: fmt.Sprintf("batch://%s", file),
+					Name: "batch://" + file,
 					App:  "",
 					Params: conf.Params{
 						conf.Param{

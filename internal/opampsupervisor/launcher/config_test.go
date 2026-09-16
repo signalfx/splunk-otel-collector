@@ -385,6 +385,12 @@ service:
 	supervisorYAML := readFile(t, paths.SupervisorConfig)
 	assert.True(t, bytes.Equal([]byte(sourceConfig), []byte(supervisorYAML)))
 	assert.Contains(t, supervisorYAML, "user-owned server setting")
+	var rawRuntimeConfig map[string]any
+	readYAML(t, paths.RuntimeSupervisorConfig, &rawRuntimeConfig)
+	runtimeCapabilities := rawRuntimeConfig["capabilities"].(map[string]any)
+	assert.NotContains(t, runtimeCapabilities, "reports_remote_config")
+	assert.Equal(t, false, runtimeCapabilities["accepts_remote_config"])
+	assert.Equal(t, true, runtimeCapabilities["reports_own_metrics"])
 	assert.NotContains(t, readFile(t, managedConfigPath), opampSplunkExtension)
 	assert.Contains(t, readFile(t, managedConfigPath), "health_check")
 	assert.Equal(t, append(append([]string{}, env...), ListenInterfaceEnvVar+"="+defaultListenInterface), cmd.Env)
@@ -1081,7 +1087,6 @@ func assertMinimalCapabilities(t *testing.T, capabilities supervisorCapabilities
 	assert.False(t, capabilities.ReportsOwnMetrics)
 	assert.True(t, capabilities.ReportsHealth)
 	assert.False(t, capabilities.ReportsHeartbeat)
-	assert.True(t, capabilities.ReportsRemoteConfig)
 	assert.True(t, capabilities.ReportsAvailableComponents)
 	assert.True(t, capabilities.AcceptsRemoteConfig)
 }
@@ -1097,7 +1102,6 @@ func assertMinimalCapabilitiesYAML(t *testing.T, path string) {
 		"reports_health":               true,
 		"reports_available_components": true,
 		"accepts_remote_config":        true,
-		"reports_remote_config":        true,
 		"reports_own_metrics":          false,
 		"reports_heartbeat":            false,
 	}, capabilities)

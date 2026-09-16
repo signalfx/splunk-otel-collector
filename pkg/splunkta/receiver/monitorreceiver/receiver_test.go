@@ -48,7 +48,7 @@ func TestMonitorDirectoryWithSplunkRegexWhitelist(t *testing.T) {
 		Input: conf.Input{
 			Configuration: conf.Configuration{
 				Stanza: conf.Stanza{
-					Name: fmt.Sprintf("monitor://%s", tempDir),
+					Name: "monitor://" + tempDir,
 					Params: conf.Params{
 						conf.Param{Name: "whitelist", Value: whitelist},
 						conf.Param{Name: "blacklist", Value: blacklist},
@@ -110,7 +110,7 @@ func TestMonitorDirectoryEmptyWhitelist(t *testing.T) {
 		Input: conf.Input{
 			Configuration: conf.Configuration{
 				Stanza: conf.Stanza{
-					Name: fmt.Sprintf("monitor://%s", tempDir),
+					Name: "monitor://" + tempDir,
 					Params: conf.Params{
 						conf.Param{Name: "whitelist", Value: ""},
 						conf.Param{Name: "blacklist", Value: ""},
@@ -153,7 +153,7 @@ func TestMonitorDirectoryNoWhitelist(t *testing.T) {
 		Input: conf.Input{
 			Configuration: conf.Configuration{
 				Stanza: conf.Stanza{
-					Name: fmt.Sprintf("monitor://%s", tempDir),
+					Name: "monitor://" + tempDir,
 					Params: conf.Params{
 						conf.Param{Name: "index", Value: "otel_nix"},
 					},

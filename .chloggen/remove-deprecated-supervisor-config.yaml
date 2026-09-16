@@ -13,8 +13,4 @@ issues: [8096]
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
-subtext: |
-  The OpAMP Supervisor now uses `accepts_remote_config` to enable both accept and report
-  remote configuration capabilities. For existing supervisor_config.yaml files, the final
-  generated runtime supervisor config will handle removing the deprecated config option to
-  maintain compatibility.
+subtext:

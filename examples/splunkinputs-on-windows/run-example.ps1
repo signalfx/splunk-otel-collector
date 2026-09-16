@@ -1,6 +1,6 @@
-# Prepares a TA (by default, the Splunk Add-on for Microsoft Windows) and
-# runs this example in a single Windows container. See README.md for the
-# manual download step this script depends on.
+# Extracts a TA (by default, the Splunk Add-on for Microsoft Windows), stages
+# a Splunk home, and runs this example in a single Windows container. See
+# README.md for the manual download step this script depends on.
 
 param(
     [Parameter(Mandatory = $true)]
@@ -23,9 +23,10 @@ $ErrorActionPreference = 'Stop'
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 $CONTAINER_NAME = if ($env:CONTAINER_NAME) { $env:CONTAINER_NAME } else { "splunkinputs-on-windows" }
 $IMAGE_TAG = if ($env:IMAGE_TAG) { $env:IMAGE_TAG } else { "latest" }
-# Local staging directory for the extracted TA; mounted into the container at
-# C:\var\ta, the generic TA location the receiver reads.
+# Local staging directory for the complete Splunk home. It is mounted into the
+# container at C:\var\splunk_home.
 $TA_DIR = Join-Path $SCRIPT_DIR "ta"
+$SPLUNK_HOME_DIR = Join-Path $SCRIPT_DIR "splunk_home"
 
 $resolvedTaPackagePath = Resolve-Path -ErrorAction SilentlyContinue $TaPackagePath
 if (-not $resolvedTaPackagePath) {
@@ -46,6 +47,15 @@ if (Test-Path $TA_DIR) {
     Remove-Item -Path $TA_DIR -Recurse -Force
 }
 New-Item -ItemType Directory -Path $TA_DIR -Force | Out-Null
+
+if (Test-Path $SPLUNK_HOME_DIR) {
+    Write-Host "Removing previous staged Splunk home at $SPLUNK_HOME_DIR"
+    Remove-Item -Path $SPLUNK_HOME_DIR -Recurse -Force
+}
+$taAppDir = Join-Path $SPLUNK_HOME_DIR "etc\apps\Splunk_TA_windows"
+$outputsDir = Join-Path $SPLUNK_HOME_DIR "etc\system\local"
+New-Item -ItemType Directory -Path $taAppDir -Force | Out-Null
+New-Item -ItemType Directory -Path $outputsDir -Force | Out-Null
 
 Write-Host "Extracting $($resolvedTaPackagePath.Path) to $TA_DIR"
 tar -xzf $resolvedTaPackagePath.Path -C $TA_DIR --strip-components=1
@@ -75,6 +85,16 @@ $updatedLines = foreach ($line in Get-Content -Path $localInputsConf) {
 }
 $updatedLines | Set-Content -Path $localInputsConf
 
+# Stage the TA below etc/apps and configure splunk_outputs through the normal
+# Splunk outputs.conf mechanism.
+Copy-Item -Path (Join-Path $TA_DIR '*') -Destination $taAppDir -Recurse -Force
+$outputsConf = @"
+[httpout]
+uri = $SplunkHecUrl
+httpEventCollectorToken = $SplunkHecToken
+"@
+Set-Content -Path (Join-Path $outputsDir "outputs.conf") -Value $outputsConf -Encoding ascii
+
 # Stop and remove existing container if it exists
 $existingContainer = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $CONTAINER_NAME }
 if ($existingContainer) {
@@ -91,9 +111,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "Launching container: $CONTAINER_NAME"
 docker run -d --name $CONTAINER_NAME `
-    -e SPLUNK_HEC_URL=$SplunkHecUrl `
-    -e SPLUNK_HEC_TOKEN=$SplunkHecToken `
-    -v "${TA_DIR}:C:\var\ta" `
+    -v "${SPLUNK_HOME_DIR}:C:\var\splunk_home" `
     "splunkinputs-on-windows:$IMAGE_TAG"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Error: Failed to launch container" -ForegroundColor Red

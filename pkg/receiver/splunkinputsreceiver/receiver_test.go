@@ -5,6 +5,7 @@ package splunkinputsreceiver
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -77,7 +78,8 @@ func (r *mockReceiver) Shutdown(context.Context) error {
 
 // mockSubReceiverFactory is a mock SubReceiverFactory that returns a mockReceiver per request.
 type mockSubReceiverFactory struct {
-	receivers map[string]*mockReceiver // keyed by BaseDir (taDir)
+	receivers   map[string]*mockReceiver // keyed by BaseDir (taDir)
+	failBaseDir string
 }
 
 func newMockFactory() *mockSubReceiverFactory {
@@ -87,6 +89,9 @@ func newMockFactory() *mockSubReceiverFactory {
 func (f *mockSubReceiverFactory) Scheme() string { return "monitor" }
 
 func (f *mockSubReceiverFactory) CreateLogs(_ context.Context, _ receiver.Settings, req ReceiverRequest, _ consumer.Logs) (receiver.Logs, error) {
+	if req.BaseDir == f.failBaseDir {
+		return nil, errors.New("failed to create receiver")
+	}
 	r := &mockReceiver{}
 	f.receivers[req.BaseDir] = r
 	return r, nil
@@ -134,6 +139,21 @@ func TestShutdownWithoutStart(t *testing.T) {
 }
 
 func TestReconcile(t *testing.T) {
+	t.Run("continues_when_one_ta_fails_to_start", func(t *testing.T) {
+		splunkHome := t.TempDir()
+		failingTA := makeTA(t, splunkHome, "splunk_ta_failing")
+		healthyTA := makeTA(t, splunkHome, "splunk_ta_healthy")
+		factory := newMockFactory()
+		factory.failBaseDir = failingTA
+		r := newTestSplunkInputsReceiver(t, splunkHome, factory)
+
+		require.NoError(t, r.reconcile(context.Background(), map[string]struct{}{}))
+
+		assert.NotContains(t, factory.receivers, failingTA)
+		assert.Contains(t, factory.receivers, healthyTA)
+		assert.Contains(t, r.watcher.WatchList(), healthyTA)
+	})
+
 	t.Run("system_receiver_uses_filesystem_path", func(t *testing.T) {
 		splunkHome := t.TempDir()
 		factory := newMockFactory()

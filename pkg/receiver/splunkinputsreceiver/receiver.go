@@ -220,7 +220,6 @@ func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string
 	if len(added) > 0 {
 		if err := r.handler.OnAdd(ctx, added); err != nil {
 			logger.Error("splunk_inputs: failed to start receivers for new TAs", zap.Error(err))
-			return err
 		}
 		for _, taDir := range added {
 			if r.watcher != nil {
@@ -231,7 +230,6 @@ func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string
 	if len(changed) > 0 {
 		if err := r.handler.OnChange(ctx, changed); err != nil {
 			logger.Error("splunk_inputs: failed to reload receivers for changed TAs", zap.Error(err))
-			return err
 		}
 		// retry watching default/ and local/ in case they were just created
 		for _, taDir := range changed {

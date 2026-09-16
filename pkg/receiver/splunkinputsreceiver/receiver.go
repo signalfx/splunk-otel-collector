@@ -5,7 +5,6 @@ package splunkinputsreceiver
 
 import (
 	"context"
-	"errors"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -27,25 +26,6 @@ type splunkInputsReceiver struct {
 	doneCh     chan struct{}
 	splunkHome string
 	reloadMu   sync.Mutex
-}
-
-// Reloadable is implemented by the splunk_inputs receiver. It is useful to
-// integrations that already know a local TA configuration changed and want to
-// trigger reconciliation without waiting for the filesystem debounce window.
-type Reloadable interface {
-	receiver.Logs
-	Reload(context.Context) error
-}
-
-// Reload triggers an immediate reconciliation for a receiver created by this
-// package. It is intended for integrations that apply local configuration
-// changes themselves and do not want to wait for the filesystem watcher.
-func Reload(ctx context.Context, r receiver.Logs) error {
-	reloadable, ok := r.(Reloadable)
-	if !ok {
-		return errors.New("receiver does not support splunk_inputs reload")
-	}
-	return reloadable.Reload(ctx)
 }
 
 func newSplunkInputsReceiver(splunkHome string, options factoryOptions, settings receiver.Settings, next consumer.Logs) *splunkInputsReceiver {
@@ -91,13 +71,6 @@ func (r *splunkInputsReceiver) Shutdown(ctx context.Context) error {
 	}
 	r.handler.shutdown(ctx)
 	return nil
-}
-
-// Reload reconciles all system and TA input stanzas against the currently
-// running receiver instances. Only stanzas whose effective configuration
-// changed are rebuilt.
-func (r *splunkInputsReceiver) Reload(ctx context.Context) error {
-	return r.reconcile(ctx, map[string]struct{}{"": {}})
 }
 
 func (r *splunkInputsReceiver) watchLoop(ctx context.Context) {

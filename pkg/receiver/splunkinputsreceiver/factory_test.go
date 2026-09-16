@@ -78,22 +78,6 @@ func TestWithSubReceiverSkipsDisabledCustomStanza(t *testing.T) {
 	require.False(t, fake.called)
 }
 
-func TestReloadableReconcilesLocalConfiguration(t *testing.T) {
-	splunkHome := writeTA(t, "[custom:///thing]\nsourcetype = before\n")
-	fake := &fakeSubReceiverFactory{scheme: "custom"}
-	factory := splunkinputsreceiver.NewFactory(splunkinputsreceiver.WithSubReceiver(fake))
-	rcvr, err := factory.CreateLogs(context.Background(), newReceiverSettings(), splunkinputsreceiver.Config{BaseDir: splunkHome}, nopConsumer{})
-	require.NoError(t, err)
-
-	require.NoError(t, rcvr.Start(context.Background(), nil))
-	t.Cleanup(func() { require.NoError(t, rcvr.Shutdown(context.Background())) })
-
-	inputsPath := filepath.Join(splunkHome, "etc", "apps", "Splunk_TA_test", "default", "inputs.conf")
-	require.NoError(t, os.WriteFile(inputsPath, []byte("[custom:///thing]\nsourcetype = after\n"), 0o600))
-	require.NoError(t, splunkinputsreceiver.Reload(context.Background(), rcvr))
-	require.Equal(t, 2, fake.callCount, "the explicit local reload should reconcile the stanza")
-}
-
 func TestSystemAndTAStanzasBothFire(t *testing.T) {
 	splunkHome := t.TempDir()
 

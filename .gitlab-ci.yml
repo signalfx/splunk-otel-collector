@@ -248,6 +248,24 @@ sast-scan:
       - .go/pkg/mod
       - .go/bin
 
+.microsoft-go-cache:
+  image: 'mcr.microsoft.com/oss/go/microsoft/golang:${GO_VERSION}'
+  variables:
+    GOPATH: "$CI_PROJECT_DIR/.go"
+  before_script:
+    - mkdir -p $GOPATH
+    - make install-tools
+    - export PATH=$GOPATH/bin:$PATH
+  cache:
+    key:
+      prefix: microsoft-go
+      files:
+        - go.mod
+        - go.sum
+    paths:
+      - .go/pkg/mod
+      - .go/bin
+
 # Upload deb/rpm package for the main branch to the generic-test artifactory repo for xray scanning
 .xray-publish-package: &xray-publish-package
   - if [[ ! "${PKG_TYPE:-}" =~ ^deb|rpm$ ]]; then exit 0; fi
@@ -378,7 +396,7 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -394,6 +412,35 @@ compile:
       - bin/otelcol_*
       - bin/otelcollauncher_*
       - bin/opampsupervisor_*
+
+compile-windows:
+  timeout: 2h
+  extends:
+    - .trigger-filter
+    - .microsoft-go-cache
+  tags: [large]
+  needs:
+    - job: manual_release_trigger
+      optional: true
+  parallel:
+    matrix:
+      - TARGET: [binaries-windows_amd64, binaries-windows_arm64]
+  script:
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        make $TARGET VERSION=${VERSION_TAG}
+      else
+        make $TARGET
+      fi
+    - go version -m "bin/otelcol_${TARGET#binaries-}.exe" | grep -F 'microsoft_systemcrypto=1'
+  after_script:
+    - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
+  artifacts:
+    paths:
+      - bin/otelcol_windows_*
+      - bin/otelcollauncher_windows_*
+      - bin/opampsupervisor_windows_*
 
 otelcol-fips:
   image: '${DOCKER_CICD_REPO}/ci-container/golang-1.26:5.9.0'
@@ -510,6 +557,7 @@ sign-exe:
   retry: 2
   needs:
     - compile
+    - compile-windows
     - otelcol-fips
   parallel:
     matrix:

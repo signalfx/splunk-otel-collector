@@ -15,6 +15,7 @@ on:
 
 env:
   GO_VERSION: 1.26.6
+  MICROSOFT_GO_VERSION: 1.26.6-1
 
 jobs:
   unit-test:
@@ -46,8 +47,15 @@ jobs:
           "TEMP=$goTmp" >> $env:GITHUB_ENV
 
       - uses: ./.github/actions/setup-environment
+        if: runner.os != 'Windows'
         with:
           install_tools: 'false'
+
+      - name: Set up Microsoft Go
+        if: runner.os == 'Windows'
+        uses: ./.github/actions/setup-microsoft-go
+        with:
+          go-version: ${{ env.MICROSOFT_GO_VERSION }}
 
       - name: Install unit test reporting tool
         if: ${{ inputs.COVERAGE }}

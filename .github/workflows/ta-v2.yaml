@@ -21,6 +21,7 @@ on:
 
 env:
   GO_VERSION: 1.26.6
+  MICROSOFT_GO_VERSION: 1.26.6-1
 
 jobs:
   ta-v2-build-packages:
@@ -37,13 +38,22 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Build collector binaries (linux & windows)
+      - name: Build Linux collector binary
         run: |
           set -eo pipefail
           make GOOS=linux GOARCH=amd64 otelcol
           install -D bin/otelcol_linux_amd64 packaging/ta-v2/assets/linux_x86_64/bin/Splunk_TA_otel
 
+      - name: Set up Microsoft Go for the Windows collector binary
+        uses: ./.github/actions/setup-microsoft-go
+        with:
+          go-version: ${{ env.MICROSOFT_GO_VERSION }}
+
+      - name: Build Windows collector binary
+        run: |
+          set -eo pipefail
           make GOOS=windows GOARCH=amd64 otelcol
+          go version -m bin/otelcol_windows_amd64.exe | grep -F 'microsoft_systemcrypto=1'
           install -D bin/otelcol_windows_amd64 packaging/ta-v2/assets/windows_x86_64/bin/Splunk_TA_otel.exe
 
       - name: Package TA v2
@@ -623,4 +633,3 @@ jobs:
           $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
           Write-Host "`n======= splunkd.log contents ======="
           Get-Content $splunkdLog -ErrorAction SilentlyContinue
-

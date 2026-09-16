@@ -25,14 +25,9 @@ create_collector_pr() {
   setup_branch "$branch" "$repo_url"
 
   echo ">>> Getting latest splunk-otel-javaagent release ..."
-  tag="$( gh release view --repo "https://github.com/signalfx/splunk-otel-java" --json tagName --jq 'select(.isDraft|not and .isPrelease|not) | .tagName' )"
-  if [[ -n "$tag" ]]; then
-    echo ">>> Updating splunk-otel-javaagent version to $tag ..."
-    echo "$tag" > instrumentation/packaging/java-agent-release.txt
-  else
-    echo "ERROR: Failed to get latest release tag from https://github.com/signalfx/splunk-otel-java !" >&2
-    exit 1
-  fi
+  tag="$(get_latest_github_release "signalfx/splunk-otel-java")"
+  echo ">>> Updating splunk-otel-javaagent version to $tag ..."
+  echo "$tag" > instrumentation/packaging/java-agent-release.txt
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then

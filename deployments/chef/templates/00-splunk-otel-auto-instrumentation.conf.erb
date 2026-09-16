@@ -1,4 +1,7 @@
 [Manager]
+<% if @with_otel_injector -%>
+DefaultEnvironment="LD_PRELOAD=/usr/lib/splunk-instrumentation/libotelinject.so"
+<% else -%>
 <% if @with_java -%>
 DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:<%= node['splunk_otel_collector']['auto_instrumentation_java_agent_jar'] %>"
 <% end -%>
@@ -37,4 +40,5 @@ DefaultEnvironment="OTEL_METRICS_EXPORTER=<%= node['splunk_otel_collector']['aut
 <% end -%>
 <% if defined?(node['splunk_otel_collector']['auto_instrumentation_logs_exporter']) && node['splunk_otel_collector']['auto_instrumentation_logs_exporter'] != "" -%>
 DefaultEnvironment="OTEL_LOGS_EXPORTER=<%= node['splunk_otel_collector']['auto_instrumentation_logs_exporter'] %>"
+<% end -%>
 <% end -%>

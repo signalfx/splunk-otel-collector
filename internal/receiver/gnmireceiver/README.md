@@ -233,5 +233,5 @@ with a blank password). Setting `password` without `username` is rejected at sta
 
 [configgrpc]: https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configgrpc/README.md
 [UCUM]: https://ucum.org/ucum
-[spec-stream]: https://openconfig.net/docs/gnmi/gnmi-specification/#35152-stream-subscriptions
-[spec-auth]: https://openconfig.net/docs/gnmi/gnmi-specification/#31-session-security-authentication-and-rpc-authorization
+[spec-stream]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#35152-stream-subscriptions
+[spec-auth]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#31-session-security-authentication-and-rpc-authorization

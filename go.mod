@@ -32,14 +32,14 @@ require (
 	github.com/prometheus/common v0.71.0
 	github.com/prometheus/prometheus v0.314.0
 	github.com/shirou/gopsutil/v4 v4.26.8
-	github.com/signalfx/splunk-otel-collector/baseline v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.160.0
+	github.com/signalfx/splunk-otel-collector/baseline v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.161.0
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
@@ -470,7 +470,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
 	github.com/signalfx/golib/v3 v3.5.0 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
-	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.0.0-00010101000000-000000000000 // indirect
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.161.0 // indirect
 	github.com/snowflakedb/gosnowflake/v2 v2.2.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect

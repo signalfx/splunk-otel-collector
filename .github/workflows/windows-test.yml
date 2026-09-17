@@ -41,4 +41,8 @@ jobs:
           $env:GOPATH = "${env:USERPROFILE}\go"
           $env:PATH = "$env:PATH;${env:GOPATH}\bin"
           go env -w CGO_ENABLED=0
-          go test -v -cover ./...
+          # The Windows runners have limited free disk space. Clear restored
+          # build artifacts and link test binaries one package at a time so
+          # multiple large .test.exe files are not created concurrently.
+          go clean -cache -testcache
+          go test -p 1 -v -cover ./...

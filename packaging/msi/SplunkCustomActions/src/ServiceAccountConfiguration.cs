@@ -47,7 +47,7 @@ internal static class ServiceAccountConfiguration
     {
         switch (accountType ?? string.Empty)
         {
-            case "":
+            case string.Empty:
                 return ServiceAccountType.Preserve;
             case "virtual":
                 return ServiceAccountType.Virtual;
@@ -123,15 +123,14 @@ internal static class ServiceAccountConfiguration
 
         SecurityIdentifier serviceSid = ResolveVirtualAccountSid();
         GrantSecurityEventLogPrivilege(serviceSid, log);
-        GrantFileAccess(
+        GrantDirectoryAccess(
             Path.Combine(programDataPath, "Splunk", "OpenTelemetry Collector"),
             serviceSid,
-            FileSystemRights.ReadAndExecute,
-            true);
+            FileSystemRights.ReadAndExecute);
 
         string fileStoragePath = Path.Combine(programDataPath, "Splunk", "OpenTelemetry Collector", "FileStorage");
-        GrantFileAccess(fileStoragePath, serviceSid, FileSystemRights.Modify, true);
-        GrantFileAccess(Path.Combine(fileStoragePath, "Temp"), serviceSid, FileSystemRights.Modify, true);
+        GrantDirectoryAccess(fileStoragePath, serviceSid, FileSystemRights.Modify);
+        GrantDirectoryAccess(Path.Combine(fileStoragePath, "Temp"), serviceSid, FileSystemRights.Modify);
 
         GrantDefaultFileLogAccess(serviceSid, log);
         log($"Info: Configured dedicated service account {VirtualAccountName}.");
@@ -303,40 +302,50 @@ internal static class ServiceAccountConfiguration
     private static void GrantDefaultFileLogAccess(SecurityIdentifier serviceSid, Action<string> log)
     {
         string windowsDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        GrantExistingFileAccess(Path.Combine(windowsDirectory, "System32", "DHCP"), serviceSid, true, log);
-        GrantExistingFileAccess(Path.Combine(windowsDirectory, "WindowsUpdate.log"), serviceSid, false, log);
-        GrantExistingFileAccess(Path.Combine(windowsDirectory, "debug", "netlogon.log"), serviceSid, false, log);
-        GrantExistingFileAccess(Path.Combine(windowsDirectory, "System32", "LogFiles", "Firewall"), serviceSid, true, log);
+        GrantExistingDirectoryAccess(Path.Combine(windowsDirectory, "System32", "DHCP"), serviceSid, log);
+        GrantExistingFileAccess(Path.Combine(windowsDirectory, "WindowsUpdate.log"), serviceSid, log);
+        GrantExistingFileAccess(Path.Combine(windowsDirectory, "debug", "netlogon.log"), serviceSid, log);
+        GrantExistingDirectoryAccess(Path.Combine(windowsDirectory, "System32", "LogFiles", "Firewall"), serviceSid, log);
     }
 
-    private static void GrantExistingFileAccess(string path, SecurityIdentifier serviceSid, bool isDirectory, Action<string> log)
+    private static void GrantExistingDirectoryAccess(string path, SecurityIdentifier serviceSid, Action<string> log)
     {
-        if ((isDirectory && !Directory.Exists(path)) || (!isDirectory && !File.Exists(path)))
+        if (!Directory.Exists(path))
         {
             log($"Warning: Default file log path '{path}' does not exist; grant {VirtualAccountName} read access before enabling it.");
             return;
         }
 
-        GrantFileAccess(path, serviceSid, FileSystemRights.ReadAndExecute, isDirectory);
+        GrantDirectoryAccess(path, serviceSid, FileSystemRights.ReadAndExecute);
     }
 
-    private static void GrantFileAccess(string path, SecurityIdentifier serviceSid, FileSystemRights rights, bool isDirectory)
+    private static void GrantExistingFileAccess(string path, SecurityIdentifier serviceSid, Action<string> log)
     {
-        if (isDirectory)
+        if (!File.Exists(path))
         {
-            Directory.CreateDirectory(path);
-            DirectoryInfo directory = new DirectoryInfo(path);
-            DirectorySecurity security = directory.GetAccessControl();
-            security.AddAccessRule(new FileSystemAccessRule(
-                serviceSid,
-                rights,
-                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                PropagationFlags.None,
-                AccessControlType.Allow));
-            directory.SetAccessControl(security);
+            log($"Warning: Default file log path '{path}' does not exist; grant {VirtualAccountName} read access before enabling it.");
             return;
         }
 
+        GrantFileAccess(path, serviceSid, FileSystemRights.ReadAndExecute);
+    }
+
+    private static void GrantDirectoryAccess(string path, SecurityIdentifier serviceSid, FileSystemRights rights)
+    {
+        Directory.CreateDirectory(path);
+        DirectoryInfo directory = new DirectoryInfo(path);
+        DirectorySecurity security = directory.GetAccessControl();
+        security.AddAccessRule(new FileSystemAccessRule(
+            serviceSid,
+            rights,
+            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+            PropagationFlags.None,
+            AccessControlType.Allow));
+        directory.SetAccessControl(security);
+    }
+
+    private static void GrantFileAccess(string path, SecurityIdentifier serviceSid, FileSystemRights rights)
+    {
         FileInfo file = new FileInfo(path);
         FileSecurity fileSecurity = file.GetAccessControl();
         fileSecurity.AddAccessRule(new FileSystemAccessRule(serviceSid, rights, AccessControlType.Allow));

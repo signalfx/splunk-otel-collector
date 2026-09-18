@@ -48,6 +48,11 @@ type resolvedMetric struct {
 // yangSchema is an immutable, precomputed gNMI-path -> resolvedMetric index
 // built once at startup from a set of YANG modules. The zero value has no
 // entries; a nil *yangSchema means "no schema configured".
+//
+// The index is a single flat tree, keyed only by path: it is not aware of
+// gNMI origin (unlike SubscriptionConfig.Origin, which subscriptionFor does
+// match against). All loaded yang_modules are expected to describe one
+// schema tree; see the "yang_modules and origin" README note.
 type yangSchema struct {
 	byPath map[string]resolvedMetric
 }

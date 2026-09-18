@@ -254,6 +254,17 @@ if two loaded modules define the same gNMI-visible path (leaf/container names ar
 module-qualified) with conflicting types, rather than silently letting one module's
 resolution win over the other's.
 
+#### `yang_modules` and `origin`
+
+A gNMI path's `origin` identifies which schema/data tree it belongs to (a subscription's
+`origin`, see [Subscription](#subscription) above, is matched against the update's
+origin when picking `overrides`/`default`). The YANG schema built from `yang_modules`
+does not have this concept: it is a single flat tree indexed by path only, regardless
+of `origin`. All loaded `yang_modules` are expected to describe one schema tree; if two
+origins expose the same path with different types, the schema cannot tell them apart,
+and — per the previous paragraph — loading fails rather than silently picking one.
+Per-origin schema resolution is not currently supported.
+
 ### Credentials
 
 Credentials are sent as gNMI AAA gRPC metadata rather than an `Authorization`

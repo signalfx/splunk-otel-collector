@@ -25,6 +25,9 @@ coverage_old.txt
 coverage.html
 coverage/*
 
+# Test results written when TEST_RERUN_FAILS is enabled
+test-results/*
+
 # Exclude folders used to build MSI locally
 /build/
 /work/

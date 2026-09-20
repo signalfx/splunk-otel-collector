@@ -2,7 +2,7 @@
 # Salt Stack Salt Dev Container
 #
 
-FROM ubuntu:24.04
+FROM ubuntu:25.10
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest

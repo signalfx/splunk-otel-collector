@@ -1,0 +1,14 @@
+name: "Set host"
+description: We use a custom host set when monitoring a file.
+stage: alpha
+conf: |
+  [monitor:///BASE_DIR/foo.txt]
+  host=myhost
+  index=INDEX
+setup: |
+  echo "initial text" > foo.txt
+script:
+expected:
+  raw: "initial text"
+  host: myhost
+os: ["darwin", "linux", "windows"]

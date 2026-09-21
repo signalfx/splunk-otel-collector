@@ -19,9 +19,17 @@ package main
 import (
 	"errors"
 
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/lifecycle"
 	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
 func run(_, _ []string, _ launcher.Paths) error {
 	return errors.New("otelcollauncher is supported only on Linux and Windows")
+}
+
+// commandFamilies lists the otelcollauncher command families available on
+// this platform.
+func commandFamilies() []cli.Family {
+	return []cli.Family{lifecycle.NewOthers()}
 }

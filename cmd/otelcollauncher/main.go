@@ -18,11 +18,18 @@ import (
 	"log"
 	"os"
 
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
 	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
 func main() {
-	if err := run(os.Args[1:], os.Environ(), launcher.DefaultPaths()); err != nil {
+	args := os.Args[1:]
+	streams := cli.IO{Out: os.Stdout, Err: os.Stderr}
+
+	if code, ok := cli.Dispatch(commandFamilies(), args, streams); ok {
+		os.Exit(code)
+	}
+	if err := run(args, os.Environ(), launcher.DefaultPaths()); err != nil {
 		log.Fatal(err)
 	}
 }

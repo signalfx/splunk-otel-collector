@@ -11,40 +11,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseConfAndHTTPOut(t *testing.T) {
+func TestParseConfAndHECOut(t *testing.T) {
 	payload, err := os.ReadFile("testdata/outputs.conf")
 	require.NoError(t, err)
 
 	parsed, err := ParseConf(payload)
 	require.NoError(t, err)
 
-	output, err := HTTPOut(parsed)
+	output, err := HECOut(parsed)
 	require.NoError(t, err)
 	require.NotNil(t, output)
 
-	assert.Equal(t, "httpout", output.Configuration.Stanza.Name)
+	assert.Equal(t, "hecout", output.Configuration.Stanza.Name)
 	require.NotNil(t, output.Configuration.Stanza.Params.Get("httpEventCollectorToken"))
 	assert.Equal(t, "token-default", output.Configuration.Stanza.Params.Get("httpEventCollectorToken").Value)
 	require.NotNil(t, output.Configuration.Stanza.Params.Get("uri"))
 	assert.Equal(t, "https://splunk:8088/services/collector/event", output.Configuration.Stanza.Params.Get("uri").Value)
 }
 
-func TestHTTPOutMissing(t *testing.T) {
+func TestHECOutMissing(t *testing.T) {
 	parsed, err := ParseConf([]byte("[tcpout]\nserver = splunk:9997\n"))
 	require.NoError(t, err)
-	_, err = HTTPOut(parsed)
-	require.ErrorIs(t, err, ErrNoHTTPOut)
+	_, err = HECOut(parsed)
+	require.ErrorIs(t, err, ErrNoHECOut)
 }
 
 func TestMergeConf(t *testing.T) {
-	base, err := ParseConf([]byte("[httpout]\nhttpEventCollectorToken = base-token\nuri = https://base:8088/services/collector/event\n"))
+	base, err := ParseConf([]byte("[hecout]\nhttpEventCollectorToken = base-token\nuri = https://base:8088/services/collector/event\n"))
 	require.NoError(t, err)
 
-	override, err := ParseConf([]byte("[httpout]\nhttpEventCollectorToken = override-token\n"))
+	override, err := ParseConf([]byte("[hecout]\nhttpEventCollectorToken = override-token\n"))
 	require.NoError(t, err)
 
 	merged := MergeConf([]Map{base, override})
-	output, err := HTTPOut(merged)
+	output, err := HECOut(merged)
 	require.NoError(t, err)
 
 	// override wins for token, base value kept for uri
@@ -60,7 +60,7 @@ func TestReadOutputGroups(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, outputs, 2)
 
-	assert.Equal(t, "httpout", outputs[0].Configuration.Stanza.Name)
+	assert.Equal(t, "hecout", outputs[0].Configuration.Stanza.Name)
 	assert.Equal(t, "httpEventCollectorToken", outputs[0].Configuration.Stanza.Params[0].Name)
 	assert.Equal(t, "token-default", outputs[0].Configuration.Stanza.Params[0].Value)
 	require.NotNil(t, outputs[0].Configuration.Stanza.Params.Get("uri"))

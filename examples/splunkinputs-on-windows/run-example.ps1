@@ -89,7 +89,7 @@ $updatedLines | Set-Content -Path $localInputsConf
 # Splunk outputs.conf mechanism.
 Copy-Item -Path (Join-Path $TA_DIR '*') -Destination $taAppDir -Recurse -Force
 $outputsConf = @"
-[httpout]
+[hecout]
 uri = $SplunkHecUrl
 httpEventCollectorToken = $SplunkHecToken
 "@

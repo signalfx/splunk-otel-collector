@@ -10,8 +10,8 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// ErrNoHTTPOut is returned when outputs.conf contains no [httpout] stanza.
-var ErrNoHTTPOut = errors.New("no [httpout] stanza found in outputs.conf")
+// ErrNoHECOut is returned when outputs.conf contains no [hecout] stanza.
+var ErrNoHECOut = errors.New("no [hecout] stanza found in outputs.conf")
 
 // ErrNoOutputStanzas is returned when outputs.conf contains no output stanzas.
 var ErrNoOutputStanzas = errors.New("no output stanzas found in outputs.conf")
@@ -103,13 +103,13 @@ func OutputGroups(merged Map) ([]Output, error) {
 	return outputs, nil
 }
 
-// HTTPOut extracts the [httpout] stanza from a merged outputs.conf map.
-func HTTPOut(merged Map) (*Output, error) {
-	keys, ok := merged["httpout"]
+// HECOut extracts the [hecout] stanza from a merged outputs.conf map.
+func HECOut(merged Map) (*Output, error) {
+	keys, ok := merged["hecout"]
 	if !ok {
-		return nil, ErrNoHTTPOut
+		return nil, ErrNoHECOut
 	}
-	output := readOutput("httpout", keys)
+	output := readOutput("hecout", keys)
 	return &output, nil
 }
 

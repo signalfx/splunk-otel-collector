@@ -42,6 +42,11 @@ MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
 SKIP_COMPILE=false
 ARCH?=amd64
 
+# End-to-end comparison of a Splunk Universal Forwarder and the collector
+# running the same Technology Add-on. This suite requires external VMs and is
+# intentionally not part of the default build/test targets.
+OTEL_UF_TEST_DIR?=test-frameworks/otel-uf
+
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
 # for local docker build testing or
@@ -99,6 +104,21 @@ integration-test-cover-target:
 .PHONY: integration-test
 integration-test:
 	@make integration-test-target TARGET='integration'
+
+.PHONY: otel-uf-build
+otel-uf-build:
+	$(MAKE) -C $(OTEL_UF_TEST_DIR) build
+
+.PHONY: otel-uf-setup
+otel-uf-setup:
+	$(MAKE) -C $(OTEL_UF_TEST_DIR) setup
+
+.PHONY: otel-uf-compare
+otel-uf-compare:
+	$(MAKE) -C $(OTEL_UF_TEST_DIR) compare
+
+.PHONY: otel-uf-test
+otel-uf-test: otel-uf-build otel-uf-compare
 
 .PHONY: integration-test-with-cover
 integration-test-with-cover:

@@ -80,6 +80,7 @@ The following resources are available:
 - [Monitoring](https://docs.splunk.com/observability/en/gdi/opentelemetry/opentelemetry.html#otel-monitoring): How to ensure the Collector is healthy
 - [Security](https://docs.splunk.com/Observability/gdi/opentelemetry/security.html): How to ensure the Collector is secure
 - [Sizing](https://docs.splunk.com/Observability/gdi/opentelemetry/sizing.html): How to ensure the Collector is properly sized
+- [OTel vs Universal Forwarder acceptance tests](test-frameworks/otel-uf/README.md): Compare TA processing end to end
 - [Troubleshooting](docs/troubleshooting.md): How to resolve common issues
 
 All you need to get started is:

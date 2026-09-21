@@ -1,0 +1,11 @@
+module conflict-a {
+  namespace "urn:test:conflict-a";
+  prefix ca;
+
+  container shared {
+    leaf value {
+      type uint32;
+      units "bytes";
+    }
+  }
+}

@@ -47,7 +47,7 @@ internal static class ServiceAccountConfiguration
     {
         switch (accountType ?? string.Empty)
         {
-            case string.Empty:
+            case "":
                 return ServiceAccountType.Preserve;
             case "virtual":
                 return ServiceAccountType.Virtual;

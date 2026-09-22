@@ -1,0 +1,7 @@
+module test-broken {
+  namespace "urn:test:broken";
+  prefix tb;
+
+  leaf oops {
+    type string
+  }

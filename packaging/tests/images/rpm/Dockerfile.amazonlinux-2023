@@ -1,6 +1,6 @@
 # A amazonlinux2023 image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM amazonlinux:2023
+FROM amazonlinux:2023.12.20260817.0
 
 ENV container=docker
 

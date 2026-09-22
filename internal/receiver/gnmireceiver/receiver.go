@@ -43,11 +43,18 @@ func newGNMIReceiver(cfg *Config, settings receiver.Settings, nextConsumer consu
 }
 
 func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) error {
+	schema, err := loadYangSchema(r.cfg.YangModules)
+	if err != nil {
+		return fmt.Errorf("failed to load yang_modules: %w", err)
+	}
+
 	clients := make([]*gnmiClient, 0, len(r.cfg.Targets))
 	for i := range r.cfg.Targets {
 		parser := newMetricParser(
 			r.cfg.Targets[i].ClientConfig.Endpoint,
 			r.cfg.Targets[i].Subscriptions,
+			schema,
+			r.settings.TelemetrySettings.Logger,
 		)
 		client := newGNMIClient(
 			&r.cfg.Targets[i],

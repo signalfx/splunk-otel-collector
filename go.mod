@@ -41,6 +41,7 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.161.0
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.161.0
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.161.0
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
@@ -470,7 +471,6 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
 	github.com/signalfx/golib/v3 v3.5.0 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
-	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.161.0 // indirect
 	github.com/snowflakedb/gosnowflake/v2 v2.2.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect

@@ -15,9 +15,12 @@
 package parity
 
 import (
+	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestSubsetValidator(t *testing.T) {
@@ -166,5 +169,190 @@ func TestSanitize(t *testing.T) {
 		if got := sanitize(in); got != want {
 			t.Errorf("sanitize(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+// fakeBackend is an in-memory Backend: it returns a fixed set of records from
+// Search so the runner's capture loop can be exercised without Docker.
+type fakeBackend struct {
+	hec       HEC
+	searchErr error
+	lastSPL   string
+	records   []Record
+}
+
+func (f *fakeBackend) Start(context.Context) error { return nil }
+func (f *fakeBackend) Stop(context.Context) error  { return nil }
+func (f *fakeBackend) HEC() HEC                    { return f.hec }
+
+func (f *fakeBackend) Search(_ context.Context, spl string) ([]Record, error) {
+	f.lastSPL = spl
+	return f.records, f.searchErr
+}
+
+func (f *fakeBackend) Clean(context.Context, string) error { return nil }
+
+// fakeAdapter records the lifecycle calls the runner makes and captures the
+// interpolated inputs.conf it is handed, so tests can assert both.
+type fakeAdapter struct {
+	prepareErr error
+	startErr   error
+	name       string
+	dir        string
+	inputsConf string
+	prepared   bool
+	started    bool
+	stopped    bool
+	cleaned    bool
+}
+
+func (a *fakeAdapter) Name() string       { return a.name }
+func (a *fakeAdapter) InstallDir() string { return a.dir }
+
+func (a *fakeAdapter) Prepare(configDir string) error {
+	a.prepared = true
+	if b, err := os.ReadFile(filepath.Join(configDir, "inputs.conf")); err == nil {
+		a.inputsConf = string(b)
+	}
+	return a.prepareErr
+}
+
+func (a *fakeAdapter) Start(context.Context) error { a.started = true; return a.startErr }
+func (a *fakeAdapter) Stop(context.Context) error  { a.stopped = true; return nil }
+func (a *fakeAdapter) Cleanup() error              { a.cleaned = true; return nil }
+
+func fastOpts() RunOptions {
+	return RunOptions{Quiescence: time.Millisecond, Timeout: 2 * time.Second, MinEvents: 1}
+}
+
+func TestRunAgent(t *testing.T) {
+	rec := Record{Raw: "hi", Host: "myhost", Index: "parity_uc"}
+	backend := &fakeBackend{hec: HEC{Endpoint: "https://splunk:8088", Token: "tok"}, records: []Record{rec}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	c := &Case{
+		Name:   "Set host",
+		Setup:  "echo BASE_DIR > setup-marker",
+		Script: "echo done >> setup-marker",
+	}
+	run := AgentRun{
+		Adapter:     a,
+		ConfigFiles: map[string]string{"inputs.conf": "index=INDEX\nhost=myhost"},
+		Index:       "parity_uc",
+		Search:      "search index=INDEX",
+	}
+
+	got, err := RunAgent(context.Background(), c, run, backend, fastOpts())
+	if err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if len(got) != 1 || got[0].Raw != rec.Raw || got[0].Host != rec.Host || got[0].Index != rec.Index {
+		t.Errorf("records = %+v, want %+v", got, []Record{rec})
+	}
+	if a.inputsConf != "index=parity_uc\nhost=myhost" {
+		t.Errorf("inputs.conf not interpolated: %q", a.inputsConf)
+	}
+	if backend.lastSPL != "search index=parity_uc" {
+		t.Errorf("search SPL not interpolated: %q", backend.lastSPL)
+	}
+	if !a.prepared || !a.started || !a.stopped || !a.cleaned {
+		t.Errorf("lifecycle incomplete: %+v", a)
+	}
+}
+
+func TestRunAgentDefaultSearch(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "parity_uf"} // no Search set
+	if _, err := RunAgent(context.Background(), &Case{Name: "c"}, run, backend, fastOpts()); err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if backend.lastSPL != "search index=parity_uf" {
+		t.Errorf("default search = %q", backend.lastSPL)
+	}
+}
+
+func TestRunAgentSetupError(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Setup: "exit 3"}
+	if _, err := RunAgent(context.Background(), c, run, backend, fastOpts()); err == nil {
+		t.Fatal("expected setup error")
+	}
+	if a.started {
+		t.Error("agent should not start after setup failure")
+	}
+}
+
+func TestRunAgentPrepareError(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir(), prepareErr: errors.New("boom")}
+	run := AgentRun{Adapter: a, Index: "i"}
+	if _, err := RunAgent(context.Background(), &Case{Name: "c"}, run, backend, fastOpts()); err == nil {
+		t.Fatal("expected prepare error")
+	}
+}
+
+func TestRunAgentTimeoutReturnsLast(t *testing.T) {
+	backend := &fakeBackend{} // Search always returns no records
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	opts := RunOptions{Quiescence: time.Millisecond, Timeout: 1500 * time.Millisecond, MinEvents: 1}
+	got, err := RunAgent(context.Background(), &Case{Name: "c"}, run, backend, opts)
+	if err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if len(got) != 0 {
+		t.Errorf("want no records on timeout, got %+v", got)
+	}
+}
+
+func TestRunCaseAgainstExpected(t *testing.T) {
+	rec := Record{Raw: "hi", Host: "myhost"}
+	backend := &fakeBackend{records: []Record{rec}}
+	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir()}, Index: "parity_uc"}
+	c := &Case{Name: "c", Expected: Expected{Raw: "hi", Host: "myhost"}}
+
+	// oracle.Adapter nil -> compared against the case's authored Expected.
+	res, err := RunCase(context.Background(), c, backend, AgentRun{}, candidate, SubsetValidator{}, fastOpts())
+	if err != nil {
+		t.Fatalf("RunCase: %v", err)
+	}
+	if !res.Match {
+		t.Errorf("expected match, got mismatches %+v", res.Mismatches)
+	}
+}
+
+func TestRunCaseOracleVsCandidate(t *testing.T) {
+	rec := Record{Raw: "hi", Host: "myhost"}
+	backend := &fakeBackend{records: []Record{rec}}
+	oracle := AgentRun{Adapter: &fakeAdapter{name: "UF", dir: t.TempDir()}, Index: "parity_uf"}
+	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir()}, Index: "parity_uc"}
+
+	res, err := RunCase(context.Background(), &Case{Name: "c"}, backend, oracle, candidate, SubsetValidator{}, fastOpts())
+	if err != nil {
+		t.Fatalf("RunCase: %v", err)
+	}
+	if !res.Match {
+		t.Errorf("oracle and candidate landed identical records but got mismatches %+v", res.Mismatches)
+	}
+}
+
+func TestRunCaseCandidateError(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir(), startErr: errors.New("nope")}, Index: "i"}
+	if _, err := RunCase(context.Background(), &Case{Name: "c"}, backend, AgentRun{}, candidate, SubsetValidator{}, fastOpts()); err == nil {
+		t.Fatal("expected candidate error")
+	}
+}
+
+func TestRunOptionsDefaults(t *testing.T) {
+	o := RunOptions{}.withDefaults()
+	if o.Quiescence != 3*time.Second || o.Timeout != 90*time.Second || o.MinEvents != 1 || o.Shell != "bash" {
+		t.Errorf("defaults = %+v", o)
+	}
+	custom := RunOptions{Quiescence: time.Second, Timeout: time.Minute, MinEvents: 2, Shell: "sh"}.withDefaults()
+	if custom.Shell != "sh" || custom.MinEvents != 2 {
+		t.Errorf("custom overridden: %+v", custom)
 	}
 }

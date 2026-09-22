@@ -22,11 +22,11 @@ import (
 
 func TestSubsetValidator(t *testing.T) {
 	tests := []struct {
-		name          string
-		reference     []Record
-		candidate     []Record
-		wantMismatchs []string // Field values of expected mismatches, order-independent
-		wantMatch     bool
+		name           string
+		reference      []Record
+		candidate      []Record
+		wantMismatches []string // Field values of expected mismatches, order-independent
+		wantMatch      bool
 	}{
 		{
 			name:      "empty reference matches anything",
@@ -41,25 +41,25 @@ func TestSubsetValidator(t *testing.T) {
 			wantMatch: true,
 		},
 		{
-			name:          "field mismatch reported",
-			reference:     []Record{{Host: "myhost"}},
-			candidate:     []Record{{Host: "other"}},
-			wantMatch:     false,
-			wantMismatchs: []string{"host"},
+			name:           "field mismatch reported",
+			reference:      []Record{{Host: "myhost"}},
+			candidate:      []Record{{Host: "other"}},
+			wantMatch:      false,
+			wantMismatches: []string{"host"},
 		},
 		{
-			name:          "custom fields compared",
-			reference:     []Record{{Fields: map[string]string{"index": "a", "punct": "..."}}},
-			candidate:     []Record{{Fields: map[string]string{"index": "b"}}},
-			wantMatch:     false,
-			wantMismatchs: []string{"field:index", "field:punct"},
+			name:           "custom fields compared",
+			reference:      []Record{{Fields: map[string]string{"index": "a", "punct": "..."}}},
+			candidate:      []Record{{Fields: map[string]string{"index": "b"}}},
+			wantMatch:      false,
+			wantMismatches: []string{"field:index", "field:punct"},
 		},
 		{
-			name:          "count mismatch reported",
-			reference:     []Record{{Raw: "one"}, {Raw: "two"}},
-			candidate:     []Record{{Raw: "one"}},
-			wantMatch:     false,
-			wantMismatchs: []string{"count"},
+			name:           "count mismatch reported",
+			reference:      []Record{{Raw: "one"}, {Raw: "two"}},
+			candidate:      []Record{{Raw: "one"}},
+			wantMatch:      false,
+			wantMismatches: []string{"count"},
 		},
 	}
 
@@ -73,10 +73,10 @@ func TestSubsetValidator(t *testing.T) {
 			for _, m := range res.Mismatches {
 				got[m.Field] = true
 			}
-			if len(res.Mismatches) != len(tt.wantMismatchs) {
-				t.Fatalf("got %d mismatches %+v, want fields %v", len(res.Mismatches), res.Mismatches, tt.wantMismatchs)
+			if len(res.Mismatches) != len(tt.wantMismatches) {
+				t.Fatalf("got %d mismatches %+v, want fields %v", len(res.Mismatches), res.Mismatches, tt.wantMismatches)
 			}
-			for _, f := range tt.wantMismatchs {
+			for _, f := range tt.wantMismatches {
 				if !got[f] {
 					t.Errorf("missing expected mismatch on field %q, got %+v", f, res.Mismatches)
 				}

@@ -1,0 +1,10 @@
+gnmi:
+  yang_modules:
+    - testdata/yang
+  targets:
+    - endpoint: 10.0.0.1:57400
+      encoding: json_ietf
+      subscriptions:
+        - path: /interfaces/interface/state/counters
+          mode: sample
+          sample_interval: 10s

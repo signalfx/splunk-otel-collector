@@ -5,7 +5,7 @@ change_type: enhancement
 component: processor/rolling_span_latency
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Replace the temporary local `rolling_span_latency` processor with the now-upstreamed [rollingspanlatencyprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/rollingspanlatencyprocessor) from opentelemetry-collector-contrib.
+note: Replace the temporary local `rolling_span_latency` processor with the now-upstreamed [processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/rollingspanlatencyprocessor).
 
 # One or more tracking issues related to the change
 issues: [7783]
@@ -15,4 +15,4 @@ issues: [7783]
 # Use pipe (|) for multiline entries.
 subtext: |
   No configuration or behavior changes; the processor's `rolling_span_latency` type, config schema, and telemetry
-  are unchanged. The local `pkg/processor/rollingspanlatencyprocessor` module has been removed.
+  are unchanged. The local distribution's copy of the processor has been removed.

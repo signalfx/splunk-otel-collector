@@ -50,10 +50,12 @@ batchSize = 1
 `
 
 // TestParity runs each case through the UF oracle and the otelcol candidate into
-// one real Splunk, each on its own index, and asserts both land the case's
-// authored event. Direct UF-vs-candidate field-by-field parity (source,
-// sourcetype, index normalization) is the next milestone; this slice proves both
-// agents produce the expected event via their own native configs.
+// one real Splunk, each on its own index, then compares the candidate directly
+// against the oracle. The oracle capture is first checked against the case's
+// authored Expected so a broken oracle is distinguishable from a real parity
+// gap; the candidate is then compared field by field against what the oracle
+// actually landed, normalizing the index/source/sourcetype the two agents assign
+// differently by construction (see parity.ParityNormalizer).
 func TestParity(t *testing.T) {
 	ufAdapter := uf.New("")
 	if _, err := os.Stat(ufAdapter.InstallDir()); err != nil {
@@ -117,20 +119,25 @@ func TestParity(t *testing.T) {
 				Index:       indexUC,
 			}
 
-			reference := []parity.Record{c.Expected.AsReference()}
-			v := parity.SubsetValidator{}
-
+			// Guard the oracle: the UF capture must match the case's authored
+			// Expected, so a UF regression reads as an oracle failure rather than
+			// a candidate parity gap.
 			ufRecs, err := parity.RunAgent(ctx, c, ufRun, backend, opts)
 			if err != nil {
 				t.Fatalf("run UF: %v", err)
 			}
-			assertMatch(t, "UF", v.Validate(reference, ufRecs), ufRecs)
+			expected := []parity.Record{c.Expected.AsReference()}
+			assertMatch(t, "UF vs expected", parity.SubsetValidator{}.Validate(expected, ufRecs), ufRecs)
 
+			// Parity: the candidate must reproduce what the oracle actually
+			// landed, ignoring the index/source/sourcetype the two agents assign
+			// differently by construction.
 			ucRecs, err := parity.RunAgent(ctx, c, ucRun, backend, opts)
 			if err != nil {
 				t.Fatalf("run otelcol: %v", err)
 			}
-			assertMatch(t, "otelcol", v.Validate(reference, ucRecs), ucRecs)
+			v := parity.NormalizingValidator{Normalizer: parity.ParityNormalizer()}
+			assertMatch(t, "otelcol vs UF", v.Validate(ufRecs, ucRecs), ucRecs)
 		})
 	}
 }

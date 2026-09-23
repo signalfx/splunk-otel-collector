@@ -29,6 +29,7 @@ tests/parity/
   case.go              Case (test.yaml shape), Expected, token interpolation
   runner.go            RunAgent / RunCase: sandbox, hooks, capture loop
   validate.go          SubsetValidator
+  normalize.go         Normalizer, NormalizingValidator for direct parity
   parity_test.go       TestParity: loads tests/*/test.yaml and runs both agents
   backend/splunk/       testcontainers-backed Splunk Backend
   adapter/uf/           UF adapter (the oracle)
@@ -47,7 +48,10 @@ tests/parity/
   `adapter/uf` and `adapter/otelcol`.
 - **`Validator`** — compares a reference capture against a candidate.
   `SubsetValidator` asserts only the fields the reference sets; empty fields and
-  volatile keys (indextime, stream/ACK ids) are ignored.
+  volatile keys (indextime, stream/ACK ids) are ignored. `NormalizingValidator`
+  wraps it with a `Normalizer` that blanks fields the oracle and candidate assign
+  differently by construction (index, source, sourcetype), so a live UF capture
+  can be the reference in a direct parity check.
 - **`Record`** — one indexed event, named as Splunk search surfaces it: `Raw`
   (`_raw`), `Host`, `Source`, `Sourcetype`, `Index`, `Time` (`_time`), and
   `Fields` for anything else.
@@ -121,7 +125,13 @@ minutes. CI runs this via `.github/workflows/parity-test.yml`.
 
 ## Status
 
-The current suite proves both agents land the case's authored `expected` event
-via their own native configs. Direct UF-vs-candidate field-by-field parity
-(normalizing the differing index and UF auto-assigned `source`/`sourcetype`) is
-the next milestone. The longer goal is to port the full 1spl suite.
+The suite now compares the candidate directly against the UF oracle: the UF
+capture is checked against the case's authored `expected` (so a broken oracle is
+distinguishable from a parity gap), then the candidate is compared field by field
+against what UF actually landed. `ParityNormalizer` blanks the `index`, `source`,
+and `sourcetype` the two agents assign differently by construction, leaving `raw`
+and `host` (plus any asserted custom fields) as the parity signal.
+
+Next: map the collector's `com.splunk.source` / `com.splunk.sourcetype` so those
+become real parity assertions instead of normalized-away, populate `Record.Fields`
+for index-time fields, and port the full 1spl suite.

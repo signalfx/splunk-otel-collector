@@ -24,30 +24,22 @@ import (
 
 // Case is one parity test loaded from a test.yaml. It is the ported shape of
 // the 1spl case: a Splunk .conf fragment, shell setup/script hooks, and the
-// expected event. Fields are deliberately close to 1spl so the corpus ports
-// with minimal edits.
+// list of event fields to assert. Fields are deliberately close to 1spl so the
+// corpus ports with minimal edits.
 type Case struct {
-	Name        string   `yaml:"name"`
-	Description string   `yaml:"description"`
-	Stage       string   `yaml:"stage"`
-	Conf        string   `yaml:"conf"`     // inputs.conf fragment
-	Setup       string   `yaml:"setup"`    // shell run before the agent starts
-	Script      string   `yaml:"script"`   // shell run after the agent starts
-	Expected    Expected `yaml:"expected"` // reference event
-	OS          []string `yaml:"os"`
-}
-
-// Expected is the reference event a case asserts, authored in Splunk-event
-// terms: the same fields a search returns and that Record holds. Only set fields
-// are asserted; empty fields are ignored, which is how volatile keys stay out of
-// the comparison.
-type Expected struct {
-	Fields     map[string]string `yaml:"fields"`
-	Raw        string            `yaml:"raw"`
-	Host       string            `yaml:"host"`
-	Source     string            `yaml:"source"`
-	Sourcetype string            `yaml:"sourcetype"`
-	Index      string            `yaml:"index"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Stage       string `yaml:"stage"`
+	Conf        string `yaml:"conf"`   // inputs.conf fragment
+	Setup       string `yaml:"setup"`  // shell run before the agent starts
+	Script      string `yaml:"script"` // shell run after the agent starts
+	// Assert names the Record fields this case compares against the golden:
+	// "raw", "host", "source", "sourcetype", "index", or "field:<key>" for a
+	// Fields entry. It is the case's filter: -update saves only these fields
+	// from the oracle run, and replay compares only these. Keeping the golden to
+	// the asserted fields avoids checking in large, volatile payloads.
+	Assert []string `yaml:"assert"`
+	OS     []string `yaml:"os"`
 }
 
 // LoadCase reads a test.yaml from path.
@@ -83,17 +75,4 @@ func (t Tokens) apply(s string) string {
 		"INDEX", t.Index,
 	)
 	return r.Replace(s)
-}
-
-// AsReference turns the authored Expected into a single-record reference
-// capture. Empty fields stay empty and are ignored by the validator.
-func (e Expected) AsReference() Record {
-	return Record{
-		Raw:        e.Raw,
-		Host:       e.Host,
-		Source:     e.Source,
-		Sourcetype: e.Sourcetype,
-		Index:      e.Index,
-		Fields:     e.Fields,
-	}
 }

@@ -1,0 +1,84 @@
+# Runs the collector parity framework in tests/parity. A normal run replays the
+# collector against the checked-in goldens in a Splunk container started by
+# testcontainers, so it needs only otelcol + Docker. The goldens themselves are
+# generated from a real UF oracle on demand via `workflow_dispatch` with
+# regenerate=true (installs UF, runs `go test -update`). Path-filtered to the
+# framework.
+name: parity-test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tests/parity/**"
+      - ".github/workflows/parity-test.yml"
+  pull_request:
+    paths:
+      - "tests/parity/**"
+      - ".github/workflows/parity-test.yml"
+  workflow_dispatch:
+    inputs:
+      regenerate:
+        description: "Regenerate goldens from the UF oracle (go test -update) instead of replaying."
+        type: boolean
+        default: false
+
+concurrency:
+  group: parity-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: 1.26.6
+  # Splunk UF build installed as the oracle only when regenerating goldens. The
+  # Linux tarball URL is download.splunk.com/products/universalforwarder/releases/
+  # <version>/linux/splunkforwarder-<version>-<build_hash>-linux-amd64.tgz.
+  SPLUNK_UF_VERSION: "9.4.0"
+  SPLUNK_UF_BUILD_HASH: "6b4ebe426ca6"
+  # Seed admin password for the UF's first start (non-interactive).
+  SPLUNK_UF_PASSWORD: "parityTest123!"
+
+jobs:
+  parity-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+        with:
+          install_tools: "false"
+
+      - name: Build otelcol
+        run: make otelcol
+
+      - name: Install Splunk Universal Forwarder
+        if: ${{ inputs.regenerate }}
+        run: |
+          set -euo pipefail
+          url="https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_UF_VERSION}/linux/splunkforwarder-${SPLUNK_UF_VERSION}-${SPLUNK_UF_BUILD_HASH}-linux-amd64.tgz"
+          echo "Downloading $url"
+          curl -fsSL "$url" -o /tmp/splunkforwarder.tgz
+          mkdir -p "$RUNNER_TEMP/uf"
+          tar -xzf /tmp/splunkforwarder.tgz -C "$RUNNER_TEMP/uf"
+          uf_dir="$RUNNER_TEMP/uf/splunkforwarder"
+          # Seed the admin user so the first `splunk start --no-prompt` does not
+          # block waiting for credentials.
+          mkdir -p "$uf_dir/etc/system/local"
+          cat > "$uf_dir/etc/system/local/user-seed.conf" <<EOF
+          [user_info]
+          USERNAME = admin
+          PASSWORD = ${SPLUNK_UF_PASSWORD}
+          EOF
+          echo "PARITY_UF_DIR=$uf_dir" >> "$GITHUB_ENV"
+
+      - name: Run parity tests
+        working-directory: tests/parity
+        env:
+          PARITY_OTELCOL_BIN: ${{ github.workspace }}/bin/otelcol
+        run: go test -v -timeout 30m ${{ inputs.regenerate && '-update' || '' }} .

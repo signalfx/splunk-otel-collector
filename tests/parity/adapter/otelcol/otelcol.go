@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"syscall"
 	"time"
 )
@@ -37,27 +38,33 @@ const DefaultBin = "../../bin/otelcol"
 // EnvBin overrides the otelcol binary location.
 const EnvBin = "PARITY_OTELCOL_BIN"
 
-// ConfigFile is the filename the adapter runs with --config; the case must
-// supply an AgentRun.ConfigFiles entry under this name.
+// ConfigFile is the conventional filename for a case's primary collector
+// config, supplied as an AgentRun.ConfigFiles entry. The adapter is not limited
+// to it: it passes every *.yaml/*.yml file the runner writes into configDir as
+// its own --config, and extra sources given to New are appended after those.
 const ConfigFile = "config.yaml"
 
 // Adapter drives one otelcol binary through a case.
 type Adapter struct {
-	cmd        *exec.Cmd
-	bin        string
-	configPath string
+	cmd     *exec.Cmd
+	bin     string
+	extra   []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
+	configs []string // resolved --config sources, set by Prepare
 }
 
 // New returns an otelcol adapter. bin may be empty, in which case
-// PARITY_OTELCOL_BIN or DefaultBin is used.
-func New(bin string) *Adapter {
+// PARITY_OTELCOL_BIN or DefaultBin is used. extra are additional --config
+// sources (URIs or paths, e.g. splunkhome://${SPLUNK_HOME}?pipeline=uf) passed
+// after the config files rendered into the run's configDir; the collector
+// merges all --config sources in order.
+func New(bin string, extra ...string) *Adapter {
 	if bin == "" {
 		bin = os.Getenv(EnvBin)
 	}
 	if bin == "" {
 		bin = DefaultBin
 	}
-	return &Adapter{bin: bin}
+	return &Adapter{bin: bin, extra: extra}
 }
 
 func (a *Adapter) Name() string { return "otelcol" }
@@ -65,22 +72,48 @@ func (a *Adapter) Name() string { return "otelcol" }
 // InstallDir is the directory holding the binary, exposed as AGENT_DIR.
 func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 
-// Prepare records the rendered config path. The runner has already written the
-// ConfigFiles into configDir.
+// Prepare collects every *.yaml/*.yml file the runner wrote into configDir as a
+// --config source, sorted for a deterministic merge order, then appends the
+// extra sources from New. At least one source must resolve.
 func (a *Adapter) Prepare(configDir string) error {
-	p := filepath.Join(configDir, ConfigFile)
-	if _, err := os.Stat(p); err != nil {
-		return fmt.Errorf("config %s: %w", ConfigFile, err)
+	entries, err := os.ReadDir(configDir)
+	if err != nil {
+		return err
 	}
-	a.configPath = p
+	var files []string
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		switch filepath.Ext(e.Name()) {
+		case ".yaml", ".yml":
+			files = append(files, filepath.Join(configDir, e.Name()))
+		}
+	}
+	sort.Strings(files)
+	a.configs = make([]string, 0, len(files)+len(a.extra))
+	a.configs = append(a.configs, files...)
+	a.configs = append(a.configs, a.extra...)
+	if len(a.configs) == 0 {
+		return fmt.Errorf("no collector config: want a *.yaml file in %s or an extra --config source", configDir)
+	}
 	return nil
+}
+
+// configArgs expands the resolved sources into repeated --config flags.
+func (a *Adapter) configArgs() []string {
+	args := make([]string, 0, 2*len(a.configs))
+	for _, c := range a.configs {
+		args = append(args, "--config", c)
+	}
+	return args
 }
 
 func (a *Adapter) Start(ctx context.Context) error {
 	if _, err := os.Stat(a.bin); err != nil {
 		return fmt.Errorf("otelcol binary %s not found (build it with `make otelcol`, or set %s): %w", a.bin, EnvBin, err)
 	}
-	cmd := exec.CommandContext(ctx, a.bin, "--config", a.configPath) //nolint:gosec // G204: binary path and config are test-controlled inputs
+	cmd := exec.CommandContext(ctx, a.bin, a.configArgs()...) //nolint:gosec // G204: binary path and config sources are test-controlled inputs
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {

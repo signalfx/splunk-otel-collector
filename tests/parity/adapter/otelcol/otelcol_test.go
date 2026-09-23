@@ -48,23 +48,57 @@ func TestName(t *testing.T) {
 	}
 }
 
-func TestPrepare(t *testing.T) {
+func TestPrepareNoSources(t *testing.T) {
+	// No yaml files and no extra sources is an error.
+	if err := New("bin").Prepare(t.TempDir()); err == nil {
+		t.Error("expected error when no config source resolves")
+	}
+	// A missing config dir is an error.
+	if err := New("bin").Prepare(filepath.Join(t.TempDir(), "missing")); err == nil {
+		t.Error("expected error for missing config dir")
+	}
+}
+
+// TestPrepareMultipleConfigs covers the core behavior: every *.yaml/*.yml file
+// becomes a --config (sorted), non-yaml files are ignored, and extra sources
+// from New are appended after the rendered files.
+func TestPrepareMultipleConfigs(t *testing.T) {
 	dir := t.TempDir()
-
-	// Missing config.yaml is an error.
-	if err := New("bin").Prepare(dir); err == nil {
-		t.Error("expected error when config.yaml is absent")
+	for _, f := range []string{ConfigFile, "override.yml", "notes.txt"} {
+		if err := os.WriteFile(filepath.Join(dir, f), []byte("x"), 0o600); err != nil {
+			t.Fatal(err)
+		}
 	}
 
-	if err := os.WriteFile(filepath.Join(dir, ConfigFile), []byte("receivers: {}"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	a := New("bin")
+	a := New("bin", "splunkhome://SPLUNK_HOME?pipeline=uf")
 	if err := a.Prepare(dir); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
-	if a.configPath != filepath.Join(dir, ConfigFile) {
-		t.Errorf("configPath = %q", a.configPath)
+
+	want := []string{
+		"--config", filepath.Join(dir, ConfigFile), // config.yaml sorts before override.yml
+		"--config", filepath.Join(dir, "override.yml"),
+		"--config", "splunkhome://SPLUNK_HOME?pipeline=uf",
+	}
+	got := a.configArgs()
+	if len(got) != len(want) {
+		t.Fatalf("configArgs = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("configArgs[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+// TestPrepareExtraOnly: an extra source alone is enough, even with no yaml files.
+func TestPrepareExtraOnly(t *testing.T) {
+	a := New("bin", "splunkhome://SPLUNK_HOME")
+	if err := a.Prepare(t.TempDir()); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	if want := []string{"--config", "splunkhome://SPLUNK_HOME"}; len(a.configArgs()) != len(want) {
+		t.Errorf("configArgs = %v, want %v", a.configArgs(), want)
 	}
 }
 

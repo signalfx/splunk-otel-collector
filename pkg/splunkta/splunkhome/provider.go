@@ -7,10 +7,10 @@
 // Reload rides the collector's existing trigger (SIGHUP or an OpAMP-pushed
 // config), consistent with UF's pull/triggered model.
 //
-// URI form: splunkhome://<SPLUNK_HOME>?prefix=<name>
-// The prefix (default "uf") names the emitted pipeline (logs/<prefix>) and the
-// component name suffix. Enable/disable of the whole pipeline is done at the
-// launch level by including or omitting the --config=splunkhome://... argument.
+// URI form: splunkhome://<SPLUNK_HOME>?pipeline=<name>
+// The pipeline (default "uf") names the emitted pipeline (logs/<pipeline>).
+// Enable/disable of the whole pipeline is done at the launch level by including
+// or omitting the --config=splunkhome://... argument.
 package splunkhome
 
 import (
@@ -27,16 +27,25 @@ import (
 
 const schemeName = "splunkhome"
 
-// prefixRegexp restricts the pipeline/component name suffix to a safe segment.
-// It must be a legal component-name part and yield readable IDs.
-var prefixRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
+// pipelineRegexp restricts the pipeline name to a safe component-name segment.
+var pipelineRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
 
-type provider struct{}
+type provider struct {
+	reg *registry
+}
 
 // NewFactory returns a confmap.ProviderFactory for the splunkhome scheme.
-func NewFactory() confmap.ProviderFactory {
+// Options register additional UF-ported components (e.g. an S2S exporter via
+// WithOutputMapper) on top of the built-in mappers. With no options it emits
+// only the built-ins (wrapper receivers + splunk_hecout), so existing callers
+// are unaffected.
+func NewFactory(opts ...Option) confmap.ProviderFactory {
+	reg := newRegistry()
+	for _, opt := range opts {
+		opt(reg)
+	}
 	return confmap.NewProviderFactory(func(confmap.ProviderSettings) confmap.Provider {
-		return &provider{}
+		return &provider{reg: reg}
 	})
 }
 
@@ -48,19 +57,19 @@ func (*provider) Shutdown(context.Context) error { return nil }
 // The watcher is intentionally ignored (Retrieve-only), matching the built-in
 // file provider.
 func (p *provider) Retrieve(_ context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
-	splunkHome, prefix, err := parseURI(uri)
+	splunkHome, pipeline, err := parseURI(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	frag, err := p.build(splunkHome, prefix)
+	frag, err := p.build(splunkHome, pipeline)
 	if err != nil {
 		return nil, err
 	}
 	return confmap.NewRetrieved(frag)
 }
 
-func parseURI(uri string) (splunkHome, prefix string, err error) {
+func parseURI(uri string) (splunkHome, pipeline string, err error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return "", "", fmt.Errorf("splunkhome: invalid uri %q: %w", uri, err)
@@ -74,20 +83,20 @@ func parseURI(uri string) (splunkHome, prefix string, err error) {
 	if splunkHome == "" {
 		return "", "", fmt.Errorf("splunkhome: empty SPLUNK_HOME in uri %q", uri)
 	}
-	prefix = u.Query().Get("prefix")
-	if prefix == "" {
-		prefix = "uf"
+	pipeline = u.Query().Get("pipeline")
+	if pipeline == "" {
+		pipeline = "uf"
 	}
-	if !prefixRegexp.MatchString(prefix) {
-		return "", "", fmt.Errorf("splunkhome: invalid prefix %q (must match %s)", prefix, prefixRegexp.String())
+	if !pipelineRegexp.MatchString(pipeline) {
+		return "", "", fmt.Errorf("splunkhome: invalid pipeline %q (must match %s)", pipeline, pipelineRegexp.String())
 	}
-	return splunkHome, prefix, nil
+	return splunkHome, pipeline, nil
 }
 
 // build reads inputs.conf, outputs.conf, props.conf, and transforms.conf across the Splunk
 // conf search path and assembles the confmap fragment with all receiver configs wired with
 // props and transforms.
-func (p *provider) build(splunkHome, prefix string) (map[string]any, error) {
+func (p *provider) build(splunkHome, pipeline string) (map[string]any, error) {
 	dirs := tabuilder.ConfDirs(splunkHome)
 
 	inputs, err := tabuilder.ReadInputs(dirs)
@@ -107,7 +116,7 @@ func (p *provider) build(splunkHome, prefix string) (map[string]any, error) {
 		return nil, fmt.Errorf("splunkhome: read transforms.conf: %w", err)
 	}
 
-	recvs, skipped, err := mapInputs(prefix, inputs, props, transforms)
+	recvs, skipped, err := mapInputs(inputs, props, transforms)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +131,7 @@ func (p *provider) build(splunkHome, prefix string) (map[string]any, error) {
 	// No exporter is hardcoded: mapOutputs emits one exporter per output stanza
 	// it recognizes and fails with a specific error for an unsupported stanza
 	// kind or an outputs.conf with no output stanzas at all.
-	exps, err := mapOutputs(prefix, merged)
+	exps, err := mapOutputs(p.reg.outputs, merged)
 	if err != nil {
 		return nil, fmt.Errorf("splunkhome: outputs.conf under %s: %w", splunkHome, err)
 	}
@@ -130,20 +139,20 @@ func (p *provider) build(splunkHome, prefix string) (map[string]any, error) {
 	receivers := map[string]any{}
 	var recvIDs []string
 	for _, e := range recvs {
-		receivers[e.id] = e.cfg
-		recvIDs = append(recvIDs, e.id)
+		receivers[e.ID] = e.Cfg
+		recvIDs = append(recvIDs, e.ID)
 	}
 	sort.Strings(recvIDs)
 
 	exporters := map[string]any{}
 	var expIDs []string
 	for _, e := range exps {
-		exporters[e.id] = e.cfg
-		expIDs = append(expIDs, e.id)
+		exporters[e.ID] = e.Cfg
+		expIDs = append(expIDs, e.ID)
 	}
 	sort.Strings(expIDs)
 
-	pipelineID := "logs/" + prefix
+	pipelineID := "logs/" + pipeline
 	frag := map[string]any{
 		"receivers": receivers,
 		"exporters": exporters,

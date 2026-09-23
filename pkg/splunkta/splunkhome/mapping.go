@@ -17,11 +17,12 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 )
 
-// component is one emitted confmap entry: a fully-qualified component ID
-// (type/name) and its serializable config map.
-type emitted struct {
-	id  string
-	cfg map[string]any
+// Component is one emitted confmap entry: a fully-qualified component ID
+// (type/name) and its serializable config map. It is the value an OutputMapper
+// returns, so it is part of the public registration API (see options.go).
+type Component struct {
+	ID  string
+	Cfg map[string]any
 }
 
 // slug turns a stanza identity into a deterministic, charset-safe component
@@ -52,27 +53,31 @@ func slug(raw string) string {
 	return strings.Trim(b.String(), "-")
 }
 
-// stableName produces a collision-free, deterministic component name for a
-// stanza. slug() alone is NOT injective (distinct targets can reduce to the
-// same readable string), which would collapse two stanzas onto one
+// StableName produces a collision-free, deterministic component name segment
+// for a stanza. slug() alone is NOT injective (distinct targets can reduce to
+// the same readable string), which would collapse two stanzas onto one
 // component.ID and silently merge their checkpoints and receiver hashes. We
 // append a short hash of the raw stanza name so the name stays readable but is
 // unique per stanza and stable across reloads.
-func stableName(prefix, raw string) string {
+//
+// It is exported so a client-registered OutputMapper builds its component ID
+// (e.g. "splunk_s2sout/"+StableName(name)) with the same naming rule as the
+// built-in mappers, keeping checkpoint/hash keys stable across the whole tree.
+func StableName(raw string) string {
 	sum := sha256.Sum256([]byte(raw))
 	h := hex.EncodeToString(sum[:])[:8]
 	s := slug(raw)
 	if s == "" {
-		return prefix + "-" + h
+		return h
 	}
-	return prefix + "-" + s + "-" + h
+	return s + "-" + h
 }
 
 // mapInputs maps enabled input stanzas to typed wrapper receiver configs. The
 // full merged props/transforms set is attached to every receiver, matching how
 // splunk_inputs feeds the same set to each sub-receiver. Per-source matching is
 // done receiver-internally, so parity with splunk_inputs is preserved.
-func mapInputs(prefix string, inputs []conf.Input, props []conf.Prop, transforms []conf.Transform) (out []emitted, skipped []string, err error) {
+func mapInputs(inputs []conf.Input, props []conf.Prop, transforms []conf.Transform) (out []Component, skipped []string, err error) {
 	for _, in := range inputs {
 		st := in.Configuration.Stanza
 		if st.IsDisabled() {
@@ -83,20 +88,20 @@ func mapInputs(prefix string, inputs []conf.Input, props []conf.Prop, transforms
 			return nil, nil, fmt.Errorf("parse stanza %q: %w", st.Name, perr)
 		}
 
-		var component *emitted
+		var component *Component
 		switch name.Kind {
 		case "monitor":
-			component = emitMonitor(prefix, st, name, props, transforms)
+			component = emitMonitor(st, name, props, transforms)
 		case "tcp":
-			component = emitTCP(prefix, st, name, props, transforms)
+			component = emitTCP(st, name, props, transforms)
 		case "udp":
-			component = emitUDP(prefix, st, name, props, transforms)
+			component = emitUDP(st, name, props, transforms)
 		case "script", "":
-			component = emitScript(prefix, st, name, props, transforms)
+			component = emitScript(st, name, props, transforms)
 		case "batch":
-			component = emitBatch(prefix, st, name, props, transforms)
+			component = emitBatch(st, name, props, transforms)
 		case "wineventlog":
-			component = emitWineventlog(prefix, st, name, props, transforms)
+			component = emitWineventlog(st, name, props, transforms)
 		default:
 			skipped = append(skipped, st.Name)
 			continue
@@ -120,8 +125,8 @@ func attachPropsTransforms(cfg map[string]any, props []conf.Prop, transforms []c
 	}
 }
 
-func emitMonitor(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *emitted {
-	id := splunkmonitor.TypeStr + "/" + stableName(prefix, st.Name)
+func emitMonitor(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *Component {
+	id := splunkmonitor.TypeStr + "/" + StableName(st.Name)
 	cfg := map[string]any{
 		"include": []any{name.Target},
 	}
@@ -148,11 +153,11 @@ func emitMonitor(prefix string, st conf.Stanza, name stanza.Name, props []conf.P
 	addExtras(cfg, st, "index", "source", "sourcetype", "host",
 		"CHARSET", "EVENT_BREAKER", "TRUNCATE", "blacklist")
 	attachPropsTransforms(cfg, props, transforms)
-	return &emitted{id: id, cfg: cfg}
+	return &Component{ID: id, Cfg: cfg}
 }
 
-func emitTCP(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *emitted {
-	id := "splunk_tcp/" + stableName(prefix, st.Name)
+func emitTCP(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *Component {
+	id := "splunk_tcp/" + StableName(st.Name)
 	// Parse the target address:port from the stanza name (e.g., "0.0.0.0:5514")
 	addr, port := parseListenAddress(name.Target)
 	cfg := map[string]any{
@@ -161,11 +166,11 @@ func emitTCP(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop,
 	}
 	addResourceAttrs(cfg, st)
 	attachPropsTransforms(cfg, props, transforms)
-	return &emitted{id: id, cfg: cfg}
+	return &Component{ID: id, Cfg: cfg}
 }
 
-func emitUDP(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *emitted {
-	id := "splunk_udp/" + stableName(prefix, st.Name)
+func emitUDP(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *Component {
+	id := "splunk_udp/" + StableName(st.Name)
 	// Parse the target address:port from the stanza name (e.g., "0.0.0.0:5515")
 	addr, port := parseListenAddress(name.Target)
 	cfg := map[string]any{
@@ -174,11 +179,11 @@ func emitUDP(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop,
 	}
 	addResourceAttrs(cfg, st)
 	attachPropsTransforms(cfg, props, transforms)
-	return &emitted{id: id, cfg: cfg}
+	return &Component{ID: id, Cfg: cfg}
 }
 
-func emitScript(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *emitted {
-	id := "splunk_script/" + stableName(prefix, st.Name)
+func emitScript(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *Component {
+	id := "splunk_script/" + StableName(st.Name)
 	cfg := map[string]any{
 		"script_filename": name.Target,
 	}
@@ -187,27 +192,27 @@ func emitScript(prefix string, st conf.Stanza, name stanza.Name, props []conf.Pr
 	}
 	addResourceAttrs(cfg, st)
 	attachPropsTransforms(cfg, props, transforms)
-	return &emitted{id: id, cfg: cfg}
+	return &Component{ID: id, Cfg: cfg}
 }
 
-func emitBatch(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *emitted {
-	id := "splunk_batch/" + stableName(prefix, st.Name)
+func emitBatch(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *Component {
+	id := "splunk_batch/" + StableName(st.Name)
 	cfg := map[string]any{
 		"file_path": name.Target,
 	}
 	addResourceAttrs(cfg, st)
 	attachPropsTransforms(cfg, props, transforms)
-	return &emitted{id: id, cfg: cfg}
+	return &Component{ID: id, Cfg: cfg}
 }
 
-func emitWineventlog(prefix string, st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *emitted {
-	id := "splunk_wineventlog/" + stableName(prefix, st.Name)
+func emitWineventlog(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *Component {
+	id := "splunk_wineventlog/" + StableName(st.Name)
 	cfg := map[string]any{
 		"event_log_name": name.Target,
 	}
 	addResourceAttrs(cfg, st)
 	attachPropsTransforms(cfg, props, transforms)
-	return &emitted{id: id, cfg: cfg}
+	return &Component{ID: id, Cfg: cfg}
 }
 
 func getParam(st conf.Stanza, name, defaultVal string) string {
@@ -276,30 +281,21 @@ func parseListenAddress(target string) (string, int) {
 	return "0.0.0.0", parsePort(target)
 }
 
-// outputMapper builds one exporter entry from a single output stanza.
-type outputMapper func(prefix string, out conf.Output) (emitted, error)
-
-// outputMappers registers the supported outputs.conf stanza kinds, keyed by the
-// stanza Kind from stanza.ParseOutputName (e.g. "hecout", later "tcpout"). No
-// stanza is hardcoded as required: mapOutputs emits exactly the exporters the
-// .conf declares, and a stanza whose kind is not registered here fails with a
-// specific error rather than being silently dropped or forcing a fixed output.
-var outputMappers = map[string]outputMapper{
-	"hecout": mapHECOutput,
-}
-
 // mapOutputs maps every output stanza in the merged outputs.conf to its
-// exporter entry. It requires no particular stanza; it emits one exporter per
-// recognized stanza and fails if any stanza kind has no registered mapper. A
-// pipeline needs at least one exporter, so an outputs.conf with no output
-// stanzas is also an error (conf.ErrNoOutputStanzas).
-func mapOutputs(prefix string, merged conf.Map) ([]emitted, error) {
+// exporter entry, using the mapper registered for each stanza kind. It requires
+// no particular stanza; it emits one exporter per recognized stanza and fails
+// if any stanza kind has no registered mapper. A pipeline needs at least one
+// exporter, so an outputs.conf with no output stanzas is also an error
+// (conf.ErrNoOutputStanzas). mappers is the per-provider registry
+// (built-ins + client-registered), so a client-supplied kind like "tcpout"
+// resolves here exactly like the built-in "hecout".
+func mapOutputs(mappers map[string]OutputMapperFactory, merged conf.Map) ([]Component, error) {
 	groups, err := conf.OutputGroups(merged)
 	if err != nil {
 		return nil, err // ErrNoOutputStanzas when the tree has no output stanzas
 	}
 	var (
-		out         []emitted
+		out         []Component
 		unsupported []string
 	)
 	for _, g := range groups {
@@ -308,12 +304,12 @@ func mapOutputs(prefix string, merged conf.Map) ([]emitted, error) {
 		if perr != nil {
 			return nil, fmt.Errorf("parse output stanza [%s]: %w", name, perr)
 		}
-		m, ok := outputMappers[parsed.Kind]
+		m, ok := mappers[parsed.Kind]
 		if !ok {
 			unsupported = append(unsupported, fmt.Sprintf("[%s] (kind %q)", name, parsed.Kind))
 			continue
 		}
-		e, merr := m(prefix, g)
+		e, merr := m.MapOutput(g)
 		if merr != nil {
 			return nil, merr
 		}
@@ -321,16 +317,16 @@ func mapOutputs(prefix string, merged conf.Map) ([]emitted, error) {
 	}
 	if len(unsupported) > 0 {
 		return nil, fmt.Errorf("unsupported output stanza(s) %s; no exporter registered (supported kinds: %s)",
-			strings.Join(unsupported, ", "), knownOutputKinds())
+			strings.Join(unsupported, ", "), knownOutputKinds(mappers))
 	}
 	return out, nil
 }
 
 // knownOutputKinds returns the registered output stanza kinds, sorted, for
 // error messages.
-func knownOutputKinds() string {
-	kinds := make([]string, 0, len(outputMappers))
-	for k := range outputMappers {
+func knownOutputKinds(mappers map[string]OutputMapperFactory) string {
+	kinds := make([]string, 0, len(mappers))
+	for k := range mappers {
 		kinds = append(kinds, k)
 	}
 	sort.Strings(kinds)
@@ -338,7 +334,7 @@ func knownOutputKinds() string {
 }
 
 // mapHECOutput maps a [hecout] stanza to a splunk_hecout exporter entry.
-func mapHECOutput(prefix string, out conf.Output) (emitted, error) {
+func mapHECOutput(out conf.Output) (Component, error) {
 	get := func(k string) string {
 		if p := out.Configuration.Stanza.Params.Get(k); p != nil {
 			return p.Value
@@ -352,5 +348,5 @@ func mapHECOutput(prefix string, out conf.Output) (emitted, error) {
 			"insecure_skip_verify": true,
 		},
 	}
-	return emitted{id: splunkhecout.TypeStr + "/" + prefix, cfg: cfg}, nil
+	return Component{ID: splunkhecout.TypeStr + "/" + StableName(out.Configuration.Stanza.Name), Cfg: cfg}, nil
 }

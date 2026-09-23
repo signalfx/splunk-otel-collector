@@ -33,7 +33,7 @@ var (
 
 const (
 	baseURI   = "file:testdata/base.yaml"
-	splunkURI = "splunkhome://testdata/splunkhome?prefix=uf"
+	splunkURI = "splunkhome://testdata/splunkhome?pipeline=uf"
 )
 
 // TestResolveAndValidate proves the locked design on the real collector API:
@@ -199,7 +199,7 @@ func TestTranslationFidelity(t *testing.T) {
 	receivers, err := merged.Sub("receivers")
 	require.NoError(t, err)
 
-	tcpReceiver, err := receivers.Sub("splunk_tcp/uf-tcp-0-0-0-0-5514-4c1c5e09")
+	tcpReceiver, err := receivers.Sub("splunk_tcp/tcp-0-0-0-0-5514-4c1c5e09")
 	require.NoError(t, err)
 	tcpCfg := &splunktcp.Config{}
 	require.NoError(t, tcpReceiver.Unmarshal(tcpCfg))
@@ -212,7 +212,7 @@ func TestTranslationFidelity(t *testing.T) {
 	// not be dropped or rejected by strict unmarshal. This is the losslessness proof.
 	require.Equal(t, "500KB", tcpCfg.Extra["queueSize"], "unmodeled param must survive in Extra")
 
-	scriptReceiver, err := receivers.Sub("splunk_script/uf-script-usr-local-bin-test-sh-c35160c3")
+	scriptReceiver, err := receivers.Sub("splunk_script/script-usr-local-bin-test-sh-c35160c3")
 	require.NoError(t, err)
 	scriptCfg := &splunkscript.Config{}
 	require.NoError(t, scriptReceiver.Unmarshal(scriptCfg))
@@ -252,7 +252,7 @@ func TestPropsTransformsParity(t *testing.T) {
 	// Pick one receiver and unmarshal its config
 	receivers, err := merged.Sub("receivers")
 	require.NoError(t, err)
-	tcpReceiver, err := receivers.Sub("splunk_tcp/uf-tcp-0-0-0-0-5514-4c1c5e09")
+	tcpReceiver, err := receivers.Sub("splunk_tcp/tcp-0-0-0-0-5514-4c1c5e09")
 	require.NoError(t, err)
 	tcpCfg := &splunktcp.Config{}
 	require.NoError(t, tcpReceiver.Unmarshal(tcpCfg))
@@ -266,10 +266,10 @@ func TestPropsTransformsParity(t *testing.T) {
 	require.NotEmpty(t, tcpCfg.Transforms, "Transforms must be present in config")
 }
 
-// TestPrefixConfigurable proves the pipeline name follows the prefix query param.
-func TestPrefixConfigurable(t *testing.T) {
+// TestPipelineConfigurable proves the pipeline name follows the pipeline query param.
+func TestPipelineConfigurable(t *testing.T) {
 	res, err := confmap.NewResolver(confmap.ResolverSettings{
-		URIs: []string{"splunkhome://testdata/splunkhome?prefix=custom"},
+		URIs: []string{"splunkhome://testdata/splunkhome?pipeline=custom"},
 		ProviderFactories: []confmap.ProviderFactory{
 			NewFactory(),
 		},

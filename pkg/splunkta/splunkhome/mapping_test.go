@@ -31,7 +31,7 @@ func TestStableNameInjective(t *testing.T) {
 	}
 	seen := map[string]string{}
 	for _, raw := range raws {
-		name := stableName("uf", raw)
+		name := StableName(raw)
 		require.Truef(t, nameRegexp.MatchString(name), "name %q from %q must satisfy component name regex", name, raw)
 		if prev, ok := seen[name]; ok {
 			t.Fatalf("collision: %q and %q both map to %q", prev, raw, name)
@@ -45,5 +45,5 @@ func TestStableNameInjective(t *testing.T) {
 // reloads.
 func TestStableNameDeterministic(t *testing.T) {
 	raw := "monitor:///var/log/foo"
-	require.Equal(t, stableName("uf", raw), stableName("uf", raw))
+	require.Equal(t, StableName(raw), StableName(raw))
 }

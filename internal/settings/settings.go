@@ -210,7 +210,7 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 		s.discovery.DiscoveryModeProviderFactory(),
 		s.discovery.PropertiesFileProviderFactory(),
 
-		// Splunk .conf interop: resolves splunkhome://<SPLUNK_HOME>?prefix=<name>
+		// Splunk .conf interop: resolves splunkhome://<SPLUNK_HOME>?pipeline=<name>
 		// into an in-memory pipeline of wrapper receivers + splunk_hecout.
 		// Inert unless a splunkhome:// URI is passed; the emitted components are
 		// only registered when the enableTARunner feature gate is on.

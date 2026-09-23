@@ -37,7 +37,6 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.161.0
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.161.0
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.161.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.161.0
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.161.0
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.161.0
@@ -355,6 +354,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.161.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/rollingspanlatencyprocessor v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.161.0 // indirect
@@ -825,7 +825,6 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter => ./pkg/exporter/splunkoutputsexporter
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension => ./pkg/extension/oracleencodingextension
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
-	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor => ./pkg/processor/rollingspanlatencyprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver => ./pkg/receiver/splunkinputsreceiver

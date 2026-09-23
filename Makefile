@@ -417,7 +417,8 @@ endif
 		--platform linux/$(GOARCH) \
 		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
 		--build-arg BUILD_INFO='$(BUILD_INFO)' \
-		--file cmd/otelcol/fips/build/Dockerfile.$(GOOS) ./
+		--build-arg GOOS=$(GOOS) \
+		--file cmd/otelcol/fips/build/Dockerfile ./
 	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null 2>&1 || true
 	@mkdir -p ./bin
 	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null

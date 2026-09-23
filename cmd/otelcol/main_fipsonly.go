@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build requirefips
+//go:build requirefips && windows
 
 //go:debug fips140=on
 

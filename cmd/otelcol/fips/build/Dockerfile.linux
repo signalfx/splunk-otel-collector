@@ -16,8 +16,12 @@ ARG TARGETARCH
 ARG BUILD_INFO
 ENV GOOS=linux
 ENV GOARCH=${TARGETARCH}
-ENV GOFLAGS="-tags=requirefips"
+# Pin the Go Cryptographic Module to a specific CMVP validation certificate.
+ENV GOFIPS140=v1.0.0
 ENV GOMODCACHE=/go/pkg/mod
 
 WORKDIR /src
 RUN --mount=type=cache,target=${GOMODCACHE} make otelcol BUILD_INFO="${BUILD_INFO}"
+RUN test "$(go env GOFIPS140)" = v1.0.0
+RUN go version -m ./bin/otelcol_${GOOS}_${GOARCH} | grep -E 'GOFIPS140=v1\.0\.0($|[-])'
+RUN GODEBUG=fips140=only ./bin/otelcol_${GOOS}_${GOARCH} --version

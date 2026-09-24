@@ -4,4 +4,4 @@ component: collector
 
 note: Build Windows FIPS artifacts with the certified Go Cryptographic Module v1.0.0.
 
-issues: [8119]
+issues: [8138]

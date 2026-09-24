@@ -61,7 +61,7 @@ jobs:
           name: otelcol-fips-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
           path: ./bin/*
 
-  binary-test:
+  fips-executable-test:
     runs-on: ${{ matrix.RUNNER }}
     needs: [ otelcol-fips ]
     strategy:

@@ -37,6 +37,7 @@ func TestDefaultComponents(t *testing.T) {
 		"google_cloud_logentry_encoding",
 		"headers_setter",
 		"health_check",
+		"healthcheckv2",
 		"host_observer",
 		"http_forwarder",
 		"k8s_leader_elector",

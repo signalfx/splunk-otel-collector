@@ -14,22 +14,21 @@
 
 //go:build !linux && !windows
 
-package main
+package lifecycle
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
-	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/lifecycle"
-	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
-func run(_, _ []string, _ launcher.Paths) error {
-	return errors.New("otelcollauncher is supported only on Linux and Windows")
-}
-
-// commandFamilies lists the otelcollauncher command families available on
-// this platform.
-func commandFamilies() []cli.Family {
-	return []cli.Family{lifecycle.NewOthers()}
+// NewOthers constructs the lifecycle command family for platforms without a
+// native or systemd/SCM-backed implementation.
+func NewOthers() *Manager {
+	return &Manager{
+		dispatch: func(_ verb, _ []string, streams cli.IO) int {
+			fmt.Fprintln(streams.Err, "otelcollauncher lifecycle commands are supported only on Linux and Windows")
+			return cli.ExitUnsupported
+		},
+	}
 }

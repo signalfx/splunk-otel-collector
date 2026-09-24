@@ -127,7 +127,7 @@ func (s *correlationStore) GetOrCreate(endpointID observer.EndpointID, receiverI
 	defer endpointUnlock()
 	c, ok := s.correlations.Load(endpointID)
 	if ok {
-		return *c.(*correlation)
+		return *(c.(*correlation))
 	}
 	// The observer has yet to emit an endpoint event and this could be an invalid collector state.
 	corr := correlation{

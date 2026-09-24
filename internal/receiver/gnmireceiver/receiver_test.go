@@ -140,7 +140,7 @@ func (m *mockGNMIServer) Subscribe(stream gnmipb.GNMI_SubscribeServer) error {
 					{Name: "counters"},
 					{Name: "in-octets"},
 				}},
-				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: uint64(i)}},
+				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: uint64(i)}}, //nolint:gosec // disable G115: loop bound is small and non-negative
 			}},
 		}
 		if err := stream.Send(&gnmipb.SubscribeResponse{

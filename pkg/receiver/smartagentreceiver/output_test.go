@@ -163,7 +163,7 @@ func TestSendDimensionUpdate(t *testing.T) {
 	output.SendDimensionUpdate(&dim)
 	received := mmc.receivedMetadataUpdates
 	assert.Equal(t, 1, len(received))
-	update := *received[0]
+	update := *(received[0])
 	assert.Equal(t, "my_dimension", update.ResourceIDKey)
 	assert.Equal(t, metadata.ResourceID("my_dimension_value"), update.ResourceID)
 	assert.Equal(t, map[string]string{"property": "property_value"}, update.MetadataToUpdate)
@@ -202,7 +202,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 	output.SendDimensionUpdate(&dim)
 	received := mmc.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
-	update := *received[0]
+	update := *(received[0])
 	assert.Equal(t, "has_errored", update.ResourceIDKey)
 }
 
@@ -219,7 +219,7 @@ func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 	output.SendDimensionUpdate(&dim)
 	received := mmc.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
-	update := *received[0]
+	update := *(received[0])
 	assert.Equal(t, "has_errored", update.ResourceIDKey)
 }
 
@@ -272,7 +272,7 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 	output.SendDimensionUpdate(&dim)
 	received := mmc.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
-	update := *received[0]
+	update := *(received[0])
 	assert.Equal(t, "some_dimension", update.ResourceIDKey)
 }
 

@@ -450,16 +450,16 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 		switch componentType {
 		case typeService:
 			shallowType = typeService
-			entry = *unmarshalDst.(*ServiceEntry)
+			entry = *(unmarshalDst.(*ServiceEntry))
 		case typeDiscoveryProperties:
 			shallowType = typeDiscoveryProperties
-			entry = *unmarshalDst.(*PropertiesEntry)
+			entry = *(unmarshalDst.(*PropertiesEntry))
 		}
 		(*dst)[shallowType.(K)] = entry.(V)
 		return shallowType.(K), nil
 	}
 
-	entry := *unmarshalDst.(*map[K]V)
+	entry := *(unmarshalDst.(*map[K]V))
 
 	if len(entry) == 0 {
 		// empty or all-comment files are supported but ignored

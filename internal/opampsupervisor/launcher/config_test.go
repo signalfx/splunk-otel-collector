@@ -172,7 +172,7 @@ service:
 	assert.True(t, bytes.HasPrefix([]byte(runtimeYAML), []byte(runtimeSupervisorConfigHeader)))
 
 	assert.Equal(t, "https://custom.example/v1/opamp", supervisorConfig.Server.Endpoint)
-	assert.Equal(t, map[string]any{"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"}, supervisorConfig.Server.Headers) //nolint:gosec // The token is a literal placeholder in the test fixture.
+	assert.Equal(t, map[string]any{"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"}, supervisorConfig.Server.Headers)
 	assert.Equal(t, map[string]any{"insecure_skip_verify": true}, supervisorConfig.Server.TLS)
 	assert.Contains(t, supervisorYAML, "X-SF-Token: ${SPLUNK_ACCESS_TOKEN}")
 	assertMinimalCapabilities(t, supervisorConfig.Capabilities)
@@ -838,7 +838,7 @@ func TestSupervisorServerFromConfigDerivesFallbackEndpoint(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.wantEndpoint, server.Endpoint)
-			assert.Equal(t, map[string]any{"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"}, server.Headers) //nolint:gosec // The token is a literal placeholder in the test fixture.
+			assert.Equal(t, map[string]any{"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"}, server.Headers)
 		})
 	}
 }

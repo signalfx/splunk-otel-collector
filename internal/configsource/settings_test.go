@@ -63,12 +63,12 @@ func TestConfigSourceParser(t *testing.T) {
 			name:      "env_var_on_load",
 			file:      "env_var_on_load",
 			factories: testFactories,
-			envvars: map[string]string{ //nolint:gosec // These are synthetic placeholders in a config source test.
+			envvars: map[string]string{
 				"ENV_VAR_ENDPOINT": "env_var_endpoint",
 				"ENV_VAR_TOKEN":    "env_var_token",
 			},
 			expectedSettings: map[string]Settings{
-				"tstcfgsrc": &MockCfgSrcSettings{ //nolint:gosec // These are synthetic placeholders in a config source test.
+				"tstcfgsrc": &MockCfgSrcSettings{
 					SourceSettings: NewSourceSettings(component.MustNewID("tstcfgsrc")),
 					Endpoint:       "https://env_var_endpoint:8200",
 					Token:          "env_var_token",

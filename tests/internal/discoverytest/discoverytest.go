@@ -197,7 +197,7 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string, setDiscov
 
 	var extraDiscoveryArgs strings.Builder
 	for _, arg := range setDiscoveryArgs {
-		fmt.Fprintf(&extraDiscoveryArgs, "            - --set=%s\n", arg)
+		extraDiscoveryArgs.WriteString(fmt.Sprintf("            - --set=%s\n", arg))
 	}
 
 	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs.String()}, net.JoinHostPort(dockerHost, strconv.Itoa(port)))

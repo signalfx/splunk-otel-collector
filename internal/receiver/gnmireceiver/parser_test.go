@@ -225,7 +225,7 @@ func TestParseIntEmitsSum(t *testing.T) {
 
 func TestParseFloatEmitsDoubleGauge(t *testing.T) {
 	m, err := testParser().parse(updateResponse("in-octets-rate",
-		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_FloatVal{FloatVal: 1.5}})) //nolint:staticcheck // FloatVal covers legacy gNMI payloads.
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_FloatVal{FloatVal: 1.5}}))
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
@@ -1169,7 +1169,7 @@ func TestParseUnresolvedLeafDropsAndLogsOnceAcrossRepeatedSamples(t *testing.T) 
 
 	for i := 0; i < 3; i++ {
 		m, err := parser.parse(updateResponse("unmapped",
-			&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: uint64(i)}}))
+			&gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: uint64(i)}})) //nolint:gosec // disable G115: loop bound is small and non-negative
 		require.NoError(t, err)
 		assert.Equal(t, 0, m.MetricCount())
 	}

@@ -234,8 +234,8 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetIntValue(2500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -243,8 +243,8 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetIntValue(350)
 
 	return result
@@ -291,8 +291,8 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	sum.SetIsMonotonic(true)
 	sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := sum.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetIntValue(1500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -300,8 +300,8 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetDoubleValue(123.5)
 
 	return result

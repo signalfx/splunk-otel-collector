@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/baseline
 
-go 1.27.1
+go 1.26.5
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.161.0
@@ -141,8 +141,6 @@ require (
 	go.opentelemetry.io/collector/receiver v1.67.0
 	go.opentelemetry.io/collector/receiver/nopreceiver v0.161.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.161.0
-	go.opentelemetry.io/collector/service v0.161.0
-	go.uber.org/multierr v1.11.0
 )
 
 require (
@@ -391,8 +389,6 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
-	github.com/knadh/koanf/maps v0.1.3 // indirect
-	github.com/knadh/koanf/providers/confmap v1.0.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
 	github.com/kr/fs v0.1.0 // indirect
@@ -717,4 +713,11 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 	software.sslmate.com/src/go-pkcs12 v0.7.3 // indirect
+)
+
+require (
+	github.com/knadh/koanf/maps v0.1.3 // indirect
+	github.com/knadh/koanf/providers/confmap v1.0.1 // indirect
+	go.opentelemetry.io/collector/service v0.161.0
+	go.uber.org/multierr v1.11.0
 )

@@ -1,5 +1,5 @@
 ARG DOCKER_REPO=docker.io
-ARG GO_VERSION=1.27.1
+ARG GO_VERSION=1.26.6
 FROM ${DOCKER_REPO}/golang:${GO_VERSION}
 
 COPY baseline /src/baseline

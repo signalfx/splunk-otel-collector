@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/splunkta
 
-go 1.27.1
+go 1.26.6
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.161.0

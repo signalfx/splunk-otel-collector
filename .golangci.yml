@@ -48,9 +48,8 @@ formatters:
       simplify: true
 
     gofumpt:
-      extra:
-        group-params: true
-        clothe-returns: true
+      # Choose whether to use the extra rules
+      extra-rules: true
 
     goimports:
       # put imports beginning with prefix after 3rd-party packages;

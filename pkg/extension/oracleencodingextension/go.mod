@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension
 
-go 1.27.1
+go 1.26.5
 
 require (
 	github.com/goccy/go-json v0.10.6

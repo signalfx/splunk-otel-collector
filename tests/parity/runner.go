@@ -181,7 +181,7 @@ func waitForEvents(ctx context.Context, backend Backend, spl string, opts RunOpt
 }
 
 func runShell(ctx context.Context, shell, script, dir string) error {
-	cmd := exec.CommandContext(ctx, shell, "-c", script) //nolint:gosec // Parity scripts are trusted, version-controlled test fixtures.
+	cmd := exec.CommandContext(ctx, shell, "-c", script)
 	cmd.Dir = dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {

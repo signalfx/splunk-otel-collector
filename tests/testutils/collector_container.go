@@ -172,7 +172,7 @@ func (collector CollectorContainer) Build() (Collector, error) {
 		})
 	}
 
-	collector.Container = *collector.Container.Build()
+	collector.Container = *(collector.Container.Build())
 
 	return &collector, nil
 }

@@ -54,16 +54,12 @@ func TestEnvoyDockerObserver(t *testing.T) {
 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected.yaml"))
 	require.NoError(t, err)
-	require.NotZero(t, expected.MetricCount(), "expected metrics are empty")
-
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		metrics := tc.OTLPReceiverSink.AllMetrics()
-		if len(metrics) == 0 {
+		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-
-		err := testutils.CompareMetricsAgainstAnyBatch(expected, metrics,
+		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),

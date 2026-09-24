@@ -26,6 +26,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -59,7 +60,18 @@ func TestTelegrafExecWithGoScript(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		err := testutils.CompareMetricsAgainstAnyBatch(expected, tc.OTLPReceiverSink.AllMetrics(),
+		var selected *pmetric.Metrics
+		for i := len(tc.OTLPReceiverSink.AllMetrics()) - 1; i >= 0; i-- {
+			m := tc.OTLPReceiverSink.AllMetrics()[i]
+			if m.MetricCount() == expected.MetricCount() {
+				selected = &m
+				break
+			}
+		}
+
+		require.NotNil(tt, selected)
+
+		err := pmetrictest.CompareMetrics(expected, *selected,
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),

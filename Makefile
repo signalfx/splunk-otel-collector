@@ -409,21 +409,16 @@ else ifeq ($(GOOS), windows)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
     endif
 	$(eval EXTENSION = .exe)
+	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2}")
 else
 	$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
 endif
-	docker buildx build --pull \
-		--tag otelcol-fips-builder-$(GOOS)-$(GOARCH) \
-		--platform linux/$(GOARCH) \
-		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
-		--build-arg BUILD_INFO='$(BUILD_INFO)' \
-		--build-arg GOOS=$(GOOS) \
-		--file cmd/otelcol/fips/build/Dockerfile ./
-	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null 2>&1 || true
 	@mkdir -p ./bin
-	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
-	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
-	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
+	go generate ./...
+	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=v1.0.0 CGO_ENABLED=0 \
+		go build -trimpath -o ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	test "$$(GOFIPS140=v1.0.0 go env GOFIPS140)" = v1.0.0
+	go version -m ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) | grep -E 'GOFIPS140=v1\.0\.0($$|[-])'
 
 FILENAME?=$(shell git branch --show-current)
 .PHONY: chlog-new

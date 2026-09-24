@@ -1,0 +1,21 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: enhancement
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: otelcollauncher
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: Add an internal command-family dispatch framework to `otelcollauncher`
+
+# One or more tracking issues related to the change
+issues: [8125]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  Introduces `cmd/otelcollauncher/cli`, an extensibility point for future `otelcollauncher`
+  subcommands, along with a `help` command listing registered subcommands and per-command
+  help via `help <command>` or `<command> --help`/`-h`. `--help`/`-h` with no command still
+  pass through to the collector or supervisor, matching existing launcher behavior when no
+  subcommand is passed. 

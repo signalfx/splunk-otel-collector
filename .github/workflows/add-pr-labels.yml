@@ -20,6 +20,7 @@ jobs:
           persist-credentials: false
 
       - name: Run add-codeowners-to-pr.sh
-        run: ./.github/workflows/scripts/add-codeowners-to-pr.sh
+        run: ./.github/workflows/scripts/add-pr-labels.sh
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.number }}

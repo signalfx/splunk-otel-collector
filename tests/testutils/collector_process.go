@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime"
 	"testing"
 	"time"
 
@@ -31,10 +32,14 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/subprocess"
 )
 
-const (
-	binaryPathSuffix       = "/bin/otelcol"
-	findExecutableErrorMsg = "unable to find collector executable path.  Be sure to run `make otelcol`"
-)
+const findExecutableErrorMsg = "unable to find collector executable path.  Be sure to run `make otelcol`"
+
+var binaryPathSuffix = func() string {
+	if runtime.GOOS == "windows" {
+		return "/bin/otelcol.exe"
+	}
+	return "/bin/otelcol"
+}()
 
 var _ Collector = (*CollectorProcess)(nil)
 

@@ -784,26 +784,26 @@ func logInfo(format string, v ...any) {
 	if isSplunkHomeDefined() {
 		format = "INFO " + format
 	}
-	log.Printf(format, v...)
+	log.Printf(format, v...) //nolint:gosec // This wrapper receives trusted collector log format strings.
 }
 
 func logWarn(format string, v ...any) {
 	if isSplunkHomeDefined() {
 		format = "WARN " + format
 	}
-	log.Printf(format, v...)
+	log.Printf(format, v...) //nolint:gosec // This wrapper receives trusted collector log format strings.
 }
 
 func logError(format string, v ...any) {
 	if isSplunkHomeDefined() {
 		format = "ERROR " + format
 	}
-	log.Printf(format, v...)
+	log.Printf(format, v...) //nolint:gosec // This wrapper receives trusted collector log format strings.
 }
 
 func logFatal(format string, v ...any) {
 	if isSplunkHomeDefined() {
 		format = "FATAL " + format
 	}
-	log.Fatalf(format, v...)
+	log.Fatalf(format, v...) //nolint:gosec // This wrapper receives trusted collector log format strings.
 }

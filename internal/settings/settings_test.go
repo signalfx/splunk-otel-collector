@@ -583,7 +583,7 @@ func setStatConfigFileForDefaultOTLPLinuxConfig(t *testing.T) {
 		if name == DefaultOTLPLinuxConfig || filepath.Clean(name) == filepath.Clean(DefaultOTLPLinuxConfig) {
 			return os.Stat(localOTLPLinuxConfig)
 		}
-		return os.Stat(name)
+		return os.Stat(name) //nolint:gosec // The test passes only fixed fixture paths here.
 	}
 	t.Cleanup(func() {
 		statConfigFile = oldStatConfigFile

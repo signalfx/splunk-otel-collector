@@ -132,7 +132,7 @@ func (r *receiver) Shutdown(context.Context) error {
 		return nil
 	}
 
-	shutdownable, ok := (r.monitor).(monitors.Shutdownable)
+	shutdownable, ok := r.monitor.(monitors.Shutdownable)
 	if !ok {
 		return fmt.Errorf("invalid monitor state at Shutdown(): %#v", r.monitor)
 	}

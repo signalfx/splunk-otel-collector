@@ -230,7 +230,7 @@ func (d *diskQueue) write(metadata, data []byte) error {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(dataLen)) //nolint:gosec // disable G115
+	binary.BigEndian.PutUint64(b, uint64(dataLen))
 	buf.Write(b)
 	buf.Write(data)
 	_, err := d.writeFile.Write(buf.Bytes())

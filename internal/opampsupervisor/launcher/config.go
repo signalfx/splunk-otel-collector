@@ -272,7 +272,7 @@ func supervisorInputsFromArgs(args []string, env map[string]string) (supervisorI
 			if i+1 >= len(args) {
 				return supervisorInputs{}, errors.New("missing value for --config")
 			}
-			path, err := normalizeLocalConfigPath(args[i+1])
+			path, err := normalizeLocalConfigPath(args[i+1]) //nolint:gosec // The preceding length check guarantees i+1 is in bounds.
 			if err != nil {
 				return supervisorInputs{}, err
 			}
@@ -283,7 +283,7 @@ func supervisorInputsFromArgs(args []string, env map[string]string) (supervisorI
 				inputs.agentArgs = append(inputs.agentArgs, arg)
 				continue
 			}
-			if filtered, ok := filterFeatureGateValue(args[i+1]); ok {
+			if filtered, ok := filterFeatureGateValue(args[i+1]); ok { //nolint:gosec // The preceding length check guarantees i+1 is in bounds.
 				inputs.agentArgs = append(inputs.agentArgs, arg, filtered)
 			}
 			i++
@@ -517,7 +517,7 @@ func supervisorServerFromEnv(env map[string]string) (supervisorServer, error) {
 	}
 	return supervisorServer{
 		Endpoint: endpoint,
-		Headers: map[string]any{
+		Headers: map[string]any{ //nolint:gosec // This is a placeholder expanded from SPLUNK_ACCESS_TOKEN at runtime.
 			"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}",
 		},
 	}, nil

@@ -302,7 +302,7 @@ func sendToStdIn(contents string, writer io.Writer) error {
 }
 
 func createCommand(execPath string, args, envVars []string) (*exec.Cmd, io.WriteCloser, io.ReadCloser) {
-	cmd := exec.Command(execPath, args...)
+	cmd := exec.Command(execPath, args...) //nolint:gosec // ExecutablePath is test configuration and exec.Command does not invoke a shell.
 
 	var env []string
 	cmd.Env = append(append(env, os.Environ()...), envVars...)

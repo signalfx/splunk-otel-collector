@@ -185,8 +185,8 @@ func wordify(text string) string {
 		// encoded all non-word characters to hex
 		if c != '_' && c < '0' || (c > '9') && (c < 'A') || (c > 'Z') && (c < 'a') || (c > 'z') {
 			b := make([]byte, 4)
-			binary.BigEndian.PutUint32(b, uint32(c))
-			hexEncoded := make([]byte, len(b)*2) // hex.EncodedLen
+			binary.BigEndian.PutUint32(b, uint32(c)) //nolint:gosec // Runes yielded by ranging over a string are non-negative.
+			hexEncoded := make([]byte, len(b)*2)     // hex.EncodedLen
 			hex.Encode(hexEncoded, b)
 
 			// strip all leading '0' unless evenness at stake

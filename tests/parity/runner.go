@@ -66,27 +66,6 @@ func (o RunOptions) withDefaults() RunOptions {
 	return o
 }
 
-// RunCase runs both agents through a case and validates candidate against
-// oracle. When oracle.Adapter is nil, the candidate is compared against the
-// case's authored Expected instead of a live oracle.
-func RunCase(ctx context.Context, c *Case, backend Backend, oracle, candidate AgentRun, v Validator, opts RunOptions) (Result, error) {
-	candidateRecords, err := RunAgent(ctx, c, candidate, backend, opts)
-	if err != nil {
-		return Result{}, fmt.Errorf("candidate %s: %w", candidate.Adapter.Name(), err)
-	}
-
-	var reference []Record
-	if oracle.Adapter == nil {
-		reference = []Record{c.Expected.AsReference()}
-	} else {
-		reference, err = RunAgent(ctx, c, oracle, backend, opts)
-		if err != nil {
-			return Result{}, fmt.Errorf("oracle %s: %w", oracle.Adapter.Name(), err)
-		}
-	}
-	return v.Validate(reference, candidateRecords), nil
-}
-
 // RunAgent drives one agent through one case and returns the events it landed in
 // Splunk. It owns a fresh sandbox: render configs, run setup, start the agent,
 // run the script, poll the backend for this agent's index until the event count

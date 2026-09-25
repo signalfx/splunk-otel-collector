@@ -1,0 +1,31 @@
+# Candidate (Splunk OTel Collector) config for the "Set host" case. It reaches
+# the same result as the UF inputs.conf by different means: tail the same file,
+# force host=myhost, and forward to HEC. Tokens BASE_DIR/HEC_ENDPOINT/HEC_TOKEN/
+# INDEX are interpolated by the runner.
+receivers:
+  file_log:
+    include:
+      - BASE_DIR/foo.txt
+    start_at: beginning
+
+processors:
+  resource:
+    attributes:
+      - key: host.name
+        value: myhost
+        action: upsert
+
+exporters:
+  splunk_hec:
+    token: HEC_TOKEN
+    endpoint: HEC_ENDPOINT/services/collector
+    index: INDEX
+    tls:
+      insecure_skip_verify: true
+
+service:
+  pipelines:
+    logs:
+      receivers: [file_log]
+      processors: [resource]
+      exporters: [splunk_hec]

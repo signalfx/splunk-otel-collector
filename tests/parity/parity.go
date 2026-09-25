@@ -46,14 +46,18 @@ import (
 //
 // Fields values are strings for now; typed values (numeric index-time fields)
 // are a follow-up on the structured-processing axis.
+//
+// The JSON tags shape the golden files: a projected Record (only the fields a
+// case asserts) marshals to just those keys, so a golden stays small and
+// reviewable. Time is never serialized; asserting event time is a follow-up.
 type Record struct {
-	Time       time.Time
-	Fields     map[string]string
-	Raw        string
-	Host       string
-	Source     string
-	Sourcetype string
-	Index      string
+	Time       time.Time         `json:"-"`
+	Fields     map[string]string `json:"fields,omitempty"`
+	Raw        string            `json:"raw,omitempty"`
+	Host       string            `json:"host,omitempty"`
+	Source     string            `json:"source,omitempty"`
+	Sourcetype string            `json:"sourcetype,omitempty"`
+	Index      string            `json:"index,omitempty"`
 }
 
 // Endpoint is a host:port an agent forwards to.

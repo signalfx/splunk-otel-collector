@@ -16,6 +16,86 @@ using WixToolset.Dtf.WindowsInstaller;
 
 public class CustomActions
 {
+    [CustomAction]
+    public static ActionResult DetectExistingServiceAccount(Session session)
+    {
+        if (session["REMOVE"] == "ALL")
+        {
+            return ActionResult.Success;
+        }
+
+        string existingAccount = session["SPLUNK_PREVIOUS_SERVICE_ACCOUNT"];
+        if (string.IsNullOrWhiteSpace(existingAccount))
+        {
+            existingAccount = ServiceAccountConfiguration.GetExistingServiceAccount();
+        }
+
+        session["DETECTED_SERVICE_ACCOUNT"] = existingAccount;
+        if (!string.IsNullOrWhiteSpace(existingAccount))
+        {
+            session.Log($"Info: Detected existing Splunk OpenTelemetry Collector service account: {existingAccount}");
+            try
+            {
+                ServiceAccountConfiguration.SelectAccount(session["SPLUNK_SERVICE_ACCOUNT_TYPE"], existingAccount);
+            }
+            catch (InvalidOperationException exception)
+            {
+                LogAndShowError(session, exception.Message);
+                return ActionResult.Failure;
+            }
+        }
+
+        return ActionResult.Success;
+    }
+
+    [CustomAction]
+    public static ActionResult ValidateServiceAccountType(Session session)
+    {
+        try
+        {
+            ServiceAccountConfiguration.ParseAccountType(session["SPLUNK_SERVICE_ACCOUNT_TYPE"]);
+            return ActionResult.Success;
+        }
+        catch (ArgumentException exception)
+        {
+            LogAndShowError(session, exception.Message);
+            return ActionResult.Failure;
+        }
+    }
+
+    [CustomAction]
+    public static ActionResult LogServiceAccountRecommendation(Session session)
+    {
+        if (string.IsNullOrWhiteSpace(session["SPLUNK_SERVICE_ACCOUNT_TYPE"]) &&
+            ServiceAccountConfiguration.IsLocalSystem(session["DETECTED_SERVICE_ACCOUNT"]))
+        {
+            session.Log("Warning: " + ServiceAccountConfiguration.LocalSystemRecommendation);
+        }
+
+        return ActionResult.Success;
+    }
+
+    [CustomAction]
+    public static ActionResult ConfigureServiceAccount(Session session)
+    {
+        try
+        {
+            string selectedAccount = ServiceAccountConfiguration.SelectAccount(
+                session.CustomActionData["SPLUNK_SERVICE_ACCOUNT_TYPE"],
+                session.CustomActionData["DETECTED_SERVICE_ACCOUNT"]);
+            ServiceAccountConfiguration.Configure(
+                selectedAccount,
+                session.CustomActionData["PROGRAMDATA"],
+                message => session.Log(message));
+            return ActionResult.Success;
+        }
+        catch (Exception exception)
+        {
+            session.Log("Error: " + exception.Message);
+            return ActionResult.Failure;
+        }
+    }
+
     /// <summary>
     /// Custom action to check if the launch conditions are met.
     /// </summary>

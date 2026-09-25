@@ -12,24 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+//go:build !linux && !windows
+
+package lifecycle
 
 import (
-	"log"
-	"os"
+	"fmt"
 
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
-	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
-func main() {
-	args := os.Args[1:]
-	streams := cli.IO{Out: os.Stdout, Err: os.Stderr}
-
-	if code, ok := cli.Dispatch(commandFamilies(), args, streams); ok {
-		os.Exit(code)
-	}
-	if err := run(args, os.Environ(), launcher.DefaultPaths()); err != nil {
-		log.Fatal(err)
+// NewOthers constructs the lifecycle command family for platforms without a
+// native or systemd/SCM-backed implementation.
+func NewOthers() *Manager {
+	return &Manager{
+		dispatch: func(_ verb, _ []string, streams cli.IO) int {
+			fmt.Fprintln(streams.Err, "otelcollauncher lifecycle commands are supported only on Linux and Windows")
+			return cli.ExitUnsupported
+		},
 	}
 }

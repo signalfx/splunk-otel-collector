@@ -49,10 +49,9 @@ jobs:
         with:
           install_tools: 'false'
 
-      - name: Install unit test reporting tool
-        if: ${{ inputs.COVERAGE }}
+      - name: Install gotestsum
         working-directory: ./internal/tools
-        run: go install github.com/jstemmer/go-junit-report
+        run: go install gotest.tools/gotestsum
 
       - name: Set CGO_ENABLED
         # Currently, CGO enabled is required for:
@@ -90,13 +89,14 @@ jobs:
             Format-Table -AutoSize
 
       - name: Unit tests
+        env:
+          # Re-run failed tests so that flaky tests can be told apart from
+          # consistently failing ones, see report-flaky-tests.sh.
+          TEST_RERUN_FAILS: 'true'
         run: |
-          set -o pipefail
           export ENABLE_RACE_DETECTOR=${{ inputs.TEST_RACE }}
           if ${{ inputs.COVERAGE }}; then
-            mkdir -p unit-test-results-${{ inputs.OS }}/junit
-            trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
-            COVER_TESTING=true make gotest-with-codecov | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
+            COVER_TESTING=true make gotest-with-codecov
           elif [[ "${{ runner.os }}" == "Windows" && "${{ inputs.TEST_RACE }}" == "true" ]]; then
             echo "Limiting Go package parallelism to 3 to reduce peak disk usage"
             GOFLAGS=-p=3 make test-all
@@ -115,11 +115,12 @@ jobs:
             Format-Table -AutoSize
 
       - name: Uploading artifacts
-        if: ${{ inputs.COVERAGE }}
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unit-test-results-${{ inputs.OS }}
-          path: ./unit-test-results-${{ inputs.OS }}
+          path: ./test-results
+          retention-days: 7
 
       - name: Upload coverage report
         if: ${{ inputs.COVERAGE }}

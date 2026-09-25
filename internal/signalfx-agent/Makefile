@@ -15,6 +15,15 @@ else
 GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 endif
 
+# This module does not include Makefile.Common, these mirror the definitions there.
+TEST_RERUN_FAILS?=false
+TEST_RESULTS_DIR?=$(realpath $(CURDIR)/../..)/test-results
+TEST_RESULTS_PREFIX=$(TEST_RESULTS_DIR)/module_internal_signalfx-agent
+GOTESTSUM=gotestsum --format standard-quiet --rerun-fails=2 --packages "./..." \
+	--jsonfile "$(TEST_RESULTS_PREFIX).json" \
+	--junitfile "$(TEST_RESULTS_PREFIX).junit.xml" \
+	--rerun-fails-report "$(TEST_RESULTS_PREFIX).rerun.txt"
+
 # COVER_PKGS is the list of packages to include in the coverage
 COVER_PKGS := $(shell $(GOCMD) list ./... | tr "\n" ",")
 COVER_DIR_ABS?=$(PWD)/coverage
@@ -54,7 +63,12 @@ tidy:
 .PHONY: test
 test:
 	go generate ./...
+ifeq ($(TEST_RERUN_FAILS),true)
+	mkdir -p "$(TEST_RESULTS_DIR)"
+	CGO_ENABLED=0 $(GOTESTSUM) -- -p $(NUM_CORES)
+else
 	CGO_ENABLED=0 go test -p $(NUM_CORES) ./...
+endif
 
 .PHONY: test-race-detector
 test-race-detector:
@@ -77,4 +91,9 @@ misspell: misspell-noop
 .PHONY: test-with-codecov
 test-with-codecov:
 	mkdir -p $(COVER_DIR_ABS)
+ifeq ($(TEST_RERUN_FAILS),true)
+	mkdir -p "$(TEST_RESULTS_DIR)"
+	$(GOTESTSUM) -- $(GOTEST_OPT) $(COVER_TESTING_OPTS)
+else
 	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_TESTING_OPTS)
+endif

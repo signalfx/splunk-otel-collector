@@ -2,6 +2,21 @@
 dist/
 .local/
 
+# OTel vs Universal Forwarder acceptance test runtime files
+test-frameworks/otel-uf/config.env
+test-frameworks/otel-uf/bin/
+test-frameworks/otel-uf/.venv/
+test-frameworks/otel-uf/.pytest_cache/
+test-frameworks/otel-uf/**/__pycache__/
+test-frameworks/otel-uf/**/*.pyc
+test-frameworks/otel-uf/tas/*.tgz
+test-frameworks/otel-uf/tas/*.tar.gz
+test-frameworks/otel-uf/tas/*.zip
+test-frameworks/otel-uf/tas/*.spl
+test-frameworks/otel-uf/tas/*/
+!test-frameworks/otel-uf/tas/Splunk_TA_otel_uf_test/
+!test-frameworks/otel-uf/tas/Splunk_TA_otel_uf_test/**
+
 # GoLand IDEA
 .idea
 *.iml

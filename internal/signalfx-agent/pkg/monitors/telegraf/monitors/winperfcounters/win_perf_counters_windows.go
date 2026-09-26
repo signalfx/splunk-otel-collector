@@ -3,25 +3,13 @@
 package winperfcounters
 
 import (
-	"context"
-	"strings"
-	"time"
-
 	telegrafInputs "github.com/influxdata/telegraf/plugins/inputs"
 	telegrafPlugin "github.com/influxdata/telegraf/plugins/inputs/win_perf_counters"
-	"github.com/sirupsen/logrus"
 	"github.com/ulule/deepcopier"
-
-	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/accumulator"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/emitter/baseemitter"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
-var logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType})
-
-// GetPlugin takes a perf counter monitor config and returns a configured perf counter plugin.
-// This is used for other monitors based on perf counter that manage their own life cycle
-// (i.e. system utilization, windows iis)
+// GetPlugin takes a perf counter config and returns a configured perf counter plugin.
+// Other monitors that use performance counters manage their own life cycle.
 func GetPlugin(conf *Config) (*telegrafPlugin.Win_PerfCounters, error) {
 	plugin := telegrafInputs.Inputs["win_perf_counters"]().(*telegrafPlugin.Win_PerfCounters)
 
@@ -57,45 +45,4 @@ func GetPlugin(conf *Config) (*telegrafPlugin.Win_PerfCounters, error) {
 		})
 	}
 	return plugin, nil
-}
-
-// Configure the monitor and kick off metric syncing
-func (m *Monitor) Configure(conf *Config) error {
-	m.logger = logger.WithField("monitorID", conf.MonitorID)
-	m.logger.Warn("This monitor is deprecated and will be removed on or after October 2026. Please use the windows_perf_counters receiver instead.")
-	plugin, err := GetPlugin(conf)
-	if err != nil {
-		return err
-	}
-
-	// create the emitter
-	emitter := baseemitter.NewEmitter(m.Output, m.logger)
-
-	// Hard code the plugin name because the emitter will parse out the
-	// configured measurement name as plugin and that is confusing.
-	emitter.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
-
-	if conf.PCRMetricNames {
-		// set metric name replacements to match SignalFx PerfCounterReporter
-		emitter.AddMetricNameTransformation(NewPCRMetricNamesTransformer())
-
-		// sanitize the instance tag associated with windows perf counter metrics
-		emitter.AddMeasurementTransformation(NewPCRInstanceTagTransformer())
-	}
-
-	// create the accumulator
-	ac := accumulator.NewAccumulator(emitter)
-
-	// create contexts for managing the plugin loop
-	var ctx context.Context
-	ctx, m.cancel = context.WithCancel(context.Background())
-
-	// gather metrics on the specified interval
-	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(ac); err != nil {
-			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
-		}
-	}, time.Duration(conf.IntervalSeconds)*time.Second)
-
-	return nil
 }

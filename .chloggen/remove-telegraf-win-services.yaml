@@ -1,5 +1,5 @@
 change_type: breaking
 component: telegraf/win_services
 note: Remove the deprecated telegraf/win_services monitor. Use the Windows service receiver instead.
-issues: []
+issues: [8159]
 subtext:

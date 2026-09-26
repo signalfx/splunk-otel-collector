@@ -7,7 +7,6 @@ package core
 
 import (
 	// Import everything that isn't referenced anywhere else
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cgroups"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/process"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/varnish"
 )

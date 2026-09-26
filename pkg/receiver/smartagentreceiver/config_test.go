@@ -36,7 +36,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/parser"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
 
@@ -62,7 +61,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 2, len(cfg.ToStringMap()))
+	assert.Equal(t, 1, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -89,24 +88,6 @@ func TestLoadConfig(t *testing.T) {
 	}, etcdCfg)
 	require.NoError(t, etcdCfg.Validate())
 
-	tr := true
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "ntpq").String())
-	require.NoError(t, err)
-	ntpqCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&ntpqCfg))
-	require.Equal(t, &Config{
-		MonitorType: "telegraf/ntpq",
-		monitorConfig: &ntpq.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "telegraf/ntpq",
-				IntervalSeconds:     567,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			DNSLookup: &tr,
-		},
-		acceptsEndpoints: true,
-	}, ntpqCfg)
-	require.NoError(t, ntpqCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithoutType(t *testing.T) {

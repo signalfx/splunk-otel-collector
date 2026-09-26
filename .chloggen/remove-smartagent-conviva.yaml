@@ -1,5 +1,5 @@
 change_type: breaking
 component: smartagent/conviva
 note: Remove the deprecated conviva Smart Agent monitor.
-issues: []
+issues: [8144]
 subtext:

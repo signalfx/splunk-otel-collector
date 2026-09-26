@@ -23,7 +23,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/internalmetrics"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/load"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/logstash"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/tcp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/memory"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/netio"

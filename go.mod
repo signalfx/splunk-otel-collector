@@ -219,7 +219,6 @@ require (
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/glog v1.2.5 // indirect
-	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/google/certificate-transparency-go v1.3.2 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-tpm v0.9.9-0.20260124013517-8f8f42cba0de // indirect
@@ -247,7 +246,6 @@ require (
 	github.com/influxdata/influxdb-observability/influx2otel v0.5.12 // indirect
 	github.com/influxdata/line-protocol/v2 v2.2.1 // indirect
 	github.com/influxdata/telegraf v1.30.1 // indirect
-	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.3.11 // indirect
 	github.com/itchyny/timefmt-go v0.1.8 // indirect
 	github.com/jackc/pgx/v5 v5.9.2 // indirect
@@ -471,7 +469,6 @@ require (
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
 	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.0.0-00010101000000-000000000000 // indirect
 	github.com/snowflakedb/gosnowflake/v2 v2.2.0 // indirect
-	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.7.0 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.26.0 // indirect

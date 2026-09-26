@@ -463,7 +463,6 @@ require (
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.37 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
-	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect

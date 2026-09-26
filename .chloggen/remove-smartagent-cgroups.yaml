@@ -1,5 +1,5 @@
 change_type: breaking
 component: smartagent/cgroups
 note: Remove the deprecated cgroups Smart Agent monitor. Use the hostmetrics receiver instead.
-issues: []
+issues: [8143]
 subtext:

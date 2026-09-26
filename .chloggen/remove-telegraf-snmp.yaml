@@ -1,0 +1,5 @@
+change_type: breaking
+component: telegraf/snmp
+note: Remove the deprecated telegraf/snmp monitor. Use the SNMP receiver instead.
+issues: []
+subtext:

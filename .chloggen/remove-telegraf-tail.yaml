@@ -1,5 +1,5 @@
 change_type: breaking
 component: telegraf/tail
 note: Remove the deprecated telegraf/tail monitor. Use the count connector instead.
-issues: []
+issues: [8156]
 subtext:

@@ -1,5 +1,5 @@
 change_type: breaking
 component: smartagent/expvar
 note: Remove the deprecated expvar Smart Agent monitor. Use Go instrumentation instead.
-issues: []
+issues: [8147]
 subtext:

@@ -1,0 +1,5 @@
+change_type: breaking
+component: smartagent/disk-io
+note: Remove the deprecated Windows implementation of the disk-io Smart Agent monitor. Use the disk scraper in the hostmetrics receiver instead.
+issues: [8145]
+subtext:

@@ -41,7 +41,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/supervisor"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/dns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/mssqlserver"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/procstat"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/tail"

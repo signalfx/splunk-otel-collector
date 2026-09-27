@@ -1,0 +1,31 @@
+default:
+all_set:
+  metrics:
+    ptp.grandmaster.present:
+      enabled: true
+    ptp.offset:
+      enabled: true
+  resource_attributes:
+    ptp.socket_path:
+      enabled: true
+none_set:
+  metrics:
+    ptp.grandmaster.present:
+      enabled: false
+    ptp.offset:
+      enabled: false
+  resource_attributes:
+    ptp.socket_path:
+      enabled: false
+filter_set_include:
+  resource_attributes:
+    ptp.socket_path:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+filter_set_exclude:
+  resource_attributes:
+    ptp.socket_path:
+      enabled: true
+      metrics_exclude:
+        - strict: "ptp.socket_path-val"

@@ -1,0 +1,33 @@
+type: ptp
+display_name: PTP Receiver
+description: Collects PTP clock status from a local linuxptp ptp4l daemon.
+
+status:
+  class: receiver
+  stability:
+    development: [metrics]
+  distributions: [splunk]
+  codeowners:
+    active: []
+
+resource_attributes:
+  ptp.socket_path:
+    description: Unix domain socket of the ptp4l daemon.
+    enabled: true
+    type: string
+
+metrics:
+  ptp.grandmaster.present:
+    description: Whether the PTP daemon reports a grandmaster (1 for present, 0 for absent).
+    enabled: true
+    stability: development
+    gauge:
+      value_type: int
+    unit: "1"
+  ptp.offset:
+    description: Offset of the local PTP clock from its grandmaster.
+    enabled: true
+    stability: development
+    gauge:
+      value_type: int
+    unit: ns

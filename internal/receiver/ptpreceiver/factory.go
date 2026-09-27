@@ -23,7 +23,7 @@ func NewFactory() receiver.Factory {
 
 func createDefaultConfig() component.Config {
 	controller := scraperhelper.NewDefaultControllerConfig()
-	controller.CollectionInterval = time.Minute
+	controller.CollectionInterval = 10 * time.Second
 	controller.Timeout = 10 * time.Second
 	return &Config{
 		ControllerConfig:     controller,

@@ -10,7 +10,7 @@ receivers:
     socket_path: /var/run/ptp/ptp4l
     pmc_path: pmc
     domain_number: 0
-    collection_interval: 1m
+    collection_interval: 10s
     timeout: 10s
 ```
 
@@ -19,7 +19,7 @@ receivers:
 | `socket_path` | `/var/run/ptp/ptp4l` | Absolute path to the `ptp4l` management socket. |
 | `pmc_path` | `pmc` | Path or executable name for the linuxptp `pmc` client. |
 | `domain_number` | `0` | PTP domain number, from 0 through 255. |
-| `collection_interval` | `1m` | Time between queries. |
+| `collection_interval` | `10s` | Time between queries. |
 | `timeout` | `10s` | Maximum time for each query. |
 
 The receiver emits `ptp.offset` in nanoseconds and `ptp.grandmaster.present` as 0 or 1. Both metrics include `ptp.socket_path` as a resource attribute.

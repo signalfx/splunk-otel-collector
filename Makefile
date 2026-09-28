@@ -15,6 +15,8 @@ MODSET?=splunk-otel-collector
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
+FIPS140_CERTIFIED_VERSION?=v1.0.0
+
 FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
@@ -415,10 +417,9 @@ else
 endif
 	@mkdir -p ./bin
 	go generate ./...
-	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=v1.0.0 CGO_ENABLED=0 \
+	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(FIPS140_CERTIFIED_VERSION) CGO_ENABLED=0 \
 		go build -trimpath -o ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
-	test "$$(GOFIPS140=v1.0.0 go env GOFIPS140)" = v1.0.0
-	go version -m ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) | grep -E 'GOFIPS140=v1\.0\.0($$|[-])'
+	go version -m ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) | grep -E 'GOFIPS140=$(FIPS140_CERTIFIED_VERSION)($$|[-])'
 
 FILENAME?=$(shell git branch --show-current)
 .PHONY: chlog-new

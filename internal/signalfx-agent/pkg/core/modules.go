@@ -16,7 +16,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/query"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/etcd"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/expvar"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/gitlab"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/http"

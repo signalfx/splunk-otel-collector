@@ -26,7 +26,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/logstash"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/logstash/tcp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/memory"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/netio"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/processlist"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheus/go"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheus/nginxingress"

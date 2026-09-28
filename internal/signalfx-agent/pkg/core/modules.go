@@ -48,7 +48,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegrafsnmp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegrafstatsd"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/winperfcounters"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/winservices"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/traefik"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vmem"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vsphere"

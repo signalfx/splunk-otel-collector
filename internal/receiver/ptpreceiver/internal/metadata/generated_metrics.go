@@ -3,12 +3,13 @@
 package metadata
 
 import (
+	"time"
+
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/filter"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
-	"time"
 )
 
 const (
@@ -51,7 +52,7 @@ func (m *metricPtpGrandmasterPresent) init() {
 	m.data.SetEmptyGauge()
 }
 
-func (m *metricPtpGrandmasterPresent) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
+func (m *metricPtpGrandmasterPresent) recordDataPoint(start, ts pcommon.Timestamp, val int64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -101,7 +102,7 @@ func (m *metricPtpOffset) init() {
 	m.data.SetEmptyGauge()
 }
 
-func (m *metricPtpOffset) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
+func (m *metricPtpOffset) recordDataPoint(start, ts pcommon.Timestamp, val int64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -168,6 +169,7 @@ func WithStartTime(startTime pcommon.Timestamp) MetricBuilderOption {
 		mb.startTime = startTime
 	})
 }
+
 func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.Settings, options ...MetricBuilderOption) *MetricsBuilder {
 	mb := &MetricsBuilder{
 		config:                         mbc,

@@ -6,6 +6,7 @@ package ptpreceiver
 import (
 	"context"
 	"errors"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -36,7 +37,9 @@ func TestParseTimeStatus(t *testing.T) {
 		{name: "no grandmaster", output: strings.Replace(pmcResponse, "gmPresent true", "gmPresent false", 1), offset: -42},
 		{name: "no response", output: "sending: GET TIME_STATUS_NP", wantErr: true},
 		{name: "bad offset", output: strings.Replace(pmcResponse, "master_offset -42", "master_offset invalid", 1), wantErr: true},
+		{name: "bad grandmaster flag", output: strings.Replace(pmcResponse, "gmPresent true", "gmPresent invalid", 1), wantErr: true},
 		{name: "missing grandmaster", output: strings.Replace(pmcResponse, "gmPresent true", "", 1), wantErr: true},
+		{name: "oversized response", output: pmcResponse + strings.Repeat("x", 70<<10), wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -99,6 +102,38 @@ func TestScrapeQueryError(t *testing.T) {
 	}
 	metrics, err := s.scrape(context.Background())
 	require.ErrorContains(t, err, "connection failed")
+	require.Equal(t, 0, metrics.ResourceMetrics().Len())
+}
+
+func TestScrapeInvalidResponse(t *testing.T) {
+	s := newScraper(createDefaultConfig().(*Config), receiver.Settings{})
+	s.runPMC = func(context.Context, string, ...string) ([]byte, error) {
+		return []byte("unexpected response"), nil
+	}
+	metrics, err := s.scrape(context.Background())
+	require.ErrorContains(t, err, "missing TIME_STATUS_NP")
+	require.Equal(t, 0, metrics.ResourceMetrics().Len())
+}
+
+func TestScrapeMissingPMC(t *testing.T) {
+	config := createDefaultConfig().(*Config)
+	config.PMCPath = filepath.Join(t.TempDir(), "missing-pmc")
+	s := newScraper(config, receiver.Settings{})
+	metrics, err := s.scrape(context.Background())
+	require.ErrorContains(t, err, "query ptp4l with pmc")
+	require.Equal(t, 0, metrics.ResourceMetrics().Len())
+}
+
+func TestScrapeDisabledMetrics(t *testing.T) {
+	config := createDefaultConfig().(*Config)
+	config.Metrics.PtpGrandmasterPresent.Enabled = false
+	config.Metrics.PtpOffset.Enabled = false
+	s := newScraper(config, receiver.Settings{})
+	s.runPMC = func(context.Context, string, ...string) ([]byte, error) {
+		return []byte(pmcResponse), nil
+	}
+	metrics, err := s.scrape(context.Background())
+	require.NoError(t, err)
 	require.Equal(t, 0, metrics.ResourceMetrics().Len())
 }
 

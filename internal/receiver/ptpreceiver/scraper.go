@@ -6,6 +6,7 @@ package ptpreceiver
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -101,7 +102,7 @@ func parseTimeStatus(output []byte) (int64, bool, error) {
 		return 0, false, fmt.Errorf("read pmc response: %w", err)
 	}
 	if !haveOffset || !havePresent {
-		return 0, false, fmt.Errorf("pmc response missing TIME_STATUS_NP master_offset or gmPresent")
+		return 0, false, errors.New("pmc response missing TIME_STATUS_NP master_offset or gmPresent")
 	}
 	return offset, present, nil
 }

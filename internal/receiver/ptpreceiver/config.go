@@ -15,11 +15,11 @@ import (
 
 // Config controls collection from a local linuxptp ptp4l instance.
 type Config struct {
-	scraperhelper.ControllerConfig `mapstructure:",squash"`
-	metadata.MetricsBuilderConfig  `mapstructure:",squash"`
 	SocketPath                     string `mapstructure:"socket_path"`
 	PMCPath                        string `mapstructure:"pmc_path"`
-	DomainNumber                   int    `mapstructure:"domain_number"`
+	metadata.MetricsBuilderConfig  `mapstructure:",squash"`
+	scraperhelper.ControllerConfig `mapstructure:",squash"`
+	DomainNumber                   int `mapstructure:"domain_number"`
 }
 
 func (c *Config) Validate() error {

@@ -15,6 +15,14 @@
 
 - name: Set dotnet_download_url fact
   ansible.builtin.set_fact:
+    dotnet_download_version: |-
+      {%- if splunk_dotnet_auto_instrumentation_version != "latest" -%}
+      {{ splunk_dotnet_auto_instrumentation_version.lstrip("v") }}
+      {%- elif latest_dotnet_release is defined -%}
+      {{ latest_dotnet_release.json.tag_name.lstrip("v") }}
+      {%- else -%}
+      0.0.0
+      {%- endif -%}
     dotnet_download_url: |-
       {%- if splunk_dotnet_auto_instrumentation_url -%}
       {{ splunk_dotnet_auto_instrumentation_url }}
@@ -55,7 +63,9 @@
     error_action: stop
     script: |
       Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1"
-      Install-OpenTelemetryCore -LocalPath "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip" -SkipReleaseVerification
+      $dotnetInstallArguments = @{ LocalPath = "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip" }
+      {% if dotnet_download_version is version('1.16.0', '>=') %}$dotnetInstallArguments.SkipReleaseVerification = $true{% endif %}
+      Install-OpenTelemetryCore @dotnetInstallArguments
       $w3svc = Get-Service -name "W3SVC" -ErrorAction SilentlyContinue
       $was = Get-Service -name "WAS" -ErrorAction SilentlyContinue
       if ($w3svc -And $was) { Register-OpenTelemetryForIIS }

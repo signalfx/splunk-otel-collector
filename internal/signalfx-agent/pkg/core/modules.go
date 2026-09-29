@@ -7,7 +7,6 @@ package core
 
 import (
 	// Import everything that isn't referenced anywhere else
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/conviva"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/coredns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/diskio"

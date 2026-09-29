@@ -87,7 +87,6 @@ The distribution offers support for the following components.
 | [tls_check](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tlscheckreceiver)                                                 | [alpha]          |
 | [udp_log](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/udplogreceiver)                                                     | [alpha]          |
 | [vcenter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/vcenterreceiver)                                                    | [alpha]          |
-| [wavefront](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/wavefrontreceiver)                                                | [beta]           |
 | [windows_event_log](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowseventlogreceiver)                                  | [alpha]          |
 | [windows_perf_counters](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsperfcountersreceiver)                            | [beta]           |
 | [windowsservice](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsservicereceiver)                                      | [in development] |

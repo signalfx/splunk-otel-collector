@@ -128,7 +128,6 @@ func TestDefaultComponents(t *testing.T) {
 		"tls_check",
 		"udp_log",
 		"vcenter",
-		"wavefront",
 		"windows_event_log",
 		"windows_perf_counters",
 		"windows_service",

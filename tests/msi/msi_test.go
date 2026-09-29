@@ -18,7 +18,6 @@ package msi
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -586,18 +585,29 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 func assertCollectorDirectoryAcl(t *testing.T, path, account, rights string) {
 	t.Helper()
 
-	escapedPath := strings.ReplaceAll(path, "'", "''")
-	script := fmt.Sprintf("$acl = Get-Acl -LiteralPath '%s'", escapedPath)
+	output, err := exec.Command("icacls", path).CombinedOutput()
+	require.NoErrorf(t, err, "Failed to read Collector directory ACL for %q: %s", path, output)
+
+	acl := string(output)
 	if account == "" {
-		script += "; if (-not $acl.AreAccessRulesProtected) { exit 1 }"
-	}
-	if account != "" {
-		escapedAccount := strings.ReplaceAll(account, "'", "''")
-		script += fmt.Sprintf("; $expected = [System.Security.AccessControl.FileSystemRights]::%s; $rule = @($acl.Access | Where-Object { $_.IdentityReference.Value -eq '%s' -and $_.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow -and (($_.FileSystemRights -band $expected) -eq $expected) }); if ($rule.Count -eq 0) { exit 2 }", rights, escapedAccount)
+		assert.NotContainsf(t, acl, "(I)", "Collector directory ACL for %q should be protected: %s", path, acl)
+		return
 	}
 
-	output, err := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", script).CombinedOutput()
-	require.NoErrorf(t, err, "Collector directory ACL assertion failed for %q: %s", path, output)
+	expectedRight := map[string]string{
+		"ReadAndExecute": "(RX)",
+		"Modify":         "(M)",
+	}[rights]
+	require.NotEmptyf(t, expectedRight, "Unsupported expected ACL right %q", rights)
+
+	for _, rule := range strings.Split(acl, "\n") {
+		if strings.Contains(strings.ToLower(rule), strings.ToLower(account)) {
+			assert.Containsf(t, rule, expectedRight, "Collector directory ACL for %q should grant %s %s: %s", path, account, rights, acl)
+			return
+		}
+	}
+
+	require.Failf(t, "Service account ACL is missing", "Collector directory ACL for %q should grant %s %s: %s", path, account, rights, acl)
 }
 
 func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {

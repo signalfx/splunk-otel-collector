@@ -1181,8 +1181,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.161.0/go.mod h1:bYNa3qCbEh+lHgZ5IXq1M9uWQNLwHcuyegvsmw3zLGI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.161.0 h1:kSGRSTvD9MaV2FSOasf1K+cZiXnlJGIOp+kWoPosa50=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.161.0/go.mod h1:OuVPoGqDsFVCJIyHHuaH8LXPq1WPXOCzbNnnvl6JSec=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.161.0 h1:EXoNMakL7kUXZ8TBLWBtduhfWOGdtzM0T8zReoaxBN8=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.161.0/go.mod h1:EODDeDnUw6y2cuOZDXgcmsPa8iT8ubHoP2VptnmX0wI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.161.0 h1:cewYGGqwYCCLFS6RXe9coztcLLgoGLGRg1ztVCHDThY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.161.0/go.mod h1:Id2Foi2vNsgiDCDotpDcTwztP5dL8xc3MLSBe6D6/bw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.161.0 h1:lt2hOsnCQAIgtQ9lw+MEozu7CSjX9aDhB9UMBv6gSGs=

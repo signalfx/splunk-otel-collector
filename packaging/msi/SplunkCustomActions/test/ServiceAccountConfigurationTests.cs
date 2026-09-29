@@ -15,12 +15,13 @@
 public class ServiceAccountConfigurationTests
 {
     [Theory]
-    [InlineData("", ServiceAccountType.Preserve)]
-    [InlineData("virtual", ServiceAccountType.Virtual)]
-    [InlineData("localsystem", ServiceAccountType.LocalSystem)]
-    public void ParseAccountTypeAcceptsSupportedValues(string value, ServiceAccountType expected)
+    [InlineData("", nameof(ServiceAccountType.Preserve))]
+    [InlineData("virtual", nameof(ServiceAccountType.Virtual))]
+    [InlineData("localsystem", nameof(ServiceAccountType.LocalSystem))]
+    public void ParseAccountTypeAcceptsSupportedValues(string value, string expected)
     {
-        Assert.Equal(expected, ServiceAccountConfiguration.ParseAccountType(value));
+        ServiceAccountType expectedAccountType = (ServiceAccountType)Enum.Parse(typeof(ServiceAccountType), expected);
+        Assert.Equal(expectedAccountType, ServiceAccountConfiguration.ParseAccountType(value));
     }
 
     [Fact]

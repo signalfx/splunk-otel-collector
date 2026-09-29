@@ -15,6 +15,8 @@ MODSET?=splunk-otel-collector
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
+FIPS140_CERTIFIED_VERSION?=v1.0.0
+
 FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
@@ -409,20 +411,15 @@ else ifeq ($(GOOS), windows)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
     endif
 	$(eval EXTENSION = .exe)
+	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2}")
 else
 	$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
 endif
-	docker buildx build --pull \
-		--tag otelcol-fips-builder-$(GOOS)-$(GOARCH) \
-		--platform linux/$(GOARCH) \
-		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
-		--build-arg BUILD_INFO='$(BUILD_INFO)' \
-		--file cmd/otelcol/fips/build/Dockerfile.$(GOOS) ./
-	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null 2>&1 || true
 	@mkdir -p ./bin
-	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
-	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
-	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
+	go generate ./...
+	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(FIPS140_CERTIFIED_VERSION) CGO_ENABLED=0 \
+		go build -trimpath -o ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	go version -m ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) | grep -E 'GOFIPS140=$(FIPS140_CERTIFIED_VERSION)($$|[-])'
 
 FILENAME?=$(shell git branch --show-current)
 .PHONY: chlog-new

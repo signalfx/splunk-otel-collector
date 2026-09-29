@@ -4,17 +4,10 @@ import (
 	"strings"
 
 	"github.com/influxdata/telegraf"
-	"github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
-
-func init() {
-	monitors.Register(&monitorMetadata, func() interface{} { return &Monitor{} }, &Config{})
-}
 
 // MetricReplacements is the default replacement set of perfcounter metric names.
 var MetricReplacements = []string{
@@ -53,7 +46,7 @@ type PerfCounterObj struct {
 	IncludeTotal bool `yaml:"includeTotal" default:"false"`
 }
 
-// Config for this monitor
+// Config holds settings for the Windows performance counter Telegraf plugin.
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false" deepcopier:"skip"`
 	Object               []PerfCounterObj `yaml:"objects" default:"[]"`
@@ -70,20 +63,6 @@ type Config struct {
 	// If `true`, metric names will be emitted in the format emitted by the
 	// SignalFx PerfCounterReporter
 	PCRMetricNames bool `yaml:"pcrMetricNames" default:"false"`
-}
-
-// Monitor for Utilization
-type Monitor struct {
-	Output types.Output
-	cancel func()
-	logger logrus.FieldLogger // nolint: structcheck,unused
-}
-
-// Shutdown stops the metric sync
-func (m *Monitor) Shutdown() {
-	if m.cancel != nil {
-		m.cancel()
-	}
 }
 
 // NewPCRReplacer returns a new replacer for sanitizing metricnames and instances like

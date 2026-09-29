@@ -26,14 +26,33 @@ func TestMetricsBuilderConfig(t *testing.T) {
 			name: "all_set",
 			want: MetricsBuilderConfig{
 				Metrics: MetricsConfig{
+					PtpClockState: PtpClockStateMetricConfig{
+						Enabled:             true,
+						AggregationStrategy: AggregationStrategyAvg,
+						EnabledAttributes:   []PtpClockStateMetricAttributeKey{PtpClockStateMetricAttributeKeyPtpClockState},
+					},
+					PtpGrandmasterInfo: PtpGrandmasterInfoMetricConfig{
+						Enabled:             true,
+						AggregationStrategy: AggregationStrategyAvg,
+						EnabledAttributes:   []PtpGrandmasterInfoMetricAttributeKey{PtpGrandmasterInfoMetricAttributeKeyPtpGrandmasterIdentity},
+					},
 					PtpGrandmasterPresent: PtpGrandmasterPresentMetricConfig{
 						Enabled: true,
 					},
 					PtpOffset: PtpOffsetMetricConfig{
 						Enabled: true,
 					},
+					PtpPathDelay: PtpPathDelayMetricConfig{
+						Enabled: true,
+					},
+					PtpPortState: PtpPortStateMetricConfig{
+						Enabled:             true,
+						AggregationStrategy: AggregationStrategyAvg,
+						EnabledAttributes:   []PtpPortStateMetricAttributeKey{PtpPortStateMetricAttributeKeyPtpPortIdentity, PtpPortStateMetricAttributeKeyPtpPortState},
+					},
 				},
 				ResourceAttributes: ResourceAttributesConfig{
+					PtpClockType:  ResourceAttributeConfig{Enabled: true},
 					PtpSocketPath: ResourceAttributeConfig{Enabled: true},
 				},
 			},
@@ -42,14 +61,33 @@ func TestMetricsBuilderConfig(t *testing.T) {
 			name: "none_set",
 			want: MetricsBuilderConfig{
 				Metrics: MetricsConfig{
+					PtpClockState: PtpClockStateMetricConfig{
+						Enabled:             false,
+						AggregationStrategy: AggregationStrategyAvg,
+						EnabledAttributes:   []PtpClockStateMetricAttributeKey{PtpClockStateMetricAttributeKeyPtpClockState},
+					},
+					PtpGrandmasterInfo: PtpGrandmasterInfoMetricConfig{
+						Enabled:             false,
+						AggregationStrategy: AggregationStrategyAvg,
+						EnabledAttributes:   []PtpGrandmasterInfoMetricAttributeKey{PtpGrandmasterInfoMetricAttributeKeyPtpGrandmasterIdentity},
+					},
 					PtpGrandmasterPresent: PtpGrandmasterPresentMetricConfig{
 						Enabled: false,
 					},
 					PtpOffset: PtpOffsetMetricConfig{
 						Enabled: false,
 					},
+					PtpPathDelay: PtpPathDelayMetricConfig{
+						Enabled: false,
+					},
+					PtpPortState: PtpPortStateMetricConfig{
+						Enabled:             false,
+						AggregationStrategy: AggregationStrategyAvg,
+						EnabledAttributes:   []PtpPortStateMetricAttributeKey{PtpPortStateMetricAttributeKeyPtpPortIdentity, PtpPortStateMetricAttributeKeyPtpPortState},
+					},
 				},
 				ResourceAttributes: ResourceAttributesConfig{
+					PtpClockType:  ResourceAttributeConfig{Enabled: false},
 					PtpSocketPath: ResourceAttributeConfig{Enabled: false},
 				},
 			},
@@ -58,10 +96,45 @@ func TestMetricsBuilderConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := loadMetricsBuilderConfig(t, tt.name)
-			diff := cmp.Diff(tt.want, cfg, cmpopts.IgnoreUnexported(PtpGrandmasterPresentMetricConfig{}, PtpOffsetMetricConfig{}, ResourceAttributeConfig{}))
+			diff := cmp.Diff(tt.want, cfg, cmpopts.IgnoreUnexported(PtpClockStateMetricConfig{}, PtpGrandmasterInfoMetricConfig{}, PtpGrandmasterPresentMetricConfig{}, PtpOffsetMetricConfig{}, PtpPathDelayMetricConfig{}, PtpPortStateMetricConfig{}, ResourceAttributeConfig{}))
 			require.Emptyf(t, diff, "Config mismatch (-expected +actual):\n%s", diff)
 		})
 	}
+}
+func TestPtpClockStateMetricsConfig_Validate(t *testing.T) {
+	cfg := DefaultMetricsConfig().PtpClockState
+	require.NoError(t, cfg.Validate())
+
+	cfg.EnabledAttributes = []PtpClockStateMetricAttributeKey{"invalid"}
+	require.ErrorContains(t, cfg.Validate(), "metric ptp.clock.state doesn't have an attribute invalid, valid attributes: [ptp.clock.state]")
+
+	cfg = DefaultMetricsConfig().PtpClockState
+	cfg.AggregationStrategy = "invalid"
+	require.ErrorContains(t, cfg.Validate(), "invalid aggregation strategy")
+}
+
+func TestPtpGrandmasterInfoMetricsConfig_Validate(t *testing.T) {
+	cfg := DefaultMetricsConfig().PtpGrandmasterInfo
+	require.NoError(t, cfg.Validate())
+
+	cfg.EnabledAttributes = []PtpGrandmasterInfoMetricAttributeKey{"invalid"}
+	require.ErrorContains(t, cfg.Validate(), "metric ptp.grandmaster.info doesn't have an attribute invalid, valid attributes: [ptp.grandmaster.identity]")
+
+	cfg = DefaultMetricsConfig().PtpGrandmasterInfo
+	cfg.AggregationStrategy = "invalid"
+	require.ErrorContains(t, cfg.Validate(), "invalid aggregation strategy")
+}
+
+func TestPtpPortStateMetricsConfig_Validate(t *testing.T) {
+	cfg := DefaultMetricsConfig().PtpPortState
+	require.NoError(t, cfg.Validate())
+
+	cfg.EnabledAttributes = []PtpPortStateMetricAttributeKey{"invalid"}
+	require.ErrorContains(t, cfg.Validate(), "metric ptp.port.state doesn't have an attribute invalid, valid attributes: [ptp.port.identity, ptp.port.state]")
+
+	cfg = DefaultMetricsConfig().PtpPortState
+	cfg.AggregationStrategy = "invalid"
+	require.ErrorContains(t, cfg.Validate(), "invalid aggregation strategy")
 }
 
 func loadMetricsBuilderConfig(t *testing.T, name string) MetricsBuilderConfig {
@@ -86,12 +159,14 @@ func TestResourceAttributesConfig(t *testing.T) {
 		{
 			name: "all_set",
 			want: ResourceAttributesConfig{
+				PtpClockType:  ResourceAttributeConfig{Enabled: true},
 				PtpSocketPath: ResourceAttributeConfig{Enabled: true},
 			},
 		},
 		{
 			name: "none_set",
 			want: ResourceAttributesConfig{
+				PtpClockType:  ResourceAttributeConfig{Enabled: false},
 				PtpSocketPath: ResourceAttributeConfig{Enabled: false},
 			},
 		},

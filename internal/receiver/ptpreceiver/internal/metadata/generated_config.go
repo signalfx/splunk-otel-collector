@@ -3,9 +3,107 @@
 package metadata
 
 import (
+	"fmt"
+
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/filter"
 )
+
+// PtpClockStateMetricAttributeKey specifies the key of an attribute for the ptp.clock.state metric.
+type PtpClockStateMetricAttributeKey string
+
+const (
+	PtpClockStateMetricAttributeKeyPtpClockState PtpClockStateMetricAttributeKey = "ptp.clock.state"
+)
+
+// PtpClockStateMetricConfig provides config for the ptp.clock.state metric.
+type PtpClockStateMetricConfig struct {
+	Enabled          bool `mapstructure:"enabled"`
+	enabledSetByUser bool
+
+	AggregationStrategy string                            `mapstructure:"aggregation_strategy"`
+	EnabledAttributes   []PtpClockStateMetricAttributeKey `mapstructure:"attributes"`
+}
+
+func (ms *PtpClockStateMetricConfig) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+
+	err := parser.Unmarshal(ms)
+	if err != nil {
+		return err
+	}
+
+	ms.enabledSetByUser = parser.IsSet("enabled")
+	return nil
+}
+
+func (ms *PtpClockStateMetricConfig) Validate() error {
+	for _, val := range ms.EnabledAttributes {
+		switch val {
+		case PtpClockStateMetricAttributeKeyPtpClockState:
+		default:
+			return fmt.Errorf("metric ptp.clock.state doesn't have an attribute %v, valid attributes: [ptp.clock.state]", val)
+		}
+	}
+
+	switch ms.AggregationStrategy {
+	case AggregationStrategySum, AggregationStrategyAvg, AggregationStrategyMin, AggregationStrategyMax:
+	default:
+		return fmt.Errorf("invalid aggregation strategy %q, valid strategies: [%s, %s, %s, %s]", ms.AggregationStrategy, AggregationStrategySum, AggregationStrategyAvg, AggregationStrategyMin, AggregationStrategyMax)
+	}
+
+	return nil
+}
+
+// PtpGrandmasterInfoMetricAttributeKey specifies the key of an attribute for the ptp.grandmaster.info metric.
+type PtpGrandmasterInfoMetricAttributeKey string
+
+const (
+	PtpGrandmasterInfoMetricAttributeKeyPtpGrandmasterIdentity PtpGrandmasterInfoMetricAttributeKey = "ptp.grandmaster.identity"
+)
+
+// PtpGrandmasterInfoMetricConfig provides config for the ptp.grandmaster.info metric.
+type PtpGrandmasterInfoMetricConfig struct {
+	Enabled          bool `mapstructure:"enabled"`
+	enabledSetByUser bool
+
+	AggregationStrategy string                                 `mapstructure:"aggregation_strategy"`
+	EnabledAttributes   []PtpGrandmasterInfoMetricAttributeKey `mapstructure:"attributes"`
+}
+
+func (ms *PtpGrandmasterInfoMetricConfig) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+
+	err := parser.Unmarshal(ms)
+	if err != nil {
+		return err
+	}
+
+	ms.enabledSetByUser = parser.IsSet("enabled")
+	return nil
+}
+
+func (ms *PtpGrandmasterInfoMetricConfig) Validate() error {
+	for _, val := range ms.EnabledAttributes {
+		switch val {
+		case PtpGrandmasterInfoMetricAttributeKeyPtpGrandmasterIdentity:
+		default:
+			return fmt.Errorf("metric ptp.grandmaster.info doesn't have an attribute %v, valid attributes: [ptp.grandmaster.identity]", val)
+		}
+	}
+
+	switch ms.AggregationStrategy {
+	case AggregationStrategySum, AggregationStrategyAvg, AggregationStrategyMin, AggregationStrategyMax:
+	default:
+		return fmt.Errorf("invalid aggregation strategy %q, valid strategies: [%s, %s, %s, %s]", ms.AggregationStrategy, AggregationStrategySum, AggregationStrategyAvg, AggregationStrategyMin, AggregationStrategyMax)
+	}
+
+	return nil
+}
 
 // PtpGrandmasterPresentMetricConfig provides config for the ptp.grandmaster.present metric.
 type PtpGrandmasterPresentMetricConfig struct {
@@ -47,19 +145,110 @@ func (ms *PtpOffsetMetricConfig) Unmarshal(parser *confmap.Conf) error {
 	return nil
 }
 
+// PtpPathDelayMetricConfig provides config for the ptp.path.delay metric.
+type PtpPathDelayMetricConfig struct {
+	Enabled          bool `mapstructure:"enabled"`
+	enabledSetByUser bool
+}
+
+func (ms *PtpPathDelayMetricConfig) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+
+	err := parser.Unmarshal(ms)
+	if err != nil {
+		return err
+	}
+
+	ms.enabledSetByUser = parser.IsSet("enabled")
+	return nil
+}
+
+// PtpPortStateMetricAttributeKey specifies the key of an attribute for the ptp.port.state metric.
+type PtpPortStateMetricAttributeKey string
+
+const (
+	PtpPortStateMetricAttributeKeyPtpPortIdentity PtpPortStateMetricAttributeKey = "ptp.port.identity"
+	PtpPortStateMetricAttributeKeyPtpPortState    PtpPortStateMetricAttributeKey = "ptp.port.state"
+)
+
+// PtpPortStateMetricConfig provides config for the ptp.port.state metric.
+type PtpPortStateMetricConfig struct {
+	Enabled          bool `mapstructure:"enabled"`
+	enabledSetByUser bool
+
+	AggregationStrategy string                           `mapstructure:"aggregation_strategy"`
+	EnabledAttributes   []PtpPortStateMetricAttributeKey `mapstructure:"attributes"`
+}
+
+func (ms *PtpPortStateMetricConfig) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+
+	err := parser.Unmarshal(ms)
+	if err != nil {
+		return err
+	}
+
+	ms.enabledSetByUser = parser.IsSet("enabled")
+	return nil
+}
+
+func (ms *PtpPortStateMetricConfig) Validate() error {
+	for _, val := range ms.EnabledAttributes {
+		switch val {
+		case PtpPortStateMetricAttributeKeyPtpPortIdentity, PtpPortStateMetricAttributeKeyPtpPortState:
+		default:
+			return fmt.Errorf("metric ptp.port.state doesn't have an attribute %v, valid attributes: [ptp.port.identity, ptp.port.state]", val)
+		}
+	}
+
+	switch ms.AggregationStrategy {
+	case AggregationStrategySum, AggregationStrategyAvg, AggregationStrategyMin, AggregationStrategyMax:
+	default:
+		return fmt.Errorf("invalid aggregation strategy %q, valid strategies: [%s, %s, %s, %s]", ms.AggregationStrategy, AggregationStrategySum, AggregationStrategyAvg, AggregationStrategyMin, AggregationStrategyMax)
+	}
+
+	return nil
+}
+
 // MetricsConfig provides config for ptp metrics.
 type MetricsConfig struct {
+	PtpClockState         PtpClockStateMetricConfig         `mapstructure:"ptp.clock.state"`
+	PtpGrandmasterInfo    PtpGrandmasterInfoMetricConfig    `mapstructure:"ptp.grandmaster.info"`
 	PtpGrandmasterPresent PtpGrandmasterPresentMetricConfig `mapstructure:"ptp.grandmaster.present"`
 	PtpOffset             PtpOffsetMetricConfig             `mapstructure:"ptp.offset"`
+	PtpPathDelay          PtpPathDelayMetricConfig          `mapstructure:"ptp.path.delay"`
+	PtpPortState          PtpPortStateMetricConfig          `mapstructure:"ptp.port.state"`
 }
 
 func DefaultMetricsConfig() MetricsConfig {
 	return MetricsConfig{
+		PtpClockState: PtpClockStateMetricConfig{
+			Enabled:             true,
+			AggregationStrategy: AggregationStrategyAvg,
+			EnabledAttributes:   []PtpClockStateMetricAttributeKey{PtpClockStateMetricAttributeKeyPtpClockState},
+		},
+		PtpGrandmasterInfo: PtpGrandmasterInfoMetricConfig{
+			Enabled:             true,
+			AggregationStrategy: AggregationStrategyAvg,
+			EnabledAttributes:   []PtpGrandmasterInfoMetricAttributeKey{PtpGrandmasterInfoMetricAttributeKeyPtpGrandmasterIdentity},
+		},
 		PtpGrandmasterPresent: PtpGrandmasterPresentMetricConfig{
 			Enabled: true,
 		},
 		PtpOffset: PtpOffsetMetricConfig{
 			Enabled: true,
+		},
+		PtpPathDelay: PtpPathDelayMetricConfig{
+			Enabled: true,
+		},
+		PtpPortState: PtpPortStateMetricConfig{
+			Enabled:             true,
+			AggregationStrategy: AggregationStrategyAvg,
+			EnabledAttributes:   []PtpPortStateMetricAttributeKey{PtpPortStateMetricAttributeKeyPtpPortIdentity, PtpPortStateMetricAttributeKeyPtpPortState},
 		},
 	}
 }
@@ -92,11 +281,15 @@ func (rac *ResourceAttributeConfig) Unmarshal(parser *confmap.Conf) error {
 
 // ResourceAttributesConfig provides config for ptp resource attributes.
 type ResourceAttributesConfig struct {
+	PtpClockType  ResourceAttributeConfig `mapstructure:"ptp.clock.type"`
 	PtpSocketPath ResourceAttributeConfig `mapstructure:"ptp.socket_path"`
 }
 
 func DefaultResourceAttributesConfig() ResourceAttributesConfig {
 	return ResourceAttributesConfig{
+		PtpClockType: ResourceAttributeConfig{
+			Enabled: true,
+		},
 		PtpSocketPath: ResourceAttributeConfig{
 			Enabled: true,
 		},

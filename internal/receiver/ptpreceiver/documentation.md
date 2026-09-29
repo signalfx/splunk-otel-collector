@@ -12,6 +12,34 @@ metrics:
     enabled: false
 ```
 
+### ptp.clock.state
+
+Local PTP clock state (1 for the reported state).
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| 1 | Gauge | Int | Development |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level | Semantic Convention |
+| ---- | ----------- | ------ | ----------------- | ------------------- |
+| ptp.clock.state | State of the local PTP clock inferred from its port states. | Any Str | Recommended | - |
+
+### ptp.grandmaster.info
+
+Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| 1 | Gauge | Int | Development |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level | Semantic Convention |
+| ---- | ----------- | ------ | ----------------- | ------------------- |
+| ptp.grandmaster.identity | Identity of the selected PTP grandmaster. | Any Str | Recommended | - |
+
 ### ptp.grandmaster.present
 
 Whether the PTP daemon reports a grandmaster (1 for present, 0 for absent).
@@ -28,8 +56,32 @@ Offset of the local PTP clock from its grandmaster.
 | ---- | ----------- | ---------- | --------- |
 | ns | Gauge | Int | Development |
 
+### ptp.path.delay
+
+Mean path delay to the PTP grandmaster.
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| ns | Gauge | Double | Development |
+
+### ptp.port.state
+
+State of each local PTP port (1 for the reported state).
+
+| Unit | Metric Type | Value Type | Stability |
+| ---- | ----------- | ---------- | --------- |
+| 1 | Gauge | Int | Development |
+
+#### Attributes
+
+| Name | Description | Values | Requirement Level | Semantic Convention |
+| ---- | ----------- | ------ | ----------------- | ------------------- |
+| ptp.port.identity | Identity and number of the local PTP port. | Any Str | Recommended | - |
+| ptp.port.state | State of the local PTP port. | Any Str | Recommended | - |
+
 ## Resource Attributes
 
 | Name | Description | Values | Enabled | Semantic Convention | Stability |
 | ---- | ----------- | ------ | ------- | ------------------- | --------- |
+| ptp.clock.type | Type of the local PTP clock reported by CLOCK_DESCRIPTION. | Any Str | true | - | - |
 | ptp.socket_path | Unix domain socket of the ptp4l daemon. | Any Str | true | - | - |

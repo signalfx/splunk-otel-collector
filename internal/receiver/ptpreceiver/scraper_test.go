@@ -23,34 +23,61 @@ const pmcResponse = `sending: GET TIME_STATUS_NP
     ingress_time 123456789
     gmPresent true
     gmIdentity 001122.fffe.334455
+  001122.fffe.334455-0 seq 1 RESPONSE MANAGEMENT CURRENT_DATA_SET
+    stepsRemoved 1
+    meanPathDelay 125.5
+  001122.fffe.334455-1 seq 2 RESPONSE MANAGEMENT PORT_DATA_SET
+    portIdentity 001122.fffe.334455-1
+    portState SLAVE
+  001122.fffe.334455-2 seq 2 RESPONSE MANAGEMENT PORT_DATA_SET
+    portIdentity 001122.fffe.334455-2
+    portState MASTER
+  001122.fffe.334455-1 seq 3 RESPONSE MANAGEMENT CLOCK_DESCRIPTION
+    clockType 0x4000
 `
 
-func TestParseTimeStatus(t *testing.T) {
+func TestParsePMCStatus(t *testing.T) {
 	tests := []struct {
-		name    string
-		output  string
-		offset  int64
-		present bool
-		wantErr bool
+		name       string
+		output     string
+		clockState string
+		present    bool
+		wantErr    bool
 	}{
-		{name: "valid", output: pmcResponse, offset: -42, present: true},
-		{name: "no grandmaster", output: strings.Replace(pmcResponse, "gmPresent true", "gmPresent false", 1), offset: -42},
+		{name: "valid boundary clock", output: pmcResponse, present: true, clockState: "SLAVE"},
+		{name: "no grandmaster", output: strings.Replace(pmcResponse, "gmPresent true", "gmPresent false", 1), clockState: "SLAVE"},
+		{name: "transparent clock", output: "001122.fffe.334455-0 seq 0 RESPONSE MANAGEMENT CLOCK_DESCRIPTION\nclockType 0x2000", clockState: "UNKNOWN"},
 		{name: "no response", output: "sending: GET TIME_STATUS_NP", wantErr: true},
 		{name: "bad offset", output: strings.Replace(pmcResponse, "master_offset -42", "master_offset invalid", 1), wantErr: true},
 		{name: "bad grandmaster flag", output: strings.Replace(pmcResponse, "gmPresent true", "gmPresent invalid", 1), wantErr: true},
 		{name: "missing grandmaster", output: strings.Replace(pmcResponse, "gmPresent true", "", 1), wantErr: true},
+		{name: "missing identity", output: strings.Replace(pmcResponse, "gmIdentity 001122.fffe.334455", "", 1), wantErr: true},
+		{name: "bad path delay", output: strings.Replace(pmcResponse, "meanPathDelay 125.5", "meanPathDelay NaN", 1), wantErr: true},
+		{name: "bad port state", output: strings.Replace(pmcResponse, "portState SLAVE", "portState invalid", 1), wantErr: true},
+		{name: "bad clock type", output: strings.Replace(pmcResponse, "clockType 0x4000", "clockType invalid", 1), wantErr: true},
 		{name: "oversized response", output: pmcResponse + strings.Repeat("x", 70<<10), wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			offset, present, err := parseTimeStatus([]byte(tt.output))
+			status, err := parsePMCStatus([]byte(tt.output))
 			if tt.wantErr {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
-			require.Equal(t, tt.offset, offset)
-			require.Equal(t, tt.present, present)
+			require.Equal(t, tt.present, status.gmPresent)
+			require.Equal(t, tt.clockState, clockState(status.ports))
+			if tt.name == "valid boundary clock" {
+				require.Equal(t, int64(-42), status.offset)
+				require.Equal(t, 125.5, status.pathDelay)
+				require.Equal(t, "001122.fffe.334455", status.gmIdentity)
+				require.Equal(t, "boundary", status.clockType)
+				require.Len(t, status.ports, 2)
+			}
+			if tt.name == "transparent clock" {
+				require.Equal(t, "p2p_transparent", status.clockType)
+				require.False(t, status.hasTimeStatus)
+			}
 		})
 	}
 }
@@ -73,24 +100,58 @@ func TestScrape(t *testing.T) {
 			metrics, err := s.scrape(context.Background())
 			require.NoError(t, err)
 			require.Equal(t, "pmc", gotName)
-			require.Equal(t, []string{"-u", "-b", "0", "-s", config.SocketPath, "-d", "0", "GET TIME_STATUS_NP"}, gotArgs)
+			require.Equal(t, []string{
+				"-u", "-b", "0", "-s", config.SocketPath, "-d", "0",
+				"GET TIME_STATUS_NP", "GET CURRENT_DATA_SET", "GET PORT_DATA_SET", "GET CLOCK_DESCRIPTION",
+			}, gotArgs)
 			require.Equal(t, 1, metrics.ResourceMetrics().Len())
 			rm := metrics.ResourceMetrics().At(0)
 			value, ok := rm.Resource().Attributes().Get("ptp.socket_path")
 			require.True(t, ok)
 			require.Equal(t, config.SocketPath, value.Str())
+			clockType, ok := rm.Resource().Attributes().Get("ptp.clock.type")
+			require.True(t, ok)
+			require.Equal(t, "boundary", clockType.Str())
 			require.Equal(t, 1, rm.ScopeMetrics().Len())
 			require.Equal(t, metadata.ScopeName, rm.ScopeMetrics().At(0).Scope().Name())
-			got := map[string]int64{}
+			got := map[string]pmetric.Metric{}
 			for _, metric := range allMetrics(rm.ScopeMetrics().At(0).Metrics()) {
-				got[metric.Name()] = metric.Gauge().DataPoints().At(0).IntValue()
+				got[metric.Name()] = metric
 			}
-			want := map[string]int64{"ptp.grandmaster.present": 0}
+			want := []string{"ptp.clock.state", "ptp.grandmaster.present", "ptp.port.state"}
+			for _, name := range want {
+				require.Contains(t, got, name)
+			}
+			require.Equal(t, int64(1), got["ptp.clock.state"].Gauge().DataPoints().At(0).IntValue())
+			clockStateValue, ok := got["ptp.clock.state"].Gauge().DataPoints().At(0).Attributes().Get("ptp.clock.state")
+			require.True(t, ok)
+			require.Equal(t, "SLAVE", clockStateValue.Str())
+			ports := got["ptp.port.state"].Gauge().DataPoints()
+			require.Equal(t, 2, ports.Len())
+			portStates := map[string]string{}
+			for i := 0; i < ports.Len(); i++ {
+				identity, found := ports.At(i).Attributes().Get("ptp.port.identity")
+				require.True(t, found)
+				state, found := ports.At(i).Attributes().Get("ptp.port.state")
+				require.True(t, found)
+				portStates[identity.Str()] = state.Str()
+			}
+			require.Equal(t, map[string]string{"001122.fffe.334455-1": "SLAVE", "001122.fffe.334455-2": "MASTER"}, portStates)
 			if present {
-				want["ptp.grandmaster.present"] = 1
-				want["ptp.offset"] = -42
+				want = append(want, "ptp.grandmaster.info", "ptp.offset", "ptp.path.delay")
+				for _, name := range want {
+					require.Contains(t, got, name)
+				}
+				require.Equal(t, int64(1), got["ptp.grandmaster.present"].Gauge().DataPoints().At(0).IntValue())
+				require.Equal(t, int64(-42), got["ptp.offset"].Gauge().DataPoints().At(0).IntValue())
+				require.Equal(t, 125.5, got["ptp.path.delay"].Gauge().DataPoints().At(0).DoubleValue())
+				gmIdentity, found := got["ptp.grandmaster.info"].Gauge().DataPoints().At(0).Attributes().Get("ptp.grandmaster.identity")
+				require.True(t, found)
+				require.Equal(t, "001122.fffe.334455", gmIdentity.Str())
+			} else {
+				require.Equal(t, int64(0), got["ptp.grandmaster.present"].Gauge().DataPoints().At(0).IntValue())
 			}
-			require.Equal(t, want, got)
+			require.Len(t, got, len(want))
 		})
 	}
 }
@@ -111,7 +172,7 @@ func TestScrapeInvalidResponse(t *testing.T) {
 		return []byte("unexpected response"), nil
 	}
 	metrics, err := s.scrape(context.Background())
-	require.ErrorContains(t, err, "missing TIME_STATUS_NP")
+	require.ErrorContains(t, err, "missing supported management datasets")
 	require.Equal(t, 0, metrics.ResourceMetrics().Len())
 }
 
@@ -126,8 +187,12 @@ func TestScrapeMissingPMC(t *testing.T) {
 
 func TestScrapeDisabledMetrics(t *testing.T) {
 	config := createDefaultConfig().(*Config)
+	config.Metrics.PtpClockState.Enabled = false
+	config.Metrics.PtpGrandmasterInfo.Enabled = false
 	config.Metrics.PtpGrandmasterPresent.Enabled = false
 	config.Metrics.PtpOffset.Enabled = false
+	config.Metrics.PtpPathDelay.Enabled = false
+	config.Metrics.PtpPortState.Enabled = false
 	s := newScraper(config, receiver.Settings{})
 	s.runPMC = func(context.Context, string, ...string) ([]byte, error) {
 		return []byte(pmcResponse), nil
@@ -135,6 +200,60 @@ func TestScrapeDisabledMetrics(t *testing.T) {
 	metrics, err := s.scrape(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 0, metrics.ResourceMetrics().Len())
+}
+
+func TestScrapeGrandmasterChange(t *testing.T) {
+	s := newScraper(createDefaultConfig().(*Config), receiver.Settings{})
+	identity := "001122.fffe.334455"
+	s.runPMC = func(context.Context, string, ...string) ([]byte, error) {
+		return []byte(strings.Replace(pmcResponse, "gmIdentity 001122.fffe.334455", "gmIdentity "+identity, 1)), nil
+	}
+	first, err := s.scrape(context.Background())
+	require.NoError(t, err)
+	identity = "aabbcc.fffe.ddeeff"
+	second, err := s.scrape(context.Background())
+	require.NoError(t, err)
+	firstGM := findMetric(t, first, "ptp.grandmaster.info")
+	secondGM := findMetric(t, second, "ptp.grandmaster.info")
+	firstID, ok := firstGM.Gauge().DataPoints().At(0).Attributes().Get("ptp.grandmaster.identity")
+	require.True(t, ok)
+	secondID, ok := secondGM.Gauge().DataPoints().At(0).Attributes().Get("ptp.grandmaster.identity")
+	require.True(t, ok)
+	require.Equal(t, "001122.fffe.334455", firstID.Str())
+	require.Equal(t, "aabbcc.fffe.ddeeff", secondID.Str())
+}
+
+func TestScrapeTransparentClock(t *testing.T) {
+	s := newScraper(createDefaultConfig().(*Config), receiver.Settings{})
+	s.runPMC = func(context.Context, string, ...string) ([]byte, error) {
+		return []byte("001122.fffe.334455-0 seq 0 RESPONSE MANAGEMENT CLOCK_DESCRIPTION\nclockType 0x1000\n"), nil
+	}
+	metrics, err := s.scrape(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, 1, metrics.ResourceMetrics().Len())
+	rm := metrics.ResourceMetrics().At(0)
+	clockType, ok := rm.Resource().Attributes().Get("ptp.clock.type")
+	require.True(t, ok)
+	require.Equal(t, "e2e_transparent", clockType.Str())
+	metric := findMetric(t, metrics, "ptp.clock.state")
+	state, ok := metric.Gauge().DataPoints().At(0).Attributes().Get("ptp.clock.state")
+	require.True(t, ok)
+	require.Equal(t, "UNKNOWN", state.Str())
+}
+
+func findMetric(t *testing.T, metrics pmetric.Metrics, name string) pmetric.Metric {
+	t.Helper()
+	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
+		for j := 0; j < metrics.ResourceMetrics().At(i).ScopeMetrics().Len(); j++ {
+			for _, metric := range allMetrics(metrics.ResourceMetrics().At(i).ScopeMetrics().At(j).Metrics()) {
+				if metric.Name() == name {
+					return metric
+				}
+			}
+		}
+	}
+	require.FailNow(t, "metric not found", name)
+	return pmetric.Metric{}
 }
 
 func allMetrics(metrics pmetric.MetricSlice) []pmetric.Metric {

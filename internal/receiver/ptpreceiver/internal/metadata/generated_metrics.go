@@ -3,6 +3,7 @@
 package metadata
 
 import (
+	"slices"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -20,22 +21,219 @@ const (
 )
 
 var MetricsInfo = metricsInfo{
+	PtpClockState: metricInfo{
+		Name:       "ptp.clock.state",
+		Attributes: []string{"ptp.clock.state"},
+	},
+	PtpGrandmasterInfo: metricInfo{
+		Name:       "ptp.grandmaster.info",
+		Attributes: []string{"ptp.grandmaster.identity"},
+	},
 	PtpGrandmasterPresent: metricInfo{
 		Name: "ptp.grandmaster.present",
 	},
 	PtpOffset: metricInfo{
 		Name: "ptp.offset",
 	},
+	PtpPathDelay: metricInfo{
+		Name: "ptp.path.delay",
+	},
+	PtpPortState: metricInfo{
+		Name:       "ptp.port.state",
+		Attributes: []string{"ptp.port.identity", "ptp.port.state"},
+	},
 }
 
 type metricsInfo struct {
+	PtpClockState         metricInfo
+	PtpGrandmasterInfo    metricInfo
 	PtpGrandmasterPresent metricInfo
 	PtpOffset             metricInfo
+	PtpPathDelay          metricInfo
+	PtpPortState          metricInfo
 }
 
 type metricInfo struct {
 	Name       string
 	Attributes []string
+}
+
+type metricPtpClockState struct {
+	data          pmetric.Metric            // data buffer for generated metric.
+	config        PtpClockStateMetricConfig // metric config provided by user.
+	capacity      int                       // max observed number of data points added to the metric.
+	aggDataPoints []int64                   // slice containing number of aggregated datapoints at each index
+}
+
+// init fills ptp.clock.state metric with initial data.
+func (m *metricPtpClockState) init() {
+	m.data.SetName("ptp.clock.state")
+	m.data.SetDescription("Local PTP clock state (1 for the reported state).")
+	m.data.SetUnit("1")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+	m.aggDataPoints = m.aggDataPoints[:0]
+}
+
+func (m *metricPtpClockState) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, ptpClockStateAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+
+	dp := pmetric.NewNumberDataPoint()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	if slices.Contains(m.config.EnabledAttributes, PtpClockStateMetricAttributeKeyPtpClockState) {
+		dp.Attributes().PutStr("ptp.clock.state", ptpClockStateAttributeValue)
+	}
+
+	var s string
+	dps := m.data.Gauge().DataPoints()
+	for i := 0; i < dps.Len(); i++ {
+		dpi := dps.At(i)
+		if dp.Attributes().Equal(dpi.Attributes()) && dp.StartTimestamp() == dpi.StartTimestamp() && dp.Timestamp() == dpi.Timestamp() {
+			switch s = m.config.AggregationStrategy; s {
+			case AggregationStrategySum, AggregationStrategyAvg:
+				dpi.SetIntValue(dpi.IntValue() + val)
+				m.aggDataPoints[i] += 1
+				return
+			case AggregationStrategyMin:
+				if dpi.IntValue() > val {
+					dpi.SetIntValue(val)
+				}
+				return
+			case AggregationStrategyMax:
+				if dpi.IntValue() < val {
+					dpi.SetIntValue(val)
+				}
+				return
+			}
+		}
+	}
+
+	dp.SetIntValue(val)
+	m.aggDataPoints = append(m.aggDataPoints, 1)
+	dp.MoveTo(dps.AppendEmpty())
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricPtpClockState) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricPtpClockState) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		if m.config.AggregationStrategy == AggregationStrategyAvg {
+			for i, aggCount := range m.aggDataPoints {
+				m.data.Gauge().DataPoints().At(i).SetIntValue(m.data.Gauge().DataPoints().At(i).IntValue() / aggCount)
+			}
+		}
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricPtpClockState(cfg PtpClockStateMetricConfig) metricPtpClockState {
+	m := metricPtpClockState{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricPtpGrandmasterInfo struct {
+	data          pmetric.Metric                 // data buffer for generated metric.
+	config        PtpGrandmasterInfoMetricConfig // metric config provided by user.
+	capacity      int                            // max observed number of data points added to the metric.
+	aggDataPoints []int64                        // slice containing number of aggregated datapoints at each index
+}
+
+// init fills ptp.grandmaster.info metric with initial data.
+func (m *metricPtpGrandmasterInfo) init() {
+	m.data.SetName("ptp.grandmaster.info")
+	m.data.SetDescription("Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.")
+	m.data.SetUnit("1")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+	m.aggDataPoints = m.aggDataPoints[:0]
+}
+
+func (m *metricPtpGrandmasterInfo) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, ptpGrandmasterIdentityAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+
+	dp := pmetric.NewNumberDataPoint()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	if slices.Contains(m.config.EnabledAttributes, PtpGrandmasterInfoMetricAttributeKeyPtpGrandmasterIdentity) {
+		dp.Attributes().PutStr("ptp.grandmaster.identity", ptpGrandmasterIdentityAttributeValue)
+	}
+
+	var s string
+	dps := m.data.Gauge().DataPoints()
+	for i := 0; i < dps.Len(); i++ {
+		dpi := dps.At(i)
+		if dp.Attributes().Equal(dpi.Attributes()) && dp.StartTimestamp() == dpi.StartTimestamp() && dp.Timestamp() == dpi.Timestamp() {
+			switch s = m.config.AggregationStrategy; s {
+			case AggregationStrategySum, AggregationStrategyAvg:
+				dpi.SetIntValue(dpi.IntValue() + val)
+				m.aggDataPoints[i] += 1
+				return
+			case AggregationStrategyMin:
+				if dpi.IntValue() > val {
+					dpi.SetIntValue(val)
+				}
+				return
+			case AggregationStrategyMax:
+				if dpi.IntValue() < val {
+					dpi.SetIntValue(val)
+				}
+				return
+			}
+		}
+	}
+
+	dp.SetIntValue(val)
+	m.aggDataPoints = append(m.aggDataPoints, 1)
+	dp.MoveTo(dps.AppendEmpty())
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricPtpGrandmasterInfo) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricPtpGrandmasterInfo) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		if m.config.AggregationStrategy == AggregationStrategyAvg {
+			for i, aggCount := range m.aggDataPoints {
+				m.data.Gauge().DataPoints().At(i).SetIntValue(m.data.Gauge().DataPoints().At(i).IntValue() / aggCount)
+			}
+		}
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricPtpGrandmasterInfo(cfg PtpGrandmasterInfoMetricConfig) metricPtpGrandmasterInfo {
+	m := metricPtpGrandmasterInfo{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
 }
 
 type metricPtpGrandmasterPresent struct {
@@ -138,6 +336,148 @@ func newMetricPtpOffset(cfg PtpOffsetMetricConfig) metricPtpOffset {
 	return m
 }
 
+type metricPtpPathDelay struct {
+	data     pmetric.Metric           // data buffer for generated metric.
+	config   PtpPathDelayMetricConfig // metric config provided by user.
+	capacity int                      // max observed number of data points added to the metric.
+}
+
+// init fills ptp.path.delay metric with initial data.
+func (m *metricPtpPathDelay) init() {
+	m.data.SetName("ptp.path.delay")
+	m.data.SetDescription("Mean path delay to the PTP grandmaster.")
+	m.data.SetUnit("ns")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricPtpPathDelay) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricPtpPathDelay) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricPtpPathDelay) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricPtpPathDelay(cfg PtpPathDelayMetricConfig) metricPtpPathDelay {
+	m := metricPtpPathDelay{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricPtpPortState struct {
+	data          pmetric.Metric           // data buffer for generated metric.
+	config        PtpPortStateMetricConfig // metric config provided by user.
+	capacity      int                      // max observed number of data points added to the metric.
+	aggDataPoints []int64                  // slice containing number of aggregated datapoints at each index
+}
+
+// init fills ptp.port.state metric with initial data.
+func (m *metricPtpPortState) init() {
+	m.data.SetName("ptp.port.state")
+	m.data.SetDescription("State of each local PTP port (1 for the reported state).")
+	m.data.SetUnit("1")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+	m.aggDataPoints = m.aggDataPoints[:0]
+}
+
+func (m *metricPtpPortState) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, ptpPortIdentityAttributeValue string, ptpPortStateAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+
+	dp := pmetric.NewNumberDataPoint()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	if slices.Contains(m.config.EnabledAttributes, PtpPortStateMetricAttributeKeyPtpPortIdentity) {
+		dp.Attributes().PutStr("ptp.port.identity", ptpPortIdentityAttributeValue)
+	}
+	if slices.Contains(m.config.EnabledAttributes, PtpPortStateMetricAttributeKeyPtpPortState) {
+		dp.Attributes().PutStr("ptp.port.state", ptpPortStateAttributeValue)
+	}
+
+	var s string
+	dps := m.data.Gauge().DataPoints()
+	for i := 0; i < dps.Len(); i++ {
+		dpi := dps.At(i)
+		if dp.Attributes().Equal(dpi.Attributes()) && dp.StartTimestamp() == dpi.StartTimestamp() && dp.Timestamp() == dpi.Timestamp() {
+			switch s = m.config.AggregationStrategy; s {
+			case AggregationStrategySum, AggregationStrategyAvg:
+				dpi.SetIntValue(dpi.IntValue() + val)
+				m.aggDataPoints[i] += 1
+				return
+			case AggregationStrategyMin:
+				if dpi.IntValue() > val {
+					dpi.SetIntValue(val)
+				}
+				return
+			case AggregationStrategyMax:
+				if dpi.IntValue() < val {
+					dpi.SetIntValue(val)
+				}
+				return
+			}
+		}
+	}
+
+	dp.SetIntValue(val)
+	m.aggDataPoints = append(m.aggDataPoints, 1)
+	dp.MoveTo(dps.AppendEmpty())
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricPtpPortState) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricPtpPortState) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		if m.config.AggregationStrategy == AggregationStrategyAvg {
+			for i, aggCount := range m.aggDataPoints {
+				m.data.Gauge().DataPoints().At(i).SetIntValue(m.data.Gauge().DataPoints().At(i).IntValue() / aggCount)
+			}
+		}
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricPtpPortState(cfg PtpPortStateMetricConfig) metricPtpPortState {
+	m := metricPtpPortState{config: cfg}
+
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user config.
 type MetricsBuilder struct {
@@ -148,8 +488,12 @@ type MetricsBuilder struct {
 	buildInfo                      component.BuildInfo  // contains version information.
 	resourceAttributeIncludeFilter map[string]filter.Filter
 	resourceAttributeExcludeFilter map[string]filter.Filter
+	metricPtpClockState            metricPtpClockState
+	metricPtpGrandmasterInfo       metricPtpGrandmasterInfo
 	metricPtpGrandmasterPresent    metricPtpGrandmasterPresent
 	metricPtpOffset                metricPtpOffset
+	metricPtpPathDelay             metricPtpPathDelay
+	metricPtpPortState             metricPtpPortState
 }
 
 // MetricBuilderOption applies changes to default metrics builder.
@@ -175,10 +519,20 @@ func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.Settings, opt
 		startTime:                      pcommon.NewTimestampFromTime(time.Now()),
 		metricsBuffer:                  pmetric.NewMetrics(),
 		buildInfo:                      settings.BuildInfo,
+		metricPtpClockState:            newMetricPtpClockState(mbc.Metrics.PtpClockState),
+		metricPtpGrandmasterInfo:       newMetricPtpGrandmasterInfo(mbc.Metrics.PtpGrandmasterInfo),
 		metricPtpGrandmasterPresent:    newMetricPtpGrandmasterPresent(mbc.Metrics.PtpGrandmasterPresent),
 		metricPtpOffset:                newMetricPtpOffset(mbc.Metrics.PtpOffset),
+		metricPtpPathDelay:             newMetricPtpPathDelay(mbc.Metrics.PtpPathDelay),
+		metricPtpPortState:             newMetricPtpPortState(mbc.Metrics.PtpPortState),
 		resourceAttributeIncludeFilter: make(map[string]filter.Filter),
 		resourceAttributeExcludeFilter: make(map[string]filter.Filter),
+	}
+	if mbc.ResourceAttributes.PtpClockType.MetricsInclude != nil {
+		mb.resourceAttributeIncludeFilter["ptp.clock.type"] = filter.CreateFilter(mbc.ResourceAttributes.PtpClockType.MetricsInclude)
+	}
+	if mbc.ResourceAttributes.PtpClockType.MetricsExclude != nil {
+		mb.resourceAttributeExcludeFilter["ptp.clock.type"] = filter.CreateFilter(mbc.ResourceAttributes.PtpClockType.MetricsExclude)
 	}
 	if mbc.ResourceAttributes.PtpSocketPath.MetricsInclude != nil {
 		mb.resourceAttributeIncludeFilter["ptp.socket_path"] = filter.CreateFilter(mbc.ResourceAttributes.PtpSocketPath.MetricsInclude)
@@ -255,8 +609,12 @@ func (mb *MetricsBuilder) EmitForResource(options ...ResourceMetricsOption) {
 	ils.Scope().SetName(ScopeName)
 	ils.Scope().SetVersion(mb.buildInfo.Version)
 	ils.Metrics().EnsureCapacity(mb.metricsCapacity)
+	mb.metricPtpClockState.emit(ils.Metrics())
+	mb.metricPtpGrandmasterInfo.emit(ils.Metrics())
 	mb.metricPtpGrandmasterPresent.emit(ils.Metrics())
 	mb.metricPtpOffset.emit(ils.Metrics())
+	mb.metricPtpPathDelay.emit(ils.Metrics())
+	mb.metricPtpPortState.emit(ils.Metrics())
 
 	for _, op := range options {
 		op.apply(rm)
@@ -288,6 +646,16 @@ func (mb *MetricsBuilder) Emit(options ...ResourceMetricsOption) pmetric.Metrics
 	return metrics
 }
 
+// RecordPtpClockStateDataPoint adds a data point to ptp.clock.state metric.
+func (mb *MetricsBuilder) RecordPtpClockStateDataPoint(ts pcommon.Timestamp, val int64, ptpClockStateAttributeValue string) {
+	mb.metricPtpClockState.recordDataPoint(mb.startTime, ts, val, ptpClockStateAttributeValue)
+}
+
+// RecordPtpGrandmasterInfoDataPoint adds a data point to ptp.grandmaster.info metric.
+func (mb *MetricsBuilder) RecordPtpGrandmasterInfoDataPoint(ts pcommon.Timestamp, val int64, ptpGrandmasterIdentityAttributeValue string) {
+	mb.metricPtpGrandmasterInfo.recordDataPoint(mb.startTime, ts, val, ptpGrandmasterIdentityAttributeValue)
+}
+
 // RecordPtpGrandmasterPresentDataPoint adds a data point to ptp.grandmaster.present metric.
 func (mb *MetricsBuilder) RecordPtpGrandmasterPresentDataPoint(ts pcommon.Timestamp, val int64) {
 	mb.metricPtpGrandmasterPresent.recordDataPoint(mb.startTime, ts, val)
@@ -296,6 +664,16 @@ func (mb *MetricsBuilder) RecordPtpGrandmasterPresentDataPoint(ts pcommon.Timest
 // RecordPtpOffsetDataPoint adds a data point to ptp.offset metric.
 func (mb *MetricsBuilder) RecordPtpOffsetDataPoint(ts pcommon.Timestamp, val int64) {
 	mb.metricPtpOffset.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordPtpPathDelayDataPoint adds a data point to ptp.path.delay metric.
+func (mb *MetricsBuilder) RecordPtpPathDelayDataPoint(ts pcommon.Timestamp, val float64) {
+	mb.metricPtpPathDelay.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordPtpPortStateDataPoint adds a data point to ptp.port.state metric.
+func (mb *MetricsBuilder) RecordPtpPortStateDataPoint(ts pcommon.Timestamp, val int64, ptpPortIdentityAttributeValue string, ptpPortStateAttributeValue string) {
+	mb.metricPtpPortState.recordDataPoint(mb.startTime, ts, val, ptpPortIdentityAttributeValue, ptpPortStateAttributeValue)
 }
 
 // Reset resets metrics builder to its initial state. It should be used when external metrics source is restarted,

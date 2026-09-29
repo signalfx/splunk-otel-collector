@@ -13,6 +13,7 @@ func TestResourceBuilder(t *testing.T) {
 		t.Run(tt, func(t *testing.T) {
 			cfg := loadResourceAttributesConfig(t, tt)
 			rb := NewResourceBuilder(cfg)
+			rb.SetPtpClockType("ptp.clock.type-val")
 			rb.SetPtpSocketPath("ptp.socket_path-val")
 
 			res := rb.Emit()
@@ -20,14 +21,19 @@ func TestResourceBuilder(t *testing.T) {
 
 			switch tt {
 			case "default":
-				assert.Equal(t, 1, res.Attributes().Len())
+				assert.Equal(t, 2, res.Attributes().Len())
 			case "all_set":
-				assert.Equal(t, 1, res.Attributes().Len())
+				assert.Equal(t, 2, res.Attributes().Len())
 			case "none_set":
 				assert.Equal(t, 0, res.Attributes().Len())
 				return
 			default:
 				assert.Failf(t, "unexpected test case: %s", tt)
+			}
+			ptpClockTypeAttrVal, ok := res.Attributes().Get("ptp.clock.type")
+			assert.True(t, ok)
+			if ok {
+				assert.Equal(t, "ptp.clock.type-val", ptpClockTypeAttrVal.Str())
 			}
 			ptpSocketPathAttrVal, ok := res.Attributes().Get("ptp.socket_path")
 			assert.True(t, ok)

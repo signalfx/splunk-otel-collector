@@ -19,6 +19,7 @@ const (
 	testDataSetDefault testDataSet = iota
 	testDataSetAll
 	testDataSetNone
+	testDataSetReag
 )
 
 func TestMetricsBuilder(t *testing.T) {
@@ -35,6 +36,11 @@ func TestMetricsBuilder(t *testing.T) {
 			name:        "all_set",
 			metricsSet:  testDataSetAll,
 			resAttrsSet: testDataSetAll,
+		},
+		{
+			name:        "reaggregate_set",
+			metricsSet:  testDataSetReag,
+			resAttrsSet: testDataSetReag,
 		},
 		{
 			name:        "none_set",
@@ -60,23 +66,56 @@ func TestMetricsBuilder(t *testing.T) {
 			settings := receivertest.NewNopSettings(receivertest.NopType)
 			settings.Logger = zap.New(observedZapCore)
 			mb := NewMetricsBuilder(loadMetricsBuilderConfig(t, tt.name), settings, WithStartTime(start))
+			aggMap := make(map[string]string) // contains the aggregation strategies for each metric name
+			aggMap["ptp.clock.state"] = mb.metricPtpClockState.config.AggregationStrategy
+			aggMap["ptp.grandmaster.info"] = mb.metricPtpGrandmasterInfo.config.AggregationStrategy
+			aggMap["ptp.port.state"] = mb.metricPtpPortState.config.AggregationStrategy
 
 			expectedWarnings := 0
-			assert.Equal(t, expectedWarnings, observedLogs.Len())
+			if tt.metricsSet != testDataSetReag {
+				assert.Equal(t, expectedWarnings, observedLogs.Len())
+			}
 
 			defaultMetricsCount := 0
 			allMetricsCount := 0
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordPtpClockStateDataPoint(ts, 1, "ptp.clock.state-val")
+			if tt.name == "reaggregate_set" {
+				mb.RecordPtpClockStateDataPoint(ts, 3, "ptp.clock.state-val-2")
+			}
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordPtpGrandmasterInfoDataPoint(ts, 1, "ptp.grandmaster.identity-val")
+			if tt.name == "reaggregate_set" {
+				mb.RecordPtpGrandmasterInfoDataPoint(ts, 3, "ptp.grandmaster.identity-val-2")
+			}
 			defaultMetricsCount++
 			allMetricsCount++
 			mb.RecordPtpGrandmasterPresentDataPoint(ts, 1)
 			defaultMetricsCount++
 			allMetricsCount++
 			mb.RecordPtpOffsetDataPoint(ts, 1)
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordPtpPathDelayDataPoint(ts, 1)
+			defaultMetricsCount++
+			allMetricsCount++
+			mb.RecordPtpPortStateDataPoint(ts, 1, "ptp.port.identity-val", "ptp.port.state-val")
+			if tt.name == "reaggregate_set" {
+				mb.RecordPtpPortStateDataPoint(ts, 3, "ptp.port.identity-val-2", "ptp.port.state-val-2")
+			}
 
 			rb := mb.NewResourceBuilder()
+			rb.SetPtpClockType("ptp.clock.type-val")
 			rb.SetPtpSocketPath("ptp.socket_path-val")
 			res := rb.Emit()
 			metrics := mb.Emit(WithResource(res))
+			if tt.name == "reaggregate_set" {
+				assert.Empty(t, mb.metricPtpClockState.aggDataPoints)
+				assert.Empty(t, mb.metricPtpGrandmasterInfo.aggDataPoints)
+				assert.Empty(t, mb.metricPtpPortState.aggDataPoints)
+			}
 
 			if tt.expectEmpty {
 				assert.Equal(t, 0, metrics.ResourceMetrics().Len())
@@ -103,6 +142,86 @@ func TestMetricsBuilder(t *testing.T) {
 			validatedMetrics := make(map[string]bool)
 			for _, mi := range allMetricsList {
 				switch mi.Name() {
+				case "ptp.clock.state":
+					if tt.name != "reaggregate_set" {
+						assert.False(t, validatedMetrics["ptp.clock.state"], "Found a duplicate in the metrics slice: ptp.clock.state")
+						validatedMetrics["ptp.clock.state"] = true
+						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, "Local PTP clock state (1 for the reported state).", mi.Description())
+						assert.Equal(t, "1", mi.Unit())
+						dp := mi.Gauge().DataPoints().At(0)
+						assert.Equal(t, start, dp.StartTimestamp())
+						assert.Equal(t, ts, dp.Timestamp())
+						assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+						assert.Equal(t, int64(1), dp.IntValue())
+						ptpClockStateAttrVal, ok := dp.Attributes().Get("ptp.clock.state")
+						assert.True(t, ok)
+						assert.Equal(t, "ptp.clock.state-val", ptpClockStateAttrVal.Str())
+					} else {
+						assert.False(t, validatedMetrics["ptp.clock.state"], "Found a duplicate in the metrics slice: ptp.clock.state")
+						validatedMetrics["ptp.clock.state"] = true
+						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, "Local PTP clock state (1 for the reported state).", mi.Description())
+						assert.Equal(t, "1", mi.Unit())
+						dp := mi.Gauge().DataPoints().At(0)
+						assert.Equal(t, start, dp.StartTimestamp())
+						assert.Equal(t, ts, dp.Timestamp())
+						assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+						switch aggMap["ptp.clock.state"] {
+						case "sum":
+							assert.Equal(t, int64(4), dp.IntValue())
+						case "avg":
+							assert.Equal(t, int64(2), dp.IntValue())
+						case "min":
+							assert.Equal(t, int64(1), dp.IntValue())
+						case "max":
+							assert.Equal(t, int64(3), dp.IntValue())
+						}
+						_, ok := dp.Attributes().Get("ptp.clock.state")
+						assert.False(t, ok)
+					}
+				case "ptp.grandmaster.info":
+					if tt.name != "reaggregate_set" {
+						assert.False(t, validatedMetrics["ptp.grandmaster.info"], "Found a duplicate in the metrics slice: ptp.grandmaster.info")
+						validatedMetrics["ptp.grandmaster.info"] = true
+						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, "Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.", mi.Description())
+						assert.Equal(t, "1", mi.Unit())
+						dp := mi.Gauge().DataPoints().At(0)
+						assert.Equal(t, start, dp.StartTimestamp())
+						assert.Equal(t, ts, dp.Timestamp())
+						assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+						assert.Equal(t, int64(1), dp.IntValue())
+						ptpGrandmasterIdentityAttrVal, ok := dp.Attributes().Get("ptp.grandmaster.identity")
+						assert.True(t, ok)
+						assert.Equal(t, "ptp.grandmaster.identity-val", ptpGrandmasterIdentityAttrVal.Str())
+					} else {
+						assert.False(t, validatedMetrics["ptp.grandmaster.info"], "Found a duplicate in the metrics slice: ptp.grandmaster.info")
+						validatedMetrics["ptp.grandmaster.info"] = true
+						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, "Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.", mi.Description())
+						assert.Equal(t, "1", mi.Unit())
+						dp := mi.Gauge().DataPoints().At(0)
+						assert.Equal(t, start, dp.StartTimestamp())
+						assert.Equal(t, ts, dp.Timestamp())
+						assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+						switch aggMap["ptp.grandmaster.info"] {
+						case "sum":
+							assert.Equal(t, int64(4), dp.IntValue())
+						case "avg":
+							assert.Equal(t, int64(2), dp.IntValue())
+						case "min":
+							assert.Equal(t, int64(1), dp.IntValue())
+						case "max":
+							assert.Equal(t, int64(3), dp.IntValue())
+						}
+						_, ok := dp.Attributes().Get("ptp.grandmaster.identity")
+						assert.False(t, ok)
+					}
 				case "ptp.grandmaster.present":
 					assert.False(t, validatedMetrics["ptp.grandmaster.present"], "Found a duplicate in the metrics slice: ptp.grandmaster.present")
 					validatedMetrics["ptp.grandmaster.present"] = true
@@ -127,6 +246,63 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, ts, dp.Timestamp())
 					assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
 					assert.Equal(t, int64(1), dp.IntValue())
+				case "ptp.path.delay":
+					assert.False(t, validatedMetrics["ptp.path.delay"], "Found a duplicate in the metrics slice: ptp.path.delay")
+					validatedMetrics["ptp.path.delay"] = true
+					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+					assert.Equal(t, "Mean path delay to the PTP grandmaster.", mi.Description())
+					assert.Equal(t, "ns", mi.Unit())
+					dp := mi.Gauge().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
+				case "ptp.port.state":
+					if tt.name != "reaggregate_set" {
+						assert.False(t, validatedMetrics["ptp.port.state"], "Found a duplicate in the metrics slice: ptp.port.state")
+						validatedMetrics["ptp.port.state"] = true
+						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, "State of each local PTP port (1 for the reported state).", mi.Description())
+						assert.Equal(t, "1", mi.Unit())
+						dp := mi.Gauge().DataPoints().At(0)
+						assert.Equal(t, start, dp.StartTimestamp())
+						assert.Equal(t, ts, dp.Timestamp())
+						assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+						assert.Equal(t, int64(1), dp.IntValue())
+						ptpPortIdentityAttrVal, ok := dp.Attributes().Get("ptp.port.identity")
+						assert.True(t, ok)
+						assert.Equal(t, "ptp.port.identity-val", ptpPortIdentityAttrVal.Str())
+						ptpPortStateAttrVal, ok := dp.Attributes().Get("ptp.port.state")
+						assert.True(t, ok)
+						assert.Equal(t, "ptp.port.state-val", ptpPortStateAttrVal.Str())
+					} else {
+						assert.False(t, validatedMetrics["ptp.port.state"], "Found a duplicate in the metrics slice: ptp.port.state")
+						validatedMetrics["ptp.port.state"] = true
+						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
+						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, "State of each local PTP port (1 for the reported state).", mi.Description())
+						assert.Equal(t, "1", mi.Unit())
+						dp := mi.Gauge().DataPoints().At(0)
+						assert.Equal(t, start, dp.StartTimestamp())
+						assert.Equal(t, ts, dp.Timestamp())
+						assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+						switch aggMap["ptp.port.state"] {
+						case "sum":
+							assert.Equal(t, int64(4), dp.IntValue())
+						case "avg":
+							assert.Equal(t, int64(2), dp.IntValue())
+						case "min":
+							assert.Equal(t, int64(1), dp.IntValue())
+						case "max":
+							assert.Equal(t, int64(3), dp.IntValue())
+						}
+						_, ok := dp.Attributes().Get("ptp.port.identity")
+						assert.False(t, ok)
+						_, ok = dp.Attributes().Get("ptp.port.state")
+						assert.False(t, ok)
+					}
 				}
 			}
 		})

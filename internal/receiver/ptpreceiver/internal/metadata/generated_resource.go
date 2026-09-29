@@ -21,6 +21,13 @@ func NewResourceBuilder(rac ResourceAttributesConfig) *ResourceBuilder {
 	}
 }
 
+// SetPtpClockType sets provided value as "ptp.clock.type" attribute.
+func (rb *ResourceBuilder) SetPtpClockType(val string) {
+	if rb.config.PtpClockType.Enabled {
+		rb.res.Attributes().PutStr("ptp.clock.type", val)
+	}
+}
+
 // SetPtpSocketPath sets provided value as "ptp.socket_path" attribute.
 func (rb *ResourceBuilder) SetPtpSocketPath(val string) {
 	if rb.config.PtpSocketPath.Enabled {

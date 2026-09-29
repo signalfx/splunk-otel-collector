@@ -26,20 +26,21 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.161.0
 	github.com/openconfig/gnmi v0.14.1
+	github.com/openconfig/goyang v1.6.3
 	github.com/openconfig/ygot v0.35.0
 	github.com/prometheus/client_golang v1.24.1
 	github.com/prometheus/client_model v0.6.3
 	github.com/prometheus/common v0.71.0
 	github.com/prometheus/prometheus v0.314.0
 	github.com/shirou/gopsutil/v4 v4.26.8
-	github.com/signalfx/splunk-otel-collector/baseline v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.160.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.160.0
+	github.com/signalfx/splunk-otel-collector/baseline v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.161.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.161.0
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
@@ -431,7 +432,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.161.0 // indirect
-	github.com/openconfig/goyang v1.6.3 // indirect
 	github.com/opencontainers/cgroups v0.0.6 // indirect
 	github.com/opencontainers/runtime-spec v1.3.0 // indirect
 	github.com/oracle/oci-go-sdk/v65 v65.121.1 // indirect
@@ -470,11 +470,11 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
 	github.com/signalfx/golib/v3 v3.5.0 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
-	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.0.0-00010101000000-000000000000 // indirect
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.161.0 // indirect
 	github.com/snowflakedb/gosnowflake/v2 v2.2.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
-	github.com/spiffe/go-spiffe/v2 v2.7.0 // indirect
+	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.26.0 // indirect
 	github.com/tg123/go-htpasswd v1.2.5 // indirect
 	github.com/thda/tds v0.1.7 // indirect
@@ -708,7 +708,7 @@ require (
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
-	github.com/magiconair/properties v1.18.11
+	github.com/magiconair/properties v1.18.12
 	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
@@ -801,7 +801,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.297.0 // indirect
-	google.golang.org/grpc v1.83.2
+	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect

@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.161.0
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component v1.67.0
 	go.opentelemetry.io/collector/consumer v1.67.0

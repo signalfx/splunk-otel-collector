@@ -137,7 +137,6 @@ import (
 	tlscheckreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver"
 	udplogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver"
 	vcenterreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver"
-	wavefrontreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
 	windowseventlogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	windowsperfcountersreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	windowsservicereceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver"
@@ -252,7 +251,6 @@ func NewBaseline() *Baseline {
 			tlscheckreceiver.NewFactory(),
 			udplogreceiver.NewFactory(),
 			vcenterreceiver.NewFactory(),
-			wavefrontreceiver.NewFactory(),
 			windowseventlogreceiver.NewFactory(),
 			windowsperfcountersreceiver.NewFactory(),
 			windowsservicereceiver.NewFactory(),

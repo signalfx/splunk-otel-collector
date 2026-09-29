@@ -67,6 +67,7 @@ import (
 	redactionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor"
 	resourcedetectionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
 	resourceprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
+	rollingspanlatencyprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/rollingspanlatencyprocessor"
 	spanprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	tailsamplingprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	transformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
@@ -276,6 +277,7 @@ func NewBaseline() *Baseline {
 			redactionprocessor.NewFactory(),
 			resourcedetectionprocessor.NewFactory(),
 			resourceprocessor.NewFactory(),
+			rollingspanlatencyprocessor.NewFactory(),
 			spanprocessor.NewFactory(),
 			tailsamplingprocessor.NewFactory(),
 			transformprocessor.NewFactory(),

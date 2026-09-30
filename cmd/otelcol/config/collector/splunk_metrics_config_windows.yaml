@@ -3,7 +3,7 @@ receivers:
     collection_interval: 10s
     perfcounters:
       - object: Processor
-        instances: ["*"]
+        instances: ["*", "_Total"]
         counters:
           - name: "% Processor Time"
           - name: "% User Time"
@@ -24,7 +24,7 @@ receivers:
     collection_interval: 10s
     perfcounters:
       - object: Processor Information
-        instances: ["*"]
+        instances: ["*", "_Total"]
         counters:
           - name: "% Processor Time"
           - name: "Processor Frequency"
@@ -32,7 +32,7 @@ receivers:
     collection_interval: 10s
     perfcounters:
       - object: LogicalDisk
-        instances: ["*"]
+        instances: ["*", "_Total"]
         counters:
           - name: "% Free Space"
           - name: "Free Megabytes"
@@ -57,7 +57,7 @@ receivers:
     collection_interval: 10s
     perfcounters:
       - object: PhysicalDisk
-        instances: ["*"]
+        instances: ["*", "_Total"]
         counters:
           - name: "Current Disk Queue Length"
           - name: "% Disk Time"
@@ -90,7 +90,7 @@ receivers:
     collection_interval: 10s
     perfcounters:
       - object: Network Interface
-        instances: ["*"]
+        instances: ["*", "_Total"]
         counters:
           - name: "Bytes Total/sec"
           - name: "Packets/sec"
@@ -108,7 +108,7 @@ receivers:
     collection_interval: 10s
     perfcounters:
       - object: Process
-        instances: ["*"]
+        instances: ["*", "_Total"]
         counters:
           - name: "% Processor Time"
           - name: "% User Time"
@@ -140,7 +140,7 @@ receivers:
     collection_interval: 30s
     perfcounters:
       - object: DFS Replicated Folders
-        instances: ["*"]
+        instances: ["*", "_Total"]
         counters:
           - name: "Bandwidth Savings Using DFS Replication"
           - name: "RDC Bytes Received"

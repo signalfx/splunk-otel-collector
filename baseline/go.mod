@@ -116,7 +116,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.161.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver v0.161.0

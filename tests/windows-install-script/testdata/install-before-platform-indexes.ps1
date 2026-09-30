@@ -673,7 +673,7 @@ if ($with_dotnet_instrumentation) {
     }
 
     # If the variable dotnet_auto_zip_path is an empty string, then the Installer will download the .NET Instrumentation from the default repository.
-    Install-OpenTelemetryCore -LocalPath $dotnet_auto_zip_path
+    Install-OpenTelemetryCore -LocalPath $dotnet_auto_zip_path -SkipReleaseVerification
 
     $installed_version = Get-OpenTelemetryInstallVersion
     if ($otel_resource_attributes -ne "") {

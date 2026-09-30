@@ -396,9 +396,9 @@ compile:
       - bin/opampsupervisor_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.26:5.9.0'
   extends:
     - .trigger-filter
+    - .go-cache
   needs:
     - job: manual_release_trigger
       optional: true

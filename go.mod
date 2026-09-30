@@ -301,6 +301,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.161.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckv2extension v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/basicauth v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/credentialsfile v0.161.0 // indirect

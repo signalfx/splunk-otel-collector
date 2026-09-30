@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import os
 import re
 import time
@@ -32,14 +33,12 @@ from tests.helpers.util import (
     TESTS_DIR,
 )
 
-from tests.instrumentation.instrumentation_test import (
-    IMAGES_DIR as INSTR_IMAGES_DIR,
-    DEB_DISTROS as INSTR_DEB_DISTROS,
-    RPM_DISTROS as INSTR_RPM_DISTROS,
-)
-
 
 CUSTOM_COLLECTOR_CONFIG = TESTS_DIR / "custom-config.yaml"
+
+INSTR_IMAGES_DIR = TESTS_DIR / "instrumentation" / "images"
+INSTR_DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(INSTR_IMAGES_DIR / "deb" / "Dockerfile.*"))]
+INSTR_RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(INSTR_IMAGES_DIR / "rpm" / "Dockerfile.*"))]
 INSTALLER_PATH = REPO_DIR / "packaging" / "installer" / "install.sh"
 
 # Override default test parameters with the following env vars

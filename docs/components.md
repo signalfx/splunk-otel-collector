@@ -127,6 +127,7 @@ The distribution offers support for the following components.
 
 | Exporters                                                                                                                                   | Stability    |
 |:--------------------------------------------------------------------------------------------------------------------------------------------|:-------------|
+| [awskinesis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awskinesisexporter)                       | [beta]       |
 | [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                                 | [alpha]      |
 | [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                                         | [alpha]      |
 | [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                                   | [alpha]      |

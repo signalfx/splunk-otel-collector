@@ -147,6 +147,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.96.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.56.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.56.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/kinesis v1.53.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.58.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/rds v1.123.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.48.0 // indirect
@@ -286,6 +287,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector v0.161.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.161.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter v0.161.0 // indirect

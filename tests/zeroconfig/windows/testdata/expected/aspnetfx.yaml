@@ -3,19 +3,34 @@ resourceSpans:
         attributes:
             - key: splunk.distro.version
               value:
-                stringValue: 1.13.0
+                stringValue: 1.16.0
             - key: telemetry.distro.name
               value:
                 stringValue: splunk-otel-dotnet
             - key: telemetry.distro.version
               value:
-                stringValue: 1.13.0
+                stringValue: 1.16.0
             - key: service.instance.id
               value:
-                stringValue: 525112ac-f61a-4bea-910c-0df609750c2d
+                stringValue: a904fb0c-3268-4dfb-8699-99f181ad69c7
             - key: service.name
               value:
                 stringValue: Default Web Site/aspnetfxapp
+            - key: telemetry.sdk.name
+              value:
+                stringValue: opentelemetry
+            - key: telemetry.sdk.language
+              value:
+                stringValue: dotnet
+            - key: telemetry.sdk.version
+              value:
+                stringValue: 1.19.1
+            - key: deployment.environment.name
+              value:
+                stringValue: zc-iis-test
+            - key: splunk.zc.method
+              value:
+                stringValue: splunk-otel-dotnet-v1.16.0
             - key: os.type
               value:
                 stringValue: windows
@@ -33,7 +48,7 @@ resourceSpans:
                 stringValue: "6.3"
             - key: host.name
               value:
-                stringValue: E65BF9CE4111
+                stringValue: 1448A0A5E570
             - key: host.id
               value:
                 stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
@@ -42,10 +57,10 @@ resourceSpans:
                 stringValue: DefaultAppPool
             - key: process.pid
               value:
-                intValue: "2068"
+                intValue: "1864"
             - key: process.creation.time
               value:
-                stringValue: "2026-07-21T21:16:01.0143557+00:00"
+                stringValue: "2026-09-28T18:17:04.7813388Z"
             - key: process.runtime.description
               value:
                 stringValue: .NET Framework 4.8.4775.0
@@ -55,26 +70,12 @@ resourceSpans:
             - key: process.runtime.version
               value:
                 stringValue: "4.8"
-            - key: telemetry.sdk.name
-              value:
-                stringValue: opentelemetry
-            - key: telemetry.sdk.language
-              value:
-                stringValue: dotnet
-            - key: telemetry.sdk.version
-              value:
-                stringValue: 1.15.0
-            - key: deployment.environment.name
-              value:
-                stringValue: zc-iis-test
-            - key: splunk.zc.method
-              value:
-                stringValue: splunk-otel-dotnet-v1.14.1
+      schemaUrl: https://opentelemetry.io/schemas/1.44.0
       scopeSpans:
         - schemaUrl: https://opentelemetry.io/schemas/1.36.0
           scope:
             name: OpenTelemetry.Instrumentation.AspNet
-            version: 1.15.1
+            version: 1.19.0
           spans:
             - attributes:
                 - key: http.request.method
@@ -104,11 +105,11 @@ resourceSpans:
                 - key: http.route
                   value:
                     stringValue: api/values/{id}
-              endTimeUnixNano: "1770742249883843400"
+              endTimeUnixNano: "1790619437969278300"
               flags: 257
               kind: 2
               name: GET api/values/{id}
-              spanId: febf6af96f4c0f01
-              startTimeUnixNano: "1770742249881517100"
+              spanId: 5993d5279c080ca6
+              startTimeUnixNano: "1790619437482853300"
               status: {}
-              traceId: 2bf4112d565cc5ab339fe8e499a00c9e
+              traceId: f73318c257ecf7339d807e0180f21053

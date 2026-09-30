@@ -195,6 +195,7 @@ func TestDefaultComponents(t *testing.T) {
 		"resourcedetection": "resource_detection",
 	}
 	expectedExporters := []string{
+		"awskinesis",
 		"awss3",
 		"debug",
 		"file",

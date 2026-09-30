@@ -28,6 +28,7 @@ import (
 	routingconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	spanmetricsconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	sumconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector"
+	awskinesisexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter"
 	awss3exporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter"
 	fileexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	googlecloudstorageexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter"
@@ -279,6 +280,7 @@ func NewBaseline() *Baseline {
 			transformprocessor.NewFactory(),
 		},
 		exporters: []exporter.Factory{
+			awskinesisexporter.NewFactory(),
 			awss3exporter.NewFactory(),
 			debugexporter.NewFactory(),
 			fileexporter.NewFactory(),

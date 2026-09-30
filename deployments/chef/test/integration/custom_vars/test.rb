@@ -73,9 +73,9 @@ else
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
     its('content') { should match /^SPLUNK_OPAMP_SUPERVISOR_ENABLED=true$/ }
     its('content') do
-      should match /^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s --config \/etc\/otel\/collector\/splunk_logs_config_linux.yaml$/
+      should match %r{^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml$}
     end
-    its('content') { should match /^SPLUNK_PLATFORM_URL=https:\/\/fake-splunk-platform.example.com:8088\/services\/collector$/ }
+    its('content') { should match %r{^SPLUNK_PLATFORM_URL=https://fake-splunk-platform.example.com:8088/services/collector$} }
     its('content') { should match /^SPLUNK_PLATFORM_TOKEN=fake-platform-token$/ }
     its('content') { should match /^SPLUNK_MEMORY_LIMIT_MIB=230$/ }
     its('content') { should_not match /^SPLUNK_PLATFORM_LOGS_INDEX=/ }

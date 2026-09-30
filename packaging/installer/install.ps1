@@ -567,37 +567,17 @@ if ($uninstall_collector) {
 $tempdir = create_temp_dir -tempdir $tempdir
 
 if ($with_dotnet_instrumentation) {
-    $dotnet_instrumentation_version = ""
-    if ($dotnet_auto_zip_path -match 'splunk-otel-dotnet-(?<version>\d+\.\d+\.\d+)(?:-[^-]+)?\.zip$') {
-        $dotnet_instrumentation_version = $Matches.version
-    }
     if ((is_msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (is_msi_installed -name "SignalFx .NET Tracing 32-bit")) {
         throw "SignalFx .NET Instrumentation is already installed. Stop all instrumented applications and uninstall SignalFx Instrumentation for .NET before running this script again."
     }
     echo "Downloading Splunk Distribution of OpenTelemetry .NET ..."
     if ($dotnet_psm1_path -eq "") {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        if ($dotnet_instrumentation_version -eq "") {
-            try {
-                $latest_dotnet_release = Invoke-RestMethod -Uri "https://api.github.com/repos/signalfx/splunk-otel-dotnet/releases/latest"
-                if ($latest_dotnet_release.tag_name -match '^v?(?<version>\d+\.\d+\.\d+)$') {
-                    $dotnet_instrumentation_version = $Matches.version
-                }
-            }
-            catch {
-                $err = $_.Exception.Message
-                $message = "
-                An error occurred when trying to determine the latest Splunk .NET Instrumentation version. This may be due to a network connectivity issue.
-                $err
-                "
-                throw "$message"
-            }
-        }
         $module_name = "Splunk.OTel.DotNet.psm1"
-        $download = "https://github.com/signalfx/splunk-otel-dotnet/releases/download/v$dotnet_instrumentation_version/$module_name"
+        $download = "https://github.com/signalfx/splunk-otel-dotnet/releases/latest/download/$module_name"
         $dotnet_autoinstr_path = Join-Path $tempdir $module_name
         echo "Downloading .NET Instrumentation installer ..."
         try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
         }
         catch {
@@ -752,7 +732,7 @@ if ($with_dotnet_instrumentation) {
 
     # If the variable dotnet_auto_zip_path is an empty string, then the Installer will download the .NET Instrumentation from the default repository.
     $installArguments = @{ LocalPath = $dotnet_auto_zip_path }
-    if ($dotnet_instrumentation_version -and ([version]$dotnet_instrumentation_version -ge [version]"1.16.0")) {
+    if ((Get-Command Install-OpenTelemetryCore).Parameters.ContainsKey('SkipReleaseVerification')) {
         $installArguments.SkipReleaseVerification = $true
     }
     Install-OpenTelemetryCore @installArguments

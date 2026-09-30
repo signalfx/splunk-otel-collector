@@ -361,11 +361,14 @@ splunk-otel-collector:
   splunk_service_user: 'test-user'
   splunk_service_group: 'test-user'
   splunk_listen_interface: '0.0.0.0'
-  splunk_otel_collector_command_line_args: '--discovery --set=processors.batch.timeout=10s'
+  splunk_otel_collector_command_line_args: '--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml'
   collector_additional_env_vars:
     MY_CUSTOM_VAR1: value1
     MY_CUSTOM_VAR2: value2
     SPLUNK_OPAMP_SUPERVISOR_ENABLED: 'true'
+    SPLUNK_PLATFORM_URL: 'https://fake-splunk-platform.example.com:8088/services/collector'
+    SPLUNK_PLATFORM_TOKEN: 'fake-platform-token'
+    SPLUNK_MEMORY_LIMIT_MIB: '460'
   """
 
 
@@ -400,11 +403,15 @@ def test_salt_custom(distro):
                 ingest_url="https://fake-ingest.com",
                 hec_token="fake-hec-token",
                 listen_interface="0.0.0.0",
-                command_line_args="--discovery --set=processors.batch.timeout=10s"
+                command_line_args="--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml"
             )
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "true")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_URL", "https://fake-splunk-platform.example.com:8088/services/collector")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_TOKEN", "fake-platform-token")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_MEMORY_LIMIT_MIB", "460")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_LOGS_INDEX", exists=False)
             assert wait_for(lambda: service_is_running(container, service_owner="test-user"))
             assert wait_for(lambda: service_is_running(
                 container,

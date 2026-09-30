@@ -36,6 +36,28 @@ splunk-otel-collector:
   splunk_service_group: splunk-otel-collector
 ```
 
+### Send Linux host logs to Splunk Platform
+
+The Linux package includes a Splunk Platform logs configuration. Add it to the
+collector's service arguments to run the logs pipeline alongside the main
+collector configuration, and provide its HEC settings as additional
+environment variables in pillar:
+
+```yaml
+splunk-otel-collector:
+  splunk_otel_collector_command_line_args: "--config /etc/otel/collector/splunk_logs_config_linux.yaml"
+  collector_additional_env_vars:
+    SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
+    SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+    SPLUNK_PLATFORM_LOGS_INDEX: "<your-index>"
+    SPLUNK_MEMORY_LIMIT_MIB: "460"
+```
+
+Set the HEC URL, token, and index for your Splunk Platform instance. The
+example memory limit is 90% of the default 512 MiB collector allocation; adjust
+it when changing `splunk_memory_total_mib`. Store the token in encrypted pillar
+or another secrets manager. This example applies to Linux minions.
+
 ## This Salt Formula accepts the following attributes:
 
 ### Collector

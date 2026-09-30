@@ -287,11 +287,14 @@ class {{ splunk_otel_collector:
     splunk_hec_token => 'fake-hec-token',
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
-    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml',
     collector_additional_env_vars => {{
       'MY_CUSTOM_VAR1' => 'value1',
       'MY_CUSTOM_VAR2' => 'value2',
       'SPLUNK_OPAMP_SUPERVISOR_ENABLED' => 'true',
+      'SPLUNK_PLATFORM_URL' => 'https://fake-splunk-platform.example.com:8088/services/collector',
+      'SPLUNK_PLATFORM_TOKEN' => 'fake-platform-token',
+      'SPLUNK_MEMORY_LIMIT_MIB' => '460',
     }},
     service_user => '{CUSTOM_SERVICE_OWNER}',
     service_group => '{CUSTOM_SERVICE_GROUP}',
@@ -327,10 +330,14 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_package_version(container, "splunk-otel-collector", COLLECTOR_VERSION)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
-            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
+            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "true")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_URL", "https://fake-splunk-platform.example.com:8088/services/collector")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_TOKEN", "fake-platform-token")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_MEMORY_LIMIT_MIB", "460")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_LOGS_INDEX", exists=False)
             assert wait_for(lambda: service_is_running(container, service_owner=CUSTOM_SERVICE_OWNER))
             assert wait_for(lambda: service_is_running(
                 container,

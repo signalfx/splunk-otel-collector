@@ -57,9 +57,45 @@
 
     - name: Assert OTELCOL_OPTIONS env var is set per splunk_otel_collector_command_line_args
       ansible.builtin.lineinfile:
-        line: OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s
+        line: OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Splunk Platform logs URL is configured
+      ansible.builtin.lineinfile:
+        line: SPLUNK_PLATFORM_URL=https://fake-splunk-platform.example.com:8088/services/collector
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Splunk Platform logs token is configured
+      ansible.builtin.lineinfile:
+        line: SPLUNK_PLATFORM_TOKEN=fake-platform-token
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Splunk Platform logs memory limit is configured
+      ansible.builtin.lineinfile:
+        line: SPLUNK_MEMORY_LIMIT_MIB=230
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Splunk Platform logs index is omitted
+      ansible.builtin.lineinfile:
+        regexp: '^SPLUNK_PLATFORM_LOGS_INDEX='
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: absent
       check_mode: yes
       register: config
       failed_when: config is changed

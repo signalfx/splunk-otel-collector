@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkhome
+package splunkconf
 
 import (
 	"crypto/sha256"
@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkhecout"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkmonitor"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkhecout"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkmonitor"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 )
 

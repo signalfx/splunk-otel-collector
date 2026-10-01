@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkhome
+package splunkconf
 
 import "github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 
@@ -36,8 +36,8 @@ type Option func(*registry)
 // to wire an additional UF-ported exporter, such as the S2S exporter from the
 // private data-runtimes repo:
 //
-//	splunkhome.NewFactory(
-//		splunkhome.WithOutputMapper(dataruntimes.S2SOutputMapper{}),
+//	splunkconf.NewFactory(
+//		splunkconf.WithOutputMapper(dataruntimes.S2SOutputMapper{}),
 //	)
 func WithOutputMapper(f OutputMapperFactory) Option {
 	return func(r *registry) {

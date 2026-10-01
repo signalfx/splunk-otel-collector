@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkbatch
+package splunkscript
 
 import (
 	"context"
@@ -14,28 +14,33 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
-const TypeStr = "splunk_batch"
+const TypeStr = "splunk_script"
 
-// Config is the UF-native, confmap-serializable batch receiver config.
+// Config is the UF-native, confmap-serializable script receiver config.
 // Unknown stanza params are captured in Extra and passed to tabuilder for fidelity.
 type Config struct {
-	FilePath   string            `mapstructure:"file_path"`
-	Index      string            `mapstructure:"index"`
-	Source     string            `mapstructure:"source"`
-	Sourcetype string            `mapstructure:"sourcetype"`
-	Host       string            `mapstructure:"host"`
-	Props         []conf.Prop       `mapstructure:"props"`
-	Transforms    []conf.Transform  `mapstructure:"transforms"`
-	Extra      map[string]string `mapstructure:",remain"`
+	ScriptFilename string            `mapstructure:"script_filename"`
+	Interval       string            `mapstructure:"interval"`
+	Index          string            `mapstructure:"index"`
+	Source         string            `mapstructure:"source"`
+	Sourcetype     string            `mapstructure:"sourcetype"`
+	Host           string            `mapstructure:"host"`
+	Props          []conf.Prop       `mapstructure:"props"`
+	Transforms     []conf.Transform  `mapstructure:"transforms"`
+	Extra          map[string]string `mapstructure:",remain"`
 }
 
-type splunkBatch struct{}
+type splunkScript struct{}
 
-func (splunkBatch) CreateDefaultConfig() component.Config { return &Config{} }
+func (splunkScript) CreateDefaultConfig() component.Config { return &Config{} }
 
-func (splunkBatch) CreateLogs(ctx context.Context, set receiver.Settings, cfg component.Config, nextConsumer consumer.Logs) (receiver.Logs, error) {
+func (splunkScript) CreateLogs(ctx context.Context, set receiver.Settings, cfg component.Config, nextConsumer consumer.Logs) (receiver.Logs, error) {
 	c := cfg.(*Config)
+	stanzaName := "script://" + c.ScriptFilename
 	params := []conf.Param{}
+	if c.Interval != "" {
+		params = append(params, conf.Param{Name: "interval", Value: c.Interval})
+	}
 	for k, v := range map[string]string{
 		"index":      c.Index,
 		"source":     c.Source,
@@ -53,7 +58,7 @@ func (splunkBatch) CreateLogs(ctx context.Context, set receiver.Settings, cfg co
 	input := conf.Input{
 		Configuration: conf.Configuration{
 			Stanza: conf.Stanza{
-				Name:   "batch://" + c.FilePath,
+				Name:   stanzaName,
 				Params: params,
 			},
 		},
@@ -65,6 +70,6 @@ func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		component.MustNewType(TypeStr),
 		func() component.Config { return &Config{} },
-		receiver.WithLogs(splunkBatch{}.CreateLogs, component.StabilityLevelAlpha),
+		receiver.WithLogs(splunkScript{}.CreateLogs, component.StabilityLevelAlpha),
 	)
 }

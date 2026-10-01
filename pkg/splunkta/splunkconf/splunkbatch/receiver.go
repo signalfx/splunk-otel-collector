@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkwineventlog
+package splunkbatch
 
 import (
 	"context"
@@ -14,26 +14,26 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
-const TypeStr = "splunk_wineventlog"
+const TypeStr = "splunk_batch"
 
-// Config is the UF-native, confmap-serializable wineventlog receiver config.
+// Config is the UF-native, confmap-serializable batch receiver config.
 // Unknown stanza params are captured in Extra and passed to tabuilder for fidelity.
 type Config struct {
-	EventLogName string            `mapstructure:"event_log_name"`
-	Index        string            `mapstructure:"index"`
-	Source       string            `mapstructure:"source"`
-	Sourcetype   string            `mapstructure:"sourcetype"`
-	Host         string            `mapstructure:"host"`
-	Props         []conf.Prop       `mapstructure:"props"`
-	Transforms    []conf.Transform  `mapstructure:"transforms"`
-	Extra        map[string]string `mapstructure:",remain"`
+	FilePath   string            `mapstructure:"file_path"`
+	Index      string            `mapstructure:"index"`
+	Source     string            `mapstructure:"source"`
+	Sourcetype string            `mapstructure:"sourcetype"`
+	Host       string            `mapstructure:"host"`
+	Props      []conf.Prop       `mapstructure:"props"`
+	Transforms []conf.Transform  `mapstructure:"transforms"`
+	Extra      map[string]string `mapstructure:",remain"`
 }
 
-type splunkWineventlog struct{}
+type splunkBatch struct{}
 
-func (splunkWineventlog) CreateDefaultConfig() component.Config { return &Config{} }
+func (splunkBatch) CreateDefaultConfig() component.Config { return &Config{} }
 
-func (splunkWineventlog) CreateLogs(ctx context.Context, set receiver.Settings, cfg component.Config, nextConsumer consumer.Logs) (receiver.Logs, error) {
+func (splunkBatch) CreateLogs(ctx context.Context, set receiver.Settings, cfg component.Config, nextConsumer consumer.Logs) (receiver.Logs, error) {
 	c := cfg.(*Config)
 	params := []conf.Param{}
 	for k, v := range map[string]string{
@@ -53,7 +53,7 @@ func (splunkWineventlog) CreateLogs(ctx context.Context, set receiver.Settings, 
 	input := conf.Input{
 		Configuration: conf.Configuration{
 			Stanza: conf.Stanza{
-				Name:   "wineventlog://" + c.EventLogName,
+				Name:   "batch://" + c.FilePath,
 				Params: params,
 			},
 		},
@@ -65,6 +65,6 @@ func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		component.MustNewType(TypeStr),
 		func() component.Config { return &Config{} },
-		receiver.WithLogs(splunkWineventlog{}.CreateLogs, component.StabilityLevelAlpha),
+		receiver.WithLogs(splunkBatch{}.CreateLogs, component.StabilityLevelAlpha),
 	)
 }

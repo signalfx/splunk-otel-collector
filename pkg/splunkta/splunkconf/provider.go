@@ -1,17 +1,24 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-// Package splunkhome is a confmap.Provider that reads a Splunk $SPLUNK_HOME
-// .conf tree and emits an in-memory pipeline (default name logs/uf) built from
-// the input and output stanzas. It is Retrieve-only: it does not watch files.
-// Reload rides the collector's existing trigger (SIGHUP or an OpAMP-pushed
-// config), consistent with UF's pull/triggered model.
+// Package splunkconf is a confmap.Provider that reads a Splunk .conf tree and
+// emits an in-memory pipeline (default name logs/uf) built from the input and
+// output stanzas. It is Retrieve-only: it does not watch files. Reload rides the
+// collector's existing trigger (SIGHUP or an OpAMP-pushed config), consistent
+// with UF's pull/triggered model.
 //
-// URI form: splunkhome://<SPLUNK_HOME>?pipeline=<name>
+// URI form: splunkconf://<config-root>?pipeline=<name>
+//
+// The config root is the directory holding system/ and apps/*/, read verbatim.
+// The provider knows nothing about $SPLUNK_HOME, $SPLUNK_ETC, or any install
+// layout: the caller resolves those and passes a plain path, so the same URI
+// always resolves the same way regardless of ambient env, and a relocated tree
+// needs no special handling (splunkconf:///etc/splunk-config).
+//
 // The pipeline (default "uf") names the emitted pipeline (logs/<pipeline>).
 // Enable/disable of the whole pipeline is done at the launch level by including
-// or omitting the --config=splunkhome://... argument.
-package splunkhome
+// or omitting the --config=splunkconf://... argument.
+package splunkconf
 
 import (
 	"context"
@@ -25,7 +32,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
-const schemeName = "splunkhome"
+const schemeName = "splunkconf"
 
 // pipelineRegexp restricts the pipeline name to a safe component-name segment.
 var pipelineRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
@@ -34,7 +41,7 @@ type provider struct {
 	reg *registry
 }
 
-// NewFactory returns a confmap.ProviderFactory for the splunkhome scheme.
+// NewFactory returns a confmap.ProviderFactory for the splunkconf scheme.
 // Options register additional UF-ported components (e.g. an S2S exporter via
 // WithOutputMapper) on top of the built-in mappers. With no options it emits
 // only the built-ins (wrapper receivers + splunk_hecout), so existing callers
@@ -57,51 +64,51 @@ func (*provider) Shutdown(context.Context) error { return nil }
 // The watcher is intentionally ignored (Retrieve-only), matching the built-in
 // file provider.
 func (p *provider) Retrieve(_ context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
-	splunkHome, pipeline, err := parseURI(uri)
+	confRoot, pipeline, err := parseURI(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	frag, err := p.build(splunkHome, pipeline)
+	frag, err := p.build(confRoot, pipeline)
 	if err != nil {
 		return nil, err
 	}
 	return confmap.NewRetrieved(frag)
 }
 
-func parseURI(uri string) (splunkHome, pipeline string, err error) {
+func parseURI(uri string) (confRoot, pipeline string, err error) {
 	u, err := url.Parse(uri)
 	if err != nil {
-		return "", "", fmt.Errorf("splunkhome: invalid uri %q: %w", uri, err)
+		return "", "", fmt.Errorf("splunkconf: invalid uri %q: %w", uri, err)
 	}
 	if u.Scheme != schemeName {
-		return "", "", fmt.Errorf("splunkhome: unexpected scheme %q", u.Scheme)
+		return "", "", fmt.Errorf("splunkconf: unexpected scheme %q", u.Scheme)
 	}
-	// SPLUNK_HOME is the opaque path: host + path (splunkhome:///opt/splunk ->
-	// host="", path="/opt/splunk"; splunkhome://opt/splunk -> host="opt").
-	splunkHome = u.Host + u.Path
-	if splunkHome == "" {
-		return "", "", fmt.Errorf("splunkhome: empty SPLUNK_HOME in uri %q", uri)
+	// The config root is the opaque path: host + path (splunkconf:///opt/splunk/etc
+	// -> host="", path="/opt/splunk/etc"; splunkconf://etc -> host="etc").
+	confRoot = u.Host + u.Path
+	if confRoot == "" {
+		return "", "", fmt.Errorf("splunkconf: empty config root in uri %q", uri)
 	}
 	pipeline = u.Query().Get("pipeline")
 	if pipeline == "" {
 		pipeline = "uf"
 	}
 	if !pipelineRegexp.MatchString(pipeline) {
-		return "", "", fmt.Errorf("splunkhome: invalid pipeline %q (must match %s)", pipeline, pipelineRegexp.String())
+		return "", "", fmt.Errorf("splunkconf: invalid pipeline %q (must match %s)", pipeline, pipelineRegexp.String())
 	}
-	return splunkHome, pipeline, nil
+	return confRoot, pipeline, nil
 }
 
 // build reads inputs.conf, outputs.conf, props.conf, and transforms.conf across the Splunk
 // conf search path and assembles the confmap fragment with all receiver configs wired with
 // props and transforms.
-func (p *provider) build(splunkHome, pipeline string) (map[string]any, error) {
-	dirs := tabuilder.ConfDirs(splunkHome)
+func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
+	dirs := tabuilder.ConfRootDirs(confRoot)
 
 	inputs, err := tabuilder.ReadInputs(dirs)
 	if err != nil {
-		return nil, fmt.Errorf("splunkhome: read inputs.conf: %w", err)
+		return nil, fmt.Errorf("splunkconf: read inputs.conf: %w", err)
 	}
 
 	// The full merged props/transforms set is attached to every emitted
@@ -109,11 +116,11 @@ func (p *provider) build(splunkHome, pipeline string) (map[string]any, error) {
 	// sub-receiver. Per-source matching stays receiver-internal.
 	props, err := tabuilder.ReadProps(dirs)
 	if err != nil {
-		return nil, fmt.Errorf("splunkhome: read props.conf: %w", err)
+		return nil, fmt.Errorf("splunkconf: read props.conf: %w", err)
 	}
 	transforms, err := tabuilder.ReadTransforms(dirs)
 	if err != nil {
-		return nil, fmt.Errorf("splunkhome: read transforms.conf: %w", err)
+		return nil, fmt.Errorf("splunkconf: read transforms.conf: %w", err)
 	}
 
 	recvs, skipped, err := mapInputs(inputs, props, transforms)
@@ -121,19 +128,19 @@ func (p *provider) build(splunkHome, pipeline string) (map[string]any, error) {
 		return nil, err
 	}
 	if len(recvs) == 0 {
-		return nil, fmt.Errorf("splunkhome: no supported input stanzas found under %s (skipped: %v)", splunkHome, skipped)
+		return nil, fmt.Errorf("splunkconf: no supported input stanzas found under %s (skipped: %v)", confRoot, skipped)
 	}
 
-	merged, err := tabuilder.ReadOutputs(splunkHome)
+	merged, err := tabuilder.ReadOutputsFromDirs(dirs)
 	if err != nil {
-		return nil, fmt.Errorf("splunkhome: read outputs.conf: %w", err)
+		return nil, fmt.Errorf("splunkconf: read outputs.conf: %w", err)
 	}
 	// No exporter is hardcoded: mapOutputs emits one exporter per output stanza
 	// it recognizes and fails with a specific error for an unsupported stanza
 	// kind or an outputs.conf with no output stanzas at all.
 	exps, err := mapOutputs(p.reg.outputs, merged)
 	if err != nil {
-		return nil, fmt.Errorf("splunkhome: outputs.conf under %s: %w", splunkHome, err)
+		return nil, fmt.Errorf("splunkconf: outputs.conf under %s: %w", confRoot, err)
 	}
 
 	receivers := map[string]any{}

@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkhome
+package splunkconf
 
 import (
 	"context"
@@ -18,12 +18,12 @@ import (
 	"go.opentelemetry.io/collector/receiver/receivertest"
 	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkbatch"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkhecout"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkmonitor"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkscript"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunktcp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkudp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkbatch"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkhecout"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkmonitor"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkscript"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunktcp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkudp"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
@@ -33,11 +33,11 @@ var (
 
 const (
 	baseURI   = "file:testdata/base.yaml"
-	splunkURI = "splunkhome://testdata/splunkhome?pipeline=uf"
+	splunkURI = "splunkconf://testdata/etc?pipeline=uf"
 )
 
 // TestResolveAndValidate proves the locked design on the real collector API:
-// merging --config=base.yaml with --config=dotconf://testdata produces a
+// merging --config=base.yaml with --config=splunkconf://testdata/etc produces a
 // logs/uf pipeline whose emitted UF-native receiver configs and splunk_hecout
 // exporter config unmarshal, validate, and build via their real factories.
 func TestResolveAndValidate(t *testing.T) {
@@ -53,14 +53,14 @@ func TestResolveAndValidate(t *testing.T) {
 	require.NoError(t, err)
 
 	merged, err := res.Resolve(ctx)
-	require.NoError(t, err, "merge base.yaml + splunkhome must succeed")
+	require.NoError(t, err, "merge base.yaml + splunkconf must succeed")
 
-	// The base logs/base pipeline survives and the splunkhome logs/uf pipeline is added.
+	// The base logs/base pipeline survives and the splunkconf logs/uf pipeline is added.
 	pipelines, err := merged.Sub("service::pipelines")
 	require.NoError(t, err)
 	pipes := pipelines.ToStringMap()
 	require.Contains(t, pipes, "logs/base", "base pipeline must survive the merge")
-	require.Contains(t, pipes, "logs/uf", "splunkhome must ADD the logs/uf pipeline")
+	require.Contains(t, pipes, "logs/uf", "splunkconf must ADD the logs/uf pipeline")
 
 	// Collect the emitted receiver IDs from the logs/uf pipeline.
 	ufPipe, err := merged.Sub("service::pipelines::logs/uf")
@@ -121,7 +121,7 @@ func TestResolveAndValidate(t *testing.T) {
 }
 
 // TestMergedGraphBuilds runs the collector core's own build path over the
-// MERGED config. otelcol.DryRun resolves base.yaml + splunkhome://... into one
+// MERGED config. otelcol.DryRun resolves base.yaml + splunkconf://... into one
 // otelcol.Config, runs confmap.Validate over the whole config, then
 // service.Validate -> graph.Build, which actually wires each pipeline's
 // receivers through to its exporters. A green DryRun proves the logs/uf pipeline
@@ -167,7 +167,7 @@ func TestMergedGraphBuilds(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, col.DryRun(context.Background()),
-		"merged config (base logs/base + splunkhome logs/uf) must build a real graph")
+		"merged config (base logs/base + splunkconf logs/uf) must build a real graph")
 }
 
 // TestTranslationFidelity proves typed wrapper Configs are lossless: any stanza
@@ -230,7 +230,7 @@ func TestPropsTransformsParity(t *testing.T) {
 	ctx := context.Background()
 
 	// Read props/transforms using tabuilder directly (the reference)
-	dirs := tabuilder.ConfDirs("testdata/splunkhome")
+	dirs := tabuilder.ConfRootDirs("testdata/etc")
 	refProps, err := tabuilder.ReadProps(dirs)
 	require.NoError(t, err, "tabuilder.ReadProps must succeed")
 	refTransforms, err := tabuilder.ReadTransforms(dirs)
@@ -269,7 +269,7 @@ func TestPropsTransformsParity(t *testing.T) {
 // TestPipelineConfigurable proves the pipeline name follows the pipeline query param.
 func TestPipelineConfigurable(t *testing.T) {
 	res, err := confmap.NewResolver(confmap.ResolverSettings{
-		URIs: []string{"splunkhome://testdata/splunkhome?pipeline=custom"},
+		URIs: []string{"splunkconf://testdata/etc?pipeline=custom"},
 		ProviderFactories: []confmap.ProviderFactory{
 			NewFactory(),
 		},

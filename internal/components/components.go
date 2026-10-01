@@ -34,13 +34,13 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkbatch"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkhecout"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkmonitor"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkscript"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunktcp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkudp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkhome/splunkwineventlog"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkbatch"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkhecout"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkmonitor"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkscript"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunktcp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkudp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkwineventlog"
 )
 
 const (
@@ -83,7 +83,7 @@ func Get() (otelcol.Factories, error) {
 		b.AddReceivers(splunkinputsreceiver.NewFactory())
 		b.AddExporters(splunkoutputsexporter.NewFactory())
 
-		// Wrapper components emitted by the splunkhome confmap provider. They
+		// Wrapper components emitted by the splunkconf confmap provider. They
 		// delegate to the same tabuilder.CreateReceiver as splunk_inputs, so
 		// the provider path is a drop-in replacement for splunk_inputs and
 		// splunk_outputs (HEC only for now; S2S deferred).

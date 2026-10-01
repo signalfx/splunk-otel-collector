@@ -2,8 +2,9 @@
 
 ## Setup
 
-Install Docker and Go on your workstation. Package tests are Go tests and do not require
-the Python virtualenv used by the installer tests.
+Install Docker and Go on your workstation. Package, installer, and instrumentation tests
+are Go tests. Puppet and Salt deployment tests still use Python; install their dependencies
+with `pip install -r packaging/tests/requirements.txt`.
 
 Instrumentation package tests are also Go tests under `tests/instrumentation` and require
 the collector binary in `bin/` and the auto-instrumentation package in `instrumentation/dist/`.
@@ -22,18 +23,18 @@ the collector binary in `bin/` and the auto-instrumentation package in `instrume
    [here](../fpm/tar/README.md) for how to build the packages.
 1. To run the installer tests, execute the following commands:
    ```
-   virtualenv venv
-   source venv/bin/activate  # if not already in virtualenv
-   pip install -r packaging/tests/requirements.txt
-   pytest [PYTEST_OPTIONS] packaging/tests/installer_test.py
+   cd tests
+   INSTALLER_TEST_DISTRO=debian-bookworm INSTALLER_TEST_ARCH=amd64 \
+     INSTALLER_TEST_INSTRUMENTATION=none go test -tags integration -v ./installer
    ```
-   Installer tests still use pytest. Check [pytest.org](https://pytest.org) or
-   run `pytest --help` to see the available pytest options.
+   `INSTALLER_TEST_DISTRO` and `INSTALLER_TEST_ARCH` narrow the run to one distro and
+   architecture. Set `INSTALLER_TEST_INSTRUMENTATION` to `preload` or `systemd` for
+   those instrumentation cases; `none` runs the base installer, OBI, and validation cases.
 
 ## Running the `linux-installer-script-test` CI Workflow Locally
 
 The [`installer-script-test.yml`](../../.github/workflows/installer-script-test.yml) workflow builds the
-`splunk-otel-collector` deb/rpm package, then runs [`installer_test.py`](installer_test.py) against it in distro
+`splunk-otel-collector` deb/rpm package, then runs the Go installer tests against it in distro
 containers using the [Linux Installer Script](../installer/install.sh). To reproduce a single
 `linux-installer-script-test (<distro>, <arch>, <instrumentation>)` job locally (e.g.
 `linux-installer-script-test (debian-bookworm, arm64, none)`):
@@ -55,26 +56,19 @@ containers using the [Linux Installer Script](../installer/install.sh). To repro
 
    Produces `dist/splunk-otel-collector*.deb` (or `.rpm`).
 
-3. Install the test dependencies:
+3. Set up Go using the version declared in [`tests/go.mod`](../../tests/go.mod).
 
-   ```bash
-   python3 -m venv .venv && source .venv/bin/activate
-   pip install -r packaging/tests/requirements.txt
-   ```
-
-4. Point the tests at the locally built package and run pytest with the same `-k` filter CI uses. The
-   `INSTRUMENTATION=none` matrix leg maps to `not instrumentation` (see
-   [installer-script-test.yml:138-142](../../.github/workflows/installer-script-test.yml#L138-L142)), which
-   selects `test_installer_default` and `test_installer_custom` (the only tests without the `instrumentation`
-   marker):
+4. Point the tests at the locally built package and run the same distro, architecture, and
+   instrumentation selection used by CI:
 
    ```bash
    package_path=$(find ./dist -maxdepth 1 -name "splunk-otel-collector*.deb" | head -n 1)
    export LOCAL_COLLECTOR_PACKAGE=$(realpath "$package_path")
 
-   python3 -u -m pytest -s --verbose \
-     -k "debian-bookworm and arm64 and not instrumentation" \
-     packaging/tests/installer_test.py
+   (cd tests && INSTALLER_TEST_DISTRO=debian-bookworm \
+     INSTALLER_TEST_ARCH=arm64 \
+     INSTALLER_TEST_INSTRUMENTATION=none \
+     go test -tags integration -v -timeout 90m -count 1 ./installer)
    ```
 
 Notes:
@@ -87,5 +81,5 @@ Notes:
   `splunk-otel-auto-instrumentation` package, only relevant to the `preload`/`systemd` instrumentation legs (not
   needed for the `none` leg). Check the [instructions on how to build the instrumentation package](
   ../../instrumentation/README.md) for details.
-- Steps 1 and 2 must complete before running pytest, since the tests look up `dist/splunk-otel-collector*` for
+- Steps 1 and 2 must complete before running the tests, since the tests look up `dist/splunk-otel-collector*` for
   the given package type.

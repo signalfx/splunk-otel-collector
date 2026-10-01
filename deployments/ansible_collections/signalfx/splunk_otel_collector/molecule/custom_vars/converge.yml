@@ -16,7 +16,7 @@
     splunk_otel_collector_command_line_args: >-
       --discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml
     gomemlimit: 230
-    splunk_listen_interface: 1.2.3.4
+    splunk_listen_interface: 127.0.0.1
     splunk_otel_collector_additional_env_vars:
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2

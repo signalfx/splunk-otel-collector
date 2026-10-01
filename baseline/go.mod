@@ -7,6 +7,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector v0.161.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter v0.161.0
@@ -116,7 +117,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.161.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.161.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver v0.161.0
@@ -221,6 +221,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.56.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/kinesis v1.53.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.58.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/rds v1.123.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.111.0 // indirect

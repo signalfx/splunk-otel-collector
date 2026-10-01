@@ -52,31 +52,47 @@ required `splunk_access_token` attribute and some optional attributes:
 }
 ```
 
-### Send Linux host logs to Splunk Platform
+### Send host logs to Splunk Platform
 
-The Linux package includes a Splunk Platform logs configuration. Add it to the
-collector's service arguments to run the logs pipeline alongside the main
-collector configuration, and provide its HEC settings as additional
-environment variables:
+The collector package includes a Splunk Platform logs configuration for each
+supported operating system. Enable config merging and provide the HEC settings
+as additional environment variables.
+
+#### Linux
 
 ```json
 {
   "splunk-otel-collector": {
-    "collector_command_line_args": "--config /etc/otel/collector/splunk_logs_config_linux.yaml",
+    "collector_command_line_args": "--feature-gates=confmap.enableMergeAppendOption --config /etc/otel/collector/agent_config.yaml --config /etc/otel/collector/splunk_logs_config_linux.yaml",
     "collector_additional_env_vars": {
       "SPLUNK_PLATFORM_URL": "https://<your-splunk-host>:8088/services/collector",
       "SPLUNK_PLATFORM_TOKEN": "<your-hec-token>",
-      "SPLUNK_PLATFORM_LOGS_INDEX": "<your-index>",
-      "SPLUNK_MEMORY_LIMIT_MIB": "460"
+      "SPLUNK_PLATFORM_LOGS_INDEX": "<your-index>"
     }
   }
 }
 ```
 
-Set the HEC URL, token, and index for your Splunk Platform instance. The
-example memory limit is 90% of the default 512 MiB collector allocation; adjust
-it when changing `splunk_memory_total_mib`. Keep the token in a Chef data bag or
-another secrets manager. This example applies to Linux nodes.
+#### Windows
+
+The Windows MSI appends the main config selected by `SPLUNK_CONFIG`; add the
+packaged logs config and merge feature gate to the service arguments:
+
+```json
+{
+  "splunk-otel-collector": {
+    "collector_command_line_args": "--feature-gates=confmap.enableMergeAppendOption --config \\\"C:\\ProgramData\\Splunk\\OpenTelemetry Collector\\splunk_logs_config_windows.yaml\\\"",
+    "collector_additional_env_vars": {
+      "SPLUNK_PLATFORM_URL": "https://<your-splunk-host>:8088/services/collector",
+      "SPLUNK_PLATFORM_TOKEN": "<your-hec-token>",
+      "SPLUNK_PLATFORM_LOGS_INDEX": "<your-index>"
+    }
+  }
+}
+```
+
+Set the HEC URL, token, and optional index for your Splunk Platform instance.
+Keep the token in a Chef data bag or another secrets manager.
 
 # This cookbook accepts the following attributes
 

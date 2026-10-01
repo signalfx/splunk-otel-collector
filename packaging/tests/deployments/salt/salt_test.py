@@ -368,7 +368,6 @@ splunk-otel-collector:
     SPLUNK_OPAMP_SUPERVISOR_ENABLED: 'true'
     SPLUNK_PLATFORM_URL: 'https://fake-splunk-platform.example.com:8088/services/collector'
     SPLUNK_PLATFORM_TOKEN: 'fake-platform-token'
-    SPLUNK_MEMORY_LIMIT_MIB: '460'
   """
 
 
@@ -410,7 +409,6 @@ def test_salt_custom(distro):
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "true")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_URL", "https://fake-splunk-platform.example.com:8088/services/collector")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_TOKEN", "fake-platform-token")
-            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_MEMORY_LIMIT_MIB", "460")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_LOGS_INDEX", exists=False)
             assert wait_for(lambda: service_is_running(container, service_owner="test-user"))
             assert wait_for(lambda: service_is_running(

@@ -111,6 +111,12 @@
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ARPCOMMENTS=DO_NOT_UNINSTALL" 
+.PARAMETER service_account_type
+    (OPTIONAL) Select the Windows service account type: `virtual` uses the dedicated, passwordless
+    `NT SERVICE\splunk-otel-collector` virtual account and `localsystem` uses LocalSystem. If omitted,
+    a fresh install uses the dedicated account and an upgrade preserves its current account.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -service_account_type virtual
 .PARAMETER config_path
     (OPTIONAL) Specify a local path to an alternative configuration file for the Splunk OpenTelemetry Collector.
     If specified, the -mode parameter will be ignored.
@@ -154,6 +160,7 @@ param(
     [ValidateSet('test', 'beta', 'release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
+    [string]$service_account_type = "",
     [string]$config_path = "",
     [bool]$preserve_prev_default_config = $false,
     [string]$collector_msi_url = "",
@@ -180,6 +187,12 @@ else {
 $format = "msi"
 $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.observability.splunkcloud.com"
+$virtual_service_account = "NT SERVICE\splunk-otel-collector"
+$previous_service_account = ""
+
+if ($service_account_type -ne "" -and $service_account_type -notin @("virtual", "localsystem")) {
+    throw "service_account_type must be either 'virtual' or 'localsystem'."
+}
 
 try {
     Resolve-Path $env:TEMP 2>&1>$null
@@ -512,6 +525,17 @@ if (-not (Get-Service -Name $service_name -ErrorAction SilentlyContinue)) {
 else {
     if (-not $uninstall_collector) {
         Write-Host "The $service_name service is already installed. Checking installation for automatic update."
+
+        $existing_service_account = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$service_name" -Name ObjectName).ObjectName
+        if ($existing_service_account -eq "LocalSystem" -or $existing_service_account -eq "NT AUTHORITY\SYSTEM") {
+            $previous_service_account = "LocalSystem"
+        }
+        elseif ($existing_service_account -eq $virtual_service_account) {
+            $previous_service_account = $virtual_service_account
+        }
+        elseif ($service_account_type -eq "") {
+            throw "The existing $service_name service uses '$existing_service_account'. Its password cannot be preserved by the installer. Rerun with -service_account_type virtual or -service_account_type localsystem."
+        }
     }
 
     $uninstall_collector_using_msi = $true
@@ -671,6 +695,13 @@ if ($PSBoundParameters.ContainsKey("access_token")) {
     $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_ACCESS_TOKEN" -value $access_token
 }
 
+if ($service_account_type -ne "") {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_SERVICE_ACCOUNT_TYPE" -value $service_account_type
+}
+elseif ($previous_service_account -ne "") {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_PREVIOUS_SERVICE_ACCOUNT" -value $previous_service_account
+}
+
 if ($config_path -Ne "") {
     if (!(Test-Path -Path "$config_path")) {
         throw "Valid Collector configuration file not found at $config_path."
@@ -713,6 +744,10 @@ changes by restarting the system or running the following PowerShell commands:
   PS> Start-Service $service_name
 "
 echo "$message"
+
+if ($service_account_type -eq "" -and $previous_service_account -eq "LocalSystem") {
+    Write-Warning "The $CollectorServiceDisplayName service remains configured as LocalSystem. To use the dedicated service account, run: msiexec.exe /i `"$msi_path`" /qn SPLUNK_SERVICE_ACCOUNT_TYPE=virtual"
+}
 
 $otel_resource_attributes = ""
 if ($deployment_env -ne "") {

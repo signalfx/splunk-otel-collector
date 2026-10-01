@@ -1,5 +1,5 @@
 change_type: breaking
 component: telegraf/dns
-note: Remove the deprecated telegraf/dns monitor. Use the DNS check receiver instead.
+note: Remove the deprecated telegraf/dns monitor. Use the [DNS check receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/dnscheckreceiver) instead.
 issues: [8150]
 subtext:

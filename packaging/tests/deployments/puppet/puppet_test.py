@@ -723,6 +723,7 @@ WIN_PUPPET_MODULE_SRC_DIR = os.path.join(REPO_DIR, "deployments", "puppet")
 WIN_PUPPET_MODULE_DEST_DIR = r"C:\ProgramData\PuppetLabs\code\environments\production\modules\splunk_otel_collector"
 WIN_INSTALL_DIR = r"C:\Program Files\Splunk\OpenTelemetry Collector"
 WIN_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml"
+WIN_LOGS_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml"
 WIN_CONFIG_SVC_ARG = f'--config "{WIN_CONFIG_PATH}"'
 
 WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure
@@ -742,8 +743,14 @@ class {{ splunk_otel_collector:
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
     win_repo_url => '$win_repo_url',
-    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
-    collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s --feature-gates=confmap.enableMergeAppendOption --config \\"{WIN_LOGS_CONFIG_PATH}\\"',
+    collector_additional_env_vars => {{
+      'MY_CUSTOM_VAR1' => 'value1',
+      'MY_CUSTOM_VAR2' => 'value2',
+      'SPLUNK_PLATFORM_URL' => 'https://fake-splunk-platform.example.com:8088/services/collector',
+      'SPLUNK_PLATFORM_TOKEN' => 'fake-platform-token',
+      'SPLUNK_MEMORY_LIMIT_MIB' => '230',
+    }},
 }}
 """
 )
@@ -852,9 +859,19 @@ def test_win_puppet_custom_vars():
     assert get_otelcol_svc_env_var("SPLUNK_HEC_TOKEN") == "fake-hec-token"
     assert get_otelcol_svc_env_var("MY_CUSTOM_VAR1") == "value1"
     assert get_otelcol_svc_env_var("MY_CUSTOM_VAR2") == "value2"
+    assert get_otelcol_svc_env_var("SPLUNK_PLATFORM_URL") == "https://fake-splunk-platform.example.com:8088/services/collector"
+    assert get_otelcol_svc_env_var("SPLUNK_PLATFORM_TOKEN") == "fake-platform-token"
+    assert get_otelcol_svc_env_var("SPLUNK_MEMORY_LIMIT_MIB") == "230"
+    try:
+        platform_logs_index = get_otelcol_svc_env_var("SPLUNK_PLATFORM_LOGS_INDEX")
+    except FileNotFoundError:
+        platform_logs_index = None
+    assert platform_logs_index is None
+    assert os.path.isfile(WIN_LOGS_CONFIG_PATH)
 
     collector_service = psutil.win_service_get("splunk-otel-collector")
     assert collector_service.status() == psutil.STATUS_RUNNING
     assert_win_collector_configured_with_default_config(collector_service)
     if win_collector_supports_service_args():
-        assert "--discovery --set=processors.batch.timeout=10s" in collector_service.binpath()
+        assert "--discovery --set=processors.batch.timeout=10s --feature-gates=confmap.enableMergeAppendOption" in collector_service.binpath()
+        assert f'--config "{WIN_LOGS_CONFIG_PATH}"' in collector_service.binpath()

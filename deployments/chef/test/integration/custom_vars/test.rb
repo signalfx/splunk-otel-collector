@@ -6,6 +6,9 @@ splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = 'fake-hec-token'
 splunk_memory_total = '256'
 splunk_listen_interface = '0.0.0.0'
+splunk_platform_url = 'https://fake-splunk-platform.example.com:8088/services/collector'
+splunk_platform_token = 'fake-platform-token'
+splunk_memory_limit = '230'
 
 describe service('splunk-otel-collector') do
   it { should be_enabled }
@@ -23,6 +26,9 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
     { name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface },
     { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
+    { name: 'SPLUNK_PLATFORM_URL', type: :string, data: splunk_platform_url },
+    { name: 'SPLUNK_PLATFORM_TOKEN', type: :string, data: splunk_platform_token },
+    { name: 'SPLUNK_MEMORY_LIMIT_MIB', type: :string, data: splunk_memory_limit },
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
     { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
@@ -35,6 +41,10 @@ if os[:family] == 'windows'
     collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
   end
   collector_env_vars_strings.sort!
+  logs_config_path = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\splunk_logs_config_windows.yaml"
+  describe file(logs_config_path) do
+    it { should exist }
+  end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'Environment' }
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
@@ -42,7 +52,9 @@ if os[:family] == 'windows'
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'ImagePath' }
     its('ImagePath') do
-      should match /^.*--discovery --set=processors\.batch\.timeout=10s --config "#{Regexp.escape(config_path)}"$/i
+      should include '--discovery --set=processors.batch.timeout=10s --feature-gates=confmap.enableMergeAppendOption'
+      should include "--config \"#{logs_config_path}\""
+      should include "--config \"#{config_path}\""
     end
   end
 else

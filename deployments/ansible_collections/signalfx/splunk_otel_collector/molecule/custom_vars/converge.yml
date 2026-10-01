@@ -14,7 +14,9 @@
     splunk_service_group: custom-group
     splunk_memory_total_mib: 256
     splunk_otel_collector_command_line_args: >-
-      --discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml
+      --discovery --set=processors.batch.timeout=10s --feature-gates=confmap.enableMergeAppendOption
+      --config /etc/otel/collector/custom_config.yml
+      --config /etc/otel/collector/splunk_logs_config_linux.yaml
     gomemlimit: 230
     splunk_listen_interface: 127.0.0.1
     splunk_otel_collector_additional_env_vars:

@@ -36,7 +36,7 @@ attributes:
 
 metrics:
   ptp.clock.state:
-    description: Local PTP clock state (1 for the reported state).
+    description: Local PTP clock state inferred from the states of its ports (1 for the reported state).
     enabled: true
     stability: development
     gauge:
@@ -44,7 +44,7 @@ metrics:
     unit: "1"
     attributes: [ptp.clock.state]
   ptp.grandmaster.info:
-    description: Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.
+    description: Selected remote PTP grandmaster identity (1 for the selected identity). Omitted when ptp4l reports no remote grandmaster.
     enabled: true
     stability: development
     gauge:
@@ -52,26 +52,26 @@ metrics:
     unit: "1"
     attributes: [ptp.grandmaster.identity]
   ptp.grandmaster.present:
-    description: Whether the PTP daemon reports a grandmaster (1 for present, 0 for absent).
+    description: Whether ptp4l reports a remote grandmaster (1 for present, 0 when the local clock is reported as grandmaster).
     enabled: true
     stability: development
     gauge:
       value_type: int
     unit: "1"
   ptp.offset:
-    description: Offset of the local PTP clock from its grandmaster.
-    enabled: true
-    stability: development
-    gauge:
-      value_type: int
-    unit: ns
-  ptp.path.delay:
-    description: Mean path delay to the PTP grandmaster.
+    description: Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
     enabled: true
     stability: development
     gauge:
       value_type: double
-    unit: ns
+    unit: s
+  ptp.path.delay:
+    description: Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
+    enabled: true
+    stability: development
+    gauge:
+      value_type: double
+    unit: s
   ptp.port.state:
     description: State of each local PTP port (1 for the reported state).
     enabled: true

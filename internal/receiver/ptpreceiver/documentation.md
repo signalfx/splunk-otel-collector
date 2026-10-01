@@ -14,7 +14,7 @@ metrics:
 
 ### ptp.clock.state
 
-Local PTP clock state (1 for the reported state).
+Local PTP clock state inferred from the states of its ports (1 for the reported state).
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
@@ -28,7 +28,7 @@ Local PTP clock state (1 for the reported state).
 
 ### ptp.grandmaster.info
 
-Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.
+Selected remote PTP grandmaster identity (1 for the selected identity). Omitted when ptp4l reports no remote grandmaster.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
@@ -42,7 +42,7 @@ Selected PTP grandmaster (1 for the selected identity). A change in identity sta
 
 ### ptp.grandmaster.present
 
-Whether the PTP daemon reports a grandmaster (1 for present, 0 for absent).
+Whether ptp4l reports a remote grandmaster (1 for present, 0 when the local clock is reported as grandmaster).
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
@@ -50,19 +50,19 @@ Whether the PTP daemon reports a grandmaster (1 for present, 0 for absent).
 
 ### ptp.offset
 
-Offset of the local PTP clock from its grandmaster.
+Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| ns | Gauge | Int | Development |
+| s | Gauge | Double | Development |
 
 ### ptp.path.delay
 
-Mean path delay to the PTP grandmaster.
+Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
-| ns | Gauge | Double | Development |
+| s | Gauge | Double | Development |
 
 ### ptp.port.state
 

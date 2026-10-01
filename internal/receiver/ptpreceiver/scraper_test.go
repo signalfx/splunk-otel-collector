@@ -45,7 +45,8 @@ func TestParsePMCStatus(t *testing.T) {
 		wantErr    bool
 	}{
 		{name: "valid boundary clock", output: pmcResponse, present: true, clockState: "SLAVE"},
-		{name: "no grandmaster", output: strings.Replace(pmcResponse, "gmPresent true", "gmPresent false", 1), clockState: "SLAVE"},
+		{name: "local grandmaster", output: pmcResponseWithoutGrandmaster(), clockState: "MASTER"},
+		{name: "local grandmaster ignores invalid offset and delay", output: pmcResponseWithoutGrandmasterWithInvalidMeasurements(), clockState: "MASTER"},
 		{name: "transparent clock", output: "001122.fffe.334455-0 seq 0 RESPONSE MANAGEMENT CLOCK_DESCRIPTION\nclockType 0x2000", clockState: "UNKNOWN"},
 		{name: "no response", output: "sending: GET TIME_STATUS_NP", wantErr: true},
 		{name: "bad offset", output: strings.Replace(pmcResponse, "master_offset -42", "master_offset invalid", 1), wantErr: true},
@@ -69,7 +70,7 @@ func TestParsePMCStatus(t *testing.T) {
 			require.Equal(t, tt.clockState, clockState(status.ports))
 			if tt.name == "valid boundary clock" {
 				require.Equal(t, int64(-42), status.offset)
-				require.Equal(t, 125.5, status.pathDelay)
+				require.InDelta(t, 125.5, status.pathDelay, 1e-6)
 				require.Equal(t, "001122.fffe.334455", status.gmIdentity)
 				require.Equal(t, "boundary", status.clockType)
 				require.Len(t, status.ports, 2)
@@ -84,16 +85,20 @@ func TestParsePMCStatus(t *testing.T) {
 
 func TestScrape(t *testing.T) {
 	for _, present := range []bool{true, false} {
-		t.Run(map[bool]string{true: "grandmaster", false: "no grandmaster"}[present], func(t *testing.T) {
+		t.Run(map[bool]string{true: "remote grandmaster", false: "local grandmaster"}[present], func(t *testing.T) {
 			config := createDefaultConfig().(*Config)
 			var gotName string
 			var gotArgs []string
 			s := newScraper(config, receiver.Settings{})
+			expectedClockState := "SLAVE"
+			expectedPortStates := map[string]string{"001122.fffe.334455-1": "SLAVE", "001122.fffe.334455-2": "MASTER"}
 			s.runPMC = func(_ context.Context, name string, args ...string) ([]byte, error) {
 				gotName, gotArgs = name, args
 				response := pmcResponse
 				if !present {
-					response = strings.Replace(response, "gmPresent true", "gmPresent false", 1)
+					response = pmcResponseWithoutGrandmasterWithInvalidMeasurements()
+					expectedClockState = "MASTER"
+					expectedPortStates = map[string]string{"001122.fffe.334455-1": "LISTENING", "001122.fffe.334455-2": "MASTER"}
 				}
 				return []byte(response), nil
 			}
@@ -125,7 +130,7 @@ func TestScrape(t *testing.T) {
 			require.Equal(t, int64(1), got["ptp.clock.state"].Gauge().DataPoints().At(0).IntValue())
 			clockStateValue, ok := got["ptp.clock.state"].Gauge().DataPoints().At(0).Attributes().Get("ptp.clock.state")
 			require.True(t, ok)
-			require.Equal(t, "SLAVE", clockStateValue.Str())
+			require.Equal(t, expectedClockState, clockStateValue.Str())
 			ports := got["ptp.port.state"].Gauge().DataPoints()
 			require.Equal(t, 2, ports.Len())
 			portStates := map[string]string{}
@@ -136,15 +141,15 @@ func TestScrape(t *testing.T) {
 				require.True(t, found)
 				portStates[identity.Str()] = state.Str()
 			}
-			require.Equal(t, map[string]string{"001122.fffe.334455-1": "SLAVE", "001122.fffe.334455-2": "MASTER"}, portStates)
+			require.Equal(t, expectedPortStates, portStates)
 			if present {
 				want = append(want, "ptp.grandmaster.info", "ptp.offset", "ptp.path.delay")
 				for _, name := range want {
 					require.Contains(t, got, name)
 				}
 				require.Equal(t, int64(1), got["ptp.grandmaster.present"].Gauge().DataPoints().At(0).IntValue())
-				require.Equal(t, int64(-42), got["ptp.offset"].Gauge().DataPoints().At(0).IntValue())
-				require.Equal(t, 125.5, got["ptp.path.delay"].Gauge().DataPoints().At(0).DoubleValue())
+				require.InDelta(t, float64(-42)/nanosecondsPerSecond, got["ptp.offset"].Gauge().DataPoints().At(0).DoubleValue(), 1e-18)
+				require.InDelta(t, 125.5/nanosecondsPerSecond, got["ptp.path.delay"].Gauge().DataPoints().At(0).DoubleValue(), 1e-18)
 				gmIdentity, found := got["ptp.grandmaster.info"].Gauge().DataPoints().At(0).Attributes().Get("ptp.grandmaster.identity")
 				require.True(t, found)
 				require.Equal(t, "001122.fffe.334455", gmIdentity.Str())
@@ -154,6 +159,17 @@ func TestScrape(t *testing.T) {
 			require.Len(t, got, len(want))
 		})
 	}
+}
+
+func pmcResponseWithoutGrandmaster() string {
+	response := strings.Replace(pmcResponse, "gmPresent true", "gmPresent false", 1)
+	return strings.Replace(response, "portState SLAVE", "portState LISTENING", 1)
+}
+
+func pmcResponseWithoutGrandmasterWithInvalidMeasurements() string {
+	response := pmcResponseWithoutGrandmaster()
+	response = strings.Replace(response, "master_offset -42", "master_offset invalid", 1)
+	return strings.Replace(response, "meanPathDelay 125.5", "meanPathDelay invalid", 1)
 }
 
 func TestScrapeQueryError(t *testing.T) {

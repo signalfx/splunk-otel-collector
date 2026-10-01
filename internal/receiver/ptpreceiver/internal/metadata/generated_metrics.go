@@ -68,7 +68,7 @@ type metricPtpClockState struct {
 // init fills ptp.clock.state metric with initial data.
 func (m *metricPtpClockState) init() {
 	m.data.SetName("ptp.clock.state")
-	m.data.SetDescription("Local PTP clock state (1 for the reported state).")
+	m.data.SetDescription("Local PTP clock state inferred from the states of its ports (1 for the reported state).")
 	m.data.SetUnit("1")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
@@ -157,7 +157,7 @@ type metricPtpGrandmasterInfo struct {
 // init fills ptp.grandmaster.info metric with initial data.
 func (m *metricPtpGrandmasterInfo) init() {
 	m.data.SetName("ptp.grandmaster.info")
-	m.data.SetDescription("Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.")
+	m.data.SetDescription("Selected remote PTP grandmaster identity (1 for the selected identity). Omitted when ptp4l reports no remote grandmaster.")
 	m.data.SetUnit("1")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
@@ -245,7 +245,7 @@ type metricPtpGrandmasterPresent struct {
 // init fills ptp.grandmaster.present metric with initial data.
 func (m *metricPtpGrandmasterPresent) init() {
 	m.data.SetName("ptp.grandmaster.present")
-	m.data.SetDescription("Whether the PTP daemon reports a grandmaster (1 for present, 0 for absent).")
+	m.data.SetDescription("Whether ptp4l reports a remote grandmaster (1 for present, 0 when the local clock is reported as grandmaster).")
 	m.data.SetUnit("1")
 	m.data.SetEmptyGauge()
 }
@@ -295,19 +295,19 @@ type metricPtpOffset struct {
 // init fills ptp.offset metric with initial data.
 func (m *metricPtpOffset) init() {
 	m.data.SetName("ptp.offset")
-	m.data.SetDescription("Offset of the local PTP clock from its grandmaster.")
-	m.data.SetUnit("ns")
+	m.data.SetDescription("Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.")
+	m.data.SetUnit("s")
 	m.data.SetEmptyGauge()
 }
 
-func (m *metricPtpOffset) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
+func (m *metricPtpOffset) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
 	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntValue(val)
+	dp.SetDoubleValue(val)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -345,8 +345,8 @@ type metricPtpPathDelay struct {
 // init fills ptp.path.delay metric with initial data.
 func (m *metricPtpPathDelay) init() {
 	m.data.SetName("ptp.path.delay")
-	m.data.SetDescription("Mean path delay to the PTP grandmaster.")
-	m.data.SetUnit("ns")
+	m.data.SetDescription("Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.")
+	m.data.SetUnit("s")
 	m.data.SetEmptyGauge()
 }
 
@@ -662,7 +662,7 @@ func (mb *MetricsBuilder) RecordPtpGrandmasterPresentDataPoint(ts pcommon.Timest
 }
 
 // RecordPtpOffsetDataPoint adds a data point to ptp.offset metric.
-func (mb *MetricsBuilder) RecordPtpOffsetDataPoint(ts pcommon.Timestamp, val int64) {
+func (mb *MetricsBuilder) RecordPtpOffsetDataPoint(ts pcommon.Timestamp, val float64) {
 	mb.metricPtpOffset.recordDataPoint(mb.startTime, ts, val)
 }
 

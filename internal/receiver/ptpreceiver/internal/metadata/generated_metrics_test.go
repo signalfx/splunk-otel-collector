@@ -148,7 +148,7 @@ func TestMetricsBuilder(t *testing.T) {
 						validatedMetrics["ptp.clock.state"] = true
 						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-						assert.Equal(t, "Local PTP clock state (1 for the reported state).", mi.Description())
+						assert.Equal(t, "Local PTP clock state inferred from the states of its ports (1 for the reported state).", mi.Description())
 						assert.Equal(t, "1", mi.Unit())
 						dp := mi.Gauge().DataPoints().At(0)
 						assert.Equal(t, start, dp.StartTimestamp())
@@ -163,7 +163,7 @@ func TestMetricsBuilder(t *testing.T) {
 						validatedMetrics["ptp.clock.state"] = true
 						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-						assert.Equal(t, "Local PTP clock state (1 for the reported state).", mi.Description())
+						assert.Equal(t, "Local PTP clock state inferred from the states of its ports (1 for the reported state).", mi.Description())
 						assert.Equal(t, "1", mi.Unit())
 						dp := mi.Gauge().DataPoints().At(0)
 						assert.Equal(t, start, dp.StartTimestamp())
@@ -188,7 +188,7 @@ func TestMetricsBuilder(t *testing.T) {
 						validatedMetrics["ptp.grandmaster.info"] = true
 						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-						assert.Equal(t, "Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.", mi.Description())
+						assert.Equal(t, "Selected remote PTP grandmaster identity (1 for the selected identity). Omitted when ptp4l reports no remote grandmaster.", mi.Description())
 						assert.Equal(t, "1", mi.Unit())
 						dp := mi.Gauge().DataPoints().At(0)
 						assert.Equal(t, start, dp.StartTimestamp())
@@ -203,7 +203,7 @@ func TestMetricsBuilder(t *testing.T) {
 						validatedMetrics["ptp.grandmaster.info"] = true
 						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-						assert.Equal(t, "Selected PTP grandmaster (1 for the selected identity). A change in identity starts a new series.", mi.Description())
+						assert.Equal(t, "Selected remote PTP grandmaster identity (1 for the selected identity). Omitted when ptp4l reports no remote grandmaster.", mi.Description())
 						assert.Equal(t, "1", mi.Unit())
 						dp := mi.Gauge().DataPoints().At(0)
 						assert.Equal(t, start, dp.StartTimestamp())
@@ -227,7 +227,7 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["ptp.grandmaster.present"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-					assert.Equal(t, "Whether the PTP daemon reports a grandmaster (1 for present, 0 for absent).", mi.Description())
+					assert.Equal(t, "Whether ptp4l reports a remote grandmaster (1 for present, 0 when the local clock is reported as grandmaster).", mi.Description())
 					assert.Equal(t, "1", mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
@@ -239,20 +239,20 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["ptp.offset"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-					assert.Equal(t, "Offset of the local PTP clock from its grandmaster.", mi.Description())
-					assert.Equal(t, "ns", mi.Unit())
+					assert.Equal(t, "Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.", mi.Description())
+					assert.Equal(t, "s", mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
-					assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
-					assert.Equal(t, int64(1), dp.IntValue())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
+					assert.InDelta(t, float64(1), dp.DoubleValue(), 0.01)
 				case "ptp.path.delay":
 					assert.False(t, validatedMetrics["ptp.path.delay"], "Found a duplicate in the metrics slice: ptp.path.delay")
 					validatedMetrics["ptp.path.delay"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-					assert.Equal(t, "Mean path delay to the PTP grandmaster.", mi.Description())
-					assert.Equal(t, "ns", mi.Unit())
+					assert.Equal(t, "Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.", mi.Description())
+					assert.Equal(t, "s", mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())

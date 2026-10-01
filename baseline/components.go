@@ -28,6 +28,7 @@ import (
 	routingconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	spanmetricsconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	sumconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector"
+	awskinesisexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter"
 	awss3exporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter"
 	fileexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	googlecloudstorageexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter"
@@ -137,7 +138,6 @@ import (
 	tlscheckreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver"
 	udplogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver"
 	vcenterreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver"
-	wavefrontreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
 	windowseventlogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	windowsperfcountersreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	windowsservicereceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver"
@@ -252,7 +252,6 @@ func NewBaseline() *Baseline {
 			tlscheckreceiver.NewFactory(),
 			udplogreceiver.NewFactory(),
 			vcenterreceiver.NewFactory(),
-			wavefrontreceiver.NewFactory(),
 			windowseventlogreceiver.NewFactory(),
 			windowsperfcountersreceiver.NewFactory(),
 			windowsservicereceiver.NewFactory(),
@@ -281,6 +280,7 @@ func NewBaseline() *Baseline {
 			transformprocessor.NewFactory(),
 		},
 		exporters: []exporter.Factory{
+			awskinesisexporter.NewFactory(),
 			awss3exporter.NewFactory(),
 			debugexporter.NewFactory(),
 			fileexporter.NewFactory(),

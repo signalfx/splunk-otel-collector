@@ -47,6 +47,11 @@ type msiTest struct {
 	skipSvcStop            bool
 }
 
+const (
+	localSystemServiceAccount = "LocalSystem"
+	virtualServiceAccount     = `NT SERVICE\splunk-otel-collector`
+)
+
 func TestMSI(t *testing.T) {
 	msiInstallerPath := getInstallerPath(t)
 
@@ -62,6 +67,13 @@ func TestMSI(t *testing.T) {
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN": "fakeToken",
 				"COLLECTOR_SVC_ARGS":  "--discovery --set=processors.batch.timeout=10s",
+			},
+		},
+		{
+			name: "localsystem-service-account",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
+				"SPLUNK_SERVICE_ACCOUNT_TYPE": "localsystem",
 			},
 		},
 		{
@@ -495,7 +507,8 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	}
 
 	configFileName := installMode + "_config.yaml"
-	configFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", configFileName)
+	collectorProgramDataDir := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector")
+	configFileFullName := filepath.Join(collectorProgramDataDir, configFileName)
 	assert.FileExists(t, configFileFullName)
 	assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", configFileName))
 	if msiProperties["SPLUNK_PLATFORM_URL"] != "" {
@@ -551,6 +564,50 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 			return configErr == nil && runtimeConfigErr == nil
 		}, 10*time.Second, 500*time.Millisecond, "Supervisor configuration files were not created")
 	}
+
+	expectedServiceAccount := virtualServiceAccount
+	if msiProperties["SPLUNK_SERVICE_ACCOUNT_TYPE"] == "localsystem" {
+		expectedServiceAccount = localSystemServiceAccount
+	}
+	assert.Equal(t, expectedServiceAccount, svcConfig.ServiceStartName)
+
+	assertCollectorDirectoryAcl(t, installDir, "", "")
+	assertCollectorDirectoryAcl(t, collectorProgramDataDir, "", "")
+	if expectedServiceAccount == virtualServiceAccount {
+		assertCollectorDirectoryAcl(t, installDir, virtualServiceAccount, "ReadAndExecute")
+		assertCollectorDirectoryAcl(t, collectorProgramDataDir, virtualServiceAccount, "ReadAndExecute")
+		assertCollectorDirectoryAcl(t, filepath.Join(collectorProgramDataDir, "FileStorage"), virtualServiceAccount, "Modify")
+		assertCollectorDirectoryAcl(t, filepath.Join(collectorProgramDataDir, "FileStorage", "Temp"), virtualServiceAccount, "Modify")
+		assertCollectorDirectoryAcl(t, filepath.Join(collectorProgramDataDir, "supervisor"), virtualServiceAccount, "Modify")
+	}
+}
+
+func assertCollectorDirectoryAcl(t *testing.T, path, account, rights string) {
+	t.Helper()
+
+	output, err := exec.Command("icacls", path).CombinedOutput()
+	require.NoErrorf(t, err, "Failed to read Collector directory ACL for %q: %s", path, output)
+
+	acl := string(output)
+	if account == "" {
+		assert.NotContainsf(t, acl, "(I)", "Collector directory ACL for %q should be protected: %s", path, acl)
+		return
+	}
+
+	expectedRight := map[string]string{
+		"ReadAndExecute": "(RX)",
+		"Modify":         "(M)",
+	}[rights]
+	require.NotEmptyf(t, expectedRight, "Unsupported expected ACL right %q", rights)
+
+	for _, rule := range strings.Split(acl, "\n") {
+		if strings.Contains(strings.ToLower(rule), strings.ToLower(account)) {
+			assert.Containsf(t, rule, expectedRight, "Collector directory ACL for %q should grant %s %s: %s", path, account, rights, acl)
+			return
+		}
+	}
+
+	require.Failf(t, "Service account ACL is missing", "Collector directory ACL for %q should grant %s %s: %s", path, account, rights, acl)
 }
 
 func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {

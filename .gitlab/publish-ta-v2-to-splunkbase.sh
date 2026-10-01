@@ -3,7 +3,8 @@
 # Publishes a TA v2 package to Splunk Base.
 #
 # Required environment variables:
-#   SPLUNKBASE_PASSWORD - Password for the Splunk Base API user
+#   SPLUNKBASE_USERNAME - Username for the Splunk API user
+#   SPLUNKBASE_PASSWORD - Password used to obtain an AppInspect JWT
 #   APP_ID              - Splunk Base application ID
 #   TA_PACKAGE          - Path to the .tgz package to publish
 #   VERSION_TAG         - Version tag for release notes (e.g. v0.148.0)
@@ -22,7 +23,6 @@ set -euo pipefail
 
 DEFAULT_SPLUNK_VERSIONS="9.0,9.1,9.2,9.3,9.4,10.0,10.1,10.2,10.3,10.4,10.5"
 SPLUNK_VERSIONS="${SUPPORTED_SPLUNK_VERSIONS_FOR_COLLECTOR_TA:-${DEFAULT_SPLUNK_VERSIONS}}"
-AUTH="srv-prod-gdi-otel:${SPLUNKBASE_PASSWORD}"
 MAX_WAIT_SECONDS=600
 POLL_INTERVAL=10
 
@@ -59,11 +59,40 @@ if ! abs_path=$(realpath "${TA_PACKAGE}"); then
 fi
 file_name=$(basename "${TA_PACKAGE}")
 
+# Splunkbase Release API calls use the JWT returned by the Splunk API login
+# endpoint. Keep the login response out of the job log because it contains the
+# token used to authorize all subsequent requests.
+: "${SPLUNKBASE_USERNAME:?SPLUNKBASE_USERNAME must be set}"
+: "${SPLUNKBASE_PASSWORD:?SPLUNKBASE_PASSWORD must be set}"
+echo "Authenticating with the Splunk API..."
+login_body_file=$(mktemp)
+if ! login_http_code=$(curl -sS -o "${login_body_file}" -w '%{http_code}' \
+    --user "${SPLUNKBASE_USERNAME}:${SPLUNKBASE_PASSWORD}" \
+    --request GET "https://api.splunk.com/2.0/rest/login/splunk"); then
+    rm -f "${login_body_file}"
+    echo "Splunk API login request failed"
+    exit 1
+fi
+login_response=$(cat "${login_body_file}")
+rm -f "${login_body_file}"
+if [ "${login_http_code}" -lt 200 ] || [ "${login_http_code}" -ge 300 ]; then
+    echo "Splunk API login returned HTTP ${login_http_code}"
+    if ! jq '.' <<< "${login_response}" 2>/dev/null; then
+        echo "${login_response}"
+    fi
+    exit 1
+fi
+
+if ! SPLUNKBASE_JWT=$(jq -er '.data.token | strings | select(length > 0)' <<< "${login_response}"); then
+    echo "Failed to get JWT from Splunk API login response"
+    exit 1
+fi
+
 echo "--- Processing ${file_name} ---"
 
 # Step 1: Upload package and capture the returned id
 echo "Step 1: Uploading ${file_name}..."
-if ! curl_json -u "${AUTH}" \
+if ! curl_json -H "Authorization: Bearer ${SPLUNKBASE_JWT}" \
     --request POST "https://splunkbase.splunk.com/api/v1/app/${APP_ID}/new_release" \
     -F "files[]=@${abs_path}" \
     -F "filename=${file_name}" \
@@ -104,7 +133,7 @@ while true; do
         break
     fi
 
-    if ! curl_json -u "${AUTH}" \
+    if ! curl_json -H "Authorization: Bearer ${SPLUNKBASE_JWT}" \
         --request GET "https://splunkbase.splunk.com/api/v1/package/${id}/"; then
         echo "Polling request failed for id ${id}"
         validation_ok=0
@@ -164,7 +193,7 @@ fi
 
 # Step 3: Update release notes
 echo "Step 3: Updating release notes for release_file ${release_file}..."
-if ! curl_json -u "${AUTH}" \
+if ! curl_json -H "Authorization: Bearer ${SPLUNKBASE_JWT}" \
     --request PUT "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/releases/${release_file}/" \
     --json "{\"public\":true,\"release_notes\": \"${APP_NAME} ${VERSION_TAG}\\n\\n[Release Notes](https://github.com/signalfx/splunk-otel-collector/releases/tag/${VERSION_TAG})\"}"; then
     echo "Failed to update release notes for ${file_name}"
@@ -178,7 +207,7 @@ echo "Updated release notes for ${file_name} (release_file: ${release_file})"
 
 # Step 4: Make the latest release the default version for the app
 echo "Step 4: Setting release_file ${release_file} as default version for app ${APP_ID}..."
-if ! curl_json -u "${AUTH}" \
+if ! curl_json -H "Authorization: Bearer ${SPLUNKBASE_JWT}" \
     --request PATCH "https://splunkbase.splunk.com/api/v2/apps/${APP_ID}/" \
     --json "{\"latest_release\": ${release_file}}"; then
     echo "Failed to set default version for ${file_name}"

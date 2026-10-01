@@ -8,7 +8,6 @@ splunk_memory_total = '256'
 splunk_listen_interface = '0.0.0.0'
 splunk_platform_url = 'https://fake-splunk-platform.example.com:8088/services/collector'
 splunk_platform_token = 'fake-platform-token'
-splunk_memory_limit = '230'
 
 describe service('splunk-otel-collector') do
   it { should be_enabled }
@@ -28,7 +27,6 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
     { name: 'SPLUNK_PLATFORM_URL', type: :string, data: splunk_platform_url },
     { name: 'SPLUNK_PLATFORM_TOKEN', type: :string, data: splunk_platform_token },
-    { name: 'SPLUNK_MEMORY_LIMIT_MIB', type: :string, data: splunk_memory_limit },
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
     { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
@@ -89,7 +87,6 @@ else
     end
     its('content') { should match %r{^SPLUNK_PLATFORM_URL=https://fake-splunk-platform.example.com:8088/services/collector$} }
     its('content') { should match /^SPLUNK_PLATFORM_TOKEN=fake-platform-token$/ }
-    its('content') { should match /^SPLUNK_MEMORY_LIMIT_MIB=230$/ }
     its('content') { should_not match /^SPLUNK_PLATFORM_LOGS_INDEX=/ }
   end
   describe command("su -s /bin/sh -c 'test -w /etc/otel/collector' custom-user") do

@@ -122,7 +122,6 @@ suites:
           SPLUNK_OPAMP_SUPERVISOR_ENABLED: "true"
           SPLUNK_PLATFORM_URL: https://fake-splunk-platform.example.com:8088/services/collector
           SPLUNK_PLATFORM_TOKEN: fake-platform-token
-          SPLUNK_MEMORY_LIMIT_MIB: "230"
         collector_command_line_args: --discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml
 
   - name: with_default_preload_instrumentation

@@ -62,7 +62,6 @@ suites:
           MY_CUSTOM_VAR2: value2
           SPLUNK_PLATFORM_URL: https://fake-splunk-platform.example.com:8088/services/collector
           SPLUNK_PLATFORM_TOKEN: fake-platform-token
-          SPLUNK_MEMORY_LIMIT_MIB: "230"
         collector_command_line_args: >-
           --discovery --set=processors.batch.timeout=10s
           --feature-gates=confmap.enableMergeAppendOption

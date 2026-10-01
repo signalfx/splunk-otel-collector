@@ -12,7 +12,6 @@
       SPLUNK_MEMORY_TOTAL_MIB: "256"
       SPLUNK_PLATFORM_URL: https://fake-splunk-platform.example.com:8088/services/collector
       SPLUNK_PLATFORM_TOKEN: fake-platform-token
-      SPLUNK_MEMORY_LIMIT_MIB: "230"
       GOMEMLIMIT: 230
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2

@@ -26,7 +26,6 @@
       SPLUNK_OPAMP_SUPERVISOR_ENABLED: "true"
       SPLUNK_PLATFORM_URL: https://fake-splunk-platform.example.com:8088/services/collector
       SPLUNK_PLATFORM_TOKEN: fake-platform-token
-      SPLUNK_MEMORY_LIMIT_MIB: "230"
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       ansible.builtin.include_role:

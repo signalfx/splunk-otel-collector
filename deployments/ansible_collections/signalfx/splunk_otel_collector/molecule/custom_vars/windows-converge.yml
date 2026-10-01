@@ -15,7 +15,6 @@
       MY_CUSTOM_VAR3: 'value3 with spaces'
       SPLUNK_PLATFORM_URL: https://fake-splunk-platform.example.com:8088/services/collector
       SPLUNK_PLATFORM_TOKEN: fake-platform-token
-      SPLUNK_MEMORY_LIMIT_MIB: "230"
     splunk_otel_collector_command_line_args: >-
       --discovery --set=processors.batch.timeout=10s
       --feature-gates=confmap.enableMergeAppendOption

@@ -294,7 +294,6 @@ class {{ splunk_otel_collector:
       'SPLUNK_OPAMP_SUPERVISOR_ENABLED' => 'true',
       'SPLUNK_PLATFORM_URL' => 'https://fake-splunk-platform.example.com:8088/services/collector',
       'SPLUNK_PLATFORM_TOKEN' => 'fake-platform-token',
-      'SPLUNK_MEMORY_LIMIT_MIB' => '460',
     }},
     service_user => '{CUSTOM_SERVICE_OWNER}',
     service_group => '{CUSTOM_SERVICE_GROUP}',
@@ -336,7 +335,6 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "true")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_URL", "https://fake-splunk-platform.example.com:8088/services/collector")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_TOKEN", "fake-platform-token")
-            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_MEMORY_LIMIT_MIB", "460")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_LOGS_INDEX", exists=False)
             assert wait_for(lambda: service_is_running(container, service_owner=CUSTOM_SERVICE_OWNER))
             assert wait_for(lambda: service_is_running(
@@ -749,7 +747,6 @@ class {{ splunk_otel_collector:
       'MY_CUSTOM_VAR2' => 'value2',
       'SPLUNK_PLATFORM_URL' => 'https://fake-splunk-platform.example.com:8088/services/collector',
       'SPLUNK_PLATFORM_TOKEN' => 'fake-platform-token',
-      'SPLUNK_MEMORY_LIMIT_MIB' => '230',
     }},
 }}
 """
@@ -861,7 +858,6 @@ def test_win_puppet_custom_vars():
     assert get_otelcol_svc_env_var("MY_CUSTOM_VAR2") == "value2"
     assert get_otelcol_svc_env_var("SPLUNK_PLATFORM_URL") == "https://fake-splunk-platform.example.com:8088/services/collector"
     assert get_otelcol_svc_env_var("SPLUNK_PLATFORM_TOKEN") == "fake-platform-token"
-    assert get_otelcol_svc_env_var("SPLUNK_MEMORY_LIMIT_MIB") == "230"
     try:
         platform_logs_index = get_otelcol_svc_env_var("SPLUNK_PLATFORM_LOGS_INDEX")
     except FileNotFoundError:

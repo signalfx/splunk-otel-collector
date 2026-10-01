@@ -86,15 +86,6 @@
       register: config
       failed_when: config is changed
 
-    - name: Assert Splunk Platform logs memory limit is configured
-      ansible.builtin.lineinfile:
-        line: SPLUNK_MEMORY_LIMIT_MIB=230
-        dest: /etc/otel/collector/splunk-otel-collector.conf
-        state: present
-      check_mode: yes
-      register: config
-      failed_when: config is changed
-
     - name: Assert Splunk Platform logs index is omitted
       ansible.builtin.lineinfile:
         regexp: '^SPLUNK_PLATFORM_LOGS_INDEX='

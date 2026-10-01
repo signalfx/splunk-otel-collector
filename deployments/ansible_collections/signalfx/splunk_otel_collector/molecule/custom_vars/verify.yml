@@ -216,13 +216,27 @@
       changed_when: false
 
     - name: Look for the test log message in collector service output
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"
-        executable: /bin/bash
-      register: result
-      changed_when: false
-      until: result.stdout != ""
-      retries: 20
-      delay: 1
+      block:
+        - name: Retry until the test log message appears
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"
+            executable: /bin/bash
+          register: result
+          changed_when: false
+          until: result.stdout != ""
+          retries: 20
+          delay: 1
+      rescue:
+        - name: Collect collector service journal after the log assertion fails
+          ansible.builtin.command:
+            cmd: journalctl --no-pager -u splunk-otel-collector -n 200
+          register: collector_journal
+          changed_when: false
+
+        - name: Fail with collector service journal
+          ansible.builtin.fail:
+            msg: |
+              The test log message was not received. Collector service journal:
+              {{ collector_journal.stdout }}

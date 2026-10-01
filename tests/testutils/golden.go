@@ -17,6 +17,7 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -79,6 +80,27 @@ func WithFileMounts(mounts map[string]string) MetricsCollectionTestOption {
 			opts.fileMounts[k] = v
 		}
 	}
+}
+
+// CompareMetricsAgainstAnyBatch compares expected against collected metric batches,
+// starting with the most recently collected batch.
+func CompareMetricsAgainstAnyBatch(expected pmetric.Metrics, batches []pmetric.Metrics, options ...pmetrictest.CompareMetricsOption) error {
+	if len(batches) == 0 {
+		return errors.New("no metrics batches received")
+	}
+
+	var comparisonErr error
+	for i := len(batches) - 1; i >= 0; i-- {
+		err := pmetrictest.CompareMetrics(expected, batches[i], options...)
+		if err == nil {
+			return nil
+		}
+		if comparisonErr == nil {
+			comparisonErr = err
+		}
+	}
+
+	return comparisonErr
 }
 
 // RunMetricsCollectionTest runs a test that collects metrics using a collector container with provided configFile and

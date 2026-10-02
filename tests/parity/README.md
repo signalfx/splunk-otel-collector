@@ -162,7 +162,6 @@ mention of a name in event text pass through untouched:
 | Token            | Value                                             |
 | ---------------- | ------------------------------------------------- |
 | `${BASE_DIR}`    | per-run sandbox working directory                 |
-| `${CONFIG_DIR}`  | directory the run's config files are written to   |
 | `${HEC_ENDPOINT}`| backend HEC endpoint, e.g. `https://127.0.0.1:...`|
 | `${HEC_TOKEN}`   | backend HEC token                                 |
 | `${INDEX}`       | the index this agent forwards to                  |
@@ -189,12 +188,14 @@ So a case asserts one of two things, and which one is visible from its directory
   same input UF got.
 
 The collector config for a `conf/`-driven case is the framework's, not the
-case's. Both components take a single `base_dir` and discover the stanzas
-themselves, so there is nothing a case could vary, and keeping it out of the case
-directory means a case cannot pin the translation it exists to test. The
-framework materializes the case's `conf/` into `etc/system/local` under that
-`base_dir` and enables `enableTARunner`, the alpha gate the two components are
-registered behind.
+case's. It names the two components and nothing else: they discover every stanza
+themselves, so there is nothing a case could vary, and keeping the config out of
+the case directory means a case cannot pin the translation it exists to test.
+The framework materializes the case's `conf/` into `etc/system/local` of a
+sandbox `$SPLUNK_HOME`, which the collector process gets in its environment and
+the components resolve the way an install does, rather than being handed a
+`base_dir`. It also enables `enableTARunner`, the alpha gate the two components
+are registered behind.
 
 `outputs.conf` is the one file such a case does not supply to the candidate: the
 oracle ships events with `[httpout]`, a kind `splunk_outputs` skips, so the

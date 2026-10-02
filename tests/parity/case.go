@@ -87,7 +87,6 @@ func LoadCase(path string) (*Case, error) {
 // port, and per-agent index are dynamic.
 type Tokens struct {
 	BaseDir     string // per-run sandbox working directory
-	ConfigDir   string // directory the run's config files are written to
 	HECEndpoint string // Backend HEC endpoint, e.g. https://127.0.0.1:32769
 	HECToken    string // Backend HEC token
 	Index       string // Splunk index this agent forwards to
@@ -105,7 +104,6 @@ var tokenRef = regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)\}`)
 func (t Tokens) apply(s string) string {
 	vals := map[string]string{
 		"BASE_DIR":     t.BaseDir,
-		"CONFIG_DIR":   t.ConfigDir,
 		"HEC_ENDPOINT": t.HECEndpoint,
 		"HEC_TOKEN":    t.HECToken,
 		"INDEX":        t.Index,

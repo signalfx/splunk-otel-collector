@@ -33,10 +33,9 @@ type AgentRun struct {
 	Adapter Adapter
 	// ConfigFiles maps a slash-separated path, relative to the run's configDir,
 	// to its template. The runner interpolates the tokens (${BASE_DIR},
-	// ${CONFIG_DIR}, ${HEC_ENDPOINT}, ${HEC_TOKEN}, ${INDEX}) and writes each
-	// into configDir; Adapter.Prepare installs them. A path may name
-	// subdirectories, which is how an agent configured from a .conf tree is
-	// handed one.
+	// ${HEC_ENDPOINT}, ${HEC_TOKEN}, ${INDEX}) and writes each into configDir;
+	// Adapter.Prepare installs them. A path may name subdirectories, which is
+	// how an agent configured from a .conf tree is handed one.
 	ConfigFiles map[string]string
 	// Index is the Splunk index this agent forwards to.
 	Index string
@@ -103,20 +102,18 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	}
 	defer os.RemoveAll(baseDir)
 
-	configDir := filepath.Join(baseDir, "config")
-	if err := os.MkdirAll(configDir, 0o755); err != nil {
-		return nil, err
-	}
-
 	hec := backend.HEC()
 	tokens := Tokens{
 		BaseDir:     baseDir,
-		ConfigDir:   configDir,
 		HECEndpoint: hec.Endpoint,
 		HECToken:    hec.Token,
 		Index:       run.Index,
 	}
 
+	configDir := filepath.Join(baseDir, "config")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		return nil, err
+	}
 	for name, tmpl := range run.ConfigFiles {
 		path := filepath.Join(configDir, filepath.FromSlash(name))
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {

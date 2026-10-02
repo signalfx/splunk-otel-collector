@@ -236,7 +236,6 @@ type fakeAdapter struct {
 	captured   map[string]string
 	name       string
 	dir        string
-	configDir  string
 	inputsConf string
 	prepared   bool
 	started    bool
@@ -249,7 +248,6 @@ func (a *fakeAdapter) InstallDir() string { return a.dir }
 
 func (a *fakeAdapter) Prepare(configDir string) error {
 	a.prepared = true
-	a.configDir = configDir
 	a.captured = map[string]string{}
 	err := filepath.WalkDir(configDir, func(p string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
@@ -316,15 +314,15 @@ func TestRunAgent(t *testing.T) {
 }
 
 // TestRunAgentConfigTree: a ConfigFiles key may name subdirectories, so an
-// agent configured from a .conf tree can be handed one, and ${CONFIG_DIR}
-// resolves to the directory the tree was written into.
+// agent configured from a .conf tree can be handed one, interpolated the same
+// way a flat file is.
 func TestRunAgentConfigTree(t *testing.T) {
 	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
 	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
 	run := AgentRun{
 		Adapter: a,
 		ConfigFiles: map[string]string{
-			"config.yaml": "base_dir: ${CONFIG_DIR}/splunkhome",
+			"config.yaml": "receivers:\n  splunk_inputs:\n",
 			"splunkhome/etc/system/local/inputs.conf": "index=${INDEX}",
 		},
 		Index: "parity_uc",
@@ -336,8 +334,8 @@ func TestRunAgentConfigTree(t *testing.T) {
 	if got := a.captured["splunkhome/etc/system/local/inputs.conf"]; got != "index=parity_uc" {
 		t.Errorf("nested inputs.conf = %q", got)
 	}
-	if want := "base_dir: " + a.configDir + "/splunkhome"; a.captured["config.yaml"] != want {
-		t.Errorf("config.yaml = %q, want %q", a.captured["config.yaml"], want)
+	if got := a.captured["config.yaml"]; got != "receivers:\n  splunk_inputs:\n" {
+		t.Errorf("config.yaml = %q", got)
 	}
 }
 

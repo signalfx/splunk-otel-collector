@@ -124,6 +124,27 @@ func TestFeatureGates(t *testing.T) {
 	}
 }
 
+// TestSetSplunkHome: $SPLUNK_HOME is added to the process environment, resolved
+// against the run's config directory. Without it the child just inherits the
+// test's environment.
+func TestSetSplunkHome(t *testing.T) {
+	dir := t.TempDir()
+	a := New("bin", "config.yaml")
+	if err := a.Prepare(dir); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	if env := a.env(); env != nil {
+		t.Errorf("env with no SPLUNK_HOME = %v, want nil", env)
+	}
+
+	a.SetSplunkHome("splunkhome")
+	want := "SPLUNK_HOME=" + filepath.Join(dir, "splunkhome")
+	env := a.env()
+	if len(env) == 0 || env[len(env)-1] != want {
+		t.Errorf("env does not end with %q: %v", want, env)
+	}
+}
+
 func TestStartBinNotFound(t *testing.T) {
 	a := New(filepath.Join(t.TempDir(), "does-not-exist"))
 	if err := a.Start(context.Background()); err == nil {

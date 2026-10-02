@@ -47,11 +47,13 @@ const ConfigFile = "config.yaml"
 
 // Adapter drives one otelcol binary through a case.
 type Adapter struct {
-	cmd     *exec.Cmd
-	bin     string
-	extra   []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
-	gates   []string // feature gates to enable
-	configs []string // resolved --config sources, set by Prepare
+	cmd        *exec.Cmd
+	bin        string
+	splunkHome string   // $SPLUNK_HOME for the process, relative to configDir
+	configDir  string   // the run's config directory, set by Prepare
+	extra      []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
+	gates      []string // feature gates to enable
+	configs    []string // resolved --config sources, set by Prepare
 }
 
 // New returns an otelcol adapter. bin may be empty, in which case
@@ -78,6 +80,15 @@ func (a *Adapter) EnableFeatureGates(ids ...string) *Adapter {
 	return a
 }
 
+// SetSplunkHome runs the collector with $SPLUNK_HOME pointing at dir, resolved
+// relative to the run's config directory. Components that read a .conf tree
+// fall back to it when their base_dir is unset, which is how an install is
+// actually configured. It returns the adapter so it composes with New.
+func (a *Adapter) SetSplunkHome(dir string) *Adapter {
+	a.splunkHome = dir
+	return a
+}
+
 func (a *Adapter) Name() string { return "otelcol" }
 
 // InstallDir is the directory holding the binary.
@@ -87,6 +98,7 @@ func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 // --config source, sorted for a deterministic merge order, then appends the
 // extra sources from New. At least one source must resolve.
 func (a *Adapter) Prepare(configDir string) error {
+	a.configDir = configDir
 	entries, err := os.ReadDir(configDir)
 	if err != nil {
 		return err
@@ -128,11 +140,21 @@ func (a *Adapter) args() []string {
 	return args
 }
 
+// env is the process environment: the test's own, plus $SPLUNK_HOME when the
+// case asked for one. Nil leaves the child inheriting the test's environment.
+func (a *Adapter) env() []string {
+	if a.splunkHome == "" {
+		return nil
+	}
+	return append(os.Environ(), "SPLUNK_HOME="+filepath.Join(a.configDir, a.splunkHome))
+}
+
 func (a *Adapter) Start(ctx context.Context) error {
 	if _, err := os.Stat(a.bin); err != nil {
 		return fmt.Errorf("otelcol binary %s not found (build it with `make otelcol`, or set %s): %w", a.bin, EnvBin, err)
 	}
 	cmd := exec.CommandContext(ctx, a.bin, a.args()...) //nolint:gosec // G204: binary path and config sources are test-controlled inputs
+	cmd.Env = a.env()
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {

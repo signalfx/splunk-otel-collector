@@ -1,0 +1,10 @@
+name: "Set host"
+description: We use a custom host set when monitoring a file.
+stage: alpha
+setup: |
+  echo "initial text" > foo.txt
+script:
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux", "windows"]

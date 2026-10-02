@@ -66,6 +66,7 @@ require (
 	go.opentelemetry.io/collector/extension/extensionauth v1.67.0
 	go.opentelemetry.io/collector/extension/extensiontest v0.161.0
 	go.opentelemetry.io/collector/extension/xextension v0.161.0
+	go.opentelemetry.io/collector/filter v0.161.0
 	go.opentelemetry.io/collector/otelcol v0.161.0
 	go.opentelemetry.io/collector/pdata v1.67.0
 	go.opentelemetry.io/collector/pipeline v1.67.0
@@ -519,7 +520,6 @@ require (
 	go.opentelemetry.io/collector/extension/extensioncapabilities v0.161.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionmiddleware v0.161.0 // indirect
 	go.opentelemetry.io/collector/extension/zpagesextension v0.161.0 // indirect
-	go.opentelemetry.io/collector/filter v0.161.0 // indirect
 	go.opentelemetry.io/collector/internal/componentalias v0.161.0 // indirect
 	go.opentelemetry.io/collector/internal/fanoutconsumer v0.161.0 // indirect
 	go.opentelemetry.io/collector/internal/memorylimiter v0.161.0 // indirect
@@ -653,7 +653,7 @@ require (
 	github.com/golang/snappy v1.0.0
 	github.com/google/cadvisor v0.57.0 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.20 // indirect

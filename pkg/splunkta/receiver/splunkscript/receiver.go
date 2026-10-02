@@ -30,6 +30,7 @@ const TypeStr = "splunk_script"
 // tabuilder. Props and Transforms carry the shared props/transforms set,
 // matching splunk_inputs.
 type Config struct {
+	Extra          map[string]string `mapstructure:",remain"`
 	ScriptFilename string            `mapstructure:"script_filename"`
 	Interval       string            `mapstructure:"interval"`
 	Index          string            `mapstructure:"index"`
@@ -38,7 +39,6 @@ type Config struct {
 	Host           string            `mapstructure:"host"`
 	Props          []conf.Prop       `mapstructure:"props"`
 	Transforms     []conf.Transform  `mapstructure:"transforms"`
-	Extra          map[string]string `mapstructure:",remain"`
 }
 
 // Validate requires the script path, which is the stanza target and has no

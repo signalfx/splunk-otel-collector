@@ -34,12 +34,12 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkbatch"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkmonitor"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkscript"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunktcp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkudp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkwineventlog"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunktcp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkudp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkwineventlog"
 )
 
 const (

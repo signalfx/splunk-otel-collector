@@ -30,6 +30,7 @@ const TypeStr = "splunk_batch"
 // tabuilder. Props and Transforms carry the shared props/transforms set,
 // matching splunk_inputs.
 type Config struct {
+	Extra      map[string]string `mapstructure:",remain"`
 	FilePath   string            `mapstructure:"file_path"`
 	Index      string            `mapstructure:"index"`
 	Source     string            `mapstructure:"source"`
@@ -37,7 +38,6 @@ type Config struct {
 	Host       string            `mapstructure:"host"`
 	Props      []conf.Prop       `mapstructure:"props"`
 	Transforms []conf.Transform  `mapstructure:"transforms"`
-	Extra      map[string]string `mapstructure:",remain"`
 }
 
 // Validate requires the file path, which is the stanza target and has no

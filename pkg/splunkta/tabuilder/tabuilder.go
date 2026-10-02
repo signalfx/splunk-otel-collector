@@ -16,10 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configopaque"
-	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
@@ -35,6 +32,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/tcpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/udpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/wineventlogreceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 )
 
@@ -424,15 +422,16 @@ func CreateOutputExporter(output *conf.Output, logger *zap.Logger, telemetrySett
 	return newHECExporter(output, logger, telemetrySettings)
 }
 
+// newHECExporter builds the HEC exporter through the splunk_hecout factory, which
+// owns both the [hecout] key mapping and the translation onto splunkhec. The TA
+// runner builds components outside a collector service, so it supplies its own
+// exporter.Settings.
 func newHECExporter(o *conf.Output, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
-	f := splunkhecexporter.NewFactory()
-	cfg := f.CreateDefaultConfig().(*splunkhecexporter.Config)
-	cfg.ClientConfig.Endpoint = outputParam(o, "uri")
-	cfg.Token = configopaque.String(outputParam(o, "httpEventCollectorToken"))
-	cfg.ClientConfig.TLS = configtls.ClientConfig{InsecureSkipVerify: true} // TODO: wire sslVerifyServerCert from outputs.conf
+	cfg := splunkhecout.ConfigFromOutput(*o)
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
+	f := splunkhecout.NewFactory()
 	s := exporter.Settings{
 		ID: component.MustNewID(f.Type().String()),
 		TelemetrySettings: component.TelemetrySettings{
@@ -445,11 +444,4 @@ func newHECExporter(o *conf.Output, logger *zap.Logger, telemetrySettings compon
 		s.TelemetrySettings = telemetrySettings
 	}
 	return f.CreateLogs(context.Background(), s, cfg)
-}
-
-func outputParam(o *conf.Output, name string) string {
-	if param := o.Configuration.Stanza.Params.Get(name); param != nil {
-		return param.Value
-	}
-	return ""
 }

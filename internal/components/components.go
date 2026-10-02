@@ -34,6 +34,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkhecout"
 )
 
 const (
@@ -43,8 +44,8 @@ const (
 var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 	enableTARunnerFeatureGateID,
 	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver and `splunk_outputs` exporter. "+
-		"When disabled (default), the `splunk_inputs` receiver and `splunk_outputs` exporter are not available and the collector will crash if it tries to run them."),
+	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver, the `splunk_outputs` exporter, and the UF-native `splunk_hecout` exporter. "+
+		"When disabled (default), those components are not available and the collector will crash if it tries to run them."),
 	featuregate.WithRegisterFromVersion("v0.158.0"),
 )
 
@@ -75,6 +76,12 @@ func Get() (otelcol.Factories, error) {
 	if enableTARunner.IsEnabled() {
 		b.AddReceivers(splunkinputsreceiver.NewFactory())
 		b.AddExporters(splunkoutputsexporter.NewFactory())
+
+		// UF-native exporter type for the [hecout] output stanza. It owns the
+		// stanza translation that the TA runner also goes through, so both agree
+		// by construction. Undocumented: it exists to be emitted from a .conf
+		// config source, not written by hand in YAML.
+		b.AddExporters(splunkhecout.NewFactory())
 	}
 	b.AddProcessors(
 		timestampprocessor.NewFactory(),

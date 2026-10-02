@@ -65,7 +65,7 @@ suites:
         collector_command_line_args: >-
           --discovery --set=processors.batch.timeout=10s
           --feature-gates=confmap.enableMergeAppendOption
-          --config \"C:\ProgramData\Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml\"
+          --config \"<%= ENV['ProgramData'] %>\Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml\"
     verifier:
       name: shell
       remote_exec: true

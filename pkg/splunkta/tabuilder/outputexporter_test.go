@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
@@ -35,6 +36,20 @@ func TestCreateOutputExporterHECOut(t *testing.T) {
 	require.NotNil(t, e)
 }
 
+// TestCreateOutputExporterSuppliedTelemetry covers the other settings branch: a
+// caller that already has TelemetrySettings passes them through instead of
+// getting the noop providers assembled around the bare logger.
+func TestCreateOutputExporterSuppliedTelemetry(t *testing.T) {
+	out := hecOutput("hecout",
+		conf.Param{Name: "uri", Value: "https://hec.example.com:8088"},
+		conf.Param{Name: "httpEventCollectorToken", Value: "tok"},
+	)
+
+	e, err := CreateOutputExporter(out, zap.NewNop(), componenttest.NewNopTelemetrySettings())
+	require.NoError(t, err)
+	require.NotNil(t, e)
+}
+
 // TestCreateOutputExporterUnsupportedKind pins the documented contract: an
 // unsupported kind yields a nil exporter and no error, leaving the caller to log
 // it. createReceivers-style callers skip on nil.
@@ -43,6 +58,15 @@ func TestCreateOutputExporterUnsupportedKind(t *testing.T) {
 		conf.Param{Name: "server", Value: "idx1:9997"},
 	), zap.NewNop(), component.TelemetrySettings{})
 	require.NoError(t, err)
+	require.Nil(t, e)
+}
+
+// TestCreateOutputExporterUnparsableStanzaName covers the ParseOutputName error
+// branch: an empty stanza name has no kind to dispatch on, so it is an error
+// rather than an unsupported kind.
+func TestCreateOutputExporterUnparsableStanzaName(t *testing.T) {
+	e, err := CreateOutputExporter(hecOutput(""), zap.NewNop(), component.TelemetrySettings{})
+	require.Error(t, err)
 	require.Nil(t, e)
 }
 

@@ -122,11 +122,11 @@ tests/host/
   golden.json        generated
 ```
 
-`conf/` is the oracle's input, agent-agnostic Splunk config rather than anything
-UF-specific: every `*.conf` in it is handed to the agent, so a parsing case adds
-`props.conf`/`transforms.conf` with no framework change, and the collector can be
-pointed at the same directory once it consumes `.conf` natively. Until then
-`collector.yaml` is how the candidate is configured to produce the same events.
+`conf/` is agent-agnostic Splunk config rather than anything UF-specific: every
+`*.conf` in it is handed to the agent, so a parsing case adds
+`props.conf`/`transforms.conf` with no framework change. It configures the
+oracle, and it configures the candidate too in the `splunk-inputs` mode below.
+`collector.yaml` is the candidate's hand-written config for the default mode.
 
 `test.yaml` holds everything that is not agent config:
 
@@ -162,6 +162,7 @@ mention of a name in event text pass through untouched:
 | Token            | Value                                             |
 | ---------------- | ------------------------------------------------- |
 | `${BASE_DIR}`    | per-run sandbox working directory                 |
+| `${CONFIG_DIR}`  | directory the run's config files are written to   |
 | `${HEC_ENDPOINT}`| backend HEC endpoint, e.g. `https://127.0.0.1:...`|
 | `${HEC_TOKEN}`   | backend HEC token                                 |
 | `${INDEX}`       | the index this agent forwards to                  |
@@ -170,6 +171,40 @@ Splunk `.conf` files have no expansion of their own, which is why the framework
 does the substitution rather than leaving it to each agent.
 
 Then generate the golden with `make update-goldens` (see above) and commit it.
+
+## Candidate modes
+
+A golden records what the oracle landed for the case's input, so it does not
+depend on how the candidate was configured. That makes the candidate's config a
+dimension of a run rather than a property of a case:
+
+| `-candidate`     | How the collector is configured                                  |
+| ---------------- | ---------------------------------------------------------------- |
+| `collector-yaml` | the case's hand-written `collector.yaml` (default)               |
+| `splunk-inputs`  | the case's own `conf/`, via `splunk_inputs` and `splunk_outputs`  |
+
+`collector-yaml` asserts the golden is reachable with native collector config,
+which is what tells a failure of the `.conf` path apart from a golden no
+collector config can reach. `splunk-inputs` covers the `.conf` translation end
+to end: the candidate gets the same input as the oracle, so a stanza the
+collector maps differently shows up as a mismatch instead of passing on a
+hand-written equivalent.
+
+The `splunk-inputs` collector config is owned by the framework rather than the
+case. Both components take a single `base_dir` and discover the stanzas
+themselves, so there is nothing a case could vary, and keeping it out of the case
+directory means a case cannot pin the translation it exists to test. The
+framework materializes the case's `conf/` into `etc/system/local` under that
+`base_dir` and enables `enableTARunner`, the alpha gate the two components are
+registered behind.
+
+`outputs.conf` is the one file the candidate does not take from the case: the
+oracle ships events with `[httpout]`, a kind `splunk_outputs` skips, so the
+framework renders a `[hecout]` stanza pointing at the backend instead.
+
+One mode runs per invocation. The modes of a case share its index, which is what
+lets a case compare `index` like any other field, so a second mode in the same
+run would read back the first one's events. CI runs a job per mode.
 
 ## Running
 
@@ -195,10 +230,12 @@ Run:
 ```sh
 cd tests/parity
 go test -v -timeout 30m .
+go test -v -timeout 30m . -candidate=splunk-inputs   # the .conf path
 ```
 
 The first run pulls the Splunk image (~2.5GB) and boots it, so allow a few
-minutes. CI replays on every PR via `.github/workflows/parity-test.yml`.
+minutes. CI replays on every PR via `.github/workflows/parity-test.yml`, one job
+per candidate mode.
 
 ## Status
 

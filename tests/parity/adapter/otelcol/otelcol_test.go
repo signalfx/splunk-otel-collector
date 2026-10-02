@@ -80,13 +80,13 @@ func TestPrepareMultipleConfigs(t *testing.T) {
 		"--config", filepath.Join(dir, "override.yml"),
 		"--config", "splunkhome://SPLUNK_HOME?pipeline=uf",
 	}
-	got := a.configArgs()
+	got := a.args()
 	if len(got) != len(want) {
-		t.Fatalf("configArgs = %v, want %v", got, want)
+		t.Fatalf("args = %v, want %v", got, want)
 	}
 	for i := range want {
 		if got[i] != want[i] {
-			t.Errorf("configArgs[%d] = %q, want %q", i, got[i], want[i])
+			t.Errorf("args[%d] = %q, want %q", i, got[i], want[i])
 		}
 	}
 }
@@ -97,8 +97,30 @@ func TestPrepareExtraOnly(t *testing.T) {
 	if err := a.Prepare(t.TempDir()); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
-	if want := []string{"--config", "splunkhome://SPLUNK_HOME"}; len(a.configArgs()) != len(want) {
-		t.Errorf("configArgs = %v, want %v", a.configArgs(), want)
+	if want := []string{"--config", "splunkhome://SPLUNK_HOME"}; len(a.args()) != len(want) {
+		t.Errorf("args = %v, want %v", a.args(), want)
+	}
+}
+
+// TestFeatureGates: enabled gates follow the --config flags as a single
+// comma-separated flag, each prefixed with +.
+func TestFeatureGates(t *testing.T) {
+	a := New("bin", "splunkhome://SPLUNK_HOME").EnableFeatureGates("enableTARunner", "other")
+	if err := a.Prepare(t.TempDir()); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	want := []string{
+		"--config", "splunkhome://SPLUNK_HOME",
+		"--feature-gates=+enableTARunner,+other",
+	}
+	got := a.args()
+	if len(got) != len(want) {
+		t.Fatalf("args = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("args[%d] = %q, want %q", i, got[i], want[i])
+		}
 	}
 }
 

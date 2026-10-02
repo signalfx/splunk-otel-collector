@@ -34,6 +34,32 @@ import (
 // `make update-goldens`, which installs the pinned UF and sets it.
 var update = flag.Bool("update", false, "regenerate golden files by running the UF oracle")
 
+// Candidate modes: how the collector is told what to do. The golden is the same
+// either way, since it records what the oracle landed for the case's input, not
+// how the candidate was configured.
+const (
+	// collectorYAMLMode configures the candidate from the case's hand-written
+	// collector.yaml. It asserts the golden is reachable with native collector
+	// config, which is what tells a failure of the .conf path apart from a
+	// golden no collector config can reach.
+	collectorYAMLMode = "collector-yaml"
+	// splunkInputsMode configures the candidate from the case's own conf/ via
+	// the splunk_inputs receiver and splunk_outputs exporter, so a run covers
+	// the .conf translation end to end instead of a hand-written equivalent.
+	splunkInputsMode = "splunk-inputs"
+)
+
+// candidate selects the mode. Only one runs per invocation: the modes of a case
+// share its index, which is what lets a case compare index like any other
+// field, so a second mode in the same run would read back the first one's
+// events. CI runs a job per mode.
+var candidate = flag.String("candidate", collectorYAMLMode,
+	"how to configure the otelcol candidate: "+collectorYAMLMode+" or "+splunkInputsMode)
+
+// taRunnerGate registers splunk_inputs and splunk_outputs. It is alpha, so
+// without it the components do not exist and the collector fails to start.
+const taRunnerGate = "enableTARunner"
+
 // hecToken must be a valid, non-zero GUID: UF httpout rejects tokens shorter
 // than 36 chars and rejects the all-zeros GUID as "not in supported format"
 // (splcore TokenEncryptionDecryptionHelper::isEmptyGuid).
@@ -60,6 +86,9 @@ func TestParity(t *testing.T) {
 			t.Skipf("-update needs a UF install; not found at %s: %v", ufAdapter.InstallDir(), err)
 		}
 	} else {
+		if *candidate != collectorYAMLMode && *candidate != splunkInputsMode {
+			t.Fatalf("unknown -candidate %q: want %s or %s", *candidate, collectorYAMLMode, splunkInputsMode)
+		}
 		ocAdapter := otelcol.New("")
 		if _, err := os.Stat(ocAdapter.InstallDir()); err != nil {
 			t.Skipf("otelcol binary dir not found at %s (run `make otelcol`): %v", ocAdapter.InstallDir(), err)
@@ -125,14 +154,7 @@ func TestParity(t *testing.T) {
 				t.Fatalf("load golden (run with -update to generate): %v", err)
 			}
 
-			// collector.yaml is the case-directory name; the adapter is handed it
-			// as otelcol.ConfigFile.
-			ucRun := parity.AgentRun{
-				Adapter:     otelcol.New(""),
-				ConfigFiles: map[string]string{otelcol.ConfigFile: caseFile(t, path, "collector.yaml")},
-				Index:       index,
-			}
-			ucRecs, err := parity.RunAgent(ctx, c, ucRun, backend, opts)
+			ucRecs, err := parity.RunAgent(ctx, c, candidateRun(t, path, index), backend, opts)
 			if err != nil {
 				t.Fatalf("run otelcol candidate: %v", err)
 			}
@@ -184,6 +206,81 @@ func TestCases(t *testing.T) {
 	}
 }
 
+// candidateRun builds the candidate's AgentRun for a case in the selected mode.
+func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
+	t.Helper()
+	if *candidate == splunkInputsMode {
+		return parity.AgentRun{
+			Adapter:     otelcol.New("").EnableFeatureGates(taRunnerGate),
+			ConfigFiles: splunkInputsFiles(caseConf(t, casePath)),
+			Index:       index,
+		}
+	}
+	// collector.yaml is the case-directory name; the adapter is handed it as
+	// otelcol.ConfigFile.
+	return parity.AgentRun{
+		Adapter:     otelcol.New(""),
+		ConfigFiles: map[string]string{otelcol.ConfigFile: caseFile(t, casePath, "collector.yaml")},
+		Index:       index,
+	}
+}
+
+// splunkConfRoot is the candidate's $SPLUNK_HOME, relative to the run's config
+// directory: splunk_inputs and splunk_outputs search <root>/etc for conf files.
+const splunkConfRoot = "splunkhome"
+
+// systemLocalDir is the conf layer the case's files are installed into, the
+// same one the UF adapter installs them into on the oracle side.
+const systemLocalDir = splunkConfRoot + "/etc/system/local"
+
+// outputsConf is the one conf file the candidate does not take from the case.
+const outputsConf = "outputs.conf"
+
+// splunkInputsConfig is the candidate's collector config for splunkInputsMode.
+// It is owned here rather than per case because both components take a single
+// base_dir and discover the stanzas themselves, so there is nothing a case
+// could vary, and keeping it out of the case directory means a case cannot pin
+// the translation it exists to test.
+const splunkInputsConfig = `receivers:
+  splunk_inputs:
+    base_dir: ${CONFIG_DIR}/` + splunkConfRoot + `
+exporters:
+  splunk_outputs:
+    base_dir: ${CONFIG_DIR}/` + splunkConfRoot + `
+service:
+  pipelines:
+    logs:
+      receivers: [splunk_inputs]
+      exporters: [splunk_outputs]
+`
+
+// hecOutConf is the candidate's output side. The oracle ships events with
+// outputs.conf [httpout], a kind splunk_outputs skips, so the candidate needs a
+// [hecout] stanza the case's conf does not carry. Rendering it here keeps every
+// case from repeating it, and it replaces the case's outputs.conf rather than
+// merging with it so there is no question which stanza won.
+const hecOutConf = `[hecout]
+uri = ${HEC_ENDPOINT}
+httpEventCollectorToken = ${HEC_TOKEN}
+`
+
+// splunkInputsFiles lays out the candidate's config for splunkInputsMode: the
+// collector config, plus the case's conf/ materialized as a $SPLUNK_HOME tree
+// the components can search.
+func splunkInputsFiles(confFiles map[string]string) map[string]string {
+	files := map[string]string{
+		otelcol.ConfigFile:                 splunkInputsConfig,
+		systemLocalDir + "/" + outputsConf: hecOutConf,
+	}
+	for name, body := range confFiles {
+		if name == outputsConf {
+			continue
+		}
+		files[systemLocalDir+"/"+name] = body
+	}
+	return files
+}
+
 // caseFile reads one of the case's agent config files. Both agents take their
 // config from the case directory so a case can vary either side.
 func caseFile(t *testing.T, casePath, name string) string {
@@ -196,8 +293,7 @@ func caseFile(t *testing.T, casePath, name string) string {
 }
 
 // caseConf reads the case's conf/ directory, the Splunk .conf structure the
-// oracle is configured from. The collector can be pointed at the same directory
-// once it consumes .conf natively.
+// oracle is configured from and, in splunkInputsMode, the candidate too.
 func caseConf(t *testing.T, casePath string) map[string]string {
 	t.Helper()
 	dir := filepath.Join(filepath.Dir(casePath), confDir)

@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -49,6 +50,7 @@ type Adapter struct {
 	cmd     *exec.Cmd
 	bin     string
 	extra   []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
+	gates   []string // feature gates to enable
 	configs []string // resolved --config sources, set by Prepare
 }
 
@@ -65,6 +67,15 @@ func New(bin string, extra ...string) *Adapter {
 		bin = DefaultBin
 	}
 	return &Adapter{bin: bin, extra: extra}
+}
+
+// EnableFeatureGates turns on collector feature gates, passed as
+// --feature-gates=+<id>. Components behind an alpha gate are not registered
+// without it, so a case using one has to ask for it. It returns the adapter so
+// it composes with New.
+func (a *Adapter) EnableFeatureGates(ids ...string) *Adapter {
+	a.gates = append(a.gates, ids...)
+	return a
 }
 
 func (a *Adapter) Name() string { return "otelcol" }
@@ -100,11 +111,19 @@ func (a *Adapter) Prepare(configDir string) error {
 	return nil
 }
 
-// configArgs expands the resolved sources into repeated --config flags.
-func (a *Adapter) configArgs() []string {
-	args := make([]string, 0, 2*len(a.configs))
+// args expands the resolved sources into repeated --config flags, followed by
+// the enabled feature gates.
+func (a *Adapter) args() []string {
+	args := make([]string, 0, 2*len(a.configs)+1)
 	for _, c := range a.configs {
 		args = append(args, "--config", c)
+	}
+	if len(a.gates) > 0 {
+		enabled := make([]string, len(a.gates))
+		for i, g := range a.gates {
+			enabled[i] = "+" + g
+		}
+		args = append(args, "--feature-gates="+strings.Join(enabled, ","))
 	}
 	return args
 }
@@ -113,7 +132,7 @@ func (a *Adapter) Start(ctx context.Context) error {
 	if _, err := os.Stat(a.bin); err != nil {
 		return fmt.Errorf("otelcol binary %s not found (build it with `make otelcol`, or set %s): %w", a.bin, EnvBin, err)
 	}
-	cmd := exec.CommandContext(ctx, a.bin, a.configArgs()...) //nolint:gosec // G204: binary path and config sources are test-controlled inputs
+	cmd := exec.CommandContext(ctx, a.bin, a.args()...) //nolint:gosec // G204: binary path and config sources are test-controlled inputs
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {

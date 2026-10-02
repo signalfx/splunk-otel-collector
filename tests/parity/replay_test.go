@@ -204,25 +204,20 @@ func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
 		}
 	}
 	return parity.AgentRun{
-		Adapter:     otelcol.New("").EnableFeatureGates(taRunnerGate).SetSplunkHome(splunkConfRoot),
+		Adapter:     otelcol.New("").EnableFeatureGates(taRunnerGate),
 		ConfigFiles: splunkInputsFiles(caseConf(t, casePath)),
 		Index:       index,
 	}
 }
-
-// splunkConfRoot is the candidate's $SPLUNK_HOME, relative to the run's config
-// directory. The components are left to resolve it from the environment, the
-// way an install does, rather than being handed a base_dir.
-const splunkConfRoot = "splunkhome"
 
 // outputsConf is the one conf file the candidate does not take from the case.
 const outputsConf = "outputs.conf"
 
 // splunkInputsConfig is the collector config for a conf-driven case. It is
 // owned here rather than per case because the components discover every stanza
-// themselves from $SPLUNK_HOME, so there is nothing a case could vary, and
-// keeping it out of the case directory means a case cannot pin the translation
-// it exists to test.
+// themselves from the $SPLUNK_HOME the adapter installs the case's .conf into,
+// so there is nothing a case could vary, and keeping it out of the case
+// directory means a case cannot pin the translation it exists to test.
 const splunkInputsConfig = `receivers:
   splunk_inputs:
 exporters:

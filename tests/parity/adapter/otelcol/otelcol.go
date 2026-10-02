@@ -45,12 +45,15 @@ const EnvBin = "PARITY_OTELCOL_BIN"
 // its own --config, and extra sources given to New are appended after those.
 const ConfigFile = "config.yaml"
 
+// splunkHomeDir is the sandbox $SPLUNK_HOME the adapter creates inside the run's
+// config directory for a case that has .conf files.
+const splunkHomeDir = "splunkhome"
+
 // Adapter drives one otelcol binary through a case.
 type Adapter struct {
 	cmd        *exec.Cmd
 	bin        string
-	splunkHome string   // $SPLUNK_HOME for the process, relative to configDir
-	configDir  string   // the run's config directory, set by Prepare
+	splunkHome string   // sandbox $SPLUNK_HOME, set by Prepare when the case has .conf files
 	extra      []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
 	gates      []string // feature gates to enable
 	configs    []string // resolved --config sources, set by Prepare
@@ -80,16 +83,6 @@ func (a *Adapter) EnableFeatureGates(ids ...string) *Adapter {
 	return a
 }
 
-// SetSplunkHome gives the collector a $SPLUNK_HOME: Prepare lays the case's
-// .conf files out under it and the process is started with the variable set.
-// Components that read a .conf tree fall back to it when their base_dir is
-// unset, which is how an install is actually configured. dir is relative to the
-// run's config directory. It returns the adapter so it composes with New.
-func (a *Adapter) SetSplunkHome(dir string) *Adapter {
-	a.splunkHome = dir
-	return a
-}
-
 func (a *Adapter) Name() string { return "otelcol" }
 
 // InstallDir is the directory holding the binary.
@@ -97,10 +90,9 @@ func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 
 // Prepare collects every *.yaml/*.yml file the runner wrote into configDir as a
 // --config source, sorted for a deterministic merge order, then appends the
-// extra sources from New. At least one source must resolve. With a
-// SetSplunkHome, every *.conf file is also installed into that tree.
+// extra sources from New. At least one source must resolve. Any *.conf file is
+// installed into a sandbox $SPLUNK_HOME instead, see installConf.
 func (a *Adapter) Prepare(configDir string) error {
-	a.configDir = configDir
 	entries, err := os.ReadDir(configDir)
 	if err != nil {
 		return err
@@ -124,23 +116,25 @@ func (a *Adapter) Prepare(configDir string) error {
 	if len(a.configs) == 0 {
 		return fmt.Errorf("no collector config: want a *.yaml file in %s or an extra --config source", configDir)
 	}
-	return a.installConf(confs)
+	return a.installConf(configDir, confs)
 }
 
-// installConf copies the case's .conf files into etc/system/local of the
-// sandbox $SPLUNK_HOME, the layer an agent reads them from. The UF adapter does
-// the same into its own install; here the tree is created from scratch, so there
-// is nothing to restore afterwards.
-func (a *Adapter) installConf(names []string) error {
-	if a.splunkHome == "" {
+// installConf gives a case's .conf files somewhere to be read from: a sandbox
+// $SPLUNK_HOME whose etc/system/local holds them, which is where the UF adapter
+// installs them in its own install too. The collector is then started with
+// SPLUNK_HOME set, so a component that reads a .conf tree resolves it the way an
+// install does. A case with no .conf files gets neither.
+func (a *Adapter) installConf(configDir string, names []string) error {
+	if len(names) == 0 {
 		return nil
 	}
-	localDir := filepath.Join(a.configDir, a.splunkHome, "etc", "system", "local")
+	home := filepath.Join(configDir, splunkHomeDir)
+	localDir := filepath.Join(home, "etc", "system", "local")
 	if err := os.MkdirAll(localDir, 0o755); err != nil {
 		return err
 	}
 	for _, name := range names {
-		contents, err := os.ReadFile(filepath.Join(a.configDir, name))
+		contents, err := os.ReadFile(filepath.Join(configDir, name))
 		if err != nil {
 			return err
 		}
@@ -148,6 +142,7 @@ func (a *Adapter) installConf(names []string) error {
 			return err
 		}
 	}
+	a.splunkHome = home
 	return nil
 }
 
@@ -168,13 +163,13 @@ func (a *Adapter) args() []string {
 	return args
 }
 
-// env is the process environment: the test's own, plus $SPLUNK_HOME when the
-// case asked for one. Nil leaves the child inheriting the test's environment.
+// env is the process environment: the test's own, plus $SPLUNK_HOME when a tree
+// was installed. Nil leaves the child inheriting the test's environment.
 func (a *Adapter) env() []string {
 	if a.splunkHome == "" {
 		return nil
 	}
-	return append(os.Environ(), "SPLUNK_HOME="+filepath.Join(a.configDir, a.splunkHome))
+	return append(os.Environ(), "SPLUNK_HOME="+a.splunkHome)
 }
 
 func (a *Adapter) Start(ctx context.Context) error {

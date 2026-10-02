@@ -124,9 +124,9 @@ func TestFeatureGates(t *testing.T) {
 	}
 }
 
-// TestSplunkHome: with SetSplunkHome the case's .conf files land in
-// etc/system/local of the sandbox tree and the process gets the variable;
-// without it neither happens. A .conf is never a --config source.
+// TestSplunkHome: a case's .conf files land in etc/system/local of a sandbox
+// tree and the process gets SPLUNK_HOME pointing at it. A .conf is never a
+// --config source.
 func TestSplunkHome(t *testing.T) {
 	dir := t.TempDir()
 	confs := []string{"inputs.conf", "outputs.conf"}
@@ -136,22 +136,11 @@ func TestSplunkHome(t *testing.T) {
 		}
 	}
 
-	bare := New("bin")
-	if err := bare.Prepare(dir); err != nil {
-		t.Fatalf("Prepare: %v", err)
-	}
-	if env := bare.env(); env != nil {
-		t.Errorf("env without SPLUNK_HOME = %v, want nil", env)
-	}
-	if entries, err := os.ReadDir(dir); err != nil || len(entries) != 3 {
-		t.Errorf("configDir should be untouched, got %v (err %v)", entries, err)
-	}
-
-	a := New("bin").SetSplunkHome("splunkhome")
+	a := New("bin")
 	if err := a.Prepare(dir); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
-	home := filepath.Join(dir, "splunkhome")
+	home := filepath.Join(dir, splunkHomeDir)
 	for _, name := range confs {
 		if _, err := os.Stat(filepath.Join(home, "etc", "system", "local", name)); err != nil {
 			t.Errorf("%s not installed: %v", name, err)
@@ -162,6 +151,18 @@ func TestSplunkHome(t *testing.T) {
 	}
 	if env := a.env(); len(env) == 0 || env[len(env)-1] != "SPLUNK_HOME="+home {
 		t.Errorf("env does not end with SPLUNK_HOME=%s: %v", home, env)
+	}
+}
+
+// TestNoConfNoSplunkHome: a case with no .conf files gets no tree and the child
+// inherits the test's environment unchanged.
+func TestNoConfNoSplunkHome(t *testing.T) {
+	a := New("bin", "config.yaml")
+	if err := a.Prepare(t.TempDir()); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	if env := a.env(); env != nil {
+		t.Errorf("env = %v, want nil", env)
 	}
 }
 

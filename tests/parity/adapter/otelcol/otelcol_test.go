@@ -124,24 +124,44 @@ func TestFeatureGates(t *testing.T) {
 	}
 }
 
-// TestSetSplunkHome: $SPLUNK_HOME is added to the process environment, resolved
-// against the run's config directory. Without it the child just inherits the
-// test's environment.
-func TestSetSplunkHome(t *testing.T) {
+// TestSplunkHome: with SetSplunkHome the case's .conf files land in
+// etc/system/local of the sandbox tree and the process gets the variable;
+// without it neither happens. A .conf is never a --config source.
+func TestSplunkHome(t *testing.T) {
 	dir := t.TempDir()
-	a := New("bin", "config.yaml")
+	confs := []string{"inputs.conf", "outputs.conf"}
+	for _, f := range append([]string{ConfigFile}, confs...) {
+		if err := os.WriteFile(filepath.Join(dir, f), []byte("x"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	bare := New("bin")
+	if err := bare.Prepare(dir); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	if env := bare.env(); env != nil {
+		t.Errorf("env without SPLUNK_HOME = %v, want nil", env)
+	}
+	if entries, err := os.ReadDir(dir); err != nil || len(entries) != 3 {
+		t.Errorf("configDir should be untouched, got %v (err %v)", entries, err)
+	}
+
+	a := New("bin").SetSplunkHome("splunkhome")
 	if err := a.Prepare(dir); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
-	if env := a.env(); env != nil {
-		t.Errorf("env with no SPLUNK_HOME = %v, want nil", env)
+	home := filepath.Join(dir, "splunkhome")
+	for _, name := range confs {
+		if _, err := os.Stat(filepath.Join(home, "etc", "system", "local", name)); err != nil {
+			t.Errorf("%s not installed: %v", name, err)
+		}
 	}
-
-	a.SetSplunkHome("splunkhome")
-	want := "SPLUNK_HOME=" + filepath.Join(dir, "splunkhome")
-	env := a.env()
-	if len(env) == 0 || env[len(env)-1] != want {
-		t.Errorf("env does not end with %q: %v", want, env)
+	if want := []string{"--config", filepath.Join(dir, ConfigFile)}; len(a.args()) != len(want) {
+		t.Errorf("args = %v, want %v", a.args(), want)
+	}
+	if env := a.env(); len(env) == 0 || env[len(env)-1] != "SPLUNK_HOME="+home {
+		t.Errorf("env does not end with SPLUNK_HOME=%s: %v", home, env)
 	}
 }
 

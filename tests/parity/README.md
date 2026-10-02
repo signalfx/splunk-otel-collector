@@ -191,11 +191,11 @@ The collector config for a `conf/`-driven case is the framework's, not the
 case's. It names the two components and nothing else: they discover every stanza
 themselves, so there is nothing a case could vary, and keeping the config out of
 the case directory means a case cannot pin the translation it exists to test.
-The framework materializes the case's `conf/` into `etc/system/local` of a
-sandbox `$SPLUNK_HOME`, which the collector process gets in its environment and
-the components resolve the way an install does, rather than being handed a
-`base_dir`. It also enables `enableTARunner`, the alpha gate the two components
-are registered behind.
+The adapter installs the case's `*.conf` into `etc/system/local` of a sandbox
+`$SPLUNK_HOME` and starts the collector with that variable set, the same way the
+UF adapter installs them into its own install, so the components resolve the tree
+as an install does rather than from a `base_dir`. It also enables
+`enableTARunner`, the alpha gate the two components are registered behind.
 
 `outputs.conf` is the one file such a case does not supply to the candidate: the
 oracle ships events with `[httpout]`, a kind `splunk_outputs` skips, so the

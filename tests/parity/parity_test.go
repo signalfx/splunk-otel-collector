@@ -17,7 +17,6 @@ package parity
 import (
 	"context"
 	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -226,14 +225,10 @@ func (f *fakeBackend) Search(_ context.Context, spl string) ([]Record, error) {
 func (f *fakeBackend) Clean(context.Context, string) error { return nil }
 
 // fakeAdapter records the lifecycle calls the runner makes and captures the
-// interpolated config it is handed, so tests can assert both. The capture
-// happens in Prepare because the runner removes the sandbox when it returns.
+// interpolated inputs.conf it is handed, so tests can assert both.
 type fakeAdapter struct {
 	prepareErr error
 	startErr   error
-	// captured holds every file under configDir, keyed by slash-separated path
-	// relative to it.
-	captured   map[string]string
 	name       string
 	dir        string
 	inputsConf string
@@ -248,26 +243,9 @@ func (a *fakeAdapter) InstallDir() string { return a.dir }
 
 func (a *fakeAdapter) Prepare(configDir string) error {
 	a.prepared = true
-	a.captured = map[string]string{}
-	err := filepath.WalkDir(configDir, func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return err
-		}
-		b, err := os.ReadFile(p)
-		if err != nil {
-			return err
-		}
-		rel, err := filepath.Rel(configDir, p)
-		if err != nil {
-			return err
-		}
-		a.captured[filepath.ToSlash(rel)] = string(b)
-		return nil
-	})
-	if err != nil {
-		return err
+	if b, err := os.ReadFile(filepath.Join(configDir, "inputs.conf")); err == nil {
+		a.inputsConf = string(b)
 	}
-	a.inputsConf = a.captured["inputs.conf"]
 	return a.prepareErr
 }
 
@@ -310,32 +288,6 @@ func TestRunAgent(t *testing.T) {
 	}
 	if !a.prepared || !a.started || !a.stopped || !a.cleaned {
 		t.Errorf("lifecycle incomplete: %+v", a)
-	}
-}
-
-// TestRunAgentConfigTree: a ConfigFiles key may name subdirectories, so an
-// agent configured from a .conf tree can be handed one, interpolated the same
-// way a flat file is.
-func TestRunAgentConfigTree(t *testing.T) {
-	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
-	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
-	run := AgentRun{
-		Adapter: a,
-		ConfigFiles: map[string]string{
-			"config.yaml": "receivers:\n  splunk_inputs:\n",
-			"splunkhome/etc/system/local/inputs.conf": "index=${INDEX}",
-		},
-		Index: "parity_uc",
-	}
-
-	if _, err := RunAgent(context.Background(), &Case{Name: "c"}, run, backend, fastOpts()); err != nil {
-		t.Fatalf("RunAgent: %v", err)
-	}
-	if got := a.captured["splunkhome/etc/system/local/inputs.conf"]; got != "index=parity_uc" {
-		t.Errorf("nested inputs.conf = %q", got)
-	}
-	if got := a.captured["config.yaml"]; got != "receivers:\n  splunk_inputs:\n" {
-		t.Errorf("config.yaml = %q", got)
 	}
 }
 

@@ -80,10 +80,11 @@ func (a *Adapter) EnableFeatureGates(ids ...string) *Adapter {
 	return a
 }
 
-// SetSplunkHome runs the collector with $SPLUNK_HOME pointing at dir, resolved
-// relative to the run's config directory. Components that read a .conf tree
-// fall back to it when their base_dir is unset, which is how an install is
-// actually configured. It returns the adapter so it composes with New.
+// SetSplunkHome gives the collector a $SPLUNK_HOME: Prepare lays the case's
+// .conf files out under it and the process is started with the variable set.
+// Components that read a .conf tree fall back to it when their base_dir is
+// unset, which is how an install is actually configured. dir is relative to the
+// run's config directory. It returns the adapter so it composes with New.
 func (a *Adapter) SetSplunkHome(dir string) *Adapter {
 	a.splunkHome = dir
 	return a
@@ -96,14 +97,15 @@ func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 
 // Prepare collects every *.yaml/*.yml file the runner wrote into configDir as a
 // --config source, sorted for a deterministic merge order, then appends the
-// extra sources from New. At least one source must resolve.
+// extra sources from New. At least one source must resolve. With a
+// SetSplunkHome, every *.conf file is also installed into that tree.
 func (a *Adapter) Prepare(configDir string) error {
 	a.configDir = configDir
 	entries, err := os.ReadDir(configDir)
 	if err != nil {
 		return err
 	}
-	var files []string
+	var files, confs []string
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
@@ -111,6 +113,8 @@ func (a *Adapter) Prepare(configDir string) error {
 		switch filepath.Ext(e.Name()) {
 		case ".yaml", ".yml":
 			files = append(files, filepath.Join(configDir, e.Name()))
+		case ".conf":
+			confs = append(confs, e.Name())
 		}
 	}
 	sort.Strings(files)
@@ -119,6 +123,30 @@ func (a *Adapter) Prepare(configDir string) error {
 	a.configs = append(a.configs, a.extra...)
 	if len(a.configs) == 0 {
 		return fmt.Errorf("no collector config: want a *.yaml file in %s or an extra --config source", configDir)
+	}
+	return a.installConf(confs)
+}
+
+// installConf copies the case's .conf files into etc/system/local of the
+// sandbox $SPLUNK_HOME, the layer an agent reads them from. The UF adapter does
+// the same into its own install; here the tree is created from scratch, so there
+// is nothing to restore afterwards.
+func (a *Adapter) installConf(names []string) error {
+	if a.splunkHome == "" {
+		return nil
+	}
+	localDir := filepath.Join(a.configDir, a.splunkHome, "etc", "system", "local")
+	if err := os.MkdirAll(localDir, 0o755); err != nil {
+		return err
+	}
+	for _, name := range names {
+		contents, err := os.ReadFile(filepath.Join(a.configDir, name))
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(localDir, name), contents, 0o600); err != nil {
+			return err
+		}
 	}
 	return nil
 }

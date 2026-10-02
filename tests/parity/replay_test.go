@@ -211,14 +211,9 @@ func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
 }
 
 // splunkConfRoot is the candidate's $SPLUNK_HOME, relative to the run's config
-// directory: splunk_inputs and splunk_outputs search <root>/etc for conf files.
-// They are left to resolve it from the environment, the way an install does,
-// rather than being handed a base_dir.
+// directory. The components are left to resolve it from the environment, the
+// way an install does, rather than being handed a base_dir.
 const splunkConfRoot = "splunkhome"
-
-// systemLocalDir is the conf layer the case's files are installed into, the
-// same one the UF adapter installs them into on the oracle side.
-const systemLocalDir = splunkConfRoot + "/etc/system/local"
 
 // outputsConf is the one conf file the candidate does not take from the case.
 const outputsConf = "outputs.conf"
@@ -249,19 +244,19 @@ uri = ${HEC_ENDPOINT}
 httpEventCollectorToken = ${HEC_TOKEN}
 `
 
-// splunkInputsFiles lays out a conf-driven case's candidate config: the
-// collector config, plus the case's conf/ materialized as a $SPLUNK_HOME tree
-// the components can search.
+// splunkInputsFiles is a conf-driven case's candidate config: the collector
+// config plus the case's own .conf files, which the adapter installs into the
+// $SPLUNK_HOME tree the components search.
 func splunkInputsFiles(confFiles map[string]string) map[string]string {
 	files := map[string]string{
-		otelcol.ConfigFile:                 splunkInputsConfig,
-		systemLocalDir + "/" + outputsConf: hecOutConf,
+		otelcol.ConfigFile: splunkInputsConfig,
+		outputsConf:        hecOutConf,
 	}
 	for name, body := range confFiles {
 		if name == outputsConf {
 			continue
 		}
-		files[systemLocalDir+"/"+name] = body
+		files[name] = body
 	}
 	return files
 }

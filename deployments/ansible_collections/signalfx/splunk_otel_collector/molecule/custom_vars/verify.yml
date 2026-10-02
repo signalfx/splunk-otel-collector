@@ -57,9 +57,40 @@
 
     - name: Assert OTELCOL_OPTIONS env var is set per splunk_otel_collector_command_line_args
       ansible.builtin.lineinfile:
-        line: OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s
+        line: >-
+          OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s
+          --feature-gates=confmap.enableMergeAppendOption
+          --config /etc/otel/collector/custom_config.yml
+          --config /etc/otel/collector/splunk_logs_config_linux.yaml
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Splunk Platform logs URL is configured
+      ansible.builtin.lineinfile:
+        line: SPLUNK_PLATFORM_URL=https://fake-splunk-platform.example.com:8088/services/collector
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Splunk Platform logs token is configured
+      ansible.builtin.lineinfile:
+        line: SPLUNK_PLATFORM_TOKEN=fake-platform-token
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Splunk Platform logs index is omitted
+      ansible.builtin.lineinfile:
+        regexp: '^SPLUNK_PLATFORM_LOGS_INDEX='
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: absent
       check_mode: yes
       register: config
       failed_when: config is changed
@@ -123,7 +154,7 @@
 
     - name: Assert SPLUNK_LISTEN_INTERFACE env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_LISTEN_INTERFACE=1.2.3.4
+        line: SPLUNK_LISTEN_INTERFACE=127.0.0.1
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
@@ -180,13 +211,27 @@
       changed_when: false
 
     - name: Look for the test log message in collector service output
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"
-        executable: /bin/bash
-      register: result
-      changed_when: false
-      until: result.stdout != ""
-      retries: 20
-      delay: 1
+      block:
+        - name: Retry until the test log message appears
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"
+            executable: /bin/bash
+          register: result
+          changed_when: false
+          until: result.stdout != ""
+          retries: 20
+          delay: 1
+      rescue:
+        - name: Collect collector service journal after the log assertion fails
+          ansible.builtin.command:
+            cmd: journalctl --no-pager -u splunk-otel-collector -n 200
+          register: collector_journal
+          changed_when: false
+
+        - name: Fail with collector service journal
+          ansible.builtin.fail:
+            msg: |
+              The test log message was not received. Collector service journal:
+              {{ collector_journal.stdout }}

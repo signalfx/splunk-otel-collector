@@ -41,6 +41,12 @@ if collector_cmd_line_configurable && !node['splunk_otel_collector']['collector_
   msi_install_properties += " COLLECTOR_SVC_ARGS=\"#{node['splunk_otel_collector']['collector_command_line_args']}\""
 end
 
+# Keep a verbose MSI log for local package tests so failed installations can be diagnosed.
+if node['splunk_otel_collector']['local_artifact_testing_enabled']
+  msi_log_path = ::File.join(ENV['TEMP'], 'splunk-otel-collector-msi.log')
+  msi_install_properties = "/L*V \"#{msi_log_path}\" #{msi_install_properties}"
+end
+
 windows_package 'splunk-otel-collector' do
   source remote_destination_path
   options msi_install_properties # If the MSI is not configurable, this will be ignored during installation.

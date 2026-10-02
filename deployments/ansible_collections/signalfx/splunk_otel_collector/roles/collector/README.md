@@ -37,6 +37,43 @@ how to use the role in a playbook with minimal required configuration:
 
 > **_NOTE:_**  Setting splunk_hec_token is optional.
 
+### Send host logs to Splunk Platform
+
+The collector package includes a Splunk Platform logs configuration for each
+supported operating system. Enable config merging and provide the HEC settings
+as additional environment variables.
+
+#### Linux
+
+```yaml
+splunk_otel_collector_command_line_args: >-
+  --feature-gates=confmap.enableMergeAppendOption
+  --config /etc/otel/collector/agent_config.yaml
+  --config /etc/otel/collector/splunk_logs_config_linux.yaml
+splunk_otel_collector_additional_env_vars:
+  SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
+  SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+  SPLUNK_PLATFORM_LOGS_INDEX: "<your-index>"
+```
+
+#### Windows
+
+The Windows MSI appends the main config selected by `SPLUNK_CONFIG`; add the
+packaged logs config and merge feature gate to the role's service arguments:
+
+```yaml
+splunk_otel_collector_command_line_args: >-
+  --feature-gates=confmap.enableMergeAppendOption
+  --config \"{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml\"
+splunk_otel_collector_additional_env_vars:
+  SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
+  SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+  SPLUNK_PLATFORM_LOGS_INDEX: "<your-index>"
+```
+
+Set the HEC URL, token, and optional index for your Splunk Platform instance.
+Store the token in Ansible Vault or another secrets manager.
+
 You can disable starting the collector service by setting 
 the argument `start_service` to `false`:
 

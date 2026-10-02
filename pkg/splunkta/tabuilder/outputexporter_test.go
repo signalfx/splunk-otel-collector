@@ -51,8 +51,8 @@ func TestCreateOutputExporterUnsupportedKind(t *testing.T) {
 func TestCreateOutputExporterIncompleteStanza(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
-		params []conf.Param
 		errMsg string
+		params []conf.Param
 	}{
 		{
 			name:   "no token",
@@ -65,7 +65,7 @@ func TestCreateOutputExporterIncompleteStanza(t *testing.T) {
 			errMsg: "endpoint is required",
 		},
 		{
-			name: "unparseable uri",
+			name: "malformed uri",
 			params: []conf.Param{
 				{Name: "uri", Value: "http://[::1"},
 				{Name: "httpEventCollectorToken", Value: "tok"},

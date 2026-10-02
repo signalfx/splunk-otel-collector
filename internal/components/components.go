@@ -34,7 +34,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkhecout"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 )
 
 const (

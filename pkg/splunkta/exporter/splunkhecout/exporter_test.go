@@ -50,8 +50,8 @@ func TestConfigFromOutputMissingParams(t *testing.T) {
 func TestValidate(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
-		cfg    Config
 		errMsg string
+		cfg    Config
 	}{
 		{
 			name: "valid",
@@ -123,7 +123,7 @@ func TestHECConfigTranslation(t *testing.T) {
 
 // TestHECConfigRejectsBadEndpoint proves splunkhec's own validation still runs.
 // Core validates this wrapper's Config, not the delegate's, so without the
-// explicit call an unparseable uri from outputs.conf would reach the exporter.
+// explicit call a malformed uri from outputs.conf would reach the exporter.
 // splunkhec's Validate catches it via getURL; this wrapper's Validate only
 // checks that endpoint and token are non-empty.
 func TestHECConfigRejectsBadEndpoint(t *testing.T) {

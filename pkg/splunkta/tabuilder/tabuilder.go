@@ -26,13 +26,13 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/batchreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/monitorreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/scriptreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/tcpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/udpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/wineventlogreceiver"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 )
 

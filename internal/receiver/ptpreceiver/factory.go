@@ -5,6 +5,7 @@ package ptpreceiver
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -24,12 +25,15 @@ func NewFactory() receiver.Factory {
 func createDefaultConfig() component.Config {
 	controller := scraperhelper.NewDefaultControllerConfig()
 	controller.CollectionInterval = 10 * time.Second
-	controller.Timeout = 10 * time.Second
+	controller.Timeout = 5 * time.Second
 	return &Config{
 		ControllerConfig:     controller,
 		MetricsBuilderConfig: metadata.NewDefaultMetricsBuilderConfig(),
 		SocketPath:           "/var/run/ptp/ptp4l",
-		PMCPath:              "pmc",
+		PMC: PMCConfig{
+			Path:                  "pmc",
+			ClientSocketDirectory: os.TempDir(),
+		},
 	}
 }
 

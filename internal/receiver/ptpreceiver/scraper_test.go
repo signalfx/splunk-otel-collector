@@ -6,6 +6,7 @@ package ptpreceiver
 import (
 	"context"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -72,11 +73,11 @@ func TestParsePMCStatus(t *testing.T) {
 				require.Equal(t, int64(-42), status.offset)
 				require.InDelta(t, 125.5, status.pathDelay, 1e-6)
 				require.Equal(t, "001122.fffe.334455", status.gmIdentity)
-				require.Equal(t, "boundary", status.clockType)
+				require.Equal(t, "BC", status.clockType)
 				require.Len(t, status.ports, 2)
 			}
 			if tt.name == "transparent clock" {
-				require.Equal(t, "p2p_transparent", status.clockType)
+				require.Equal(t, "P2P_TC", status.clockType)
 				require.False(t, status.hasTimeStatus)
 			}
 		})
@@ -87,13 +88,18 @@ func TestScrape(t *testing.T) {
 	for _, present := range []bool{true, false} {
 		t.Run(map[bool]string{true: "remote grandmaster", false: "local grandmaster"}[present], func(t *testing.T) {
 			config := createDefaultConfig().(*Config)
+			config.PMC.ClientSocketDirectory = t.TempDir()
 			var gotName string
 			var gotArgs []string
+			var clientSocketPath string
 			s := newScraper(config, receiver.Settings{})
 			expectedClockState := "SLAVE"
 			expectedPortStates := map[string]string{"001122.fffe.334455-1": "SLAVE", "001122.fffe.334455-2": "MASTER"}
 			s.runPMC = func(_ context.Context, name string, args ...string) ([]byte, error) {
 				gotName, gotArgs = name, args
+				clientSocketPath = args[4]
+				require.DirExists(t, filepath.Dir(clientSocketPath))
+				require.Equal(t, config.PMC.ClientSocketDirectory, filepath.Dir(filepath.Dir(clientSocketPath)))
 				response := pmcResponse
 				if !present {
 					response = pmcResponseWithoutGrandmasterWithInvalidMeasurements()
@@ -106,9 +112,11 @@ func TestScrape(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, "pmc", gotName)
 			require.Equal(t, []string{
-				"-u", "-b", "0", "-s", config.SocketPath, "-d", "0",
+				"-u", "-b", "0", "-i", clientSocketPath, "-s", config.SocketPath, "-d", "0",
 				"GET TIME_STATUS_NP", "GET CURRENT_DATA_SET", "GET PORT_DATA_SET", "GET CLOCK_DESCRIPTION",
 			}, gotArgs)
+			_, err = os.Stat(filepath.Dir(clientSocketPath))
+			require.ErrorIs(t, err, os.ErrNotExist)
 			require.Equal(t, 1, metrics.ResourceMetrics().Len())
 			rm := metrics.ResourceMetrics().At(0)
 			value, ok := rm.Resource().Attributes().Get("ptp.socket_path")
@@ -116,7 +124,7 @@ func TestScrape(t *testing.T) {
 			require.Equal(t, config.SocketPath, value.Str())
 			clockType, ok := rm.Resource().Attributes().Get("ptp.clock.type")
 			require.True(t, ok)
-			require.Equal(t, "boundary", clockType.Str())
+			require.Equal(t, "BC", clockType.Str())
 			require.Equal(t, 1, rm.ScopeMetrics().Len())
 			require.Equal(t, metadata.ScopeName, rm.ScopeMetrics().At(0).Scope().Name())
 			got := map[string]pmetric.Metric{}
@@ -194,10 +202,24 @@ func TestScrapeInvalidResponse(t *testing.T) {
 
 func TestScrapeMissingPMC(t *testing.T) {
 	config := createDefaultConfig().(*Config)
-	config.PMCPath = filepath.Join(t.TempDir(), "missing-pmc")
+	config.PMC.Path = filepath.Join(t.TempDir(), "missing-pmc")
 	s := newScraper(config, receiver.Settings{})
 	metrics, err := s.scrape(context.Background())
 	require.ErrorContains(t, err, "query ptp4l with pmc")
+	require.Equal(t, 0, metrics.ResourceMetrics().Len())
+}
+
+func TestScrapeInvalidPMCClientSocketDirectory(t *testing.T) {
+	config := createDefaultConfig().(*Config)
+	config.PMC.ClientSocketDirectory = filepath.Join(t.TempDir(), "not-a-directory")
+	require.NoError(t, os.WriteFile(config.PMC.ClientSocketDirectory, []byte("file"), 0o600))
+	s := newScraper(config, receiver.Settings{})
+	s.runPMC = func(context.Context, string, ...string) ([]byte, error) {
+		t.Fatal("pmc should not run when its client socket directory cannot be created")
+		return nil, nil
+	}
+	metrics, err := s.scrape(context.Background())
+	require.ErrorContains(t, err, "create temporary pmc client socket directory")
 	require.Equal(t, 0, metrics.ResourceMetrics().Len())
 }
 
@@ -250,7 +272,7 @@ func TestScrapeTransparentClock(t *testing.T) {
 	rm := metrics.ResourceMetrics().At(0)
 	clockType, ok := rm.Resource().Attributes().Get("ptp.clock.type")
 	require.True(t, ok)
-	require.Equal(t, "e2e_transparent", clockType.Str())
+	require.Equal(t, "E2E_TC", clockType.Str())
 	metric := findMetric(t, metrics, "ptp.clock.state")
 	state, ok := metric.Gauge().DataPoints().At(0).Attributes().Get("ptp.clock.state")
 	require.True(t, ok)

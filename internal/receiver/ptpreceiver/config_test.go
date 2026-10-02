@@ -18,8 +18,9 @@ func TestConfigValidate(t *testing.T) {
 		name   string
 	}{
 		{name: "relative socket", change: func(c *Config) { c.SocketPath = "ptp4l" }},
+		{name: "relative pmc client socket directory", change: func(c *Config) { c.PMC.ClientSocketDirectory = "tmp" }},
 		{name: "empty socket", change: func(c *Config) { c.SocketPath = "" }},
-		{name: "empty pmc", change: func(c *Config) { c.PMCPath = "" }},
+		{name: "empty pmc path", change: func(c *Config) { c.PMC.Path = "" }},
 		{name: "invalid domain", change: func(c *Config) { c.DomainNumber = 256 }},
 		{name: "negative domain", change: func(c *Config) { c.DomainNumber = -1 }},
 		{name: "invalid interval", change: func(c *Config) { c.CollectionInterval = -time.Second }},

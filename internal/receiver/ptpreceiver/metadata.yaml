@@ -12,7 +12,7 @@ status:
 
 resource_attributes:
   ptp.clock.type:
-    description: Type of the local PTP clock reported by CLOCK_DESCRIPTION.
+    description: "Type of the local PTP clock reported by CLOCK_DESCRIPTION. Values: `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), `E2E_TC` (end-to-end transparent clock); unrecognized clock types map to `UNKNOWN`."
     enabled: true
     type: string
   ptp.socket_path:

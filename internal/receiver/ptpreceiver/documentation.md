@@ -83,5 +83,5 @@ State of each local PTP port (1 for the reported state).
 
 | Name | Description | Values | Enabled | Semantic Convention | Stability |
 | ---- | ----------- | ------ | ------- | ------------------- | --------- |
-| ptp.clock.type | Type of the local PTP clock reported by CLOCK_DESCRIPTION. | Any Str | true | - | - |
+| ptp.clock.type | Type of the local PTP clock reported by CLOCK_DESCRIPTION. Values: `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), `E2E_TC` (end-to-end transparent clock); unrecognized clock types map to `UNKNOWN`. | Any Str | true | - | - |
 | ptp.socket_path | Unix domain socket of the ptp4l daemon. | Any Str | true | - | - |

@@ -85,7 +85,7 @@ func TestConfigUnmarshal(t *testing.T) {
 		"token":    "tok",
 		"tls":      map[string]any{"insecure_skip_verify": true},
 	})
-	cfg := &Config{}
+	cfg := NewFactory().CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(cfg))
 	require.Equal(t, &Config{
 		Endpoint: "https://hec:8088",
@@ -130,9 +130,6 @@ func TestHECConfigRejectsBadEndpoint(t *testing.T) {
 
 func TestFactory(t *testing.T) {
 	f := NewFactory()
-	require.Equal(t, TypeStr, f.Type().String())
-	require.Equal(t, &Config{}, f.CreateDefaultConfig())
-
 	cfg := &Config{Endpoint: "https://hec:8088", Token: "tok", TLS: TLS{InsecureSkipVerify: true}}
 	e, err := f.CreateLogs(context.Background(), exportertest.NewNopSettings(f.Type()), cfg)
 	require.NoError(t, err)

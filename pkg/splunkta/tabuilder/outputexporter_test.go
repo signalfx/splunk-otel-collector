@@ -22,9 +22,6 @@ func hecOutput(name string, params ...conf.Param) *conf.Output {
 	}
 }
 
-// TestCreateOutputExporterHECOut covers the stanza -> exporter path for the one
-// output kind the TA runner builds in-process. It had no coverage before the
-// [hecout] translation moved into the splunk_hecout factory.
 func TestCreateOutputExporterHECOut(t *testing.T) {
 	out := hecOutput("hecout",
 		conf.Param{Name: "uri", Value: "https://hec.example.com:8088"},
@@ -36,9 +33,7 @@ func TestCreateOutputExporterHECOut(t *testing.T) {
 	require.NotNil(t, e)
 }
 
-// TestCreateOutputExporterSuppliedTelemetry covers the other settings branch: a
-// caller that already has TelemetrySettings passes them through instead of
-// getting the noop providers assembled around the bare logger.
+// A caller with its own TelemetrySettings takes the other settings branch.
 func TestCreateOutputExporterSuppliedTelemetry(t *testing.T) {
 	out := hecOutput("hecout",
 		conf.Param{Name: "uri", Value: "https://hec.example.com:8088"},
@@ -50,9 +45,7 @@ func TestCreateOutputExporterSuppliedTelemetry(t *testing.T) {
 	require.NotNil(t, e)
 }
 
-// TestCreateOutputExporterUnsupportedKind pins the documented contract: an
-// unsupported kind yields a nil exporter and no error, leaving the caller to log
-// it. createReceivers-style callers skip on nil.
+// An unsupported kind is nil exporter AND nil error; callers skip on nil.
 func TestCreateOutputExporterUnsupportedKind(t *testing.T) {
 	e, err := CreateOutputExporter(hecOutput("tcpout:primary",
 		conf.Param{Name: "server", Value: "idx1:9997"},
@@ -61,17 +54,15 @@ func TestCreateOutputExporterUnsupportedKind(t *testing.T) {
 	require.Nil(t, e)
 }
 
-// TestCreateOutputExporterUnparsableStanzaName covers the ParseOutputName error
-// branch: an empty stanza name has no kind to dispatch on, so it is an error
-// rather than an unsupported kind.
+// An empty name has no kind to dispatch on, so it errors rather than reading
+// as an unsupported kind.
 func TestCreateOutputExporterUnparsableStanzaName(t *testing.T) {
 	e, err := CreateOutputExporter(hecOutput(""), zap.NewNop(), component.TelemetrySettings{})
 	require.Error(t, err)
 	require.Nil(t, e)
 }
 
-// TestCreateOutputExporterIncompleteStanza proves a [hecout] missing its token
-// fails at build time rather than at first export.
+// An incomplete [hecout] must fail at build time, not at first export.
 func TestCreateOutputExporterIncompleteStanza(t *testing.T) {
 	for _, tt := range []struct {
 		name   string

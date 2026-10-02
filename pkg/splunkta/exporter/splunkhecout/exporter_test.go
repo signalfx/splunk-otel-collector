@@ -23,8 +23,7 @@ func output(params ...conf.Param) conf.Output {
 	}
 }
 
-// TestConfigFromOutput pins the [hecout] key mapping. These two .conf key names
-// are the whole contract between outputs.conf and this exporter.
+// These two .conf key names are the whole contract with outputs.conf.
 func TestConfigFromOutput(t *testing.T) {
 	cfg := ConfigFromOutput(output(
 		conf.Param{Name: "uri", Value: "https://hec.example.com:8088"},
@@ -38,8 +37,7 @@ func TestConfigFromOutput(t *testing.T) {
 	}, cfg)
 }
 
-// TestConfigFromOutputMissingParams proves absent params map to empty strings
-// rather than panicking, leaving Validate to produce the error.
+// Absent params must empty out, not panic, leaving Validate to report it.
 func TestConfigFromOutputMissingParams(t *testing.T) {
 	cfg := ConfigFromOutput(output())
 	require.Empty(t, cfg.Endpoint)
@@ -79,9 +77,8 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-// TestConfigUnmarshal covers the shape a .conf config source emits. Unlike the
-// receiver wrappers this config has no catch-all, so an unknown key must be
-// rejected rather than silently dropped.
+// Unlike the receiver wrappers this config has no catch-all, so an unknown key
+// must be rejected rather than silently dropped.
 func TestConfigUnmarshal(t *testing.T) {
 	cm := confmap.NewFromStringMap(map[string]any{
 		"endpoint": "https://hec:8088",
@@ -106,8 +103,7 @@ func TestConfigUnmarshal(t *testing.T) {
 	require.Error(t, unknown.Unmarshal(&Config{}), "strict unmarshal must reject unmodeled keys")
 }
 
-// TestHECConfigTranslation proves the wrapper fields land on the real splunkhec
-// config fields, not just that unmarshal succeeded.
+// Assert the values land on real splunkhec fields, not just that unmarshal ran.
 func TestHECConfigTranslation(t *testing.T) {
 	cfg := &Config{Endpoint: "https://hec:8088", Token: "tok", TLS: TLS{InsecureSkipVerify: true}}
 
@@ -121,11 +117,8 @@ func TestHECConfigTranslation(t *testing.T) {
 	require.True(t, typed.ClientConfig.TLS.InsecureSkipVerify)
 }
 
-// TestHECConfigRejectsBadEndpoint proves splunkhec's own validation still runs.
-// Core validates this wrapper's Config, not the delegate's, so without the
-// explicit call a malformed uri from outputs.conf would reach the exporter.
-// splunkhec's Validate catches it via getURL; this wrapper's Validate only
-// checks that endpoint and token are non-empty.
+// The wrapper's own Validate only checks for non-empty, so this pins that
+// splunkhec's stricter endpoint check still runs.
 func TestHECConfigRejectsBadEndpoint(t *testing.T) {
 	cfg := &Config{Endpoint: "http://[::1", Token: "tok"}
 	require.NoError(t, cfg.Validate(), "non-empty endpoint passes the wrapper's own check")

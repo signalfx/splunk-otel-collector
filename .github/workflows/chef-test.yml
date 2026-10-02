@@ -253,10 +253,28 @@ jobs:
               Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message |
               Format-List
           }
+          "===== Collector service status ====="
+          Get-CimInstance -ClassName Win32_Service -Filter "Name='splunk-otel-collector'" |
+            Select-Object Name, State, Status, StartMode, ExitCode, ProcessId, PathName |
+            Format-List
+          sc.exe queryex splunk-otel-collector
+          "===== Collector application events ====="
+          Get-WinEvent -FilterHashtable @{ LogName = 'Application'; ProviderName = 'splunk-otel-collector' } -MaxEvents 200 -ErrorAction SilentlyContinue |
+            Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message |
+            Format-List
+          "===== Collector log files (last 200 lines each) ====="
+          $collectorDataDir = Join-Path $env:ProgramData 'Splunk\OpenTelemetry Collector'
+          if (Test-Path $collectorDataDir) {
+            Get-ChildItem -Path $collectorDataDir -Filter '*.log' -File -Recurse -ErrorAction SilentlyContinue |
+              ForEach-Object {
+                "===== $($_.FullName) ====="
+                Get-Content -Path $_.FullName -Tail 200 -ErrorAction SilentlyContinue
+              }
+          }
           '@
           $encodedQuery = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($eventQuery))
           $command = "powershell.exe -NoProfile -EncodedCommand $encodedQuery"
-          kitchen exec $instance -c $command 2>&1 | Tee-Object -FilePath $eventLogPath
+          kitchen exec $instance -c $command 2>&1 | Out-File -FilePath $eventLogPath -Encoding utf8
           if ($LASTEXITCODE -ne 0) {
             Add-Content -Path $eventLogPath -Value "Failed to retrieve Windows event logs (kitchen exec exit code $LASTEXITCODE)."
           }

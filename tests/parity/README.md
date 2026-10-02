@@ -204,7 +204,7 @@ framework renders a `[hecout]` stanza pointing at the backend instead.
 
 One mode runs per invocation. The modes of a case share its index, which is what
 lets a case compare `index` like any other field, so a second mode in the same
-run would read back the first one's events. CI runs a job per mode.
+run would read back the first one's events.
 
 ## Running
 
@@ -234,8 +234,7 @@ go test -v -timeout 30m . -candidate=splunk-inputs   # the .conf path
 ```
 
 The first run pulls the Splunk image (~2.5GB) and boots it, so allow a few
-minutes. CI replays on every PR via `.github/workflows/parity-test.yml`, one job
-per candidate mode.
+minutes. CI replays on every PR via `.github/workflows/parity-test.yml`.
 
 ## Status
 

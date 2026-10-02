@@ -52,7 +52,7 @@ const (
 // candidate selects the mode. Only one runs per invocation: the modes of a case
 // share its index, which is what lets a case compare index like any other
 // field, so a second mode in the same run would read back the first one's
-// events. CI runs a job per mode.
+// events.
 var candidate = flag.String("candidate", collectorYAMLMode,
 	"how to configure the otelcol candidate: "+collectorYAMLMode+" or "+splunkInputsMode)
 

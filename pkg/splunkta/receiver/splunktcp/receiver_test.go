@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkudp
+package splunktcp
 
 import (
 	"context"
@@ -21,25 +21,25 @@ import (
 func TestConfigUnmarshal(t *testing.T) {
 	cm := confmap.NewFromStringMap(map[string]any{
 		"listen_address":  "10.0.0.5",
-		"port":            45515,
+		"port":            45514,
 		"index":           "net",
-		"source":          "udp:45515",
-		"sourcetype":      "syslog",
+		"source":          "tcp:45514",
+		"sourcetype":      "tcp_raw",
 		"host":            "h1",
 		"queueSize":       "500KB",
-		"connection_host": "ip",
+		"connection_host": "dns",
 	})
 
 	cfg := &Config{}
 	require.NoError(t, cm.Unmarshal(cfg))
 
 	require.Equal(t, "10.0.0.5", cfg.ListenAddress)
-	require.Equal(t, 45515, cfg.Port)
+	require.Equal(t, 45514, cfg.Port)
 	require.Equal(t, "net", cfg.Index)
-	require.Equal(t, "udp:45515", cfg.Source)
-	require.Equal(t, "syslog", cfg.Sourcetype)
+	require.Equal(t, "tcp:45514", cfg.Source)
+	require.Equal(t, "tcp_raw", cfg.Sourcetype)
 	require.Equal(t, "h1", cfg.Host)
-	require.Equal(t, map[string]string{"queueSize": "500KB", "connection_host": "ip"}, cfg.Extra,
+	require.Equal(t, map[string]string{"queueSize": "500KB", "connection_host": "dns"}, cfg.Extra,
 		"unmodeled params must survive in Extra")
 }
 
@@ -49,44 +49,44 @@ func TestConfigUnmarshal(t *testing.T) {
 func TestInputTranslation(t *testing.T) {
 	cfg := &Config{
 		ListenAddress: "10.0.0.5",
-		Port:          45515,
+		Port:          45514,
 		Index:         "net",
-		Source:        "udp:45515",
-		Sourcetype:    "syslog",
+		Source:        "tcp:45514",
+		Sourcetype:    "tcp_raw",
 		Host:          "h1",
-		Extra:         map[string]string{"queueSize": "500KB", "connection_host": "ip"},
+		Extra:         map[string]string{"queueSize": "500KB", "connection_host": "dns"},
 	}
 
 	input := cfg.input()
-	require.Equal(t, "udp://10.0.0.5:45515", input.Configuration.Stanza.Name)
+	require.Equal(t, "tcp://10.0.0.5:45514", input.Configuration.Stanza.Name)
 	require.Equal(t, conf.Params{
 		{Name: "index", Value: "net"},
-		{Name: "source", Value: "udp:45515"},
-		{Name: "sourcetype", Value: "syslog"},
+		{Name: "source", Value: "tcp:45514"},
+		{Name: "sourcetype", Value: "tcp_raw"},
 		{Name: "host", Value: "h1"},
-		{Name: "connection_host", Value: "ip"},
+		{Name: "connection_host", Value: "dns"},
 		{Name: "queueSize", Value: "500KB"},
 	}, input.Configuration.Stanza.Params)
 }
 
 // TestInputTranslationPortOnlyForm covers UF's port-only stanza form
-// ([udp://5514]), which leaves the address empty and means every interface.
+// ([tcp://5514]), which leaves the address empty and means every interface.
 func TestInputTranslationPortOnlyForm(t *testing.T) {
-	cfg := &Config{Port: 45515}
+	cfg := &Config{Port: 45514}
 	input := cfg.input()
-	require.Equal(t, "udp://0.0.0.0:45515", input.Configuration.Stanza.Name)
+	require.Equal(t, "tcp://0.0.0.0:45514", input.Configuration.Stanza.Name)
 	require.Empty(t, input.Configuration.Stanza.Params)
 }
 
 func TestValidate(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
-		cfg    Config
 		errMsg string
+		cfg    Config
 	}{
 		{
 			name: "valid",
-			cfg:  Config{Port: 45515},
+			cfg:  Config{Port: 45514},
 		},
 		{
 			name:   "zero port",
@@ -120,8 +120,8 @@ func TestFactory(t *testing.T) {
 	require.Equal(t, TypeStr, f.Type().String())
 	require.Equal(t, &Config{}, f.CreateDefaultConfig())
 
-	cfg := &Config{Port: 45515, Index: "net"}
+	cfg := &Config{Port: 45514, Index: "net"}
 	r, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, consumertest.NewNop())
 	require.NoError(t, err)
-	require.NotNil(t, r, "udp is a kind tabuilder handles, so a receiver must be built")
+	require.NotNil(t, r, "tcp is a kind tabuilder handles, so a receiver must be built")
 }

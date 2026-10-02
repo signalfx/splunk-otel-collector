@@ -86,8 +86,8 @@ func TestInputTranslationMinimal(t *testing.T) {
 func TestValidate(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
-		cfg    Config
 		errMsg string
+		cfg    Config
 	}{
 		{
 			name: "valid",

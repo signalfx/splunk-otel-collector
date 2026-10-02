@@ -35,18 +35,18 @@ const TypeStr = "splunk_monitor"
 // Props and Transforms carry the shared props/transforms set, matching
 // splunk_inputs.
 type Config struct {
-	Include      []string          `mapstructure:"include"`
-	Exclude      []string          `mapstructure:"exclude"`
+	Extra        map[string]string `mapstructure:",remain"`
 	Index        string            `mapstructure:"index"`
 	Source       string            `mapstructure:"source"`
 	Sourcetype   string            `mapstructure:"sourcetype"`
 	Host         string            `mapstructure:"host"`
 	Charset      string            `mapstructure:"charset"`
-	Truncate     int               `mapstructure:"truncate"`
 	EventBreaker string            `mapstructure:"event_breaker"`
+	Include      []string          `mapstructure:"include"`
+	Exclude      []string          `mapstructure:"exclude"`
 	Props        []conf.Prop       `mapstructure:"props"`
 	Transforms   []conf.Transform  `mapstructure:"transforms"`
-	Extra        map[string]string `mapstructure:",remain"`
+	Truncate     int               `mapstructure:"truncate"`
 }
 
 // Validate rejects a config with no include path. The include path is the

@@ -35,8 +35,7 @@ import (
 // `make update-goldens`, which installs the pinned UF and sets it.
 var update = flag.Bool("update", false, "regenerate golden files by running the UF oracle")
 
-// taRunnerGate registers splunk_inputs and splunk_outputs. It is alpha, so
-// without it the components do not exist and the collector fails to start.
+// taRunnerGate registers splunk_inputs and splunk_outputs.
 const taRunnerGate = "enableTARunner"
 
 // hecToken must be a valid, non-zero GUID: UF httpout rejects tokens shorter
@@ -176,8 +175,7 @@ func TestCases(t *testing.T) {
 			if caseFile(t, path, parity.GoldenFile) == "" {
 				t.Errorf("%s is empty", parity.GoldenFile)
 			}
-			// collector.yaml is optional: without it the candidate is configured
-			// from conf/. Present and empty is a mistake either way.
+			// collector.yaml is optional, but present and empty is a mistake.
 			if config, ok := optionalCaseFile(t, path, collectorConfigFile); ok && config == "" {
 				t.Errorf("%s is empty", collectorConfigFile)
 			}
@@ -189,14 +187,11 @@ func TestCases(t *testing.T) {
 // from its conf/.
 const collectorConfigFile = "collector.yaml"
 
-// candidateRun builds the candidate's AgentRun for a case. A case supplying a
-// collector.yaml is configured from it; a case without one is configured from
-// the same conf/ the oracle reads, so the run covers the .conf translation end
-// to end instead of a hand-written equivalent.
+// candidateRun builds the candidate's AgentRun: from the case's collector.yaml
+// when it has one, otherwise from the same conf/ the oracle reads.
 func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
 	t.Helper()
 	if config, ok := optionalCaseFile(t, casePath, collectorConfigFile); ok {
-		// The adapter is handed it as otelcol.ConfigFile.
 		return parity.AgentRun{
 			Adapter:     otelcol.New(""),
 			ConfigFiles: map[string]string{otelcol.ConfigFile: config},
@@ -213,11 +208,8 @@ func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
 // outputsConf is the one conf file the candidate does not take from the case.
 const outputsConf = "outputs.conf"
 
-// splunkInputsConfig is the collector config for a conf-driven case. It is
-// owned here rather than per case because the components discover every stanza
-// themselves from the $SPLUNK_HOME the adapter installs the case's .conf into,
-// so there is nothing a case could vary, and keeping it out of the case
-// directory means a case cannot pin the translation it exists to test.
+// splunkInputsConfig is the collector config for a conf-driven case: the
+// components discover every stanza themselves, so no case needs its own.
 const splunkInputsConfig = `receivers:
   splunk_inputs:
 exporters:
@@ -229,19 +221,15 @@ service:
       exporters: [splunk_outputs]
 `
 
-// hecOutConf is the candidate's output side. The oracle ships events with
-// outputs.conf [httpout], a kind splunk_outputs skips, so the candidate needs a
-// [hecout] stanza the case's conf does not carry. Rendering it here keeps every
-// case from repeating it, and it replaces the case's outputs.conf rather than
-// merging with it so there is no question which stanza won.
+// hecOutConf is the candidate's output side: splunk_outputs skips the oracle's
+// [httpout], so it needs a [hecout] the case's conf does not carry.
 const hecOutConf = `[hecout]
 uri = ${HEC_ENDPOINT}
 httpEventCollectorToken = ${HEC_TOKEN}
 `
 
 // splunkInputsFiles is a conf-driven case's candidate config: the collector
-// config plus the case's own .conf files, which the adapter installs into the
-// $SPLUNK_HOME tree the components search.
+// config plus the case's own .conf files.
 func splunkInputsFiles(confFiles map[string]string) map[string]string {
 	files := map[string]string{
 		otelcol.ConfigFile: splunkInputsConfig,
@@ -268,8 +256,7 @@ func caseFile(t *testing.T, casePath, name string) string {
 }
 
 // optionalCaseFile reads a case file that a case need not have, reporting
-// whether it was there. A read error other than a missing file is still fatal,
-// so a permission problem does not read as an absent file.
+// whether it was there.
 func optionalCaseFile(t *testing.T, casePath, name string) (string, bool) {
 	t.Helper()
 	b, err := os.ReadFile(filepath.Join(filepath.Dir(casePath), name))

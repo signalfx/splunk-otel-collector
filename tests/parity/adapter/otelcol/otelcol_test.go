@@ -125,8 +125,7 @@ func TestFeatureGates(t *testing.T) {
 }
 
 // TestSplunkHome: a case's .conf files land in etc/system/local of a sandbox
-// tree and the process gets SPLUNK_HOME pointing at it. A .conf is never a
-// --config source.
+// tree the process gets as SPLUNK_HOME, and are never a --config source.
 func TestSplunkHome(t *testing.T) {
 	dir := t.TempDir()
 	confs := []string{"inputs.conf", "outputs.conf"}
@@ -154,8 +153,8 @@ func TestSplunkHome(t *testing.T) {
 	}
 }
 
-// TestNoConfNoSplunkHome: a case with no .conf files gets no tree and the child
-// inherits the test's environment unchanged.
+// TestNoConfNoSplunkHome: with no .conf files the child inherits the test's
+// environment unchanged.
 func TestNoConfNoSplunkHome(t *testing.T) {
 	a := New("bin", "config.yaml")
 	if err := a.Prepare(t.TempDir()); err != nil {

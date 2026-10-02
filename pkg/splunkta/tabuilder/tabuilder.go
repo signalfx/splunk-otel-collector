@@ -148,7 +148,12 @@ func confFilePaths(dirs []string, filename string) []string {
 
 // DiscoverTAs returns splunk_ta_* directories under splunkHome/etc/apps.
 func DiscoverTAs(splunkHome string) ([]string, error) {
-	appsDir := filepath.Join(splunkHome, "etc", "apps")
+	return discoverTAs(filepath.Join(splunkHome, "etc"))
+}
+
+// discoverTAs returns splunk_ta_* directories under confRoot/apps.
+func discoverTAs(confRoot string) ([]string, error) {
+	appsDir := filepath.Join(confRoot, "apps")
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -169,17 +174,20 @@ func DiscoverTAs(splunkHome string) ([]string, error) {
 }
 
 func splunkHomeDirs(splunkHome string) []string {
-	taDirs, _ := DiscoverTAs(splunkHome)
-	etcDir := filepath.Join(splunkHome, "etc")
+	return confRootDirs(filepath.Join(splunkHome, "etc"))
+}
 
-	dirs := []string{filepath.Join(etcDir, "system", "default")}
+func confRootDirs(confRoot string) []string {
+	taDirs, _ := discoverTAs(confRoot)
+
+	dirs := []string{filepath.Join(confRoot, "system", "default")}
 	for _, ta := range taDirs {
 		dirs = append(dirs, filepath.Join(ta, "default"))
 	}
 	for _, ta := range taDirs {
 		dirs = append(dirs, filepath.Join(ta, "local"))
 	}
-	dirs = append(dirs, filepath.Join(etcDir, "system", "local"))
+	dirs = append(dirs, filepath.Join(confRoot, "system", "local"))
 
 	return dirs
 }
@@ -233,6 +241,14 @@ func WatchDirs(splunkHome string) []string {
 // ConfDirs returns the Splunk btool conf search path for splunkHome.
 func ConfDirs(splunkHome string) []string {
 	return splunkHomeDirs(splunkHome)
+}
+
+// ConfRootDirs returns the Splunk btool conf search path for a configuration
+// root: the directory holding system/ and apps/*/. Callers that know an install
+// layout pass $SPLUNK_HOME/etc (or $SPLUNK_ETC when the tree is relocated);
+// ConfRootDirs itself makes no assumption about where the root lives.
+func ConfRootDirs(confRoot string) []string {
+	return confRootDirs(confRoot)
 }
 
 // SystemDirs returns the system conf directories for splunkHome in precedence order.
@@ -380,7 +396,13 @@ func ReadProps(dirs []string) ([]conf.Prop, error) {
 // ReadOutputs merges outputs.conf across $SPLUNK_HOME using standard Splunk
 // precedence. Use HECOut (or future TCPOut, etc.) to extract a specific type.
 func ReadOutputs(splunkHome string) (conf.Map, error) {
-	payloads, err := readConfFiles(confFilePaths(ConfDirs(splunkHome), "outputs.conf"))
+	return ReadOutputsFromDirs(ConfDirs(splunkHome))
+}
+
+// ReadOutputsFromDirs merges outputs.conf across the given search directories.
+// Use ConfDirs or ConfRootDirs to build the dirs slice.
+func ReadOutputsFromDirs(dirs []string) (conf.Map, error) {
+	payloads, err := readConfFiles(confFilePaths(dirs, "outputs.conf"))
 	if err != nil {
 		return nil, err
 	}

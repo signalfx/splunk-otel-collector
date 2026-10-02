@@ -288,10 +288,19 @@ func (s *Splunk) jobEvents(ctx context.Context, sid string) ([]parity.Record, er
 	return records, nil
 }
 
+// typedFields are the search fields Record models directly, so they are not
+// repeated in Record.Fields.
+var typedFields = map[string]bool{
+	"_raw": true, "_time": true,
+	"host": true, "source": true, "sourcetype": true, "index": true,
+}
+
 // resultToRecord maps a Splunk search result row to a parity.Record. Splunk
-// returns field values as strings (or []string for multivalued). Internal
-// volatile fields (_bkt, _cd, _indextime, splunk_server, ...) are left out of
-// Record, so the validator never sees them.
+// returns field values as strings (or []string for multivalued). Every remaining
+// non-underscore field lands in Record.Fields so a case can select it (punct,
+// linecount, date_*, extractions). Underscore-prefixed fields are Splunk
+// internals (_bkt, _cd, _indextime, ...) and are volatile, so they are dropped
+// and the validator never sees them.
 func resultToRecord(r map[string]any) parity.Record {
 	rec := parity.Record{
 		Raw:        str(r["_raw"]),
@@ -304,6 +313,15 @@ func resultToRecord(r map[string]any) parity.Record {
 		if parsed, err := time.Parse(time.RFC3339, t); err == nil {
 			rec.Time = parsed
 		}
+	}
+	for k, v := range r {
+		if typedFields[k] || strings.HasPrefix(k, "_") {
+			continue
+		}
+		if rec.Fields == nil {
+			rec.Fields = map[string]string{}
+		}
+		rec.Fields[k] = str(v)
 	}
 	return rec
 }

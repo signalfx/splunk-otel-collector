@@ -69,7 +69,7 @@ func New(bin string, extra ...string) *Adapter {
 
 func (a *Adapter) Name() string { return "otelcol" }
 
-// InstallDir is the directory holding the binary, exposed as AGENT_DIR.
+// InstallDir is the directory holding the binary.
 func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 
 // Prepare collects every *.yaml/*.yml file the runner wrote into configDir as a

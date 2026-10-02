@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -72,9 +73,38 @@ func TestResultToRecord(t *testing.T) {
 		t.Error("_time not parsed")
 	}
 
+	if len(r.Fields) != 0 {
+		t.Errorf("typed fields should not be repeated in Fields: %+v", r.Fields)
+	}
+
 	// A malformed _time is ignored, leaving the zero value.
 	if got := resultToRecord(map[string]any{"_time": "not-a-time"}); !got.Time.IsZero() {
 		t.Errorf("bad _time should stay zero, got %v", got.Time)
+	}
+}
+
+// TestResultToRecordFields checks the dynamic search fields a case can select
+// land in Record.Fields, and that Splunk's volatile internals do not.
+func TestResultToRecordFields(t *testing.T) {
+	r := resultToRecord(map[string]any{
+		"_raw":        "line",
+		"host":        "h",
+		"punct":       "--_",
+		"linecount":   "1",
+		"date_wday":   "wednesday",
+		"multivalued": []any{"first", "second"},
+		"_bkt":        "main~0~ABC",
+		"_cd":         "0:1",
+		"_indextime":  "1790000000",
+	})
+	want := map[string]string{
+		"punct":       "--_",
+		"linecount":   "1",
+		"date_wday":   "wednesday",
+		"multivalued": "first",
+	}
+	if !reflect.DeepEqual(r.Fields, want) {
+		t.Errorf("Fields = %+v, want %+v", r.Fields, want)
 	}
 }
 

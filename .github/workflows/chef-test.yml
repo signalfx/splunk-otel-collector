@@ -271,6 +271,13 @@ jobs:
                 Get-Content -Path $_.FullName -Tail 200 -ErrorAction SilentlyContinue
               }
           }
+          "===== Windows Installer log (last 500 lines) ====="
+          $msiLogPath = Join-Path $env:TEMP 'splunk-otel-collector-msi.log'
+          if (Test-Path $msiLogPath) {
+            Get-Content -Path $msiLogPath -Tail 500 -ErrorAction SilentlyContinue
+          } else {
+            "MSI verbose log not found at $msiLogPath"
+          }
           '@
           $encodedQuery = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($eventQuery))
           $command = "powershell.exe -NoProfile -EncodedCommand $encodedQuery"

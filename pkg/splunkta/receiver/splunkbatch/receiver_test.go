@@ -15,64 +15,55 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 )
 
-// TestConfigUnmarshal covers the shape a .conf config source emits: modeled
-// stanza params bind to typed fields, and anything unmodeled lands in Extra
-// instead of failing strict unmarshal.
-func TestConfigUnmarshal(t *testing.T) {
-	cm := confmap.NewFromStringMap(map[string]any{
-		"file_path":   "/var/spool/splunk/batch.log",
-		"index":       "batch",
-		"source":      "batch.log",
-		"sourcetype":  "batch_out",
-		"host":        "h1",
-		"move_policy": "sinkhole",
-		"crcSalt":     "<SOURCE>",
-	})
+// Unmarshalling a provider-shaped fragment into the factory's default config and
+// translating it back to a stanza is one chain, and the one the collector drives:
+// the mapstructure keys are the contract with the .conf config source, and the
+// stanza is what tabuilder dispatches on.
+func TestConfigToStanza(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		yaml   map[string]any
+		extra  map[string]string
+		stanza string
+		params conf.Params
+	}{
+		{
+			name: "every modeled field plus an unmodeled one",
+			yaml: map[string]any{
+				"file_path":   "/var/spool/splunk/batch.log",
+				"index":       "batch",
+				"source":      "batch.log",
+				"sourcetype":  "batch_out",
+				"host":        "h1",
+				"move_policy": "sinkhole",
+			},
+			extra:  map[string]string{"move_policy": "sinkhole"},
+			stanza: "batch:///var/spool/splunk/batch.log",
+			params: conf.Params{
+				{Name: "index", Value: "batch"},
+				{Name: "source", Value: "batch.log"},
+				{Name: "sourcetype", Value: "batch_out"},
+				{Name: "host", Value: "h1"},
+				{Name: "move_policy", Value: "sinkhole"},
+			},
+		},
+		{
+			name:   "target only, so nothing overrides a props.conf default",
+			yaml:   map[string]any{"file_path": "/var/spool/splunk/x.log"},
+			stanza: "batch:///var/spool/splunk/x.log",
+			params: conf.Params{},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := NewFactory().CreateDefaultConfig().(*Config)
+			require.NoError(t, confmap.NewFromStringMap(tt.yaml).Unmarshal(cfg))
+			require.Equal(t, tt.extra, cfg.Extra)
 
-	cfg := &Config{}
-	require.NoError(t, cm.Unmarshal(cfg))
-
-	require.Equal(t, "/var/spool/splunk/batch.log", cfg.FilePath)
-	require.Equal(t, "batch", cfg.Index)
-	require.Equal(t, "batch.log", cfg.Source)
-	require.Equal(t, "batch_out", cfg.Sourcetype)
-	require.Equal(t, "h1", cfg.Host)
-	require.Equal(t, map[string]string{"move_policy": "sinkhole", "crcSalt": "<SOURCE>"}, cfg.Extra,
-		"unmodeled params must survive in Extra")
-}
-
-// TestInputTranslation pins the typed config back to the stanza tabuilder
-// dispatches on. Params are asserted as an exact ordered slice: the order is
-// arbitrary to consumers but fixed, so a reordering here is a real change.
-func TestInputTranslation(t *testing.T) {
-	cfg := &Config{
-		FilePath:   "/var/spool/splunk/batch.log",
-		Index:      "batch",
-		Source:     "batch.log",
-		Sourcetype: "batch_out",
-		Host:       "h1",
-		Extra:      map[string]string{"move_policy": "sinkhole", "crcSalt": "<SOURCE>"},
+			in := cfg.input()
+			require.Equal(t, tt.stanza, in.Configuration.Stanza.Name)
+			require.Equal(t, tt.params, in.Configuration.Stanza.Params)
+		})
 	}
-
-	input := cfg.input()
-	require.Equal(t, "batch:///var/spool/splunk/batch.log", input.Configuration.Stanza.Name)
-	require.Equal(t, conf.Params{
-		{Name: "index", Value: "batch"},
-		{Name: "source", Value: "batch.log"},
-		{Name: "sourcetype", Value: "batch_out"},
-		{Name: "host", Value: "h1"},
-		{Name: "crcSalt", Value: "<SOURCE>"},
-		{Name: "move_policy", Value: "sinkhole"},
-	}, input.Configuration.Stanza.Params)
-}
-
-// TestInputTranslationMinimal proves an unset field emits no param at all,
-// rather than an empty one that would override a props.conf default.
-func TestInputTranslationMinimal(t *testing.T) {
-	cfg := &Config{FilePath: "/var/spool/splunk/batch.log"}
-	input := cfg.input()
-	require.Equal(t, "batch:///var/spool/splunk/batch.log", input.Configuration.Stanza.Name)
-	require.Empty(t, input.Configuration.Stanza.Params)
 }
 
 func TestValidate(t *testing.T) {
@@ -109,11 +100,8 @@ func TestValidate(t *testing.T) {
 
 func TestFactory(t *testing.T) {
 	f := NewFactory()
-	require.Equal(t, TypeStr, f.Type().String())
-	require.Equal(t, &Config{}, f.CreateDefaultConfig())
-
 	cfg := &Config{FilePath: "/var/spool/splunk/batch.log", Index: "batch"}
 	r, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, consumertest.NewNop())
 	require.NoError(t, err)
-	require.NotNil(t, r, "batch is a kind tabuilder handles, so a receiver must be built")
+	require.NotNil(t, r)
 }

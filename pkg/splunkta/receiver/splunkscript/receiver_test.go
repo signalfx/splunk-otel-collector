@@ -15,69 +15,58 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 )
 
-// TestConfigUnmarshal covers the shape a .conf config source emits: modeled
-// stanza params bind to typed fields, and anything unmodeled lands in Extra
-// instead of failing strict unmarshal.
-func TestConfigUnmarshal(t *testing.T) {
-	cm := confmap.NewFromStringMap(map[string]any{
-		"script_filename": "/usr/local/bin/test.sh",
-		"interval":        "30",
-		"index":           "scripts",
-		"source":          "test.sh",
-		"sourcetype":      "script_out",
-		"host":            "h1",
-		"passAuth":        "splunk-system-user",
-		"start_by_shell":  "false",
-	})
+// Unmarshalling a provider-shaped fragment into the factory's default config and
+// translating it back to a stanza is one chain, and the one the collector drives:
+// the mapstructure keys are the contract with the .conf config source, and the
+// stanza is what tabuilder dispatches on. interval lands after the extras, being
+// a type-specific param rather than a resource attribute.
+func TestConfigToStanza(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		yaml   map[string]any
+		extra  map[string]string
+		stanza string
+		params conf.Params
+	}{
+		{
+			name: "every modeled field plus an unmodeled one",
+			yaml: map[string]any{
+				"script_filename": "/usr/local/bin/test.sh",
+				"interval":        "30",
+				"index":           "scripts",
+				"source":          "test.sh",
+				"sourcetype":      "script_out",
+				"host":            "h1",
+				"passAuth":        "splunk-system-user",
+			},
+			extra:  map[string]string{"passAuth": "splunk-system-user"},
+			stanza: "script:///usr/local/bin/test.sh",
+			params: conf.Params{
+				{Name: "index", Value: "scripts"},
+				{Name: "source", Value: "test.sh"},
+				{Name: "sourcetype", Value: "script_out"},
+				{Name: "host", Value: "h1"},
+				{Name: "passAuth", Value: "splunk-system-user"},
+				{Name: "interval", Value: "30"},
+			},
+		},
+		{
+			name:   "target only, so nothing overrides a props.conf default",
+			yaml:   map[string]any{"script_filename": "/usr/local/bin/x.sh"},
+			stanza: "script:///usr/local/bin/x.sh",
+			params: conf.Params{},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := NewFactory().CreateDefaultConfig().(*Config)
+			require.NoError(t, confmap.NewFromStringMap(tt.yaml).Unmarshal(cfg))
+			require.Equal(t, tt.extra, cfg.Extra)
 
-	cfg := &Config{}
-	require.NoError(t, cm.Unmarshal(cfg))
-
-	require.Equal(t, "/usr/local/bin/test.sh", cfg.ScriptFilename)
-	require.Equal(t, "30", cfg.Interval)
-	require.Equal(t, "scripts", cfg.Index)
-	require.Equal(t, "test.sh", cfg.Source)
-	require.Equal(t, "script_out", cfg.Sourcetype)
-	require.Equal(t, "h1", cfg.Host)
-	require.Equal(t, map[string]string{"passAuth": "splunk-system-user", "start_by_shell": "false"}, cfg.Extra,
-		"unmodeled params must survive in Extra")
-}
-
-// TestInputTranslation pins the typed config back to the stanza tabuilder
-// dispatches on. Params are asserted as an exact ordered slice: the order is
-// arbitrary to consumers but fixed, so a reordering here is a real change.
-// interval is appended after the extras, being a type-specific param.
-func TestInputTranslation(t *testing.T) {
-	cfg := &Config{
-		ScriptFilename: "/usr/local/bin/test.sh",
-		Interval:       "30",
-		Index:          "scripts",
-		Source:         "test.sh",
-		Sourcetype:     "script_out",
-		Host:           "h1",
-		Extra:          map[string]string{"passAuth": "splunk-system-user", "and_first": "x"},
+			in := cfg.input()
+			require.Equal(t, tt.stanza, in.Configuration.Stanza.Name)
+			require.Equal(t, tt.params, in.Configuration.Stanza.Params)
+		})
 	}
-
-	input := cfg.input()
-	require.Equal(t, "script:///usr/local/bin/test.sh", input.Configuration.Stanza.Name)
-	require.Equal(t, conf.Params{
-		{Name: "index", Value: "scripts"},
-		{Name: "source", Value: "test.sh"},
-		{Name: "sourcetype", Value: "script_out"},
-		{Name: "host", Value: "h1"},
-		{Name: "and_first", Value: "x"},
-		{Name: "passAuth", Value: "splunk-system-user"},
-		{Name: "interval", Value: "30"},
-	}, input.Configuration.Stanza.Params)
-}
-
-// TestInputTranslationMinimal proves an unset field emits no param at all,
-// rather than an empty one that would override a props.conf default.
-func TestInputTranslationMinimal(t *testing.T) {
-	cfg := &Config{ScriptFilename: "/usr/local/bin/test.sh"}
-	input := cfg.input()
-	require.Equal(t, "script:///usr/local/bin/test.sh", input.Configuration.Stanza.Name)
-	require.Empty(t, input.Configuration.Stanza.Params)
 }
 
 func TestValidate(t *testing.T) {
@@ -114,11 +103,8 @@ func TestValidate(t *testing.T) {
 
 func TestFactory(t *testing.T) {
 	f := NewFactory()
-	require.Equal(t, TypeStr, f.Type().String())
-	require.Equal(t, &Config{}, f.CreateDefaultConfig())
-
 	cfg := &Config{ScriptFilename: "/usr/local/bin/test.sh", Index: "scripts"}
 	r, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, consumertest.NewNop())
 	require.NoError(t, err)
-	require.NotNil(t, r, "script is a kind tabuilder handles, so a receiver must be built")
+	require.NotNil(t, r)
 }

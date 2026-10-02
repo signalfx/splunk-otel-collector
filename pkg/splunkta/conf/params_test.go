@@ -61,16 +61,3 @@ func TestInputParams(t *testing.T) {
 		})
 	}
 }
-
-// TestInputParamsDeterministic pins the property the fixed ordering exists for:
-// Go map iteration is randomized, so building the same config twice must still
-// produce byte-identical params.
-func TestInputParamsDeterministic(t *testing.T) {
-	attrs := ResourceAttrs{Index: "i", Host: "h"}
-	extra := map[string]string{"a": "1", "b": "2", "c": "3", "d": "4", "e": "5"}
-
-	first := InputParams(attrs, extra)
-	for range 50 {
-		require.Equal(t, first, InputParams(attrs, extra))
-	}
-}

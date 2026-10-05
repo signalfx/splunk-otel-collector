@@ -5,6 +5,7 @@ package splunkscript
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -83,14 +84,20 @@ func TestConfigToStanza(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
+	// Absoluteness is platform-dependent and Validate mirrors
+	// script.DetermineCommandName's filepath.IsAbs check, so a POSIX path like
+	// /usr/local/bin/test.sh is relative on Windows. Derive one that is absolute
+	// wherever the test runs.
+	absScript := filepath.Join(t.TempDir(), "test.sh")
+
 	for _, tt := range []struct {
 		name   string
 		errMsg string
 		cfg    Config
 	}{
 		{
-			name: "valid",
-			cfg:  Config{ScriptFilename: "/usr/local/bin/test.sh"},
+			name: "absolute target needs no app dir",
+			cfg:  Config{ScriptFilename: absScript},
 		},
 		{
 			name:   "empty script filename",

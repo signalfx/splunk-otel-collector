@@ -69,7 +69,7 @@ func TestReadFile(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "foo.txt"), []byte("foo\n"), 0o644))
 	received := <-output.Received
-	require.Equal(t, "foo\n", received.Body)
+	require.Equal(t, "foo", received.Body)
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		_, err = os.Stat(file)
 		require.ErrorIs(tt, err, fs.ErrNotExist)

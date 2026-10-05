@@ -47,7 +47,6 @@ func (c Config) Build(set component.TelemetrySettings) (operator.Operator, error
 	input := &ScriptedInput{
 		InputOperator: inputOperator,
 		logger:        set.Logger,
-		doneChan:      make(chan struct{}),
 		cfg:           c,
 	}
 

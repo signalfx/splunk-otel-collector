@@ -3,19 +3,34 @@ resourceSpans:
         attributes:
             - key: splunk.distro.version
               value:
-                stringValue: 1.13.0
+                stringValue: 1.16.0
             - key: telemetry.distro.name
               value:
                 stringValue: splunk-otel-dotnet
             - key: telemetry.distro.version
               value:
-                stringValue: 1.13.0
+                stringValue: 1.16.0
             - key: service.instance.id
               value:
-                stringValue: 0631db44-2dcf-499d-b80a-023b4fd986b5
+                stringValue: b57dec27-647a-4986-9c97-b42aca3c61fe
             - key: service.name
               value:
                 stringValue: AspNetCore.WebApi.Net
+            - key: telemetry.sdk.name
+              value:
+                stringValue: opentelemetry
+            - key: telemetry.sdk.language
+              value:
+                stringValue: dotnet
+            - key: telemetry.sdk.version
+              value:
+                stringValue: 1.19.1
+            - key: deployment.environment.name
+              value:
+                stringValue: zc-iis-test
+            - key: splunk.zc.method
+              value:
+                stringValue: splunk-otel-dotnet-v1.16.0
             - key: os.type
               value:
                 stringValue: windows
@@ -33,7 +48,7 @@ resourceSpans:
                 stringValue: "6.3"
             - key: host.name
               value:
-                stringValue: E65BF9CE4111
+                stringValue: 1448A0A5E570
             - key: host.id
               value:
                 stringValue: 42a735c9-a8e0-4ffb-955e-44f29eac2681
@@ -45,48 +60,37 @@ resourceSpans:
                 stringValue: AspNetCoreAppPool
             - key: process.pid
               value:
-                intValue: "800"
+                intValue: "5468"
             - key: process.creation.time
               value:
-                stringValue: "2026-07-21T21:14:58.6003205+00:00"
+                stringValue: "2026-09-28T18:16:02.3120478Z"
             - key: process.runtime.description
               value:
-                stringValue: .NET 8.0.23
+                stringValue: .NET 8.0.31
             - key: process.runtime.name
               value:
                 stringValue: .NET
             - key: process.runtime.version
               value:
-                stringValue: 8.0.23
-            - key: telemetry.sdk.name
-              value:
-                stringValue: opentelemetry
-            - key: telemetry.sdk.language
-              value:
-                stringValue: dotnet
-            - key: telemetry.sdk.version
-              value:
-                stringValue: 1.15.0
-            - key: deployment.environment.name
-              value:
-                stringValue: zc-iis-test
-            - key: splunk.zc.method
-              value:
-                stringValue: splunk-otel-dotnet-v1.14.1
+                stringValue: 8.0.31
+      schemaUrl: https://opentelemetry.io/schemas/1.44.0
       scopeSpans:
         - scope:
             name: Microsoft.AspNetCore
           spans:
             - attributes:
+                - key: http.request.method
+                  value:
+                    stringValue: GET
                 - key: server.address
                   value:
                     stringValue: localhost
                 - key: server.port
                   value:
                     intValue: "8000"
-                - key: http.request.method
+                - key: user_agent.original
                   value:
-                    stringValue: GET
+                    stringValue: Go-http-client/1.1
                 - key: url.scheme
                   value:
                     stringValue: http
@@ -96,20 +100,17 @@ resourceSpans:
                 - key: network.protocol.version
                   value:
                     stringValue: "1.1"
-                - key: user_agent.original
-                  value:
-                    stringValue: Go-http-client/1.1
                 - key: http.route
                   value:
                     stringValue: /api/values/{id}
                 - key: http.response.status_code
                   value:
                     intValue: "200"
-              endTimeUnixNano: "1770742189836664000"
+              endTimeUnixNano: "1790619364755210000"
               flags: 257
               kind: 2
               name: GET /api/values/{id}
-              spanId: 8e9581419aae1f6e
-              startTimeUnixNano: "1770742189834882700"
+              spanId: a4ede9b35a6938c9
+              startTimeUnixNano: "1790619364568244000"
               status: {}
-              traceId: 36b084b04077b99db544a642782b3733
+              traceId: f847b80401ff88beee973f388d6c6ec0

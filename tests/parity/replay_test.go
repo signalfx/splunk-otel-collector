@@ -16,7 +16,9 @@ package parity_test
 
 import (
 	"context"
+	"errors"
 	"flag"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -33,6 +35,9 @@ import (
 // update needs a UF install (PARITY_UF_DIR); a normal run does not. Prefer
 // `make update-goldens`, which installs the pinned UF and sets it.
 var update = flag.Bool("update", false, "regenerate golden files by running the UF oracle")
+
+// taRunnerGate registers splunk_inputs and splunk_outputs.
+const taRunnerGate = "enableTARunner"
 
 // hecToken must be a valid, non-zero GUID: UF httpout rejects tokens shorter
 // than 36 chars and rejects the all-zeros GUID as "not in supported format"
@@ -125,14 +130,7 @@ func TestParity(t *testing.T) {
 				t.Fatalf("load golden (run with -update to generate): %v", err)
 			}
 
-			// collector.yaml is the case-directory name; the adapter is handed it
-			// as otelcol.ConfigFile.
-			ucRun := parity.AgentRun{
-				Adapter:     otelcol.New(""),
-				ConfigFiles: map[string]string{otelcol.ConfigFile: caseFile(t, path, "collector.yaml")},
-				Index:       index,
-			}
-			ucRecs, err := parity.RunAgent(ctx, c, ucRun, backend, opts)
+			ucRecs, err := parity.RunAgent(ctx, c, candidateRun(t, path, index), backend, opts)
 			if err != nil {
 				t.Fatalf("run otelcol candidate: %v", err)
 			}
@@ -175,13 +173,112 @@ func TestCases(t *testing.T) {
 			}
 
 			caseConf(t, path)
-			for _, name := range []string{"collector.yaml", parity.GoldenFile} {
-				if caseFile(t, path, name) == "" {
-					t.Errorf("%s is empty", name)
-				}
+			if caseFile(t, path, parity.GoldenFile) == "" {
+				t.Errorf("%s is empty", parity.GoldenFile)
+			}
+			// collector.yaml is optional, but present and empty is a mistake.
+			if config, ok := optionalCaseFile(t, path, collectorConfigFile); ok && config == "" {
+				t.Errorf("%s is empty", collectorConfigFile)
 			}
 		})
 	}
+}
+
+// TestCandidateRun covers which files each kind of case hands the candidate: a
+// case with a collector.yaml is configured from it alone, a case without one
+// from its conf/, with the case's outputs.conf replaced by [hecout].
+func TestCandidateRun(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, confDir), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for name, body := range map[string]string{
+		"inputs.conf":  "[monitor://foo.txt]\n",
+		"outputs.conf": "[httpout]\nuri = ${HEC_ENDPOINT}\n",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, confDir, name), []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	casePath := filepath.Join(dir, "test.yaml")
+
+	want := map[string]string{
+		otelcol.ConfigFile: splunkInputsConfig,
+		"inputs.conf":      "[monitor://foo.txt]\n",
+		outputsConf:        hecOutConf,
+	}
+	if got := candidateRun(t, casePath, "parity_uc").ConfigFiles; !maps.Equal(got, want) {
+		t.Errorf("conf-driven case files = %v, want %v", got, want)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, collectorConfigFile), []byte("receivers:\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	want = map[string]string{otelcol.ConfigFile: "receivers:\n"}
+	if got := candidateRun(t, casePath, "parity_uc").ConfigFiles; !maps.Equal(got, want) {
+		t.Errorf("collector.yaml case files = %v, want %v", got, want)
+	}
+}
+
+// collectorConfigFile is the case file that opts a case out of being configured
+// from its conf/.
+const collectorConfigFile = "collector.yaml"
+
+// candidateRun builds the candidate's AgentRun: from the case's collector.yaml
+// when it has one, otherwise from the same conf/ the oracle reads.
+func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
+	t.Helper()
+	if config, ok := optionalCaseFile(t, casePath, collectorConfigFile); ok {
+		return parity.AgentRun{
+			Adapter:     otelcol.New(""),
+			ConfigFiles: map[string]string{otelcol.ConfigFile: config},
+			Index:       index,
+		}
+	}
+	return parity.AgentRun{
+		Adapter:     otelcol.New("").EnableFeatureGates(taRunnerGate),
+		ConfigFiles: splunkInputsFiles(caseConf(t, casePath)),
+		Index:       index,
+	}
+}
+
+// outputsConf is the one conf file the candidate does not take from the case.
+const outputsConf = "outputs.conf"
+
+// splunkInputsConfig is the collector config for a conf-driven case: the
+// components discover every stanza themselves, so no case needs its own.
+const splunkInputsConfig = `receivers:
+  splunk_inputs:
+exporters:
+  splunk_outputs:
+service:
+  pipelines:
+    logs:
+      receivers: [splunk_inputs]
+      exporters: [splunk_outputs]
+`
+
+// hecOutConf is the candidate's output side: splunk_outputs skips the oracle's
+// [httpout], so it needs a [hecout] the case's conf does not carry.
+const hecOutConf = `[hecout]
+uri = ${HEC_ENDPOINT}
+httpEventCollectorToken = ${HEC_TOKEN}
+`
+
+// splunkInputsFiles is a conf-driven case's candidate config: the collector
+// config plus the case's own .conf files.
+func splunkInputsFiles(confFiles map[string]string) map[string]string {
+	files := map[string]string{
+		otelcol.ConfigFile: splunkInputsConfig,
+		outputsConf:        hecOutConf,
+	}
+	for name, body := range confFiles {
+		if name == outputsConf {
+			continue
+		}
+		files[name] = body
+	}
+	return files
 }
 
 // caseFile reads one of the case's agent config files. Both agents take their
@@ -195,9 +292,23 @@ func caseFile(t *testing.T, casePath, name string) string {
 	return string(b)
 }
 
+// optionalCaseFile reads a case file that a case need not have, reporting
+// whether it was there.
+func optionalCaseFile(t *testing.T, casePath, name string) (string, bool) {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join(filepath.Dir(casePath), name))
+	if errors.Is(err, os.ErrNotExist) {
+		return "", false
+	}
+	if err != nil {
+		t.Fatalf("read %s: %v", name, err)
+	}
+	return string(b), true
+}
+
 // caseConf reads the case's conf/ directory, the Splunk .conf structure the
-// oracle is configured from. The collector can be pointed at the same directory
-// once it consumes .conf natively.
+// oracle is configured from and, for a case without a collector.yaml, the
+// candidate too.
 func caseConf(t *testing.T, casePath string) map[string]string {
 	t.Helper()
 	dir := filepath.Join(filepath.Dir(casePath), confDir)

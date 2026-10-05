@@ -10,7 +10,7 @@
 #   - .github/*.yml and *.yaml (GO_VERSION variable)
 #   - All go.mod files (go directive)
 #   - Dockerfiles with ARG GO_VERSION=...
-#   - Dockerfiles with FROM golang:<version>... (suffixes like -bullseye are preserved)
+#   - Dockerfiles with FROM golang:<version>... (suffixes like -trixie are preserved)
 #   - YAML files with golang:<version>... image references
 #
 # Note: The script uses GNU sed on Linux and BSD sed on macOS.
@@ -78,11 +78,11 @@ done < <(find "$REPO_ROOT" -name "Dockerfile*" -not -path "*/vendor/*" -print0)
 
 # --- 4. Update Dockerfiles with FROM golang:<version>... ---
 # Matches patterns like:
-#   FROM golang:1.25.7-bullseye
+#   FROM golang:1.25.7-trixie
 #   FROM golang:1.25.7-alpine
 #   FROM golang:1.25.7
 #   FROM --platform=${IMAGE_PLATFORM} golang:1.25.7 as golang
-# Only the X.Y.Z portion is replaced; suffixes like -bullseye are preserved.
+# Only the X.Y.Z portion is replaced; suffixes like -trixie are preserved.
 # Uses POSIX character classes for macOS BSD sed compatibility.
 while IFS= read -r -d '' dockerfile; do
   if grep -qE 'FROM[[:space:]]+(--platform=[^[:space:]]+[[:space:]]+)?golang:[0-9]+\.[0-9]+\.[0-9]+' "$dockerfile"; then
@@ -93,7 +93,7 @@ done < <(find "$REPO_ROOT" -name "Dockerfile*" -not -path "*/vendor/*" -print0)
 
 # --- 5. Update golang image references in YAML/YML files (e.g., docker-compose.yml) ---
 # Matches patterns like:
-#   image: golang:1.25.7-bullseye
+#   image: golang:1.25.7-trixie
 #   image: "golang:1.25.7"
 # Skips lines using variables like ${GO_VERSION} (already handled in step 1).
 while IFS= read -r -d '' yamlfile; do

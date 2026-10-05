@@ -251,6 +251,7 @@ jobs:
     runs-on: macos-15-large
     needs: [govulncheck-packages]
     strategy:
+      fail-fast: false
       matrix:
         output: [ "sarif", "stdout" ]
         package: ${{ fromJSON(needs.govulncheck-packages.outputs.matrix).package }}

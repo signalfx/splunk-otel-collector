@@ -230,6 +230,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.2 h1:Enx5JcIy/o90ki
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.2/go.mod h1:Ldmll8/2VqaVerWWDf8IGG+6pAvZY04gs3tevq3nIFs=
 github.com/aws/aws-sdk-go-v2/service/kafka v1.56.0 h1:QSvI/3ND6Pgx0DQB0i09gfypwzHotyNt94kzXcuXnvY=
 github.com/aws/aws-sdk-go-v2/service/kafka v1.56.0/go.mod h1:dTPUh1Cv2uHm3h4bwrpUuJo4OQdcHFozlRgw4N/t+E8=
+github.com/aws/aws-sdk-go-v2/service/kinesis v1.53.0 h1:jFGpuCKudK8UUYAN8gokcq9NbavYnzX4DM0G5YYG/rM=
+github.com/aws/aws-sdk-go-v2/service/kinesis v1.53.0/go.mod h1:2h8s6B+Dk/9p2qrajjQHh3/OvlieQTuxRucQ+1l8VUc=
 github.com/aws/aws-sdk-go-v2/service/lightsail v1.58.0 h1:3G/SvYzR+GTA8j9ig3gmPmIo8+eHc2Ap90NpGF/xEyo=
 github.com/aws/aws-sdk-go-v2/service/lightsail v1.58.0/go.mod h1:amWiEyivo1ZzJkMQbiCE9wd/dBoql68C/m2RLB3YCQA=
 github.com/aws/aws-sdk-go-v2/service/rds v1.123.0 h1:RZFP5elGZ7WRYuLScbx41DPUQaWfYadpywZij9z9p8U=
@@ -1089,6 +1091,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsc
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.161.0/go.mod h1:71Mk3AdRyw62Vr+G6cB+5keXizONgv6gQsgM0LhHEz0=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector v0.161.0 h1:ukmbdZ4L8HLp/PLO964lp/FF8NTtgJdDf94EUCZfnsA=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector v0.161.0/go.mod h1:sDlcdyjxjvJIiA0dQ7KdYFzYWxeeoqGCDR9AA9JPUi4=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.161.0 h1:OS0uMP4YgPjy4JweG+jRj6iqmjRRItbbKscemqE0ZUM=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.161.0/go.mod h1:xh7XZk0E2UzFbU3gqPSvA1sazyLGg7FwRgEMZZqacg4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.161.0 h1:LFhO63l2L+9LnZXgjnioisg8qIhIc9oyhGDEv1djyiE=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.161.0/go.mod h1:RyubTpsMGRnTWCfyY0nhCL2I2rLzHYginD8d8oHElF4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.161.0 h1:BMddMn+PjLnj238NMWj91jcKRJmcf3Sk2z3wuiKOOzk=
@@ -1425,8 +1429,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.161.0/go.mod h1:bYNa3qCbEh+lHgZ5IXq1M9uWQNLwHcuyegvsmw3zLGI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.161.0 h1:kSGRSTvD9MaV2FSOasf1K+cZiXnlJGIOp+kWoPosa50=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.161.0/go.mod h1:OuVPoGqDsFVCJIyHHuaH8LXPq1WPXOCzbNnnvl6JSec=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.161.0 h1:EXoNMakL7kUXZ8TBLWBtduhfWOGdtzM0T8zReoaxBN8=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.161.0/go.mod h1:EODDeDnUw6y2cuOZDXgcmsPa8iT8ubHoP2VptnmX0wI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.161.0 h1:cewYGGqwYCCLFS6RXe9coztcLLgoGLGRg1ztVCHDThY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.161.0/go.mod h1:Id2Foi2vNsgiDCDotpDcTwztP5dL8xc3MLSBe6D6/bw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.161.0 h1:lt2hOsnCQAIgtQ9lw+MEozu7CSjX9aDhB9UMBv6gSGs=

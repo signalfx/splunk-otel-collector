@@ -64,6 +64,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	t.Logf(" *** Installing old collector version %s", oldCollectorVersion)
 	installCollector(t, getTestDataFilePath(t, "install-before-platform-indexes.ps1"), oldCollectorVersion, "", zeroCodeArgs...)
 	verifyServiceExists(t, scm)
+	verifyServiceAccount(t, scm, "LocalSystem")
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment=test")
 	legacySvcVersion := getCurrentServiceVersion(t)
@@ -76,6 +77,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	t.Logf(" *** Installing collector from %q", msiInstallerPath)
 	installCollector(t, getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"), "", msiInstallerPath, zeroCodeArgs...)
 	verifyServiceExists(t, scm)
+	verifyServiceAccount(t, scm, "LocalSystem")
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment.name=test")
 	latestSvcVersion := getCurrentServiceVersion(t)
@@ -206,6 +208,16 @@ func verifyServiceExists(t *testing.T, scm *mgr.Mgr) {
 	service, err := scm.OpenService(serviceName)
 	require.NoError(t, err)
 	service.Close()
+}
+
+func verifyServiceAccount(t *testing.T, scm *mgr.Mgr, expectedAccount string) {
+	service, err := scm.OpenService(serviceName)
+	require.NoError(t, err)
+	defer service.Close()
+
+	config, err := service.Config()
+	require.NoError(t, err)
+	require.Equal(t, expectedAccount, config.ServiceStartName)
 }
 
 func verifyServiceState(t *testing.T, scm *mgr.Mgr, desiredState svc.State) {

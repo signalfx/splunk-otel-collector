@@ -374,6 +374,7 @@ func installerCommand(t *testing.T, withToken bool) string {
 	}
 	return cmd
 }
+
 func platformInstallerCommand(t *testing.T) string {
 	cmd := "sh -l /test/install.sh"
 	if os.Getenv("DEBUG") == "yes" {
@@ -421,6 +422,7 @@ func verifyEnv(t *testing.T, c *testutils.Container, mode, memory, listen string
 		assertConfig(t, c, p, "SPLUNK_LISTEN_INTERFACE=", false)
 	}
 }
+
 func verifySupportBundle(t *testing.T, c *testutils.Container) {
 	run(t, c, 5*time.Minute, "/etc/otel/collector/splunk-support-bundle.sh -t /tmp/splunk-support-bundle")
 	for _, p := range []string{"config/agent_config.yaml", "logs/splunk-otel-collector.log", "logs/splunk-otel-collector.txt", "metrics/collector-metrics.txt", "metrics/df.txt", "metrics/free.txt", "metrics/top.txt", "zpages/tracez.html"} {
@@ -428,6 +430,7 @@ func verifySupportBundle(t *testing.T, c *testutils.Container) {
 	}
 	assertFile(t, c, "/tmp/splunk-support-bundle.tar.gz", true)
 }
+
 func uninstall(t *testing.T, c *testutils.Container, distro string) {
 	run(t, c, time.Minute, "sh -l /test/install.sh --uninstall")
 	assertNotInstalled(t, c, distro, "splunk-otel-collector")
@@ -466,6 +469,7 @@ func verifyDotnetConfig(t *testing.T, c *testutils.Container, arch string, want 
 		assertConfig(t, c, systemdConfig, key+"="+regexp.QuoteMeta(value), want)
 	}
 }
+
 func assertInstalled(t *testing.T, c *testutils.Container, distro, pkg string) {
 	q := "rpm -q " + pkg
 	if packageTypeForDistro(t, distro, false) == "deb" {
@@ -473,6 +477,7 @@ func assertInstalled(t *testing.T, c *testutils.Container, distro, pkg string) {
 	}
 	run(t, c, time.Minute, q)
 }
+
 func assertNotInstalled(t *testing.T, c *testutils.Container, distro, pkg string) {
 	q := "rpm -q " + pkg
 	if packageTypeForDistro(t, distro, false) == "deb" {
@@ -480,6 +485,7 @@ func assertNotInstalled(t *testing.T, c *testutils.Container, distro, pkg string
 	}
 	assertFail(t, c, q)
 }
+
 func assertNodeInstalled(t *testing.T, c *testutils.Container, want bool) {
 	cmd := "sh -l -c 'cd " + nodePrefix + " >/dev/null 2>&1 && npm ls --global=false @splunk/otel'"
 	if want {
@@ -488,6 +494,7 @@ func assertNodeInstalled(t *testing.T, c *testutils.Container, want bool) {
 		assertFail(t, c, cmd)
 	}
 }
+
 func assertConfig(t *testing.T, c *testutils.Container, path, pattern string, want bool) {
 	t.Helper()
 	if !fileExists(t, c, path) {
@@ -502,13 +509,16 @@ func assertConfig(t *testing.T, c *testutils.Container, path, pattern string, wa
 	require.NoError(t, err)
 	require.Equalf(t, want, matched, "config line %q in %s:\n%s", pattern, path, content)
 }
+
 func fileExists(t *testing.T, c *testutils.Container, path string) bool {
 	rc, _, _ := exec(t, c, time.Minute, "test -f "+path)
 	return rc == 0
 }
+
 func assertFile(t *testing.T, c *testutils.Container, path string, want bool) {
 	require.Equalf(t, want, fileExists(t, c, path), "file %s presence", path)
 }
+
 func serviceRunning(t *testing.T, c *testutils.Container, owner string) bool {
 	rc, _, _ := exec(t, c, time.Minute, "systemctl status "+serviceName)
 	if rc != 0 {
@@ -517,36 +527,43 @@ func serviceRunning(t *testing.T, c *testutils.Container, owner string) bool {
 	rc, _, _ = exec(t, c, time.Minute, "pgrep -a -u "+owner+" -x otelcol")
 	return rc == 0
 }
+
 func run(t *testing.T, c *testutils.Container, timeout time.Duration, cmd string) string {
 	t.Helper()
 	rc, out, errout := exec(t, c, timeout, cmd)
 	require.Equalf(t, 0, rc, "command %q failed\nstdout:\n%s\nstderr:\n%s", cmd, out, errout)
 	return out
 }
+
 func runAllowFailure(t *testing.T, c *testutils.Container, timeout time.Duration, cmd string) string {
 	_, out, errout := exec(t, c, timeout, cmd)
 	return out + errout
 }
+
 func runExpectFailure(t *testing.T, c *testutils.Container, timeout time.Duration, cmd string) string {
 	t.Helper()
 	rc, out, errout := exec(t, c, timeout, cmd)
 	require.NotZero(t, rc, "command unexpectedly passed: %s", cmd)
 	return out + errout
 }
+
 func assertFail(t *testing.T, c *testutils.Container, cmd string) {
 	t.Helper()
 	rc, _, _ := exec(t, c, time.Minute, cmd)
 	require.NotZero(t, rc, "command unexpectedly passed: %s", cmd)
 }
+
 func exec(t *testing.T, c *testutils.Container, timeout time.Duration, cmd string) (int, string, string) {
 	t.Helper()
 	return c.AssertExec(t, timeout, "sh", "-c", cmd)
 }
+
 func copyInto(t *testing.T, c *testutils.Container, src, dst string) {
 	t.Helper()
 	run(t, c, time.Minute, "mkdir -p "+filepath.Dir(dst))
 	require.NoError(t, c.CopyFileToContainer(context.Background(), src, dst, 0o644))
 }
+
 func selectedDistros(t *testing.T, types ...string) []string {
 	t.Helper()
 	root := repoRoot(t)
@@ -572,6 +589,7 @@ func selectedDistros(t *testing.T, types ...string) []string {
 	}
 	return out
 }
+
 func selectedArches(t *testing.T) []string {
 	t.Helper()
 	if a := os.Getenv("INSTALLER_TEST_ARCH"); a != "" {
@@ -580,6 +598,7 @@ func selectedArches(t *testing.T) []string {
 	}
 	return []string{"amd64", "arm64"}
 }
+
 func packageTypeForDistro(t *testing.T, distro string, instr bool) string {
 	t.Helper()
 	dir := "images"
@@ -594,6 +613,7 @@ func packageTypeForDistro(t *testing.T, distro string, instr bool) string {
 	t.Fatalf("no package image for %s", distro)
 	return ""
 }
+
 func repoRoot(t *testing.T) string {
 	t.Helper()
 	wd, err := os.Getwd()

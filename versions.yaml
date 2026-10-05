@@ -34,6 +34,7 @@ excluded-modules:
   - github.com/signalfx/signalfx-agent
   - github.com/signalfx/splunk-otel-collector/internal/tools
   - github.com/signalfx/splunk-otel-collector/tests
+  - github.com/signalfx/splunk-otel-collector/tests/parity
   - github.com/signalfx/splunk-otel-collector/tests/tools
   - github.com/signalfx/splunk-otel-collector/packaging/ta-v2/tests
   - github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter

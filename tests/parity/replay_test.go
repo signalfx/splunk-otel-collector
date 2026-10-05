@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -180,6 +181,42 @@ func TestCases(t *testing.T) {
 				t.Errorf("%s is empty", collectorConfigFile)
 			}
 		})
+	}
+}
+
+// TestCandidateRun covers which files each kind of case hands the candidate: a
+// case with a collector.yaml is configured from it alone, a case without one
+// from its conf/, with the case's outputs.conf replaced by [hecout].
+func TestCandidateRun(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, confDir), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for name, body := range map[string]string{
+		"inputs.conf":  "[monitor://foo.txt]\n",
+		"outputs.conf": "[httpout]\nuri = ${HEC_ENDPOINT}\n",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, confDir, name), []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	casePath := filepath.Join(dir, "test.yaml")
+
+	want := map[string]string{
+		otelcol.ConfigFile: splunkInputsConfig,
+		"inputs.conf":      "[monitor://foo.txt]\n",
+		outputsConf:        hecOutConf,
+	}
+	if got := candidateRun(t, casePath, "parity_uc").ConfigFiles; !maps.Equal(got, want) {
+		t.Errorf("conf-driven case files = %v, want %v", got, want)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, collectorConfigFile), []byte("receivers:\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	want = map[string]string{otelcol.ConfigFile: "receivers:\n"}
+	if got := candidateRun(t, casePath, "parity_uc").ConfigFiles; !maps.Equal(got, want) {
+		t.Errorf("collector.yaml case files = %v, want %v", got, want)
 	}
 }
 

@@ -254,7 +254,7 @@ jobs:
     strategy:
       matrix:
         output: [ "sarif", "stdout" ]
-        package: ${{ fromJSON(needs.govulncheck-packages.outputs.matrix.package) }}
+        package: ${{ fromJSON(needs.govulncheck-packages.outputs.matrix).package }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

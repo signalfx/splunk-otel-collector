@@ -1,8 +1,8 @@
 # Example of deployment with a Splunk Universal Forwarder add-on, on Windows
 
 This is the Windows counterpart to the [`splunkinputs`](../splunkinputs/README.md)
-example. It uses the [`splunk_inputs`](https://github.com/splunk/tarunner/tree/main/pkg/splunkinputsreceiver)
-receiver and [`splunk_outputs`](https://github.com/splunk/tarunner/tree/main/pkg/splunkoutputsexporter)
+example. It uses the [`splunk_inputs`](../../pkg/splunkinputsreceiver)
+receiver and [`splunk_outputs`](../../pkg/splunkoutputsexporter)
 exporter together to read a TA's configuration and forward its logs without
 running a real `splunkd`.
 

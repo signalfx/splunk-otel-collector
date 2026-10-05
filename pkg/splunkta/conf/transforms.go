@@ -7,9 +7,9 @@ import "gopkg.in/ini.v1"
 
 // Transform represents a transforms.conf stanza.
 type Transform struct {
-	Name   string
-	Regex  string
-	Format string
+	Name   string `mapstructure:"name"`
+	Regex  string `mapstructure:"regex"`
+	Format string `mapstructure:"format"`
 }
 
 // MergeTransforms merges multiple slices of transforms, with later slices

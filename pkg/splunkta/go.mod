@@ -10,11 +10,14 @@ require (
 	go.opentelemetry.io/collector/component/componenttest v0.162.0
 	go.opentelemetry.io/collector/config/configopaque v1.68.0
 	go.opentelemetry.io/collector/config/configtls v1.68.0
+	go.opentelemetry.io/collector/confmap v1.68.0
 	go.opentelemetry.io/collector/consumer v1.68.0
+	go.opentelemetry.io/collector/consumer/consumertest v0.162.0
 	go.opentelemetry.io/collector/exporter v1.68.0
 	go.opentelemetry.io/collector/featuregate v1.68.0
 	go.opentelemetry.io/collector/pdata v1.68.0
 	go.opentelemetry.io/collector/receiver v1.68.0
+	go.opentelemetry.io/collector/receiver/receivertest v0.162.0
 	go.opentelemetry.io/otel/metric v1.46.0
 	go.opentelemetry.io/otel/trace v1.46.0
 	go.uber.org/goleak v1.3.0
@@ -77,10 +80,8 @@ require (
 	go.opentelemetry.io/collector/config/confignet v1.67.0 // indirect
 	go.opentelemetry.io/collector/config/configoptional v1.68.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v1.68.0 // indirect
-	go.opentelemetry.io/collector/confmap v1.68.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.162.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/xconsumererror v0.161.0 // indirect
-	go.opentelemetry.io/collector/consumer/consumertest v0.162.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.162.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.162.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/xexporterhelper v0.161.0 // indirect

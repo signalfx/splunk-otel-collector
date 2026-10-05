@@ -32,13 +32,13 @@ import (
 type AgentRun struct {
 	Adapter Adapter
 	// ConfigFiles maps a filename to its template. The runner interpolates the
-	// tokens (BASE_DIR, AGENT_DIR, HEC_ENDPOINT, HEC_TOKEN, INDEX) and writes
+	// tokens (${BASE_DIR}, ${HEC_ENDPOINT}, ${HEC_TOKEN}, ${INDEX}) and writes
 	// each into the run's configDir; Adapter.Prepare installs them.
 	ConfigFiles map[string]string
 	// Index is the Splunk index this agent forwards to.
 	Index string
 	// Search is the SPL that reads this agent's events back. INDEX is
-	// interpolated. Defaults to "search index=INDEX".
+	// interpolated. Defaults to "search index=${INDEX}".
 	Search string
 }
 
@@ -67,22 +67,22 @@ func (o RunOptions) withDefaults() RunOptions {
 }
 
 // RunCase runs both agents through a case and validates candidate against
-// oracle. When oracle.Adapter is nil, the candidate is compared against the
-// case's authored Expected instead of a live oracle.
+// oracle, comparing them on the fields the case selects. It is the direct
+// UF-vs-candidate path, where both sides are captured in the same run rather
+// than one being replayed from a golden.
 func RunCase(ctx context.Context, c *Case, backend Backend, oracle, candidate AgentRun, v Validator, opts RunOptions) (Result, error) {
 	candidateRecords, err := RunAgent(ctx, c, candidate, backend, opts)
 	if err != nil {
 		return Result{}, fmt.Errorf("candidate %s: %w", candidate.Adapter.Name(), err)
 	}
-
-	var reference []Record
-	if oracle.Adapter == nil {
-		reference = []Record{c.Expected.AsReference()}
-	} else {
-		reference, err = RunAgent(ctx, c, oracle, backend, opts)
-		if err != nil {
-			return Result{}, fmt.Errorf("oracle %s: %w", oracle.Adapter.Name(), err)
-		}
+	reference, err := RunAgent(ctx, c, oracle, backend, opts)
+	if err != nil {
+		return Result{}, fmt.Errorf("oracle %s: %w", oracle.Adapter.Name(), err)
+	}
+	// The reference is projected so only the selected fields take part; the
+	// validator then ignores everything the candidate has beyond them.
+	for i, r := range reference {
+		reference[i] = project(r, c.Expected)
 	}
 	return v.Validate(reference, candidateRecords), nil
 }
@@ -103,7 +103,6 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	hec := backend.HEC()
 	tokens := Tokens{
 		BaseDir:     baseDir,
-		AgentDir:    run.Adapter.InstallDir(),
 		HECEndpoint: hec.Endpoint,
 		HECToken:    hec.Token,
 		Index:       run.Index,
@@ -143,7 +142,7 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 
 	spl := run.Search
 	if spl == "" {
-		spl = "search index=INDEX"
+		spl = "search index=${INDEX}"
 	}
 	spl = tokens.apply(spl)
 	return waitForEvents(ctx, backend, spl, opts)

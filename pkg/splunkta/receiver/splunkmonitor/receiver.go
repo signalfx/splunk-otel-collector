@@ -42,24 +42,18 @@ type Config struct {
 	Host         string            `mapstructure:"host"`
 	Charset      string            `mapstructure:"charset"`
 	EventBreaker string            `mapstructure:"event_breaker"`
-	Include      []string          `mapstructure:"include"`
-	Exclude      []string          `mapstructure:"exclude"`
+	Path         string            `mapstructure:"path"`
 	Props        []conf.Prop       `mapstructure:"props"`
 	Transforms   []conf.Transform  `mapstructure:"transforms"`
 	Truncate     int               `mapstructure:"truncate"`
 }
 
-// Validate rejects a config with no include path. The include path is the
-// monitored target and there is no meaningful default, so without it the
-// receiver would silently watch the wrong thing.
+// Validate rejects a config with no path. The path is the monitored target and
+// there is no meaningful default, so without it the receiver would silently watch
+// the wrong thing.
 func (c *Config) Validate() error {
-	if len(c.Include) == 0 {
-		return errors.New("splunk_monitor: include is required")
-	}
-	for _, path := range c.Include {
-		if strings.TrimSpace(path) == "" {
-			return errors.New("splunk_monitor: include must not contain empty paths")
-		}
+	if strings.TrimSpace(c.Path) == "" {
+		return errors.New("splunk_monitor: path is required")
 	}
 	if c.Truncate < 0 {
 		return fmt.Errorf("splunk_monitor: truncate must not be negative, got %d", c.Truncate)
@@ -80,7 +74,7 @@ func (c *Config) input() conf.Input {
 	return conf.Input{
 		Configuration: conf.Configuration{
 			Stanza: conf.Stanza{
-				Name:   "monitor://" + c.Include[0],
+				Name:   "monitor://" + c.Path,
 				Params: c.params(),
 			},
 		},
@@ -95,9 +89,6 @@ func (c *Config) params() conf.Params {
 		Host:       c.Host,
 	}, c.Extra)
 
-	if len(c.Exclude) > 0 {
-		params = append(params, conf.Param{Name: "blacklist", Value: strings.Join(c.Exclude, "|")})
-	}
 	if c.Charset != "" {
 		params = append(params, conf.Param{Name: "CHARSET", Value: c.Charset})
 	}

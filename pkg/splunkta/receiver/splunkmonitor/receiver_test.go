@@ -30,22 +30,25 @@ func TestConfigToStanza(t *testing.T) {
 		{
 			name: "every modeled field plus an unmodeled one",
 			yaml: map[string]any{
-				"include":       []any{"/var/log/syslog"},
-				"exclude":       []any{"*.gz", "*.bz2"},
+				"path":          "/var/log/syslog",
 				"index":         "main",
 				"host":          "h1",
 				"charset":       "UTF-8",
 				"truncate":      512,
 				"event_breaker": "BRK",
 				"followTail":    "1",
+				"blacklist":     "\\.gz$",
 			},
-			extra:  map[string]string{"followTail": "1"},
+			extra: map[string]string{
+				"followTail": "1",
+				"blacklist":  "\\.gz$",
+			},
 			stanza: "monitor:///var/log/syslog",
 			params: conf.Params{
 				{Name: "index", Value: "main"},
 				{Name: "host", Value: "h1"},
+				{Name: "blacklist", Value: "\\.gz$"},
 				{Name: "followTail", Value: "1"},
-				{Name: "blacklist", Value: "*.gz|*.bz2"},
 				{Name: "CHARSET", Value: "UTF-8"},
 				{Name: "EVENT_BREAKER", Value: "BRK"},
 				{Name: "TRUNCATE", Value: "512"},
@@ -53,7 +56,7 @@ func TestConfigToStanza(t *testing.T) {
 		},
 		{
 			name:   "target only, so nothing overrides a props.conf default",
-			yaml:   map[string]any{"include": []any{"/var/log/a.log"}},
+			yaml:   map[string]any{"path": "/var/log/a.log"},
 			stanza: "monitor:///var/log/a.log",
 			params: conf.Params{},
 		},
@@ -78,21 +81,21 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			name: "valid",
-			cfg:  Config{Include: []string{"/var/log/syslog"}},
+			cfg:  Config{Path: "/var/log/syslog"},
 		},
 		{
-			name:   "no include",
+			name:   "no path",
 			cfg:    Config{Index: "main"},
-			errMsg: "include is required",
+			errMsg: "path is required",
 		},
 		{
-			name:   "empty include path",
-			cfg:    Config{Include: []string{"  "}},
-			errMsg: "must not contain empty paths",
+			name:   "whitespace-only path",
+			cfg:    Config{Path: "  "},
+			errMsg: "path is required",
 		},
 		{
 			name:   "negative truncate",
-			cfg:    Config{Include: []string{"/var/log/syslog"}, Truncate: -1},
+			cfg:    Config{Path: "/var/log/syslog", Truncate: -1},
 			errMsg: "truncate must not be negative",
 		},
 	} {
@@ -109,7 +112,7 @@ func TestValidate(t *testing.T) {
 
 func TestFactory(t *testing.T) {
 	f := NewFactory()
-	cfg := &Config{Include: []string{"/var/log/syslog"}, Index: "main"}
+	cfg := &Config{Path: "/var/log/syslog", Index: "main"}
 	r, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, consumertest.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, r)

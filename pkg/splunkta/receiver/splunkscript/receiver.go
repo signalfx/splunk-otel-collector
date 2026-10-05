@@ -12,6 +12,8 @@ package splunkscript
 import (
 	"context"
 	"errors"
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"go.opentelemetry.io/collector/component"
@@ -32,6 +34,7 @@ const TypeStr = "splunk_script"
 type Config struct {
 	Extra          map[string]string `mapstructure:",remain"`
 	ScriptFilename string            `mapstructure:"script_filename"`
+	AppDir         string            `mapstructure:"app_dir"`
 	Interval       string            `mapstructure:"interval"`
 	Index          string            `mapstructure:"index"`
 	Source         string            `mapstructure:"source"`
@@ -42,10 +45,16 @@ type Config struct {
 }
 
 // Validate requires the script path, which is the stanza target and has no
-// meaningful default.
+// meaningful default. A relative path additionally requires app_dir: UF resolves
+// it against the app that declared the stanza, and script.GetPath both resolves
+// and sandboxes against that directory, so without it the script would resolve
+// against the collector's working directory instead.
 func (c *Config) Validate() error {
 	if strings.TrimSpace(c.ScriptFilename) == "" {
 		return errors.New("splunk_script: script_filename is required")
+	}
+	if !filepath.IsAbs(c.ScriptFilename) && strings.TrimSpace(c.AppDir) == "" {
+		return fmt.Errorf("splunk_script: app_dir is required to resolve the relative script_filename %q", c.ScriptFilename)
 	}
 	return nil
 }
@@ -70,6 +79,7 @@ func (c *Config) input() conf.Input {
 		params = append(params, conf.Param{Name: "interval", Value: c.Interval})
 	}
 	return conf.Input{
+		AppDir: c.AppDir,
 		Configuration: conf.Configuration{
 			Stanza: conf.Stanza{
 				Name:   "script://" + c.ScriptFilename,

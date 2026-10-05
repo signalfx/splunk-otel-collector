@@ -26,6 +26,7 @@ func TestConfigToStanza(t *testing.T) {
 		yaml   map[string]any
 		extra  map[string]string
 		stanza string
+		appDir string
 		params conf.Params
 	}{
 		{
@@ -56,6 +57,16 @@ func TestConfigToStanza(t *testing.T) {
 			stanza: "script:///usr/local/bin/x.sh",
 			params: conf.Params{},
 		},
+		{
+			name: "app-relative target carries the app dir through to Input",
+			yaml: map[string]any{
+				"script_filename": "./bin/foo.sh",
+				"app_dir":         "/opt/splunk/etc/apps/splunk_ta_nix",
+			},
+			stanza: "script://./bin/foo.sh",
+			appDir: "/opt/splunk/etc/apps/splunk_ta_nix",
+			params: conf.Params{},
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := NewFactory().CreateDefaultConfig().(*Config)
@@ -64,6 +75,8 @@ func TestConfigToStanza(t *testing.T) {
 
 			in := cfg.input()
 			require.Equal(t, tt.stanza, in.Configuration.Stanza.Name)
+			require.Equal(t, tt.appDir, in.AppDir,
+				"AppDir must survive: script.DetermineCommandName resolves and sandboxes a relative target against it")
 			require.Equal(t, tt.params, in.Configuration.Stanza.Params)
 		})
 	}
@@ -88,6 +101,15 @@ func TestValidate(t *testing.T) {
 			name:   "whitespace only script filename",
 			cfg:    Config{ScriptFilename: "   "},
 			errMsg: "script_filename is required",
+		},
+		{
+			name: "relative target with an app dir",
+			cfg:  Config{ScriptFilename: "./bin/foo.sh", AppDir: "/opt/splunk/etc/apps/splunk_ta_nix"},
+		},
+		{
+			name:   "relative target without an app dir would resolve against the collector cwd",
+			cfg:    Config{ScriptFilename: "./bin/foo.sh"},
+			errMsg: "app_dir is required to resolve the relative script_filename",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

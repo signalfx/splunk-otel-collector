@@ -302,13 +302,13 @@ func TestInstallerSplunkPlatformValidation(t *testing.T) {
 func installerContainer(t *testing.T, distro, arch string, instrumentation bool, buildargs map[string]*string, binds map[string]string) *testutils.Container {
 	t.Helper()
 	root := repoRoot(t)
+	testsDir := filepath.Join(root, "packaging", "tests")
 	kind := packageTypeForDistro(t, distro, instrumentation)
 	imageDir := "images"
 	if instrumentation {
 		imageDir = filepath.Join("instrumentation", "images")
 	}
-	dockerfile, err := filepath.Rel(root, filepath.Join(root, "packaging", "tests", imageDir, kind, "Dockerfile."+distro))
-	require.NoError(t, err)
+	dockerfile := filepath.Join(imageDir, kind, "Dockerfile."+distro)
 	if buildargs == nil {
 		buildargs = map[string]*string{}
 	}
@@ -316,7 +316,7 @@ func installerContainer(t *testing.T, distro, arch string, instrumentation bool,
 	buildargs["TARGETARCH"] = &target
 	p, err := platforms.Parse("linux/" + arch)
 	require.NoError(t, err)
-	container := testutils.NewContainer().WithContext(root).WithDockerfile(dockerfile).WithBuildArgs(buildargs).WithDockerfileBuildOptionsModifier(func(o *dockerClient.ImageBuildOptions) { o.PullParent = true; o.Platforms = append(o.Platforms, p) }).WithImagePlatform("linux/" + arch).WithPrivileged(true).WithBinds("/sys/fs/cgroup:/sys/fs/cgroup:rw").WithHostConfigModifier(func(h *dockerContainer.HostConfig) { h.CgroupnsMode = dockerContainer.CgroupnsModeHost }).WithStartupTimeout(5 * time.Minute)
+	container := testutils.NewContainer().WithContext(testsDir).WithDockerfile(dockerfile).WithBuildArgs(buildargs).WithDockerfileBuildOptionsModifier(func(o *dockerClient.ImageBuildOptions) { o.PullParent = true; o.Platforms = append(o.Platforms, p) }).WithImagePlatform("linux/" + arch).WithPrivileged(true).WithBinds("/sys/fs/cgroup:/sys/fs/cgroup:rw").WithHostConfigModifier(func(h *dockerContainer.HostConfig) { h.CgroupnsMode = dockerContainer.CgroupnsModeHost }).WithStartupTimeout(5 * time.Minute)
 	for host, binding := range binds {
 		container = container.WithBinds(host + ":" + binding)
 	}

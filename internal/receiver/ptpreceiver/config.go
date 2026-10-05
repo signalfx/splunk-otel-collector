@@ -43,7 +43,7 @@ func (c *Config) Validate() error {
 		return errors.New("pmc.client_socket_directory must be an absolute path")
 	}
 	if c.DomainNumber < 0 || c.DomainNumber > 255 {
-		return fmt.Errorf("domain_number must be between 0 and 255, got %d", c.DomainNumber)
+		return fmt.Errorf("domain_number must be between 0 and 255, inclusive; got %d", c.DomainNumber)
 	}
 	return nil
 }

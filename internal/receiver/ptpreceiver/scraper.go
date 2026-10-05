@@ -25,71 +25,70 @@ import (
 )
 
 const (
-	pmcArgUnixDomainSocket = "-u"
 	pmcArgBoundaryHops     = "-b"
 	pmcArgClientSocket     = "-i"
-	pmcArgServerSocket     = "-s"
 	pmcArgDomainNumber     = "-d"
+	pmcArgServerSocket     = "-s"
+	pmcArgUnixDomainSocket = "-u"
 	pmcBoundaryHops        = "0"
 
-	pmcGetTimeStatus     = "GET TIME_STATUS_NP"
+	pmcGetClockDesc      = "GET CLOCK_DESCRIPTION"
 	pmcGetCurrentDataSet = "GET CURRENT_DATA_SET"
 	pmcGetPortDataSet    = "GET PORT_DATA_SET"
-	pmcGetClockDesc      = "GET CLOCK_DESCRIPTION"
+	pmcGetTimeStatus     = "GET TIME_STATUS_NP"
 
 	pmcResponseMarker = " RESPONSE MANAGEMENT "
 
-	pmcTimeStatusDataset     = "TIME_STATUS_NP"
-	pmcCurrentDataSet        = "CURRENT_DATA_SET"
-	pmcPortDataSet           = "PORT_DATA_SET"
 	pmcClockDescription      = "CLOCK_DESCRIPTION"
-	pmcMasterOffsetField     = "master_offset"
-	pmcGrandmasterPresentKey = "gmPresent"
-	pmcGrandmasterIdentity   = "gmIdentity"
-	pmcMeanPathDelayField    = "meanPathDelay"
 	pmcClockTypeField        = "clockType"
+	pmcCurrentDataSet        = "CURRENT_DATA_SET"
+	pmcGrandmasterIdentity   = "gmIdentity"
+	pmcGrandmasterPresentKey = "gmPresent"
+	pmcMasterOffsetField     = "master_offset"
+	pmcMeanPathDelayField    = "meanPathDelay"
+	pmcPortDataSet           = "PORT_DATA_SET"
 	pmcPortIdentityField     = "portIdentity"
 	pmcPortStateField        = "portState"
+	pmcTimeStatusDataset     = "TIME_STATUS_NP"
 )
 
 const (
-	ptpPortStateInitializing = "INITIALIZING"
-	ptpPortStateFaulty       = "FAULTY"
 	ptpPortStateDisabled     = "DISABLED"
+	ptpPortStateFaulty       = "FAULTY"
+	ptpPortStateInitializing = "INITIALIZING"
 	ptpPortStateListening    = "LISTENING"
-	ptpPortStatePreMaster    = "PRE_MASTER"
 	ptpPortStateMaster       = "MASTER"
 	ptpPortStatePassive      = "PASSIVE"
-	ptpPortStateUncalibrated = "UNCALIBRATED"
+	ptpPortStatePreMaster    = "PRE_MASTER"
 	ptpPortStateSlave        = "SLAVE"
+	ptpPortStateUncalibrated = "UNCALIBRATED"
 )
 
 const (
-	ptpClockTypeNameOrdinary       = "OC"
-	ptpClockTypeNameBoundary       = "BC"
-	ptpClockTypeNameP2PTransparent = "P2P_TC"
-	ptpClockTypeNameE2ETransparent = "E2E_TC"
-	ptpUnknown                     = "UNKNOWN"
 	ptpClockStateUnsynchronized    = "UNSYNCHRONIZED"
+	ptpClockTypeNameBoundary       = "BC"
+	ptpClockTypeNameE2ETransparent = "E2E_TC"
+	ptpClockTypeNameOrdinary       = "OC"
+	ptpClockTypeNameP2PTransparent = "P2P_TC"
+	ptpUnknown                     = "UNKNOWN"
 )
 
 const (
-	clockIdentityGroupCount           = 3
 	clockIdentityFirstGroupHexLength  = 6
+	clockIdentityGroupCount           = 3
 	clockIdentitySecondGroupHexLength = 4
 	clockIdentityThirdGroupHexLength  = 6
-
-	// PTP portNumber is an unsigned 16-bit value.
-	ptpPortNumberBitSize = 16
+	nanosecondsPerSecond              = 1e9
 
 	// These are the PTP ClockType values returned by LinuxPTP's
 	// CLOCK_DESCRIPTION management response.
-	ptpClockTypeOrdinary       uint64 = 0x8000
 	ptpClockTypeBoundary       uint64 = 0x4000
-	ptpClockTypeP2PTransparent uint64 = 0x2000
 	ptpClockTypeE2ETransparent uint64 = 0x1000
+	ptpClockTypeOrdinary       uint64 = 0x8000
+	ptpClockTypeP2PTransparent uint64 = 0x2000
 
-	nanosecondsPerSecond = 1e9
+	// PTP portNumber is an unsigned 16-bit value.
+	ptpPortNumberBitSize = 16
 )
 
 type ptpScraper struct {
@@ -173,7 +172,7 @@ func (s *ptpScraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 		s.mb.RecordPtpPathDelayDataPoint(now, status.pathDelay/nanosecondsPerSecond)
 	}
 	if len(status.ports) > 0 || status.clockType != "" {
-		s.mb.RecordPtpClockStateDataPoint(now, 1, clockState(status.ports))
+		s.mb.RecordPtpClockStateDataPoint(now, 1, metadata.MapAttributePtpClockState[clockState(status.ports)])
 	}
 	for _, port := range status.ports {
 		s.mb.RecordPtpPortStateDataPoint(now, 1, port.identity, port.state)
@@ -181,9 +180,24 @@ func (s *ptpScraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 	rb := s.mb.NewResourceBuilder()
 	rb.SetPtpSocketPath(s.config.SocketPath)
 	if status.clockType != "" {
-		rb.SetPtpClockType(status.clockType)
+		setPtpClockTypeAttribute(rb, status.clockType)
 	}
 	return s.mb.Emit(metadata.WithResource(rb.Emit())), nil
+}
+
+func setPtpClockTypeAttribute(rb *metadata.ResourceBuilder, clockType string) {
+	switch clockType {
+	case ptpClockTypeNameOrdinary:
+		rb.SetPtpClockTypeOC()
+	case ptpClockTypeNameBoundary:
+		rb.SetPtpClockTypeBC()
+	case ptpClockTypeNameP2PTransparent:
+		rb.SetPtpClockTypeP2PTC()
+	case ptpClockTypeNameE2ETransparent:
+		rb.SetPtpClockTypeE2ETC()
+	case ptpUnknown:
+		rb.SetPtpClockTypeUNKNOWN()
+	}
 }
 
 func parsePMCStatus(output []byte) (ptpStatus, error) {
@@ -196,28 +210,47 @@ func parsePMCStatus(output []byte) (ptpStatus, error) {
 		return status, errors.New("pmc response missing supported management datasets")
 	}
 
-	if dataset, ok := firstPMCDataset(datasets, pmcTimeStatusDataset); ok {
-		if err := parseTimeStatus(dataset, &status); err != nil {
-			return status, err
-		}
+	var parseErrors []error
+	status, err = parsePMCDatasetResponses(datasets[pmcTimeStatusDataset], pmcTimeStatusDataset, status, parseTimeStatus)
+	if err != nil {
+		parseErrors = append(parseErrors, err)
 	}
-	if dataset, ok := firstPMCDataset(datasets, pmcCurrentDataSet); ok {
-		if err := parsePathDelay(dataset, &status); err != nil {
-			return status, err
-		}
+	status, err = parsePMCDatasetResponses(datasets[pmcCurrentDataSet], pmcCurrentDataSet, status, parsePathDelay)
+	if err != nil {
+		parseErrors = append(parseErrors, err)
 	}
-	if dataset, ok := firstPMCDataset(datasets, pmcClockDescription); ok {
-		if err := parseClockType(dataset, &status); err != nil {
-			return status, err
-		}
+	status, err = parsePMCDatasetResponses(datasets[pmcClockDescription], pmcClockDescription, status, parseClockType)
+	if err != nil {
+		parseErrors = append(parseErrors, err)
 	}
 	if err := parsePortDataSets(datasets[pmcPortDataSet], &status); err != nil {
+		parseErrors = append(parseErrors, err)
+	}
+	if err := errors.Join(parseErrors...); err != nil {
 		return status, err
 	}
 	if !status.hasTimeStatus && len(status.ports) == 0 && status.clockType == "" {
-		return status, errors.New("pmc response missing TIME_STATUS_NP, PORT_DATA_SET, and CLOCK_DESCRIPTION")
+		return status, fmt.Errorf("pmc response missing %s, %s, and %s", pmcTimeStatusDataset, pmcPortDataSet, pmcClockDescription)
 	}
 	return status, nil
+}
+
+func parsePMCDatasetResponses(datasets []pmcDataset, name string, status ptpStatus, parse func(pmcDataset, *ptpStatus) error) (ptpStatus, error) {
+	if len(datasets) == 0 {
+		return status, nil
+	}
+
+	var firstValidStatus *ptpStatus
+	for _, dataset := range datasets {
+		candidate := status
+		if err := parse(dataset, &candidate); err == nil && firstValidStatus == nil {
+			firstValidStatus = &candidate
+		}
+	}
+	if firstValidStatus == nil {
+		return status, fmt.Errorf("pmc response has no valid %s dataset", name)
+	}
+	return *firstValidStatus, nil
 }
 
 func parsePMCDatasets(output []byte) (map[string][]pmcDataset, error) {
@@ -254,14 +287,6 @@ func pmcResponseName(line string) (string, bool) {
 	return name, name != ""
 }
 
-func firstPMCDataset(datasets map[string][]pmcDataset, name string) (pmcDataset, bool) {
-	responses := datasets[name]
-	if len(responses) == 0 {
-		return pmcDataset{}, false
-	}
-	return responses[0], true
-}
-
 func parseTimeStatus(dataset pmcDataset, status *ptpStatus) error {
 	present, err := parseBoolField(dataset, pmcGrandmasterPresentKey)
 	if err != nil {
@@ -281,7 +306,7 @@ func parseTimeStatus(dataset pmcDataset, status *ptpStatus) error {
 		return err
 	}
 	if !validClockIdentity(status.gmIdentity) {
-		return fmt.Errorf("invalid TIME_STATUS_NP gmIdentity %q", status.gmIdentity)
+		return fmt.Errorf("invalid %s %s %q", pmcTimeStatusDataset, pmcGrandmasterIdentity, status.gmIdentity)
 	}
 	return nil
 }
@@ -296,7 +321,7 @@ func parsePathDelay(dataset pmcDataset, status *ptpStatus) error {
 	}
 	status.pathDelay, err = strconv.ParseFloat(value, 64)
 	if err != nil || math.IsNaN(status.pathDelay) || math.IsInf(status.pathDelay, 0) {
-		return fmt.Errorf("invalid meanPathDelay %q", value)
+		return fmt.Errorf("invalid %s %q", pmcMeanPathDelayField, value)
 	}
 	status.hasPathDelay = true
 	return nil
@@ -309,7 +334,7 @@ func parseClockType(dataset pmcDataset, status *ptpStatus) error {
 	}
 	clockType, err := strconv.ParseUint(value, 0, 16)
 	if err != nil {
-		return fmt.Errorf("invalid clockType %q: %w", value, err)
+		return fmt.Errorf("invalid %s %q: %w", pmcClockTypeField, value, err)
 	}
 	status.clockType = clockTypeName(clockType)
 	return nil
@@ -317,25 +342,24 @@ func parseClockType(dataset pmcDataset, status *ptpStatus) error {
 
 func parsePortDataSets(datasets []pmcDataset, status *ptpStatus) error {
 	seenPorts := make(map[string]bool)
+	validResponses := 0
 	for _, dataset := range datasets {
-		identity, err := getRequiredField(dataset, pmcPortIdentityField)
-		if err != nil {
-			return err
+		identity, identityErr := getRequiredField(dataset, pmcPortIdentityField)
+		state, stateErr := getRequiredField(dataset, pmcPortStateField)
+		if identityErr != nil || stateErr != nil {
+			continue
 		}
-		state, err := getRequiredField(dataset, pmcPortStateField)
-		if err != nil {
-			return err
+		if !validPortIdentity(identity) || !validPortState(state) {
+			continue
 		}
-		if !validPortIdentity(identity) {
-			return fmt.Errorf("invalid PORT_DATA_SET portIdentity %q", identity)
-		}
-		if !validPortState(state) {
-			return fmt.Errorf("invalid PORT_DATA_SET portState %q", state)
-		}
+		validResponses++
 		if !seenPorts[identity] {
 			status.ports = append(status.ports, ptpPort{identity: identity, state: state})
 			seenPorts[identity] = true
 		}
+	}
+	if len(datasets) > 0 && validResponses == 0 {
+		return fmt.Errorf("pmc response has no valid %s dataset", pmcPortDataSet)
 	}
 	return nil
 }

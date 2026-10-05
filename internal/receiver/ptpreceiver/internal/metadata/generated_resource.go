@@ -21,10 +21,38 @@ func NewResourceBuilder(rac ResourceAttributesConfig) *ResourceBuilder {
 	}
 }
 
-// SetPtpClockType sets provided value as "ptp.clock.type" attribute.
-func (rb *ResourceBuilder) SetPtpClockType(val string) {
+// SetPtpClockTypeOC sets "ptp.clock.type=OC" attribute.
+func (rb *ResourceBuilder) SetPtpClockTypeOC() {
 	if rb.config.PtpClockType.Enabled {
-		rb.res.Attributes().PutStr("ptp.clock.type", val)
+		rb.res.Attributes().PutStr("ptp.clock.type", "OC")
+	}
+}
+
+// SetPtpClockTypeBC sets "ptp.clock.type=BC" attribute.
+func (rb *ResourceBuilder) SetPtpClockTypeBC() {
+	if rb.config.PtpClockType.Enabled {
+		rb.res.Attributes().PutStr("ptp.clock.type", "BC")
+	}
+}
+
+// SetPtpClockTypeP2PTC sets "ptp.clock.type=P2P_TC" attribute.
+func (rb *ResourceBuilder) SetPtpClockTypeP2PTC() {
+	if rb.config.PtpClockType.Enabled {
+		rb.res.Attributes().PutStr("ptp.clock.type", "P2P_TC")
+	}
+}
+
+// SetPtpClockTypeE2ETC sets "ptp.clock.type=E2E_TC" attribute.
+func (rb *ResourceBuilder) SetPtpClockTypeE2ETC() {
+	if rb.config.PtpClockType.Enabled {
+		rb.res.Attributes().PutStr("ptp.clock.type", "E2E_TC")
+	}
+}
+
+// SetPtpClockTypeUNKNOWN sets "ptp.clock.type=UNKNOWN" attribute.
+func (rb *ResourceBuilder) SetPtpClockTypeUNKNOWN() {
+	if rb.config.PtpClockType.Enabled {
+		rb.res.Attributes().PutStr("ptp.clock.type", "UNKNOWN")
 	}
 }
 

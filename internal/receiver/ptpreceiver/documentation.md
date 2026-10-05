@@ -24,7 +24,7 @@ Local PTP clock state inferred from the states of its ports (1 for the reported 
 
 | Name | Description | Values | Requirement Level | Semantic Convention |
 | ---- | ----------- | ------ | ----------------- | ------------------- |
-| ptp.clock.state | State of the local PTP clock inferred from its port states. | Any Str | Recommended | - |
+| ptp.clock.state | State of the local PTP clock inferred from its port states. | Str: ``SLAVE``, ``MASTER``, ``UNCALIBRATED``, ``FAULTY``, ``UNSYNCHRONIZED``, ``UNKNOWN`` | Recommended | - |
 
 ### ptp.grandmaster.info
 
@@ -50,7 +50,7 @@ Whether ptp4l reports a remote grandmaster (1 for present, 0 when the local cloc
 
 ### ptp.offset
 
-Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
+Signed offset of the local PTP clock from a remote grandmaster. Omitted when ptp4l reports no remote grandmaster.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
@@ -58,7 +58,7 @@ Signed offset of the local PTP clock from a remote grandmaster, reported in seco
 
 ### ptp.path.delay
 
-Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
+Mean path delay to a remote PTP grandmaster. Omitted when ptp4l reports no remote grandmaster.
 
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
@@ -76,12 +76,12 @@ State of each local PTP port (1 for the reported state).
 
 | Name | Description | Values | Requirement Level | Semantic Convention |
 | ---- | ----------- | ------ | ----------------- | ------------------- |
-| ptp.port.identity | Identity and number of the local PTP port. | Any Str | Recommended | - |
+| ptp.port.identity | LinuxPTP port identity formatted as `<clock-identity>-<port-number>` (e.g. `001122.fffe.334455-1`). It is a string combining the clock identity and the port number. | Any Str | Recommended | - |
 | ptp.port.state | State of the local PTP port. | Any Str | Recommended | - |
 
 ## Resource Attributes
 
 | Name | Description | Values | Enabled | Semantic Convention | Stability |
 | ---- | ----------- | ------ | ------- | ------------------- | --------- |
-| ptp.clock.type | Type of the local PTP clock reported by CLOCK_DESCRIPTION. Values: `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), `E2E_TC` (end-to-end transparent clock); unrecognized clock types map to `UNKNOWN`. | Any Str | true | - | - |
+| ptp.clock.type | Type of the local PTP clock reported by CLOCK_DESCRIPTION. Values: `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), `E2E_TC` (end-to-end transparent clock); unrecognized clock types map to `UNKNOWN`. | Str: ``OC``, ``BC``, ``P2P_TC``, ``E2E_TC``, ``UNKNOWN`` | true | - | - |
 | ptp.socket_path | Unix domain socket of the ptp4l daemon. | Any Str | true | - | - |

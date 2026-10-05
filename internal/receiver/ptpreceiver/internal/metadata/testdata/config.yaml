@@ -80,7 +80,7 @@ filter_set_exclude:
     ptp.clock.type:
       enabled: true
       metrics_exclude:
-        - strict: "ptp.clock.type-val"
+        - strict: "OC"
     ptp.socket_path:
       enabled: true
       metrics_exclude:

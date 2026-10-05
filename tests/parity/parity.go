@@ -46,14 +46,17 @@ import (
 //
 // Fields values are strings for now; typed values (numeric index-time fields)
 // are a follow-up on the structured-processing axis.
+//
+// The JSON tags shape the golden files. Time is never serialized; asserting
+// event time is a follow-up.
 type Record struct {
-	Time       time.Time
-	Fields     map[string]string
-	Raw        string
-	Host       string
-	Source     string
-	Sourcetype string
-	Index      string
+	Time       time.Time         `json:"-"`
+	Fields     map[string]string `json:"fields,omitempty"`
+	Raw        string            `json:"raw,omitempty"`
+	Host       string            `json:"host,omitempty"`
+	Source     string            `json:"source,omitempty"`
+	Sourcetype string            `json:"sourcetype,omitempty"`
+	Index      string            `json:"index,omitempty"`
 }
 
 // Endpoint is a host:port an agent forwards to.
@@ -76,14 +79,13 @@ type HEC struct {
 	Token    string // HEC token (UUID form; UF httpout requires >= 36 chars)
 }
 
-// Backend is the shared Splunk instance both agents forward into. It replaces
-// the earlier wire-decoding sink: rather than decode a transport, each agent
-// forwards with its own native transport and the backend validates by querying
-// indexed events over the REST search API. Because both agents land in the same
-// real Splunk, comparison is true UF-vs-candidate parity, not agent-vs-golden.
+// Backend is the Splunk instance agents forward into. Each agent forwards with
+// its own native transport and the backend validates by querying indexed events
+// over the REST search API, so what a comparison sees is real Splunk output
+// rather than a decoded wire format.
 //
-// Agents are kept apart by index (Search/Clean take an SPL query that scopes to
-// one agent's index), so a run needs no clean-between-agents step.
+// Search and Clean take an SPL query, so a caller can scope a readback to one
+// index.
 type Backend interface {
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -100,7 +102,8 @@ type Backend interface {
 // a selector.
 type Adapter interface {
 	Name() string
-	// InstallDir is the agent root, used to interpolate AGENT_DIR.
+	// InstallDir is the agent root. A caller uses it to check the agent is
+	// actually installed before running a case against it.
 	InstallDir() string
 	// Prepare installs the case's already-interpolated config files from
 	// configDir (inputs.conf, outputs.conf) into the agent's own config layout,

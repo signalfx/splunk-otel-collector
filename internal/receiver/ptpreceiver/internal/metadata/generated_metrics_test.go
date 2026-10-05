@@ -80,9 +80,9 @@ func TestMetricsBuilder(t *testing.T) {
 			allMetricsCount := 0
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordPtpClockStateDataPoint(ts, 1, "ptp.clock.state-val")
+			mb.RecordPtpClockStateDataPoint(ts, 1, AttributePtpClockStateSLAVE)
 			if tt.name == "reaggregate_set" {
-				mb.RecordPtpClockStateDataPoint(ts, 3, "ptp.clock.state-val-2")
+				mb.RecordPtpClockStateDataPoint(ts, 3, AttributePtpClockStateMASTER)
 			}
 			defaultMetricsCount++
 			allMetricsCount++
@@ -107,7 +107,7 @@ func TestMetricsBuilder(t *testing.T) {
 			}
 
 			rb := mb.NewResourceBuilder()
-			rb.SetPtpClockType("ptp.clock.type-val")
+			rb.SetPtpClockTypeOC()
 			rb.SetPtpSocketPath("ptp.socket_path-val")
 			res := rb.Emit()
 			metrics := mb.Emit(WithResource(res))
@@ -157,7 +157,7 @@ func TestMetricsBuilder(t *testing.T) {
 						assert.Equal(t, int64(1), dp.IntValue())
 						ptpClockStateAttrVal, ok := dp.Attributes().Get("ptp.clock.state")
 						assert.True(t, ok)
-						assert.Equal(t, "ptp.clock.state-val", ptpClockStateAttrVal.Str())
+						assert.Equal(t, "SLAVE", ptpClockStateAttrVal.Str())
 					} else {
 						assert.False(t, validatedMetrics["ptp.clock.state"], "Found a duplicate in the metrics slice: ptp.clock.state")
 						validatedMetrics["ptp.clock.state"] = true
@@ -239,7 +239,7 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["ptp.offset"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-					assert.Equal(t, "Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.", mi.Description())
+					assert.Equal(t, "Signed offset of the local PTP clock from a remote grandmaster. Omitted when ptp4l reports no remote grandmaster.", mi.Description())
 					assert.Equal(t, "s", mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
@@ -251,7 +251,7 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["ptp.path.delay"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
 					assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
-					assert.Equal(t, "Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.", mi.Description())
+					assert.Equal(t, "Mean path delay to a remote PTP grandmaster. Omitted when ptp4l reports no remote grandmaster.", mi.Description())
 					assert.Equal(t, "s", mi.Unit())
 					dp := mi.Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())

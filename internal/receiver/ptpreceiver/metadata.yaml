@@ -15,6 +15,7 @@ resource_attributes:
     description: "Type of the local PTP clock reported by CLOCK_DESCRIPTION. Values: `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), `E2E_TC` (end-to-end transparent clock); unrecognized clock types map to `UNKNOWN`."
     enabled: true
     type: string
+    enum: [OC, BC, P2P_TC, E2E_TC, UNKNOWN]
   ptp.socket_path:
     description: Unix domain socket of the ptp4l daemon.
     enabled: true
@@ -24,11 +25,12 @@ attributes:
   ptp.clock.state:
     description: State of the local PTP clock inferred from its port states.
     type: string
+    enum: [SLAVE, MASTER, UNCALIBRATED, FAULTY, UNSYNCHRONIZED, UNKNOWN]
   ptp.grandmaster.identity:
     description: Identity of the selected PTP grandmaster.
     type: string
   ptp.port.identity:
-    description: Identity and number of the local PTP port.
+    description: LinuxPTP port identity formatted as `<clock-identity>-<port-number>` (e.g. `001122.fffe.334455-1`). It is a string combining the clock identity and the port number.
     type: string
   ptp.port.state:
     description: State of the local PTP port.
@@ -59,14 +61,14 @@ metrics:
       value_type: int
     unit: "1"
   ptp.offset:
-    description: Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
+    description: Signed offset of the local PTP clock from a remote grandmaster. Omitted when ptp4l reports no remote grandmaster.
     enabled: true
     stability: development
     gauge:
       value_type: double
     unit: s
   ptp.path.delay:
-    description: Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.
+    description: Mean path delay to a remote PTP grandmaster. Omitted when ptp4l reports no remote grandmaster.
     enabled: true
     stability: development
     gauge:

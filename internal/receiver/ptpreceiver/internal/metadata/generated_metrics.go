@@ -20,6 +20,48 @@ const (
 	AggregationStrategyMax = "max"
 )
 
+// AttributePtpClockState specifies the value ptp.clock.state attribute.
+type AttributePtpClockState int
+
+const (
+	_ AttributePtpClockState = iota
+	AttributePtpClockStateSLAVE
+	AttributePtpClockStateMASTER
+	AttributePtpClockStateUNCALIBRATED
+	AttributePtpClockStateFAULTY
+	AttributePtpClockStateUNSYNCHRONIZED
+	AttributePtpClockStateUNKNOWN
+)
+
+// String returns the string representation of the AttributePtpClockState.
+func (av AttributePtpClockState) String() string {
+	switch av {
+	case AttributePtpClockStateSLAVE:
+		return "SLAVE"
+	case AttributePtpClockStateMASTER:
+		return "MASTER"
+	case AttributePtpClockStateUNCALIBRATED:
+		return "UNCALIBRATED"
+	case AttributePtpClockStateFAULTY:
+		return "FAULTY"
+	case AttributePtpClockStateUNSYNCHRONIZED:
+		return "UNSYNCHRONIZED"
+	case AttributePtpClockStateUNKNOWN:
+		return "UNKNOWN"
+	}
+	return ""
+}
+
+// MapAttributePtpClockState is a helper map of string to AttributePtpClockState attribute value.
+var MapAttributePtpClockState = map[string]AttributePtpClockState{
+	"SLAVE":          AttributePtpClockStateSLAVE,
+	"MASTER":         AttributePtpClockStateMASTER,
+	"UNCALIBRATED":   AttributePtpClockStateUNCALIBRATED,
+	"FAULTY":         AttributePtpClockStateFAULTY,
+	"UNSYNCHRONIZED": AttributePtpClockStateUNSYNCHRONIZED,
+	"UNKNOWN":        AttributePtpClockStateUNKNOWN,
+}
+
 var MetricsInfo = metricsInfo{
 	PtpClockState: metricInfo{
 		Name:       "ptp.clock.state",
@@ -295,7 +337,7 @@ type metricPtpOffset struct {
 // init fills ptp.offset metric with initial data.
 func (m *metricPtpOffset) init() {
 	m.data.SetName("ptp.offset")
-	m.data.SetDescription("Signed offset of the local PTP clock from a remote grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.")
+	m.data.SetDescription("Signed offset of the local PTP clock from a remote grandmaster. Omitted when ptp4l reports no remote grandmaster.")
 	m.data.SetUnit("s")
 	m.data.SetEmptyGauge()
 }
@@ -345,7 +387,7 @@ type metricPtpPathDelay struct {
 // init fills ptp.path.delay metric with initial data.
 func (m *metricPtpPathDelay) init() {
 	m.data.SetName("ptp.path.delay")
-	m.data.SetDescription("Mean path delay to a remote PTP grandmaster, reported in seconds. Omitted when ptp4l reports no remote grandmaster.")
+	m.data.SetDescription("Mean path delay to a remote PTP grandmaster. Omitted when ptp4l reports no remote grandmaster.")
 	m.data.SetUnit("s")
 	m.data.SetEmptyGauge()
 }
@@ -647,8 +689,8 @@ func (mb *MetricsBuilder) Emit(options ...ResourceMetricsOption) pmetric.Metrics
 }
 
 // RecordPtpClockStateDataPoint adds a data point to ptp.clock.state metric.
-func (mb *MetricsBuilder) RecordPtpClockStateDataPoint(ts pcommon.Timestamp, val int64, ptpClockStateAttributeValue string) {
-	mb.metricPtpClockState.recordDataPoint(mb.startTime, ts, val, ptpClockStateAttributeValue)
+func (mb *MetricsBuilder) RecordPtpClockStateDataPoint(ts pcommon.Timestamp, val int64, ptpClockStateAttributeValue AttributePtpClockState) {
+	mb.metricPtpClockState.recordDataPoint(mb.startTime, ts, val, ptpClockStateAttributeValue.String())
 }
 
 // RecordPtpGrandmasterInfoDataPoint adds a data point to ptp.grandmaster.info metric.

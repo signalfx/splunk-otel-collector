@@ -13,7 +13,7 @@ func TestResourceBuilder(t *testing.T) {
 		t.Run(tt, func(t *testing.T) {
 			cfg := loadResourceAttributesConfig(t, tt)
 			rb := NewResourceBuilder(cfg)
-			rb.SetPtpClockType("ptp.clock.type-val")
+			rb.SetPtpClockTypeOC()
 			rb.SetPtpSocketPath("ptp.socket_path-val")
 
 			res := rb.Emit()
@@ -33,7 +33,7 @@ func TestResourceBuilder(t *testing.T) {
 			ptpClockTypeAttrVal, ok := res.Attributes().Get("ptp.clock.type")
 			assert.True(t, ok)
 			if ok {
-				assert.Equal(t, "ptp.clock.type-val", ptpClockTypeAttrVal.Str())
+				assert.Equal(t, "OC", ptpClockTypeAttrVal.Str())
 			}
 			ptpSocketPathAttrVal, ok := res.Attributes().Get("ptp.socket_path")
 			assert.True(t, ok)

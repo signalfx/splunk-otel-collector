@@ -239,7 +239,6 @@ jobs:
       - name: Capture Go Packages
         id: capture-packages
         run: |
-          repoPrefix=$(go list -m)
           packages=$(go list ./...)
           package=$(for p in $(echo -e "$packages"); do echo "\"$p\","; done)
           matrix=$(echo "{\"package\": [${package%,}]}" | tr -d '\n')
@@ -249,7 +248,7 @@ jobs:
   govulncheck-run:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     # Running on a large runner to reliably use scan mode as symbol without hitting OOM.
-    runs-on: macos-15-large
+    runs-on: ubuntu-24.04-arm
     needs: [govulncheck-packages]
     strategy:
       matrix:

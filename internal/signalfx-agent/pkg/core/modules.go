@@ -7,13 +7,10 @@ package core
 
 import (
 	// Import everything that isn't referenced anywhere else
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/conviva"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/coredns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/diskio"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/docker"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/ecs"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/query"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/etcd"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
@@ -36,14 +33,8 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/sql"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/supervisor"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/dns"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/mssqlserver"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/procstat"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/tail"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/telegrafsnmp"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/winperfcounters"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/traefik"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vmem"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vsphere"

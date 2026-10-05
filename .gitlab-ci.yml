@@ -14,6 +14,7 @@ variables:
     value: ""
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
   GO_VERSION: 1.26.6
+  SPLUNKBASE_USERNAME: "srv-prod-gdi-otel"
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -396,9 +397,9 @@ compile:
       - bin/opampsupervisor_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.26:5.9.0'
   extends:
     - .trigger-filter
+    - .go-cache
   needs:
     - job: manual_release_trigger
       optional: true

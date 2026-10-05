@@ -139,7 +139,7 @@ func TestInstallerInstrumentation(t *testing.T) {
 						if e := os.Getenv("LOCAL_INSTRUMENTATION_PACKAGE"); e != "" {
 							copyInto(t, c, e, "/test/instrumentation.pkg")
 						}
-						run(t, c, time.Minute, "npm config set global true")
+						run(t, c, time.Minute, "sh -l -c 'npm config set global true'")
 						cmd := installerCommand(t, true)
 						if method == "systemd" {
 							cmd += " --with-systemd-instrumentation"

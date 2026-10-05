@@ -1,0 +1,7 @@
+change_type: enhancement
+
+component: collector
+
+note: Build Linux FIPS artifacts with the certified Go Cryptographic Module v1.0.0.
+
+issues: [8119]

@@ -86,7 +86,7 @@ tests/parity/
   backend/splunk/       testcontainers-backed Splunk Backend
   adapter/uf/           UF adapter (the oracle, used only on -update)
   adapter/otelcol/      collector adapter (the candidate)
-  tests/<case>/         one case: test.yaml + conf/ + collector.yaml + golden.json
+  tests/<case>/         one case: test.yaml + conf/ + golden.json, optional collector.yaml
 ```
 
 ## Interfaces
@@ -118,15 +118,15 @@ tests/host/
   conf/              the Splunk .conf structure, copied into the UF's etc/system/local
     inputs.conf
     outputs.conf
-  collector.yaml     candidate config
+  collector.yaml     optional candidate config; without it the candidate reads conf/
   golden.json        generated
 ```
 
-`conf/` is the oracle's input, agent-agnostic Splunk config rather than anything
-UF-specific: every `*.conf` in it is handed to the agent, so a parsing case adds
-`props.conf`/`transforms.conf` with no framework change, and the collector can be
-pointed at the same directory once it consumes `.conf` natively. Until then
-`collector.yaml` is how the candidate is configured to produce the same events.
+`conf/` is agent-agnostic Splunk config rather than anything UF-specific: every
+`*.conf` in it is handed to the agent, so a parsing case adds
+`props.conf`/`transforms.conf` with no framework change. It always configures the
+oracle, and it configures the candidate too unless the case supplies a
+`collector.yaml`. See [How the candidate is configured](#how-the-candidate-is-configured).
 
 `test.yaml` holds everything that is not agent config:
 
@@ -170,6 +170,36 @@ Splunk `.conf` files have no expansion of their own, which is why the framework
 does the substitution rather than leaving it to each agent.
 
 Then generate the golden with `make update-goldens` (see above) and commit it.
+
+## How the candidate is configured
+
+`collector.yaml` is optional. A case that has one is run from it. A case that
+does not is run from the same `conf/` the oracle reads, through the
+`splunk_inputs` receiver and `splunk_outputs` exporter, which covers the `.conf`
+translation end to end: a stanza the collector maps differently shows up as a
+mismatch instead of passing on a hand-written equivalent.
+
+So a case asserts one of two things, and which one is visible from its directory:
+
+- **with `collector.yaml`** — the golden is reachable with native collector
+  config. Useful for a case whose point is the event shape rather than `.conf`
+  handling.
+- **without `collector.yaml`** — our `.conf` support reaches the golden from the
+  same input UF got.
+
+The collector config for a `conf/`-driven case is the framework's, not the
+case's. It names the two components and nothing else: they discover every stanza
+themselves, so there is nothing a case could vary, and keeping the config out of
+the case directory means a case cannot pin the translation it exists to test.
+Handed a case's `*.conf`, the adapter installs them into `etc/system/local` of a
+sandbox `$SPLUNK_HOME` and starts the collector with that variable set, the same
+way the UF adapter installs them into its own install, so the components resolve
+the tree as an install does rather than from a `base_dir`. The case also enables
+`enableTARunner`, the alpha gate the two components are registered behind.
+
+`outputs.conf` is the one file such a case does not supply to the candidate: the
+oracle ships events with `[httpout]`, a kind `splunk_outputs` skips, so the
+framework renders a `[hecout]` stanza pointing at the backend instead.
 
 ## Running
 

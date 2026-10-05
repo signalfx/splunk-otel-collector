@@ -80,13 +80,13 @@ func TestPrepareMultipleConfigs(t *testing.T) {
 		"--config", filepath.Join(dir, "override.yml"),
 		"--config", "splunkhome://SPLUNK_HOME?pipeline=uf",
 	}
-	got := a.configArgs()
+	got := a.args()
 	if len(got) != len(want) {
-		t.Fatalf("configArgs = %v, want %v", got, want)
+		t.Fatalf("args = %v, want %v", got, want)
 	}
 	for i := range want {
 		if got[i] != want[i] {
-			t.Errorf("configArgs[%d] = %q, want %q", i, got[i], want[i])
+			t.Errorf("args[%d] = %q, want %q", i, got[i], want[i])
 		}
 	}
 }
@@ -97,8 +97,71 @@ func TestPrepareExtraOnly(t *testing.T) {
 	if err := a.Prepare(t.TempDir()); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
-	if want := []string{"--config", "splunkhome://SPLUNK_HOME"}; len(a.configArgs()) != len(want) {
-		t.Errorf("configArgs = %v, want %v", a.configArgs(), want)
+	if want := []string{"--config", "splunkhome://SPLUNK_HOME"}; len(a.args()) != len(want) {
+		t.Errorf("args = %v, want %v", a.args(), want)
+	}
+}
+
+// TestFeatureGates: enabled gates follow the --config flags as a single
+// comma-separated flag, each prefixed with +.
+func TestFeatureGates(t *testing.T) {
+	a := New("bin", "splunkhome://SPLUNK_HOME").EnableFeatureGates("enableTARunner", "other")
+	if err := a.Prepare(t.TempDir()); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	want := []string{
+		"--config", "splunkhome://SPLUNK_HOME",
+		"--feature-gates=+enableTARunner,+other",
+	}
+	got := a.args()
+	if len(got) != len(want) {
+		t.Fatalf("args = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("args[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+// TestSplunkHome: a case's .conf files land in etc/system/local of a sandbox
+// tree the process gets as SPLUNK_HOME, and are never a --config source.
+func TestSplunkHome(t *testing.T) {
+	dir := t.TempDir()
+	confs := []string{"inputs.conf", "outputs.conf"}
+	for _, f := range append([]string{ConfigFile}, confs...) {
+		if err := os.WriteFile(filepath.Join(dir, f), []byte("x"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	a := New("bin")
+	if err := a.Prepare(dir); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	home := filepath.Join(dir, splunkHomeDir)
+	for _, name := range confs {
+		if _, err := os.Stat(filepath.Join(home, "etc", "system", "local", name)); err != nil {
+			t.Errorf("%s not installed: %v", name, err)
+		}
+	}
+	if want := []string{"--config", filepath.Join(dir, ConfigFile)}; len(a.args()) != len(want) {
+		t.Errorf("args = %v, want %v", a.args(), want)
+	}
+	if env := a.env(); len(env) == 0 || env[len(env)-1] != "SPLUNK_HOME="+home {
+		t.Errorf("env does not end with SPLUNK_HOME=%s: %v", home, env)
+	}
+}
+
+// TestNoConfNoSplunkHome: with no .conf files the child inherits the test's
+// environment unchanged.
+func TestNoConfNoSplunkHome(t *testing.T) {
+	a := New("bin", "config.yaml")
+	if err := a.Prepare(t.TempDir()); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	if env := a.env(); env != nil {
+		t.Errorf("env = %v, want nil", env)
 	}
 }
 

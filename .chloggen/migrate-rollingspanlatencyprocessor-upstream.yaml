@@ -8,7 +8,7 @@ component: processor/rolling_span_latency
 note: Replace the temporary local `rolling_span_latency` processor with the now-upstreamed [processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/rollingspanlatencyprocessor).
 
 # One or more tracking issues related to the change
-issues: [7783]
+issues: [8126]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

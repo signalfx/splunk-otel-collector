@@ -12,16 +12,16 @@ on:
       - 'internal/**'
       - '!**.md'
       - 'packaging/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
+      - 'tests/instrumentation/**'
+      - 'tests/testutils/**'
 
 concurrency:
   group: auto-instrumentation-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  # EOL REFERENCE: https://endoflife.date/python
-  PYTHON_VERSION: '3.13'
-  PIP_VERSION: '24.2'
-  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
   GO_VERSION: 1.26.6
 
 jobs:
@@ -101,38 +101,60 @@ jobs:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist
 
-      - name: Setup python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
-
-      - name: Install pytest
-        run: |
-          if which pip; then
-              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
-          else
-              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
-          fi
-          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: 'tests/go.sum'
 
       - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
-        id: pytest
+        id: go-test
         continue-on-error: true
+        working-directory: tests
         run: |
           distro="${{ matrix.DISTRO }}"
-          testcase="${{ matrix.TESTCASE }} or uninstall or upgrade_from_libsplunk"
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
-            packaging/tests/instrumentation/instrumentation_test.py
+          arch="${{ matrix.ARCH }}"
+          case "${{ matrix.TESTCASE }}" in
+            tomcat) test_name="TestTomcatInstrumentation" ;;
+            express) test_name="TestExpressInstrumentation" ;;
+            dotnet) test_name="TestDotnetInstrumentation" ;;
+            *) echo "Unknown instrumentation test case '${{ matrix.TESTCASE }}'" >&2; exit 1 ;;
+          esac
+          test_result=0
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 40m -count 1 ./instrumentation \
+            -run "^${test_name}/${distro}/${arch}$" || test_result=1
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 15m -count 1 ./instrumentation \
+            -run "^TestPackage(Uninstall|UpgradeFromLibsplunk)/${distro}/${arch}$" || test_result=1
+          exit "$test_result"
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ steps.pytest.outcome == 'failure' }}
+        if: ${{ steps.go-test.outcome == 'failure' }}
+        working-directory: tests
         run: |
           distro="${{ matrix.DISTRO }}"
-          testcase="${{ matrix.TESTCASE }} or uninstall or upgrade_from_libsplunk"
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
-            --last-failed \
-            packaging/tests/instrumentation/instrumentation_test.py
+          arch="${{ matrix.ARCH }}"
+          case "${{ matrix.TESTCASE }}" in
+            tomcat) test_name="TestTomcatInstrumentation" ;;
+            express) test_name="TestExpressInstrumentation" ;;
+            dotnet) test_name="TestDotnetInstrumentation" ;;
+            *) echo "Unknown instrumentation test case '${{ matrix.TESTCASE }}'" >&2; exit 1 ;;
+          esac
+          test_result=0
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 40m -count 1 ./instrumentation \
+            -run "^${test_name}/${distro}/${arch}$" || test_result=1
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 15m -count 1 ./instrumentation \
+            -run "^TestPackage(Uninstall|UpgradeFromLibsplunk)/${distro}/${arch}$" || test_result=1
+          exit "$test_result"

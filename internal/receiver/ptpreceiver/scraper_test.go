@@ -43,6 +43,7 @@ func TestParsePMCStatus(t *testing.T) {
 		output     string
 		clockState string
 		present    bool
+		portCount  int
 		wantErr    bool
 	}{
 		{name: "valid boundary clock", output: pmcResponse, present: true, clockState: "SLAVE"},
@@ -55,7 +56,8 @@ func TestParsePMCStatus(t *testing.T) {
 		{name: "missing grandmaster", output: strings.Replace(pmcResponse, "gmPresent true", "", 1), wantErr: true},
 		{name: "missing identity", output: strings.Replace(pmcResponse, "gmIdentity 001122.fffe.334455", "", 1), wantErr: true},
 		{name: "bad path delay", output: strings.Replace(pmcResponse, "meanPathDelay 125.5", "meanPathDelay NaN", 1), wantErr: true},
-		{name: "bad port state", output: strings.Replace(pmcResponse, "portState SLAVE", "portState invalid", 1), wantErr: true},
+		{name: "bad port state with valid sibling", output: strings.Replace(pmcResponse, "portState SLAVE", "portState invalid", 1), present: true, clockState: "MASTER", portCount: 1},
+		{name: "all port states invalid", output: strings.ReplaceAll(strings.ReplaceAll(pmcResponse, "portState SLAVE", "portState invalid"), "portState MASTER", "portState invalid"), wantErr: true},
 		{name: "bad clock type", output: strings.Replace(pmcResponse, "clockType 0x4000", "clockType invalid", 1), wantErr: true},
 		{name: "oversized response", output: pmcResponse + strings.Repeat("x", 70<<10), wantErr: true},
 	}
@@ -69,6 +71,9 @@ func TestParsePMCStatus(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tt.present, status.gmPresent)
 			require.Equal(t, tt.clockState, clockState(status.ports))
+			if tt.portCount > 0 {
+				require.Len(t, status.ports, tt.portCount)
+			}
 			if tt.name == "valid boundary clock" {
 				require.Equal(t, int64(-42), status.offset)
 				require.InDelta(t, 125.5, status.pathDelay, 1e-6)

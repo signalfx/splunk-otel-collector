@@ -1,0 +1,37 @@
+# Goldens are regenerated locally with `make update-goldens` in tests/parity, never here.
+name: parity-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: parity-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: 1.26.6
+
+jobs:
+  parity-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+        with:
+          install_tools: "false"
+
+      - name: Build otelcol
+        run: make otelcol
+
+      - name: Run parity tests
+        working-directory: tests/parity
+        env:
+          PARITY_OTELCOL_BIN: ${{ github.workspace }}/bin/otelcol
+        run: go test -v -timeout 30m .

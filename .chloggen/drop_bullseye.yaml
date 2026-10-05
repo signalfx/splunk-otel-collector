@@ -5,7 +5,7 @@ change_type: breaking
 component: all
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Drop support for Debian 11 (Bullseye)
+note: Dropped support for Debian 11 (Bullseye)
 
 # One or more tracking issues related to the change
 issues: []

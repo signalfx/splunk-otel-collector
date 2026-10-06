@@ -269,7 +269,7 @@ jobs:
         id: determine-output-file-name
         run: |
           REPO_PREFIX=$(go list -m)
-          OUTPUT_FILE="./govulncheck/$(echo "${{ matrix.package }}" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').sarif"
+          OUTPUT_FILE="$(echo "${{ matrix.package }}" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').sarif"
           echo "filename for pkg: $OUTPUT_FILE"
           echo "name=$OUTPUT_FILE" >> $GITHUB_OUTPUT
 

@@ -3,9 +3,9 @@ module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 go 1.26.6
 
 require (
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.161.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.161.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.161.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.162.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.162.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.162.0
 	github.com/openzipkin/zipkin-go v0.4.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -146,9 +146,8 @@ require (
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.161.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.161.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.161.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.162.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.162.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
@@ -215,12 +214,12 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	k8s.io/api v0.37.0 // indirect
-	k8s.io/apimachinery v0.37.0 // indirect
-	k8s.io/client-go v0.37.0 // indirect
+	k8s.io/api v0.37.1 // indirect
+	k8s.io/apimachinery v0.37.1 // indirect
+	k8s.io/client-go v0.37.1 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad // indirect
-	k8s.io/kubelet v0.37.0 // indirect
+	k8s.io/kubelet v0.37.1 // indirect
 	k8s.io/utils v0.0.0-20260626114624-be93311217bd // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect

@@ -6,6 +6,10 @@ mkdir -p ./govulncheck 2>/dev/null
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    -o|--out-filename)
+      filename="$2"
+      shift 2 # Move past the flag and its value
+      ;;
     -p|--package)
       pkg="$2"
       shift 2 # Move past the flag and its value
@@ -20,9 +24,6 @@ done
 # Initialize failure flag
 FAILED=0
 
-# Repository prefix to remove from package names
-REPO_PREFIX=$(go list -m)
-
 # Use a bash regex to extract the value of the --format flag
 # from the GOVULN_OPTS environment variable
 if [[ "$GOVULN_OPTS" =~ .*--format[[:space:]]+([a-z]+).* ]]; then
@@ -34,10 +35,16 @@ set +e
 if [[ -z $FORMAT ]]; then
   govulncheck ${GOVULN_OPTS} "$pkg"
 else
-  # Remove the repository prefix from the package name to keep the category names short
-  # and replace slashes with underscores to make clear that the categories are not nested.
-  OUTPUT_FILE="./govulncheck/$(echo "$pkg" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').$FORMAT"
-  govulncheck ${GOVULN_OPTS} "$pkg" > "$OUTPUT_FILE"
+  if [[ -z $filename ]]; then
+    echo -e "Debug: no filename passed in"
+    # Repository prefix to remove from package names
+    REPO_PREFIX=$(go list -m)
+    # Remove the repository prefix from the package name to keep the category names short
+    # and replace slashes with underscores to make clear that the categories are not nested.
+    filename="./govulncheck/$(echo "$pkg" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').$FORMAT"
+    echo -e "Debug: generated filename: $filename"
+  fi
+  govulncheck ${GOVULN_OPTS} "$pkg" > "$filename"
 fi
 if [ $? -eq 0 ]; then
   echo -e "\n**** govulncheck succeeded for package $pkg"

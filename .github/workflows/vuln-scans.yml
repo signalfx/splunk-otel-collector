@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   anchore-fs-scan:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -40,7 +40,7 @@ jobs:
           path: "."
 
   docker-otelcol:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     strategy:
       matrix:
@@ -62,7 +62,7 @@ jobs:
           path: ./dist
 
   binaries-windows_amd64:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
@@ -71,7 +71,7 @@ jobs:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   anchore-image-scan:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: docker-otelcol
     strategy:
@@ -97,12 +97,12 @@ jobs:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
         with:
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
   anchore-win-image-scan:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ${{ matrix.OS }}
     needs: [ "binaries-windows_amd64" ]
     strategy:
@@ -140,12 +140,12 @@ jobs:
           image: "otelcol-windows:latest"
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
         with:
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
   check-snyk-token:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ubuntu-24.04
     outputs:
       has-snyk-token: ${{ steps.snyk-token-check.outputs.defined }}
@@ -170,7 +170,7 @@ jobs:
   snyk-fs-scan:
     runs-on: ubuntu-24.04
     needs: check-snyk-token
-    if: ${{ (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) && needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
+    if: ${{ (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) && needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Snyk to check for vulnerabilities
@@ -182,14 +182,14 @@ jobs:
           command: code test
           args: --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
         with:
           sarif_file: snyk.sarif
 
   snyk-docker-scan:
     runs-on: ubuntu-24.04
     needs: [docker-otelcol, check-snyk-token]
-    if: ${{ (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) && needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
+    if: ${{ (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) && needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
@@ -200,7 +200,7 @@ jobs:
 
       # There is no snyk/snyk:docker image for arm64, so we need to use the
       # docker setup-qemu-action to run the scan
-      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
@@ -219,14 +219,14 @@ jobs:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --exclude-app-vulns --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
         with:
           sarif_file: snyk.sarif
 
   govulncheck-run:
     # Running on a large runner to reliably use scan mode as symbol without hitting OOM.
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
-    runs-on: ubuntu-24.04-arm-16core
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    runs-on: macos-15-large
     strategy:
       matrix:
         output: [ "sarif", "stdout" ]
@@ -259,7 +259,7 @@ jobs:
         run: ./.github/workflows/scripts/govulncheck-run.sh
 
   govulncheck-categories:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.capture-packages.outputs.matrix }}
@@ -284,7 +284,7 @@ jobs:
   govulncheck-upload:
     runs-on: ubuntu-24.04
     needs: [govulncheck-run, govulncheck-categories]
-    if: ${{ always() && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) }} # Always run to upload results to code-scanning even if the scan fails
+    if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) }} # Always run to upload results to code-scanning even if the scan fails
     strategy:
       matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
     steps:
@@ -299,6 +299,6 @@ jobs:
 
       - name: Upload result to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
         with:
           sarif_file: ./govulncheck/${{ matrix.category }}.sarif

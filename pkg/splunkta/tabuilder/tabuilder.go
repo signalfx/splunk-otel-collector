@@ -378,7 +378,7 @@ func ReadProps(dirs []string) ([]conf.Prop, error) {
 }
 
 // ReadOutputs merges outputs.conf across $SPLUNK_HOME using standard Splunk
-// precedence. Use HTTPOut (or future TCPOut, etc.) to extract a specific type.
+// precedence. Use HECOut (or future TCPOut, etc.) to extract a specific type.
 func ReadOutputs(splunkHome string) (conf.Map, error) {
 	payloads, err := readConfFiles(confFilePaths(ConfDirs(splunkHome), "outputs.conf"))
 	if err != nil {
@@ -397,14 +397,14 @@ func ReadOutputGroups(splunkHome string) ([]conf.Output, error) {
 	return conf.OutputGroups(merged)
 }
 
-// HTTPOut returns the [httpout] stanza from a merged outputs.conf map.
-func HTTPOut(merged conf.Map) (*conf.Output, error) {
-	return conf.HTTPOut(merged)
+// HECOut returns the [hecout] stanza from a merged outputs.conf map.
+func HECOut(merged conf.Map) (*conf.Output, error) {
+	return conf.HECOut(merged)
 }
 
 // CreateExporter builds a logs exporter from a merged outputs conf map.
 func CreateExporter(merged conf.Map, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
-	output, err := conf.HTTPOut(merged)
+	output, err := conf.HECOut(merged)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +418,7 @@ func CreateOutputExporter(output *conf.Output, logger *zap.Logger, telemetrySett
 	if err != nil {
 		return nil, err
 	}
-	if parsed.Kind != "httpout" {
+	if parsed.Kind != "hecout" {
 		return nil, nil
 	}
 	return newHECExporter(output, logger, telemetrySettings)

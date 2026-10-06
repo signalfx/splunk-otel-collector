@@ -18,14 +18,13 @@
 # the release job fails if it is still at an already-tagged version.
 module-sets:
   splunk-otel-collector:
-    version: v0.160.1
+    version: v0.161.0
     modules:
       - github.com/signalfx/splunk-otel-collector
       - github.com/signalfx/splunk-otel-collector/baseline
       - github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter
       - github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension
       - github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension
-      - github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor
       - github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor
       - github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
       - github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver
@@ -34,6 +33,7 @@ excluded-modules:
   - github.com/signalfx/signalfx-agent
   - github.com/signalfx/splunk-otel-collector/internal/tools
   - github.com/signalfx/splunk-otel-collector/tests
+  - github.com/signalfx/splunk-otel-collector/tests/parity
   - github.com/signalfx/splunk-otel-collector/tests/tools
   - github.com/signalfx/splunk-otel-collector/packaging/ta-v2/tests
   - github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter

@@ -6,8 +6,6 @@ splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = 'fake-hec-token'
 splunk_memory_total = '256'
 splunk_listen_interface = '0.0.0.0'
-splunk_platform_url = 'https://fake-splunk-platform.example.com:8088/services/collector'
-splunk_platform_token = 'fake-platform-token'
 
 describe service('splunk-otel-collector') do
   it { should be_enabled }
@@ -25,8 +23,6 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
     { name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface },
     { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
-    { name: 'SPLUNK_PLATFORM_URL', type: :string, data: splunk_platform_url },
-    { name: 'SPLUNK_PLATFORM_TOKEN', type: :string, data: splunk_platform_token },
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
     { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
@@ -39,10 +35,6 @@ if os[:family] == 'windows'
     collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
   end
   collector_env_vars_strings.sort!
-  logs_config_path = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\splunk_logs_config_windows.yaml"
-  describe file(logs_config_path) do
-    it { should exist }
-  end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'Environment' }
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
@@ -50,9 +42,7 @@ if os[:family] == 'windows'
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'ImagePath' }
     its('ImagePath') do
-      should include '--discovery --set=processors.batch.timeout=10s --feature-gates=confmap.enableMergeAppendOption'
-      should include "--config \"#{logs_config_path}\""
-      should include "--config \"#{config_path}\""
+      should match /^.*--discovery --set=processors\.batch\.timeout=10s --config "#{Regexp.escape(config_path)}"$/i
     end
   end
 else
@@ -82,12 +72,7 @@ else
     its('content') { should match /^MY_CUSTOM_VAR1=value1$/ }
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
     its('content') { should match /^SPLUNK_OPAMP_SUPERVISOR_ENABLED=true$/ }
-    its('content') do
-      should match %r{^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml$}
-    end
-    its('content') { should match %r{^SPLUNK_PLATFORM_URL=https://fake-splunk-platform.example.com:8088/services/collector$} }
-    its('content') { should match /^SPLUNK_PLATFORM_TOKEN=fake-platform-token$/ }
-    its('content') { should_not match /^SPLUNK_PLATFORM_LOGS_INDEX=/ }
+    its('content') { should match /^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s$/ }
   end
   describe command("su -s /bin/sh -c 'test -w /etc/otel/collector' custom-user") do
     its('exit_status') { should eq 0 }

@@ -287,13 +287,11 @@ class {{ splunk_otel_collector:
     splunk_hec_token => 'fake-hec-token',
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
-    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml',
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{
       'MY_CUSTOM_VAR1' => 'value1',
       'MY_CUSTOM_VAR2' => 'value2',
       'SPLUNK_OPAMP_SUPERVISOR_ENABLED' => 'true',
-      'SPLUNK_PLATFORM_URL' => 'https://fake-splunk-platform.example.com:8088/services/collector',
-      'SPLUNK_PLATFORM_TOKEN' => 'fake-platform-token',
     }},
     service_user => '{CUSTOM_SERVICE_OWNER}',
     service_group => '{CUSTOM_SERVICE_GROUP}',
@@ -329,13 +327,10 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_package_version(container, "splunk-otel-collector", COLLECTOR_VERSION)
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
-            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s --config /etc/otel/collector/splunk_logs_config_linux.yaml")
+            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_OPAMP_SUPERVISOR_ENABLED", "true")
-            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_URL", "https://fake-splunk-platform.example.com:8088/services/collector")
-            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_TOKEN", "fake-platform-token")
-            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_PLATFORM_LOGS_INDEX", exists=False)
             assert wait_for(lambda: service_is_running(container, service_owner=CUSTOM_SERVICE_OWNER))
             assert wait_for(lambda: service_is_running(
                 container,
@@ -721,7 +716,6 @@ WIN_PUPPET_MODULE_SRC_DIR = os.path.join(REPO_DIR, "deployments", "puppet")
 WIN_PUPPET_MODULE_DEST_DIR = r"C:\ProgramData\PuppetLabs\code\environments\production\modules\splunk_otel_collector"
 WIN_INSTALL_DIR = r"C:\Program Files\Splunk\OpenTelemetry Collector"
 WIN_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml"
-WIN_LOGS_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml"
 WIN_CONFIG_SVC_ARG = f'--config "{WIN_CONFIG_PATH}"'
 
 WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure
@@ -741,13 +735,8 @@ class {{ splunk_otel_collector:
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
     win_repo_url => '$win_repo_url',
-    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s --feature-gates=confmap.enableMergeAppendOption --config \\"{WIN_LOGS_CONFIG_PATH}\\"',
-    collector_additional_env_vars => {{
-      'MY_CUSTOM_VAR1' => 'value1',
-      'MY_CUSTOM_VAR2' => 'value2',
-      'SPLUNK_PLATFORM_URL' => 'https://fake-splunk-platform.example.com:8088/services/collector',
-      'SPLUNK_PLATFORM_TOKEN' => 'fake-platform-token',
-    }},
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
+    collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
 }}
 """
 )
@@ -856,18 +845,9 @@ def test_win_puppet_custom_vars():
     assert get_otelcol_svc_env_var("SPLUNK_HEC_TOKEN") == "fake-hec-token"
     assert get_otelcol_svc_env_var("MY_CUSTOM_VAR1") == "value1"
     assert get_otelcol_svc_env_var("MY_CUSTOM_VAR2") == "value2"
-    assert get_otelcol_svc_env_var("SPLUNK_PLATFORM_URL") == "https://fake-splunk-platform.example.com:8088/services/collector"
-    assert get_otelcol_svc_env_var("SPLUNK_PLATFORM_TOKEN") == "fake-platform-token"
-    try:
-        platform_logs_index = get_otelcol_svc_env_var("SPLUNK_PLATFORM_LOGS_INDEX")
-    except FileNotFoundError:
-        platform_logs_index = None
-    assert platform_logs_index is None
-    assert os.path.isfile(WIN_LOGS_CONFIG_PATH)
 
     collector_service = psutil.win_service_get("splunk-otel-collector")
     assert collector_service.status() == psutil.STATUS_RUNNING
     assert_win_collector_configured_with_default_config(collector_service)
     if win_collector_supports_service_args():
-        assert "--discovery --set=processors.batch.timeout=10s --feature-gates=confmap.enableMergeAppendOption" in collector_service.binpath()
-        assert f'--config "{WIN_LOGS_CONFIG_PATH}"' in collector_service.binpath()
+        assert "--discovery --set=processors.batch.timeout=10s" in collector_service.binpath()

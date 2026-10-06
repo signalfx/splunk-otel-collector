@@ -273,8 +273,8 @@ jobs:
           FILEPATH="./govulncheck/$OUTPUT_FILE"
           echo "filename for pkg: $OUTPUT_FILE"
           echo "filepath for pkg: $FILEPATH"
-          echo "name=$OUTPUT_FILE" >> $GITHUB_OUTPUT
-          echo "path=$FILEPATH" >> $GITHUB_OUTPUT
+          echo "name=$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
+          echo "path=$FILEPATH" >> "$GITHUB_OUTPUT"
 
       - name: Run `govulncheck` to generate SARIF files
         if: ${{ matrix.output == 'sarif' }}

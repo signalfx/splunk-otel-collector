@@ -25,7 +25,7 @@ the collector binary in `bin/` and the auto-instrumentation package in `instrume
    ```
    cd tests
    INSTALLER_TEST_DISTRO=debian-bookworm INSTALLER_TEST_ARCH=amd64 \
-     INSTALLER_TEST_INSTRUMENTATION=none go test -tags integration -v ./installer
+     INSTALLER_TEST_INSTRUMENTATION=none go test -tags installer_integration -v ./installer
    ```
    `INSTALLER_TEST_DISTRO` and `INSTALLER_TEST_ARCH` narrow the run to one distro and
    architecture. Set `INSTALLER_TEST_INSTRUMENTATION` to `preload` or `systemd` for
@@ -68,7 +68,7 @@ containers using the [Linux Installer Script](../installer/install.sh). To repro
    (cd tests && INSTALLER_TEST_DISTRO=debian-bookworm \
      INSTALLER_TEST_ARCH=arm64 \
      INSTALLER_TEST_INSTRUMENTATION=none \
-     go test -tags integration -v -timeout 90m -count 1 ./installer)
+     go test -tags installer_integration -v -timeout 90m -count 1 ./installer)
    ```
 
 Notes:

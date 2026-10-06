@@ -154,7 +154,7 @@ jobs:
           INSTALLER_TEST_DISTRO="${{ matrix.DISTRO }}" \
           INSTALLER_TEST_ARCH="${{ matrix.ARCH }}" \
           INSTALLER_TEST_INSTRUMENTATION="${{ matrix.INSTRUMENTATION }}" \
-          go test -tags integration -v -timeout 90m -count 1 ./installer
+          go test -tags installer_integration -v -timeout 90m -count 1 ./installer
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
@@ -164,4 +164,4 @@ jobs:
           INSTALLER_TEST_DISTRO="${{ matrix.DISTRO }}" \
           INSTALLER_TEST_ARCH="${{ matrix.ARCH }}" \
           INSTALLER_TEST_INSTRUMENTATION="${{ matrix.INSTRUMENTATION }}" \
-          go test -tags integration -v -timeout 90m -count 1 ./installer
+          go test -tags installer_integration -v -timeout 90m -count 1 ./installer

@@ -219,6 +219,10 @@ receivers:
   #    storage: file_storage/filelogs
 
 processors:
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+
   resource_detection:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
@@ -324,7 +328,7 @@ exporters:
     endpoint: "${SPLUNK_PLATFORM_URL}"
     token: "${SPLUNK_PLATFORM_TOKEN}"
     source: "otel"
-    index: "${SPLUNK_PLATFORM_LOGS_INDEX}"
+    index: "${SPLUNK_PLATFORM_LOGS_INDEX:-main}"
     splunk_app_name: "splunk-otel-collector"
     disable_compression: true
     timeout: 10s
@@ -358,61 +362,61 @@ service:
   pipelines:
     logs/application:
       receivers: [windows_event_log]
-      processors: [transform/application, resource_detection]
+      processors: [memory_limiter, transform/application, resource_detection]
       exporters: [splunk_hec/logs]
     logs/security:
       receivers: [windows_event_log/security]
-      processors: [transform/security, resource_detection]
+      processors: [memory_limiter, transform/security, resource_detection]
       exporters: [splunk_hec/logs]
     logs/system:
       receivers: [windows_event_log/system]
-      processors: [transform/system, resource_detection]
+      processors: [memory_limiter, transform/system, resource_detection]
       exporters: [splunk_hec/logs]
     logs/printservice:
       receivers: [windows_event_log/printservice]
-      processors: [transform/printservice, resource_detection]
+      processors: [memory_limiter, transform/printservice, resource_detection]
       exporters: [splunk_hec/logs]
     logs/forwardedevents:
       receivers: [windows_event_log/forwardedevents]
-      processors: [transform/forwardedevents, resource_detection]
+      processors: [memory_limiter, transform/forwardedevents, resource_detection]
       exporters: [splunk_hec/logs]
     logs/dfs_replication:
       receivers: [windows_event_log/dfs_replication]
-      processors: [transform/dfs_replication, resource_detection]
+      processors: [memory_limiter, transform/dfs_replication, resource_detection]
       exporters: [splunk_hec/logs]
     logs/directory_service:
       receivers: [windows_event_log/directory_service]
-      processors: [transform/directory_service, resource_detection]
+      processors: [memory_limiter, transform/directory_service, resource_detection]
       exporters: [splunk_hec/logs]
     logs/file_replication:
       receivers: [windows_event_log/file_replication]
-      processors: [transform/file_replication, resource_detection]
+      processors: [memory_limiter, transform/file_replication, resource_detection]
       exporters: [splunk_hec/logs]
     logs/dns_server:
       receivers: [windows_event_log/dns_server]
-      processors: [transform/dns_server, resource_detection]
+      processors: [memory_limiter, transform/dns_server, resource_detection]
       exporters: [splunk_hec/logs]
     logs/key_management:
       receivers: [windows_event_log/key_management]
-      processors: [transform/key_management, resource_detection]
+      processors: [memory_limiter, transform/key_management, resource_detection]
       exporters: [splunk_hec/logs]
     logs/defender:
       receivers: [windows_event_log/defender]
-      processors: [transform/defender, resource_detection]
+      processors: [memory_limiter, transform/defender, resource_detection]
       exporters: [splunk_hec/logs]
     logs/dhcp:
       receivers: [file_log/dhcp]
-      processors: [resource_detection]
+      processors: [memory_limiter, resource_detection]
       exporters: [splunk_hec/logs]
     logs/windowsupdate:
       receivers: [file_log/windowsupdate_legacy]
-      processors: [resource_detection]
+      processors: [memory_limiter, resource_detection]
       exporters: [splunk_hec/logs]
     logs/netlogon:
       receivers: [file_log/netlogon]
-      processors: [resource_detection]
+      processors: [memory_limiter, resource_detection]
       exporters: [splunk_hec/logs]
     logs/firewall:
       receivers: [file_log/firewall]
-      processors: [resource_detection]
+      processors: [memory_limiter, resource_detection]
       exporters: [splunk_hec/logs]

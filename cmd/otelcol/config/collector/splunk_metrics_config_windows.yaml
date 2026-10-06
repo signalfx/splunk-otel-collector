@@ -184,6 +184,10 @@ receivers:
 
 
 processors:
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+
   resource_detection:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
@@ -286,45 +290,45 @@ service:
   pipelines:
     metrics/cpu:
       receivers: [windows_perf_counters/cpu]
-      processors: [transform/perfcounters_cpu, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_cpu, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/processor_information:
       receivers: [windows_perf_counters/processor_information]
-      processors: [transform/perfcounters_processor_information, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_processor_information, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/logical_disk:
       receivers: [windows_perf_counters/logical_disk]
-      processors: [transform/perfcounters_logical_disk, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_logical_disk, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/physical_disk:
       receivers: [windows_perf_counters/physical_disk]
-      processors: [transform/perfcounters_physical_disk, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_physical_disk, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/memory:
       receivers: [windows_perf_counters/memory]
-      processors: [transform/perfcounters_memory, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_memory, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/network:
       receivers: [windows_perf_counters/network]
-      processors: [transform/perfcounters_network, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_network, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/process:
       receivers: [windows_perf_counters/process]
-      processors: [transform/perfcounters_process, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_process, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/system:
       receivers: [windows_perf_counters/system]
-      processors: [transform/perfcounters_system, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_system, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/dfs_replicated_folders:
       receivers: [windows_perf_counters/dfs_replicated_folders]
-      processors: [transform/perfcounters_dfs_replicated_folders, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_dfs_replicated_folders, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/ntds:
       receivers: [windows_perf_counters/ntds]
-      processors: [transform/perfcounters_ntds, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_ntds, resource_detection]
       exporters: [splunk_hec/metrics]
     metrics/dns:
       receivers: [windows_perf_counters/dns]
-      processors: [transform/perfcounters_dns, resource_detection]
+      processors: [memory_limiter, transform/perfcounters_dns, resource_detection]
       exporters: [splunk_hec/metrics]

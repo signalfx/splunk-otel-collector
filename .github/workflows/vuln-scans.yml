@@ -270,14 +270,17 @@ jobs:
         run: |
           REPO_PREFIX=$(go list -m)
           OUTPUT_FILE="$(echo "${{ matrix.package }}" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').sarif"
+          FILEPATH="./govulncheck/$OUTPUT_FILE"
           echo "filename for pkg: $OUTPUT_FILE"
+          echo "filepath for pkg: $FILEPATH"
           echo "name=$OUTPUT_FILE" >> $GITHUB_OUTPUT
+          echo "path=$FILEPATH" >> $GITHUB_OUTPUT
 
       - name: Run `govulncheck` to generate SARIF files
         if: ${{ matrix.output == 'sarif' }}
         env:
           GOVULN_OPTS: --format sarif --scan symbol
-        run: ./.github/workflows/scripts/govulncheck-run.sh --package ${{ matrix.package }} --out-filename ${{ steps.determine-output-file-name.outputs.name }}
+        run: ./.github/workflows/scripts/govulncheck-run.sh --package ${{ matrix.package }} --out-filename ${{ steps.determine-output-file-name.outputs.path }}
 
       - name: Save govulncheck results as artifact
         if: ${{ matrix.output == 'sarif' }}

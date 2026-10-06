@@ -23,8 +23,9 @@ import (
 	"strings"
 	"testing"
 
-	d "github.com/signalfx/splunk-otel-collector/tests/deploymenttest"
 	"github.com/stretchr/testify/require"
+
+	d "github.com/signalfx/splunk-otel-collector/tests/deploymenttest"
 )
 
 func selectedDistros(t *testing.T) []string {
@@ -53,12 +54,14 @@ func container(t *testing.T, distro, release string) *d.Container {
 	}
 	return d.Start(t, "packaging/tests/deployments/puppet/images/"+kind+"/Dockerfile."+distro, map[string]*string{"PUPPET_RELEASE": d.Ptr(release)})
 }
+
 func apply(t *testing.T, c *d.Container, config string) {
 	t.Helper()
 	d.CopyText(t, c, config, "/root/test.pp")
 	rc, out := d.Try(t, c, "puppet apply --detailed-exitcodes /root/test.pp")
 	require.Equalf(t, 2, rc, "puppet apply:\n%s", out)
 }
+
 func manifest(lines ...string) string {
 	return "class { splunk_otel_collector:\n    splunk_access_token => '" + d.Token + "',\n    splunk_realm => '" + d.Realm + "',\n    " + strings.Join(lines, ",\n    ") + ",\n}\n"
 }
@@ -81,6 +84,7 @@ func TestDefault(t *testing.T) {
 		}
 	}
 }
+
 func TestCustom(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_GROUP") == "instrumentation" {
 		t.Skip("base cases run in base matrix")
@@ -109,6 +113,7 @@ func TestCustom(t *testing.T) {
 		}
 	}
 }
+
 func instrumentationManifest(version, collector string, systemd, custom bool) string {
 	lines := []string{"collector_version => '" + collector + "'", "with_auto_instrumentation => true", "auto_instrumentation_version => '" + version + "'", fmt.Sprintf("auto_instrumentation_systemd => %t", systemd)}
 	if custom {
@@ -116,6 +121,7 @@ func instrumentationManifest(version, collector string, systemd, custom bool) st
 	}
 	return manifest(lines...)
 }
+
 func TestInstrumentation(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_GROUP") == "base" {
 		t.Skip("instrumentation cases run in the instrumentation matrix")
@@ -138,6 +144,7 @@ func TestInstrumentation(t *testing.T) {
 		}
 	}
 }
+
 func TestUpgradeFromLibsplunk(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_GROUP") == "base" {
 		t.Skip("instrumentation cases run in the instrumentation matrix")

@@ -23,9 +23,10 @@ import (
 	"strings"
 	"testing"
 
-	d "github.com/signalfx/splunk-otel-collector/tests/deploymenttest"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+
+	d "github.com/signalfx/splunk-otel-collector/tests/deploymenttest"
 )
 
 const localArtifacts = "/opt/splunk-otel-local-artifacts"
@@ -84,6 +85,7 @@ func source(t *testing.T, c *d.Container, distro string, opts options, pkg strin
 	d.File(t, c, path, true)
 	return path
 }
+
 func withArtifacts(t *testing.T, c *d.Container, distro string, opts options, config string, instrumentation bool) string {
 	t.Helper()
 	if !local() {
@@ -95,17 +97,20 @@ func withArtifacts(t *testing.T, c *d.Container, distro string, opts options, co
 	}
 	return config
 }
+
 func apply(t *testing.T, c *d.Container, config string) {
 	t.Helper()
 	d.CopyText(t, c, config, "/srv/pillar/splunk-otel-collector.sls")
 	d.Run(t, c, "salt-call --local state.apply")
 }
+
 func verifyCollector(t *testing.T, c *d.Container) {
 	t.Helper()
 	if local() {
 		d.PackageVersion(t, c, d.ServiceName, d.Env("VERSION", "latest"))
 	}
 }
+
 func verifyEnv(t *testing.T, c *d.Container, api, ingest, hec, listen, args string) {
 	t.Helper()
 	d.EnvFile(t, c, api, ingest, hec)
@@ -122,12 +127,15 @@ func verifyEnv(t *testing.T, c *d.Container, api, ingest, hec, listen, args stri
 		d.Config(t, c, d.EnvPath, ".*SPLUNK_LISTEN_INTERFACE.*", false)
 	}
 }
+
 func defaultConfig() string {
 	return "splunk-otel-collector:\n  splunk_access_token: '" + d.Token + "'\n  splunk_realm: '" + d.Realm + "'\n"
 }
+
 func customConfig() string {
 	return defaultConfig() + "  splunk_ingest_url: 'https://fake-ingest.com'\n  splunk_api_url: 'https://fake-api.com'\n  splunk_hec_token: 'fake-hec-token'\n  collector_version: '0.126.0'\n  splunk_service_user: 'test-user'\n  splunk_service_group: 'test-user'\n  splunk_listen_interface: '0.0.0.0'\n  splunk_otel_collector_command_line_args: '--discovery --set=processors.batch.timeout=10s'\n  collector_additional_env_vars:\n    MY_CUSTOM_VAR1: value1\n    MY_CUSTOM_VAR2: value2\n    SPLUNK_OPAMP_SUPERVISOR_ENABLED: 'true'\n"
 }
+
 func absentInstrumentation(t *testing.T, c *d.Container, deb bool) {
 	t.Helper()
 	cmd := "rpm -q splunk-otel-auto-instrumentation"
@@ -137,6 +145,7 @@ func absentInstrumentation(t *testing.T, c *d.Container, deb bool) {
 	rc, _ := d.Try(t, c, cmd)
 	require.NotZero(t, rc)
 }
+
 func TestDefault(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_CASE") == "custom" {
 		t.Skip("custom case selected")
@@ -153,6 +162,7 @@ func TestDefault(t *testing.T) {
 		})
 	}
 }
+
 func TestCustom(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
 		t.Skip("default case selected")
@@ -180,6 +190,7 @@ func TestCustom(t *testing.T) {
 		})
 	}
 }
+
 func instrumentationConfig(version, collector string, systemd, custom bool) string {
 	config := defaultConfig()
 	if custom {
@@ -191,12 +202,14 @@ func instrumentationConfig(version, collector string, systemd, custom bool) stri
 	}
 	return config
 }
+
 func versions() []string {
 	if local() {
 		return []string{d.Env("AUTO_INSTRUMENTATION_VERSION", "latest")}
 	}
 	return []string{"0.86.0", "0.159.0", "latest"}
 }
+
 func TestInstrumentation(t *testing.T) {
 	all, opts := distros(t)
 	for _, distro := range all {
@@ -225,6 +238,7 @@ func TestInstrumentation(t *testing.T) {
 		}
 	}
 }
+
 func TestUpgradeFromLibsplunk(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_CASE") == "custom" {
 		t.Skip("upgrade case runs in default matrix")

@@ -28,9 +28,10 @@ import (
 	"github.com/containerd/platforms"
 	dockerContainer "github.com/moby/moby/api/types/container"
 	dockerClient "github.com/moby/moby/client"
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 const (
@@ -77,6 +78,7 @@ func Env(k, fallback string) string {
 	}
 	return fallback
 }
+
 func Root(t *testing.T) string {
 	t.Helper()
 	wd, e := os.Getwd()
@@ -99,28 +101,33 @@ func Run(t *testing.T, c *Container, cmd string) string {
 	require.Equalf(t, 0, rc, "%s\n%s\n%s", cmd, out, err)
 	return out
 }
+
 func Try(t *testing.T, c *Container, cmd string) (int, string) {
 	t.Helper()
 	rc, out, err := c.AssertExec(t, 10*time.Minute, "sh", "-c", cmd)
 	return rc, out + err
 }
+
 func Copy(t *testing.T, c *Container, src, dst string) {
 	t.Helper()
 	Run(t, c, "mkdir -p "+Quote(filepath.Dir(dst)))
 	require.NoError(t, c.CopyFileToContainer(context.Background(), src, dst, 0o644))
 	File(t, c, dst, true)
 }
+
 func CopyText(t *testing.T, c *Container, content, dst string) {
 	t.Helper()
 	Run(t, c, "mkdir -p "+Quote(filepath.Dir(dst)))
 	require.NoError(t, c.CopyToContainer(context.Background(), []byte(content), dst, 0o644))
 	File(t, c, dst, true)
 }
+
 func File(t *testing.T, c *Container, path string, want bool) {
 	t.Helper()
 	rc, _ := Try(t, c, "test -f "+Quote(path))
 	require.Equalf(t, want, rc == 0, "file %s existence", path)
 }
+
 func Config(t *testing.T, c *Container, path, pattern string, want bool) {
 	t.Helper()
 	if !want {
@@ -139,16 +146,19 @@ func Config(t *testing.T, c *Container, path, pattern string, want bool) {
 	require.NoError(t, e)
 	require.Equalf(t, want, matched, "pattern %q in %s:\n%s", pattern, path, out)
 }
+
 func KV(t *testing.T, c *Container, path, key, value string, want bool) {
 	t.Helper()
 	Config(t, c, path, key+"="+value, want)
 }
+
 func EnvFile(t *testing.T, c *Container, api, ingest, hec string) {
 	t.Helper()
 	for k, v := range map[string]string{"SPLUNK_ACCESS_TOKEN": Token, "SPLUNK_REALM": Realm, "SPLUNK_API_URL": api, "SPLUNK_INGEST_URL": ingest, "SPLUNK_HEC_URL": ingest + "/v1/log", "SPLUNK_HEC_TOKEN": hec} {
 		KV(t, c, EnvPath, k, v, true)
 	}
 }
+
 func PackageVersion(t *testing.T, c *Container, pkg, version string) {
 	t.Helper()
 	rc, _ := Try(t, c, "command -v dpkg-query")
@@ -164,6 +174,7 @@ func PackageVersion(t *testing.T, c *Container, pkg, version string) {
 		require.Equal(t, version, got)
 	}
 }
+
 func ServiceRunning(t *testing.T, c *Container, owner, process string) {
 	t.Helper()
 	require.Eventually(t, func() bool {
@@ -172,11 +183,13 @@ func ServiceRunning(t *testing.T, c *Container, owner, process string) {
 		return a == 0 && b == 0
 	}, 30*time.Second, time.Second)
 }
+
 func NodeInstalled(t *testing.T, c *Container) {
 	t.Helper()
 	rc, _ := Try(t, c, "cd "+NodePrefix+" && npm ls --global=false @splunk/otel")
 	require.Zero(t, rc)
 }
+
 func VersionAtLeast(version, minimum string) bool {
 	if version == "latest" {
 		return true
@@ -192,9 +205,11 @@ func VersionAtLeast(version, minimum string) bool {
 	}
 	return a > x || a == x && (b > y || b == y && c >= z)
 }
+
 func UsesInjector(version string) bool {
 	return version == "latest" || VersionAtLeast(version, "0.159.1") || (strings.HasPrefix(version, "0.159.0") && len(version) > len("0.159.0"))
 }
+
 func Distros(t *testing.T, subdir string) []string {
 	t.Helper()
 	paths, e := filepath.Glob(filepath.Join(Root(t), subdir, "Dockerfile.*"))
@@ -206,6 +221,7 @@ func Distros(t *testing.T, subdir string) []string {
 	slices.Sort(out)
 	return out
 }
+
 func Start(t *testing.T, dockerfile string, args map[string]*string, binds ...string) *Container {
 	t.Helper()
 	root := Root(t)
@@ -310,6 +326,7 @@ func CheckInstrumentation(t *testing.T, c *Container, o Instrumentation) {
 		KV(t, c, InstrumentationConfig, k, v, true)
 	}
 }
+
 func checkLegacyEnv(t *testing.T, c *Container, path string, o Instrumentation, attrs string) {
 	t.Helper()
 	if path == SystemdConfig || path == JavaConfig {
@@ -330,6 +347,7 @@ func checkLegacyEnv(t *testing.T, c *Container, path string, o Instrumentation, 
 		KV(t, c, path, k, v, true)
 	}
 }
+
 func checkDotnet(t *testing.T, c *Container, path string, want bool) {
 	t.Helper()
 	for k, v := range DotnetVars {
@@ -339,6 +357,7 @@ func checkDotnet(t *testing.T, c *Container, path string, want bool) {
 		KV(t, c, path, k, v, want)
 	}
 }
+
 func checkInjector(t *testing.T, c *Container, o Instrumentation, attrs string) {
 	t.Helper()
 	for _, p := range []string{JavaConfig, NodeConfig, DotnetConfig, InstrumentationConfig} {

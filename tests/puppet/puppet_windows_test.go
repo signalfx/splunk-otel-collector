@@ -30,9 +30,11 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-const winService = "splunk-otel-collector"
-const winConfig = `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`
-const winModule = `C:\ProgramData\PuppetLabs\code\environments\production\modules\splunk_otel_collector`
+const (
+	winService = "splunk-otel-collector"
+	winConfig  = `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`
+	winModule  = `C:\ProgramData\PuppetLabs\code\environments\production\modules\splunk_otel_collector`
+)
 
 func command(t *testing.T, cmd string, ok ...int) string {
 	t.Helper()
@@ -51,6 +53,7 @@ func command(t *testing.T, cmd string, ok ...int) string {
 	require.Containsf(t, ok, rc, "%s:\n%s", cmd, out)
 	return string(out)
 }
+
 func setup(t *testing.T) {
 	t.Helper()
 	command(t, "choco --version")
@@ -67,6 +70,7 @@ func setup(t *testing.T) {
 		command(t, "& 'C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat' module install "+module)
 	}
 }
+
 func root(t *testing.T) string {
 	t.Helper()
 	wd, e := os.Getwd()
@@ -82,12 +86,14 @@ func root(t *testing.T) string {
 		wd = next
 	}
 }
+
 func env(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
 	return fallback
 }
+
 func regEnvValue(t *testing.T, name string) (string, bool) {
 	t.Helper()
 	k, e := registry.OpenKey(registry.LOCAL_MACHINE, `SYSTEM\CurrentControlSet\Services\splunk-otel-collector`, registry.QUERY_VALUE)
@@ -102,18 +108,21 @@ func regEnvValue(t *testing.T, name string) (string, bool) {
 	}
 	return "", false
 }
+
 func regEnv(t *testing.T, name string) string {
 	t.Helper()
 	value, found := regEnvValue(t, name)
 	require.True(t, found, name)
 	return value
 }
+
 func service(t *testing.T) string {
 	t.Helper()
 	status := command(t, "sc.exe query "+winService)
 	require.Contains(t, status, "RUNNING")
 	return command(t, "sc.exe qc "+winService)
 }
+
 func supportsArgs() bool {
 	v := env("WIN_COLLECTOR_VERSION", "123.456.789")
 	if v == "latest" {
@@ -127,12 +136,14 @@ func supportsArgs() bool {
 	minor, _ := strconv.Atoi(m[2])
 	return major > 0 || minor >= 127
 }
+
 func apply(t *testing.T, config string) {
 	t.Helper()
 	p := filepath.Join(t.TempDir(), "agent.pp")
 	require.NoError(t, os.WriteFile(p, []byte(config), 0o644))
 	command(t, fmt.Sprintf("& 'C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat' apply '%s'; if ($LASTEXITCODE -eq 2) { exit 0 } else { exit $LASTEXITCODE }", p))
 }
+
 func verify(t *testing.T, api, ingest, hec, listen string) {
 	t.Helper()
 	for k, v := range map[string]string{"SPLUNK_REALM": "test", "SPLUNK_ACCESS_TOKEN": "testing123", "SPLUNK_API_URL": api, "SPLUNK_INGEST_URL": ingest, "SPLUNK_HEC_URL": ingest + "/v1/log", "SPLUNK_HEC_TOKEN": hec} {
@@ -153,6 +164,7 @@ func verify(t *testing.T, api, ingest, hec, listen string) {
 		require.Equal(t, winConfig, regEnv(t, "SPLUNK_CONFIG"))
 	}
 }
+
 func TestWindowsDefault(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_CASE") == "custom_vars" {
 		t.Skip("default case selected separately")
@@ -162,6 +174,7 @@ func TestWindowsDefault(t *testing.T) {
 	apply(t, config)
 	verify(t, "https://api.test.observability.splunkcloud.com", "https://ingest.test.observability.splunkcloud.com", "testing123", "")
 }
+
 func TestWindowsCustom(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
 		t.Skip("custom case selected separately")

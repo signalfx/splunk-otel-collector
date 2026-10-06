@@ -1163,7 +1163,7 @@ exporters:
     endpoint: "${SPLUNK_PLATFORM_URL}"
     token: "${SPLUNK_PLATFORM_TOKEN}"
     source: "otel"
-    index: "${SPLUNK_PLATFORM_LOGS_INDEX:-main}"
+    index: "${env:SPLUNK_PLATFORM_LOGS_INDEX:-main}"
     splunk_app_name: "splunk-otel-collector"
     disable_compression: true
     timeout: 10s

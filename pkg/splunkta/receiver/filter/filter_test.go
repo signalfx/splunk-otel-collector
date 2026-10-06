@@ -36,9 +36,9 @@ func TestApplyStanzaConfigSplitsOnNewlines(t *testing.T) {
 // later operator can tell "unset" from "set to empty".
 func TestApplyStanzaConfigAttributes(t *testing.T) {
 	for _, tt := range []struct {
+		want   map[string]helper.ExprStringConfig
 		name   string
 		params conf.Params
-		want   map[string]helper.ExprStringConfig
 	}{
 		{
 			name:   "no params sets no attributes",

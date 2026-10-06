@@ -3,8 +3,7 @@
 ## Setup
 
 Install Docker and Go on your workstation. Package, installer, and instrumentation tests
-are Go tests. Puppet and Salt deployment tests still use Python; install their dependencies
-with `pip install -r packaging/tests/requirements.txt`.
+are Go tests. Puppet and Salt deployment tests are Go tests under `tests/puppet` and `tests/salt`.
 
 Instrumentation package tests are also Go tests under `tests/instrumentation` and require
 the collector binary in `bin/` and the auto-instrumentation package in `instrumentation/dist/`.
@@ -30,6 +29,26 @@ the collector binary in `bin/` and the auto-instrumentation package in `instrume
    `INSTALLER_TEST_DISTRO` and `INSTALLER_TEST_ARCH` narrow the run to one distro and
    architecture. Set `INSTALLER_TEST_INSTRUMENTATION` to `preload` or `systemd` for
    those instrumentation cases; `none` runs the base installer, OBI, and validation cases.
+
+## Deployment tests
+
+Run the Puppet and Salt tests from the `tests` module. Each test starts a privileged
+systemd container, so Docker must be available. Set `DEPLOYMENT_TEST_DISTRO` to run
+one distro and `DEPLOYMENT_TEST_GROUP` (`base` or `instrumentation`) for Puppet.
+Salt accepts `DEPLOYMENT_TEST_CASE` (`default` or `custom`). Both workflows pass the
+built package versions through `VERSION` and `AUTO_INSTRUMENTATION_VERSION`.
+
+```bash
+cd tests
+DEPLOYMENT_TEST_DISTRO=debian-bookworm DEPLOYMENT_TEST_GROUP=base \
+  go test -tags puppet_integration -v -timeout 90m -count 1 ./puppet
+DEPLOYMENT_TEST_DISTRO=debian-bookworm DEPLOYMENT_TEST_CASE=default \
+  go test -tags salt_integration -v -timeout 90m -count 1 ./salt
+```
+
+The Puppet workflow also runs the Windows host tests with the same
+`puppet_integration` tag. It selects `default` or `custom` through
+`DEPLOYMENT_TEST_CASE`.
 
 ## Running the `linux-installer-script-test` CI Workflow Locally
 

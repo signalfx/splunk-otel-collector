@@ -31,7 +31,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
-	"github.com/signalfx/splunk-otel-collector/pkg/processor/rollingspanlatencyprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
@@ -99,7 +98,6 @@ func Get() (otelcol.Factories, error) {
 	}
 	b.AddProcessors(
 		timestampprocessor.NewFactory(),
-		rollingspanlatencyprocessor.NewFactory(),
 	)
 
 	return b.Build()

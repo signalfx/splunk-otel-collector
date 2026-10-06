@@ -42,8 +42,8 @@ func TestParsePMCStatus(t *testing.T) {
 		name       string
 		output     string
 		clockState string
-		present    bool
 		portCount  int
+		present    bool
 		wantErr    bool
 	}{
 		{name: "valid boundary clock", output: pmcResponse, present: true, clockState: "SLAVE"},

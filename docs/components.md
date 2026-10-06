@@ -87,7 +87,6 @@ The distribution offers support for the following components.
 | [tls_check](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tlscheckreceiver)                                                 | [alpha]          |
 | [udp_log](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/udplogreceiver)                                                     | [alpha]          |
 | [vcenter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/vcenterreceiver)                                                    | [alpha]          |
-| [wavefront](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/wavefrontreceiver)                                                | [beta]           |
 | [windows_event_log](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowseventlogreceiver)                                  | [alpha]          |
 | [windows_perf_counters](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsperfcountersreceiver)                            | [beta]           |
 | [windowsservice](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsservicereceiver)                                      | [in development] |
@@ -108,6 +107,7 @@ The distribution offers support for the following components.
 | [groupbyattrs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/groupbyattrsprocessor)                  | [beta]           |
 | [k8s_attributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)               | [beta]           |
 | [logstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/logstransformprocessor)                | [in development] |
+| [lookup](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/lookupprocessor)                              | [in development] |
 | [memory_limiter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor)                       | [beta]           |
 | [metricsgeneration](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor)        | [alpha]          |
 | [metrics_transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)         | [beta]           |
@@ -115,6 +115,7 @@ The distribution offers support for the following components.
 | [redaction](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/redactionprocessor)                        | [beta]           |
 | [resource](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor)                          | [beta]           |
 | [resource_detection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)       | [beta]           |
+| [rolling_span_latency](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/rollingspanlatencyprocessor)    | [alpha]          |
 | [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                                  | [alpha]          |
 | [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)                 | [beta]           |
 | [timestamp](deprecations/timestampprocessor.md)                                                                                              | [deprecated]     |
@@ -126,6 +127,7 @@ The distribution offers support for the following components.
 
 | Exporters                                                                                                                                   | Stability    |
 |:--------------------------------------------------------------------------------------------------------------------------------------------|:-------------|
+| [awskinesis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awskinesisexporter)                       | [beta]       |
 | [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                                 | [alpha]      |
 | [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                                         | [alpha]      |
 | [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                                   | [alpha]      |

@@ -28,6 +28,7 @@ import (
 	routingconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	spanmetricsconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	sumconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector"
+	awskinesisexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter"
 	awss3exporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter"
 	fileexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	googlecloudstorageexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter"
@@ -60,12 +61,14 @@ import (
 	groupbyattrsprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor"
 	k8sattributesprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor"
 	logstransformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor"
+	lookupprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/lookupprocessor"
 	metricsgenerationprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricsgenerationprocessor"
 	metricstransformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 	probabilisticsamplerprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	redactionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor"
 	resourcedetectionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
 	resourceprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
+	rollingspanlatencyprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/rollingspanlatencyprocessor"
 	spanprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	tailsamplingprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	transformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
@@ -136,7 +139,6 @@ import (
 	tlscheckreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver"
 	udplogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver"
 	vcenterreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver"
-	wavefrontreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
 	windowseventlogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	windowsperfcountersreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	windowsservicereceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver"
@@ -251,7 +253,6 @@ func NewBaseline() *Baseline {
 			tlscheckreceiver.NewFactory(),
 			udplogreceiver.NewFactory(),
 			vcenterreceiver.NewFactory(),
-			wavefrontreceiver.NewFactory(),
 			windowseventlogreceiver.NewFactory(),
 			windowsperfcountersreceiver.NewFactory(),
 			windowsservicereceiver.NewFactory(),
@@ -266,6 +267,7 @@ func NewBaseline() *Baseline {
 			filterprocessor.NewFactory(),
 			groupbyattrsprocessor.NewFactory(),
 			k8sattributesprocessor.NewFactory(),
+			lookupprocessor.NewFactory(),
 			logstransformprocessor.NewFactory(),
 			memorylimiterprocessor.NewFactory(),
 			metricsgenerationprocessor.NewFactory(),
@@ -274,11 +276,13 @@ func NewBaseline() *Baseline {
 			redactionprocessor.NewFactory(),
 			resourcedetectionprocessor.NewFactory(),
 			resourceprocessor.NewFactory(),
+			rollingspanlatencyprocessor.NewFactory(),
 			spanprocessor.NewFactory(),
 			tailsamplingprocessor.NewFactory(),
 			transformprocessor.NewFactory(),
 		},
 		exporters: []exporter.Factory{
+			awskinesisexporter.NewFactory(),
 			awss3exporter.NewFactory(),
 			debugexporter.NewFactory(),
 			fileexporter.NewFactory(),

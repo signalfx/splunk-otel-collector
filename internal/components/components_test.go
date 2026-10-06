@@ -128,7 +128,6 @@ func TestDefaultComponents(t *testing.T) {
 		"tls_check",
 		"udp_log",
 		"vcenter",
-		"wavefront",
 		"windows_event_log",
 		"windows_perf_counters",
 		"windows_service",
@@ -175,6 +174,7 @@ func TestDefaultComponents(t *testing.T) {
 		"groupbyattrs",
 		"k8s_attributes",
 		"logstransform",
+		"lookup",
 		"memory_limiter",
 		"metricsgeneration",
 		"metrics_transform",
@@ -195,6 +195,7 @@ func TestDefaultComponents(t *testing.T) {
 		"resourcedetection": "resource_detection",
 	}
 	expectedExporters := []string{
+		"awskinesis",
 		"awss3",
 		"debug",
 		"file",

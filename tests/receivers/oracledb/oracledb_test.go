@@ -38,6 +38,8 @@ func TestOracleDBIntegration(t *testing.T) {
 			pmetrictest.IgnoreMetricsOrder(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),
 			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreResourceAttributeValue("server.address"),
+			pmetrictest.IgnoreResourceAttributeValue("server.port"),
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 		),
 	)

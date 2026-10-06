@@ -1,0 +1,5 @@
+change_type: breaking
+component: smartagent/elasticsearch-query
+note: Remove the deprecated elasticsearch-query Smart Agent monitor.
+issues: [8146]
+subtext:

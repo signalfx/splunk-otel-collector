@@ -54,9 +54,9 @@ func TestReadOutputs(t *testing.T) {
 			expectedURI:   "https://app-local:8088/services/collector/event",
 		},
 		{
-			name:        "no_httpout",
-			splunkHome:  filepath.Join(rootDir, "no_httpout"),
-			expectedErr: conf.ErrNoHTTPOut,
+			name:        "no_hecout",
+			splunkHome:  filepath.Join(rootDir, "no_hecout"),
+			expectedErr: conf.ErrNoHECOut,
 		},
 	}
 
@@ -65,12 +65,12 @@ func TestReadOutputs(t *testing.T) {
 			merged, err := ReadOutputs(test.splunkHome)
 			if test.expectedErr != nil {
 				require.NoError(t, err) // ReadOutputs itself doesn't error on missing stanza
-				_, httpErr := HTTPOut(merged)
-				require.ErrorIs(t, httpErr, test.expectedErr)
+				_, hecErr := HECOut(merged)
+				require.ErrorIs(t, hecErr, test.expectedErr)
 				return
 			}
 			require.NoError(t, err)
-			output, err := HTTPOut(merged)
+			output, err := HECOut(merged)
 			require.NoError(t, err)
 			require.NotNil(t, output)
 			assert.Equal(t, test.expectedToken, requireOutputParam(t, output, "httpEventCollectorToken"))
@@ -80,7 +80,7 @@ func TestReadOutputs(t *testing.T) {
 }
 
 func TestReadOutputGroups(t *testing.T) {
-	outputs, err := ReadOutputGroups(filepath.Join("testdata", "outputs", "no_httpout"))
+	outputs, err := ReadOutputGroups(filepath.Join("testdata", "outputs", "no_hecout"))
 	require.NoError(t, err)
 	require.Len(t, outputs, 1)
 

@@ -27,7 +27,7 @@ jobs:
   test:
     timeout-minutes: 30
     name: Test
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     strategy:
       matrix:
         # EOL REFERENCE: https://endoflife.date/nomad

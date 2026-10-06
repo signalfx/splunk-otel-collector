@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-instrumentation-package:
-    runs-on: ${{ inputs.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    runs-on: ${{ inputs.ARCH == 'amd64' && 'ubuntu-slim' || 'ubuntu-24.04-arm' }}
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:

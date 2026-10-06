@@ -17,7 +17,7 @@ env:
 jobs:
   tidy:
     name: tidy
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment
@@ -32,7 +32,7 @@ jobs:
 
   multimod-verify:
     name: multimod-verify
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment
@@ -42,7 +42,7 @@ jobs:
 
   gofmt:
     name: gofmt
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment
@@ -57,7 +57,7 @@ jobs:
 
   generate-metrics:
     name: generate-metrics
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment
@@ -71,7 +71,7 @@ jobs:
           fi
 
   spellcheck:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Spell check - codespell
@@ -87,7 +87,7 @@ jobs:
 
   lint:
     name: lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment
@@ -104,7 +104,7 @@ jobs:
           make lint-all
 
   actionlint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download actionlint
@@ -119,7 +119,7 @@ jobs:
     name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE && github.actor != 'dependabot[bot]' }}
     strategy:
       matrix:
-        OS: [ "ubuntu-24.04", "macos-14", "macos-15", "windows-2025", "windows-11-arm" ]
+        OS: [ "ubuntu-slim", "macos-14", "macos-15", "windows-2025", "windows-11-arm" ]
         TEST_RACE: [ true, false ]
         exclude:
           - OS: "windows-11-arm"
@@ -134,7 +134,7 @@ jobs:
   coverage:
     if: ${{ github.actor != 'dependabot[bot]' }}
     name: coverage
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment
@@ -177,7 +177,7 @@ jobs:
 
   latest-dockerd-test:
     # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-environment

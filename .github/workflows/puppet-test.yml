@@ -40,7 +40,7 @@ env:
 jobs:
   puppet-lint:
     name: puppet-lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,7 +51,7 @@ jobs:
 
   puppet-rake-spec:
     name: puppet-rake-spec
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -61,7 +61,7 @@ jobs:
           make -C deployments/puppet rake-spec
 
   puppet-test-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -125,7 +125,7 @@ jobs:
 
   puppet-test:
     name: puppet-test
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     timeout-minutes: 60
     needs:
       - puppet-lint

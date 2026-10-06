@@ -19,7 +19,7 @@ env:
 
 jobs:
   build-package:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:

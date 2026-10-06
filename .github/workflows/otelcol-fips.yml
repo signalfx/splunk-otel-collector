@@ -70,7 +70,7 @@ jobs:
         include:
           - GOOS: linux
             GOARCH: amd64
-            RUNNER: ubuntu-24.04
+            RUNNER: ubuntu-slim
           - GOOS: linux
             GOARCH: arm64
             RUNNER: ubuntu-24.04-arm

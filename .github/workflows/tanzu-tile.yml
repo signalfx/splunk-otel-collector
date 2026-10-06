@@ -25,7 +25,7 @@ jobs:
 
   test:
     name: Test Tanzu Tile creation
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out the codebase.
         # Technically it will be more precise for the license check to happen against the label matching the

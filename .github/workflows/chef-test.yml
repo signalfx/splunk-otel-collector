@@ -78,7 +78,7 @@ jobs:
 
   chef-lint-spec-test:
     name: chef-lint-spec-test
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     defaults:
       run:
         working-directory: 'deployments/chef'
@@ -94,7 +94,7 @@ jobs:
           make rake-spec
 
   chef-kitchen-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     defaults:
       run:
         working-directory: 'deployments/chef'
@@ -131,7 +131,7 @@ jobs:
       win-matrix: ${{ steps.get-win-matrix.outputs.matrix }}
 
   chef-kitchen-linux:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [ chef-lint-spec-test, chef-kitchen-matrix, build-package, build-auto-instrumentation-package ]
     defaults:
       run:

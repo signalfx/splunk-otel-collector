@@ -50,7 +50,7 @@ jobs:
       ARCH: ${{ matrix.ARCH }}
 
   test-package-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -126,7 +126,7 @@ jobs:
           go test -tags package_integration -v -timeout 25m -count 1 ./package
 
   docker-otelcol:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [cross-compile]
     steps:
       - name: Check out the codebase.

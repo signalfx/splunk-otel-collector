@@ -77,7 +77,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     defaults:
       run:
         working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
@@ -116,7 +116,7 @@ jobs:
   linux-test:
     name: Linux Test
     needs: [ lint, build-package, build-auto-instrumentation-package ]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     defaults:
       run:
         working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
@@ -184,7 +184,7 @@ jobs:
   windows-test:
     name: Windows Test
     needs: [ lint, msi-build ]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     defaults:
       run:
         working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'
@@ -300,7 +300,7 @@ jobs:
   push-release-tag:
     name: Push Release Tag
     needs: lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     defaults:
       run:
         working-directory: 'deployments/ansible_collections/signalfx/splunk_otel_collector'

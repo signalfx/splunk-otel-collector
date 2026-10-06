@@ -14,7 +14,7 @@ env:
   GO_VERSION: 1.26.6
 jobs:
   otelcol:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
@@ -32,7 +32,7 @@ jobs:
 
   docker-otelcol:
     name: docker-otelcol
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [ "otelcol" ]
     services:
       # Start a local registry for pushing the multiarch manifest and images
@@ -138,7 +138,7 @@ jobs:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
 
   integration-test-docker:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [ "docker-otelcol", "otelcol" ]
     strategy:
       matrix:
@@ -306,7 +306,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   integration-test-discovery-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
     steps:
@@ -388,7 +388,7 @@ jobs:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   integration-test-discovery-k8s-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       matrix: ${{ steps.get-matrix-k8s.outputs.matrix }}
     steps:
@@ -407,7 +407,7 @@ jobs:
 
   integration-test-discovery-k8s:
     name: integration-test-discovery-k8s
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [ "docker-otelcol", "otelcol", "integration-test-discovery-k8s-matrix" ]
     strategy:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}

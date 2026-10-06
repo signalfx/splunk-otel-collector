@@ -10,7 +10,7 @@ permissions:
 jobs:
   shellcheck:
     name: shellcheck
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     env:
       # EOL REFERENCE: https://github.com/koalaman/shellcheck/releases
       VERSION: v0.11.0

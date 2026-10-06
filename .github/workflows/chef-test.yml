@@ -228,9 +228,8 @@ jobs:
         run: chef gem install kitchen-docker
 
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
-        id: kitchen-test
         run: |
-          kitchen test --destroy=never ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
+          kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
           # For some reason, kitchen returns 0 here even if there are test failures, so check the log instead.
           grep -q "No tests executed." .kitchen/logs/kitchen.log && exit 1
           grep -q "0 failures" .kitchen/logs/kitchen.log || exit 1
@@ -238,62 +237,6 @@ jobs:
         env:
           KITCHEN_YAML: kitchen.windows.yml
           TMPDIR: ${{ runner.temp }}
-
-      - name: Collect Windows event logs on failure
-        if: failure() && steps['kitchen-test'].outcome == 'failure'
-        shell: powershell
-        run: |
-          $instance = "${{ matrix.SUITE }}-${{ matrix.DISTRO }}"
-          $eventLogPath = ".kitchen/logs/windows-event-logs.txt"
-          $eventQuery = @'
-          $ErrorActionPreference = 'Continue'
-          foreach ($logName in @('System', 'Application')) {
-            "===== $logName events (last 200 warnings/errors) ====="
-            Get-WinEvent -FilterHashtable @{ LogName = $logName; Level = 1, 2, 3 } -MaxEvents 200 -ErrorAction SilentlyContinue |
-              Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message |
-              Format-List
-          }
-          "===== Collector service status ====="
-          Get-CimInstance -ClassName Win32_Service -Filter "Name='splunk-otel-collector'" |
-            Select-Object Name, State, Status, StartMode, ExitCode, ProcessId, PathName |
-            Format-List
-          sc.exe queryex splunk-otel-collector
-          "===== Collector application events ====="
-          Get-WinEvent -FilterHashtable @{ LogName = 'Application'; ProviderName = 'splunk-otel-collector' } -MaxEvents 200 -ErrorAction SilentlyContinue |
-            Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message |
-            Format-List
-          "===== Collector log files (last 200 lines each) ====="
-          $collectorDataDir = Join-Path $env:ProgramData 'Splunk\OpenTelemetry Collector'
-          if (Test-Path $collectorDataDir) {
-            Get-ChildItem -Path $collectorDataDir -Filter '*.log' -File -Recurse -ErrorAction SilentlyContinue |
-              ForEach-Object {
-                "===== $($_.FullName) ====="
-                Get-Content -Path $_.FullName -Tail 200 -ErrorAction SilentlyContinue
-              }
-          }
-          "===== Windows Installer log (last 500 lines) ====="
-          $msiLogPath = Join-Path $env:TEMP 'splunk-otel-collector-msi.log'
-          if (Test-Path $msiLogPath) {
-            Get-Content -Path $msiLogPath -Tail 500 -ErrorAction SilentlyContinue
-          } else {
-            "MSI verbose log not found at $msiLogPath"
-          }
-          '@
-          $encodedQuery = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($eventQuery))
-          $command = "powershell.exe -NoProfile -EncodedCommand $encodedQuery"
-          kitchen exec $instance -c $command 2>&1 | Out-File -FilePath $eventLogPath -Encoding utf8
-          if ($LASTEXITCODE -ne 0) {
-            Add-Content -Path $eventLogPath -Value "Failed to retrieve Windows event logs (kitchen exec exit code $LASTEXITCODE)."
-          }
-        env:
-          KITCHEN_YAML: kitchen.windows.yml
-
-      - name: Destroy Test Kitchen instance
-        if: always()
-        continue-on-error: true
-        run: kitchen destroy ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
-        env:
-          KITCHEN_YAML: kitchen.windows.yml
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()

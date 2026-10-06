@@ -87,7 +87,6 @@ func TestLoadConfig(t *testing.T) {
 		acceptsEndpoints: true,
 	}, etcdCfg)
 	require.NoError(t, etcdCfg.Validate())
-
 }
 
 func TestLoadInvalidConfigWithoutType(t *testing.T) {

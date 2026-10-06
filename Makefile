@@ -22,6 +22,16 @@ TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
 
+GROUP ?= all
+# If GROUP contains a slash (e.g. "receiver/hostmetrics" or a space-separated list
+# of module paths emitted by compute-ci-scope.sh), invoke the per-module delegation
+# targets directly. Otherwise, map the group name to its for-<name>-target rule.
+ifneq ($(findstring /,$(GROUP)),)
+    FOR_GROUP_TARGET=$(GROUP)
+else
+    FOR_GROUP_TARGET=for-$(GROUP)-target
+endif
+
 # Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts
 GOTEST_SERIAL=go test -p 1
 
@@ -463,3 +473,7 @@ prepare-release:
 	@$(MAKE) multimod-prerelease
 	@$(MAKE) chlog-update
 	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)
+
+.PHONY: gomoddownload
+gomoddownload:
+	$(MAKE) $(FOR_GROUP_TARGET) TARGET="moddownload"

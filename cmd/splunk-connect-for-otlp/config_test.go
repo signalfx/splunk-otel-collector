@@ -72,6 +72,8 @@ func TestParseInput(t *testing.T) {
       <param name="enableSSL">1</param>
       <param name="serverCert">/var/certs/server.cert</param>
       <param name="serverKey">/var/certs/server.key</param>
+      <param name="realm">us1</param>
+      <param name="access_token">test-access-token</param>
       <param name="start_by_shell">false</param>
     </stanza>
   </configuration>
@@ -95,4 +97,6 @@ func TestParseInput(t *testing.T) {
 	require.True(t, xmlCfg.EnableSSL)
 	require.Equal(t, "/var/certs/server.cert", xmlCfg.ServerCert)
 	require.Equal(t, "/var/certs/server.key", xmlCfg.ServerKey)
+	require.Equal(t, "us1", xmlCfg.Realm)
+	require.Equal(t, "test-access-token", xmlCfg.AccessToken)
 }

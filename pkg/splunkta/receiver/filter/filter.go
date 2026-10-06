@@ -80,9 +80,10 @@ func ApplyStanzaConfig(oc *file.Config, stanza conf.Stanza) {
 	oc.IncludeFilePath = true
 	oc.Encoding = "utf-8"
 	oc.StartAt = "beginning"
-	oc.SplitConfig = split.Config{
-		LineStartPattern: "^",
-	}
+	// The zero SplitConfig splits on newlines and drops the terminator, which is
+	// what Splunk indexes. A LineStartPattern of "^" ends each token at the next
+	// line start instead, keeping the "\n" in _raw and reading linecount as 2.
+	oc.SplitConfig = split.Config{}
 	oc.TrimConfig = trim.Config{
 		PreserveLeading:  true,
 		PreserveTrailing: true,

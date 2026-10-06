@@ -137,7 +137,7 @@ func TestMonitorDirectoryEmptyWhitelist(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog"), []byte("hello log\n"), 0o644))
 	received := <-output.Received
-	require.Equal(t, "hello log\n", received.Body)
+	require.Equal(t, "hello log", received.Body)
 	// InputConfig sets the raw "index" attribute; renameMetadata (wired by the adapter)
 	// moves it to "com.splunk.index" in the full pipeline.
 	require.Equal(t, "otel_nix", received.Attributes["index"])
@@ -178,51 +178,84 @@ func TestMonitorDirectoryNoWhitelist(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog"), []byte("hello log\n"), 0o644))
 	received := <-output.Received
-	require.Equal(t, "hello log\n", received.Body)
+	require.Equal(t, "hello log", received.Body)
 }
 
+// TestReadFile covers how file content is split into event bodies. Splunk
+// indexes a line without its terminator, so the bodies carry no "\n", but
+// whitespace within the line is content and survives.
 func TestReadFile(t *testing.T) {
-	tempDir := t.TempDir()
-
-	cfg := Config{
-		Input: conf.Input{
-			Configuration: conf.Configuration{
-				Stanza: conf.Stanza{
-					Name: fmt.Sprintf("monitor://%s%c%s", tempDir, filepath.Separator, "foo.txt"),
-					App:  "",
-					Params: conf.Params{
-						conf.Param{
-							Name:  "host",
-							Value: "myhost",
+	for _, tt := range []struct {
+		name    string
+		content string
+		want    []string
+	}{
+		{
+			name:    "terminator dropped",
+			content: "foo\n",
+			want:    []string{"foo"},
+		},
+		{
+			name:    "one event per line",
+			content: "foo\nbar\nbaz\n",
+			want:    []string{"foo", "bar", "baz"},
+		},
+		{
+			name:    "surrounding spaces are content",
+			content: "  foo  \n",
+			want:    []string{"  foo  "},
+		},
+		{
+			name:    "carriage return dropped with the terminator",
+			content: "foo\r\n",
+			want:    []string{"foo"},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir := t.TempDir()
+			cfg := Config{
+				Input: conf.Input{
+					Configuration: conf.Configuration{
+						Stanza: conf.Stanza{
+							Name: fmt.Sprintf("monitor://%s%c%s", tempDir, filepath.Separator, "foo.txt"),
+							App:  "",
+							Params: conf.Params{
+								conf.Param{
+									Name:  "host",
+									Value: "myhost",
+								},
+							},
 						},
 					},
 				},
-			},
-		},
-	}
-	logger, _ := zap.NewDevelopment()
-	c := monitor{logger: logger}.InputConfig(cfg)
-	o, err := c.Build(component.TelemetrySettings{
-		Logger:         logger,
-		TracerProvider: nooptrace.NewTracerProvider(),
-		MeterProvider:  noopmetric.NewMeterProvider(),
-		Resource:       pcommon.NewResource(),
-	})
-	require.NoError(t, err)
-	output := testutil.NewFakeOutput(t)
-	o.SetOutputIDs([]string{"fake"})
-	require.NoError(t, o.SetOutputs([]operator.Operator{
-		output,
-	}))
-	err = o.Start(nil)
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, o.Stop())
-	}()
+			}
+			logger, _ := zap.NewDevelopment()
+			c := monitor{logger: logger}.InputConfig(cfg)
+			o, err := c.Build(component.TelemetrySettings{
+				Logger:         logger,
+				TracerProvider: nooptrace.NewTracerProvider(),
+				MeterProvider:  noopmetric.NewMeterProvider(),
+				Resource:       pcommon.NewResource(),
+			})
+			require.NoError(t, err)
+			output := testutil.NewFakeOutput(t)
+			o.SetOutputIDs([]string{"fake"})
+			require.NoError(t, o.SetOutputs([]operator.Operator{
+				output,
+			}))
+			require.NoError(t, o.Start(nil))
+			defer func() {
+				require.NoError(t, o.Stop())
+			}()
 
-	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "foo.txt"), []byte("foo\n"), 0o644))
-	received := <-output.Received
-	require.Equal(t, "foo\n", received.Body)
+			require.NoError(t, os.WriteFile(filepath.Join(tempDir, "foo.txt"), []byte(tt.content), 0o600))
+			got := make([]string, 0, len(tt.want))
+			for range tt.want {
+				got = append(got, (<-output.Received).Body.(string))
+			}
+			require.Equal(t, tt.want, got)
+		})
+	}
 }
 
 func TestRenameMetadata(t *testing.T) {

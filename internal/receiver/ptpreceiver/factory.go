@@ -29,7 +29,7 @@ func createDefaultConfig() component.Config {
 	return &Config{
 		ControllerConfig:     controller,
 		MetricsBuilderConfig: metadata.NewDefaultMetricsBuilderConfig(),
-		SocketPath:           "/var/run/ptp/ptp4l",
+		SocketPath:           "/var/run/ptp4lro",
 		PMC: PMCConfig{
 			Path:                  "pmc",
 			ClientSocketDirectory: os.TempDir(),

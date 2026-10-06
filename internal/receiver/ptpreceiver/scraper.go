@@ -50,11 +50,13 @@ const (
 	pmcPortIdentityField     = "portIdentity"
 	pmcPortStateField        = "portState"
 	pmcTimeStatusDataset     = "TIME_STATUS_NP"
+	pmcResponsePreviewBytes  = 256
 )
 
 const (
 	ptpPortStateDisabled     = "DISABLED"
 	ptpPortStateFaulty       = "FAULTY"
+	ptpPortStateGrandMaster  = "GRAND_MASTER"
 	ptpPortStateInitializing = "INITIALIZING"
 	ptpPortStateListening    = "LISTENING"
 	ptpPortStateMaster       = "MASTER"
@@ -124,30 +126,7 @@ func newScraper(config *Config, settings receiver.Settings) *ptpScraper {
 
 func (s *ptpScraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 	metrics := pmetric.NewMetrics()
-	clientSocketDir, err := os.MkdirTemp(s.config.PMC.ClientSocketDirectory, "ptp-pmc-")
-	if err != nil {
-		return metrics, fmt.Errorf("create temporary pmc client socket directory: %w", err)
-	}
-	defer func() {
-		_ = os.RemoveAll(clientSocketDir)
-	}()
-	clientSocketPath := filepath.Join(clientSocketDir, "pmc.sock")
-	run := s.runPMC
-	if run == nil {
-		run = func(ctx context.Context, name string, args ...string) ([]byte, error) {
-			return exec.CommandContext(ctx, name, args...).CombinedOutput()
-		}
-	}
-	output, err := run(ctx, s.config.PMC.Path,
-		pmcArgUnixDomainSocket, pmcArgBoundaryHops, pmcBoundaryHops,
-		pmcArgClientSocket, clientSocketPath,
-		pmcArgServerSocket, s.config.SocketPath,
-		pmcArgDomainNumber, strconv.Itoa(s.config.DomainNumber),
-		pmcGetTimeStatus, pmcGetCurrentDataSet, pmcGetPortDataSet, pmcGetClockDesc)
-	if err != nil {
-		return metrics, fmt.Errorf("query ptp4l with pmc: %w: %s", err, strings.TrimSpace(string(output)))
-	}
-	status, err := parsePMCStatus(output)
+	status, err := s.collectStatus(ctx)
 	if err != nil {
 		return metrics, err
 	}
@@ -175,7 +154,7 @@ func (s *ptpScraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 		s.mb.RecordPtpClockStateDataPoint(now, 1, metadata.MapAttributePtpClockState[clockState(status.ports)])
 	}
 	for _, port := range status.ports {
-		s.mb.RecordPtpPortStateDataPoint(now, 1, port.identity, port.state)
+		s.mb.RecordPtpPortStateDataPoint(now, 1, port.identity, metadata.MapAttributePtpPortState[port.state])
 	}
 	rb := s.mb.NewResourceBuilder()
 	rb.SetPtpSocketPath(s.config.SocketPath)
@@ -183,6 +162,40 @@ func (s *ptpScraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 		setPtpClockTypeAttribute(rb, status.clockType)
 	}
 	return s.mb.Emit(metadata.WithResource(rb.Emit())), nil
+}
+
+// collectStatus queries the ptp4l management socket and parses its replies.
+// The private client socket directory is removed after pmc exits.
+func (s *ptpScraper) collectStatus(ctx context.Context) (ptpStatus, error) {
+	clientSocketDir, err := os.MkdirTemp(s.config.PMC.ClientSocketDirectory, "ptp-pmc-")
+	if err != nil {
+		return ptpStatus{}, fmt.Errorf("create temporary pmc client socket directory: %w", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(clientSocketDir)
+	}()
+	clientSocketPath := filepath.Join(clientSocketDir, "pmc.sock")
+	output, err := s.queryPMC(ctx, clientSocketPath)
+	if err != nil {
+		return ptpStatus{}, fmt.Errorf("query ptp4l with pmc: %w: %s", err, strings.TrimSpace(string(output)))
+	}
+	return parsePMCStatus(output)
+}
+
+// queryPMC runs pmc with the configured server socket and a writable client socket.
+func (s *ptpScraper) queryPMC(ctx context.Context, clientSocketPath string) ([]byte, error) {
+	run := s.runPMC
+	if run == nil {
+		run = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+			return exec.CommandContext(ctx, name, args...).CombinedOutput()
+		}
+	}
+	return run(ctx, s.config.PMC.Path,
+		pmcArgUnixDomainSocket, pmcArgBoundaryHops, pmcBoundaryHops,
+		pmcArgClientSocket, clientSocketPath,
+		pmcArgServerSocket, s.config.SocketPath,
+		pmcArgDomainNumber, strconv.Itoa(s.config.DomainNumber),
+		pmcGetTimeStatus, pmcGetCurrentDataSet, pmcGetPortDataSet, pmcGetClockDesc)
 }
 
 func setPtpClockTypeAttribute(rb *metadata.ResourceBuilder, clockType string) {
@@ -207,7 +220,11 @@ func parsePMCStatus(output []byte) (ptpStatus, error) {
 		return status, err
 	}
 	if len(datasets) == 0 {
-		return status, errors.New("pmc response missing supported management datasets")
+		preview := strings.TrimSpace(string(output))
+		if len(preview) > pmcResponsePreviewBytes {
+			preview = preview[:pmcResponsePreviewBytes] + "..."
+		}
+		return status, fmt.Errorf("pmc response missing supported management datasets (output: %q)", preview)
 	}
 
 	var parseErrors []error
@@ -265,6 +282,10 @@ func parsePMCDatasets(output []byte) (map[string][]pmcDataset, error) {
 			current = &dataset
 			continue
 		}
+		// pmc prints each response header followed by indented `field value`
+		// lines. Associate each two-token field line with the most recent header;
+		// for example, `    portState SLAVE` is stored as `portState: SLAVE`.
+		// Lines with a different shape and preamble before the first header are ignored.
 		fields := strings.Fields(line)
 		if current != nil && len(fields) == 2 {
 			current.fields[fields[0]] = fields[1]
@@ -434,7 +455,7 @@ func validPortState(state string) bool {
 	switch state {
 	case ptpPortStateInitializing, ptpPortStateFaulty, ptpPortStateDisabled, ptpPortStateListening,
 		ptpPortStatePreMaster, ptpPortStateMaster, ptpPortStatePassive, ptpPortStateUncalibrated,
-		ptpPortStateSlave:
+		ptpPortStateSlave, ptpPortStateGrandMaster:
 		return true
 	default:
 		return false
@@ -460,12 +481,31 @@ func clockState(ports []ptpPort) string {
 	if len(ports) == 0 {
 		return ptpUnknown
 	}
-	for _, state := range []string{ptpPortStateSlave, ptpPortStateMaster, ptpPortStateUncalibrated, ptpPortStateFaulty} {
-		for _, port := range ports {
+	// A boundary clock can have both slave and master ports. Prefer SLAVE to
+	// describe its upstream synchronization; GRAND_MASTER has the clock-level
+	// meaning MASTER. The remaining priority is UNCALIBRATED, then FAULTY.
+	if hasPortState(ports, ptpPortStateSlave) {
+		return ptpPortStateSlave
+	}
+	if hasPortState(ports, ptpPortStateMaster, ptpPortStateGrandMaster) {
+		return ptpPortStateMaster
+	}
+	if hasPortState(ports, ptpPortStateUncalibrated) {
+		return ptpPortStateUncalibrated
+	}
+	if hasPortState(ports, ptpPortStateFaulty) {
+		return ptpPortStateFaulty
+	}
+	return ptpClockStateUnsynchronized
+}
+
+func hasPortState(ports []ptpPort, states ...string) bool {
+	for _, port := range ports {
+		for _, state := range states {
 			if port.state == state {
-				return state
+				return true
 			}
 		}
 	}
-	return ptpClockStateUnsynchronized
+	return false
 }

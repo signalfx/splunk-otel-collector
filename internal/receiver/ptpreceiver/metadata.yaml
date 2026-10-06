@@ -12,7 +12,11 @@ status:
 
 resource_attributes:
   ptp.clock.type:
-    description: "Type of the local PTP clock reported by CLOCK_DESCRIPTION. Values: `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), `E2E_TC` (end-to-end transparent clock); unrecognized clock types map to `UNKNOWN`."
+    description: >-
+      Type of the local PTP clock reported by CLOCK_DESCRIPTION. LinuxPTP's
+      clock type codes map to `OC` (ordinary clock), `BC` (boundary clock),
+      `P2P_TC` (peer-to-peer transparent clock), and `E2E_TC` (end-to-end
+      transparent clock). Unrecognized clock type codes map to `UNKNOWN`.
     enabled: true
     type: string
     enum: [OC, BC, P2P_TC, E2E_TC, UNKNOWN]
@@ -30,15 +34,21 @@ attributes:
     description: Identity of the selected PTP grandmaster.
     type: string
   ptp.port.identity:
-    description: LinuxPTP port identity formatted as `<clock-identity>-<port-number>` (e.g. `001122.fffe.334455-1`). It is a string combining the clock identity and the port number.
+    description: LinuxPTP port identity, a unique combination of the clock identity and the port number. Formatted as `<clock-identity>-<port-number>` (e.g. `001122.fffe.334455-1`).
     type: string
   ptp.port.state:
     description: State of the local PTP port.
     type: string
+    enum: [INITIALIZING, FAULTY, DISABLED, LISTENING, PRE_MASTER, MASTER, PASSIVE, UNCALIBRATED, SLAVE, GRAND_MASTER]
 
 metrics:
   ptp.clock.state:
     description: Local PTP clock state inferred from the states of its ports (1 for the reported state).
+    extended_documentation: >-
+      For boundary clocks with both slave and master ports, the clock state is
+      `SLAVE` to represent upstream synchronization. Otherwise, state priority
+      is `MASTER` (including a LinuxPTP `GRAND_MASTER` port), `UNCALIBRATED`,
+      then `FAULTY`. Other port states map to `UNSYNCHRONIZED`.
     enabled: true
     stability: development
     gauge:

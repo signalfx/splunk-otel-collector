@@ -16,6 +16,8 @@ metrics:
 
 Local PTP clock state inferred from the states of its ports (1 for the reported state).
 
+For boundary clocks with both slave and master ports, the clock state is `SLAVE` to represent upstream synchronization. Otherwise, state priority is `MASTER` (including a LinuxPTP `GRAND_MASTER` port), `UNCALIBRATED`, then `FAULTY`. Other port states map to `UNSYNCHRONIZED`.
+
 | Unit | Metric Type | Value Type | Stability |
 | ---- | ----------- | ---------- | --------- |
 | 1 | Gauge | Int | Development |
@@ -76,12 +78,12 @@ State of each local PTP port (1 for the reported state).
 
 | Name | Description | Values | Requirement Level | Semantic Convention |
 | ---- | ----------- | ------ | ----------------- | ------------------- |
-| ptp.port.identity | LinuxPTP port identity formatted as `<clock-identity>-<port-number>` (e.g. `001122.fffe.334455-1`). It is a string combining the clock identity and the port number. | Any Str | Recommended | - |
-| ptp.port.state | State of the local PTP port. | Any Str | Recommended | - |
+| ptp.port.identity | LinuxPTP port identity, a unique combination of the clock identity and the port number. Formatted as `<clock-identity>-<port-number>` (e.g. `001122.fffe.334455-1`). | Any Str | Recommended | - |
+| ptp.port.state | State of the local PTP port. | Str: ``INITIALIZING``, ``FAULTY``, ``DISABLED``, ``LISTENING``, ``PRE_MASTER``, ``MASTER``, ``PASSIVE``, ``UNCALIBRATED``, ``SLAVE``, ``GRAND_MASTER`` | Recommended | - |
 
 ## Resource Attributes
 
 | Name | Description | Values | Enabled | Semantic Convention | Stability |
 | ---- | ----------- | ------ | ------- | ------------------- | --------- |
-| ptp.clock.type | Type of the local PTP clock reported by CLOCK_DESCRIPTION. Values: `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), `E2E_TC` (end-to-end transparent clock); unrecognized clock types map to `UNKNOWN`. | Str: ``OC``, ``BC``, ``P2P_TC``, ``E2E_TC``, ``UNKNOWN`` | true | - | - |
+| ptp.clock.type | Type of the local PTP clock reported by CLOCK_DESCRIPTION. LinuxPTP's clock type codes map to `OC` (ordinary clock), `BC` (boundary clock), `P2P_TC` (peer-to-peer transparent clock), and `E2E_TC` (end-to-end transparent clock). Unrecognized clock type codes map to `UNKNOWN`. | Str: ``OC``, ``BC``, ``P2P_TC``, ``E2E_TC``, ``UNKNOWN`` | true | - | - |
 | ptp.socket_path | Unix domain socket of the ptp4l daemon. | Any Str | true | - | - |

@@ -101,9 +101,9 @@ func TestMetricsBuilder(t *testing.T) {
 			mb.RecordPtpPathDelayDataPoint(ts, 1)
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordPtpPortStateDataPoint(ts, 1, "ptp.port.identity-val", "ptp.port.state-val")
+			mb.RecordPtpPortStateDataPoint(ts, 1, "ptp.port.identity-val", AttributePtpPortStateINITIALIZING)
 			if tt.name == "reaggregate_set" {
-				mb.RecordPtpPortStateDataPoint(ts, 3, "ptp.port.identity-val-2", "ptp.port.state-val-2")
+				mb.RecordPtpPortStateDataPoint(ts, 3, "ptp.port.identity-val-2", AttributePtpPortStateFAULTY)
 			}
 
 			rb := mb.NewResourceBuilder()
@@ -276,7 +276,7 @@ func TestMetricsBuilder(t *testing.T) {
 						assert.Equal(t, "ptp.port.identity-val", ptpPortIdentityAttrVal.Str())
 						ptpPortStateAttrVal, ok := dp.Attributes().Get("ptp.port.state")
 						assert.True(t, ok)
-						assert.Equal(t, "ptp.port.state-val", ptpPortStateAttrVal.Str())
+						assert.Equal(t, "INITIALIZING", ptpPortStateAttrVal.Str())
 					} else {
 						assert.False(t, validatedMetrics["ptp.port.state"], "Found a duplicate in the metrics slice: ptp.port.state")
 						validatedMetrics["ptp.port.state"] = true

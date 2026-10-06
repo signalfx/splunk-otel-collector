@@ -7,18 +7,20 @@ offset.
 
 | Status | |
 | --- | --- |
-| Stability | [beta]: metrics  |
+| Stability | [development]: metrics  |
 | Distributions | [Splunk](https://github.com/signalfx/splunk-otel-collector) |
 
-[beta]:
-  https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md#beta
+[development]:
+  https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md#development
 
 ## Configuration
 
 All receiver settings are optional. The collector process must be able to
 execute `pmc` and access the configured `ptp4l` Unix domain socket.
 
-- `socket_path` (default: `/var/run/ptp/ptp4l`): Absolute path to the `ptp4l` management socket.
+- `socket_path` (default: `/var/run/ptp4lro`): Absolute path to the `ptp4l`
+  read-only management socket (`uds_ro_address`). Set this to the path
+  configured by `uds_ro_address` in `ptp4l.conf` if it differs.
 - `pmc`: Settings for the LinuxPTP management client.
   - `path` (default: `pmc`): Path or executable name for the client.
   - `client_socket_directory` (default: the operating system's temporary
@@ -33,7 +35,7 @@ execute `pmc` and access the configured `ptp4l` Unix domain socket.
 ```yaml
 receivers:
   ptp:
-    socket_path: /var/run/ptp/ptp4l
+    socket_path: /var/run/ptp4lro
     pmc:
       path: pmc
       client_socket_directory: /tmp
@@ -45,20 +47,8 @@ receivers:
 When LinuxPTP reports no remote grandmaster, the receiver reports grandmaster
 presence as `0` and omits the grandmaster identity, offset, and path-delay
 measurements. It does not substitute zero for an unavailable offset or delay.
-The detailed metric definitions are maintained in
-[documentation.md](./documentation.md).
 
 ## Metrics
 
-Details about the metrics produced by this receiver can be found in
-[metadata.yaml](./metadata.yaml).
-
-### `ptp.clock.type` values
-
-The receiver maps LinuxPTP's `CLOCK_DESCRIPTION` type code to these labels:
-
-- `OC`: Ordinary clock.
-- `BC`: Boundary clock.
-- `P2P_TC`: Peer-to-peer transparent clock.
-- `E2E_TC`: End-to-end transparent clock.
-- `UNKNOWN`: Unrecognized clock type code.
+Metric definitions are in [documentation.md](./documentation.md), with their
+source metadata in [metadata.yaml](./metadata.yaml).

@@ -62,6 +62,64 @@ var MapAttributePtpClockState = map[string]AttributePtpClockState{
 	"UNKNOWN":        AttributePtpClockStateUNKNOWN,
 }
 
+// AttributePtpPortState specifies the value ptp.port.state attribute.
+type AttributePtpPortState int
+
+const (
+	_ AttributePtpPortState = iota
+	AttributePtpPortStateINITIALIZING
+	AttributePtpPortStateFAULTY
+	AttributePtpPortStateDISABLED
+	AttributePtpPortStateLISTENING
+	AttributePtpPortStatePREMASTER
+	AttributePtpPortStateMASTER
+	AttributePtpPortStatePASSIVE
+	AttributePtpPortStateUNCALIBRATED
+	AttributePtpPortStateSLAVE
+	AttributePtpPortStateGRANDMASTER
+)
+
+// String returns the string representation of the AttributePtpPortState.
+func (av AttributePtpPortState) String() string {
+	switch av {
+	case AttributePtpPortStateINITIALIZING:
+		return "INITIALIZING"
+	case AttributePtpPortStateFAULTY:
+		return "FAULTY"
+	case AttributePtpPortStateDISABLED:
+		return "DISABLED"
+	case AttributePtpPortStateLISTENING:
+		return "LISTENING"
+	case AttributePtpPortStatePREMASTER:
+		return "PRE_MASTER"
+	case AttributePtpPortStateMASTER:
+		return "MASTER"
+	case AttributePtpPortStatePASSIVE:
+		return "PASSIVE"
+	case AttributePtpPortStateUNCALIBRATED:
+		return "UNCALIBRATED"
+	case AttributePtpPortStateSLAVE:
+		return "SLAVE"
+	case AttributePtpPortStateGRANDMASTER:
+		return "GRAND_MASTER"
+	}
+	return ""
+}
+
+// MapAttributePtpPortState is a helper map of string to AttributePtpPortState attribute value.
+var MapAttributePtpPortState = map[string]AttributePtpPortState{
+	"INITIALIZING": AttributePtpPortStateINITIALIZING,
+	"FAULTY":       AttributePtpPortStateFAULTY,
+	"DISABLED":     AttributePtpPortStateDISABLED,
+	"LISTENING":    AttributePtpPortStateLISTENING,
+	"PRE_MASTER":   AttributePtpPortStatePREMASTER,
+	"MASTER":       AttributePtpPortStateMASTER,
+	"PASSIVE":      AttributePtpPortStatePASSIVE,
+	"UNCALIBRATED": AttributePtpPortStateUNCALIBRATED,
+	"SLAVE":        AttributePtpPortStateSLAVE,
+	"GRAND_MASTER": AttributePtpPortStateGRANDMASTER,
+}
+
 var MetricsInfo = metricsInfo{
 	PtpClockState: metricInfo{
 		Name:       "ptp.clock.state",
@@ -714,8 +772,8 @@ func (mb *MetricsBuilder) RecordPtpPathDelayDataPoint(ts pcommon.Timestamp, val 
 }
 
 // RecordPtpPortStateDataPoint adds a data point to ptp.port.state metric.
-func (mb *MetricsBuilder) RecordPtpPortStateDataPoint(ts pcommon.Timestamp, val int64, ptpPortIdentityAttributeValue string, ptpPortStateAttributeValue string) {
-	mb.metricPtpPortState.recordDataPoint(mb.startTime, ts, val, ptpPortIdentityAttributeValue, ptpPortStateAttributeValue)
+func (mb *MetricsBuilder) RecordPtpPortStateDataPoint(ts pcommon.Timestamp, val int64, ptpPortIdentityAttributeValue string, ptpPortStateAttributeValue AttributePtpPortState) {
+	mb.metricPtpPortState.recordDataPoint(mb.startTime, ts, val, ptpPortIdentityAttributeValue, ptpPortStateAttributeValue.String())
 }
 
 // Reset resets metrics builder to its initial state. It should be used when external metrics source is restarted,

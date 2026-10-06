@@ -277,13 +277,13 @@ jobs:
         if: ${{ matrix.output == 'sarif' }}
         env:
           GOVULN_OPTS: --format sarif --scan symbol
-        run: ./.github/workflows/scripts/govulncheck-run.sh --package ${{ matrix.package }} --out-filename ${{ steps.determine-output-file-name.name }}
+        run: ./.github/workflows/scripts/govulncheck-run.sh --package ${{ matrix.package }} --out-filename ${{ steps.determine-output-file-name.outputs.name }}
 
       - name: Save govulncheck results as artifact
         if: ${{ matrix.output == 'sarif' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ steps.determine-output-file-name.name }}
+          name: ${{ steps.determine-output-file-name.outputs.name }}
           path: ./govulncheck/
 
       - name: Run `govulncheck` to fail the workflow if vulnerabilities are found

@@ -291,7 +291,7 @@ jobs:
 
       - name: Upload sarif result to GitHub Code Scanning
         if: ${{ matrix.output == 'sarif' }}
-        uses: github/codeql-action/upload-sarif@github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
         with:
           sarif_file: ${{ steps.determine-output-file-name.outputs.path }}
 

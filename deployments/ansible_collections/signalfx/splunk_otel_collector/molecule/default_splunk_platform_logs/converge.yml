@@ -1,0 +1,17 @@
+---
+- name: Converge scenario with the default configuration and Splunk Platform logs
+  hosts: all
+  become: yes
+  vars:
+    local_artifact_testing_enabled: true
+    splunk_access_token: fake-token
+    splunk_realm: fake-realm
+    splunk_otel_collector_command_line_args: >-
+      --feature-gates=confmap.enableMergeAppendOption
+    splunk_otel_collector_additional_env_vars:
+      SPLUNK_PLATFORM_URL: "https://fake-splunk-platform.example.com:8088/services/collector"
+      SPLUNK_PLATFORM_TOKEN: "fake-platform-token"
+  tasks:
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      ansible.builtin.include_role:
+        name: "signalfx.splunk_otel_collector.collector"

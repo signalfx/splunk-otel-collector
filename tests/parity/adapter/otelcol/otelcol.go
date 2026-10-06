@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -44,12 +45,18 @@ const EnvBin = "PARITY_OTELCOL_BIN"
 // its own --config, and extra sources given to New are appended after those.
 const ConfigFile = "config.yaml"
 
+// splunkHomeDir is the sandbox $SPLUNK_HOME created inside the run's config
+// directory.
+const splunkHomeDir = "splunkhome"
+
 // Adapter drives one otelcol binary through a case.
 type Adapter struct {
-	cmd     *exec.Cmd
-	bin     string
-	extra   []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
-	configs []string // resolved --config sources, set by Prepare
+	cmd        *exec.Cmd
+	bin        string
+	splunkHome string   // sandbox $SPLUNK_HOME, set by Prepare when the case has .conf files
+	extra      []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
+	gates      []string // feature gates to enable
+	configs    []string // resolved --config sources, set by Prepare
 }
 
 // New returns an otelcol adapter. bin may be empty, in which case
@@ -67,6 +74,13 @@ func New(bin string, extra ...string) *Adapter {
 	return &Adapter{bin: bin, extra: extra}
 }
 
+// EnableFeatureGates turns on collector feature gates, passed as
+// --feature-gates=+<id>.
+func (a *Adapter) EnableFeatureGates(ids ...string) *Adapter {
+	a.gates = append(a.gates, ids...)
+	return a
+}
+
 func (a *Adapter) Name() string { return "otelcol" }
 
 // InstallDir is the directory holding the binary.
@@ -74,13 +88,14 @@ func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 
 // Prepare collects every *.yaml/*.yml file the runner wrote into configDir as a
 // --config source, sorted for a deterministic merge order, then appends the
-// extra sources from New. At least one source must resolve.
+// extra sources from New. At least one source must resolve. Any *.conf file goes
+// to installConf instead.
 func (a *Adapter) Prepare(configDir string) error {
 	entries, err := os.ReadDir(configDir)
 	if err != nil {
 		return err
 	}
-	var files []string
+	var files, confs []string
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
@@ -88,6 +103,8 @@ func (a *Adapter) Prepare(configDir string) error {
 		switch filepath.Ext(e.Name()) {
 		case ".yaml", ".yml":
 			files = append(files, filepath.Join(configDir, e.Name()))
+		case ".conf":
+			confs = append(confs, e.Name())
 		}
 	}
 	sort.Strings(files)
@@ -97,23 +114,65 @@ func (a *Adapter) Prepare(configDir string) error {
 	if len(a.configs) == 0 {
 		return fmt.Errorf("no collector config: want a *.yaml file in %s or an extra --config source", configDir)
 	}
+	return a.installConf(configDir, confs)
+}
+
+// installConf copies the case's .conf files into etc/system/local of a sandbox
+// $SPLUNK_HOME, which Start then puts in the environment.
+func (a *Adapter) installConf(configDir string, names []string) error {
+	if len(names) == 0 {
+		return nil
+	}
+	home := filepath.Join(configDir, splunkHomeDir)
+	localDir := filepath.Join(home, "etc", "system", "local")
+	if err := os.MkdirAll(localDir, 0o755); err != nil {
+		return err
+	}
+	for _, name := range names {
+		contents, err := os.ReadFile(filepath.Join(configDir, name))
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(localDir, name), contents, 0o600); err != nil {
+			return err
+		}
+	}
+	a.splunkHome = home
 	return nil
 }
 
-// configArgs expands the resolved sources into repeated --config flags.
-func (a *Adapter) configArgs() []string {
-	args := make([]string, 0, 2*len(a.configs))
+// args expands the resolved sources into repeated --config flags, followed by
+// the enabled feature gates.
+func (a *Adapter) args() []string {
+	args := make([]string, 0, 2*len(a.configs)+1)
 	for _, c := range a.configs {
 		args = append(args, "--config", c)
 	}
+	if len(a.gates) > 0 {
+		enabled := make([]string, len(a.gates))
+		for i, g := range a.gates {
+			enabled[i] = "+" + g
+		}
+		args = append(args, "--feature-gates="+strings.Join(enabled, ","))
+	}
 	return args
+}
+
+// env is the test's own environment plus $SPLUNK_HOME when a tree was
+// installed; nil means the child inherits it unchanged.
+func (a *Adapter) env() []string {
+	if a.splunkHome == "" {
+		return nil
+	}
+	return append(os.Environ(), "SPLUNK_HOME="+a.splunkHome)
 }
 
 func (a *Adapter) Start(ctx context.Context) error {
 	if _, err := os.Stat(a.bin); err != nil {
 		return fmt.Errorf("otelcol binary %s not found (build it with `make otelcol`, or set %s): %w", a.bin, EnvBin, err)
 	}
-	cmd := exec.CommandContext(ctx, a.bin, a.configArgs()...) //nolint:gosec // G204: binary path and config sources are test-controlled inputs
+	cmd := exec.CommandContext(ctx, a.bin, a.args()...) //nolint:gosec // G204: binary path and config sources are test-controlled inputs
+	cmd.Env = a.env()
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {

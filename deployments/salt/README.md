@@ -36,6 +36,23 @@ splunk-otel-collector:
   splunk_service_group: splunk-otel-collector
 ```
 
+### Send host logs to Splunk Platform
+
+The collector package includes a Splunk Platform logs configuration for each
+supported operating system. Enable config merging and provide the HEC settings
+as additional environment variables:
+
+```yaml
+splunk-otel-collector:
+  splunk_otel_collector_command_line_args: "--feature-gates=confmap.enableMergeAppendOption"
+  collector_additional_env_vars:
+    SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
+    SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+```
+
+You can also specify the `SPLUNK_PLATFORM_LOGS_INDEX` if you don't want to use
+the default index `main`.
+
 ## This Salt Formula accepts the following attributes:
 
 ### Collector

@@ -1,5 +1,0 @@
-change_type: breaking
-component: smartagent/net-io
-note: Remove the deprecated net-io Smart Agent monitor. Use the hostmetrics receiver instead.
-issues: [8149]
-subtext:

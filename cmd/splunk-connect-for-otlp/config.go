@@ -47,6 +47,8 @@ type InputConfig struct {
 	ServerKey     string
 	ServerURI     string
 	SessionKey    string
+	Realm         string
+	AccessToken   string
 	GrpcPort      int
 	HTTPPort      int
 	EnableSSL     bool
@@ -61,6 +63,8 @@ func (x XMLInput) Extract() InputConfig {
 	enableSSL := true
 	serverCert := ""
 	serverKey := ""
+	realm := ""
+	accessToken := ""
 
 	serverURI := x.ServerURI
 	sessionKey := x.SessionKey
@@ -83,6 +87,10 @@ func (x XMLInput) Extract() InputConfig {
 			serverCert = p.Value
 		case "serverKey":
 			serverKey = p.Value
+		case "realm":
+			realm = p.Value
+		case "access_token":
+			accessToken = p.Value
 		}
 	}
 
@@ -97,6 +105,8 @@ func (x XMLInput) Extract() InputConfig {
 		EnableSSL:     enableSSL,
 		ServerCert:    serverCert,
 		ServerKey:     serverKey,
+		Realm:         realm,
+		AccessToken:   accessToken,
 	}
 }
 

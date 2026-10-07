@@ -47,11 +47,11 @@ type InputConfig struct {
 	ServerKey     string
 	ServerURI     string
 	SessionKey    string
+	Realm         string
+	AccessToken   string
 	GrpcPort      int
 	HTTPPort      int
 	EnableSSL     bool
-	Realm         string
-	AccessToken   string
 }
 
 func (x XMLInput) Extract() InputConfig {

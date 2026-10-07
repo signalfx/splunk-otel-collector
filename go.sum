@@ -118,8 +118,6 @@ github.com/DataDog/go-sqllexer v0.2.4 h1:Ah9v8g5KX8vNV7q3t6YoA3fW4F/1OvZh/JbyfPc
 github.com/DataDog/go-sqllexer v0.2.4/go.mod h1:3xTFXBU69vUikYpESggScvC0RKYA7ZIdVrIkLwUOWdE=
 github.com/DeRuina/timberjack v1.4.7 h1:bAM3pgbmwRrBxgKfAlqJ7Q1LOFxoqcyy0NhVsTeEJrA=
 github.com/DeRuina/timberjack v1.4.7/go.mod h1:DCXjOescYyzTrOryf57SEbSeCOqkBQ3QjH7Pn03i5Cs=
-github.com/DrakeW/splunk-persistentconn v0.0.0-20190729070759-8df0dc91d0b1 h1:Y1MepeTLOSKKl2aiyFjXf7RaPfXaIhKWEMUHLHsfiYM=
-github.com/DrakeW/splunk-persistentconn v0.0.0-20190729070759-8df0dc91d0b1/go.mod h1:IIZl+PvBAk/JOdz98P60jXGm61SRAGUvJDzk9obl1nM=
 github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 h1:IEjq88XO4PuBDcvmjQJcQGg+w+UaafSy8G5Kcb5tBhI=
 github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5/go.mod h1:exZ0C/1emQJAw5tHOaUDyY1ycttqBAPcxuzf7QbY6ec=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.38.0 h1:rmzbFS2CkHq0y2L5LkMVWm+QXjjNEXxjmhrJqga/QGk=

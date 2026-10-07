@@ -1,0 +1,6 @@
+change_type: bug_fix
+component: receiver/splunk_inputs
+note: Apply supported TA monitor whitelist and blacklist expressions during file discovery to avoid opening files that the filters would discard.
+issues: []
+subtext: |
+  The original regular expressions remain as entry filters, and expressions that cannot be safely converted to file globs retain the existing fallback behavior.

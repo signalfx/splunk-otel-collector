@@ -34,9 +34,9 @@ import (
 //	whitelist=(\.log|log$|messages|secure|auth|mesg$|cron$|acpid$|\.out)
 //	blacklist=(lastlog|anaconda\.syslog)
 //
-// The whitelist/blacklist values are PCRE regexes. InputConfig sets include=dir/* and
-// BaseConfig wires a filter operator to apply the regex against log.file.path.
-// This test only exercises InputConfig (include path), not the full filter pipeline.
+// The whitelist/blacklist values are PCRE regexes. InputConfig converts this simple
+// whitelist to discovery globs, while BaseConfig retains a filter operator that applies
+// the original regex against log.file.path.
 func TestMonitorDirectoryWithSplunkRegexWhitelist(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -76,8 +76,7 @@ func TestMonitorDirectoryWithSplunkRegexWhitelist(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "syslog.log"), []byte("line1\n"), 0o644))
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "auth"), []byte("line2\n"), 0o644))
 
-	// The regex whitelist is not a valid glob; the receiver falls back to dir/*
-	// so both files must be ingested.
+	// Both files match globs derived from the whitelist and must be ingested.
 	received := map[string]bool{}
 	deadline := time.After(3 * time.Second)
 	for len(received) < 2 {

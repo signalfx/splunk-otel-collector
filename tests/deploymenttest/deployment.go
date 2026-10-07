@@ -249,8 +249,10 @@ func Start(t *testing.T, dockerfile string, args map[string]*string, binds ...st
 }
 
 type Instrumentation struct {
-	Systemd, Custom     bool
-	Version, Attributes string
+	Version    string
+	Attributes string
+	Systemd    bool
+	Custom     bool
 }
 
 func CheckInstrumentation(t *testing.T, c *Container, o Instrumentation) {

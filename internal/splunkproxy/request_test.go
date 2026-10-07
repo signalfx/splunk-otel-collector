@@ -86,9 +86,9 @@ func TestResponseJSONPreservesBase64BodyBytesAndHeaders(t *testing.T) {
 		t.Fatal(err)
 	}
 	var got struct {
-		Status        int                 `json:"status"`
-		PayloadBase64 string              `json:"payload"`
 		Headers       map[string][]string `json:"headers"`
+		PayloadBase64 string              `json:"payload"`
+		Status        int                 `json:"status"`
 	}
 	if err := json.Unmarshal(encoded, &got); err != nil {
 		t.Fatalf("decode response JSON: %v", err)

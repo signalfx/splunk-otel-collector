@@ -1,0 +1,5 @@
+change_type: new_component
+component: receiver/ptp
+note: Add an experimental PTP receiver for collecting clock, grandmaster, offset, path delay, and port status from a local linuxptp daemon.
+issues: [8171]
+subtext:

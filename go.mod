@@ -30,17 +30,17 @@ require (
 	github.com/openconfig/ygot v0.35.0
 	github.com/prometheus/client_golang v1.24.1
 	github.com/prometheus/client_model v0.6.3
-	github.com/prometheus/common v0.71.0
+	github.com/prometheus/common v0.72.0
 	github.com/prometheus/prometheus v0.314.0
 	github.com/shirou/gopsutil/v4 v4.26.8
-	github.com/signalfx/splunk-otel-collector/baseline v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.161.0
-	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.161.0
+	github.com/signalfx/splunk-otel-collector/baseline v0.162.0
+	github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter v0.162.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.162.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.162.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.162.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.162.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver v0.162.0
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.162.0
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
@@ -66,6 +66,7 @@ require (
 	go.opentelemetry.io/collector/extension/extensionauth v1.68.0
 	go.opentelemetry.io/collector/extension/extensiontest v0.162.0
 	go.opentelemetry.io/collector/extension/xextension v0.162.0
+	go.opentelemetry.io/collector/filter v0.162.0
 	go.opentelemetry.io/collector/otelcol v0.162.0
 	go.opentelemetry.io/collector/pdata v1.68.0
 	go.opentelemetry.io/collector/pipeline v1.68.0
@@ -521,7 +522,6 @@ require (
 	go.opentelemetry.io/collector/extension/extensioncapabilities v0.162.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionmiddleware v0.162.0 // indirect
 	go.opentelemetry.io/collector/extension/zpagesextension v0.162.0 // indirect
-	go.opentelemetry.io/collector/filter v0.162.0 // indirect
 	go.opentelemetry.io/collector/internal/componentalias v0.162.0 // indirect
 	go.opentelemetry.io/collector/internal/fanoutconsumer v0.162.0 // indirect
 	go.opentelemetry.io/collector/internal/memorylimiter v0.162.0 // indirect
@@ -655,7 +655,7 @@ require (
 	github.com/golang/snappy v1.0.0
 	github.com/google/cadvisor v0.57.0 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.20 // indirect

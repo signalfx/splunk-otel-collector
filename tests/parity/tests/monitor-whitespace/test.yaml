@@ -1,0 +1,9 @@
+name: "Monitor whitespace"
+description: Leading and trailing spaces on a line are content, not padding.
+stage: alpha
+setup: |
+  printf '   padded line   \n' > foo.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

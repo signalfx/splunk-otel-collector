@@ -596,7 +596,6 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/Azure/go-amqp v1.7.0 // indirect
-	github.com/DrakeW/splunk-persistentconn v0.0.0-20190729070759-8df0dc91d0b1
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.38.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/SAP/go-hdb v1.18.9 // indirect

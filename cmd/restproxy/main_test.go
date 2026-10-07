@@ -21,23 +21,26 @@ import (
 	"strings"
 	"testing"
 
-	persistentconn "github.com/DrakeW/splunk-persistentconn"
+	persistentconn "github.com/signalfx/splunk-otel-collector/internal/splunkproxy"
 )
 
 func TestProxyForwardsRequestAndReturnsUpstreamResponse(t *testing.T) {
 	var gotMethod, gotPath, gotQuery, gotBody, gotHeader, gotConnection string
+	var gotHeaderContentType string
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotMethod = r.Method
 		gotPath = r.URL.Path
 		gotQuery = r.URL.Query().Get("format")
 		gotHeader = r.Header.Get("X-Request-ID")
 		gotConnection = r.Header.Get("Connection")
+		gotHeaderContentType = r.Header.Get("Content-Type")
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Errorf("read upstream request body: %v", err)
 			return
 		}
 		gotBody = string(body)
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
 		_, _ = io.WriteString(w, `{"accepted":true}`)
 	}))
@@ -48,8 +51,8 @@ func TestProxyForwardsRequestAndReturnsUpstreamResponse(t *testing.T) {
 		Method:  http.MethodPost,
 		Path:    "v1/traces",
 		Query:   map[string]string{"format": "json output"},
-		Headers: map[string]string{"X-Request-ID": "request-123", "Connection": "keep-alive"},
-		Payload: `{"resourceSpans":[]}`,
+		Headers: http.Header{"X-Request-ID": {"request-123"}, "Connection": {"keep-alive, X-Hop-By-Hop"}, "X-Hop-By-Hop": {"remove-me"}, "Content-Type": {"application/x-protobuf"}},
+		Body:    []byte(`{"resourceSpans":[]}`),
 	})
 	if err != nil {
 		t.Fatalf("proxy handler returned error: %v", err)
@@ -67,6 +70,9 @@ func TestProxyForwardsRequestAndReturnsUpstreamResponse(t *testing.T) {
 	if gotHeader != "request-123" {
 		t.Errorf("upstream X-Request-ID = %q, want %q", gotHeader, "request-123")
 	}
+	if gotHeaderContentType != "application/x-protobuf" {
+		t.Errorf("upstream Content-Type = %q, want %q", gotHeaderContentType, "application/x-protobuf")
+	}
 	if gotConnection != "" {
 		t.Errorf("hop-by-hop Connection header was forwarded: %q", gotConnection)
 	}
@@ -76,8 +82,47 @@ func TestProxyForwardsRequestAndReturnsUpstreamResponse(t *testing.T) {
 	if response.StatusCode != http.StatusAccepted {
 		t.Errorf("response status = %d, want %d", response.StatusCode, http.StatusAccepted)
 	}
-	if response.Body != `{"accepted":true}` {
+	if string(response.Body) != `{"accepted":true}` {
 		t.Errorf("response body = %q, want %q", response.Body, `{"accepted":true}`)
+	}
+	if response.Headers.Get("Content-Type") != "application/json" {
+		t.Errorf("response Content-Type = %q, want application/json", response.Headers.Get("Content-Type"))
+	}
+}
+
+func TestProxyUsesRestmapRouteAndForwardsBinaryPayload(t *testing.T) {
+	wantBody := []byte{0, 1, 2, 255}
+	var gotPath string
+	var gotBody []byte
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		gotBody, _ = io.ReadAll(r.Body)
+		w.Header().Set("Content-Type", "application/x-protobuf")
+		_, _ = w.Write([]byte{0x0a, 0x03, 0x08, 0x96, 0x01})
+	}))
+	defer upstream.Close()
+
+	handler := newProxyHandler(upstream.URL, upstream.Client())
+	response, err := handler(persistentconn.Request{
+		Method: http.MethodPost,
+		Path:   "/v1/traces",
+		Body:   wantBody,
+	})
+	if err != nil {
+		t.Fatalf("proxy handler returned error: %v", err)
+	}
+	if gotPath != "/v1/traces" {
+		t.Errorf("upstream path = %q, want /v1/traces", gotPath)
+	}
+	if string(gotBody) != string(wantBody) {
+		t.Errorf("upstream body = %v, want %v", gotBody, wantBody)
+	}
+	wantResponse := []byte{0x0a, 0x03, 0x08, 0x96, 0x01}
+	if string(response.Body) != string(wantResponse) {
+		t.Errorf("response body = %v, want %v", response.Body, wantResponse)
+	}
+	if got := response.Headers.Get("Content-Type"); got != "application/x-protobuf" {
+		t.Errorf("response Content-Type = %q, want application/x-protobuf", got)
 	}
 }
 
@@ -94,7 +139,7 @@ func TestProxyReturnsBadGatewayWhenUpstreamIsUnavailable(t *testing.T) {
 	if response.StatusCode != http.StatusBadGateway {
 		t.Errorf("response status = %d, want %d", response.StatusCode, http.StatusBadGateway)
 	}
-	if !strings.Contains(response.Body, "upstream request failed") {
+	if !strings.Contains(string(response.Body), "upstream request failed") {
 		t.Errorf("response body = %q, want upstream failure message", response.Body)
 	}
 }

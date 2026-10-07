@@ -174,7 +174,7 @@ func simpleLiteralBranch(re *syntax.Regexp) (literalBranch, bool) {
 	}
 
 	var branch literalBranch
-	for _, part := range parts {
+	for i, part := range parts {
 		for part.Op == syntax.OpCapture {
 			part = part.Sub[0]
 		}
@@ -182,6 +182,12 @@ func simpleLiteralBranch(re *syntax.Regexp) (literalBranch, bool) {
 		case syntax.OpBeginText:
 			branch.startAnchored = true
 		case syntax.OpEndText:
+			// An end anchor is only meaningful at the end of the branch. Accepting
+			// it earlier would turn an expression such as foo$bar, which cannot
+			// match, into the broader glob *foobar.
+			if i != len(parts)-1 || branch.endAnchored {
+				return literalBranch{}, false
+			}
 			branch.endAnchored = true
 		case syntax.OpLiteral:
 			if part.Flags&syntax.FoldCase != 0 {
@@ -201,6 +207,8 @@ func escapeGlobLiteral(value string) string {
 		`*`, `\*`,
 		`?`, `\?`,
 		`[`, `\[`,
+		`{`, `\{`,
+		`}`, `\}`,
 	)
 	return replacer.Replace(value)
 }

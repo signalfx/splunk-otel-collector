@@ -13,6 +13,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	fileinput "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/input/file"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/pipeline"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 	"github.com/stretchr/testify/require"
@@ -60,6 +61,23 @@ func TestMonitorDirectoryWithSplunkRegexWhitelist(t *testing.T) {
 	}
 	logger, _ := zap.NewDevelopment()
 	c := monitor{logger: logger}.InputConfig(cfg)
+	fileConfig, ok := c.Builder.(*fileinput.Config)
+	require.True(t, ok)
+	require.ElementsMatch(t, []string{
+		filepath.Join(tempDir, "*.log*"),
+		filepath.Join(tempDir, "*log"),
+		filepath.Join(tempDir, "*messages*"),
+		filepath.Join(tempDir, "*secure*"),
+		filepath.Join(tempDir, "*auth*"),
+		filepath.Join(tempDir, "*mesg"),
+		filepath.Join(tempDir, "*cron"),
+		filepath.Join(tempDir, "*acpid"),
+		filepath.Join(tempDir, "*.out*"),
+	}, fileConfig.Include)
+	require.ElementsMatch(t, []string{
+		filepath.Join(tempDir, "*lastlog*"),
+		filepath.Join(tempDir, "*anaconda.syslog*"),
+	}, fileConfig.Exclude)
 	o, err := c.Build(component.TelemetrySettings{
 		Logger:         logger,
 		TracerProvider: nooptrace.NewTracerProvider(),

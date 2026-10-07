@@ -37,6 +37,19 @@
                     <key name="exampleText">0.0.0.0</key>
                     <key name="helpText">The listening address to bind the receiver to</key>
                 </element>
+                <element name="realm" label="Splunk Observability Realm" required="false">
+                    <view name="list"/>
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">us0</key>
+                    <key name="helpText">The Splunk Observability realm. When filled, the application will attempt to send metrics and traces to that destination. (us0, eu0, au0, etc)</key>
+                </element>
+                <element name="access_token" label="Splunk Observability Access Token" required="false">
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">accessToken</key>
+                    <key name="helpText">The Splunk Observability access token.</key>
+                </element>
                 <element name="enableSSL" label="Enable SSL" required="false">
                     <view name="list"/>
                     <view name="edit"/>

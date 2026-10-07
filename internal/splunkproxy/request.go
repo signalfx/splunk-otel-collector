@@ -96,8 +96,8 @@ type Request struct {
 	Params     map[string]string
 	OutputMode string
 	Method     string
-	Body       []byte
 	Path       string
+	Body       []byte
 	isInit     bool
 }
 

@@ -228,6 +228,7 @@ jobs:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: otel-linux-large
     strategy:
+      fail-fast: false
       matrix:
         output: [ "sarif", "stdout" ]
     steps:

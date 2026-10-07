@@ -22,6 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 )
@@ -29,6 +30,33 @@ import (
 const (
 	defaultTimeout = 5 * time.Second
 )
+
+func TestDeriveEndpointFromRealm(t *testing.T) {
+	tests := []struct {
+		name  string
+		realm string
+		want  string
+	}{
+		{name: "US realm", realm: "us0", want: "https://ingest.us0.observability.splunkcloud.com"},
+		{name: "EU realm", realm: "eu0", want: "https://ingest.eu0.observability.splunkcloud.com"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, deriveEndpointFromRealm(tt.realm))
+		})
+	}
+}
+
+func TestNewObservabilityExporterConfig(t *testing.T) {
+	cfg := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
+	cfg = newObservabilityExporterConfig("eu0", "test-access-token", cfg)
+
+	require.Equal(t, "https://ingest.eu0.observability.splunkcloud.com", cfg.MetricsEndpoint)
+	require.Equal(t, cfg.MetricsEndpoint, cfg.TracesEndpoint)
+	token, ok := cfg.ClientConfig.Headers.Get("X-SF-Token")
+	require.True(t, ok)
+	require.Equal(t, "test-access-token", string(token))
+}
 
 func TestMainPrintsScheme(t *testing.T) {
 	output := CaptureStdout(t, func() {

@@ -12,6 +12,8 @@ import (
 	"os"
 	"runtime/debug"
 
+	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -92,13 +94,26 @@ func run() error {
 	if le, err = f.CreateLogs(ctx, telemetrySettings, stdoutCfg); err != nil {
 		return err
 	}
-	if me, err = f.CreateMetrics(ctx, telemetrySettings, stdoutCfg); err != nil {
-		return err
+	if xmlCfg.Realm == "" {
+		if me, err = f.CreateMetrics(ctx, telemetrySettings, stdoutCfg); err != nil {
+			return err
+		}
+		if tracesExporter, err = f.CreateTraces(ctx, telemetrySettings, stdoutCfg); err != nil {
+			return err
+		}
+
+		logger.Info("Configured exporter for local export of metrics and traces")
+	} else {
+		oef := otlphttpexporter.NewFactory()
+		oefCfg := newObservabilityExporterConfig(xmlCfg.Realm, xmlCfg.AccessToken, oef.CreateDefaultConfig().(*otlphttpexporter.Config))
+		if me, err = oef.CreateMetrics(ctx, telemetrySettings, oefCfg); err != nil {
+			return err
+		}
+		if tracesExporter, err = oef.CreateTraces(ctx, telemetrySettings, oefCfg); err != nil {
+			return err
+		}
+		logger.Info("Configured exporter for export of metrics and traces to " + xmlCfg.Realm)
 	}
-	if tracesExporter, err = f.CreateTraces(ctx, telemetrySettings, stdoutCfg); err != nil {
-		return err
-	}
-	logger.Info("Configured exporter")
 
 	rf := otlpreceiver.NewFactory()
 	cfg := rf.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -152,6 +167,18 @@ func run() error {
 	err = h.Wait()
 
 	return errors.Join(err, r.Shutdown(ctx), le.Shutdown(ctx), tracesExporter.Shutdown(ctx), me.Shutdown(ctx))
+}
+
+func deriveEndpointFromRealm(realm string) string {
+	return fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com", realm)
+}
+
+func newObservabilityExporterConfig(realm, accessToken string, cfg *otlphttpexporter.Config) *otlphttpexporter.Config {
+	endpoint := deriveEndpointFromRealm(realm)
+	cfg.MetricsEndpoint = endpoint
+	cfg.TracesEndpoint = endpoint
+	cfg.ClientConfig.Headers.Set("X-SF-Token", configopaque.String(accessToken))
+	return cfg
 }
 
 func createLogger() (*zap.Logger, error) {

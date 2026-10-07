@@ -1,5 +1,0 @@
-change_type: breaking
-component: smartagent/logstash
-note: Remove the deprecated logstash Smart Agent monitor.
-issues: [8148]
-subtext:

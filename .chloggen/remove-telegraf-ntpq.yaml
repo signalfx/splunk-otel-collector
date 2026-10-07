@@ -1,5 +1,0 @@
-change_type: breaking
-component: telegraf/ntpq
-note: Remove the deprecated telegraf/ntpq monitor. Use the NTP receiver instead.
-issues: [8151]
-subtext:

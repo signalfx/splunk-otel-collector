@@ -1,0 +1,10 @@
+name: "Monitor sourcetype"
+description: A monitor stanza's sourcetype= overrides the auto-assigned one.
+stage: alpha
+setup: |
+  echo "sourcetyped line" > foo.txt
+expected:
+  raw: true
+  host: true
+  sourcetype: true
+os: ["darwin", "linux"]

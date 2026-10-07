@@ -1,0 +1,12 @@
+name: "Monitor lines"
+description: |
+  Each timestamped line of a monitored file lands as its own event. The lines
+  carry a timestamp because the indexer merges consecutive lines that do not,
+  and a case cannot configure the indexer to stop.
+stage: alpha
+setup: |
+  printf '2026-01-02 03:04:05 alpha\n2026-01-02 03:04:06 bravo\n2026-01-02 03:04:07 charlie\n' > foo.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

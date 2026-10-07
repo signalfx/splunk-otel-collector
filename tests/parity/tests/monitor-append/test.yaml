@@ -1,0 +1,13 @@
+name: "Monitor append"
+description: |
+  A line appended while the agent runs lands as a second event. Both lines carry
+  a timestamp because the indexer merges consecutive lines that do not.
+stage: alpha
+setup: |
+  printf '2026-01-02 03:04:05 first line\n' > foo.txt
+script: |
+  printf '2026-01-02 03:04:06 second line\n' >> foo.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

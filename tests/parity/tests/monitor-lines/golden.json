@@ -1,0 +1,14 @@
+[
+  {
+    "raw": "2026-01-02 03:04:07 charlie",
+    "host": "parityhost"
+  },
+  {
+    "raw": "2026-01-02 03:04:06 bravo",
+    "host": "parityhost"
+  },
+  {
+    "raw": "2026-01-02 03:04:05 alpha",
+    "host": "parityhost"
+  }
+]

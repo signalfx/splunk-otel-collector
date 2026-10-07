@@ -1,0 +1,9 @@
+name: "Monitor utf8"
+description: Non-ASCII text, quotes and tabs survive a monitored file unchanged.
+stage: alpha
+setup: |
+  printf 'h\xc3\xa9llo w\xc3\xb6rld \xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e "quoted"\tafter-tab\n' > foo.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

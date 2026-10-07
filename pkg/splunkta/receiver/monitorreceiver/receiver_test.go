@@ -63,21 +63,28 @@ func TestMonitorDirectoryWithSplunkRegexWhitelist(t *testing.T) {
 	c := monitor{logger: logger}.InputConfig(cfg)
 	fileConfig, ok := c.Builder.(*fileinput.Config)
 	require.True(t, ok)
-	require.ElementsMatch(t, []string{
-		filepath.Join(tempDir, "*.log*"),
-		filepath.Join(tempDir, "*log"),
-		filepath.Join(tempDir, "*messages*"),
-		filepath.Join(tempDir, "*secure*"),
-		filepath.Join(tempDir, "*auth*"),
-		filepath.Join(tempDir, "*mesg"),
-		filepath.Join(tempDir, "*cron"),
-		filepath.Join(tempDir, "*acpid"),
-		filepath.Join(tempDir, "*.out*"),
-	}, fileConfig.Include)
-	require.ElementsMatch(t, []string{
-		filepath.Join(tempDir, "*lastlog*"),
-		filepath.Join(tempDir, "*anaconda.syslog*"),
-	}, fileConfig.Exclude)
+	if filepath.Separator == '/' {
+		require.ElementsMatch(t, []string{
+			filepath.Join(tempDir, "*.log*"),
+			filepath.Join(tempDir, "*log"),
+			filepath.Join(tempDir, "*messages*"),
+			filepath.Join(tempDir, "*secure*"),
+			filepath.Join(tempDir, "*auth*"),
+			filepath.Join(tempDir, "*mesg"),
+			filepath.Join(tempDir, "*cron"),
+			filepath.Join(tempDir, "*acpid"),
+			filepath.Join(tempDir, "*.out*"),
+		}, fileConfig.Include)
+		require.ElementsMatch(t, []string{
+			filepath.Join(tempDir, "*lastlog*"),
+			filepath.Join(tempDir, "*anaconda.syslog*"),
+		}, fileConfig.Exclude)
+	} else {
+		// Regex-to-glob conversion is deliberately limited to Unix paths. Other
+		// platforms retain broad discovery and the downstream regex operators.
+		require.Equal(t, []string{filepath.Join(tempDir, "*")}, fileConfig.Include)
+		require.Empty(t, fileConfig.Exclude)
+	}
 	o, err := c.Build(component.TelemetrySettings{
 		Logger:         logger,
 		TracerProvider: nooptrace.NewTracerProvider(),

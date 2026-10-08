@@ -103,10 +103,9 @@ func mapInputs(inputs []conf.Input, props []conf.Prop, transforms []conf.Transfo
 		case "wineventlog", "WinEventLog":
 			c = emitWineventlog(st, name, props, transforms)
 		default:
-			// Includes the unprefixed form ([my_script]), which resolves under
-			// bin/<os>_<arch>/ rather than as a plain path. Routing it through
-			// splunk_script would silently change where the executable is found,
-			// so it is reported as unsupported instead.
+			// Includes the unprefixed form ([my_script]), which inputs.conf.spec
+			// defines as a modular-input scheme defaults stanza rather than an
+			// input, so there is nothing to collect for it.
 			skipped = append(skipped, st.Name)
 			continue
 		}

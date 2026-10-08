@@ -251,7 +251,7 @@ func TestStanzasNotEmitted(t *testing.T) {
 		{
 			name: "unprefixed stanza name",
 			slug: "my-bare-script",
-			why:  "resolves under bin/<os>_<arch>/, so routing it through splunk_script would move the executable",
+			why:  "a modular-input scheme defaults stanza, not an input, so there is nothing to collect for it",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,7 +1,0 @@
-change_type: enhancement
-component: installer
-note: Documentation for running OTEL on Windows dedicated service account
-issues: [8200]
-subtext: |
-  The Splunk OpenTelemetry Collector can run as the Windows virtual service account `NT SERVICE\splunk-otel-collector`.
-  This passwordless account is dedicated to the Collector service and limits its access compared with LocalSystem.

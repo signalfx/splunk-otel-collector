@@ -216,3 +216,32 @@ func TestCleanup(t *testing.T) {
 		t.Errorf("Cleanup = %v, want nil", err)
 	}
 }
+
+// A bare filename is system config; a nested path is mirrored, so an app in the
+// case's conf/ is an installed app in the sandbox $SPLUNK_HOME too.
+func TestInstallConfLayout(t *testing.T) {
+	dir := t.TempDir()
+	rels := []string{"inputs.conf", "apps/my_app/local/inputs.conf"}
+	for _, rel := range rels {
+		p := filepath.Join(dir, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte("x"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	a := New("bin")
+	if err := a.installConf(dir, rels); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		filepath.Join("etc", "system", "local", "inputs.conf"),
+		filepath.Join("etc", "apps", "my_app", "local", "inputs.conf"),
+	} {
+		if _, err := os.Stat(filepath.Join(a.splunkHome, want)); err != nil {
+			t.Errorf("%s not installed: %v", want, err)
+		}
+	}
+}

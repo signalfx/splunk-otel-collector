@@ -182,3 +182,23 @@ func readFile(t *testing.T, path string) string {
 	}
 	return string(b)
 }
+
+// A bare filename is system config, the way every case has worked; a nested
+// path is mirrored, so a case can install an app under etc/apps.
+func TestConfPath(t *testing.T) {
+	a := &Adapter{installDir: filepath.Join("install", "uf")}
+	for _, tt := range []struct {
+		rel  string
+		want string
+	}{
+		{rel: "inputs.conf", want: filepath.Join("install", "uf", "etc", "system", "local", "inputs.conf")},
+		{rel: "outputs.conf", want: filepath.Join("install", "uf", "etc", "system", "local", "outputs.conf")},
+		{rel: "apps/my_app/local/inputs.conf", want: filepath.Join("install", "uf", "etc", "apps", "my_app", "local", "inputs.conf")},
+	} {
+		t.Run(tt.rel, func(t *testing.T) {
+			if got := a.confPath(tt.rel); got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

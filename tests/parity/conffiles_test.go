@@ -60,32 +60,10 @@ func TestConfFiles(t *testing.T) {
 	}
 }
 
+// The runner always creates the config dir before Prepare, so an absent one
+// means something upstream is broken and must not read as "no conf files".
 func TestConfFilesMissingDir(t *testing.T) {
-	got, err := parity.ConfFiles(filepath.Join(t.TempDir(), "absent"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(got) != 0 {
-		t.Errorf("got %v, want none", got)
-	}
-}
-
-// A bare filename is system config, the way every case has worked; a nested
-// path is mirrored so a case can install an app.
-func TestConfDest(t *testing.T) {
-	for _, tt := range []struct {
-		rel  string
-		want string
-	}{
-		{rel: "inputs.conf", want: filepath.Join("system", "local", "inputs.conf")},
-		{rel: "outputs.conf", want: filepath.Join("system", "local", "outputs.conf")},
-		{rel: "apps/my_app/local/inputs.conf", want: filepath.Join("apps", "my_app", "local", "inputs.conf")},
-		{rel: "apps/my_app/default/app.conf", want: filepath.Join("apps", "my_app", "default", "app.conf")},
-	} {
-		t.Run(tt.rel, func(t *testing.T) {
-			if got := parity.ConfDest(tt.rel); got != tt.want {
-				t.Errorf("got %q, want %q", got, tt.want)
-			}
-		})
+	if _, err := parity.ConfFiles(filepath.Join(t.TempDir(), "absent")); err == nil {
+		t.Error("expected an error for a missing dir")
 	}
 }

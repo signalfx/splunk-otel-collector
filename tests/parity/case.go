@@ -22,16 +22,20 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Case is one parity test loaded from a test.yaml: shell setup/script hooks and
-// the fields to compare. The agent configs live beside it in the case directory,
-// not in here.
+// Case is one parity test loaded from a test.yaml: shell hooks and the fields to
+// compare. The agent configs live beside it in the case directory, not in here.
 type Case struct {
-	Name        string   `yaml:"name"`
-	Description string   `yaml:"description"`
-	Stage       string   `yaml:"stage"`
-	Setup       string   `yaml:"setup"`  // shell run before the agent starts
-	Script      string   `yaml:"script"` // shell run after the agent starts
-	OS          []string `yaml:"os"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Stage       string `yaml:"stage"`
+	Setup       string `yaml:"setup"`  // shell run before the agent starts
+	Script      string `yaml:"script"` // shell run after the agent starts
+	// Observe reports an effect that is not an event, such as a batched input
+	// file being consumed. Its stdout is the observation: generating captures the
+	// oracle's into ObservedFile and a replay compares the candidate's against
+	// it, so the hook itself asserts nothing.
+	Observe string   `yaml:"observe"`
+	OS      []string `yaml:"os"`
 	// Expected is last because its trailing booleans pack better there.
 	Expected Expected `yaml:"expected"` // the fields this case compares
 }

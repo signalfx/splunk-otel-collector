@@ -1,0 +1,17 @@
+name: "Batch sinkhole"
+description: |
+  A batched file is consumed: the agent deletes it once it has been read. A
+  deletion is not an event, so the golden cannot carry it and the observe hook
+  reports it instead. The oracle deletes because of move_policy=sinkhole, which
+  UF requires on a batch stanza, and the candidate because batchreceiver sets
+  delete_after_read, which is the only thing it does differently from
+  monitorreceiver.
+stage: alpha
+setup: |
+  echo "consumed line" > foo.txt
+observe: |
+  ls foo.txt >/dev/null 2>&1 && echo present || echo absent
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

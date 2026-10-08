@@ -15,11 +15,13 @@
 package parity
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -71,32 +73,54 @@ func (o RunOptions) withDefaults() RunOptions {
 // UF-vs-candidate path, where both sides are captured in the same run rather
 // than one being replayed from a golden.
 func RunCase(ctx context.Context, c *Case, backend Backend, oracle, candidate AgentRun, v Validator, opts RunOptions) (Result, error) {
-	candidateRecords, err := RunAgent(ctx, c, candidate, backend, opts)
+	candidateCapture, err := RunAgent(ctx, c, candidate, backend, opts)
 	if err != nil {
 		return Result{}, fmt.Errorf("candidate %s: %w", candidate.Adapter.Name(), err)
 	}
-	reference, err := RunAgent(ctx, c, oracle, backend, opts)
+	oracleCapture, err := RunAgent(ctx, c, oracle, backend, opts)
 	if err != nil {
 		return Result{}, fmt.Errorf("oracle %s: %w", oracle.Adapter.Name(), err)
 	}
 	// The reference is projected so only the selected fields take part; the
 	// validator then ignores everything the candidate has beyond them.
+	reference := oracleCapture.Records
 	for i, r := range reference {
 		reference[i] = project(r, c.Expected)
 	}
-	return v.Validate(reference, candidateRecords), nil
+	res := v.Validate(reference, candidateCapture.Records)
+
+	// The validator only knows about records, so the observation is compared
+	// here. Leaving it out would make a case's observe hook silently inert on
+	// this path.
+	if c.Observe != "" && candidateCapture.Observation != oracleCapture.Observation {
+		res.Mismatches = append(res.Mismatches, Mismatch{
+			Record:   -1,
+			Field:    "observation",
+			Expected: oracleCapture.Observation,
+			Actual:   candidateCapture.Observation,
+		})
+		res.Match = false
+	}
+	return res, nil
 }
 
-// RunAgent drives one agent through one case and returns the events it landed in
-// Splunk. It owns a fresh sandbox: render configs, run setup, start the agent,
-// run the script, poll the backend for this agent's index until the event count
-// settles, then tear down.
-func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts RunOptions) ([]Record, error) {
+// Capture is what one agent run produced: the events it landed in Splunk and,
+// for a case with an observe hook, that hook's settled output.
+type Capture struct {
+	Records     []Record
+	Observation string
+}
+
+// RunAgent drives one agent through one case and returns what it produced. It
+// owns a fresh sandbox: render configs, run setup, start the agent, run the
+// script, poll the backend for this agent's index until the event count settles,
+// read the observe hook, then tear down.
+func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts RunOptions) (Capture, error) {
 	opts = opts.withDefaults()
 
 	baseDir, err := os.MkdirTemp("", "parity-"+sanitize(c.Name)+"-")
 	if err != nil {
-		return nil, fmt.Errorf("sandbox: %w", err)
+		return Capture{}, fmt.Errorf("sandbox: %w", err)
 	}
 	defer os.RemoveAll(baseDir)
 
@@ -110,33 +134,33 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 
 	configDir := filepath.Join(baseDir, "config")
 	if err := os.MkdirAll(configDir, 0o755); err != nil {
-		return nil, err
+		return Capture{}, err
 	}
 	for name, tmpl := range run.ConfigFiles {
 		if err := os.WriteFile(filepath.Join(configDir, name), []byte(tokens.apply(tmpl)), 0o600); err != nil {
-			return nil, err
+			return Capture{}, err
 		}
 	}
 
 	if err := run.Adapter.Prepare(configDir); err != nil {
-		return nil, fmt.Errorf("prepare: %w", err)
+		return Capture{}, fmt.Errorf("prepare: %w", err)
 	}
 	defer run.Adapter.Cleanup()
 
 	if c.Setup != "" {
 		if err := runShell(ctx, opts.Shell, tokens.apply(c.Setup), baseDir); err != nil {
-			return nil, fmt.Errorf("setup: %w", err)
+			return Capture{}, fmt.Errorf("setup: %w", err)
 		}
 	}
 
 	if err := run.Adapter.Start(ctx); err != nil {
-		return nil, fmt.Errorf("start: %w", err)
+		return Capture{}, fmt.Errorf("start: %w", err)
 	}
 	defer run.Adapter.Stop(ctx)
 
 	if c.Script != "" {
 		if err := runShell(ctx, opts.Shell, tokens.apply(c.Script), baseDir); err != nil {
-			return nil, fmt.Errorf("script: %w", err)
+			return Capture{}, fmt.Errorf("script: %w", err)
 		}
 	}
 
@@ -145,7 +169,78 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 		spl = "search index=${INDEX}"
 	}
 	spl = tokens.apply(spl)
-	return waitForEvents(ctx, backend, spl, opts)
+	recs, err := waitForEvents(ctx, backend, spl, opts)
+	capture := Capture{Records: recs}
+	if err != nil {
+		return capture, err
+	}
+
+	// The agent stays running: the hook reports what it did while reading, not
+	// what it cleaned up on shutdown.
+	if c.Observe != "" {
+		obs, err := waitForObservation(ctx, tokens.apply(c.Observe), baseDir, opts)
+		if err != nil {
+			return capture, fmt.Errorf("observe: %w", err)
+		}
+		capture.Observation = obs
+	}
+	return capture, nil
+}
+
+// observePoll is how often an observe hook is re-run while waiting for its
+// output to settle.
+const observePoll = 500 * time.Millisecond
+
+// waitForObservation runs the case's observe hook until its output is unchanged
+// for Quiescence, or Timeout elapses, and returns that output with surrounding
+// whitespace trimmed.
+//
+// It polls because an effect can trail the events that preceded it: fileconsumer
+// emits a batched file's lines before it unlinks the file, so the events can go
+// quiet while the deletion is still pending. Polling until the output settles is
+// the same shape as the event capture loop, and it runs identically for both
+// agents, so the oracle's reference and the candidate's value are produced the
+// same way.
+//
+// The hook reports through stdout and must exit 0; a non-zero exit is a broken
+// hook, not a failed assertion. Comparing the output against the oracle's is
+// what makes the assertion, and that happens in the caller.
+func waitForObservation(ctx context.Context, script, dir string, opts RunOptions) (string, error) {
+	deadline := time.Now().Add(opts.Timeout)
+	out, err := observeOnce(ctx, opts.Shell, script, dir)
+	if err != nil {
+		return "", err
+	}
+	stableSince := time.Now()
+	for time.Since(stableSince) < opts.Quiescence && !time.Now().After(deadline) {
+		if ctx.Err() != nil {
+			return out, ctx.Err()
+		}
+		time.Sleep(observePoll)
+		next, err := observeOnce(ctx, opts.Shell, script, dir)
+		if err != nil {
+			return out, err
+		}
+		if next != out {
+			out = next
+			stableSince = time.Now()
+		}
+	}
+	return out, nil
+}
+
+// observeOnce runs the hook once and returns its trimmed stdout. stderr is kept
+// out of the observation so a warning on it cannot change the comparison.
+func observeOnce(ctx context.Context, shell, script, dir string) (string, error) {
+	cmd := exec.CommandContext(ctx, shell, "-c", script)
+	cmd.Dir = dir
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("%w: %s", err, stderr.String())
+	}
+	return strings.TrimSpace(stdout.String()), nil
 }
 
 // waitForEvents polls Search until the event count is >= MinEvents and stable

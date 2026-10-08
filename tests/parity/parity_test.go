@@ -277,8 +277,8 @@ func TestRunAgent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RunAgent: %v", err)
 	}
-	if len(got) != 1 || got[0].Raw != rec.Raw || got[0].Host != rec.Host || got[0].Index != rec.Index {
-		t.Errorf("records = %+v, want %+v", got, []Record{rec})
+	if len(got.Records) != 1 || got.Records[0].Raw != rec.Raw || got.Records[0].Host != rec.Host || got.Records[0].Index != rec.Index {
+		t.Errorf("records = %+v, want %+v", got.Records, []Record{rec})
 	}
 	if a.inputsConf != "index=parity_uc\nhost=myhost" {
 		t.Errorf("inputs.conf not interpolated: %q", a.inputsConf)
@@ -334,8 +334,117 @@ func TestRunAgentTimeoutReturnsLast(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RunAgent: %v", err)
 	}
-	if len(got) != 0 {
-		t.Errorf("want no records on timeout, got %+v", got)
+	if len(got.Records) != 0 {
+		t.Errorf("want no records on timeout, got %+v", got.Records)
+	}
+}
+
+// TestRunCaseObservationMismatch checks RunCase compares the observation too.
+// The validator only sees records, so without the explicit comparison a case's
+// observe hook would be inert on this path.
+func TestRunCaseObservationMismatch(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	oracle := AgentRun{Adapter: &fakeAdapter{name: "uf", dir: t.TempDir()}, Index: "parity_uf"}
+	candidate := AgentRun{Adapter: &fakeAdapter{name: "oc", dir: t.TempDir()}, Index: "parity_uc"}
+	// Each agent gets its own sandbox, so reporting its name makes the two
+	// observations differ without needing the adapters to behave differently.
+	c := &Case{Name: "c", Observe: "basename $(pwd)"}
+
+	res, err := RunCase(context.Background(), c, backend, oracle, candidate, SubsetValidator{}, fastOpts())
+	if err != nil {
+		t.Fatalf("RunCase: %v", err)
+	}
+	if res.Match {
+		t.Fatal("want a mismatch when the observations differ")
+	}
+	var found bool
+	for _, m := range res.Mismatches {
+		if m.Field == "observation" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("want an observation mismatch, got %+v", res.Mismatches)
+	}
+}
+
+// TestRunAgentObserve covers the observe hook's happy path: its stdout becomes
+// the capture's observation, trimmed, with stderr left out.
+func TestRunAgentObserve(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Observe: "echo noise >&2; echo '  absent  '"}
+	got, err := RunAgent(context.Background(), c, run, backend, fastOpts())
+	if err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if got.Observation != "absent" {
+		t.Errorf("observation = %q, want %q", got.Observation, "absent")
+	}
+}
+
+// TestRunAgentObserveRunsInSandbox checks the hook sees the sandbox the setup
+// hook wrote to, which is what lets it report on the case's input files.
+func TestRunAgentObserveRunsInSandbox(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{
+		Name:    "c",
+		Setup:   "echo hi > foo.txt",
+		Observe: "ls foo.txt >/dev/null 2>&1 && echo present || echo absent",
+	}
+	got, err := RunAgent(context.Background(), c, run, backend, fastOpts())
+	if err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if got.Observation != "present" {
+		t.Errorf("observation = %q, want %q", got.Observation, "present")
+	}
+}
+
+// TestRunAgentObserveError checks a hook that cannot run is a run error rather
+// than an empty observation that would be compared and quietly mismatch.
+func TestRunAgentObserveError(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Observe: "exit 7"}
+	if _, err := RunAgent(context.Background(), c, run, backend, fastOpts()); err == nil {
+		t.Fatal("expected observe error")
+	}
+}
+
+// TestWaitForObservationSettles checks the loop waits out an output that is
+// still changing instead of recording the first sample. The hook reports
+// present until the marker file appears, which stands in for an effect that
+// trails the events, like fileconsumer unlinking after it has emitted.
+func TestWaitForObservationSettles(t *testing.T) {
+	dir := t.TempDir()
+	script := `if [ -e marker ]; then echo absent; else : > marker; echo present; fi`
+	opts := RunOptions{Shell: "bash", Quiescence: 300 * time.Millisecond, Timeout: 5 * time.Second}
+	got, err := waitForObservation(context.Background(), script, dir, opts)
+	if err != nil {
+		t.Fatalf("waitForObservation: %v", err)
+	}
+	if got != "absent" {
+		t.Errorf("observation = %q, want %q", got, "absent")
+	}
+}
+
+// TestWaitForObservationTimeoutReturnsLast checks an output that never settles
+// yields the last sample rather than an error, so the comparison against the
+// oracle reports the mismatch.
+func TestWaitForObservationTimeoutReturnsLast(t *testing.T) {
+	dir := t.TempDir()
+	opts := RunOptions{Shell: "bash", Quiescence: time.Hour, Timeout: 600 * time.Millisecond}
+	got, err := waitForObservation(context.Background(), "echo stuck", dir, opts)
+	if err != nil {
+		t.Fatalf("waitForObservation: %v", err)
+	}
+	if got != "stuck" {
+		t.Errorf("observation = %q, want %q", got, "stuck")
 	}
 }
 

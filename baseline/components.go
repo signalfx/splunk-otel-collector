@@ -45,6 +45,7 @@ import (
 	textencodingextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension"
 	headerssetterextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	healthcheckextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
+	healthcheckv2extension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckv2extension"
 	httpforwarderextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
 	k8sleaderelector "github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector"
 	oauth2clientauthextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
@@ -173,6 +174,7 @@ func NewBaseline() *Baseline {
 			googlecloudlogentryencodingextension.NewFactory(),
 			headerssetterextension.NewFactory(),
 			healthcheckextension.NewFactory(),
+			healthcheckv2extension.NewFactory(),
 			hostobserver.NewFactory(),
 			httpforwarderextension.NewFactory(),
 			k8sleaderelector.NewFactory(),

@@ -21,8 +21,9 @@ type Name struct {
 // ParseName splits a Splunk stanza name without applying URL semantics.
 //
 // Splunk uses the form kind://target for many inputs, but the target can be a
-// path, an event log channel, or a network-specific value. Unprefixed names
-// are returned with an empty Kind and are used by scripted inputs.
+// path, an event log channel, or a network-specific value. Unprefixed names are
+// returned with an empty Kind; inputs.conf.spec defines no unprefixed form that
+// declares an input, so callers treat them as unsupported.
 func ParseName(raw string) (Name, error) {
 	if kind, target, ok := strings.Cut(raw, "://"); ok {
 		if kind == "" {

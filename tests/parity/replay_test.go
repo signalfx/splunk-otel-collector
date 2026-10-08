@@ -312,15 +312,16 @@ func optionalCaseFile(t *testing.T, casePath, name string) (string, bool) {
 func caseConf(t *testing.T, casePath string) map[string]string {
 	t.Helper()
 	dir := filepath.Join(filepath.Dir(casePath), confDir)
-	paths, err := filepath.Glob(filepath.Join(dir, "*.conf"))
+	rels, err := parity.ConfFiles(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(paths) == 0 {
+	if len(rels) == 0 {
 		t.Fatalf("no *.conf files in %s", dir)
 	}
-	files := make(map[string]string, len(paths))
-	for _, p := range paths {
+	files := make(map[string]string, len(rels))
+	for _, rel := range rels {
+		p := filepath.Join(dir, filepath.FromSlash(rel))
 		b, err := os.ReadFile(p)
 		if err != nil {
 			t.Fatalf("read %s: %v", p, err)
@@ -328,7 +329,7 @@ func caseConf(t *testing.T, casePath string) map[string]string {
 		if len(b) == 0 {
 			t.Errorf("%s is empty", p)
 		}
-		files[filepath.Base(p)] = string(b)
+		files[rel] = string(b)
 	}
 	return files
 }

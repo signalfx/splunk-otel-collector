@@ -38,7 +38,7 @@ func newSplunkInputsReceiver(splunkHome string, options factoryOptions, settings
 
 func (r *splunkInputsReceiver) Start(ctx context.Context, host component.Host) error {
 	r.handler.host = host
-	taDirs, err := tabuilder.DiscoverTAs(r.splunkHome)
+	taDirs, err := tabuilder.DiscoverApps(r.splunkHome)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string
 		_ = r.watcher.Add(filepath.Join(r.splunkHome, "etc", "apps"))
 	}
 
-	current, err := tabuilder.DiscoverTAs(r.splunkHome)
+	current, err := tabuilder.DiscoverApps(r.splunkHome)
 	if err != nil {
 		logger.Error("splunk_inputs: failed to discover TAs", zap.Error(err))
 		return err

@@ -1,0 +1,13 @@
+name: "App-scoped monitor input"
+description: >
+  A monitor input declared by an app whose name does not start with splunk_ta_.
+  splunkd admits every app in the bundle regardless of name, so the oracle reads
+  the stanza and lands the event; the candidate has to do the same. Without the
+  event, the app contributed nothing and its inputs were dropped silently.
+stage: alpha
+setup: |
+  echo "app scoped text" > app.log
+script:
+expected:
+  raw: true
+os: ["darwin", "linux", "windows"]

@@ -1,0 +1,5 @@
+change_type: enhancement
+component: receiver/ptp
+note: Add a Dockerized integration test that exercises the receiver against a real linuxptp ptp4l/pmc deployment.
+issues: [8221]
+subtext:

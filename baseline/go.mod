@@ -24,6 +24,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension v0.162.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.162.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.162.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckv2extension v0.162.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.162.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector v0.162.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.162.0

@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -131,18 +130,14 @@ func TestParity(t *testing.T) {
 				t.Fatalf("load golden (run with -update to generate): %v", err)
 			}
 
-			capture, err := parity.RunAgent(ctx, c, candidateRun(t, path, index), backend, opts)
+			ucRecs, err := parity.RunAgent(ctx, c, candidateRun(t, path, index), backend, opts)
 			if err != nil {
 				t.Fatalf("run otelcol candidate: %v", err)
 			}
 
 			// The golden holds only the asserted fields, so SubsetValidator
 			// compares the candidate on exactly those fields and ignores the rest.
-			assertMatch(t, parity.SubsetValidator{}.Validate(golden, capture.Records), golden, capture.Records)
-
-			if c.Observe != "" {
-				assertObserved(t, filepath.Dir(path), capture.Observation)
-			}
+			assertMatch(t, parity.SubsetValidator{}.Validate(golden, ucRecs), golden, ucRecs)
 		})
 	}
 }
@@ -180,18 +175,6 @@ func TestCases(t *testing.T) {
 			caseConf(t, path)
 			if caseFile(t, path, parity.GoldenFile) == "" {
 				t.Errorf("%s is empty", parity.GoldenFile)
-			}
-			// An observe hook and its reference have to arrive together, or a
-			// replay would either compare against nothing or silently skip a
-			// reference that is checked in.
-			observed, hasObserved := optionalCaseFile(t, path, parity.ObservedFile)
-			switch {
-			case c.Observe != "" && !hasObserved:
-				t.Errorf("case has an observe hook but no %s (run with -update)", parity.ObservedFile)
-			case c.Observe == "" && hasObserved:
-				t.Errorf("case has %s but no observe hook", parity.ObservedFile)
-			case hasObserved && strings.TrimSpace(observed) == "":
-				t.Errorf("%s is empty", parity.ObservedFile)
 			}
 			// collector.yaml is optional, but present and empty is a mistake.
 			if config, ok := optionalCaseFile(t, path, collectorConfigFile); ok && config == "" {
@@ -359,41 +342,17 @@ func regenerateGolden(ctx context.Context, t *testing.T, c *parity.Case, ufConf 
 		ConfigFiles: ufConf,
 		Index:       index,
 	}
-	capture, err := parity.RunAgent(ctx, c, ufRun, backend, opts)
+	ufRecs, err := parity.RunAgent(ctx, c, ufRun, backend, opts)
 	if err != nil {
 		t.Fatalf("run UF oracle: %v", err)
 	}
-	if len(capture.Records) == 0 {
+	if len(ufRecs) == 0 {
 		t.Fatalf("UF landed no events; not writing an empty %s", goldenPath)
 	}
-	if err := parity.WriteGolden(goldenPath, capture.Records, c.Expected); err != nil {
+	if err := parity.WriteGolden(goldenPath, ufRecs, c.Expected); err != nil {
 		t.Fatalf("write golden: %v", err)
 	}
-	t.Logf("regenerated %s from UF (%d record(s))", goldenPath, len(capture.Records))
-
-	if c.Observe == "" {
-		return
-	}
-	observedPath := filepath.Join(filepath.Dir(goldenPath), parity.ObservedFile)
-	if err := parity.WriteObserved(observedPath, capture.Observation); err != nil {
-		t.Fatalf("write observed: %v", err)
-	}
-	t.Logf("regenerated %s from UF (%q)", observedPath, capture.Observation)
-}
-
-// assertObserved compares the candidate's observation against the one captured
-// from UF. The reference is a generated file for the same reason the golden is:
-// what the oracle does is measured, not asserted by hand.
-func assertObserved(t *testing.T, caseDir, got string) {
-	t.Helper()
-	observedPath := filepath.Join(caseDir, parity.ObservedFile)
-	want, err := parity.LoadObserved(observedPath)
-	if err != nil {
-		t.Fatalf("load observed (run with -update to generate): %v", err)
-	}
-	if got != want {
-		t.Errorf("observation = %q, want %q (from %s)", got, want, parity.ObservedFile)
-	}
+	t.Logf("regenerated %s from UF (%d record(s))", goldenPath, len(ufRecs))
 }
 
 func assertMatch(t *testing.T, res parity.Result, golden, candidate []parity.Record) {

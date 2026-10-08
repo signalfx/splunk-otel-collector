@@ -19,32 +19,10 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 )
 
 // GoldenFile is the checked-in reference for a case, one per case directory.
 const GoldenFile = "golden.json"
-
-// ObservedFile is the checked-in reference for a case's observe hook, in the
-// case directory beside the golden. Only a case with an observe hook has one.
-// It is plain text rather than part of the golden because the golden is an array
-// of events and an observation is not an event.
-const ObservedFile = "observed.txt"
-
-// LoadObserved reads a case's observed reference.
-func LoadObserved(file string) (string, error) {
-	b, err := os.ReadFile(file)
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(b)), nil
-}
-
-// WriteObserved writes the oracle's observation, newline-terminated so it diffs
-// as one line in review.
-func WriteObserved(file, observation string) error {
-	return os.WriteFile(file, []byte(observation+"\n"), 0o600)
-}
 
 // project returns a copy of rec holding only the fields the filter selects;
 // every other field is zeroed so Record's omitempty tags drop it from the

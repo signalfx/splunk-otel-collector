@@ -30,12 +30,11 @@ type Case struct {
 	Stage       string `yaml:"stage"`
 	Setup       string `yaml:"setup"`  // shell run before the agent starts
 	Script      string `yaml:"script"` // shell run after the agent starts
-	// Observe reports an effect that is not an event, such as a batched input
-	// file being consumed. Its stdout is the observation: generating captures the
-	// oracle's into ObservedFile and a replay compares the candidate's against
-	// it, so the hook itself asserts nothing.
-	Observe string   `yaml:"observe"`
-	OS      []string `yaml:"os"`
+	// Validate asserts an effect the golden cannot carry, such as a batched
+	// input file being consumed. It runs for whichever agent is running, so
+	// -update checks it against the oracle and a replay against the candidate.
+	Validate string   `yaml:"validate"`
+	OS       []string `yaml:"os"`
 	// Expected is last because its trailing booleans pack better there.
 	Expected Expected `yaml:"expected"` // the fields this case compares
 }

@@ -69,9 +69,8 @@ instead of whatever is installed on the machine. Bumping `SPLUNK_UF_VERSION`
 means regenerating the goldens. To use an existing install instead, point
 `PARITY_UF_DIR` at it and run `go test -update` directly.
 
-Review the resulting `golden.json` and `observed.txt` diff before committing it.
-Regeneration is deliberately not a CI job: it rewrites checked-in files that need
-review.
+Review the resulting `golden.json` diff before committing it. Regeneration is
+deliberately not a CI job: it rewrites checked-in files that need review.
 
 ## Layout
 
@@ -80,7 +79,7 @@ tests/parity/
   Makefile             update-goldens: pinned UF install + `go test -update`
   parity.go            core types: Backend, Adapter, Validator, Record, HEC
   case.go              Case (test.yaml shape), token interpolation
-  golden.go            LoadGolden / WriteGolden, LoadObserved / WriteObserved
+  golden.go            LoadGolden / WriteGolden
   runner.go            RunCase / RunAgent: sandbox, hooks, capture loop
   validate.go          SubsetValidator
   replay_test.go       TestParity: replay (and -update to regenerate goldens)
@@ -121,7 +120,6 @@ tests/host/
     outputs.conf
   collector.yaml     optional candidate config; without it the candidate reads conf/
   golden.json        generated
-  observed.txt       generated, only for a case with an observe hook
 ```
 
 `conf/` is agent-agnostic Splunk config rather than anything UF-specific: every
@@ -139,7 +137,7 @@ stage: alpha
 setup: |                      # shell run before the agent starts
   echo "initial text" > foo.txt
 script:                       # shell run after the agent starts
-observe:                      # shell whose stdout is compared, run once the capture settles
+validate:                     # shell that must exit 0 once the capture settles
 expected:                     # the fields to compare, and nothing else
   raw: true
   host: true
@@ -157,40 +155,31 @@ fields of UF's events into `golden.json`, and a replay compares the candidate on
 exactly these fields. The values live only in the golden, so there is nothing to
 keep in sync. Leaving a field out keeps it out of both.
 
-### Observing what is not an event
+### Asserting what is not an event
 
-Some behavior leaves no event. A `batch://` stanza consumes its input: UF deletes
-the file because `move_policy = sinkhole`, the collector because `batchreceiver`
-sets `delete_after_read`. The golden is an array of events, so it cannot carry a
-deletion.
-
-`observe` is for those. It is shell whose **stdout** is the observation:
+Some behavior leaves no event. A `batch://` stanza consumes its input, and the
+golden is an array of events, so it cannot carry a deletion. `validate` is shell
+that must exit 0:
 
 ```yaml
-observe: |
-  ls foo.txt >/dev/null 2>&1 && echo present || echo absent
+validate: |
+  test ! -e foo.txt
 ```
 
-It follows the same two-step model as the golden. `make update-goldens` records
-UF's output in `observed.txt` beside the golden; a replay runs the same hook
-against the candidate and compares. So the hook asserts nothing itself, and a
-change in UF's behavior shows up as a reviewable diff instead of passing
-silently. A case has `observed.txt` if and only if it has an `observe` hook,
-which `TestCases` enforces.
+It runs for whichever agent is running, so `-update` checks it against UF and a
+replay against the candidate. A hook that does not hold for UF is a broken case
+and fails at generation time, which is what keeps it an assertion about both
+agents rather than only the candidate.
 
 Two things to know when writing one:
 
-- **It runs with the agent still going**, after the event capture settles. That
-  is deliberate: it should report what the agent did while reading, not what it
-  cleaned up on shutdown.
-- **It is polled until its output stops changing**, because an effect can trail
-  the events that preceded it. `fileconsumer` emits a batched file's lines before
-  it unlinks the file, so the events can go quiet while the deletion is still
-  pending. Write a hook that reports current state and let the runner wait; do
-  not hand-roll a retry loop.
-
-Report through stdout and exit 0. A non-zero exit is a broken hook, not a failed
-comparison, and fails the run as one.
+- **It runs with the agent still going**, after the event capture settles, so it
+  asserts what the agent did while reading rather than what it cleaned up on
+  shutdown.
+- **It is retried until it holds**, because an effect can trail the events that
+  preceded it. `fileconsumer` emits a batched file's lines before it unlinks the
+  file. Write a hook that tests current state and let the runner retry; do not
+  hand-roll a loop.
 
 The `conf/` files, `collector.yaml`, `setup`, and `script` are interpolated
 before use. Only the braced `${NAME}` form is a token, so shell expansions

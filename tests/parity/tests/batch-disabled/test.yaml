@@ -1,0 +1,10 @@
+name: "Batch disabled"
+description: A batch stanza with disabled=1 is not read; its sibling still is.
+stage: alpha
+setup: |
+  echo "enabled line" > on.txt
+  echo "disabled line" > off.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

@@ -1,0 +1,10 @@
+name: "Batch directory"
+description: A batch stanza naming a directory takes the files in it.
+stage: alpha
+setup: |
+  mkdir -p logs
+  echo "from the batch directory" > logs/only.log
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

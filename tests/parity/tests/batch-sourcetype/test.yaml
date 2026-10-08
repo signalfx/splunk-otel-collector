@@ -1,0 +1,10 @@
+name: "Batch sourcetype"
+description: A batch stanza's sourcetype= overrides the auto-assigned one.
+stage: alpha
+setup: |
+  echo "batch sourcetyped line" > foo.txt
+expected:
+  raw: true
+  host: true
+  sourcetype: true
+os: ["darwin", "linux"]

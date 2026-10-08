@@ -1,0 +1,7 @@
+[
+  {
+    "raw": "batch sourcetyped line",
+    "host": "parityhost",
+    "sourcetype": "parity_batch_st"
+  }
+]

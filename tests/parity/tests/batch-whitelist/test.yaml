@@ -1,0 +1,20 @@
+name: "Batch whitelist"
+description: |
+  An alternation whitelist keeps the file its end-anchored branch matches and
+  drops the one no branch matches. data$ is the interesting form: it translates
+  to a *data glob with no trailing wildcard, unlike the unanchored \.log branch
+  alongside it.
+
+  Only one file matches on purpose. Two would be the better assertion, and
+  neither way of writing it passes today: distinct content makes the candidate's
+  event order undefined, and identical content makes fileconsumer treat the two
+  files as one. Both are filed as follow-ups.
+stage: alpha
+setup: |
+  mkdir -p logs
+  echo "from mydata" > logs/mydata
+  echo "from notes.txt" > logs/notes.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

@@ -1,0 +1,7 @@
+[
+  {
+    "raw": "batched line",
+    "host": "parityhost",
+    "index": "parity_batch-index"
+  }
+]

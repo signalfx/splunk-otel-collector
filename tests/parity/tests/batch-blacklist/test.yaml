@@ -1,0 +1,11 @@
+name: "Batch blacklist"
+description: blacklist drops the batched files whose path matches it.
+stage: alpha
+setup: |
+  mkdir -p logs
+  echo "kept line" > logs/keep.log
+  echo "dropped line" > logs/skip.log
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

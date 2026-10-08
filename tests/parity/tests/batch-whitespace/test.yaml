@@ -1,0 +1,9 @@
+name: "Batch whitespace"
+description: Leading and trailing spaces on a batched line are content, not padding.
+stage: alpha
+setup: |
+  printf '   padded batch line   \n' > foo.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

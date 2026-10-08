@@ -108,9 +108,17 @@ func (a *Adapter) Prepare(configDir string) error {
 		}
 	}
 	sort.Strings(files)
-	confs, err := parity.ConfFiles(configDir)
+	all, err := parity.ConfFiles(configDir)
 	if err != nil {
 		return err
+	}
+	// The sandbox $SPLUNK_HOME sits inside configDir, so skip anything already
+	// installed there rather than treating it as case config.
+	var confs []string
+	for _, rel := range all {
+		if !strings.HasPrefix(rel, splunkHomeDir+"/") {
+			confs = append(confs, rel)
+		}
 	}
 	a.configs = make([]string, 0, len(files)+len(a.extra))
 	a.configs = append(a.configs, files...)
@@ -122,11 +130,9 @@ func (a *Adapter) Prepare(configDir string) error {
 }
 
 // installConf copies the case's .conf files into the etc/ of a sandbox
-// $SPLUNK_HOME, which Start then puts in the environment. Nested paths are
-// mirrored, so an app in the case's conf/ is an installed app here too.
-//
-// The sandbox lives inside configDir, so the caller must collect rels before
-// calling this, or the walk would pick up what this writes.
+// $SPLUNK_HOME, which Start then puts in the environment. A bare filename is
+// system config; a nested path is mirrored, so an app in the case's conf/ is an
+// installed app here too.
 func (a *Adapter) installConf(configDir string, rels []string) error {
 	if len(rels) == 0 {
 		return nil
@@ -138,7 +144,10 @@ func (a *Adapter) installConf(configDir string, rels []string) error {
 		if err != nil {
 			return err
 		}
-		dest := filepath.Join(etcDir, parity.ConfDest(rel))
+		dest := filepath.Join(etcDir, "system", "local", rel)
+		if strings.Contains(rel, "/") {
+			dest = filepath.Join(etcDir, filepath.FromSlash(rel))
+		}
 		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
 			return err
 		}

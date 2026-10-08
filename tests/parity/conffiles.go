@@ -16,15 +16,14 @@ package parity
 
 import (
 	"io/fs"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 )
 
-// ConfFiles returns every *.conf file under configDir as slash-separated paths
-// relative to it, sorted. Both adapters walk the tree rather than reading one
-// level, so a case can lay out a conf root with apps in it.
+// ConfFiles returns every *.conf file under dir as slash-separated paths
+// relative to it, sorted. It is file discovery only: where a given path belongs
+// in an agent's own tree is the Adapter's decision, made in Prepare.
 func ConfFiles(configDir string) ([]string, error) {
 	var rel []string
 	err := filepath.WalkDir(configDir, func(path string, d fs.DirEntry, err error) error {
@@ -42,26 +41,8 @@ func ConfFiles(configDir string) ([]string, error) {
 		return nil
 	})
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
 		return nil, err
 	}
 	sort.Strings(rel)
 	return rel, nil
-}
-
-// ConfDest maps a conf path relative to the case's conf/ onto its location
-// under an agent's etc/, returned relative to etc/.
-//
-// A bare filename is system-local config, which is where a case's .conf files
-// have always gone. A nested path is mirrored verbatim, which is how a case
-// expresses an app: conf/apps/my_app/local/inputs.conf lands at
-// etc/apps/my_app/local/inputs.conf, so the agent discovers it as an installed
-// app rather than as system config.
-func ConfDest(rel string) string {
-	if !strings.Contains(rel, "/") {
-		return filepath.Join("system", "local", rel)
-	}
-	return filepath.FromSlash(rel)
 }

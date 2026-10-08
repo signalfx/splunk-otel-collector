@@ -141,8 +141,11 @@ tests/app-scoped-input/
     apps/my_custom_app/default/app.conf       -> etc/apps/my_custom_app/default/app.conf
 ```
 
-Both agents install the tree the same way, so precedence between layers and
-between apps is the agents' own business, which is what makes it testable.
+Where each path lands is the adapter's decision, made in its `Prepare`: the
+framework hands over names and contents and holds no opinion on an agent's
+layout. Both Splunk-layout adapters happen to agree today, which is what lets a
+case compare them, and precedence between layers and between apps stays the
+agents' own business.
 
 `test.yaml` holds everything that is not agent config:
 

@@ -62,17 +62,27 @@ func (a *Adapter) Prepare(configDir string) error {
 	if err != nil {
 		return err
 	}
-	etcDir := filepath.Join(a.installDir, "etc")
 	for _, rel := range rels {
 		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 		if err != nil {
 			return err
 		}
-		if err := a.writeWithRestore(filepath.Join(etcDir, parity.ConfDest(rel)), contents); err != nil {
+		if err := a.writeWithRestore(a.confPath(rel), contents); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// confPath places a case-relative conf path in the UF's own layout. A bare
+// filename is system config; a nested path is mirrored, so a case can install an
+// app under etc/apps.
+func (a *Adapter) confPath(rel string) string {
+	etcDir := filepath.Join(a.installDir, "etc")
+	if !strings.Contains(rel, "/") {
+		return filepath.Join(etcDir, "system", "local", rel)
+	}
+	return filepath.Join(etcDir, filepath.FromSlash(rel))
 }
 
 func (a *Adapter) Start(ctx context.Context) error {

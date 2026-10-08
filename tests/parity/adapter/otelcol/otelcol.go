@@ -29,6 +29,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/signalfx/splunk-otel-collector/tests/parity"
 )
 
 // DefaultBin is the built binary used when PARITY_OTELCOL_BIN is unset. It is
@@ -95,7 +97,7 @@ func (a *Adapter) Prepare(configDir string) error {
 	if err != nil {
 		return err
 	}
-	var files, confs []string
+	var files []string
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
@@ -103,11 +105,13 @@ func (a *Adapter) Prepare(configDir string) error {
 		switch filepath.Ext(e.Name()) {
 		case ".yaml", ".yml":
 			files = append(files, filepath.Join(configDir, e.Name()))
-		case ".conf":
-			confs = append(confs, e.Name())
 		}
 	}
 	sort.Strings(files)
+	confs, err := parity.ConfFiles(configDir)
+	if err != nil {
+		return err
+	}
 	a.configs = make([]string, 0, len(files)+len(a.extra))
 	a.configs = append(a.configs, files...)
 	a.configs = append(a.configs, a.extra...)
@@ -117,23 +121,28 @@ func (a *Adapter) Prepare(configDir string) error {
 	return a.installConf(configDir, confs)
 }
 
-// installConf copies the case's .conf files into etc/system/local of a sandbox
-// $SPLUNK_HOME, which Start then puts in the environment.
-func (a *Adapter) installConf(configDir string, names []string) error {
-	if len(names) == 0 {
+// installConf copies the case's .conf files into the etc/ of a sandbox
+// $SPLUNK_HOME, which Start then puts in the environment. Nested paths are
+// mirrored, so an app in the case's conf/ is an installed app here too.
+//
+// The sandbox lives inside configDir, so the caller must collect rels before
+// calling this, or the walk would pick up what this writes.
+func (a *Adapter) installConf(configDir string, rels []string) error {
+	if len(rels) == 0 {
 		return nil
 	}
 	home := filepath.Join(configDir, splunkHomeDir)
-	localDir := filepath.Join(home, "etc", "system", "local")
-	if err := os.MkdirAll(localDir, 0o755); err != nil {
-		return err
-	}
-	for _, name := range names {
-		contents, err := os.ReadFile(filepath.Join(configDir, name))
+	etcDir := filepath.Join(home, "etc")
+	for _, rel := range rels {
+		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 		if err != nil {
 			return err
 		}
-		if err := os.WriteFile(filepath.Join(localDir, name), contents, 0o600); err != nil {
+		dest := filepath.Join(etcDir, parity.ConfDest(rel))
+		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+			return err
+		}
+		if err := os.WriteFile(dest, contents, 0o600); err != nil {
 			return err
 		}
 	}

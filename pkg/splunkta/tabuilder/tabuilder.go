@@ -146,8 +146,10 @@ func confFilePaths(dirs []string, filename string) []string {
 	return paths
 }
 
-// DiscoverTAs returns splunk_ta_* directories under splunkHome/etc/apps.
-func DiscoverTAs(splunkHome string) ([]string, error) {
+// DiscoverApps returns the enabled app directories under splunkHome/etc/apps.
+// splunkd admits every app in the bundle regardless of name, so this applies no
+// name pattern; it skips dotfile directories and apps disabled in app.conf.
+func DiscoverApps(splunkHome string) ([]string, error) {
 	appsDir := filepath.Join(splunkHome, "etc", "apps")
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
@@ -156,20 +158,41 @@ func DiscoverTAs(splunkHome string) ([]string, error) {
 		}
 		return nil, fmt.Errorf("tabuilder: failed to scan %s: %w", appsDir, err)
 	}
-	var taDirs []string
+	var appDirs []string
 	for _, entry := range entries {
-		if !entry.IsDir() {
+		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
-		if strings.HasPrefix(strings.ToLower(entry.Name()), "splunk_ta_") {
-			taDirs = append(taDirs, filepath.Join(appsDir, entry.Name()))
+		appDir := filepath.Join(appsDir, entry.Name())
+		if appDisabled(appDir) {
+			continue
 		}
+		appDirs = append(appDirs, appDir)
 	}
-	return taDirs, nil
+	return appDirs, nil
+}
+
+// appDisabled reports whether the app's app.conf disables it, which splunkd
+// honors when assembling the bundle. A malformed or absent app.conf leaves the
+// app enabled, matching splunkd treating enabled as the default.
+func appDisabled(appDir string) bool {
+	var layers []conf.Map
+	for _, layer := range []string{"default", "local"} {
+		b, err := os.ReadFile(filepath.Join(appDir, layer, "app.conf"))
+		if err != nil {
+			continue
+		}
+		parsed, perr := conf.ParseConf(b)
+		if perr != nil {
+			continue
+		}
+		layers = append(layers, parsed)
+	}
+	return strings.EqualFold(conf.MergeConf(layers)["install"]["state"], "disabled")
 }
 
 func splunkHomeDirs(splunkHome string) []string {
-	taDirs, _ := DiscoverTAs(splunkHome)
+	taDirs, _ := DiscoverApps(splunkHome)
 	etcDir := filepath.Join(splunkHome, "etc")
 
 	dirs := []string{filepath.Join(etcDir, "system", "default")}
@@ -279,7 +302,7 @@ func ReadSystemInputs(splunkHome string) ([]conf.Input, error) {
 		return nil, nil
 	}
 
-	taDirs, err := DiscoverTAs(splunkHome)
+	taDirs, err := DiscoverApps(splunkHome)
 	if err != nil {
 		return nil, err
 	}

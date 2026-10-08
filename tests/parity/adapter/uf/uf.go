@@ -13,9 +13,9 @@
 // limitations under the License.
 
 // Package uf is the parity Adapter for the Splunk Universal Forwarder, the
-// parity oracle. It installs a case's .conf files into the UF's
-// etc/system/local layout (restoring prior state on cleanup) and drives the
-// agent through bin/splunk start/stop.
+// parity oracle. It installs a case's .conf files into the UF's etc/ layout
+// (restoring prior state on cleanup) and drives the agent through
+// bin/splunk start/stop.
 package uf
 
 import (
@@ -26,6 +26,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/signalfx/splunk-otel-collector/tests/parity"
 )
 
 // EnvInstallDir sets the UF install location. There is no built-in default: a
@@ -51,23 +53,22 @@ func New(installDir string) *Adapter {
 func (a *Adapter) Name() string       { return "UF" }
 func (a *Adapter) InstallDir() string { return a.installDir }
 
-// Prepare copies every .conf file from configDir into etc/system/local,
-// recording a restore for each so the install is left as it was found.
+// Prepare copies every .conf file from configDir into the install's etc/,
+// recording a restore for each so the install is left as it was found. A bare
+// filename goes to etc/system/local; a nested path is mirrored, which is how a
+// case installs an app.
 func (a *Adapter) Prepare(configDir string) error {
-	entries, err := os.ReadDir(configDir)
+	rels, err := parity.ConfFiles(configDir)
 	if err != nil {
 		return err
 	}
-	localDir := filepath.Join(a.installDir, "etc", "system", "local")
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".conf") {
-			continue
-		}
-		contents, err := os.ReadFile(filepath.Join(configDir, e.Name()))
+	etcDir := filepath.Join(a.installDir, "etc")
+	for _, rel := range rels {
+		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 		if err != nil {
 			return err
 		}
-		if err := a.writeWithRestore(filepath.Join(localDir, e.Name()), contents); err != nil {
+		if err := a.writeWithRestore(filepath.Join(etcDir, parity.ConfDest(rel)), contents); err != nil {
 			return err
 		}
 	}

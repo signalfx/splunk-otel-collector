@@ -115,7 +115,7 @@ A case is a directory under `tests/`:
 ```
 tests/host/
   test.yaml          metadata, shell hooks, the fields to compare
-  conf/              the Splunk .conf structure, copied into the UF's etc/system/local
+  conf/              the Splunk .conf structure, installed into the agent's etc/
     inputs.conf
     outputs.conf
   collector.yaml     optional candidate config; without it the candidate reads conf/
@@ -127,6 +127,22 @@ tests/host/
 `props.conf`/`transforms.conf` with no framework change. It always configures the
 oracle, and it configures the candidate too unless the case supplies a
 `collector.yaml`. See [How the candidate is configured](#how-the-candidate-is-configured).
+
+A `*.conf` at the top of `conf/` is system config, installed into
+`etc/system/local`. A nested path is mirrored under `etc/` instead, which is how
+a case expresses config that belongs to an installed app rather than to the
+system:
+
+```
+tests/app-scoped-input/
+  conf/
+    outputs.conf                              -> etc/system/local/outputs.conf
+    apps/my_custom_app/local/inputs.conf      -> etc/apps/my_custom_app/local/inputs.conf
+    apps/my_custom_app/default/app.conf       -> etc/apps/my_custom_app/default/app.conf
+```
+
+Both agents install the tree the same way, so precedence between layers and
+between apps is the agents' own business, which is what makes it testable.
 
 `test.yaml` holds everything that is not agent config:
 

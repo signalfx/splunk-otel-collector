@@ -27,10 +27,10 @@ func TestNewClientTLSVerification(t *testing.T) {
 	testCases := []struct {
 		name                       string
 		endpoint                   string
-		insecureSkipVerify         bool
 		serverName                 string
-		expectedInsecureSkipVerify bool
 		expectedServerName         string
+		insecureSkipVerify         bool
+		expectedInsecureSkipVerify bool
 	}{
 		{name: "IPv4 loopback no server name", endpoint: "https://127.0.0.1:8089", expectedInsecureSkipVerify: true},
 		{name: "IPv4 loopback range no server name", endpoint: "https://127.12.34.56:8089", expectedInsecureSkipVerify: true},

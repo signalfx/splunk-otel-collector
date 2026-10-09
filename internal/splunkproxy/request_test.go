@@ -15,29 +15,30 @@
 // This code is copied from original work under this license:
 // MIT License
 //
-//Copyright (c) 2019 Junyu Wang
+// Copyright (c) 2019 Junyu Wang
 //
-//Permission is hereby granted, free of charge, to any person obtaining a copy
-//of this software and associated documentation files (the "Software"), to deal
-//in the Software without restriction, including without limitation the rights
-//to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//copies of the Software, and to permit persons to whom the Software is
-//furnished to do so, subject to the following conditions:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-//The above copyright notice and this permission notice shall be included in all
-//copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 package splunkproxy
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 )
@@ -45,7 +46,7 @@ import (
 func TestParseRequestPreservesMatchedRouteAndBase64PayloadBytes(t *testing.T) {
 	server := &Server{requestChan: make(chan Request, 1)}
 	if err := server.parseRequest(&requestPacket{
-		opcode: OPCODE_REQUEST_BLOCK,
+		opcode: opcodeRequestBlock,
 		block:  `{"method":"POST","restmap":{"conf":{"match":"/v1/traces"}},"path_info":"","payload":"AAEC/w==","headers":[["Content-Type","application/x-protobuf"]]}`,
 	}); err != nil {
 		t.Fatal(err)
@@ -56,7 +57,7 @@ func TestParseRequestPreservesMatchedRouteAndBase64PayloadBytes(t *testing.T) {
 		t.Fatalf("request path = %q, want /v1/traces", request.Path)
 	}
 	want := []byte{0, 1, 2, 255}
-	if string(request.Body) != string(want) {
+	if !bytes.Equal(request.Body, want) {
 		t.Fatalf("request body = %v, want %v", request.Body, want)
 	}
 	if got := request.Headers.Get("Content-Type"); got != "application/x-protobuf" {
@@ -67,7 +68,7 @@ func TestParseRequestPreservesMatchedRouteAndBase64PayloadBytes(t *testing.T) {
 func TestParseRequestRejectsInvalidBase64Payload(t *testing.T) {
 	server := &Server{requestChan: make(chan Request, 1)}
 	err := server.parseRequest(&requestPacket{
-		opcode: OPCODE_REQUEST_BLOCK,
+		opcode: opcodeRequestBlock,
 		block:  `{"payload":"not base64"}`,
 	})
 	if err == nil {

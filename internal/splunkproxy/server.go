@@ -15,25 +15,25 @@
 // This code is copied from original work under this license:
 // MIT License
 //
-//Copyright (c) 2019 Junyu Wang
+// Copyright (c) 2019 Junyu Wang
 //
-//Permission is hereby granted, free of charge, to any person obtaining a copy
-//of this software and associated documentation files (the "Software"), to deal
-//in the Software without restriction, including without limitation the rights
-//to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//copies of the Software, and to permit persons to whom the Software is
-//furnished to do so, subject to the following conditions:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-//The above copyright notice and this permission notice shall be included in all
-//copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 // Package splunkproxy implements the persistent script protocol that splunk core uses
 // to communicate with app's persistent REST endpoint. This package handles basic routing and request/response
@@ -43,7 +43,6 @@ package splunkproxy
 import (
 	"bufio"
 	"container/list"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -125,9 +124,7 @@ func (s *Server) handleRequest() {
 				handlerResponse, err := handler(req)
 				if err != nil {
 					handlerResponse.StatusCode = http.StatusInternalServerError
-					var errorResp []byte
-					base64.StdEncoding.Encode(errorResp, []byte(err.Error()))
-					handlerResponse.Body = errorResp
+					handlerResponse.Body = []byte(err.Error())
 				}
 				resp = handlerResponse
 			}
@@ -140,14 +137,7 @@ func (s *Server) handleRequest() {
 // processResponse proccesses response from handler and sent the response back to the client
 func (s *Server) processResponse() {
 	for range s.responseChan {
-		flushedCount, err := s.flushResponses(os.Stdout)
-		if err != nil {
-			// fmt.Println("Failed to flush response - Error:", err)
-			continue
-		}
-		if flushedCount != 0 {
-			// fmt.Printf("Flushed %d responses\n", flushedCount)
-		}
+		_, _ = s.flushResponses(os.Stdout)
 	}
 }
 
@@ -162,10 +152,7 @@ func (s *Server) flushResponses(output io.Writer) (int, error) {
 	flushedElList := make([]*list.Element, 0)
 
 	writer := bufio.NewWriter(output)
-	for {
-		if elem == nil {
-			break
-		}
+	for ; elem != nil; elem = elem.Next() {
 		resp, ok := elem.Value.(Response)
 		if !ok {
 			break
@@ -177,7 +164,6 @@ func (s *Server) flushResponses(output io.Writer) (int, error) {
 		}
 		flushedEl := elem
 		flushedElList = append(flushedElList, flushedEl)
-		elem = elem.Next()
 	}
 	err := writer.Flush()
 	if err != nil {

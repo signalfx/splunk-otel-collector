@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -114,11 +115,11 @@ func TestProxyUsesRestmapRouteAndForwardsBinaryPayload(t *testing.T) {
 	if gotPath != "/v1/traces" {
 		t.Errorf("upstream path = %q, want /v1/traces", gotPath)
 	}
-	if string(gotBody) != string(wantBody) {
+	if !bytes.Equal(gotBody, wantBody) {
 		t.Errorf("upstream body = %v, want %v", gotBody, wantBody)
 	}
 	wantResponse := []byte{0x0a, 0x03, 0x08, 0x96, 0x01}
-	if string(response.Body) != string(wantResponse) {
+	if !bytes.Equal(response.Body, wantResponse) {
 		t.Errorf("response body = %v, want %v", response.Body, wantResponse)
 	}
 	if got := response.Headers.Get("Content-Type"); got != "application/x-protobuf" {

@@ -3,4 +3,6 @@ component: splunk-connect-for-otlp
 note: Allow Splunk management REST calls to use loopback endpoints when the management certificate does not include loopback IP SANs.
 issues: [8232]
 subtext: |
-  TLS verification remains enabled for non-loopback endpoints unless explicitly disabled for the splunk_secret config source.
+  For the OTLP modular input, the loopback call is verified against server_host (the splunkd-reported hostname) when available,
+  falling back to skipping verification otherwise. TLS verification remains enabled for non-loopback endpoints unless explicitly
+  disabled for the splunk_secret config source.

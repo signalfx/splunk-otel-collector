@@ -81,7 +81,7 @@ type splunkSecretConfigSource struct {
 
 func newConfigSource(cfg *Config, app, user string, timeout time.Duration, logger *zap.Logger) *splunkSecretConfigSource {
 	return &splunkSecretConfigSource{
-		client:     splunkhttp.NewClient(cfg.Endpoint, timeout, cfg.InsecureSkipVerify),
+		client:     splunkhttp.NewClient(cfg.Endpoint, timeout, cfg.InsecureSkipVerify, ""),
 		logger:     logger,
 		endpoint:   strings.TrimRight(cfg.Endpoint, "/"),
 		sessionKey: cfg.SessionKey,

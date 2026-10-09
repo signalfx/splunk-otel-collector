@@ -25,14 +25,25 @@ import (
 
 // NewClient returns an HTTP client for a Splunk management endpoint. Splunk
 // modular inputs commonly receive a loopback IP in server_uri even when the
-// splunkd certificate only identifies the host by DNS name, so certificate
-// verification is automatically skipped for literal loopback HTTPS endpoints.
-// Verification remains enabled for hostnames and non-loopback addresses unless
+// splunkd certificate only identifies the host by DNS name. For literal
+// loopback HTTPS endpoints, serverName (typically server_host from the
+// modular input protocol) is used as the TLS ServerName so the certificate
+// is still verified against the real hostname instead of the loopback
+// address. If serverName is empty, verification is skipped for the loopback
+// endpoint since there is no name to validate against. Verification for
+// hostnames and non-loopback addresses is unaffected unless
 // insecureSkipVerify is explicitly set.
-func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify bool) *http.Client {
+func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify bool, serverName string) *http.Client {
 	client := &http.Client{Timeout: timeout}
-	if insecureSkipVerify || isLoopbackHTTPS(endpoint) {
+	switch {
+	case insecureSkipVerify:
 		client.Transport = insecureTransport()
+	case isLoopbackHTTPS(endpoint):
+		if serverName != "" {
+			client.Transport = serverNameTransport(serverName)
+		} else {
+			client.Transport = insecureTransport()
+		}
 	}
 	return client
 }
@@ -47,23 +58,35 @@ func isLoopbackHTTPS(endpoint string) bool {
 }
 
 func insecureTransport() *http.Transport {
+	transport := cloneDefaultTransport()
+	tlsConfig := cloneTLSConfig(transport)
+	tlsConfig.InsecureSkipVerify = true
+	transport.TLSClientConfig = tlsConfig
+	return transport
+}
+
+func serverNameTransport(serverName string) *http.Transport {
+	transport := cloneDefaultTransport()
+	tlsConfig := cloneTLSConfig(transport)
+	tlsConfig.ServerName = serverName
+	transport.TLSClientConfig = tlsConfig
+	return transport
+}
+
+func cloneDefaultTransport() *http.Transport {
 	transport, ok := http.DefaultTransport.(*http.Transport)
 	// The cast can fail if an application or test replaces the default transport
 	// with another http.RoundTripper implementation.
 	if ok {
-		transport = transport.Clone()
-	} else {
-		transport = &http.Transport{}
+		return transport.Clone()
 	}
+	return &http.Transport{}
+}
 
-	tlsConfig := transport.TLSClientConfig
+func cloneTLSConfig(transport *http.Transport) *tls.Config {
 	// The default transport leaves TLSClientConfig nil to use Go's TLS defaults.
-	if tlsConfig == nil {
-		tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12}
-	} else {
-		tlsConfig = tlsConfig.Clone()
+	if transport.TLSClientConfig == nil {
+		return &tls.Config{MinVersion: tls.VersionTLS12}
 	}
-	tlsConfig.InsecureSkipVerify = true
-	transport.TLSClientConfig = tlsConfig
-	return transport
+	return transport.TLSClientConfig.Clone()
 }

@@ -6,7 +6,6 @@ package script
 import (
 	"fmt"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -43,12 +42,13 @@ func TestDetermineCommandName(t *testing.T) {
 			}(),
 		},
 		{
-			"modinput",
+			// [<scheme>] is a modular-input scheme defaults stanza, whose
+			// instances are [<scheme>://<name>]. It declares no input, so there
+			// is no command to resolve.
+			"unprefixed stanza name",
 			"foo",
-			func() string {
-				return filepath.Join("bin", fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH), "foo")
-			}(),
 			"",
+			`unknown scheme ""`,
 		},
 		{
 			"invalid scheme",

@@ -106,10 +106,14 @@ func run() error {
 	} else {
 		oef := otlphttpexporter.NewFactory()
 		oefCfg := newObservabilityExporterConfig(xmlCfg.Realm, xmlCfg.AccessToken, oef.CreateDefaultConfig().(*otlphttpexporter.Config))
-		if me, err = oef.CreateMetrics(ctx, telemetrySettings, oefCfg); err != nil {
+		o11yExporterTelemetrySettings := exporter.Settings{
+			TelemetrySettings: settings,
+			ID:                component.MustNewIDWithName("otlp_http", "o11y"),
+		}
+		if me, err = oef.CreateMetrics(ctx, o11yExporterTelemetrySettings, oefCfg); err != nil {
 			return err
 		}
-		if tracesExporter, err = oef.CreateTraces(ctx, telemetrySettings, oefCfg); err != nil {
+		if tracesExporter, err = oef.CreateTraces(ctx, o11yExporterTelemetrySettings, oefCfg); err != nil {
 			return err
 		}
 		logger.Info("Configured exporter for export of metrics and traces to " + xmlCfg.Realm)
@@ -175,8 +179,8 @@ func deriveEndpointFromRealm(realm string) string {
 
 func newObservabilityExporterConfig(realm, accessToken string, cfg *otlphttpexporter.Config) *otlphttpexporter.Config {
 	endpoint := deriveEndpointFromRealm(realm)
-	cfg.MetricsEndpoint = endpoint
-	cfg.TracesEndpoint = endpoint
+	cfg.MetricsEndpoint = endpoint + "/v2/datapoint/otlp"
+	cfg.TracesEndpoint = endpoint + "/v2/trace/otlp"
 	cfg.ClientConfig.Headers.Set("X-SF-Token", configopaque.String(accessToken))
 	return cfg
 }

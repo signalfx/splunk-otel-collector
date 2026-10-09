@@ -226,6 +226,7 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 
 	collectorConfigDir := filepath.Join(os.Getenv("PROGRAMDATA"), "Splunk", "OpenTelemetry Collector")
 	defaultConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "agent_config.yaml"))
+	gatewayConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "gateway_config.yaml"))
 	logsConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "splunk_logs_config_windows.yaml"))
 	metricsConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "splunk_metrics_config_windows.yaml"))
 	mergeAppendFeatureGateArg := "--feature-gates=confmap.enableMergeAppendOption"
@@ -331,6 +332,48 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 				"SPLUNK_CONFIG":       `C:\custom\config.yaml`,
 			},
 			expectedArgs: `--feature-gates=foo --config "C:\custom\config.yaml"`,
+		},
+		{
+			// Even when SPLUNK_CONFIG happens to equal the default config
+			// path (e.g. set explicitly, or by a tool that hasn't adopted
+			// SPLUNK_SETUP_COLLECTOR_MODE), platform logs must still be
+			// layered on top of it rather than being silently dropped.
+			name: "splunk-config-default-path-and-platform-logs",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":   "fakeToken",
+				"SPLUNK_CONFIG":         filepath.Join(collectorConfigDir, "agent_config.yaml"),
+				"SPLUNK_PLATFORM_URL":   "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN": "platformToken",
+			},
+			expectedArgs:                 strings.Join([]string{logsConfigArg, mergeAppendFeatureGateArg, defaultConfigArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			// Same as above but without an access token: merging must still
+			// be enabled because SPLUNK_CONFIG itself is also being combined
+			// with the platform logs config.
+			name: "splunk-config-default-path-and-platform-logs-no-access-token",
+			msiProperties: map[string]string{
+				"SPLUNK_CONFIG":         filepath.Join(collectorConfigDir, "agent_config.yaml"),
+				"SPLUNK_PLATFORM_URL":   "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN": "platformToken",
+			},
+			expectedArgs:                 strings.Join([]string{logsConfigArg, mergeAppendFeatureGateArg, defaultConfigArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			// Config management tools select gateway mode via
+			// SPLUNK_SETUP_COLLECTOR_MODE (no SPLUNK_CONFIG at all) so that
+			// platform logs are still layered on top automatically.
+			name: "gateway-mode-and-platform-logs",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
+				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
+				"SPLUNK_PLATFORM_URL":         "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":       "platformToken",
+			},
+			expectedArgs:                 strings.Join([]string{gatewayConfigArg, logsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
 		},
 	}
 
@@ -674,11 +717,13 @@ func expectedCollectorServiceArgs(t *testing.T, msiProperties map[string]string)
 	collectorServiceArgs = strings.Trim(collectorServiceArgs, "\"")
 	collectorServiceArgs = strings.ReplaceAll(collectorServiceArgs, "\"\"", "\"")
 
-	if splunkConfig, ok := msiProperties["SPLUNK_CONFIG"]; ok {
-		return appendServiceArg(collectorServiceArgs, `--config "`+splunkConfig+`"`)
-	}
+	splunkConfig, hasSplunkConfig := msiProperties["SPLUNK_CONFIG"]
 
-	if msiProperties["SPLUNK_ACCESS_TOKEN"] != "" {
+	// The default config is only added as a fallback when no SPLUNK_CONFIG
+	// was given. SPLUNK_CONFIG itself (default or custom) is appended at the
+	// end below, regardless of the platform logs/metrics config(s) added in
+	// between.
+	if !hasSplunkConfig && msiProperties["SPLUNK_ACCESS_TOKEN"] != "" {
 		installMode := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_SETUP_COLLECTOR_MODE", "agent")
 		configFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", installMode+"_config.yaml")
 		collectorServiceArgs = appendServiceArg(collectorServiceArgs, "--config "+quotedIfRequired(configFileFullName))
@@ -687,8 +732,13 @@ func expectedCollectorServiceArgs(t *testing.T, msiProperties map[string]string)
 	logsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" &&
 		(msiProperties["SPLUNK_PLATFORM_LOGS_INDEX"] != "" || msiProperties["SPLUNK_PLATFORM_METRICS_INDEX"] == "")
 	metricsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" && msiProperties["SPLUNK_PLATFORM_METRICS_INDEX"] != ""
+	// SPLUNK_CONFIG may be set to the default config path (e.g. an older
+	// config management tool version, or an explicit override), so its
+	// presence must also trigger merging whenever it's combined with a
+	// platform logs/metrics config, the same as the access-token-driven
+	// default config does.
 	mergeConfigsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" &&
-		(msiProperties["SPLUNK_ACCESS_TOKEN"] != "" || (logsEnabled && metricsEnabled))
+		(msiProperties["SPLUNK_ACCESS_TOKEN"] != "" || hasSplunkConfig || (logsEnabled && metricsEnabled))
 
 	if logsEnabled {
 		logsConfigFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", "splunk_logs_config_windows.yaml")
@@ -702,6 +752,10 @@ func expectedCollectorServiceArgs(t *testing.T, msiProperties map[string]string)
 
 	if mergeConfigsEnabled {
 		collectorServiceArgs = appendServiceArg(collectorServiceArgs, "--feature-gates=confmap.enableMergeAppendOption")
+	}
+
+	if hasSplunkConfig {
+		collectorServiceArgs = appendServiceArg(collectorServiceArgs, `--config "`+splunkConfig+`"`)
 	}
 
 	return collectorServiceArgs

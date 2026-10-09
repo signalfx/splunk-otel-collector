@@ -21,6 +21,7 @@ import (
 	"net/http"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
+	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
@@ -57,13 +58,13 @@ func readTokens(f feed) []HecTokenConfig {
 	return tokens
 }
 
-func New(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
+func New(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey, serverHost string) (extension.Extension, error) {
 	req, err := http.NewRequest(http.MethodGet, serverURI+"/servicesNS/-/-/data/inputs/http", http.NoBody)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Authorization", "Splunk "+sessionKey)
-	httpClient := &http.Client{}
+	httpClient := splunkhttp.NewClient(serverURI, 0, false, serverHost)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err

@@ -236,3 +236,21 @@ func TestSplunkSecretRetrieve(t *testing.T) {
 		})
 	}
 }
+
+func TestSplunkSecretRetrieveWithUntrustedLoopbackTLSCertificate(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"entry":[{"content":{"clear_password":"s3cr3t"}}]}`))
+	}))
+	t.Cleanup(server.Close)
+
+	source := newConfigSource(&Config{
+		Endpoint:   server.URL,
+		SessionKey: "test_session_key",
+	}, "-", "-", time.Second, zap.NewNop())
+	retrieved, err := source.Retrieve(t.Context(), "myrealm:myuser", nil, nil)
+	require.NoError(t, err)
+	value, err := retrieved.AsString()
+	require.NoError(t, err)
+	assert.Equal(t, "s3cr3t", value)
+}

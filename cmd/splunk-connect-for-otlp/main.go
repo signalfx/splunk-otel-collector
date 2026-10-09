@@ -156,7 +156,7 @@ func run() error {
 	h.Start()
 
 	var authExtension extension.Extension
-	if authExtension, err = auth.New(ctx, settings, xmlCfg.ServerURI, xmlCfg.SessionKey); err != nil {
+	if authExtension, err = auth.New(ctx, settings, xmlCfg.ServerURI, xmlCfg.SessionKey, xmlCfg.ServerHost); err != nil {
 		return err
 	}
 

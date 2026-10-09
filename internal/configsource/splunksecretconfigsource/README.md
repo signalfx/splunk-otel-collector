@@ -31,8 +31,9 @@ config_sources:
     # user scopes the storage/passwords lookup to a specific Splunk user namespace.
     # Set this to disambiguate credentials that collide across users. Defaults to "-" (all users).
     user: "-"
-    # insecure_skip_verify controls whether the TLS certificate presented by splunkd
-    # is verified. Defaults to false.
+    # insecure_skip_verify disables TLS certificate verification for splunkd.
+    # Literal loopback IP endpoints are handled automatically even when false.
+    # Defaults to false.
     insecure_skip_verify: false
     # timeout is the maximum amount of time to wait for a response from splunkd.
     # Defaults to 10s.

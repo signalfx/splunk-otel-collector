@@ -341,8 +341,7 @@ func TestRunAgentTimeoutReturnsLast(t *testing.T) {
 }
 
 // TestRunAgentValidate covers a validate hook that holds, and that it runs in
-// the sandbox the setup hook wrote to, which is what lets it assert on the
-// case's input files.
+// the sandbox the setup hook wrote to.
 func TestRunAgentValidate(t *testing.T) {
 	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
 	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
@@ -372,7 +371,7 @@ func TestRunAgentValidateFails(t *testing.T) {
 
 // TestWaitForValidationRetries checks the hook is retried rather than run once.
 // It fails until the marker file appears, standing in for an effect that trails
-// the events, like fileconsumer unlinking after it has emitted.
+// the events.
 func TestWaitForValidationRetries(t *testing.T) {
 	dir := t.TempDir()
 	script := `if [ -e marker ]; then exit 0; else : > marker; exit 1; fi`

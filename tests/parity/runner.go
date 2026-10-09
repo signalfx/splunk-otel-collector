@@ -145,13 +145,11 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 		spl = "search index=${INDEX}"
 	}
 	spl = tokens.apply(spl)
-	recs, err := waitForEvents(ctx, backend, spl, opts)
-	if err != nil {
-		return recs, err
+	recs, captureErr := waitForEvents(ctx, backend, spl, opts)
+	if captureErr != nil {
+		return recs, captureErr
 	}
 
-	// The agent stays running: the hook checks what it did while reading, not
-	// what it cleaned up on shutdown.
 	if c.Validate != "" {
 		if err := waitForValidation(ctx, tokens.apply(c.Validate), baseDir, opts); err != nil {
 			return recs, fmt.Errorf("validate: %w", err)
@@ -160,18 +158,12 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	return recs, nil
 }
 
-// validateRetry is how often a validate hook is retried while waiting for it to
-// hold.
-const validateRetry = 500 * time.Millisecond
-
 // waitForValidation runs the case's validate hook until it exits 0, or Timeout
-// elapses, and then returns its last failure.
-//
-// It retries rather than running once because an effect can trail the events
-// that preceded it: fileconsumer emits a batched file's lines before it unlinks
-// the file, so the events can go quiet while the deletion is still pending.
+// elapses, and then returns its last failure. It retries because an effect can
+// land after the events that preceded it.
 func waitForValidation(ctx context.Context, script, dir string, opts RunOptions) error {
 	deadline := time.Now().Add(opts.Timeout)
+	retry := 500 * time.Millisecond
 	for {
 		err := runShell(ctx, opts.Shell, script, dir)
 		if err == nil {
@@ -183,7 +175,7 @@ func waitForValidation(ctx context.Context, script, dir string, opts RunOptions)
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		time.Sleep(validateRetry)
+		time.Sleep(retry)
 	}
 }
 

@@ -176,10 +176,9 @@ Two things to know when writing one:
 - **It runs with the agent still going**, after the event capture settles, so it
   asserts what the agent did while reading rather than what it cleaned up on
   shutdown.
-- **It is retried until it holds**, because an effect can trail the events that
-  preceded it. `fileconsumer` emits a batched file's lines before it unlinks the
-  file. Write a hook that tests current state and let the runner retry; do not
-  hand-roll a loop.
+- **It is retried until it holds**, because an effect can land after the events
+  that preceded it. Write a hook that tests current state and let the runner
+  retry; do not hand-roll a loop.
 
 The `conf/` files, `collector.yaml`, `setup`, and `script` are interpolated
 before use. Only the braced `${NAME}` form is a token, so shell expansions

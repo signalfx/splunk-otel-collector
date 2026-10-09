@@ -25,16 +25,13 @@ import (
 // Case is one parity test loaded from a test.yaml: shell hooks and the fields to
 // compare. The agent configs live beside it in the case directory, not in here.
 type Case struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Stage       string `yaml:"stage"`
-	Setup       string `yaml:"setup"`  // shell run before the agent starts
-	Script      string `yaml:"script"` // shell run after the agent starts
-	// Validate asserts an effect the golden cannot carry, such as a batched
-	// input file being consumed. It runs for whichever agent is running, so
-	// -update checks it against the oracle and a replay against the candidate.
-	Validate string   `yaml:"validate"`
-	OS       []string `yaml:"os"`
+	Name        string   `yaml:"name"`
+	Description string   `yaml:"description"`
+	Stage       string   `yaml:"stage"`
+	Setup       string   `yaml:"setup"`    // shell run before the agent starts
+	Script      string   `yaml:"script"`   // shell run after the agent starts
+	Validate    string   `yaml:"validate"` // shell that must exit 0 once the capture settles
+	OS          []string `yaml:"os"`
 	// Expected is last because its trailing booleans pack better there.
 	Expected Expected `yaml:"expected"` // the fields this case compares
 }

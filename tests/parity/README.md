@@ -128,24 +128,9 @@ tests/host/
 oracle, and it configures the candidate too unless the case supplies a
 `collector.yaml`. See [How the candidate is configured](#how-the-candidate-is-configured).
 
-A `*.conf` at the top of `conf/` is system config, installed into
-`etc/system/local`. A nested path is mirrored under `etc/` instead, which is how
-a case expresses config that belongs to an installed app rather than to the
-system:
-
-```
-tests/app-scoped-input/
-  conf/
-    outputs.conf                              -> etc/system/local/outputs.conf
-    apps/my_custom_app/local/inputs.conf      -> etc/apps/my_custom_app/local/inputs.conf
-    apps/my_custom_app/default/app.conf       -> etc/apps/my_custom_app/default/app.conf
-```
-
-Where each path lands is the adapter's decision, made in its `Prepare`: the
-framework hands over names and contents and holds no opinion on an agent's
-layout. Both Splunk-layout adapters happen to agree today, which is what lets a
-case compare them, and precedence between layers and between apps stays the
-agents' own business.
+A top-level `*.conf` is system config; a nested path is mirrored, so
+`conf/apps/my_app/local/inputs.conf` installs as an app rather than as system
+config. `tests/app-scoped-input` is an example.
 
 `test.yaml` holds everything that is not agent config:
 

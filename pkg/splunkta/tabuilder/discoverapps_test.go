@@ -64,6 +64,10 @@ func TestDiscoverAppsSkipsDotDirs(t *testing.T) {
 
 // app.conf [install] state gates the app, and local wins over default, so an
 // app disabled by its own default can be re-enabled locally.
+//
+// splunkd allowlists the exact literal "enabled" instead of looking for
+// "disabled", so the cases that matter are the ones where a value is neither:
+// they exclude the app rather than leaving it in.
 func TestDiscoverAppsHonorsDisabledState(t *testing.T) {
 	const disabled = "[install]\nstate = disabled\n"
 	const enabled = "[install]\nstate = enabled\n"
@@ -80,7 +84,9 @@ func TestDiscoverAppsHonorsDisabledState(t *testing.T) {
 		{name: "disabled in local", localConf: disabled, wantFound: false},
 		{name: "local re-enables a disabled default", defaultConf: disabled, localConf: enabled, wantFound: true},
 		{name: "local disables an enabled default", defaultConf: enabled, localConf: disabled, wantFound: false},
-		{name: "state is case-insensitive", defaultConf: "[install]\nstate = DISABLED\n", wantFound: false},
+		{name: "uppercase ENABLED does not enable", defaultConf: "[install]\nstate = ENABLED\n", wantFound: false},
+		{name: "a boolean-looking value does not enable", defaultConf: "[install]\nstate = 1\n", wantFound: false},
+		{name: "an unrecognized value does not enable", defaultConf: "[install]\nstate = installed\n", wantFound: false},
 		{name: "malformed app.conf leaves it enabled", defaultConf: "not a conf file\n", wantFound: true},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

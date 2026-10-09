@@ -164,7 +164,7 @@ func DiscoverApps(splunkHome string) ([]string, error) {
 			continue
 		}
 		appDir := filepath.Join(appsDir, entry.Name())
-		if appDisabled(appDir) {
+		if !appEnabled(appDir) {
 			continue
 		}
 		appDirs = append(appDirs, appDir)
@@ -172,23 +172,26 @@ func DiscoverApps(splunkHome string) ([]string, error) {
 	return appDirs, nil
 }
 
-// appDisabled reports whether the app's app.conf disables it, which splunkd
-// honors when assembling the bundle. A malformed or absent app.conf leaves the
-// app enabled, matching splunkd treating enabled as the default.
-func appDisabled(appDir string) bool {
-	var layers []conf.Map
-	for _, layer := range []string{"default", "local"} {
-		b, err := os.ReadFile(filepath.Join(appDir, layer, "app.conf"))
-		if err != nil {
-			continue
-		}
-		parsed, perr := conf.ParseConf(b)
-		if perr != nil {
-			continue
-		}
-		layers = append(layers, parsed)
+// appEnabled reports whether app.conf leaves the app in the bundle. splunkd
+// allowlists the exact literal "enabled" rather than looking for "disabled", so
+// any other value, "ENABLED" included, excludes the app; an absent key or file
+// leaves it enabled.
+//
+// Reading fails open: splunkd resolves the value through a conf search that
+// yields nothing for an unreadable or malformed app.conf, so one bad file
+// excludes no app and does not fail discovery.
+func appEnabled(appDir string) bool {
+	dirs := []string{filepath.Join(appDir, "default"), filepath.Join(appDir, "local")}
+	payloads, err := readConfFiles(confFilePaths(dirs, "app.conf"))
+	if err != nil {
+		return true
 	}
-	return strings.EqualFold(conf.MergeConf(layers)["install"]["state"], "disabled")
+	merged, err := conf.ParseAndMergeConf(payloads)
+	if err != nil {
+		return true
+	}
+	state, set := merged["install"]["state"]
+	return !set || state == "enabled"
 }
 
 func splunkHomeDirs(splunkHome string) []string {

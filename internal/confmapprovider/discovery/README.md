@@ -169,6 +169,18 @@ II. Extensions
 * `host_observer` ([config](./bundle.d/extensions/host-observer.discovery.yaml))
 * `k8s_observer` ([config](./bundle.d/extensions/k8s-observer.discovery.yaml))
 
+#### `host_observer` on Windows
+
+`host_observer` is cross-platform: it uses [gopsutil](https://github.com/shirou/gopsutil), which resolves listening
+TCP/UDP endpoints via `iphlpapi.dll` (`GetExtendedTcpTable`/`GetExtendedUdpTable`) on Windows, matching the behavior
+it gets from `/proc` on Linux. Resolving the process name and command line for an endpoint's owning PID requires
+opening a handle to that process. For processes owned by the same account the Collector runs under, this works
+without extra privileges. For processes owned by other accounts (most built-in Windows services, e.g. `svchost.exe`),
+the process open call fails with "Access is denied" unless the Collector is running as `LocalSystem` or under an
+account with `SeDebugPrivilege` enabled — the same requirement `host_observer` documents for Linux
+(`SYS_PTRACE`/`DAC_READ_SEARCH`). Endpoints are still discovered and reported without a resolved process name/command
+in that case; only the process metadata is missing.
+
 ### Discovery properties
 
 Configuring discovery components is performed by merging discovery properties with the config.d receivers

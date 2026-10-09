@@ -137,6 +137,7 @@ stage: alpha
 setup: |                      # shell run before the agent starts
   echo "initial text" > foo.txt
 script:                       # shell run after the agent starts
+validate:                     # shell that must exit 0 once the capture settles
 expected:                     # the fields to compare, and nothing else
   raw: true
   host: true
@@ -153,6 +154,31 @@ The same filter governs both steps: `make update-goldens` saves exactly these
 fields of UF's events into `golden.json`, and a replay compares the candidate on
 exactly these fields. The values live only in the golden, so there is nothing to
 keep in sync. Leaving a field out keeps it out of both.
+
+### Asserting what is not an event
+
+Some behavior leaves no event. A `batch://` stanza consumes its input, and the
+golden is an array of events, so it cannot carry a deletion. `validate` is shell
+that must exit 0:
+
+```yaml
+validate: |
+  test ! -e foo.txt
+```
+
+It runs for whichever agent is running, so `-update` checks it against UF and a
+replay against the candidate. A hook that does not hold for UF is a broken case
+and fails at generation time, which is what keeps it an assertion about both
+agents rather than only the candidate.
+
+Two things to know when writing one:
+
+- **It runs with the agent still going**, after the event capture settles, so it
+  asserts what the agent did while reading rather than what it cleaned up on
+  shutdown.
+- **It is retried until it holds**, because an effect can land after the events
+  that preceded it. Write a hook that tests current state and let the runner
+  retry; do not hand-roll a loop.
 
 The `conf/` files, `collector.yaml`, `setup`, and `script` are interpolated
 before use. Only the braced `${NAME}` form is a token, so shell expansions

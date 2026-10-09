@@ -19,6 +19,7 @@ import (
 	_ "embed"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -40,4 +41,13 @@ func SetupAuth(t *testing.T, listener net.Listener) {
 	go func() {
 		_ = server.Serve(listener)
 	}()
+}
+
+func NewTLSServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write(response)
+	}))
+	t.Cleanup(server.Close)
+	return server
 }

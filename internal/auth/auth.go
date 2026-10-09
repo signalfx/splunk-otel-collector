@@ -21,6 +21,7 @@ import (
 	"net/http"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
+	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
@@ -63,7 +64,7 @@ func New(ctx context.Context, settings component.TelemetrySettings, serverURI, s
 		return nil, err
 	}
 	req.Header.Add("Authorization", "Splunk "+sessionKey)
-	httpClient := &http.Client{}
+	httpClient := splunkhttp.NewClient(serverURI, 0, false)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err

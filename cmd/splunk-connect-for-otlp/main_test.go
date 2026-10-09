@@ -51,8 +51,8 @@ func TestNewObservabilityExporterConfig(t *testing.T) {
 	cfg := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
 	cfg = newObservabilityExporterConfig("eu0", "test-access-token", cfg)
 
-	require.Equal(t, "https://ingest.eu0.observability.splunkcloud.com", cfg.MetricsEndpoint)
-	require.Equal(t, cfg.MetricsEndpoint, cfg.TracesEndpoint)
+	require.Equal(t, "https://ingest.eu0.observability.splunkcloud.com/v2/datapoint/otlp", cfg.MetricsEndpoint)
+	require.Equal(t, "https://ingest.eu0.observability.splunkcloud.com/v2/trace/otlp", cfg.TracesEndpoint)
 	token, ok := cfg.ClientConfig.Headers.Get("X-SF-Token")
 	require.True(t, ok)
 	require.Equal(t, "test-access-token", string(token))

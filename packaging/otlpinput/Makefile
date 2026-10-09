@@ -29,6 +29,10 @@ splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp:
 .PHONY := build
 build: splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp
 
+.PHONY := test-ip-sans
+test-ip-sans: splunk-connect-for-otlp.tgz
+	OTLP_PACKAGE_PATH="$(CURDIR)/out/distribution/splunk-connect-for-otlp.tgz" sh ./example/test-ip-sans.sh
+
 .PHONY := splunk
 splunk: splunk-connect-for-otlp.tgz
 	docker run --rm -it -v $(PWD)/splunk-connect-for-otlp.tgz:/tmp/splunk-connect-for-otlp.tgz \

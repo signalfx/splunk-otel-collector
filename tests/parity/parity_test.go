@@ -227,22 +227,24 @@ func (f *fakeBackend) Clean(context.Context, string) error { return nil }
 // fakeAdapter records the lifecycle calls the runner makes and captures the
 // interpolated inputs.conf it is handed, so tests can assert both.
 type fakeAdapter struct {
-	prepareErr error
-	startErr   error
-	name       string
-	dir        string
-	inputsConf string
-	prepared   bool
-	started    bool
-	stopped    bool
-	cleaned    bool
+	prepareErr    error
+	startErr      error
+	name          string
+	dir           string
+	inputsConf    string
+	preparedFiles []string
+	prepared      bool
+	started       bool
+	stopped       bool
+	cleaned       bool
 }
 
 func (a *fakeAdapter) Name() string       { return a.name }
 func (a *fakeAdapter) InstallDir() string { return a.dir }
 
-func (a *fakeAdapter) Prepare(configDir string) error {
+func (a *fakeAdapter) Prepare(configDir string, files []string) error {
 	a.prepared = true
+	a.preparedFiles = files
 	if b, err := os.ReadFile(filepath.Join(configDir, "inputs.conf")); err == nil {
 		a.inputsConf = string(b)
 	}

@@ -18,11 +18,13 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"io/fs"
 	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -312,24 +314,30 @@ func optionalCaseFile(t *testing.T, casePath, name string) (string, bool) {
 func caseConf(t *testing.T, casePath string) map[string]string {
 	t.Helper()
 	dir := filepath.Join(filepath.Dir(casePath), confDir)
-	rels, err := parity.ConfFiles(dir)
+	files := map[string]string{}
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil || d.IsDir() || !strings.HasSuffix(d.Name(), ".conf") {
+			return walkErr
+		}
+		b, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+		if len(b) == 0 {
+			t.Errorf("%s is empty", path)
+		}
+		rel, relErr := filepath.Rel(dir, path)
+		if relErr != nil {
+			return relErr
+		}
+		files[filepath.ToSlash(rel)] = string(b)
+		return nil
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rels) == 0 {
+	if len(files) == 0 {
 		t.Fatalf("no *.conf files in %s", dir)
-	}
-	files := make(map[string]string, len(rels))
-	for _, rel := range rels {
-		p := filepath.Join(dir, filepath.FromSlash(rel))
-		b, err := os.ReadFile(p)
-		if err != nil {
-			t.Fatalf("read %s: %v", p, err)
-		}
-		if len(b) == 0 {
-			t.Errorf("%s is empty", p)
-		}
-		files[rel] = string(b)
 	}
 	return files
 }

@@ -90,26 +90,19 @@ func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 // --config source, sorted for a deterministic merge order, then appends the
 // extra sources from New. At least one source must resolve. Any *.conf file goes
 // to installConf instead.
-func (a *Adapter) Prepare(configDir string) error {
-	entries, err := os.ReadDir(configDir)
-	if err != nil {
-		return err
-	}
-	var files, confs []string
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		switch filepath.Ext(e.Name()) {
+func (a *Adapter) Prepare(configDir string, files []string) error {
+	var yamls, confs []string
+	for _, rel := range files {
+		switch filepath.Ext(rel) {
 		case ".yaml", ".yml":
-			files = append(files, filepath.Join(configDir, e.Name()))
+			yamls = append(yamls, filepath.Join(configDir, filepath.FromSlash(rel)))
 		case ".conf":
-			confs = append(confs, e.Name())
+			confs = append(confs, rel)
 		}
 	}
-	sort.Strings(files)
-	a.configs = make([]string, 0, len(files)+len(a.extra))
-	a.configs = append(a.configs, files...)
+	sort.Strings(yamls)
+	a.configs = make([]string, 0, len(yamls)+len(a.extra))
+	a.configs = append(a.configs, yamls...)
 	a.configs = append(a.configs, a.extra...)
 	if len(a.configs) == 0 {
 		return fmt.Errorf("no collector config: want a *.yaml file in %s or an extra --config source", configDir)
@@ -117,23 +110,29 @@ func (a *Adapter) Prepare(configDir string) error {
 	return a.installConf(configDir, confs)
 }
 
-// installConf copies the case's .conf files into etc/system/local of a sandbox
-// $SPLUNK_HOME, which Start then puts in the environment.
-func (a *Adapter) installConf(configDir string, names []string) error {
-	if len(names) == 0 {
+// installConf copies the case's .conf files into the etc/ of a sandbox
+// $SPLUNK_HOME, which Start then puts in the environment. A bare filename is
+// system config; a nested path is mirrored, so an app in the case's conf/ is an
+// installed app here too.
+func (a *Adapter) installConf(configDir string, rels []string) error {
+	if len(rels) == 0 {
 		return nil
 	}
 	home := filepath.Join(configDir, splunkHomeDir)
-	localDir := filepath.Join(home, "etc", "system", "local")
-	if err := os.MkdirAll(localDir, 0o755); err != nil {
-		return err
-	}
-	for _, name := range names {
-		contents, err := os.ReadFile(filepath.Join(configDir, name))
+	etcDir := filepath.Join(home, "etc")
+	for _, rel := range rels {
+		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 		if err != nil {
 			return err
 		}
-		if err := os.WriteFile(filepath.Join(localDir, name), contents, 0o600); err != nil {
+		dest := filepath.Join(etcDir, "system", "local", rel)
+		if strings.Contains(rel, "/") {
+			dest = filepath.Join(etcDir, filepath.FromSlash(rel))
+		}
+		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+			return err
+		}
+		if err := os.WriteFile(dest, contents, 0o600); err != nil {
 			return err
 		}
 	}

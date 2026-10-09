@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"time"
 )
 
@@ -112,13 +113,22 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return nil, err
 	}
+	staged := make([]string, 0, len(run.ConfigFiles))
 	for name, tmpl := range run.ConfigFiles {
-		if err := os.WriteFile(filepath.Join(configDir, name), []byte(tokens.apply(tmpl)), 0o600); err != nil {
+		// A name may be a relative path (apps/<app>/local/inputs.conf), which the
+		// adapter mirrors into the agent's own tree.
+		dest := filepath.Join(configDir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
 			return nil, err
 		}
+		if err := os.WriteFile(dest, []byte(tokens.apply(tmpl)), 0o600); err != nil {
+			return nil, err
+		}
+		staged = append(staged, name)
 	}
+	sort.Strings(staged)
 
-	if err := run.Adapter.Prepare(configDir); err != nil {
+	if err := run.Adapter.Prepare(configDir, staged); err != nil {
 		return nil, fmt.Errorf("prepare: %w", err)
 	}
 	defer run.Adapter.Cleanup()

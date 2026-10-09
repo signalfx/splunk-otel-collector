@@ -78,13 +78,19 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	writeFile(t, filepath.Join(configDir, "inputs.conf"), "new-inputs")
 	writeFile(t, filepath.Join(configDir, "outputs.conf"), "new-outputs")
 	writeFile(t, filepath.Join(configDir, "notes.txt"), "ignored") // not a .conf
-	if err := os.Mkdir(filepath.Join(configDir, "sub.conf"), 0o700); err != nil {
-		t.Fatal(err) // a dir named *.conf must be skipped
-	}
+	writeFile(t, filepath.Join(configDir, "apps", "my_app", "local", "inputs.conf"), "app-inputs")
 
 	a := New(install)
-	if err := a.Prepare(configDir); err != nil {
+	if err := a.Prepare(configDir, []string{
+		"inputs.conf", "outputs.conf", "notes.txt", "apps/my_app/local/inputs.conf",
+	}); err != nil {
 		t.Fatalf("Prepare: %v", err)
+	}
+
+	// A nested path installs as an app rather than as system config.
+	appInputs := filepath.Join(install, "etc", "apps", "my_app", "local", "inputs.conf")
+	if got := readFile(t, appInputs); got != "app-inputs" {
+		t.Errorf("app inputs.conf = %q", got)
 	}
 
 	if got := readFile(t, filepath.Join(localDir, "inputs.conf")); got != "new-inputs" {
@@ -95,9 +101,6 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(localDir, "notes.txt")); !os.IsNotExist(err) {
 		t.Error("non-conf file should not be copied")
-	}
-	if _, err := os.Stat(filepath.Join(localDir, "sub.conf")); !os.IsNotExist(err) {
-		t.Error("directory named *.conf should be skipped")
 	}
 
 	if err := a.Cleanup(); err != nil {
@@ -117,10 +120,12 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	}
 }
 
-func TestPrepareMissingConfigDir(t *testing.T) {
+// A file the runner says it staged but that is not on disk means the two
+// disagree, which must surface rather than install nothing.
+func TestPrepareMissingStagedFile(t *testing.T) {
 	a := New(t.TempDir())
-	if err := a.Prepare(filepath.Join(t.TempDir(), "missing")); err == nil {
-		t.Error("expected error for missing config dir")
+	if err := a.Prepare(t.TempDir(), []string{"inputs.conf"}); err == nil {
+		t.Error("expected an error for a staged file that is absent")
 	}
 }
 
@@ -169,6 +174,9 @@ func TestRunError(t *testing.T) {
 
 func writeFile(t *testing.T, path, content string) {
 	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -181,4 +189,24 @@ func readFile(t *testing.T, path string) string {
 		t.Fatal(err)
 	}
 	return string(b)
+}
+
+// A bare filename is system config, the way every case has worked; a nested
+// path is mirrored, so a case can install an app under etc/apps.
+func TestConfPath(t *testing.T) {
+	a := &Adapter{installDir: filepath.Join("install", "uf")}
+	for _, tt := range []struct {
+		rel  string
+		want string
+	}{
+		{rel: "inputs.conf", want: filepath.Join("install", "uf", "etc", "system", "local", "inputs.conf")},
+		{rel: "outputs.conf", want: filepath.Join("install", "uf", "etc", "system", "local", "outputs.conf")},
+		{rel: "apps/my_app/local/inputs.conf", want: filepath.Join("install", "uf", "etc", "apps", "my_app", "local", "inputs.conf")},
+	} {
+		t.Run(tt.rel, func(t *testing.T) {
+			if got := a.confPath(tt.rel); got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
 }

@@ -146,8 +146,10 @@ func confFilePaths(dirs []string, filename string) []string {
 	return paths
 }
 
-// DiscoverTAs returns splunk_ta_* directories under splunkHome/etc/apps.
-func DiscoverTAs(splunkHome string) ([]string, error) {
+// DiscoverApps returns the enabled app directories under splunkHome/etc/apps.
+// splunkd admits every app in the bundle regardless of name, so this applies no
+// name pattern; it skips dotfile directories and apps disabled in app.conf.
+func DiscoverApps(splunkHome string) ([]string, error) {
 	appsDir := filepath.Join(splunkHome, "etc", "apps")
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
@@ -156,20 +158,44 @@ func DiscoverTAs(splunkHome string) ([]string, error) {
 		}
 		return nil, fmt.Errorf("tabuilder: failed to scan %s: %w", appsDir, err)
 	}
-	var taDirs []string
+	var appDirs []string
 	for _, entry := range entries {
-		if !entry.IsDir() {
+		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
-		if strings.HasPrefix(strings.ToLower(entry.Name()), "splunk_ta_") {
-			taDirs = append(taDirs, filepath.Join(appsDir, entry.Name()))
+		appDir := filepath.Join(appsDir, entry.Name())
+		if !appEnabled(appDir) {
+			continue
 		}
+		appDirs = append(appDirs, appDir)
 	}
-	return taDirs, nil
+	return appDirs, nil
+}
+
+// appEnabled reports whether app.conf leaves the app in the bundle. splunkd
+// allowlists the exact literal "enabled" rather than looking for "disabled", so
+// any other value, "ENABLED" included, excludes the app; an absent key or file
+// leaves it enabled.
+//
+// Reading fails open: splunkd resolves the value through a conf search that
+// yields nothing for an unreadable or malformed app.conf, so one bad file
+// excludes no app and does not fail discovery.
+func appEnabled(appDir string) bool {
+	dirs := []string{filepath.Join(appDir, "default"), filepath.Join(appDir, "local")}
+	payloads, err := readConfFiles(confFilePaths(dirs, "app.conf"))
+	if err != nil {
+		return true
+	}
+	merged, err := conf.ParseAndMergeConf(payloads)
+	if err != nil {
+		return true
+	}
+	state, set := merged["install"]["state"]
+	return !set || state == "enabled"
 }
 
 func splunkHomeDirs(splunkHome string) []string {
-	taDirs, _ := DiscoverTAs(splunkHome)
+	taDirs, _ := DiscoverApps(splunkHome)
 	etcDir := filepath.Join(splunkHome, "etc")
 
 	dirs := []string{filepath.Join(etcDir, "system", "default")}
@@ -279,7 +305,7 @@ func ReadSystemInputs(splunkHome string) ([]conf.Input, error) {
 		return nil, nil
 	}
 
-	taDirs, err := DiscoverTAs(splunkHome)
+	taDirs, err := DiscoverApps(splunkHome)
 	if err != nil {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -336,6 +337,60 @@ func TestRunAgentTimeoutReturnsLast(t *testing.T) {
 	}
 	if len(got) != 0 {
 		t.Errorf("want no records on timeout, got %+v", got)
+	}
+}
+
+// TestRunAgentValidate covers a validate hook that holds, and that it runs in
+// the sandbox the setup hook wrote to.
+func TestRunAgentValidate(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Setup: "echo hi > foo.txt", Validate: "test -e foo.txt"}
+	if _, err := RunAgent(context.Background(), c, run, backend, fastOpts()); err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+}
+
+// TestRunAgentValidateFails checks a hook that never holds fails the run, and
+// that the failure says it was the validate hook rather than looking like a
+// sandbox or adapter error.
+func TestRunAgentValidateFails(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Validate: "test -e never-created"}
+	_, err := RunAgent(context.Background(), c, run, backend, fastOpts())
+	if err == nil {
+		t.Fatal("expected a validate failure")
+	}
+	if !strings.Contains(err.Error(), "validate:") {
+		t.Errorf("error should name the validate hook, got %v", err)
+	}
+}
+
+// TestWaitForValidationRetries checks the hook is retried rather than run once.
+// It fails until the marker file appears, standing in for an effect that trails
+// the events.
+func TestWaitForValidationRetries(t *testing.T) {
+	dir := t.TempDir()
+	script := `if [ -e marker ]; then exit 0; else : > marker; exit 1; fi`
+	opts := RunOptions{Shell: "bash", Timeout: 5 * time.Second}
+	if err := waitForValidation(context.Background(), script, dir, opts); err != nil {
+		t.Errorf("waitForValidation: %v", err)
+	}
+}
+
+// TestWaitForValidationTimeout checks a hook that never holds returns its last
+// failure instead of hanging past the deadline.
+func TestWaitForValidationTimeout(t *testing.T) {
+	opts := RunOptions{Shell: "bash", Timeout: 600 * time.Millisecond}
+	err := waitForValidation(context.Background(), "echo nope >&2; exit 1", t.TempDir(), opts)
+	if err == nil {
+		t.Fatal("expected a failure")
+	}
+	if !strings.Contains(err.Error(), "nope") {
+		t.Errorf("error should carry the hook's output, got %v", err)
 	}
 }
 

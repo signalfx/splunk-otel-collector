@@ -35,7 +35,7 @@ test-ip-sans: splunk-connect-for-otlp.tgz
 
 .PHONY := splunk
 splunk: splunk-connect-for-otlp.tgz
-	docker run --rm -it -v $(PWD)/splunk-connect-for-otlp.tgz:/tmp/splunk-connect-for-otlp.tgz \
+	docker run --rm -it -v $(PWD)/out/distribution/splunk-connect-for-otlp.tgz:/tmp/splunk-connect-for-otlp.tgz \
 		--platform linux/amd64 \
 		-e "SPLUNK_PASSWORD=changeme" \
 		-e "SPLUNK_APPS_URL=file:///tmp/splunk-connect-for-otlp.tgz" \

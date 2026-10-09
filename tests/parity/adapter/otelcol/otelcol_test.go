@@ -50,11 +50,11 @@ func TestName(t *testing.T) {
 
 func TestPrepareNoSources(t *testing.T) {
 	// No yaml files and no extra sources is an error.
-	if err := New("bin").Prepare(t.TempDir()); err == nil {
+	if err := New("bin").Prepare(t.TempDir(), nil); err == nil {
 		t.Error("expected error when no config source resolves")
 	}
-	// A missing config dir is an error.
-	if err := New("bin").Prepare(filepath.Join(t.TempDir(), "missing")); err == nil {
+	// A staged file that is not on disk is an error.
+	if err := New("bin", "x://y").Prepare(t.TempDir(), []string{"inputs.conf"}); err == nil {
 		t.Error("expected error for missing config dir")
 	}
 }
@@ -71,7 +71,7 @@ func TestPrepareMultipleConfigs(t *testing.T) {
 	}
 
 	a := New("bin", "splunkhome://SPLUNK_HOME?pipeline=uf")
-	if err := a.Prepare(dir); err != nil {
+	if err := a.Prepare(dir, []string{ConfigFile, "override.yml", "notes.txt"}); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
 
@@ -94,7 +94,7 @@ func TestPrepareMultipleConfigs(t *testing.T) {
 // TestPrepareExtraOnly: an extra source alone is enough, even with no yaml files.
 func TestPrepareExtraOnly(t *testing.T) {
 	a := New("bin", "splunkhome://SPLUNK_HOME")
-	if err := a.Prepare(t.TempDir()); err != nil {
+	if err := a.Prepare(t.TempDir(), nil); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
 	if want := []string{"--config", "splunkhome://SPLUNK_HOME"}; len(a.args()) != len(want) {
@@ -106,7 +106,7 @@ func TestPrepareExtraOnly(t *testing.T) {
 // comma-separated flag, each prefixed with +.
 func TestFeatureGates(t *testing.T) {
 	a := New("bin", "splunkhome://SPLUNK_HOME").EnableFeatureGates("enableTARunner", "other")
-	if err := a.Prepare(t.TempDir()); err != nil {
+	if err := a.Prepare(t.TempDir(), nil); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
 	want := []string{
@@ -136,7 +136,7 @@ func TestSplunkHome(t *testing.T) {
 	}
 
 	a := New("bin")
-	if err := a.Prepare(dir); err != nil {
+	if err := a.Prepare(dir, append([]string{ConfigFile}, confs...)); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
 	home := filepath.Join(dir, splunkHomeDir)
@@ -157,7 +157,7 @@ func TestSplunkHome(t *testing.T) {
 // environment unchanged.
 func TestNoConfNoSplunkHome(t *testing.T) {
 	a := New("bin", "config.yaml")
-	if err := a.Prepare(t.TempDir()); err != nil {
+	if err := a.Prepare(t.TempDir(), nil); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
 	if env := a.env(); env != nil {
@@ -194,7 +194,7 @@ func TestStartStop(t *testing.T) {
 	}
 
 	a := New(bin)
-	if err := a.Prepare(dir); err != nil {
+	if err := a.Prepare(dir, []string{ConfigFile}); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
 	if err := a.Start(context.Background()); err != nil {

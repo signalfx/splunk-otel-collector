@@ -115,6 +115,7 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return nil, err
 	}
+	staged := make([]string, 0, len(run.ConfigFiles))
 	for name, tmpl := range run.ConfigFiles {
 		// A name may be a relative path (apps/<app>/local/inputs.conf), which the
 		// adapter mirrors into the agent's own tree.
@@ -125,9 +126,11 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 		if err := os.WriteFile(dest, []byte(tokens.apply(tmpl)), 0o600); err != nil {
 			return nil, err
 		}
+		staged = append(staged, name)
 	}
+	slices.Sort(staged)
 
-	if err := run.Adapter.Prepare(configDir); err != nil {
+	if err := run.Adapter.Prepare(configDir, staged); err != nil {
 		return nil, fmt.Errorf("prepare: %w", err)
 	}
 	defer run.Adapter.Cleanup()

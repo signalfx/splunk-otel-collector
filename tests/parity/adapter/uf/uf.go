@@ -26,8 +26,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"github.com/signalfx/splunk-otel-collector/tests/parity"
 )
 
 // EnvInstallDir sets the UF install location. There is no built-in default: a
@@ -57,12 +55,11 @@ func (a *Adapter) InstallDir() string { return a.installDir }
 // recording a restore for each so the install is left as it was found. A bare
 // filename goes to etc/system/local; a nested path is mirrored, which is how a
 // case installs an app.
-func (a *Adapter) Prepare(configDir string) error {
-	rels, err := parity.ConfFiles(configDir)
-	if err != nil {
-		return err
-	}
-	for _, rel := range rels {
+func (a *Adapter) Prepare(configDir string, files []string) error {
+	for _, rel := range files {
+		if !strings.HasSuffix(rel, ".conf") {
+			continue
+		}
 		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 		if err != nil {
 			return err

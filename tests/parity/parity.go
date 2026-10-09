@@ -105,10 +105,12 @@ type Adapter interface {
 	// InstallDir is the agent root. A caller uses it to check the agent is
 	// actually installed before running a case against it.
 	InstallDir() string
-	// Prepare installs the case's already-interpolated config files from
-	// configDir (inputs.conf, outputs.conf) into the agent's own config layout,
-	// arranging to restore prior state on Cleanup.
-	Prepare(configDir string) error
+	// Prepare installs the case's already-interpolated config files into the
+	// agent's own config layout, arranging to restore prior state on Cleanup.
+	// files are the slash-separated paths the runner staged, relative to
+	// configDir, so an adapter places what the case supplied rather than
+	// rediscovering it on disk. configDir doubles as the agent's scratch space.
+	Prepare(configDir string, files []string) error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 	Cleanup() error

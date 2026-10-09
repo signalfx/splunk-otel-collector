@@ -29,8 +29,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/signalfx/splunk-otel-collector/tests/parity"
 )
 
 // DefaultBin is the built binary used when PARITY_OTELCOL_BIN is unset. It is
@@ -92,36 +90,19 @@ func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 // --config source, sorted for a deterministic merge order, then appends the
 // extra sources from New. At least one source must resolve. Any *.conf file goes
 // to installConf instead.
-func (a *Adapter) Prepare(configDir string) error {
-	entries, err := os.ReadDir(configDir)
-	if err != nil {
-		return err
-	}
-	var files []string
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		switch filepath.Ext(e.Name()) {
+func (a *Adapter) Prepare(configDir string, files []string) error {
+	var yamls, confs []string
+	for _, rel := range files {
+		switch filepath.Ext(rel) {
 		case ".yaml", ".yml":
-			files = append(files, filepath.Join(configDir, e.Name()))
-		}
-	}
-	sort.Strings(files)
-	all, err := parity.ConfFiles(configDir)
-	if err != nil {
-		return err
-	}
-	// The sandbox $SPLUNK_HOME sits inside configDir, so skip anything already
-	// installed there rather than treating it as case config.
-	var confs []string
-	for _, rel := range all {
-		if !strings.HasPrefix(rel, splunkHomeDir+"/") {
+			yamls = append(yamls, filepath.Join(configDir, filepath.FromSlash(rel)))
+		case ".conf":
 			confs = append(confs, rel)
 		}
 	}
-	a.configs = make([]string, 0, len(files)+len(a.extra))
-	a.configs = append(a.configs, files...)
+	sort.Strings(yamls)
+	a.configs = make([]string, 0, len(yamls)+len(a.extra))
+	a.configs = append(a.configs, yamls...)
 	a.configs = append(a.configs, a.extra...)
 	if len(a.configs) == 0 {
 		return fmt.Errorf("no collector config: want a *.yaml file in %s or an extra --config source", configDir)

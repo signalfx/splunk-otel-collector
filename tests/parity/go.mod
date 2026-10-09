@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/tests/parity
 
-go 1.26.0
+go 1.26.9
 
 require (
 	github.com/testcontainers/testcontainers-go v0.44.0

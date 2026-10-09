@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/tracing
 
-go 1.26.6
+go 1.26.9
 
 require (
 	go.opentelemetry.io/otel v1.46.0
@@ -20,7 +20,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0 // indirect
 	go.opentelemetry.io/otel/metric v1.46.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect

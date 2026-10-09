@@ -1,6 +1,6 @@
 module github.com/signalfx/signalfx-agent
 
-go 1.26.6
+go 1.26.9
 
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
@@ -35,7 +35,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/vmware/govmomi v0.56.0
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0
 	golang.org/x/tools v0.49.0 // indirect

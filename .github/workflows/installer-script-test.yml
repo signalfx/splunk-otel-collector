@@ -94,7 +94,7 @@ jobs:
       matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}
       fail-fast: false
     env:
-      GO_VERSION: 1.26.6
+      GO_VERSION: 1.26.9
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

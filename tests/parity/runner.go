@@ -90,7 +90,7 @@ func RunCase(ctx context.Context, c *Case, backend Backend, oracle, candidate Ag
 // RunAgent drives one agent through one case and returns the events it landed in
 // Splunk. It owns a fresh sandbox: render configs, run setup, start the agent,
 // run the script, poll the backend for this agent's index until the event count
-// settles, then tear down.
+// settles, run the validate hook, then tear down.
 func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts RunOptions) ([]Record, error) {
 	opts = opts.withDefaults()
 
@@ -145,7 +145,38 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 		spl = "search index=${INDEX}"
 	}
 	spl = tokens.apply(spl)
-	return waitForEvents(ctx, backend, spl, opts)
+	recs, captureErr := waitForEvents(ctx, backend, spl, opts)
+	if captureErr != nil {
+		return recs, captureErr
+	}
+
+	if c.Validate != "" {
+		if err := waitForValidation(ctx, tokens.apply(c.Validate), baseDir, opts); err != nil {
+			return recs, fmt.Errorf("validate: %w", err)
+		}
+	}
+	return recs, nil
+}
+
+// waitForValidation runs the case's validate hook until it exits 0, or Timeout
+// elapses, and then returns its last failure. It retries because an effect can
+// land after the events that preceded it.
+func waitForValidation(ctx context.Context, script, dir string, opts RunOptions) error {
+	deadline := time.Now().Add(opts.Timeout)
+	retry := 500 * time.Millisecond
+	for {
+		err := runShell(ctx, opts.Shell, script, dir)
+		if err == nil {
+			return nil
+		}
+		if time.Now().After(deadline) {
+			return err
+		}
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		time.Sleep(retry)
+	}
 }
 
 // waitForEvents polls Search until the event count is >= MinEvents and stable

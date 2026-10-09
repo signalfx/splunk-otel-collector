@@ -29,10 +29,11 @@ import (
 // loopback HTTPS endpoints, serverName (typically server_host from the
 // modular input protocol) is used as the TLS ServerName so the certificate
 // is still verified against the real hostname instead of the loopback
-// address. If serverName is empty, verification is skipped for the loopback
-// endpoint since there is no name to validate against. Verification for
-// hostnames and non-loopback addresses is unaffected unless
-// insecureSkipVerify is explicitly set.
+// address. If serverName is empty, the default transport is used and
+// verification proceeds normally, which will fail for a loopback endpoint
+// whose certificate lacks a loopback IP SAN unless insecureSkipVerify is
+// explicitly set. Verification for hostnames and non-loopback addresses is
+// unaffected unless insecureSkipVerify is explicitly set.
 func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify bool, serverName string) *http.Client {
 	client := &http.Client{Timeout: timeout}
 	switch {
@@ -41,8 +42,6 @@ func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify bool, 
 	case isLoopbackHTTPS(endpoint):
 		if serverName != "" {
 			client.Transport = serverNameTransport(serverName)
-		} else {
-			client.Transport = insecureTransport()
 		}
 	}
 	return client

@@ -32,9 +32,9 @@ func TestNewClientTLSVerification(t *testing.T) {
 		insecureSkipVerify         bool
 		expectedInsecureSkipVerify bool
 	}{
-		{name: "IPv4 loopback no server name", endpoint: "https://127.0.0.1:8089", expectedInsecureSkipVerify: true},
-		{name: "IPv4 loopback range no server name", endpoint: "https://127.12.34.56:8089", expectedInsecureSkipVerify: true},
-		{name: "IPv6 loopback no server name", endpoint: "https://[::1]:8089", expectedInsecureSkipVerify: true},
+		{name: "IPv4 loopback no server name", endpoint: "https://127.0.0.1:8089", expectedInsecureSkipVerify: false},
+		{name: "IPv4 loopback range no server name", endpoint: "https://127.12.34.56:8089", expectedInsecureSkipVerify: false},
+		{name: "IPv6 loopback no server name", endpoint: "https://[::1]:8089", expectedInsecureSkipVerify: false},
 		{name: "IPv4 loopback with server name", endpoint: "https://127.0.0.1:8089", serverName: "splunkd.example.com", expectedServerName: "splunkd.example.com"},
 		{name: "IPv6 loopback with server name", endpoint: "https://[::1]:8089", serverName: "splunkd.example.com", expectedServerName: "splunkd.example.com"},
 		{name: "loopback over HTTP", endpoint: "http://127.0.0.1:8089", serverName: "splunkd.example.com", expectedInsecureSkipVerify: false},
@@ -62,11 +62,16 @@ func TestNewClientClonesDefaultTransport(t *testing.T) {
 	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
 	require.True(t, ok)
 
-	client := NewClient("https://127.0.0.1:8089", 0, false, "")
+	client := NewClient("https://127.0.0.1:8089", 0, false, "splunkd.example.com")
 	transport, ok := client.Transport.(*http.Transport)
 	require.True(t, ok)
 	assert.NotSame(t, defaultTransport, transport)
 	assert.False(t, skipsTLSVerification(&http.Client{Transport: defaultTransport}))
+}
+
+func TestNewClientLoopbackWithoutServerNameUsesDefaultTransport(t *testing.T) {
+	client := NewClient("https://127.0.0.1:8089", time.Second, false, "")
+	assert.Nil(t, client.Transport, "expected the default transport (normal TLS verification) when no server name is known")
 }
 
 func skipsTLSVerification(client *http.Client) bool {

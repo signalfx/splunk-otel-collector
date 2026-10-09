@@ -50,10 +50,9 @@ func TestAuth(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestAuthWithUntrustedLoopbackTLSCertificate(t *testing.T) {
+func TestAuthFailsForLoopbackTLSCertificateWithoutServerHost(t *testing.T) {
 	server := authtest.NewTLSServer(t)
 
-	extension, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo", "")
-	require.NoError(t, err)
-	require.NotNil(t, extension)
+	_, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo", "")
+	require.Error(t, err)
 }

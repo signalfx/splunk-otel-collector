@@ -11,8 +11,11 @@ on:
       - 'deployments/salt/**'
       - 'instrumentation/**'
       - 'packaging/tests/deployments/salt/**'
-      - 'packaging/tests/helpers/**'
-      - 'packaging/tests/requirements.txt'
+      - 'tests/salt/**'
+      - 'tests/deploymenttest/**'
+      - 'tests/testutils/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
       - '!**.md'
   pull_request:
     paths:
@@ -21,17 +24,16 @@ on:
       - 'deployments/salt/**'
       - 'instrumentation/**'
       - 'packaging/tests/deployments/salt/**'
-      - 'packaging/tests/helpers/**'
-      - 'packaging/tests/requirements.txt'
+      - 'tests/salt/**'
+      - 'tests/deploymenttest/**'
+      - 'tests/testutils/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
       - '!**.md'
 
 concurrency:
   group: salt-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
-env:
-  PYTHON_VERSION: '3.13'
-  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
 
 jobs:
   salt-lint-test:
@@ -148,18 +150,14 @@ jobs:
       - name: List downloaded package artifacts
         run: find ./dist -maxdepth 3 -type f -print | sort
 
-      - name: Setup python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
-
-      - name: Install pytest
-        run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
+          go-version-file: tests/go.mod
+          cache-dependency-path: tests/go.sum
 
       - name: Test salt deployment
-        id: pytest
+        id: go-test
         continue-on-error: true
         env:
           DEB_VERSION: "${{ needs.salt-build-deb-local-package.outputs.version }}"
@@ -189,12 +187,13 @@ jobs:
               ;;
           esac
 
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
-            packaging/tests/deployments/salt/salt_test.py
+          cd tests
+          DEPLOYMENT_TEST_DISTRO="$distro" DEPLOYMENT_TEST_CASE="${{ matrix.CONFIG }}" \
+            go test -tags salt_integration -v -timeout 90m -count 1 ./salt
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ steps.pytest.outcome == 'failure' }}
+        if: ${{ steps.go-test.outcome == 'failure' }}
         env:
           DEB_VERSION: "${{ needs.salt-build-deb-local-package.outputs.version }}"
           RPM_VERSION: "${{ needs.salt-build-rpm-local-package.outputs.version }}"
@@ -223,6 +222,6 @@ jobs:
               ;;
           esac
 
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
-            --last-failed \
-            packaging/tests/deployments/salt/salt_test.py
+          cd tests
+          DEPLOYMENT_TEST_DISTRO="$distro" DEPLOYMENT_TEST_CASE="${{ matrix.CONFIG }}" \
+            go test -tags salt_integration -v -timeout 90m -count 1 ./salt

@@ -1,0 +1,14 @@
+name: "Monitor whitelist alternation"
+description: |
+  An alternation whitelist keeps what either branch matches, anchored or not, and
+  drops the file neither does.
+stage: alpha
+setup: |
+  mkdir -p logs
+  printf '2026-01-02 03:04:05 from mydata\n' > logs/mydata
+  printf '2026-01-02 03:04:06 from app.log\n' > logs/app.log
+  printf '2026-01-02 03:04:07 from notes.txt\n' > logs/notes.txt
+expected:
+  raw: true
+  host: true
+os: ["darwin", "linux"]

@@ -10,7 +10,6 @@ require (
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/goccy/go-json v0.10.6
-	github.com/gogo/protobuf v1.3.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
 	github.com/hashicorp/vault/api v1.23.0
@@ -49,7 +48,6 @@ require (
 	go.opentelemetry.io/collector/component/componenttest v0.162.0
 	go.opentelemetry.io/collector/config/configgrpc v1.68.0
 	go.opentelemetry.io/collector/config/confighttp v0.162.0
-	go.opentelemetry.io/collector/config/confignet v1.68.0
 	go.opentelemetry.io/collector/config/configopaque v1.68.0
 	go.opentelemetry.io/collector/confmap v1.68.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.68.0
@@ -220,6 +218,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/glog v1.2.5 // indirect
 	github.com/google/certificate-transparency-go v1.3.2 // indirect
@@ -504,6 +503,7 @@ require (
 	go.opentelemetry.io/collector/config/configauth v1.68.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.68.0 // indirect
 	go.opentelemetry.io/collector/config/configmiddleware v1.68.0 // indirect
+	go.opentelemetry.io/collector/config/confignet v1.68.0 // indirect
 	go.opentelemetry.io/collector/config/configoptional v1.68.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v1.68.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.162.0 // indirect
@@ -652,7 +652,7 @@ require (
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v1.0.0
+	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/cadvisor v0.57.0 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/google/go-cmp v0.7.0
@@ -660,7 +660,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.20 // indirect
 	github.com/googleapis/gax-go/v2 v2.24.1 // indirect
-	github.com/gorilla/mux v1.8.1
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/consul/api v1.34.4 // indirect
@@ -774,7 +774,7 @@ require (
 	go.etcd.io/etcd/api/v3 v3.6.14 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.6.14 // indirect
 	go.mongodb.org/atlas v0.38.0 // indirect
-	go.opencensus.io v0.24.0
+	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/component v1.68.0
 	go.opentelemetry.io/collector/consumer v1.68.0
 	go.opentelemetry.io/collector/featuregate v1.68.0
@@ -787,7 +787,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0
 	golang.org/x/crypto v0.57.0 // indirect
-	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297
+	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297 // indirect
 	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect

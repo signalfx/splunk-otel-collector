@@ -54,6 +54,10 @@ type Config struct {
 	// Targets is the list of gNMI devices to subscribe to.
 	Targets []TargetConfig `mapstructure:"targets"`
 
+	// Server configures an optional gNMI gRPC server for devices that push
+	// updates to the receiver with Set RPCs. An empty endpoint disables it.
+	Server *ServerConfig `mapstructure:"server"`
+
 	// YangModules is a list of YANG module files and/or directories used to
 	// derive each leaf's metric type (gauge/sum), unit, and enum/identityref
 	// value set directly from the schema. Directories are searched
@@ -84,12 +88,23 @@ type TargetConfig struct {
 	Redial time.Duration `mapstructure:"redial"`
 }
 
+// ServerConfig defines the optional receiver-side gNMI server.
+type ServerConfig struct {
+	configgrpc.ServerConfig `mapstructure:",squash"`
+	// Subscriptions defines which incoming paths to ingest and how to map their values.
+	Subscriptions []SubscriptionConfig `mapstructure:"subscriptions"`
+}
+
 func NewDefaultTargetConfig() TargetConfig {
 	return TargetConfig{
 		ClientConfig: configgrpc.NewDefaultClientConfig(),
 		Encoding:     encodingProto,
 		Redial:       defaultRedial,
 	}
+}
+
+func NewDefaultServerConfig() ServerConfig {
+	return ServerConfig{ServerConfig: configgrpc.NewDefaultServerConfig()}
 }
 
 // SubscriptionConfig defines a single gNMI path subscription.
@@ -150,6 +165,7 @@ var (
 	_ confmap.Validator   = (*Config)(nil)
 	_ confmap.Unmarshaler = (*TargetConfig)(nil)
 	_ confmap.Validator   = (*TargetConfig)(nil)
+	_ confmap.Unmarshaler = (*ServerConfig)(nil)
 	_ confmap.Validator   = (*SubscriptionConfig)(nil)
 	_ confmap.Validator   = (*MetricConfig)(nil)
 )
@@ -161,12 +177,39 @@ func (t *TargetConfig) Unmarshal(conf *confmap.Conf) error {
 	return conf.Unmarshal(t)
 }
 
+// Unmarshal applies gRPC defaults and fills the outbound-only mode field used
+// by SubscriptionConfig validation for incoming server subscriptions.
+func (s *ServerConfig) Unmarshal(conf *confmap.Conf) error {
+	*s = NewDefaultServerConfig()
+	if err := conf.Unmarshal(s); err != nil {
+		return err
+	}
+	for i := range s.Subscriptions {
+		if s.Subscriptions[i].Mode == "" {
+			s.Subscriptions[i].Mode = modeTargetDefined
+		}
+	}
+	return nil
+}
+
 func (cfg *Config) Validate() error {
-	if len(cfg.Targets) == 0 {
-		return errors.New("at least one target must be specified")
+	serverEndpoint := ""
+	if cfg.Server != nil {
+		serverEndpoint = cfg.Server.NetAddr.Endpoint
+	}
+	if len(cfg.Targets) == 0 && serverEndpoint == "" {
+		return errors.New("at least one target or a server endpoint must be specified")
+	}
+	if serverEndpoint != "" && len(cfg.Server.Subscriptions) == 0 {
+		return errors.New("server.subscriptions must contain at least one subscription when the server endpoint is set")
 	}
 	if len(cfg.YangModules) == 0 {
-		return validateMetricConfigRequired(cfg.Targets)
+		if err := validateMetricConfigRequired(cfg.Targets); err != nil {
+			return err
+		}
+		if cfg.Server != nil {
+			return validateSubscriptionMetricConfig(cfg.Server.Subscriptions, "server.subscriptions")
+		}
 	}
 	return nil
 }
@@ -179,17 +222,33 @@ func validateMetricConfigRequired(targets []TargetConfig) error {
 	for ti := range targets {
 		for si, sub := range targets[ti].Subscriptions {
 			prefix := fmt.Sprintf("targets[%d].subscriptions[%d]", ti, si)
-			if sub.Default == nil && len(sub.Overrides) == 0 {
-				return fmt.Errorf("%s: at least one of \"default\" or \"overrides\" must be specified when yang_modules is not set", prefix)
+			if err := validateOneSubscriptionMetricConfig(sub, prefix); err != nil {
+				return err
 			}
-			if sub.Default != nil && sub.Default.Type == "" {
-				return fmt.Errorf("%s.default: type is required when yang_modules is not set", prefix)
-			}
-			for leaf, override := range sub.Overrides {
-				if override.Type == "" {
-					return fmt.Errorf("%s.overrides[%q]: type is required when yang_modules is not set", prefix, leaf)
-				}
-			}
+		}
+	}
+	return nil
+}
+
+func validateSubscriptionMetricConfig(subscriptions []SubscriptionConfig, prefix string) error {
+	for i, sub := range subscriptions {
+		if err := validateOneSubscriptionMetricConfig(sub, fmt.Sprintf("%s[%d]", prefix, i)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateOneSubscriptionMetricConfig(sub SubscriptionConfig, prefix string) error {
+	if sub.Default == nil && len(sub.Overrides) == 0 {
+		return fmt.Errorf("%s: at least one of \"default\" or \"overrides\" must be specified when yang_modules is not set", prefix)
+	}
+	if sub.Default != nil && sub.Default.Type == "" {
+		return fmt.Errorf("%s.default: type is required when yang_modules is not set", prefix)
+	}
+	for leaf, override := range sub.Overrides {
+		if override.Type == "" {
+			return fmt.Errorf("%s.overrides[%q]: type is required when yang_modules is not set", prefix, leaf)
 		}
 	}
 	return nil

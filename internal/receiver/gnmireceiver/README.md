@@ -15,11 +15,23 @@ updates into OpenTelemetry metrics.
 ## Configuration
 
 The receiver opens a long-lived gNMI `Subscribe` stream to each configured target. Each
-stream can contain multiple path `subscriptions`.
+stream can contain multiple path `subscriptions`. It can also expose a gRPC server that
+accepts incoming gNMI `Set` requests and converts their update and replace values into metrics.
 
 ```yaml
 receivers:
   gnmi:
+    server:
+      endpoint: 0.0.0.0:57400
+      subscriptions:
+        - path: /interfaces/interface/state/counters
+          origin: openconfig
+          default:
+            type: sum
+            unit: "1"
+      # tls:
+      #   cert_file: server.crt
+      #   key_file: server.key
     targets:
       - endpoint: 10.0.0.1:57400
         username: admin
@@ -53,6 +65,12 @@ receivers:
                 # closed set of values this leaf can take; see "Enum leaves" below
                 enum_values: [UP, DOWN, TESTING]
 ```
+
+`server` is optional. When configured, the receiver listens on its endpoint and ingests
+the values in incoming gNMI `SetRequest` update and replace fields. The receiver can run
+with only the server configured; outbound `targets` are optional in that case. The server
+requires `subscriptions` to select incoming paths and map their values. It uses the standard
+collector gRPC server settings, including TLS, authentication, and message size limits.
 
 ### Target
 

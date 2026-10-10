@@ -68,6 +68,27 @@ func TestLoadConfig(t *testing.T) {
 	}, target.Subscriptions[1])
 }
 
+func TestLoadServerOnlyConfig(t *testing.T) {
+	t.Parallel()
+
+	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config-dialin.yaml"))
+	require.NoError(t, err)
+
+	sub, err := cm.Sub("gnmi")
+	require.NoError(t, err)
+
+	cfg := createDefaultConfig().(*Config)
+	require.NoError(t, sub.Unmarshal(cfg))
+	require.NoError(t, confmap.Validate(cfg))
+
+	require.Empty(t, cfg.Targets)
+	require.NotNil(t, cfg.Server)
+	require.Equal(t, "localhost:0", cfg.Server.NetAddr.Endpoint)
+	require.Equal(t, "tcp", string(cfg.Server.NetAddr.Transport))
+	require.Len(t, cfg.Server.Subscriptions, 1)
+	require.Equal(t, modeTargetDefined, cfg.Server.Subscriptions[0].Mode)
+}
+
 func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {
 	t.Parallel()
 

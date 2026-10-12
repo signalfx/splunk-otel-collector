@@ -17,9 +17,12 @@ package parity
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -146,6 +149,10 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	}
 	spl = tokens.apply(spl)
 	recs, captureErr := waitForEvents(ctx, backend, spl, opts)
+	for i := range recs {
+		recs[i] = unapplyTokens(recs[i], tokens)
+	}
+	sortCapture(recs, c.Expected)
 	if captureErr != nil {
 		return recs, captureErr
 	}
@@ -156,6 +163,41 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 		}
 	}
 	return recs, nil
+}
+
+// sortCapture puts a capture in an order both sides can be compared in. A
+// search returns events by descending _time, which orders a UF capture by the
+// timestamps in the events and a candidate's by nothing: it stamps one time on
+// a batch, so events sharing it come back in whatever order the index returns.
+// Sorting on the event itself makes the comparison independent of that, at the
+// cost of not asserting event order, which no case can assert today anyway.
+//
+// The key is the fields the case compares, and only those: records that tie on
+// it are interchangeable to the validator, so whichever order a tie is left in
+// cannot change the outcome. Sorting on an unselected field could instead pair
+// a record with the wrong reference.
+func sortCapture(recs []Record, e Expected) {
+	slices.SortStableFunc(recs, func(a, b Record) int {
+		return strings.Compare(comparedFields(a, e), comparedFields(b, e))
+	})
+}
+
+// comparedFields renders the selected fields of rec as one string, so ordering
+// on it orders on exactly what a comparison looks at.
+func comparedFields(rec Record, e Expected) string {
+	p := project(rec, e)
+	var sb strings.Builder
+	for _, v := range []string{p.Raw, p.Host, p.Source, p.Sourcetype, p.Index} {
+		sb.WriteString(v)
+		sb.WriteByte(0)
+	}
+	for _, key := range slices.Sorted(maps.Keys(p.Fields)) {
+		sb.WriteString(key)
+		sb.WriteByte(0)
+		sb.WriteString(p.Fields[key])
+		sb.WriteByte(0)
+	}
+	return sb.String()
 }
 
 // waitForValidation runs the case's validate hook until it exits 0, or Timeout

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -41,8 +42,8 @@ type Case struct {
 // events and drops the rest, and validating compares the candidate on these same
 // fields. The values live in the golden, never here, so the two cannot disagree.
 //
-// Every field a case does not select is ignored, which is how volatile keys (the
-// sandbox path in source, an auto-assigned sourcetype) stay out of a comparison.
+// Every field a case does not select is ignored, which is how a volatile key
+// like an auto-assigned sourcetype stays out of a comparison.
 type Expected struct {
 	// Fields selects Record.Fields keys by exact name or glob, e.g. "punct" or
 	// "date_*". Globs use path.Match syntax.
@@ -114,4 +115,21 @@ func (t Tokens) apply(s string) string {
 		}
 		return ref
 	})
+}
+
+// unapply is the inverse of apply over the one token a capture can contain: it
+// rewrites the sandbox back to ${BASE_DIR}, so an event is expressed in the same
+// vocabulary as the config that produced it. A capture needs that to be
+// comparable at all, since the sandbox belongs to the run: the golden was
+// recorded under a different one, and so is the other agent's in a
+// UF-vs-candidate run.
+//
+// The other tokens are deliberately not reversed. An index is the same for both
+// sides of a case, and the HEC endpoint and token never reach an event, so
+// rewriting them would only risk a short value matching unrelated text.
+func (t Tokens) unapply(s string) string {
+	if t.BaseDir == "" {
+		return s
+	}
+	return strings.ReplaceAll(s, t.BaseDir, "${BASE_DIR}")
 }

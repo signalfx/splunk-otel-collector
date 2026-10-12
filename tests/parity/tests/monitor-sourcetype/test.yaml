@@ -6,5 +6,6 @@ setup: |
 expected:
   raw: true
   host: true
+  source: true
   sourcetype: true
 os: ["darwin", "linux"]

@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.26.6
+go 1.26.9
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4
@@ -9,7 +9,7 @@ require (
 	github.com/expr-lang/expr v1.17.8
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-zookeeper/zk v1.0.4
-	github.com/goccy/go-json v0.10.6
+	github.com/goccy/go-json v0.11.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/vault-plugin-auth-gcp v0.23.2-0.20260604163449-108858b5ffea
@@ -788,7 +788,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/term v0.46.0 // indirect

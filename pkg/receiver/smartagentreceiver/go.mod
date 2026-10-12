@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 
-go 1.26.6
+go 1.26.9
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.162.0
@@ -198,7 +198,7 @@ require (
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect

@@ -123,8 +123,7 @@ func TestWriteGoldenMatchesValidator(t *testing.T) {
 	}
 
 	// A candidate differing on every unselected field still matches: the collector
-	// sets its own sourcetype and monitors a different sandbox path, so those
-	// really do diverge from UF in practice.
+	// sets its own sourcetype, which really does diverge from UF in practice.
 	candidate := Record{
 		Raw: "initial text", Host: "myhost",
 		Source: "/other/path", Sourcetype: "otel", Index: "parity",

@@ -27,8 +27,8 @@ const GoldenFile = "golden.json"
 // project returns a copy of rec holding only the fields the filter selects;
 // every other field is zeroed so Record's omitempty tags drop it from the
 // golden. A capture arrives with source, sourcetype and index populated whether
-// or not a case selects them, so without this a golden would pin the sandbox
-// path and the oracle's index.
+// or not a case selects them, so without this a golden would pin UF's
+// auto-assigned sourcetype.
 func project(rec Record, e Expected) Record {
 	out := Record{Time: rec.Time}
 	if e.Raw {
@@ -56,6 +56,22 @@ func project(rec Record, e Expected) Record {
 		out.Fields[key] = v
 	}
 	return out
+}
+
+// unapplyTokens returns rec with the run's sandbox rewritten back to its token,
+// which is what makes a capture comparable across runs. It covers the whole
+// record rather than source alone, so a stanza that puts the sandbox anywhere
+// else lands in a golden the same way.
+func unapplyTokens(rec Record, t Tokens) Record {
+	rec.Raw = t.unapply(rec.Raw)
+	rec.Host = t.unapply(rec.Host)
+	rec.Source = t.unapply(rec.Source)
+	rec.Sourcetype = t.unapply(rec.Sourcetype)
+	rec.Index = t.unapply(rec.Index)
+	for key, v := range rec.Fields {
+		rec.Fields[key] = t.unapply(v)
+	}
+	return rec
 }
 
 // selectsField reports whether key matches any of the filter's Fields patterns.

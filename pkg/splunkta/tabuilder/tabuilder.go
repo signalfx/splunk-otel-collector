@@ -78,7 +78,7 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 		return nil, err
 	}
 	switch parsed.Kind {
-	case "script", "":
+	case "script":
 		f := scriptreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), &scriptreceiver.Config{
 			Input:      input,
@@ -102,7 +102,9 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 			Transforms: transforms,
 			Props:      props,
 		}, next)
-	case "wineventlog":
+	// inputs.conf.spec spells this [WinEventLog://<name>]; the lowercase form is
+	// what the splunk_wineventlog wrapper synthesizes.
+	case "wineventlog", "WinEventLog":
 		f := wineventlogreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), wineventlogreceiver.Config{
 			Input:      input,

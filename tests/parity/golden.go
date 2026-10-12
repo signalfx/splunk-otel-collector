@@ -27,8 +27,8 @@ const GoldenFile = "golden.json"
 // project returns a copy of rec holding only the fields the filter selects;
 // every other field is zeroed so Record's omitempty tags drop it from the
 // golden. A capture arrives with source, sourcetype and index populated whether
-// or not a case selects them, so without this a golden would pin the sandbox
-// path and the oracle's index.
+// or not a case selects them, so without this a golden would pin UF's
+// auto-assigned sourcetype.
 func project(rec Record, e Expected) Record {
 	out := Record{Time: rec.Time}
 	if e.Raw {

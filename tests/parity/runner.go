@@ -146,6 +146,11 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	}
 	spl = tokens.apply(spl)
 	recs, captureErr := waitForEvents(ctx, backend, spl, opts)
+	// Each agent runs in its own sandbox, so a path is only comparable as the
+	// token it came from.
+	for i := range recs {
+		recs[i].Source = tokens.unapply(recs[i].Source)
+	}
 	if captureErr != nil {
 		return recs, captureErr
 	}

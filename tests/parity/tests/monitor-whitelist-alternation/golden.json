@@ -1,10 +1,12 @@
 [
   {
     "raw": "2026-01-02 03:04:06 from app.log",
-    "host": "parityhost"
+    "host": "parityhost",
+    "source": "${BASE_DIR}/logs/app.log"
   },
   {
     "raw": "2026-01-02 03:04:05 from mydata",
-    "host": "parityhost"
+    "host": "parityhost",
+    "source": "${BASE_DIR}/logs/mydata"
   }
 ]

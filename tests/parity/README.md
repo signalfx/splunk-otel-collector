@@ -44,16 +44,20 @@ per event:
 [
   {
     "raw": "initial text",
-    "host": "myhost"
+    "host": "myhost",
+    "source": "${BASE_DIR}/foo.txt"
   }
 ]
 ```
 
 Keeping the golden to those fields avoids checking in large, volatile payloads,
 and it is what scopes the comparison: replay compares the candidate on exactly the
-fields the golden holds and ignores everything else, so a sandbox path in `source`
-or UF's auto-assigned `sourcetype` never enters a comparison unless the case
-selects it.
+fields the golden holds and ignores everything else, so UF's auto-assigned
+`sourcetype` never enters a comparison unless the case selects it.
+
+`source` is held as `${BASE_DIR}/...`: each agent runs in its own sandbox, so the
+framework rewrites the sandbox prefix of a captured path back to the token both
+when it writes a golden and when it reads a candidate back.
 
 Regenerate goldens after adding or changing a case, or bumping the oracle
 version:

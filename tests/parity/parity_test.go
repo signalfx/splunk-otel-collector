@@ -121,6 +121,31 @@ func TestTokensApplyLeavesOtherSyntaxAlone(t *testing.T) {
 	}
 }
 
+// TestTokensUnapplySandbox covers the rewrite a captured source goes through: a
+// path under either form of the sandbox comes back as the token the config named
+// it with, and anything else is left alone.
+func TestTokensUnapplySandbox(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "run")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	tokens := Tokens{BaseDir: dir}
+
+	for in, want := range map[string]string{
+		filepath.Join(dir, "foo.txt"):              "${BASE_DIR}/foo.txt",
+		filepath.Join(resolved(dir), "logs/a.log"): "${BASE_DIR}/logs/a.log",
+		"http:splunk_hec_token":                    "http:splunk_hec_token",
+	} {
+		if got := tokens.unapply(in); got != want {
+			t.Errorf("unapply(%q) = %q, want %q", in, got, want)
+		}
+	}
+
+	if got := (Tokens{}).unapply("/some/path"); got != "/some/path" {
+		t.Errorf("unapply without a sandbox = %q, want it unchanged", got)
+	}
+}
+
 func TestLoadCase(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "test.yaml")

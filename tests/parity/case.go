@@ -17,7 +17,9 @@ package parity
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -41,8 +43,8 @@ type Case struct {
 // events and drops the rest, and validating compares the candidate on these same
 // fields. The values live in the golden, never here, so the two cannot disagree.
 //
-// Every field a case does not select is ignored, which is how volatile keys (the
-// sandbox path in source, an auto-assigned sourcetype) stay out of a comparison.
+// Every field a case does not select is ignored, which is how a volatile key
+// like an auto-assigned sourcetype stays out of a comparison.
 type Expected struct {
 	// Fields selects Record.Fields keys by exact name or glob, e.g. "punct" or
 	// "date_*". Globs use path.Match syntax.
@@ -114,4 +116,31 @@ func (t Tokens) apply(s string) string {
 		}
 		return ref
 	})
+}
+
+// unapply rewrites a captured path under the sandbox back to ${BASE_DIR},
+// separators included, so a golden holds the path as the config named it rather
+// than as one run's temporary directory. Each agent gets its own sandbox, which
+// is why an absolute path is comparable only as a token. The symlink-resolved
+// prefix is accepted too, because an agent may report the path it opened rather
+// than the one it was configured with (on macOS the sandbox sits under a
+// symlinked /var).
+func (t Tokens) unapply(s string) string {
+	if t.BaseDir == "" {
+		return s
+	}
+	for _, dir := range []string{t.BaseDir, resolved(t.BaseDir)} {
+		if rest, ok := strings.CutPrefix(s, dir); ok {
+			return "${BASE_DIR}" + filepath.ToSlash(rest)
+		}
+	}
+	return s
+}
+
+func resolved(dir string) string {
+	resolvedDir, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return dir
+	}
+	return resolvedDir
 }

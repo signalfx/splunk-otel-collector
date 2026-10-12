@@ -47,7 +47,7 @@ DEPLOYMENT_TEST_DISTRO=debian-bookworm DEPLOYMENT_TEST_CASE=default \
 ```
 
 The Puppet workflow also runs the Windows host tests with the same
-`puppet_integration` tag. It selects `default` or `custom` through
+`puppet_integration` tag. It selects `default` or `custom_vars` through
 `DEPLOYMENT_TEST_CASE`.
 
 ## Running the `linux-installer-script-test` CI Workflow Locally

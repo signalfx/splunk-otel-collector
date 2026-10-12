@@ -18,26 +18,28 @@ type Name struct {
 	Target string
 }
 
-// ParseName splits a Splunk stanza name without applying URL semantics.
+// ParseName splits a Splunk stanza name into its input kind and target,
+// without applying URL semantics.
 //
-// Splunk uses the form kind://target for many inputs, but the target can be a
-// path, an event log channel, or a network-specific value. Unprefixed names
-// are returned with an empty Kind and are used by scripted inputs.
+// splunkd has no central scheme registry: each input processor claims its own
+// stanzas out of inputs.conf by string prefix, and those prefixes carry a
+// single colon. So the split is at the first colon, and a "//" immediately
+// after it belongs to the separator rather than to the target. That makes
+// [monitor:/var/log] and [monitor:///var/log] the same input, and it is why
+// [monitor://var/log] names a relative path.
+//
+// Target is kept opaque because its syntax depends on Kind: a path, an event
+// log channel, or a network-specific value. A name with no colon carries no
+// kind, and is returned with an empty Kind and the whole name as Target.
 func ParseName(raw string) (Name, error) {
-	if kind, target, ok := strings.Cut(raw, "://"); ok {
-		if kind == "" {
-			return Name{}, errEmptyKind
-		}
-		return Name{Kind: kind, Target: target}, nil
+	kind, target, ok := strings.Cut(raw, ":")
+	if !ok {
+		return Name{Target: raw}, nil
 	}
-
-	for _, kind := range []string{"tcp", "udp"} {
-		if len(raw) > len(kind) && raw[len(kind)] == ':' && strings.EqualFold(raw[:len(kind)], kind) {
-			return Name{Kind: raw[:len(kind)], Target: raw[len(kind)+1:]}, nil
-		}
+	if kind == "" {
+		return Name{}, errEmptyKind
 	}
-
-	return Name{Target: raw}, nil
+	return Name{Kind: kind, Target: strings.TrimPrefix(target, "//")}, nil
 }
 
 // ParseOutputName splits a Splunk output stanza name into a kind and target.

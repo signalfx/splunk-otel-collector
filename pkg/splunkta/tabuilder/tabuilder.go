@@ -102,11 +102,8 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 			Transforms: transforms,
 			Props:      props,
 		}, next)
-	// inputs.conf.spec spells this one [WinEventLog://<name>], the only input kind
-	// whose canonical spelling is not lowercase. The lowercase form is what the
-	// splunk_wineventlog wrapper synthesizes. Kinds are matched exactly rather
-	// than case-folded, as splunk_outputs resolves its own, since UF would not
-	// honor a spelling its spec does not define.
+	// inputs.conf.spec spells this [WinEventLog://<name>]; the lowercase form is
+	// what the splunk_wineventlog wrapper synthesizes.
 	case "wineventlog", "WinEventLog":
 		f := wineventlogreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), wineventlogreceiver.Config{

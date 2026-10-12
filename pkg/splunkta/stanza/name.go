@@ -29,9 +29,8 @@ type Name struct {
 // [monitor://var/log] names a relative path.
 //
 // Target is kept opaque because its syntax depends on Kind: a path, an event
-// log channel, or a network-specific value. Unprefixed names are returned with
-// an empty Kind; inputs.conf.spec defines no unprefixed form that declares an
-// input, so callers treat them as unsupported.
+// log channel, or a network-specific value. A name with no colon carries no
+// kind, and is returned with an empty Kind and the whole name as Target.
 func ParseName(raw string) (Name, error) {
 	kind, target, ok := strings.Cut(raw, ":")
 	if !ok {

@@ -81,7 +81,7 @@ jobs:
           ignore_words_list: AKS
           skip: "./internal/signalfx-agent,*.sum,*.mod,*.json"
       - name: Spell check - crate-ci/typos
-        uses: crate-ci/typos@512fc24f32f44ab01972217aaaf3dc86ec234d53 # v1.50.2
+        uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
         with:
           config: ./.typos.toml
 

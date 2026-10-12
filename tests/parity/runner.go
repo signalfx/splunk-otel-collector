@@ -15,9 +15,9 @@
 package parity
 
 import (
-	"cmp"
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -152,7 +152,7 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	for i := range recs {
 		recs[i] = unapplyTokens(recs[i], tokens)
 	}
-	sortCapture(recs)
+	sortCapture(recs, c.Expected)
 	if captureErr != nil {
 		return recs, captureErr
 	}
@@ -171,10 +171,33 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 // a batch, so events sharing it come back in whatever order the index returns.
 // Sorting on the event itself makes the comparison independent of that, at the
 // cost of not asserting event order, which no case can assert today anyway.
-func sortCapture(recs []Record) {
+//
+// The key is the fields the case compares, and only those: records that tie on
+// it are interchangeable to the validator, so whichever order a tie is left in
+// cannot change the outcome. Sorting on an unselected field could instead pair
+// a record with the wrong reference.
+func sortCapture(recs []Record, e Expected) {
 	slices.SortStableFunc(recs, func(a, b Record) int {
-		return cmp.Or(strings.Compare(a.Raw, b.Raw), strings.Compare(a.Source, b.Source))
+		return strings.Compare(comparedFields(a, e), comparedFields(b, e))
 	})
+}
+
+// comparedFields renders the selected fields of rec as one string, so ordering
+// on it orders on exactly what a comparison looks at.
+func comparedFields(rec Record, e Expected) string {
+	p := project(rec, e)
+	var sb strings.Builder
+	for _, v := range []string{p.Raw, p.Host, p.Source, p.Sourcetype, p.Index} {
+		sb.WriteString(v)
+		sb.WriteByte(0)
+	}
+	for _, key := range slices.Sorted(maps.Keys(p.Fields)) {
+		sb.WriteString(key)
+		sb.WriteByte(0)
+		sb.WriteString(p.Fields[key])
+		sb.WriteByte(0)
+	}
+	return sb.String()
 }
 
 // waitForValidation runs the case's validate hook until it exits 0, or Timeout

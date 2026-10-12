@@ -19,6 +19,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -345,12 +346,56 @@ func TestRunAgentSortsCapture(t *testing.T) {
 	}}
 	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
 	run := AgentRun{Adapter: a, Index: "i"}
-	recs, err := RunAgent(context.Background(), &Case{Name: "c"}, run, backend, fastOpts())
+	c := &Case{Name: "c", Expected: Expected{Raw: true}}
+	recs, err := RunAgent(context.Background(), c, run, backend, fastOpts())
 	if err != nil {
 		t.Fatalf("RunAgent: %v", err)
 	}
 	if len(recs) != 2 || recs[0].Raw != "first" || recs[1].Raw != "second" {
 		t.Errorf("capture = %+v, want it sorted by raw", recs)
+	}
+}
+
+// TestSortCaptureUsesSelectedFields pins the key: a field the case compares
+// orders the capture, and a field it does not compare leaves records
+// interchangeable, so an order the two sides cannot agree on never decides the
+// pairing.
+func TestSortCaptureUsesSelectedFields(t *testing.T) {
+	tied := []Record{
+		{Raw: "same", Host: "h2", Source: "/b.log"},
+		{Raw: "same", Host: "h1", Source: "/a.log"},
+	}
+
+	tests := []struct {
+		name     string
+		wantRaw  []string
+		wantHost []string
+		filter   Expected
+	}{
+		{
+			name:     "selected host breaks the tie",
+			filter:   Expected{Raw: true, Host: true},
+			wantRaw:  []string{"same", "same"},
+			wantHost: []string{"h1", "h2"},
+		},
+		{
+			name:     "unselected source does not reorder",
+			filter:   Expected{Raw: true},
+			wantRaw:  []string{"same", "same"},
+			wantHost: []string{"h2", "h1"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recs := slices.Clone(tied)
+			sortCapture(recs, tt.filter)
+			for i, rec := range recs {
+				if rec.Raw != tt.wantRaw[i] || rec.Host != tt.wantHost[i] {
+					t.Errorf("record %d = %+v, want raw %q host %q", i, rec, tt.wantRaw[i], tt.wantHost[i])
+				}
+			}
+		})
 	}
 }
 

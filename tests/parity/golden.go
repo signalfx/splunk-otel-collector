@@ -58,6 +58,22 @@ func project(rec Record, e Expected) Record {
 	return out
 }
 
+// unapplyTokens returns rec with the run's sandbox rewritten back to its token,
+// which is what makes a capture comparable across runs. It covers the whole
+// record rather than source alone, so a stanza that puts the sandbox anywhere
+// else lands in a golden the same way.
+func unapplyTokens(rec Record, t Tokens) Record {
+	rec.Raw = t.unapply(rec.Raw)
+	rec.Host = t.unapply(rec.Host)
+	rec.Source = t.unapply(rec.Source)
+	rec.Sourcetype = t.unapply(rec.Sourcetype)
+	rec.Index = t.unapply(rec.Index)
+	for key, v := range rec.Fields {
+		rec.Fields[key] = t.unapply(v)
+	}
+	return rec
+}
+
 // selectsField reports whether key matches any of the filter's Fields patterns.
 // A malformed pattern matches nothing rather than erroring, so a bad glob shows
 // up as a missing field in the golden diff.

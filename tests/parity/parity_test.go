@@ -121,28 +121,34 @@ func TestTokensApplyLeavesOtherSyntaxAlone(t *testing.T) {
 	}
 }
 
-// TestTokensUnapplySandbox covers the rewrite a captured source goes through: a
-// path under either form of the sandbox comes back as the token the config named
-// it with, and anything else is left alone.
-func TestTokensUnapplySandbox(t *testing.T) {
-	dir := filepath.Join(t.TempDir(), "run")
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		t.Fatal(err)
+// TestTokensUnapply covers the normalization a capture goes through: the
+// sandbox comes back as ${BASE_DIR}, apply round-trips it, and a value no token
+// resolved to is left alone.
+func TestTokensUnapply(t *testing.T) {
+	tokens := Tokens{
+		BaseDir:     "/tmp/parity-run",
+		HECEndpoint: "https://127.0.0.1:8088",
+		HECToken:    "tok",
+		Index:       "parity_uc",
 	}
-	tokens := Tokens{BaseDir: dir}
 
 	for in, want := range map[string]string{
-		filepath.Join(dir, "foo.txt"):              "${BASE_DIR}/foo.txt",
-		filepath.Join(resolved(dir), "logs/a.log"): "${BASE_DIR}/logs/a.log",
-		"http:splunk_hec_token":                    "http:splunk_hec_token",
+		"/tmp/parity-run/logs/a.log": "${BASE_DIR}/logs/a.log",
+		"http:splunk_hec_token":      "http:splunk_hec_token",
+		"parity_uc":                  "parity_uc",
 	} {
-		if got := tokens.unapply(in); got != want {
+		got := tokens.unapply(in)
+		if got != want {
 			t.Errorf("unapply(%q) = %q, want %q", in, got, want)
+		}
+		if back := tokens.apply(got); back != in {
+			t.Errorf("apply(unapply(%q)) = %q, want the original", in, back)
 		}
 	}
 
+	// An unset sandbox must not match every string.
 	if got := (Tokens{}).unapply("/some/path"); got != "/some/path" {
-		t.Errorf("unapply without a sandbox = %q, want it unchanged", got)
+		t.Errorf("unapply with no sandbox = %q, want it unchanged", got)
 	}
 }
 

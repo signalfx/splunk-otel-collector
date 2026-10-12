@@ -17,7 +17,6 @@ package parity
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -118,29 +117,19 @@ func (t Tokens) apply(s string) string {
 	})
 }
 
-// unapply rewrites a captured path under the sandbox back to ${BASE_DIR},
-// separators included, so a golden holds the path as the config named it rather
-// than as one run's temporary directory. Each agent gets its own sandbox, which
-// is why an absolute path is comparable only as a token. The symlink-resolved
-// prefix is accepted too, because an agent may report the path it opened rather
-// than the one it was configured with (on macOS the sandbox sits under a
-// symlinked /var).
+// unapply is the inverse of apply over the one token a capture can contain: it
+// rewrites the sandbox back to ${BASE_DIR}, so an event is expressed in the same
+// vocabulary as the config that produced it. A capture needs that to be
+// comparable at all, since the sandbox belongs to the run: the golden was
+// recorded under a different one, and so is the other agent's in a
+// UF-vs-candidate run.
+//
+// The other tokens are deliberately not reversed. An index is the same for both
+// sides of a case, and the HEC endpoint and token never reach an event, so
+// rewriting them would only risk a short value matching unrelated text.
 func (t Tokens) unapply(s string) string {
 	if t.BaseDir == "" {
 		return s
 	}
-	for _, dir := range []string{t.BaseDir, resolved(t.BaseDir)} {
-		if rest, ok := strings.CutPrefix(s, dir); ok {
-			return "${BASE_DIR}" + filepath.ToSlash(rest)
-		}
-	}
-	return s
-}
-
-func resolved(dir string) string {
-	resolvedDir, err := filepath.EvalSymlinks(dir)
-	if err != nil {
-		return dir
-	}
-	return resolvedDir
+	return strings.ReplaceAll(s, t.BaseDir, "${BASE_DIR}")
 }

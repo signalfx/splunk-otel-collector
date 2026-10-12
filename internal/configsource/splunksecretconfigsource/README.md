@@ -32,7 +32,7 @@ config_sources:
     # Set this to disambiguate credentials that collide across users. Defaults to "-" (all users).
     user: "-"
     # insecure_skip_verify disables TLS certificate verification for splunkd.
-    # Literal loopback IP endpoints are handled automatically even when false.
+    # Loopback endpoints are verified normally unless this option is true.
     # Defaults to false.
     insecure_skip_verify: false
     # timeout is the maximum amount of time to wait for a response from splunkd.

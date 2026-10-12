@@ -245,8 +245,9 @@ func TestSplunkSecretRetrieveWithUntrustedLoopbackTLSCertificate(t *testing.T) {
 	t.Cleanup(server.Close)
 
 	source := newConfigSource(&Config{
-		Endpoint:   server.URL,
-		SessionKey: "test_session_key",
+		Endpoint:           server.URL,
+		SessionKey:         "test_session_key",
+		InsecureSkipVerify: true,
 	}, "-", "-", time.Second, zap.NewNop())
 	retrieved, err := source.Retrieve(t.Context(), "myrealm:myuser", nil, nil)
 	require.NoError(t, err)

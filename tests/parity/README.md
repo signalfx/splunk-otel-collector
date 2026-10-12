@@ -59,6 +59,11 @@ fields the golden holds and ignores everything else, so UF's auto-assigned
 framework rewrites the sandbox prefix of a captured path back to the token both
 when it writes a golden and when it reads a candidate back.
 
+A golden is written in the order a capture is sorted into, by event text and
+then source, not in the order the search returned. Event order is therefore not
+asserted: a candidate stamps one time on a batch, so the index is free to return
+those events either way round.
+
 Regenerate goldens after adding or changing a case, or bumping the oracle
 version:
 

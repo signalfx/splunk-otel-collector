@@ -335,6 +335,25 @@ func TestRunAgentDefaultSearch(t *testing.T) {
 	}
 }
 
+// TestRunAgentSortsCapture pins that the order a search returned events in does
+// not reach a comparison: a candidate stamps one time on a batch, so the index
+// is free to return those events either way round.
+func TestRunAgentSortsCapture(t *testing.T) {
+	backend := &fakeBackend{records: []Record{
+		{Raw: "second", Source: "/b.log"},
+		{Raw: "first", Source: "/a.log"},
+	}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	recs, err := RunAgent(context.Background(), &Case{Name: "c"}, run, backend, fastOpts())
+	if err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if len(recs) != 2 || recs[0].Raw != "first" || recs[1].Raw != "second" {
+		t.Errorf("capture = %+v, want it sorted by raw", recs)
+	}
+}
+
 func TestRunAgentSetupError(t *testing.T) {
 	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
 	a := &fakeAdapter{name: "fake", dir: t.TempDir()}

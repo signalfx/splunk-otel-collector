@@ -15,11 +15,14 @@
 package parity
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -149,6 +152,7 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 	for i := range recs {
 		recs[i] = unapplyTokens(recs[i], tokens)
 	}
+	sortCapture(recs)
 	if captureErr != nil {
 		return recs, captureErr
 	}
@@ -159,6 +163,18 @@ func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts 
 		}
 	}
 	return recs, nil
+}
+
+// sortCapture puts a capture in an order both sides can be compared in. A
+// search returns events by descending _time, which orders a UF capture by the
+// timestamps in the events and a candidate's by nothing: it stamps one time on
+// a batch, so events sharing it come back in whatever order the index returns.
+// Sorting on the event itself makes the comparison independent of that, at the
+// cost of not asserting event order, which no case can assert today anyway.
+func sortCapture(recs []Record) {
+	slices.SortStableFunc(recs, func(a, b Record) int {
+		return cmp.Or(strings.Compare(a.Raw, b.Raw), strings.Compare(a.Source, b.Source))
+	})
 }
 
 // waitForValidation runs the case's validate hook until it exits 0, or Timeout

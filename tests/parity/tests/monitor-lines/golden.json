@@ -1,6 +1,6 @@
 [
   {
-    "raw": "2026-01-02 03:04:07 charlie",
+    "raw": "2026-01-02 03:04:05 alpha",
     "host": "parityhost",
     "source": "${BASE_DIR}/foo.txt"
   },
@@ -10,7 +10,7 @@
     "source": "${BASE_DIR}/foo.txt"
   },
   {
-    "raw": "2026-01-02 03:04:05 alpha",
+    "raw": "2026-01-02 03:04:07 charlie",
     "host": "parityhost",
     "source": "${BASE_DIR}/foo.txt"
   }

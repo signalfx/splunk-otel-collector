@@ -112,6 +112,7 @@ This distribution is supported on and packaged for a variety of platforms includ
   - [Manual](./docs/getting-started/linux-manual.md) including DEB/RPM packages, Docker, and binary
 - Windows
   - [Installer script](./docs/getting-started/windows-installer.md) (recommended for single-host demo/test environments)
+  - [Run with a dedicated service account](./docs/advanced/windows-service-account.md)
   - Configuration management (recommended for multi-host production environments)
     - [Ansible](https://galaxy.ansible.com/ui/repo/published/signalfx/splunk_otel_collector/)
     - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)

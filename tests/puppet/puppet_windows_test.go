@@ -28,6 +28,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/registry"
+
+	d "github.com/signalfx/splunk-otel-collector/tests/deploymenttest"
 )
 
 const (
@@ -38,14 +40,14 @@ const (
 
 func command(t *testing.T, cmd string, ok ...int) string {
 	t.Helper()
-	out, e := exec.Command("powershell", "-NoProfile", "-Command", cmd).CombinedOutput()
+	out, err := exec.Command("powershell", "-NoProfile", "-Command", cmd).CombinedOutput()
 	rc := 0
-	if e != nil {
-		if ee, yes := e.(*exec.ExitError); yes {
-			rc = ee.ExitCode()
-		} else {
-			require.NoError(t, e)
+	if err != nil {
+		exitErr, isExitErr := err.(*exec.ExitError)
+		if !isExitErr {
+			require.NoError(t, err)
 		}
+		rc = exitErr.ExitCode()
 	}
 	if len(ok) == 0 {
 		ok = []int{0}
@@ -57,13 +59,13 @@ func command(t *testing.T, cmd string, ok ...int) string {
 func setup(t *testing.T) {
 	t.Helper()
 	command(t, "choco --version")
-	release := env("PUPPET_RELEASE", "latest")
+	release := d.Env("PUPPET_RELEASE", "latest")
 	cmd := "choco upgrade -y -f puppet-agent"
 	if release != "latest" {
 		cmd += " --version " + release
 	}
 	command(t, cmd)
-	root := root(t)
+	root := d.FindRoot(t, filepath.Join("deployments", "puppet"))
 	_ = os.RemoveAll(winModule)
 	command(t, fmt.Sprintf("Copy-Item -Recurse -Force '%s' '%s'", filepath.Join(root, "deployments", "puppet"), winModule))
 	for _, module := range []string{"puppet-archive", "puppetlabs-powershell", "puppetlabs-registry"} {
@@ -71,36 +73,13 @@ func setup(t *testing.T) {
 	}
 }
 
-func root(t *testing.T) string {
-	t.Helper()
-	wd, e := os.Getwd()
-	require.NoError(t, e)
-	for {
-		if _, e = os.Stat(filepath.Join(wd, "deployments", "puppet")); e == nil {
-			return wd
-		}
-		next := filepath.Dir(wd)
-		if next == wd {
-			t.Fatal("repository root not found")
-		}
-		wd = next
-	}
-}
-
-func env(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
 func regEnvValue(t *testing.T, name string) (string, bool) {
 	t.Helper()
-	k, e := registry.OpenKey(registry.LOCAL_MACHINE, `SYSTEM\CurrentControlSet\Services\splunk-otel-collector`, registry.QUERY_VALUE)
-	require.NoError(t, e)
-	defer k.Close()
-	vars, _, e := k.GetStringsValue("Environment")
-	require.NoError(t, e)
+	key, err := registry.OpenKey(registry.LOCAL_MACHINE, `SYSTEM\CurrentControlSet\Services\splunk-otel-collector`, registry.QUERY_VALUE)
+	require.NoError(t, err)
+	defer key.Close()
+	vars, _, err := key.GetStringsValue("Environment")
+	require.NoError(t, err)
 	for _, line := range vars {
 		if strings.HasPrefix(line, name+"=") {
 			return strings.TrimPrefix(line, name+"="), true
@@ -124,7 +103,7 @@ func service(t *testing.T) string {
 }
 
 func supportsArgs() bool {
-	v := env("WIN_COLLECTOR_VERSION", "123.456.789")
+	v := d.Env("WIN_COLLECTOR_VERSION", "123.456.789")
 	if v == "latest" {
 		return true
 	}
@@ -146,8 +125,16 @@ func apply(t *testing.T, config string) {
 
 func verify(t *testing.T, api, ingest, hec, listen string) {
 	t.Helper()
-	for k, v := range map[string]string{"SPLUNK_REALM": "test", "SPLUNK_ACCESS_TOKEN": "testing123", "SPLUNK_API_URL": api, "SPLUNK_INGEST_URL": ingest, "SPLUNK_HEC_URL": ingest + "/v1/log", "SPLUNK_HEC_TOKEN": hec} {
-		require.Equal(t, v, regEnv(t, k), k)
+	expected := map[string]string{
+		"SPLUNK_REALM":        d.Realm,
+		"SPLUNK_ACCESS_TOKEN": d.Token,
+		"SPLUNK_API_URL":      api,
+		"SPLUNK_INGEST_URL":   ingest,
+		"SPLUNK_HEC_URL":      ingest + "/v1/log",
+		"SPLUNK_HEC_TOKEN":    hec,
+	}
+	for key, value := range expected {
+		require.Equal(t, value, regEnv(t, key), key)
 	}
 	if listen == "" {
 		_, found := regEnvValue(t, "SPLUNK_LISTEN_INTERFACE")
@@ -165,14 +152,26 @@ func verify(t *testing.T, api, ingest, hec, listen string) {
 	}
 }
 
+func winCollectorVersion() string { return d.Env("WIN_COLLECTOR_VERSION", "123.456.789") }
+
+func winRepoURL() string {
+	return d.Env("LOCAL_MSI_SERVER", "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/release")
+}
+
 func TestWindowsDefault(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_CASE") == "custom_vars" {
 		t.Skip("default case selected separately")
 	}
 	setup(t)
-	config := fmt.Sprintf("class { splunk_otel_collector: splunk_access_token => 'testing123', splunk_realm => 'test', collector_version => '%s', win_repo_url => '%s', }", env("WIN_COLLECTOR_VERSION", "123.456.789"), env("LOCAL_MSI_SERVER", "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/release"))
+	config := fmt.Sprintf(`class { splunk_otel_collector:
+    splunk_access_token => '%s',
+    splunk_realm => '%s',
+    collector_version => '%s',
+    win_repo_url => '%s',
+}
+`, d.Token, d.Realm, winCollectorVersion(), winRepoURL())
 	apply(t, config)
-	verify(t, "https://api.test.observability.splunkcloud.com", "https://ingest.test.observability.splunkcloud.com", "testing123", "")
+	verify(t, d.APIURL, d.IngestURL, d.Token, "")
 }
 
 func TestWindowsCustom(t *testing.T) {
@@ -180,7 +179,19 @@ func TestWindowsCustom(t *testing.T) {
 		t.Skip("custom case selected separately")
 	}
 	setup(t)
-	config := fmt.Sprintf("class { splunk_otel_collector: splunk_access_token => 'testing123', splunk_realm => 'test', splunk_api_url => 'https://fake-splunk-api.com', splunk_ingest_url => 'https://fake-splunk-ingest.com', splunk_hec_token => 'fake-hec-token', splunk_listen_interface => '0.0.0.0', collector_version => '%s', win_repo_url => '%s', collector_command_line_args => '--discovery --set=processors.batch.timeout=10s', collector_additional_env_vars => { 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }, }", env("WIN_COLLECTOR_VERSION", "123.456.789"), env("LOCAL_MSI_SERVER", "https://dl.observability.splunkcloud.com/splunk-otel-collector/msi/release"))
+	config := fmt.Sprintf(`class { splunk_otel_collector:
+    splunk_access_token => '%s',
+    splunk_realm => '%s',
+    splunk_api_url => 'https://fake-splunk-api.com',
+    splunk_ingest_url => 'https://fake-splunk-ingest.com',
+    splunk_hec_token => 'fake-hec-token',
+    splunk_listen_interface => '0.0.0.0',
+    collector_version => '%s',
+    win_repo_url => '%s',
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
+    collector_additional_env_vars => { 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' },
+}
+`, d.Token, d.Realm, winCollectorVersion(), winRepoURL())
 	apply(t, config)
 	verify(t, "https://fake-splunk-api.com", "https://fake-splunk-ingest.com", "fake-hec-token", "0.0.0.0")
 	require.Equal(t, "value1", regEnv(t, "MY_CUSTOM_VAR1"))

@@ -31,12 +31,14 @@ import (
 
 const localArtifacts = "/opt/splunk-otel-local-artifacts"
 
+// options maps a package kind ("deb" or "rpm") to its distros, each mapped
+// to the "KEY=value" docker build args used to build that distro's image.
 type options map[string]map[string][]string
 
 func distros(t *testing.T) ([]string, options) {
 	t.Helper()
-	data, e := os.ReadFile(filepath.Join(d.Root(t), "packaging/tests/deployments/salt/images/distro_docker_opts.yaml"))
-	require.NoError(t, e)
+	data, err := os.ReadFile(filepath.Join(d.Root(t), "packaging/tests/deployments/salt/images/distro_docker_opts.yaml"))
+	require.NoError(t, err)
 	var opts options
 	require.NoError(t, yaml.Unmarshal(data, &opts))
 	all := []string{}
@@ -51,6 +53,7 @@ func distros(t *testing.T) ([]string, options) {
 	}
 	return all, opts
 }
+
 func isDeb(opts options, distro string) bool { _, ok := opts["deb"][distro]; return ok }
 func container(t *testing.T, distro string, opts options) *d.Container {
 	t.Helper()
@@ -78,8 +81,8 @@ func source(t *testing.T, c *d.Container, distro string, opts options, pkg strin
 	} else {
 		glob = pkg + "-*x86_64.rpm"
 	}
-	matches, e := filepath.Glob(filepath.Join(d.Root(t), "dist", glob))
-	require.NoError(t, e)
+	matches, err := filepath.Glob(filepath.Join(d.Root(t), "dist", glob))
+	require.NoError(t, err)
 	require.Len(t, matches, 1)
 	path := localArtifacts + "/" + filepath.Base(matches[0])
 	d.File(t, c, path, true)
@@ -91,7 +94,10 @@ func withArtifacts(t *testing.T, c *d.Container, distro string, opts options, co
 	if !local() {
 		return config
 	}
-	config += fmt.Sprintf("\n  local_artifact_testing_enabled: True\n  collector_package_source: '%s'\n", source(t, c, distro, opts, d.ServiceName))
+	config += fmt.Sprintf(`
+  local_artifact_testing_enabled: True
+  collector_package_source: '%s'
+`, source(t, c, distro, opts, d.ServiceName))
 	if instrumentation {
 		config += fmt.Sprintf("  auto_instrumentation_package_source: '%s'\n", source(t, c, distro, opts, "splunk-otel-auto-instrumentation"))
 	}
@@ -129,11 +135,26 @@ func verifyEnv(t *testing.T, c *d.Container, api, ingest, hec, listen, args stri
 }
 
 func defaultConfig() string {
-	return "splunk-otel-collector:\n  splunk_access_token: '" + d.Token + "'\n  splunk_realm: '" + d.Realm + "'\n"
+	return fmt.Sprintf(`splunk-otel-collector:
+  splunk_access_token: '%s'
+  splunk_realm: '%s'
+`, d.Token, d.Realm)
 }
 
 func customConfig() string {
-	return defaultConfig() + "  splunk_ingest_url: 'https://fake-ingest.com'\n  splunk_api_url: 'https://fake-api.com'\n  splunk_hec_token: 'fake-hec-token'\n  collector_version: '0.126.0'\n  splunk_service_user: 'test-user'\n  splunk_service_group: 'test-user'\n  splunk_listen_interface: '0.0.0.0'\n  splunk_otel_collector_command_line_args: '--discovery --set=processors.batch.timeout=10s'\n  collector_additional_env_vars:\n    MY_CUSTOM_VAR1: value1\n    MY_CUSTOM_VAR2: value2\n    SPLUNK_OPAMP_SUPERVISOR_ENABLED: 'true'\n"
+	return defaultConfig() + `  splunk_ingest_url: 'https://fake-ingest.com'
+  splunk_api_url: 'https://fake-api.com'
+  splunk_hec_token: 'fake-hec-token'
+  collector_version: '0.126.0'
+  splunk_service_user: 'test-user'
+  splunk_service_group: 'test-user'
+  splunk_listen_interface: '0.0.0.0'
+  splunk_otel_collector_command_line_args: '--discovery --set=processors.batch.timeout=10s'
+  collector_additional_env_vars:
+    MY_CUSTOM_VAR1: value1
+    MY_CUSTOM_VAR2: value2
+    SPLUNK_OPAMP_SUPERVISOR_ENABLED: 'true'
+`
 }
 
 func absentInstrumentation(t *testing.T, c *d.Container, deb bool) {
@@ -142,7 +163,7 @@ func absentInstrumentation(t *testing.T, c *d.Container, deb bool) {
 	if deb {
 		cmd = "dpkg -s splunk-otel-auto-instrumentation"
 	}
-	rc, _ := d.Try(t, c, cmd)
+	rc, _ := d.Exec(t, c, cmd)
 	require.NotZero(t, rc)
 }
 
@@ -196,9 +217,24 @@ func instrumentationConfig(version, collector string, systemd, custom bool) stri
 	if custom {
 		config += fmt.Sprintf("  collector_version: '%s'\n", collector)
 	}
-	config += fmt.Sprintf("  install_auto_instrumentation: True\n  auto_instrumentation_version: '%s'\n  auto_instrumentation_systemd: %t\n", version, systemd)
+	config += fmt.Sprintf(`  install_auto_instrumentation: True
+  auto_instrumentation_version: '%s'
+  auto_instrumentation_systemd: %t
+`, version, systemd)
 	if custom {
-		config += "  auto_instrumentation_ld_so_preload: '# my extra library'\n  auto_instrumentation_resource_attributes: 'deployment.environment.name=test'\n  auto_instrumentation_service_name: 'test'\n  auto_instrumentation_generate_service_name: False\n  auto_instrumentation_disable_telemetry: True\n  auto_instrumentation_enable_profiler: True\n  auto_instrumentation_enable_profiler_memory: True\n  auto_instrumentation_enable_metrics: True\n  auto_instrumentation_otlp_endpoint: 'http://0.0.0.0:4317'\n  auto_instrumentation_otlp_endpoint_protocol: 'grpc'\n  auto_instrumentation_metrics_exporter: 'none'\n  auto_instrumentation_logs_exporter: 'none'\n"
+		config += `  auto_instrumentation_ld_so_preload: '# my extra library'
+  auto_instrumentation_resource_attributes: 'deployment.environment.name=test'
+  auto_instrumentation_service_name: 'test'
+  auto_instrumentation_generate_service_name: False
+  auto_instrumentation_disable_telemetry: True
+  auto_instrumentation_enable_profiler: True
+  auto_instrumentation_enable_profiler_memory: True
+  auto_instrumentation_enable_metrics: True
+  auto_instrumentation_otlp_endpoint: 'http://0.0.0.0:4317'
+  auto_instrumentation_otlp_endpoint_protocol: 'grpc'
+  auto_instrumentation_metrics_exporter: 'none'
+  auto_instrumentation_logs_exporter: 'none'
+`
 	}
 	return config
 }

@@ -58,12 +58,19 @@ func container(t *testing.T, distro, release string) *d.Container {
 func apply(t *testing.T, c *d.Container, config string) {
 	t.Helper()
 	d.CopyText(t, c, config, "/root/test.pp")
-	rc, out := d.Try(t, c, "puppet apply --detailed-exitcodes /root/test.pp")
+	// https://www.puppet.com/docs/puppet/8/man/apply.html#options
+	// 2: the run succeeded, and some resources were changed.
+	rc, out := d.Exec(t, c, "puppet apply --detailed-exitcodes /root/test.pp")
 	require.Equalf(t, 2, rc, "puppet apply:\n%s", out)
 }
 
 func manifest(lines ...string) string {
-	return "class { splunk_otel_collector:\n    splunk_access_token => '" + d.Token + "',\n    splunk_realm => '" + d.Realm + "',\n    " + strings.Join(lines, ",\n    ") + ",\n}\n"
+	return fmt.Sprintf(`class { splunk_otel_collector:
+    splunk_access_token => '%s',
+    splunk_realm => '%s',
+    %s,
+}
+`, d.Token, d.Realm, strings.Join(lines, ",\n    "))
 }
 func env(t *testing.T, c *d.Container) { t.Helper(); d.EnvFile(t, c, d.APIURL, d.IngestURL, d.Token) }
 func TestDefault(t *testing.T) {
@@ -94,10 +101,27 @@ func TestCustom(t *testing.T) {
 			t.Run(distro+"/"+release, func(t *testing.T) {
 				c := container(t, distro, release)
 				version := d.Env("VERSION", "0.0.1")
-				apply(t, c, manifest("collector_version => '"+version+"'", "splunk_api_url => 'https://fake-splunk-api.com'", "splunk_ingest_url => 'https://fake-splunk-ingest.com'", "splunk_hec_token => 'fake-hec-token'", "splunk_listen_interface => '0.0.0.0'", "collector_command_line_args => '--discovery --set=processors.batch.timeout=10s'", "collector_additional_env_vars => { 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2', 'SPLUNK_OPAMP_SUPERVISOR_ENABLED' => 'true' }", "service_user => 'custom-user'", "service_group => 'custom-group'"))
+				apply(t, c, manifest(
+					"collector_version => '"+version+"'",
+					"splunk_api_url => 'https://fake-splunk-api.com'",
+					"splunk_ingest_url => 'https://fake-splunk-ingest.com'",
+					"splunk_hec_token => 'fake-hec-token'",
+					"splunk_listen_interface => '0.0.0.0'",
+					"collector_command_line_args => '--discovery --set=processors.batch.timeout=10s'",
+					"collector_additional_env_vars => { 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2', 'SPLUNK_OPAMP_SUPERVISOR_ENABLED' => 'true' }",
+					"service_user => 'custom-user'",
+					"service_group => 'custom-group'",
+				))
 				d.PackageVersion(t, c, d.ServiceName, version)
 				d.EnvFile(t, c, "https://fake-splunk-api.com", "https://fake-splunk-ingest.com", "fake-hec-token")
-				for k, v := range map[string]string{"SPLUNK_LISTEN_INTERFACE": "0.0.0.0", "OTELCOL_OPTIONS": "--discovery --set=processors.batch.timeout=10s", "MY_CUSTOM_VAR1": "value1", "MY_CUSTOM_VAR2": "value2", "SPLUNK_OPAMP_SUPERVISOR_ENABLED": "true"} {
+				customEnv := map[string]string{
+					"SPLUNK_LISTEN_INTERFACE":         "0.0.0.0",
+					"OTELCOL_OPTIONS":                 "--discovery --set=processors.batch.timeout=10s",
+					"MY_CUSTOM_VAR1":                  "value1",
+					"MY_CUSTOM_VAR2":                  "value2",
+					"SPLUNK_OPAMP_SUPERVISOR_ENABLED": "true",
+				}
+				for k, v := range customEnv {
 					d.KV(t, c, d.EnvPath, k, v, true)
 				}
 				d.ServiceRunning(t, c, "custom-user", "/usr/bin/otelcol")
@@ -105,7 +129,8 @@ func TestCustom(t *testing.T) {
 				for _, p := range []string{d.ConfigDir, "/var/lib/otelcol"} {
 					require.Equal(t, "custom-user:custom-group:755", strings.TrimSpace(d.Run(t, c, "stat -c '%U:%G:%a' "+p)))
 				}
-				require.Zero(t, func() int { rc, _ := d.Try(t, c, "su -s /bin/sh -c 'test -w "+d.ConfigDir+"' custom-user"); return rc }())
+				rc, _ := d.Exec(t, c, "su -s /bin/sh -c 'test -w "+d.ConfigDir+"' custom-user")
+				require.Zero(t, rc)
 				for _, p := range []string{d.ConfigDir + "/agent_config.yaml", d.ConfigDir + "/supervisor", d.ConfigDir + "/supervisor/supervisor_config.yaml", "/var/lib/otelcol/supervisor"} {
 					require.Equal(t, "custom-user:custom-group", strings.TrimSpace(d.Run(t, c, "stat -c '%U:%G' "+p)))
 				}
@@ -115,9 +140,27 @@ func TestCustom(t *testing.T) {
 }
 
 func instrumentationManifest(version, collector string, systemd, custom bool) string {
-	lines := []string{"collector_version => '" + collector + "'", "with_auto_instrumentation => true", "auto_instrumentation_version => '" + version + "'", fmt.Sprintf("auto_instrumentation_systemd => %t", systemd)}
+	lines := []string{
+		"collector_version => '" + collector + "'",
+		"with_auto_instrumentation => true",
+		"auto_instrumentation_version => '" + version + "'",
+		fmt.Sprintf("auto_instrumentation_systemd => %t", systemd),
+	}
 	if custom {
-		lines = append(lines, "auto_instrumentation_ld_so_preload => '# my extra library'", "auto_instrumentation_resource_attributes => 'deployment.environment.name=test'", "auto_instrumentation_generate_service_name => false", "auto_instrumentation_disable_telemetry => true", "auto_instrumentation_service_name => 'test'", "auto_instrumentation_enable_profiler => true", "auto_instrumentation_enable_profiler_memory => true", "auto_instrumentation_enable_metrics => true", "auto_instrumentation_otlp_endpoint => 'http://0.0.0.0:4317'", "auto_instrumentation_otlp_endpoint_protocol => 'grpc'", "auto_instrumentation_metrics_exporter => 'none'", "auto_instrumentation_logs_exporter => 'none'")
+		lines = append(lines,
+			"auto_instrumentation_ld_so_preload => '# my extra library'",
+			"auto_instrumentation_resource_attributes => 'deployment.environment.name=test'",
+			"auto_instrumentation_generate_service_name => false",
+			"auto_instrumentation_disable_telemetry => true",
+			"auto_instrumentation_service_name => 'test'",
+			"auto_instrumentation_enable_profiler => true",
+			"auto_instrumentation_enable_profiler_memory => true",
+			"auto_instrumentation_enable_metrics => true",
+			"auto_instrumentation_otlp_endpoint => 'http://0.0.0.0:4317'",
+			"auto_instrumentation_otlp_endpoint_protocol => 'grpc'",
+			"auto_instrumentation_metrics_exporter => 'none'",
+			"auto_instrumentation_logs_exporter => 'none'",
+		)
 	}
 	return manifest(lines...)
 }

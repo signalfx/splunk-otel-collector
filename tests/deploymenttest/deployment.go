@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package deploymenttest provides shared helpers for the puppet and salt
+// deployment integration tests: building/starting the distro containers and
+// asserting on the files, env vars and auto-instrumentation config they end
+// up with.
 package deploymenttest
 
 import (
@@ -58,6 +62,8 @@ const (
 	DotnetHome            = "/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
 )
 
+// DotnetVars are the auto-instrumentation env vars that only apply once the
+// .NET agent is bundled with the auto-instrumentation package (>= 0.99.0).
 var DotnetVars = map[string]string{
 	"CORECLR_ENABLE_PROFILING": "1",
 	"CORECLR_PROFILER":         "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
@@ -69,104 +75,154 @@ var DotnetVars = map[string]string{
 	"OTEL_DOTNET_AUTO_PLUGINS": "Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation",
 }
 
+// Container is the testcontainers wrapper used to build and run the distro
+// images under test.
 type Container = testutils.Container
 
+// Ptr returns a pointer to s, for the *string-valued docker build args.
 func Ptr(s string) *string { return &s }
-func Env(k, fallback string) string {
-	if s := os.Getenv(k); s != "" {
-		return s
+
+// Env returns the value of the given environment variable, or fallback if it
+// is unset or empty.
+func Env(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
 	}
 	return fallback
 }
 
-func Root(t *testing.T) string {
+// FindRoot walks up from the current working directory until it finds a
+// directory containing marker, and returns that directory. It is used to
+// locate the repository root regardless of which package's test binary is
+// running.
+func FindRoot(t *testing.T, marker string) string {
 	t.Helper()
-	wd, e := os.Getwd()
-	require.NoError(t, e)
+	wd, err := os.Getwd()
+	require.NoError(t, err)
 	for {
-		if _, e = os.Stat(filepath.Join(wd, "packaging/tests/images")); e == nil {
+		if _, err = os.Stat(filepath.Join(wd, marker)); err == nil {
 			return wd
 		}
-		next := filepath.Dir(wd)
-		if next == wd {
+		parent := filepath.Dir(wd)
+		if parent == wd {
 			t.Fatal("repository root not found")
 		}
-		wd = next
+		wd = parent
 	}
 }
-func Quote(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'" }
-func Run(t *testing.T, c *Container, cmd string) string {
+
+// Root returns the repository root, located via the packaging/tests/images
+// directory that only exists there.
+func Root(t *testing.T) string {
 	t.Helper()
-	rc, out, err := c.AssertExec(t, 10*time.Minute, "sh", "-c", cmd)
-	require.Equalf(t, 0, rc, "%s\n%s\n%s", cmd, out, err)
+	return FindRoot(t, "packaging/tests/images")
+}
+
+// Quote single-quotes s for safe interpolation into a shell command.
+func Quote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
+}
+
+// Run executes cmd in container via "sh -c" and requires that it succeeds,
+// returning its stdout.
+func Run(t *testing.T, container *Container, cmd string) string {
+	t.Helper()
+	rc, out, errOut := container.AssertExec(t, 10*time.Minute, "sh", "-c", cmd)
+	require.Equalf(t, 0, rc, "%s\n%s\n%s", cmd, out, errOut)
 	return out
 }
 
-func Try(t *testing.T, c *Container, cmd string) (int, string) {
+// Exec executes cmd in container via "sh -c" and returns its exit code and
+// combined stdout/stderr, without asserting on the result.
+func Exec(t *testing.T, container *Container, cmd string) (int, string) {
 	t.Helper()
-	rc, out, err := c.AssertExec(t, 10*time.Minute, "sh", "-c", cmd)
-	return rc, out + err
+	rc, out, errOut := container.AssertExec(t, 10*time.Minute, "sh", "-c", cmd)
+	return rc, out + errOut
 }
 
-func Copy(t *testing.T, c *Container, src, dst string) {
+// Copy copies the local file at src into the container at dst, creating any
+// missing parent directories first.
+func Copy(t *testing.T, container *Container, src, dst string) {
 	t.Helper()
-	Run(t, c, "mkdir -p "+Quote(filepath.Dir(dst)))
-	require.NoError(t, c.CopyFileToContainer(context.Background(), src, dst, 0o644))
-	File(t, c, dst, true)
+	Run(t, container, "mkdir -p "+Quote(filepath.Dir(dst)))
+	require.NoError(t, container.CopyFileToContainer(context.Background(), src, dst, 0o644))
+	File(t, container, dst, true)
 }
 
-func CopyText(t *testing.T, c *Container, content, dst string) {
+// CopyText writes content into the container at dst, creating any missing
+// parent directories first.
+func CopyText(t *testing.T, container *Container, content, dst string) {
 	t.Helper()
-	Run(t, c, "mkdir -p "+Quote(filepath.Dir(dst)))
-	require.NoError(t, c.CopyToContainer(context.Background(), []byte(content), dst, 0o644))
-	File(t, c, dst, true)
+	Run(t, container, "mkdir -p "+Quote(filepath.Dir(dst)))
+	require.NoError(t, container.CopyToContainer(context.Background(), []byte(content), dst, 0o644))
+	File(t, container, dst, true)
 }
 
-func File(t *testing.T, c *Container, path string, want bool) {
+// File asserts that path exists in the container iff want is true.
+func File(t *testing.T, container *Container, path string, want bool) {
 	t.Helper()
-	rc, _ := Try(t, c, "test -f "+Quote(path))
+	rc, _ := Exec(t, container, "test -f "+Quote(path))
 	require.Equalf(t, want, rc == 0, "file %s existence", path)
 }
 
-func Config(t *testing.T, c *Container, path, pattern string, want bool) {
+// Config asserts that path exists and contains a line matching pattern iff
+// want is true; if want is false and the file is missing entirely, that also
+// counts as a pass.
+func Config(t *testing.T, container *Container, path, pattern string, want bool) {
 	t.Helper()
 	if !want {
-		rc, _ := Try(t, c, "test -f "+Quote(path))
+		rc, _ := Exec(t, container, "test -f "+Quote(path))
 		if rc != 0 {
 			return
 		}
 	} else {
-		File(t, c, path, true)
+		File(t, container, path, true)
 	}
-	out := Run(t, c, "cat "+Quote(path))
+	out := Run(t, container, "cat "+Quote(path))
 	if path == SystemdConfig {
-		pattern = "DefaultEnvironment=\"" + pattern + "\""
+		// systemd env files use DefaultEnvironment="KEY=VALUE" rather than
+		// raw KEY=VALUE lines.
+		pattern = `DefaultEnvironment="` + pattern + `"`
 	}
-	matched, e := regexp.MatchString("(?m)^"+pattern+"$", out)
-	require.NoError(t, e)
+	matched, err := regexp.MatchString("(?m)^"+pattern+"$", out)
+	require.NoError(t, err)
 	require.Equalf(t, want, matched, "pattern %q in %s:\n%s", pattern, path, out)
 }
 
-func KV(t *testing.T, c *Container, path, key, value string, want bool) {
+// KV asserts that path contains (or lacks) a "key=value" line.
+func KV(t *testing.T, container *Container, path, key, value string, want bool) {
 	t.Helper()
-	Config(t, c, path, key+"="+value, want)
+	Config(t, container, path, key+"="+value, want)
 }
 
-func EnvFile(t *testing.T, c *Container, api, ingest, hec string) {
+// EnvFile asserts that the collector's env file was rendered with the given
+// access token, realm, API/ingest URLs and HEC token.
+func EnvFile(t *testing.T, container *Container, api, ingest, hec string) {
 	t.Helper()
-	for k, v := range map[string]string{"SPLUNK_ACCESS_TOKEN": Token, "SPLUNK_REALM": Realm, "SPLUNK_API_URL": api, "SPLUNK_INGEST_URL": ingest, "SPLUNK_HEC_URL": ingest + "/v1/log", "SPLUNK_HEC_TOKEN": hec} {
-		KV(t, c, EnvPath, k, v, true)
+	expected := map[string]string{
+		"SPLUNK_ACCESS_TOKEN": Token,
+		"SPLUNK_REALM":        Realm,
+		"SPLUNK_API_URL":      api,
+		"SPLUNK_INGEST_URL":   ingest,
+		"SPLUNK_HEC_URL":      ingest + "/v1/log",
+		"SPLUNK_HEC_TOKEN":    hec,
+	}
+	for key, value := range expected {
+		KV(t, container, EnvPath, key, value, true)
 	}
 }
 
-func PackageVersion(t *testing.T, c *Container, pkg, version string) {
+// PackageVersion asserts that pkg is installed, and that its version matches
+// version (unless version is "latest", in which case any installed version
+// passes).
+func PackageVersion(t *testing.T, container *Container, pkg, version string) {
 	t.Helper()
-	rc, _ := Try(t, c, "command -v dpkg-query")
+	rc, _ := Exec(t, container, "command -v dpkg-query")
 	var got string
 	if rc == 0 {
-		got = Run(t, c, "dpkg-query --showformat='${Version}' --show "+pkg)
+		got = Run(t, container, "dpkg-query --showformat='${Version}' --show "+pkg)
 	} else {
-		got = Run(t, c, "rpm -q --queryformat '%{VERSION}' "+pkg)
+		got = Run(t, container, "rpm -q --queryformat '%{VERSION}' "+pkg)
 	}
 	got = strings.TrimSpace(got)
 	require.NotEmpty(t, got)
@@ -175,79 +231,127 @@ func PackageVersion(t *testing.T, c *Container, pkg, version string) {
 	}
 }
 
-func ServiceRunning(t *testing.T, c *Container, owner, process string) {
+// ServiceRunning waits for the systemd service and its process (running as
+// owner) to both be up.
+func ServiceRunning(t *testing.T, container *Container, owner, process string) {
 	t.Helper()
 	require.Eventually(t, func() bool {
-		a, _ := Try(t, c, "systemctl status "+ServiceName)
-		b, _ := Try(t, c, "pgrep -a -u "+owner+" -f "+Quote(process))
-		return a == 0 && b == 0
+		systemctlRC, _ := Exec(t, container, "systemctl status "+ServiceName)
+		pgrepRC, _ := Exec(t, container, "pgrep -a -u "+owner+" -f "+Quote(process))
+		return systemctlRC == 0 && pgrepRC == 0
 	}, 30*time.Second, time.Second)
 }
 
-func NodeInstalled(t *testing.T, c *Container) {
+// NodeInstalled asserts that the @splunk/otel node module was installed
+// under NodePrefix.
+func NodeInstalled(t *testing.T, container *Container) {
 	t.Helper()
-	rc, _ := Try(t, c, "cd "+NodePrefix+" && npm ls --global=false @splunk/otel")
+	rc, _ := Exec(t, container, "cd "+NodePrefix+" && npm ls --global=false @splunk/otel")
 	require.Zero(t, rc)
 }
 
+// VersionAtLeast reports whether version >= minimum, both given as
+// "major.minor.patch" (optionally with a trailing suffix on version).
+// "latest" is always considered at least any minimum.
 func VersionAtLeast(version, minimum string) bool {
 	if version == "latest" {
 		return true
 	}
-	var a, b, c, x, y, z int
-	_, e := fmt.Sscanf(version, "%d.%d.%d", &a, &b, &c)
-	if e != nil {
+	var major, minor, patch, minMajor, minMinor, minPatch int
+	if _, err := fmt.Sscanf(version, "%d.%d.%d", &major, &minor, &patch); err != nil {
 		return false
 	}
-	_, e = fmt.Sscanf(minimum, "%d.%d.%d", &x, &y, &z)
-	if e != nil {
+	if _, err := fmt.Sscanf(minimum, "%d.%d.%d", &minMajor, &minMinor, &minPatch); err != nil {
 		return false
 	}
-	return a > x || a == x && (b > y || b == y && c >= z)
+	if major != minMajor {
+		return major > minMajor
+	}
+	if minor != minMinor {
+		return minor > minMinor
+	}
+	return patch >= minPatch
 }
 
+// UsesInjector reports whether version's auto-instrumentation package uses
+// the shared otel injector (libotelinject.so) rather than the legacy
+// libsplunk.so, which it does starting after 0.159.0 (including any
+// pre-release build of 0.159.0 itself, e.g. "0.159.0-1").
 func UsesInjector(version string) bool {
-	return version == "latest" || VersionAtLeast(version, "0.159.1") || (strings.HasPrefix(version, "0.159.0") && len(version) > len("0.159.0"))
+	if version == "latest" || VersionAtLeast(version, "0.159.1") {
+		return true
+	}
+	return strings.HasPrefix(version, "0.159.0") && version != "0.159.0"
 }
 
+// Distros returns the sorted distro names found as Dockerfile.<name> under
+// subdir.
 func Distros(t *testing.T, subdir string) []string {
 	t.Helper()
-	paths, e := filepath.Glob(filepath.Join(Root(t), subdir, "Dockerfile.*"))
-	require.NoError(t, e)
-	out := []string{}
-	for _, p := range paths {
-		out = append(out, strings.TrimPrefix(filepath.Base(p), "Dockerfile."))
+	paths, err := filepath.Glob(filepath.Join(Root(t), subdir, "Dockerfile.*"))
+	require.NoError(t, err)
+	distros := []string{}
+	for _, path := range paths {
+		distros = append(distros, strings.TrimPrefix(filepath.Base(path), "Dockerfile."))
 	}
-	slices.Sort(out)
-	return out
+	slices.Sort(distros)
+	return distros
 }
 
+// Start builds dockerfile (relative to the repository root) with args and
+// binds, starts the resulting container privileged with cgroups mounted so
+// systemd can run inside it, and registers cleanup to terminate it (logging
+// the service's journal first if the test failed).
 func Start(t *testing.T, dockerfile string, args map[string]*string, binds ...string) *Container {
 	t.Helper()
 	root := Root(t)
 	args["TARGETARCH"] = Ptr("amd64")
-	p, e := platforms.Parse("linux/amd64")
-	require.NoError(t, e)
-	b := testutils.NewContainer().WithContext(root).WithDockerfile(dockerfile).WithBuildArgs(args).WithDockerfileBuildOptionsModifier(func(o *dockerClient.ImageBuildOptions) { o.PullParent = true; o.Platforms = append(o.Platforms, p) }).WithImagePlatform("linux/amd64").WithPrivileged(true).WithBinds(append([]string{"/sys/fs/cgroup:/sys/fs/cgroup:rw"}, binds...)...).WithHostConfigModifier(func(h *dockerContainer.HostConfig) { h.CgroupnsMode = dockerContainer.CgroupnsModeHost }).WithStartupTimeout(5 * time.Minute)
-	b.WaitingFor = append(b.WaitingFor, wait.ForNop(func(context.Context, wait.StrategyTarget) error { return nil }).WithStartupTimeout(5*time.Minute))
-	c := b.Build()
-	require.NoError(t, c.Start(context.Background()))
+
+	platform, err := platforms.Parse("linux/amd64")
+	require.NoError(t, err)
+
+	allBinds := append([]string{"/sys/fs/cgroup:/sys/fs/cgroup:rw"}, binds...)
+	builder := testutils.NewContainer().
+		WithContext(root).
+		WithDockerfile(dockerfile).
+		WithBuildArgs(args).
+		WithDockerfileBuildOptionsModifier(func(o *dockerClient.ImageBuildOptions) {
+			o.PullParent = true
+			o.Platforms = append(o.Platforms, platform)
+		}).
+		WithImagePlatform("linux/amd64").
+		WithPrivileged(true).
+		WithBinds(allBinds...).
+		WithHostConfigModifier(func(h *dockerContainer.HostConfig) {
+			h.CgroupnsMode = dockerContainer.CgroupnsModeHost
+		}).
+		WithStartupTimeout(5 * time.Minute)
+	builder.WaitingFor = append(builder.WaitingFor, wait.ForNop(func(context.Context, wait.StrategyTarget) error {
+		return nil
+	}).WithStartupTimeout(5*time.Minute))
+
+	container := builder.Build()
+	require.NoError(t, container.Start(context.Background()))
 	t.Cleanup(func() {
 		if t.Failed() {
-			_, out, _ := c.AssertExec(t, time.Minute, "sh", "-c", "journalctl -u "+ServiceName+" --no-pager")
+			_, out, _ := container.AssertExec(t, time.Minute, "sh", "-c", "journalctl -u "+ServiceName+" --no-pager")
 			t.Log(out)
 		}
-		require.NoError(t, c.Terminate(context.Background()))
+		require.NoError(t, container.Terminate(context.Background()))
 	})
+
+	// qemu is slow, so wait for systemd to be ready before returning.
 	require.Eventually(t, func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		rc, _, e := c.Exec(ctx, []string{"sh", "-c", "systemctl show-environment"})
-		return e == nil && rc == 0
+		rc, _, err := container.Exec(ctx, []string{"sh", "-c", "systemctl show-environment"})
+		return err == nil && rc == 0
 	}, 30*time.Second, time.Second)
-	return c
+	return container
 }
 
+// Instrumentation describes the auto-instrumentation deployment under test,
+// used by CheckInstrumentation to pick the expected config layout.
 type Instrumentation struct {
 	Version    string
 	Attributes string
@@ -255,7 +359,16 @@ type Instrumentation struct {
 	Custom     bool
 }
 
-func CheckInstrumentation(t *testing.T, c *Container, o Instrumentation) {
+// CheckInstrumentation asserts that the container's auto-instrumentation
+// config matches what the installed package version and o are expected to
+// produce. Package behavior falls into three generations, oldest first:
+//   - pre-0.87.0: a single instrumentation.conf (libsplunk.so config format).
+//   - 0.87.0 up to the injector cutover: per-language zeroconfig files
+//     (java.conf, node.conf, dotnet.conf once >= 0.99.0), still loaded via
+//     libsplunk.so.
+//   - past the injector cutover (see UsesInjector): injector.conf plus
+//     default_env.conf, loaded via libotelinject.so.
+func CheckInstrumentation(t *testing.T, container *Container, o Instrumentation) {
 	t.Helper()
 	newStyle := VersionAtLeast(o.Version, "0.87.0")
 	dotnet := VersionAtLeast(o.Version, "0.99.0")
@@ -266,133 +379,180 @@ func CheckInstrumentation(t *testing.T, c *Container, o Instrumentation) {
 	if o.Custom {
 		attrs += ",deployment.environment.name=test"
 	}
+
 	if UsesInjector(o.Version) {
-		NodeInstalled(t, c)
-		checkInjector(t, c, o, attrs)
+		NodeInstalled(t, container)
+		checkInjector(t, container, o, attrs)
 		if o.Custom {
-			Config(t, c, "/etc/ld.so.preload", "# my extra library", true)
+			Config(t, container, "/etc/ld.so.preload", "# my extra library", true)
 		}
 		return
 	}
+
 	if o.Systemd {
-		Config(t, c, "/etc/ld.so.preload", LibSplunk, false)
+		Config(t, container, "/etc/ld.so.preload", LibSplunk, false)
 	} else {
-		Config(t, c, "/etc/ld.so.preload", LibSplunk, true)
-		File(t, c, SystemdConfig, false)
+		Config(t, container, "/etc/ld.so.preload", LibSplunk, true)
+		File(t, container, SystemdConfig, false)
 	}
 	if o.Custom {
-		Config(t, c, "/etc/ld.so.preload", "# my extra library", true)
+		Config(t, container, "/etc/ld.so.preload", "# my extra library", true)
 	}
 	if newStyle {
-		NodeInstalled(t, c)
+		NodeInstalled(t, container)
 	}
+
 	if o.Systemd {
-		for _, p := range []string{JavaConfig, NodeConfig, DotnetConfig, InstrumentationConfig} {
-			File(t, c, p, false)
+		for _, path := range []string{JavaConfig, NodeConfig, DotnetConfig, InstrumentationConfig} {
+			File(t, container, path, false)
 		}
-		checkLegacyEnv(t, c, SystemdConfig, o, attrs)
-		KV(t, c, SystemdConfig, "NODE_OPTIONS", NodeOptions, newStyle)
-		checkDotnet(t, c, SystemdConfig, newStyle && dotnet)
+		checkLegacyEnv(t, container, SystemdConfig, o, attrs)
+		KV(t, container, SystemdConfig, "NODE_OPTIONS", NodeOptions, newStyle)
+		checkDotnet(t, container, SystemdConfig, newStyle && dotnet)
 		return
 	}
+
 	if newStyle {
-		File(t, c, SystemdConfig, false)
-		File(t, c, InstrumentationConfig, false)
-		KV(t, c, JavaConfig, "JAVA_TOOL_OPTIONS", "-javaagent:"+JavaAgent, true)
-		KV(t, c, NodeConfig, "NODE_OPTIONS", NodeOptions, true)
+		File(t, container, SystemdConfig, false)
+		File(t, container, InstrumentationConfig, false)
+		KV(t, container, JavaConfig, "JAVA_TOOL_OPTIONS", "-javaagent:"+JavaAgent, true)
+		KV(t, container, NodeConfig, "NODE_OPTIONS", NodeOptions, true)
 		if dotnet {
-			checkDotnet(t, c, DotnetConfig, true)
+			checkDotnet(t, container, DotnetConfig, true)
 		} else {
-			File(t, c, DotnetConfig, false)
+			File(t, container, DotnetConfig, false)
 		}
 		paths := []string{JavaConfig, NodeConfig}
 		if dotnet {
 			paths = append(paths, DotnetConfig)
 		}
-		for _, p := range paths {
-			checkLegacyEnv(t, c, p, o, attrs)
+		for _, path := range paths {
+			checkLegacyEnv(t, container, path, o, attrs)
 		}
 		return
 	}
-	for _, p := range []string{JavaConfig, NodeConfig, DotnetConfig, SystemdConfig} {
-		File(t, c, p, false)
+
+	for _, path := range []string{JavaConfig, NodeConfig, DotnetConfig, SystemdConfig} {
+		File(t, container, path, false)
 	}
-	KV(t, c, InstrumentationConfig, "java_agent_jar", JavaAgent, true)
-	KV(t, c, InstrumentationConfig, "resource_attributes", attrs, true)
-	settings := map[string]string{"service_name": "test", "generate_service_name": "false", "disable_telemetry": "true", "enable_profiler": "true", "enable_profiler_memory": "true", "enable_metrics": "true"}
+	KV(t, container, InstrumentationConfig, "java_agent_jar", JavaAgent, true)
+	KV(t, container, InstrumentationConfig, "resource_attributes", attrs, true)
+	settings := map[string]string{
+		"service_name":           "test",
+		"generate_service_name":  "false",
+		"disable_telemetry":      "true",
+		"enable_profiler":        "true",
+		"enable_profiler_memory": "true",
+		"enable_metrics":         "true",
+	}
 	if !o.Custom {
-		settings = map[string]string{"generate_service_name": "true", "disable_telemetry": "false", "enable_profiler": "false", "enable_profiler_memory": "false", "enable_metrics": "false"}
-		KV(t, c, InstrumentationConfig, "service_name", ".*", false)
+		settings = map[string]string{
+			"generate_service_name":  "true",
+			"disable_telemetry":      "false",
+			"enable_profiler":        "false",
+			"enable_profiler_memory": "false",
+			"enable_metrics":         "false",
+		}
+		KV(t, container, InstrumentationConfig, "service_name", ".*", false)
 	}
-	for k, v := range settings {
-		KV(t, c, InstrumentationConfig, k, v, true)
+	for key, value := range settings {
+		KV(t, container, InstrumentationConfig, key, value, true)
 	}
 }
 
-func checkLegacyEnv(t *testing.T, c *Container, path string, o Instrumentation, attrs string) {
+// checkLegacyEnv asserts the OTEL_* / SPLUNK_* env vars written into one of
+// the pre-injector config files (SystemdConfig, JavaConfig, NodeConfig or
+// DotnetConfig).
+func checkLegacyEnv(t *testing.T, container *Container, path string, o Instrumentation, attrs string) {
 	t.Helper()
 	if path == SystemdConfig || path == JavaConfig {
-		KV(t, c, path, "JAVA_TOOL_OPTIONS", "-javaagent:"+JavaAgent, true)
+		KV(t, container, path, "JAVA_TOOL_OPTIONS", "-javaagent:"+JavaAgent, true)
 	}
-	KV(t, c, path, "OTEL_RESOURCE_ATTRIBUTES", attrs, true)
-	settings := map[string]string{"OTEL_SERVICE_NAME": "test", "SPLUNK_PROFILER_ENABLED": "true", "SPLUNK_PROFILER_MEMORY_ENABLED": "true", "SPLUNK_METRICS_ENABLED": "true", "OTEL_EXPORTER_OTLP_ENDPOINT": "http://0.0.0.0:4317", "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc", "OTEL_METRICS_EXPORTER": "none", "OTEL_LOGS_EXPORTER": "none"}
+	KV(t, container, path, "OTEL_RESOURCE_ATTRIBUTES", attrs, true)
+
 	if !o.Custom {
-		for _, k := range []string{"OTEL_SERVICE_NAME", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_EXPORTER_OTLP_PROTOCOL", "OTEL_METRICS_EXPORTER", "OTEL_LOGS_EXPORTER"} {
-			KV(t, c, path, k, ".*", false)
+		for _, key := range []string{"OTEL_SERVICE_NAME", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_EXPORTER_OTLP_PROTOCOL", "OTEL_METRICS_EXPORTER", "OTEL_LOGS_EXPORTER"} {
+			KV(t, container, path, key, ".*", false)
 		}
-		for _, k := range []string{"SPLUNK_PROFILER_ENABLED", "SPLUNK_PROFILER_MEMORY_ENABLED", "SPLUNK_METRICS_ENABLED"} {
-			KV(t, c, path, k, "false", true)
+		for _, key := range []string{"SPLUNK_PROFILER_ENABLED", "SPLUNK_PROFILER_MEMORY_ENABLED", "SPLUNK_METRICS_ENABLED"} {
+			KV(t, container, path, key, "false", true)
 		}
 		return
 	}
-	for k, v := range settings {
-		KV(t, c, path, k, v, true)
+
+	settings := map[string]string{
+		"OTEL_SERVICE_NAME":              "test",
+		"SPLUNK_PROFILER_ENABLED":        "true",
+		"SPLUNK_PROFILER_MEMORY_ENABLED": "true",
+		"SPLUNK_METRICS_ENABLED":         "true",
+		"OTEL_EXPORTER_OTLP_ENDPOINT":    "http://0.0.0.0:4317",
+		"OTEL_EXPORTER_OTLP_PROTOCOL":    "grpc",
+		"OTEL_METRICS_EXPORTER":          "none",
+		"OTEL_LOGS_EXPORTER":             "none",
+	}
+	for key, value := range settings {
+		KV(t, container, path, key, value, true)
 	}
 }
 
-func checkDotnet(t *testing.T, c *Container, path string, want bool) {
+// checkDotnet asserts the presence (or absence) of DotnetVars in path.
+func checkDotnet(t *testing.T, container *Container, path string, want bool) {
 	t.Helper()
-	for k, v := range DotnetVars {
+	for key, value := range DotnetVars {
 		if !want {
-			v = ".*"
+			value = ".*"
 		}
-		KV(t, c, path, k, v, want)
+		KV(t, container, path, key, value, want)
 	}
 }
 
-func checkInjector(t *testing.T, c *Container, o Instrumentation, attrs string) {
+// checkInjector asserts the injector.conf and default_env.conf layout used
+// once the package is past UsesInjector's cutover.
+func checkInjector(t *testing.T, container *Container, o Instrumentation, attrs string) {
 	t.Helper()
-	for _, p := range []string{JavaConfig, NodeConfig, DotnetConfig, InstrumentationConfig} {
-		File(t, c, p, false)
+	for _, path := range []string{JavaConfig, NodeConfig, DotnetConfig, InstrumentationConfig} {
+		File(t, container, path, false)
 	}
-	for k, v := range map[string]string{"jvm_auto_instrumentation_agent_path": JavaAgent, "nodejs_auto_instrumentation_agent_path": NodePrefix + "/node_modules/@splunk/otel/instrument.js", "dotnet_auto_instrumentation_agent_path_prefix": DotnetHome} {
-		KV(t, c, InjectorConfig, k, v, true)
+
+	agentPaths := map[string]string{
+		"jvm_auto_instrumentation_agent_path":           JavaAgent,
+		"nodejs_auto_instrumentation_agent_path":        NodePrefix + "/node_modules/@splunk/otel/instrument.js",
+		"dotnet_auto_instrumentation_agent_path_prefix": DotnetHome,
 	}
-	KV(t, c, InjectorConfig, "auto_instrumentation_disabled", ".*", false)
+	for key, value := range agentPaths {
+		KV(t, container, InjectorConfig, key, value, true)
+	}
+	KV(t, container, InjectorConfig, "auto_instrumentation_disabled", ".*", false)
+
 	if o.Systemd {
-		Config(t, c, "/etc/ld.so.preload", LibInject, false)
-		KV(t, c, SystemdConfig, "LD_PRELOAD", LibInject, true)
+		Config(t, container, "/etc/ld.so.preload", LibInject, false)
+		KV(t, container, SystemdConfig, "LD_PRELOAD", LibInject, true)
 	} else {
-		Config(t, c, "/etc/ld.so.preload", LibInject, true)
-		File(t, c, SystemdConfig, false)
+		Config(t, container, "/etc/ld.so.preload", LibInject, true)
+		File(t, container, SystemdConfig, false)
 	}
-	KV(t, c, InjectorDefault, "OTEL_DOTNET_AUTO_PLUGINS", DotnetVars["OTEL_DOTNET_AUTO_PLUGINS"], true)
-	KV(t, c, InjectorDefault, "OTEL_RESOURCE_ATTRIBUTES", attrs, true)
+
+	KV(t, container, InjectorDefault, "OTEL_DOTNET_AUTO_PLUGINS", DotnetVars["OTEL_DOTNET_AUTO_PLUGINS"], true)
+	KV(t, container, InjectorDefault, "OTEL_RESOURCE_ATTRIBUTES", attrs, true)
+
 	flags := "false"
 	if o.Custom {
 		flags = "true"
-		KV(t, c, InjectorDefault, "OTEL_SERVICE_NAME", "test", true)
+		KV(t, container, InjectorDefault, "OTEL_SERVICE_NAME", "test", true)
 	} else {
-		KV(t, c, InjectorDefault, "OTEL_SERVICE_NAME", ".*", false)
+		KV(t, container, InjectorDefault, "OTEL_SERVICE_NAME", ".*", false)
 	}
-	for _, k := range []string{"SPLUNK_PROFILER_ENABLED", "SPLUNK_PROFILER_MEMORY_ENABLED", "SPLUNK_METRICS_ENABLED"} {
-		KV(t, c, InjectorDefault, k, flags, true)
+	for _, key := range []string{"SPLUNK_PROFILER_ENABLED", "SPLUNK_PROFILER_MEMORY_ENABLED", "SPLUNK_METRICS_ENABLED"} {
+		KV(t, container, InjectorDefault, key, flags, true)
 	}
-	for k, v := range map[string]string{"OTEL_EXPORTER_OTLP_ENDPOINT": "http://0.0.0.0:4317", "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc", "OTEL_METRICS_EXPORTER": "none", "OTEL_LOGS_EXPORTER": "none"} {
-		if o.Custom {
-			KV(t, c, InjectorDefault, k, v, true)
-		} else {
-			KV(t, c, InjectorDefault, k, ".*", false)
-		}
+
+	otelExporter := map[string]string{
+		"OTEL_EXPORTER_OTLP_ENDPOINT": "http://0.0.0.0:4317",
+		"OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+		"OTEL_METRICS_EXPORTER":       "none",
+		"OTEL_LOGS_EXPORTER":          "none",
+	}
+	for key, value := range otelExporter {
+		KV(t, container, InjectorDefault, key, value, o.Custom)
 	}
 }

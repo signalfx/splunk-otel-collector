@@ -11,8 +11,11 @@ on:
       - 'deployments/puppet/**'
       - 'instrumentation/**'
       - 'packaging/tests/deployments/puppet/**'
-      - 'packaging/tests/helpers/**'
-      - 'packaging/tests/requirements.txt'
+      - 'tests/puppet/**'
+      - 'tests/deploymenttest/**'
+      - 'tests/testutils/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
       - 'packaging/msi/**'
       - '!**.md'
   pull_request:
@@ -22,8 +25,11 @@ on:
       - 'deployments/puppet/**'
       - 'instrumentation/**'
       - 'packaging/tests/deployments/puppet/**'
-      - 'packaging/tests/helpers/**'
-      - 'packaging/tests/requirements.txt'
+      - 'tests/puppet/**'
+      - 'tests/deploymenttest/**'
+      - 'tests/testutils/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
       - 'packaging/msi/**'
       - '!**.md'
   schedule:
@@ -32,10 +38,6 @@ on:
 concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
-env:
-  PYTHON_VERSION: '3.13'
-  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
 
 jobs:
   puppet-lint:
@@ -165,18 +167,14 @@ jobs:
           name: splunk-otel-auto-instrumentation-amd64-rpm
           path: ./dist
 
-      - name: Setup python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
-
-      - name: Install pytest
-        run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
+          go-version-file: tests/go.mod
+          cache-dependency-path: tests/go.sum
 
       - name: Test puppet deployment
-        id: pytest
+        id: go-test
         continue-on-error: true
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
@@ -207,17 +205,15 @@ jobs:
               ;;
           esac
           
-          if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
-            tests="$distro and instrumentation"
-          else
-            tests="$distro and not instrumentation"
-          fi
-          python3 -u -m pytest -s --verbose -k "$tests" \
-            packaging/tests/deployments/puppet/puppet_test.py
+          group=base
+          if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then group=instrumentation; fi
+          cd tests
+          DEPLOYMENT_TEST_DISTRO="$distro" DEPLOYMENT_TEST_GROUP="$group" \
+            go test -tags puppet_integration -v -timeout 90m -count 1 ./puppet
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ steps.pytest.outcome == 'failure' }}
+        if: ${{ steps.go-test.outcome == 'failure' }}
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
           DEB_VERSION: "${{ needs.puppet-build-deb-local-package.outputs.version }}"
@@ -247,14 +243,11 @@ jobs:
               ;;
           esac
           
-          if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
-            tests="$distro and instrumentation"
-          else
-            tests="$distro and not instrumentation"
-          fi
-          python3 -u -m pytest -s --verbose -k "$tests" \
-            --last-failed \
-            packaging/tests/deployments/puppet/puppet_test.py
+          group=base
+          if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then group=instrumentation; fi
+          cd tests
+          DEPLOYMENT_TEST_DISTRO="$distro" DEPLOYMENT_TEST_GROUP="$group" \
+            go test -tags puppet_integration -v -timeout 90m -count 1 ./puppet
 
   # Use existing reusable workflows for building Windows artifacts
   puppet-build-windows-binary:
@@ -300,15 +293,16 @@ jobs:
 
       - uses: ./.github/actions/win-wait-for-docker
 
-      - name: Setup python
+      - name: Setup Python for the local MSI server
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
+          python-version: '3.13'
 
-      - name: Install pytest
-        run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: tests/go.mod
+          cache-dependency-path: tests/go.sum
 
       - name: Start local MSI server
         shell: powershell
@@ -343,27 +337,26 @@ jobs:
           }
 
       - name: Test puppet deployment
-        id: pytest
+        id: go-test
         continue-on-error: true
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          DEPLOYMENT_TEST_CASE: "${{ matrix.TEST_CASE }}"
           WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
           LOCAL_MSI_SERVER: "http://localhost:8000"
         shell: pwsh
         run: |
-          pytest -s --verbose -m windows `
-            -k ${{ matrix.TEST_CASE }} `
-            packaging/tests/deployments/puppet/puppet_test.py
+          cd tests
+          go test -tags puppet_integration -v -timeout 90m -count 1 ./puppet
 
       - name: Re-run failed tests
-        if: ${{ steps.pytest.outcome == 'failure' }}
+        if: ${{ steps.go-test.outcome == 'failure' }}
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          DEPLOYMENT_TEST_CASE: "${{ matrix.TEST_CASE }}"
           WIN_COLLECTOR_VERSION: "${{ needs.puppet-build-windows-msi-local-package.outputs.version }}"
           LOCAL_MSI_SERVER: "http://localhost:8000"
         shell: pwsh
         run: |
-          pytest -s --verbose -m windows `
-            --last-failed `
-            -k ${{ matrix.TEST_CASE }} `
-            packaging/tests/deployments/puppet/puppet_test.py
+          cd tests
+          go test -tags puppet_integration -v -timeout 90m -count 1 ./puppet

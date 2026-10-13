@@ -100,7 +100,7 @@ func mapInputs(inputs []conf.Input, props []conf.Prop, transforms []conf.Transfo
 			c = emitScript(st, name, in.AppDir, props, transforms)
 		case "batch":
 			c = emitBatch(st, name, props, transforms)
-		case "wineventlog", "WinEventLog":
+		case "WinEventLog":
 			c = emitWineventlog(st, name, props, transforms)
 		default:
 			// Includes the unprefixed form ([my_script]), which inputs.conf.spec

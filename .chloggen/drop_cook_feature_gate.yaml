@@ -4,7 +4,7 @@ component: featuregates
 
 note: "remove the `cook` feature gate"
 
-issues: [8266]
+issues: [8267]
 
 subtext: |
   `--feature-gates +cook` no longer works. The `splunk_*` receivers always apply

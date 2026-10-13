@@ -4,7 +4,7 @@ component: featuregates
 
 note: "rename the `cook` feature gate to `enableTACookMode`"
 
-issues: [8261]
+issues: [8265]
 
 subtext: |
   `--feature-gates +cook` no longer works. The gate that enables index-time data

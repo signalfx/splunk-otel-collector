@@ -13,9 +13,9 @@
 // limitations under the License.
 
 // Package uf is the parity Adapter for the Splunk Universal Forwarder, the
-// parity oracle. It installs a case's .conf files into the UF's
-// etc/system/local layout (restoring prior state on cleanup) and drives the
-// agent through bin/splunk start/stop.
+// parity oracle. It installs a case's .conf files into the UF's etc/ layout
+// (restoring prior state on cleanup) and drives the agent through
+// bin/splunk start/stop.
 package uf
 
 import (
@@ -51,27 +51,35 @@ func New(installDir string) *Adapter {
 func (a *Adapter) Name() string       { return "UF" }
 func (a *Adapter) InstallDir() string { return a.installDir }
 
-// Prepare copies every .conf file from configDir into etc/system/local,
-// recording a restore for each so the install is left as it was found.
-func (a *Adapter) Prepare(configDir string) error {
-	entries, err := os.ReadDir(configDir)
-	if err != nil {
-		return err
-	}
-	localDir := filepath.Join(a.installDir, "etc", "system", "local")
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".conf") {
+// Prepare copies every .conf file from configDir into the install's etc/,
+// recording a restore for each so the install is left as it was found. A bare
+// filename goes to etc/system/local; a nested path is mirrored, which is how a
+// case installs an app.
+func (a *Adapter) Prepare(configDir string, files []string) error {
+	for _, rel := range files {
+		if !strings.HasSuffix(rel, ".conf") {
 			continue
 		}
-		contents, err := os.ReadFile(filepath.Join(configDir, e.Name()))
+		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 		if err != nil {
 			return err
 		}
-		if err := a.writeWithRestore(filepath.Join(localDir, e.Name()), contents); err != nil {
+		if err := a.writeWithRestore(a.confPath(rel), contents); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// confPath places a case-relative conf path in the UF's own layout. A bare
+// filename is system config; a nested path is mirrored, so a case can install an
+// app under etc/apps.
+func (a *Adapter) confPath(rel string) string {
+	etcDir := filepath.Join(a.installDir, "etc")
+	if !strings.Contains(rel, "/") {
+		return filepath.Join(etcDir, "system", "local", rel)
+	}
+	return filepath.Join(etcDir, filepath.FromSlash(rel))
 }
 
 func (a *Adapter) Start(ctx context.Context) error {
@@ -114,8 +122,8 @@ func (a *Adapter) executable() string {
 }
 
 // writeWithRestore writes contents to path and records a cleanup that restores
-// the prior contents (or removes the file if it did not exist). Ported from the
-// 1spl writeFileWithRestore.
+// the prior contents, or removes the file and any directory it had to create.
+// Ported from the 1spl writeFileWithRestore.
 func (a *Adapter) writeWithRestore(path string, contents []byte) error {
 	info, statErr := os.Stat(path)
 	existed := statErr == nil
@@ -129,6 +137,10 @@ func (a *Adapter) writeWithRestore(path string, contents []byte) error {
 		return statErr
 	}
 
+	created, err := topMissingDir(filepath.Dir(path))
+	if err != nil {
+		return err
+	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
@@ -137,10 +149,34 @@ func (a *Adapter) writeWithRestore(path string, contents []byte) error {
 	}
 
 	a.restores = append(a.restores, func() error {
-		if existed {
+		switch {
+		case existed:
 			return os.WriteFile(path, original, info.Mode())
+		case created != "":
+			return os.RemoveAll(created)
+		default:
+			return os.Remove(path)
 		}
-		return os.Remove(path)
 	})
 	return nil
+}
+
+// topMissingDir returns the outermost ancestor of dir that does not exist, or
+// "" when dir already does. Removing that one unwinds everything MkdirAll goes
+// on to create, so an app a case installed leaves no directory behind.
+func topMissingDir(dir string) (string, error) {
+	missing := ""
+	for {
+		if _, err := os.Stat(dir); err == nil {
+			return missing, nil
+		} else if !os.IsNotExist(err) {
+			return "", err
+		}
+		missing = dir
+		if parent := filepath.Dir(dir); parent != dir {
+			dir = parent
+			continue
+		}
+		return missing, nil
+	}
 }

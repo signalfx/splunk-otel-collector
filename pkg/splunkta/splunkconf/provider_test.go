@@ -5,6 +5,7 @@ package splunkconf
 
 import (
 	"context"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -179,9 +180,10 @@ func TestEmittedFields(t *testing.T) {
 			id:   "splunk_script/script-bin-collect-sh-55e5ff8f",
 			want: map[string]any{
 				"script_filename": "./bin/collect.sh",
-				"app_dir":         "testdata/etc/apps/splunk_ta_demo",
-				"interval":        "60",
-				"index":           "app_scripts",
+				// app_dir is a filesystem path, so it carries the platform separator.
+				"app_dir":  filepath.Join("testdata", "etc", "apps", "splunk_ta_demo"),
+				"interval": "60",
+				"index":    "app_scripts",
 			},
 		},
 		{

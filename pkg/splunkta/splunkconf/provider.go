@@ -9,7 +9,13 @@
 //
 // URI form: splunkconf://<config-root>?pipeline=<name>
 //
-// The config root is the directory holding system/ and apps/*/, read verbatim.
+// The config root is the directory holding system/ and apps/*/, read verbatim,
+// in any OS-supported path format:
+//
+//	splunkconf://etc                              relative path
+//	splunkconf:///opt/splunk/etc                  absolute path
+//	splunkconf://C:\Program Files\Splunk\etc      absolute path with drive letter
+//
 // The provider knows nothing about $SPLUNK_HOME, $SPLUNK_ETC, or any install
 // layout: the caller resolves those and passes a plain path, so the same URI
 // always resolves the same way regardless of ambient env, and a relocated tree
@@ -26,6 +32,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strings"
 
 	"go.opentelemetry.io/collector/confmap"
 
@@ -64,21 +71,25 @@ func (provider) Retrieve(_ context.Context, uri string, _ confmap.WatcherFunc) (
 	return confmap.NewRetrieved(frag)
 }
 
+// parseURI splits the URI into its config root and pipeline name. The root is
+// taken verbatim rather than through url.Parse, matching the built-in file
+// provider: a native Windows path is a legal config root, and its backslashes
+// and drive letter are not a legal URI authority.
 func parseURI(uri string) (confRoot, pipeline string, err error) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		return "", "", fmt.Errorf("splunkconf: invalid uri %q: %w", uri, err)
+	rest, ok := strings.CutPrefix(uri, schemeName+":")
+	if !ok {
+		return "", "", fmt.Errorf("splunkconf: unexpected scheme in uri %q", uri)
 	}
-	if u.Scheme != schemeName {
-		return "", "", fmt.Errorf("splunkconf: unexpected scheme %q", u.Scheme)
-	}
-	// The config root is the opaque path: host + path (splunkconf:///opt/splunk/etc
-	// -> host="", path="/opt/splunk/etc"; splunkconf://etc -> host="etc").
-	confRoot = u.Host + u.Path
+	rest, rawQuery, _ := strings.Cut(rest, "?")
+	confRoot = strings.TrimPrefix(rest, "//")
 	if confRoot == "" {
 		return "", "", fmt.Errorf("splunkconf: empty config root in uri %q", uri)
 	}
-	pipeline = u.Query().Get("pipeline")
+	query, err := url.ParseQuery(rawQuery)
+	if err != nil {
+		return "", "", fmt.Errorf("splunkconf: invalid query in uri %q: %w", uri, err)
+	}
+	pipeline = query.Get("pipeline")
 	if pipeline == "" {
 		pipeline = "uf"
 	}

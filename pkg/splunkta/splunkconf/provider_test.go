@@ -309,17 +309,24 @@ func TestParseURI(t *testing.T) {
 			wantPipeline: "custom",
 		},
 		{
-			// An absolute root leaves the host empty, so host+path has to be joined
-			// for a relocated tree to work.
 			name:         "absolute config root",
 			uri:          "splunkconf:///opt/splunk/etc",
 			wantRoot:     "/opt/splunk/etc",
 			wantPipeline: "uf",
 		},
 		{
+			// A native Windows root is not a legal URI authority, so the root is
+			// taken verbatim instead of through url.Parse. The space is what a
+			// default install carries.
+			name:         "windows config root with drive letter and spaces",
+			uri:          `splunkconf://C:\Program Files\SplunkUniversalForwarder\etc?pipeline=uf`,
+			wantRoot:     `C:\Program Files\SplunkUniversalForwarder\etc`,
+			wantPipeline: "uf",
+		},
+		{
 			name:   "wrong scheme",
 			uri:    "file://testdata/etc",
-			errMsg: `unexpected scheme "file"`,
+			errMsg: `unexpected scheme in uri "file://testdata/etc"`,
 		},
 		{
 			name:   "empty config root",

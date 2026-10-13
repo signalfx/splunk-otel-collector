@@ -36,8 +36,8 @@ CA_CRT="$WORKDIR/ca.crt"
 cleanup() {
     status=$?
     if [ "$status" -ne 0 ]; then
-        echo "==> Failure detected, dumping container logs"
-        $COMPOSE logs splunk otelcollector cert-init || true
+        echo "==> Failure detected, dumping otlp-related splunkd.log lines"
+        $COMPOSE exec -T -u root splunk grep -i otlp /opt/splunk/var/log/splunk/splunkd.log || true
     fi
     echo "==> Tearing down Docker Compose stack"
     $COMPOSE down -v || true

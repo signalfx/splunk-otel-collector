@@ -7,8 +7,6 @@ package prop
 import (
 	"fmt"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/featuregates"
-
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/operator/transform"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
@@ -42,45 +40,28 @@ func CreateOperatorConfigs(pCfg conf.Prop, transforms []conf.Transform) []operat
 	var previous *helper.WriterConfig
 	previous = &start.WriterConfig
 
-	if featuregates.CookFeatureGate.IsEnabled() {
-		// TODO implement a split parser.
-		// if !pCfg.ShouldLineMerge {
-		//
-		// }
-
-		for _, tCfg := range pCfg.Transforms {
-			for _, stanza := range tCfg.Stanza {
-				for _, tDef := range transforms {
-					if tDef.Name == stanza {
-						t := transform.NewConfig(pCfg.Name, tDef)
-						previous.OutputIDs = []string{t.OperatorID}
-						operators = append(operators, operator.NewConfig(t))
-						previous = &t.WriterConfig
-						break
-					}
+	for _, tCfg := range pCfg.Transforms {
+		for _, stanza := range tCfg.Stanza {
+			for _, tDef := range transforms {
+				if tDef.Name == stanza {
+					t := transform.NewConfig(pCfg.Name, tDef)
+					previous.OutputIDs = []string{t.OperatorID}
+					operators = append(operators, operator.NewConfig(t))
+					previous = &t.WriterConfig
+					break
 				}
 			}
 		}
+	}
 
-		for _, fa := range pCfg.FieldAliases {
-			copyOp := copy.NewConfigWithID(fa.Name + "-copy")
-			copyOp.From, _ = entry.NewField(fmt.Sprintf("attributes[%q]", fa.From))
-			copyOp.To, _ = entry.NewField(fmt.Sprintf("attributes[%q]", fa.To))
+	for _, fa := range pCfg.FieldAliases {
+		copyOp := copy.NewConfigWithID(fa.Name + "-copy")
+		copyOp.From, _ = entry.NewField(fmt.Sprintf("attributes[%q]", fa.From))
+		copyOp.To, _ = entry.NewField(fmt.Sprintf("attributes[%q]", fa.To))
 
-			previous.OutputIDs = []string{copyOp.OperatorID}
-			operators = append(operators, operator.NewConfig(copyOp))
-			previous = &copyOp.WriterConfig
-		}
-
-		if pCfg.SourceType != "" {
-			sourceTypeOp := copy.NewConfigWithID(pCfg.Name + "-sourcetype")
-
-			previous.OutputIDs = []string{sourceTypeOp.OperatorID}
-			operators = append(operators, operator.NewConfig(sourceTypeOp))
-			previous = &sourceTypeOp.WriterConfig
-		}
-
-		// TODO add code to move source, sourcetype, host to cooked fields.
+		previous.OutputIDs = []string{copyOp.OperatorID}
+		operators = append(operators, operator.NewConfig(copyOp))
+		previous = &copyOp.WriterConfig
 	}
 
 	endNoop := noop.NewConfigWithID(pCfg.Name + "-end")

@@ -21,9 +21,9 @@ import (
 )
 
 func TestCreateProps(t *testing.T) {
-	require.NoError(t, featuregate.GlobalRegistry().Set(featuregates.CookFeatureGate.ID(), true))
+	require.NoError(t, featuregate.GlobalRegistry().Set(featuregates.EnableTACookMode.ID(), true))
 	defer func() {
-		require.NoError(t, featuregate.GlobalRegistry().Set(featuregates.CookFeatureGate.ID(), false))
+		require.NoError(t, featuregate.GlobalRegistry().Set(featuregates.EnableTACookMode.ID(), false))
 	}()
 	ops := CreateOperatorConfigs(conf.Prop{
 		Name: "foo",

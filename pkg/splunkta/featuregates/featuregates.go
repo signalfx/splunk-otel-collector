@@ -6,10 +6,10 @@ package featuregates
 
 import "go.opentelemetry.io/collector/featuregate"
 
-// CookFeatureGate controls whether data is cooked by applying props.conf.
-var CookFeatureGate = featuregate.GlobalRegistry().MustRegister(
-	"cook",
+// EnableTACookMode controls whether data is cooked by applying props.conf.
+var EnableTACookMode = featuregate.GlobalRegistry().MustRegister(
+	"enableTACookMode",
 	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, cook the data by applying props.conf"),
-	featuregate.WithRegisterFromVersion("v0.1.0"),
+	featuregate.WithRegisterDescription("When enabled, cook the data by applying index-time actions from props.conf and transforms.conf"),
+	featuregate.WithRegisterFromVersion("v0.163.0"),
 )

@@ -25,24 +25,19 @@ import (
 
 // NewClient returns an HTTP client for a Splunk management endpoint. Splunk
 // modular inputs commonly receive a loopback IP in server_uri even when the
-// splunkd certificate only identifies the host by DNS name. For literal
-// loopback HTTPS endpoints, serverName (typically server_host from the
-// modular input protocol) is used as the TLS ServerName so the certificate
-// is still verified against the real hostname instead of the loopback
-// address. If serverName is empty, the default transport is used and
-// verification proceeds normally, which will fail for a loopback endpoint
-// whose certificate lacks a loopback IP SAN unless insecureSkipVerify is
-// explicitly set. Verification for hostnames and non-loopback addresses is
-// unaffected unless insecureSkipVerify is explicitly set.
-func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify bool, serverName string) *http.Client {
+// splunkd certificate only identifies the host by DNS name, so plain
+// certificate verification fails for literal loopback HTTPS endpoints. There
+// is no reliable hostname to verify against in that case: server_host from
+// the modular input protocol is not guaranteed to match a DNS SAN on the
+// certificate either. So for literal loopback HTTPS endpoints, verification
+// is skipped the same way it would be for insecureSkipVerify. Verification
+// for hostnames and non-loopback addresses is unaffected unless
+// insecureSkipVerify is explicitly set.
+func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify bool) *http.Client {
 	client := &http.Client{Timeout: timeout}
-	switch {
-	case insecureSkipVerify:
+	shouldFallbackToInsecure := isLoopbackHTTPS(endpoint)
+	if insecureSkipVerify || shouldFallbackToInsecure {
 		client.Transport = insecureTransport()
-	case isLoopbackHTTPS(endpoint):
-		if serverName != "" {
-			client.Transport = serverNameTransport(serverName)
-		}
 	}
 	return client
 }
@@ -60,14 +55,6 @@ func insecureTransport() *http.Transport {
 	transport := cloneDefaultTransport()
 	tlsConfig := cloneTLSConfig(transport)
 	tlsConfig.InsecureSkipVerify = true
-	transport.TLSClientConfig = tlsConfig
-	return transport
-}
-
-func serverNameTransport(serverName string) *http.Transport {
-	transport := cloneDefaultTransport()
-	tlsConfig := cloneTLSConfig(transport)
-	tlsConfig.ServerName = serverName
 	transport.TLSClientConfig = tlsConfig
 	return transport
 }

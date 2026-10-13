@@ -1,0 +1,8 @@
+[
+  {
+    "raw": "2026-01-02 03:04:05 alpha",
+    "host": "parityhost",
+    "source": "parity_tcp",
+    "index": "parity_tcp-event"
+  }
+]

@@ -92,6 +92,7 @@ func TestParseInput(t *testing.T) {
 	require.Equal(t, 4318, xmlCfg.HTTPPort)
 	require.Empty(t, xmlCfg.Source)
 	require.Equal(t, "_splunk-connect-for-otlp", xmlCfg.Sourcetype)
+	require.Equal(t, "773c28971b2a", xmlCfg.ServerHost)
 	require.Equal(t, "https://127.0.0.1:8089", xmlCfg.ServerURI)
 	require.Equal(t, "OwLHq7jpfgz0WLe5t8KwZuxT4QZRggryMB2io6Phimb2zi5ErifFvx0Eu8WTmfviO^KUKEA8CsGbVltVlCDlYOBM0RE8QoOjOHZhKnHsphk20XoqaK1KXTZj1N", xmlCfg.SessionKey)
 	require.True(t, xmlCfg.EnableSSL)

@@ -1,6 +1,5 @@
 name: "Monitor whitelist"
 description: whitelist keeps only the monitored files whose path matches it.
-stage: alpha
 setup: |
   mkdir -p logs
   echo "kept line" > logs/keep.log

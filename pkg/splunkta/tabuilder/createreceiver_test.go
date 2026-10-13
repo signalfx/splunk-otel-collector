@@ -31,23 +31,18 @@ func createReceiver(t *testing.T, stanzaName string) (receiver.Logs, error) {
 }
 
 // inputs.conf.spec spells the event log kind [WinEventLog://<name>], the only
-// input kind whose canonical spelling is not lowercase, so a mixed-case kind
-// has to reach the wineventlog branch instead of the unsupported default.
+// input kind whose canonical spelling is not lowercase.
 func TestCreateReceiverWinEventLogKind(t *testing.T) {
-	for _, stanzaName := range []string{"wineventlog://Application", "WinEventLog://Application"} {
-		t.Run(stanzaName, func(t *testing.T) {
-			r, err := createReceiver(t, stanzaName)
-			if runtime.GOOS != "windows" {
-				// The underlying receiver is build-tagged. The factory refusing
-				// off Windows still proves dispatch reached it rather than
-				// returning the nil-receiver-and-nil-error unsupported result.
-				require.ErrorContains(t, err, "wineventlog is not supported outside Windows environments")
-				return
-			}
-			require.NoError(t, err)
-			require.NotNil(t, r)
-		})
+	r, err := createReceiver(t, "WinEventLog://Application")
+	if runtime.GOOS != "windows" {
+		// The underlying receiver is build-tagged. The factory refusing off
+		// Windows still proves dispatch reached it rather than returning the
+		// nil-receiver-and-nil-error unsupported result.
+		require.ErrorContains(t, err, "wineventlog is not supported outside Windows environments")
+		return
 	}
+	require.NoError(t, err)
+	require.NotNil(t, r)
 }
 
 // Kinds with no mapping return a nil receiver and a nil error, which the caller
@@ -62,6 +57,9 @@ func TestCreateReceiverUnsupportedKinds(t *testing.T) {
 		{name: "unprefixed stanza name", stanzaName: "my_bare_script"},
 		{name: "modular input scheme defaults stanza", stanzaName: "Splunk_TA_otel"},
 		{name: "unmapped kind", stanzaName: "fschange:///etc/passwd"},
+		// Kinds are matched exactly, and the spec defines no lowercase spelling
+		// of this one, so UF would not collect it either.
+		{name: "miscased event log kind", stanzaName: "wineventlog://Application"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := createReceiver(t, tt.stanzaName)

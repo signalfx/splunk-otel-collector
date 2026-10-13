@@ -122,8 +122,8 @@ func (a *Adapter) executable() string {
 }
 
 // writeWithRestore writes contents to path and records a cleanup that restores
-// the prior contents (or removes the file if it did not exist). Ported from the
-// 1spl writeFileWithRestore.
+// the prior contents, or removes the file and any directory it had to create.
+// Ported from the 1spl writeFileWithRestore.
 func (a *Adapter) writeWithRestore(path string, contents []byte) error {
 	info, statErr := os.Stat(path)
 	existed := statErr == nil
@@ -137,6 +137,10 @@ func (a *Adapter) writeWithRestore(path string, contents []byte) error {
 		return statErr
 	}
 
+	created, err := topMissingDir(filepath.Dir(path))
+	if err != nil {
+		return err
+	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
@@ -145,10 +149,34 @@ func (a *Adapter) writeWithRestore(path string, contents []byte) error {
 	}
 
 	a.restores = append(a.restores, func() error {
-		if existed {
+		switch {
+		case existed:
 			return os.WriteFile(path, original, info.Mode())
+		case created != "":
+			return os.RemoveAll(created)
+		default:
+			return os.Remove(path)
 		}
-		return os.Remove(path)
 	})
 	return nil
+}
+
+// topMissingDir returns the outermost ancestor of dir that does not exist, or
+// "" when dir already does. Removing that one unwinds everything MkdirAll goes
+// on to create, so an app a case installed leaves no directory behind.
+func topMissingDir(dir string) (string, error) {
+	missing := ""
+	for {
+		if _, err := os.Stat(dir); err == nil {
+			return missing, nil
+		} else if !os.IsNotExist(err) {
+			return "", err
+		}
+		missing = dir
+		if parent := filepath.Dir(dir); parent != dir {
+			dir = parent
+			continue
+		}
+		return missing, nil
+	}
 }

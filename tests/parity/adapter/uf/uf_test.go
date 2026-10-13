@@ -114,6 +114,11 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(localDir, "outputs.conf")); !os.IsNotExist(err) {
 		t.Error("outputs.conf should be removed on cleanup")
 	}
+	// An installed app takes its directories with it, so the next case does not
+	// run against an install carrying an extra app.
+	if _, err := os.Stat(filepath.Join(install, "etc", "apps")); !os.IsNotExist(err) {
+		t.Error("etc/apps should be removed on cleanup")
+	}
 	// Cleanup is idempotent: a second call is a no-op.
 	if err := a.Cleanup(); err != nil {
 		t.Errorf("second Cleanup: %v", err)

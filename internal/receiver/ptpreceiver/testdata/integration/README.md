@@ -4,28 +4,76 @@ Runs the real `ptpreceiver` against a real `ptp4l`/`pmc` (LinuxPTP). This
 closes the gap between the mocked-`pmc` unit tests in `scraper_test.go` and
 manual testing against a real `ptp4l` deployment.
 
-Two containers are used, both built from the same image (`Dockerfile` in
-this directory):
+Containers are built from the same image (`Dockerfile` in this directory):
 
 - a "master" sidecar, running only `ptp4l` with a low `priority1` so it
-  wins the Best Master Clock Algorithm (BMCA) and becomes grandmaster.
-- a "slave"/test container, whose entrypoint starts a second `ptp4l`
-  instance with a high `priority1` (loses BMCA), waits for its management
-  socket to appear, then runs `go test -tags=ptp_integration
-  ./internal/receiver/ptpreceiver/...`, which points the real receiver at
-  that socket.
+  wins the Best Master Clock Algorithm (BMCA) and becomes grandmaster. Its
+  MAC address is pinned (see `start_master` in `run.sh`), since `ptp4l`
+  derives `clockIdentity` from it, and Docker otherwise randomizes an
+  unpinned MAC on every `docker start`.
+- one or more "slave"/test containers, whose entrypoint
+  (`entrypoint.sh`) starts a second `ptp4l` instance with a high
+  `priority1` (loses BMCA), waits for its management socket to appear,
+  then runs the `go test` command it was given, which points the real
+  receiver at that socket.
 
-Both run with software timestamping (`-S`), so no PTP-capable NIC is
-required, and on a shared Docker user-defined bridge network, so each gets
-a distinct MAC/clockIdentity -- two `ptp4l` instances sharing one
-interface (e.g. both on loopback in a single container) derive identical
-clockIdentity values and silently ignore each other's announce messages,
-so this can't be collapsed into one container. The slave container also
-needs `--cap-add=SYS_TIME` so its clock servo can actually adjust the
+All `ptp4l` instances run with software timestamping (`-S`), so no
+PTP-capable NIC is required. Slave and master run as separate containers on
+a shared Docker user-defined bridge network, so each gets a distinct
+MAC/clockIdentity -- two `ptp4l` instances sharing one interface (e.g. both
+on loopback in a single container) derive identical clockIdentity values
+and silently ignore each other's announce messages, so this can't be
+collapsed into one container. Slave containers also need
+`--cap-add=SYS_TIME` so their clock servo can actually adjust the
 (containerized) clock and leave LinuxPTP's UNCALIBRATED state.
 
 Real BMCA negotiation and clock-servo convergence take tens of seconds, so
-the test polls for up to 120s.
+most tests poll for up to 120s.
+
+## Scenarios
+
+`run.sh` with no arguments runs all of these (this is what CI does):
+
+- `TestPTPReceiverIntegration` (`integration_test.go`): the standard
+  successful path -- slave syncs to the master and reaches SLAVE. Asserts
+  the full metric contract with real values/attributes (not just metric
+  presence), and that the port passed through a pre-sync state
+  (LISTENING/UNCALIBRATED) before reaching SLAVE, not just a single
+  already-synchronized snapshot. (LISTENING itself isn't asserted
+  separately: the master is already broadcasting before the slave
+  container even starts, so LISTENING -- at most one ~2s announce interval
+  -- is routinely over before this container's uncached `go test` finishes
+  downloading modules and compiling.)
+- `TestPTPReceiverIntegration_NoRemoteGrandmaster` and
+  `TestPTPReceiverIntegration_SocketNotPresent`
+  (`integration_negative_test.go`): negative paths with no master sidecar
+  or network dependency, so they run first and fail fast. The first
+  asserts a real `ptp4l` instance with no competing master self-elects
+  MASTER and reports `gmPresent=false`; the second points the receiver at
+  a socket path that never exists and asserts it fails every scrape
+  cleanly (logging an error, never panicking or blocking) without ever
+  producing a non-empty metrics data point.
+- `TestPTPReceiverIntegration_BoundaryClock`
+  (`integration_boundary_test.go`): a single `ptp4l` instance managing two
+  ports -- one syncing to the usual master sidecar, one isolated with no
+  peers (self-elects MASTER) -- asserting it reports as a boundary clock
+  (`ptp.clock.type=BC`) with clock state SLAVE (per `metadata.yaml`'s rule
+  for boundary clocks with both a slave and a master port) and two
+  distinct port identities. `run.sh` has to `docker create` (not `run`)
+  this container with both networks already attached before `docker
+  start`: `ptp4l` checks for its second interface once at startup and
+  never retries, so a network attached after the container's already
+  running arrives too late.
+- `TestPTPReceiverIntegration_GrandmasterLossRecovery`
+  (`integration_lossrecovery_test.go`): a real grandmaster disappearing and
+  coming back mid-collection. Since the test (in a container) and `run.sh`
+  (on the host) don't otherwise share a process or mounted volume, they
+  hand off control of the master sidecar via marker files under
+  `/tmp/ptp-integration-signals`: `run.sh` polls for files with `docker
+  exec ... test -f`, the test polls/writes the same path with `os.Stat`/
+  `os.WriteFile` from inside its own container filesystem. Asserts the
+  receiver reports losing the grandmaster while the master is stopped, and
+  re-selects the *same* grandmaster identity once it's restarted.
 
 ## Run locally
 
@@ -35,10 +83,10 @@ From the repository root:
 internal/receiver/ptpreceiver/testdata/integration/run.sh
 ```
 
-This builds the image, creates the Docker network and master sidecar, runs
-the slave/test container, and tears both down on exit. Extra arguments are
-passed through to the slave container's entrypoint, e.g. to run a specific
-test or get verbose `go test` output:
+This builds the image and runs every scenario above, tearing down all
+containers/networks on exit. With arguments, it instead runs exactly that
+command once against the standard master+slave topology, for manual
+debugging -- e.g. to run a single test with `-v` output:
 
 ```sh
 internal/receiver/ptpreceiver/testdata/integration/run.sh go test -tags=ptp_integration -run TestPTPReceiverIntegration -v ./internal/receiver/ptpreceiver/...

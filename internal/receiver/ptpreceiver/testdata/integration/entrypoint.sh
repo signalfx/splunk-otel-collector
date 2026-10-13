@@ -8,6 +8,12 @@
 # clockIdentity values and silently ignore each other's announcements, which
 # is why this needs two containers rather than two processes in one.
 #
+# PTP4L_IFACE_ARGS overrides the interfaces ptp4l manages (default: a single
+# "-i eth0"). The boundary-clock scenario sets this to "-i eth0 -i eth1" so a
+# single ptp4l instance manages two ports: LinuxPTP identifies as a boundary
+# clock purely from being given more than one -i, regardless of config file
+# contents.
+#
 # Once this instance's management socket is up, runs the command passed as
 # arguments (normally `go test -tags=ptp_integration`).
 set -euo pipefail
@@ -16,7 +22,8 @@ CONF_DIR="/etc/ptp4l"
 LOG_DIR="/var/log/ptp-integration"
 mkdir -p "$LOG_DIR"
 
-ptp4l -f "$CONF_DIR/slave.conf" -i eth0 -S -m >"$LOG_DIR/slave.log" 2>&1 &
+read -ra iface_args <<<"${PTP4L_IFACE_ARGS:--i eth0}"
+ptp4l -f "$CONF_DIR/slave.conf" "${iface_args[@]}" -S -m >"$LOG_DIR/slave.log" 2>&1 &
 slave_pid=$!
 
 cleanup() {

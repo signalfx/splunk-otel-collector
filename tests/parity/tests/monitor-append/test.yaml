@@ -10,4 +10,5 @@ script: |
 expected:
   raw: true
   host: true
+  source: true
 os: ["darwin", "linux"]

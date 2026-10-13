@@ -19,6 +19,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -118,6 +119,37 @@ func TestTokensApplyLeavesOtherSyntaxAlone(t *testing.T) {
 		if got := tokens.apply(in); got != in {
 			t.Errorf("apply(%q) = %q, want it unchanged", in, got)
 		}
+	}
+}
+
+// TestTokensUnapply covers the normalization a capture goes through: the
+// sandbox comes back as ${BASE_DIR}, apply round-trips it, and a value no token
+// resolved to is left alone.
+func TestTokensUnapply(t *testing.T) {
+	tokens := Tokens{
+		BaseDir:     "/tmp/parity-run",
+		HECEndpoint: "https://127.0.0.1:8088",
+		HECToken:    "tok",
+		Index:       "parity_uc",
+	}
+
+	for in, want := range map[string]string{
+		"/tmp/parity-run/logs/a.log": "${BASE_DIR}/logs/a.log",
+		"http:splunk_hec_token":      "http:splunk_hec_token",
+		"parity_uc":                  "parity_uc",
+	} {
+		got := tokens.unapply(in)
+		if got != want {
+			t.Errorf("unapply(%q) = %q, want %q", in, got, want)
+		}
+		if back := tokens.apply(got); back != in {
+			t.Errorf("apply(unapply(%q)) = %q, want the original", in, back)
+		}
+	}
+
+	// An unset sandbox must not match every string.
+	if got := (Tokens{}).unapply("/some/path"); got != "/some/path" {
+		t.Errorf("unapply with no sandbox = %q, want it unchanged", got)
 	}
 }
 
@@ -301,6 +333,69 @@ func TestRunAgentDefaultSearch(t *testing.T) {
 	}
 	if backend.lastSPL != "search index=parity_uf" {
 		t.Errorf("default search = %q", backend.lastSPL)
+	}
+}
+
+// TestRunAgentSortsCapture pins that the order a search returned events in does
+// not reach a comparison: a candidate stamps one time on a batch, so the index
+// is free to return those events either way round.
+func TestRunAgentSortsCapture(t *testing.T) {
+	backend := &fakeBackend{records: []Record{
+		{Raw: "second", Source: "/b.log"},
+		{Raw: "first", Source: "/a.log"},
+	}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Expected: Expected{Raw: true}}
+	recs, err := RunAgent(context.Background(), c, run, backend, fastOpts())
+	if err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if len(recs) != 2 || recs[0].Raw != "first" || recs[1].Raw != "second" {
+		t.Errorf("capture = %+v, want it sorted by raw", recs)
+	}
+}
+
+// TestSortCaptureUsesSelectedFields pins the key: a field the case compares
+// orders the capture, and a field it does not compare leaves records
+// interchangeable, so an order the two sides cannot agree on never decides the
+// pairing.
+func TestSortCaptureUsesSelectedFields(t *testing.T) {
+	tied := []Record{
+		{Raw: "same", Host: "h2", Source: "/b.log"},
+		{Raw: "same", Host: "h1", Source: "/a.log"},
+	}
+
+	tests := []struct {
+		name     string
+		wantRaw  []string
+		wantHost []string
+		filter   Expected
+	}{
+		{
+			name:     "selected host breaks the tie",
+			filter:   Expected{Raw: true, Host: true},
+			wantRaw:  []string{"same", "same"},
+			wantHost: []string{"h1", "h2"},
+		},
+		{
+			name:     "unselected source does not reorder",
+			filter:   Expected{Raw: true},
+			wantRaw:  []string{"same", "same"},
+			wantHost: []string{"h2", "h1"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recs := slices.Clone(tied)
+			sortCapture(recs, tt.filter)
+			for i, rec := range recs {
+				if rec.Raw != tt.wantRaw[i] || rec.Host != tt.wantHost[i] {
+					t.Errorf("record %d = %+v, want raw %q host %q", i, rec, tt.wantRaw[i], tt.wantHost[i])
+				}
+			}
+		})
 	}
 }
 

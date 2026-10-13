@@ -1,6 +1,5 @@
 name: "Batch sinkhole"
 description: The agent deletes a batched file once it has been read.
-stage: alpha
 setup: |
   echo "consumed line" > foo.txt
 validate: |

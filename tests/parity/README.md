@@ -142,7 +142,6 @@ oracle, and it configures the candidate too unless the case supplies a
 ```yaml
 name: "Set host"
 description: We use a custom host set when monitoring a file.
-stage: alpha
 setup: |                      # shell run before the agent starts
   echo "initial text" > foo.txt
 script:                       # shell run after the agent starts

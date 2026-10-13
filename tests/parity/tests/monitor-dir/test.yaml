@@ -1,6 +1,5 @@
 name: "Monitor directory"
 description: A monitor stanza naming a directory takes the files in it.
-stage: alpha
 setup: |
   mkdir -p logs
   echo "from the directory" > logs/only.log

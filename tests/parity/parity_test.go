@@ -158,7 +158,6 @@ func TestLoadCase(t *testing.T) {
 	path := filepath.Join(dir, "test.yaml")
 	content := `name: "Set host"
 description: custom host
-stage: alpha
 setup: |
   echo hi > foo.txt
 expected:

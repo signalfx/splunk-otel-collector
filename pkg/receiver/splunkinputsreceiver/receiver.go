@@ -56,9 +56,7 @@ func (r *splunkInputsReceiver) Start(ctx context.Context, host component.Host) e
 	for _, dir := range tabuilder.WatchDirs(r.splunkHome) {
 		_ = watcher.Add(dir) // best-effort; dirs may not exist yet
 	}
-	for _, taDir := range taDirs {
-		r.watchTA(taDir)
-	}
+	r.watchApps()
 
 	go r.watchLoop(ctx)
 	return nil
@@ -135,6 +133,19 @@ func (r *splunkInputsReceiver) watchLoop(ctx context.Context) {
 	}
 }
 
+// watchApps watches every app directory, including those app.conf disables. The
+// apps watch is not recursive, so an app left unwatched reports nothing when its
+// own app.conf is edited to enable it.
+func (r *splunkInputsReceiver) watchApps() {
+	appDirs, err := tabuilder.AppDirs(r.splunkHome)
+	if err != nil {
+		return
+	}
+	for _, appDir := range appDirs {
+		r.watchTA(appDir)
+	}
+}
+
 // watchTA adds a TA directory and its default/ and local/ subdirs to the watcher.
 // All adds are best-effort — default/ or local/ may not exist yet. Watching taDir
 // itself ensures we detect when they are created later.
@@ -170,6 +181,7 @@ func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string
 	// best-effort: add appsDir to the watcher in case it was created after Start
 	if r.watcher != nil {
 		_ = r.watcher.Add(filepath.Join(r.splunkHome, "etc", "apps"))
+		r.watchApps()
 	}
 
 	current, err := tabuilder.DiscoverApps(r.splunkHome)

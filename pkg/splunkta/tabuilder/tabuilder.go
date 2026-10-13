@@ -148,10 +148,10 @@ func confFilePaths(dirs []string, filename string) []string {
 	return paths
 }
 
-// DiscoverApps returns the enabled app directories under splunkHome/etc/apps.
-// splunkd admits every app in the bundle regardless of name, so this applies no
-// name pattern; it skips dotfile directories and apps disabled in app.conf.
-func DiscoverApps(splunkHome string) ([]string, error) {
+// AppDirs returns every app directory under splunkHome/etc/apps, enabled or
+// not. splunkd admits every app in the bundle regardless of name, so this
+// applies no name pattern; it skips only dotfile directories.
+func AppDirs(splunkHome string) ([]string, error) {
 	appsDir := filepath.Join(splunkHome, "etc", "apps")
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
@@ -165,13 +165,25 @@ func DiscoverApps(splunkHome string) ([]string, error) {
 		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
-		appDir := filepath.Join(appsDir, entry.Name())
-		if !appEnabled(appDir) {
-			continue
-		}
-		appDirs = append(appDirs, appDir)
+		appDirs = append(appDirs, filepath.Join(appsDir, entry.Name()))
 	}
 	return appDirs, nil
+}
+
+// DiscoverApps returns the subset of AppDirs that app.conf leaves in the
+// bundle, which is what splunkd reads config from.
+func DiscoverApps(splunkHome string) ([]string, error) {
+	appDirs, err := AppDirs(splunkHome)
+	if err != nil {
+		return nil, err
+	}
+	var enabled []string
+	for _, appDir := range appDirs {
+		if appEnabled(appDir) {
+			enabled = append(enabled, appDir)
+		}
+	}
+	return enabled, nil
 }
 
 // appEnabled reports whether app.conf leaves the app in the bundle. splunkd

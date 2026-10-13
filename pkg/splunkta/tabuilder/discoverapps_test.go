@@ -22,6 +22,30 @@ func writeApp(t *testing.T, home, name, layer, body string) {
 	}
 }
 
+// A disabled app contributes no config but still has to be watched: enabling it
+// is an edit inside its own directory, and the apps watch is not recursive.
+func TestAppDirsKeepsDisabledApps(t *testing.T) {
+	home := t.TempDir()
+	writeApp(t, home, "enabled_app", "default", "[install]\nstate = enabled\n")
+	writeApp(t, home, "disabled_app", "default", "[install]\nstate = disabled\n")
+
+	all, err := AppDirs(home)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []string{"enabled_app", "disabled_app"}, baseNames(all))
+
+	enabled, err := DiscoverApps(home)
+	require.NoError(t, err)
+	require.Equal(t, []string{"enabled_app"}, baseNames(enabled))
+}
+
+func baseNames(dirs []string) []string {
+	var names []string
+	for _, d := range dirs {
+		names = append(names, filepath.Base(d))
+	}
+	return names
+}
+
 // splunkd admits every app in the bundle regardless of name, so discovery must
 // not filter on one. An app whose inputs.conf is skipped here contributes no
 // inputs at all, silently.
@@ -38,17 +62,12 @@ func TestDiscoverAppsIgnoresAppNames(t *testing.T) {
 
 	apps, err := DiscoverApps(home)
 	require.NoError(t, err)
-
-	var names []string
-	for _, a := range apps {
-		names = append(names, filepath.Base(a))
-	}
 	require.ElementsMatch(t, []string{
 		"Splunk_TA_otel",
 		"splunk-connect-for-otlp",
 		"my_custom_app",
 		"SplunkUniversalForwarder",
-	}, names)
+	}, baseNames(apps))
 }
 
 func TestDiscoverAppsSkipsDotDirs(t *testing.T) {

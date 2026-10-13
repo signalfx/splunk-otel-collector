@@ -16,7 +16,6 @@ package splunksecretconfigsource
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,6 +24,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
 
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
@@ -80,12 +81,7 @@ type splunkSecretConfigSource struct {
 
 func newConfigSource(cfg *Config, app, user string, timeout time.Duration, logger *zap.Logger) *splunkSecretConfigSource {
 	return &splunkSecretConfigSource{
-		client: &http.Client{
-			Timeout: timeout,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.InsecureSkipVerify}, //nolint:gosec // opt-in, defaults to false
-			},
-		},
+		client:     splunkhttp.NewClient(cfg.Endpoint, timeout, cfg.InsecureSkipVerify, ""),
 		logger:     logger,
 		endpoint:   strings.TrimRight(cfg.Endpoint, "/"),
 		sessionKey: cfg.SessionKey,

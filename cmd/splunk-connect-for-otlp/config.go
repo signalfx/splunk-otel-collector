@@ -19,6 +19,7 @@ const (
 )
 
 type XMLInput struct {
+	ServerHost    string    `xml:"server_host"`
 	ServerURI     string    `xml:"server_uri"`
 	SessionKey    string    `xml:"session_key"`
 	Configuration XMLConfig `xml:"configuration"`
@@ -45,6 +46,7 @@ type InputConfig struct {
 	Sourcetype    string
 	ServerCert    string
 	ServerKey     string
+	ServerHost    string
 	ServerURI     string
 	SessionKey    string
 	Realm         string
@@ -66,6 +68,7 @@ func (x XMLInput) Extract() InputConfig {
 	realm := ""
 	accessToken := ""
 
+	serverHost := x.ServerHost
 	serverURI := x.ServerURI
 	sessionKey := x.SessionKey
 
@@ -100,6 +103,7 @@ func (x XMLInput) Extract() InputConfig {
 		ListenAddress: listeningAddress,
 		Source:        source,
 		Sourcetype:    sourcetype,
+		ServerHost:    serverHost,
 		ServerURI:     serverURI,
 		SessionKey:    sessionKey,
 		EnableSSL:     enableSSL,

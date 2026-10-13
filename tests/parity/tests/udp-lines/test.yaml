@@ -1,0 +1,20 @@
+name: "UDP lines"
+description: |
+  Each timestamped line of a datagram sent to a udp stanza's port lands as its
+  own event. The lines carry a timestamp because the indexer merges consecutive
+  lines that do not, and a case cannot configure the indexer to stop.
+script: |
+  for _ in $(seq 60); do
+    if lsof -nP -iUDP:19101 > /dev/null 2>&1; then
+      printf '2026-01-02 03:04:05 alpha\n2026-01-02 03:04:06 bravo\n2026-01-02 03:04:07 charlie\n' > /dev/udp/127.0.0.1/19101
+      exit 0
+    fi
+    sleep 1
+  done
+  echo "nothing bound port 19101" >&2
+  exit 1
+expected:
+  raw: true
+  host: true
+  source: true
+os: ["darwin", "linux"]

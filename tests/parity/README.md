@@ -124,7 +124,7 @@ A case is a directory under `tests/`:
 ```
 tests/host/
   test.yaml          metadata, shell hooks, the fields to compare
-  conf/              the Splunk .conf structure, copied into the UF's etc/system/local
+  conf/              the Splunk .conf structure, installed into the agent's etc/
     inputs.conf
     outputs.conf
   collector.yaml     optional candidate config; without it the candidate reads conf/
@@ -137,12 +137,15 @@ tests/host/
 oracle, and it configures the candidate too unless the case supplies a
 `collector.yaml`. See [How the candidate is configured](#how-the-candidate-is-configured).
 
+A top-level `*.conf` is system config; a nested path is mirrored, so
+`conf/apps/my_app/local/inputs.conf` installs as an app rather than as system
+config. `tests/app-scoped-input` is an example.
+
 `test.yaml` holds everything that is not agent config:
 
 ```yaml
 name: "Set host"
 description: We use a custom host set when monitoring a file.
-stage: alpha
 setup: |                      # shell run before the agent starts
   echo "initial text" > foo.txt
 script:                       # shell run after the agent starts

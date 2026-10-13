@@ -28,7 +28,6 @@ import (
 type Case struct {
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
-	Stage       string   `yaml:"stage"`
 	Setup       string   `yaml:"setup"`    // shell run before the agent starts
 	Script      string   `yaml:"script"`   // shell run after the agent starts
 	Validate    string   `yaml:"validate"` // shell that must exit 0 once the capture settles

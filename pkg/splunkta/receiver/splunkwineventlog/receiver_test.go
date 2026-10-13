@@ -39,7 +39,7 @@ func TestConfigToStanza(t *testing.T) {
 				"current_only":   "1",
 			},
 			extra:  map[string]string{"current_only": "1"},
-			stanza: "wineventlog://Application",
+			stanza: "WinEventLog://Application",
 			params: conf.Params{
 				{Name: "index", Value: "wineventlog"},
 				{Name: "source", Value: "WinEventLog:Application"},
@@ -51,7 +51,7 @@ func TestConfigToStanza(t *testing.T) {
 		{
 			name:   "target only, so nothing overrides a props.conf default",
 			yaml:   map[string]any{"event_log_name": "Security"},
-			stanza: "wineventlog://Security",
+			stanza: "WinEventLog://Security",
 			params: conf.Params{},
 		},
 	} {

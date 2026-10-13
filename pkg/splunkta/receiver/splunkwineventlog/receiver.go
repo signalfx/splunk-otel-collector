@@ -62,7 +62,7 @@ func (c *Config) input() conf.Input {
 	return conf.Input{
 		Configuration: conf.Configuration{
 			Stanza: conf.Stanza{
-				Name: "wineventlog://" + c.EventLogName,
+				Name: "WinEventLog://" + c.EventLogName,
 				Params: conf.InputParams(conf.ResourceAttrs{
 					Index:      c.Index,
 					Source:     c.Source,

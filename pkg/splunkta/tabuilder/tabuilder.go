@@ -102,9 +102,8 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 			Transforms: transforms,
 			Props:      props,
 		}, next)
-	// inputs.conf.spec spells this [WinEventLog://<name>]; the lowercase form is
-	// what the splunk_wineventlog wrapper synthesizes.
-	case "wineventlog", "WinEventLog":
+	// inputs.conf.spec spells this [WinEventLog://<name>].
+	case "WinEventLog":
 		f := wineventlogreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), wineventlogreceiver.Config{
 			Input:      input,

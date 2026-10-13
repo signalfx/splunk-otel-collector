@@ -1,0 +1,11 @@
+change_type: breaking
+
+component: featuregates
+
+note: "remove the `cook` feature gate"
+
+issues: [8267]
+
+subtext: |
+  `--feature-gates +cook` no longer works. The `splunk_*` receivers always apply
+  props.conf now, and remain gated behind `enableTARunner`.

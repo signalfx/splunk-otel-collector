@@ -6,10 +6,6 @@ package prop
 import (
 	"testing"
 
-	"go.opentelemetry.io/collector/featuregate"
-
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/featuregates"
-
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/operator/transform"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/transformer/copy"
@@ -21,10 +17,6 @@ import (
 )
 
 func TestCreateProps(t *testing.T) {
-	require.NoError(t, featuregate.GlobalRegistry().Set(featuregates.CookFeatureGate.ID(), true))
-	defer func() {
-		require.NoError(t, featuregate.GlobalRegistry().Set(featuregates.CookFeatureGate.ID(), false))
-	}()
 	ops := CreateOperatorConfigs(conf.Prop{
 		Name: "foo",
 		Transforms: []conf.PropsTransforms{

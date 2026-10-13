@@ -39,6 +39,14 @@ cleanup() {
         echo "==> Failure detected, dumping otlp-related splunkd.log lines"
         $COMPOSE exec -T -u root splunk grep -i otlp /opt/splunk/var/log/splunk/splunkd.log || true
     fi
+    # Splunk's Ansible-based provisioning runs as root and chowns the
+    # bind-mounted app directory (see docker-compose.test.yml) to its
+    # internal splunk user. Docker Desktop's VM-backed bind mounts hide
+    # this by remapping ownership back to the host user, but native Linux
+    # Docker (as used in CI) does not, leaving root-owned files that the
+    # unprivileged rm -rf below can't delete. Reclaim ownership through the
+    # container itself before tearing the stack down.
+    $COMPOSE exec -T -u root splunk chown -R "$(id -u):$(id -g)" /opt/splunk/etc/apps/splunk-connect-for-otlp || true
     echo "==> Tearing down Docker Compose stack"
     $COMPOSE down -v || true
     rm -rf "$WORKDIR"

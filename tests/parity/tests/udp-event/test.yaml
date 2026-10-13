@@ -1,0 +1,20 @@
+name: "UDP event"
+description: |
+  Text sent to a udp stanza's port lands as an event carrying the host, source
+  and index the stanza names.
+script: |
+  for _ in $(seq 60); do
+    if lsof -nP -iUDP:19100 > /dev/null 2>&1; then
+      printf '2026-01-02 03:04:05 alpha\n' > /dev/udp/127.0.0.1/19100
+      exit 0
+    fi
+    sleep 1
+  done
+  echo "nothing bound port 19100" >&2
+  exit 1
+expected:
+  raw: true
+  host: true
+  source: true
+  index: true
+os: ["darwin", "linux"]

@@ -31,7 +31,7 @@ type Case struct {
 	Setup       string   `yaml:"setup"`    // shell run before the agent starts
 	Script      string   `yaml:"script"`   // shell run after the agent starts
 	Validate    string   `yaml:"validate"` // shell that must exit 0 once the capture settles
-	OS          []string `yaml:"os"`
+	OS          []string `yaml:"os"`       // platforms to run on; unset runs on every platform
 	// Expected is last because its trailing booleans pack better there.
 	Expected Expected `yaml:"expected"` // the fields this case compares
 }

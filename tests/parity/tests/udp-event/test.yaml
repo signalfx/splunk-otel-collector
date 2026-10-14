@@ -17,4 +17,3 @@ expected:
   host: true
   source: true
   index: true
-os: ["darwin", "linux"]

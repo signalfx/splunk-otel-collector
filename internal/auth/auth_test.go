@@ -25,6 +25,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension/extensionauth"
@@ -77,11 +78,11 @@ func TestAuthPagination(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var offsets []int
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				require.Equal(t, "/servicesNS/-/-/data/inputs/http", r.URL.Path)
-				require.Equal(t, "Splunk session-key", r.Header.Get("Authorization"))
-				require.False(t, r.URL.Query().Has("count"))
+				assert.Equal(t, "/servicesNS/-/-/data/inputs/http", r.URL.Path)
+				assert.Equal(t, "Splunk session-key", r.Header.Get("Authorization"))
+				assert.False(t, r.URL.Query().Has("count"))
 				offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-				require.NoError(t, err)
+				assert.NoError(t, err)
 				offsets = append(offsets, offset)
 				_, _ = fmt.Fprint(w, tokenPageXML(tc.total, offset, min(tc.pageSize, tc.total-offset)))
 			}))
@@ -131,7 +132,7 @@ func TestAuthPaginationFailure(t *testing.T) {
 					_, _ = fmt.Fprint(w, tokenPageXML(2, 0, 1))
 					return
 				}
-				require.Equal(t, "1", r.URL.Query().Get("offset"))
+				assert.Equal(t, "1", r.URL.Query().Get("offset"))
 				w.WriteHeader(tc.status)
 				_, _ = fmt.Fprint(w, tc.body)
 			}))
@@ -163,7 +164,7 @@ func TestAuthInvalidTotalResults(t *testing.T) {
 						_, _ = fmt.Fprint(w, tokenPageXML(2, 0, 1))
 						return
 					}
-					require.Equal(t, strconv.Itoa(offset), r.URL.Query().Get("offset"))
+					assert.Equal(t, strconv.Itoa(offset), r.URL.Query().Get("offset"))
 					body := strings.ReplaceAll(tokenPageXML(2, offset, 1), "<opensearch:totalResults>2</opensearch:totalResults>", tc.total)
 					_, _ = fmt.Fprint(w, body)
 				}))

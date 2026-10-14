@@ -64,7 +64,7 @@ func New(ctx context.Context, settings component.TelemetrySettings, serverURI, s
 		return nil, err
 	}
 	req.Header.Add("Authorization", "Splunk "+sessionKey)
-	httpClient := splunkhttp.NewClient(serverURI, 0, false)
+	httpClient := splunkhttp.NewClient(serverURI, 0, nil)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err

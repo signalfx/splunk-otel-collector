@@ -29,14 +29,18 @@ import (
 // certificate verification fails for literal loopback HTTPS endpoints. There
 // is no reliable hostname to verify against in that case: server_host from
 // the modular input protocol is not guaranteed to match a DNS SAN on the
-// certificate either. So for literal loopback HTTPS endpoints, verification
-// is skipped the same way it would be for insecureSkipVerify. Verification
-// for hostnames and non-loopback addresses is unaffected unless
-// insecureSkipVerify is explicitly set.
-func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify bool) *http.Client {
+// certificate either. So when insecureSkipVerify is nil (not explicitly
+// configured by the caller), verification is skipped for literal loopback
+// HTTPS endpoints the same way it would be for an explicit true, and remains
+// enabled for every other endpoint. An explicit insecureSkipVerify value is
+// always honored as-is, including on loopback endpoints, so a caller that
+// provisions a certificate with loopback SANs and explicitly sets
+// insecureSkipVerify to false gets real verification.
+func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify *bool) *http.Client {
 	client := &http.Client{Timeout: timeout}
-	shouldFallbackToInsecure := isLoopbackHTTPS(endpoint)
-	if insecureSkipVerify || shouldFallbackToInsecure {
+	skipVerify := insecureSkipVerify != nil && *insecureSkipVerify
+	fallbackToInsecure := insecureSkipVerify == nil && isLoopbackHTTPS(endpoint)
+	if skipVerify || fallbackToInsecure {
 		client.Transport = insecureTransport()
 	}
 	return client

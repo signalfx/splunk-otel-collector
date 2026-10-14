@@ -42,8 +42,11 @@ type Config struct {
 	User string `mapstructure:"user"`
 
 	// InsecureSkipVerify disables verification of the TLS certificate presented by the
-	// splunkd management endpoint. Defaults to false.
-	InsecureSkipVerify bool `mapstructure:"insecure_skip_verify"`
+	// splunkd management endpoint. If unset, verification is still skipped for literal
+	// loopback HTTPS endpoints, since the splunkd certificate commonly doesn't cover
+	// them; set this to false explicitly to require verification even on loopback.
+	// Defaults to unset.
+	InsecureSkipVerify *bool `mapstructure:"insecure_skip_verify"`
 
 	// Timeout is the maximum amount of time to wait for a response from splunkd.
 	// Defaults to 10s if not specified.

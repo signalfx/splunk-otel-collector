@@ -27,7 +27,7 @@ func TestNewClientTLSVerification(t *testing.T) {
 	testCases := []struct {
 		name                       string
 		endpoint                   string
-		insecureSkipVerify         bool
+		insecureSkipVerify         *bool
 		expectedInsecureSkipVerify bool
 	}{
 		{name: "IPv4 loopback", endpoint: "https://127.0.0.1:8089", expectedInsecureSkipVerify: true},
@@ -40,7 +40,9 @@ func TestNewClientTLSVerification(t *testing.T) {
 		{name: "remote IP", endpoint: "https://192.0.2.1:8089", expectedInsecureSkipVerify: false},
 		{name: "remote hostname", endpoint: "https://splunkd.example.com:8089", expectedInsecureSkipVerify: false},
 		{name: "malformed URL", endpoint: "https://%gh", expectedInsecureSkipVerify: false},
-		{name: "explicit override on remote host", endpoint: "https://splunkd.example.com:8089", insecureSkipVerify: true, expectedInsecureSkipVerify: true},
+		{name: "explicit override on remote host", endpoint: "https://splunkd.example.com:8089", insecureSkipVerify: new(true), expectedInsecureSkipVerify: true},
+		{name: "explicit false on loopback forces verification", endpoint: "https://127.0.0.1:8089", insecureSkipVerify: new(false), expectedInsecureSkipVerify: false},
+		{name: "explicit true on loopback", endpoint: "https://127.0.0.1:8089", insecureSkipVerify: new(true), expectedInsecureSkipVerify: true},
 	}
 
 	for _, tc := range testCases {
@@ -56,7 +58,7 @@ func TestNewClientClonesDefaultTransport(t *testing.T) {
 	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
 	require.True(t, ok)
 
-	client := NewClient("https://127.0.0.1:8089", 0, false)
+	client := NewClient("https://127.0.0.1:8089", 0, nil)
 	transport, ok := client.Transport.(*http.Transport)
 	require.True(t, ok)
 	assert.NotSame(t, defaultTransport, transport)

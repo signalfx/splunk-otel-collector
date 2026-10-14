@@ -70,7 +70,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 			parser,
 		)
 
-		if err := client.connect(startCtx); err != nil {
+		if err = client.connect(startCtx); err != nil {
 			for _, started := range clients {
 				if started.conn != nil {
 					_ = started.conn.Close()

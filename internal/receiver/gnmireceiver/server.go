@@ -39,7 +39,7 @@ func (s *gnmiServer) Publish(stream gnmireverse.GNMIReverse_PublishServer) error
 		response := resp.GetResponse()
 		switch response.(type) {
 		case *gnmipb.SubscribeResponse_Error:
-			s.logger.Error(resp.GetError().Message) // SA1019: deprecated yet still in use
+			s.logger.Error(resp.GetError().Message) //nolint:staticcheck // SA1019: deprecated yet still in use
 			continue
 		case *gnmipb.SubscribeResponse_SyncResponse:
 			s.logger.Debug("received a sync request")

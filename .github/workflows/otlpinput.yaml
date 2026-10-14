@@ -83,3 +83,11 @@ jobs:
         run: |
           set -eo pipefail
           sh ./test-ip-sans.sh
+
+      - name: Run HEC token pagination regression check
+        env:
+          OTLP_PACKAGE_PATH: ${{ github.workspace }}/packaging/otlpinput/out/distribution/splunk-connect-for-otlp.tgz
+          TEST_HEC_PAGINATION: "1"
+        run: |
+          set -eo pipefail
+          sh ./test-ip-sans.sh

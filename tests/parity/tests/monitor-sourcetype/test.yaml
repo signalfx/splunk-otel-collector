@@ -7,4 +7,3 @@ expected:
   host: true
   source: true
   sourcetype: true
-os: ["darwin", "linux"]

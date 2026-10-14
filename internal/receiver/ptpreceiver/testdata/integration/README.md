@@ -44,15 +44,27 @@ most tests poll for up to 120s.
   container even starts, so LISTENING -- at most one ~2s announce interval
   -- is routinely over before this container's uncached `go test` finishes
   downloading modules and compiling.)
-- `TestPTPReceiverIntegration_NoRemoteGrandmaster` and
-  `TestPTPReceiverIntegration_SocketNotPresent`
+- `TestPTPReceiverIntegration_NoRemoteGrandmaster`,
+  `TestPTPReceiverIntegration_SocketNotPresent`, and
+  `TestPTPReceiverIntegration_PMCTimeout`
   (`integration_negative_test.go`): negative paths with no master sidecar
   or network dependency, so they run first and fail fast. The first
   asserts a real `ptp4l` instance with no competing master self-elects
   MASTER and reports `gmPresent=false`; the second points the receiver at
   a socket path that never exists and asserts it fails every scrape
   cleanly (logging an error, never panicking or blocking) without ever
-  producing a non-empty metrics data point.
+  producing a non-empty metrics data point. The third points `PMC.Path` at
+  a script that hangs forever instead of the real `pmc` binary, and asserts
+  the receiver's `exec.CommandContext`-based `Timeout` actually kills the
+  hung subprocess and the collector keeps scraping on later intervals
+  rather than wedging on the first one. This isn't a real `pmc` hang: an
+  empirical probe (a Unix domain socket that accepts `pmc`'s request and
+  never responds) showed real `pmc` doesn't block on an unresponsive
+  server at all -- it sends the request over `SOCK_DGRAM` and returns
+  almost immediately regardless, since there's no connection to wait on. A
+  genuinely hung subprocess only happens if the configured binary itself
+  hangs, so this test substitutes one via the same `PMC.Path` knob a real
+  deployment could point at a wrapper script.
 - `TestPTPReceiverIntegration_BoundaryClock`
   (`integration_boundary_test.go`): a single `ptp4l` instance managing two
   ports -- one syncing to the usual master sidecar, one isolated with no
@@ -74,6 +86,20 @@ most tests poll for up to 120s.
   `os.WriteFile` from inside its own container filesystem. Asserts the
   receiver reports losing the grandmaster while the master is stopped, and
   re-selects the *same* grandmaster identity once it's restarted.
+- `TestPTPReceiverIntegration_FaultyPort` (`integration_faulty_test.go`):
+  exercises `clockState()`'s FAULTY branch, which until now had zero
+  coverage anywhere (mocked or real). Waits for the usual real sync, then
+  signals `run.sh` to `docker network disconnect` this container's network
+  entirely, rather than stopping the master as the loss/recovery scenario
+  does -- using the same marker-file handshake. `ptp4l` survives losing
+  its interface post-startup: the port transitions to FAULTY, but the
+  daemon keeps running and keeps answering `pmc` over its
+  (network-independent) Unix management socket, which is what makes this a
+  real, deterministic way to reach FAULTY. An all-invalid-interface config
+  was also tried and ruled out: `ptp4l` can't derive a `clockIdentity`
+  without a valid interface at startup and refuses to start at all, rather
+  than coming up FAULTY. Asserts both `ptp.port.state` and the overall
+  `ptp.clock.state` report FAULTY.
 
 ## Run locally
 

@@ -18,12 +18,13 @@ DOWNSTREAM_NETWORK="ptpreceiver-integration-test-downstream"
 MASTER="ptpreceiver-integration-test-master"
 BOUNDARY="ptpreceiver-integration-test-boundary"
 LOSS_RECOVERY="ptpreceiver-integration-test-loss-recovery"
+FAULTY="ptpreceiver-integration-test-faulty"
 DOCKERFILE="internal/receiver/ptpreceiver/testdata/integration/Dockerfile"
 PKG="./internal/receiver/ptpreceiver/..."
 SIGNAL_DIR="/tmp/ptp-integration-signals"
 
 cleanup() {
-  docker rm -f "$MASTER" "$BOUNDARY" "$LOSS_RECOVERY" >/dev/null 2>&1 || true
+  docker rm -f "$MASTER" "$BOUNDARY" "$LOSS_RECOVERY" "$FAULTY" >/dev/null 2>&1 || true
   docker network rm "$NETWORK" "$DOWNSTREAM_NETWORK" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -75,9 +76,9 @@ if [ "$#" -gt 0 ]; then
   exit 0
 fi
 
-echo "=== no remote grandmaster / socket not present (negative paths, no network dependency) ==="
+echo "=== no remote grandmaster / socket not present / pmc timeout (negative paths, no network dependency) ==="
 docker run --rm --cap-add=SYS_TIME -v "$(pwd):/src" "$IMAGE" \
-  go test -tags=ptp_integration -run 'TestPTPReceiverIntegration_NoRemoteGrandmaster|TestPTPReceiverIntegration_SocketNotPresent' -v "$PKG"
+  go test -tags=ptp_integration -run 'TestPTPReceiverIntegration_NoRemoteGrandmaster|TestPTPReceiverIntegration_SocketNotPresent|TestPTPReceiverIntegration_PMCTimeout' -v "$PKG"
 
 docker network create "$NETWORK" >/dev/null
 start_master
@@ -118,5 +119,20 @@ exit_code=$(docker wait "$LOSS_RECOVERY")
 docker logs "$LOSS_RECOVERY"
 if [ "$exit_code" != "0" ]; then
   echo "grandmaster loss/recovery test failed (exit $exit_code)" >&2
+  exit 1
+fi
+
+echo "=== faulty port (network interface loss) ==="
+docker run -d --name "$FAULTY" --network "$NETWORK" --cap-add=SYS_TIME -v "$(pwd):/src" "$IMAGE" \
+  go test -tags=ptp_integration -run TestPTPReceiverIntegration_FaultyPort -v "$PKG" >/dev/null
+
+wait_for_container_file "$FAULTY" ready-for-network-disconnect 150
+docker network disconnect "$NETWORK" "$FAULTY"
+send_container_file "$FAULTY" network-disconnected
+
+exit_code=$(docker wait "$FAULTY")
+docker logs "$FAULTY"
+if [ "$exit_code" != "0" ]; then
+  echo "faulty port test failed (exit $exit_code)" >&2
   exit 1
 fi

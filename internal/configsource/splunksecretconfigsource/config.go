@@ -22,6 +22,13 @@ import (
 
 // Config defines splunksecretconfigsource configuration.
 type Config struct {
+	// InsecureSkipVerify disables verification of the TLS certificate presented by the
+	// splunkd management endpoint. If unset, verification is still skipped for literal
+	// loopback HTTPS endpoints, since the splunkd certificate commonly doesn't cover
+	// them; set this to false explicitly to require verification even on loopback.
+	// Defaults to unset.
+	InsecureSkipVerify *bool `mapstructure:"insecure_skip_verify"`
+
 	configsource.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 
 	// Endpoint is the Splunk management URI, e.g. "https://127.0.0.1:8089". It is typically
@@ -40,10 +47,6 @@ type Config struct {
 	// User scopes the storage/passwords lookup to a specific Splunk user namespace. Set this
 	// to disambiguate credentials that collide across users. Defaults to "-" (all users).
 	User string `mapstructure:"user"`
-
-	// InsecureSkipVerify disables verification of the TLS certificate presented by the
-	// splunkd management endpoint. Defaults to false.
-	InsecureSkipVerify bool `mapstructure:"insecure_skip_verify"`
 
 	// Timeout is the maximum amount of time to wait for a response from splunkd.
 	// Defaults to 10s if not specified.

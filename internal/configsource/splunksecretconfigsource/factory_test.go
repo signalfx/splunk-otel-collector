@@ -30,7 +30,7 @@ func TestSplunkSecretFactory_CreateDefaultConfig(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig().(*Config)
 	assert.Equal(t, defaultTimeout, cfg.Timeout)
-	assert.False(t, cfg.InsecureSkipVerify)
+	assert.Nil(t, cfg.InsecureSkipVerify)
 	assert.Empty(t, cfg.Endpoint)
 	assert.Empty(t, cfg.SessionKey)
 	assert.Equal(t, defaultApp, cfg.App)
@@ -81,7 +81,7 @@ func TestSplunkSecretFactory_CreateConfigSource(t *testing.T) {
 		},
 		{
 			name:   "success_with_insecure_skip_verify",
-			config: &Config{Endpoint: "https://localhost:8089", SessionKey: "key", InsecureSkipVerify: true},
+			config: &Config{Endpoint: "https://localhost:8089", SessionKey: "key", InsecureSkipVerify: new(true)},
 		},
 	}
 	for _, tt := range tests {

@@ -57,3 +57,13 @@ enableSSL  = 1
 serverCert = /certs/server.crt
 serverKey  = /certs/server.key
 ```
+
+### TLS IP SANs regression check
+
+`test-ip-sans.sh` runs this stack with a locally built package and checks
+that the OTLP receiver starts and that its server certificate validates
+both by hostname and by IP literal. The modular input also calls back
+into Splunk's own management API at the literal
+`https://127.0.0.1:8089` on startup (see `internal/auth/auth.go`), which
+fails against Splunk's own self-signed certificate for the same reason.
+Run it with `make test-ip-sans` from the parent directory.

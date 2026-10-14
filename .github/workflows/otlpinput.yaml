@@ -57,3 +57,29 @@ jobs:
             echo "Source files were modified during the build. Please update the repository."
             exit 1
           fi
+
+  # Checks that the modular input's TLS calls work against IP-literal
+  # targets (see internal/auth/auth.go, and the server certificate in
+  # packaging/otlpinput/example/generate-certs.sh).
+  otlpinput-tls-ip-sans-test:
+    needs: ta-v2-build-packages
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: packaging/otlpinput/example
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download Splunk Connect for OTLP artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: otlpinput-packages
+          path: packaging/otlpinput/out/distribution
+
+      - name: Run TLS IP SANs regression check
+        env:
+          OTLP_PACKAGE_PATH: ${{ github.workspace }}/packaging/otlpinput/out/distribution/splunk-connect-for-otlp.tgz
+        run: |
+          set -eo pipefail
+          sh ./test-ip-sans.sh

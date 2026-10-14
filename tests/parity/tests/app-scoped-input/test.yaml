@@ -9,4 +9,3 @@ setup: |
 script:
 expected:
   raw: true
-os: ["darwin", "linux", "windows"]

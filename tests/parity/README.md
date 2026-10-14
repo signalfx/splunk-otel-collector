@@ -154,8 +154,12 @@ expected:                     # the fields to compare, and nothing else
   raw: true
   host: true
   # fields: [punct, "date_*"]  # search fields, by name or glob
-os: ["darwin", "linux", "windows"]
+# os: ["linux"]               # platforms to run on; unset runs on every platform
 ```
+
+`os` is a filter for a platform-specific case: a case that leaves it out runs
+wherever the suite is run, and a case that sets it is skipped on a platform it
+does not name. No case sets it today.
 
 `expected` is the case's filter: it names the fields the case is defined on, and
 nothing else. `raw`, `host`, `source`, `sourcetype` and `index` are booleans;

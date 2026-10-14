@@ -52,8 +52,8 @@ cleanup() {
         echo "  Password: VH#ou812@5150"
         echo ""
         echo "Useful commands:"
-        echo "  View splunkd logs: $COMPOSE exec -T -u root splunk tail -f /opt/splunk/var/log/splunk/splunkd.log"
-        echo "  Tear down stack: $COMPOSE -p example down -v && rm -rf \"$WORKDIR\""
+        echo "  View splunkd logs: docker compose -p example exec -T -u root splunk tail -f /opt/splunk/var/log/splunk/splunkd.log"
+        echo "  Tear down stack: docker compose -p example down -v && rm -rf \"$WORKDIR\""
         echo ""
         exit "$status"
     fi

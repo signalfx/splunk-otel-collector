@@ -31,7 +31,7 @@ func TestAuth(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	authtest.SetupAuth(t, listener)
-	e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), "http://"+listener.Addr().String(), "foo", "")
+	e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), "http://"+listener.Addr().String(), "foo")
 	require.NoError(t, err)
 	require.NotNil(t, e)
 	se := e.(extensionauth.Server)
@@ -50,9 +50,9 @@ func TestAuth(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestAuthFailsForLoopbackTLSCertificateWithoutServerHost(t *testing.T) {
+func TestAuthSucceedsForLoopbackTLSCertificateWithoutIPSANs(t *testing.T) {
 	server := authtest.NewTLSServer(t)
 
-	_, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo", "")
-	require.Error(t, err)
+	_, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
+	require.NoError(t, err)
 }

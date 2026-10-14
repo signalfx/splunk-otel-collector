@@ -17,8 +17,9 @@ package auth
 import (
 	"context"
 	"encoding/xml"
-	"io"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
@@ -59,29 +60,39 @@ func readTokens(f feed) []HecTokenConfig {
 }
 
 func New(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
-	req, err := http.NewRequest(http.MethodGet, serverURI+"/servicesNS/-/-/data/inputs/http", http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURI+"/servicesNS/-/-/data/inputs/http", http.NoBody)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Authorization", "Splunk "+sessionKey)
 	httpClient := splunkhttp.NewClient(serverURI, 0, nil)
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
+	var tokens []HecTokenConfig
+	// Use Splunk's default page size, advancing the offset by the number of
+	// entries actually returned.
+	// https://help.splunk.com/en/splunk-enterprise/rest-api-reference/9.2/introduction/using-the-rest-api-reference
+	for offset := 0; ; {
+		query := req.URL.Query()
+		query.Set("offset", strconv.Itoa(offset))
+		req.URL.RawQuery = query.Encode()
+		f, err := readTokenPage(httpClient, req)
+		if err != nil {
+			return nil, fmt.Errorf("retrieve HEC tokens at offset %d: %w", offset, err)
+		}
+		if f.TotalResults == nil {
+			return nil, fmt.Errorf("missing HEC token totalResults at offset %d", offset)
+		}
+		if f.StartIndex != offset || *f.TotalResults < 0 {
+			return nil, fmt.Errorf("invalid HEC token pagination at offset %d", offset)
+		}
+		tokens = append(tokens, readTokens(f)...)
+		offset += len(f.Entry)
+		if offset >= *f.TotalResults {
+			break
+		}
+		if len(f.Entry) == 0 {
+			return nil, fmt.Errorf("empty HEC token page at offset %d before totalResults %d", offset, *f.TotalResults)
+		}
 	}
-	defer func() { _ = resp.Body.Close() }()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	f := feed{}
-	err = xml.Unmarshal(body, &f)
-	if err != nil {
-		return nil, err
-	}
-
-	tokens := readTokens(f)
 
 	sae := splunkauthextension.NewFactory()
 	authConfig := sae.CreateDefaultConfig().(*splunkauthextension.Config)
@@ -91,6 +102,20 @@ func New(ctx context.Context, settings component.TelemetrySettings, serverURI, s
 		ID:                component.MustNewID("splunkauth"),
 		TelemetrySettings: settings,
 	}, authConfig)
+}
+
+func readTokenPage(client *http.Client, req *http.Request) (feed, error) {
+	resp, err := client.Do(req)
+	if err != nil {
+		return feed{}, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		return feed{}, fmt.Errorf("unexpected HTTP status %s", resp.Status)
+	}
+	var f feed
+	err = xml.NewDecoder(resp.Body).Decode(&f)
+	return f, err
 }
 
 // feed is generated from the atom feed XML response of the Splunk instance, per
@@ -118,9 +143,9 @@ type feed struct {
 		Href string `xml:"href,attr"`
 		Rel  string `xml:"rel,attr"`
 	} `xml:"link"`
-	TotalResults string `xml:"totalResults"`
+	TotalResults *int   `xml:"totalResults"`
 	ItemsPerPage string `xml:"itemsPerPage"`
-	StartIndex   string `xml:"startIndex"`
+	StartIndex   int    `xml:"startIndex"`
 	Messages     string `xml:"messages"`
 	Entry        []struct {
 		Text    string `xml:",chardata"`

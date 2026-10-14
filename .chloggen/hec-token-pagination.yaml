@@ -1,0 +1,5 @@
+change_type: bug_fix
+component: splunk-connect-for-otlp
+note: Retrieve all HEC tokens using paginated Splunk REST requests so tokens beyond the first page can authenticate.
+# Add the GitHub PR/issue number when available. Internal tracking: OTL-4676.
+issues: []

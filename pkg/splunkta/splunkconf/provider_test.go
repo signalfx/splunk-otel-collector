@@ -5,6 +5,7 @@ package splunkconf
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -298,6 +299,44 @@ func TestPropsTransformsParity(t *testing.T) {
 
 	require.Equal(t, wantProps, cfg.Props)
 	require.Equal(t, wantTransforms, cfg.Transforms)
+}
+
+// A literal $ is legal in a .conf value, and the config resolver reads a lone $
+// as a reference, so the provider emits it doubled and the resolver gives back
+// the original value.
+func TestDollarInConfValues(t *testing.T) {
+	local := filepath.Join(t.TempDir(), "etc", "system", "local")
+	require.NoError(t, os.MkdirAll(local, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(local, "inputs.conf"), []byte(
+		"[monitor:///var/log/te$dollar.log]\nblacklist = \\.gz$done\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(local, "outputs.conf"), []byte(
+		"[hecout:hec]\nuri = https://localhost:8088\nhttpEventCollectorToken = to$ken\n"), 0o600))
+
+	uri := "splunkconf://" + filepath.Dir(filepath.Dir(local))
+	recvID := splunkmonitor.TypeStr + "/" + stableName("monitor:///var/log/te$dollar.log")
+
+	retrieved, err := provider{}.Retrieve(context.Background(), uri, nil)
+	require.NoError(t, err)
+	raw, err := retrieved.AsRaw()
+	require.NoError(t, err)
+	emitted := raw.(map[string]any)["receivers"].(map[string]any)[recvID].(map[string]any)
+	require.Equal(t, "/var/log/te$$dollar.log", emitted["path"])
+
+	merged := resolve(t, uri)
+	receivers, err := merged.Sub("receivers")
+	require.NoError(t, err)
+	recv, err := receivers.Sub(recvID)
+	require.NoError(t, err)
+	require.Equal(t, "/var/log/te$dollar.log", recv.ToStringMap()["path"])
+	require.Equal(t, `\.gz$done`, recv.ToStringMap()["blacklist"])
+
+	exporters, err := merged.Sub("exporters")
+	require.NoError(t, err)
+	exps := exporters.ToStringMap()
+	require.Len(t, exps, 1)
+	for _, cfg := range exps {
+		require.Equal(t, "to$ken", cfg.(map[string]any)["token"])
+	}
 }
 
 func TestParseURI(t *testing.T) {

@@ -68,7 +68,27 @@ func (provider) Retrieve(_ context.Context, uri string, _ confmap.WatcherFunc) (
 	if err != nil {
 		return nil, err
 	}
-	return confmap.NewRetrieved(frag)
+	return confmap.NewRetrieved(escapeDollars(frag))
+}
+
+// escapeDollars doubles every $ in the emitted string values: a .conf value may
+// hold a literal $, which the collector's config resolver would otherwise read
+// as an env var or config source reference, and which it collapses back to a
+// single $ once resolution is done.
+func escapeDollars(v any) any {
+	switch t := v.(type) {
+	case string:
+		return strings.ReplaceAll(t, "$", "$$")
+	case map[string]any:
+		for k, e := range t {
+			t[k] = escapeDollars(e)
+		}
+	case []any:
+		for i, e := range t {
+			t[i] = escapeDollars(e)
+		}
+	}
+	return v
 }
 
 // parseURI splits the URI into its config root and pipeline name. The root is

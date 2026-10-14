@@ -13,15 +13,19 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
 )
 
 // TestSplunkConfPipelineBuilds runs the collector's own build path over a
 // splunkconf:// source: otelcol.DryRun resolves and validates it, then runs
 // service.Validate and graph.Build, which wires the pipeline's receivers
-// through to its exporters.
+// through to its exporters. The provider is wrapped the way main.go wraps every
+// provider factory, so a .conf value holding a literal $ goes through config
+// source resolution as it does in a real collector.
 func TestSplunkConfPipelineBuilds(t *testing.T) {
 	require.NoError(t, featuregate.GlobalRegistry().Set("enableTARunner", true))
 	t.Cleanup(func() {
@@ -40,7 +44,7 @@ func TestSplunkConfPipelineBuilds(t *testing.T) {
 			ResolverSettings: confmap.ResolverSettings{
 				URIs: []string{"splunkconf://" + confRoot + "?pipeline=uf"},
 				ProviderFactories: []confmap.ProviderFactory{
-					splunkconf.NewFactory(),
+					configsource.New(zap.NewNop(), nil).Wrap(splunkconf.NewFactory()),
 				},
 			},
 		},

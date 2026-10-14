@@ -21,7 +21,7 @@ import (
 	"net"
 	"sync"
 
-	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/aristanetworks/goarista/gnmireverse"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
@@ -33,9 +33,9 @@ type gnmiReceiver struct {
 	consumer consumer.Metrics
 	cfg      *Config
 	cancel   context.CancelFunc
+	server   *grpc.Server
 	settings receiver.Settings
 	wg       sync.WaitGroup
-	server   *grpc.Server
 }
 
 var _ receiver.Metrics = (*gnmiReceiver)(nil)
@@ -94,7 +94,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 			closeGNMIClients(clients)
 			return fmt.Errorf("listen for gNMI clients on %q: %w", endpoint, err)
 		}
-		gnmipb.RegisterGNMIServer(server, &gnmiServer{
+		gnmireverse.RegisterGNMIReverseServer(server, &gnmiServer{
 			consumer: r.consumer,
 			parser: newMetricParser(
 				endpoint, r.cfg.Server.Subscriptions, schema, r.settings.TelemetrySettings.Logger,

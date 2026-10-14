@@ -15,8 +15,8 @@ updates into OpenTelemetry metrics.
 ## Configuration
 
 The receiver opens a long-lived gNMI `Subscribe` stream to each configured target. Each
-stream can contain multiple path `subscriptions`. It can also expose a gRPC server that
-accepts incoming gNMI `Set` requests and converts their update and replace values into metrics.
+stream can contain multiple path `subscriptions`. It can also expose an Arista gNMIReverse
+server that accepts streamed gNMI Subscribe and Get responses.
 
 ```yaml
 receivers:
@@ -67,10 +67,12 @@ receivers:
 ```
 
 `server` is optional. When configured, the receiver listens on its endpoint and ingests
-the values in incoming gNMI `SetRequest` update and replace fields. The receiver can run
+the values in incoming gNMIReverse `Publish` and `PublishGet` streams. The receiver can run
 with only the server configured; outbound `targets` are optional in that case. The server
 requires `subscriptions` to select incoming paths and map their values. It uses the standard
-collector gRPC server settings, including TLS, authentication, and message size limits.
+collector gRPC server settings, including TLS, authentication, and message size limits. A
+message's `prefix.target` is used for the `server.address` resource attribute when present;
+otherwise the configured server endpoint is used.
 
 ### Target
 

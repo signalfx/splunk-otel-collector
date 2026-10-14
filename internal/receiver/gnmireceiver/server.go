@@ -16,43 +16,81 @@ package gnmireceiver
 
 import (
 	"context"
-	"time"
+	"errors"
+	"io"
 
+	"github.com/aristanetworks/goarista/gnmireverse"
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type gnmiServer struct {
-	gnmipb.UnimplementedGNMIServer
+	gnmireverse.UnimplementedGNMIReverseServer
 	consumer consumer.Metrics
 	parser   *metricParser
 	logger   *zap.Logger
 }
 
-func (s *gnmiServer) Set(ctx context.Context, req *gnmipb.SetRequest) (*gnmipb.SetResponse, error) {
-	updates := make([]*gnmipb.Update, 0, len(req.GetUpdate())+len(req.GetReplace()))
-	updates = append(updates, req.GetUpdate()...)
-	updates = append(updates, req.GetReplace()...)
-	if len(updates) > 0 {
-		metrics, err := s.parser.parse(&gnmipb.SubscribeResponse{
-			Response: &gnmipb.SubscribeResponse_Update{
-				Update: &gnmipb.Notification{
-					Timestamp: time.Now().UnixNano(),
-					Prefix:    req.GetPrefix(),
-					Update:    updates,
-				},
-			},
-		})
-		if err != nil {
-			s.logger.Error("failed to parse incoming gNMI Set request", zap.Error(err))
+func (s *gnmiServer) Publish(stream gnmireverse.GNMIReverse_PublishServer) error {
+	for {
+		resp, err := stream.Recv()
+		response := resp.GetResponse()
+		switch response.(type) {
+		case *gnmipb.SubscribeResponse_Error:
+			s.logger.Error(resp.GetError().Message) // SA1019: deprecated yet still in use
+		case *gnmipb.SubscribeResponse_SyncResponse:
+			s.logger.Debug("received a sync request")
+			continue
 		}
-		if metrics.DataPointCount() > 0 {
-			if err := s.consumer.ConsumeMetrics(ctx, metrics); err != nil {
-				s.logger.Error("failed to forward metrics from incoming gNMI Set request", zap.Error(err))
-				return nil, err
+		if errors.Is(err, io.EOF) {
+			s.logger.Debug("Received an EOF error")
+			return stream.SendAndClose(&emptypb.Empty{})
+		}
+
+		if err != nil {
+			s.logger.Debug("Received an error", zap.Error(err))
+			return err
+		}
+		if err := s.consumeSubscribeResponse(stream.Context(), resp); err != nil {
+			return err
+		}
+	}
+}
+
+func (s *gnmiServer) PublishGet(stream gnmireverse.GNMIReverse_PublishGetServer) error {
+	for {
+		resp, err := stream.Recv()
+		if errors.Is(err, io.EOF) {
+			return stream.SendAndClose(&emptypb.Empty{})
+		}
+		if err != nil {
+			return err
+		}
+		for _, notification := range resp.GetNotification() {
+			if err := s.consumeSubscribeResponse(stream.Context(), &gnmipb.SubscribeResponse{
+				Response: &gnmipb.SubscribeResponse_Update{Update: notification},
+			}); err != nil {
+				return err
 			}
 		}
 	}
-	return &gnmipb.SetResponse{Timestamp: time.Now().UnixNano()}, nil
+}
+
+func (s *gnmiServer) consumeSubscribeResponse(ctx context.Context, resp *gnmipb.SubscribeResponse) error {
+	metrics, parseErr := s.parser.parse(resp)
+	if parseErr != nil {
+		s.logger.Error("failed to parse incoming gNMI reverse response", zap.Error(parseErr))
+	}
+	if metrics.DataPointCount() == 0 {
+		s.logger.Debug("No data points reported")
+		return nil
+	}
+	s.logger.Debug("got metrics!", zap.Int("m", metrics.DataPointCount()))
+	if err := s.consumer.ConsumeMetrics(ctx, metrics); err != nil {
+		s.logger.Error("failed to forward metrics from incoming gNMI reverse response", zap.Error(err))
+		return err
+	}
+	return nil
 }

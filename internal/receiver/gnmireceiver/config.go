@@ -54,8 +54,8 @@ type Config struct {
 	// Targets is the list of gNMI devices to subscribe to.
 	Targets []TargetConfig `mapstructure:"targets"`
 
-	// Server configures an optional gNMI gRPC server for devices that push
-	// updates to the receiver with Set RPCs. An empty endpoint disables it.
+	// Server configures an optional gNMIReverse gRPC server for devices that
+	// stream gNMI Subscribe or Get responses to the receiver. An empty endpoint disables it.
 	Server *ServerConfig `mapstructure:"server"`
 
 	// YangModules is a list of YANG module files and/or directories used to
@@ -90,9 +90,8 @@ type TargetConfig struct {
 
 // ServerConfig defines the optional receiver-side gNMI server.
 type ServerConfig struct {
+	Subscriptions           []SubscriptionConfig `mapstructure:"subscriptions"`
 	configgrpc.ServerConfig `mapstructure:",squash"`
-	// Subscriptions defines which incoming paths to ingest and how to map their values.
-	Subscriptions []SubscriptionConfig `mapstructure:"subscriptions"`
 }
 
 func NewDefaultTargetConfig() TargetConfig {

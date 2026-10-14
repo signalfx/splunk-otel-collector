@@ -114,8 +114,8 @@ func TestAuthPaginationFailure(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
 		body   string
-		status int
 		want   string
+		status int
 	}{
 		{name: "HTTP error", status: http.StatusForbidden, body: "denied", want: "403 Forbidden"},
 		{name: "malformed XML", status: http.StatusOK, body: "<feed>", want: "XML syntax error"},

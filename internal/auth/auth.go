@@ -121,33 +121,32 @@ func readTokenPage(client *http.Client, req *http.Request) (feed, error) {
 // feed is generated from the atom feed XML response of the Splunk instance, per
 // https://help.splunk.com/en/splunk-enterprise/leverage-rest-apis/rest-api-user-manual/9.3/rest-api-user-manual/basic-concepts-about-the-splunk-platform-rest-api
 type feed struct {
-	XMLName    xml.Name `xml:"feed"`
-	Text       string   `xml:",chardata"`
-	Xmlns      string   `xml:"xmlns,attr"`
-	S          string   `xml:"s,attr"`
-	Opensearch string   `xml:"opensearch,attr"`
-	Title      string   `xml:"title"`
-	ID         string   `xml:"id"`
-	Updated    string   `xml:"updated"`
-	Generator  struct {
+	TotalResults *int `xml:"totalResults"`
+	Generator    struct {
 		Text    string `xml:",chardata"`
 		Build   string `xml:"build,attr"`
 		Version string `xml:"version,attr"`
 	} `xml:"generator"`
-	Author struct {
+	XMLName xml.Name `xml:"feed"`
+	Author  struct {
 		Text string `xml:",chardata"`
 		Name string `xml:"name"`
 	} `xml:"author"`
-	Link []struct {
+	Opensearch   string `xml:"opensearch,attr"`
+	Title        string `xml:"title"`
+	ID           string `xml:"id"`
+	Updated      string `xml:"updated"`
+	S            string `xml:"s,attr"`
+	Xmlns        string `xml:"xmlns,attr"`
+	Text         string `xml:",chardata"`
+	ItemsPerPage string `xml:"itemsPerPage"`
+	Messages     string `xml:"messages"`
+	Link         []struct {
 		Text string `xml:",chardata"`
 		Href string `xml:"href,attr"`
 		Rel  string `xml:"rel,attr"`
 	} `xml:"link"`
-	TotalResults *int   `xml:"totalResults"`
-	ItemsPerPage string `xml:"itemsPerPage"`
-	StartIndex   int    `xml:"startIndex"`
-	Messages     string `xml:"messages"`
-	Entry        []struct {
+	Entry []struct {
 		Text    string `xml:",chardata"`
 		Title   string `xml:"title"`
 		ID      string `xml:"id"`
@@ -195,4 +194,5 @@ type feed struct {
 			} `xml:"dict"`
 		} `xml:"content"`
 	} `xml:"entry"`
+	StartIndex int `xml:"startIndex"`
 }

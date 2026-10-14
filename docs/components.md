@@ -130,6 +130,7 @@ The distribution offers support for the following components.
 |:--------------------------------------------------------------------------------------------------------------------------------------------|:-------------|
 | [awskinesis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awskinesisexporter)                       | [beta]       |
 | [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                                 | [alpha]      |
+| [clickhouse](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/clickhouseexporter)                       | [beta]       |
 | [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                                         | [alpha]      |
 | [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                                   | [alpha]      |
 | [google_cloud_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/googlecloudstorageexporter)     | [alpha]      |

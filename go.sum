@@ -1086,6 +1086,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexp
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.162.0/go.mod h1:l+Vt3cRlCeHDj5zVmvMYnCLPZLz2lK+FUk84Rbx2DUA=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.162.0 h1:+9K/aSkEbIo6L67QYuwqjmw/lB0d9fYy15x/rV5mdB8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.162.0/go.mod h1:upxhqhD1jMQN4aQwCqGJaoQ8vTSydxOW0kZOWLfYiRk=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/clickhouseexporter v0.162.0 h1:99zvX07ddVP91GZzRlbo2YTGBTjKmEsgzpaA7iD7nCY=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/clickhouseexporter v0.162.0/go.mod h1:w3sd+oVch62FTb5/cgpnyCju2oGXrFpWjtzfE5H1XOc=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.162.0 h1:2yEOlkFgAZ/c/MLaTln8keRG7MaRrucKRXfpCW4Z6Cs=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.162.0/go.mod h1:uqeePmXB9iyHf9nIlcVW5iqQMji5inu69VcHdKgLG0A=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter v0.162.0 h1:TdbGG8IRlQ2feKjjDtOatCc6zBzPTBycSExUO29mg6Q=

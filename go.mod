@@ -288,6 +288,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector v0.162.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.162.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.162.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/clickhouseexporter v0.162.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.162.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter v0.162.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.162.0 // indirect

@@ -30,6 +30,7 @@ import (
 	sumconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector"
 	awskinesisexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter"
 	awss3exporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter"
+	clickhouseexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/clickhouseexporter"
 	fileexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	googlecloudstorageexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter"
 	kafkaexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
@@ -286,6 +287,7 @@ func NewBaseline() *Baseline {
 		exporters: []exporter.Factory{
 			awskinesisexporter.NewFactory(),
 			awss3exporter.NewFactory(),
+			clickhouseexporter.NewFactory(),
 			debugexporter.NewFactory(),
 			fileexporter.NewFactory(),
 			googlecloudstorageexporter.NewFactory(),

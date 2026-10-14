@@ -199,6 +199,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedExporters := []string{
 		"awskinesis",
 		"awss3",
+		"clickhouse",
 		"debug",
 		"file",
 		"google_cloud_storage",

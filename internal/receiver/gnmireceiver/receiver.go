@@ -108,20 +108,16 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 	r.cancel = cancel
 
 	for _, client := range clients {
-		r.wg.Add(1)
-		go func() {
-			defer r.wg.Done()
+		r.wg.Go(func() {
 			client.run(ctx)
-		}()
+		})
 	}
 	if listener != nil {
-		r.wg.Add(1)
-		go func() {
-			defer r.wg.Done()
+		r.wg.Go(func() {
 			if serveErr := r.server.Serve(listener); serveErr != nil && !errors.Is(serveErr, grpc.ErrServerStopped) {
 				r.settings.TelemetrySettings.Logger.Error("gNMI server stopped", zap.Error(serveErr))
 			}
-		}()
+		})
 	}
 	return nil
 }
@@ -131,21 +127,20 @@ func (r *gnmiReceiver) Shutdown(ctx context.Context) error {
 		r.cancel()
 	}
 	if r.server != nil {
-		r.server.Stop()
+		done := make(chan struct{})
+		go func() {
+			r.server.GracefulStop()
+			r.wg.Wait()
+			close(done)
+		}()
+		select {
+		case <-done:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
-
-	done := make(chan struct{})
-	go func() {
-		r.wg.Wait()
-		close(done)
-	}()
-
-	select {
-	case <-done:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
+	return nil
 }
 
 func closeGNMIClients(clients []*gnmiClient) {

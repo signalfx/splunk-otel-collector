@@ -86,7 +86,6 @@ func TestLoadServerOnlyConfig(t *testing.T) {
 	require.Equal(t, "localhost:0", cfg.Server.NetAddr.Endpoint)
 	require.Equal(t, "tcp", string(cfg.Server.NetAddr.Transport))
 	require.Len(t, cfg.Server.Subscriptions, 1)
-	require.Equal(t, modeTargetDefined, cfg.Server.Subscriptions[0].Mode)
 }
 
 func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {

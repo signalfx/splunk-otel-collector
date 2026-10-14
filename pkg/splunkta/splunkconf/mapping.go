@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 
@@ -222,14 +223,20 @@ func addResourceAttrs(cfg map[string]any, st conf.Stanza, consumed ...string) {
 	}
 }
 
+// parseListenAddress splits a network stanza target into the host and port the
+// wrapper receivers take as separate fields. A UF target may be a bracketed
+// IPv6 literal ([udp://[::1]:5514]), whose own colons defeat a plain cut, so
+// the split goes through net.SplitHostPort. The host is returned unbracketed
+// because the receivers re-encode it with net.JoinHostPort.
 func parseListenAddress(target string) (string, int) {
-	if addr, portStr, found := strings.Cut(target, ":"); found {
-		if addr == "" {
-			addr = "0.0.0.0"
-		}
-		return addr, parsePort(portStr)
+	addr, portStr, err := net.SplitHostPort(stanza.ListenAddress(target))
+	if err != nil {
+		return "", 0
 	}
-	return "0.0.0.0", parsePort(target)
+	if addr == "" {
+		addr = "0.0.0.0"
+	}
+	return addr, parsePort(portStr)
 }
 
 func parsePort(s string) int {

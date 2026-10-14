@@ -45,6 +45,7 @@ var (
 		"splunk_monitor/monitor-var-log-foo-31463e8f",
 		"splunk_script/script-bin-collect-sh-55e5ff8f",
 		"splunk_tcp/tcp-0-0-0-0-5514-4c1c5e09",
+		"splunk_udp/udp-1-5516-3417bfdb",
 		"splunk_udp/udp-5515-016ce446",
 		"splunk_wineventlog/wineventlog-application-9a1a225b",
 	}
@@ -193,6 +194,17 @@ func TestEmittedFields(t *testing.T) {
 			want: map[string]any{
 				"listen_address": "0.0.0.0",
 				"port":           5515,
+			},
+		},
+		{
+			// A bracketed IPv6 literal is a valid UF listen target, and its own
+			// colons must not be read as the port separator. listen_address is
+			// unbracketed because the receiver re-encodes it with net.JoinHostPort.
+			name: "udp bracketed IPv6 literal keeps its address and port",
+			id:   "splunk_udp/udp-1-5516-3417bfdb",
+			want: map[string]any{
+				"listen_address": "::1",
+				"port":           5516,
 			},
 		},
 		{
@@ -500,6 +512,35 @@ func TestParseListenAddress(t *testing.T) {
 			name:     "non-numeric port",
 			target:   "0.0.0.0:nope",
 			wantAddr: "0.0.0.0",
+			wantPort: 0,
+		},
+		{
+			// The address's own colons must not be read as the port separator.
+			// The address stays unbracketed, which is the form the receiver
+			// re-encodes with net.JoinHostPort.
+			name:     "bracketed IPv6 literal",
+			target:   "[::1]:5514",
+			wantAddr: "::1",
+			wantPort: 5514,
+		},
+		{
+			name:     "bracketed IPv6 wildcard",
+			target:   "[::]:5514",
+			wantAddr: "::",
+			wantPort: 5514,
+		},
+		{
+			name:     "bracketed full IPv6 literal",
+			target:   "[2001:db8::1]:5514",
+			wantAddr: "2001:db8::1",
+			wantPort: 5514,
+		},
+		{
+			// Brackets are what delimit the address, so without them there is no
+			// way to tell where it ends and UF does not accept the form either.
+			name:     "unbracketed IPv6 literal is not a valid target",
+			target:   "::1:5514",
+			wantAddr: "",
 			wantPort: 0,
 		},
 	} {

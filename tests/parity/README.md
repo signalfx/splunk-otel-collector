@@ -154,7 +154,7 @@ expected:                     # the fields to compare, and nothing else
   raw: true
   host: true
   # fields: [punct, "date_*"]  # search fields, by name or glob
-# os: ["linux"]               # platforms to run on; unset runs on every platform
+os: ["linux"]                 # platforms to run on; unset runs on every platform
 ```
 
 `os` is a filter for a platform-specific case: a case that leaves it out runs

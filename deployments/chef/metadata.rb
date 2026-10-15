@@ -16,7 +16,5 @@ supports 'suse'
 supports 'ubuntu'
 supports 'windows'
 
-gem 'rubyzip', '< 2.0.0'
-
 issues_url 'https://github.com/signalfx/splunk-otel-collector/issues'
 source_url 'https://github.com/signalfx/splunk-otel-collector'

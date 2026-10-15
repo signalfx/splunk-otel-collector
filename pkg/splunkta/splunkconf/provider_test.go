@@ -44,6 +44,7 @@ var (
 		"splunk_batch/batch-var-lib-batch-txt-3fccdf42",
 		"splunk_monitor/monitor-var-log-bar-with-space-c81f7357",
 		"splunk_monitor/monitor-var-log-foo-31463e8f",
+		"splunk_monitor/monitor-var-log-other-log-44426e37",
 		"splunk_script/script-bin-collect-sh-55e5ff8f",
 		"splunk_tcp/tcp-0-0-0-0-5514-4c1c5e09",
 		"splunk_udp/udp-1-5516-3417bfdb",
@@ -290,10 +291,10 @@ func TestStanzasNotEmitted(t *testing.T) {
 	}
 }
 
-// Every receiver gets the whole merged props/transforms set, matching how
-// splunk_inputs feeds the same set to each sub-receiver.
+// A system receiver gets the system props/transforms set, which is what
+// splunk_inputs feeds its system sub-receivers.
 func TestPropsTransformsParity(t *testing.T) {
-	dirs := tabuilder.ConfRootDirs(confRoot)
+	dirs := tabuilder.SystemConfRootDirs(confRoot)
 	wantProps, err := tabuilder.ReadProps(dirs)
 	require.NoError(t, err)
 	wantTransforms, err := tabuilder.ReadTransforms(dirs)
@@ -312,6 +313,72 @@ func TestPropsTransformsParity(t *testing.T) {
 
 	require.Equal(t, wantProps, cfg.Props)
 	require.Equal(t, wantTransforms, cfg.Transforms)
+}
+
+// propNames is the set of props stanza names a receiver's emitted config
+// carries, which is what has to be scoped to the declaring app.
+func propNames(t *testing.T, receivers *confmap.Conf, id string) []string {
+	t.Helper()
+	sub, err := receivers.Sub(id)
+	require.NoError(t, err)
+	var cfg struct {
+		Rest  map[string]any `mapstructure:",remain"`
+		Props []conf.Prop    `mapstructure:"props"`
+	}
+	require.NoError(t, sub.Unmarshal(&cfg))
+	names := make([]string, 0, len(cfg.Props))
+	for _, p := range cfg.Props {
+		names = append(names, p.Name)
+	}
+	return names
+}
+
+// An app's receivers resolve props against that app's own layers merged with
+// system, which is what splunkd gives them. Reading props once across the whole
+// configuration root instead applies one app's props to another app's data.
+func TestPropsScopedToDeclaringApp(t *testing.T) {
+	merged := resolve(t, confURI)
+	receivers, err := merged.Sub("receivers")
+	require.NoError(t, err)
+
+	const (
+		demoOnly  = "demo_sourcetype"
+		otherOnly = "other_sourcetype"
+		systemOne = "syslog"
+	)
+
+	for _, tt := range []struct {
+		name    string
+		id      string
+		wants   string
+		missing string
+	}{
+		{
+			name:    "app receiver gets its own props",
+			id:      "splunk_script/script-bin-collect-sh-55e5ff8f",
+			wants:   demoOnly,
+			missing: otherOnly,
+		},
+		{
+			name:    "sibling app receiver gets its own, not the other app's",
+			id:      "splunk_monitor/monitor-var-log-other-log-44426e37",
+			wants:   otherOnly,
+			missing: demoOnly,
+		},
+		{
+			name:    "system receiver gets no app props at all",
+			id:      "splunk_tcp/tcp-0-0-0-0-5514-4c1c5e09",
+			wants:   systemOne,
+			missing: demoOnly,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			names := propNames(t, receivers, tt.id)
+			require.Contains(t, names, systemOne, "system props reach every receiver")
+			require.Contains(t, names, tt.wants)
+			require.NotContains(t, names, tt.missing)
+		})
+	}
 }
 
 // A literal $ is legal in a .conf value, and the config resolver reads a lone $

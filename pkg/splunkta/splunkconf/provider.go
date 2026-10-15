@@ -129,19 +129,7 @@ func build(confRoot, pipeline string) (map[string]any, error) {
 		return nil, fmt.Errorf("splunkconf: read inputs.conf: %w", err)
 	}
 
-	// The full merged props/transforms set is attached to every emitted receiver,
-	// matching how splunk_inputs feeds the same set to each sub-receiver.
-	// Per-source matching stays receiver-internal.
-	props, err := tabuilder.ReadProps(dirs)
-	if err != nil {
-		return nil, fmt.Errorf("splunkconf: read props.conf: %w", err)
-	}
-	transforms, err := tabuilder.ReadTransforms(dirs)
-	if err != nil {
-		return nil, fmt.Errorf("splunkconf: read transforms.conf: %w", err)
-	}
-
-	recvs, skipped, err := mapInputs(inputs, props, transforms)
+	recvs, skipped, err := mapInputsPerApp(confRoot, inputs)
 	if err != nil {
 		return nil, err
 	}

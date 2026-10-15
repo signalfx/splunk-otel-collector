@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -69,10 +71,57 @@ func stableName(raw string) string {
 	return s + "-" + h
 }
 
-// mapInputs maps enabled input stanzas to wrapper receiver configs. The full
-// merged props/transforms set is attached to every receiver, matching how
-// splunk_inputs feeds the same set to each sub-receiver; per-source matching is
-// done receiver-internally, so parity is preserved.
+// mapInputsPerApp maps every enabled input stanza, resolving props.conf and
+// transforms.conf against the search path of the app that declared the stanza
+// rather than the whole configuration root.
+//
+// Reading them once across every app would hand each receiver every app's
+// props, which is not what the stanza resolves to: splunkd gives an app's
+// inputs its own layers merged with system and nothing from a sibling app, so a
+// props stanza in one app would otherwise apply to another app's data.
+func mapInputsPerApp(confRoot string, inputs []conf.Input) (out []component, skipped []string, err error) {
+	byApp := map[string][]conf.Input{}
+	for _, in := range inputs {
+		byApp[in.AppDir] = append(byApp[in.AppDir], in)
+	}
+
+	// Iterate in a fixed order so the error listing skipped stanzas does not
+	// depend on map ordering.
+	appDirs := make([]string, 0, len(byApp))
+	for appDir := range byApp {
+		appDirs = append(appDirs, appDir)
+	}
+	sort.Strings(appDirs)
+
+	systemDir := filepath.Join(confRoot, "system")
+	for _, appDir := range appDirs {
+		dirs := tabuilder.AppConfRootDirs(confRoot, appDir)
+		if appDir == systemDir {
+			dirs = tabuilder.SystemConfRootDirs(confRoot)
+		}
+
+		props, propsErr := tabuilder.ReadProps(dirs)
+		if propsErr != nil {
+			return nil, nil, fmt.Errorf("splunkconf: read props.conf for %s: %w", appDir, propsErr)
+		}
+		transforms, transformsErr := tabuilder.ReadTransforms(dirs)
+		if transformsErr != nil {
+			return nil, nil, fmt.Errorf("splunkconf: read transforms.conf for %s: %w", appDir, transformsErr)
+		}
+
+		recvs, appSkipped, mapErr := mapInputs(byApp[appDir], props, transforms)
+		if mapErr != nil {
+			return nil, nil, mapErr
+		}
+		out = append(out, recvs...)
+		skipped = append(skipped, appSkipped...)
+	}
+	return out, skipped, nil
+}
+
+// mapInputs maps enabled input stanzas to wrapper receiver configs. The
+// props/transforms set belongs to the app the stanzas came from; per-source
+// matching is done receiver-internally, so parity is preserved.
 //
 // Kinds are matched against the spellings inputs.conf.spec defines, exactly
 // rather than case-folded, which is how splunk_outputs resolves its own stanza
@@ -115,8 +164,9 @@ func mapInputs(inputs []conf.Input, props []conf.Prop, transforms []conf.Transfo
 	return out, skipped, nil
 }
 
-// attachPropsTransforms attaches the shared props/transforms set to a receiver
-// cfg. Every receiver gets the full merged set, matching splunk_inputs.
+// attachPropsTransforms attaches the props/transforms set resolved for the
+// receiver's own app, which is the set splunk_inputs feeds that app's
+// sub-receivers.
 func attachPropsTransforms(cfg map[string]any, props []conf.Prop, transforms []conf.Transform) {
 	if len(props) > 0 {
 		cfg["props"] = props

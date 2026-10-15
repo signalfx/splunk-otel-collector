@@ -36,6 +36,7 @@ excluded-modules:
   - github.com/signalfx/splunk-otel-collector/tests/parity
   - github.com/signalfx/splunk-otel-collector/tests/tools
   - github.com/signalfx/splunk-otel-collector/packaging/ta-v2/tests
+  - github.com/signalfx/splunk-otel-collector/packaging/otlpinput/example
   - github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter
   - github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/tracing
   - github.com/signalfx/splunk-otel-collector/examples/splunk-hec/logging

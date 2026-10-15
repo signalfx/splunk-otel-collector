@@ -19,6 +19,11 @@
 #
 # Required environment variables:
 #   OTLP_PACKAGE_PATH  Path to a locally built splunk-connect-for-otlp.tgz
+# Optional environment variables:
+#   TEST_HEC_PAGINATION  Set to 1 to reproduce OTL-4676 with 61 HEC tokens
+#   TEST_KEEP_RUNNING    Set to 1 to leave the Docker Compose stack (and the
+#                        Splunk Web UI) up after the test instead of tearing
+#                        it down, so the result can be inspected manually.
 
 set -eu
 
@@ -38,6 +43,19 @@ cleanup() {
     if [ "$status" -ne 0 ]; then
         echo "==> Failure detected, dumping otlp-related splunkd.log lines"
         $COMPOSE exec -T -u root splunk grep -i otlp /opt/splunk/var/log/splunk/splunkd.log || true
+    fi
+    if [ "${TEST_KEEP_RUNNING:-0}" = 1 ]; then
+        echo "==> TEST_KEEP_RUNNING set, leaving Docker Compose stack running"
+        echo ""
+        echo "Splunk Web UI: http://localhost:18000"
+        echo "  Username: admin"
+        echo "  Password: VH#ou812@5150"
+        echo ""
+        echo "Useful commands:"
+        echo "  View splunkd logs: docker compose -p example exec -T -u root splunk tail -f /opt/splunk/var/log/splunk/splunkd.log"
+        echo "  Tear down stack: docker compose -p example down -v && rm -rf \"$WORKDIR\""
+        echo ""
+        exit "$status"
     fi
     # Splunk's Ansible-based provisioning runs as root and chowns the
     # bind-mounted app directory (see docker-compose.test.yml) to its
@@ -60,6 +78,11 @@ tar -xzf "$OTLP_PACKAGE_PATH" -C "$WORKDIR/package"
 export OTLP_PACKAGE_DIR="$WORKDIR/package/splunk-connect-for-otlp"
 mkdir -p "$OTLP_PACKAGE_DIR/local"
 cp splunk-inputs-local.conf "$OTLP_PACKAGE_DIR/local/inputs.conf"
+
+if [ "${TEST_HEC_PAGINATION:-0}" = 1 ]; then
+    echo "==> Creating HEC tokens before the TA starts"
+    go run . seed "$OTLP_PACKAGE_DIR/local/inputs.conf"
+fi
 
 echo "==> Starting Docker Compose stack with locally built package"
 $COMPOSE up -d
@@ -105,3 +128,8 @@ if ! assert_tls_ok 127.0.0.1; then
 fi
 
 echo "==> All TLS checks passed"
+
+if [ "${TEST_HEC_PAGINATION:-0}" = 1 ]; then
+    echo "==> Checking OTLP authentication with HEC tokens across multiple pages"
+    go run . check "$CA_CRT"
+fi

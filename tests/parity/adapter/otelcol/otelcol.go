@@ -42,7 +42,7 @@ const EnvBin = "PARITY_OTELCOL_BIN"
 // ConfigFile is the conventional filename for a case's primary collector
 // config, supplied as an AgentRun.ConfigFiles entry. The adapter is not limited
 // to it: it passes every *.yaml/*.yml file the runner writes into configDir as
-// its own --config, and extra sources given to New are appended after those.
+// its own --config.
 const ConfigFile = "config.yaml"
 
 // splunkHomeDir is the sandbox $SPLUNK_HOME created inside the run's config
@@ -54,24 +54,20 @@ type Adapter struct {
 	cmd        *exec.Cmd
 	bin        string
 	splunkHome string   // sandbox $SPLUNK_HOME, set by Prepare when the case has .conf files
-	extra      []string // extra --config sources (e.g. splunkhome:// URIs), appended in order
 	gates      []string // feature gates to enable
 	configs    []string // resolved --config sources, set by Prepare
 }
 
 // New returns an otelcol adapter. bin may be empty, in which case
-// PARITY_OTELCOL_BIN or DefaultBin is used. extra are additional --config
-// sources (URIs or paths, e.g. splunkhome://${SPLUNK_HOME}?pipeline=uf) passed
-// after the config files rendered into the run's configDir; the collector
-// merges all --config sources in order.
-func New(bin string, extra ...string) *Adapter {
+// PARITY_OTELCOL_BIN or DefaultBin is used.
+func New(bin string) *Adapter {
 	if bin == "" {
 		bin = os.Getenv(EnvBin)
 	}
 	if bin == "" {
 		bin = DefaultBin
 	}
-	return &Adapter{bin: bin, extra: extra}
+	return &Adapter{bin: bin}
 }
 
 // EnableFeatureGates turns on collector feature gates, passed as
@@ -87,9 +83,9 @@ func (a *Adapter) Name() string { return "otelcol" }
 func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 
 // Prepare collects every *.yaml/*.yml file the runner wrote into configDir as a
-// --config source, sorted for a deterministic merge order, then appends the
-// extra sources from New. At least one source must resolve. Any *.conf file goes
-// to installConf instead.
+// --config source, sorted for a deterministic merge order. Any *.conf file goes
+// to installConf instead, and a case that ships one is configured from that tree
+// through the splunkconf provider. At least one source must resolve.
 func (a *Adapter) Prepare(configDir string, files []string) error {
 	var yamls, confs []string
 	for _, rel := range files {
@@ -101,13 +97,24 @@ func (a *Adapter) Prepare(configDir string, files []string) error {
 		}
 	}
 	sort.Strings(yamls)
-	a.configs = make([]string, 0, len(yamls)+len(a.extra))
-	a.configs = append(a.configs, yamls...)
-	a.configs = append(a.configs, a.extra...)
-	if len(a.configs) == 0 {
-		return fmt.Errorf("no collector config: want a *.yaml file in %s or an extra --config source", configDir)
+	if err := a.installConf(configDir, confs); err != nil {
+		return err
 	}
-	return a.installConf(configDir, confs)
+	a.configs = yamls
+	if a.splunkHome != "" {
+		a.configs = append(a.configs, a.confRootURI())
+	}
+	if len(a.configs) == 0 {
+		return fmt.Errorf("no collector config: want a *.yaml file or a .conf tree in %s", configDir)
+	}
+	return nil
+}
+
+// confRootURI addresses the sandbox conf tree for the splunkconf provider. The
+// path is forward-slashed because a URI authority rejects the backslashes of a
+// native Windows path.
+func (a *Adapter) confRootURI() string {
+	return "splunkconf://" + filepath.ToSlash(filepath.Join(a.splunkHome, "etc"))
 }
 
 // installConf copies the case's .conf files into the etc/ of a sandbox

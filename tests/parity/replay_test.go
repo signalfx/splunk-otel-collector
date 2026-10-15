@@ -38,7 +38,7 @@ import (
 // `make update-goldens`, which installs the pinned UF and sets it.
 var update = flag.Bool("update", false, "regenerate golden files by running the UF oracle")
 
-// taRunnerGate registers splunk_inputs and splunk_outputs.
+// taRunnerGate registers the splunk_* wrapper receivers the provider emits.
 const taRunnerGate = "enableTARunner"
 
 // hecToken must be a valid, non-zero GUID: UF httpout rejects tokens shorter
@@ -205,9 +205,8 @@ func TestCandidateRun(t *testing.T) {
 	casePath := filepath.Join(dir, "test.yaml")
 
 	want := map[string]string{
-		otelcol.ConfigFile: splunkInputsConfig,
-		"inputs.conf":      "[monitor://foo.txt]\n",
-		outputsConf:        hecOutConf,
+		"inputs.conf": "[monitor://foo.txt]\n",
+		outputsConf:   hecOutConf,
 	}
 	if got := candidateRun(t, casePath, "parity_uc").ConfigFiles; !maps.Equal(got, want) {
 		t.Errorf("conf-driven case files = %v, want %v", got, want)
@@ -239,7 +238,7 @@ func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
 	}
 	return parity.AgentRun{
 		Adapter:     otelcol.New("").EnableFeatureGates(taRunnerGate),
-		ConfigFiles: splunkInputsFiles(caseConf(t, casePath)),
+		ConfigFiles: splunkconfFiles(caseConf(t, casePath)),
 		Index:       index,
 	}
 }
@@ -247,33 +246,17 @@ func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
 // outputsConf is the one conf file the candidate does not take from the case.
 const outputsConf = "outputs.conf"
 
-// splunkInputsConfig is the collector config for a conf-driven case: the
-// components discover every stanza themselves, so no case needs its own.
-const splunkInputsConfig = `receivers:
-  splunk_inputs:
-exporters:
-  splunk_outputs:
-service:
-  pipelines:
-    logs:
-      receivers: [splunk_inputs]
-      exporters: [splunk_outputs]
-`
-
-// hecOutConf is the candidate's output side: splunk_outputs skips the oracle's
-// [httpout], so it needs a [hecout] the case's conf does not carry.
+// hecOutConf is the candidate's output side: the provider maps [hecout] and not
+// the oracle's [httpout], so it needs a stanza the case's conf does not carry.
 const hecOutConf = `[hecout]
 uri = ${HEC_ENDPOINT}
 httpEventCollectorToken = ${HEC_TOKEN}
 `
 
-// splunkInputsFiles is a conf-driven case's candidate config: the collector
-// config plus the case's own .conf files.
-func splunkInputsFiles(confFiles map[string]string) map[string]string {
-	files := map[string]string{
-		otelcol.ConfigFile: splunkInputsConfig,
-		outputsConf:        hecOutConf,
-	}
+// splunkconfFiles is a conf-driven case's candidate config: the case's own .conf
+// files, with its outputs.conf replaced.
+func splunkconfFiles(confFiles map[string]string) map[string]string {
+	files := map[string]string{outputsConf: hecOutConf}
 	for name, body := range confFiles {
 		if name == outputsConf {
 			continue

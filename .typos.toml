@@ -1,6 +1,5 @@
 [files]
 extend-exclude = [
-  "docker/httpd_basicauth/httpd.conf",
   "internal/signalfx-agent/*",
   "tests/zeroconfig/windows/testdata/expected/*",
   "*.sum",

@@ -48,7 +48,6 @@ func TestBaselineIsUpstreamOnly(t *testing.T) {
 		"splunk_inputs",
 		"discovery",
 		"gnmi",
-		"lightprometheus",
 		"signalfxgatewayprometheusremotewrite",
 	} {
 		typ := component.MustNewType(splunk)

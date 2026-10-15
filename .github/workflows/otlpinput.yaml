@@ -77,6 +77,11 @@ jobs:
           name: otlpinput-packages
           path: packaging/otlpinput/out/distribution
 
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+        with:
+          install_tools: "false"
+
       - name: Run TLS IP SANs regression check
         env:
           OTLP_PACKAGE_PATH: ${{ github.workspace }}/packaging/otlpinput/out/distribution/splunk-connect-for-otlp.tgz

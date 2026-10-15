@@ -81,7 +81,7 @@ cp splunk-inputs-local.conf "$OTLP_PACKAGE_DIR/local/inputs.conf"
 
 if [ "${TEST_HEC_PAGINATION:-0}" = 1 ]; then
     echo "==> Creating HEC tokens before the TA starts"
-    python3 ./test-hec-pagination.py seed "$OTLP_PACKAGE_DIR/local/inputs.conf"
+    go run . seed "$OTLP_PACKAGE_DIR/local/inputs.conf"
 fi
 
 echo "==> Starting Docker Compose stack with locally built package"
@@ -131,5 +131,5 @@ echo "==> All TLS checks passed"
 
 if [ "${TEST_HEC_PAGINATION:-0}" = 1 ]; then
     echo "==> Checking OTLP authentication with HEC tokens across multiple pages"
-    python3 ./test-hec-pagination.py check "$CA_CRT"
+    go run . check "$CA_CRT"
 fi

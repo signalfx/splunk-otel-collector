@@ -14,6 +14,7 @@ type HecTokenConfig struct {
 	Token          configopaque.String
 	DefaultIndex   string
 	AllowedIndexes []string
+	Disabled       bool
 }
 
 // Config specifies how the Per-RPC bearer token based authentication data should be obtained.

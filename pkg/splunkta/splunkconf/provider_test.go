@@ -308,26 +308,26 @@ func TestDollarInConfValues(t *testing.T) {
 	local := filepath.Join(t.TempDir(), "etc", "system", "local")
 	require.NoError(t, os.MkdirAll(local, 0o700))
 	require.NoError(t, os.WriteFile(filepath.Join(local, "inputs.conf"), []byte(
-		"[monitor:///var/log/te$dollar.log]\nblacklist = \\.gz$done\n"), 0o600))
+		"[monitor:///var/log/app$dollar.log]\nblacklist = \\.gz$done\n"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(local, "outputs.conf"), []byte(
-		"[hecout:hec]\nuri = https://localhost:8088\nhttpEventCollectorToken = to$ken\n"), 0o600))
+		"[hecout:hec]\nuri = https://localhost:8088\nhttpEventCollectorToken = secret$value\n"), 0o600))
 
 	uri := "splunkconf://" + filepath.Dir(filepath.Dir(local))
-	recvID := splunkmonitor.TypeStr + "/" + stableName("monitor:///var/log/te$dollar.log")
+	recvID := splunkmonitor.TypeStr + "/" + stableName("monitor:///var/log/app$dollar.log")
 
 	retrieved, err := provider{}.Retrieve(context.Background(), uri, nil)
 	require.NoError(t, err)
 	raw, err := retrieved.AsRaw()
 	require.NoError(t, err)
 	emitted := raw.(map[string]any)["receivers"].(map[string]any)[recvID].(map[string]any)
-	require.Equal(t, "/var/log/te$$dollar.log", emitted["path"])
+	require.Equal(t, "/var/log/app$$dollar.log", emitted["path"])
 
 	merged := resolve(t, uri)
 	receivers, err := merged.Sub("receivers")
 	require.NoError(t, err)
 	recv, err := receivers.Sub(recvID)
 	require.NoError(t, err)
-	require.Equal(t, "/var/log/te$dollar.log", recv.ToStringMap()["path"])
+	require.Equal(t, "/var/log/app$dollar.log", recv.ToStringMap()["path"])
 	require.Equal(t, `\.gz$done`, recv.ToStringMap()["blacklist"])
 
 	exporters, err := merged.Sub("exporters")
@@ -335,7 +335,7 @@ func TestDollarInConfValues(t *testing.T) {
 	exps := exporters.ToStringMap()
 	require.Len(t, exps, 1)
 	for _, cfg := range exps {
-		require.Equal(t, "to$ken", cfg.(map[string]any)["token"])
+		require.Equal(t, "secret$value", cfg.(map[string]any)["token"])
 	}
 }
 

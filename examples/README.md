@@ -20,6 +20,12 @@ This example showcases how the agent works with Splunk Enterprise and an existin
 
 [Read more...](./prometheus-federation)
 
+## [PromQL receiver with bearer token authentication](./promql-bearertokenauth)
+
+This example shows the PromQL receiver querying a bearer-token-protected Prometheus API.
+
+[Read more...](./promql-bearertokenauth)
+
 ## [Nomad](./nomad)
 
 The demo job deploys the Splunk OpenTelemetry Collector as `agent` and `gateway`, `load generators`, to collect metrics and traces and export them using the `SignalFx` exporter.

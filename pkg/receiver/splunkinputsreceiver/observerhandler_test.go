@@ -5,6 +5,8 @@ package splunkinputsreceiver
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -111,6 +113,47 @@ func TestObserverHandlerOnChange(t *testing.T) {
 
 		assert.Equal(t, 1, old.shutdownCount, "old receiver should be shut down")
 		assert.Contains(t, h.active, taDir, "TA should be re-added")
+	})
+
+	t.Run("only_reloads_changed_stanza", func(t *testing.T) {
+		splunkHome := t.TempDir()
+		factory := newMockFactory()
+		h := newTestObserverHandler(t, splunkHome, factory)
+
+		taDir := makeTA(t, splunkHome, "splunk_ta_syslog")
+		inputsPath := filepath.Join(taDir, "default", "inputs.conf")
+		require.NoError(t, os.WriteFile(inputsPath, []byte(
+			"[monitor:///var/log/syslog]\nsourcetype = syslog\n"+
+				"[monitor:///var/log/auth.log]\nsourcetype = auth\n"), 0o600))
+
+		require.NoError(t, h.OnAdd(context.Background(), []string{taDir}))
+		require.Len(t, h.active[taDir], 2)
+		unchanged := h.active[taDir][0]
+		changed := h.active[taDir][1].(*mockReceiver)
+
+		require.NoError(t, os.WriteFile(inputsPath, []byte(
+			"[monitor:///var/log/syslog]\nsourcetype = syslog\n"+"[monitor:///var/log/auth.log]\nsourcetype = changed-auth\n"), 0o600))
+		require.NoError(t, h.OnChange(context.Background(), []string{taDir}))
+
+		require.Len(t, h.active[taDir], 2)
+		assert.Same(t, unchanged, h.active[taDir][0], "unchanged stanza should keep its receiver")
+		assert.Equal(t, 1, changed.shutdownCount, "changed stanza should stop its old receiver")
+	})
+
+	t.Run("does_not_reload_when_effective_configuration_is_unchanged", func(t *testing.T) {
+		splunkHome := t.TempDir()
+		factory := newMockFactory()
+		h := newTestObserverHandler(t, splunkHome, factory)
+
+		taDir := makeTA(t, splunkHome, "splunk_ta_syslog")
+		require.NoError(t, h.OnAdd(context.Background(), []string{taDir}))
+		old := h.active[taDir][0]
+
+		require.NoError(t, h.OnChange(context.Background(), []string{taDir}))
+
+		require.Len(t, h.active[taDir], 1)
+		assert.Same(t, old, h.active[taDir][0])
+		assert.Equal(t, 0, old.(*mockReceiver).shutdownCount)
 	})
 }
 

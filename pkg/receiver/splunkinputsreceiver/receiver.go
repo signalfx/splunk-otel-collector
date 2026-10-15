@@ -7,6 +7,7 @@ import (
 	"context"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -24,6 +25,7 @@ type splunkInputsReceiver struct {
 	watcher    fileWatcher
 	doneCh     chan struct{}
 	splunkHome string
+	reloadMu   sync.Mutex
 }
 
 func newSplunkInputsReceiver(splunkHome string, options factoryOptions, settings receiver.Settings, next consumer.Logs) *splunkInputsReceiver {
@@ -36,7 +38,7 @@ func newSplunkInputsReceiver(splunkHome string, options factoryOptions, settings
 
 func (r *splunkInputsReceiver) Start(ctx context.Context, host component.Host) error {
 	r.handler.host = host
-	taDirs, err := tabuilder.DiscoverTAs(r.splunkHome)
+	taDirs, err := tabuilder.DiscoverApps(r.splunkHome)
 	if err != nil {
 		return err
 	}
@@ -54,9 +56,7 @@ func (r *splunkInputsReceiver) Start(ctx context.Context, host component.Host) e
 	for _, dir := range tabuilder.WatchDirs(r.splunkHome) {
 		_ = watcher.Add(dir) // best-effort; dirs may not exist yet
 	}
-	for _, taDir := range taDirs {
-		r.watchTA(taDir)
-	}
+	r.watchApps()
 
 	go r.watchLoop(ctx)
 	return nil
@@ -133,10 +133,26 @@ func (r *splunkInputsReceiver) watchLoop(ctx context.Context) {
 	}
 }
 
+// watchApps watches every app directory, including those app.conf disables. The
+// apps watch is not recursive, so an app left unwatched reports nothing when its
+// own app.conf is edited to enable it.
+func (r *splunkInputsReceiver) watchApps() {
+	appDirs, err := tabuilder.AppDirs(r.splunkHome)
+	if err != nil {
+		return
+	}
+	for _, appDir := range appDirs {
+		r.watchTA(appDir)
+	}
+}
+
 // watchTA adds a TA directory and its default/ and local/ subdirs to the watcher.
 // All adds are best-effort — default/ or local/ may not exist yet. Watching taDir
 // itself ensures we detect when they are created later.
 func (r *splunkInputsReceiver) watchTA(taDir string) {
+	if taDir == systemKey {
+		return
+	}
 	_ = r.watcher.Add(taDir)
 	_ = r.watcher.Add(filepath.Join(taDir, "default"))
 	_ = r.watcher.Add(filepath.Join(taDir, "local"))
@@ -156,16 +172,22 @@ func taDirFromPath(eventPath, appsDir string) string {
 	return filepath.Join(appsDir, parts[0])
 }
 
-func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string]struct{}) {
+func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string]struct{}) error {
+	r.reloadMu.Lock()
+	defer r.reloadMu.Unlock()
+
 	logger := r.handler.settings.Logger
 
 	// best-effort: add appsDir to the watcher in case it was created after Start
-	_ = r.watcher.Add(filepath.Join(r.splunkHome, "etc", "apps"))
+	if r.watcher != nil {
+		_ = r.watcher.Add(filepath.Join(r.splunkHome, "etc", "apps"))
+		r.watchApps()
+	}
 
-	current, err := tabuilder.DiscoverTAs(r.splunkHome)
+	current, err := tabuilder.DiscoverApps(r.splunkHome)
 	if err != nil {
 		logger.Error("splunk_inputs: failed to discover TAs", zap.Error(err))
-		return
+		return err
 	}
 
 	desired := make(map[string]struct{}, len(current)+1)
@@ -212,7 +234,9 @@ func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string
 			logger.Error("splunk_inputs: failed to start receivers for new TAs", zap.Error(err))
 		}
 		for _, taDir := range added {
-			r.watchTA(taDir)
+			if r.watcher != nil {
+				r.watchTA(taDir)
+			}
 		}
 	}
 	if len(changed) > 0 {
@@ -221,7 +245,10 @@ func (r *splunkInputsReceiver) reconcile(ctx context.Context, pending map[string
 		}
 		// retry watching default/ and local/ in case they were just created
 		for _, taDir := range changed {
-			r.watchTA(taDir)
+			if r.watcher != nil {
+				r.watchTA(taDir)
+			}
 		}
 	}
+	return nil
 }

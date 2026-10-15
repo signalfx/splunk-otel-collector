@@ -25,14 +25,9 @@ create_collector_pr() {
   setup_branch "$branch" "$repo_url"
 
   echo ">>> Getting latest opentelemetry-injector release ..."
-  tag="$( gh release view --repo "https://github.com/open-telemetry/opentelemetry-injector" --json tagName,isDraft,isPrerelease --jq 'select((.isDraft|not) and (.isPrerelease|not)) | .tagName' )"
-  if [[ -n "$tag" ]]; then
-    echo ">>> Updating opentelemetry-injector version to $tag ..."
-    echo "$tag" > instrumentation/packaging/injector-release.txt
-  else
-    echo "ERROR: Failed to get latest release tag from https://github.com/open-telemetry/opentelemetry-injector !" >&2
-    exit 1
-  fi
+  tag="$(get_latest_github_release "open-telemetry/opentelemetry-injector")"
+  echo ">>> Updating opentelemetry-injector version to $tag ..."
+  echo "$tag" > instrumentation/packaging/injector-release.txt
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then

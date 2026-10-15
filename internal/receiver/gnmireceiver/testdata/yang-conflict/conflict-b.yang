@@ -1,0 +1,10 @@
+module conflict-b {
+  namespace "urn:test:conflict-b";
+  prefix cb;
+
+  container shared {
+    leaf value {
+      type string;
+    }
+  }
+}

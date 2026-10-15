@@ -49,3 +49,10 @@ func TestAuth(t *testing.T) {
 	})
 	require.Error(t, err)
 }
+
+func TestAuthSucceedsForLoopbackTLSCertificateWithoutIPSANs(t *testing.T) {
+	server := authtest.NewTLSServer(t)
+
+	_, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
+	require.NoError(t, err)
+}

@@ -5,6 +5,11 @@ codecov:
     after_n_builds: 2
   strict_yaml_branch: main  # only use the latest copy on main branch
 
+# Test modules still run and cover the main code; drop their own source from the report.
+ignore:
+  - "tests"
+  - "packaging/tests"
+
 coverage:
   precision: 2
   round: down

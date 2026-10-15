@@ -19,18 +19,20 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter"
 )
 
-func TestWithSubExporterOverridesBuiltInHTTPOut(t *testing.T) {
-	baseDir := writeTA(t, "[httpout]\nuri = https://example.com/services/collector/event\nhttpEventCollectorToken = token\n")
-	fake := &fakeSubExporterFactory{scheme: "httpout"}
+func TestWithSubExporterOverridesBuiltInHECOut(t *testing.T) {
+	baseDir := writeTA(t, "[hecout]\nuri = https://example.com/services/collector/event\nhttpEventCollectorToken = token\n")
+	fake := &fakeSubExporterFactory{scheme: "hecout"}
 
 	factory := splunkoutputsexporter.NewFactory(splunkoutputsexporter.WithSubExporter(fake))
 	exp, err := factory.CreateLogs(context.Background(), newExporterSettings(), splunkoutputsexporter.Config{BaseDir: baseDir})
 	require.NoError(t, err)
 	require.NotNil(t, exp)
+	require.NoError(t, exp.Start(context.Background(), nil))
+	defer exp.Shutdown(context.Background()) //nolint:errcheck
 	require.Len(t, fake.requests, 1)
 	require.Equal(t, baseDir, fake.requests[0].BaseDir)
 	require.Empty(t, fake.requests[0].Path)
-	require.Equal(t, "httpout", fake.requests[0].Output.Configuration.Stanza.Name)
+	require.Equal(t, "hecout", fake.requests[0].Output.Configuration.Stanza.Name)
 	require.NotNil(t, fake.requests[0].Output.Configuration.Stanza.Params.Get("httpEventCollectorToken"))
 	require.Equal(t, "token", fake.requests[0].Output.Configuration.Stanza.Params.Get("httpEventCollectorToken").Value)
 	require.NotNil(t, fake.requests[0].Output.Configuration.Stanza.Params.Get("uri"))
@@ -38,18 +40,20 @@ func TestWithSubExporterOverridesBuiltInHTTPOut(t *testing.T) {
 }
 
 func TestWithSubExporterReadsRegisteredOutputSchemes(t *testing.T) {
-	baseDir := writeTA(t, "[httpout]\nuri = https://example.com/services/collector/event\nhttpEventCollectorToken = token\n\n[tcpout:primary]\nserver = splunk:9997\n")
-	httpout := &fakeSubExporterFactory{scheme: "httpout"}
+	baseDir := writeTA(t, "[hecout]\nuri = https://example.com/services/collector/event\nhttpEventCollectorToken = token\n\n[tcpout:primary]\nserver = splunk:9997\n")
+	hecout := &fakeSubExporterFactory{scheme: "hecout"}
 	tcpout := &fakeSubExporterFactory{scheme: "tcpout"}
 
 	factory := splunkoutputsexporter.NewFactory(
-		splunkoutputsexporter.WithSubExporter(httpout),
+		splunkoutputsexporter.WithSubExporter(hecout),
 		splunkoutputsexporter.WithSubExporter(tcpout),
 	)
 	exp, err := factory.CreateLogs(context.Background(), newExporterSettings(), splunkoutputsexporter.Config{BaseDir: baseDir})
 	require.NoError(t, err)
 	require.NotNil(t, exp)
-	require.Len(t, httpout.requests, 1)
+	require.NoError(t, exp.Start(context.Background(), nil))
+	defer exp.Shutdown(context.Background()) //nolint:errcheck
+	require.Len(t, hecout.requests, 1)
 	require.Len(t, tcpout.requests, 1)
 	require.Equal(t, "primary", tcpout.requests[0].Path)
 	require.Equal(t, "tcpout:primary", tcpout.requests[0].Output.Configuration.Stanza.Name)
@@ -65,6 +69,8 @@ func TestWithSubExporterRegistersCustomScheme(t *testing.T) {
 	exp, err := factory.CreateLogs(context.Background(), newExporterSettings(), splunkoutputsexporter.Config{BaseDir: baseDir})
 	require.NoError(t, err)
 	require.NotNil(t, exp)
+	require.NoError(t, exp.Start(context.Background(), nil))
+	defer exp.Shutdown(context.Background()) //nolint:errcheck
 	require.Len(t, fake.requests, 1)
 	require.Equal(t, "primary", fake.requests[0].Path)
 	require.Equal(t, "s2s://primary", fake.requests[0].Output.Configuration.Stanza.Name)

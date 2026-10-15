@@ -25,7 +25,7 @@ openssl req -new \
   -key "$CERTS_DIR/server.key" \
   -subj "/CN=splunk/O=Example" \
   -out "$CERTS_DIR/server.csr"
-printf 'subjectAltName=DNS:splunk,DNS:localhost\n' > "$CERTS_DIR/server.ext"
+printf 'subjectAltName=DNS:splunk,DNS:localhost,IP:127.0.0.1,IP:::1\n' > "$CERTS_DIR/server.ext"
 openssl x509 -req -days 365 \
   -in "$CERTS_DIR/server.csr" \
   -CA "$CERTS_DIR/ca.crt" \

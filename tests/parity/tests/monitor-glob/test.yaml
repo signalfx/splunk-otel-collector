@@ -1,0 +1,10 @@
+name: "Monitor glob"
+description: A monitor path glob takes only the files it matches.
+setup: |
+  mkdir -p logs
+  echo "from a.log" > logs/a.log
+  echo "from b.txt" > logs/b.txt
+expected:
+  raw: true
+  host: true
+  source: true

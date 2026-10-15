@@ -46,7 +46,7 @@ func ResolveSplunkHome(baseDir string) (string, error) {
 	if home := os.Getenv("SPLUNK_HOME"); home != "" {
 		return home, nil
 	}
-	return "", fmt.Errorf("base_dir is not set and $SPLUNK_HOME is not defined")
+	return "", errors.New("base_dir is not set and $SPLUNK_HOME is not defined")
 }
 
 // CreateReceivers builds a logs receiver for every enabled input stanza,
@@ -78,7 +78,7 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 		return nil, err
 	}
 	switch parsed.Kind {
-	case "script", "":
+	case "script":
 		f := scriptreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), &scriptreceiver.Config{
 			Input:      input,
@@ -102,7 +102,8 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 			Transforms: transforms,
 			Props:      props,
 		}, next)
-	case "wineventlog":
+	// inputs.conf.spec spells this [WinEventLog://<name>].
+	case "WinEventLog":
 		f := wineventlogreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), wineventlogreceiver.Config{
 			Input:      input,
@@ -146,8 +147,10 @@ func confFilePaths(dirs []string, filename string) []string {
 	return paths
 }
 
-// DiscoverTAs returns splunk_ta_* directories under splunkHome/etc/apps.
-func DiscoverTAs(splunkHome string) ([]string, error) {
+// AppDirs returns every app directory under splunkHome/etc/apps, enabled or
+// not. splunkd admits every app in the bundle regardless of name, so this
+// applies no name pattern; it skips only dotfile directories.
+func AppDirs(splunkHome string) ([]string, error) {
 	appsDir := filepath.Join(splunkHome, "etc", "apps")
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
@@ -156,20 +159,56 @@ func DiscoverTAs(splunkHome string) ([]string, error) {
 		}
 		return nil, fmt.Errorf("tabuilder: failed to scan %s: %w", appsDir, err)
 	}
-	var taDirs []string
+	var appDirs []string
 	for _, entry := range entries {
-		if !entry.IsDir() {
+		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
-		if strings.HasPrefix(strings.ToLower(entry.Name()), "splunk_ta_") {
-			taDirs = append(taDirs, filepath.Join(appsDir, entry.Name()))
+		appDirs = append(appDirs, filepath.Join(appsDir, entry.Name()))
+	}
+	return appDirs, nil
+}
+
+// DiscoverApps returns the subset of AppDirs that app.conf leaves in the
+// bundle, which is what splunkd reads config from.
+func DiscoverApps(splunkHome string) ([]string, error) {
+	appDirs, err := AppDirs(splunkHome)
+	if err != nil {
+		return nil, err
+	}
+	var enabled []string
+	for _, appDir := range appDirs {
+		if appEnabled(appDir) {
+			enabled = append(enabled, appDir)
 		}
 	}
-	return taDirs, nil
+	return enabled, nil
+}
+
+// appEnabled reports whether app.conf leaves the app in the bundle. splunkd
+// allowlists the exact literal "enabled" rather than looking for "disabled", so
+// any other value, "ENABLED" included, excludes the app; an absent key or file
+// leaves it enabled.
+//
+// Reading fails open: splunkd resolves the value through a conf search that
+// yields nothing for an unreadable or malformed app.conf, so one bad file
+// excludes no app and does not fail discovery.
+func appEnabled(appDir string) bool {
+	dirs := []string{filepath.Join(appDir, "default"), filepath.Join(appDir, "local")}
+	payloads, err := readConfFiles(confFilePaths(dirs, "app.conf"))
+	if err != nil {
+		return true
+	}
+	merged, err := conf.ParseAndMergeConf(payloads)
+	if err != nil {
+		return true
+	}
+	state, set := merged["install"]["state"]
+	return !set || state == "enabled"
 }
 
 func splunkHomeDirs(splunkHome string) []string {
-	taDirs, _ := DiscoverTAs(splunkHome)
+	taDirs, _ := DiscoverApps(splunkHome)
 	etcDir := filepath.Join(splunkHome, "etc")
 
 	dirs := []string{filepath.Join(etcDir, "system", "default")}
@@ -279,7 +318,7 @@ func ReadSystemInputs(splunkHome string) ([]conf.Input, error) {
 		return nil, nil
 	}
 
-	taDirs, err := DiscoverTAs(splunkHome)
+	taDirs, err := DiscoverApps(splunkHome)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +417,7 @@ func ReadProps(dirs []string) ([]conf.Prop, error) {
 }
 
 // ReadOutputs merges outputs.conf across $SPLUNK_HOME using standard Splunk
-// precedence. Use HTTPOut (or future TCPOut, etc.) to extract a specific type.
+// precedence. Use HECOut (or future TCPOut, etc.) to extract a specific type.
 func ReadOutputs(splunkHome string) (conf.Map, error) {
 	payloads, err := readConfFiles(confFilePaths(ConfDirs(splunkHome), "outputs.conf"))
 	if err != nil {
@@ -397,14 +436,14 @@ func ReadOutputGroups(splunkHome string) ([]conf.Output, error) {
 	return conf.OutputGroups(merged)
 }
 
-// HTTPOut returns the [httpout] stanza from a merged outputs.conf map.
-func HTTPOut(merged conf.Map) (*conf.Output, error) {
-	return conf.HTTPOut(merged)
+// HECOut returns the [hecout] stanza from a merged outputs.conf map.
+func HECOut(merged conf.Map) (*conf.Output, error) {
+	return conf.HECOut(merged)
 }
 
 // CreateExporter builds a logs exporter from a merged outputs conf map.
 func CreateExporter(merged conf.Map, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
-	output, err := conf.HTTPOut(merged)
+	output, err := conf.HECOut(merged)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +457,7 @@ func CreateOutputExporter(output *conf.Output, logger *zap.Logger, telemetrySett
 	if err != nil {
 		return nil, err
 	}
-	if parsed.Kind != "httpout" {
+	if parsed.Kind != "hecout" {
 		return nil, nil
 	}
 	return newHECExporter(output, logger, telemetrySettings)

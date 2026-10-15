@@ -1,0 +1,10 @@
+name: "Batch sinkhole"
+description: The agent deletes a batched file once it has been read.
+setup: |
+  echo "consumed line" > foo.txt
+validate: |
+  test ! -e foo.txt
+expected:
+  raw: true
+  host: true
+  source: true

@@ -3,8 +3,9 @@ monitors:
     disk:
       description: The name of the disk that the metric describes
   doc: |
-    **The Windows implementation of this monitor is deprecated and will be removed on or after October 2026. Please use the [disk scraper in the hostmetrics receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/diskscraper/documentation.md) instead.**
     This monitor reports I/O metrics about disks.
+
+    On Windows, use the [disk scraper in the hostmetrics receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/hostmetricsreceiver/internal/scraper/diskscraper/documentation.md).
 
     On Linux hosts, this monitor relies on the `/proc` filesystem.
     If the underlying host's `/proc` file system is mounted somewhere other than
@@ -26,14 +27,6 @@ monitors:
         disk access operations.
       default: false
       type: cumulative
-    disk_octets.avg_read:
-      description: (Windows Only) The average number of octets (bytes) read.
-      default: false
-      type: gauge
-    disk_octets.avg_write:
-      description: (Windows Only) The average number of octets (bytes) written.
-      default: false
-      type: gauge
     disk_octets.read:
       description: (Linux Only) The number of bytes (octets) read from a disk.
       default: false
@@ -42,14 +35,6 @@ monitors:
       description: (Linux Only) The number of bytes (octets) written to a disk.
       default: false
       type: cumulative
-    disk_ops.avg_read:
-      description: (Windows Only) The average disk read queue length.
-      default: true
-      type: gauge
-    disk_ops.avg_write:
-      description: (Windows Only) The average disk write queue length.
-      default: true
-      type: gauge
     disk_ops.read:
       description: (Linux Only) The number of disk read operations.
       default: true
@@ -61,14 +46,6 @@ monitors:
     disk_ops.total:
       description: (Linux Only) The number of both read and write disk operations across all disks in the last reporting interval.
       default: true
-      type: gauge
-    disk_time.avg_read:
-      description: (Windows Only) The average time spent reading from the disk.
-      default: false
-      type: gauge
-    disk_time.avg_write:
-      description: (Windows Only) The average time spent writing to the disk
-      default: false
       type: gauge
     disk_time.read:
       description: (Linux Only) The average amount of time it took to do a read operation.

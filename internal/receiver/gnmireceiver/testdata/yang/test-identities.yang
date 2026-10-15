@@ -1,0 +1,20 @@
+module test-identities {
+  namespace "urn:test:identities";
+  prefix ti;
+
+  identity ETH_SPEED {
+    description "Base identity for ethernet speeds.";
+  }
+
+  identity SPEED_10MB {
+    base ETH_SPEED;
+  }
+
+  identity SPEED_100MB {
+    base ETH_SPEED;
+  }
+
+  identity SPEED_1GB {
+    base ETH_SPEED;
+  }
+}

@@ -1,6 +1,7 @@
 [files]
 extend-exclude = [
   "internal/signalfx-agent/*",
+  "tests/zeroconfig/windows/testdata/expected/*",
   "*.sum",
   "*.mod",
   "*.json",

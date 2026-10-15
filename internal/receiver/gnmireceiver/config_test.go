@@ -68,6 +68,93 @@ func TestLoadConfig(t *testing.T) {
 	}, target.Subscriptions[1])
 }
 
+func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {
+	t.Parallel()
+
+	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config-yang.yaml"))
+	require.NoError(t, err)
+
+	sub, err := cm.Sub("gnmi")
+	require.NoError(t, err)
+
+	cfg := createDefaultConfig().(*Config)
+	require.NoError(t, sub.Unmarshal(cfg))
+	require.NoError(t, confmap.Validate(cfg))
+
+	require.Equal(t, []string{"testdata/yang"}, cfg.YangModules)
+	require.Len(t, cfg.Targets, 1)
+	require.Len(t, cfg.Targets[0].Subscriptions, 1)
+	require.Nil(t, cfg.Targets[0].Subscriptions[0].Default)
+	require.Empty(t, cfg.Targets[0].Subscriptions[0].Overrides)
+}
+
+func TestValidateYangModulesMakesTypeAndOverridesOptional(t *testing.T) {
+	t.Parallel()
+
+	newTargetWithSubscription := func(sub SubscriptionConfig) TargetConfig {
+		tc := NewDefaultTargetConfig()
+		tc.ClientConfig.Endpoint = "10.0.0.1:57400"
+		tc.Subscriptions = []SubscriptionConfig{sub}
+		return tc
+	}
+
+	bareSubscription := SubscriptionConfig{
+		Path:           "/interfaces",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Second,
+	}
+	typelessOverrideSubscription := SubscriptionConfig{
+		Path:           "/interfaces",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Second,
+		Overrides:      map[string]MetricConfig{"in-octets": {Unit: "By"}},
+	}
+
+	tests := []struct {
+		name        string
+		expectedErr string
+		yangModules []string
+		sub         SubscriptionConfig
+	}{
+		{
+			name:        "bare subscription without yang_modules is invalid",
+			sub:         bareSubscription,
+			expectedErr: "at least one of \"default\" or \"overrides\"",
+		},
+		{
+			name:        "bare subscription is valid with yang_modules",
+			sub:         bareSubscription,
+			yangModules: []string{"testdata/yang"},
+		},
+		{
+			name:        "type-less override without yang_modules is invalid",
+			sub:         typelessOverrideSubscription,
+			expectedErr: "type is required",
+		},
+		{
+			name:        "type-less override is valid with yang_modules",
+			sub:         typelessOverrideSubscription,
+			yangModules: []string{"testdata/yang"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Targets:     []TargetConfig{newTargetWithSubscription(tt.sub)},
+				YangModules: tt.yangModules,
+			}
+			err := confmap.Validate(cfg)
+			if tt.expectedErr == "" {
+				require.NoError(t, err)
+				return
+			}
+			require.ErrorContains(t, err, tt.expectedErr)
+		})
+	}
+}
+
 func TestValidate(t *testing.T) {
 	t.Parallel()
 

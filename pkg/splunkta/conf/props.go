@@ -29,30 +29,30 @@ var fieldAliasRegex = regexp.MustCompile(`(\w+) as (\w+)`)
 
 // Prop represents a props.conf stanza.
 type Prop struct {
-	Name                  string
-	TimePrefix            string
-	TimeFormat            string
-	DatetimeConfig        string
-	Category              string
-	SourceType            string
-	FieldAliases          []FieldAlias
-	Transforms            []PropsTransforms
-	MaxTimestampLookAhead int
-	NoBinaryCheck         bool
-	ShouldLineMerge       bool
+	Name                  string            `mapstructure:"name"`
+	TimePrefix            string            `mapstructure:"time_prefix"`
+	TimeFormat            string            `mapstructure:"time_format"`
+	DatetimeConfig        string            `mapstructure:"datetime_config"`
+	Category              string            `mapstructure:"category"`
+	SourceType            string            `mapstructure:"source_type"`
+	FieldAliases          []FieldAlias      `mapstructure:"field_aliases"`
+	Transforms            []PropsTransforms `mapstructure:"transforms"`
+	MaxTimestampLookAhead int               `mapstructure:"max_timestamp_lookahead"`
+	NoBinaryCheck         bool              `mapstructure:"no_binary_check"`
+	ShouldLineMerge       bool              `mapstructure:"should_line_merge"`
 }
 
 // FieldAlias represents a FIELDALIAS configuration in props.conf.
 type FieldAlias struct {
-	Name string
-	From string
-	To   string
+	Name string `mapstructure:"name"`
+	From string `mapstructure:"from"`
+	To   string `mapstructure:"to"`
 }
 
 // PropsTransforms represents a TRANSFORMS configuration in props.conf.
 type PropsTransforms struct {
-	Class  string
-	Stanza []string
+	Class  string   `mapstructure:"class"`
+	Stanza []string `mapstructure:"stanza"`
 }
 
 // Type returns the PropType of the Prop.

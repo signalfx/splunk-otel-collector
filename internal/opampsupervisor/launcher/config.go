@@ -106,7 +106,6 @@ type supervisorCapabilities struct {
 	ReportsHealth              bool `yaml:"reports_health"`
 	ReportsAvailableComponents bool `yaml:"reports_available_components"`
 	AcceptsRemoteConfig        bool `yaml:"accepts_remote_config"`
-	ReportsRemoteConfig        bool `yaml:"reports_remote_config"`
 	ReportsOwnMetrics          bool `yaml:"reports_own_metrics"`
 	ReportsHeartbeat           bool `yaml:"reports_heartbeat"`
 }
@@ -593,7 +592,6 @@ func initialSupervisorConfig(paths Paths, collectorConfigs []collectorConfigInpu
 		Capabilities: supervisorCapabilities{
 			ReportsEffectiveConfig:     true,
 			ReportsHealth:              true,
-			ReportsRemoteConfig:        true,
 			ReportsAvailableComponents: true,
 			AcceptsRemoteConfig:        true,
 			ReportsOwnMetrics:          false,
@@ -654,6 +652,14 @@ func loadSupervisorConfigFile(path string) (map[string]any, error) {
 
 func renderRuntimeConfig(sourceConfig map[string]any, managedFields supervisorManagedAgentFields) map[string]any {
 	out := cloneYAMLMap(sourceConfig)
+	// Since v0.161.0, "accepts_remote_config" enables both accepts and reports remote
+	// config capabilities with "reports_remote_config" full removal planned in v0.165.0.
+	// Remove the deprecated reports capability from final runtime config in case of any
+	// existing user-editable supervisor configs to maintain compatibility.
+	if capabilities, ok := asMap(out["capabilities"]); ok {
+		delete(capabilities, "reports_remote_config")
+		out["capabilities"] = capabilities
+	}
 	agent, _ := asMap(out["agent"])
 	agent["executable"] = managedFields.Executable
 	agent["config_files"] = slices.Clone(managedFields.ConfigFiles)

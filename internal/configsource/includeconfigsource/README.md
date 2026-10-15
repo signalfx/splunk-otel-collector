@@ -1,4 +1,9 @@
-# Include Config Source (Beta)
+# Include Config Source
+
+| Status | |
+| --- | --- |
+| Stability | Beta |
+| Distributions | [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector) |
 
 Use the include config source to inject [golang templates](https://pkg.go.dev/text/template)
 or plain files into the configuration. The config source can be used to insert scalar data
@@ -6,24 +11,14 @@ or complete YAML sections.
 
 ## Configuration
 
-Under the `config_sources:` use `include:` or `include/<name>:` to create a
-template config source.
-The following parameters are available to customize the include config sources:
+Under `config_sources:`, use `include:` or `include/<name>:` to create an
+include config source. Its only option is optional.
 
-```yaml
-config_sources:
-  include:
-  include/my_name_00:
-    # watch_files can be used to make the "include" config source monitor for
-    # updates on the used files. Setting it to true will trigger a configuration
-    # reload if any of the files used by the config source are updated.
-    # Configuration reload causes temporary interruption of the data flow during
-    # the time taken to shut down the current pipeline configuration and start the
-    # new one. The default value is false.
-    watch_files: true
-```
+| Option | Required | Default | Description |
+| --- | --- | --- | --- |
+| `watch_files` | No | `false` | Watch referenced files and reload the configuration when they change. Reloading temporarily interrupts data flow while pipelines restart. |
 
-Example of how to use `watch_files`:
+### Example configuration
 
 ```yaml
 config_sources:
@@ -31,21 +26,16 @@ config_sources:
   include/watch_for_updates:
     watch_files: true
 
-# Note: `components` is meant to be a placeholder for component type (e.g. receivers, exporters, etc.).
-# This is also true for `component_x` and `component_field`. These are simply placeholders for any valid
-# component and configuration option.
 components:
   component_0:
-    # Default usage: configuration won't be reloaded if the file
-    # '/etc/configs/component_field' is changed.
     component_field: ${include/default:/etc/configs/component_field}
-
   component_1:
-    # 'include/watch_for_updates' was created with 'watch_files' set to true.
-    # If the file '/etc/configs/my_config' is changed the collector configuration
-    # will be reloaded.
     component_field: ${include/watch_for_updates:/etc/configs/my_config}
 ```
+
+Here, `components`, `component_0`, `component_1`, and `component_field` stand for
+valid component sections and settings. The second reference reloads the
+configuration when `/etc/configs/my_config` changes; the first does not.
 
 The config source can be used to insert complete sections of the configuration:
 
@@ -53,14 +43,9 @@ The config source can be used to insert complete sections of the configuration:
 config_sources:
   include:
 
-# The 'receivers' section is filled with the contents of /etc/configs/receivers.yaml 
 receivers: ${include:/etc/configs/receivers.yaml}
-
-# The 'exporters' section is filled with the contents of /etc/configs/exporters.yaml 
 exporters: ${include:/etc/configs/exporters.yaml}
-
 service:
-  # The 'pipelines' section is filled with the contents of /etc/configs/pipelines.yaml 
   pipelines: ${include:/etc/configs/pipelines.yaml}
 ```
 
@@ -80,9 +65,6 @@ config_sources:
   include:
 
 components:
-  # component_0 is built from the ./templates/component_template file
-  # according to the template parameters and commands. The example below
-  # defines a few parameters to be used by the template.
   component_0: ${include:./templates/component_template?my_glob_pattern=/var/**/*.log&my_format=json}
 ```
 

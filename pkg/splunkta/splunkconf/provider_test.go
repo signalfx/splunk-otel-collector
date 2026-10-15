@@ -80,6 +80,19 @@ func resolve(t *testing.T, uris ...string) *confmap.Conf {
 	return merged
 }
 
+// writeConfTree writes the named .conf files to a fresh etc/system/local and
+// returns the config root to point a splunkconf:// URI at.
+func writeConfTree(t *testing.T, files map[string]string) string {
+	t.Helper()
+	root := filepath.Join(t.TempDir(), "etc")
+	local := filepath.Join(root, "system", "local")
+	require.NoError(t, os.MkdirAll(local, 0o700))
+	for name, content := range files {
+		require.NoError(t, os.WriteFile(filepath.Join(local, name), []byte(content), 0o600))
+	}
+	return root
+}
+
 func pipelineIDs(t *testing.T, merged *confmap.Conf, pipeline string) (recvs, exps []string) {
 	t.Helper()
 	sub, err := merged.Sub("service::pipelines::" + pipeline)
@@ -305,14 +318,10 @@ func TestPropsTransformsParity(t *testing.T) {
 // as a reference, so the provider emits it doubled and the resolver gives back
 // the original value.
 func TestDollarInConfValues(t *testing.T) {
-	local := filepath.Join(t.TempDir(), "etc", "system", "local")
-	require.NoError(t, os.MkdirAll(local, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(local, "inputs.conf"), []byte(
-		"[monitor:///var/log/app$dollar.log]\nblacklist = \\.gz$done\n"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(local, "outputs.conf"), []byte(
-		"[hecout:hec]\nuri = https://localhost:8088\nhttpEventCollectorToken = secret$value\n"), 0o600))
-
-	uri := "splunkconf://" + filepath.Dir(filepath.Dir(local))
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/app$dollar.log]\nblacklist = \\.gz$done\n",
+		"outputs.conf": "[hecout:hec]\nuri = https://localhost:8088\nhttpEventCollectorToken = secret$value\n",
+	})
 	recvID := splunkmonitor.TypeStr + "/" + stableName("monitor:///var/log/app$dollar.log")
 
 	retrieved, err := provider{}.Retrieve(context.Background(), uri, nil)
@@ -415,7 +424,12 @@ func TestPipelineNameInFragment(t *testing.T) {
 // partial or empty pipeline would start a collector that silently collects less
 // than the .conf asked for.
 func TestRetrieveSurfacesErrors(t *testing.T) {
+	const validInputs = "[monitor:///var/log/foo]\n"
+	const validOutputs = "[hecout]\nuri = https://localhost:8088\n"
+	const malformed = "[stanza]\nno delimiter here\n"
+
 	for _, tt := range []struct {
+		files  map[string]string
 		name   string
 		uri    string
 		errMsg string
@@ -426,17 +440,84 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			errMsg: "empty config root",
 		},
 		{
+			name:   "undecodable query",
+			uri:    "splunkconf://testdata/etc?pipeline=%zz",
+			errMsg: "invalid query",
+		},
+		{
 			// testdata itself has no system/local/inputs.conf.
 			name:   "config root with no mappable inputs",
 			uri:    "splunkconf://testdata",
 			errMsg: "no supported input stanzas found",
 		},
+		{
+			name:   "malformed inputs.conf",
+			files:  map[string]string{"inputs.conf": malformed},
+			errMsg: "read inputs.conf",
+		},
+		{
+			name:   "malformed props.conf",
+			files:  map[string]string{"inputs.conf": validInputs, "props.conf": malformed},
+			errMsg: "read props.conf",
+		},
+		{
+			name:   "malformed transforms.conf",
+			files:  map[string]string{"inputs.conf": validInputs, "transforms.conf": malformed},
+			errMsg: "read transforms.conf",
+		},
+		{
+			name:   "malformed outputs.conf",
+			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": malformed},
+			errMsg: "read outputs.conf",
+		},
+		{
+			name:   "input stanza with no kind",
+			files:  map[string]string{"inputs.conf": "[://nokind]\n", "outputs.conf": validOutputs},
+			errMsg: "parse stanza",
+		},
+		{
+			name:   "output stanza with no kind",
+			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": "[://nokind]\n"},
+			errMsg: "parse output stanza",
+		},
+		{
+			name:   "output kind with no mapping",
+			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": "[tcpout:primary]\nserver = idx1:9997\n"},
+			errMsg: "only [hecout] is mapped",
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := provider{}.Retrieve(context.Background(), tt.uri, nil)
+			uri := tt.uri
+			if tt.files != nil {
+				uri = "splunkconf://" + writeConfTree(t, tt.files)
+			}
+			_, err := provider{}.Retrieve(context.Background(), uri, nil)
 			require.ErrorContains(t, err, tt.errMsg)
 		})
 	}
+}
+
+// A stanza param must not overwrite a key the mapper already emitted: the
+// stanza name is the only source of the target.
+func TestParamDoesNotOverrideEmittedKey(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/foo]\npath = /var/log/elsewhere\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\n",
+	})
+
+	receivers, err := resolve(t, uri).Sub("receivers")
+	require.NoError(t, err)
+	recv, err := receivers.Sub(splunkmonitor.TypeStr + "/" + stableName("monitor:///var/log/foo"))
+	require.NoError(t, err)
+	require.Equal(t, "/var/log/foo", recv.ToStringMap()["path"])
+}
+
+func TestStableNameOfUnslugabbleStanza(t *testing.T) {
+	require.Regexp(t, "^[0-9a-f]{8}$", stableName(":::"))
+}
+
+func TestShutdownIsANoop(t *testing.T) {
+	require.NoError(t, NewFactory().Create(confmap.ProviderSettings{}).Shutdown(context.Background()))
 }
 
 func TestMapOutputs(t *testing.T) {

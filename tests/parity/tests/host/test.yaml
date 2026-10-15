@@ -6,4 +6,3 @@ script:
 expected:
   raw: true
   host: true
-os: ["darwin", "linux", "windows"]

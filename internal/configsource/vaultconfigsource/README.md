@@ -21,7 +21,7 @@ source. `endpoint`, `path`, and one authentication method are required.
 | `endpoint` | Yes | None | Vault server URL. `VAULT_ADDR` can be referenced explicitly with `${env:VAULT_ADDR}`. |
 | `path` | Yes | None | Vault path to the secret. |
 | `auth` | Yes | None | Authentication settings. Set exactly one of `auth.token`, `auth.iam`, or `auth.gcp`. |
-| `poll_interval` | No | `1m` | Interval for checking changes to non-dynamic secrets. Must be positive. |
+| `poll_interval` | No | `1m` | Interval for checking changes to non-dynamic KV v2 secrets. Has no effect on dynamic secrets, V1 leases, or non-dynamic secrets without KV v2 metadata. Must be positive. |
 
 ### Authentication options
 

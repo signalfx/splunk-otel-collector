@@ -111,6 +111,7 @@
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
     For Collector versions newer than v0.162.0, use SPLUNK_ENVIRONMENT_VARIABLES to set arbitrary service environment variables.
     Separate KEY=VALUE entries with commas and percent encode commas inside values as %2C. Other special characters can also be percent encoded.
+    Variable names must be nonempty and contain only ASCII letters, numbers, and underscores, including after percent decoding.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ARPCOMMENTS=DO_NOT_UNINSTALL" 
     .EXAMPLE

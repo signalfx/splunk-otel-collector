@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.RegularExpressions;
+
 internal static class CustomEnvironmentVariables
 {
     public static Dictionary<string, string> Parse(string? value)
@@ -32,7 +34,7 @@ internal static class CustomEnvironmentVariables
 
             var name = Uri.UnescapeDataString(entry.Substring(0, separator));
             var variableValue = Uri.UnescapeDataString(entry.Substring(separator + 1));
-            if (string.IsNullOrWhiteSpace(name) || name.IndexOfAny(['=', '\0']) >= 0 ||
+            if (!Regex.IsMatch(name, @"\A[A-Za-z0-9_]+\z") ||
                 variableValue.IndexOf('\0') >= 0)
             {
                 throw InvalidEntry();
@@ -45,6 +47,7 @@ internal static class CustomEnvironmentVariables
     }
 
     private static ArgumentException InvalidEntry() => new ArgumentException(
-        "SPLUNK_ENVIRONMENT_VARIABLES must contain comma-separated KEY=VALUE entries with nonempty names. " +
-        "Commas in values must be percent encoded as %2C; names cannot contain '=' and entries cannot contain NUL.");
+        "SPLUNK_ENVIRONMENT_VARIABLES must contain comma-separated KEY=VALUE entries with nonempty names " +
+        "containing only ASCII letters, numbers, and underscores. " +
+        "Commas in values must be percent encoded as %2C; entries cannot contain NUL.");
 }

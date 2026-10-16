@@ -22,8 +22,9 @@ This sets `OTEL_RESOURCE_ATTRIBUTES` to
 Commas inside values **must** be percent encoded as `%2C`. Other special characters
 can also be percent encoded, for example `%3D` for `=`, `%3B` for `;`, `%22` for `"`,
 and `%25` for a literal `%`. Values are decoded once; `+` remains a literal plus.
-An empty value (`KEY=`) is supported. Entries must have a nonempty name, and neither
-names nor values may contain NUL characters.
+An empty value (`KEY=`) is supported. Names must be nonempty and contain only ASCII
+letters (`A-Z`, `a-z`), numbers (`0-9`), and underscores (`_`), including after percent
+decoding. Values may not contain NUL characters.
 
 Custom entries override predefined service environment variables with the same
 name. Names are compared without regard to case, and the last duplicate entry

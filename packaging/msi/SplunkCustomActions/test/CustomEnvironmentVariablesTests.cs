@@ -26,6 +26,44 @@ public class CustomEnvironmentVariablesTests
     }
 
     [Theory]
+    [InlineData("AZaz09_")]
+    [InlineData("MY_VAR_123")]
+    [InlineData("lower_case")]
+    [InlineData("123")]
+    [InlineData("_")]
+    [InlineData("%4D%59%5FVAR")]
+    public void AcceptsNamesWithLettersNumbersAndUnderscores(string name)
+    {
+        var data = CustomActions.BuildOptionalConfigurationData(property =>
+            property == "SPLUNK_ENVIRONMENT_VARIABLES" ? name + "=value" : "");
+        var transported = new CustomActionData(data.ToString());
+        Assert.Equal("value", transported[Uri.UnescapeDataString(name)]);
+    }
+
+    [Theory]
+    [InlineData("MY-VAR")]
+    [InlineData("MY.VAR")]
+    [InlineData("MY VAR")]
+    [InlineData("MY;VAR")]
+    [InlineData("MY%2DVAR")]
+    [InlineData("MY%3BVAR")]
+    [InlineData("MY%20VAR")]
+    [InlineData("MY%2CVAR")]
+    [InlineData("MY\tVAR")]
+    [InlineData("MY_VAR\n")]
+    [InlineData("MY_VAR%0A")]
+    [InlineData("MY_é")]
+    [InlineData("MY_%C3%A9")]
+    [InlineData("MY_١")]
+    public void RejectsNamesOutsideLettersNumbersAndUnderscores(string name)
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+            CustomActions.BuildOptionalConfigurationData(property =>
+                property == "SPLUNK_ENVIRONMENT_VARIABLES" ? name + "=value" : ""));
+        Assert.Contains("containing only ASCII letters, numbers, and underscores", exception.Message);
+    }
+
+    [Theory]
     [InlineData("KEY=a%2Cb%2cc", "a,b,c")]
     [InlineData("KEY=a=b=c", "a=b=c")]
     [InlineData("KEY=a%3Db%3Bc%25%20%22%5B%5D", "a=b;c% \"[]")]

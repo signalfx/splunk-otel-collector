@@ -42,6 +42,7 @@ type msiTest struct {
 	name                   string
 	collectorMSIProperties map[string]string
 	genericMSIProperties   map[string]string
+	expectedCustomEnvVars  map[string]string
 	skipUninstall          bool
 	skipSvcStart           bool
 	skipSvcStop            bool
@@ -102,6 +103,23 @@ func TestMSI(t *testing.T) {
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_MEMORY_TOTAL_MIB": "256",
 				"SPLUNK_ACCESS_TOKEN":     "fakeToken",
+			},
+		},
+		{
+			name: "custom-environment-variables",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":          "fakeToken",
+				"GOMEMLIMIT":                   "128MiB",
+				"SPLUNK_ENVIRONMENT_VARIABLES": "CUSTOM_LIST=a%2Cb%2cc,CUSTOM_SPECIAL=a%3Bb%3Dc%25%20%22%5B%5D,CUSTOM_EMPTY=,CUSTOM_PLUS=a+b,CUSTOM_ONCE=%252C,GOMEMLIMIT=256MiB,splunk_access_token=customToken",
+			},
+			expectedCustomEnvVars: map[string]string{
+				"CUSTOM_LIST":         "a,b,c",
+				"CUSTOM_SPECIAL":      "a;b=c% \"[]",
+				"CUSTOM_EMPTY":        "",
+				"CUSTOM_PLUS":         "a+b",
+				"CUSTOM_ONCE":         "%2C",
+				"GOMEMLIMIT":          "256MiB",
+				"SPLUNK_ACCESS_TOKEN": "customToken",
 			},
 		},
 		{
@@ -193,6 +211,14 @@ func TestMSILaunchConditions(t *testing.T) {
 		collectorMSIProperties map[string]string
 		expectedLogMessage     string
 	}{
+		{
+			name: "invalid-custom-environment",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":          "fakeToken",
+				"SPLUNK_ENVIRONMENT_VARIABLES": "KEY=value,invalid-entry",
+			},
+			expectedLogMessage: "SPLUNK_ENVIRONMENT_VARIABLES must contain comma-separated KEY=VALUE entries",
+		},
 		{
 			name: "platform-url-requires-platform-token",
 			collectorMSIProperties: map[string]string{
@@ -444,7 +470,7 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 	svcConfig, err := service.Config()
 	require.NoError(t, err, "Failed to get service configuration")
 
-	assertServiceConfiguration(t, test.collectorMSIProperties, svcConfig)
+	assertServiceConfiguration(t, test.collectorMSIProperties, test.expectedCustomEnvVars, svcConfig)
 }
 
 func startServiceIfStopped(t *testing.T, service *mgr.Service) {
@@ -489,7 +515,7 @@ func runMsiInstallFailureTest(t *testing.T, test msiTest, msiInstallerPath, expe
 	assert.Contains(t, installLog, expectedLogMessage)
 }
 
-func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, svcConfig mgr.Config) {
+func assertServiceConfiguration(t *testing.T, msiProperties, expectedCustomEnvVars map[string]string, svcConfig mgr.Config) {
 	programDataDir := os.Getenv("PROGRAMDATA")
 	require.NotEmpty(t, programDataDir, "PROGRAMDATA environment variable is not set")
 	programFilesDir := os.Getenv("PROGRAMFILES")
@@ -551,6 +577,9 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	}
 
 	// Verify the environment variables set for the service
+	for key, value := range expectedCustomEnvVars {
+		expectedEnvVars[key] = value
+	}
 	svcEnvVars := getServiceEnvVars(t, "splunk-otel-collector")
 	assert.Equal(t, expectedEnvVars, svcEnvVars)
 

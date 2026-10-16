@@ -28,8 +28,8 @@
       <CustomAction Id="PrepareCollectorDirectories" DllEntry="PrepareCollectorDirectories" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
       <CustomAction Id="ConfigureServiceAccountCustomActionData" Property="ConfigureServiceAccount" Value="SPLUNK_SERVICE_ACCOUNT_TYPE=[SPLUNK_SERVICE_ACCOUNT_TYPE];DETECTED_SERVICE_ACCOUNT=[DETECTED_SERVICE_ACCOUNT];PROGRAMFILES=[ProgramFiles64Folder];PROGRAMDATA=[CommonAppDataFolder]" />
       <CustomAction Id="ConfigureServiceAccount" DllEntry="ConfigureServiceAccount" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
-      <CustomAction Id="AddOptionalConfigurationsCustomActionData" Property="AddOptionalConfigurations" Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB];SPLUNK_OPAMP_SUPERVISOR_ENABLED=[SPLUNK_OPAMP_SUPERVISOR_ENABLED];SPLUNK_PLATFORM_URL=[SPLUNK_PLATFORM_URL];SPLUNK_PLATFORM_TOKEN=[SPLUNK_PLATFORM_TOKEN];SPLUNK_PLATFORM_LOGS_INDEX=[SPLUNK_PLATFORM_LOGS_INDEX];SPLUNK_PLATFORM_METRICS_INDEX=[SPLUNK_PLATFORM_METRICS_INDEX]" />
-      <CustomAction Id="AddOptionalConfigurations" DllEntry="AddOptionalConfigurations" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
+      <CustomAction Id="AddOptionalConfigurationsCustomActionData" DllEntry="AddOptionalConfigurationsCustomActionData" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
+      <CustomAction Id="AddOptionalConfigurations" DllEntry="AddOptionalConfigurations" HideTarget="yes" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
 
       <!-- Following name convention for this property to match upstream -->
       <!-- On upstream it is required and has a default value, here it is optional -->
@@ -40,6 +40,9 @@
       <!-- Used only by install.ps1, which removes the old MSI before installing the new one. -->
       <Property Id="SPLUNK_PREVIOUS_SERVICE_ACCOUNT" Secure="yes" />
       <Property Id="DETECTED_SERVICE_ACCOUNT" Secure="yes" />
+
+      <Property Id="AddOptionalConfigurations" Hidden="yes" />
+      <Property Id="SPLUNK_ENVIRONMENT_VARIABLES" Secure="yes" Hidden="yes" />
 
       <!-- SPLUNK setup control properties -->
       <Property Id="SPLUNK_SETUP_COLLECTOR_MODE" Value="agent" Secure="yes" />
@@ -109,8 +112,8 @@
          <Custom Action="PrepareCollectorDirectoriesCustomActionData" Before="PrepareCollectorDirectories" />
          <Custom Action="PrepareCollectorDirectories" Before="InstallFiles" Condition="NOT REMOVE=&quot;ALL&quot;" />
          <!-- After files installation the registry is set for the service, check optional configurations -->
-         <Custom Action="AddOptionalConfigurationsCustomActionData" Before="AddOptionalConfigurations" />
-         <Custom Action="AddOptionalConfigurations" After="WriteRegistryValues" />
+         <Custom Action="AddOptionalConfigurationsCustomActionData" After="CheckLaunchConditions" Condition="NOT REMOVE=&quot;ALL&quot;" />
+         <Custom Action="AddOptionalConfigurations" After="WriteRegistryValues" Condition="NOT REMOVE=&quot;ALL&quot;" />
          <Custom Action="CopyConfig" After="InstallFiles" Condition="NOT CONFIG_FILE_EXISTS AND NOT Installed" />
          <Custom Action="DeleteProgramFilesConfig" After="CopyConfig" />
          <Custom Action="ConfigureServiceAccountCustomActionData" Before="ConfigureServiceAccount" />

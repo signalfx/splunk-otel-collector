@@ -10,7 +10,8 @@ param (
     [switch]$with_supervisor,
     [string]$splunk_platform_url = "",
     [string]$splunk_platform_token = "",
-    [string]$splunk_platform_logs_index = ""
+    [string]$splunk_platform_logs_index = "",
+    [string]$splunk_config = ""
 )
 
 $ErrorActionPreference = 'Stop'
@@ -194,15 +195,24 @@ try {
     throw "Failed to retrieve the service command line from the registry."
 }
 
+$explicit_splunk_config = ![string]::IsNullOrWhitespace($splunk_config)
+
+# An explicitly-given SPLUNK_CONFIG (default or custom path) is appended
+# last, below, regardless of whichever platform logs/metrics config(s) were
+# added in between. The default config is only added here as a fallback
+# when no SPLUNK_CONFIG was explicitly given.
 $expected_svc_args = $with_svc_args.Trim('"').Replace('""', '"')
-if (!$config_set_by_env -and ![string]::IsNullOrWhitespace($access_token)) {
+if (!$config_set_by_env -and !$explicit_splunk_config -and ![string]::IsNullOrWhitespace($access_token)) {
     $expected_svc_args = append_svc_arg $expected_svc_args "--config `"${default_config_path}`""
 }
 if (![string]::IsNullOrWhitespace($splunk_platform_url)) {
     $expected_svc_args = append_svc_arg $expected_svc_args "--config `"${logs_config_path}`""
 }
-if (!$config_set_by_env -and ![string]::IsNullOrWhitespace($access_token) -and ![string]::IsNullOrWhitespace($splunk_platform_url)) {
+if (![string]::IsNullOrWhitespace($splunk_platform_url) -and (![string]::IsNullOrWhitespace($access_token) -or $explicit_splunk_config)) {
     $expected_svc_args = append_svc_arg $expected_svc_args "--feature-gates=confmap.enableMergeAppendOption"
+}
+if ($explicit_splunk_config) {
+    $expected_svc_args = append_svc_arg $expected_svc_args "--config `"${splunk_config}`""
 }
 
 if ($expected_svc_args -ne "") {

@@ -187,7 +187,7 @@ func (m *metricPtpClockState) init() {
 	m.dpIndex = make(map[uint64]int, m.capacity)
 }
 
-func (m *metricPtpClockState) recordDataPoint(start, ts pcommon.Timestamp, val int64, ptpClockStateAttributeValue string) {
+func (m *metricPtpClockState) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, ptpClockStateAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -278,7 +278,7 @@ func (m *metricPtpGrandmasterInfo) init() {
 	m.dpIndex = make(map[uint64]int, m.capacity)
 }
 
-func (m *metricPtpGrandmasterInfo) recordDataPoint(start, ts pcommon.Timestamp, val int64, ptpGrandmasterIdentityAttributeValue string) {
+func (m *metricPtpGrandmasterInfo) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, ptpGrandmasterIdentityAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -364,7 +364,7 @@ func (m *metricPtpGrandmasterPresent) init() {
 	m.data.SetEmptyGauge()
 }
 
-func (m *metricPtpGrandmasterPresent) recordDataPoint(start, ts pcommon.Timestamp, val int64) {
+func (m *metricPtpGrandmasterPresent) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -414,7 +414,7 @@ func (m *metricPtpOffset) init() {
 	m.data.SetEmptyGauge()
 }
 
-func (m *metricPtpOffset) recordDataPoint(start, ts pcommon.Timestamp, val float64) {
+func (m *metricPtpOffset) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -464,7 +464,7 @@ func (m *metricPtpPathDelay) init() {
 	m.data.SetEmptyGauge()
 }
 
-func (m *metricPtpPathDelay) recordDataPoint(start, ts pcommon.Timestamp, val float64) {
+func (m *metricPtpPathDelay) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
 	if !m.config.Enabled {
 		return
 	}
@@ -519,7 +519,7 @@ func (m *metricPtpPortState) init() {
 	m.dpIndex = make(map[uint64]int, m.capacity)
 }
 
-func (m *metricPtpPortState) recordDataPoint(start, ts pcommon.Timestamp, val int64, ptpPortIdentityAttributeValue, ptpPortStateAttributeValue string) {
+func (m *metricPtpPortState) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, ptpPortIdentityAttributeValue string, ptpPortStateAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -629,7 +629,6 @@ func WithStartTime(startTime pcommon.Timestamp) MetricBuilderOption {
 		mb.startTime = startTime
 	})
 }
-
 func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.Settings, options ...MetricBuilderOption) *MetricsBuilder {
 	mb := &MetricsBuilder{
 		config:                         mbc,

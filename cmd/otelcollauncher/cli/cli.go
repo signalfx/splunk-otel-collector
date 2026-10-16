@@ -75,20 +75,16 @@ func Dispatch(families []Family, args []string, streams IO) (code int, ok bool) 
 	if strings.HasPrefix(args[0], "-") {
 		return 0, false
 	}
-	for _, f := range families {
-		for _, v := range f.Verbs() {
-			if v.Name != args[0] {
-				continue
-			}
-			rest := args[1:]
-			if wantsVerbHelp(rest) {
-				fmt.Fprint(streams.Out, verbHelpText(v))
-				return ExitOK, true
-			}
-			return f.Dispatch(v.Name, rest, streams), true
-		}
+	v, f, found := findVerb(families, args[0])
+	if !found {
+		return 0, false
 	}
-	return 0, false
+	rest := args[1:]
+	if wantsVerbHelp(rest) {
+		fmt.Fprint(streams.Out, verbHelpText(v))
+		return ExitOK, true
+	}
+	return f.Dispatch(v.Name, rest, streams), true
 }
 
 func wantsVerbHelp(args []string) bool {
@@ -100,7 +96,7 @@ func dispatchHelp(families []Family, args []string, streams IO) int {
 		fmt.Fprint(streams.Out, HelpText(families))
 		return ExitOK
 	}
-	if v, found := findVerb(families, args[0]); found {
+	if v, _, found := findVerb(families, args[0]); found {
 		fmt.Fprint(streams.Out, verbHelpText(v))
 		return ExitOK
 	}
@@ -109,15 +105,15 @@ func dispatchHelp(families []Family, args []string, streams IO) int {
 	return ExitUsage
 }
 
-func findVerb(families []Family, name string) (VerbInfo, bool) {
+func findVerb(families []Family, name string) (VerbInfo, Family, bool) {
 	for _, f := range families {
 		for _, v := range f.Verbs() {
 			if v.Name == name {
-				return v, true
+				return v, f, true
 			}
 		}
 	}
-	return VerbInfo{}, false
+	return VerbInfo{}, nil, false
 }
 
 func HelpText(families []Family) string {

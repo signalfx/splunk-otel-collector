@@ -28,6 +28,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth"
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/stdoutexporter"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 	}
 }
 
-func run() error {
+func run() (runErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered from panic:", r)
@@ -156,10 +157,20 @@ func run() error {
 	h.Start()
 
 	var authExtension extension.Extension
-	if authExtension, err = auth.New(ctx, settings, xmlCfg.ServerURI, xmlCfg.SessionKey); err != nil {
+	authFactory := splunkauthextension.NewFactory(auth.NewTokenSource(xmlCfg.ServerURI, xmlCfg.SessionKey))
+	if authExtension, err = authFactory.Create(ctx, extension.Settings{
+		ID:                extID,
+		TelemetrySettings: settings,
+	}, authFactory.CreateDefaultConfig()); err != nil {
 		return err
 	}
 
+	if errStart := authExtension.Start(ctx, h); errStart != nil {
+		return errStart
+	}
+	defer func() {
+		runErr = errors.Join(runErr, authExtension.Shutdown(ctx))
+	}()
 	h.Extensions[extID] = authExtension
 
 	if errStart := errors.Join(le.Start(ctx, h), me.Start(ctx, h), tracesExporter.Start(ctx, h), r.Start(ctx, h)); errStart != nil {

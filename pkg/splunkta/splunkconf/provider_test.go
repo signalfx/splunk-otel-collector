@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkconf
+package splunkconf_test
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunktcp"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkudp"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkwineventlog"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
@@ -44,6 +45,7 @@ var (
 		"splunk_batch/batch-var-lib-batch-txt-3fccdf42",
 		"splunk_monitor/monitor-var-log-bar-with-space-c81f7357",
 		"splunk_monitor/monitor-var-log-foo-31463e8f",
+		"splunk_monitor/monitor-var-log-other-log-44426e37",
 		"splunk_script/script-bin-collect-sh-55e5ff8f",
 		"splunk_tcp/tcp-0-0-0-0-5514-4c1c5e09",
 		"splunk_udp/udp-1-5516-3417bfdb",
@@ -64,13 +66,26 @@ func receiverFactories() map[string]receiver.Factory {
 	}
 }
 
+// providerFactory registers the same six mappers internal/settings does, which
+// is the only way a receiver's stanzas reach the fragment.
+func providerFactory() confmap.ProviderFactory {
+	return splunkconf.NewFactory(splunkconf.WithInputMappers(
+		splunkmonitor.NewFactory(),
+		splunktcp.NewFactory(),
+		splunkudp.NewFactory(),
+		splunkscript.NewFactory(),
+		splunkbatch.NewFactory(),
+		splunkwineventlog.NewFactory(),
+	))
+}
+
 func resolve(t *testing.T, uris ...string) *confmap.Conf {
 	t.Helper()
 	res, err := confmap.NewResolver(confmap.ResolverSettings{
 		URIs: uris,
 		ProviderFactories: []confmap.ProviderFactory{
 			fileprovider.NewFactory(),
-			NewFactory(),
+			providerFactory(),
 		},
 	})
 	require.NoError(t, err)
@@ -279,7 +294,7 @@ func TestStanzasNotEmitted(t *testing.T) {
 		{
 			name: "unprefixed stanza name",
 			slug: "my-bare-script",
-			why:  "a modular-input scheme defaults stanza, not an input, so there is nothing to collect for it",
+			why:  "an unprefixed stanza carries global settings and declares no input",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -290,10 +305,10 @@ func TestStanzasNotEmitted(t *testing.T) {
 	}
 }
 
-// Every receiver gets the whole merged props/transforms set, matching how
-// splunk_inputs feeds the same set to each sub-receiver.
+// A system receiver gets the system props/transforms set, which is what
+// splunk_inputs feeds its system sub-receivers.
 func TestPropsTransformsParity(t *testing.T) {
-	dirs := tabuilder.ConfRootDirs(confRoot)
+	dirs := tabuilder.SystemConfRootDirs(confRoot)
 	wantProps, err := tabuilder.ReadProps(dirs)
 	require.NoError(t, err)
 	wantTransforms, err := tabuilder.ReadTransforms(dirs)
@@ -314,6 +329,72 @@ func TestPropsTransformsParity(t *testing.T) {
 	require.Equal(t, wantTransforms, cfg.Transforms)
 }
 
+// propNames is the set of props stanza names a receiver's emitted config
+// carries, which is what has to be scoped to the declaring app.
+func propNames(t *testing.T, receivers *confmap.Conf, id string) []string {
+	t.Helper()
+	sub, err := receivers.Sub(id)
+	require.NoError(t, err)
+	var cfg struct {
+		Rest  map[string]any `mapstructure:",remain"`
+		Props []conf.Prop    `mapstructure:"props"`
+	}
+	require.NoError(t, sub.Unmarshal(&cfg))
+	names := make([]string, 0, len(cfg.Props))
+	for _, prop := range cfg.Props {
+		names = append(names, prop.Name)
+	}
+	return names
+}
+
+// An app's receivers resolve props against that app's own layers merged with
+// system, which is what splunkd gives them. Resolving once across the whole
+// configuration root instead applies one app's props to another app's data.
+func TestPropsScopedToDeclaringApp(t *testing.T) {
+	merged := resolve(t, confURI)
+	receivers, err := merged.Sub("receivers")
+	require.NoError(t, err)
+
+	const (
+		demoOnly  = "demo_sourcetype"
+		otherOnly = "other_sourcetype"
+		systemOne = "syslog"
+	)
+
+	for _, tt := range []struct {
+		name    string
+		id      string
+		wants   string
+		missing string
+	}{
+		{
+			name:    "app receiver gets its own props",
+			id:      "splunk_script/script-bin-collect-sh-55e5ff8f",
+			wants:   demoOnly,
+			missing: otherOnly,
+		},
+		{
+			name:    "sibling app receiver gets its own, not the other app's",
+			id:      "splunk_monitor/monitor-var-log-other-log-44426e37",
+			wants:   otherOnly,
+			missing: demoOnly,
+		},
+		{
+			name:    "system receiver gets no app props at all",
+			id:      "splunk_tcp/tcp-0-0-0-0-5514-4c1c5e09",
+			wants:   systemOne,
+			missing: demoOnly,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			names := propNames(t, receivers, tt.id)
+			require.Contains(t, names, systemOne, "system props reach every receiver")
+			require.Contains(t, names, tt.wants)
+			require.NotContains(t, names, tt.missing)
+		})
+	}
+}
+
 // A literal $ is legal in a .conf value, and the config resolver reads a lone $
 // as a reference, so the provider emits it doubled and the resolver gives back
 // the original value.
@@ -322,9 +403,11 @@ func TestDollarInConfValues(t *testing.T) {
 		"inputs.conf":  "[monitor:///var/log/app$dollar.log]\nblacklist = \\.gz$done\n",
 		"outputs.conf": "[hecout:hec]\nuri = https://localhost:8088\nhttpEventCollectorToken = secret$value\n",
 	})
-	recvID := splunkmonitor.TypeStr + "/" + stableName("monitor:///var/log/app$dollar.log")
+	// The ID is spelled out rather than recomputed: an external test should not
+	// reach for the unexported name rule it is meant to pin.
+	recvID := splunkmonitor.TypeStr + "/monitor-var-log-app-dollar-log-73ffe9d8"
 
-	retrieved, err := provider{}.Retrieve(context.Background(), uri, nil)
+	retrieved, err := providerFactory().Create(confmap.ProviderSettings{}).Retrieve(context.Background(), uri, nil)
 	require.NoError(t, err)
 	raw, err := retrieved.AsRaw()
 	require.NoError(t, err)
@@ -345,70 +428,6 @@ func TestDollarInConfValues(t *testing.T) {
 	require.Len(t, exps, 1)
 	for _, cfg := range exps {
 		require.Equal(t, "secret$value", cfg.(map[string]any)["token"])
-	}
-}
-
-func TestParseURI(t *testing.T) {
-	for _, tt := range []struct {
-		name         string
-		uri          string
-		wantRoot     string
-		wantPipeline string
-		errMsg       string
-	}{
-		{
-			name:         "pipeline defaults to uf",
-			uri:          "splunkconf://testdata/etc",
-			wantRoot:     "testdata/etc",
-			wantPipeline: "uf",
-		},
-		{
-			name:         "pipeline query param overrides the default",
-			uri:          "splunkconf://testdata/etc?pipeline=custom",
-			wantRoot:     "testdata/etc",
-			wantPipeline: "custom",
-		},
-		{
-			name:         "absolute config root",
-			uri:          "splunkconf:///opt/splunk/etc",
-			wantRoot:     "/opt/splunk/etc",
-			wantPipeline: "uf",
-		},
-		{
-			// A native Windows root is not a legal URI authority, so the root is
-			// taken verbatim instead of through url.Parse. The space is what a
-			// default install carries.
-			name:         "windows config root with drive letter and spaces",
-			uri:          `splunkconf://C:\Program Files\SplunkUniversalForwarder\etc?pipeline=uf`,
-			wantRoot:     `C:\Program Files\SplunkUniversalForwarder\etc`,
-			wantPipeline: "uf",
-		},
-		{
-			name:   "wrong scheme",
-			uri:    "file://testdata/etc",
-			errMsg: `unexpected scheme in uri "file://testdata/etc"`,
-		},
-		{
-			name:   "empty config root",
-			uri:    "splunkconf://",
-			errMsg: "empty config root",
-		},
-		{
-			name:   "pipeline name outside the component-name charset",
-			uri:    "splunkconf://testdata/etc?pipeline=Not/Valid",
-			errMsg: `invalid pipeline "Not/Valid"`,
-		},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			root, pipeline, err := parseURI(tt.uri)
-			if tt.errMsg != "" {
-				require.ErrorContains(t, err, tt.errMsg)
-				return
-			}
-			require.NoError(t, err)
-			require.Equal(t, tt.wantRoot, root)
-			require.Equal(t, tt.wantPipeline, pipeline)
-		})
 	}
 }
 
@@ -491,10 +510,15 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			if tt.files != nil {
 				uri = "splunkconf://" + writeConfTree(t, tt.files)
 			}
-			_, err := provider{}.Retrieve(context.Background(), uri, nil)
+			p := providerFactory().Create(confmap.ProviderSettings{})
+			_, err := p.Retrieve(context.Background(), uri, nil)
 			require.ErrorContains(t, err, tt.errMsg)
 		})
 	}
+}
+
+func TestShutdownIsANoop(t *testing.T) {
+	require.NoError(t, providerFactory().Create(confmap.ProviderSettings{}).Shutdown(context.Background()))
 }
 
 // A stanza param must not overwrite a key the mapper already emitted: the
@@ -507,167 +531,7 @@ func TestParamDoesNotOverrideEmittedKey(t *testing.T) {
 
 	receivers, err := resolve(t, uri).Sub("receivers")
 	require.NoError(t, err)
-	recv, err := receivers.Sub(splunkmonitor.TypeStr + "/" + stableName("monitor:///var/log/foo"))
+	recv, err := receivers.Sub(splunkmonitor.TypeStr + "/monitor-var-log-foo-31463e8f")
 	require.NoError(t, err)
 	require.Equal(t, "/var/log/foo", recv.ToStringMap()["path"])
-}
-
-func TestStableNameOfUnslugabbleStanza(t *testing.T) {
-	require.Regexp(t, "^[0-9a-f]{8}$", stableName(":::"))
-}
-
-func TestShutdownIsANoop(t *testing.T) {
-	require.NoError(t, NewFactory().Create(confmap.ProviderSettings{}).Shutdown(context.Background()))
-}
-
-func TestMapOutputs(t *testing.T) {
-	for _, tt := range []struct {
-		name   string
-		merged conf.Map
-		wantID string
-		errMsg string
-	}{
-		{
-			name: "hecout maps to the contrib exporter",
-			merged: conf.Map{
-				"hecout": {"uri": "https://hec:8088", "httpEventCollectorToken": "tok"},
-			},
-			wantID: "splunk_hec/hecout-d6a24a0d",
-		},
-		{
-			// S2S needs a real exporter that does not exist upstream, so it arrives
-			// with the output-mapper registration API rather than being guessed at.
-			name: "tcpout has no mapping yet and must not be dropped silently",
-			merged: conf.Map{
-				"tcpout:primary": {"server": "idx1:9997"},
-			},
-			errMsg: `unsupported output stanza(s) [tcpout:primary] (kind "tcpout")`,
-		},
-		{
-			name:   "no output stanzas at all",
-			merged: conf.Map{},
-			errMsg: conf.ErrNoOutputStanzas.Error(),
-		},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			out, err := mapOutputs(tt.merged)
-			if tt.errMsg != "" {
-				require.ErrorContains(t, err, tt.errMsg)
-				return
-			}
-			require.NoError(t, err)
-			require.Len(t, out, 1)
-			require.Equal(t, tt.wantID, out[0].id)
-		})
-	}
-}
-
-// The three monitor params that bind to typed wrapper fields rather than riding
-// through Extra. TRUNCATE becomes an int, so it is the one that would break
-// strict unmarshal if emitted as a string.
-func TestEmitMonitorTypedParams(t *testing.T) {
-	inputs := []conf.Input{
-		{
-			Configuration: conf.Configuration{
-				Stanza: conf.Stanza{
-					Name: "monitor:///var/log/typed",
-					Params: conf.Params{
-						{Name: "CHARSET", Value: "UTF-8"},
-						{Name: "EVENT_BREAKER", Value: "BRK"},
-						{Name: "TRUNCATE", Value: "1024"},
-						{Name: "NOT_A_NUMBER", Value: "x"},
-					},
-				},
-			},
-		},
-	}
-
-	out, skipped, err := mapInputs(inputs, nil, nil)
-	require.NoError(t, err)
-	require.Empty(t, skipped)
-	require.Len(t, out, 1)
-	require.Equal(t, map[string]any{
-		"path":          "/var/log/typed",
-		"charset":       "UTF-8",
-		"event_breaker": "BRK",
-		"truncate":      1024,
-		"NOT_A_NUMBER":  "x",
-	}, out[0].cfg)
-}
-
-func TestParseListenAddress(t *testing.T) {
-	for _, tt := range []struct {
-		name     string
-		target   string
-		wantAddr string
-		wantPort int
-	}{
-		{
-			name:     "address and port",
-			target:   "10.0.0.5:5514",
-			wantAddr: "10.0.0.5",
-			wantPort: 5514,
-		},
-		{
-			name:     "port only means every interface",
-			target:   "5514",
-			wantAddr: "0.0.0.0",
-			wantPort: 5514,
-		},
-		{
-			name:     "empty address means every interface",
-			target:   ":5514",
-			wantAddr: "0.0.0.0",
-			wantPort: 5514,
-		},
-		{
-			// A zero port fails the wrapper's own Validate, so a malformed stanza
-			// surfaces at config time rather than binding something arbitrary.
-			name:     "out of range port",
-			target:   "99999",
-			wantAddr: "0.0.0.0",
-			wantPort: 0,
-		},
-		{
-			name:     "non-numeric port",
-			target:   "0.0.0.0:nope",
-			wantAddr: "0.0.0.0",
-			wantPort: 0,
-		},
-		{
-			// The address's own colons must not be read as the port separator.
-			// The address stays unbracketed, which is the form the receiver
-			// re-encodes with net.JoinHostPort.
-			name:     "bracketed IPv6 literal",
-			target:   "[::1]:5514",
-			wantAddr: "::1",
-			wantPort: 5514,
-		},
-		{
-			name:     "bracketed IPv6 wildcard",
-			target:   "[::]:5514",
-			wantAddr: "::",
-			wantPort: 5514,
-		},
-		{
-			name:     "bracketed full IPv6 literal",
-			target:   "[2001:db8::1]:5514",
-			wantAddr: "2001:db8::1",
-			wantPort: 5514,
-		},
-		{
-			// Brackets are what delimit the address, so without them there is no
-			// way to tell where it ends and UF does not accept the form either.
-			name:     "unbracketed IPv6 literal is not a valid target",
-			target:   "::1:5514",
-			wantAddr: "",
-			wantPort: 0,
-		},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			addr, port := parseListenAddress(tt.target)
-			require.Equal(t, tt.wantAddr, addr)
-			require.Equal(t, tt.wantPort, port)
-		})
-	}
 }

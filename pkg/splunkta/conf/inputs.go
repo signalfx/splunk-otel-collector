@@ -38,17 +38,25 @@ func ReadInput(payload []byte, appDir string) ([]Input, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := make([]Input, len(f.Sections())-1)
-	s := 0
+	var result []Input
 	for _, section := range f.Sections() {
-		if section.Name() == ini.DefaultSection {
-			continue // disregard default section. We need a stanza per input.
+		// Keys written above the first stanza header land in ini's default
+		// section, and inputs.conf.spec makes those global, the same as
+		// [default]. Reading them under that name first lets a literal [default]
+		// in the same file override them, which is the spec's "last definition
+		// in the file wins".
+		name := section.Name()
+		if name == ini.DefaultSection {
+			if len(section.Keys()) == 0 {
+				continue
+			}
+			name = defaultStanza
 		}
 		i := Input{
 			AppDir: appDir,
 			Configuration: Configuration{
 				Stanza: Stanza{
-					Name:   section.Name(),
+					Name:   name,
 					App:    appName,
 					Params: make([]Param, len(section.Keys())),
 				},
@@ -62,11 +70,10 @@ func ReadInput(payload []byte, appDir string) ([]Input, error) {
 			}
 		}
 
-		result[s] = i
-		s++
+		result = append(result, i)
 	}
 
-	return result, nil
+	return MergeInputs([][]Input{result}), nil
 }
 
 // MergeInputs merges layered inputs; later layers take precedence per param key.

@@ -130,6 +130,9 @@ func TestUpgradeAndRollbackSupervisorMode(t *testing.T) {
 		"-realm", "test",
 		"-godebug", fipsMode,
 		"-preserve_prev_default_config", "1",
+		// Use the documented install.ps1 example to verify that MSI properties pass
+		// through the script and percent-encoded custom values reach the service.
+		"-msi_public_properties", "'SPLUNK_ENVIRONMENT_VARIABLES=OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name%3Dproduction%2Cservice.namespace%3Dpayments,CUSTOM_MESSAGE=hello%20world%3B%20100%25'",
 	)
 
 	verifyLauncherServiceEntrypoint(t, scm)
@@ -138,6 +141,10 @@ func TestUpgradeAndRollbackSupervisorMode(t *testing.T) {
 		require.FileExists(t, filepath.Join(installDir, executableName))
 	}
 	verifyServiceEnvironmentContains(t, fipsEnvironment)
+	verifyServiceEnvironmentContains(t,
+		"OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=production,service.namespace=payments",
+		"CUSTOM_MESSAGE=hello world; 100%",
+	)
 	require.Equal(t, configHash, hashFile(t, configPath), "Collector configuration changed during package upgrade")
 	verifyServiceRunningWithProcess(t, scm, "otelcol.exe")
 

@@ -109,8 +109,13 @@
 .PARAMETER msi_public_properties
     (OPTIONAL) Specify public MSI properties to be used when installing the Splunk OpenTelemetry Collector MSI package.
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
+    For Collector versions newer than v0.162.0, use SPLUNK_ENVIRONMENT_VARIABLES to set arbitrary service environment variables.
+    Separate KEY=VALUE entries with commas and percent encode commas inside values as %2C. Other special characters can also be percent encoded.
+    Variable names must be nonempty and contain only ASCII letters, numbers, and underscores, including after percent decoding.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ARPCOMMENTS=DO_NOT_UNINSTALL" 
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties 'SPLUNK_ENVIRONMENT_VARIABLES=OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name%3Dproduction%2Cservice.namespace%3Dpayments,CUSTOM_MESSAGE=hello%20world%3B%20100%25'
 .PARAMETER service_account_type
     (OPTIONAL) Select the Windows service account type: `virtual` uses the dedicated, passwordless
     `NT SERVICE\splunk-otel-collector` virtual account and `localsystem` uses LocalSystem. If omitted,

@@ -7,24 +7,24 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"io"
 	"os"
+	"strings"
+	"sync"
 	"testing"
-	"time"
 
-	"gopkg.in/yaml.v3"
-
+	"github.com/goccy/go-json"
+	translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-
-	"github.com/signalfx/splunk-otel-collector/internal/auth"
 )
 
 const (
@@ -33,8 +33,6 @@ const (
 	DefaultIndexLabel      = "com.splunk.index"
 	DefaultNameLabel       = "otel.log.name"
 )
-
-var configPath = "./testdata/test_config.yaml"
 
 func prepareLogs() plog.Logs {
 	logs := plog.NewLogs()
@@ -93,180 +91,6 @@ func prepareTracesData(index, source, sourcetype string) ptrace.Traces {
 	return traces
 }
 
-type cfg struct {
-	event      string
-	index      string
-	source     string
-	sourcetype string
-}
-
-type telemetryType string
-
-var (
-	metricsType = telemetryType("metrics")
-	logsType    = telemetryType("logs")
-	tracesType  = telemetryType("traces")
-)
-
-type testCfg struct {
-	name                   string
-	config                 *cfg
-	startTime              string
-	telType                telemetryType
-	expectedResultFilePath string
-}
-
-func logsTest(t *testing.T, test testCfg) {
-	settings := exportertest.NewNopSettings(exportertest.NopType)
-	var logs plog.Logs
-	if test.config.index != "main" {
-		logs = prepareLogsNonDefaultParams(test.config.index, test.config.source, test.config.sourcetype, test.config.event)
-	} else {
-		logs = prepareLogs()
-	}
-
-	exporter, err := newLogsExporter(t.Context(), settings, createDefaultConfig())
-	require.NoError(t, err)
-
-	err = exporter.Start(t.Context(), componenttest.NewNopHost())
-	require.NoError(t, err)
-	out := CaptureStdout(t, func() {
-		err = exporter.ConsumeLogs(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
-			AllowedIndexes: []string{
-				"main",
-				test.config.index,
-			},
-		}), logs)
-	})
-
-	require.NotEmpty(t, out)
-	require.NoError(t, err, "Must not error while sending log data")
-	expectedJSON, err := os.ReadFile(test.expectedResultFilePath)
-	require.NoError(t, err)
-	require.JSONEq(t, string(expectedJSON), out)
-}
-
-func metricsTest(t *testing.T, test testCfg) {
-	settings := exportertest.NewNopSettings(exportertest.NopType)
-	metricData := prepareMetricsData(test.config.event)
-
-	exporter, err := newMetricsExporter(t.Context(), settings, createDefaultConfig())
-	require.NoError(t, err)
-	err = exporter.Start(t.Context(), componenttest.NewNopHost())
-	require.NoError(t, err)
-
-	out := CaptureStdout(t, func() {
-		err = exporter.ConsumeMetrics(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
-			AllowedIndexes: []string{
-				"main",
-				test.config.index,
-			},
-		}), metricData)
-	})
-	require.NotEmpty(t, out)
-	require.NoError(t, err, "Must not error while sending metric data")
-	expectedJSON, err := os.ReadFile(test.expectedResultFilePath)
-	require.NoError(t, err)
-	require.JSONEq(t, string(expectedJSON), out)
-}
-
-func tracesTest(t *testing.T, test testCfg) {
-	settings := exportertest.NewNopSettings(exportertest.NopType)
-	tracesData := prepareTracesData(test.config.index, test.config.source, test.config.sourcetype)
-
-	exporter, err := newTracesExporter(t.Context(), settings, createDefaultConfig())
-	require.NoError(t, err)
-	err = exporter.Start(t.Context(), componenttest.NewNopHost())
-	require.NoError(t, err)
-
-	out := CaptureStdout(t, func() {
-		err = exporter.ConsumeTraces(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
-			AllowedIndexes: []string{
-				"main",
-				test.config.index,
-			},
-		}), tracesData)
-	})
-	require.NotEmpty(t, out)
-	require.NoError(t, err, "Must not error while sending trace data")
-	expectedJSON, err := os.ReadFile(test.expectedResultFilePath)
-	require.NoError(t, err)
-	require.JSONEq(t, string(expectedJSON), out)
-}
-
-func TestSplunkHecExporter(t *testing.T) {
-	eventIndex, err := getConfigVariable(configPath, "EVENT_INDEX")
-	require.NoError(t, err)
-	metricIndex, err := getConfigVariable(configPath, "METRIC_INDEX")
-	require.NoError(t, err)
-	traceIndex, err := getConfigVariable(configPath, "TRACE_INDEX")
-	require.NoError(t, err)
-	tests := []testCfg{
-		{
-			name: "Events to Splunk - logs",
-			config: &cfg{
-				event:      "test log",
-				index:      "main",
-				source:     "otel",
-				sourcetype: "st-otel",
-			},
-			startTime:              "-3h@h",
-			telType:                logsType,
-			expectedResultFilePath: "./testdata/expected_hec_log.json",
-		},
-		{
-			name: "Events to Splunk - Non default index",
-			config: &cfg{
-				event:      "This is my new event! And some number 101",
-				index:      eventIndex,
-				source:     "otel-source",
-				sourcetype: "sck-otel-st",
-			},
-			startTime:              "-1m@m",
-			telType:                logsType,
-			expectedResultFilePath: "./testdata/expected_hec_log_non_default_index.json",
-		},
-		{
-			name: "Events to Splunk - metrics",
-			config: &cfg{
-				event:      "test.metric",
-				index:      metricIndex,
-				source:     "otel",
-				sourcetype: "st-otel",
-			},
-			startTime:              "",
-			telType:                metricsType,
-			expectedResultFilePath: "./testdata/expected_hec_metric.json",
-		},
-		{
-			name: "Events to Splunk - traces",
-			config: &cfg{
-				event:      "",
-				index:      traceIndex,
-				source:     "trace-source",
-				sourcetype: "trace-sourcetype",
-			},
-			startTime:              "-1m@m",
-			telType:                tracesType,
-			expectedResultFilePath: "./testdata/expected_hec_trace.json",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			switch test.telType {
-			case logsType:
-				logsTest(t, test)
-			case metricsType:
-				metricsTest(t, test)
-			case tracesType:
-				tracesTest(t, test)
-			default:
-				assert.Fail(t, "Telemetry type must be set to one of the following values: metrics, traces, or logs.")
-			}
-		})
-	}
-}
-
 func initSpan(name string, ts pcommon.Timestamp, span ptrace.Span) {
 	span.Attributes().PutStr("foo", "bar")
 	span.SetName(name)
@@ -293,145 +117,205 @@ func initSpan(name string, ts pcommon.Timestamp, span ptrace.Span) {
 	spanEvent.SetTimestamp(ts + 3)
 }
 
-func TestBadIndexLogs(t *testing.T) {
-	logs := prepareLogsNonDefaultParams("foo", "", "", "event")
-	settings := exportertest.NewNopSettings(exportertest.NopType)
-
-	exporter, err := newLogsExporter(t.Context(), settings, createDefaultConfig())
-	require.NoError(t, err)
-
-	err = exporter.Start(t.Context(), componenttest.NewNopHost())
-	require.NoError(t, err)
-	err = exporter.ConsumeLogs(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
-		AllowedIndexes: []string{
-			"main",
-		},
-	}), logs)
-
-	require.EqualError(t, err, `index "foo" is not allowed`)
-}
-
-func TestBadIndexMetrics(t *testing.T) {
-	m := prepareMetricsData("foo")
-	m.ResourceMetrics().At(0).Resource().Attributes().PutStr("com.splunk.index", "foo")
-	settings := exportertest.NewNopSettings(exportertest.NopType)
-
-	exporter, err := newMetricsExporter(t.Context(), settings, createDefaultConfig())
-	require.NoError(t, err)
-
-	err = exporter.Start(t.Context(), componenttest.NewNopHost())
-	require.NoError(t, err)
-	err = exporter.ConsumeMetrics(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
-		AllowedIndexes: []string{
-			"main",
-		},
-	}), m)
-
-	require.EqualError(t, err, `index "foo" is not allowed`)
-}
-
-func TestBadIndexTraces(t *testing.T) {
-	td := prepareTracesData("bar", "", "")
-	settings := exportertest.NewNopSettings(exportertest.NopType)
-
-	exporter, err := newTracesExporter(t.Context(), settings, createDefaultConfig())
-	require.NoError(t, err)
-
-	err = exporter.Start(t.Context(), componenttest.NewNopHost())
-	require.NoError(t, err)
-	err = exporter.ConsumeTraces(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
-		AllowedIndexes: []string{
-			"main",
-		},
-	}), td)
-
-	require.EqualError(t, err, `index "bar" is not allowed`)
-}
-
-func TestBadIndexTracesResource(t *testing.T) {
-	td := prepareTracesData("foo", "", "")
-	settings := exportertest.NewNopSettings(exportertest.NopType)
-
-	exporter, err := newTracesExporter(t.Context(), settings, createDefaultConfig())
-	require.NoError(t, err)
-
-	err = exporter.Start(t.Context(), componenttest.NewNopHost())
-	require.NoError(t, err)
-	err = exporter.ConsumeTraces(context.WithValue(t.Context(), auth.ContextKey, auth.HecTokenConfig{
-		AllowedIndexes: []string{
-			"main",
-		},
-	}), td)
-
-	require.EqualError(t, err, `index "foo" is not allowed`)
-}
-
-type IntegrationTestsConfig struct {
-	Host           string `yaml:"HOST"`
-	User           string `yaml:"USER"`
-	Password       string `yaml:"PASSWORD"`
-	UIPort         string `yaml:"UI_PORT"`
-	HecPort        string `yaml:"HEC_PORT"`
-	ManagementPort string `yaml:"MANAGEMENT_PORT"`
-	EventIndex     string `yaml:"EVENT_INDEX"`
-	MetricIndex    string `yaml:"METRIC_INDEX"`
-	TraceIndex     string `yaml:"TRACE_INDEX"`
-	HecToken       string `yaml:"HEC_TOKEN"`
-	SplunkImage    string `yaml:"SPLUNK_IMAGE"`
-}
-
-func getConfigVariable(configPath, key string) (string, error) {
-	// Read YAML file
-	fileData, err := os.ReadFile(configPath)
-	if err != nil {
-		return "", fmt.Errorf("error reading file: %w", err)
-	}
-
-	var config IntegrationTestsConfig
-	err = yaml.Unmarshal(fileData, &config)
-	if err != nil {
-		return "", fmt.Errorf("error decoding YAML: %w", err)
-	}
-
-	switch key {
-	case "EVENT_INDEX":
-		return config.EventIndex, nil
-	case "METRIC_INDEX":
-		return config.MetricIndex, nil
-	case "TRACE_INDEX":
-		return config.TraceIndex, nil
-	default:
-		fmt.Println("invalid field")
-		return "None", fmt.Errorf("invalid field %v", key)
+// TestHECJSONEncoding verifies the HEC event format written to stdout; no HTTP
+// request or HEC endpoint is involved.
+func TestHECJSONEncoding(t *testing.T) {
+	for _, signal := range []string{"logs", "logs_attributes", "metrics", "traces"} {
+		t.Run(signal, func(t *testing.T) {
+			t.Parallel()
+			var out bytes.Buffer
+			e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+			var err error
+			var fixture string
+			switch signal {
+			case "logs":
+				ld := prepareLogs()
+				ld.MarkReadOnly()
+				err = e.pushLogs(t.Context(), ld)
+				fixture = "expected_hec_log.json"
+			case "logs_attributes":
+				ld := prepareLogsNonDefaultParams("sck-otel", "otel-source", "sck-otel-st", "This is my new event! And some number 101")
+				ld.MarkReadOnly()
+				err = e.pushLogs(t.Context(), ld)
+				fixture = "expected_hec_log_non_default_index.json"
+			case "metrics":
+				md := prepareMetricsData("test.metric")
+				md.MarkReadOnly()
+				err = e.pushMetrics(t.Context(), md)
+				fixture = "expected_hec_metric.json"
+			case "traces":
+				td := prepareTracesData("sck-traces", "trace-source", "trace-sourcetype")
+				td.MarkReadOnly()
+				err = e.pushTraces(t.Context(), td)
+				fixture = "expected_hec_trace.json"
+			}
+			require.NoError(t, err)
+			expected, err := os.ReadFile("testdata/" + fixture)
+			require.NoError(t, err)
+			require.JSONEq(t, string(expected), out.String())
+			require.True(t, strings.HasSuffix(out.String(), "\n"))
+		})
 	}
 }
 
-// CaptureStdout captures all stdout output generated by fn and returns it as a string.
-func CaptureStdout(t *testing.T, fn func()) string {
-	t.Helper()
+func TestConfigDefaultsAndAttributePrecedence(t *testing.T) {
+	t.Parallel()
+	for _, signal := range []string{"logs", "metrics", "traces"} {
+		for _, attributes := range []bool{false, true} {
+			t.Run(signal+"/attributes="+map[bool]string{false: "false", true: "true"}[attributes], func(t *testing.T) {
+				t.Parallel()
+				var out bytes.Buffer
+				e := newModinputExporter(&Config{Source: "configured-source", Sourcetype: "configured-type", Index: "configured-index"}, componenttest.NewNopTelemetrySettings(), &out)
+				var attrs pcommon.Map
+				var push func() error
+				switch signal {
+				case "logs":
+					ld := prepareLogs()
+					attrs = ld.ResourceLogs().At(0).Resource().Attributes()
+					push = func() error { return e.pushLogs(t.Context(), ld) }
+				case "metrics":
+					md := prepareMetricsData("test.metric")
+					attrs = md.ResourceMetrics().At(0).Resource().Attributes()
+					push = func() error { return e.pushMetrics(t.Context(), md) }
+				case "traces":
+					td := prepareTracesData("", "", "")
+					attrs = td.ResourceSpans().At(0).Resource().Attributes()
+					attrs.Clear()
+					push = func() error { return e.pushTraces(t.Context(), td) }
+				}
+				prefix := "configured-"
+				if attributes {
+					prefix = "attribute-"
+					attrs.PutStr(DefaultSourceLabel, prefix+"source")
+					attrs.PutStr(DefaultSourceTypeLabel, prefix+"type")
+					attrs.PutStr(DefaultIndexLabel, prefix+"index")
+				}
+				require.NoError(t, push())
+				var event translator.Event
+				require.NoError(t, json.Unmarshal(out.Bytes(), &event))
+				assert.Equal(t, prefix+"source", event.Source)
+				assert.Equal(t, prefix+"type", event.SourceType)
+				assert.Equal(t, prefix+"index", event.Index)
+			})
+		}
+	}
+}
 
-	original := os.Stdout
+type writerFunc func([]byte) (int, error)
+
+func (f writerFunc) Write(b []byte) (int, error) { return f(b) }
+
+func TestWriteErrors(t *testing.T) {
+	t.Parallel()
+	writeErr := errors.New("broken pipe")
+	for _, tt := range []struct {
+		writer io.Writer
+		want   error
+		name   string
+	}{
+		{name: "write failure", writer: writerFunc(func([]byte) (int, error) { return 0, writeErr }), want: writeErr},
+		{name: "short write", writer: writerFunc(func(b []byte) (int, error) { return len(b) - 1, nil }), want: io.ErrShortWrite},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			for _, signal := range []string{"logs", "metrics", "traces"} {
+				e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), tt.writer)
+				var err error
+				switch signal {
+				case "logs":
+					err = e.pushLogs(t.Context(), prepareLogs())
+				case "metrics":
+					err = e.pushMetrics(t.Context(), prepareMetricsData("metric"))
+				case "traces":
+					err = e.pushTraces(t.Context(), prepareTracesData("", "", ""))
+				}
+				require.ErrorIs(t, err, tt.want)
+			}
+		})
+	}
+}
+
+func TestMarshalErrorIsPermanent(t *testing.T) {
+	t.Parallel()
+	var out bytes.Buffer
+	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+	err := e.writeEvent(&translator.Event{Event: make(chan int)})
+	require.Error(t, err)
+	assert.True(t, consumererror.IsPermanent(err))
+	assert.Empty(t, out.String())
+}
+
+func TestEmptyAndCanceledData(t *testing.T) {
+	t.Parallel()
+	var out bytes.Buffer
+	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+	require.NoError(t, e.pushLogs(t.Context(), plog.NewLogs()))
+	require.NoError(t, e.pushMetrics(t.Context(), pmetric.NewMetrics()))
+	require.NoError(t, e.pushTraces(t.Context(), ptrace.NewTraces()))
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	require.ErrorIs(t, e.pushLogs(ctx, prepareLogs()), context.Canceled)
+	require.ErrorIs(t, e.pushMetrics(ctx, prepareMetricsData("metric")), context.Canceled)
+	require.ErrorIs(t, e.pushTraces(ctx, prepareTracesData("", "", "")), context.Canceled)
+	assert.Empty(t, out.String())
+}
+
+func TestConcurrentInstances(t *testing.T) {
+	t.Parallel()
+	var out bytes.Buffer
+	var wg sync.WaitGroup
+	for range 20 {
+		wg.Go(func() {
+			e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+			assert.NoError(t, e.pushLogs(t.Context(), prepareLogs()))
+			assert.NoError(t, e.pushMetrics(t.Context(), prepareMetricsData("metric")))
+			assert.NoError(t, e.pushTraces(t.Context(), prepareTracesData("", "", "")))
+		})
+	}
+	wg.Wait()
+	lines := strings.Split(strings.TrimSuffix(out.String(), "\n"), "\n")
+	require.Len(t, lines, 60)
+	for _, line := range lines {
+		assert.True(t, json.Valid([]byte(line)))
+	}
+}
+
+// Exercise the public factory with a real stdout pipe as the mock backend.
+func TestFactoryOutput(t *testing.T) {
 	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("failed to create stdout pipe: %v", err)
-	}
+	require.NoError(t, err)
+	original := os.Stdout
 	os.Stdout = w
-
-	outputCh := make(chan string, 1)
-	go func() {
-		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, r)
-		_ = r.Close()
-		outputCh <- buf.String()
-	}()
-
-	fn()
-
-	// TODO: Find a way to synchronize without sleep.
-	time.Sleep(1 * time.Second)
-
-	_ = w.Close()
+	t.Cleanup(func() { os.Stdout = original; _ = w.Close(); _ = r.Close() })
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig().(*Config)
+	cfg.Source = "factory-source"
+	set := exportertest.NewNopSettings(factory.Type())
+	e, err := factory.CreateLogs(t.Context(), set, cfg)
+	require.NoError(t, err)
+	require.NoError(t, e.Start(t.Context(), componenttest.NewNopHost()))
+	require.NoError(t, e.ConsumeLogs(t.Context(), prepareLogs()))
+	require.NoError(t, e.Shutdown(t.Context()))
+	require.NoError(t, w.Close())
 	os.Stdout = original
+	out, err := io.ReadAll(r)
+	require.NoError(t, err)
+	assert.Contains(t, string(out), `"source":"factory-source"`)
+}
 
-	return <-outputCh
+func TestMetricsCancellationBetweenEvents(t *testing.T) {
+	t.Parallel()
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	writes := 0
+	writer := writerFunc(func(b []byte) (int, error) {
+		writes++
+		cancel()
+		return len(b), nil
+	})
+	md := prepareMetricsData("test.metric")
+	md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().AppendEmpty().SetIntValue(42)
+	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), writer)
+	require.ErrorIs(t, e.pushMetrics(ctx, md), context.Canceled)
+	assert.Equal(t, 1, writes)
 }

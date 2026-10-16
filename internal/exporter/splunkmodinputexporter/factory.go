@@ -4,29 +4,45 @@
 package splunkmodinputexporter
 
 import (
+	"context"
+	"os"
+
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/exporter/exporterhelper"
+
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter/internal/metadata"
 )
 
-// This file implements factory for Splunk modular input exporter.
-
-const (
-	typeStr        = "splunk_modinput"
-	stabilityLevel = component.StabilityLevelDevelopment
-)
-
-// NewFactory creates a factory for Splunk modular input exporter.
+// NewFactory creates a factory for the splunk_modinput exporter.
 func NewFactory() exporter.Factory {
 	return exporter.NewFactory(
-		component.MustNewType(typeStr),
+		metadata.Type,
 		createDefaultConfig,
-		exporter.WithLogs(newLogsExporter, stabilityLevel),
-		exporter.WithMetrics(newMetricsExporter, stabilityLevel),
-		exporter.WithTraces(newTracesExporter, stabilityLevel),
+		exporter.WithLogs(newLogsExporter, metadata.LogsStability),
+		exporter.WithMetrics(newMetricsExporter, metadata.MetricsStability),
+		exporter.WithTraces(newTracesExporter, metadata.TracesStability),
 	)
 }
 
-// CreateDefaultConfig creates the default configuration for Splunk modular input exporter.
-func createDefaultConfig() component.Config {
-	return &Config{}
+func newLogsExporter(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Logs, error) {
+	e := newModinputExporter(cfg.(*Config), set.TelemetrySettings, os.Stdout)
+	return exporterhelper.NewLogs(ctx, set, cfg, e.pushLogs,
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
+		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}))
+}
+
+func newMetricsExporter(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Metrics, error) {
+	e := newModinputExporter(cfg.(*Config), set.TelemetrySettings, os.Stdout)
+	return exporterhelper.NewMetrics(ctx, set, cfg, e.pushMetrics,
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
+		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}))
+}
+
+func newTracesExporter(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Traces, error) {
+	e := newModinputExporter(cfg.(*Config), set.TelemetrySettings, os.Stdout)
+	return exporterhelper.NewTraces(ctx, set, cfg, e.pushTraces,
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
+		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}))
 }

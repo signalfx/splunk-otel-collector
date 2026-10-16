@@ -17,6 +17,7 @@ package auth
 import (
 	"context"
 	_ "embed"
+	"encoding/xml"
 	"fmt"
 	"net"
 	"net/http"
@@ -28,6 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/extension/extensionauth"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
@@ -63,6 +65,54 @@ func TestAuthSucceedsForLoopbackTLSCertificateWithoutIPSANs(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestReadTokensDisabled(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		field    string
+		disabled bool
+	}{
+		{name: "enabled", field: `<s:key name="disabled">0</s:key>`},
+		{name: "disabled", field: `<s:key name="disabled">1</s:key>`, disabled: true},
+		{name: "unexpected value", field: `<s:key name="disabled">true</s:key>`, disabled: true},
+		{name: "empty value", field: `<s:key name="disabled"></s:key>`, disabled: true},
+		{name: "missing"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			body := strings.Replace(tokenPageXML(1, 0, 1), "<s:dict>", "<s:dict>"+tc.field, 1)
+			var f feed
+			require.NoError(t, xml.Unmarshal([]byte(body), &f))
+			require.Equal(t, []HecTokenConfig{{
+				Token:          configopaque.String("token-0"),
+				Disabled:       tc.disabled,
+				DefaultIndex:   "index-0",
+				AllowedIndexes: []string{"index-0", "main"},
+			}}, readTokens(f))
+		})
+	}
+}
+
+func TestAuthDisabledToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		body := strings.Replace(tokenPageXML(2, 0, 2), "<s:dict>", `<s:dict><s:key name="disabled">1</s:key>`, 1)
+		_, _ = fmt.Fprint(w, body)
+	}))
+	t.Cleanup(server.Close)
+	e, err := New(t.Context(), componenttest.NewNopTelemetrySettings(), server.URL, "session-key")
+	require.NoError(t, err)
+	se := e.(extensionauth.Server)
+	ctx, err := se.Authenticate(t.Context(), map[string][]string{
+		"Authorization": {"Splunk token-0"},
+	})
+	require.EqualError(t, err, "HEC token is disabled")
+	require.Nil(t, ctx.Value(ContextKey))
+
+	ctx, err = se.Authenticate(t.Context(), map[string][]string{
+		"Authorization": {"Splunk token-1"},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "index-1", ctx.Value(ContextKey).(HecTokenConfig).DefaultIndex)
+}
+
 func TestAuthPagination(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
@@ -82,7 +132,10 @@ func TestAuthPagination(t *testing.T) {
 				assert.Equal(t, "Splunk session-key", r.Header.Get("Authorization"))
 				assert.False(t, r.URL.Query().Has("count"))
 				offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-				assert.NoError(t, err)
+				if !assert.NoError(t, err) {
+					http.Error(w, "invalid offset", http.StatusBadRequest)
+					return
+				}
 				offsets = append(offsets, offset)
 				_, _ = fmt.Fprint(w, tokenPageXML(tc.total, offset, min(tc.pageSize, tc.total-offset)))
 			}))

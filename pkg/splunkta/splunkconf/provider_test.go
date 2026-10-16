@@ -535,3 +535,39 @@ func TestParamDoesNotOverrideEmittedKey(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "/var/log/foo", recv.ToStringMap()["path"])
 }
+
+// inputs.conf globals configure the instance stanzas rather than declaring
+// inputs of their own, so they reach the emitted receivers and emit nothing
+// themselves. [monitor] is not one: UF ignores it, per the global-stanzas
+// parity case, so it stays an ordinary stanza and is reported unsupported.
+func TestGlobalStanzasReachEmittedReceivers(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf": "host = from_top\n" +
+			"\n[default]\nsourcetype = from_default\n" +
+			"\n[monitor:///var/log/a]\n" +
+			"\n[monitor:///var/log/b]\nsourcetype = own_st\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\nhttpEventCollectorToken = tok\n",
+	})
+
+	merged := resolve(t, uri)
+	receivers, err := merged.Sub("receivers")
+	require.NoError(t, err)
+
+	ids := receivers.ToStringMap()
+	require.Len(t, ids, 2, "only the two instance stanzas are inputs: %v", ids)
+
+	for _, tt := range []struct {
+		id             string
+		wantSourcetype string
+	}{
+		{id: "splunk_monitor/monitor-var-log-a-77c17b38", wantSourcetype: "from_default"},
+		{id: "splunk_monitor/monitor-var-log-b-82d2526a", wantSourcetype: "own_st"},
+	} {
+		require.Contains(t, ids, tt.id)
+		sub, subErr := receivers.Sub(tt.id)
+		require.NoError(t, subErr)
+		cfg := sub.ToStringMap()
+		require.Equal(t, "from_top", cfg["host"], "a pre-stanza global reaches the receiver")
+		require.Equal(t, tt.wantSourcetype, cfg["sourcetype"], "the instance's own value outranks [default]")
+	}
+}

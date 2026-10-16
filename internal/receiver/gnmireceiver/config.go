@@ -185,11 +185,28 @@ func (cfg *Config) Validate() error {
 	if serverEndpoint != "" && len(cfg.Server.Subscriptions) == 0 {
 		return errors.New("server.subscriptions must contain at least one subscription when the server endpoint is set")
 	}
+	if serverEndpoint != "" {
+		for i, sub := range cfg.Server.Subscriptions {
+			prefix := fmt.Sprintf("server.subscriptions[%d]", i)
+			if sub.Mode != "" {
+				return fmt.Errorf("%s.mode is not supported for server subscriptions", prefix)
+			}
+			if sub.SampleInterval != 0 {
+				return fmt.Errorf("%s.sample_interval is not supported for server subscriptions", prefix)
+			}
+			if sub.HeartbeatInterval != 0 {
+				return fmt.Errorf("%s.heartbeat_interval is not supported for server subscriptions", prefix)
+			}
+			if sub.SuppressRedundant {
+				return fmt.Errorf("%s.suppress_redundant is not supported for server subscriptions", prefix)
+			}
+		}
+	}
 	if len(cfg.YangModules) == 0 {
 		if err := validateMetricConfigRequired(cfg.Targets); err != nil {
 			return err
 		}
-		if cfg.Server != nil {
+		if serverEndpoint != "" {
 			return validateSubscriptionMetricConfig(cfg.Server.Subscriptions, "server.subscriptions", false)
 		}
 	}

@@ -73,6 +73,10 @@ requires `subscriptions` to select incoming paths and map their values. It uses 
 collector gRPC server settings, including TLS, authentication, and message size limits. A
 message's `prefix.target` is used for the `server.address` resource attribute when present;
 otherwise the configured server endpoint is used.
+For `server.subscriptions`, configure only `path`, `origin`, and the metric mapping fields
+(`default` and `overrides`). Outbound subscription controls (`mode`, `sample_interval`,
+`heartbeat_interval`, and `suppress_redundant`) are not supported on this inbound stream and
+are rejected when set.
 
 ### Target
 

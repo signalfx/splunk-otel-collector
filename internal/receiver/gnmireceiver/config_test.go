@@ -88,6 +88,35 @@ func TestLoadServerOnlyConfig(t *testing.T) {
 	require.Len(t, cfg.Server.Subscriptions, 1)
 }
 
+func TestValidateServerSubscriptions(t *testing.T) {
+	t.Parallel()
+
+	server := NewDefaultServerConfig()
+	server.NetAddr.Endpoint = "localhost:0"
+	server.Subscriptions = []SubscriptionConfig{{
+		Path:    "/interfaces/interface/state/counters",
+		Default: &MetricConfig{Type: metricTypeSum},
+	}}
+	cfg := &Config{Server: &server}
+	require.NoError(t, cfg.Validate())
+
+	server.Subscriptions[0].Mode = modeSample
+	server.Subscriptions[0].SampleInterval = time.Second
+	require.ErrorContains(t, cfg.Validate(), "server.subscriptions[0].mode is not supported")
+
+	server.NetAddr.Endpoint = ""
+	target := NewDefaultTargetConfig()
+	target.ClientConfig.Endpoint = "localhost:57400"
+	target.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: time.Second,
+		Default:        &MetricConfig{Type: metricTypeSum},
+	}}
+	cfg.Targets = []TargetConfig{target}
+	require.NoError(t, cfg.Validate(), "disabled server subscriptions are not validated")
+}
+
 func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {
 	t.Parallel()
 

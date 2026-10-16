@@ -154,8 +154,12 @@ expected:                     # the fields to compare, and nothing else
   raw: true
   host: true
   # fields: [punct, "date_*"]  # search fields, by name or glob
-os: ["darwin", "linux", "windows"]
+os: ["linux"]                 # platforms to run on; unset runs on every platform
 ```
+
+`os` is a filter for a platform-specific case: a case that leaves it out runs
+wherever the suite is run, and a case that sets it is skipped on a platform it
+does not name.
 
 `expected` is the case's filter: it names the fields the case is defined on, and
 nothing else. `raw`, `host`, `source`, `sourcetype` and `index` are booleans;
@@ -212,10 +216,10 @@ Then generate the golden with `make update-goldens` (see above) and commit it.
 ## How the candidate is configured
 
 `collector.yaml` is optional. A case that has one is run from it. A case that
-does not is run from the same `conf/` the oracle reads, through the
-`splunk_inputs` receiver and `splunk_outputs` exporter, which covers the `.conf`
-translation end to end: a stanza the collector maps differently shows up as a
-mismatch instead of passing on a hand-written equivalent.
+does not is run from the same `conf/` the oracle reads, through the `splunkconf`
+config provider, which covers the `.conf` translation end to end: a stanza the
+provider maps differently shows up as a mismatch instead of passing on a
+hand-written equivalent.
 
 So a case asserts one of two things, and which one is visible from its directory:
 
@@ -225,18 +229,19 @@ So a case asserts one of two things, and which one is visible from its directory
 - **without `collector.yaml`** — our `.conf` support reaches the golden from the
   same input UF got.
 
-The collector config for a `conf/`-driven case is the framework's, not the
-case's. It names the two components and nothing else: they discover every stanza
-themselves, so there is nothing a case could vary, and keeping the config out of
-the case directory means a case cannot pin the translation it exists to test.
-Handed a case's `*.conf`, the adapter installs them into `etc/system/local` of a
-sandbox `$SPLUNK_HOME` and starts the collector with that variable set, the same
-way the UF adapter installs them into its own install, so the components resolve
-the tree as an install does rather than from a `base_dir`. The case also enables
-`enableTARunner`, the alpha gate the two components are registered behind.
+Such a case has no collector config at all. Its only `--config` is
+`splunkconf://${SPLUNK_HOME}/etc`, and the provider emits the receivers,
+exporters and pipeline from the stanzas it finds, so there is nothing a case
+could vary and nothing in the case directory that could pin the translation it
+exists to test. Handed a case's `*.conf`, the adapter installs them into
+`etc/system/local` of a sandbox `$SPLUNK_HOME`, the same way the UF adapter
+installs them into its own install, and resolves `${SPLUNK_HOME}` in the URI to
+that tree, standing in for the shell that would expand it in a real deployment.
+The case also enables `enableTARunner`, the alpha gate the emitted `splunk_*`
+receivers are registered behind.
 
 `outputs.conf` is the one file such a case does not supply to the candidate: the
-oracle ships events with `[httpout]`, a kind `splunk_outputs` skips, so the
+oracle ships events with `[httpout]`, which the provider does not map, so the
 framework renders a `[hecout]` stanza pointing at the backend instead.
 
 ## Running

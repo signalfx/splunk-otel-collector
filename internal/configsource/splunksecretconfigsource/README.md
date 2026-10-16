@@ -1,4 +1,9 @@
-# Splunk Secret Config Source (Alpha)
+# Splunk Secret Config Source
+
+| Status | |
+| --- | --- |
+| Stability | Alpha |
+| Distributions | [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector) |
 
 Use the `splunk_secret` config source to retrieve secrets stored in Splunk's local
 [secret storage](https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/secretstorage/secretstoragerest)
@@ -13,31 +18,38 @@ source works out-of-the-box when running as a TA modular input.
 
 ## Configuration
 
-Under `config_sources:` use `splunk_secret:` or `splunk_secret/<name>:` to create a
-Splunk secret config source. The following parameters are available:
+Under `config_sources:`, use `splunk_secret:` or `splunk_secret/<name>:` to create a
+Splunk secret config source. `endpoint` and `session_key` are required unless their
+respective environment variables are set. The TA launcher sets both variables, so
+an empty `splunk_secret:` entry is sufficient when running as a TA modular input.
+
+| Option | Required | Default | Description |
+| --- | --- | --- | --- |
+| `endpoint` | Unless `SPLUNK_MANAGEMENT_URI` is set | `SPLUNK_MANAGEMENT_URI` environment variable | The splunkd management URI, such as `https://127.0.0.1:8089`. |
+| `session_key` | Unless `SPLUNK_SESSION_KEY` is set | `SPLUNK_SESSION_KEY` environment variable | Authenticates requests to the `storage/passwords` endpoint. |
+| `app` | No | `"-"` (all apps) | Limits the lookup to a Splunk app namespace; use it to disambiguate credentials with the same realm and name. |
+| `user` | No | `"-"` (all users) | Limits the lookup to a Splunk user namespace; use it to disambiguate credentials with the same realm and name. |
+| `insecure_skip_verify` | No | Unset | Set `true` to skip TLS certificate verification. When unset, verification is skipped only for literal loopback HTTPS endpoints; set `false` to require verification there. |
+| `timeout` | No | `10s` | Maximum time to wait for a response from splunkd. Must not be negative. |
+
+### Example configuration
+
+When running as a TA modular input:
 
 ```yaml
 config_sources:
   splunk_secret:
-    # endpoint is the splunkd management URI, e.g. "https://127.0.0.1:8089".
-    # Defaults to the SPLUNK_MANAGEMENT_URI environment variable.
-    endpoint: ${env:SPLUNK_MANAGEMENT_URI}
-    # session_key authenticates requests to the storage/passwords endpoint.
-    # Defaults to the SPLUNK_SESSION_KEY environment variable.
+```
+
+Outside a TA modular input, provide credentials explicitly:
+
+```yaml
+config_sources:
+  splunk_secret:
+    endpoint: https://splunk.example.com:8089
     session_key: ${env:SPLUNK_SESSION_KEY}
-    # app scopes the storage/passwords lookup to a specific Splunk app namespace.
-    # Set this to disambiguate credentials that collide across apps. Defaults to "-" (all apps).
-    app: "-"
-    # user scopes the storage/passwords lookup to a specific Splunk user namespace.
-    # Set this to disambiguate credentials that collide across users. Defaults to "-" (all users).
-    user: "-"
-    # insecure_skip_verify disables TLS certificate verification for splunkd.
-    # Loopback endpoints are verified normally unless this option is true.
-    # Defaults to false.
-    insecure_skip_verify: false
-    # timeout is the maximum amount of time to wait for a response from splunkd.
-    # Defaults to 10s.
-    timeout: 10s
+    app: search
+    user: admin
 ```
 
 ## Selector syntax
@@ -52,7 +64,7 @@ namespace it was created in. If a selector matches credentials owned by more
 than one user/app namespace, the lookup fails with an ambiguous selector error;
 set the `user` and/or `app` config fields to disambiguate.
 
-## Example
+## Using a secret in a receiver
 
 Configuring the [OpenTelemetry PostgreSQL receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/d975955280b0345300af84e7a029004541fb89ab/receiver/postgresqlreceiver#postgresql-receiver)
 to monitor the PostgreSQL instance installed in Splunk Enterprise search heads (Linux only),

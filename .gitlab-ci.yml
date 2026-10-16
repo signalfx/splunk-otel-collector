@@ -379,7 +379,7 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
+      - TARGET: [binaries-aix_ppc64, binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-windows_arm64, binaries-linux_ppc64le]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -1841,6 +1841,7 @@ github-release:
       artifacts: true
   script:
     - mkdir -p dist/assets
+    - cp bin/otelcol_aix_ppc64 dist/assets/
     - cp bin/otelcol_linux_* dist/assets/
     - cp bin/otelcol-fips_linux_* dist/assets/
     - cp instrumentation/dist/libotelinject_*.so dist/assets/

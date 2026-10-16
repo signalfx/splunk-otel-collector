@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## chef-v0.23.0
+
+- Remove the unused rubyzip runtime dependency from Chef cookbook.
+
 ## chef-v0.22.0
 
 ### 🛑 Breaking changes 🛑

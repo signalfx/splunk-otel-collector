@@ -8,12 +8,12 @@ require (
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component v1.69.0
 	go.opentelemetry.io/collector/component/componenttest v0.163.0
-	go.opentelemetry.io/collector/config/configopaque v1.69.0
-	go.opentelemetry.io/collector/config/configtls v1.69.0
 	go.opentelemetry.io/collector/confmap v1.69.0
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.69.0
 	go.opentelemetry.io/collector/consumer v1.69.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.163.0
 	go.opentelemetry.io/collector/exporter v1.69.0
+	go.opentelemetry.io/collector/exporter/exportertest v0.163.0
 	go.opentelemetry.io/collector/featuregate v1.69.0
 	go.opentelemetry.io/collector/pdata v1.69.0
 	go.opentelemetry.io/collector/receiver v1.69.0
@@ -78,8 +78,10 @@ require (
 	go.opentelemetry.io/collector/config/confighttp v0.163.0 // indirect
 	go.opentelemetry.io/collector/config/configmiddleware v1.69.0 // indirect
 	go.opentelemetry.io/collector/config/confignet v1.69.0 // indirect
+	go.opentelemetry.io/collector/config/configopaque v1.69.0 // indirect
 	go.opentelemetry.io/collector/config/configoptional v1.69.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v1.69.0 // indirect
+	go.opentelemetry.io/collector/config/configtls v1.69.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.163.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/xconsumererror v0.163.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.163.0 // indirect

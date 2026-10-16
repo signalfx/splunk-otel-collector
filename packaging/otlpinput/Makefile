@@ -2,6 +2,7 @@ GOCMD?=go
 
 VERSION ?= $(shell git describe --match "v[0-9]*" HEAD)
 PKG_NAME ?= splunk-connect-for-otlp
+TEST_KEEP_RUNNING ?= 0
 
 .PHONY := tgz
 tgz: build
@@ -28,6 +29,10 @@ splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp:
 
 .PHONY := build
 build: splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp
+
+.PHONY := test-ip-sans
+test-ip-sans: splunk-connect-for-otlp.tgz
+	OTLP_PACKAGE_PATH="$(CURDIR)/out/distribution/splunk-connect-for-otlp.tgz" TEST_KEEP_RUNNING="$(TEST_KEEP_RUNNING)" sh ./example/test-ip-sans.sh
 
 .PHONY := splunk
 splunk: splunk-connect-for-otlp.tgz

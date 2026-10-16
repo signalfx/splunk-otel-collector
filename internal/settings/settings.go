@@ -35,6 +35,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
 )
 
 // envVarWarnings is a map of warnings to be logged when a specific environment variable is used in a user config.
@@ -208,6 +209,11 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 		s.discovery.ConfigDProviderFactory(),
 		s.discovery.DiscoveryModeProviderFactory(),
 		s.discovery.PropertiesFileProviderFactory(),
+
+		// Splunk .conf interop: resolves splunkconf://<config-root>?pipeline=<name>
+		// into an in-memory logs pipeline. Inert unless such a URI is passed, and
+		// the components it emits are registered only under the enableTARunner gate.
+		splunkconf.NewFactory(),
 	}
 }
 

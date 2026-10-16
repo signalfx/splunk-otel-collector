@@ -57,3 +57,24 @@ enableSSL  = 1
 serverCert = /certs/server.crt
 serverKey  = /certs/server.key
 ```
+
+### TLS IP SANs regression check
+
+`test-ip-sans.sh` runs this stack with a locally built package and checks
+that the OTLP receiver starts and that its server certificate validates
+both by hostname and by IP literal. The modular input also calls back
+into Splunk's own management API at the literal
+`https://127.0.0.1:8089` on startup (see `internal/auth/auth.go`), which
+fails against Splunk's own self-signed certificate for the same reason.
+Run it with `make test-ip-sans` from the parent directory. Pass
+`TEST_KEEP_RUNNING=1` to leave the stack (and the Splunk Web UI on
+[http://localhost:18000](http://localhost:18000)) running after the test
+instead of tearing it down, e.g. `make test-ip-sans TEST_KEEP_RUNNING=1`.
+
+### HEC token pagination regression check
+
+Run `TEST_HEC_PAGINATION=1 make test-ip-sans` from the parent directory. This seeds
+61 HEC tokens in the extracted app's `local/inputs.conf` before Splunk and
+the TA start. It verifies that the default management API listing omits
+tokens, then requires OTLP log requests to succeed with every seeded token.
+An unknown token must be rejected.

@@ -225,6 +225,8 @@ go.opentelemetry.io/collector/config/configtls v1.69.0 h1:pygxB6oHg0yWRG6xsw8Nnb
 go.opentelemetry.io/collector/config/configtls v1.69.0/go.mod h1:hS53GM5G8ZNhlUvpiour3YUEQE2GUnTHD0t6ZjydEDw=
 go.opentelemetry.io/collector/confmap v1.69.0 h1:PfCZR4752WXa0cDKEOphnboLNLTJhrvjvnM8OUD847w=
 go.opentelemetry.io/collector/confmap v1.69.0/go.mod h1:B3mmFRAkl0x24l2/oM8KAApgI1JDEnew8BMzqJ08rMw=
+go.opentelemetry.io/collector/confmap/provider/fileprovider v1.69.0 h1:LOhRnVcW8Ol2LYfddCcxX/7QrORDDjSaE+HA3tSguF4=
+go.opentelemetry.io/collector/confmap/provider/fileprovider v1.69.0/go.mod h1:wYG4dN/rvfUzdjCB5u50iEWRyWjHJjF6gUqPTBbbpbU=
 go.opentelemetry.io/collector/consumer v1.69.0 h1:bgPqG4fRn9o70MSOB7rQPvlHRBQ1XmMtxqI9Wjk/PFI=
 go.opentelemetry.io/collector/consumer v1.69.0/go.mod h1:eMzP5WIsb4UUqVTl3pvrOPk5NOuwJ/55EmS2Kzva/J0=
 go.opentelemetry.io/collector/consumer/consumererror v0.163.0 h1:U110UnktprP2CqpOsOLeefMXdzawF8D2HXsZxaiGFsM=

@@ -74,7 +74,10 @@ func run() (runErr error) {
 		Resource:       pcommon.NewResource(),
 	}
 
-	xmlCfg := config.Extract()
+	xmlCfg, errExtract := config.Extract()
+	if errExtract != nil {
+		return fmt.Errorf("cannot start TA due to invalid configuration: %w", errExtract)
+	}
 	if err := xmlCfg.Validate(); err != nil {
 		return fmt.Errorf("cannot start TA due to invalid configuration: %w", err)
 	}
@@ -161,7 +164,7 @@ func run() (runErr error) {
 	if authExtension, err = authFactory.Create(ctx, extension.Settings{
 		ID:                extID,
 		TelemetrySettings: settings,
-	}, authFactory.CreateDefaultConfig()); err != nil {
+	}, xmlCfg.AuthConfig); err != nil {
 		return err
 	}
 

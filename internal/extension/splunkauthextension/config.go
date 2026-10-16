@@ -28,6 +28,15 @@ type Config struct {
 
 var _ component.Config = (*Config)(nil)
 
+// NewDefaultConfig returns the default refresh settings for programmatic callers.
+func NewDefaultConfig() *Config {
+	return &Config{
+		RefreshInterval: 3 * time.Minute,
+		RefreshTimeout:  30 * time.Second,
+		MaxStaleness:    10 * time.Minute,
+	}
+}
+
 func (cfg *Config) Validate() error {
 	if cfg.RefreshInterval <= 0 {
 		return errors.New("refresh_interval must be positive")

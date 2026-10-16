@@ -6,7 +6,6 @@ package splunkauthextension
 import (
 	"context"
 	"errors"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -34,9 +33,5 @@ func NewFactory(source TokenSource) extension.Factory {
 }
 
 func createDefaultConfig() component.Config {
-	return &Config{
-		RefreshInterval: 3 * time.Minute,
-		RefreshTimeout:  30 * time.Second,
-		MaxStaleness:    10 * time.Minute,
-	}
+	return NewDefaultConfig()
 }

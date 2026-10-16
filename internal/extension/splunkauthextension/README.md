@@ -40,6 +40,9 @@ and a successful load restores authentication. Requests already authenticated
 retain their original authorization metadata; subsequent requests use the new
 snapshot. Authentication never performs network requests.
 
-`splunk-connect-for-otlp` injects the REST source and uses the defaults above.
+`splunk-connect-for-otlp` injects the REST source and accepts the same three
+settings in `inputs.conf`, using the defaults above when they are omitted. See
+[the input configuration documentation](../../../packaging/otlpinput/README.md#token-refresh)
+for an example.
 The previous static `tokens` configuration has been replaced by the injected
 source and these refresh settings.

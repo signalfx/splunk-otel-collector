@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
@@ -37,9 +38,15 @@ func readTokens(f feed) []HecTokenConfig {
 	tokens := make([]HecTokenConfig, len(f.Entry))
 	for i := range f.Entry {
 		var token configopaque.String
+		var disabled bool
 		var defaultIndex string
 		var indexes []string
 		for _, key := range f.Entry[i].Content.Dict.Key {
+			if key.Name == "disabled" {
+				// The server normalizes boolean values to "1" and "0"; fail closed on
+				// anything else so an unexpected value never enables a token.
+				disabled = strings.TrimSpace(key.Text) != "0"
+			}
 			if key.Name == "token" {
 				token = configopaque.String(key.Text)
 			}
@@ -52,6 +59,7 @@ func readTokens(f feed) []HecTokenConfig {
 		}
 		tokens[i] = splunkauthextension.HecTokenConfig{
 			Token:          token,
+			Disabled:       disabled,
 			DefaultIndex:   defaultIndex,
 			AllowedIndexes: indexes,
 		}
@@ -121,32 +129,32 @@ func readTokenPage(client *http.Client, req *http.Request) (feed, error) {
 // feed is generated from the atom feed XML response of the Splunk instance, per
 // https://help.splunk.com/en/splunk-enterprise/leverage-rest-apis/rest-api-user-manual/9.3/rest-api-user-manual/basic-concepts-about-the-splunk-platform-rest-api
 type feed struct {
-	TotalResults *int `xml:"totalResults"`
-	Generator    struct {
+	XMLName    xml.Name `xml:"feed"`
+	Text       string   `xml:",chardata"`
+	Xmlns      string   `xml:"xmlns,attr"`
+	S          string   `xml:"s,attr"`
+	Opensearch string   `xml:"opensearch,attr"`
+	Title      string   `xml:"title"`
+	ID         string   `xml:"id"`
+	Updated    string   `xml:"updated"`
+	Generator  struct {
 		Text    string `xml:",chardata"`
 		Build   string `xml:"build,attr"`
 		Version string `xml:"version,attr"`
 	} `xml:"generator"`
-	XMLName xml.Name `xml:"feed"`
-	Author  struct {
+	Author struct {
 		Text string `xml:",chardata"`
 		Name string `xml:"name"`
 	} `xml:"author"`
-	Opensearch   string `xml:"opensearch,attr"`
-	Title        string `xml:"title"`
-	ID           string `xml:"id"`
-	Updated      string `xml:"updated"`
-	S            string `xml:"s,attr"`
-	Xmlns        string `xml:"xmlns,attr"`
-	Text         string `xml:",chardata"`
-	ItemsPerPage string `xml:"itemsPerPage"`
-	Messages     string `xml:"messages"`
-	Link         []struct {
+	Link []struct {
 		Text string `xml:",chardata"`
 		Href string `xml:"href,attr"`
 		Rel  string `xml:"rel,attr"`
 	} `xml:"link"`
-	Entry []struct {
+	TotalResults *int   `xml:"totalResults"`
+	ItemsPerPage string `xml:"itemsPerPage"`
+	Messages     string `xml:"messages"`
+	Entry        []struct {
 		Text    string `xml:",chardata"`
 		Title   string `xml:"title"`
 		ID      string `xml:"id"`

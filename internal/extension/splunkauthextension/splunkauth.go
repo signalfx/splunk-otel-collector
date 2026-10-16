@@ -6,6 +6,7 @@ package splunkauthextension
 import (
 	"context"
 	"crypto/subtle"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -61,6 +62,7 @@ func (b *splunkAuth) setAuthorizationValues(tokens []HecTokenConfig) {
 			values[i] = token
 		}
 		values[i].AllowedIndexes = token.AllowedIndexes
+		values[i].Disabled = token.Disabled
 		values[i].DefaultIndex = token.DefaultIndex
 	}
 	b.tokens = values
@@ -82,6 +84,9 @@ func (b *splunkAuth) Authenticate(ctx context.Context, headers map[string][]stri
 	expectedTokens := b.tokens
 	for _, expectedToken := range expectedTokens {
 		if subtle.ConstantTimeCompare([]byte(expectedToken.Token), []byte(token)) == 1 {
+			if expectedToken.Disabled {
+				return ctx, errors.New("HEC token is disabled")
+			}
 			return context.WithValue(ctx, ContextKey, expectedToken), nil // Authentication successful, token is valid
 		}
 	}

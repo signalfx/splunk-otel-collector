@@ -1,7 +1,7 @@
 change_type: enhancement
 component: Splunk_TA_otel
 note: Add the `splunk_modinput` exporter, which writes newline-delimited Splunk HEC JSON events to standard output so that the add-on can forward them for indexing.
-issues: [] # TBD: add the issue or PR number before merging.
+issues: [8291]
 subtext: |
   To enable it, add `splunk_modinput` to the `exporters` section of the collector configuration and to the pipelines that should write events to standard output:
 

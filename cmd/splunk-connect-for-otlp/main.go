@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth"
-	"github.com/signalfx/splunk-otel-collector/internal/exporter/stdoutexporter"
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
 
@@ -81,15 +81,15 @@ func run() (runErr error) {
 	if err := xmlCfg.Validate(); err != nil {
 		return fmt.Errorf("cannot start TA due to invalid configuration: %w", err)
 	}
-	stdoutCfg := stdoutexporter.NewFactory().CreateDefaultConfig().(*stdoutexporter.Config)
+	stdoutCfg := splunkmodinputexporter.NewFactory().CreateDefaultConfig().(*splunkmodinputexporter.Config)
 	stdoutCfg.Source = xmlCfg.Source
 	stdoutCfg.Sourcetype = xmlCfg.Sourcetype
 
-	f := stdoutexporter.NewFactory()
+	f := splunkmodinputexporter.NewFactory()
 	ctx := context.Background()
 	telemetrySettings := exporter.Settings{
 		TelemetrySettings: settings,
-		ID:                component.MustNewID("stdout"),
+		ID:                component.MustNewID("splunk_modinput"),
 	}
 	var le exporter.Logs
 	var me exporter.Metrics

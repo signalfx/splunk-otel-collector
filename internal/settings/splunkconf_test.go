@@ -17,7 +17,6 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
 )
 
 // TestSplunkConfPipelineBuilds runs the collector's own build path over a
@@ -44,7 +43,7 @@ func TestSplunkConfPipelineBuilds(t *testing.T) {
 			ResolverSettings: confmap.ResolverSettings{
 				URIs: []string{"splunkconf://" + confRoot + "?pipeline=uf"},
 				ProviderFactories: []confmap.ProviderFactory{
-					configsource.New(zap.NewNop(), nil).Wrap(splunkconf.NewFactory()),
+					configsource.New(zap.NewNop(), nil).Wrap(splunkConfProviderFactory()),
 				},
 			},
 		},

@@ -234,20 +234,26 @@ func confRootDirs(confRoot string) []string {
 }
 
 func systemDirs(splunkHome string) []string {
-	etcDir := filepath.Join(splunkHome, "etc")
+	return systemRootDirs(filepath.Join(splunkHome, "etc"))
+}
+
+func systemRootDirs(confRoot string) []string {
 	return []string{
-		filepath.Join(etcDir, "system", "default"),
-		filepath.Join(etcDir, "system", "local"),
+		filepath.Join(confRoot, "system", "default"),
+		filepath.Join(confRoot, "system", "local"),
 	}
 }
 
 func taDirsWithSystem(splunkHome, taDir string) []string {
-	etcDir := filepath.Join(splunkHome, "etc")
+	return appRootDirs(filepath.Join(splunkHome, "etc"), taDir)
+}
+
+func appRootDirs(confRoot, appDir string) []string {
 	return []string{
-		filepath.Join(etcDir, "system", "default"),
-		filepath.Join(taDir, "default"),
-		filepath.Join(taDir, "local"),
-		filepath.Join(etcDir, "system", "local"),
+		filepath.Join(confRoot, "system", "default"),
+		filepath.Join(appDir, "default"),
+		filepath.Join(appDir, "local"),
+		filepath.Join(confRoot, "system", "local"),
 	}
 }
 
@@ -300,6 +306,20 @@ func SystemDirs(splunkHome string) []string {
 // ConfDirsWithSystem returns the Splunk btool conf search path for a single TA merged with system config.
 func ConfDirsWithSystem(splunkHome, taDir string) []string {
 	return taDirsWithSystem(splunkHome, taDir)
+}
+
+// AppConfRootDirs returns the conf search path a single app resolves against: the
+// app's own layers merged with system, and no other app's. appDir is absolute,
+// as conf.Input.AppDir reports it. Pass the configuration root rather than an
+// install, as ConfRootDirs does.
+func AppConfRootDirs(confRoot, appDir string) []string {
+	return appRootDirs(confRoot, appDir)
+}
+
+// SystemConfRootDirs returns the conf search path a system-level stanza resolves
+// against, which is the system layers alone.
+func SystemConfRootDirs(confRoot string) []string {
+	return systemRootDirs(confRoot)
 }
 
 // ReadInputs discovers and merges inputs.conf files from the given search

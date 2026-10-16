@@ -32,12 +32,12 @@ const TypeStr = "splunk_wineventlog"
 type Config struct {
 	Extra        map[string]string `mapstructure:",remain"`
 	EventLogName string            `mapstructure:"event_log_name"`
-	Index        string            `mapstructure:"index"`
-	Source       string            `mapstructure:"source"`
-	Sourcetype   string            `mapstructure:"sourcetype"`
-	Host         string            `mapstructure:"host"`
-	Props        []conf.Prop       `mapstructure:"props"`
-	Transforms   []conf.Transform  `mapstructure:"transforms"`
+	Index        string            `mapstructure:"index,omitempty"`
+	Source       string            `mapstructure:"source,omitempty"`
+	Sourcetype   string            `mapstructure:"sourcetype,omitempty"`
+	Host         string            `mapstructure:"host,omitempty"`
+	Props        []conf.Prop       `mapstructure:"props,omitempty"`
+	Transforms   []conf.Transform  `mapstructure:"transforms,omitempty"`
 }
 
 // Validate requires the channel name, which is the stanza target and has no
@@ -74,11 +74,17 @@ func (c *Config) input() conf.Input {
 	}
 }
 
+// Factory is the UF-native wineventlog receiver factory. It maps its own
+// [WinEventLog://...] stanzas, so the .conf provider models no input kind itself.
+type Factory struct {
+	receiver.Factory
+}
+
 // NewFactory returns the UF-native Windows Event Log receiver factory.
-func NewFactory() receiver.Factory {
-	return receiver.NewFactory(
+func NewFactory() Factory {
+	return Factory{receiver.NewFactory(
 		component.MustNewType(TypeStr),
 		func() component.Config { return &Config{} },
 		receiver.WithLogs(splunkWineventlog{}.CreateLogs, component.StabilityLevelAlpha),
-	)
+	)}
 }

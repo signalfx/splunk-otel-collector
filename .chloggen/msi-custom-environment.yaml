@@ -1,7 +1,7 @@
 change_type: enhancement
 component: msi
 note: Add the SPLUNK_ENVIRONMENT_VARIABLES MSI property to set arbitrary Collector service environment variables.
-issues: []
+issues: [8284]
 subtext: |
   Use comma-separated KEY=VALUE entries and percent encode commas in values as %2C.
   Custom entries override predefined service environment variables with the same name.

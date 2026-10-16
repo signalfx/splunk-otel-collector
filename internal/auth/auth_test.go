@@ -24,23 +24,40 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/extensionauth"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
+
+func newTestAuth(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
+	factory := splunkauthextension.NewFactory(NewTokenSource(serverURI, sessionKey))
+	e, err := factory.Create(ctx, extension.Settings{ID: component.MustNewID("splunkauth"), TelemetrySettings: settings}, factory.CreateDefaultConfig())
+	if err != nil {
+		return nil, err
+	}
+	if errStart := e.Start(ctx, componenttest.NewNopHost()); errStart != nil {
+		return nil, errStart
+	}
+	return e, nil
+}
 
 func TestAuth(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	authtest.SetupAuth(t, listener)
-	e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), "http://"+listener.Addr().String(), "foo")
+	e, err := newTestAuth(context.Background(), componenttest.NewNopTelemetrySettings(), "http://"+listener.Addr().String(), "foo")
 	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, e.Shutdown(context.Background())) })
 	require.NotNil(t, e)
 	se := e.(extensionauth.Server)
 	ctx, err := se.Authenticate(context.Background(), map[string][]string{
@@ -61,8 +78,9 @@ func TestAuth(t *testing.T) {
 func TestAuthSucceedsForLoopbackTLSCertificateWithoutIPSANs(t *testing.T) {
 	server := authtest.NewTLSServer(t)
 
-	_, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
+	e, err := newTestAuth(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
 	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, e.Shutdown(context.Background())) })
 }
 
 func TestReadTokensDisabled(t *testing.T) {
@@ -97,8 +115,9 @@ func TestAuthDisabledToken(t *testing.T) {
 		_, _ = fmt.Fprint(w, body)
 	}))
 	t.Cleanup(server.Close)
-	e, err := New(t.Context(), componenttest.NewNopTelemetrySettings(), server.URL, "session-key")
+	e, err := newTestAuth(t.Context(), componenttest.NewNopTelemetrySettings(), server.URL, "session-key")
 	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, e.Shutdown(context.Background())) })
 	se := e.(extensionauth.Server)
 	ctx, err := se.Authenticate(t.Context(), map[string][]string{
 		"Authorization": {"Splunk token-0"},
@@ -141,8 +160,9 @@ func TestAuthPagination(t *testing.T) {
 			}))
 			defer server.Close()
 
-			e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "session-key")
+			e, err := newTestAuth(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "session-key")
 			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, e.Shutdown(context.Background())) })
 			var expectedOffsets []int
 			for offset := 0; ; offset += tc.pageSize {
 				expectedOffsets = append(expectedOffsets, offset)
@@ -190,7 +210,7 @@ func TestAuthPaginationFailure(t *testing.T) {
 				_, _ = fmt.Fprint(w, tc.body)
 			}))
 			defer server.Close()
-			e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
+			e, err := newTestAuth(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
 			require.ErrorContains(t, err, tc.want)
 			require.ErrorContains(t, err, "offset 1")
 			require.Nil(t, e)
@@ -223,7 +243,7 @@ func TestAuthInvalidTotalResults(t *testing.T) {
 				}))
 				defer server.Close()
 
-				e, err := New(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
+				e, err := newTestAuth(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
 				require.ErrorContains(t, err, tc.want)
 				require.ErrorContains(t, err, fmt.Sprintf("offset %d", offset))
 				require.Nil(t, e)
@@ -245,7 +265,7 @@ func TestAuthPaginationCancellation(t *testing.T) {
 		<-r.Context().Done()
 	}))
 	defer server.Close()
-	e, err := New(ctx, componenttest.NewNopTelemetrySettings(), server.URL, "foo")
+	e, err := newTestAuth(ctx, componenttest.NewNopTelemetrySettings(), server.URL, "foo")
 	require.ErrorIs(t, err, context.Canceled)
 	require.Nil(t, e)
 }
@@ -258,4 +278,32 @@ func tokenPageXML(total, offset, count int) string {
 	}
 	b.WriteString("</feed>")
 	return b.String()
+}
+
+func TestTokenSourceReloadsAllPages(t *testing.T) {
+	var generation atomic.Int32
+	offsets := make(chan string, 4)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		offsets <- r.URL.Query().Get("offset")
+		offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+		if err != nil {
+			http.Error(w, "invalid offset", http.StatusBadRequest)
+			return
+		}
+		body := strings.ReplaceAll(tokenPageXML(2, offset, 1), "token-", fmt.Sprintf("generation-%d-token-", generation.Load()))
+		_, _ = fmt.Fprint(w, body)
+	}))
+	defer server.Close()
+	source := NewTokenSource(server.URL, "session-key")
+	for i := range int32(2) {
+		generation.Store(i)
+		tokens, err := source.Load(t.Context())
+		require.NoError(t, err)
+		require.Len(t, tokens, 2)
+		for j, token := range tokens {
+			require.Equal(t, fmt.Sprintf("generation-%d-token-%d", i, j), string(token.Token))
+		}
+		require.Equal(t, "0", <-offsets)
+		require.Equal(t, "1", <-offsets)
+	}
 }

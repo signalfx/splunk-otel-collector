@@ -25,9 +25,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
 
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
-	"go.opentelemetry.io/collector/extension"
 )
 
 const ContextKey = splunkauthextension.ContextKey
@@ -67,13 +65,28 @@ func readTokens(f feed) []HecTokenConfig {
 	return tokens
 }
 
-func New(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURI+"/servicesNS/-/-/data/inputs/http", http.NoBody)
+// NewTokenSource returns a source that fetches a complete HEC token listing.
+// Construction does not perform network requests; each Load uses its own context.
+func NewTokenSource(serverURI, sessionKey string) splunkauthextension.TokenSource {
+	return &splunkTokenSource{
+		serverURI:  serverURI,
+		sessionKey: sessionKey,
+		client:     splunkhttp.NewClient(serverURI, 0, nil),
+	}
+}
+
+type splunkTokenSource struct {
+	client     *http.Client
+	serverURI  string
+	sessionKey string
+}
+
+func (s *splunkTokenSource) Load(ctx context.Context) ([]HecTokenConfig, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.serverURI+"/servicesNS/-/-/data/inputs/http", http.NoBody)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", "Splunk "+sessionKey)
-	httpClient := splunkhttp.NewClient(serverURI, 0, nil)
+	req.Header.Add("Authorization", "Splunk "+s.sessionKey)
 	var tokens []HecTokenConfig
 	// Use Splunk's default page size, advancing the offset by the number of
 	// entries actually returned.
@@ -82,7 +95,7 @@ func New(ctx context.Context, settings component.TelemetrySettings, serverURI, s
 		query := req.URL.Query()
 		query.Set("offset", strconv.Itoa(offset))
 		req.URL.RawQuery = query.Encode()
-		f, err := readTokenPage(httpClient, req)
+		f, err := readTokenPage(s.client, req)
 		if err != nil {
 			return nil, fmt.Errorf("retrieve HEC tokens at offset %d: %w", offset, err)
 		}
@@ -102,14 +115,7 @@ func New(ctx context.Context, settings component.TelemetrySettings, serverURI, s
 		}
 	}
 
-	sae := splunkauthextension.NewFactory()
-	authConfig := sae.CreateDefaultConfig().(*splunkauthextension.Config)
-	authConfig.Tokens = tokens
-
-	return sae.Create(ctx, extension.Settings{
-		ID:                component.MustNewID("splunkauth"),
-		TelemetrySettings: settings,
-	}, authConfig)
+	return tokens, nil
 }
 
 func readTokenPage(client *http.Client, req *http.Request) (feed, error) {

@@ -1,0 +1,9 @@
+change_type: bug_fix
+component: splunk-connect-for-otlp
+note: Refresh HEC tokens and index permissions, every three minutes by default, without restarting the OTLP input.
+# Fill in the PR number after local review and PR creation.
+issues: [8285]
+subtext: |
+  Reject authentication when the token snapshot reaches ten minutes old,
+  and bound each retrieval to 30 seconds. Configure `refresh_interval`,
+  `refresh_timeout`, and `max_staleness` in inputs.conf to override these defaults.

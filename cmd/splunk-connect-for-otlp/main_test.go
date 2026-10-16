@@ -13,9 +13,11 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -81,13 +83,16 @@ func TestRunReturnsErrorForInvalidInput(t *testing.T) {
 }
 
 func TestRunStartsAndStopsOnSignal(t *testing.T) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	authtest.SetupAuth(t, listener)
+	var loads atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		loads.Add(1)
+		_, _ = fmt.Fprint(w, `<feed><totalResults>0</totalResults><startIndex>0</startIndex></feed>`)
+	}))
+	defer server.Close()
 
 	restoreStdin := WriteToStdin(t, fmt.Sprintf(
 		`<input>
-  <server_uri>http://%s</server_uri>
+  <server_uri>%s</server_uri>
   <session_key>mysessionkey</session_key>
 <configuration>
   <stanza name="splunk-connect-for-otlp://test" app="search">
@@ -95,9 +100,12 @@ func TestRunStartsAndStopsOnSignal(t *testing.T) {
     <param name="http_port">0</param>
     <param name="listen_address">127.0.0.1</param>
     <param name="enableSSL">0</param>
+    <param name="refresh_interval">10ms</param>
+    <param name="refresh_timeout">1s</param>
+    <param name="max_staleness">3s</param>
   </stanza>
 </configuration>
-</input>`, listener.Addr().String(),
+</input>`, server.URL,
 	))
 	defer restoreStdin()
 
@@ -113,6 +121,7 @@ func TestRunStartsAndStopsOnSignal(t *testing.T) {
 	select {
 	case err := <-done:
 		require.NoError(t, err)
+		require.GreaterOrEqual(t, loads.Load(), int32(2), "inputs.conf refresh_interval must reach the auth extension")
 	case <-time.After(5 * time.Second):
 		t.Fatal("run did not complete in time")
 	}

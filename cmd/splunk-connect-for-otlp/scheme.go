@@ -47,6 +47,24 @@ const Scheme = `
                 <required_on_create>false</required_on_create>
             </arg>
 
+            <arg name="refresh_interval">
+                <title>HEC token refresh interval</title>
+                <description>How often to fetch HEC tokens. Use a duration such as 3m (default: 3m).</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
+            <arg name="refresh_timeout">
+                <title>HEC token refresh timeout</title>
+                <description>Deadline for fetching all HEC token pages. Use a duration such as 30s (default: 30s).</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
+            <arg name="max_staleness">
+                <title>HEC token maximum staleness</title>
+                <description>Maximum accepted token snapshot age (default: 10m). Must exceed refresh_interval + refresh_timeout.</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
             <arg name="enableSSL">
                 <title>Enable SSL</title>
                 <description>Secure traffic by changing the protocol from HTTP to HTTPS, requires a certificate</description>

@@ -7,9 +7,13 @@ import (
 	"bufio"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
 
 const (
@@ -41,6 +45,7 @@ type XMLParam struct {
 }
 
 type InputConfig struct {
+	AuthConfig    *splunkauthextension.Config
 	ListenAddress string
 	Source        string
 	Sourcetype    string
@@ -56,7 +61,8 @@ type InputConfig struct {
 	EnableSSL     bool
 }
 
-func (x XMLInput) Extract() InputConfig {
+func (x XMLInput) Extract() (InputConfig, error) {
+	authConfig := splunkauthextension.NewDefaultConfig()
 	grpcPort := DefaultGrpcPort
 	httpPort := DefaultHTTPPort
 	listeningAddress := DefaultListenAddress
@@ -94,10 +100,24 @@ func (x XMLInput) Extract() InputConfig {
 			realm = p.Value
 		case "access_token":
 			accessToken = p.Value
+		case "refresh_interval", "refresh_timeout", "max_staleness":
+			duration, err := time.ParseDuration(strings.TrimSpace(p.Value))
+			if err != nil {
+				return InputConfig{}, fmt.Errorf("invalid %s: %w", p.Name, err)
+			}
+			switch p.Name {
+			case "refresh_interval":
+				authConfig.RefreshInterval = duration
+			case "refresh_timeout":
+				authConfig.RefreshTimeout = duration
+			case "max_staleness":
+				authConfig.MaxStaleness = duration
+			}
 		}
 	}
 
 	return InputConfig{
+		AuthConfig:    authConfig,
 		GrpcPort:      grpcPort,
 		HTTPPort:      httpPort,
 		ListenAddress: listeningAddress,
@@ -111,14 +131,17 @@ func (x XMLInput) Extract() InputConfig {
 		ServerKey:     serverKey,
 		Realm:         realm,
 		AccessToken:   accessToken,
-	}
+	}, nil
 }
 
 func (c InputConfig) Validate() error {
 	if c.EnableSSL && (c.ServerCert == "" || c.ServerKey == "") {
 		return errors.New("enableSSL requires both serverCert and serverKey to be set")
 	}
-	return nil
+	if c.AuthConfig == nil {
+		return errors.New("authentication configuration is required")
+	}
+	return c.AuthConfig.Validate()
 }
 
 func convertBool(value string) bool {

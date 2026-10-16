@@ -71,7 +71,7 @@ type hecEntry struct {
 }
 
 // readTokenPage lists HEC tokens via the same management API endpoint as
-// internal/auth.New, using the given query string to control pagination.
+// internal/auth.NewTokenSource, using the given query string to control pagination.
 func readTokenPage(query string) ([]hecEntry, error) {
 	shellCmd := fmt.Sprintf(
 		`curl -fsSk --max-time 30 -u "admin:$SPLUNK_PASSWORD" "https://localhost:8089/servicesNS/-/-/data/inputs/http?%s"`,
@@ -108,7 +108,7 @@ func check(caCert string) error {
 		tokenNames[tokenName(i)] = true
 	}
 
-	// Use the same default listing as internal/auth.New, plus an unlimited
+	// Use the same default listing as internal/auth.NewTokenSource, plus an unlimited
 	// listing to prove that valid tokens really were omitted from that page.
 	firstPage, err := readTokenPage("output_mode=json")
 	if err != nil {

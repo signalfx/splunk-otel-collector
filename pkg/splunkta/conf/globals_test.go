@@ -134,6 +134,13 @@ func TestApplyGlobalsIgnoresKindStanza(t *testing.T) {
 	require.Equal(t, map[string]string{"sourcetype": "kind_st", "index": "default_idx"}, params(t, got, "monitor"))
 }
 
+// A name that does not parse is left alone rather than taken for a defaults
+// stanza, so the name parse still reports it.
+func TestApplyGlobalsKeepsUnparsableName(t *testing.T) {
+	inputs := []Input{inputStanza("://no-kind", map[string]string{"index": "idx"})}
+	require.Equal(t, []string{"://no-kind"}, names(ApplyGlobals(inputs)))
+}
+
 func inputStanza(name string, kv map[string]string) Input {
 	var ps Params
 	for k, v := range kv {

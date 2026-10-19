@@ -54,9 +54,9 @@ type Config struct {
 	// Targets is the list of gNMI devices to subscribe to.
 	Targets []TargetConfig `mapstructure:"targets"`
 
-	// Server configures an optional gNMIReverse gRPC server for devices that
+	// GNMIReverse configures an optional gNMIReverse gRPC server for devices that
 	// stream gNMI Subscribe or Get responses to the receiver. An empty endpoint disables it.
-	Server *ServerConfig `mapstructure:"server"`
+	GNMIReverse *GNMIReverseConfig `mapstructure:"gnmireverse"`
 
 	// YangModules is a list of YANG module files and/or directories used to
 	// derive each leaf's metric type (gauge/sum), unit, and enum/identityref
@@ -88,8 +88,8 @@ type TargetConfig struct {
 	Redial time.Duration `mapstructure:"redial"`
 }
 
-// ServerConfig defines the optional receiver-side gNMI server.
-type ServerConfig struct {
+// GNMIReverseConfig defines the optional receiver-side gNMI server.
+type GNMIReverseConfig struct {
 	Subscriptions           []SubscriptionConfig `mapstructure:"subscriptions"`
 	configgrpc.ServerConfig `mapstructure:",squash"`
 }
@@ -102,8 +102,8 @@ func NewDefaultTargetConfig() TargetConfig {
 	}
 }
 
-func NewDefaultServerConfig() ServerConfig {
-	return ServerConfig{ServerConfig: configgrpc.NewDefaultServerConfig()}
+func NewDefaultGNMIReverseConfig() GNMIReverseConfig {
+	return GNMIReverseConfig{ServerConfig: configgrpc.NewDefaultServerConfig()}
 }
 
 // SubscriptionConfig defines a single gNMI path subscription.
@@ -175,30 +175,30 @@ func (t *TargetConfig) Unmarshal(conf *confmap.Conf) error {
 }
 
 func (cfg *Config) Validate() error {
-	serverEndpoint := ""
-	if cfg.Server != nil {
-		serverEndpoint = cfg.Server.NetAddr.Endpoint
+	gnmiReverseEndpoint := ""
+	if cfg.GNMIReverse != nil {
+		gnmiReverseEndpoint = cfg.GNMIReverse.NetAddr.Endpoint
 	}
-	if len(cfg.Targets) == 0 && serverEndpoint == "" {
-		return errors.New("at least one target or a server endpoint must be specified")
+	if len(cfg.Targets) == 0 && gnmiReverseEndpoint == "" {
+		return errors.New("at least one target or a gnmireverse endpoint must be specified")
 	}
-	if serverEndpoint != "" && len(cfg.Server.Subscriptions) == 0 {
-		return errors.New("server.subscriptions must contain at least one subscription when the server endpoint is set")
+	if gnmiReverseEndpoint != "" && len(cfg.GNMIReverse.Subscriptions) == 0 {
+		return errors.New("gnmireverse.subscriptions must contain at least one subscription when gnmireverse.endpoint is set")
 	}
-	if serverEndpoint != "" {
-		for i, sub := range cfg.Server.Subscriptions {
-			prefix := fmt.Sprintf("server.subscriptions[%d]", i)
+	if gnmiReverseEndpoint != "" {
+		for i, sub := range cfg.GNMIReverse.Subscriptions {
+			prefix := fmt.Sprintf("gnmireverse.subscriptions[%d]", i)
 			if sub.Mode != "" {
-				return fmt.Errorf("%s.mode is not supported for server subscriptions", prefix)
+				return fmt.Errorf("%s.mode is not supported for gnmireverse subscriptions", prefix)
 			}
 			if sub.SampleInterval != 0 {
-				return fmt.Errorf("%s.sample_interval is not supported for server subscriptions", prefix)
+				return fmt.Errorf("%s.sample_interval is not supported for gnmireverse subscriptions", prefix)
 			}
 			if sub.HeartbeatInterval != 0 {
-				return fmt.Errorf("%s.heartbeat_interval is not supported for server subscriptions", prefix)
+				return fmt.Errorf("%s.heartbeat_interval is not supported for gnmireverse subscriptions", prefix)
 			}
 			if sub.SuppressRedundant {
-				return fmt.Errorf("%s.suppress_redundant is not supported for server subscriptions", prefix)
+				return fmt.Errorf("%s.suppress_redundant is not supported for gnmireverse subscriptions", prefix)
 			}
 		}
 	}
@@ -206,8 +206,8 @@ func (cfg *Config) Validate() error {
 		if err := validateMetricConfigRequired(cfg.Targets); err != nil {
 			return err
 		}
-		if serverEndpoint != "" {
-			return validateSubscriptionMetricConfig(cfg.Server.Subscriptions, "server.subscriptions", false)
+		if gnmiReverseEndpoint != "" {
+			return validateSubscriptionMetricConfig(cfg.GNMIReverse.Subscriptions, "gnmireverse.subscriptions", false)
 		}
 	}
 	return nil

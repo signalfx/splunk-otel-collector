@@ -1,4 +1,4 @@
-FROM nginx:1.31.6
+FROM nginx:1.31.7
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY status.conf /etc/nginx/conf.d/status.conf

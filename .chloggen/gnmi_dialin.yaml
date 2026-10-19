@@ -1,0 +1,6 @@
+change_type: enhancement
+component: receiver/gnmi
+note: Support exposing a gRPC endpoint for routers to dial in and report telemetry.
+issues: [8270]
+subtext: |
+  This is done by using the [gnmireverse protobuf service definition](https://pkg.go.dev/github.com/aristanetworks/goarista/gnmireverse).

@@ -604,6 +604,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/apache/thrift v0.25.0 // indirect
+	github.com/aristanetworks/goarista v0.0.0-20260927234635-aaff1a13d702
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
@@ -798,7 +799,7 @@ require (
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.301.0 // indirect
 	google.golang.org/grpc v1.84.0
-	google.golang.org/protobuf v1.36.12 // indirect
+	google.golang.org/protobuf v1.36.12
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1

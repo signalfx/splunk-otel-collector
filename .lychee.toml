@@ -16,6 +16,7 @@ exclude = [
     "ideas.splunk.com",
     "https://www.microsoft.com/en-us/evalcenter/download-windows-server-2022",
     "https://superuser.com/a/980821", # failing with 403 Forbidden
+    "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/release-announcements/0/25153", # Returns 403 in CI but opens in a browser
     "https://self-service.isv.ci", # Failing with timeouts, not stable and still current according to https://github.com/cf-platform-eng/selfservice/blame/main/README.md#L3
     "https://github.com/.*/(pull|issues)/[0-9]+", # We have too many PR and issues links in CHANGELOG.md that we always run out of the rate limit
     "https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver", # page has been removed from main, but can still be linked from different branches

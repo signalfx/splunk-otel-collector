@@ -163,7 +163,8 @@ func checkNoPathConflict(path string, rest []*yang.Entry, index map[string]*yang
 		return fmt.Errorf(
 			"yang_modules: leaf path %q is defined by more than one loaded module with different results "+
 				"(type=%q/unit=%q vs type=%q/unit=%q); rename the conflicting leaf or split yang_modules so only one definition loads",
-			path, first.Type, first.Unit, rm.Type, rm.Unit)
+			path, first.Type, first.Unit, rm.Type, rm.Unit,
+		)
 	}
 	return nil
 }
@@ -192,7 +193,8 @@ func yangProcessError(errs []error) error {
 	}
 	return fmt.Errorf(
 		"failed to process YANG modules (every imported/included module must be reachable via yang_modules): %s",
-		strings.Join(msgs, "; "))
+		strings.Join(msgs, "; "),
+	)
 }
 
 func indexEntries(e *yang.Entry, names []string, index map[string]*yang.Entry, pathEntries map[string][]*yang.Entry) {

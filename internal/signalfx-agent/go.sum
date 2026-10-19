@@ -338,8 +338,8 @@ github.com/signalfx/golib/v3 v3.5.0 h1:QkhT8P/iMkTRg7Zec+w8iLEQzzCEIfHHz/A4NJgLQ
 github.com/signalfx/golib/v3 v3.5.0/go.mod h1:yze2t+zCjUjUdtSPEmCyg2UDU7jCyIqJV++eprc9OeE=
 github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed h1:UnMojeBM2skhiZm8Iol3RBQpUHWvAkt993NxWhiV/70=
 github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
-github.com/sirupsen/logrus v1.9.4 h1:TsZE7l11zFCLZnZ+teH4Umoq5BhEIfIzfRDZ1Uzql2w=
-github.com/sirupsen/logrus v1.9.4/go.mod h1:ftWc9WdOfJ0a92nsE2jF5u5ZwH8Bv2zdeOC42RjbV2g=
+github.com/sirupsen/logrus v1.10.2 h1:G2SED73/qrAu6YwbdxOD6peLkCBI3z7L+ykJFTXJBBo=
+github.com/sirupsen/logrus v1.10.2/go.mod h1:SLEg8TqYulVKKfIGHldVp2K2aYz2DKSVBq4g/H5bR7Q=
 github.com/smarty/assertions v1.15.0 h1:cR//PqUBUiQRakZWqBiFFQ9wb8emQGDb0HeGdqGByCY=
 github.com/smarty/assertions v1.15.0/go.mod h1:yABtdzeQs6l1brC900WlRNwj6ZR55d7B+E8C6HtKdec=
 github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sSznIX1xY=

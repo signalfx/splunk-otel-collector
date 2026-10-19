@@ -65,7 +65,7 @@ const helpVerb = "help"
 // Dispatch matches args[0] against the verbs of every registered family, in
 // order, and runs the first match. If two families register the same verb, the
 // first one registered wins.
-func Dispatch(families []Family, args []string, streams IO) (code int, ok bool) {
+func Dispatch(families []Family, args []string, streams IO) (code int, dispatched bool) {
 	if len(args) == 0 {
 		return 0, false
 	}

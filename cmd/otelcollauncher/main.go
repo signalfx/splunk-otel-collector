@@ -26,7 +26,7 @@ func main() {
 	args := os.Args[1:]
 	streams := cli.IO{Out: os.Stdout, Err: os.Stderr}
 
-	if code, ok := cli.Dispatch(commandFamilies(), args, streams); ok {
+	if code, dispatched := cli.Dispatch(commandFamilies(), args, streams); dispatched {
 		os.Exit(code)
 	}
 	if err := run(args, os.Environ(), launcher.DefaultPaths()); err != nil {

@@ -33,6 +33,11 @@ func (s *Stanza) IsDisabled() bool {
 }
 
 // ReadInput parses a payload of input configurations and returns them.
+//
+// Keys written above the first stanza header land in ini's default section, and
+// inputs.conf.spec makes those global, the same as [default]. Reading them under
+// that name lets a literal [default] in the same file override them, which is
+// the spec's "last definition in the file wins".
 func ReadInput(payload []byte, appDir string) ([]Input, error) {
 	f, err := ini.Load(payload)
 	if err != nil {
@@ -40,11 +45,6 @@ func ReadInput(payload []byte, appDir string) ([]Input, error) {
 	}
 	var result []Input
 	for _, section := range f.Sections() {
-		// Keys written above the first stanza header land in ini's default
-		// section, and inputs.conf.spec makes those global, the same as
-		// [default]. Reading them under that name first lets a literal [default]
-		// in the same file override them, which is the spec's "last definition
-		// in the file wins".
 		name := section.Name()
 		if name == ini.DefaultSection {
 			if len(section.Keys()) == 0 {

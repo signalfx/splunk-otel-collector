@@ -58,11 +58,10 @@ func ApplyGlobals(inputs []Input) []Input {
 		default:
 			switch parsed, err := stanza.ParseName(name); {
 			case err != nil:
-				// Not ours to adjudicate: leave it so the name parse reports it
-				// instead of it vanishing as a defaults stanza.
+				// Left alone so the name parse reports it.
 				ordinary = append(ordinary, in)
 			case parsed.Kind == "":
-				// The scheme on its own, so it is that scheme's defaults stanza.
+				// The scheme on its own is that scheme's defaults stanza.
 				schemeOf[name] = in
 			default:
 				modInstance = append(modInstance, in)

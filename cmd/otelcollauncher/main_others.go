@@ -20,6 +20,7 @@ import (
 	"errors"
 
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/health"
 	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
@@ -30,5 +31,5 @@ func run(_, _ []string, _ launcher.Paths) error {
 // commandFamilies lists the otelcollauncher command families available on
 // this platform.
 func commandFamilies() []cli.Family {
-	return nil
+	return []cli.Family{health.New()}
 }

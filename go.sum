@@ -1127,6 +1127,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssette
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.161.0/go.mod h1:atjCkEajQQtQkvUXcRq86b+0dcmkrBkh40TR+RCQn6o=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.161.0 h1:aJdQxcSL1uVuSF7WB96gLJM45ypiag2cO3IcOVbwkGQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.161.0/go.mod h1:sqLF191oSdXL6MlW2oNwPSw6afxTx/LP3zg7j0lhYv8=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckv2extension v0.161.0 h1:g+cXvnI0r9cgiasqNWoHRbzOrpbHm4xkWrynzAX3IY8=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckv2extension v0.161.0/go.mod h1:wrJDMRYU5FuSnLS25f7ePK/W77ROu1geWbhSw45Awak=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.161.0 h1:Q7YaeQFw8KbqBhLLgleNDeYgMtcv8krtlv3WGlUCVWs=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.161.0/go.mod h1:N0iqVDijZcVtwSJ2+E3otJEUTUJZelBzFRxru3qL+5k=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/basicauth v0.161.0 h1:zjR2wzTIL3UtjiPWUN7fSQFfXFY2LmzB95xGE/PU5f4=

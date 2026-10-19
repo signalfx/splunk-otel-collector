@@ -35,6 +35,13 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunktcp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkudp"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkwineventlog"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
 )
 
 // envVarWarnings is a map of warnings to be logged when a specific environment variable is used in a user config.
@@ -208,7 +215,29 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 		s.discovery.ConfigDProviderFactory(),
 		s.discovery.DiscoveryModeProviderFactory(),
 		s.discovery.PropertiesFileProviderFactory(),
+
+		splunkConfProviderFactory(),
 	}
+}
+
+// splunkConfProviderFactory resolves splunkconf://<config-root>?pipeline=<name>
+// into an in-memory logs pipeline. It is inert unless such a URI is passed, and
+// the components it emits are registered only under the enableTARunner gate.
+//
+// The mappers are listed here, next to the component registration they have to
+// agree with, rather than inside the provider: a receiver maps its own stanzas,
+// so the provider would otherwise have to import every one of them. Listing them
+// at the call site is also what gives a receiver from another repo the same way
+// in as these.
+func splunkConfProviderFactory() confmap.ProviderFactory {
+	return splunkconf.NewFactory(splunkconf.WithInputMappers(
+		splunkmonitor.NewFactory(),
+		splunktcp.NewFactory(),
+		splunkudp.NewFactory(),
+		splunkscript.NewFactory(),
+		splunkbatch.NewFactory(),
+		splunkwineventlog.NewFactory(),
+	))
 }
 
 // ConfMapConverterFactories returns confmap.Converters for the collector core service.

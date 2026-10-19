@@ -40,9 +40,17 @@ public class MultiStringEnvironment : IDisposable
 
     public void AddEnvironmentVariables(Dictionary<string, string> environmentVariables)
     {
-        string[] existingEnvironmentVariables = GetEnvironmentValue();
-        string[] newEnvironment = 
-            [.. existingEnvironmentVariables, .. environmentVariables.Select(kvp => $"{kvp.Key}={kvp.Value}")];
+        var mergedEnvironment = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in GetEnvironmentValue())
+        {
+            var separator = entry.IndexOf('=');
+            mergedEnvironment[entry.Substring(0, separator)] = entry.Substring(separator + 1);
+        }
+        foreach (var variable in environmentVariables)
+        {
+            mergedEnvironment[variable.Key] = variable.Value;
+        }
+        string[] newEnvironment = mergedEnvironment.Select(kvp => $"{kvp.Key}={kvp.Value}").ToArray();
 
         // Sort the environment variables to ensure that the order is consistent
         Array.Sort(newEnvironment, StringComparer.OrdinalIgnoreCase);

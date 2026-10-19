@@ -5,6 +5,7 @@ package splunkmodinputexporter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -19,7 +20,7 @@ import (
 )
 
 type modinputExporter struct {
-	out    *os.File
+	enc    *json.Encoder
 	logger *zap.Logger
 	config Config
 }
@@ -30,7 +31,24 @@ type modinputExporter struct {
 // concurrently by other signals or exporter instances sharing stdout. An
 // arbitrary io.Writer gives no such guarantee.
 func newModinputExporter(cfg *Config, set component.TelemetrySettings, out *os.File) *modinputExporter {
-	return &modinputExporter{out: out, logger: set.Logger, config: *cfg}
+	return &modinputExporter{enc: json.NewEncoder(fileWriter{out}), logger: set.Logger, config: *cfg}
+}
+
+// fileWriter tags errors from the underlying file so writeEvent can tell them
+// apart from marshal errors, since Encoder.Encode returns both unwrapped.
+type fileWriter struct{ f *os.File }
+
+type writeError struct{ err error }
+
+func (e *writeError) Error() string { return e.err.Error() }
+func (e *writeError) Unwrap() error { return e.err }
+
+func (w fileWriter) Write(b []byte) (int, error) {
+	n, err := w.f.Write(b)
+	if err != nil {
+		err = &writeError{err}
+	}
+	return n, err
 }
 
 func (se *modinputExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
@@ -94,15 +112,16 @@ func (se *modinputExporter) pushMetrics(ctx context.Context, md pmetric.Metrics)
 	return nil
 }
 
+// writeEvent encodes the event and its trailing newline into a single Write
+// call, avoiding the extra copy that appending the newline to a marshaled
+// slice would require.
 func (se *modinputExporter) writeEvent(event *translator.Event) error {
-	b, err := json.Marshal(event)
-	if err != nil {
+	if err := se.enc.Encode(event); err != nil {
+		var we *writeError
+		if errors.As(err, &we) {
+			return fmt.Errorf("write HEC event to stdout: %w", we.err)
+		}
 		return consumererror.NewPermanent(fmt.Errorf("marshal HEC event: %w", err))
-	}
-	b = append(b, '\n')
-	// os.File.Write returns a non-nil error if it writes fewer bytes than len(b).
-	if _, err := se.out.Write(b); err != nil {
-		return fmt.Errorf("write HEC event to stdout: %w", err)
 	}
 	return nil
 }

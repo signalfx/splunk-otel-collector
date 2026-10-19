@@ -32,13 +32,18 @@ existing instance instead and skips the container. Cases share the one backend
 and the readback is scoped by index, so each case gets its own, named after its
 directory (`parity_host`), and never sees the events of a case that ran before it.
 
-An external Splunk must be **empty and privileged**. The suite creates the
-per-case indexes at startup and searches them over all time, and three goldens
-pin the index name they expect (`tests/monitor-index`, `tests/tcp-event`,
-`tests/udp-event`), so the names cannot be varied per run. Events left in
-`parity_*` by an earlier run are counted as the candidate's own and fail the
-comparison with a `field "count"` mismatch that gives no hint why. Use a fresh
-instance per run.
+An external Splunk's `parity_*` indexes must be empty and its credentials
+privileged enough to create them. The rest of the instance is not touched and
+can hold anything: readback is always scoped to `index=${INDEX}`
+(`runner.go:157`), never instance-wide. But the suite does not clean up after
+itself and the index names are fixed — three goldens pin the literal name
+(`tests/monitor-index`, `tests/tcp-event`, `tests/udp-event`) — so rerunning
+against the *same* `parity_*` indexes without clearing them first lands prior
+events on top of the next run's, and they are counted as the candidate's own,
+failing the comparison with a `field "count"` mismatch that gives no hint why.
+This is built for a Splunk that is disposed of after the run (the Docker
+container is; an external one should be too), not for a long-lived instance
+reused across runs.
 
 Each case picks the transport for both sides, so they can differ on purpose. The
 example case has UF send cooked S2S over HTTP (`conf/outputs.conf [httpout]`) to

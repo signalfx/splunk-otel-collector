@@ -305,6 +305,16 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  ptp-receiver-integration-test:
+    name: ptp-receiver-integration-test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Run PTP receiver integration test
+        run: internal/receiver/ptpreceiver/testdata/integration/run.sh
+
   integration-test-discovery-matrix:
     runs-on: ubuntu-24.04
     outputs:

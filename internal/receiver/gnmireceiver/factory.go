@@ -33,8 +33,10 @@ func NewFactory() receiver.Factory {
 }
 
 func createDefaultConfig() component.Config {
+	serverConfig := NewDefaultServerConfig()
 	return &Config{
 		Targets: []TargetConfig{},
+		Server:  &serverConfig,
 	}
 }
 

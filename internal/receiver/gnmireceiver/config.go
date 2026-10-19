@@ -54,6 +54,10 @@ type Config struct {
 	// Targets is the list of gNMI devices to subscribe to.
 	Targets []TargetConfig `mapstructure:"targets"`
 
+	// Server configures an optional gNMIReverse gRPC server for devices that
+	// stream gNMI Subscribe or Get responses to the receiver. An empty endpoint disables it.
+	Server *ServerConfig `mapstructure:"server"`
+
 	// YangModules is a list of YANG module files and/or directories used to
 	// derive each leaf's metric type (gauge/sum), unit, and enum/identityref
 	// value set directly from the schema. Directories are searched
@@ -84,12 +88,22 @@ type TargetConfig struct {
 	Redial time.Duration `mapstructure:"redial"`
 }
 
+// ServerConfig defines the optional receiver-side gNMI server.
+type ServerConfig struct {
+	Subscriptions           []SubscriptionConfig `mapstructure:"subscriptions"`
+	configgrpc.ServerConfig `mapstructure:",squash"`
+}
+
 func NewDefaultTargetConfig() TargetConfig {
 	return TargetConfig{
 		ClientConfig: configgrpc.NewDefaultClientConfig(),
 		Encoding:     encodingProto,
 		Redial:       defaultRedial,
 	}
+}
+
+func NewDefaultServerConfig() ServerConfig {
+	return ServerConfig{ServerConfig: configgrpc.NewDefaultServerConfig()}
 }
 
 // SubscriptionConfig defines a single gNMI path subscription.
@@ -150,7 +164,6 @@ var (
 	_ confmap.Validator   = (*Config)(nil)
 	_ confmap.Unmarshaler = (*TargetConfig)(nil)
 	_ confmap.Validator   = (*TargetConfig)(nil)
-	_ confmap.Validator   = (*SubscriptionConfig)(nil)
 	_ confmap.Validator   = (*MetricConfig)(nil)
 )
 
@@ -162,11 +175,40 @@ func (t *TargetConfig) Unmarshal(conf *confmap.Conf) error {
 }
 
 func (cfg *Config) Validate() error {
-	if len(cfg.Targets) == 0 {
-		return errors.New("at least one target must be specified")
+	serverEndpoint := ""
+	if cfg.Server != nil {
+		serverEndpoint = cfg.Server.NetAddr.Endpoint
+	}
+	if len(cfg.Targets) == 0 && serverEndpoint == "" {
+		return errors.New("at least one target or a server endpoint must be specified")
+	}
+	if serverEndpoint != "" && len(cfg.Server.Subscriptions) == 0 {
+		return errors.New("server.subscriptions must contain at least one subscription when the server endpoint is set")
+	}
+	if serverEndpoint != "" {
+		for i, sub := range cfg.Server.Subscriptions {
+			prefix := fmt.Sprintf("server.subscriptions[%d]", i)
+			if sub.Mode != "" {
+				return fmt.Errorf("%s.mode is not supported for server subscriptions", prefix)
+			}
+			if sub.SampleInterval != 0 {
+				return fmt.Errorf("%s.sample_interval is not supported for server subscriptions", prefix)
+			}
+			if sub.HeartbeatInterval != 0 {
+				return fmt.Errorf("%s.heartbeat_interval is not supported for server subscriptions", prefix)
+			}
+			if sub.SuppressRedundant {
+				return fmt.Errorf("%s.suppress_redundant is not supported for server subscriptions", prefix)
+			}
+		}
 	}
 	if len(cfg.YangModules) == 0 {
-		return validateMetricConfigRequired(cfg.Targets)
+		if err := validateMetricConfigRequired(cfg.Targets); err != nil {
+			return err
+		}
+		if serverEndpoint != "" {
+			return validateSubscriptionMetricConfig(cfg.Server.Subscriptions, "server.subscriptions", false)
+		}
 	}
 	return nil
 }
@@ -179,18 +221,63 @@ func validateMetricConfigRequired(targets []TargetConfig) error {
 	for ti := range targets {
 		for si, sub := range targets[ti].Subscriptions {
 			prefix := fmt.Sprintf("targets[%d].subscriptions[%d]", ti, si)
-			if sub.Default == nil && len(sub.Overrides) == 0 {
-				return fmt.Errorf("%s: at least one of \"default\" or \"overrides\" must be specified when yang_modules is not set", prefix)
-			}
-			if sub.Default != nil && sub.Default.Type == "" {
-				return fmt.Errorf("%s.default: type is required when yang_modules is not set", prefix)
-			}
-			for leaf, override := range sub.Overrides {
-				if override.Type == "" {
-					return fmt.Errorf("%s.overrides[%q]: type is required when yang_modules is not set", prefix, leaf)
-				}
+			if err := validateOneSubscriptionMetricConfig(sub, prefix, true); err != nil {
+				return err
 			}
 		}
+	}
+	return nil
+}
+
+func validateSubscriptionMetricConfig(subscriptions []SubscriptionConfig, prefix string, validateMode bool) error {
+	for i, sub := range subscriptions {
+		if err := validateOneSubscriptionMetricConfig(sub, fmt.Sprintf("%s[%d]", prefix, i), validateMode); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateOneSubscriptionMetricConfig(sub SubscriptionConfig, prefix string, validateMode bool) error {
+	if sub.Default == nil && len(sub.Overrides) == 0 {
+		return fmt.Errorf("%s: at least one of \"default\" or \"overrides\" must be specified when yang_modules is not set", prefix)
+	}
+	if sub.Default != nil && sub.Default.Type == "" {
+		return fmt.Errorf("%s.default: type is required when yang_modules is not set", prefix)
+	}
+	for leaf, override := range sub.Overrides {
+		if override.Type == "" {
+			return fmt.Errorf("%s.overrides[%q]: type is required when yang_modules is not set", prefix, leaf)
+		}
+	}
+
+	if sub.Path == "" {
+		return errors.New("path is required")
+	}
+	if !strings.HasPrefix(sub.Path, "/") {
+		return fmt.Errorf("path %q must be absolute (start with %q)", sub.Path, "/")
+	}
+
+	if validateMode {
+		switch sub.Mode {
+		case modeSample:
+			if sub.SampleInterval <= 0 {
+				return errors.New("sample_interval must be > 0 for \"sample\" mode")
+			}
+		case modeOnChange, modeTargetDefined:
+			if sub.SampleInterval != 0 {
+				return fmt.Errorf("sample_interval must not be set for %q mode", sub.Mode)
+			}
+		case "":
+			return errors.New("mode is required")
+		default:
+			return fmt.Errorf("invalid mode %q (supported: %q, %q, %q)",
+				sub.Mode, modeSample, modeOnChange, modeTargetDefined)
+		}
+	}
+
+	if sub.HeartbeatInterval < 0 {
+		return errors.New("heartbeat_interval must be >= 0")
 	}
 	return nil
 }
@@ -222,36 +309,6 @@ func (t *TargetConfig) Validate() error {
 
 	if len(t.Subscriptions) == 0 {
 		return errors.New("at least one subscription must be specified")
-	}
-	return nil
-}
-
-func (s *SubscriptionConfig) Validate() error {
-	if s.Path == "" {
-		return errors.New("path is required")
-	}
-	if !strings.HasPrefix(s.Path, "/") {
-		return fmt.Errorf("path %q must be absolute (start with %q)", s.Path, "/")
-	}
-
-	switch s.Mode {
-	case modeSample:
-		if s.SampleInterval <= 0 {
-			return errors.New("sample_interval must be > 0 for \"sample\" mode")
-		}
-	case modeOnChange, modeTargetDefined:
-		if s.SampleInterval != 0 {
-			return fmt.Errorf("sample_interval must not be set for %q mode", s.Mode)
-		}
-	case "":
-		return errors.New("mode is required")
-	default:
-		return fmt.Errorf("invalid mode %q (supported: %q, %q, %q)",
-			s.Mode, modeSample, modeOnChange, modeTargetDefined)
-	}
-
-	if s.HeartbeatInterval < 0 {
-		return errors.New("heartbeat_interval must be >= 0")
 	}
 	return nil
 }

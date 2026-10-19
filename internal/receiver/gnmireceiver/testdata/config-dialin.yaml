@@ -1,0 +1,8 @@
+gnmi:
+  server:
+    endpoint: localhost:0
+    subscriptions:
+      - path: /interfaces/interface/state/counters
+        default:
+          type: sum
+          unit: By

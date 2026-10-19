@@ -4,9 +4,10 @@
 package splunkmodinputexporter
 
 import (
-	"io"
+	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -20,7 +21,10 @@ func BenchmarkModinputExporter(b *testing.B) {
 	}{{name: "single", count: 1}, {name: "batch", count: 1000}} {
 		for _, signal := range []string{"logs", "metrics", "traces"} {
 			b.Run(signal+"/"+size.name, func(b *testing.B) {
-				e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), io.Discard)
+				devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+				require.NoError(b, err)
+				b.Cleanup(func() { _ = devNull.Close() })
+				e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), devNull)
 				logs, metrics, traces := plog.NewLogs(), pmetric.NewMetrics(), ptrace.NewTraces()
 				lr := logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords()
 				dp := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
@@ -35,7 +39,6 @@ func BenchmarkModinputExporter(b *testing.B) {
 				b.ReportAllocs()
 				b.ResetTimer()
 				for b.Loop() {
-					var err error
 					switch signal {
 					case "logs":
 						err = e.pushLogs(b.Context(), logs)

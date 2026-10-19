@@ -6,8 +6,7 @@ package splunkmodinputexporter
 import (
 	"context"
 	"fmt"
-	"io"
-	"sync"
+	"os"
 
 	"github.com/goccy/go-json"
 	translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk"
@@ -19,18 +18,19 @@ import (
 	"go.uber.org/zap"
 )
 
-// All signals and component instances share stdout. Serialize complete JSON lines
-// so a large event cannot interleave with another exporter's event.
-var stdoutMu sync.Mutex
-
 type modinputExporter struct {
-	writer io.Writer
+	out    *os.File
 	logger *zap.Logger
 	config Config
 }
 
-func newModinputExporter(cfg *Config, set component.TelemetrySettings, writer io.Writer) *modinputExporter {
-	return &modinputExporter{writer: writer, logger: set.Logger, config: *cfg}
+// newModinputExporter takes an *os.File instead of an io.Writer on purpose:
+// os.File.Write holds the file's write lock for the whole call, so each event
+// (written with a single Write) cannot interleave with events written
+// concurrently by other signals or exporter instances sharing stdout. An
+// arbitrary io.Writer gives no such guarantee.
+func newModinputExporter(cfg *Config, set component.TelemetrySettings, out *os.File) *modinputExporter {
+	return &modinputExporter{out: out, logger: set.Logger, config: *cfg}
 }
 
 func (se *modinputExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
@@ -100,14 +100,9 @@ func (se *modinputExporter) writeEvent(event *translator.Event) error {
 		return consumererror.NewPermanent(fmt.Errorf("marshal HEC event: %w", err))
 	}
 	b = append(b, '\n')
-	stdoutMu.Lock()
-	defer stdoutMu.Unlock()
-	n, err := se.writer.Write(b)
-	if err != nil {
+	// os.File.Write returns a non-nil error if it writes fewer bytes than len(b).
+	if _, err := se.out.Write(b); err != nil {
 		return fmt.Errorf("write HEC event to stdout: %w", err)
-	}
-	if n != len(b) {
-		return fmt.Errorf("write HEC event to stdout: %w", io.ErrShortWrite)
 	}
 	return nil
 }

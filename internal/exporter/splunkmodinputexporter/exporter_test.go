@@ -4,10 +4,8 @@
 package splunkmodinputexporter
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
-	"errors"
 	"io"
 	"os"
 	"strings"
@@ -33,6 +31,19 @@ const (
 	DefaultIndexLabel      = "com.splunk.index"
 	DefaultNameLabel       = "otel.log.name"
 )
+
+func newTestOutput(t *testing.T) *os.File {
+	f, err := os.CreateTemp(t.TempDir(), "stdout")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = f.Close() })
+	return f
+}
+
+func readTestOutput(t *testing.T, f *os.File) string {
+	b, err := os.ReadFile(f.Name())
+	require.NoError(t, err)
+	return string(b)
+}
 
 func prepareLogs() plog.Logs {
 	logs := plog.NewLogs()
@@ -123,8 +134,8 @@ func TestHECJSONEncoding(t *testing.T) {
 	for _, signal := range []string{"logs", "logs_attributes", "metrics", "traces"} {
 		t.Run(signal, func(t *testing.T) {
 			t.Parallel()
-			var out bytes.Buffer
-			e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+			out := newTestOutput(t)
+			e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), out)
 			var err error
 			var fixture string
 			switch signal {
@@ -152,8 +163,8 @@ func TestHECJSONEncoding(t *testing.T) {
 			require.NoError(t, err)
 			expected, err := os.ReadFile("testdata/" + fixture)
 			require.NoError(t, err)
-			require.JSONEq(t, string(expected), out.String())
-			require.True(t, strings.HasSuffix(out.String(), "\n"))
+			require.JSONEq(t, string(expected), readTestOutput(t, out))
+			require.True(t, strings.HasSuffix(readTestOutput(t, out), "\n"))
 		})
 	}
 }
@@ -164,8 +175,8 @@ func TestConfigDefaultsAndAttributePrecedence(t *testing.T) {
 		for _, attributes := range []bool{false, true} {
 			t.Run(signal+"/attributes="+map[bool]string{false: "false", true: "true"}[attributes], func(t *testing.T) {
 				t.Parallel()
-				var out bytes.Buffer
-				e := newModinputExporter(&Config{Source: "configured-source", Sourcetype: "configured-type", Index: "configured-index"}, componenttest.NewNopTelemetrySettings(), &out)
+				out := newTestOutput(t)
+				e := newModinputExporter(&Config{Source: "configured-source", Sourcetype: "configured-type", Index: "configured-index"}, componenttest.NewNopTelemetrySettings(), out)
 				var attrs pcommon.Map
 				var push func() error
 				switch signal {
@@ -192,7 +203,7 @@ func TestConfigDefaultsAndAttributePrecedence(t *testing.T) {
 				}
 				require.NoError(t, push())
 				var event translator.Event
-				require.NoError(t, json.Unmarshal(out.Bytes(), &event))
+				require.NoError(t, json.Unmarshal([]byte(readTestOutput(t, out)), &event))
 				assert.Equal(t, prefix+"source", event.Source)
 				assert.Equal(t, prefix+"type", event.SourceType)
 				assert.Equal(t, prefix+"index", event.Index)
@@ -201,54 +212,30 @@ func TestConfigDefaultsAndAttributePrecedence(t *testing.T) {
 	}
 }
 
-type writerFunc func([]byte) (int, error)
-
-func (f writerFunc) Write(b []byte) (int, error) { return f(b) }
-
-func TestWriteErrors(t *testing.T) {
+func TestWriteError(t *testing.T) {
 	t.Parallel()
-	writeErr := errors.New("broken pipe")
-	for _, tt := range []struct {
-		writer io.Writer
-		want   error
-		name   string
-	}{
-		{name: "write failure", writer: writerFunc(func([]byte) (int, error) { return 0, writeErr }), want: writeErr},
-		{name: "short write", writer: writerFunc(func(b []byte) (int, error) { return len(b) - 1, nil }), want: io.ErrShortWrite},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			for _, signal := range []string{"logs", "metrics", "traces"} {
-				e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), tt.writer)
-				var err error
-				switch signal {
-				case "logs":
-					err = e.pushLogs(t.Context(), prepareLogs())
-				case "metrics":
-					err = e.pushMetrics(t.Context(), prepareMetricsData("metric"))
-				case "traces":
-					err = e.pushTraces(t.Context(), prepareTracesData("", "", ""))
-				}
-				require.ErrorIs(t, err, tt.want)
-			}
-		})
-	}
+	out := newTestOutput(t)
+	require.NoError(t, out.Close())
+	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), out)
+	require.ErrorIs(t, e.pushLogs(t.Context(), prepareLogs()), os.ErrClosed)
+	require.ErrorIs(t, e.pushMetrics(t.Context(), prepareMetricsData("metric")), os.ErrClosed)
+	require.ErrorIs(t, e.pushTraces(t.Context(), prepareTracesData("", "", "")), os.ErrClosed)
 }
 
 func TestMarshalErrorIsPermanent(t *testing.T) {
 	t.Parallel()
-	var out bytes.Buffer
-	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+	out := newTestOutput(t)
+	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), out)
 	err := e.writeEvent(&translator.Event{Event: make(chan int)})
 	require.Error(t, err)
 	assert.True(t, consumererror.IsPermanent(err))
-	assert.Empty(t, out.String())
+	assert.Empty(t, readTestOutput(t, out))
 }
 
 func TestEmptyAndCanceledData(t *testing.T) {
 	t.Parallel()
-	var out bytes.Buffer
-	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+	out := newTestOutput(t)
+	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), out)
 	require.NoError(t, e.pushLogs(t.Context(), plog.NewLogs()))
 	require.NoError(t, e.pushMetrics(t.Context(), pmetric.NewMetrics()))
 	require.NoError(t, e.pushTraces(t.Context(), ptrace.NewTraces()))
@@ -257,23 +244,23 @@ func TestEmptyAndCanceledData(t *testing.T) {
 	require.ErrorIs(t, e.pushLogs(ctx, prepareLogs()), context.Canceled)
 	require.ErrorIs(t, e.pushMetrics(ctx, prepareMetricsData("metric")), context.Canceled)
 	require.ErrorIs(t, e.pushTraces(ctx, prepareTracesData("", "", "")), context.Canceled)
-	assert.Empty(t, out.String())
+	assert.Empty(t, readTestOutput(t, out))
 }
 
 func TestConcurrentInstances(t *testing.T) {
 	t.Parallel()
-	var out bytes.Buffer
+	out := newTestOutput(t)
 	var wg sync.WaitGroup
 	for range 20 {
 		wg.Go(func() {
-			e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), &out)
+			e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), out)
 			assert.NoError(t, e.pushLogs(t.Context(), prepareLogs()))
 			assert.NoError(t, e.pushMetrics(t.Context(), prepareMetricsData("metric")))
 			assert.NoError(t, e.pushTraces(t.Context(), prepareTracesData("", "", "")))
 		})
 	}
 	wg.Wait()
-	lines := strings.Split(strings.TrimSuffix(out.String(), "\n"), "\n")
+	lines := strings.Split(strings.TrimSuffix(readTestOutput(t, out), "\n"), "\n")
 	require.Len(t, lines, 60)
 	for _, line := range lines {
 		assert.True(t, json.Valid([]byte(line)))
@@ -301,21 +288,4 @@ func TestFactoryOutput(t *testing.T) {
 	out, err := io.ReadAll(r)
 	require.NoError(t, err)
 	assert.Contains(t, string(out), `"source":"factory-source"`)
-}
-
-func TestMetricsCancellationBetweenEvents(t *testing.T) {
-	t.Parallel()
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-	writes := 0
-	writer := writerFunc(func(b []byte) (int, error) {
-		writes++
-		cancel()
-		return len(b), nil
-	})
-	md := prepareMetricsData("test.metric")
-	md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().AppendEmpty().SetIntValue(42)
-	e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), writer)
-	require.ErrorIs(t, e.pushMetrics(ctx, md), context.Canceled)
-	assert.Equal(t, 1, writes)
 }

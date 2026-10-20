@@ -30,4 +30,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /src
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["go", "test", "-tags=ptp_integration", "-run", "TestPTPReceiverIntegration", "-v", "./internal/receiver/ptpreceiver/..."]
+CMD ["go", "test", "-tags=ptp_integration", "-run", "^TestPTPReceiverIntegration$", "-v", "./internal/receiver/ptpreceiver/..."]

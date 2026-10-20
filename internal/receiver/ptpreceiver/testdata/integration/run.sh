@@ -7,7 +7,7 @@
 # arguments, runs exactly that command once against the standard
 # master+slave topology, for manual debugging -- e.g. to run a single test
 # with -v output:
-#   run.sh go test -tags=ptp_integration -run TestPTPReceiverIntegration -v ./internal/receiver/ptpreceiver/...
+#   run.sh go test -tags=ptp_integration -run '^TestPTPReceiverIntegration$' -v ./internal/receiver/ptpreceiver/...
 set -euo pipefail
 
 cd "$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
@@ -16,6 +16,7 @@ IMAGE="ptpreceiver-integration-test"
 NETWORK="ptpreceiver-integration-test"
 DOWNSTREAM_NETWORK="ptpreceiver-integration-test-downstream"
 MASTER="ptpreceiver-integration-test-master"
+STARTUP="ptpreceiver-integration-test-startup"
 BOUNDARY="ptpreceiver-integration-test-boundary"
 LOSS_RECOVERY="ptpreceiver-integration-test-loss-recovery"
 FAULTY="ptpreceiver-integration-test-faulty"
@@ -24,7 +25,7 @@ PKG="./internal/receiver/ptpreceiver/..."
 SIGNAL_DIR="/tmp/ptp-integration-signals"
 
 cleanup() {
-  docker rm -f "$MASTER" "$BOUNDARY" "$LOSS_RECOVERY" "$FAULTY" >/dev/null 2>&1 || true
+  docker rm -f "$MASTER" "$STARTUP" "$BOUNDARY" "$LOSS_RECOVERY" "$FAULTY" >/dev/null 2>&1 || true
   docker network rm "$NETWORK" "$DOWNSTREAM_NETWORK" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -81,11 +82,25 @@ docker run --rm --cap-add=SYS_TIME -v "$(pwd):/src" "$IMAGE" \
   go test -tags=ptp_integration -run 'TestPTPReceiverIntegration_NoRemoteGrandmaster|TestPTPReceiverIntegration_SocketNotPresent|TestPTPReceiverIntegration_PMCTimeout' -v "$PKG"
 
 docker network create "$NETWORK" >/dev/null
-start_master
 
 echo "=== successful path: real metric contract and startup states ==="
-docker run --rm --network "$NETWORK" --cap-add=SYS_TIME -v "$(pwd):/src" "$IMAGE" \
-  go test -tags=ptp_integration -run '^TestPTPReceiverIntegration$' -v "$PKG"
+# Start the grandmaster only after the receiver observes the unsynchronized
+# local clock, so downloading modules and compiling cannot hide startup.
+docker run -d --name "$STARTUP" --network "$NETWORK" --cap-add=SYS_TIME -v "$(pwd):/src" "$IMAGE" \
+  go test -tags=ptp_integration -run '^TestPTPReceiverIntegration_Startup$' -v "$PKG" >/dev/null
+if ! wait_for_container_file "$STARTUP" ready-for-master-start 150; then
+  docker logs "$STARTUP"
+  exit 1
+fi
+start_master
+
+exit_code=$(docker wait "$STARTUP")
+docker logs "$STARTUP"
+if [ "$exit_code" != "0" ]; then
+  echo "startup test failed (exit $exit_code)" >&2
+  exit 1
+fi
+docker rm "$STARTUP" >/dev/null
 
 echo "=== boundary clock (multiple ports) ==="
 docker network create "$DOWNSTREAM_NETWORK" >/dev/null

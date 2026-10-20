@@ -45,11 +45,13 @@ const schemeName = "splunkconf"
 var pipelineRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
 
 type provider struct {
-	mappers []MappingReceiverFactory
+	inputMappers  []MappingReceiverFactory
+	outputMappers []MappingExporterFactory
 }
 
 // NewFactory returns a confmap.ProviderFactory for the splunkconf scheme. Pass
-// WithInputMappers to register the receivers that map input stanzas.
+// WithInputMappers to register the receivers that map input stanzas, and
+// WithOutputMappers the exporters that map output stanzas.
 func NewFactory(opts ...Option) confmap.ProviderFactory {
 	return confmap.NewProviderFactory(func(confmap.ProviderSettings) confmap.Provider {
 		p := &provider{}
@@ -152,7 +154,7 @@ func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: read outputs.conf: %w", err)
 	}
-	exps, err := mapOutputs(merged)
+	exps, err := p.mapOutputs(merged)
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: outputs.conf under %s: %w", confRoot, err)
 	}

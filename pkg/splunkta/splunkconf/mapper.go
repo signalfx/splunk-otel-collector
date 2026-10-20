@@ -5,6 +5,7 @@ package splunkconf
 
 import (
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
@@ -58,6 +59,37 @@ type InputMapper interface {
 type MappingReceiverFactory interface {
 	receiver.Factory
 	InputMapper
+}
+
+// Output is one output stanza with its name already split into kind and target.
+// As with Input, the provider parses every name once, so a mapper filters on
+// Name.Kind instead of re-parsing and re-reporting.
+//
+// It carries no props/transforms counterpart to Input's: those resolve per
+// input, so an output stanza carries nothing beyond itself.
+type Output struct {
+	conf.Output
+	Name stanza.Name
+}
+
+// OutputMapper is the output-side counterpart of InputMapper, and is what lets
+// an exporter that cannot live in this repo still cover an output kind: the
+// caller supplies the factory and the mapping, while reading and merging
+// outputs.conf stays here.
+//
+// MapOutputs returns one config per instance the exporter owns, keyed by the raw
+// stanza name it was built from, and ignores every stanza it does not own. The
+// key is the raw name for the same reasons it is on InputMapper.
+type OutputMapper interface {
+	MapOutputs([]Output) (map[string]component.Config, error)
+}
+
+// MappingExporterFactory is an exporter factory that maps its own .conf outputs.
+// Registration takes the factory rather than a bare OutputMapper for the reason
+// it does on MappingReceiverFactory.
+type MappingExporterFactory interface {
+	exporter.Factory
+	OutputMapper
 }
 
 // Attrs holds the settings every input stanza can carry, whatever its kind.
@@ -114,6 +146,18 @@ type Option func(*provider)
 // lists from drifting and gives an out-of-repo receiver the same path in.
 func WithInputMappers(mappers ...MappingReceiverFactory) Option {
 	return func(p *provider) {
-		p.mappers = append(p.mappers, mappers...)
+		p.inputMappers = append(p.inputMappers, mappers...)
+	}
+}
+
+// WithOutputMappers registers the exporters that map output stanzas. [hecout]
+// needs no registration: splunk_hec is an upstream factory, so it cannot
+// implement OutputMapper and the provider holds that one mapping itself. A
+// registered mapper covers a kind the provider has no exporter for, and claiming
+// a stanza the provider already mapped is rejected rather than allowed to
+// override it.
+func WithOutputMappers(mappers ...MappingExporterFactory) Option {
+	return func(p *provider) {
+		p.outputMappers = append(p.outputMappers, mappers...)
 	}
 }

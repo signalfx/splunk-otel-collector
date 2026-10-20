@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -502,7 +503,7 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 		{
 			name:   "output kind with no mapping",
 			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": "[tcpout:primary]\nserver = idx1:9997\n"},
-			errMsg: "only [hecout] is mapped",
+			errMsg: `unsupported output stanza(s) [tcpout:primary] (kind "tcpout")`,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -515,6 +516,73 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			require.ErrorContains(t, err, tt.errMsg)
 		})
 	}
+}
+
+// s2sConfig stands in for an exporter config whose type lives outside this repo.
+type s2sConfig struct {
+	Server string `mapstructure:"server"`
+}
+
+// s2sFactory maps [tcpout] the way the closed-source S2S exporter does, which is
+// the registration path WithOutputMappers exists for.
+type s2sFactory struct {
+	exporter.Factory
+}
+
+func newS2SFactory() s2sFactory {
+	return s2sFactory{Factory: exporter.NewFactory(
+		otelcomponent.MustNewType("splunk_s2s"),
+		func() otelcomponent.Config { return &s2sConfig{} },
+	)}
+}
+
+func (s2sFactory) MapOutputs(outputs []splunkconf.Output) (map[string]otelcomponent.Config, error) {
+	instances := map[string]otelcomponent.Config{}
+	for _, o := range outputs {
+		if o.Name.Kind != "tcpout" {
+			continue
+		}
+		cfg := &s2sConfig{}
+		if p := o.Configuration.Stanza.Params.Get("server"); p != nil {
+			cfg.Server = p.Value
+		}
+		instances[o.Configuration.Stanza.Name] = cfg
+	}
+	return instances, nil
+}
+
+// An exporter registered from outside this package reaches outputs.conf through
+// the same path the built-in [hecout] mapping does, and its own config type
+// survives the marshal/unmarshal round trip the emitted fragment forces.
+func TestRegisteredOutputMapper(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/foo]\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\n\n[tcpout:primary]\nserver = idx1:9997\n",
+	})
+
+	f := newS2SFactory()
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(splunkmonitor.NewFactory()),
+			splunkconf.WithOutputMappers(f),
+		)},
+	})
+	require.NoError(t, err)
+	resolved, err := res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	const s2sID = "splunk_s2s/tcpout-primary-bc98bd6f"
+	_, expIDs := pipelineIDs(t, resolved, "logs/uf")
+	require.Equal(t, []string{"splunk_hec/hecout-d6a24a0d", s2sID}, expIDs)
+
+	exporters, err := resolved.Sub("exporters")
+	require.NoError(t, err)
+	sub, err := exporters.Sub(s2sID)
+	require.NoError(t, err)
+	cfg := f.CreateDefaultConfig()
+	require.NoError(t, sub.Unmarshal(cfg))
+	require.Equal(t, &s2sConfig{Server: "idx1:9997"}, cfg)
 }
 
 func TestShutdownIsANoop(t *testing.T) {

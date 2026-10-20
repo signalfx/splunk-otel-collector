@@ -5,10 +5,12 @@ package splunkconf
 
 import (
 	"errors"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
@@ -34,10 +36,29 @@ func stub(typeStr string, claims map[string]component.Config, err error) stubMap
 	}
 }
 
+// stubOutputMapper is the output-side counterpart of stubMapper.
+type stubOutputMapper struct {
+	exporter.Factory
+	claims map[string]component.Config
+	err    error
+}
+
+func (s stubOutputMapper) MapOutputs([]Output) (map[string]component.Config, error) {
+	return s.claims, s.err
+}
+
+func outStub(typeStr string, claims map[string]component.Config, err error) stubOutputMapper {
+	return stubOutputMapper{
+		Factory: exporter.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		claims:  claims,
+		err:     err,
+	}
+}
+
 // The provider, not a mapper, decides the component ID, so the same stanza
 // always lands on the same ID regardless of which receiver claimed it.
 func TestMapInputsAssignsIDs(t *testing.T) {
-	p := &provider{mappers: []MappingReceiverFactory{
+	p := &provider{inputMappers: []MappingReceiverFactory{
 		stub("splunk_a", map[string]component.Config{"monitor:///var/log/foo": &struct{}{}}, nil),
 	}}
 	out, skipped, err := p.mapInputs(Conf{})
@@ -51,7 +72,7 @@ func TestMapInputsAssignsIDs(t *testing.T) {
 // question, so it fails rather than letting map iteration order pick a winner.
 func TestMapInputsRejectsDoubleClaim(t *testing.T) {
 	cfg := map[string]component.Config{"monitor:///x": &struct{}{}}
-	p := &provider{mappers: []MappingReceiverFactory{
+	p := &provider{inputMappers: []MappingReceiverFactory{
 		stub("splunk_a", cfg, nil),
 		stub("splunk_b", cfg, nil),
 	}}
@@ -67,7 +88,7 @@ func TestMapInputsReportsUnclaimed(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	p := &provider{mappers: []MappingReceiverFactory{stub("splunk_a", nil, nil)}}
+	p := &provider{inputMappers: []MappingReceiverFactory{stub("splunk_a", nil, nil)}}
 	out, skipped, err := p.mapInputs(tree)
 	require.NoError(t, err)
 	require.Empty(t, out)
@@ -76,7 +97,7 @@ func TestMapInputsReportsUnclaimed(t *testing.T) {
 
 // A mapper's error names the type, so a bad out-of-repo mapper is attributable.
 func TestMapInputsWrapsMapperError(t *testing.T) {
-	p := &provider{mappers: []MappingReceiverFactory{
+	p := &provider{inputMappers: []MappingReceiverFactory{
 		stub("splunk_a", nil, errors.New("boom")),
 	}}
 	_, _, err := p.mapInputs(Conf{})
@@ -161,26 +182,59 @@ func TestParseURI(t *testing.T) {
 }
 
 func TestMapOutputs(t *testing.T) {
+	const (
+		hecout = "hecout"
+		tcpout = "tcpout:primary"
+	)
+	hecStanza := map[string]string{"uri": "https://hec:8088", "httpEventCollectorToken": "tok"}
+	tcpStanza := map[string]string{"server": "idx1:9997"}
+
 	for _, tt := range []struct {
-		name   string
-		merged conf.Map
-		wantID string
-		errMsg string
+		merged  conf.Map
+		name    string
+		errMsg  string
+		mappers []MappingExporterFactory
+		wantIDs []string
 	}{
 		{
-			name: "hecout maps to the contrib exporter",
-			merged: conf.Map{
-				"hecout": {"uri": "https://hec:8088", "httpEventCollectorToken": "tok"},
-			},
-			wantID: "splunk_hec/hecout-d6a24a0d",
+			name:    "hecout maps to the contrib exporter with no mapper registered",
+			merged:  conf.Map{hecout: hecStanza},
+			wantIDs: []string{"splunk_hec/hecout-d6a24a0d"},
 		},
 		{
-			// S2S needs a real exporter that does not exist upstream, so it arrives
-			// with the output-mapper registration API rather than being guessed at.
-			name: "tcpout has no mapping yet and must not be dropped silently",
-			merged: conf.Map{
-				"tcpout:primary": {"server": "idx1:9997"},
+			// S2S has no exporter upstream or in this repo, so [tcpout] is covered
+			// by a mapper the client registers rather than being guessed at here.
+			name:    "a registered mapper covers a kind this package does not",
+			merged:  conf.Map{hecout: hecStanza, tcpout: tcpStanza},
+			mappers: []MappingExporterFactory{outStub("splunk_s2s", map[string]component.Config{tcpout: &struct{}{}}, nil)},
+			wantIDs: []string{"splunk_hec/hecout-d6a24a0d", "splunk_s2s/tcpout-primary-bc98bd6f"},
+		},
+		{
+			// The built-in mapping claims first, so a mapper that also takes the
+			// stanza is a registration bug rather than a silent override.
+			name:    "a registered mapper cannot override the built-in hecout mapping",
+			merged:  conf.Map{hecout: hecStanza},
+			mappers: []MappingExporterFactory{outStub("splunk_s2s", map[string]component.Config{hecout: &struct{}{}}, nil)},
+			errMsg:  "stanza [hecout] claimed by both splunk_hec and splunk_s2s",
+		},
+		{
+			name:   "two registered mappers claiming one stanza",
+			merged: conf.Map{tcpout: tcpStanza},
+			mappers: []MappingExporterFactory{
+				outStub("splunk_a", map[string]component.Config{tcpout: &struct{}{}}, nil),
+				outStub("splunk_b", map[string]component.Config{tcpout: &struct{}{}}, nil),
 			},
+			errMsg: "claimed by both splunk_a and splunk_b",
+		},
+		{
+			name:    "a mapper's error names the type",
+			merged:  conf.Map{tcpout: tcpStanza},
+			mappers: []MappingExporterFactory{outStub("splunk_s2s", nil, errors.New("boom"))},
+			errMsg:  "splunk_s2s: boom",
+		},
+		{
+			name:   "a kind nothing claims must not be dropped silently",
+			merged: conf.Map{tcpout: tcpStanza},
 			errMsg: `unsupported output stanza(s) [tcpout:primary] (kind "tcpout")`,
 		},
 		{
@@ -190,14 +244,19 @@ func TestMapOutputs(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := mapOutputs(tt.merged)
+			p := &provider{outputMappers: tt.mappers}
+			out, err := p.mapOutputs(tt.merged)
 			if tt.errMsg != "" {
 				require.ErrorContains(t, err, tt.errMsg)
 				return
 			}
 			require.NoError(t, err)
-			require.Len(t, out, 1)
-			require.Equal(t, tt.wantID, out[0].id)
+			ids := make([]string, 0, len(out))
+			for _, e := range out {
+				ids = append(ids, e.id)
+			}
+			sort.Strings(ids)
+			require.Equal(t, tt.wantIDs, ids)
 		})
 	}
 }

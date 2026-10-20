@@ -342,7 +342,10 @@ func ReadInputs(dirs []string) ([]conf.Input, error) {
 		}
 		layers = append(layers, inputs)
 	}
-	return conf.MergeInputs(layers), nil
+	// Globals are folded after the layers merge, not per file: stanza
+	// specificity outranks layer precedence, so each stanza has to be resolved
+	// across layers before a global can fill in what it leaves unset.
+	return conf.ApplyGlobals(conf.MergeInputs(layers)), nil
 }
 
 // ReadSystemInputs returns inputs.conf stanzas defined only in etc/system,

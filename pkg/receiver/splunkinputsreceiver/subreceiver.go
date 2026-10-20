@@ -49,8 +49,7 @@ func (s receiverSpec) equal(other receiverSpec) bool {
 }
 
 // ReceiverRequest is passed to a sub-receiver factory for one inputs.conf
-// stanza. Path is the parsed target from the stanza name. Empty-kind stanzas
-// are dispatched to the "script" sub-receiver.
+// stanza. Path is the parsed target from the stanza name.
 type ReceiverRequest struct {
 	BaseDir    string
 	Path       string
@@ -62,8 +61,7 @@ type ReceiverRequest struct {
 // SubReceiverFactory creates a logs receiver for one inputs.conf stanza kind.
 //
 // Scheme returns the stanza kind to match. Kinds are matched case-sensitively,
-// matching Splunk UF behavior. Returning "script" handles both script:// stanzas and
-// empty-kind modular input stanzas.
+// matching Splunk UF behavior.
 type SubReceiverFactory interface {
 	Scheme() string
 	CreateLogs(context.Context, receiver.Settings, ReceiverRequest, consumer.Logs) (receiver.Logs, error)
@@ -207,9 +205,6 @@ func (o factoryOptions) createReceiver(ctx context.Context, baseDir string, next
 		return nil, err
 	}
 	scheme := parsed.Kind
-	if scheme == "" {
-		scheme = "script"
-	}
 	if f, ok := o.subReceivers[scheme]; ok {
 		return f.CreateLogs(ctx, settings, ReceiverRequest{
 			BaseDir:    baseDir,

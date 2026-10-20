@@ -32,8 +32,8 @@ func TestWithSubReceiverRegistersCustomScheme(t *testing.T) {
 	require.Equal(t, "custom:///thing", fake.request.Input.Configuration.Stanza.Name)
 }
 
-func TestWithSubReceiverOverridesBuiltInAndHandlesEmptySchemeAsScript(t *testing.T) {
-	splunkHome := writeTA(t, "[modinput]\ninterval = -1\n")
+func TestWithSubReceiverOverridesBuiltIn(t *testing.T) {
+	splunkHome := writeTA(t, "[script://./bin/thing.sh]\ninterval = -1\n")
 	fake := &fakeSubReceiverFactory{scheme: "script"}
 
 	factory := splunkinputsreceiver.NewFactory(splunkinputsreceiver.WithSubReceiver(fake))
@@ -41,7 +41,7 @@ func TestWithSubReceiverOverridesBuiltInAndHandlesEmptySchemeAsScript(t *testing
 	require.NotNil(t, rcvr)
 	require.True(t, fake.called)
 	require.Equal(t, filepath.Join(splunkHome, "etc", "apps", "Splunk_TA_test"), fake.request.BaseDir)
-	require.Equal(t, "modinput", fake.request.Input.Configuration.Stanza.Name)
+	require.Equal(t, "script://./bin/thing.sh", fake.request.Input.Configuration.Stanza.Name)
 }
 
 func TestWithSubReceiverDoesNotMatchCaseVariantScheme(t *testing.T) {

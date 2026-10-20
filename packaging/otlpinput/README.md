@@ -216,4 +216,4 @@ $> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 1
 # Binary File Declaration
 The following binaries are written in Go present in the source repository:
 - linux_x86_64/bin/splunk-connect-for-otlp
-- windows_x86_64/bin/splunk-connect-for-otlp
+- windows_x86_64/bin/splunk-connect-for-otlp.exe

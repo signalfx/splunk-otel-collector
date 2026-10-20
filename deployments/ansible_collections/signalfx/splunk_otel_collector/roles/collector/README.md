@@ -1,12 +1,15 @@
 # Splunk OpenTelemetry Collector Ansible Role
 
 Ansible role that installs Splunk OpenTelemetry Collector configured to
-collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
+collect metrics, traces and logs from Linux machines and send data to [Splunk
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html)
+or logs to Splunk Platform.
 
 ## Prerequisites
 
-- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
+- A [Splunk Access Token](https://help.splunk.com/en/splunk-observability-cloud/administer/authentication-and-security/authentication-tokens/org-access-tokens
+  for Observability Cloud, or a [Splunk Platform HEC URL and token](https://help.splunk.com/en/data-management/collect-http-event-data/use-hec-in-splunk-cloud-platform/set-up-and-use-http-event-collector-in-splunk-web)
+  for Platform-only log collection.
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Double-check exposed ports](https://docs.splunk.com/observability/en/gdi/opentelemetry/exposed-endpoints.html)
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
@@ -46,31 +49,45 @@ $> ansible-playbook playbook.yaml -e start_service=false
 
 ### Send host logs to Splunk Platform
 
-The collector package includes a Splunk Platform logs configuration for each
-supported operating system. Enable config merging and provide the HEC settings
-as additional environment variables.
+Provide the HEC endpoint and token to enable host log collection. The role adds
+the package's logs configuration and the required config merge feature gate
+automatically:
 
 ```yaml
-splunk_otel_collector_command_line_args: >-
-  --feature-gates=confmap.enableMergeAppendOption
-splunk_otel_collector_additional_env_vars:
-  SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
-  SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+splunk_platform_token: "<your-hec-token>"
+splunk_platform_url: "https://<your-splunk-host>:8088/services/collector"
+splunk_platform_logs_index: "<your-index>" # optional
 ```
 
-You can also specify the `SPLUNK_PLATFORM_LOGS_INDEX` if you don't want to use
-the default index `main`.
+`splunk_platform_token` and `splunk_platform_url` must be provided together.
+The index is optional; when omitted, the logs configuration uses `main`.
+Set `splunk_access_token` as well to send the regular agent telemetry to
+Observability Cloud alongside Platform logs. If it is omitted, the role runs
+with the Platform logs configuration only. For Observability-only deployment,
+provide `splunk_access_token` and omit the Platform settings.
 
 ## Role Variables
 
 ### Collector
 
-- `splunk_access_token` (**Required**): The Splunk access token to
-  authenticate requests.
+- `splunk_access_token`: The Splunk Observability Cloud access token. Required
+  for Observability-only or combined Observability and Platform collection;
+  can be omitted for Platform-only logs collection.
 
 - `splunk_realm`: Which realm to send the data to. The `SPLUNK_REALM`
   environment variable will be set with this value for the Splunk OTel 
   Collector service. (**default:** `us0`)
+
+- `splunk_platform_token`: HEC token for sending host logs to Splunk Platform.
+  Required together with `splunk_platform_url`; (**default:** `""`).
+
+- `splunk_platform_url`: Splunk Platform HEC endpoint URL, for
+  example `https://splunk.example.com:8088/services/collector`. Required
+  together with `splunk_platform_token`; (**default:** `""`).
+
+- `splunk_platform_logs_index`: Index for host logs sent to Splunk
+  Platform. Optional; defaults to `main` in the packaged logs configuration
+  (**default:** `""`).
 
 - `splunk_ingest_url`: The Splunk ingest URL, e.g.
   `https://ingest.us0.observability.splunkcloud.com`. The `SPLUNK_INGEST_URL` environment

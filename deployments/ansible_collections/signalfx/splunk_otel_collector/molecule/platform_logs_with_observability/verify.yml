@@ -1,0 +1,39 @@
+---
+- name: Verify combined Observability and Splunk Platform logs
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Assert both sets of credentials and the optional index are set
+      ansible.builtin.lineinfile:
+        line: "{{ item }}"
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      loop:
+        - SPLUNK_ACCESS_TOKEN=fake-token
+        - SPLUNK_PLATFORM_URL=https://splunk.example.com:8088/services/collector
+        - SPLUNK_PLATFORM_TOKEN=fake-platform-token
+        - SPLUNK_PLATFORM_LOGS_INDEX=custom-index
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert both configs and merge feature gate are selected
+      ansible.builtin.lineinfile:
+        line: >-
+          OTELCOL_OPTIONS=--config /etc/otel/collector/agent_config.yaml
+          --config /etc/otel/collector/splunk_logs_config_linux.yaml
+          --feature-gates=confmap.enableMergeAppendOption
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert agent config environment variable is omitted when configs are merged
+      ansible.builtin.lineinfile:
+        line: SPLUNK_CONFIG=/etc/otel/collector/agent_config.yaml
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed

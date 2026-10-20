@@ -68,8 +68,8 @@ type MappingReceiverFactory interface {
 // It carries no props/transforms counterpart to Input's: those resolve per
 // input, so an output stanza carries nothing beyond itself.
 type Output struct {
-	conf.Output
 	Name stanza.Name
+	conf.Output
 }
 
 // OutputMapper is the output-side counterpart of InputMapper, and is what lets

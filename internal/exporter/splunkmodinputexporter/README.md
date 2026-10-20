@@ -74,13 +74,31 @@ already have written some events when it fails. Writes to a blocked standard
 output can block the pipeline; context cancellation is checked between events,
 but cannot interrupt an operating system write already in progress.
 
-The exporter performs no authentication or index authorization. Configure these
-at the input boundary. The Splunk OTLP input applies its HEC token index
-restrictions before forwarding data to this exporter.
-
 The HEC representation can lose OpenTelemetry-specific information. Histogram
 and summary metrics can expand into multiple events; unsupported metric types
 follow the translator's behavior. This exporter does not produce OTLP JSON.
+
+## Index, source, and sourcetype in Splunk
+
+The exporter only writes HEC JSON. Whether Splunk honors the `index`, `source`,
+`sourcetype`, `host`, and `time` fields of each event depends on the `props.conf`
+of the modular input that collects standard output:
+
+- With `INDEXED_EXTRACTIONS = HEC` for the input's sourcetype, Splunk parses
+  each line as an HEC event and applies its fields. The `com.splunk.index`
+  attribute, or the `index` setting, selects the destination index. Events
+  without an index go to the index of the modular input stanza. Splunk Connect
+  for OTLP uses this mode.
+- Without it, Splunk indexes each line as raw text using the `index`, `source`,
+  and `sourcetype` of the modular input stanza. The event fields are only part
+  of the raw text and do not affect where data is stored. Splunk_TA_otel uses
+  this mode by default.
+
+The exporter performs no authentication or index authorization, and Splunk does
+not apply HEC token restrictions to modular input output. When event fields take
+effect, any sender that can set `com.splunk.index` can write to any existing
+index unless the input restricts it. Splunk Connect for OTLP applies the HEC
+token's default and allowed indexes before forwarding data to this exporter.
 
 ## Development
 

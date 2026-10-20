@@ -1,5 +1,5 @@
 change_type: bug_fix
 component: splunk-connect-for-otlp
-note: Apply the configured source and sourcetype to events written to standard output, and return a permanent error when an OTLP request uses an index the HEC token is not allowed to write to.
+note: Apply the configured source and sourcetype and the HEC token's default index to events written to standard output, allow any index for tokens without allowed indexes, and return a permanent error when an OTLP request uses an index the HEC token is not allowed to write to.
 issues: [8291]
-subtext: Previously the configured source and sourcetype were silently ignored. Index authorization failures are no longer retryable, and a span index can no longer bypass a denied resource index.
+subtext: Previously the configured source and sourcetype were silently ignored, events without an index went to the input's index instead of the token's default index, and tokens without allowed indexes rejected every explicit index. Index authorization failures are no longer retryable, and a span index can no longer bypass a denied resource index.

@@ -92,12 +92,14 @@ func (b *parseBatch) numberDataPoint(name, unit string, wantType pmetric.MetricT
 		if m.Type() != wantType {
 			return pmetric.NumberDataPoint{}, fmt.Errorf(
 				"metric %q is already emitted as %s in this batch, cannot also emit it as %s",
-				name, m.Type(), wantType)
+				name, m.Type(), wantType,
+			)
 		}
 		if m.Unit() != unit {
 			return pmetric.NumberDataPoint{}, fmt.Errorf(
 				"metric %q is already emitted with unit %q in this batch, cannot also emit it with unit %q",
-				name, m.Unit(), unit)
+				name, m.Unit(), unit,
+			)
 		}
 		if wantType == pmetric.MetricTypeSum {
 			return m.Sum().DataPoints().AppendEmpty(), nil
@@ -132,7 +134,11 @@ func (p *metricParser) parse(resp *gnmipb.SubscribeResponse) (pmetric.Metrics, e
 		ts = pcommon.Timestamp(notification.GetTimestamp()) //nolint:gosec // G115: gNMI timestamps are non-negative unix nanos
 	}
 
-	b := newParseBatch(p.newScopeMetrics(metrics))
+	endpoint := p.endpoint
+	if target := notification.GetPrefix().GetTarget(); target != "" {
+		endpoint = target
+	}
+	b := newParseBatch(p.newScopeMetrics(metrics, endpoint))
 
 	var errs []string
 	for _, update := range notification.GetUpdate() {
@@ -159,9 +165,9 @@ func (p *metricParser) parse(resp *gnmipb.SubscribeResponse) (pmetric.Metrics, e
 	return metrics, nil
 }
 
-func (p *metricParser) newScopeMetrics(metrics pmetric.Metrics) pmetric.ScopeMetrics {
+func (p *metricParser) newScopeMetrics(metrics pmetric.Metrics, endpoint string) pmetric.ScopeMetrics {
 	rm := metrics.ResourceMetrics().AppendEmpty()
-	rm.Resource().Attributes().PutStr(string(conventions.ServerAddressKey), p.endpoint)
+	rm.Resource().Attributes().PutStr(string(conventions.ServerAddressKey), endpoint)
 	sm := rm.ScopeMetrics().AppendEmpty()
 	sm.Scope().SetName(metadata.ScopeName)
 	return sm

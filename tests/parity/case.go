@@ -17,48 +17,67 @@ package parity
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
-// Case is one parity test loaded from a test.yaml. It is the ported shape of
-// the 1spl case: a Splunk .conf fragment, shell setup/script hooks, and the
-// expected event. Fields are deliberately close to 1spl so the corpus ports
-// with minimal edits.
+// Case is one parity test loaded from a test.yaml: shell hooks and the fields to
+// compare. The agent configs live beside it in the case directory, not in here.
 type Case struct {
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
-	Stage       string   `yaml:"stage"`
-	Conf        string   `yaml:"conf"`     // inputs.conf fragment
 	Setup       string   `yaml:"setup"`    // shell run before the agent starts
 	Script      string   `yaml:"script"`   // shell run after the agent starts
-	Expected    Expected `yaml:"expected"` // reference event
-	OS          []string `yaml:"os"`
+	Validate    string   `yaml:"validate"` // shell that must exit 0 once the capture settles
+	OS          []string `yaml:"os"`       // platforms to run on; unset runs on every platform
+	// Expected is last because its trailing booleans pack better there.
+	Expected Expected `yaml:"expected"` // the fields this case compares
 }
 
-// Expected is the reference event a case asserts, authored in Splunk-event
-// terms: the same fields a search returns and that Record holds. Only set fields
-// are asserted; empty fields are ignored, which is how volatile keys stay out of
-// the comparison.
+// Expected selects the Record fields a case is defined on. It is the case's only
+// filter, applied twice: generating a golden keeps these fields of the oracle's
+// events and drops the rest, and validating compares the candidate on these same
+// fields. The values live in the golden, never here, so the two cannot disagree.
+//
+// Every field a case does not select is ignored, which is how a volatile key
+// like an auto-assigned sourcetype stays out of a comparison.
 type Expected struct {
-	Fields     map[string]string `yaml:"fields"`
-	Raw        string            `yaml:"raw"`
-	Host       string            `yaml:"host"`
-	Source     string            `yaml:"source"`
-	Sourcetype string            `yaml:"sourcetype"`
-	Index      string            `yaml:"index"`
+	// Fields selects Record.Fields keys by exact name or glob, e.g. "punct" or
+	// "date_*". Globs use path.Match syntax.
+	Fields     []string `yaml:"fields"`
+	Raw        bool     `yaml:"raw"`
+	Host       bool     `yaml:"host"`
+	Source     bool     `yaml:"source"`
+	Sourcetype bool     `yaml:"sourcetype"`
+	Index      bool     `yaml:"index"`
 }
 
-// LoadCase reads a test.yaml from path.
+// selectsNothing reports whether the filter would compare no fields at all,
+// which makes a case vacuous.
+func (e Expected) selectsNothing() bool {
+	return !e.Raw && !e.Host && !e.Source && !e.Sourcetype && !e.Index && len(e.Fields) == 0
+}
+
+// LoadCase reads a test.yaml from path. Unknown keys are an error: the filter is
+// all booleans, so a typo would silently stop comparing a field instead of
+// failing.
 func LoadCase(path string) (*Case, error) {
-	b, err := os.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
+
+	dec := yaml.NewDecoder(f)
+	dec.KnownFields(true)
 	var c Case
-	if err := yaml.Unmarshal(b, &c); err != nil {
+	if err := dec.Decode(&c); err != nil {
 		return nil, fmt.Errorf("parse %s: %w", path, err)
+	}
+	if c.Expected.selectsNothing() {
+		return nil, fmt.Errorf("%s: expected selects no fields, so the case compares nothing", path)
 	}
 	return &c, nil
 }
@@ -68,32 +87,48 @@ func LoadCase(path string) (*Case, error) {
 // port, and per-agent index are dynamic.
 type Tokens struct {
 	BaseDir     string // per-run sandbox working directory
-	AgentDir    string // agent install root
 	HECEndpoint string // Backend HEC endpoint, e.g. https://127.0.0.1:32769
 	HECToken    string // Backend HEC token
 	Index       string // Splunk index this agent forwards to
 }
 
+// tokenRef matches a ${NAME} reference. Only the braced form is a token, so
+// shell constructs ($1, $(date)) and the collector's own ${env:...} references
+// pass through untouched, as does any bare occurrence of a token name in event
+// text or a config key.
+var tokenRef = regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)\}`)
+
+// apply substitutes the ${NAME} references a case may use. Splunk .conf files
+// have no expansion of their own, so the framework does it for every config it
+// renders. Unknown names are left as they are.
 func (t Tokens) apply(s string) string {
-	r := strings.NewReplacer(
-		"BASE_DIR", t.BaseDir,
-		"AGENT_DIR", t.AgentDir,
-		"HEC_ENDPOINT", t.HECEndpoint,
-		"HEC_TOKEN", t.HECToken,
-		"INDEX", t.Index,
-	)
-	return r.Replace(s)
+	vals := map[string]string{
+		"BASE_DIR":     t.BaseDir,
+		"HEC_ENDPOINT": t.HECEndpoint,
+		"HEC_TOKEN":    t.HECToken,
+		"INDEX":        t.Index,
+	}
+	return tokenRef.ReplaceAllStringFunc(s, func(ref string) string {
+		if v, ok := vals[ref[2:len(ref)-1]]; ok {
+			return v
+		}
+		return ref
+	})
 }
 
-// AsReference turns the authored Expected into a single-record reference
-// capture. Empty fields stay empty and are ignored by the validator.
-func (e Expected) AsReference() Record {
-	return Record{
-		Raw:        e.Raw,
-		Host:       e.Host,
-		Source:     e.Source,
-		Sourcetype: e.Sourcetype,
-		Index:      e.Index,
-		Fields:     e.Fields,
+// unapply is the inverse of apply over the one token a capture can contain: it
+// rewrites the sandbox back to ${BASE_DIR}, so an event is expressed in the same
+// vocabulary as the config that produced it. A capture needs that to be
+// comparable at all, since the sandbox belongs to the run: the golden was
+// recorded under a different one, and so is the other agent's in a
+// UF-vs-candidate run.
+//
+// The other tokens are deliberately not reversed. An index is the same for both
+// sides of a case, and the HEC endpoint and token never reach an event, so
+// rewriting them would only risk a short value matching unrelated text.
+func (t Tokens) unapply(s string) string {
+	if t.BaseDir == "" {
+		return s
 	}
+	return strings.ReplaceAll(s, t.BaseDir, "${BASE_DIR}")
 }

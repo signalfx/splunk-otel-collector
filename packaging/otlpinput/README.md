@@ -55,6 +55,29 @@ Please define a HEC token as documented in [Splunk docs](https://help.splunk.com
 
 Please make sure to allow indexes as needed ; any payload sending to indexes that are not allowed will be refused in its entirety.
 
+### Token refresh
+
+Set the following options in `local/inputs.conf` for an OTLP input. Values are
+positive durations with units, such as `30s`, `3m`, or `1h`; omitted settings
+use these defaults:
+
+```ini
+[splunk-connect-for-otlp://default]
+refresh_interval = 3m
+refresh_timeout = 30s
+max_staleness = 10m
+```
+
+`refresh_interval` controls how often the input fetches HEC tokens and their
+index permissions. `refresh_timeout` bounds the entire fetch, including all
+pages. `max_staleness` limits how long a cached snapshot can authenticate
+requests. Failed fetches retain the previous snapshot until that age is
+reached; a successful fetch replaces it, including an empty listing that
+revokes all tokens.
+
+The input rejects invalid durations and configurations where `max_staleness`
+is less than or equal to `refresh_interval + refresh_timeout`.
+
 ## Sending OTLP
 
 ### Authentication

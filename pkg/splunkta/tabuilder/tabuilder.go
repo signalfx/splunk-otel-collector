@@ -18,8 +18,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configopaque"
-	"go.opentelemetry.io/collector/config/configtls"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
@@ -78,7 +77,7 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 		return nil, err
 	}
 	switch parsed.Kind {
-	case "script", "":
+	case "script":
 		f := scriptreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), &scriptreceiver.Config{
 			Input:      input,
@@ -102,7 +101,8 @@ func CreateReceiver(ctx context.Context, baseDir string, next consumer.Logs, inp
 			Transforms: transforms,
 			Props:      props,
 		}, next)
-	case "wineventlog":
+	// inputs.conf.spec spells this [WinEventLog://<name>].
+	case "WinEventLog":
 		f := wineventlogreceiver.NewFactory()
 		return f.CreateLogs(ctx, settings(f, parsed.Target, telemetrySettings), wineventlogreceiver.Config{
 			Input:      input,
@@ -146,9 +146,15 @@ func confFilePaths(dirs []string, filename string) []string {
 	return paths
 }
 
-// DiscoverTAs returns splunk_ta_* directories under splunkHome/etc/apps.
-func DiscoverTAs(splunkHome string) ([]string, error) {
-	appsDir := filepath.Join(splunkHome, "etc", "apps")
+// AppDirs returns every app directory under splunkHome/etc/apps, enabled or
+// not. splunkd admits every app in the bundle regardless of name, so this
+// applies no name pattern; it skips only dotfile directories.
+func AppDirs(splunkHome string) ([]string, error) {
+	return appDirs(filepath.Join(splunkHome, "etc"))
+}
+
+func appDirs(confRoot string) ([]string, error) {
+	appsDir := filepath.Join(confRoot, "apps")
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -156,49 +162,98 @@ func DiscoverTAs(splunkHome string) ([]string, error) {
 		}
 		return nil, fmt.Errorf("tabuilder: failed to scan %s: %w", appsDir, err)
 	}
-	var taDirs []string
+	var appDirs []string
 	for _, entry := range entries {
-		if !entry.IsDir() {
+		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
-		if strings.HasPrefix(strings.ToLower(entry.Name()), "splunk_ta_") {
-			taDirs = append(taDirs, filepath.Join(appsDir, entry.Name()))
+		appDirs = append(appDirs, filepath.Join(appsDir, entry.Name()))
+	}
+	return appDirs, nil
+}
+
+// DiscoverApps returns the subset of AppDirs that app.conf leaves in the
+// bundle, which is what splunkd reads config from.
+func DiscoverApps(splunkHome string) ([]string, error) {
+	return discoverApps(filepath.Join(splunkHome, "etc"))
+}
+
+func discoverApps(confRoot string) ([]string, error) {
+	dirs, err := appDirs(confRoot)
+	if err != nil {
+		return nil, err
+	}
+	var enabled []string
+	for _, appDir := range dirs {
+		if appEnabled(appDir) {
+			enabled = append(enabled, appDir)
 		}
 	}
-	return taDirs, nil
+	return enabled, nil
+}
+
+// appEnabled reports whether app.conf leaves the app in the bundle. splunkd
+// allowlists the exact literal "enabled" rather than looking for "disabled", so
+// any other value, "ENABLED" included, excludes the app; an absent key or file
+// leaves it enabled.
+//
+// Reading fails open: splunkd resolves the value through a conf search that
+// yields nothing for an unreadable or malformed app.conf, so one bad file
+// excludes no app and does not fail discovery.
+func appEnabled(appDir string) bool {
+	dirs := []string{filepath.Join(appDir, "default"), filepath.Join(appDir, "local")}
+	payloads, err := readConfFiles(confFilePaths(dirs, "app.conf"))
+	if err != nil {
+		return true
+	}
+	merged, err := conf.ParseAndMergeConf(payloads)
+	if err != nil {
+		return true
+	}
+	state, set := merged["install"]["state"]
+	return !set || state == "enabled"
 }
 
 func splunkHomeDirs(splunkHome string) []string {
-	taDirs, _ := DiscoverTAs(splunkHome)
-	etcDir := filepath.Join(splunkHome, "etc")
+	return confRootDirs(filepath.Join(splunkHome, "etc"))
+}
 
-	dirs := []string{filepath.Join(etcDir, "system", "default")}
+func confRootDirs(confRoot string) []string {
+	taDirs, _ := discoverApps(confRoot)
+
+	dirs := []string{filepath.Join(confRoot, "system", "default")}
 	for _, ta := range taDirs {
 		dirs = append(dirs, filepath.Join(ta, "default"))
 	}
 	for _, ta := range taDirs {
 		dirs = append(dirs, filepath.Join(ta, "local"))
 	}
-	dirs = append(dirs, filepath.Join(etcDir, "system", "local"))
+	dirs = append(dirs, filepath.Join(confRoot, "system", "local"))
 
 	return dirs
 }
 
 func systemDirs(splunkHome string) []string {
-	etcDir := filepath.Join(splunkHome, "etc")
+	return systemRootDirs(filepath.Join(splunkHome, "etc"))
+}
+
+func systemRootDirs(confRoot string) []string {
 	return []string{
-		filepath.Join(etcDir, "system", "default"),
-		filepath.Join(etcDir, "system", "local"),
+		filepath.Join(confRoot, "system", "default"),
+		filepath.Join(confRoot, "system", "local"),
 	}
 }
 
 func taDirsWithSystem(splunkHome, taDir string) []string {
-	etcDir := filepath.Join(splunkHome, "etc")
+	return appRootDirs(filepath.Join(splunkHome, "etc"), taDir)
+}
+
+func appRootDirs(confRoot, appDir string) []string {
 	return []string{
-		filepath.Join(etcDir, "system", "default"),
-		filepath.Join(taDir, "default"),
-		filepath.Join(taDir, "local"),
-		filepath.Join(etcDir, "system", "local"),
+		filepath.Join(confRoot, "system", "default"),
+		filepath.Join(appDir, "default"),
+		filepath.Join(appDir, "local"),
+		filepath.Join(confRoot, "system", "local"),
 	}
 }
 
@@ -235,6 +290,14 @@ func ConfDirs(splunkHome string) []string {
 	return splunkHomeDirs(splunkHome)
 }
 
+// ConfRootDirs returns the Splunk btool conf search path for a configuration
+// root: the directory holding system/ and apps/*/. Callers that know an install
+// layout pass $SPLUNK_HOME/etc (or $SPLUNK_ETC when the tree is relocated);
+// ConfRootDirs itself makes no assumption about where the root lives.
+func ConfRootDirs(confRoot string) []string {
+	return confRootDirs(confRoot)
+}
+
 // SystemDirs returns the system conf directories for splunkHome in precedence order.
 func SystemDirs(splunkHome string) []string {
 	return systemDirs(splunkHome)
@@ -243,6 +306,20 @@ func SystemDirs(splunkHome string) []string {
 // ConfDirsWithSystem returns the Splunk btool conf search path for a single TA merged with system config.
 func ConfDirsWithSystem(splunkHome, taDir string) []string {
 	return taDirsWithSystem(splunkHome, taDir)
+}
+
+// AppConfRootDirs returns the conf search path a single app resolves against: the
+// app's own layers merged with system, and no other app's. appDir is absolute,
+// as conf.Input.AppDir reports it. Pass the configuration root rather than an
+// install, as ConfRootDirs does.
+func AppConfRootDirs(confRoot, appDir string) []string {
+	return appRootDirs(confRoot, appDir)
+}
+
+// SystemConfRootDirs returns the conf search path a system-level stanza resolves
+// against, which is the system layers alone.
+func SystemConfRootDirs(confRoot string) []string {
+	return systemRootDirs(confRoot)
 }
 
 // ReadInputs discovers and merges inputs.conf files from the given search
@@ -279,7 +356,7 @@ func ReadSystemInputs(splunkHome string) ([]conf.Input, error) {
 		return nil, nil
 	}
 
-	taDirs, err := DiscoverTAs(splunkHome)
+	taDirs, err := DiscoverApps(splunkHome)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +457,13 @@ func ReadProps(dirs []string) ([]conf.Prop, error) {
 // ReadOutputs merges outputs.conf across $SPLUNK_HOME using standard Splunk
 // precedence. Use HECOut (or future TCPOut, etc.) to extract a specific type.
 func ReadOutputs(splunkHome string) (conf.Map, error) {
-	payloads, err := readConfFiles(confFilePaths(ConfDirs(splunkHome), "outputs.conf"))
+	return ReadOutputsFromDirs(ConfDirs(splunkHome))
+}
+
+// ReadOutputsFromDirs merges outputs.conf across the given search directories.
+// Use ConfDirs or ConfRootDirs to build the dirs slice.
+func ReadOutputsFromDirs(dirs []string) (conf.Map, error) {
+	payloads, err := readConfFiles(confFilePaths(dirs, "outputs.conf"))
 	if err != nil {
 		return nil, err
 	}
@@ -424,12 +507,25 @@ func CreateOutputExporter(output *conf.Output, logger *zap.Logger, telemetrySett
 	return newHECExporter(output, logger, telemetrySettings)
 }
 
+// HECOutputConfig maps a resolved [hecout] stanza onto the splunkhec exporter's
+// own config keys. It is the one place the .conf key names are translated, so the
+// TA runner here and a .conf config source emitting a splunk_hec component cannot
+// drift apart.
+func HECOutputConfig(o *conf.Output) map[string]any {
+	return map[string]any{
+		"endpoint": outputParam(o, "uri"),
+		"token":    outputParam(o, "httpEventCollectorToken"),
+		// TODO: wire sslVerifyServerCert from outputs.conf.
+		"tls": map[string]any{"insecure_skip_verify": true},
+	}
+}
+
 func newHECExporter(o *conf.Output, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
 	f := splunkhecexporter.NewFactory()
 	cfg := f.CreateDefaultConfig().(*splunkhecexporter.Config)
-	cfg.ClientConfig.Endpoint = outputParam(o, "uri")
-	cfg.Token = configopaque.String(outputParam(o, "httpEventCollectorToken"))
-	cfg.ClientConfig.TLS = configtls.ClientConfig{InsecureSkipVerify: true} // TODO: wire sslVerifyServerCert from outputs.conf
+	if err := confmap.NewFromStringMap(HECOutputConfig(o)).Unmarshal(cfg); err != nil {
+		return nil, fmt.Errorf("build splunkhec config from [hecout]: %w", err)
+	}
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}

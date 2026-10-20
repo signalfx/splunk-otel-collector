@@ -110,7 +110,7 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.NotNil(t, settings)
 
 	confMapProviderFactories := settings.ConfMapProviderFactories()
-	require.Len(t, confMapProviderFactories, 8)
+	require.Len(t, confMapProviderFactories, 9)
 
 	schemas := make([]string, 0, len(confMapProviderFactories))
 	for _, provider := range confMapProviderFactories {
@@ -122,6 +122,7 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.Contains(t, schemas, settings.discovery.PropertiesFileScheme())
 	require.Contains(t, schemas, "secretsmanager")
 	require.Contains(t, schemas, "googlesecretmanager")
+	require.Contains(t, schemas, "splunkconf")
 }
 
 func TestNewSettingsNoConvertConfig(t *testing.T) {

@@ -1,0 +1,28 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  # Prometheus' built-in web authentication supports basic auth, so this proxy
+  # validates the bearer token before forwarding requests to the Prometheus API.
+  prometheus-auth:
+    image: nginx:alpine
+    environment:
+      PROMETHEUS_BEARER_TOKEN: ${PROMETHEUS_BEARER_TOKEN:-prometheus-demo-token}
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    depends_on:
+      - prometheus
+
+  otel-collector:
+    image: quay.io/signalfx/splunk-otel-collector:latest
+    command: ["--config=/etc/otel-collector-config.yml"]
+    environment:
+      PROMETHEUS_BEARER_TOKEN: ${PROMETHEUS_BEARER_TOKEN:-prometheus-demo-token}
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml:ro
+    depends_on:
+      - prometheus-auth

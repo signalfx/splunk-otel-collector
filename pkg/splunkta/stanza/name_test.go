@@ -20,6 +20,26 @@ func TestParseName(t *testing.T) {
 		{name: "tcp://:9997", parsed: Name{Kind: "tcp", Target: ":9997"}},
 		{name: "UDP:514", parsed: Name{Kind: "UDP", Target: "514"}},
 		{name: "my_script", parsed: Name{Target: "my_script"}},
+
+		// A single colon is the prefix every processor actually matches on, so
+		// it is accepted for every kind and not just the network ones.
+		{name: "monitor:/var/log/syslog", parsed: Name{Kind: "monitor", Target: "/var/log/syslog"}},
+		{name: "batch:/var/spool/drop/*.log", parsed: Name{Kind: "batch", Target: "/var/spool/drop/*.log"}},
+		{name: "script:/opt/app/bin/collect.sh", parsed: Name{Kind: "script", Target: "/opt/app/bin/collect.sh"}},
+		{name: "fschange:/etc", parsed: Name{Kind: "fschange", Target: "/etc"}},
+		{name: "tcp:514", parsed: Name{Kind: "tcp", Target: "514"}},
+
+		// Only one "//" belongs to the separator, so the rest is the target.
+		{name: "monitor://var/log/relative.log", parsed: Name{Kind: "monitor", Target: "var/log/relative.log"}},
+		{name: "monitor:////var/log/extra.log", parsed: Name{Kind: "monitor", Target: "//var/log/extra.log"}},
+
+		// Splitting is at the first colon, so a target may contain its own.
+		{name: "WinEventLog://Microsoft-Windows-Sysmon/Operational", parsed: Name{Kind: "WinEventLog", Target: "Microsoft-Windows-Sysmon/Operational"}},
+		{name: "monitor:/var/log/a:b.log", parsed: Name{Kind: "monitor", Target: "/var/log/a:b.log"}},
+
+		// An empty target is a kind the caller can still dispatch on; rejecting
+		// it is per-kind validation, not the business of splitting the name.
+		{name: "monitor://", parsed: Name{Kind: "monitor"}},
 	}
 
 	for _, test := range tests {
@@ -32,8 +52,12 @@ func TestParseName(t *testing.T) {
 }
 
 func TestParseNameRejectsEmptyKind(t *testing.T) {
-	_, err := ParseName("://target")
-	require.ErrorIs(t, err, errEmptyKind)
+	for _, name := range []string{"://target", ":target", ":"} {
+		t.Run(name, func(t *testing.T) {
+			_, err := ParseName(name)
+			require.ErrorIs(t, err, errEmptyKind)
+		})
+	}
 }
 
 func TestParseOutputName(t *testing.T) {

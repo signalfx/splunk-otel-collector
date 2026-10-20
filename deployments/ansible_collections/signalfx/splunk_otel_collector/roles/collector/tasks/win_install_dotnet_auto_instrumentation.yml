@@ -55,7 +55,11 @@
     error_action: stop
     script: |
       Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1"
-      Install-OpenTelemetryCore -LocalPath "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip" -SkipReleaseVerification
+      $dotnetInstallArguments = @{ LocalPath = "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip" }
+      if ((Get-Command Install-OpenTelemetryCore).Parameters.ContainsKey('SkipReleaseVerification')) {
+          $dotnetInstallArguments.SkipReleaseVerification = $true
+      }
+      Install-OpenTelemetryCore @dotnetInstallArguments
       $w3svc = Get-Service -name "W3SVC" -ErrorAction SilentlyContinue
       $was = Get-Service -name "WAS" -ErrorAction SilentlyContinue
       if ($w3svc -And $was) { Register-OpenTelemetryForIIS }

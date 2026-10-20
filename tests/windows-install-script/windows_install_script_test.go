@@ -64,6 +64,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	t.Logf(" *** Installing old collector version %s", oldCollectorVersion)
 	installCollector(t, getTestDataFilePath(t, "install-before-platform-indexes.ps1"), oldCollectorVersion, "", zeroCodeArgs...)
 	verifyServiceExists(t, scm)
+	verifyServiceAccount(t, scm, "LocalSystem")
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment=test")
 	legacySvcVersion := getCurrentServiceVersion(t)
@@ -76,6 +77,7 @@ func TestUpgradeAndUninstallFromNonMachineWideVersion(t *testing.T) {
 	t.Logf(" *** Installing collector from %q", msiInstallerPath)
 	installCollector(t, getFilePathFromEnvVar(t, "INSTALL_SCRIPT_PATH"), "", msiInstallerPath, zeroCodeArgs...)
 	verifyServiceExists(t, scm)
+	verifyServiceAccount(t, scm, "LocalSystem")
 	verifyServiceState(t, scm, svc.Running)
 	verifyZeroConfigResourceAttributes(t, 1, "deployment.environment.name=test")
 	latestSvcVersion := getCurrentServiceVersion(t)
@@ -128,6 +130,9 @@ func TestUpgradeAndRollbackSupervisorMode(t *testing.T) {
 		"-realm", "test",
 		"-godebug", fipsMode,
 		"-preserve_prev_default_config", "1",
+		// Use the documented install.ps1 example to verify that MSI properties pass
+		// through the script and percent-encoded custom values reach the service.
+		"-msi_public_properties", "'SPLUNK_ENVIRONMENT_VARIABLES=OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name%3Dproduction%2Cservice.namespace%3Dpayments,CUSTOM_MESSAGE=hello%20world%3B%20100%25'",
 	)
 
 	verifyLauncherServiceEntrypoint(t, scm)
@@ -136,6 +141,10 @@ func TestUpgradeAndRollbackSupervisorMode(t *testing.T) {
 		require.FileExists(t, filepath.Join(installDir, executableName))
 	}
 	verifyServiceEnvironmentContains(t, fipsEnvironment)
+	verifyServiceEnvironmentContains(t,
+		"OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=production,service.namespace=payments",
+		"CUSTOM_MESSAGE=hello world; 100%",
+	)
 	require.Equal(t, configHash, hashFile(t, configPath), "Collector configuration changed during package upgrade")
 	verifyServiceRunningWithProcess(t, scm, "otelcol.exe")
 
@@ -206,6 +215,16 @@ func verifyServiceExists(t *testing.T, scm *mgr.Mgr) {
 	service, err := scm.OpenService(serviceName)
 	require.NoError(t, err)
 	service.Close()
+}
+
+func verifyServiceAccount(t *testing.T, scm *mgr.Mgr, expectedAccount string) {
+	service, err := scm.OpenService(serviceName)
+	require.NoError(t, err)
+	defer service.Close()
+
+	config, err := service.Config()
+	require.NoError(t, err)
+	require.Equal(t, expectedAccount, config.ServiceStartName)
 }
 
 func verifyServiceState(t *testing.T, scm *mgr.Mgr, desiredState svc.State) {

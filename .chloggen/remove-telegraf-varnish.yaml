@@ -1,5 +1,0 @@
-change_type: breaking
-component: telegraf/varnish
-note: Remove the deprecated telegraf/varnish monitor.
-issues: [8157]
-subtext:

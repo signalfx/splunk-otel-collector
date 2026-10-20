@@ -1,5 +1,0 @@
-change_type: breaking
-component: telegraf/win_perf_counters
-note: Remove the deprecated telegraf/win_perf_counters monitor. Use the Windows performance counters receiver instead.
-issues: [8158]
-subtext:

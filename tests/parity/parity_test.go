@@ -19,6 +19,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 )
@@ -91,15 +93,63 @@ func TestSubsetValidator(t *testing.T) {
 func TestTokensApply(t *testing.T) {
 	tokens := Tokens{
 		BaseDir:     "/tmp/run",
-		AgentDir:    "/opt/agent",
 		HECEndpoint: "https://127.0.0.1:8088",
 		HECToken:    "tok",
 		Index:       "parity_uc",
 	}
-	in := "dir=BASE_DIR agent=AGENT_DIR ep=HEC_ENDPOINT token=HEC_TOKEN idx=INDEX"
-	want := "dir=/tmp/run agent=/opt/agent ep=https://127.0.0.1:8088 token=tok idx=parity_uc"
+	in := "dir=${BASE_DIR} ep=${HEC_ENDPOINT} token=${HEC_TOKEN} idx=${INDEX}"
+	want := "dir=/tmp/run ep=https://127.0.0.1:8088 token=tok idx=parity_uc"
 	if got := tokens.apply(in); got != want {
 		t.Errorf("apply() = %q, want %q", got, want)
+	}
+}
+
+// TestTokensApplyLeavesOtherSyntaxAlone covers what must survive interpolation:
+// shell expansions, the collector's own ${env:...} references, and bare
+// occurrences of a token name in event text or a config key.
+func TestTokensApplyLeavesOtherSyntaxAlone(t *testing.T) {
+	tokens := Tokens{BaseDir: "/tmp/run", Index: "parity_set_host"}
+	for _, in := range []string{
+		`echo "$(date)" >> out.txt`,
+		"echo $1 $? $@ $$",
+		"include: [${env:BASE_DIR}/foo.txt]",
+		"raw text mentioning INDEX and BASE_DIR",
+		"key: ${UNSET_TOKEN}",
+	} {
+		if got := tokens.apply(in); got != in {
+			t.Errorf("apply(%q) = %q, want it unchanged", in, got)
+		}
+	}
+}
+
+// TestTokensUnapply covers the normalization a capture goes through: the
+// sandbox comes back as ${BASE_DIR}, apply round-trips it, and a value no token
+// resolved to is left alone.
+func TestTokensUnapply(t *testing.T) {
+	tokens := Tokens{
+		BaseDir:     "/tmp/parity-run",
+		HECEndpoint: "https://127.0.0.1:8088",
+		HECToken:    "tok",
+		Index:       "parity_uc",
+	}
+
+	for in, want := range map[string]string{
+		"/tmp/parity-run/logs/a.log": "${BASE_DIR}/logs/a.log",
+		"http:splunk_hec_token":      "http:splunk_hec_token",
+		"parity_uc":                  "parity_uc",
+	} {
+		got := tokens.unapply(in)
+		if got != want {
+			t.Errorf("unapply(%q) = %q, want %q", in, got, want)
+		}
+		if back := tokens.apply(got); back != in {
+			t.Errorf("apply(unapply(%q)) = %q, want the original", in, back)
+		}
+	}
+
+	// An unset sandbox must not match every string.
+	if got := (Tokens{}).unapply("/some/path"); got != "/some/path" {
+		t.Errorf("unapply with no sandbox = %q, want it unchanged", got)
 	}
 }
 
@@ -108,15 +158,12 @@ func TestLoadCase(t *testing.T) {
 	path := filepath.Join(dir, "test.yaml")
 	content := `name: "Set host"
 description: custom host
-stage: alpha
-conf: |
-  [monitor:///BASE_DIR/foo.txt]
-  host=myhost
 setup: |
   echo hi > foo.txt
 expected:
-  raw: "hi"
-  host: myhost
+  raw: true
+  host: true
+  fields: ["punct", "date_*"]
 os: ["darwin", "linux"]
 `
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
@@ -129,11 +176,28 @@ os: ["darwin", "linux"]
 	if c.Name != "Set host" {
 		t.Errorf("Name = %q", c.Name)
 	}
-	if c.Expected.Host != "myhost" || c.Expected.Raw != "hi" {
+	if !c.Expected.Raw || !c.Expected.Host || c.Expected.Source {
 		t.Errorf("Expected = %+v", c.Expected)
+	}
+	if len(c.Expected.Fields) != 2 || c.Expected.Fields[1] != "date_*" {
+		t.Errorf("Expected.Fields = %v", c.Expected.Fields)
 	}
 	if len(c.OS) != 2 || c.OS[0] != "darwin" {
 		t.Errorf("OS = %v", c.OS)
+	}
+}
+
+// TestLoadCaseUnknownField guards the filter: every selector is a bool, so a
+// typo'd key would silently stop comparing that field and the case would still
+// pass. Strict decoding turns it into a load failure instead.
+func TestLoadCaseUnknownField(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "test.yaml")
+	content := "name: c\nexpected:\n  hostt: true\n"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := LoadCase(path); err == nil {
+		t.Error("expected an error for an unknown key in expected")
 	}
 }
 
@@ -143,18 +207,18 @@ func TestLoadCaseError(t *testing.T) {
 	}
 }
 
-func TestExpectedAsReference(t *testing.T) {
-	e := Expected{
-		Raw:    "hi",
-		Host:   "myhost",
-		Fields: map[string]string{"index": "a"},
+func TestExpectedSelectsNothing(t *testing.T) {
+	if !(Expected{}).selectsNothing() {
+		t.Error("an empty filter selects nothing")
 	}
-	r := e.AsReference()
-	if r.Raw != "hi" || r.Host != "myhost" || r.Fields["index"] != "a" {
-		t.Errorf("AsReference = %+v", r)
-	}
-	if r.Source != "" || r.Sourcetype != "" {
-		t.Errorf("unset fields should stay empty: %+v", r)
+	for _, e := range []Expected{
+		{Raw: true},
+		{Index: true},
+		{Fields: []string{"punct"}},
+	} {
+		if e.selectsNothing() {
+			t.Errorf("%+v selects something", e)
+		}
 	}
 }
 
@@ -195,22 +259,24 @@ func (f *fakeBackend) Clean(context.Context, string) error { return nil }
 // fakeAdapter records the lifecycle calls the runner makes and captures the
 // interpolated inputs.conf it is handed, so tests can assert both.
 type fakeAdapter struct {
-	prepareErr error
-	startErr   error
-	name       string
-	dir        string
-	inputsConf string
-	prepared   bool
-	started    bool
-	stopped    bool
-	cleaned    bool
+	prepareErr    error
+	startErr      error
+	name          string
+	dir           string
+	inputsConf    string
+	preparedFiles []string
+	prepared      bool
+	started       bool
+	stopped       bool
+	cleaned       bool
 }
 
 func (a *fakeAdapter) Name() string       { return a.name }
 func (a *fakeAdapter) InstallDir() string { return a.dir }
 
-func (a *fakeAdapter) Prepare(configDir string) error {
+func (a *fakeAdapter) Prepare(configDir string, files []string) error {
 	a.prepared = true
+	a.preparedFiles = files
 	if b, err := os.ReadFile(filepath.Join(configDir, "inputs.conf")); err == nil {
 		a.inputsConf = string(b)
 	}
@@ -231,14 +297,14 @@ func TestRunAgent(t *testing.T) {
 	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
 	c := &Case{
 		Name:   "Set host",
-		Setup:  "echo BASE_DIR > setup-marker",
+		Setup:  "echo ${BASE_DIR} > setup-marker",
 		Script: "echo done >> setup-marker",
 	}
 	run := AgentRun{
 		Adapter:     a,
-		ConfigFiles: map[string]string{"inputs.conf": "index=INDEX\nhost=myhost"},
+		ConfigFiles: map[string]string{"inputs.conf": "index=${INDEX}\nhost=myhost"},
 		Index:       "parity_uc",
-		Search:      "search index=INDEX",
+		Search:      "search index=${INDEX}",
 	}
 
 	got, err := RunAgent(context.Background(), c, run, backend, fastOpts())
@@ -268,6 +334,69 @@ func TestRunAgentDefaultSearch(t *testing.T) {
 	}
 	if backend.lastSPL != "search index=parity_uf" {
 		t.Errorf("default search = %q", backend.lastSPL)
+	}
+}
+
+// TestRunAgentSortsCapture pins that the order a search returned events in does
+// not reach a comparison: a candidate stamps one time on a batch, so the index
+// is free to return those events either way round.
+func TestRunAgentSortsCapture(t *testing.T) {
+	backend := &fakeBackend{records: []Record{
+		{Raw: "second", Source: "/b.log"},
+		{Raw: "first", Source: "/a.log"},
+	}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Expected: Expected{Raw: true}}
+	recs, err := RunAgent(context.Background(), c, run, backend, fastOpts())
+	if err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+	if len(recs) != 2 || recs[0].Raw != "first" || recs[1].Raw != "second" {
+		t.Errorf("capture = %+v, want it sorted by raw", recs)
+	}
+}
+
+// TestSortCaptureUsesSelectedFields pins the key: a field the case compares
+// orders the capture, and a field it does not compare leaves records
+// interchangeable, so an order the two sides cannot agree on never decides the
+// pairing.
+func TestSortCaptureUsesSelectedFields(t *testing.T) {
+	tied := []Record{
+		{Raw: "same", Host: "h2", Source: "/b.log"},
+		{Raw: "same", Host: "h1", Source: "/a.log"},
+	}
+
+	tests := []struct {
+		name     string
+		wantRaw  []string
+		wantHost []string
+		filter   Expected
+	}{
+		{
+			name:     "selected host breaks the tie",
+			filter:   Expected{Raw: true, Host: true},
+			wantRaw:  []string{"same", "same"},
+			wantHost: []string{"h1", "h2"},
+		},
+		{
+			name:     "unselected source does not reorder",
+			filter:   Expected{Raw: true},
+			wantRaw:  []string{"same", "same"},
+			wantHost: []string{"h2", "h1"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recs := slices.Clone(tied)
+			sortCapture(recs, tt.filter)
+			for i, rec := range recs {
+				if rec.Raw != tt.wantRaw[i] || rec.Host != tt.wantHost[i] {
+					t.Errorf("record %d = %+v, want raw %q host %q", i, rec, tt.wantRaw[i], tt.wantHost[i])
+				}
+			}
+		})
 	}
 }
 
@@ -307,14 +436,82 @@ func TestRunAgentTimeoutReturnsLast(t *testing.T) {
 	}
 }
 
-func TestRunCaseAgainstExpected(t *testing.T) {
-	rec := Record{Raw: "hi", Host: "myhost"}
-	backend := &fakeBackend{records: []Record{rec}}
-	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir()}, Index: "parity_uc"}
-	c := &Case{Name: "c", Expected: Expected{Raw: "hi", Host: "myhost"}}
+// TestRunAgentValidate covers a validate hook that holds, and that it runs in
+// the sandbox the setup hook wrote to.
+func TestRunAgentValidate(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Setup: "echo hi > foo.txt", Validate: "test -e foo.txt"}
+	if _, err := RunAgent(context.Background(), c, run, backend, fastOpts()); err != nil {
+		t.Fatalf("RunAgent: %v", err)
+	}
+}
 
-	// oracle.Adapter nil -> compared against the case's authored Expected.
-	res, err := RunCase(context.Background(), c, backend, AgentRun{}, candidate, SubsetValidator{}, fastOpts())
+// TestRunAgentValidateFails checks a hook that never holds fails the run, and
+// that the failure says it was the validate hook rather than looking like a
+// sandbox or adapter error.
+func TestRunAgentValidateFails(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir()}
+	run := AgentRun{Adapter: a, Index: "i"}
+	c := &Case{Name: "c", Validate: "test -e never-created"}
+	_, err := RunAgent(context.Background(), c, run, backend, fastOpts())
+	if err == nil {
+		t.Fatal("expected a validate failure")
+	}
+	if !strings.Contains(err.Error(), "validate:") {
+		t.Errorf("error should name the validate hook, got %v", err)
+	}
+}
+
+// TestWaitForValidationRetries checks the hook is retried rather than run once.
+// It fails until the marker file appears, standing in for an effect that trails
+// the events.
+func TestWaitForValidationRetries(t *testing.T) {
+	dir := t.TempDir()
+	script := `if [ -e marker ]; then exit 0; else : > marker; exit 1; fi`
+	opts := RunOptions{Shell: "bash", Timeout: 5 * time.Second}
+	if err := waitForValidation(context.Background(), script, dir, opts); err != nil {
+		t.Errorf("waitForValidation: %v", err)
+	}
+}
+
+// TestWaitForValidationTimeout checks a hook that never holds returns its last
+// failure instead of hanging past the deadline.
+func TestWaitForValidationTimeout(t *testing.T) {
+	opts := RunOptions{Shell: "bash", Timeout: 600 * time.Millisecond}
+	err := waitForValidation(context.Background(), "echo nope >&2; exit 1", t.TempDir(), opts)
+	if err == nil {
+		t.Fatal("expected a failure")
+	}
+	if !strings.Contains(err.Error(), "nope") {
+		t.Errorf("error should carry the hook's output, got %v", err)
+	}
+}
+
+func TestRunAgentStartError(t *testing.T) {
+	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	a := &fakeAdapter{name: "fake", dir: t.TempDir(), startErr: errors.New("nope")}
+	run := AgentRun{Adapter: a, Index: "i"}
+	if _, err := RunAgent(context.Background(), &Case{Name: "c"}, run, backend, fastOpts()); err == nil {
+		t.Fatal("expected start error")
+	}
+}
+
+// TestRunCaseIgnoresUnselectedFields checks the filter is applied to the oracle
+// capture, so fields the case does not select cannot fail a comparison even when
+// the two agents genuinely differ on them.
+func TestRunCaseIgnoresUnselectedFields(t *testing.T) {
+	// One fakeBackend serves both runs, so both sides see the same record; the
+	// point here is which fields survive projection, not that they differ.
+	rec := Record{Raw: "hi", Host: "myhost", Source: "/sandbox/a", Index: "parity_host"}
+	backend := &fakeBackend{records: []Record{rec}}
+	oracle := AgentRun{Adapter: &fakeAdapter{name: "UF", dir: t.TempDir()}, Index: "parity_host"}
+	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir()}, Index: "parity_host"}
+	c := &Case{Name: "c", Expected: Expected{Raw: true, Host: true}}
+
+	res, err := RunCase(context.Background(), c, backend, oracle, candidate, SubsetValidator{}, fastOpts())
 	if err != nil {
 		t.Fatalf("RunCase: %v", err)
 	}
@@ -326,10 +523,11 @@ func TestRunCaseAgainstExpected(t *testing.T) {
 func TestRunCaseOracleVsCandidate(t *testing.T) {
 	rec := Record{Raw: "hi", Host: "myhost"}
 	backend := &fakeBackend{records: []Record{rec}}
-	oracle := AgentRun{Adapter: &fakeAdapter{name: "UF", dir: t.TempDir()}, Index: "parity_uf"}
-	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir()}, Index: "parity_uc"}
+	oracle := AgentRun{Adapter: &fakeAdapter{name: "UF", dir: t.TempDir()}, Index: "parity_host"}
+	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir()}, Index: "parity_host"}
+	c := &Case{Name: "c", Expected: Expected{Raw: true, Host: true}}
 
-	res, err := RunCase(context.Background(), &Case{Name: "c"}, backend, oracle, candidate, SubsetValidator{}, fastOpts())
+	res, err := RunCase(context.Background(), c, backend, oracle, candidate, SubsetValidator{}, fastOpts())
 	if err != nil {
 		t.Fatalf("RunCase: %v", err)
 	}
@@ -340,8 +538,9 @@ func TestRunCaseOracleVsCandidate(t *testing.T) {
 
 func TestRunCaseCandidateError(t *testing.T) {
 	backend := &fakeBackend{records: []Record{{Raw: "x"}}}
+	oracle := AgentRun{Adapter: &fakeAdapter{name: "UF", dir: t.TempDir()}, Index: "i"}
 	candidate := AgentRun{Adapter: &fakeAdapter{name: "otelcol", dir: t.TempDir(), startErr: errors.New("nope")}, Index: "i"}
-	if _, err := RunCase(context.Background(), &Case{Name: "c"}, backend, AgentRun{}, candidate, SubsetValidator{}, fastOpts()); err == nil {
+	if _, err := RunCase(context.Background(), &Case{Name: "c"}, backend, oracle, candidate, SubsetValidator{}, fastOpts()); err == nil {
 		t.Fatal("expected candidate error")
 	}
 }

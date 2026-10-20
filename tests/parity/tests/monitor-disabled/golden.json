@@ -1,0 +1,7 @@
+[
+  {
+    "raw": "enabled line",
+    "host": "parityhost",
+    "source": "${BASE_DIR}/on.txt"
+  }
+]

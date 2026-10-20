@@ -36,6 +36,11 @@ import (
 // remote grandmaster.
 func TestPTPReceiverIntegration_NoRemoteGrandmaster(t *testing.T) {
 	sink := startIntegrationReceiver(t, slaveSocketPath)
+	assertNoRemoteGrandmaster(t, sink)
+}
+
+func assertNoRemoteGrandmaster(t *testing.T, sink *consumertest.MetricsSink) {
+	t.Helper()
 
 	var last map[string]pmetric.Metric
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
@@ -44,6 +49,9 @@ func TestPTPReceiverIntegration_NoRemoteGrandmaster(t *testing.T) {
 			return
 		}
 		got := metricsByName(batches[len(batches)-1])
+		if !assert.Contains(tt, got, "ptp.port.state") {
+			return
+		}
 		if !assert.True(tt, metricHasPortState(got["ptp.port.state"], "MASTER"), "port never self-elected MASTER") {
 			return
 		}

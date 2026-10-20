@@ -34,16 +34,15 @@ most tests poll for up to 120s.
 
 `run.sh` with no arguments runs all of these (this is what CI does):
 
-- `TestPTPReceiverIntegration` (`integration_test.go`): the standard
-  successful path -- slave syncs to the master and reaches SLAVE. Asserts
-  the full metric contract with real values/attributes (not just metric
-  presence), and that the port passed through a pre-sync state
-  (LISTENING/UNCALIBRATED) before reaching SLAVE, not just a single
-  already-synchronized snapshot. (LISTENING itself isn't asserted
-  separately: the master is already broadcasting before the slave
-  container even starts, so LISTENING -- at most one ~2s announce interval
-  -- is routinely over before this container's uncached `go test` finishes
-  downloading modules and compiling.)
+- `TestPTPReceiverIntegration_Startup` (`integration_test.go`): the slave
+  first self-elects MASTER with no remote grandmaster. After the receiver
+  verifies that unsynchronized snapshot, it signals `run.sh` to start the
+  master sidecar, then verifies synchronization to SLAVE and the full
+  metric contract with real values/attributes. This handshake preserves
+  startup coverage even when module downloads and compilation take longer
+  than the transient LISTENING/UNCALIBRATED states. The standalone
+  `TestPTPReceiverIntegration` checks the same final metric contract against
+  an already-running master, for manual debugging without the handshake.
 - `TestPTPReceiverIntegration_NoRemoteGrandmaster`,
   `TestPTPReceiverIntegration_SocketNotPresent`, and
   `TestPTPReceiverIntegration_PMCTimeout`
@@ -115,5 +114,5 @@ command once against the standard master+slave topology, for manual
 debugging -- e.g. to run a single test with `-v` output:
 
 ```sh
-internal/receiver/ptpreceiver/testdata/integration/run.sh go test -tags=ptp_integration -run TestPTPReceiverIntegration -v ./internal/receiver/ptpreceiver/...
+internal/receiver/ptpreceiver/testdata/integration/run.sh go test -tags=ptp_integration -run '^TestPTPReceiverIntegration$' -v ./internal/receiver/ptpreceiver/...
 ```

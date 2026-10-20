@@ -41,11 +41,6 @@ var update = flag.Bool("update", false, "regenerate golden files by running the 
 // taRunnerGate registers the splunk_* wrapper receivers the provider emits.
 const taRunnerGate = "enableTARunner"
 
-// hecToken must be a valid, non-zero GUID: UF httpout rejects tokens shorter
-// than 36 chars and rejects the all-zeros GUID as "not in supported format"
-// (splcore TokenEncryptionDecryptionHelper::isEmptyGuid).
-const hecToken = "11111111-1111-1111-1111-111111111111"
-
 // confDir is the case subdirectory holding the Splunk .conf structure.
 const confDir = "conf"
 
@@ -89,14 +84,12 @@ func TestParity(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	backend := splunkbackend.New(splunkbackend.Config{
-		// PARITY_SPLUNK_IMAGE overrides the image (e.g. to reuse a locally cached
-		// tag and skip a slow pull). Empty falls back to the backend default.
-		Image:   os.Getenv("PARITY_SPLUNK_IMAGE"),
-		Token:   hecToken,
-		Indexes: indexes,
-	})
-	t.Log("starting Splunk backend (first run pulls the image; can take a few minutes)")
+	backend := splunkbackend.New(splunkbackend.Config{Indexes: indexes})
+	if backend.External() {
+		t.Log("using an existing Splunk from the environment")
+	} else {
+		t.Log("starting Splunk in Docker (first run pulls the image; can take a few minutes)")
+	}
 	if err := backend.Start(ctx); err != nil {
 		t.Fatalf("start backend: %v", err)
 	}

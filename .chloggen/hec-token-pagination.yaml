@@ -1,7 +1,0 @@
-change_type: bug_fix
-
-component: splunk-connect-for-otlp
-
-note: Retrieve all HEC tokens using paginated Splunk REST requests so tokens beyond the first page can authenticate.
-
-issues: [8278]

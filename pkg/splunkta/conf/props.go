@@ -35,8 +35,8 @@ type Prop struct {
 	DatetimeConfig        string            `mapstructure:"datetime_config"`
 	Category              string            `mapstructure:"category"`
 	SourceType            string            `mapstructure:"source_type"`
-	FieldAliases          []FieldAlias      `mapstructure:"field_aliases"`
-	Transforms            []PropsTransforms `mapstructure:"transforms"`
+	FieldAliases          []FieldAlias      `mapstructure:"field_aliases,omitempty"`
+	Transforms            []PropsTransforms `mapstructure:"transforms,omitempty"`
 	MaxTimestampLookAhead int               `mapstructure:"max_timestamp_lookahead"`
 	NoBinaryCheck         bool              `mapstructure:"no_binary_check"`
 	ShouldLineMerge       bool              `mapstructure:"should_line_merge"`

@@ -83,12 +83,18 @@ func TestMetricsBuilder(t *testing.T) {
 			mb.RecordPtpClockStateDataPoint(ts, 1, AttributePtpClockStateSLAVE)
 			if tt.name == "reaggregate_set" {
 				mb.RecordPtpClockStateDataPoint(ts, 3, AttributePtpClockStateMASTER)
+				// a different timestamp is a different key: must not merge with the above.
+				mb.RecordPtpClockStateDataPoint(ts+1, 3, AttributePtpClockStateMASTER)
+				assert.Equal(t, 2, mb.metricPtpClockState.data.Gauge().DataPoints().Len())
 			}
 			defaultMetricsCount++
 			allMetricsCount++
 			mb.RecordPtpGrandmasterInfoDataPoint(ts, 1, "ptp.grandmaster.identity-val")
 			if tt.name == "reaggregate_set" {
 				mb.RecordPtpGrandmasterInfoDataPoint(ts, 3, "ptp.grandmaster.identity-val-2")
+				// a different timestamp is a different key: must not merge with the above.
+				mb.RecordPtpGrandmasterInfoDataPoint(ts+1, 3, "ptp.grandmaster.identity-val-2")
+				assert.Equal(t, 2, mb.metricPtpGrandmasterInfo.data.Gauge().DataPoints().Len())
 			}
 			defaultMetricsCount++
 			allMetricsCount++
@@ -104,6 +110,9 @@ func TestMetricsBuilder(t *testing.T) {
 			mb.RecordPtpPortStateDataPoint(ts, 1, "ptp.port.identity-val", AttributePtpPortStateINITIALIZING)
 			if tt.name == "reaggregate_set" {
 				mb.RecordPtpPortStateDataPoint(ts, 3, "ptp.port.identity-val-2", AttributePtpPortStateFAULTY)
+				// a different timestamp is a different key: must not merge with the above.
+				mb.RecordPtpPortStateDataPoint(ts+1, 3, "ptp.port.identity-val-2", AttributePtpPortStateFAULTY)
+				assert.Equal(t, 2, mb.metricPtpPortState.data.Gauge().DataPoints().Len())
 			}
 
 			rb := mb.NewResourceBuilder()
@@ -162,7 +171,9 @@ func TestMetricsBuilder(t *testing.T) {
 						assert.False(t, validatedMetrics["ptp.clock.state"], "Found a duplicate in the metrics slice: ptp.clock.state")
 						validatedMetrics["ptp.clock.state"] = true
 						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
-						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						// 2 points: the merged one above, plus one with a different timestamp that must not have merged with it.
+						assert.Equal(t, 2, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, ts+1, mi.Gauge().DataPoints().At(1).Timestamp())
 						assert.Equal(t, "Local PTP clock state inferred from the states of its ports (1 for the reported state).", mi.Description())
 						assert.Equal(t, "1", mi.Unit())
 						dp := mi.Gauge().DataPoints().At(0)
@@ -202,7 +213,9 @@ func TestMetricsBuilder(t *testing.T) {
 						assert.False(t, validatedMetrics["ptp.grandmaster.info"], "Found a duplicate in the metrics slice: ptp.grandmaster.info")
 						validatedMetrics["ptp.grandmaster.info"] = true
 						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
-						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						// 2 points: the merged one above, plus one with a different timestamp that must not have merged with it.
+						assert.Equal(t, 2, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, ts+1, mi.Gauge().DataPoints().At(1).Timestamp())
 						assert.Equal(t, "Selected remote PTP grandmaster identity (1 for the selected identity). Omitted when ptp4l reports no remote grandmaster.", mi.Description())
 						assert.Equal(t, "1", mi.Unit())
 						dp := mi.Gauge().DataPoints().At(0)
@@ -281,7 +294,9 @@ func TestMetricsBuilder(t *testing.T) {
 						assert.False(t, validatedMetrics["ptp.port.state"], "Found a duplicate in the metrics slice: ptp.port.state")
 						validatedMetrics["ptp.port.state"] = true
 						assert.Equal(t, pmetric.MetricTypeGauge, mi.Type())
-						assert.Equal(t, 1, mi.Gauge().DataPoints().Len())
+						// 2 points: the merged one above, plus one with a different timestamp that must not have merged with it.
+						assert.Equal(t, 2, mi.Gauge().DataPoints().Len())
+						assert.Equal(t, ts+1, mi.Gauge().DataPoints().At(1).Timestamp())
 						assert.Equal(t, "State of each local PTP port (1 for the reported state).", mi.Description())
 						assert.Equal(t, "1", mi.Unit())
 						dp := mi.Gauge().DataPoints().At(0)

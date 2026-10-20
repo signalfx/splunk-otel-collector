@@ -1,0 +1,22 @@
+change_type: enhancement
+component: Splunk_TA_otel
+note: Add the `splunk_modinput` exporter, which writes newline-delimited Splunk HEC JSON events to standard output so that the add-on can forward them for indexing.
+issues: [8291]
+subtext: |
+  To enable it, add `splunk_modinput` to the `exporters` section of the collector configuration and to the pipelines that should write events to standard output:
+
+  ```yaml
+  exporters:
+    splunk_modinput:
+      source: my-application
+      sourcetype: otel
+      index: main
+
+  service:
+    pipelines:
+      logs:
+        receivers: [otlp]
+        exporters: [splunk_modinput]
+  ```
+
+  All settings are optional. The exporter does not perform index authorization; only the Splunk OTLP input does.

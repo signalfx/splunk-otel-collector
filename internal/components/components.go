@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 
 	"github.com/signalfx/splunk-otel-collector/baseline"
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
@@ -63,6 +64,7 @@ var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 func Get() (otelcol.Factories, error) {
 	b := baseline.NewBaseline()
 
+	b.AddExporters(splunkmodinputexporter.NewFactory())
 	b.AddExtensions(
 		configsourcetelemetryextension.NewFactory(),
 		oracleencodingextension.NewFactory(),

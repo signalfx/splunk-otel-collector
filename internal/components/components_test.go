@@ -210,6 +210,7 @@ func TestDefaultComponents(t *testing.T) {
 		"prometheus_remote_write",
 		"signalfx",
 		"splunk_hec",
+		"splunk_modinput",
 	}
 	expectedExporterAliases := map[string]string{
 		"loadbalancing":         "load_balancing",

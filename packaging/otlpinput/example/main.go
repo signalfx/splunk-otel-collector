@@ -48,9 +48,6 @@ func seed(inputsConf string) error {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n[http]\ndisabled = 0\n"); err != nil {
-		return err
-	}
 	for i := range tokenCount {
 		stanza := fmt.Sprintf(
 			"\n[%s]\ntoken = %s\nindex = main\nindexes = main\ndisabled = 0\n",

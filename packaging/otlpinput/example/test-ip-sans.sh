@@ -15,6 +15,9 @@
 #     IP address succeeds the same way a client dialing it by hostname
 #     does. The checks after the wait loop cover that.
 #
+# It then sends logs, metrics and traces through the receiver and checks that
+# the output of the splunk_modinput exporter was indexed by Splunk.
+#
 # Usage: OTLP_PACKAGE_PATH=/path/to/splunk-connect-for-otlp.tgz sh test-ip-sans.sh
 #
 # Required environment variables:
@@ -35,6 +38,8 @@ OTLP_PACKAGE_PATH="$(cd "$(dirname "$OTLP_PACKAGE_PATH")" && pwd)/$(basename "$O
 
 COMPOSE="docker compose -f docker-compose.yml -f docker-compose.test.yml --profile splunk"
 HTTP_PORT=4318
+# HEC token accepted by the receiver, seeded into inputs.conf before startup.
+SMOKE_TOKEN="00000000-0000-0000-0000-00000000feed"
 WORKDIR="$(mktemp -d)"
 CA_CRT="$WORKDIR/ca.crt"
 
@@ -78,6 +83,19 @@ tar -xzf "$OTLP_PACKAGE_PATH" -C "$WORKDIR/package"
 export OTLP_PACKAGE_DIR="$WORKDIR/package/splunk-connect-for-otlp"
 mkdir -p "$OTLP_PACKAGE_DIR/local"
 cp splunk-inputs-local.conf "$OTLP_PACKAGE_DIR/local/inputs.conf"
+# The TA reads HEC tokens at startup, so the token used to send data must be
+# configured before Splunk starts.
+cat >> "$OTLP_PACKAGE_DIR/local/inputs.conf" <<EOF
+
+[http]
+disabled = 0
+
+[http://modinput-smoke]
+token = $SMOKE_TOKEN
+index = main
+indexes = main
+disabled = 0
+EOF
 
 if [ "${TEST_HEC_PAGINATION:-0}" = 1 ]; then
     echo "==> Creating HEC tokens before the TA starts"
@@ -133,3 +151,41 @@ if [ "${TEST_HEC_PAGINATION:-0}" = 1 ]; then
     echo "==> Checking OTLP authentication with HEC tokens across multiple pages"
     go run . check "$CA_CRT"
 fi
+
+echo "==> Sending telemetry through the receiver"
+now_ns="$(date +%s)000000000"
+send() {
+    curl -sS --fail --max-time 10 --cacert "$CA_CRT" -X POST \
+        -H "Authorization: Splunk ${SMOKE_TOKEN}" \
+        -H "Content-Type: application/json" \
+        -d "$2" "https://localhost:${HTTP_PORT}/v1/$1" > /dev/null
+}
+resource() {
+    printf '{"attributes":[{"key":"com.splunk.source","value":{"stringValue":"otlp-smoke-%s"}}]}' "$1"
+}
+send logs '{"resourceLogs":[{"resource":'"$(resource logs)"',"scopeLogs":[{"logRecords":[{"timeUnixNano":"'"$now_ns"'","body":{"stringValue":"modinput_smoke_log"}}]}]}]}'
+send metrics '{"resourceMetrics":[{"resource":'"$(resource metrics)"',"scopeMetrics":[{"metrics":[{"name":"modinput_smoke_metric","gauge":{"dataPoints":[{"asInt":"1","timeUnixNano":"'"$now_ns"'"}]}}]}]}]}'
+send traces '{"resourceSpans":[{"resource":'"$(resource traces)"',"scopeSpans":[{"spans":[{"traceId":"5b8efff798038103d269b633813fc60c","spanId":"eee19b7ec3c1b174","name":"modinput_smoke_span","kind":1,"startTimeUnixNano":"'"$now_ns"'","endTimeUnixNano":"'"$now_ns"'"}]}]}]}'
+
+echo "==> Checking the events were indexed by Splunk"
+for signal in logs metrics traces; do
+    elapsed=0
+    printf 'Waiting for %s to be searchable: ' "$signal"
+    while true; do
+        count="$($COMPOSE exec -T splunk sh -c "curl -ksS --max-time 30 -u \"admin:\$SPLUNK_PASSWORD\" https://localhost:8089/services/search/jobs/export --data-urlencode 'search=search index=main source=\"otlp-smoke-${signal}\" | stats count' -d earliest_time=-30m -d output_mode=csv" 2>/dev/null | tail -n 1 | tr -d '"\r' || true)"
+        case "$count" in
+            ''|*[!0-9]*) ;;
+            *) if [ "$count" -gt 0 ]; then echo "ok"; break; fi ;;
+        esac
+        if [ "$elapsed" -ge 120 ]; then
+            echo ""
+            echo "Timeout: ${signal} sent through the OTLP receiver were not indexed within 120s"
+            exit 1
+        fi
+        sleep 5
+        elapsed=$((elapsed + 5))
+        printf '.'
+    done
+done
+
+echo "==> All telemetry was indexed"

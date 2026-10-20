@@ -53,7 +53,7 @@ The OTLP addon inherits authentication and authorization associated with the HEC
 
 Please define a HEC token as documented in [Splunk docs](https://help.splunk.com/en/splunk-enterprise/get-started/get-data-in/9.4/get-data-with-http-event-collector/set-up-and-use-http-event-collector-in-splunk-web).
 
-Please make sure to allow indexes as needed ; any payload sending to indexes that are not allowed will be refused in its entirety.
+Please make sure to allow indexes as needed; see [Index selection and authorization](#index-selection-and-authorization).
 
 ### Token refresh
 
@@ -117,6 +117,33 @@ OpenTelemetry protocol representation of a log record contains additional fields
 All other resource and individual log record attributes are mapped to indexed fields.
 
 This mapping follows the OpenTelemetry specification.
+
+### Index selection and authorization
+
+The input writes each event to standard output as an HEC JSON line. Its
+`props.conf` sets `INDEXED_EXTRACTIONS = HEC`, so Splunk applies the `index`,
+`source`, `sourcetype`, and `host` fields of each event.
+
+The destination index of an event is:
+
+1. The `com.splunk.index` attribute. For logs, a log record attribute takes
+   precedence over the resource attribute.
+2. Otherwise, the default index of the HEC token (`index` in the token
+   configuration).
+3. If the token has no default index, the index of this OTLP input's stanza in
+   `inputs.conf`, or the Splunk default index (usually `main`) if the stanza
+   has none.
+
+Splunk does not apply HEC token restrictions to modular input output, so the
+input enforces them before writing. When the token has allowed indexes
+(`indexes` in the token configuration), every index set by
+`com.splunk.index` or by the token's default index must be among them. If any
+is not, the whole request is rejected and nothing is written. As with HEC, a
+token with an empty allowed index list allows any index. Events that fall back
+to the stanza index are not checked.
+
+When `realm` is set, metrics and traces are sent to Splunk Observability Cloud
+and are not subject to these index checks.
 
 
 ### Example

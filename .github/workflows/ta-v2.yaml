@@ -147,7 +147,8 @@ jobs:
           SPLUNK_VERSION: ${{ matrix.splunk_version }}
           SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
         run: |
-          sudo -E ./run-local-package-in-container.sh
+          sudo --preserve-env=APP_NAME,ASSETS_DIR,SPLUNK_VERSION,SPLUNK_PASSWORD,CONTAINER_NAME \
+            ./run-local-package-in-container.sh
 
       - name: Check collector up and running
         shell: bash

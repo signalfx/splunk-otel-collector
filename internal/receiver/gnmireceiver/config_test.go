@@ -68,6 +68,55 @@ func TestLoadConfig(t *testing.T) {
 	}, target.Subscriptions[1])
 }
 
+func TestLoadServerOnlyConfig(t *testing.T) {
+	t.Parallel()
+
+	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config-dialin.yaml"))
+	require.NoError(t, err)
+
+	sub, err := cm.Sub("gnmi")
+	require.NoError(t, err)
+
+	cfg := createDefaultConfig().(*Config)
+	require.NoError(t, sub.Unmarshal(cfg))
+	require.NoError(t, confmap.Validate(cfg))
+
+	require.Empty(t, cfg.Targets)
+	require.NotNil(t, cfg.Server)
+	require.Equal(t, "localhost:0", cfg.Server.NetAddr.Endpoint)
+	require.Equal(t, "tcp", string(cfg.Server.NetAddr.Transport))
+	require.Len(t, cfg.Server.Subscriptions, 1)
+}
+
+func TestValidateServerSubscriptions(t *testing.T) {
+	t.Parallel()
+
+	server := NewDefaultServerConfig()
+	server.NetAddr.Endpoint = "localhost:0"
+	server.Subscriptions = []SubscriptionConfig{{
+		Path:    "/interfaces/interface/state/counters",
+		Default: &MetricConfig{Type: metricTypeSum},
+	}}
+	cfg := &Config{Server: &server}
+	require.NoError(t, cfg.Validate())
+
+	server.Subscriptions[0].Mode = modeSample
+	server.Subscriptions[0].SampleInterval = time.Second
+	require.ErrorContains(t, cfg.Validate(), "server.subscriptions[0].mode is not supported")
+
+	server.NetAddr.Endpoint = ""
+	target := NewDefaultTargetConfig()
+	target.ClientConfig.Endpoint = "localhost:57400"
+	target.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: time.Second,
+		Default:        &MetricConfig{Type: metricTypeSum},
+	}}
+	cfg.Targets = []TargetConfig{target}
+	require.NoError(t, cfg.Validate(), "disabled server subscriptions are not validated")
+}
+
 func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {
 	t.Parallel()
 

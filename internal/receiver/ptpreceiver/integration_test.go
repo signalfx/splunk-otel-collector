@@ -35,6 +35,21 @@ const slaveSocketPath = "/var/run/ptp4l-slave.ro"
 // testdata/integration/README.md for how to run it locally in Docker.
 func TestPTPReceiverIntegration(t *testing.T) {
 	sink := startIntegrationReceiver(t, slaveSocketPath)
+	assertGrandmasterSync(t, sink)
+}
+
+// TestPTPReceiverIntegration_Startup observes an unsynchronized local clock
+// before asking run.sh to start the remote grandmaster. This keeps startup
+// coverage independent of module downloads and test compilation time.
+func TestPTPReceiverIntegration_Startup(t *testing.T) {
+	sink := startIntegrationReceiver(t, slaveSocketPath)
+	assertNoRemoteGrandmaster(t, sink)
+	signalReady(t, "ready-for-master-start")
+	assertGrandmasterSync(t, sink)
+}
+
+func assertGrandmasterSync(t *testing.T, sink *consumertest.MetricsSink) {
+	t.Helper()
 
 	last, lastResourceAttrs := waitForGrandmasterSync(t, sink, 120*time.Second)
 
@@ -57,7 +72,6 @@ func TestPTPReceiverIntegration(t *testing.T) {
 	}
 
 	assertFinalGrandmasterContract(t, last, lastResourceAttrs)
-	assertStartupStateHistory(t, sink.AllMetrics())
 }
 
 // startIntegrationReceiver creates and starts a real ptpreceiver pointed at
@@ -152,35 +166,6 @@ func assertFinalGrandmasterContract(t *testing.T, last map[string]pmetric.Metric
 	if assert.True(t, ok, "resource missing ptp.socket_path attribute") {
 		assert.Equal(t, slaveSocketPath, socketPath.Str())
 	}
-}
-
-// assertStartupStateHistory confirms the port actually transitioned through
-// a pre-sync state (LISTENING or UNCALIBRATED) before reaching SLAVE, rather
-// than the test only ever observing a single, already-synchronized snapshot.
-// The sink retains every scrape (one per CollectionInterval) since Start, so
-// the full timeline is available even though the EventuallyWithT loop above
-// only inspected the latest batch on each of its own polls.
-//
-// LISTENING specifically is not guaranteed to be observed: the master
-// sidecar is already broadcasting Announce messages before this container
-// even starts, and LinuxPTP's default announce interval is ~2s, so LISTENING
-// only lasts up to one announce interval -- routinely shorter than the time
-// this container's `go test` takes to download modules and compile with no
-// cache. By the receiver's first (immediate-on-Start) scrape, the port has
-// therefore usually already moved on to UNCALIBRATED.
-func assertStartupStateHistory(t *testing.T, batches []pmetric.Metrics) {
-	var sawPreSync, sawSlave bool
-	for _, batch := range batches {
-		portMetric, ok := metricsByName(batch)["ptp.port.state"]
-		if !ok {
-			continue
-		}
-		if !sawSlave {
-			sawPreSync = sawPreSync || metricHasPortState(portMetric, "LISTENING") || metricHasPortState(portMetric, "UNCALIBRATED")
-		}
-		sawSlave = sawSlave || metricHasPortState(portMetric, "SLAVE")
-	}
-	assert.True(t, sawPreSync, "port never reported a pre-sync state (LISTENING/UNCALIBRATED) before reaching SLAVE")
 }
 
 func formatDataPoints(points pmetric.NumberDataPointSlice) string {

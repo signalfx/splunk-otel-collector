@@ -72,10 +72,10 @@ type Output struct {
 	conf.Output
 }
 
-// OutputMapper is the output-side counterpart of InputMapper, and is what lets
-// an exporter that cannot live in this repo still cover an output kind: the
-// caller supplies the factory and the mapping, while reading and merging
-// outputs.conf stays here.
+// OutputMapper is the output-side counterpart of InputMapper, so this package
+// models no output kind itself. An exporter living in another repo registers
+// through the same interface as the in-repo one: it supplies the factory and the
+// mapping, while reading and merging outputs.conf stays here.
 //
 // MapOutputs returns one config per instance the exporter owns, keyed by the raw
 // stanza name it was built from, and ignores every stanza it does not own. The
@@ -150,12 +150,10 @@ func WithInputMappers(mappers ...MappingReceiverFactory) Option {
 	}
 }
 
-// WithOutputMappers registers the exporters that map output stanzas. [hecout]
-// needs no registration: splunk_hec is an upstream factory, so it cannot
-// implement OutputMapper and the provider holds that one mapping itself. A
-// registered mapper covers a kind the provider has no exporter for, and claiming
-// a stanza the provider already mapped is rejected rather than allowed to
-// override it.
+// WithOutputMappers registers the exporters that map output stanzas, the
+// output-side counterpart of WithInputMappers. A provider with none emits no
+// exporters, so even the in-repo [hecout] mapping comes in this way, which is
+// what gives an out-of-repo exporter the same path in.
 func WithOutputMappers(mappers ...MappingExporterFactory) Option {
 	return func(p *provider) {
 		p.outputMappers = append(p.outputMappers, mappers...)

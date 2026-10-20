@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 
@@ -202,37 +201,18 @@ func parseOutputs(merged conf.Map) ([]Output, error) {
 	return outputs, nil
 }
 
-// mapOutputs maps every output stanza to its exporter entry: the [hecout]
-// mapping this package holds, then the registered mappers, each of which claims
-// by stanza name the way an input mapper does. A pipeline needs at least one
-// exporter, so an outputs.conf with no output stanzas is an error
-// (conf.ErrNoOutputStanzas), as is a stanza kind nothing claims.
+// mapOutputs asks every registered mapper for the instances it owns, claiming by
+// stanza name the way mapInputs does. A pipeline needs at least one exporter, so
+// an outputs.conf with no output stanzas is an error (conf.ErrNoOutputStanzas),
+// as is a stanza kind no mapper claims.
 func (p *provider) mapOutputs(merged conf.Map) ([]emitted, error) {
 	outputs, err := parseOutputs(merged)
 	if err != nil {
 		return nil, err
 	}
 
-	// splunk_hec is the contrib exporter, emitted directly: its config keys are
-	// what tabuilder.HECOutputConfig produces, so a wrapper type would only add
-	// an identity mapping, and an upstream factory cannot implement OutputMapper.
-	// It claims first, so a registered mapper taking the same stanza is reported
-	// rather than silently overriding it.
-	hecType := splunkhecexporter.NewFactory().Type().String()
 	claimedBy := map[string]string{}
 	var out []emitted
-	for _, o := range outputs {
-		if o.Name.Kind != "hecout" {
-			continue
-		}
-		name := o.Configuration.Stanza.Name
-		claimedBy[name] = hecType
-		out = append(out, emitted{
-			id:  hecType + "/" + stableName(name),
-			cfg: tabuilder.HECOutputConfig(&o.Output),
-		})
-	}
-
 	for _, m := range p.outputMappers {
 		typeStr := m.Type().String()
 		instances, mapErr := m.MapOutputs(outputs)

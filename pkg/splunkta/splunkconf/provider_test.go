@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
@@ -22,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
@@ -53,7 +53,7 @@ var (
 		"splunk_udp/udp-5515-016ce446",
 		"splunk_wineventlog/wineventlog-application-9a1a225b",
 	}
-	wantExporters = []string{"splunk_hec/hecout-d6a24a0d"}
+	wantExporters = []string{"splunk_hecout/hecout-d6a24a0d"}
 )
 
 func receiverFactories() map[string]receiver.Factory {
@@ -67,17 +67,20 @@ func receiverFactories() map[string]receiver.Factory {
 	}
 }
 
-// providerFactory registers the same six mappers internal/settings does, which
-// is the only way a receiver's stanzas reach the fragment.
+// providerFactory registers the same mappers internal/settings does, which is
+// the only way a stanza reaches the fragment.
 func providerFactory() confmap.ProviderFactory {
-	return splunkconf.NewFactory(splunkconf.WithInputMappers(
-		splunkmonitor.NewFactory(),
-		splunktcp.NewFactory(),
-		splunkudp.NewFactory(),
-		splunkscript.NewFactory(),
-		splunkbatch.NewFactory(),
-		splunkwineventlog.NewFactory(),
-	))
+	return splunkconf.NewFactory(
+		splunkconf.WithInputMappers(
+			splunkmonitor.NewFactory(),
+			splunktcp.NewFactory(),
+			splunkudp.NewFactory(),
+			splunkscript.NewFactory(),
+			splunkbatch.NewFactory(),
+			splunkwineventlog.NewFactory(),
+		),
+		splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+	)
 }
 
 func resolve(t *testing.T, uris ...string) *confmap.Conf {
@@ -168,7 +171,7 @@ func TestResolveAndBuild(t *testing.T) {
 
 	exporters, err := merged.Sub("exporters")
 	require.NoError(t, err)
-	ef := splunkhecexporter.NewFactory()
+	ef := splunkhecout.NewFactory()
 	esub, err := exporters.Sub(expIDs[0])
 	require.NoError(t, err)
 	ecfg := ef.CreateDefaultConfig()
@@ -565,7 +568,7 @@ func TestRegisteredOutputMapper(t *testing.T) {
 		URIs: []string{uri},
 		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
 			splunkconf.WithInputMappers(splunkmonitor.NewFactory()),
-			splunkconf.WithOutputMappers(f),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory(), f),
 		)},
 	})
 	require.NoError(t, err)
@@ -574,7 +577,7 @@ func TestRegisteredOutputMapper(t *testing.T) {
 
 	const s2sID = "splunk_s2s/tcpout-primary-bc98bd6f"
 	_, expIDs := pipelineIDs(t, resolved, "logs/uf")
-	require.Equal(t, []string{"splunk_hec/hecout-d6a24a0d", s2sID}, expIDs)
+	require.Equal(t, []string{"splunk_hecout/hecout-d6a24a0d", s2sID}, expIDs)
 
 	exporters, err := resolved.Sub("exporters")
 	require.NoError(t, err)

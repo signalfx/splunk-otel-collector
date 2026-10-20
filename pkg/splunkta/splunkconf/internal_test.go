@@ -197,25 +197,12 @@ func TestMapOutputs(t *testing.T) {
 		wantIDs []string
 	}{
 		{
-			name:    "hecout maps to the contrib exporter with no mapper registered",
-			merged:  conf.Map{hecout: hecStanza},
-			wantIDs: []string{"splunk_hec/hecout-d6a24a0d"},
-		},
-		{
-			// S2S has no exporter upstream or in this repo, so [tcpout] is covered
-			// by a mapper the client registers rather than being guessed at here.
-			name:    "a registered mapper covers a kind this package does not",
+			// The provider models no output kind itself, so every stanza reaches a
+			// registered mapper or none at all.
+			name:    "a registered mapper's instances get provider-owned IDs",
 			merged:  conf.Map{hecout: hecStanza, tcpout: tcpStanza},
-			mappers: []MappingExporterFactory{outStub("splunk_s2s", map[string]component.Config{tcpout: &struct{}{}}, nil)},
-			wantIDs: []string{"splunk_hec/hecout-d6a24a0d", "splunk_s2s/tcpout-primary-bc98bd6f"},
-		},
-		{
-			// The built-in mapping claims first, so a mapper that also takes the
-			// stanza is a registration bug rather than a silent override.
-			name:    "a registered mapper cannot override the built-in hecout mapping",
-			merged:  conf.Map{hecout: hecStanza},
-			mappers: []MappingExporterFactory{outStub("splunk_s2s", map[string]component.Config{hecout: &struct{}{}}, nil)},
-			errMsg:  "stanza [hecout] claimed by both splunk_hec and splunk_s2s",
+			mappers: []MappingExporterFactory{outStub("splunk_s2s", map[string]component.Config{hecout: &struct{}{}, tcpout: &struct{}{}}, nil)},
+			wantIDs: []string{"splunk_s2s/hecout-d6a24a0d", "splunk_s2s/tcpout-primary-bc98bd6f"},
 		},
 		{
 			name:   "two registered mappers claiming one stanza",
@@ -236,6 +223,11 @@ func TestMapOutputs(t *testing.T) {
 			name:   "a kind nothing claims must not be dropped silently",
 			merged: conf.Map{tcpout: tcpStanza},
 			errMsg: `unsupported output stanza(s) [tcpout:primary] (kind "tcpout")`,
+		},
+		{
+			name:   "no mappers registered at all",
+			merged: conf.Map{hecout: hecStanza},
+			errMsg: `unsupported output stanza(s) [hecout] (kind "hecout")`,
 		},
 		{
 			name:   "no output stanzas at all",

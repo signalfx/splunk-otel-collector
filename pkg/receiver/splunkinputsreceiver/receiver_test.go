@@ -182,6 +182,26 @@ func TestReconcile(t *testing.T) {
 		assert.Len(t, r.handler.active, 1)
 	})
 
+	// A disabled app runs nothing but still has to be watched: the apps watch is
+	// not recursive, so editing its own app.conf to enable it is otherwise never
+	// reported and its inputs stay absent until a restart.
+	t.Run("watches_disabled_app", func(t *testing.T) {
+		splunkHome := t.TempDir()
+		r := newTestSplunkInputsReceiver(t, splunkHome, newMockFactory())
+
+		taDir := makeTA(t, splunkHome, "splunk_ta_syslog")
+		require.NoError(t, os.WriteFile(filepath.Join(taDir, "default", "app.conf"),
+			[]byte("[install]\nstate = disabled\n"), 0o600))
+
+		r.reconcile(context.Background(), map[string]struct{}{})
+
+		assert.Empty(t, r.handler.active)
+		watched := r.watcher.WatchList()
+		assert.Contains(t, watched, taDir)
+		assert.Contains(t, watched, filepath.Join(taDir, "default"))
+		assert.Contains(t, watched, filepath.Join(taDir, "local"))
+	})
+
 	t.Run("removes_deleted_ta", func(t *testing.T) {
 		splunkHome := t.TempDir()
 		factory := newMockFactory()

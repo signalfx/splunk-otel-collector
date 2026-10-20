@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package splunk is a parity Backend backed by a real Splunk Enterprise running
-// in Docker via testcontainers. Both agents forward into it (the collector over
+// Package splunk is a parity Backend backed by a real Splunk Enterprise: : one
+// started in Docker via testcontainers, or an existing instance selected with
+// the PARITY_SPLUNK_* env vars. Both agents forward into it (the collector over
 // HEC /event, UF over httpout /s2s), and validation is done by querying indexed
 // events over the REST search API. This mirrors the boot recipe and search
 // client used by splunk-otel-collector-chart's test suite.
@@ -27,6 +28,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -36,15 +38,35 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/parity"
 )
 
+// Env vars that select an existing Splunk instead of starting a container.
+const (
+	EnvHECURL   = "PARITY_SPLUNK_HEC_URL"
+	EnvMgmtURL  = "PARITY_SPLUNK_MGMT_URL"
+	EnvToken    = "PARITY_SPLUNK_TOKEN" //nolint:gosec // G101: an env var name, not a credential
+	EnvUser     = "PARITY_SPLUNK_USER"
+	EnvPassword = "PARITY_SPLUNK_PASSWORD" //nolint:gosec // G101: an env var name, not a credential
+	EnvImage    = "PARITY_SPLUNK_IMAGE"
+)
+
 const (
 	defaultImage    = "splunk/splunk:9.4.4"
 	defaultPassword = "helloworld"
+	defaultUser     = "admin"
+	// defaultToken is valid, non-zero GUID: UF httpout rejects the all-zeros GUID.
+	defaultToken = "11111111-1111-1111-1111-111111111111"
 	// readyLog is the entrypoint's completion marker.
 	readyLog = "Ansible playbook complete"
+	zeroGUID = "00000000-0000-0000-0000-000000000000"
 )
 
-// Config configures the Splunk backend.
+// Config configures the Splunk backend. Setting HECURL and MgmtURL selects an
+// existing Splunk and skips the container; the container fields are then unused.
 type Config struct {
+	// HECURL and MgmtURL are base URLs with a scheme.
+	// Setting either one means "external"; both are then required.
+	HECURL         string
+	MgmtURL        string
+	User           string        // search user, default "admin"
 	Image          string        // default splunk/splunk:9.4.4
 	Password       string        // admin password, default "helloworld"
 	Token          string        // HEC token; must be >= 36 chars for UF httpout
@@ -52,7 +74,73 @@ type Config struct {
 	StartupTimeout time.Duration // default 5m (first pull + boot)
 }
 
+// external reports whether the config points at a Splunk we did not start.
+func (c Config) external() bool { return c.HECURL != "" || c.MgmtURL != "" }
+
+func (c Config) validate() error {
+	if c.external() {
+		if c.HECURL == "" {
+			return fmt.Errorf("%s is set but %s is not; an external Splunk needs both (HEC and management)", EnvMgmtURL, EnvHECURL)
+		}
+		if c.MgmtURL == "" {
+			return fmt.Errorf("%s is set but %s is not; an external Splunk needs both (HEC and management)", EnvHECURL, EnvMgmtURL)
+		}
+		if err := validateBaseURL(c.HECURL, EnvHECURL); err != nil {
+			return err
+		}
+		if err := validateBaseURL(c.MgmtURL, EnvMgmtURL); err != nil {
+			return err
+		}
+		if c.Password == "" {
+			return fmt.Errorf("%s is required for an external Splunk", EnvPassword)
+		}
+		if c.Token == "" {
+			return fmt.Errorf("%s is required for an external Splunk and must match a HEC token it accepts", EnvToken)
+		}
+	}
+	return validateToken(c.Token)
+}
+
+func validateBaseURL(raw, env string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("%s=%q is not a URL: %w", env, raw, err)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("%s=%q needs an http:// or https:// scheme, e.g. https://splunk.example.com:8089", env, raw)
+	}
+	if u.Host == "" {
+		return fmt.Errorf("%s=%q has no host", env, raw)
+	}
+	return nil
+}
+
+func validateToken(tok string) error {
+	if len(tok) < 36 {
+		return fmt.Errorf("HEC token is %d chars; UF httpout requires >= 36 (set %s)", len(tok), EnvToken)
+	}
+	if tok == zeroGUID {
+		return fmt.Errorf("HEC token is the all-zeros GUID, which UF httpout rejects (set %s)", EnvToken)
+	}
+	return nil
+}
+
 func (c Config) withDefaults() Config {
+	c.HECURL = orEnv(c.HECURL, EnvHECURL)
+	c.MgmtURL = orEnv(c.MgmtURL, EnvMgmtURL)
+	c.Token = orEnv(c.Token, EnvToken)
+	c.User = orEnv(c.User, EnvUser)
+	c.Password = orEnv(c.Password, EnvPassword)
+	c.Image = orEnv(c.Image, EnvImage)
+
+	if c.User == "" {
+		c.User = defaultUser
+	}
+	// skip container-related defaults if connecting to external splunk instance
+	if c.external() {
+		return c
+	}
+
 	if c.Image == "" {
 		c.Image = defaultImage
 	}
@@ -60,8 +148,7 @@ func (c Config) withDefaults() Config {
 		c.Password = defaultPassword
 	}
 	if c.Token == "" {
-		// A valid, non-zero GUID: UF httpout rejects the all-zeros GUID.
-		c.Token = "11111111-1111-1111-1111-111111111111"
+		c.Token = defaultToken
 	}
 	if c.StartupTimeout == 0 {
 		c.StartupTimeout = 5 * time.Minute
@@ -69,13 +156,19 @@ func (c Config) withDefaults() Config {
 	return c
 }
 
+func orEnv(v, env string) string {
+	if v != "" {
+		return v
+	}
+	return os.Getenv(env)
+}
+
 // Splunk is a Dockerized Splunk parity Backend.
 type Splunk struct {
 	container testcontainers.Container
 	client    *http.Client
-	host      string
-	hecPort   string
-	mgmtPort  string
+	hecBase   string
+	mgmtBase  string
 	cfg       Config
 }
 
@@ -92,6 +185,26 @@ func New(cfg Config) *Splunk {
 }
 
 func (s *Splunk) Start(ctx context.Context) error {
+	if err := s.cfg.validate(); err != nil {
+		return err
+	}
+
+	if s.cfg.external() {
+		s.hecBase = strings.TrimRight(s.cfg.HECURL, "/")
+		s.mgmtBase = strings.TrimRight(s.cfg.MgmtURL, "/")
+	} else if err := s.startContainer(ctx); err != nil {
+		return err
+	}
+
+	for _, idx := range s.cfg.Indexes {
+		if err := s.createIndex(ctx, idx); err != nil {
+			return fmt.Errorf("create index %s: %w", idx, err)
+		}
+	}
+	return nil
+}
+
+func (s *Splunk) startContainer(ctx context.Context) error {
 	req := testcontainers.ContainerRequest{
 		Image: s.cfg.Image,
 		// Splunk publishes amd64 only; on arm64 hosts Docker runs it under
@@ -115,25 +228,22 @@ func (s *Splunk) Start(ctx context.Context) error {
 	}
 	s.container = c
 
-	if s.host, err = c.Host(ctx); err != nil {
+	host, err := c.Host(ctx)
+	if err != nil {
 		return err
 	}
 	hp, err := c.MappedPort(ctx, "8088/tcp")
 	if err != nil {
 		return err
 	}
-	s.hecPort = hp.Port()
 	mp, err := c.MappedPort(ctx, "8089/tcp")
 	if err != nil {
 		return err
 	}
-	s.mgmtPort = mp.Port()
 
-	for _, idx := range s.cfg.Indexes {
-		if err := s.createIndex(ctx, idx); err != nil {
-			return fmt.Errorf("create index %s: %w", idx, err)
-		}
-	}
+	s.hecBase = fmt.Sprintf("https://%s:%s", host, hp.Port())
+	s.mgmtBase = fmt.Sprintf("https://%s:%s", host, mp.Port())
+
 	return nil
 }
 
@@ -144,15 +254,17 @@ func (s *Splunk) Stop(ctx context.Context) error {
 	return s.container.Terminate(ctx)
 }
 
+func (s *Splunk) External() bool { return s.cfg.external() }
+
 func (s *Splunk) HEC() parity.HEC {
 	return parity.HEC{
-		Endpoint: fmt.Sprintf("https://%s:%s", s.host, s.hecPort),
+		Endpoint: s.hecBase,
 		Token:    s.cfg.Token,
 	}
 }
 
 func (s *Splunk) mgmtURL() string {
-	return fmt.Sprintf("https://%s:%s", s.host, s.mgmtPort)
+	return s.mgmtBase
 }
 
 func (s *Splunk) createIndex(ctx context.Context, name string) error {
@@ -161,7 +273,7 @@ func (s *Splunk) createIndex(ctx context.Context, name string) error {
 	if err != nil {
 		return err
 	}
-	req.SetBasicAuth("admin", s.cfg.Password)
+	req.SetBasicAuth(s.cfg.User, s.cfg.Password)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -207,7 +319,7 @@ func (s *Splunk) postSearch(ctx context.Context, spl string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req.SetBasicAuth("admin", s.cfg.Password)
+	req.SetBasicAuth(s.cfg.User, s.cfg.Password)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -237,7 +349,7 @@ func (s *Splunk) waitJobDone(ctx context.Context, sid string) error {
 		if err != nil {
 			return err
 		}
-		req.SetBasicAuth("admin", s.cfg.Password)
+		req.SetBasicAuth(s.cfg.User, s.cfg.Password)
 		resp, err := s.client.Do(req)
 		if err != nil {
 			return err
@@ -265,7 +377,7 @@ func (s *Splunk) jobEvents(ctx context.Context, sid string) ([]parity.Record, er
 	if err != nil {
 		return nil, err
 	}
-	req.SetBasicAuth("admin", s.cfg.Password)
+	req.SetBasicAuth(s.cfg.User, s.cfg.Password)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -288,10 +400,19 @@ func (s *Splunk) jobEvents(ctx context.Context, sid string) ([]parity.Record, er
 	return records, nil
 }
 
+// typedFields are the search fields Record models directly, so they are not
+// repeated in Record.Fields.
+var typedFields = map[string]bool{
+	"_raw": true, "_time": true,
+	"host": true, "source": true, "sourcetype": true, "index": true,
+}
+
 // resultToRecord maps a Splunk search result row to a parity.Record. Splunk
-// returns field values as strings (or []string for multivalued). Internal
-// volatile fields (_bkt, _cd, _indextime, splunk_server, ...) are left out of
-// Record, so the validator never sees them.
+// returns field values as strings (or []string for multivalued). Every remaining
+// non-underscore field lands in Record.Fields so a case can select it (punct,
+// linecount, date_*, extractions). Underscore-prefixed fields are Splunk
+// internals (_bkt, _cd, _indextime, ...) and are volatile, so they are dropped
+// and the validator never sees them.
 func resultToRecord(r map[string]any) parity.Record {
 	rec := parity.Record{
 		Raw:        str(r["_raw"]),
@@ -304,6 +425,15 @@ func resultToRecord(r map[string]any) parity.Record {
 		if parsed, err := time.Parse(time.RFC3339, t); err == nil {
 			rec.Time = parsed
 		}
+	}
+	for k, v := range r {
+		if typedFields[k] || strings.HasPrefix(k, "_") {
+			continue
+		}
+		if rec.Fields == nil {
+			rec.Fields = map[string]string{}
+		}
+		rec.Fields[k] = str(v)
 	}
 	return rec
 }

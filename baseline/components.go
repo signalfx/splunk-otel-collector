@@ -28,6 +28,7 @@ import (
 	routingconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	spanmetricsconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	sumconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector"
+	awskinesisexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter"
 	awss3exporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter"
 	fileexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	googlecloudstorageexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter"
@@ -44,6 +45,7 @@ import (
 	textencodingextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension"
 	headerssetterextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	healthcheckextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
+	healthcheckv2extension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckv2extension"
 	httpforwarderextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
 	k8sleaderelector "github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector"
 	oauth2clientauthextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
@@ -67,6 +69,7 @@ import (
 	redactionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor"
 	resourcedetectionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
 	resourceprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
+	rollingspanlatencyprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/rollingspanlatencyprocessor"
 	spanprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	tailsamplingprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	transformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
@@ -171,6 +174,7 @@ func NewBaseline() *Baseline {
 			googlecloudlogentryencodingextension.NewFactory(),
 			headerssetterextension.NewFactory(),
 			healthcheckextension.NewFactory(),
+			healthcheckv2extension.NewFactory(),
 			hostobserver.NewFactory(),
 			httpforwarderextension.NewFactory(),
 			k8sleaderelector.NewFactory(),
@@ -274,11 +278,13 @@ func NewBaseline() *Baseline {
 			redactionprocessor.NewFactory(),
 			resourcedetectionprocessor.NewFactory(),
 			resourceprocessor.NewFactory(),
+			rollingspanlatencyprocessor.NewFactory(),
 			spanprocessor.NewFactory(),
 			tailsamplingprocessor.NewFactory(),
 			transformprocessor.NewFactory(),
 		},
 		exporters: []exporter.Factory{
+			awskinesisexporter.NewFactory(),
 			awss3exporter.NewFactory(),
 			debugexporter.NewFactory(),
 			fileexporter.NewFactory(),

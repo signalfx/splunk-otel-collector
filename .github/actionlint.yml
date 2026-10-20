@@ -4,6 +4,7 @@ self-hosted-runner:
   labels:
     - otel-windows
     - otel-windows-arm
+    - otel-linux-large
     # This is a GitHub-hosted preview runner, not self-hosted. Keep it here
     # until actionlint's built-in GitHub runner labels catch up.
     - ubuntu-26.04

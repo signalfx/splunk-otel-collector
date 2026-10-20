@@ -37,6 +37,37 @@
                     <key name="exampleText">0.0.0.0</key>
                     <key name="helpText">The listening address to bind the receiver to</key>
                 </element>
+                <element name="realm" label="Splunk Observability Realm" required="false">
+                    <view name="list"/>
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">us0</key>
+                    <key name="helpText">The Splunk Observability realm. When filled, the application will attempt to send metrics and traces to that destination. (us0, eu0, au0, etc)</key>
+                </element>
+                <element name="access_token" label="Splunk Observability Access Token" required="false">
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">accessToken</key>
+                    <key name="helpText">The Splunk Observability access token.</key>
+                </element>
+                <element name="refresh_interval" label="HEC token refresh interval" required="false">
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">3m</key>
+                    <key name="helpText">How often to fetch HEC tokens. Use a duration such as 3m (default: 3m).</key>
+                </element>
+                <element name="refresh_timeout" label="HEC token refresh timeout" required="false">
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">30s</key>
+                    <key name="helpText">Deadline for fetching all HEC token pages. Use a duration such as 30s (default: 30s).</key>
+                </element>
+                <element name="max_staleness" label="HEC token maximum staleness" required="false">
+                    <view name="edit"/>
+                    <view name="create"/>
+                    <key name="exampleText">10m</key>
+                    <key name="helpText">Maximum accepted token snapshot age (default: 10m). Must exceed refresh_interval + refresh_timeout.</key>
+                </element>
                 <element name="enableSSL" label="Enable SSL" required="false">
                     <view name="list"/>
                     <view name="edit"/>

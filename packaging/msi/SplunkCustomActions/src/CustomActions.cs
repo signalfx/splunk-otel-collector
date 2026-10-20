@@ -143,25 +143,78 @@ public class CustomActions
     }
 
     /// <summary>
-    /// Custom action to add optional configuration options to the environment at the service scope.
+    /// Validate and prepare service environment variables for the deferred action.
     /// </summary>
-    /// <remarks>
-    /// It is possible to add these as machine-wide environment variables, but, for consistency,
-    /// this custom action adds them to the service environment.
-    /// </remarks>
     /// <param name="session">Carries information about the current installation session.</param>
-    /// <returns>Always success, in case of error the code will throw an exception and fails the install.</returns>
+    /// <returns>Failure if custom environment variables are invalid; otherwise success.</returns>
+    [CustomAction]
+    public static ActionResult AddOptionalConfigurationsCustomActionData(Session session)
+    {
+        try
+        {
+            session["AddOptionalConfigurations"] = BuildOptionalConfigurationData(name => session[name]).ToString();
+            return ActionResult.Success;
+        }
+        catch (ArgumentException exception)
+        {
+            LogAndShowError(session, exception.Message);
+            return ActionResult.Failure;
+        }
+    }
+
+    internal static CustomActionData BuildOptionalConfigurationData(Func<string, string> getProperty)
+    {
+        var optionalPropertyNames = new[]
+        {
+            "GODEBUG",
+            "GOMEMLIMIT",
+            "SPLUNK_GATEWAY_URL",
+            "SPLUNK_LISTEN_INTERFACE",
+            "SPLUNK_MEMORY_LIMIT_MIB",
+            "SPLUNK_MEMORY_TOTAL_MIB",
+            "SPLUNK_OPAMP_SUPERVISOR_ENABLED",
+            "SPLUNK_PLATFORM_URL",
+            "SPLUNK_PLATFORM_TOKEN",
+            "SPLUNK_PLATFORM_LOGS_INDEX",
+            "SPLUNK_PLATFORM_METRICS_INDEX"
+        };
+
+        var environment = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in optionalPropertyNames)
+        {
+            var value = getProperty(name);
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                environment[name] = value;
+            }
+        }
+        foreach (var variable in CustomEnvironmentVariables.Parse(getProperty("SPLUNK_ENVIRONMENT_VARIABLES")))
+        {
+            environment[variable.Key] = variable.Value;
+        }
+
+        // Deferred MSI actions cannot read session properties directly, so pass these entries
+        // through CustomActionData. Its serialized format uses semicolons to separate entries;
+        // DTF escapes semicolons inside values (including decoded %3B) and restores them when
+        // AddOptionalConfigurations reads session.CustomActionData.
+        var data = new CustomActionData();
+        foreach (var variable in environment)
+        {
+            data[variable.Key] = variable.Value;
+        }
+        return data;
+    }
+
+    /// <summary>
+    /// Add optional configuration to the service environment after registry values are written.
+    /// </summary>
     [CustomAction]
     public static ActionResult AddOptionalConfigurations(Session session)
     {
         var optionalEnvironmentVariables = new Dictionary<string, string>();
         foreach (var kvp in session.CustomActionData)
         {
-            if (!string.IsNullOrWhiteSpace(kvp.Value))
-            {
-                session.Log($"Info: Setting environment variable {kvp.Key}={kvp.Value}");
-                optionalEnvironmentVariables[kvp.Key] = kvp.Value;
-            }
+            optionalEnvironmentVariables[kvp.Key] = kvp.Value;
         }
 
         if (optionalEnvironmentVariables.Count > 0)

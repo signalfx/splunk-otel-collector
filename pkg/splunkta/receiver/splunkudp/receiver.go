@@ -32,14 +32,14 @@ const TypeStr = "splunk_udp"
 // matching splunk_inputs.
 type Config struct {
 	Extra         map[string]string `mapstructure:",remain"`
-	ListenAddress string            `mapstructure:"listen_address"`
-	Index         string            `mapstructure:"index"`
-	Source        string            `mapstructure:"source"`
-	Sourcetype    string            `mapstructure:"sourcetype"`
-	Host          string            `mapstructure:"host"`
-	Props         []conf.Prop       `mapstructure:"props"`
-	Transforms    []conf.Transform  `mapstructure:"transforms"`
-	Port          int               `mapstructure:"port"`
+	ListenAddress string            `mapstructure:"listen_address,omitempty"`
+	Index         string            `mapstructure:"index,omitempty"`
+	Source        string            `mapstructure:"source,omitempty"`
+	Sourcetype    string            `mapstructure:"sourcetype,omitempty"`
+	Host          string            `mapstructure:"host,omitempty"`
+	Props         []conf.Prop       `mapstructure:"props,omitempty"`
+	Transforms    []conf.Transform  `mapstructure:"transforms,omitempty"`
+	Port          int               `mapstructure:"port,omitempty"`
 }
 
 // Validate requires a usable port. UF's port-only stanza form ([udp://5514])
@@ -83,11 +83,17 @@ func (c *Config) input() conf.Input {
 	}
 }
 
+// Factory is the UF-native UDP receiver factory. It maps its own
+// [udp://...] stanzas, so the .conf provider models no input kind itself.
+type Factory struct {
+	receiver.Factory
+}
+
 // NewFactory returns the UF-native UDP receiver factory.
-func NewFactory() receiver.Factory {
-	return receiver.NewFactory(
+func NewFactory() Factory {
+	return Factory{receiver.NewFactory(
 		component.MustNewType(TypeStr),
 		func() component.Config { return &Config{} },
 		receiver.WithLogs(splunkUDP{}.CreateLogs, component.StabilityLevelAlpha),
-	)
+	)}
 }

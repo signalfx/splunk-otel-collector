@@ -7,26 +7,22 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"net"
-	"strconv"
+	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunktcp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkudp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkwineventlog"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
-// component is one emitted confmap entry: a fully-qualified component ID
-// (type/name) and its serializable config map.
-type component struct {
+// emitted is one confmap entry: a fully-qualified component ID (type/name) and
+// its serializable config map.
+type emitted struct {
 	cfg map[string]any
 	id  string
 }
@@ -69,194 +65,122 @@ func stableName(raw string) string {
 	return s + "-" + h
 }
 
-// mapInputs maps enabled input stanzas to wrapper receiver configs. The full
-// merged props/transforms set is attached to every receiver, matching how
-// splunk_inputs feeds the same set to each sub-receiver; per-source matching is
-// done receiver-internally, so parity is preserved.
+// newConf builds the tree handed to the mappers. It parses every enabled
+// stanza's name once, so a mapper filters on an already-split kind and a
+// malformed name is reported here instead of by each mapper in turn, and it
+// resolves props.conf and transforms.conf per declaring app.
 //
-// Kinds are matched against the spellings inputs.conf.spec defines, exactly
-// rather than case-folded, which is how splunk_outputs resolves its own stanza
-// kinds. WinEventLog is the only input kind whose canonical spelling is not
-// lowercase.
-func mapInputs(inputs []conf.Input, props []conf.Prop, transforms []conf.Transform) (out []component, skipped []string, err error) {
+// Resolving them once across the whole configuration root instead would hand
+// every receiver every app's props, which is not what a stanza resolves to:
+// splunkd gives an app's inputs its own layers merged with system and nothing
+// from a sibling app.
+func newConf(confRoot string, inputs []conf.Input) (Conf, error) {
+	byApp := map[string][]conf.Input{}
 	for _, in := range inputs {
-		st := in.Configuration.Stanza
-		if st.IsDisabled() {
+		if in.Configuration.Stanza.IsDisabled() {
 			continue
 		}
-		name, perr := stanza.ParseName(st.Name)
-		if perr != nil {
-			return nil, nil, fmt.Errorf("parse stanza %q: %w", st.Name, perr)
+		byApp[in.AppDir] = append(byApp[in.AppDir], in)
+	}
+
+	// Fixed order so the emitted set, and the error naming an unmappable
+	// stanza, do not depend on map iteration.
+	appDirs := make([]string, 0, len(byApp))
+	for appDir := range byApp {
+		appDirs = append(appDirs, appDir)
+	}
+	sort.Strings(appDirs)
+
+	systemDir := filepath.Join(confRoot, "system")
+	var tree Conf
+	for _, appDir := range appDirs {
+		dirs := tabuilder.AppConfRootDirs(confRoot, appDir)
+		if appDir == systemDir {
+			dirs = tabuilder.SystemConfRootDirs(confRoot)
+		}
+		props, err := tabuilder.ReadProps(dirs)
+		if err != nil {
+			return Conf{}, fmt.Errorf("splunkconf: read props.conf for %s: %w", appDir, err)
+		}
+		transforms, err := tabuilder.ReadTransforms(dirs)
+		if err != nil {
+			return Conf{}, fmt.Errorf("splunkconf: read transforms.conf for %s: %w", appDir, err)
 		}
 
-		var c *component
-		switch name.Kind {
-		case "monitor":
-			c = emitMonitor(st, name, props, transforms)
-		case "tcp":
-			c = emitTCP(st, name, props, transforms)
-		case "udp":
-			c = emitUDP(st, name, props, transforms)
-		case "script":
-			c = emitScript(st, name, in.AppDir, props, transforms)
-		case "batch":
-			c = emitBatch(st, name, props, transforms)
-		case "WinEventLog":
-			c = emitWineventlog(st, name, props, transforms)
-		default:
-			// Includes the unprefixed form ([my_script]), which inputs.conf.spec
-			// defines as a modular-input scheme defaults stanza rather than an
-			// input, so there is nothing to collect for it.
-			skipped = append(skipped, st.Name)
-			continue
+		for _, in := range byApp[appDir] {
+			name := in.Configuration.Stanza.Name
+			parsed, err := stanza.ParseName(name)
+			if err != nil {
+				return Conf{}, fmt.Errorf("splunkconf: parse stanza %q: %w", name, err)
+			}
+			tree.Inputs = append(tree.Inputs, Input{
+				Input:      in,
+				Name:       parsed,
+				Props:      props,
+				Transforms: transforms,
+			})
 		}
-		out = append(out, *c)
+	}
+	return tree, nil
+}
+
+// mapInputs asks every registered mapper for the instances it owns. Each mapper
+// sees the whole tree and claims by stanza name, so this keeps the two things a
+// mapper must not decide: the component ID, which has to stay a pure function
+// of stanza identity, and ownership, which has to be exactly one mapper per
+// stanza.
+func (p *provider) mapInputs(tree Conf) (out []emitted, skipped []string, err error) {
+	claimedBy := map[string]string{}
+	for _, m := range p.mappers {
+		typeStr := m.Type().String()
+		instances, mapErr := m.MapInputs(tree)
+		if mapErr != nil {
+			return nil, nil, fmt.Errorf("splunkconf: %s: %w", typeStr, mapErr)
+		}
+		for name, cfg := range instances {
+			if other, dup := claimedBy[name]; dup {
+				return nil, nil, fmt.Errorf("splunkconf: stanza [%s] claimed by both %s and %s", name, other, typeStr)
+			}
+			claimedBy[name] = typeStr
+
+			marshaled, mErr := marshalConfig(cfg)
+			if mErr != nil {
+				return nil, nil, fmt.Errorf("splunkconf: %s: stanza [%s]: %w", typeStr, name, mErr)
+			}
+			out = append(out, emitted{id: typeStr + "/" + stableName(name), cfg: marshaled})
+		}
+	}
+
+	for _, in := range tree.Inputs {
+		if _, claimed := claimedBy[in.Configuration.Stanza.Name]; !claimed {
+			skipped = append(skipped, in.Configuration.Stanza.Name)
+		}
 	}
 	return out, skipped, nil
 }
 
-// attachPropsTransforms attaches the shared props/transforms set to a receiver
-// cfg. Every receiver gets the full merged set, matching splunk_inputs.
-func attachPropsTransforms(cfg map[string]any, props []conf.Prop, transforms []conf.Transform) {
-	if len(props) > 0 {
-		cfg["props"] = props
+// marshalConfig turns a mapper's typed Config into the serialized form a
+// confmap fragment carries, which the resolver then unmarshals back into that
+// same type. The round trip is what lets a mapper work in its own Config
+// instead of an untyped map it could misspell a key in unnoticed.
+func marshalConfig(cfg component.Config) (map[string]any, error) {
+	cm := confmap.New()
+	if err := cm.Marshal(cfg); err != nil {
+		return nil, fmt.Errorf("marshal config: %w", err)
 	}
-	if len(transforms) > 0 {
-		cfg["transforms"] = transforms
-	}
-}
-
-func emitMonitor(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *component {
-	cfg := map[string]any{"path": name.Target}
-	if p := st.Params.Get("CHARSET"); p != nil {
-		cfg["charset"] = p.Value
-	}
-	if p := st.Params.Get("EVENT_BREAKER"); p != nil {
-		cfg["event_breaker"] = p.Value
-	}
-	if p := st.Params.Get("TRUNCATE"); p != nil {
-		if n, convErr := strconv.Atoi(p.Value); convErr == nil {
-			cfg["truncate"] = n
-		}
-	}
-	// whitelist and blacklist are deliberately not modeled: the monitor receiver
-	// reads both straight off the stanza params, so they round-trip verbatim
-	// through Extra instead of being re-encoded.
-	addResourceAttrs(cfg, st, "CHARSET", "EVENT_BREAKER", "TRUNCATE")
-	attachPropsTransforms(cfg, props, transforms)
-	return &component{id: splunkmonitor.TypeStr + "/" + stableName(st.Name), cfg: cfg}
-}
-
-func emitTCP(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *component {
-	addr, port := parseListenAddress(name.Target)
-	cfg := map[string]any{"listen_address": addr, "port": port}
-	addResourceAttrs(cfg, st)
-	attachPropsTransforms(cfg, props, transforms)
-	return &component{id: splunktcp.TypeStr + "/" + stableName(st.Name), cfg: cfg}
-}
-
-func emitUDP(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *component {
-	addr, port := parseListenAddress(name.Target)
-	cfg := map[string]any{"listen_address": addr, "port": port}
-	addResourceAttrs(cfg, st)
-	attachPropsTransforms(cfg, props, transforms)
-	return &component{id: splunkudp.TypeStr + "/" + stableName(st.Name), cfg: cfg}
-}
-
-// emitScript carries appDir so a relative script target resolves against the app
-// that declared the stanza. script.GetPath both resolves and sandboxes against
-// that directory, so without it the executable would resolve against the
-// collector's working directory.
-func emitScript(st conf.Stanza, name stanza.Name, appDir string, props []conf.Prop, transforms []conf.Transform) *component {
-	cfg := map[string]any{"script_filename": name.Target}
-	if appDir != "" {
-		cfg["app_dir"] = appDir
-	}
-	if p := st.Params.Get("interval"); p != nil {
-		cfg["interval"] = p.Value
-	}
-	addResourceAttrs(cfg, st, "interval")
-	attachPropsTransforms(cfg, props, transforms)
-	return &component{id: splunkscript.TypeStr + "/" + stableName(st.Name), cfg: cfg}
-}
-
-func emitBatch(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *component {
-	cfg := map[string]any{"file_path": name.Target}
-	addResourceAttrs(cfg, st)
-	attachPropsTransforms(cfg, props, transforms)
-	return &component{id: splunkbatch.TypeStr + "/" + stableName(st.Name), cfg: cfg}
-}
-
-func emitWineventlog(st conf.Stanza, name stanza.Name, props []conf.Prop, transforms []conf.Transform) *component {
-	cfg := map[string]any{"event_log_name": name.Target}
-	addResourceAttrs(cfg, st)
-	attachPropsTransforms(cfg, props, transforms)
-	return &component{id: splunkwineventlog.TypeStr + "/" + stableName(st.Name), cfg: cfg}
-}
-
-// addResourceAttrs copies the four resource attributes onto cfg under the
-// wrapper's own key names, then every remaining stanza param under its original
-// key so the wrapper's ",remain" Extra field can carry it through to conf.Input.
-// Without the passthrough an unmodeled UF param would be dropped at emit, and
-// strict confmap unmarshal would reject it outright. consumed names are the ones
-// the caller already bound to a typed field; disabled gates emission, not the
-// receiver, so it is always skipped.
-func addResourceAttrs(cfg map[string]any, st conf.Stanza, consumed ...string) {
-	skip := map[string]bool{"disabled": true}
-	for _, k := range consumed {
-		skip[k] = true
-	}
-	for _, attr := range []string{"index", "source", "sourcetype", "host"} {
-		if p := st.Params.Get(attr); p != nil {
-			cfg[attr] = p.Value
-		}
-		skip[attr] = true
-	}
-	for _, p := range st.Params {
-		if skip[p.Name] {
-			continue
-		}
-		if _, exists := cfg[p.Name]; exists {
-			continue
-		}
-		cfg[p.Name] = p.Value
-	}
-}
-
-// parseListenAddress splits a network stanza target into the host and port the
-// wrapper receivers take as separate fields. A UF target may be a bracketed
-// IPv6 literal ([udp://[::1]:5514]), whose own colons defeat a plain cut, so
-// the split goes through net.SplitHostPort. The host is returned unbracketed
-// because the receivers re-encode it with net.JoinHostPort.
-func parseListenAddress(target string) (string, int) {
-	addr, portStr, err := net.SplitHostPort(stanza.ListenAddress(target))
-	if err != nil {
-		return "", 0
-	}
-	if addr == "" {
-		addr = "0.0.0.0"
-	}
-	return addr, parsePort(portStr)
-}
-
-func parsePort(s string) int {
-	n, err := strconv.Atoi(strings.TrimSpace(s))
-	if err != nil || n <= 0 || n > 65535 {
-		return 0
-	}
-	return n
+	return cm.ToStringMap(), nil
 }
 
 // mapOutputs maps every output stanza to its exporter entry. A pipeline needs at
 // least one exporter, so an outputs.conf with no output stanzas is an error
 // (conf.ErrNoOutputStanzas), as is a stanza kind with no mapping.
-func mapOutputs(merged conf.Map) ([]component, error) {
+func mapOutputs(merged conf.Map) ([]emitted, error) {
 	groups, err := conf.OutputGroups(merged)
 	if err != nil {
 		return nil, err
 	}
 	var (
-		out         []component
+		out         []emitted
 		unsupported []string
 	)
 	for _, g := range groups {
@@ -273,7 +197,7 @@ func mapOutputs(merged conf.Map) ([]component, error) {
 		// are what tabuilder.HECOutputConfig produces, so a wrapper type would
 		// only add an identity mapping. [tcpout] -> S2S does need its own type,
 		// and arrives with the output-mapper registration API.
-		out = append(out, component{
+		out = append(out, emitted{
 			id:  splunkhecexporter.NewFactory().Type().String() + "/" + stableName(name),
 			cfg: tabuilder.HECOutputConfig(&g),
 		})

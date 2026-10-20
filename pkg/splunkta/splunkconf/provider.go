@@ -44,27 +44,34 @@ const schemeName = "splunkconf"
 // pipelineRegexp restricts the pipeline name to a safe component-name segment.
 var pipelineRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
 
-type provider struct{}
+type provider struct {
+	mappers []MappingReceiverFactory
+}
 
-// NewFactory returns a confmap.ProviderFactory for the splunkconf scheme.
-func NewFactory() confmap.ProviderFactory {
+// NewFactory returns a confmap.ProviderFactory for the splunkconf scheme. Pass
+// WithInputMappers to register the receivers that map input stanzas.
+func NewFactory(opts ...Option) confmap.ProviderFactory {
 	return confmap.NewProviderFactory(func(confmap.ProviderSettings) confmap.Provider {
-		return provider{}
+		p := &provider{}
+		for _, opt := range opts {
+			opt(p)
+		}
+		return p
 	})
 }
 
-func (provider) Scheme() string { return schemeName }
+func (*provider) Scheme() string { return schemeName }
 
-func (provider) Shutdown(context.Context) error { return nil }
+func (*provider) Shutdown(context.Context) error { return nil }
 
 // Retrieve reads the .conf tree and returns the emitted pipeline fragment. The
 // watcher is intentionally ignored, matching the built-in file provider.
-func (provider) Retrieve(_ context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
+func (p *provider) Retrieve(_ context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	confRoot, pipeline, err := parseURI(uri)
 	if err != nil {
 		return nil, err
 	}
-	frag, err := build(confRoot, pipeline)
+	frag, err := p.build(confRoot, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +128,7 @@ func parseURI(uri string) (confRoot, pipeline string, err error) {
 
 // build reads inputs.conf, outputs.conf, props.conf and transforms.conf across
 // the Splunk conf search path and assembles the confmap fragment.
-func build(confRoot, pipeline string) (map[string]any, error) {
+func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 	dirs := tabuilder.ConfRootDirs(confRoot)
 
 	inputs, err := tabuilder.ReadInputs(dirs)
@@ -129,19 +136,11 @@ func build(confRoot, pipeline string) (map[string]any, error) {
 		return nil, fmt.Errorf("splunkconf: read inputs.conf: %w", err)
 	}
 
-	// The full merged props/transforms set is attached to every emitted receiver,
-	// matching how splunk_inputs feeds the same set to each sub-receiver.
-	// Per-source matching stays receiver-internal.
-	props, err := tabuilder.ReadProps(dirs)
+	tree, err := newConf(confRoot, inputs)
 	if err != nil {
-		return nil, fmt.Errorf("splunkconf: read props.conf: %w", err)
+		return nil, err
 	}
-	transforms, err := tabuilder.ReadTransforms(dirs)
-	if err != nil {
-		return nil, fmt.Errorf("splunkconf: read transforms.conf: %w", err)
-	}
-
-	recvs, skipped, err := mapInputs(inputs, props, transforms)
+	recvs, skipped, err := p.mapInputs(tree)
 	if err != nil {
 		return nil, err
 	}

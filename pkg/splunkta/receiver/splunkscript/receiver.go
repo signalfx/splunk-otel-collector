@@ -34,14 +34,14 @@ const TypeStr = "splunk_script"
 type Config struct {
 	Extra          map[string]string `mapstructure:",remain"`
 	ScriptFilename string            `mapstructure:"script_filename"`
-	AppDir         string            `mapstructure:"app_dir"`
-	Interval       string            `mapstructure:"interval"`
-	Index          string            `mapstructure:"index"`
-	Source         string            `mapstructure:"source"`
-	Sourcetype     string            `mapstructure:"sourcetype"`
-	Host           string            `mapstructure:"host"`
-	Props          []conf.Prop       `mapstructure:"props"`
-	Transforms     []conf.Transform  `mapstructure:"transforms"`
+	AppDir         string            `mapstructure:"app_dir,omitempty"`
+	Interval       string            `mapstructure:"interval,omitempty"`
+	Index          string            `mapstructure:"index,omitempty"`
+	Source         string            `mapstructure:"source,omitempty"`
+	Sourcetype     string            `mapstructure:"sourcetype,omitempty"`
+	Host           string            `mapstructure:"host,omitempty"`
+	Props          []conf.Prop       `mapstructure:"props,omitempty"`
+	Transforms     []conf.Transform  `mapstructure:"transforms,omitempty"`
 }
 
 // Validate requires the script path, which is the stanza target and has no
@@ -89,11 +89,17 @@ func (c *Config) input() conf.Input {
 	}
 }
 
+// Factory is the UF-native script receiver factory. It maps its own
+// [script://...] stanzas, so the .conf provider models no input kind itself.
+type Factory struct {
+	receiver.Factory
+}
+
 // NewFactory returns the UF-native scripted input receiver factory.
-func NewFactory() receiver.Factory {
-	return receiver.NewFactory(
+func NewFactory() Factory {
+	return Factory{receiver.NewFactory(
 		component.MustNewType(TypeStr),
 		func() component.Config { return &Config{} },
 		receiver.WithLogs(splunkScript{}.CreateLogs, component.StabilityLevelAlpha),
-	)
+	)}
 }

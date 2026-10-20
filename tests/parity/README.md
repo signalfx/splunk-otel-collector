@@ -25,10 +25,25 @@ replay always runs against a golden that has been reviewed. Only one agent runs
 per invocation, so both use the same index for a given case, which is what lets a
 case select `index` like any other field.
 
-Each run forwards into a Splunk instance started in Docker via testcontainers and
-reads events back over the Splunk REST search API. Cases share the container and
-the readback is scoped by index, so each case gets its own, named after its
+Each run forwards into a real Splunk and reads events back over the Splunk REST
+search API. By default the suite starts one in Docker via testcontainers;
+setting `PARITY_SPLUNK_HEC_URL` and `PARITY_SPLUNK_MGMT_URL` points it at an
+existing instance instead and skips the container. Cases share the one backend
+and the readback is scoped by index, so each case gets its own, named after its
 directory (`parity_host`), and never sees the events of a case that ran before it.
+
+An external Splunk's `parity_*` indexes must be empty and its credentials
+privileged enough to create them. The rest of the instance is not touched and
+can hold anything: readback is always scoped to `index=${INDEX}`
+(`runner.go:157`), never instance-wide. But the suite does not clean up after
+itself and the index names are fixed — three goldens pin the literal name
+(`tests/monitor-index`, `tests/tcp-event`, `tests/udp-event`) — so rerunning
+against the *same* `parity_*` indexes without clearing them first lands prior
+events on top of the next run's, and they are counted as the candidate's own,
+failing the comparison with a `field "count"` mismatch that gives no hint why.
+This is built for a Splunk that is disposed of after the run (the Docker
+container is; an external one should be too), not for a long-lived instance
+reused across runs.
 
 Each case picks the transport for both sides, so they can differ on purpose. The
 example case has UF send cooked S2S over HTTP (`conf/outputs.conf [httpout]`) to
@@ -92,7 +107,7 @@ tests/parity/
   runner.go            RunCase / RunAgent: sandbox, hooks, capture loop
   validate.go          SubsetValidator
   replay_test.go       TestParity: replay (and -update to regenerate goldens)
-  backend/splunk/       testcontainers-backed Splunk Backend
+  backend/splunk/       Splunk Backend: a container it starts, or an existing instance
   adapter/uf/           UF adapter (the oracle, used only on -update)
   adapter/otelcol/      collector adapter (the candidate)
   tests/<case>/         one case: test.yaml + conf/ + golden.json, optional collector.yaml
@@ -102,7 +117,10 @@ tests/parity/
 
 - **`Backend`** — the shared Splunk. `Start`/`Stop`, `HEC()` for the endpoint and
   token agents forward to, `Search(spl)` to read events back as `Record`s,
-  `Clean(spl)` to delete. Implemented by `backend/splunk`.
+  `Clean(spl)` to delete. Implemented by `backend/splunk`, which serves both a
+  Splunk it starts in Docker and one supplied by the environment; on the latter
+  `Start` only resolves the endpoints and creates the indexes, and `Stop` is a
+  no-op.
 - **`Adapter`** — drives one agent: `Prepare(configDir)` installs the case's
   interpolated config into the agent's own layout, `Start`/`Stop`/`Cleanup`
   manage lifecycle. `InstallDir()` reports the agent root, so a caller can check
@@ -248,20 +266,35 @@ framework renders a `[hecout]` stanza pointing at the backend instead.
 
 Prerequisites for a normal (replay) run:
 
-- Docker (the Splunk image is amd64-only; on Apple Silicon it runs under
-  emulation).
+- A Splunk. Either Docker, which lets the suite start its own (the image is
+  amd64-only; on Apple Silicon it runs under emulation), or an existing instance
+  selected with `PARITY_SPLUNK_HEC_URL` and `PARITY_SPLUNK_MGMT_URL`.
 - The collector binary. Build it with `make otelcol` from the repo root.
+
+Pointing at an existing Splunk is what lets the suite run where it cannot start
+its own — a GitHub-hosted Windows runner runs Windows containers and cannot host
+the Linux image — and it takes the pull and boot out of the local loop.
 
 `make update-goldens` additionally downloads a UF, so it needs network access and
 a platform the pinned tarball is published for (Linux amd64/arm64, macOS).
 
 Environment variables:
 
-| Variable              | Purpose                                                          |
-| --------------------- | ---------------------------------------------------------------- |
-| `PARITY_OTELCOL_BIN`  | collector binary. Defaults to `../../bin/otelcol`.               |
-| `PARITY_UF_DIR`       | UF install root. Set by `make update-goldens`.                    |
-| `PARITY_SPLUNK_IMAGE` | override the Splunk image (e.g. a locally cached tag).           |
+| Variable                 | Purpose                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| `PARITY_OTELCOL_BIN`     | collector binary. Defaults to `../../bin/otelcol`.                          |
+| `PARITY_UF_DIR`          | UF install root. Set by `make update-goldens`.                             |
+| `PARITY_SPLUNK_HEC_URL`  | HEC base URL of an existing Splunk, e.g. `https://splunk:8088`. Setting it skips the container. |
+| `PARITY_SPLUNK_MGMT_URL` | Management/search base URL, e.g. `https://splunk:8089`. Required alongside the above. |
+| `PARITY_SPLUNK_TOKEN`    | A HEC token the instance accepts. Required when external, and must be >= 36 chars. |
+| `PARITY_SPLUNK_PASSWORD` | Search password. Required when external.                                   |
+| `PARITY_SPLUNK_USER`     | Search user. Defaults to `admin`.                                           |
+| `PARITY_SPLUNK_IMAGE`    | override the Splunk image (e.g. a locally cached tag). Container path only. |
+
+Setting `PARITY_SPLUNK_HEC_URL` or `PARITY_SPLUNK_MGMT_URL` without the other is
+an error, not a fallback to starting a container: both are required together,
+both need an explicit `http://` or `https://` scheme, and the credentials must be
+able to create indexes.
 
 Run:
 
@@ -270,8 +303,19 @@ cd tests/parity
 go test -v -timeout 30m .
 ```
 
-The first run pulls the Splunk image (~2.5GB) and boots it, so allow a few
-minutes. CI replays on every PR via `.github/workflows/parity-test.yml`.
+On the container path, the first run pulls the Splunk image (~2.5GB) and boots
+it, so allow a few minutes. CI replays on every PR via
+`.github/workflows/parity-test.yml`.
+
+Against an existing Splunk:
+
+```sh
+PARITY_SPLUNK_HEC_URL=https://localhost:8088 \
+PARITY_SPLUNK_MGMT_URL=https://localhost:8089 \
+PARITY_SPLUNK_TOKEN=11111111-1111-1111-1111-111111111111 \
+PARITY_SPLUNK_PASSWORD=<admin password> \
+go test -v -timeout 30m .
+```
 
 ## Status
 

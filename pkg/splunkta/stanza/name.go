@@ -6,6 +6,8 @@ package stanza
 
 import (
 	"errors"
+	"net"
+	"strconv"
 	"strings"
 )
 
@@ -73,4 +75,30 @@ func ListenAddress(target string) string {
 		return ":" + target
 	}
 	return target
+}
+
+// ParseListenAddress splits a network input stanza's target into its bind
+// address and port. Splunk's port-only form ([tcp://9997]) means every
+// interface, as does an empty address ([tcp://:9997]). A target that is not a
+// host:port at all comes back as ("", 0), and a port out of range as 0, which
+// the receiver's own Validate reports.
+func ParseListenAddress(target string) (string, int) {
+	addr, portStr, err := net.SplitHostPort(ListenAddress(target))
+	if err != nil {
+		return "", 0
+	}
+	if addr == "" {
+		addr = allInterfaces
+	}
+	return addr, parsePort(portStr)
+}
+
+const allInterfaces = "0.0.0.0"
+
+func parsePort(s string) int {
+	n, err := strconv.Atoi(strings.TrimSpace(s))
+	if err != nil || n <= 0 || n > 65535 {
+		return 0
+	}
+	return n
 }

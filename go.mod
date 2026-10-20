@@ -85,10 +85,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require (
-	go.opentelemetry.io/collector v0.162.0 // indirect
-	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
-)
+require sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
 
 require (
 	cel.dev/expr v0.25.2 // indirect
@@ -528,6 +525,7 @@ require (
 	go.opentelemetry.io/collector/internal/fanoutconsumer v0.163.0 // indirect
 	go.opentelemetry.io/collector/internal/memorylimiter v0.163.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.163.0 // indirect
+	go.opentelemetry.io/collector/internal/statusutil v0.163.0 // indirect
 	go.opentelemetry.io/collector/internal/telemetry v0.163.0 // indirect
 	go.opentelemetry.io/collector/pdata/pprofile v0.163.0 // indirect
 	go.opentelemetry.io/collector/pdata/testdata v0.163.0 // indirect

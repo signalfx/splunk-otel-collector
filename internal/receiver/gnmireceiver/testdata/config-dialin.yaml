@@ -1,5 +1,5 @@
 gnmi:
-  server:
+  gnmireverse:
     endpoint: localhost:0
     subscriptions:
       - path: /interfaces/interface/state/counters

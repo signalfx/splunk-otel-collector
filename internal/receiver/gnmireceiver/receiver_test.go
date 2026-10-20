@@ -327,13 +327,13 @@ func TestReceiverServerIngestsGNMIReverseResponses(t *testing.T) {
 	endpoint := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	serverConfig := NewDefaultServerConfig()
-	serverConfig.NetAddr.Endpoint = endpoint
-	serverConfig.Subscriptions = []SubscriptionConfig{{
+	gnmiReverseConfig := NewDefaultGNMIReverseConfig()
+	gnmiReverseConfig.NetAddr.Endpoint = endpoint
+	gnmiReverseConfig.Subscriptions = []SubscriptionConfig{{
 		Path:    "/interfaces/interface/state/counters",
 		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
 	}}
-	cfg := &Config{Server: &serverConfig}
+	cfg := &Config{GNMIReverse: &gnmiReverseConfig}
 	sink := new(consumertest.MetricsSink)
 	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
 	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))

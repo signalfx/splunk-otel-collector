@@ -82,14 +82,14 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 	}
 
 	var listener net.Listener
-	if r.cfg.Server != nil && r.cfg.Server.NetAddr.Endpoint != "" {
-		endpoint := r.cfg.Server.NetAddr.Endpoint
-		server, serverErr := r.cfg.Server.ToServer(startCtx, host.GetExtensions(), r.settings.TelemetrySettings)
+	if r.cfg.GNMIReverse != nil && r.cfg.GNMIReverse.NetAddr.Endpoint != "" {
+		endpoint := r.cfg.GNMIReverse.NetAddr.Endpoint
+		server, serverErr := r.cfg.GNMIReverse.ToServer(startCtx, host.GetExtensions(), r.settings.TelemetrySettings)
 		if serverErr != nil {
 			closeGNMIClients(clients)
 			return fmt.Errorf("create gNMI server: %w", serverErr)
 		}
-		listener, err = net.Listen(string(r.cfg.Server.NetAddr.Transport), endpoint)
+		listener, err = net.Listen(string(r.cfg.GNMIReverse.NetAddr.Transport), endpoint)
 		if err != nil {
 			closeGNMIClients(clients)
 			return fmt.Errorf("listen for gNMI clients on %q: %w", endpoint, err)
@@ -97,7 +97,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 		gnmireverse.RegisterGNMIReverseServer(server, &gnmiServer{
 			consumer: r.consumer,
 			parser: newMetricParser(
-				endpoint, r.cfg.Server.Subscriptions, schema, r.settings.TelemetrySettings.Logger,
+				endpoint, r.cfg.GNMIReverse.Subscriptions, schema, r.settings.TelemetrySettings.Logger,
 			),
 			logger: r.settings.TelemetrySettings.Logger,
 		})

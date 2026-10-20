@@ -68,7 +68,7 @@ func TestLoadConfig(t *testing.T) {
 	}, target.Subscriptions[1])
 }
 
-func TestLoadServerOnlyConfig(t *testing.T) {
+func TestLoadGNMIReverseOnlyConfig(t *testing.T) {
 	t.Parallel()
 
 	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config-dialin.yaml"))
@@ -82,29 +82,29 @@ func TestLoadServerOnlyConfig(t *testing.T) {
 	require.NoError(t, confmap.Validate(cfg))
 
 	require.Empty(t, cfg.Targets)
-	require.NotNil(t, cfg.Server)
-	require.Equal(t, "localhost:0", cfg.Server.NetAddr.Endpoint)
-	require.Equal(t, "tcp", string(cfg.Server.NetAddr.Transport))
-	require.Len(t, cfg.Server.Subscriptions, 1)
+	require.NotNil(t, cfg.GNMIReverse)
+	require.Equal(t, "localhost:0", cfg.GNMIReverse.NetAddr.Endpoint)
+	require.Equal(t, "tcp", string(cfg.GNMIReverse.NetAddr.Transport))
+	require.Len(t, cfg.GNMIReverse.Subscriptions, 1)
 }
 
-func TestValidateServerSubscriptions(t *testing.T) {
+func TestValidateGNMIReverseSubscriptions(t *testing.T) {
 	t.Parallel()
 
-	server := NewDefaultServerConfig()
-	server.NetAddr.Endpoint = "localhost:0"
-	server.Subscriptions = []SubscriptionConfig{{
+	gnmiReverse := NewDefaultGNMIReverseConfig()
+	gnmiReverse.NetAddr.Endpoint = "localhost:0"
+	gnmiReverse.Subscriptions = []SubscriptionConfig{{
 		Path:    "/interfaces/interface/state/counters",
 		Default: &MetricConfig{Type: metricTypeSum},
 	}}
-	cfg := &Config{Server: &server}
+	cfg := &Config{GNMIReverse: &gnmiReverse}
 	require.NoError(t, cfg.Validate())
 
-	server.Subscriptions[0].Mode = modeSample
-	server.Subscriptions[0].SampleInterval = time.Second
-	require.ErrorContains(t, cfg.Validate(), "server.subscriptions[0].mode is not supported")
+	gnmiReverse.Subscriptions[0].Mode = modeSample
+	gnmiReverse.Subscriptions[0].SampleInterval = time.Second
+	require.ErrorContains(t, cfg.Validate(), "gnmireverse.subscriptions[0].mode is not supported")
 
-	server.NetAddr.Endpoint = ""
+	gnmiReverse.NetAddr.Endpoint = ""
 	target := NewDefaultTargetConfig()
 	target.ClientConfig.Endpoint = "localhost:57400"
 	target.Subscriptions = []SubscriptionConfig{{
@@ -114,7 +114,7 @@ func TestValidateServerSubscriptions(t *testing.T) {
 		Default:        &MetricConfig{Type: metricTypeSum},
 	}}
 	cfg.Targets = []TargetConfig{target}
-	require.NoError(t, cfg.Validate(), "disabled server subscriptions are not validated")
+	require.NoError(t, cfg.Validate(), "disabled gnmireverse subscriptions are not validated")
 }
 
 func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {

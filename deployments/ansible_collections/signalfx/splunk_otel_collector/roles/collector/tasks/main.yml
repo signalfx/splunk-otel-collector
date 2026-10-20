@@ -1,10 +1,15 @@
 ---
 
-- name: Make sure access token is provided
+- name: Make sure a supported collector token configuration is provided
   ansible.builtin.assert:
     that:
-      - splunk_access_token is defined and (splunk_access_token | trim) != ''
-    fail_msg: splunk_access_token variable must be provided
+      - >-
+        (splunk_access_token | default('') | trim != '') or
+        (splunk_platform_url | default('') | trim != '' and
+        splunk_platform_token | default('') | trim != '')
+    fail_msg: >-
+      Provide splunk_access_token for Splunk Observability and/or both
+      splunk_platform_url and splunk_platform_token for Splunk Platform.
 
 - name: Make sure host OS is supported
   ansible.builtin.assert:

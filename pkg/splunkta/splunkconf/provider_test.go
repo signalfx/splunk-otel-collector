@@ -506,7 +506,7 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 		{
 			name:   "output kind with no mapping",
 			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": "[tcpout:primary]\nserver = idx1:9997\n"},
-			errMsg: `unsupported output stanza(s) [tcpout:primary] (kind "tcpout")`,
+			errMsg: "no supported output stanzas found",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -586,6 +586,27 @@ func TestRegisteredOutputMapper(t *testing.T) {
 	cfg := f.CreateDefaultConfig()
 	require.NoError(t, sub.Unmarshal(cfg))
 	require.Equal(t, &s2sConfig{Server: "idx1:9997"}, cfg)
+}
+
+func TestUnclaimedOutputStanzaIsSkipped(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/foo]\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\n\n[tcpout:primary]\nserver = idx1:9997\n",
+	})
+
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(splunkmonitor.NewFactory()),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+		)},
+	})
+	require.NoError(t, err)
+	resolved, err := res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	_, expIDs := pipelineIDs(t, resolved, "logs/uf")
+	require.Equal(t, []string{"splunk_hecout/hecout-d6a24a0d"}, expIDs)
 }
 
 func TestShutdownIsANoop(t *testing.T) {

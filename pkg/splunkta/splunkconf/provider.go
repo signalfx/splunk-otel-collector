@@ -154,9 +154,12 @@ func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: read outputs.conf: %w", err)
 	}
-	exps, err := p.mapOutputs(merged)
+	exps, skippedOut, err := p.mapOutputs(merged)
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: outputs.conf under %s: %w", confRoot, err)
+	}
+	if len(exps) == 0 {
+		return nil, fmt.Errorf("splunkconf: no supported output stanzas found under %s (skipped: %v)", confRoot, skippedOut)
 	}
 
 	receivers := map[string]any{}

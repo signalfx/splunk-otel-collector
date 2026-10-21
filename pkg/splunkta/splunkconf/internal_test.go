@@ -190,11 +190,12 @@ func TestMapOutputs(t *testing.T) {
 	tcpStanza := map[string]string{"server": "idx1:9997"}
 
 	for _, tt := range []struct {
-		merged  conf.Map
-		name    string
-		errMsg  string
-		mappers []MappingExporterFactory
-		wantIDs []string
+		merged      conf.Map
+		name        string
+		errMsg      string
+		mappers     []MappingExporterFactory
+		wantIDs     []string
+		wantSkipped []string
 	}{
 		{
 			// The provider models no output kind itself, so every stanza reaches a
@@ -203,6 +204,13 @@ func TestMapOutputs(t *testing.T) {
 			merged:  conf.Map{hecout: hecStanza, tcpout: tcpStanza},
 			mappers: []MappingExporterFactory{outStub("splunk_s2s", map[string]component.Config{hecout: &struct{}{}, tcpout: &struct{}{}}, nil)},
 			wantIDs: []string{"splunk_s2s/hecout-d6a24a0d", "splunk_s2s/tcpout-primary-bc98bd6f"},
+		},
+		{
+			name:        "a stanza nobody claims is skipped alongside one that maps",
+			merged:      conf.Map{hecout: hecStanza, tcpout: tcpStanza},
+			mappers:     []MappingExporterFactory{outStub("splunk_hecout", map[string]component.Config{hecout: &struct{}{}}, nil)},
+			wantIDs:     []string{"splunk_hecout/hecout-d6a24a0d"},
+			wantSkipped: []string{tcpout},
 		},
 		{
 			name:   "two registered mappers claiming one stanza",
@@ -220,14 +228,16 @@ func TestMapOutputs(t *testing.T) {
 			errMsg:  "splunk_s2s: boom",
 		},
 		{
-			name:   "a kind nothing claims must not be dropped silently",
-			merged: conf.Map{tcpout: tcpStanza},
-			errMsg: `unsupported output stanza(s) [tcpout:primary] (kind "tcpout")`,
+			name:        "a kind nothing claims is reported as skipped",
+			merged:      conf.Map{tcpout: tcpStanza},
+			wantIDs:     []string{},
+			wantSkipped: []string{tcpout},
 		},
 		{
-			name:   "no mappers registered at all",
-			merged: conf.Map{hecout: hecStanza},
-			errMsg: `unsupported output stanza(s) [hecout] (kind "hecout")`,
+			name:        "no mappers registered at all",
+			merged:      conf.Map{hecout: hecStanza},
+			wantIDs:     []string{},
+			wantSkipped: []string{hecout},
 		},
 		{
 			name:   "no output stanzas at all",
@@ -237,7 +247,7 @@ func TestMapOutputs(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &provider{outputMappers: tt.mappers}
-			out, err := p.mapOutputs(tt.merged)
+			out, skipped, err := p.mapOutputs(tt.merged)
 			if tt.errMsg != "" {
 				require.ErrorContains(t, err, tt.errMsg)
 				return
@@ -249,6 +259,7 @@ func TestMapOutputs(t *testing.T) {
 			}
 			sort.Strings(ids)
 			require.Equal(t, tt.wantIDs, ids)
+			require.Equal(t, tt.wantSkipped, skipped)
 		})
 	}
 }

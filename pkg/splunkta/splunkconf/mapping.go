@@ -202,38 +202,34 @@ func parseOutputs(merged conf.Map) ([]Output, error) {
 }
 
 // mapOutputs asks every registered mapper for the instances it owns, claiming by
-// stanza name the way mapInputs does. A pipeline needs at least one exporter, so
-// an outputs.conf with no output stanzas is an error (conf.ErrNoOutputStanzas),
-// as is a stanza kind no mapper claims.
-func (p *provider) mapOutputs(merged conf.Map) ([]emitted, error) {
+// stanza name the way mapInputs does. A stanza no mapper claims is skipped
+// rather than an error, since it can configure other stanzas rather than
+// declare an output. An outputs.conf with no stanzas at all is
+// conf.ErrNoOutputStanzas.
+func (p *provider) mapOutputs(merged conf.Map) (out []emitted, skipped []string, err error) {
 	outputs, err := parseOutputs(merged)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	claimedBy := map[string]string{}
-	var out []emitted
 	for _, m := range p.outputMappers {
 		typeStr := m.Type().String()
 		instances, mapErr := m.MapOutputs(outputs)
 		if mapErr != nil {
-			return nil, fmt.Errorf("%s: %w", typeStr, mapErr)
+			return nil, nil, fmt.Errorf("%s: %w", typeStr, mapErr)
 		}
 		claimed, claimErr := claim(claimedBy, typeStr, instances)
 		if claimErr != nil {
-			return nil, claimErr
+			return nil, nil, claimErr
 		}
 		out = append(out, claimed...)
 	}
 
-	var unsupported []string
 	for _, o := range outputs {
-		if _, ok := claimedBy[o.Configuration.Stanza.Name]; !ok {
-			unsupported = append(unsupported, fmt.Sprintf("[%s] (kind %q)", o.Configuration.Stanza.Name, o.Name.Kind))
+		if _, claimed := claimedBy[o.Configuration.Stanza.Name]; !claimed {
+			skipped = append(skipped, o.Configuration.Stanza.Name)
 		}
 	}
-	if len(unsupported) > 0 {
-		return nil, fmt.Errorf("unsupported output stanza(s) %s", strings.Join(unsupported, ", "))
-	}
-	return out, nil
+	return out, skipped, nil
 }

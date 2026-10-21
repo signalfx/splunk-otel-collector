@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/fsnotify/fsnotify v1.10.1

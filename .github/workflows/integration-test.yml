@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.9
+  GO_VERSION: 1.26.10
 jobs:
   otelcol:
     runs-on: ubuntu-24.04

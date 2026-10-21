@@ -202,9 +202,7 @@ func parseOutputs(merged conf.Map) ([]Output, error) {
 }
 
 // mapOutputs asks every registered mapper for the instances it owns, claiming by
-// stanza name the way mapInputs does. A stanza no mapper claims is skipped
-// rather than an error, since it can configure other stanzas rather than
-// declare an output. An outputs.conf with no stanzas at all is
+// stanza name the way mapInputs does. An outputs.conf with no stanzas at all is
 // conf.ErrNoOutputStanzas.
 func (p *provider) mapOutputs(merged conf.Map) (out []emitted, skipped []string, err error) {
 	outputs, err := parseOutputs(merged)

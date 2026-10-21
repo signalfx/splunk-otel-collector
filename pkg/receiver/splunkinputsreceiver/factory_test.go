@@ -68,6 +68,19 @@ func TestWithSubReceiverRejectsUnsupportedScheme(t *testing.T) {
 	require.ErrorContains(t, err, `unsupported scheme "unsupported"`)
 }
 
+func TestBareBuiltinStanzaConfiguresNothing(t *testing.T) {
+	splunkHome := writeTA(t, "[monitor]\nsourcetype = kind_st\n")
+
+	factory := splunkinputsreceiver.NewFactory()
+	rcvr, err := factory.CreateLogs(context.Background(), newReceiverSettings(), splunkinputsreceiver.Config{BaseDir: splunkHome}, nopConsumer{})
+	require.NoError(t, err)
+	require.NotNil(t, rcvr)
+
+	err = rcvr.Start(context.Background(), nil)
+	require.NoError(t, err, "a bare built-in stanza like [monitor] configures nothing and must not fail receiver startup")
+	t.Cleanup(func() { _ = rcvr.Shutdown(context.Background()) })
+}
+
 func TestWithSubReceiverSkipsDisabledCustomStanza(t *testing.T) {
 	splunkHome := writeTA(t, "[custom:///thing]\ndisabled = 1\n")
 	fake := &fakeSubReceiverFactory{scheme: "custom"}

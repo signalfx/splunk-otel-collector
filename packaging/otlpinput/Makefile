@@ -23,12 +23,12 @@ splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp:
 	mkdir -p splunk-connect-for-otlp/linux_x86_64/bin
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -C ../../cmd/splunk-connect-for-otlp -trimpath -o ../../packaging/otlpinput/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp .
 
-splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp:
+splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp.exe:
 	mkdir -p splunk-connect-for-otlp/windows_x86_64/bin
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -C ../../cmd/splunk-connect-for-otlp -trimpath -o ../../packaging/otlpinput/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp .
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -C ../../cmd/splunk-connect-for-otlp -trimpath -o ../../packaging/otlpinput/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp.exe .
 
 .PHONY := build
-build: splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp
+build: splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp.exe
 
 .PHONY := test-ip-sans
 test-ip-sans: splunk-connect-for-otlp.tgz

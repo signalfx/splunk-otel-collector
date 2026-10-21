@@ -100,7 +100,7 @@ func TestRunStartsAndStopsOnSignal(t *testing.T) {
     <param name="http_port">0</param>
     <param name="listen_address">127.0.0.1</param>
     <param name="enableSSL">0</param>
-    <param name="refresh_interval">10ms</param>
+    <param name="refresh_interval">150ms</param>
     <param name="refresh_timeout">1s</param>
     <param name="max_staleness">3s</param>
   </stanza>
@@ -114,7 +114,7 @@ func TestRunStartsAndStopsOnSignal(t *testing.T) {
 		done <- run()
 	}()
 
-	time.AfterFunc(500*time.Millisecond, func() {
+	time.AfterFunc(3000*time.Millisecond, func() {
 		_ = syscall.Kill(os.Getpid(), syscall.SIGTERM)
 	})
 

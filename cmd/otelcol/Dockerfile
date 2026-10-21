@@ -1,6 +1,6 @@
 ARG DOCKER_REPO=docker.io
-FROM ${DOCKER_REPO}/alpine:3.17.0 as certs
-RUN apk --update add ca-certificates
+FROM ${DOCKER_REPO}/alpine:3.24 as certs
+RUN apk --update add 'ca-certificates>=20261020-r0'
 
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
 ARG TARGETARCH

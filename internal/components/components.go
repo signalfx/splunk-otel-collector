@@ -25,7 +25,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/ptpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter"
@@ -74,7 +73,6 @@ func Get() (otelcol.Factories, error) {
 	b.AddReceivers(
 		discoveryreceiver.NewFactory(),
 		gnmireceiver.NewFactory(),
-		lightprometheusreceiver.NewFactory(),
 		promqlreceiver.NewFactory(),
 		ptpreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),

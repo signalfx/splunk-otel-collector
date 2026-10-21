@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/baseline
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.163.0

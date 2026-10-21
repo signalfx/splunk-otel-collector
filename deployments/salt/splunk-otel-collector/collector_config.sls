@@ -2,7 +2,12 @@
 
 {% set splunk_service_group = salt['pillar.get']('splunk-otel-collector:service_group', 'splunk-otel-collector') %}
 
-{% set splunk_access_token = salt['pillar.get']('splunk-otel-collector:splunk_access_token') %}
+{% set splunk_access_token = salt['pillar.get']('splunk-otel-collector:splunk_access_token', '') | trim %}
+{% set splunk_platform_url = salt['pillar.get']('splunk-otel-collector:splunk_platform_url', '') | trim %}
+{% set splunk_platform_token = salt['pillar.get']('splunk-otel-collector:splunk_platform_token', '') | trim %}
+{% set splunk_platform_logs_index = salt['pillar.get']('splunk-otel-collector:splunk_platform_logs_index', '') | trim %}
+{% set splunk_platform_logs_config = '/etc/otel/collector/splunk_logs_config_linux.yaml' %}
+{% set splunk_file_storage_extension_path = '/var/lib/otelcol/filelogs' %}
 
 {% set splunk_realm = salt['pillar.get']('splunk-otel-collector:splunk_realm', 'us0') %}
 
@@ -24,23 +29,49 @@
 
 {% set splunk_otel_collector_command_line_args = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_command_line_args', '') %}
 
+{% set otelcol_options = [splunk_otel_collector_command_line_args] %}
+{% if splunk_platform_url %}
+{% if splunk_access_token %}
+{% set otelcol_options = otelcol_options + ['--config ' + splunk_otel_collector_config] %}
+{% endif %}
+{% set otelcol_options = otelcol_options + ['--config ' + splunk_platform_logs_config] %}
+{% if splunk_access_token %}
+{% set otelcol_options = otelcol_options + ['--feature-gates=confmap.enableMergeAppendOption'] %}
+{% endif %}
+{% endif %}
+{% set otelcol_options = otelcol_options | reject('equalto', '') | join(' ') %}
+
 {% set collector_additional_env_vars = salt['pillar.get']('splunk-otel-collector:collector_additional_env_vars', {}) %}
 
 /etc/otel/collector/splunk-otel-collector.conf:
   file.managed:
     - contents: |
-        OTELCOL_OPTIONS={{ splunk_otel_collector_command_line_args }}
+        OTELCOL_OPTIONS={{ otelcol_options }}
+        {% if not splunk_platform_url -%}
         SPLUNK_CONFIG={{ splunk_otel_collector_config }}
+        {% endif -%}
+        {% if splunk_access_token -%}
         SPLUNK_ACCESS_TOKEN={{ splunk_access_token }}
         SPLUNK_REALM={{ splunk_realm }}
         SPLUNK_API_URL={{ splunk_api_url }}
         SPLUNK_INGEST_URL={{ splunk_ingest_url }}
         SPLUNK_HEC_URL={{ splunk_hec_url }}
         SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
+        {% endif -%}
+        {% if splunk_platform_url -%}
+        SPLUNK_PLATFORM_URL={{ splunk_platform_url }}
+        SPLUNK_PLATFORM_TOKEN={{ splunk_platform_token }}
+        SPLUNK_FILE_STORAGE_EXTENSION_PATH={{ splunk_file_storage_extension_path }}
+        {% if splunk_platform_logs_index -%}
+        SPLUNK_PLATFORM_LOGS_INDEX={{ splunk_platform_logs_index }}
+        {% endif -%}
+        {% endif -%}
         SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
         GOMEMLIMIT={{ gomemlimit }}
         {% if splunk_listen_interface -%}
         SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}
+        {% elif splunk_platform_url -%}
+        SPLUNK_LISTEN_INTERFACE=0.0.0.0
         {% endif -%}
 {% for key, value in collector_additional_env_vars.items() %}
         {{ key }}={{ value }}

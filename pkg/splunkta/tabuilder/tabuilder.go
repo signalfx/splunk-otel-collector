@@ -510,11 +510,11 @@ func CreateOutputExporter(output *conf.Output, logger *zap.Logger, telemetrySett
 	return newHECExporter(output, logger, telemetrySettings)
 }
 
-// HECOutputConfig maps a resolved [hecout] stanza onto the splunkhec exporter's
-// own config keys. It is the one place the .conf key names are translated, so the
-// TA runner here and a .conf config source emitting a splunk_hec component cannot
-// drift apart.
-func HECOutputConfig(o *conf.Output) map[string]any {
+// hecOutputConfig maps a resolved [hecout] stanza onto the splunkhec exporter's
+// own config keys for the splunk_outputs path. The provider path has its own copy
+// in the splunk_hecout exporter, which cannot reuse this one without an import
+// cycle and outlives it.
+func hecOutputConfig(o *conf.Output) map[string]any {
 	return map[string]any{
 		"endpoint": outputParam(o, "uri"),
 		"token":    outputParam(o, "httpEventCollectorToken"),
@@ -526,7 +526,7 @@ func HECOutputConfig(o *conf.Output) map[string]any {
 func newHECExporter(o *conf.Output, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
 	f := splunkhecexporter.NewFactory()
 	cfg := f.CreateDefaultConfig().(*splunkhecexporter.Config)
-	if err := confmap.NewFromStringMap(HECOutputConfig(o)).Unmarshal(cfg); err != nil {
+	if err := confmap.NewFromStringMap(hecOutputConfig(o)).Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("build splunkhec config from [hecout]: %w", err)
 	}
 	if err := cfg.Validate(); err != nil {

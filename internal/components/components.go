@@ -33,6 +33,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
@@ -93,6 +94,11 @@ func Get() (otelcol.Factories, error) {
 			splunkbatch.NewFactory(),
 			splunkwineventlog.NewFactory(),
 		)
+
+		// UF-native exporter types, one per output stanza kind. [hecout] is
+		// experimental and can be removed at any time without notice; [tcpout] is
+		// supplied by a flavor registering its own output mapper.
+		b.AddExporters(splunkhecout.NewFactory())
 	}
 	b.AddProcessors(
 		timestampprocessor.NewFactory(),

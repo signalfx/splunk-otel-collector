@@ -175,10 +175,16 @@ jobs:
           }
           $service_test_args = $installer_args.Clone()
           if ($with_platform) {
-            $installer_args.msi_public_properties = 'SPLUNK_PLATFORM_TOKEN=fake-platform-token SPLUNK_PLATFORM_URL=https://fake-hec.splunkcloud.com/services/collector SPLUNK_PLATFORM_LOGS_INDEX=fake-logs-index'
+            # Exercise SPLUNK_CONFIG set to the default config path alongside the
+            # Splunk Platform properties, to confirm platform logs still get layered
+            # on top instead of being silently dropped (e.g. for an explicit override
+            # or an older config-management-tool version that always sets SPLUNK_CONFIG).
+            $default_config_path = "$env:ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml"
+            $installer_args.msi_public_properties = "SPLUNK_PLATFORM_TOKEN=fake-platform-token SPLUNK_PLATFORM_URL=https://fake-hec.splunkcloud.com/services/collector SPLUNK_PLATFORM_LOGS_INDEX=fake-logs-index SPLUNK_CONFIG=`"$default_config_path`""
             $service_test_args.splunk_platform_token = "fake-platform-token"
             $service_test_args.splunk_platform_url = "https://fake-hec.splunkcloud.com/services/collector"
             $service_test_args.splunk_platform_logs_index = "fake-logs-index"
+            $service_test_args.splunk_config = $default_config_path
           }
           .\packaging\installer\install.ps1 -msi_path "$msi_path" @installer_args
           Start-Sleep -s 30

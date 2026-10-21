@@ -22,15 +22,6 @@ services:
     build: ./httpd
     ports:
       - "8000:80"
-  # httpd_basicauth image for lightprometheus test
-  httpd_basicauth:
-    image: httpd_basicauth:latest
-    profiles:
-      - integration
-      - smartagent
-    build: ./httpd_basicauth
-    ports:
-      - "8001:80"
   # new-style kafka
   kafka-kraft-single:
     image: apache/kafka:3.7.0

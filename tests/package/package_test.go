@@ -94,6 +94,14 @@ func TestCollectorPackageInstall(t *testing.T) {
 				assertExec(t, container, time.Minute, "test -f "+agentConfigPath)
 				assertExec(t, container, time.Minute, "test -f "+gatewayConfigPath)
 				assertPackagedBinaries(t, container)
+				t.Run("launcher btool", func(t *testing.T) {
+					const etcDir = "/tmp/btool-smoke/etc"
+					assertExec(t, container, time.Minute, "mkdir -p "+etcDir+"/system/default "+etcDir+"/system/local")
+					assertExec(t, container, time.Minute, "printf '[smoke]\\nvalue = default\\n' > "+etcDir+"/system/default/smoke.conf")
+					assertExec(t, container, time.Minute, "printf '[smoke]\\nvalue = local\\n' > "+etcDir+"/system/local/smoke.conf")
+					output := assertExec(t, container, time.Minute, "/usr/bin/otelcollauncher btool --dir="+etcDir+" smoke list")
+					require.Contains(t, output, "[smoke]\nvalue = local\n")
+				})
 				if packageType == "rpm" {
 					fileDigestAlgorithm := strings.TrimSpace(assertExec(
 						t,

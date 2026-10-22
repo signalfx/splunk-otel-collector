@@ -275,9 +275,9 @@ func TestApplyStanzaConfigAttributes(t *testing.T) {
 func TestApplyStanzaConfigCharset(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
+		want   string
 		params conf.Params
 		props  []conf.Prop
-		want   string
 	}{
 		{
 			name:   "matching prop with a valid charset",

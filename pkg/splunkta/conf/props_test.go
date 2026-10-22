@@ -141,9 +141,9 @@ func TestReadFieldAliases(t *testing.T) {
 func TestCharset(t *testing.T) {
 	for _, tc := range []struct {
 		name       string
-		props      []Prop
 		sourcetype string
 		expected   string
+		props      []Prop
 	}{
 		{
 			name:       "sourcetype prop with charset",

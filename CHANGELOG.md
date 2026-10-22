@@ -5,6 +5,44 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.163.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.163.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.163.0)
+and the [opentelemetry-collector-contrib v0.163.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.163.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/lightprometheus`: Remove the deprecated `lightprometheus` receiver. ([#8086](https://github.com/signalfx/splunk-otel-collector/pull/8086))
+  Use the `prometheus` or `prometheus_simple` receiver instead.
+
+### 💡 Enhancements 💡
+
+- (Splunk) `receiver/gnmi`: Support exposing a gRPC endpoint for routers to dial in and report telemetry. ([#8270](https://github.com/signalfx/splunk-otel-collector/pull/8270))
+  This is done by using the [gnmireverse protobuf service definition](https://pkg.go.dev/github.com/aristanetworks/goarista/gnmireverse).
+- (Splunk) `Splunk_TA_otel`: Add the `splunk_modinput` exporter, which writes newline-delimited Splunk HEC JSON events to standard output so that the add-on can forward them for indexing. ([#8291](https://github.com/signalfx/splunk-otel-collector/pull/8291))
+  To enable it, add `splunk_modinput` to the `exporters` section of the collector configuration and to the pipelines that should write events to standard output:
+  ```yaml
+  exporters:
+    splunk_modinput:
+      source: my-application
+      sourcetype: otel
+      index: main
+  service:
+    pipelines:
+      logs:
+        receivers: [otlp]
+        exporters: [splunk_modinput]
+  ```
+  All settings are optional. The exporter does not perform index authorization; only the Splunk OTLP input does.
+- (Splunk) `splunkmodinputexporter`: Add the splunk_modinput exporter to the Splunk-specific components with standard Collector metadata and lifecycle validation, and honor its HEC metadata configuration. ([#8291](https://github.com/signalfx/splunk-otel-collector/pull/8291))
+  The exporter writes newline-delimited Splunk HEC JSON. The Splunk OTLP input continues to validate token index permissions before exporting data.
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `all`: Update Go to 1.26.10 and refresh container CA certificates to mitigate [CVE-2026-111943](https://pkg.go.dev/vuln/GO-2026-6809), blocking trust in affected CA certificates. ([#8316](https://github.com/signalfx/splunk-otel-collector/pull/8316))
+- (Splunk) `splunk-connect-for-otlp`: Apply the configured source and sourcetype and the HEC token's default index to events written to standard output, allow any index for tokens without allowed indexes, and return a permanent error when an OTLP request uses an index the HEC token is not allowed to write to. ([#8291](https://github.com/signalfx/splunk-otel-collector/pull/8291))
+  Previously the configured source and sourcetype were silently ignored, events without an index went to the input's index instead of the token's default index, and tokens without allowed indexes rejected every explicit index. Index authorization failures are no longer retryable, and a span index can no longer bypass a denied resource index.
+
 ## v0.163.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.163.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.163.0)

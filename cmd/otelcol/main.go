@@ -106,7 +106,12 @@ func runFromCmdLine(args []string) {
 	confMapConverterFactories = append(confMapConverterFactories,
 		configconverter.ConverterFactoryFromConverter(dryRun),
 		configconverter.ConverterFactoryFromFunc(configconverter.InjectConfigSourceTelemetryExtension),
-		configconverter.ConverterFactoryFromFunc(configconverter.RemoveSplunkOpAMPIfFeatureGateDisabled),
+		configconverter.ConverterFactoryFromFunc(configconverter.RemoveSplunkOpAMPIfFeatureGateDisabled))
+	if taRunMode == modularinput.ExecutionTARunMode {
+		confMapConverterFactories = append(confMapConverterFactories,
+			configconverter.ConverterFactoryFromFunc(configconverter.RedirectTALogsToStderr))
+	}
+	confMapConverterFactories = append(confMapConverterFactories,
 		configconverter.ConverterFactoryFromConverter(expvarConverter)) // `expvarConverter` must be last to expose the effective config correctly
 
 	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{expvarConverter, dryRun, telemetryHook})

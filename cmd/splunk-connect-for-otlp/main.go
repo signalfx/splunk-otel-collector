@@ -52,9 +52,7 @@ func main() {
 func run() (runErr error) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Recovered from panic:", r)
-			fmt.Println("Stack trace:")
-			fmt.Println(string(debug.Stack()))
+			runErr = fmt.Errorf("recovered from panic: %v\nstack trace:\n%s", r, debug.Stack())
 		}
 	}()
 	config, errCfg := ReadFromStdin()

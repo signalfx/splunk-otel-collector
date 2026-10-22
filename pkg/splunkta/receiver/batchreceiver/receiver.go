@@ -87,7 +87,7 @@ func (t batch) InputConfig(config component.Config) operator.Config {
 		return operator.NewConfig(oc)
 	}
 	filter.ApplyIncludeExclude(oc, path, rcfg.Input.Configuration.Stanza, "batch", t.logger)
-	filter.ApplyStanzaConfig(oc, rcfg.Input.Configuration.Stanza)
+	filter.ApplyStanzaConfig(oc, rcfg.Input.Configuration.Stanza, rcfg.Props)
 	return operator.NewConfig(oc)
 }
 

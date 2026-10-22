@@ -30,6 +30,7 @@ var fieldAliasRegex = regexp.MustCompile(`(\w+) as (\w+)`)
 // Prop represents a props.conf stanza.
 type Prop struct {
 	Name                  string            `mapstructure:"name"`
+	Charset               string            `mapstructure:"charset"`
 	TimePrefix            string            `mapstructure:"time_prefix"`
 	TimeFormat            string            `mapstructure:"time_format"`
 	DatetimeConfig        string            `mapstructure:"datetime_config"`
@@ -89,6 +90,20 @@ func MergeProps(layers [][]Prop) []Prop {
 	return result
 }
 
+// Charset returns the CHARSET a [<sourcetype>] props stanza declares for
+// sourcetype, or "" if none does.
+func Charset(props []Prop, sourcetype string) string {
+	if sourcetype == "" {
+		return ""
+	}
+	for _, p := range props {
+		if p.Type() == SourceType && p.Name == sourcetype {
+			return p.Charset
+		}
+	}
+	return ""
+}
+
 // ReadProps parses a props.conf payload and returns the props.
 func ReadProps(payload []byte) ([]Prop, error) {
 	f, err := ini.Load(payload)
@@ -125,6 +140,7 @@ func ReadProps(payload []byte) ([]Prop, error) {
 		}
 		p := Prop{
 			Name:                  section.Name(),
+			Charset:               section.Key("CHARSET").String(),
 			TimePrefix:            section.Key("TIME_PREFIX").String(),
 			TimeFormat:            section.Key("TIME_FORMAT").String(),
 			MaxTimestampLookAhead: maxTimestampLookAhead,

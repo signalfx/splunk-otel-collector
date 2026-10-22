@@ -22,6 +22,14 @@ func TestReadProps(t *testing.T) {
 	require.Len(t, props, 1)
 	require.Equal(t, "scoreboard", props[0].Name)
 	require.True(t, props[0].ShouldLineMerge)
+	require.Equal(t, "UTF-8", props[0].Charset)
+}
+
+func TestReadPropsNoCharset(t *testing.T) {
+	props, err := ReadProps([]byte("[no_charset]\nTIME_PREFIX = ^\n"))
+	require.NoError(t, err)
+	require.Len(t, props, 1)
+	require.Equal(t, "", props[0].Charset)
 }
 
 func TestPropType(t *testing.T) {
@@ -128,4 +136,42 @@ func TestReadFieldAliases(t *testing.T) {
 	require.Equal(t, "src", aliases[0].To)
 	require.Equal(t, "sender", aliases[1].From)
 	require.Equal(t, "src_user", aliases[1].To)
+}
+
+func TestCharset(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		props      []Prop
+		sourcetype string
+		expected   string
+	}{
+		{
+			name:       "sourcetype prop with charset",
+			props:      []Prop{{Name: "my_sourcetype", Charset: "UTF-8"}},
+			sourcetype: "my_sourcetype",
+			expected:   "UTF-8",
+		},
+		{
+			name:       "sourcetype prop without matching name",
+			props:      []Prop{{Name: "my_sourcetype", Charset: "UTF-8"}},
+			sourcetype: "foo",
+			expected:   "",
+		},
+		{
+			name:       "empty sourcetype",
+			props:      []Prop{{Name: "my_sourcetype", Charset: "UTF-8"}},
+			sourcetype: "",
+			expected:   "",
+		},
+		{
+			name:       "empty charset",
+			props:      []Prop{{Name: "my_sourcetype"}},
+			sourcetype: "my_sourcetype",
+			expected:   "",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, Charset(tc.props, tc.sourcetype))
+		})
+	}
 }

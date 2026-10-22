@@ -12,6 +12,7 @@
 #   - Dockerfiles with ARG GO_VERSION=...
 #   - Dockerfiles with FROM golang:<version>... (suffixes like -trixie are preserved)
 #   - YAML files with golang:<version>... image references
+#   - Makefile.Common (GOTOOLCHAIN export)
 #
 # Note: The script uses GNU sed on Linux and BSD sed on macOS.
 
@@ -102,6 +103,13 @@ while IFS= read -r -d '' yamlfile; do
     UPDATED_FILES+=("$yamlfile")
   fi
 done < <(find "$REPO_ROOT" \( -name "*.yml" -o -name "*.yaml" \) -not -path "*/vendor/*" -print0)
+
+# --- 6. Update GOTOOLCHAIN pin in Makefile.Common ---
+MAKEFILE_COMMON="$REPO_ROOT/Makefile.Common"
+if [[ -f "$MAKEFILE_COMMON" ]] && grep -qE '^GOTOOLCHAIN[?]=go[0-9]+\.[0-9]+\.[0-9]+' "$MAKEFILE_COMMON"; then
+  "${SED_INPLACE[@]}" -E "s/^(GOTOOLCHAIN[?]=go)[0-9]+\.[0-9]+\.[0-9]+/\1${NEW_VERSION}/" "$MAKEFILE_COMMON"
+  UPDATED_FILES+=("$MAKEFILE_COMMON")
+fi
 
 # --- Summary ---
 echo ""

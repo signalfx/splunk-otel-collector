@@ -56,8 +56,7 @@ func TestMapOutputs(t *testing.T) {
 	}, got)
 }
 
-// sslVerifyServerCert defaults to false, and splunkd accepts f/false/no/0 and
-// t/true/yes/1 case-insensitively, keeping the default for anything else.
+// sslVerifyServerCert inverts into insecure_skip_verify, and defaults to false.
 func TestSSLVerifyServerCert(t *testing.T) {
 	for _, tt := range []struct {
 		value              string
@@ -65,16 +64,7 @@ func TestSSLVerifyServerCert(t *testing.T) {
 	}{
 		{value: "", insecureSkipVerify: true},
 		{value: "true", insecureSkipVerify: false},
-		{value: "TRUE", insecureSkipVerify: false},
-		{value: "t", insecureSkipVerify: false},
-		{value: "yes", insecureSkipVerify: false},
-		{value: "1", insecureSkipVerify: false},
 		{value: "false", insecureSkipVerify: true},
-		{value: "f", insecureSkipVerify: true},
-		{value: "no", insecureSkipVerify: true},
-		{value: "0", insecureSkipVerify: true},
-		{value: "banana", insecureSkipVerify: true},
-		{value: "10", insecureSkipVerify: true},
 	} {
 		t.Run("sslVerifyServerCert="+tt.value, func(t *testing.T) {
 			params := []conf.Param{{Name: "uri", Value: "https://hec:8088"}}

@@ -15,7 +15,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"go.opentelemetry.io/collector/component"
@@ -41,8 +40,9 @@ type TLS struct {
 
 // ConfigFromOutput maps a resolved [hecout] stanza onto this Config.
 func ConfigFromOutput(out conf.Output) *Config {
+	params := out.Configuration.Stanza.Params
 	param := func(name string) string {
-		if p := out.Configuration.Stanza.Params.Get(name); p != nil {
+		if p := params.Get(name); p != nil {
 			return p.Value
 		}
 		return ""
@@ -50,20 +50,8 @@ func ConfigFromOutput(out conf.Output) *Config {
 	return &Config{
 		Endpoint: param("uri"),
 		Token:    param("httpEventCollectorToken"),
-		TLS:      TLS{InsecureSkipVerify: !confBool(param("sslVerifyServerCert"), false)},
+		TLS:      TLS{InsecureSkipVerify: !params.Bool("sslVerifyServerCert", false)},
 	}
-}
-
-// confBool coerces a .conf boolean the way splunkd's mem_tryToBool does, leaving
-// def in place for a value it does not recognize.
-func confBool(value string, def bool) bool {
-	switch strings.ToLower(value) {
-	case "f", "false", "no", "0":
-		return false
-	case "t", "true", "yes", "1":
-		return true
-	}
-	return def
 }
 
 func (c *Config) Validate() error {

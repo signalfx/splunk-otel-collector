@@ -225,7 +225,7 @@ func TestParseIntEmitsSum(t *testing.T) {
 
 func TestParseFloatEmitsDoubleGauge(t *testing.T) {
 	m, err := testParser().parse(updateResponse("in-octets-rate",
-		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_FloatVal{FloatVal: 1.5}})) //nolint:staticcheck // SA1019: verify support for targets that still send deprecated float_val
+		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_FloatVal{FloatVal: 1.5}}))
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)

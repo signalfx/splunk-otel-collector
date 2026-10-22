@@ -1,10 +1,10 @@
 module github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.163.0
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.163.1
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component v1.69.0
 	go.opentelemetry.io/collector/consumer v1.69.0

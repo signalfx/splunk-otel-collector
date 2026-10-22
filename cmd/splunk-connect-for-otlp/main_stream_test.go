@@ -33,11 +33,11 @@ func TestLoggerWritesToStderr(t *testing.T) {
 	}
 	logger.Info("OTLP input stream test")
 	os.Stdout, os.Stderr = stdout, stderr
-	if err := stdoutWriter.Close(); err != nil {
-		t.Fatal(err)
+	if stdoutCloseErr := stdoutWriter.Close(); stdoutCloseErr != nil {
+		t.Fatal(stdoutCloseErr)
 	}
-	if err := stderrWriter.Close(); err != nil {
-		t.Fatal(err)
+	if stderrCloseErr := stderrWriter.Close(); stderrCloseErr != nil {
+		t.Fatal(stderrCloseErr)
 	}
 	stdoutOutput, err := io.ReadAll(stdoutReader)
 	if err != nil {

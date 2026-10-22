@@ -270,6 +270,8 @@ jobs:
           CONFIG_FILE="${ASSETS_DIR}/configs/agent_config.yaml"
           sudo yq -i '
             .config_sources.splunk_secret.insecure_skip_verify = true |
+            .service.telemetry.logs.output_paths = ["stdout"] |
+            .service.telemetry.logs.error_output_paths = ["stderr"] |
             .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]
           ' "$CONFIG_FILE"
           sudo cat "$CONFIG_FILE"
@@ -298,6 +300,21 @@ jobs:
           otelcol_pid="$(docker exec "$CONTAINER_NAME" sudo ps -aux | grep "$TA" | awk '{print $2}')"
           echo "$TA PID $otelcol_pid"
           echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
+
+      - name: Check collector logs reach splunkd.log when stdout is configured
+        shell: bash
+        run: |
+          set -eo pipefail
+          log_file=./local-test-logs/var/log/splunk/splunkd.log
+          redirect_line="$(sudo awk '/Collector log output to stdout was redirected to stderr/ { line = NR } END { print line + 0 }' "$log_file")"
+          if [ "$redirect_line" -eq 0 ]; then
+            echo "Collector stdout log destination was not redirected"
+            exit 1
+          fi
+          if ! sudo awk -v start="$redirect_line" 'NR > start && /Splunk_TA_otel.*Extension started\./ { found = 1; exit } END { exit !found }' "$log_file"; then
+            echo "Collector engine logs were not recorded in splunkd.log"
+            exit 1
+          fi
 
       - name: Check secret from Splunk secret storage is resolved by the collector
         run: |
@@ -629,7 +646,7 @@ jobs:
           APP_NAME: ${{ steps.install.outputs.app_name }}
         run: |
           $configFile = "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\$Env:APP_NAME\configs\agent_config.yaml"
-          yq -i '.config_sources.splunk_secret.insecure_skip_verify = true | .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]' $configFile
+          yq -i '.config_sources.splunk_secret.insecure_skip_verify = true | .service.telemetry.logs.output_paths = ["stdout"] | .service.telemetry.logs.error_output_paths = ["stderr"] | .service.telemetry.resource.attributes += [{"name": "ta.smoke.secret", "value": "${splunk_secret:smoke_test_realm:smoke_test_user}"}]' $configFile
           Get-Content $configFile
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe restart
@@ -695,6 +712,21 @@ jobs:
               exit 1
           }
           "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Check collector logs reach splunkd.log when stdout is configured
+        shell: pwsh
+        run: |
+          $splunkdLog = "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunkd.log"
+          $redirect = Select-String -Path $splunkdLog -Pattern 'Collector log output to stdout was redirected to stderr' | Select-Object -Last 1
+          if (-not $redirect) {
+              Write-Host "Collector stdout log destination was not redirected" -ForegroundColor Red
+              exit 1
+          }
+          $engineLog = Get-Content $splunkdLog | Select-Object -Skip $redirect.LineNumber | Where-Object { $_ -match 'Splunk_TA_otel.*Extension started\.' } | Select-Object -First 1
+          if (-not $engineLog) {
+              Write-Host "Collector engine logs were not recorded in splunkd.log" -ForegroundColor Red
+              exit 1
+          }
 
       - name: Check secret from Splunk secret storage is resolved by the collector
         shell: pwsh

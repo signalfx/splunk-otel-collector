@@ -1,5 +1,0 @@
-change_type: enhancement
-component: splunkmodinputexporter
-note: Add the splunk_modinput exporter to the Splunk-specific components with standard Collector metadata and lifecycle validation, and honor its HEC metadata configuration.
-issues: [8291]
-subtext: The exporter writes newline-delimited Splunk HEC JSON. The Splunk OTLP input continues to validate token index permissions before exporting data.

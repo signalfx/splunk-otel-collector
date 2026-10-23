@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add native Splunk Platform host log collection settings through the
+  `splunk_platform_token`, `splunk_platform_url`, and optional
+  `splunk_platform_logs_index` pillar values. Supports Platform-only installs
+  and combined Observability and Platform collection.
+
 ### 🛑 Breaking changes 🛑
 
 - Linux auto-instrumentation now uses the official OpenTelemetry Injector for package versions newer than `0.159.0` (or `latest`). The state manages `/etc/opentelemetry/injector/` and `libotelinject.so`, removes the legacy `/etc/splunk/zeroconfig/` configuration during upgrades, and continues to support the legacy layout for package versions through `0.159.0`. .NET auto-instrumentation is also supported on arm64 for newer package versions.

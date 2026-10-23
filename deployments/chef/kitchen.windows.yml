@@ -14,6 +14,8 @@ provisioner:
   enforce_idempotency: true
   multiple_converge: 2
   install_strategy: skip
+  chef_omnibus_root: C:/cinc-project/cinc
+  chef_client_path: C:/cinc-project/cinc/bin/cinc-client.bat
 
 verifier:
   name: inspec
@@ -42,7 +44,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec default/test.rb
+      command: C:/cinc-project/cinc/bin/inspec.bat exec default/test.rb
 
   - name: custom_vars
     run_list:
@@ -64,4 +66,4 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec custom_vars/test.rb
+      command: C:/cinc-project/cinc/bin/inspec.bat exec custom_vars/test.rb

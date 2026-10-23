@@ -28,6 +28,7 @@ package splunkconf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -35,16 +36,23 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
 
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
 const schemeName = "splunkconf"
 
+// nopExporterID carries no name segment because its config is empty, so two
+// pipelines emitting it merge onto one harmless component.
+const nopExporterID = "nop"
+
 // pipelineRegexp restricts the pipeline name to a safe component-name segment.
 var pipelineRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
 
 type provider struct {
+	logger        *zap.Logger
 	inputMappers  []MappingReceiverFactory
 	outputMappers []MappingExporterFactory
 }
@@ -53,8 +61,14 @@ type provider struct {
 // WithInputMappers to register the receivers that map input stanzas, and
 // WithOutputMappers the exporters that map output stanzas.
 func NewFactory(opts ...Option) confmap.ProviderFactory {
-	return confmap.NewProviderFactory(func(confmap.ProviderSettings) confmap.Provider {
-		p := &provider{}
+	return confmap.NewProviderFactory(func(set confmap.ProviderSettings) confmap.Provider {
+		// Only confmap.NewResolver substitutes a nop logger for a nil one, and
+		// Create is reachable without it.
+		logger := set.Logger
+		if logger == nil {
+			logger = zap.NewNop()
+		}
+		p := &provider{logger: logger}
 		for _, opt := range opts {
 			opt(p)
 		}
@@ -154,12 +168,17 @@ func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: read outputs.conf: %w", err)
 	}
+	// Having nowhere to forward to is not a config error, so the inputs still
+	// run and their data is dropped at the exporter.
 	exps, skippedOut, err := p.mapOutputs(merged)
-	if err != nil {
+	if err != nil && !errors.Is(err, conf.ErrNoOutputStanzas) {
 		return nil, fmt.Errorf("splunkconf: outputs.conf under %s: %w", confRoot, err)
 	}
 	if len(exps) == 0 {
-		return nil, fmt.Errorf("splunkconf: no supported output stanzas found under %s (skipped: %v)", confRoot, skippedOut)
+		p.logger.Info("splunkconf: no supported output stanzas, exporting to nop",
+			zap.String("config_root", confRoot),
+			zap.Strings("skipped", skippedOut))
+		exps = []emitted{{id: nopExporterID, cfg: map[string]any{}}}
 	}
 
 	receivers := map[string]any{}

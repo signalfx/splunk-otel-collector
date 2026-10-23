@@ -503,11 +503,6 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": "[://nokind]\n"},
 			errMsg: "parse output stanza",
 		},
-		{
-			name:   "output kind with no mapping",
-			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": "[tcpout:primary]\nserver = idx1:9997\n"},
-			errMsg: "no supported output stanzas found",
-		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			uri := tt.uri
@@ -607,6 +602,42 @@ func TestUnclaimedOutputStanzaIsSkipped(t *testing.T) {
 
 	_, expIDs := pipelineIDs(t, resolved, "logs/uf")
 	require.Equal(t, []string{"splunk_hecout/hecout-d6a24a0d"}, expIDs)
+}
+
+// A tree with nothing to forward to still has to resolve: the inputs run and
+// their data is dropped, rather than the collector refusing to start.
+func TestNoUsableOutputsEmitsNop(t *testing.T) {
+	const validInputs = "[monitor:///var/log/foo]\n"
+
+	for _, tt := range []struct {
+		files map[string]string
+		name  string
+	}{
+		{
+			name:  "no outputs.conf at all",
+			files: map[string]string{"inputs.conf": validInputs},
+		},
+		{
+			name:  "outputs.conf with no stanzas",
+			files: map[string]string{"inputs.conf": validInputs, "outputs.conf": "# nothing here\n"},
+		},
+		{
+			name:  "outputs.conf with only unmapped kinds",
+			files: map[string]string{"inputs.conf": validInputs, "outputs.conf": "[tcpout:primary]\nserver = idx1:9997\n"},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			resolved := resolve(t, "splunkconf://"+writeConfTree(t, tt.files))
+
+			recvIDs, expIDs := pipelineIDs(t, resolved, "logs/uf")
+			require.Equal(t, []string{"nop"}, expIDs)
+			require.Len(t, recvIDs, 1, "inputs still run when there is nowhere to export")
+
+			exporters, err := resolved.Sub("exporters")
+			require.NoError(t, err)
+			require.Equal(t, []string{"nop"}, exporters.AllKeys())
+		})
+	}
 }
 
 func TestShutdownIsANoop(t *testing.T) {

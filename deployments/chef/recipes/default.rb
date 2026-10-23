@@ -1,11 +1,51 @@
 # Cookbook:: splunk_otel_collector
 # Recipe:: default
 
+splunk_platform_url = node.run_state.dig('splunk_otel_collector', 'splunk_platform_url') || node['splunk_otel_collector']['splunk_platform_url']
+splunk_platform_token = node.run_state.dig('splunk_otel_collector', 'splunk_platform_token') || node['splunk_otel_collector']['splunk_platform_token']
+splunk_platform_logs_index = node.run_state.dig('splunk_otel_collector', 'splunk_platform_logs_index') || node['splunk_otel_collector']['splunk_platform_logs_index']
+
 ruby_block 'splunk-access-token-unset' do
   block do
     raise "Set ['splunk_otel_collector']['splunk_access_token'] as an attribute or on the node's run_state."
   end
-  only_if { node['splunk_otel_collector']['splunk_access_token'].nil? && node.run_state['splunk_otel_collector']['splunk_access_token'].nil? }
+  only_if do
+    (!platform_family?('debian', 'rhel', 'amazon', 'suse') || splunk_platform_url.to_s.strip.empty?) &&
+      node.run_state.dig('splunk_otel_collector', 'splunk_access_token').to_s.strip.empty? &&
+      node['splunk_otel_collector']['splunk_access_token'].to_s.strip.empty?
+  end
+end
+
+ruby_block 'splunk-platform-hec-linux-only' do
+  block do
+    raise 'Splunk Platform HEC log collection is only supported by this cookbook on Linux.'
+  end
+  only_if do
+    platform_family?('windows') &&
+      %w(splunk_platform_url splunk_platform_token splunk_platform_logs_index).any? do |attribute|
+        value = {
+          'splunk_platform_url' => splunk_platform_url,
+          'splunk_platform_token' => splunk_platform_token,
+          'splunk_platform_logs_index' => splunk_platform_logs_index,
+        }[attribute]
+        !value.to_s.strip.empty?
+      end
+  end
+end
+
+ruby_block 'splunk-platform-hec-options-invalid' do
+  block do
+    if splunk_platform_url.to_s.strip.empty?
+      raise "Set ['splunk_otel_collector']['splunk_platform_url'] when configuring ['splunk_otel_collector']['splunk_platform_token'] or ['splunk_otel_collector']['splunk_platform_logs_index']."
+    else
+      raise "Set ['splunk_otel_collector']['splunk_platform_token'] when configuring ['splunk_otel_collector']['splunk_platform_url']."
+    end
+  end
+  only_if do
+    platform_family?('debian', 'rhel', 'amazon', 'suse') &&
+      (splunk_platform_url.to_s.strip.empty? != splunk_platform_token.to_s.strip.empty? ||
+        (splunk_platform_url.to_s.strip.empty? && !splunk_platform_logs_index.to_s.strip.empty?))
+  end
 end
 
 if platform_family?('windows')
@@ -98,6 +138,15 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     group node['splunk_otel_collector']['group']
     mode '0600'
     notifies :restart, 'service[splunk-otel-collector]', :delayed
+  end
+
+  unless splunk_platform_url.to_s.strip.empty?
+    directory '/var/lib/otelcol/filelogs' do
+      owner node['splunk_otel_collector']['user']
+      group node['splunk_otel_collector']['group']
+      mode '0700'
+      recursive true
+    end
   end
 
   service 'splunk-otel-collector' do

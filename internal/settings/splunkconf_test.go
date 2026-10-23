@@ -53,3 +53,31 @@ func TestSplunkConfPipelineBuilds(t *testing.T) {
 	require.NoError(t, col.DryRun(context.Background()),
 		"the .conf-derived receivers must build a real graph through to splunk_hec")
 }
+
+// A tree with no inputs.conf resolves to the nop receiver, so the graph still
+// builds. This is what proves the emitted nop type is a registered component and
+// not just a string in the fragment.
+func TestSplunkConfPipelineBuildsWithoutInputs(t *testing.T) {
+	require.NoError(t, featuregate.GlobalRegistry().Set("enableTARunner", true))
+	t.Cleanup(func() {
+		require.NoError(t, featuregate.GlobalRegistry().Set("enableTARunner", false))
+	})
+
+	confRoot := filepath.Join("testdata", "splunkconf-no-inputs", "etc")
+
+	col, err := otelcol.NewCollector(otelcol.CollectorSettings{
+		BuildInfo: component.NewDefaultBuildInfo(),
+		Factories: components.Get,
+		ConfigProviderSettings: otelcol.ConfigProviderSettings{
+			ResolverSettings: confmap.ResolverSettings{
+				URIs: []string{"splunkconf://" + confRoot + "?pipeline=uf"},
+				ProviderFactories: []confmap.ProviderFactory{
+					configsource.New(zap.NewNop(), nil).Wrap(splunkConfProviderFactory()),
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, col.DryRun(context.Background()))
+}

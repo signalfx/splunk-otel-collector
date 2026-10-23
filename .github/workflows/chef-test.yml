@@ -219,9 +219,11 @@ jobs:
           Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
           mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
-      - name: Install Cinc Workstation
-        uses: actionshub/chef-install@f3b35943a257c25f3ca69e3b773fa4e0e99b58d6 # 6.0.0
+      - name: Install chef
+        uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
         with:
+          project: cinc-workstation
+          omnitruckUrl: omnitruck.cinc.sh
           version: ${{ env.CHEF_VERSION }}
           windowsPath: 'C:\cinc-project\cinc-workstation\'
 

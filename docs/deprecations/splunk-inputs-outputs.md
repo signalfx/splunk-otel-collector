@@ -115,5 +115,3 @@ partial reload cannot be applied.
   `debug`, cannot be expressed by layering another `--config` source on top of the provider. The
   provider emits a complete pipeline whose exporter IDs it generates, and a later source would
   have to restate that list to add to it.
-- The provider fails to start when it finds no supported input stanzas, and when it finds no
-  supported output stanzas. `splunk_outputs` logged the latter and fell back to a no-op exporter.

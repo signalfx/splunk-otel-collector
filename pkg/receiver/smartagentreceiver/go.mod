@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.163.0
@@ -11,7 +11,7 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.5.0
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
-	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.163.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.163.1
 	github.com/sirupsen/logrus v1.10.2
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component v1.69.0

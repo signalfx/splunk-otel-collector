@@ -35,24 +35,38 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
 const schemeName = "splunkconf"
 
+// nopReceiverID carries no name segment because there is no stanza to derive one
+// from, and its config is empty.
+const nopReceiverID = "nop"
+
 // pipelineRegexp restricts the pipeline name to a safe component-name segment.
 var pipelineRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
 
 type provider struct {
-	mappers []MappingReceiverFactory
+	logger        *zap.Logger
+	inputMappers  []MappingReceiverFactory
+	outputMappers []MappingExporterFactory
 }
 
 // NewFactory returns a confmap.ProviderFactory for the splunkconf scheme. Pass
-// WithInputMappers to register the receivers that map input stanzas.
+// WithInputMappers to register the receivers that map input stanzas, and
+// WithOutputMappers the exporters that map output stanzas.
 func NewFactory(opts ...Option) confmap.ProviderFactory {
-	return confmap.NewProviderFactory(func(confmap.ProviderSettings) confmap.Provider {
-		p := &provider{}
+	return confmap.NewProviderFactory(func(set confmap.ProviderSettings) confmap.Provider {
+		// Only confmap.NewResolver substitutes a nop logger for a nil one, and
+		// Create is reachable without it.
+		logger := set.Logger
+		if logger == nil {
+			logger = zap.NewNop()
+		}
+		p := &provider{logger: logger}
 		for _, opt := range opts {
 			opt(p)
 		}
@@ -144,17 +158,25 @@ func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+	// An idle agent is a normal state, so a tree with nothing to read still
+	// resolves rather than refusing to start.
 	if len(recvs) == 0 {
-		return nil, fmt.Errorf("splunkconf: no supported input stanzas found under %s (skipped: %v)", confRoot, skipped)
+		p.logger.Info("splunkconf: no supported input stanzas, reading from nop",
+			zap.String("config_root", confRoot),
+			zap.Strings("skipped", skipped))
+		recvs = []emitted{{id: nopReceiverID, cfg: map[string]any{}}}
 	}
 
 	merged, err := tabuilder.ReadOutputsFromDirs(dirs)
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: read outputs.conf: %w", err)
 	}
-	exps, err := mapOutputs(merged)
+	exps, skippedOut, err := p.mapOutputs(merged)
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: outputs.conf under %s: %w", confRoot, err)
+	}
+	if len(exps) == 0 {
+		return nil, fmt.Errorf("splunkconf: no supported output stanzas found under %s (skipped: %v)", confRoot, skippedOut)
 	}
 
 	receivers := map[string]any{}

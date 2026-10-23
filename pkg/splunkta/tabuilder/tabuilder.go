@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Package tabuilder reads a technical addon's configuration files and builds
-// the per-input logs receivers and per-output logs exporters. It is the single
-// source of truth for the stanza -> component mapping, shared by the standalone
-// collector runner (internal/collector) and the OTel plugins
-// (pkg/splunkinputsreceiver).
+// the per-input logs receivers. It is the single source of truth for the
+// stanza -> receiver mapping, shared by the standalone collector runner
+// (internal/collector) and the OTel plugins (pkg/splunkinputsreceiver).
 package tabuilder
 
 import (
@@ -16,14 +15,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/exporter"
-	metricnoop "go.opentelemetry.io/otel/metric/noop"
-	tracenoop "go.opentelemetry.io/otel/trace/noop"
-	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/receiver"
 
@@ -486,69 +479,4 @@ func ReadOutputGroups(splunkHome string) ([]conf.Output, error) {
 // HECOut returns the [hecout] stanza from a merged outputs.conf map.
 func HECOut(merged conf.Map) (*conf.Output, error) {
 	return conf.HECOut(merged)
-}
-
-// CreateExporter builds a logs exporter from a merged outputs conf map.
-func CreateExporter(merged conf.Map, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
-	output, err := conf.HECOut(merged)
-	if err != nil {
-		return nil, err
-	}
-	return CreateOutputExporter(output, logger, telemetrySettings)
-}
-
-// CreateOutputExporter builds a logs exporter from one built-in output stanza.
-// Returns nil exporter for unsupported output kinds; the caller is responsible for logging.
-func CreateOutputExporter(output *conf.Output, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
-	parsed, err := stanza.ParseOutputName(output.Configuration.Stanza.Name)
-	if err != nil {
-		return nil, err
-	}
-	if parsed.Kind != "hecout" {
-		return nil, nil
-	}
-	return newHECExporter(output, logger, telemetrySettings)
-}
-
-// HECOutputConfig maps a resolved [hecout] stanza onto the splunkhec exporter's
-// own config keys. It is the one place the .conf key names are translated, so the
-// TA runner here and a .conf config source emitting a splunk_hec component cannot
-// drift apart.
-func HECOutputConfig(o *conf.Output) map[string]any {
-	return map[string]any{
-		"endpoint": outputParam(o, "uri"),
-		"token":    outputParam(o, "httpEventCollectorToken"),
-		// TODO: wire sslVerifyServerCert from outputs.conf.
-		"tls": map[string]any{"insecure_skip_verify": true},
-	}
-}
-
-func newHECExporter(o *conf.Output, logger *zap.Logger, telemetrySettings component.TelemetrySettings) (exporter.Logs, error) {
-	f := splunkhecexporter.NewFactory()
-	cfg := f.CreateDefaultConfig().(*splunkhecexporter.Config)
-	if err := confmap.NewFromStringMap(HECOutputConfig(o)).Unmarshal(cfg); err != nil {
-		return nil, fmt.Errorf("build splunkhec config from [hecout]: %w", err)
-	}
-	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
-	s := exporter.Settings{
-		ID: component.MustNewID(f.Type().String()),
-		TelemetrySettings: component.TelemetrySettings{
-			Logger:         logger,
-			TracerProvider: tracenoop.NewTracerProvider(),
-			MeterProvider:  metricnoop.NewMeterProvider(),
-		},
-	}
-	if telemetrySettings.Logger != nil {
-		s.TelemetrySettings = telemetrySettings
-	}
-	return f.CreateLogs(context.Background(), s, cfg)
-}
-
-func outputParam(o *conf.Output, name string) string {
-	if param := o.Configuration.Stanza.Params.Get(name); param != nil {
-		return param.Value
-	}
-	return ""
 }

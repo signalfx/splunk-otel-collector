@@ -205,6 +205,10 @@ func (o factoryOptions) createReceiver(ctx context.Context, baseDir string, next
 		return nil, err
 	}
 	scheme := parsed.Kind
+	if scheme == "" {
+		// A bare built-in stanza (e.g. [monitor]) configures nothing.
+		return nil, nil
+	}
 	if f, ok := o.subReceivers[scheme]; ok {
 		return f.CreateLogs(ctx, settings, ReceiverRequest{
 			BaseDir:    baseDir,

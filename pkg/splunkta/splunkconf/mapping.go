@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 
@@ -131,24 +130,17 @@ func newConf(confRoot string, inputs []conf.Input) (Conf, error) {
 // stanza.
 func (p *provider) mapInputs(tree Conf) (out []emitted, skipped []string, err error) {
 	claimedBy := map[string]string{}
-	for _, m := range p.mappers {
+	for _, m := range p.inputMappers {
 		typeStr := m.Type().String()
 		instances, mapErr := m.MapInputs(tree)
 		if mapErr != nil {
 			return nil, nil, fmt.Errorf("splunkconf: %s: %w", typeStr, mapErr)
 		}
-		for name, cfg := range instances {
-			if other, dup := claimedBy[name]; dup {
-				return nil, nil, fmt.Errorf("splunkconf: stanza [%s] claimed by both %s and %s", name, other, typeStr)
-			}
-			claimedBy[name] = typeStr
-
-			marshaled, mErr := marshalConfig(cfg)
-			if mErr != nil {
-				return nil, nil, fmt.Errorf("splunkconf: %s: stanza [%s]: %w", typeStr, name, mErr)
-			}
-			out = append(out, emitted{id: typeStr + "/" + stableName(name), cfg: marshaled})
+		claimed, claimErr := claim(claimedBy, typeStr, instances)
+		if claimErr != nil {
+			return nil, nil, fmt.Errorf("splunkconf: %w", claimErr)
 		}
+		out = append(out, claimed...)
 	}
 
 	for _, in := range tree.Inputs {
@@ -157,6 +149,25 @@ func (p *provider) mapInputs(tree Conf) (out []emitted, skipped []string, err er
 		}
 	}
 	return out, skipped, nil
+}
+
+// claim records the instances one mapper returned and assigns each the component
+// ID the provider owns, rejecting a stanza something else already claimed.
+func claim(claimedBy map[string]string, typeStr string, instances map[string]component.Config) ([]emitted, error) {
+	out := make([]emitted, 0, len(instances))
+	for name, cfg := range instances {
+		if other, dup := claimedBy[name]; dup {
+			return nil, fmt.Errorf("stanza [%s] claimed by both %s and %s", name, other, typeStr)
+		}
+		claimedBy[name] = typeStr
+
+		marshaled, err := marshalConfig(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("%s: stanza [%s]: %w", typeStr, name, err)
+		}
+		out = append(out, emitted{id: typeStr + "/" + stableName(name), cfg: marshaled})
+	}
+	return out, nil
 }
 
 // marshalConfig turns a mapper's typed Config into the serialized form a
@@ -171,40 +182,52 @@ func marshalConfig(cfg component.Config) (map[string]any, error) {
 	return cm.ToStringMap(), nil
 }
 
-// mapOutputs maps every output stanza to its exporter entry. A pipeline needs at
-// least one exporter, so an outputs.conf with no output stanzas is an error
-// (conf.ErrNoOutputStanzas), as is a stanza kind with no mapping.
-func mapOutputs(merged conf.Map) ([]emitted, error) {
+// parseOutputs builds the output stanzas handed to the mappers, parsing every
+// name once for the reason newConf does it for inputs.
+func parseOutputs(merged conf.Map) ([]Output, error) {
 	groups, err := conf.OutputGroups(merged)
 	if err != nil {
 		return nil, err
 	}
-	var (
-		out         []emitted
-		unsupported []string
-	)
+	outputs := make([]Output, 0, len(groups))
 	for _, g := range groups {
 		name := g.Configuration.Stanza.Name
 		parsed, perr := stanza.ParseOutputName(name)
 		if perr != nil {
 			return nil, fmt.Errorf("parse output stanza [%s]: %w", name, perr)
 		}
-		if parsed.Kind != "hecout" {
-			unsupported = append(unsupported, fmt.Sprintf("[%s] (kind %q)", name, parsed.Kind))
-			continue
+		outputs = append(outputs, Output{Output: g, Name: parsed})
+	}
+	return outputs, nil
+}
+
+// mapOutputs asks every registered mapper for the instances it owns, claiming by
+// stanza name the way mapInputs does. An outputs.conf with no stanzas at all is
+// conf.ErrNoOutputStanzas.
+func (p *provider) mapOutputs(merged conf.Map) (out []emitted, skipped []string, err error) {
+	outputs, err := parseOutputs(merged)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	claimedBy := map[string]string{}
+	for _, m := range p.outputMappers {
+		typeStr := m.Type().String()
+		instances, mapErr := m.MapOutputs(outputs)
+		if mapErr != nil {
+			return nil, nil, fmt.Errorf("%s: %w", typeStr, mapErr)
 		}
-		// splunk_hec is the contrib exporter, emitted directly: its config keys
-		// are what tabuilder.HECOutputConfig produces, so a wrapper type would
-		// only add an identity mapping. [tcpout] -> S2S does need its own type,
-		// and arrives with the output-mapper registration API.
-		out = append(out, emitted{
-			id:  splunkhecexporter.NewFactory().Type().String() + "/" + stableName(name),
-			cfg: tabuilder.HECOutputConfig(&g),
-		})
+		claimed, claimErr := claim(claimedBy, typeStr, instances)
+		if claimErr != nil {
+			return nil, nil, claimErr
+		}
+		out = append(out, claimed...)
 	}
-	if len(unsupported) > 0 {
-		return nil, fmt.Errorf("unsupported output stanza(s) %s; only [hecout] is mapped so far",
-			strings.Join(unsupported, ", "))
+
+	for _, o := range outputs {
+		if _, claimed := claimedBy[o.Configuration.Stanza.Name]; !claimed {
+			skipped = append(skipped, o.Configuration.Stanza.Name)
+		}
 	}
-	return out, nil
+	return out, skipped, nil
 }

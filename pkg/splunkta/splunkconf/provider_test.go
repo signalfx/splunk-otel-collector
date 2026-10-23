@@ -10,17 +10,18 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
@@ -52,7 +53,7 @@ var (
 		"splunk_udp/udp-5515-016ce446",
 		"splunk_wineventlog/wineventlog-application-9a1a225b",
 	}
-	wantExporters = []string{"splunk_hec/hecout-d6a24a0d"}
+	wantExporters = []string{"splunk_hecout/hecout-d6a24a0d"}
 )
 
 func receiverFactories() map[string]receiver.Factory {
@@ -66,17 +67,20 @@ func receiverFactories() map[string]receiver.Factory {
 	}
 }
 
-// providerFactory registers the same six mappers internal/settings does, which
-// is the only way a receiver's stanzas reach the fragment.
+// providerFactory registers the same mappers internal/settings does, which is
+// the only way a stanza reaches the fragment.
 func providerFactory() confmap.ProviderFactory {
-	return splunkconf.NewFactory(splunkconf.WithInputMappers(
-		splunkmonitor.NewFactory(),
-		splunktcp.NewFactory(),
-		splunkudp.NewFactory(),
-		splunkscript.NewFactory(),
-		splunkbatch.NewFactory(),
-		splunkwineventlog.NewFactory(),
-	))
+	return splunkconf.NewFactory(
+		splunkconf.WithInputMappers(
+			splunkmonitor.NewFactory(),
+			splunktcp.NewFactory(),
+			splunkudp.NewFactory(),
+			splunkscript.NewFactory(),
+			splunkbatch.NewFactory(),
+			splunkwineventlog.NewFactory(),
+		),
+		splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+	)
 }
 
 func resolve(t *testing.T, uris ...string) *confmap.Conf {
@@ -167,7 +171,7 @@ func TestResolveAndBuild(t *testing.T) {
 
 	exporters, err := merged.Sub("exporters")
 	require.NoError(t, err)
-	ef := splunkhecexporter.NewFactory()
+	ef := splunkhecout.NewFactory()
 	esub, err := exporters.Sub(expIDs[0])
 	require.NoError(t, err)
 	ecfg := ef.CreateDefaultConfig()
@@ -464,10 +468,11 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			errMsg: "invalid query",
 		},
 		{
-			// testdata itself has no system/local/inputs.conf.
-			name:   "config root with no mappable inputs",
+			// testdata itself holds neither conf file, and only the output side
+			// still refuses to resolve.
+			name:   "config root with neither inputs nor outputs",
 			uri:    "splunkconf://testdata",
-			errMsg: "no supported input stanzas found",
+			errMsg: "no output stanzas found in outputs.conf",
 		},
 		{
 			name:   "malformed inputs.conf",
@@ -502,7 +507,7 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 		{
 			name:   "output kind with no mapping",
 			files:  map[string]string{"inputs.conf": validInputs, "outputs.conf": "[tcpout:primary]\nserver = idx1:9997\n"},
-			errMsg: "only [hecout] is mapped",
+			errMsg: "no supported output stanzas found",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -515,6 +520,126 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			require.ErrorContains(t, err, tt.errMsg)
 		})
 	}
+}
+
+// A tree with nothing to read reads from nop instead of refusing to start,
+// because an idle agent is a normal state. The outputs still resolve.
+func TestNoUsableInputsReadsFromNop(t *testing.T) {
+	const outputs = "[hecout]\nuri = https://localhost:8088\n"
+
+	for _, tt := range []struct {
+		name   string
+		inputs string
+	}{
+		{name: "inputs.conf absent"},
+		{name: "no stanzas", inputs: "# nothing here\n"},
+		{name: "every stanza disabled", inputs: "[monitor:///var/log/foo]\ndisabled = 1\n"},
+		{name: "only unmapped kinds", inputs: "[http://tok]\ntoken = abc\n"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			files := map[string]string{"outputs.conf": outputs}
+			if tt.inputs != "" {
+				files["inputs.conf"] = tt.inputs
+			}
+			resolved := resolve(t, "splunkconf://"+writeConfTree(t, files))
+
+			recvIDs, expIDs := pipelineIDs(t, resolved, "logs/uf")
+			require.Equal(t, []string{"nop"}, recvIDs)
+			require.Equal(t, []string{"splunk_hecout/hecout-d6a24a0d"}, expIDs)
+
+			receivers, err := resolved.Sub("receivers")
+			require.NoError(t, err)
+			require.Equal(t, map[string]any{"nop": map[string]any{}}, receivers.ToStringMap())
+		})
+	}
+}
+
+// s2sConfig stands in for an exporter config whose type lives outside this repo.
+type s2sConfig struct {
+	Server string `mapstructure:"server"`
+}
+
+// s2sFactory maps [tcpout] the way the closed-source S2S exporter does, which is
+// the registration path WithOutputMappers exists for.
+type s2sFactory struct {
+	exporter.Factory
+}
+
+func newS2SFactory() s2sFactory {
+	return s2sFactory{Factory: exporter.NewFactory(
+		otelcomponent.MustNewType("splunk_s2s"),
+		func() otelcomponent.Config { return &s2sConfig{} },
+	)}
+}
+
+func (s2sFactory) MapOutputs(outputs []splunkconf.Output) (map[string]otelcomponent.Config, error) {
+	instances := map[string]otelcomponent.Config{}
+	for _, o := range outputs {
+		if o.Name.Kind != "tcpout" {
+			continue
+		}
+		cfg := &s2sConfig{}
+		if p := o.Configuration.Stanza.Params.Get("server"); p != nil {
+			cfg.Server = p.Value
+		}
+		instances[o.Configuration.Stanza.Name] = cfg
+	}
+	return instances, nil
+}
+
+// An exporter registered from outside this package reaches outputs.conf through
+// the same path the built-in [hecout] mapping does, and its own config type
+// survives the marshal/unmarshal round trip the emitted fragment forces.
+func TestRegisteredOutputMapper(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/foo]\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\n\n[tcpout:primary]\nserver = idx1:9997\n",
+	})
+
+	f := newS2SFactory()
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(splunkmonitor.NewFactory()),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory(), f),
+		)},
+	})
+	require.NoError(t, err)
+	resolved, err := res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	const s2sID = "splunk_s2s/tcpout-primary-bc98bd6f"
+	_, expIDs := pipelineIDs(t, resolved, "logs/uf")
+	require.Equal(t, []string{"splunk_hecout/hecout-d6a24a0d", s2sID}, expIDs)
+
+	exporters, err := resolved.Sub("exporters")
+	require.NoError(t, err)
+	sub, err := exporters.Sub(s2sID)
+	require.NoError(t, err)
+	cfg := f.CreateDefaultConfig()
+	require.NoError(t, sub.Unmarshal(cfg))
+	require.Equal(t, &s2sConfig{Server: "idx1:9997"}, cfg)
+}
+
+func TestUnclaimedOutputStanzaIsSkipped(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/foo]\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\n\n[tcpout:primary]\nserver = idx1:9997\n",
+	})
+
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(splunkmonitor.NewFactory()),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+		)},
+	})
+	require.NoError(t, err)
+	resolved, err := res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	_, expIDs := pipelineIDs(t, resolved, "logs/uf")
+	require.Equal(t, []string{"splunk_hecout/hecout-d6a24a0d"}, expIDs)
 }
 
 func TestShutdownIsANoop(t *testing.T) {

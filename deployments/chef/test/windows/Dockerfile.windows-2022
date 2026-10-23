@@ -4,11 +4,11 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 RUN Add-WindowsFeature Web-Server
 
-RUN Invoke-WebRequest -UseBasicParsing -Uri 'https://packages.cinc.sh/files/stable/cinc/18.2.7/windows/2012r2/cinc-18.2.7-1-x64.msi' -OutFile C:/cinc.msi; \
-    if ((Get-FileHash C:/cinc.msi -Algorithm SHA256).Hash -ne '238032b3f9fc24ee1b2c858e069b0043746218140d5fb3dd07123d632b7fb5bf') { throw 'Cinc MSI checksum mismatch' }; \
-    $installer = Start-Process msiexec.exe -ArgumentList '/i C:/cinc.msi /qn /norestart' -Wait -PassThru; \
-    if ($installer.ExitCode -ne 0) { throw "Cinc installation failed with exit code $($installer.ExitCode)" }; \
-    Remove-Item C:/cinc.msi
+RUN Invoke-WebRequest -UseBasicParsing -Uri 'https://packages.cinc.sh/files/stable/cinc/18.2.7/windows/2012r2/cinc-18.2.7-1-x64.msi' -OutFile C:\cinc.msi; \
+    if ((Get-FileHash C:\cinc.msi -Algorithm SHA256).Hash -ne '238032b3f9fc24ee1b2c858e069b0043746218140d5fb3dd07123d632b7fb5bf') { throw 'Cinc MSI checksum mismatch' }; \
+    $installer = Start-Process msiexec.exe -ArgumentList '/i C:\cinc.msi /qn /norestart /l*v C:\cinc-install.log' -Wait -PassThru; \
+    if ($installer.ExitCode -ne 0) { Get-Content C:\cinc-install.log -ErrorAction SilentlyContinue; throw ('Cinc installation failed with exit code {0}' -f $installer.ExitCode) }; \
+    Remove-Item C:\cinc.msi, C:\cinc-install.log
 
 COPY test/integration C:/test
 

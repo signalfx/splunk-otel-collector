@@ -50,7 +50,6 @@ The distribution offers support for the following components.
 | [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkareceiver)                                                        | [beta]           |
 | [kafka_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver)                                         | [beta]           |
 | [kubelet_stats](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver)                                         | [beta]           |
-| [lightprometheus](../internal/receiver/lightprometheusreceiver)                                                                                                    | [deprecated] |
 | [memcached](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/memcachedreceiver)                                                | [beta]           |
 | [mongodb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbreceiver)                                                    | [beta]           |
 | [mongodb_atlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)                                         | [beta]           |
@@ -125,21 +124,22 @@ The distribution offers support for the following components.
 
 <div>
 
-| Exporters                                                                                                                                   | Stability    |
-|:--------------------------------------------------------------------------------------------------------------------------------------------|:-------------|
-| [awskinesis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awskinesisexporter)                       | [beta]       |
-| [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                                 | [alpha]      |
-| [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                                         | [alpha]      |
-| [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                                   | [alpha]      |
-| [google_cloud_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/googlecloudstorageexporter)     | [alpha]      |
-| [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)                                 | [beta]       |
-| [loadbalancing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter)                 | [beta]       |
-| [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/nopexporter)                                             | [beta]       |
-| [otlp_grpc](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                                      | [stable]     |
-| [otlp_http](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                                  | [stable]     |
-| [prometheusremotewrite](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter) | [beta]       |
-| [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)                           | [beta]       |
-| [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter)                        | [beta]       |
+| Exporters                                                                                                                                   | Stability        |
+|:--------------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [awskinesis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awskinesisexporter)                       | [beta]           |
+| [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                                 | [alpha]          |
+| [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                                         | [alpha]          |
+| [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                                   | [alpha]          |
+| [google_cloud_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/googlecloudstorageexporter)     | [alpha]          |
+| [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)                                 | [beta]           |
+| [loadbalancing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter)                 | [beta]           |
+| [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/nopexporter)                                             | [beta]           |
+| [otlp_grpc](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                                      | [stable]         |
+| [otlp_http](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)                                  | [stable]         |
+| [prometheusremotewrite](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusremotewriteexporter) | [beta]           |
+| [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)                           | [beta]           |
+| [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter)                        | [beta]           |
+| [splunk_modinput](../internal/exporter/splunkmodinputexporter/README.md)                                                                    | [in development] |
 
 </div>
 

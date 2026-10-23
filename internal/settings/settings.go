@@ -35,6 +35,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
@@ -230,14 +231,17 @@ func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
 // at the call site is also what gives a receiver from another repo the same way
 // in as these.
 func splunkConfProviderFactory() confmap.ProviderFactory {
-	return splunkconf.NewFactory(splunkconf.WithInputMappers(
-		splunkmonitor.NewFactory(),
-		splunktcp.NewFactory(),
-		splunkudp.NewFactory(),
-		splunkscript.NewFactory(),
-		splunkbatch.NewFactory(),
-		splunkwineventlog.NewFactory(),
-	))
+	return splunkconf.NewFactory(
+		splunkconf.WithInputMappers(
+			splunkmonitor.NewFactory(),
+			splunktcp.NewFactory(),
+			splunkudp.NewFactory(),
+			splunkscript.NewFactory(),
+			splunkbatch.NewFactory(),
+			splunkwineventlog.NewFactory(),
+		),
+		splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+	)
 }
 
 // ConfMapConverterFactories returns confmap.Converters for the collector core service.

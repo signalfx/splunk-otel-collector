@@ -20,11 +20,11 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 
 	"github.com/signalfx/splunk-otel-collector/baseline"
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/ptpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/exporter/splunkoutputsexporter"
@@ -33,6 +33,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
@@ -63,6 +64,7 @@ var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 func Get() (otelcol.Factories, error) {
 	b := baseline.NewBaseline()
 
+	b.AddExporters(splunkmodinputexporter.NewFactory())
 	b.AddExtensions(
 		configsourcetelemetryextension.NewFactory(),
 		oracleencodingextension.NewFactory(),
@@ -72,7 +74,6 @@ func Get() (otelcol.Factories, error) {
 	b.AddReceivers(
 		discoveryreceiver.NewFactory(),
 		gnmireceiver.NewFactory(),
-		lightprometheusreceiver.NewFactory(),
 		promqlreceiver.NewFactory(),
 		ptpreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
@@ -93,6 +94,11 @@ func Get() (otelcol.Factories, error) {
 			splunkbatch.NewFactory(),
 			splunkwineventlog.NewFactory(),
 		)
+
+		// UF-native exporter types, one per output stanza kind. [hecout] is
+		// experimental and can be removed at any time without notice; [tcpout] is
+		// supplied by a flavor registering its own output mapper.
+		b.AddExporters(splunkhecout.NewFactory())
 	}
 	b.AddProcessors(
 		timestampprocessor.NewFactory(),

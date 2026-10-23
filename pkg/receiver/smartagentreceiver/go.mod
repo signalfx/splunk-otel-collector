@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.163.0
@@ -11,8 +11,8 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.5.0
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
-	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.163.0
-	github.com/sirupsen/logrus v1.9.4
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.163.1
+	github.com/sirupsen/logrus v1.10.2
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component v1.69.0
 	go.opentelemetry.io/collector/component/componenttest v0.163.0
@@ -38,7 +38,7 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.12.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.1.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
@@ -136,7 +136,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
 	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3 // indirect
-	github.com/microsoft/go-mssqldb v1.11.0 // indirect
+	github.com/microsoft/go-mssqldb v1.11.2 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect

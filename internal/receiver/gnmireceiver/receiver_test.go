@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aristanetworks/goarista/gnmireverse"
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,6 +36,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
@@ -317,6 +319,99 @@ func TestReceiverEmitsMetricsEndToEnd(t *testing.T) {
 	name, ok := dp.Attributes().Get("name")
 	require.True(t, ok)
 	assert.Equal(t, "eth0", name.Str())
+}
+
+func TestReceiverServerIngestsGNMIReverseResponses(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	endpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	gnmiReverseConfig := NewDefaultGNMIReverseConfig()
+	gnmiReverseConfig.NetAddr.Endpoint = endpoint
+	gnmiReverseConfig.Subscriptions = []SubscriptionConfig{{
+		Path:    "/interfaces/interface/state/counters",
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{GNMIReverse: &gnmiReverseConfig}
+	sink := new(consumertest.MetricsSink)
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, r.Shutdown(context.Background())) })
+
+	conn, err := grpc.NewClient(endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, conn.Close()) })
+
+	client := gnmireverse.NewGNMIReverseClient(conn)
+	ctx := context.Background()
+	publishStream, err := client.Publish(ctx)
+	require.NoError(t, err)
+	prefix := &gnmipb.Path{Elem: []*gnmipb.PathElem{
+		{Name: "interfaces"},
+		{Name: "interface", Key: map[string]string{"name": "eth0"}},
+		{Name: "state"},
+		{Name: "counters"},
+	}, Target: "device-1"}
+	updateNotification := &gnmipb.Notification{
+		Prefix: prefix,
+		Update: []*gnmipb.Update{
+			{
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "in-octets"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 42}},
+			},
+			{
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "out-octets"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 84}},
+			},
+		},
+	}
+	updateResponse := &gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{Update: updateNotification},
+	}
+	require.NoError(t, publishStream.Send(updateResponse))
+	_, err = publishStream.CloseAndRecv()
+	require.NoError(t, err)
+
+	getStream, err := client.PublishGet(ctx)
+	require.NoError(t, err)
+	getNotification := &gnmipb.Notification{
+		Prefix: prefix,
+		Update: []*gnmipb.Update{{
+			Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "in-errors"}}},
+			Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 7}},
+		}},
+	}
+	require.NoError(t, getStream.Send(&gnmipb.GetResponse{
+		Notification: []*gnmipb.Notification{getNotification},
+	}))
+	_, err = getStream.CloseAndRecv()
+	require.NoError(t, err)
+
+	allMetrics := sink.AllMetrics()
+	require.Len(t, allMetrics, 2)
+	metrics := allMetrics[0].ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	require.Equal(t, 2, metrics.Len())
+	serverAddress, ok := allMetrics[0].ResourceMetrics().At(0).Resource().Attributes().Get("server.address")
+	require.True(t, ok)
+	assert.Equal(t, "device-1", serverAddress.Str())
+	metric := metrics.At(0)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "By", metric.Unit())
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	dp := metric.Sum().DataPoints().At(0)
+	assert.Equal(t, int64(42), dp.IntValue())
+	name, ok := dp.Attributes().Get("name")
+	require.True(t, ok)
+	assert.Equal(t, "eth0", name.Str())
+
+	assert.Equal(t, "interfaces.interface.state.counters.out-octets", metrics.At(1).Name())
+	assert.Equal(t, int64(84), metrics.At(1).Sum().DataPoints().At(0).IntValue())
+
+	getMetrics := allMetrics[1].ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	require.Equal(t, 1, getMetrics.Len())
+	assert.Equal(t, "interfaces.interface.state.counters.in-errors", getMetrics.At(0).Name())
+	assert.Equal(t, int64(7), getMetrics.At(0).Sum().DataPoints().At(0).IntValue())
 }
 
 // TestReceiverForwardsPartialSuccessOnParseError covers a review comment on

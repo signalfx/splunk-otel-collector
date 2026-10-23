@@ -20,7 +20,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  GO_VERSION: 1.26.9
+  GO_VERSION: 1.26.10
 
 jobs:
   ta-v2-build-packages:
@@ -123,8 +123,13 @@ jobs:
           APP_NAME="${{ steps.extract.outputs.app_name }}"
           mkdir -p ./build-out/${APP_NAME}/local
           cp ./build-out/${APP_NAME}/default/inputs.conf ./build-out/${APP_NAME}/local/inputs.conf
+          # The extra config appends the splunk_modinput exporter to the pipelines of agent_config.yaml.
+          # Passing --config replaces splunk_config, so the agent config must be listed explicitly.
+          cp tests/smoke/splunk_modinput_config.yaml ./build-out/${APP_NAME}/configs/splunk_modinput_config.yaml
+          CONFIGS_DIR="/opt/splunk/etc/apps/${APP_NAME}/configs"
+          CONFIG_ARGS="--config=${CONFIGS_DIR}/agent_config.yaml --config=${CONFIGS_DIR}/splunk_modinput_config.yaml --feature-gates=confmap.enableMergeAppendOption"
           sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/${APP_NAME}/local/inputs.conf
-          sed -i 's/^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*$/splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s/' ./build-out/${APP_NAME}/local/inputs.conf
+          sed -i "s|^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*\$|splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s ${CONFIG_ARGS}|" ./build-out/${APP_NAME}/local/inputs.conf
 
       - name: Generate Splunk admin password
         id: gen_password
@@ -142,7 +147,8 @@ jobs:
           SPLUNK_VERSION: ${{ matrix.splunk_version }}
           SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
         run: |
-          sudo -E ./run-local-package-in-container.sh
+          sudo --preserve-env=APP_NAME,ASSETS_DIR,SPLUNK_VERSION,SPLUNK_PASSWORD,CONTAINER_NAME \
+            ./run-local-package-in-container.sh
 
       - name: Check collector up and running
         shell: bash
@@ -186,6 +192,64 @@ jobs:
             echo "--discovery cmd arg is NOT reflected in the collector service!"
             exit 1
           fi
+
+      - name: Send telemetry to the collector for the splunk_modinput exporter
+        run: |
+          set -eo pipefail
+          send() {
+            docker exec -i "$CONTAINER_NAME" curl -sS --fail -X POST "http://localhost:4318/v1/$1" \
+              -H 'Content-Type: application/json' -d "$2"
+          }
+          send logs '{"resourceLogs":[{"scopeLogs":[{"logRecords":[{"timeUnixNano":"1700000000000000000","body":{"stringValue":"modinput_smoke_log"}}]}]}]}'
+          send metrics '{"resourceMetrics":[{"scopeMetrics":[{"metrics":[{"name":"modinput_smoke_metric","gauge":{"dataPoints":[{"asInt":"1","timeUnixNano":"1700000000000000000"}]}}]}]}]}'
+          send traces '{"resourceSpans":[{"scopeSpans":[{"spans":[{"traceId":"5b8efff798038103d269b633813fc60c","spanId":"eee19b7ec3c1b174","name":"modinput_smoke_span","kind":1,"startTimeUnixNano":"1700000000000000000","endTimeUnixNano":"1700000001000000000"}]}]}]}'
+
+      - name: Check splunk_modinput exporter sent data
+        run: |
+          set -eo pipefail
+          for series in otelcol_exporter_sent_log_records otelcol_exporter_sent_metric_points otelcol_exporter_sent_spans; do
+            elapsed=0
+            echo -n "Waiting for ${series} from splunk_modinput: "
+            until docker exec -i "$CONTAINER_NAME" curl -s http://localhost:8888/metrics \
+                | grep -E "^${series}[a-z_]*\{[^}]*exporter=\"splunk_modinput\"[^}]*\} [1-9]" > /dev/null; do
+              if [ $elapsed -ge 60 ]; then
+                echo ""
+                echo "Timeout: splunk_modinput did not report ${series} within 60 seconds"
+                exit 1
+              fi
+              sleep 2
+              elapsed=$((elapsed + 2))
+              echo -n "."
+            done
+            echo " ok"
+          done
+
+      - name: Check splunk_modinput events were indexed by Splunk
+        env:
+          SPLUNK_PASSWORD: ${{ steps.gen_password.outputs.splunk_password }}
+        run: |
+          set -eo pipefail
+          for marker in modinput_smoke_log modinput_smoke_metric modinput_smoke_span; do
+            elapsed=0
+            echo -n "Waiting for ${marker} to be searchable: "
+            while true; do
+              count="$(curl -k -sS -u "admin:${SPLUNK_PASSWORD}" https://localhost:8089/services/search/jobs/export \
+                --data-urlencode "search=search index=_internal sourcetype=Splunk_TA_otel \"${marker}\" \"ta-smoke-source\" | stats count" \
+                -d earliest_time=-30m -d output_mode=csv | tail -n 1 | tr -d '"')"
+              if [[ "$count" =~ ^[0-9]+$ ]] && [ "$count" -gt 0 ]; then
+                echo " ok"
+                break
+              fi
+              if [ $elapsed -ge 120 ]; then
+                echo ""
+                echo "Timeout: ${marker} was not found in index=_internal within 120 seconds"
+                exit 1
+              fi
+              sleep 5
+              elapsed=$((elapsed + 5))
+              echo -n "."
+            done
+          done
 
       - name: Create test secret in Splunk secret storage
         env:
@@ -291,6 +355,11 @@ jobs:
           - Splunk_TA_otel.tgz
           - Splunk_TA_otel_windows_x86_64.tgz
     steps:
+      - name: Checkout smoke test configs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: packaging/ta-v2/tests/smoke
+
       - name: Download the Splunk UF MSI
         shell: bash
         run: |
@@ -337,6 +406,12 @@ jobs:
           New-Item -ItemType Directory -Path "$modularInputDir\local" -Force | Out-Null
           $inputsConfPath = "$modularInputDir\local\inputs.conf"
           Copy-Item -Path "$modularInputDir\default\inputs.conf" -Destination $inputsConfPath -Force
+          # The extra config appends the splunk_modinput exporter to the pipelines of agent_config.yaml.
+          # Passing --config replaces splunk_config, so the agent config must be listed explicitly.
+          # Forward slashes and quotes are required since the cmd args are split with POSIX shell rules.
+          Copy-Item -Path "${{ github.workspace }}\packaging\ta-v2\tests\smoke\splunk_modinput_config.yaml" -Destination "$modularInputDir\configs\splunk_modinput_config.yaml" -Force
+          $configsDir = "$($Env:ProgramFiles -replace '\\', '/')/SplunkUniversalForwarder/etc/apps/$appName/configs"
+          $configArgs = "--config=`"$configsDir/agent_config.yaml`" --config=`"$configsDir/splunk_modinput_config.yaml`" --feature-gates=confmap.enableMergeAppendOption"
           $inputsContent = Get-Content -Path $inputsConfPath
           $tokenLineFound = $false
           $updatedContent = $inputsContent | ForEach-Object {
@@ -348,7 +423,7 @@ jobs:
               } elseif ($_ -match "^splunk_collector_env_vars\s*=\s*$") {
                   "splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value"
               } elseif ($_ -match "^splunk_collector_cmd_args\s*=\s*$") {
-                  "splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s"
+                  "splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s $configArgs"
               } elseif ($_ -match "^\[Splunk_TA_otel.*\]\s*$") {
                   "[Splunk_TA_otel://local_run]"
               } else {
@@ -497,6 +572,40 @@ jobs:
           } else {
               Write-Host "--discovery cmd arg is NOT reflected in the collector service!" -ForegroundColor Red
               exit 1
+          }
+
+      - name: Send telemetry to the collector for the splunk_modinput exporter
+        shell: pwsh
+        run: |
+          $payloads = @{
+              logs    = '{"resourceLogs":[{"scopeLogs":[{"logRecords":[{"timeUnixNano":"1700000000000000000","body":{"stringValue":"modinput_smoke_log"}}]}]}]}'
+              metrics = '{"resourceMetrics":[{"scopeMetrics":[{"metrics":[{"name":"modinput_smoke_metric","gauge":{"dataPoints":[{"asInt":"1","timeUnixNano":"1700000000000000000"}]}}]}]}]}'
+              traces  = '{"resourceSpans":[{"scopeSpans":[{"spans":[{"traceId":"5b8efff798038103d269b633813fc60c","spanId":"eee19b7ec3c1b174","name":"modinput_smoke_span","kind":1,"startTimeUnixNano":"1700000000000000000","endTimeUnixNano":"1700000001000000000"}]}]}]}'
+          }
+          foreach ($signal in $payloads.Keys) {
+              Invoke-WebRequest -Uri "http://localhost:4318/v1/$signal" -Method Post -ContentType "application/json" -Body $payloads[$signal] -UseBasicParsing | Out-Null
+              Write-Host "Sent $signal"
+          }
+
+      - name: Check splunk_modinput exporter sent data
+        shell: pwsh
+        run: |
+          foreach ($series in @("otelcol_exporter_sent_log_records", "otelcol_exporter_sent_metric_points", "otelcol_exporter_sent_spans")) {
+              $pattern = '(?m)^' + $series + '[a-z_]*\{[^}]*exporter="splunk_modinput"[^}]*\} [1-9]'
+              $timeout = 60
+              $elapsed = 0
+              Write-Host -NoNewline "Waiting for $series from splunk_modinput: "
+              while ((Invoke-WebRequest -Uri "http://localhost:8888/metrics" -UseBasicParsing).Content -notmatch $pattern) {
+                  if ($elapsed -ge $timeout) {
+                      Write-Host ""
+                      Write-Host "Timeout: splunk_modinput did not report $series within $timeout seconds" -ForegroundColor Red
+                      exit 1
+                  }
+                  Start-Sleep -Seconds 2
+                  $elapsed += 2
+                  Write-Host -NoNewline "."
+              }
+              Write-Host " ok"
           }
 
       - name: Create test secret in Splunk secret storage

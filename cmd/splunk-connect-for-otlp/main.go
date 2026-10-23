@@ -18,6 +18,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -27,7 +28,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth"
-	"github.com/signalfx/splunk-otel-collector/internal/exporter/stdoutexporter"
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
 
@@ -81,28 +82,28 @@ func run() (runErr error) {
 	if err := xmlCfg.Validate(); err != nil {
 		return fmt.Errorf("cannot start TA due to invalid configuration: %w", err)
 	}
-	stdoutCfg := stdoutexporter.NewFactory().CreateDefaultConfig().(*stdoutexporter.Config)
-	stdoutCfg.Source = xmlCfg.Source
-	stdoutCfg.Sourcetype = xmlCfg.Sourcetype
+	modinputCfg := splunkmodinputexporter.NewFactory().CreateDefaultConfig().(*splunkmodinputexporter.Config)
+	modinputCfg.Source = xmlCfg.Source
+	modinputCfg.Sourcetype = xmlCfg.Sourcetype
 
-	f := stdoutexporter.NewFactory()
+	f := splunkmodinputexporter.NewFactory()
 	ctx := context.Background()
 	telemetrySettings := exporter.Settings{
 		TelemetrySettings: settings,
-		ID:                component.MustNewID("stdout"),
+		ID:                component.MustNewID("splunk_modinput"),
 	}
 	var le exporter.Logs
 	var me exporter.Metrics
 	var tracesExporter exporter.Traces
 	var err error
-	if le, err = f.CreateLogs(ctx, telemetrySettings, stdoutCfg); err != nil {
+	if le, err = f.CreateLogs(ctx, telemetrySettings, modinputCfg); err != nil {
 		return err
 	}
 	if xmlCfg.Realm == "" {
-		if me, err = f.CreateMetrics(ctx, telemetrySettings, stdoutCfg); err != nil {
+		if me, err = f.CreateMetrics(ctx, telemetrySettings, modinputCfg); err != nil {
 			return err
 		}
-		if tracesExporter, err = f.CreateTraces(ctx, telemetrySettings, stdoutCfg); err != nil {
+		if tracesExporter, err = f.CreateTraces(ctx, telemetrySettings, modinputCfg); err != nil {
 			return err
 		}
 
@@ -142,14 +143,20 @@ func run() (runErr error) {
 		TelemetrySettings: settings,
 		ID:                component.MustNewID("otlp"),
 	}
-	if _, err = rf.CreateLogs(ctx, otlpSettings, cfg, le); err != nil {
+	if _, err = rf.CreateLogs(ctx, otlpSettings, cfg, indexAuthorizedLogs{le}); err != nil {
 		return err
 	}
-	if _, err = rf.CreateMetrics(ctx, otlpSettings, cfg, me); err != nil {
+	metricsConsumer := consumer.Metrics(me)
+	tracesConsumer := consumer.Traces(tracesExporter)
+	if xmlCfg.Realm == "" {
+		metricsConsumer = indexAuthorizedMetrics{me}
+		tracesConsumer = indexAuthorizedTraces{tracesExporter}
+	}
+	if _, err = rf.CreateMetrics(ctx, otlpSettings, cfg, metricsConsumer); err != nil {
 		return err
 	}
 	var r receiver.Traces
-	r, err = rf.CreateTraces(ctx, otlpSettings, cfg, tracesExporter)
+	r, err = rf.CreateTraces(ctx, otlpSettings, cfg, tracesConsumer)
 	if err != nil {
 		return err
 	}

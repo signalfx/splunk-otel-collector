@@ -211,7 +211,7 @@ func TestApplyIncludeExclude(t *testing.T) {
 // the "\n" in the body.
 func TestApplyStanzaConfigSplitsOnNewlines(t *testing.T) {
 	oc := file.NewConfig()
-	ApplyStanzaConfig(oc, conf.Stanza{Name: "monitor:///var/log/foo.log"})
+	ApplyStanzaConfig(oc, conf.Stanza{Name: "monitor:///var/log/foo.log"}, nil)
 
 	require.Equal(t, split.Config{}, oc.SplitConfig)
 	// Whitespace inside the line is content, so only the delimiter is dropped.
@@ -264,8 +264,56 @@ func TestApplyStanzaConfigAttributes(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			oc := file.NewConfig()
-			ApplyStanzaConfig(oc, conf.Stanza{Name: "monitor:///var/log/foo.log", Params: tt.params})
+			ApplyStanzaConfig(oc, conf.Stanza{Name: "monitor:///var/log/foo.log", Params: tt.params}, nil)
 			require.Equal(t, tt.want, oc.Attributes)
+		})
+	}
+}
+
+// TestApplyStanzaConfigCharset covers stanza encoding resolution
+// based on sourcetype prop.
+func TestApplyStanzaConfigCharset(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		want   string
+		params conf.Params
+		props  []conf.Prop
+	}{
+		{
+			name:   "matching prop with a valid charset",
+			params: conf.Params{{Name: "sourcetype", Value: "app_logs"}},
+			props: []conf.Prop{
+				{Name: "app_logs", Charset: "ascii"},
+			},
+			want: "ascii",
+		},
+		{
+			name:   "matching prop with a invalid charset",
+			params: conf.Params{{Name: "sourcetype", Value: "app_logs"}},
+			props: []conf.Prop{
+				{Name: "app_logs", Charset: "INVALID-CHARSET"},
+			},
+			want: "utf-8",
+		},
+		{
+			name:   "no props",
+			params: conf.Params{{Name: "sourcetype", Value: "app_logs"}},
+			props:  nil,
+			want:   "utf-8",
+		},
+		{
+			name:   "charset=AUTO",
+			params: conf.Params{{Name: "sourcetype", Value: "app_logs"}},
+			props: []conf.Prop{
+				{Name: "app_logs", Charset: "AUTO"},
+			},
+			want: "utf-8",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			oc := file.NewConfig()
+			ApplyStanzaConfig(oc, conf.Stanza{Name: "monitor:///var/log/foo.log", Params: tt.params}, tt.props)
+			require.Equal(t, tt.want, oc.Encoding)
 		})
 	}
 }

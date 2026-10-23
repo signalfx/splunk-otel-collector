@@ -3,7 +3,7 @@
 
 // Package splunkmonitor is a UF-native monitor receiver wrapper. Its confmap
 // config carries the fields of a resolved [monitor://...] stanza
-// (include/exclude/charset/truncate/event_breaker plus the resource attrs) and
+// (include/exclude/truncate/event_breaker plus the resource attrs) and
 // rebuilds the underlying monitorreceiver by delegating to tabuilder, so the
 // data path is the one splunk_inputs already uses.
 //
@@ -40,7 +40,6 @@ type Config struct {
 	Source       string            `mapstructure:"source,omitempty"`
 	Sourcetype   string            `mapstructure:"sourcetype,omitempty"`
 	Host         string            `mapstructure:"host,omitempty"`
-	Charset      string            `mapstructure:"charset,omitempty"`
 	EventBreaker string            `mapstructure:"event_breaker,omitempty"`
 	Path         string            `mapstructure:"path"`
 	Props        []conf.Prop       `mapstructure:"props,omitempty"`
@@ -89,9 +88,6 @@ func (c *Config) params() conf.Params {
 		Host:       c.Host,
 	}, c.Extra)
 
-	if c.Charset != "" {
-		params = append(params, conf.Param{Name: "CHARSET", Value: c.Charset})
-	}
 	if c.EventBreaker != "" {
 		params = append(params, conf.Param{Name: "EVENT_BREAKER", Value: c.EventBreaker})
 	}

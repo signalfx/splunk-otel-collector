@@ -1,0 +1,5 @@
+change_type: bug_fix
+component: splunkconf
+note: Read from the `nop` receiver instead of failing to start when no input stanza maps, matching a Universal Forwarder, where an idle agent is a normal state.
+issues: [8332]
+subtext:

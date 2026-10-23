@@ -25,19 +25,19 @@ describe 'splunk_otel_collector::default' do
     end
 
     it 'does not require an Observability access token' do
-      expect(chef_run).not_to run_ruby_block('splunk-access-token-unset')
+      expect { chef_run }.not_to raise_error
     end
 
     it 'configures the Platform HEC environment without Observability settings' do
       expect(chef_run).to render_file('/etc/otel/collector/splunk-otel-collector.conf')
-        .with_content(/^SPLUNK_PLATFORM_URL=https:\/\/hec\.example\.com:8088$/)
+        .with_content(%r{^SPLUNK_PLATFORM_URL=https://hec\.example\.com:8088$})
         .with_content(/^SPLUNK_PLATFORM_TOKEN=platform-token$/)
         .with_content(/^SPLUNK_PLATFORM_LOGS_INDEX=host-logs$/)
         .with_content(
-          /^SPLUNK_FILE_STORAGE_EXTENSION_PATH=\/var\/lib\/otelcol\/filelogs$/
+          %r{^SPLUNK_FILE_STORAGE_EXTENSION_PATH=/var/lib/otelcol/filelogs$}
         )
         .with_content(
-          /^OTELCOL_OPTIONS=--set=custom --config \/etc\/otel\/collector\/splunk_logs_config_linux\.yaml$/
+          %r{^OTELCOL_OPTIONS=--set=custom --config /etc/otel/collector/splunk_logs_config_linux\.yaml$}
         )
 
       expect(chef_run).not_to render_file('/etc/otel/collector/splunk-otel-collector.conf')
@@ -91,9 +91,9 @@ describe 'splunk_otel_collector::default' do
     it 'composes both collector configs and enables the merge-append feature gate' do
       expect(chef_run).to render_file('/etc/otel/collector/splunk-otel-collector.conf')
         .with_content(/^SPLUNK_ACCESS_TOKEN=observability-token$/)
-        .with_content(/^SPLUNK_PLATFORM_URL=https:\/\/hec\.example\.com:8088$/)
+        .with_content(%r{^SPLUNK_PLATFORM_URL=https://hec\.example\.com:8088$})
         .with_content(
-          /^OTELCOL_OPTIONS=--config \/etc\/otel\/collector\/agent_config\.yaml --config \/etc\/otel\/collector\/splunk_logs_config_linux\.yaml --feature-gates=confmap\.enableMergeAppendOption$/
+          %r{^OTELCOL_OPTIONS=--config /etc/otel/collector/agent_config\.yaml --config /etc/otel/collector/splunk_logs_config_linux\.yaml --feature-gates=confmap\.enableMergeAppendOption$}
         )
 
       expect(chef_run).not_to render_file('/etc/otel/collector/splunk-otel-collector.conf')
@@ -113,7 +113,7 @@ describe 'splunk_otel_collector::default' do
 
     it 'keeps the existing collector config environment variable' do
       expect(chef_run).to render_file('/etc/otel/collector/splunk-otel-collector.conf')
-        .with_content(/^SPLUNK_CONFIG=\/etc\/otel\/collector\/agent_config\.yaml$/)
+        .with_content(%r{^SPLUNK_CONFIG=/etc/otel/collector/agent_config\.yaml$})
         .with_content(/^SPLUNK_ACCESS_TOKEN=observability-token$/)
       expect(chef_run).not_to render_file('/etc/otel/collector/splunk-otel-collector.conf')
         .with_content(/^SPLUNK_PLATFORM_URL=/)

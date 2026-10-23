@@ -1,0 +1,7 @@
+change_type: breaking
+component: splunk_outputs
+note: Remove the `splunk_outputs` exporter. The forwarding destination now comes from the `splunkconf` config provider reading `outputs.conf`, so pass `--config=splunkconf://<config-root>` instead of configuring the exporter in YAML.
+issues: [8123]
+subtext: |
+  The config root is the `etc` directory of the tree the exporter took as `base_dir`. The
+  `enableTARunner` feature gate is still required.

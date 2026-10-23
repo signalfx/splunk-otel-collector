@@ -1,0 +1,8 @@
+change_type: breaking
+component: splunk_inputs
+note: Remove the `splunk_inputs` receiver. Reading a Splunk `.conf` tree is now the `splunkconf` config provider's job, so pass `--config=splunkconf://<config-root>` instead of configuring the receiver in YAML.
+issues: [8123]
+subtext: |
+  The config root is the `etc` directory of the tree the receiver took as `base_dir`. The
+  `enableTARunner` feature gate is still required. The provider does not watch files, so reload
+  now happens on `SIGHUP` rather than automatically on file change.

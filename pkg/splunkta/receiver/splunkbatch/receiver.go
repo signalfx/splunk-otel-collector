@@ -27,8 +27,7 @@ const TypeStr = "splunk_batch"
 
 // Config is the UF-native, confmap-serializable batch receiver config. Stanza
 // params with no modeled field land in Extra and are passed through to
-// tabuilder. Props and Transforms carry the shared props/transforms set,
-// matching splunk_inputs.
+// tabuilder. Props and Transforms carry the resolved props/transforms set.
 type Config struct {
 	Extra      map[string]string `mapstructure:",remain"`
 	FilePath   string            `mapstructure:"file_path"`

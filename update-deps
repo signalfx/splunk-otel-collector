@@ -4,56 +4,70 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR" && pwd )"
-CUR_DIR="$PWD"
+SOURCE_REPOS_DIR="$(mktemp -d)"
+trap 'rm -rf "$SOURCE_REPOS_DIR"' EXIT
 
 OTEL_VERSION="${OTEL_VERSION:-main}"
 CORE_VERSION="${CORE_VERSION:-$OTEL_VERSION}"
 CONTRIB_VERSION="${CONTRIB_VERSION:-$OTEL_VERSION}"
 
-CORE_PKGS="go.opentelemetry.io/collector"
-CONTRIB_PKGS="github.com/open-telemetry/opentelemetry-collector-contrib"
-GONOPROXY=""
+CORE_REPO_ROOT="$SOURCE_REPOS_DIR/opentelemetry-collector"
+CONTRIB_REPO_ROOT="$SOURCE_REPOS_DIR/opentelemetry-collector-contrib"
 
-if [ "$CORE_VERSION" = "main" ]; then
-    CORE_VERSION=$(git ls-remote -q https://github.com/open-telemetry/opentelemetry-collector main | awk '{print $1}')
-    GONOPROXY=${GONOPROXY},${CORE_PKGS}/*
-fi
+git clone --depth 1 --branch main \
+    https://github.com/open-telemetry/opentelemetry-collector.git \
+    "$CORE_REPO_ROOT"
+git clone --depth 1 --branch main \
+    https://github.com/open-telemetry/opentelemetry-collector-contrib.git \
+    "$CONTRIB_REPO_ROOT"
 
-if [ "$CONTRIB_VERSION" = "main" ]; then
-    CONTRIB_VERSION=$(git ls-remote -q https://github.com/open-telemetry/opentelemetry-collector-contrib main | awk '{print $1}')
-    GONOPROXY=${GONOPROXY},${CONTRIB_PKGS}/*
-fi
+version_commit() {
+    local repo_root="$1"
+    local version="$2"
 
-# If updating to the most recent commit in the core/contrib main branch,
-# bypass the proxy and download directly from github to save time.
-if [ -n "$GONOPROXY" ]; then
-    export GONOPROXY=${GONOPROXY#,}
-    export GONOSUMDB=${GONOPROXY#,}
-fi
+    if [[ "$version" == "latest" ]]; then
+        return
+    fi
 
-trap "cd $CUR_DIR" EXIT
+    if [[ "$version" == "main" ]]; then
+        git -C "$repo_root" rev-parse HEAD
+        return
+    fi
 
-update_gomod() {
-    local gomod="$1"
-    local pkgs="$2"
-    local version="$3"
-
-    pushd "$( dirname "$gomod" )" >/dev/null
-
-    for mod in $( go list -f '{{if not .Indirect}}{{.Path}}{{end}}' -m ${pkgs}/... 2>/dev/null | grep -v go.opentelemetry.io/collector/semconv ); do
-        echo "Updating ${mod} in $gomod to $version"
-        if [[ "$version" = "latest" ]]; then
-            go get ${mod}
-        else
-            go get ${mod}@${version}
-        fi
-    done
-
-    popd >/dev/null
+    printf '%s\n' "$version"
 }
 
-for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
-    update_gomod "$gomod" "$CORE_PKGS" "$CORE_VERSION"
-    update_gomod "$gomod" "$CONTRIB_PKGS" "$CONTRIB_VERSION"
-    make -C "$REPO_DIR" tidy-all
-done
+sync_module_sets() {
+    local commit_hash
+    local repo_root="$1"
+    local version="$2"
+
+    commit_hash="$(version_commit "$repo_root" "$version")"
+    if [[ -n "$commit_hash" ]]; then
+        multimod sync -a=true -s=true -v "$REPO_DIR/versions.yaml" \
+            -o "$repo_root" --commit-hash "$commit_hash"
+    else
+        multimod sync -a=true -s=true -v "$REPO_DIR/versions.yaml" \
+            -o "$repo_root"
+    fi
+}
+
+commit_core_sync() {
+    if [[ -n "$(git -C "$REPO_DIR" status --porcelain)" ]]; then
+        git -C "$REPO_DIR" add -u
+        git -C "$REPO_DIR" commit -S \
+            -m "[chore] Update OpenTelemetry Core dependencies to $CORE_VERSION"
+    fi
+}
+
+cd "$REPO_DIR"
+
+echo ">>> Syncing OpenTelemetry Core module sets to $CORE_VERSION ..."
+sync_module_sets "$CORE_REPO_ROOT" "$CORE_VERSION"
+commit_core_sync
+
+echo ">>> Syncing OpenTelemetry Contrib module sets to $CONTRIB_VERSION ..."
+sync_module_sets "$CONTRIB_REPO_ROOT" "$CONTRIB_VERSION"
+
+echo ">>> Tidying Go modules ..."
+make -C "$REPO_DIR" tidy-all

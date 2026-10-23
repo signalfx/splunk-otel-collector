@@ -6,5 +6,3 @@ subtext: |
   The config root is the `etc` directory of the tree these components took as `base_dir`. The
   `enableTARunner` feature gate is still required. The provider does not watch files, so reload
   now happens on `SIGHUP` or an OpAMP-pushed config rather than automatically on file change.
-  See `docs/deprecations/splunk-inputs-outputs.md` for the full migration, including known
-  differences.

@@ -31,7 +31,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
-	"github.com/signalfx/splunk-otel-collector/pkg/receiver/splunkinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
@@ -48,7 +47,7 @@ const (
 var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 	enableTARunnerFeatureGateID,
 	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the `splunk_inputs` receiver and the UF-native `splunk_*` receiver and exporter types. "+
+	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the UF-native `splunk_*` receiver and exporter types. "+
 		"When disabled (default), those components are not available and the collector will crash if it tries to run them."),
 	featuregate.WithRegisterFromVersion("v0.158.0"),
 )
@@ -78,12 +77,9 @@ func Get() (otelcol.Factories, error) {
 		smartagentreceiver.NewFactory(),
 	)
 	if enableTARunner.IsEnabled() {
-		b.AddReceivers(splunkinputsreceiver.NewFactory())
-
-		// UF-native receiver types, one per input stanza scheme. They delegate to
-		// the same tabuilder.CreateReceiver that splunk_inputs uses, so the data
-		// path is shared. Undocumented: they exist to be emitted from a .conf
-		// config source, not written by hand in YAML.
+		// UF-native receiver types, one per input stanza scheme. Undocumented:
+		// they exist to be emitted from a .conf config source, not written by
+		// hand in YAML.
 		b.AddReceivers(
 			splunkmonitor.NewFactory(),
 			splunktcp.NewFactory(),

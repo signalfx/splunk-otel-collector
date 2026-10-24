@@ -40,8 +40,9 @@ type TLS struct {
 
 // ConfigFromOutput maps a resolved [hecout] stanza onto this Config.
 func ConfigFromOutput(out conf.Output) *Config {
+	params := out.Configuration.Stanza.Params
 	param := func(name string) string {
-		if p := out.Configuration.Stanza.Params.Get(name); p != nil {
+		if p := params.Get(name); p != nil {
 			return p.Value
 		}
 		return ""
@@ -49,8 +50,7 @@ func ConfigFromOutput(out conf.Output) *Config {
 	return &Config{
 		Endpoint: param("uri"),
 		Token:    param("httpEventCollectorToken"),
-		// TODO: wire sslVerifyServerCert from outputs.conf.
-		TLS: TLS{InsecureSkipVerify: true},
+		TLS:      TLS{InsecureSkipVerify: !params.Bool("sslVerifyServerCert", false)},
 	}
 }
 

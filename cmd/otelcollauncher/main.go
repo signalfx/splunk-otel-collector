@@ -15,14 +15,32 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
 	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
 func main() {
-	if err := run(os.Args[1:], os.Environ(), launcher.DefaultPaths()); err != nil {
+	args := os.Args[1:]
+	streams := cli.IO{Out: os.Stdout, Err: os.Stderr}
+
+	if command, resolved := cli.Resolve(commandFamilies(), args, streams); resolved {
+		os.Exit(runWithSignals(command))
+	}
+	if err := run(args, os.Environ(), launcher.DefaultPaths()); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// runWithSignals installs the signal handler only after a subcommand has matched,
+// so the collector passthrough in run keeps default signal behavior.
+func runWithSignals(command func(context.Context) int) int {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	return command(ctx)
 }

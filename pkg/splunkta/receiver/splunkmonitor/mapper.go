@@ -39,9 +39,6 @@ func (Factory) MapInputs(c splunkconf.Conf) (map[string]component.Config, error)
 			Props:      in.Props,
 			Transforms: in.Transforms,
 		}
-		if p := st.Params.Get("CHARSET"); p != nil {
-			cfg.Charset = p.Value
-		}
 		if p := st.Params.Get("EVENT_BREAKER"); p != nil {
 			cfg.EventBreaker = p.Value
 		}

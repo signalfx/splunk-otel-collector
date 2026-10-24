@@ -222,10 +222,13 @@ jobs:
       - name: Install chef
         uses: actionshub/chef-install@998ca15464a2bafdc36d3970cffc0e32823b179d # 5.0.2
         with:
+          project: cinc-workstation
+          omnitruckUrl: omnitruck.cinc.sh
           version: ${{ env.CHEF_VERSION }}
+          windowsPath: 'C:\cinc-project\cinc-workstation\'
 
       - name: Install kitchen-docker
-        run: chef gem install kitchen-docker
+        run: cinc gem install kitchen-docker
 
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
         run: |

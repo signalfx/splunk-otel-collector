@@ -44,7 +44,6 @@ func TestMapInputsTypedParams(t *testing.T) {
 	require.Len(t, got, 1)
 	require.Equal(t, &splunkmonitor.Config{
 		Path:         "/var/log/typed",
-		Charset:      "UTF-8",
 		EventBreaker: "BRK",
 		Truncate:     1024,
 		Extra:        map[string]string{"NOT_A_NUMBER": "x"},

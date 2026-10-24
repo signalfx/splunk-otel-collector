@@ -57,3 +57,36 @@ func TestRedirectTALogsToStderrLeavesOtherDestinations(t *testing.T) {
 	require.Equal(t, original, cfg.ToStringMap())
 	require.NoError(t, RedirectTALogsToStderr(t.Context(), nil))
 }
+
+func TestRedirectTALogsToStderrIgnoresMissingLogSettings(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		cfg  map[string]any
+	}{
+		{name: "service", cfg: map[string]any{}},
+		{name: "telemetry", cfg: map[string]any{"service": map[string]any{}}},
+		{name: "logs", cfg: map[string]any{"service": map[string]any{"telemetry": map[string]any{}}}},
+		{name: "paths", cfg: map[string]any{"service": map[string]any{"telemetry": map[string]any{"logs": map[string]any{"output_paths": "stdout"}}}}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := confmap.NewFromStringMap(tc.cfg)
+			original := cfg.ToStringMap()
+			require.NoError(t, RedirectTALogsToStderr(t.Context(), cfg))
+			require.Equal(t, original, cfg.ToStringMap())
+		})
+	}
+}
+
+func TestRedirectTALogsToStderrPreservesOtherPathTypes(t *testing.T) {
+	cfg := confmap.NewFromStringMap(map[string]any{
+		"service": map[string]any{
+			"telemetry": map[string]any{
+				"logs": map[string]any{"output_paths": []any{42, "stdout"}},
+			},
+		},
+	})
+
+	require.NoError(t, RedirectTALogsToStderr(t.Context(), cfg))
+	logs := cfg.ToStringMap()["service"].(map[string]any)["telemetry"].(map[string]any)["logs"].(map[string]any)
+	require.Equal(t, []any{42, "stderr"}, logs["output_paths"])
+}

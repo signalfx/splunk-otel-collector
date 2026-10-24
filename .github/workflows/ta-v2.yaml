@@ -439,6 +439,8 @@ jobs:
                   "splunk_realm = us0"
               } elseif ($_ -match "^splunk_collector_env_vars\s*=\s*$") {
                   "splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value"
+              } elseif ($_ -match "^splunk_collector_log_level\s*=") {
+                  "splunk_collector_log_level = info"
               } elseif ($_ -match "^splunk_collector_cmd_args\s*=\s*$") {
                   "splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s $configArgs"
               } elseif ($_ -match "^\[Splunk_TA_otel.*\]\s*$") {

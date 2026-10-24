@@ -1,0 +1,4 @@
+change_type: bug_fix
+component: Splunk_TA_otel
+note: Route collector logs configured for stdout to stderr when running as a Splunk modular input
+issues: [8321]

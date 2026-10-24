@@ -60,8 +60,8 @@ func TestRedirectTALogsToStderrLeavesOtherDestinations(t *testing.T) {
 
 func TestRedirectTALogsToStderrIgnoresMissingLogSettings(t *testing.T) {
 	for _, tc := range []struct {
-		name string
 		cfg  map[string]any
+		name string
 	}{
 		{name: "service", cfg: map[string]any{}},
 		{name: "telemetry", cfg: map[string]any{"service": map[string]any{}}},

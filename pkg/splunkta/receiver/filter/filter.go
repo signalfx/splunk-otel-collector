@@ -19,6 +19,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/split"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/trim"
 	"go.uber.org/zap"
+	"golang.org/x/text/encoding/ianaindex"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 )
@@ -215,14 +216,14 @@ func escapeGlobLiteral(value string) string {
 
 // ApplyStanzaConfig sets file.Config attributes and defaults that are common
 // to both monitor and batch receivers.
-func ApplyStanzaConfig(oc *file.Config, stanza conf.Stanza) {
+func ApplyStanzaConfig(oc *file.Config, stanza conf.Stanza, props []conf.Prop) {
 	for _, name := range []string{"host", "index", "sourcetype", "source"} {
 		if p := stanza.Params.Get(name); p != nil {
 			oc.Attributes[name] = helper.ExprStringConfig(p.Value)
 		}
 	}
 	oc.IncludeFilePath = true
-	oc.Encoding = "utf-8"
+	oc.Encoding = resolveEncoding(stanza, props)
 	oc.StartAt = "beginning"
 	// The zero SplitConfig splits on newlines and drops the terminator, which is
 	// what Splunk indexes. A LineStartPattern of "^" ends each token at the next
@@ -232,4 +233,30 @@ func ApplyStanzaConfig(oc *file.Config, stanza conf.Stanza) {
 		PreserveLeading:  true,
 		PreserveTrailing: true,
 	}
+}
+
+const defaultEncoding = "utf-8"
+
+func resolveEncoding(stanza conf.Stanza, props []conf.Prop) string {
+	var sourcetype string
+	if p := stanza.Params.Get("sourcetype"); p != nil {
+		sourcetype = p.Value
+	}
+	charset := strings.TrimSpace(conf.Charset(props, sourcetype))
+	if charset == "" {
+		return defaultEncoding
+	}
+	if !supportedEncoding(charset) {
+		return defaultEncoding
+	}
+	return charset
+}
+
+func supportedEncoding(charset string) bool {
+	switch strings.ToLower(charset) {
+	case "utf-16", "utf16", "utf-8", "utf8", "utf-8-raw", "utf8-raw", "ascii", "us-ascii", "nop":
+		return true
+	}
+	e, err := ianaindex.IANA.Encoding(charset)
+	return err == nil && e != nil
 }

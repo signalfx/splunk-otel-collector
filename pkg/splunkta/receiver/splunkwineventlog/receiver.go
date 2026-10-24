@@ -27,8 +27,7 @@ const TypeStr = "splunk_wineventlog"
 
 // Config is the UF-native, confmap-serializable wineventlog receiver config.
 // Stanza params with no modeled field land in Extra and are passed through to
-// tabuilder. Props and Transforms carry the shared props/transforms set,
-// matching splunk_inputs.
+// tabuilder. Props and Transforms carry the resolved props/transforms set.
 type Config struct {
 	Extra        map[string]string `mapstructure:",remain"`
 	EventLogName string            `mapstructure:"event_log_name"`

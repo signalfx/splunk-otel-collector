@@ -46,7 +46,7 @@ func TestBaselineIsUpstreamOnly(t *testing.T) {
 
 	for _, splunk := range []string{
 		"smartagent",
-		"splunk_inputs",
+		"splunk_monitor",
 		"discovery",
 		"gnmi",
 		"signalfxgatewayprometheusremotewrite",

@@ -29,8 +29,7 @@ const TypeStr = "splunk_script"
 
 // Config is the UF-native, confmap-serializable script receiver config. Stanza
 // params with no modeled field land in Extra and are passed through to
-// tabuilder. Props and Transforms carry the shared props/transforms set,
-// matching splunk_inputs.
+// tabuilder. Props and Transforms carry the resolved props/transforms set.
 type Config struct {
 	Extra          map[string]string `mapstructure:",remain"`
 	ScriptFilename string            `mapstructure:"script_filename"`

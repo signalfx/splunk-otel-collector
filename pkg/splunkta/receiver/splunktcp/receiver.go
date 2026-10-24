@@ -28,8 +28,7 @@ const TypeStr = "splunk_tcp"
 
 // Config is the UF-native, confmap-serializable TCP receiver config. Stanza
 // params with no modeled field land in Extra and are passed through to
-// tabuilder. Props and Transforms carry the shared props/transforms set,
-// matching splunk_inputs.
+// tabuilder. Props and Transforms carry the resolved props/transforms set.
 type Config struct {
 	Extra         map[string]string `mapstructure:",remain"`
 	ListenAddress string            `mapstructure:"listen_address,omitempty"`

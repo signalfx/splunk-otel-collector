@@ -309,8 +309,7 @@ func TestStanzasNotEmitted(t *testing.T) {
 	}
 }
 
-// A system receiver gets the system props/transforms set, which is what
-// splunk_inputs feeds its system sub-receivers.
+// A system receiver gets the system props/transforms set.
 func TestPropsTransformsParity(t *testing.T) {
 	dirs := tabuilder.SystemConfRootDirs(confRoot)
 	wantProps, err := tabuilder.ReadProps(dirs)

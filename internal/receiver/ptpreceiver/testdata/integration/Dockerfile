@@ -11,7 +11,7 @@
 # Built from source: Debian bookworm's packaged linuxptp (3.1.1) predates
 # ptp4l's uds_ro_address option, which this receiver's default config relies
 # on.
-FROM golang:1.26-bookworm
+FROM golang:1.27-bookworm
 
 ARG LINUXPTP_VERSION=v4.4
 

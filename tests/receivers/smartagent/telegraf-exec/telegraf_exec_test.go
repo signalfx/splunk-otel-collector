@@ -48,7 +48,10 @@ func TestTelegrafExecWithGoScript(t *testing.T) {
 		func(collector testutils.Collector) testutils.Collector {
 			cc := collector.(*testutils.CollectorContainer)
 			cc.Image = imageName
-			return cc.WithArgs("--config", "/etc/config.yaml")
+			return cc.WithArgs(
+				"--config", "/etc/config.yaml",
+				"--feature-gates=+receiver.smartagentreceiver.TelegrafExec",
+			)
 		})
 	defer shutdown()
 

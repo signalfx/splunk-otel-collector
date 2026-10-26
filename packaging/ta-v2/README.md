@@ -25,9 +25,6 @@ service:
       error_output_paths: [stderr]
 ```
 
-When run as a modular input, the TA redirects collector log output configured
-for `stdout` to `stderr` automatically.
-
 ### Indexing telemetry in the local Splunk instance
 
 The [`splunk_modinput` exporter](../../internal/exporter/splunkmodinputexporter/README.md)

@@ -309,8 +309,7 @@ func TestStanzasNotEmitted(t *testing.T) {
 	}
 }
 
-// A system receiver gets the system props/transforms set, which is what
-// splunk_inputs feeds its system sub-receivers.
+// A system receiver gets the system props/transforms set.
 func TestPropsTransformsParity(t *testing.T) {
 	dirs := tabuilder.SystemConfRootDirs(confRoot)
 	wantProps, err := tabuilder.ReadProps(dirs)
@@ -468,10 +467,11 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			errMsg: "invalid query",
 		},
 		{
-			// testdata itself has no system/local/inputs.conf.
-			name:   "config root with no mappable inputs",
+			// testdata itself holds neither conf file, and only the output side
+			// still refuses to resolve.
+			name:   "config root with neither inputs nor outputs",
 			uri:    "splunkconf://testdata",
-			errMsg: "no supported input stanzas found",
+			errMsg: "no output stanzas found in outputs.conf",
 		},
 		{
 			name:   "malformed inputs.conf",
@@ -517,6 +517,38 @@ func TestRetrieveSurfacesErrors(t *testing.T) {
 			p := providerFactory().Create(confmap.ProviderSettings{})
 			_, err := p.Retrieve(context.Background(), uri, nil)
 			require.ErrorContains(t, err, tt.errMsg)
+		})
+	}
+}
+
+// A tree with nothing to read reads from nop instead of refusing to start,
+// because an idle agent is a normal state. The outputs still resolve.
+func TestNoUsableInputsReadsFromNop(t *testing.T) {
+	const outputs = "[hecout]\nuri = https://localhost:8088\n"
+
+	for _, tt := range []struct {
+		name   string
+		inputs string
+	}{
+		{name: "inputs.conf absent"},
+		{name: "no stanzas", inputs: "# nothing here\n"},
+		{name: "every stanza disabled", inputs: "[monitor:///var/log/foo]\ndisabled = 1\n"},
+		{name: "only unmapped kinds", inputs: "[http://tok]\ntoken = abc\n"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			files := map[string]string{"outputs.conf": outputs}
+			if tt.inputs != "" {
+				files["inputs.conf"] = tt.inputs
+			}
+			resolved := resolve(t, "splunkconf://"+writeConfTree(t, files))
+
+			recvIDs, expIDs := pipelineIDs(t, resolved, "logs/uf")
+			require.Equal(t, []string{"nop"}, recvIDs)
+			require.Equal(t, []string{"splunk_hecout/hecout-d6a24a0d"}, expIDs)
+
+			receivers, err := resolved.Sub("receivers")
+			require.NoError(t, err)
+			require.Equal(t, map[string]any{"nop": map[string]any{}}, receivers.ToStringMap())
 		})
 	}
 }

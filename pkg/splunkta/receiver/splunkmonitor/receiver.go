@@ -3,9 +3,8 @@
 
 // Package splunkmonitor is a UF-native monitor receiver wrapper. Its confmap
 // config carries the fields of a resolved [monitor://...] stanza
-// (include/exclude/charset/truncate/event_breaker plus the resource attrs) and
-// rebuilds the underlying monitorreceiver by delegating to tabuilder, so the
-// data path is the one splunk_inputs already uses.
+// (include/exclude/truncate/event_breaker plus the resource attrs) and
+// rebuilds the underlying monitorreceiver by delegating to tabuilder.
 //
 // The type is registered so a .conf config source can emit it. It is
 // undocumented and not intended to be written by hand in YAML.
@@ -32,15 +31,13 @@ const TypeStr = "splunk_monitor"
 // Config is the UF-native, confmap-serializable monitor config. Stanza params
 // with no modeled field land in Extra and are passed through to tabuilder, so an
 // unmodeled UF setting is neither dropped nor rejected by strict unmarshal.
-// Props and Transforms carry the shared props/transforms set, matching
-// splunk_inputs.
+// Props and Transforms carry the resolved props/transforms set.
 type Config struct {
 	Extra        map[string]string `mapstructure:",remain"`
 	Index        string            `mapstructure:"index,omitempty"`
 	Source       string            `mapstructure:"source,omitempty"`
 	Sourcetype   string            `mapstructure:"sourcetype,omitempty"`
 	Host         string            `mapstructure:"host,omitempty"`
-	Charset      string            `mapstructure:"charset,omitempty"`
 	EventBreaker string            `mapstructure:"event_breaker,omitempty"`
 	Path         string            `mapstructure:"path"`
 	Props        []conf.Prop       `mapstructure:"props,omitempty"`
@@ -89,9 +86,6 @@ func (c *Config) params() conf.Params {
 		Host:       c.Host,
 	}, c.Extra)
 
-	if c.Charset != "" {
-		params = append(params, conf.Param{Name: "CHARSET", Value: c.Charset})
-	}
 	if c.EventBreaker != "" {
 		params = append(params, conf.Param{Name: "EVENT_BREAKER", Value: c.EventBreaker})
 	}

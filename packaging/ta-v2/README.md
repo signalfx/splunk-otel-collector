@@ -13,6 +13,18 @@ to be run under `splunkd` control.
 See the [inputs.conf.spec](./assets/README/inputs.conf.spec) file for the available
 configuration options.
 
+Collector logs must go to stderr for the Universal Forwarder to record them in
+`splunkd.log` and `_internal`. Stdout is reserved for modular input event data.
+For custom collector configurations, use:
+
+```yaml
+service:
+  telemetry:
+    logs:
+      output_paths: [stderr]
+      error_output_paths: [stderr]
+```
+
 ### Indexing telemetry in the local Splunk instance
 
 The [`splunk_modinput` exporter](../../internal/exporter/splunkmodinputexporter/README.md)

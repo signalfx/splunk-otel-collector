@@ -28,6 +28,8 @@ func RedirectTALogsToStderr(_ context.Context, cfg *confmap.Conf) error {
 		return nil
 	}
 
+	// Log defaults to stderr so if not specified it is fine to use the defaults
+	// the checks below, return early based on that assumption.
 	out := cfg.ToStringMap()
 	service, ok := out["service"].(map[string]any)
 	if !ok {

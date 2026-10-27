@@ -49,7 +49,7 @@ func TestListMergesAllAppsAndReportsWinningSources(t *testing.T) {
 	}
 
 	var stdout, stderr bytes.Buffer
-	code := New().Dispatch("btool", []string{"--debug", "--dir=" + etcDir, "inputs", "list", "monitor:///tmp/btool"}, cli.IO{Out: &stdout, Err: &stderr})
+	code := New().Dispatch(t.Context(), "btool", []string{"--debug", "--dir=" + etcDir, "inputs", "list", "monitor:///tmp/btool"}, cli.IO{Out: &stdout, Err: &stderr})
 	if code != cli.ExitOK {
 		t.Fatalf("exit code %d, stderr: %s", code, stderr.String())
 	}
@@ -64,14 +64,14 @@ func TestListMergesAllAppsAndReportsWinningSources(t *testing.T) {
 
 	stdout.Reset()
 	stderr.Reset()
-	code = New().Dispatch("btool", []string{"inputs", "list", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
+	code = New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
 	if code != cli.ExitOK || strings.Contains(stdout.String(), "[default]") {
 		t.Fatalf("inputs.conf default stanza was displayed: exit code %d, output: %s", code, stdout.String())
 	}
 
 	stdout.Reset()
 	stderr.Reset()
-	code = New().Dispatch("btool", []string{"inputs", "list", "monitor:///tmp/btool", "--app=B", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
+	code = New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "monitor:///tmp/btool", "--app=B", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
 	if code != cli.ExitOK {
 		t.Fatalf("app context exit code %d, stderr: %s", code, stderr.String())
 	}
@@ -81,7 +81,7 @@ func TestListMergesAllAppsAndReportsWinningSources(t *testing.T) {
 
 	stdout.Reset()
 	stderr.Reset()
-	code = New().Dispatch("btool", []string{"inputs", "list", "--app=C", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
+	code = New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "--app=C", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
 	if code != cli.ExitOK {
 		t.Fatalf("other app context exit code %d, stderr: %s", code, stderr.String())
 	}
@@ -91,8 +91,8 @@ func TestListMergesAllAppsAndReportsWinningSources(t *testing.T) {
 
 	stdout.Reset()
 	stderr.Reset()
-	code = New().Dispatch("btool", []string{"inputs", "list", "--app=missing", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
-	if code != cli.ExitFailure || !strings.Contains(stderr.String(), "Application does not exist") {
+	code = New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "--app=missing", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
+	if code != cli.ExitFailure || !strings.Contains(stderr.String(), "application does not exist") {
 		t.Fatalf("missing app: exit code %d, stderr: %s", code, stderr.String())
 	}
 }

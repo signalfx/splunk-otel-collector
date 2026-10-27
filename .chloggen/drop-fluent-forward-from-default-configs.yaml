@@ -1,0 +1,10 @@
+change_type: breaking
+
+component: fluentforwardreceiver
+
+note: Remove the `fluent_forward` receiver from the default configurations
+
+issues: []
+
+subtext: |
+  The receiver is still part of the distribution and can be added back to a custom configuration.

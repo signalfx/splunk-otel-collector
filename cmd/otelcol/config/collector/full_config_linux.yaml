@@ -146,11 +146,6 @@ receivers:
   # Logs
   #############################################################################
 
-  # Enables the fluent_forward receiver with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver
-  fluent_forward:
-    endpoint: 0.0.0.0:8006
-
   # Enables file_log receiver
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
   file_log:
@@ -607,6 +602,6 @@ service:
       processors: [memory_limiter, batch, resource_detection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [fluent_forward, otlp]
+      receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]

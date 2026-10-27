@@ -16,6 +16,7 @@
 package btool
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -43,7 +44,7 @@ func (m *Manager) Verbs() []cli.VerbInfo {
 	}}
 }
 
-func (m *Manager) Dispatch(_ string, args []string, streams cli.IO) int {
+func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams cli.IO) int {
 	options, err := parseArgs(args)
 	if err != nil {
 		fmt.Fprintf(streams.Err, "%v\n%s\n", err, usage)
@@ -136,7 +137,7 @@ func configDirs(etcDir, selectedApp string) ([]string, error) {
 		appDir := filepath.Join(appsDir, selectedApp)
 		info, err := os.Stat(appDir)
 		if errors.Is(err, os.ErrNotExist) || err == nil && !info.IsDir() {
-			return nil, fmt.Errorf("Application does not exist: %s", selectedApp)
+			return nil, fmt.Errorf("application does not exist: %s", selectedApp)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("stat %s: %w", appDir, err)
@@ -173,8 +174,8 @@ type valueSource struct {
 }
 
 type stanzaSettings struct {
-	path   string
 	values map[string]valueSource
+	path   string
 }
 
 func readMerged(confName string, dirs []string) (map[string]*stanzaSettings, error) {

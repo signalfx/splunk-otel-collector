@@ -55,8 +55,6 @@ extensions:
       enabled: true
 
 receivers:
-  fluent_forward:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:8006"
   host_metrics:
     collection_interval: 10s
     scrapers:
@@ -262,7 +260,7 @@ service:
       # Use instead when sending to gateway
       #exporters: [otlp_grpc/gateway]
     logs:
-      receivers: [fluent_forward, otlp]
+      receivers: [otlp]
       processors:
       - memory_limiter
       - batch

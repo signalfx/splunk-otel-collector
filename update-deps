@@ -11,7 +11,9 @@ OTEL_VERSION="${OTEL_VERSION:-main}"
 CORE_VERSION="${CORE_VERSION:-$OTEL_VERSION}"
 CONTRIB_VERSION="${CONTRIB_VERSION:-$OTEL_VERSION}"
 
+CORE_REPO="open-telemetry/opentelemetry-collector"
 CORE_REPO_ROOT="$SOURCE_REPOS_DIR/opentelemetry-collector"
+CONTRIB_REPO="open-telemetry/opentelemetry-collector-contrib"
 CONTRIB_REPO_ROOT="$SOURCE_REPOS_DIR/opentelemetry-collector-contrib"
 
 git clone --depth 1 --branch main \
@@ -21,35 +23,31 @@ git clone --depth 1 --branch main \
     https://github.com/open-telemetry/opentelemetry-collector-contrib.git \
     "$CONTRIB_REPO_ROOT"
 
-version_commit() {
+resolve_version_commit() {
+    local ref
     local repo_root="$1"
-    local version="$2"
+    local repo="$2"
+    local version="$3"
 
     if [[ "$version" == "latest" ]]; then
-        return
+        ref="refs/tags/$(gh api "repos/$repo/releases/latest" --jq .tag_name)"
+    elif [[ "$version" == "main" ]]; then
+        ref="refs/heads/main"
+    else
+        ref="$version"
     fi
 
-    if [[ "$version" == "main" ]]; then
-        git -C "$repo_root" rev-parse HEAD
-        return
-    fi
-
-    printf '%s\n' "$version"
+    git -C "$repo_root" fetch --depth=1 origin "$ref"
+    git -C "$repo_root" checkout --detach FETCH_HEAD
+    git -C "$repo_root" rev-parse HEAD
 }
 
 sync_module_sets() {
-    local commit_hash
-    local repo_root="$1"
-    local version="$2"
+    local commit_hash="$1"
+    local repo_root="$2"
 
-    commit_hash="$(version_commit "$repo_root" "$version")"
-    if [[ -n "$commit_hash" ]]; then
-        multimod sync -a=true -s=true -v "$REPO_DIR/versions.yaml" \
-            -o "$repo_root" --commit-hash "$commit_hash"
-    else
-        multimod sync -a=true -s=true -v "$REPO_DIR/versions.yaml" \
-            -o "$repo_root"
-    fi
+    multimod sync -a=true -s=true -v "$REPO_DIR/versions.yaml" \
+        -o "$repo_root" --commit-hash "$commit_hash"
 }
 
 commit_core_sync() {
@@ -63,11 +61,15 @@ commit_core_sync() {
 cd "$REPO_DIR"
 
 echo ">>> Syncing OpenTelemetry Core module sets to $CORE_VERSION ..."
-sync_module_sets "$CORE_REPO_ROOT" "$CORE_VERSION"
+CORE_COMMIT="$(resolve_version_commit "$CORE_REPO_ROOT" "$CORE_REPO" "$CORE_VERSION")"
+echo ">>> Using Core commit $CORE_COMMIT"
+sync_module_sets "$CORE_COMMIT" "$CORE_REPO_ROOT"
 commit_core_sync
 
 echo ">>> Syncing OpenTelemetry Contrib module sets to $CONTRIB_VERSION ..."
-sync_module_sets "$CONTRIB_REPO_ROOT" "$CONTRIB_VERSION"
+CONTRIB_COMMIT="$(resolve_version_commit "$CONTRIB_REPO_ROOT" "$CONTRIB_REPO" "$CONTRIB_VERSION")"
+echo ">>> Using Contrib commit $CONTRIB_COMMIT"
+sync_module_sets "$CONTRIB_COMMIT" "$CONTRIB_REPO_ROOT"
 
 echo ">>> Tidying Go modules ..."
 make -C "$REPO_DIR" tidy-all

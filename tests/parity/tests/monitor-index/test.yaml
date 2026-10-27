@@ -1,0 +1,9 @@
+name: "Monitor index"
+description: A monitor stanza's index= lands the event in that index.
+setup: |
+  echo "index routed line" > foo.txt
+expected:
+  raw: true
+  host: true
+  source: true
+  index: true

@@ -17,6 +17,7 @@
 package lifecycle
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -71,7 +72,7 @@ func openSCMService(name string) (serviceController, error) {
 }
 
 type queryOnlyService struct {
-	scHandle  windows.Handle
+	scmHandle windows.Handle
 	svcHandle windows.Handle
 }
 
@@ -101,7 +102,7 @@ func (s *queryOnlyService) Query() (svc.Status, error) {
 
 func (s *queryOnlyService) Close() error {
 	err := windows.CloseServiceHandle(s.svcHandle)
-	if cErr := windows.CloseServiceHandle(s.scHandle); cErr != nil {
+	if cErr := windows.CloseServiceHandle(s.scmHandle); cErr != nil {
 		err = errors.Join(err, cErr)
 	}
 	return err
@@ -122,7 +123,7 @@ func openSCMServiceForQuery(name string) (serviceController, error) {
 		_ = windows.CloseServiceHandle(scHandle)
 		return nil, fmt.Errorf("failed to open service %q: %w", name, err)
 	}
-	return &queryOnlyService{scHandle: scHandle, svcHandle: svcHandle}, nil
+	return &queryOnlyService{scmHandle: scHandle, svcHandle: svcHandle}, nil
 }
 
 type windowsManager struct {
@@ -144,16 +145,16 @@ func NewWindows(stopTimeout time.Duration) *Manager {
 		pollInterval: 500 * time.Millisecond,
 	}
 	return &Manager{
-		dispatch: func(v verb, _ []string, streams cli.IO) int {
+		dispatch: func(ctx context.Context, v verb, _ []string, streams cli.IO) int {
 			switch v {
 			case verbStart:
-				return m.start(streams)
+				return m.start(ctx, streams)
 			case verbStop:
-				return m.stop(streams)
+				return m.stop(ctx, streams)
 			case verbStatus:
 				return m.status(streams)
 			case verbRestart:
-				return m.restart(streams)
+				return m.restart(ctx, streams)
 			default:
 				fmt.Fprintf(streams.Err, "unknown lifecycle command %q\n", string(v))
 				return cli.ExitUsage
@@ -162,11 +163,11 @@ func NewWindows(stopTimeout time.Duration) *Manager {
 	}
 }
 
-func (m *windowsManager) start(streams cli.IO) int {
+func (m *windowsManager) start(ctx context.Context, streams cli.IO) int {
 	s, err := m.open(m.service)
 	if err != nil {
 		if serviceNotInstalled(err) {
-			fmt.Fprintln(streams.Err, "splunk-otel-collector service is not installed")
+			fmt.Fprintf(streams.Err, "%s service is not installed\n", m.service)
 			return cli.ExitFailure
 		}
 		fmt.Fprintln(streams.Err, err)
@@ -176,37 +177,39 @@ func (m *windowsManager) start(streams cli.IO) int {
 
 	if err := s.Start(); err != nil {
 		if errors.Is(err, windows.ERROR_SERVICE_ALREADY_RUNNING) {
-			fmt.Fprintln(streams.Out, "splunk-otel-collector is already running")
+			fmt.Fprintf(streams.Out, "%s is already running\n", m.service)
 			return cli.ExitOK
 		}
 		fmt.Fprintln(streams.Err, err)
 		return cli.ExitFailure
 	}
 
-	if waitErr := waitForState(s.Query, svc.Running, m.startTimeout, m.pollInterval); waitErr != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, m.startTimeout)
+	defer cancel()
+	if waitErr := waitForState(waitCtx, s.Query, svc.Running, m.pollInterval); waitErr != nil {
 		st, err := s.Query()
 		switch {
 		case err != nil:
-			fmt.Fprintf(streams.Err, "splunk-otel-collector did not reach the running state: %v\n", waitErr)
+			fmt.Fprintf(streams.Err, "%s did not reach the running state: %v\n", m.service, waitErr)
 		case st.State == svc.Running:
-			fmt.Fprintln(streams.Out, "started splunk-otel-collector")
+			fmt.Fprintf(streams.Out, "started %s\n", m.service)
 			return cli.ExitOK
 		case st.State == svc.StartPending:
-			fmt.Fprintf(streams.Err, "splunk-otel-collector did not reach the running state within %s; it may still be starting: %v\n", m.startTimeout, waitErr)
+			fmt.Fprintf(streams.Err, "%s did not reach the running state; it may still be starting: %v\n", m.service, waitErr)
 		default:
-			fmt.Fprintf(streams.Err, "splunk-otel-collector did not reach the running state: %v\n", waitErr)
+			fmt.Fprintf(streams.Err, "%s did not reach the running state: %v\n", m.service, waitErr)
 		}
 		return cli.ExitFailure
 	}
-	fmt.Fprintln(streams.Out, "started splunk-otel-collector")
+	fmt.Fprintf(streams.Out, "started %s\n", m.service)
 	return cli.ExitOK
 }
 
-func (m *windowsManager) stop(streams cli.IO) int {
+func (m *windowsManager) stop(ctx context.Context, streams cli.IO) int {
 	s, err := m.open(m.service)
 	if err != nil {
 		if serviceNotInstalled(err) {
-			fmt.Fprintf(streams.Err, "splunk-otel-collector service is not installed\n")
+			fmt.Fprintf(streams.Err, "%s service is not installed\n", m.service)
 			return cli.ExitFailure
 		}
 		fmt.Fprintln(streams.Err, err)
@@ -216,18 +219,20 @@ func (m *windowsManager) stop(streams cli.IO) int {
 
 	if _, err := s.Control(svc.Stop); err != nil {
 		if errors.Is(err, windows.ERROR_SERVICE_NOT_ACTIVE) {
-			fmt.Fprintln(streams.Out, "splunk-otel-collector is already stopped")
+			fmt.Fprintf(streams.Out, "%s is already stopped\n", m.service)
 			return cli.ExitOK
 		}
 		fmt.Fprintln(streams.Err, err)
 		return cli.ExitFailure
 	}
 
-	if err := waitForState(s.Query, svc.Stopped, m.stopTimeout, m.pollInterval); err != nil {
-		fmt.Fprintf(streams.Err, "splunk-otel-collector did not stop within %s: %v\n", m.stopTimeout, err)
+	waitCtx, cancel := context.WithTimeout(ctx, m.stopTimeout)
+	defer cancel()
+	if err := waitForState(waitCtx, s.Query, svc.Stopped, m.pollInterval); err != nil {
+		fmt.Fprintf(streams.Err, "%s did not stop: %v\n", m.service, err)
 		return cli.ExitFailure
 	}
-	fmt.Fprintln(streams.Out, "stopped splunk-otel-collector")
+	fmt.Fprintf(streams.Out, "stopped %s\n", m.service)
 	return cli.ExitOK
 }
 
@@ -235,7 +240,7 @@ func (m *windowsManager) status(streams cli.IO) int {
 	s, err := m.openQuery(m.service)
 	if err != nil {
 		if serviceNotInstalled(err) {
-			fmt.Fprintln(streams.Out, "splunk-otel-collector service is not installed")
+			fmt.Fprintf(streams.Err, "%s service is not installed\n", m.service)
 			return cli.ExitNotRunning
 		}
 		fmt.Fprintln(streams.Err, err)
@@ -249,26 +254,27 @@ func (m *windowsManager) status(streams cli.IO) int {
 		return cli.ExitFailure
 	}
 
-	fmt.Fprintf(streams.Out, "splunk-otel-collector is %s\n", stateName(st.State))
+	fmt.Fprintf(streams.Out, "%s is %s\n", m.service, stateName(st.State))
 	if st.State == svc.Running {
 		return cli.ExitOK
 	}
 	return cli.ExitNotRunning
 }
 
-func (m *windowsManager) restart(streams cli.IO) int {
-	if code := m.stop(streams); code != cli.ExitOK {
+func (m *windowsManager) restart(ctx context.Context, streams cli.IO) int {
+	if code := m.stop(ctx, streams); code != cli.ExitOK {
 		return code
 	}
-	return m.start(streams)
+	return m.start(ctx, streams)
 }
 
 func serviceNotInstalled(err error) bool {
 	return errors.Is(err, windows.ERROR_SERVICE_DOES_NOT_EXIST)
 }
 
-func waitForState(query func() (svc.Status, error), want svc.State, timeout, poll time.Duration) error {
-	deadline := time.Now().Add(timeout)
+func waitForState(ctx context.Context, query func() (svc.Status, error), want svc.State, poll time.Duration) error {
+	timer := time.NewTimer(poll)
+	defer timer.Stop()
 	for {
 		st, err := query()
 		if err != nil {
@@ -277,10 +283,15 @@ func waitForState(query func() (svc.Status, error), want svc.State, timeout, pol
 		if st.State == want {
 			return nil
 		}
-		if time.Now().After(deadline) {
-			return fmt.Errorf("timed out waiting for state %s", stateName(want))
+		select {
+		case <-ctx.Done():
+			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+				return fmt.Errorf("timed out waiting for state %s", stateName(want))
+			}
+			return fmt.Errorf("interrupted while waiting for state %s: %w", stateName(want), ctx.Err())
+		case <-timer.C:
+			timer.Reset(poll)
 		}
-		time.Sleep(poll)
 	}
 }
 

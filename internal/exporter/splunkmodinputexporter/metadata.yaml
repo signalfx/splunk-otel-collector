@@ -1,0 +1,29 @@
+github_project: signalfx/splunk-otel-collector
+type: splunk_modinput
+display_name: Splunk Modular Input Exporter
+description: Exports logs, metrics, and traces as newline-delimited Splunk HEC JSON events to standard output.
+
+status:
+  class: exporter
+  stability:
+    development: [logs, metrics, traces]
+  disable_codecov_badge: true
+  codeowners:
+    active: []
+
+config:
+  type: object
+  description: Defaults used when translating telemetry to Splunk HEC events. Telemetry attributes take precedence.
+  properties:
+    source:
+      type: string
+      description: Default HEC source identifying the event origin.
+      default: ""
+    sourcetype:
+      type: string
+      description: Default HEC sourcetype identifying the event format.
+      default: ""
+    index:
+      type: string
+      description: Default destination index. An empty value lets the output consumer select its default index.
+      default: ""

@@ -2,6 +2,7 @@ GOCMD?=go
 
 VERSION ?= $(shell git describe --match "v[0-9]*" HEAD)
 PKG_NAME ?= splunk-connect-for-otlp
+TEST_KEEP_RUNNING ?= 0
 
 .PHONY := tgz
 tgz: build
@@ -22,16 +23,20 @@ splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp:
 	mkdir -p splunk-connect-for-otlp/linux_x86_64/bin
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -C ../../cmd/splunk-connect-for-otlp -trimpath -o ../../packaging/otlpinput/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp .
 
-splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp:
+splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp.exe:
 	mkdir -p splunk-connect-for-otlp/windows_x86_64/bin
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -C ../../cmd/splunk-connect-for-otlp -trimpath -o ../../packaging/otlpinput/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp .
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -C ../../cmd/splunk-connect-for-otlp -trimpath -o ../../packaging/otlpinput/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp.exe .
 
 .PHONY := build
-build: splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp
+build: splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp.exe
+
+.PHONY := test-ip-sans
+test-ip-sans: splunk-connect-for-otlp.tgz
+	OTLP_PACKAGE_PATH="$(CURDIR)/out/distribution/splunk-connect-for-otlp.tgz" TEST_KEEP_RUNNING="$(TEST_KEEP_RUNNING)" sh ./example/test-ip-sans.sh
 
 .PHONY := splunk
 splunk: splunk-connect-for-otlp.tgz
-	docker run --rm -it -v $(PWD)/splunk-connect-for-otlp.tgz:/tmp/splunk-connect-for-otlp.tgz \
+	docker run --rm -it -v $(PWD)/out/distribution/splunk-connect-for-otlp.tgz:/tmp/splunk-connect-for-otlp.tgz \
 		--platform linux/amd64 \
 		-e "SPLUNK_PASSWORD=changeme" \
 		-e "SPLUNK_APPS_URL=file:///tmp/splunk-connect-for-otlp.tgz" \

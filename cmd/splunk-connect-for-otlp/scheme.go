@@ -35,6 +35,36 @@ const Scheme = `
                 <required_on_create>false</required_on_create>
             </arg>
 
+            <arg name="realm">
+                <title>Splunk Observability Realm</title>
+                <description>The Splunk Observability realm. When filled, the application will attempt to send metrics and traces to that destination. (us0, eu0, au0, etc)</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
+            <arg name="access_token">
+                <title>Splunk Observability Access Token</title>
+                <description>The Splunk Observability access token.</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
+            <arg name="refresh_interval">
+                <title>HEC token refresh interval</title>
+                <description>How often to fetch HEC tokens. Use a duration such as 3m (default: 3m).</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
+            <arg name="refresh_timeout">
+                <title>HEC token refresh timeout</title>
+                <description>Deadline for fetching all HEC token pages. Use a duration such as 30s (default: 30s).</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
+            <arg name="max_staleness">
+                <title>HEC token maximum staleness</title>
+                <description>Maximum accepted token snapshot age (default: 10m). Must exceed refresh_interval + refresh_timeout.</description>
+                <required_on_create>false</required_on_create>
+            </arg>
+
             <arg name="enableSSL">
                 <title>Enable SSL</title>
                 <description>Secure traffic by changing the protocol from HTTP to HTTPS, requires a certificate</description>

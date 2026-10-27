@@ -1,0 +1,87 @@
+default:
+all_set:
+  metrics:
+    ptp.clock.state:
+      enabled: true
+      attributes: ["ptp.clock.state"]
+    ptp.grandmaster.info:
+      enabled: true
+      attributes: ["ptp.grandmaster.identity"]
+    ptp.grandmaster.present:
+      enabled: true
+    ptp.offset:
+      enabled: true
+    ptp.path.delay:
+      enabled: true
+    ptp.port.state:
+      enabled: true
+      attributes: ["ptp.port.identity","ptp.port.state"]
+  resource_attributes:
+    ptp.clock.type:
+      enabled: true
+    ptp.socket_path:
+      enabled: true
+reaggregate_set:
+  metrics:
+    ptp.clock.state:
+      enabled: true
+      attributes: []
+    ptp.grandmaster.info:
+      enabled: true
+      attributes: []
+    ptp.grandmaster.present:
+      enabled: true
+    ptp.offset:
+      enabled: true
+    ptp.path.delay:
+      enabled: true
+    ptp.port.state:
+      enabled: true
+      attributes: []
+  resource_attributes:
+    ptp.clock.type:
+      enabled: true
+    ptp.socket_path:
+      enabled: true
+none_set:
+  metrics:
+    ptp.clock.state:
+      enabled: false
+      attributes: ["ptp.clock.state"]
+    ptp.grandmaster.info:
+      enabled: false
+      attributes: ["ptp.grandmaster.identity"]
+    ptp.grandmaster.present:
+      enabled: false
+    ptp.offset:
+      enabled: false
+    ptp.path.delay:
+      enabled: false
+    ptp.port.state:
+      enabled: false
+      attributes: ["ptp.port.identity","ptp.port.state"]
+  resource_attributes:
+    ptp.clock.type:
+      enabled: false
+    ptp.socket_path:
+      enabled: false
+filter_set_include:
+  resource_attributes:
+    ptp.clock.type:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+    ptp.socket_path:
+      enabled: true
+      metrics_include:
+        - regexp: ".*"
+filter_set_exclude:
+  resource_attributes:
+    ptp.clock.type:
+      enabled: true
+      metrics_exclude:
+        - strict: "OC"
+    ptp.socket_path:
+      enabled: true
+      metrics_exclude:
+        - strict: "ptp.socket_path-val"

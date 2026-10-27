@@ -1,0 +1,5 @@
+# All fields are optional defaults for HEC event metadata.
+splunk_modinput:
+  source: test-source
+  sourcetype: test-sourcetype
+  index: test-index

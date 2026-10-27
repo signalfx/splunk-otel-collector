@@ -1,6 +1,6 @@
 ARG DOCKER_REPO=docker.io
-FROM ${DOCKER_REPO}/alpine:3.17.0 as certs
-RUN apk --update add ca-certificates
+FROM ${DOCKER_REPO}/alpine:3.24 as certs
+RUN apk --update add 'ca-certificates>=20261020-r0'
 
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
 ARG TARGETARCH
@@ -42,4 +42,4 @@ COPY --chown=999 config/collector/splunk_metrics_config_linux.yaml /etc/otel/col
 
 USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]
-EXPOSE 13133 14250 14268 4317 4318 6060 8006 8888 9411 9443 9080
+EXPOSE 13133 14250 14268 4317 4318 6060 8888 9411 9443 9080

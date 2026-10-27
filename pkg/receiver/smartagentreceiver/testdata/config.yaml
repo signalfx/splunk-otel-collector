@@ -3,7 +3,3 @@ smartagent/etcd:
   host: localhost
   port: 5309
   intervalSeconds: 456
-smartagent/ntpq:
-  type: telegraf/ntpq
-  intervalSeconds: 567
-  dnsLookup: true

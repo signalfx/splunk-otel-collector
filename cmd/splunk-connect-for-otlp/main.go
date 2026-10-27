@@ -12,10 +12,13 @@ import (
 	"os"
 	"runtime/debug"
 
+	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -25,7 +28,8 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth"
-	"github.com/signalfx/splunk-otel-collector/internal/exporter/stdoutexporter"
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
 
 func main() {
@@ -45,7 +49,7 @@ func main() {
 	}
 }
 
-func run() error {
+func run() (runErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered from panic:", r)
@@ -71,34 +75,54 @@ func run() error {
 		Resource:       pcommon.NewResource(),
 	}
 
-	xmlCfg := config.Extract()
+	xmlCfg, errExtract := config.Extract()
+	if errExtract != nil {
+		return fmt.Errorf("cannot start TA due to invalid configuration: %w", errExtract)
+	}
 	if err := xmlCfg.Validate(); err != nil {
 		return fmt.Errorf("cannot start TA due to invalid configuration: %w", err)
 	}
-	stdoutCfg := stdoutexporter.NewFactory().CreateDefaultConfig().(*stdoutexporter.Config)
-	stdoutCfg.Source = xmlCfg.Source
-	stdoutCfg.Sourcetype = xmlCfg.Sourcetype
+	modinputCfg := splunkmodinputexporter.NewFactory().CreateDefaultConfig().(*splunkmodinputexporter.Config)
+	modinputCfg.Source = xmlCfg.Source
+	modinputCfg.Sourcetype = xmlCfg.Sourcetype
 
-	f := stdoutexporter.NewFactory()
+	f := splunkmodinputexporter.NewFactory()
 	ctx := context.Background()
 	telemetrySettings := exporter.Settings{
 		TelemetrySettings: settings,
-		ID:                component.MustNewID("stdout"),
+		ID:                component.MustNewID("splunk_modinput"),
 	}
 	var le exporter.Logs
 	var me exporter.Metrics
 	var tracesExporter exporter.Traces
 	var err error
-	if le, err = f.CreateLogs(ctx, telemetrySettings, stdoutCfg); err != nil {
+	if le, err = f.CreateLogs(ctx, telemetrySettings, modinputCfg); err != nil {
 		return err
 	}
-	if me, err = f.CreateMetrics(ctx, telemetrySettings, stdoutCfg); err != nil {
-		return err
+	if xmlCfg.Realm == "" {
+		if me, err = f.CreateMetrics(ctx, telemetrySettings, modinputCfg); err != nil {
+			return err
+		}
+		if tracesExporter, err = f.CreateTraces(ctx, telemetrySettings, modinputCfg); err != nil {
+			return err
+		}
+
+		logger.Info("Configured exporter for local export of metrics and traces")
+	} else {
+		oef := otlphttpexporter.NewFactory()
+		oefCfg := newObservabilityExporterConfig(xmlCfg.Realm, xmlCfg.AccessToken, oef.CreateDefaultConfig().(*otlphttpexporter.Config))
+		o11yExporterTelemetrySettings := exporter.Settings{
+			TelemetrySettings: settings,
+			ID:                component.MustNewIDWithName("otlp_http", "o11y"),
+		}
+		if me, err = oef.CreateMetrics(ctx, o11yExporterTelemetrySettings, oefCfg); err != nil {
+			return err
+		}
+		if tracesExporter, err = oef.CreateTraces(ctx, o11yExporterTelemetrySettings, oefCfg); err != nil {
+			return err
+		}
+		logger.Info("Configured exporter for export of metrics and traces to " + xmlCfg.Realm)
 	}
-	if tracesExporter, err = f.CreateTraces(ctx, telemetrySettings, stdoutCfg); err != nil {
-		return err
-	}
-	logger.Info("Configured exporter")
 
 	rf := otlpreceiver.NewFactory()
 	cfg := rf.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -119,14 +143,20 @@ func run() error {
 		TelemetrySettings: settings,
 		ID:                component.MustNewID("otlp"),
 	}
-	if _, err = rf.CreateLogs(ctx, otlpSettings, cfg, le); err != nil {
+	if _, err = rf.CreateLogs(ctx, otlpSettings, cfg, indexAuthorizedLogs{le}); err != nil {
 		return err
 	}
-	if _, err = rf.CreateMetrics(ctx, otlpSettings, cfg, me); err != nil {
+	metricsConsumer := consumer.Metrics(me)
+	tracesConsumer := consumer.Traces(tracesExporter)
+	if xmlCfg.Realm == "" {
+		metricsConsumer = indexAuthorizedMetrics{me}
+		tracesConsumer = indexAuthorizedTraces{tracesExporter}
+	}
+	if _, err = rf.CreateMetrics(ctx, otlpSettings, cfg, metricsConsumer); err != nil {
 		return err
 	}
 	var r receiver.Traces
-	r, err = rf.CreateTraces(ctx, otlpSettings, cfg, tracesExporter)
+	r, err = rf.CreateTraces(ctx, otlpSettings, cfg, tracesConsumer)
 	if err != nil {
 		return err
 	}
@@ -137,10 +167,20 @@ func run() error {
 	h.Start()
 
 	var authExtension extension.Extension
-	if authExtension, err = auth.New(ctx, settings, xmlCfg.ServerURI, xmlCfg.SessionKey); err != nil {
+	authFactory := splunkauthextension.NewFactory(auth.NewTokenSource(xmlCfg.ServerURI, xmlCfg.SessionKey))
+	if authExtension, err = authFactory.Create(ctx, extension.Settings{
+		ID:                extID,
+		TelemetrySettings: settings,
+	}, xmlCfg.AuthConfig); err != nil {
 		return err
 	}
 
+	if errStart := authExtension.Start(ctx, h); errStart != nil {
+		return errStart
+	}
+	defer func() {
+		runErr = errors.Join(runErr, authExtension.Shutdown(ctx))
+	}()
 	h.Extensions[extID] = authExtension
 
 	if errStart := errors.Join(le.Start(ctx, h), me.Start(ctx, h), tracesExporter.Start(ctx, h), r.Start(ctx, h)); errStart != nil {
@@ -152,6 +192,18 @@ func run() error {
 	err = h.Wait()
 
 	return errors.Join(err, r.Shutdown(ctx), le.Shutdown(ctx), tracesExporter.Shutdown(ctx), me.Shutdown(ctx))
+}
+
+func deriveEndpointFromRealm(realm string) string {
+	return fmt.Sprintf("https://ingest.%s.observability.splunkcloud.com", realm)
+}
+
+func newObservabilityExporterConfig(realm, accessToken string, cfg *otlphttpexporter.Config) *otlphttpexporter.Config {
+	endpoint := deriveEndpointFromRealm(realm)
+	cfg.MetricsEndpoint = endpoint + "/v2/datapoint/otlp"
+	cfg.TracesEndpoint = endpoint + "/v2/trace/otlp"
+	cfg.ClientConfig.Headers.Set("X-SF-Token", configopaque.String(accessToken))
+	return cfg
 }
 
 func createLogger() (*zap.Logger, error) {

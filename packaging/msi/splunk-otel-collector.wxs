@@ -68,6 +68,9 @@
 
       <Launch Condition="NOT SPLUNK_PLATFORM_URL OR SPLUNK_PLATFORM_TOKEN" Message="SPLUNK_PLATFORM_TOKEN is required when SPLUNK_PLATFORM_URL is set." />
       <Launch Condition="NOT SPLUNK_PLATFORM_TOKEN OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_TOKEN is set." />
+      <Launch Condition="NOT SPLUNK_PLATFORM_LOGS_INDEX OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_LOGS_INDEX is set." />
+      <Launch Condition="NOT SPLUNK_PLATFORM_METRICS_INDEX OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_METRICS_INDEX is set." />
+      <Launch Condition="NOT SPLUNK_PLATFORM_URL OR SPLUNK_SETUP_COLLECTOR_MODE&lt;&gt;&quot;gateway&quot;" Message="Splunk Platform ingestion is not supported in gateway mode." />
       <Launch Condition="NOT SPLUNK_SERVICE_ACCOUNT_TYPE OR SPLUNK_SERVICE_ACCOUNT_TYPE=&quot;virtual&quot; OR SPLUNK_SERVICE_ACCOUNT_TYPE=&quot;localsystem&quot;" Message="SPLUNK_SERVICE_ACCOUNT_TYPE must be empty, 'virtual', or 'localsystem'." />
 
       <CustomAction Id="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="--config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml&quot;" />

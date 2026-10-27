@@ -246,6 +246,32 @@ func TestMSILaunchConditions(t *testing.T) {
 			},
 			expectedLogMessage: "SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_TOKEN is set.",
 		},
+		{
+			name: "platform-logs-index-requires-platform-url",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":        "fakeToken",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "otel_logs",
+			},
+			expectedLogMessage: "SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_LOGS_INDEX is set.",
+		},
+		{
+			name: "platform-metrics-index-requires-platform-url",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":           "fakeToken",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedLogMessage: "SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_METRICS_INDEX is set.",
+		},
+		{
+			name: "platform-not-supported-in-gateway-mode",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
+				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
+				"SPLUNK_PLATFORM_URL":         "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":       "platformToken",
+			},
+			expectedLogMessage: "Splunk Platform ingestion is not supported in gateway mode.",
+		},
 	}
 
 	for _, tt := range tests {

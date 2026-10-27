@@ -18,6 +18,7 @@ package lifecycle
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
@@ -30,18 +31,15 @@ import (
 // to manage the process directly.
 func NewLinux() *Manager {
 	return &Manager{
-		dispatch: func(v verb, args []string, streams cli.IO) int {
-			proxy := newSystemdProxy()
-			ctx := context.Background()
-
-			managed, err := proxy.managesUnit(ctx)
-			if err != nil {
-				fmt.Fprintf(streams.Err, "failed to query systemd for %s: %v\n", serviceUnitName, err)
-				return cli.ExitFailure
-			}
-			if !managed {
+		dispatch: func(ctx context.Context, v verb, args []string, streams cli.IO) int {
+			proxy, err := newSystemdProxy(ctx)
+			switch {
+			case errors.Is(err, errNotManaged):
 				fmt.Fprintf(streams.Err, "%s is not managed by systemd; lifecycle commands require systemd\n", serviceUnitName)
 				return cli.ExitUnsupported
+			case err != nil:
+				fmt.Fprintln(streams.Err, err)
+				return cli.ExitFailure
 			}
 
 			return proxy.dispatch(ctx, v, args, streams)

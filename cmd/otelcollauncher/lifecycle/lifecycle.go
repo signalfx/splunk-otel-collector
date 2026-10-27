@@ -17,7 +17,11 @@
 // process.
 package lifecycle
 
-import "github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
+import (
+	"context"
+
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
+)
 
 type verb string
 
@@ -36,13 +40,13 @@ var allVerbs = []cli.VerbInfo{
 }
 
 type Manager struct {
-	dispatch func(v verb, args []string, streams cli.IO) int
+	dispatch func(ctx context.Context, v verb, args []string, streams cli.IO) int
 }
 
 func (m *Manager) Verbs() []cli.VerbInfo {
 	return allVerbs
 }
 
-func (m *Manager) Dispatch(v string, args []string, streams cli.IO) int {
-	return m.dispatch(verb(v), args, streams)
+func (m *Manager) Dispatch(ctx context.Context, v string, args []string, streams cli.IO) int {
+	return m.dispatch(ctx, verb(v), args, streams)
 }

@@ -1,0 +1,285 @@
+// Copyright Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package parity
+
+import (
+	"context"
+	"fmt"
+	"maps"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"slices"
+	"strings"
+	"time"
+)
+
+// AgentRun bundles one agent's participation in a case: how to drive it, the
+// agent-native config files it needs, and the Splunk index it forwards to. The
+// two agents in a parity run deliberately use different config formats (UF
+// .conf vs collector config.yaml) to reach the same result, so each supplies
+// its own ConfigFiles. Keeping them on separate indexes lets both run without a
+// clean-between step.
+type AgentRun struct {
+	Adapter Adapter
+	// ConfigFiles maps a filename to its template. The runner interpolates the
+	// tokens (${BASE_DIR}, ${HEC_ENDPOINT}, ${HEC_TOKEN}, ${INDEX}) and writes
+	// each into the run's configDir; Adapter.Prepare installs them.
+	ConfigFiles map[string]string
+	// Index is the Splunk index this agent forwards to.
+	Index string
+	// Search is the SPL that reads this agent's events back. INDEX is
+	// interpolated. Defaults to "search index=${INDEX}".
+	Search string
+}
+
+// RunOptions tunes a run.
+type RunOptions struct {
+	Shell      string
+	Quiescence time.Duration
+	Timeout    time.Duration
+	MinEvents  int
+}
+
+func (o RunOptions) withDefaults() RunOptions {
+	if o.Quiescence == 0 {
+		o.Quiescence = 3 * time.Second
+	}
+	if o.Timeout == 0 {
+		o.Timeout = 90 * time.Second
+	}
+	if o.MinEvents == 0 {
+		o.MinEvents = 1
+	}
+	if o.Shell == "" {
+		o.Shell = "bash"
+	}
+	return o
+}
+
+// RunCase runs both agents through a case and validates candidate against
+// oracle, comparing them on the fields the case selects. It is the direct
+// UF-vs-candidate path, where both sides are captured in the same run rather
+// than one being replayed from a golden.
+func RunCase(ctx context.Context, c *Case, backend Backend, oracle, candidate AgentRun, v Validator, opts RunOptions) (Result, error) {
+	candidateRecords, err := RunAgent(ctx, c, candidate, backend, opts)
+	if err != nil {
+		return Result{}, fmt.Errorf("candidate %s: %w", candidate.Adapter.Name(), err)
+	}
+	reference, err := RunAgent(ctx, c, oracle, backend, opts)
+	if err != nil {
+		return Result{}, fmt.Errorf("oracle %s: %w", oracle.Adapter.Name(), err)
+	}
+	// The reference is projected so only the selected fields take part; the
+	// validator then ignores everything the candidate has beyond them.
+	for i, r := range reference {
+		reference[i] = project(r, c.Expected)
+	}
+	return v.Validate(reference, candidateRecords), nil
+}
+
+// RunAgent drives one agent through one case and returns the events it landed in
+// Splunk. It owns a fresh sandbox: render configs, run setup, start the agent,
+// run the script, poll the backend for this agent's index until the event count
+// settles, run the validate hook, then tear down.
+func RunAgent(ctx context.Context, c *Case, run AgentRun, backend Backend, opts RunOptions) ([]Record, error) {
+	opts = opts.withDefaults()
+
+	baseDir, err := os.MkdirTemp("", "parity-"+sanitize(c.Name)+"-")
+	if err != nil {
+		return nil, fmt.Errorf("sandbox: %w", err)
+	}
+	defer os.RemoveAll(baseDir)
+
+	hec := backend.HEC()
+	tokens := Tokens{
+		BaseDir:     baseDir,
+		HECEndpoint: hec.Endpoint,
+		HECToken:    hec.Token,
+		Index:       run.Index,
+	}
+
+	configDir := filepath.Join(baseDir, "config")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		return nil, err
+	}
+	staged := make([]string, 0, len(run.ConfigFiles))
+	for name, tmpl := range run.ConfigFiles {
+		// A name may be a relative path (apps/<app>/local/inputs.conf), which the
+		// adapter mirrors into the agent's own tree.
+		dest := filepath.Join(configDir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+			return nil, err
+		}
+		if err := os.WriteFile(dest, []byte(tokens.apply(tmpl)), 0o600); err != nil {
+			return nil, err
+		}
+		staged = append(staged, name)
+	}
+	slices.Sort(staged)
+
+	if err := run.Adapter.Prepare(configDir, staged); err != nil {
+		return nil, fmt.Errorf("prepare: %w", err)
+	}
+	defer run.Adapter.Cleanup()
+
+	if c.Setup != "" {
+		if err := runShell(ctx, opts.Shell, tokens.apply(c.Setup), baseDir); err != nil {
+			return nil, fmt.Errorf("setup: %w", err)
+		}
+	}
+
+	if err := run.Adapter.Start(ctx); err != nil {
+		return nil, fmt.Errorf("start: %w", err)
+	}
+	defer run.Adapter.Stop(ctx)
+
+	if c.Script != "" {
+		if err := runShell(ctx, opts.Shell, tokens.apply(c.Script), baseDir); err != nil {
+			return nil, fmt.Errorf("script: %w", err)
+		}
+	}
+
+	spl := run.Search
+	if spl == "" {
+		spl = "search index=${INDEX}"
+	}
+	spl = tokens.apply(spl)
+	recs, captureErr := waitForEvents(ctx, backend, spl, opts)
+	for i := range recs {
+		recs[i] = unapplyTokens(recs[i], tokens)
+	}
+	sortCapture(recs, c.Expected)
+	if captureErr != nil {
+		return recs, captureErr
+	}
+
+	if c.Validate != "" {
+		if err := waitForValidation(ctx, tokens.apply(c.Validate), baseDir, opts); err != nil {
+			return recs, fmt.Errorf("validate: %w", err)
+		}
+	}
+	return recs, nil
+}
+
+// sortCapture puts a capture in an order both sides can be compared in. A
+// search returns events by descending _time, which orders a UF capture by the
+// timestamps in the events and a candidate's by nothing: it stamps one time on
+// a batch, so events sharing it come back in whatever order the index returns.
+// Sorting on the event itself makes the comparison independent of that, at the
+// cost of not asserting event order, which no case can assert today anyway.
+//
+// The key is the fields the case compares, and only those: records that tie on
+// it are interchangeable to the validator, so whichever order a tie is left in
+// cannot change the outcome. Sorting on an unselected field could instead pair
+// a record with the wrong reference.
+func sortCapture(recs []Record, e Expected) {
+	slices.SortStableFunc(recs, func(a, b Record) int {
+		return strings.Compare(comparedFields(a, e), comparedFields(b, e))
+	})
+}
+
+// comparedFields renders the selected fields of rec as one string, so ordering
+// on it orders on exactly what a comparison looks at.
+func comparedFields(rec Record, e Expected) string {
+	p := project(rec, e)
+	var sb strings.Builder
+	for _, v := range []string{p.Raw, p.Host, p.Source, p.Sourcetype, p.Index} {
+		sb.WriteString(v)
+		sb.WriteByte(0)
+	}
+	for _, key := range slices.Sorted(maps.Keys(p.Fields)) {
+		sb.WriteString(key)
+		sb.WriteByte(0)
+		sb.WriteString(p.Fields[key])
+		sb.WriteByte(0)
+	}
+	return sb.String()
+}
+
+// waitForValidation runs the case's validate hook until it exits 0, or Timeout
+// elapses, and then returns its last failure. It retries because an effect can
+// land after the events that preceded it.
+func waitForValidation(ctx context.Context, script, dir string, opts RunOptions) error {
+	deadline := time.Now().Add(opts.Timeout)
+	retry := 500 * time.Millisecond
+	for {
+		err := runShell(ctx, opts.Shell, script, dir)
+		if err == nil {
+			return nil
+		}
+		if time.Now().After(deadline) {
+			return err
+		}
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		time.Sleep(retry)
+	}
+}
+
+// waitForEvents polls Search until the event count is >= MinEvents and stable
+// for Quiescence, or Timeout elapses. It returns the last capture.
+func waitForEvents(ctx context.Context, backend Backend, spl string, opts RunOptions) ([]Record, error) {
+	deadline := time.Now().Add(opts.Timeout)
+	poll := 1 * time.Second
+
+	var last []Record
+	lastCount := -1
+	lastChange := time.Now()
+	for {
+		if ctx.Err() != nil {
+			return last, ctx.Err()
+		}
+		recs, err := backend.Search(ctx, spl)
+		if err == nil {
+			last = recs
+			if len(recs) != lastCount {
+				lastCount = len(recs)
+				lastChange = time.Now()
+			}
+			if lastCount >= opts.MinEvents && time.Since(lastChange) >= opts.Quiescence {
+				return last, nil
+			}
+		}
+		if time.Now().After(deadline) {
+			return last, nil
+		}
+		time.Sleep(poll)
+	}
+}
+
+func runShell(ctx context.Context, shell, script, dir string) error {
+	cmd := exec.CommandContext(ctx, shell, "-c", script)
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w: %s", err, out)
+	}
+	return nil
+}
+
+func sanitize(s string) string {
+	b := make([]rune, 0, len(s))
+	for _, r := range s {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+			b = append(b, r)
+		default:
+			b = append(b, '-')
+		}
+	}
+	return string(b)
+}

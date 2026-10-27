@@ -17,6 +17,7 @@
 package lifecycle
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
@@ -26,7 +27,7 @@ import (
 // native or systemd/SCM-backed implementation.
 func NewOthers() *Manager {
 	return &Manager{
-		dispatch: func(_ verb, _ []string, streams cli.IO) int {
+		dispatch: func(_ context.Context, _ verb, _ []string, streams cli.IO) int {
 			fmt.Fprintln(streams.Err, "otelcollauncher lifecycle commands are supported only on Linux and Windows")
 			return cli.ExitUnsupported
 		},

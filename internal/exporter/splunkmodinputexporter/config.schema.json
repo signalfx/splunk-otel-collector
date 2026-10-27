@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "string",
+      "description": "Default destination index. An empty value lets the output consumer select its default index.",
+      "default": ""
+    },
+    "source": {
+      "type": "string",
+      "description": "Default HEC source identifying the event origin.",
+      "default": ""
+    },
+    "sourcetype": {
+      "type": "string",
+      "description": "Default HEC sourcetype identifying the event format.",
+      "default": ""
+    }
+  },
+  "$id": "github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "exporter/splunk_modinput",
+  "description": "Defaults used when translating telemetry to Splunk HEC events. Telemetry attributes take precedence."
+}

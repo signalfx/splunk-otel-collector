@@ -1,0 +1,14 @@
+name: "Global stanzas"
+description: >
+  Settings above the first stanza header and in [default] configure the monitor
+  inputs below them, with the instance's own value winning. [monitor] is not a
+  defaults stanza, so a.txt takes [default]'s sourcetype rather than the one
+  [monitor] sets.
+setup: |
+  echo "inherits line" > a.txt
+  echo "overrides line" > b.txt
+expected:
+  raw: true
+  host: true
+  source: true
+  sourcetype: true

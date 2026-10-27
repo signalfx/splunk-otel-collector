@@ -469,7 +469,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 					},
 				},
 				"receivers": map[string]any{
-					"fluent_forward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
 					"host_metrics": map[string]any{
 						"collection_interval": "10s",
 						"scrapers": map[string]any{
@@ -534,7 +533,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
 							"processors": []any{"memory_limiter", "batch", "resource_detection"},
-							"receivers":  []any{"fluent_forward", "otlp"},
+							"receivers":  []any{"otlp"},
 						},
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},

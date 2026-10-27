@@ -18,6 +18,7 @@ package lifecycle
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -128,8 +129,10 @@ func TestWaitForState(t *testing.T) {
 			}
 			return svc.Status{State: svc.Running}, nil
 		}
+		ctx, cancel := context.WithTimeout(t.Context(), time.Second)
+		defer cancel()
 
-		err := waitForState(query, svc.Running, time.Second, 5*time.Millisecond)
+		err := waitForState(ctx, query, svc.Running, 5*time.Millisecond)
 		require.NoError(t, err)
 	})
 
@@ -137,9 +140,46 @@ func TestWaitForState(t *testing.T) {
 		query := func() (svc.Status, error) {
 			return svc.Status{State: svc.StartPending}, nil
 		}
+		ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
+		defer cancel()
 
-		err := waitForState(query, svc.Running, 20*time.Millisecond, 5*time.Millisecond)
-		assert.Error(t, err)
+		err := waitForState(ctx, query, svc.Running, 5*time.Millisecond)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "timed out")
+	})
+
+	t.Run("returns promptly when the caller cancels", func(t *testing.T) {
+		query := func() (svc.Status, error) {
+			return svc.Status{State: svc.StartPending}, nil
+		}
+		ctx, cancel := context.WithCancel(t.Context())
+		time.AfterFunc(20*time.Millisecond, cancel)
+
+		begin := time.Now()
+		err := waitForState(ctx, query, svc.Running, time.Hour)
+
+		require.ErrorIs(t, err, context.Canceled)
+		assert.Contains(t, err.Error(), "interrupted")
+		assert.Less(t, time.Since(begin), 5*time.Second, "must not wait out the poll interval")
+	})
+
+	t.Run("an already-expired context still reports a state that was reached", func(t *testing.T) {
+		query := func() (svc.Status, error) {
+			return svc.Status{State: svc.Running}, nil
+		}
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		require.NoError(t, waitForState(ctx, query, svc.Running, time.Millisecond))
+	})
+
+	t.Run("query error is returned", func(t *testing.T) {
+		query := func() (svc.Status, error) {
+			return svc.Status{}, errors.New("rpc failure")
+		}
+
+		err := waitForState(t.Context(), query, svc.Running, time.Millisecond)
+		require.ErrorContains(t, err, "rpc failure")
 	})
 }
 
@@ -153,7 +193,7 @@ func TestWindowsManagerStart(t *testing.T) {
 		outBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: outBuf, Err: &bytes.Buffer{}}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitOK, code)
 		assert.Contains(t, outBuf.String(), "already running")
@@ -167,7 +207,7 @@ func TestWindowsManagerStart(t *testing.T) {
 		}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitOK, code)
 		assert.Equal(t, 1, fake.startCalls)
@@ -180,7 +220,7 @@ func TestWindowsManagerStart(t *testing.T) {
 		errBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
 		assert.Contains(t, errBuf.String(), "not installed")
@@ -194,7 +234,7 @@ func TestWindowsManagerStart(t *testing.T) {
 		}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
 	})
@@ -209,7 +249,7 @@ func TestWindowsManagerStart(t *testing.T) {
 		errBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
 		assert.Contains(t, errBuf.String(), "may still be starting")
@@ -219,17 +259,38 @@ func TestWindowsManagerStart(t *testing.T) {
 		fake := &fakeService{queryResponses: []svc.Status{{State: svc.StartPending}, {State: svc.Running}}}
 		m := &windowsManager{
 			open:         func(string) (serviceController, error) { return fake, nil },
+			service:      windowsServiceName,
 			startTimeout: 0,
 			pollInterval: time.Millisecond,
 		}
 		outBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: outBuf, Err: &bytes.Buffer{}}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitOK, code)
 		assert.Contains(t, outBuf.String(), "started splunk-otel-collector")
 		assert.NotContains(t, outBuf.String(), "may still be starting")
+	})
+
+	t.Run("caller cancellation stops the wait and is reported as failure", func(t *testing.T) {
+		fake := &fakeService{queryResponses: []svc.Status{{State: svc.StartPending}}}
+		m := &windowsManager{
+			open:         func(string) (serviceController, error) { return fake, nil },
+			startTimeout: time.Hour,
+			pollInterval: time.Hour,
+		}
+		errBuf := &bytes.Buffer{}
+		streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
+		ctx, cancel := context.WithCancel(t.Context())
+		time.AfterFunc(20*time.Millisecond, cancel)
+
+		begin := time.Now()
+		code := m.start(ctx, streams)
+
+		assert.Equal(t, cli.ExitFailure, code)
+		assert.Contains(t, errBuf.String(), "interrupted")
+		assert.Less(t, time.Since(begin), 5*time.Second)
 	})
 
 	t.Run("crashes back to stopped after start is reported as failure", func(t *testing.T) {
@@ -242,7 +303,7 @@ func TestWindowsManagerStart(t *testing.T) {
 		errBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
 		assert.Contains(t, errBuf.String(), "did not reach the running state")
@@ -260,7 +321,7 @@ func TestWindowsManagerStart(t *testing.T) {
 		errBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
 
-		code := m.start(streams)
+		code := m.start(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
 		assert.Contains(t, errBuf.String(), "did not reach the running state")
@@ -277,7 +338,7 @@ func TestWindowsManagerStop(t *testing.T) {
 		}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-		code := m.stop(streams)
+		code := m.stop(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitOK, code)
 		require.Len(t, fake.controlCalls, 1)
@@ -290,7 +351,7 @@ func TestWindowsManagerStop(t *testing.T) {
 		outBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: outBuf, Err: &bytes.Buffer{}}
 
-		code := m.stop(streams)
+		code := m.stop(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitOK, code)
 		assert.Contains(t, outBuf.String(), "already stopped")
@@ -305,9 +366,29 @@ func TestWindowsManagerStop(t *testing.T) {
 		}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-		code := m.stop(streams)
+		code := m.stop(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
+	})
+
+	t.Run("caller cancellation stops the wait and is reported as failure", func(t *testing.T) {
+		fake := &fakeService{queryResponses: []svc.Status{{State: svc.StopPending}}}
+		m := &windowsManager{
+			open:         func(string) (serviceController, error) { return fake, nil },
+			stopTimeout:  time.Hour,
+			pollInterval: time.Hour,
+		}
+		errBuf := &bytes.Buffer{}
+		streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
+		ctx, cancel := context.WithCancel(t.Context())
+		time.AfterFunc(20*time.Millisecond, cancel)
+
+		begin := time.Now()
+		code := m.stop(ctx, streams)
+
+		assert.Equal(t, cli.ExitFailure, code)
+		assert.Contains(t, errBuf.String(), "interrupted")
+		assert.Less(t, time.Since(begin), 5*time.Second)
 	})
 
 	t.Run("not installed", func(t *testing.T) {
@@ -315,7 +396,7 @@ func TestWindowsManagerStop(t *testing.T) {
 		errBuf := &bytes.Buffer{}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
 
-		code := m.stop(streams)
+		code := m.stop(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
 		assert.Contains(t, errBuf.String(), "not installed")
@@ -368,7 +449,7 @@ func TestWindowsManagerRestart(t *testing.T) {
 		}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-		code := m.restart(streams)
+		code := m.restart(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitOK, code)
 		require.Len(t, fake.controlCalls, 1)
@@ -387,7 +468,7 @@ func TestWindowsManagerRestart(t *testing.T) {
 		}
 		streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-		code := m.restart(streams)
+		code := m.restart(t.Context(), streams)
 
 		assert.Equal(t, cli.ExitFailure, code)
 		assert.Equal(t, 0, fake.startCalls, "start must not run when stop fails")
@@ -397,6 +478,6 @@ func TestWindowsManagerRestart(t *testing.T) {
 func TestNewWindowsDispatchUnknownVerbReturnsUsageError(t *testing.T) {
 	family := NewWindows(30 * time.Second)
 	streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
-	code := family.Dispatch("bogus", nil, streams)
+	code := family.Dispatch(t.Context(), "bogus", nil, streams)
 	assert.Equal(t, cli.ExitUsage, code)
 }

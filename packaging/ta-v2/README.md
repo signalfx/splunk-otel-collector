@@ -13,6 +13,37 @@ to be run under `splunkd` control.
 See the [inputs.conf.spec](./assets/README/inputs.conf.spec) file for the available
 configuration options.
 
+Collector logs must go to stderr for the Universal Forwarder to record them in
+`splunkd.log` and `_internal`. Stdout is reserved for modular input event data.
+For custom collector configurations, use:
+
+```yaml
+service:
+  telemetry:
+    logs:
+      output_paths: [stderr]
+      error_output_paths: [stderr]
+```
+
+### Indexing telemetry in the local Splunk instance
+
+The [`splunk_modinput` exporter](../../internal/exporter/splunkmodinputexporter/README.md)
+writes telemetry to standard output as HEC JSON lines, which `splunkd` indexes.
+It is not part of the bundled collector configurations; add it to the pipelines
+of your `splunk_config` to use it.
+
+The TA does not set `INDEXED_EXTRACTIONS = HEC`, so each line is indexed as raw
+text using the `index` and `sourcetype` of the input stanza (`_internal` and
+`Splunk_TA_otel` by default). The `com.splunk.index`, `com.splunk.source`, and
+`com.splunk.sourcetype` attributes, and the exporter's `index`, `source`, and
+`sourcetype` settings, only appear in the raw text and do not change where data
+is stored. Set `index` in `local/inputs.conf` to choose the destination index.
+
+Adding `INDEXED_EXTRACTIONS = HEC` for the `Splunk_TA_otel` sourcetype would let
+each event select its own index. The TA performs no authentication or index
+authorization, so any sender that can reach the collector's receivers could then
+write to any existing index.
+
 ### Splunk Modular Input Primer
 
 This section is a very brief introduction to the general architecture of a

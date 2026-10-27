@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
+	"go.opentelemetry.io/collector/featuregate"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
@@ -36,7 +37,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/parser"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
 
@@ -62,7 +62,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 2, len(cfg.ToStringMap()))
+	assert.Equal(t, 1, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -88,25 +88,6 @@ func TestLoadConfig(t *testing.T) {
 		acceptsEndpoints: true,
 	}, etcdCfg)
 	require.NoError(t, etcdCfg.Validate())
-
-	tr := true
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "ntpq").String())
-	require.NoError(t, err)
-	ntpqCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&ntpqCfg))
-	require.Equal(t, &Config{
-		MonitorType: "telegraf/ntpq",
-		monitorConfig: &ntpq.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "telegraf/ntpq",
-				IntervalSeconds:     567,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			DNSLookup: &tr,
-		},
-		acceptsEndpoints: true,
-	}, ntpqCfg)
-	require.NoError(t, ntpqCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithoutType(t *testing.T) {
@@ -317,6 +298,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 }
 
 func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
+	setTelegrafExecEnabled(t, true)
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "nested_monitor_config.yaml"))
 
 	require.NoError(t, err)
@@ -370,6 +352,46 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 		},
 	}, k8sVolumesCfg)
 	require.NoError(t, k8sVolumesCfg.Validate())
+}
+
+func TestTelegrafExecFeatureGateDefaultsDisabled(t *testing.T) {
+	assert.False(t, telegrafExecFeatureGate.IsEnabled())
+	cfg := loadTelegrafExecConfig(t)
+	assert.EqualError(t, cfg.Validate(), "the telegraf/exec monitor is disabled by default; enable it with --feature-gates=+receiver.smartagentreceiver.TelegrafExec (planned removal: December 2026)")
+}
+
+func TestTelegrafExecFeatureGate(t *testing.T) {
+	t.Run("explicitly disabled config is rejected", func(t *testing.T) {
+		setTelegrafExecEnabled(t, false)
+		cfg := loadTelegrafExecConfig(t)
+		require.ErrorContains(t, cfg.Validate(), "enable it with --feature-gates=+receiver.smartagentreceiver.TelegrafExec")
+	})
+
+	t.Run("enabled config is accepted", func(t *testing.T) {
+		setTelegrafExecEnabled(t, true)
+		cfg := loadTelegrafExecConfig(t)
+		require.NoError(t, cfg.Validate())
+	})
+}
+
+func loadTelegrafExecConfig(t *testing.T) *Config {
+	t.Helper()
+	conf, err := confmaptest.LoadConf(path.Join(".", "testdata", "nested_monitor_config.yaml"))
+	require.NoError(t, err)
+	componentConfig, err := conf.Sub(component.MustNewIDWithName(typeStr, "exec").String())
+	require.NoError(t, err)
+	cfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, componentConfig.Unmarshal(&cfg))
+	return cfg
+}
+
+func setTelegrafExecEnabled(t *testing.T, enabled bool) {
+	t.Helper()
+	previous := telegrafExecFeatureGate.IsEnabled()
+	require.NoError(t, featuregate.GlobalRegistry().Set(telegrafExecFeatureGateID, enabled))
+	t.Cleanup(func() {
+		require.NoError(t, featuregate.GlobalRegistry().Set(telegrafExecFeatureGateID, previous))
+	})
 }
 
 func TestInvalidMonitorConfig(t *testing.T) {

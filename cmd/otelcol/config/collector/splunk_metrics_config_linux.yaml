@@ -4,11 +4,12 @@
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_PLATFORM_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_PLATFORM_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
-# - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 #
 # The following environment variables are optional:
 # - SPLUNK_PLATFORM_METRICS_INDEX: Splunk index to send metrics to. If not set, the default index
 #   configured on the HEC token will be used.
+# - SPLUNK_MEMORY_LIMIT_MIB: Override the default, which is 90% of SPLUNK_MEMORY_TOTAL_MIB
+#   (SPLUNK_MEMORY_TOTAL_MIB itself defaults to 512 MiB if unset).
 
 extensions:
   health_check:

@@ -33,8 +33,10 @@ func NewFactory() receiver.Factory {
 }
 
 func createDefaultConfig() component.Config {
+	gnmiReverseConfig := NewDefaultGNMIReverseConfig()
 	return &Config{
-		Targets: []TargetConfig{},
+		Targets:     []TargetConfig{},
+		GNMIReverse: &gnmiReverseConfig,
 	}
 }
 

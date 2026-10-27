@@ -15,6 +15,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -48,10 +49,11 @@ type VerbInfo struct {
 }
 
 // Family is a group of related top-level otelcollauncher subcommands (e.g.
-// lifecycle management: start/stop/status/restart).
+// lifecycle management: start/stop/status/restart). Dispatch should stop
+// waiting and return promptly once ctx is done.
 type Family interface {
 	Verbs() []VerbInfo
-	Dispatch(verb string, args []string, streams IO) int
+	Dispatch(ctx context.Context, verb string, args []string, streams IO) int
 }
 
 // helpVerb is the only verb that triggers the launcher's own help
@@ -62,33 +64,34 @@ type Family interface {
 // contract must hold with no exceptions.
 const helpVerb = "help"
 
-// Dispatch matches args[0] against the verbs of every registered family, in
-// order, and runs the first match. If two families register the same verb, the
-// first one registered wins.
-func Dispatch(families []Family, args []string, streams IO) (code int, ok bool) {
+// Resolve matches args[0] against the verbs of every registered family, in
+// order, and returns the first match as a command to run. If two families
+// register the same verb, the first one registered wins. Resolve itself has no
+// side effects beyond writing help output, so callers can install signal
+// handling only once a command is known to match; when resolved is false the caller
+// should fall through to its default behavior untouched.
+func Resolve(families []Family, args []string, streams IO) (run func(ctx context.Context) int, resolved bool) {
 	if len(args) == 0 {
-		return 0, false
+		return nil, false
 	}
 	if args[0] == helpVerb {
-		return dispatchHelp(families, args[1:], streams), true
+		return func(context.Context) int { return dispatchHelp(families, args[1:], streams) }, true
 	}
 	if strings.HasPrefix(args[0], "-") {
-		return 0, false
+		return nil, false
 	}
-	for _, f := range families {
-		for _, v := range f.Verbs() {
-			if v.Name != args[0] {
-				continue
-			}
-			rest := args[1:]
-			if wantsVerbHelp(rest) {
-				fmt.Fprint(streams.Out, verbHelpText(v))
-				return ExitOK, true
-			}
-			return f.Dispatch(v.Name, rest, streams), true
-		}
+	v, f, found := findVerb(families, args[0])
+	if !found {
+		return nil, false
 	}
-	return 0, false
+	rest := args[1:]
+	if wantsVerbHelp(rest) {
+		return func(context.Context) int {
+			fmt.Fprint(streams.Out, verbHelpText(v))
+			return ExitOK
+		}, true
+	}
+	return func(ctx context.Context) int { return f.Dispatch(ctx, v.Name, rest, streams) }, true
 }
 
 func wantsVerbHelp(args []string) bool {
@@ -100,7 +103,7 @@ func dispatchHelp(families []Family, args []string, streams IO) int {
 		fmt.Fprint(streams.Out, HelpText(families))
 		return ExitOK
 	}
-	if v, found := findVerb(families, args[0]); found {
+	if v, _, found := findVerb(families, args[0]); found {
 		fmt.Fprint(streams.Out, verbHelpText(v))
 		return ExitOK
 	}
@@ -109,15 +112,15 @@ func dispatchHelp(families []Family, args []string, streams IO) int {
 	return ExitUsage
 }
 
-func findVerb(families []Family, name string) (VerbInfo, bool) {
+func findVerb(families []Family, name string) (VerbInfo, Family, bool) {
 	for _, f := range families {
 		for _, v := range f.Verbs() {
 			if v.Name == name {
-				return v, true
+				return v, f, true
 			}
 		}
 	}
-	return VerbInfo{}, false
+	return VerbInfo{}, nil, false
 }
 
 func HelpText(families []Family) string {

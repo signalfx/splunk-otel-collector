@@ -17,6 +17,7 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -26,9 +27,8 @@ import (
 	"testing"
 	"time"
 
-	"go.opentelemetry.io/collector/pdata/pmetric"
-
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetricassert"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,6 +38,7 @@ import (
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 	"go.uber.org/zap"
@@ -46,6 +47,7 @@ import (
 type metricCollectionTestOpts struct {
 	collectorEnvVars      map[string]string
 	fileMounts            map[string]string
+	metricsAssertionFile  string
 	compareMetricsOptions []pmetrictest.CompareMetricsOption
 }
 
@@ -79,6 +81,36 @@ func WithFileMounts(mounts map[string]string) MetricsCollectionTestOption {
 			opts.fileMounts[k] = v
 		}
 	}
+}
+
+// WithMetricsAssertionFile configures RunMetricsCollectionTest to use a
+// pmetricassert assertion file. Assertion mode normalizes metric batches and
+// duplicate metric identities before comparing them.
+func WithMetricsAssertionFile(file string) MetricsCollectionTestOption {
+	return func(opts *metricCollectionTestOpts) {
+		opts.metricsAssertionFile = file
+	}
+}
+
+// CompareMetricsAgainstAnyBatch compares expected against collected metric batches,
+// starting with the most recently collected batch.
+func CompareMetricsAgainstAnyBatch(expected pmetric.Metrics, batches []pmetric.Metrics, options ...pmetrictest.CompareMetricsOption) error {
+	if len(batches) == 0 {
+		return errors.New("no metrics batches received")
+	}
+
+	var comparisonErr error
+	for i := len(batches) - 1; i >= 0; i-- {
+		err := pmetrictest.CompareMetrics(expected, batches[i], options...)
+		if err == nil {
+			return nil
+		}
+		if comparisonErr == nil {
+			comparisonErr = err
+		}
+	}
+
+	return comparisonErr
 }
 
 // RunMetricsCollectionTest runs a test that collects metrics using a collector container with provided configFile and
@@ -146,25 +178,39 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 		require.NoError(t, p.Shutdown())
 	})
 
-	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
-	require.NoError(t, err)
+	var expected pmetric.Metrics
+	if opts.metricsAssertionFile == "" {
+		expected, err = golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
+		require.NoError(t, err)
+	}
 
-	index := 0
+	firstUncomparedBatchIndex := 0
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		err := fmt.Errorf("no matching metrics found, %d collected", index)
-		newIndex := len(sink.AllMetrics())
-		for i := index; i < newIndex; i++ {
-			m := sink.AllMetrics()[i]
+		metrics := sink.AllMetrics()
+		collectedBatchCount := len(metrics)
+		if opts.metricsAssertionFile != "" {
+			err := errors.New("no metrics collected")
+			if collectedBatchCount > 0 {
+				actual := combineMetricBatches(metrics)
+				err = pmetricassert.AssertMetrics(filepath.Join("testdata", opts.metricsAssertionFile), actual)
+			}
+			assert.NoError(tt, err)
+			return
+		}
+
+		err := fmt.Errorf("no matching metrics found, %d collected", firstUncomparedBatchIndex)
+		for i := firstUncomparedBatchIndex; i < collectedBatchCount; i++ {
+			m := metrics[i]
 			err = pmetrictest.CompareMetrics(expected, m,
 				opts.compareMetricsOptions...)
 			if err == nil {
 				return
 			}
 		}
-		index = newIndex
+		firstUncomparedBatchIndex = collectedBatchCount
 		assert.NoError(tt, err)
-		if newIndex > 0 {
-			last := sink.AllMetrics()[newIndex-1]
+		if collectedBatchCount > 0 {
+			last := metrics[collectedBatchCount-1]
 			t.Logf("=== Metric name diff (last batch) ===")
 			expectedNames := metricNames(expected)
 			actualNames := metricNames(last)
@@ -187,12 +233,28 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 		if len(allMetrics) == 0 {
 			t.Fatalf("Did not receive any metrics to write to golden file")
 		}
+		if opts.metricsAssertionFile != "" {
+			actual := combineMetricBatches(allMetrics)
+			outputPath := filepath.Join("testdata", opts.metricsAssertionFile)
+			require.NoError(t, pmetricassert.WriteAssertionFile(t, outputPath, actual))
+			return
+		}
 		actual := allMetrics[len(allMetrics)-1]
 		outputPath := filepath.Join("testdata", expectedFilePath)
 		dir := filepath.Dir(outputPath)
 		require.NoError(t, os.MkdirAll(dir, 0o755))
 		require.NoError(t, golden.WriteMetrics(t, outputPath, actual))
 	}
+}
+
+func combineMetricBatches(batches []pmetric.Metrics) pmetric.Metrics {
+	combined := pmetric.NewMetrics()
+	for _, batch := range batches {
+		for i := 0; i < batch.ResourceMetrics().Len(); i++ {
+			batch.ResourceMetrics().At(i).CopyTo(combined.ResourceMetrics().AppendEmpty())
+		}
+	}
+	return combined
 }
 
 func MaybeUpdateExpectedMetricsResults(t *testing.T, file string, metrics *pmetric.Metrics) {

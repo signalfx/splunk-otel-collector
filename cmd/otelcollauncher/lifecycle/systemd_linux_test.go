@@ -22,6 +22,7 @@ import (
 	"errors"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -65,7 +66,7 @@ func TestLoadState(t *testing.T) {
 			fake := &fakeSystemctl{outputResult: []byte(tt.out)}
 			p := &systemdProxy{runner: fake, unit: serviceUnitName}
 
-			got, err := p.loadState(context.Background())
+			got, err := p.loadState(t.Context())
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
@@ -78,10 +79,23 @@ func TestLoadState(t *testing.T) {
 func TestExecSystemctlOutputIncludesStderr(t *testing.T) {
 	r := execSystemctl{binary: "sh"}
 
-	_, err := r.output(context.Background(), "-c", "echo 'Failed to connect to bus: No such file or directory' >&2; exit 1")
+	_, err := r.output(t.Context(), "-c", "echo 'Failed to connect to bus: No such file or directory' >&2; exit 1")
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Failed to connect to bus")
+}
+
+func TestExecSystemctlRunStopsWhenContextIsCancelled(t *testing.T) {
+	r := execSystemctl{binary: "sleep"}
+	ctx, cancel := context.WithTimeout(t.Context(), 50*time.Millisecond)
+	defer cancel()
+
+	begin := time.Now()
+	code, err := r.run(ctx, cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}, "30")
+
+	require.NoError(t, err)
+	assert.NotEqual(t, 0, code, "a killed process must not look successful")
+	assert.Less(t, time.Since(begin), 10*time.Second)
 }
 
 func TestSystemdProxyBooted(t *testing.T) {
@@ -97,30 +111,32 @@ func TestSystemdProxyBooted(t *testing.T) {
 	})
 }
 
-func TestSystemdProxyManagesUnit(t *testing.T) {
+func TestSystemdProxyVerify(t *testing.T) {
 	// ActiveState and UnitFileState are not even requested from systemctl:
 	// LoadState alone decides this predicate, so a stopped-but-installed
 	// unit (still "loaded") must still route through systemd, and only the
 	// LoadState value itself varies across these cases.
 	tests := map[string]struct {
+		wantErr   error
 		loadState string
-		want      bool
 	}{
-		"loaded":    {loadState: "loaded", want: true},
-		"not-found": {loadState: "not-found", want: false},
-		"masked":    {loadState: "masked", want: false},
+		"loaded":    {loadState: "loaded"},
+		"not-found": {loadState: "not-found", wantErr: errNotManaged},
+		"masked":    {loadState: "masked", wantErr: errNotManaged},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			dir := t.TempDir()
 			fake := &fakeSystemctl{outputResult: []byte("LoadState=" + tt.loadState + "\n")}
-			p := &systemdProxy{runner: fake, runtimeDir: dir, unit: serviceUnitName}
+			p := &systemdProxy{runner: fake, runtimeDir: t.TempDir(), unit: serviceUnitName}
 
-			managed, err := p.managesUnit(context.Background())
+			err := p.verify(t.Context())
 
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, managed)
+			if tt.wantErr == nil {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tt.wantErr)
+			}
 			assert.Len(t, fake.calls, 1)
 		})
 	}
@@ -129,20 +145,21 @@ func TestSystemdProxyManagesUnit(t *testing.T) {
 		fake := &fakeSystemctl{outputResult: []byte("LoadState=loaded\n")}
 		p := &systemdProxy{runner: fake, runtimeDir: filepath.Join(t.TempDir(), "absent"), unit: serviceUnitName}
 
-		managed, err := p.managesUnit(context.Background())
-		require.NoError(t, err)
-		assert.False(t, managed)
+		require.ErrorIs(t, p.verify(t.Context()), errNotManaged)
 		assert.Empty(t, fake.calls, "systemctl must not be invoked when systemd is not booted")
 	})
-}
 
-func TestSystemdProxyManagesUnitReturnsErrorWhenShowFails(t *testing.T) {
-	fake := &fakeSystemctl{outputErr: errors.New("systemctl: connection refused")}
-	p := &systemdProxy{runner: fake, runtimeDir: t.TempDir(), unit: serviceUnitName}
+	t.Run("query failure is an error but not errNotManaged", func(t *testing.T) {
+		fake := &fakeSystemctl{outputErr: errors.New("systemctl: connection refused")}
+		p := &systemdProxy{runner: fake, runtimeDir: t.TempDir(), unit: serviceUnitName}
 
-	managed, err := p.managesUnit(context.Background())
-	require.Error(t, err)
-	assert.False(t, managed)
+		err := p.verify(t.Context())
+
+		require.Error(t, err)
+		require.NotErrorIs(t, err, errNotManaged)
+		assert.Contains(t, err.Error(), "failed to query systemd")
+		assert.Contains(t, err.Error(), "connection refused")
+	})
 }
 
 func TestSystemdProxyDispatch(t *testing.T) {
@@ -162,7 +179,7 @@ func TestSystemdProxyDispatch(t *testing.T) {
 			p := &systemdProxy{runner: fake, unit: serviceUnitName}
 			streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-			code := p.dispatch(context.Background(), tt.verb, nil, streams)
+			code := p.dispatch(t.Context(), tt.verb, nil, streams)
 
 			assert.Equal(t, cli.ExitOK, code)
 			require.Len(t, fake.calls, 1)
@@ -176,7 +193,7 @@ func TestSystemdProxyDispatchPropagatesExitCode(t *testing.T) {
 	p := &systemdProxy{runner: fake, unit: serviceUnitName}
 	streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-	code := p.dispatch(context.Background(), verbStatus, nil, streams)
+	code := p.dispatch(t.Context(), verbStatus, nil, streams)
 
 	assert.Equal(t, 3, code)
 }
@@ -187,7 +204,7 @@ func TestSystemdProxyDispatchStreamsWarningForIgnoredArgs(t *testing.T) {
 	errBuf := &bytes.Buffer{}
 	streams := cli.IO{Out: &bytes.Buffer{}, Err: errBuf}
 
-	code := p.dispatch(context.Background(), verbStart, []string{"--config", "/x"}, streams)
+	code := p.dispatch(t.Context(), verbStart, []string{"--config", "/x"}, streams)
 
 	assert.Equal(t, cli.ExitOK, code)
 	assert.Contains(t, errBuf.String(), "ignoring arguments")

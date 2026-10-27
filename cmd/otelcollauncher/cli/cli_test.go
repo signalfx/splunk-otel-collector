@@ -16,6 +16,7 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,18 +30,27 @@ type fakeFamily struct {
 }
 
 type call struct {
+	ctx  context.Context
 	verb string
 	args []string
 }
 
 func (f *fakeFamily) Verbs() []VerbInfo { return f.verbs }
 
-func (f *fakeFamily) Dispatch(verb string, args []string, _ IO) int {
-	f.calls = append(f.calls, call{verb: verb, args: args})
+func (f *fakeFamily) Dispatch(ctx context.Context, verb string, args []string, _ IO) int {
+	f.calls = append(f.calls, call{ctx: ctx, verb: verb, args: args})
 	if f.wantErr {
 		return ExitFailure
 	}
 	return ExitOK
+}
+
+func dispatch(ctx context.Context, families []Family, args []string, streams IO) (int, bool) {
+	run, ok := Resolve(families, args, streams)
+	if !ok {
+		return 0, false
+	}
+	return run(ctx), true
 }
 
 func verbInfos(names ...string) []VerbInfo {
@@ -123,7 +133,7 @@ func TestDispatch(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			f := &fakeFamily{verbs: verbInfos("start", "stop", "status", "restart")}
-			code, ok := Dispatch([]Family{f}, tt.args, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
+			code, ok := dispatch(t.Context(), []Family{f}, tt.args, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
 
 			assert.Equal(t, tt.wantOK, ok)
 			if !tt.wantOK {
@@ -140,16 +150,54 @@ func TestDispatch(t *testing.T) {
 
 func TestDispatchPropagatesFamilyExitCode(t *testing.T) {
 	f := &fakeFamily{verbs: verbInfos("start"), wantErr: true}
-	code, ok := Dispatch([]Family{f}, []string{"start"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
+	code, ok := dispatch(t.Context(), []Family{f}, []string{"start"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
 	assert.True(t, ok)
 	assert.Equal(t, ExitFailure, code)
+}
+
+func TestDispatchForwardsContextToFamily(t *testing.T) {
+	type ctxKey struct{}
+	ctx := context.WithValue(t.Context(), ctxKey{}, "caller")
+	f := &fakeFamily{verbs: verbInfos("start")}
+
+	_, ok := dispatch(ctx, []Family{f}, []string{"start"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
+
+	require.True(t, ok)
+	require.Len(t, f.calls, 1)
+	assert.Equal(t, "caller", f.calls[0].ctx.Value(ctxKey{}))
+}
+
+func TestResolveDoesNotRunUntilInvoked(t *testing.T) {
+	f := &fakeFamily{verbs: verbInfos("start")}
+
+	run, ok := Resolve([]Family{f}, []string{"start"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
+
+	require.True(t, ok)
+	require.NotNil(t, run)
+	assert.Empty(t, f.calls, "matching must not run the command; callers set up signal handling in between")
+
+	assert.Equal(t, ExitOK, run(t.Context()))
+	assert.Len(t, f.calls, 1)
+}
+
+func TestResolveNoMatchReturnsNoCommand(t *testing.T) {
+	f := &fakeFamily{verbs: verbInfos("start")}
+	outBuf := &bytes.Buffer{}
+
+	for _, args := range [][]string{nil, {"--help"}, {"-x"}, {"validate"}} {
+		run, ok := Resolve([]Family{f}, args, IO{Out: outBuf, Err: &bytes.Buffer{}})
+		assert.False(t, ok, "args %v", args)
+		assert.Nil(t, run, "args %v", args)
+	}
+	assert.Empty(t, outBuf.String(), "a non-match must produce no output")
+	assert.Empty(t, f.calls)
 }
 
 func TestDispatchFirstRegisteredFamilyWins(t *testing.T) {
 	first := &fakeFamily{verbs: verbInfos("start")}
 	second := &fakeFamily{verbs: verbInfos("start")}
 
-	_, ok := Dispatch([]Family{first, second}, []string{"start"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
+	_, ok := dispatch(t.Context(), []Family{first, second}, []string{"start"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
 
 	assert.True(t, ok)
 	assert.Len(t, first.calls, 1)
@@ -160,7 +208,7 @@ func TestDispatchChecksEachFamilyInOrder(t *testing.T) {
 	lifecycleFamily := &fakeFamily{verbs: verbInfos("start", "stop", "status", "restart")}
 	otherFamily := &fakeFamily{verbs: verbInfos("reload")}
 
-	code, ok := Dispatch([]Family{lifecycleFamily, otherFamily}, []string{"reload"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
+	code, ok := dispatch(t.Context(), []Family{lifecycleFamily, otherFamily}, []string{"reload"}, IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}})
 
 	assert.True(t, ok)
 	assert.Equal(t, ExitOK, code)
@@ -174,7 +222,7 @@ func TestDispatchBareHelp(t *testing.T) {
 	outBuf := &bytes.Buffer{}
 	streams := IO{Out: outBuf, Err: &bytes.Buffer{}}
 
-	code, ok := Dispatch([]Family{f}, []string{"help"}, streams)
+	code, ok := dispatch(t.Context(), []Family{f}, []string{"help"}, streams)
 
 	assert.True(t, ok)
 	assert.Equal(t, ExitOK, code)
@@ -187,7 +235,7 @@ func TestDispatchHelpWithTrailingArgsIgnored(t *testing.T) {
 	f := &fakeFamily{verbs: verbInfos("start")}
 	outBuf := &bytes.Buffer{}
 
-	code, ok := Dispatch([]Family{f}, []string{"help", "-x"}, IO{Out: outBuf, Err: &bytes.Buffer{}})
+	code, ok := dispatch(t.Context(), []Family{f}, []string{"help", "-x"}, IO{Out: outBuf, Err: &bytes.Buffer{}})
 
 	assert.True(t, ok)
 	assert.Equal(t, ExitOK, code)
@@ -202,7 +250,7 @@ func TestDispatchHelpForKnownVerb(t *testing.T) {
 	outBuf := &bytes.Buffer{}
 	streams := IO{Out: outBuf, Err: &bytes.Buffer{}}
 
-	code, ok := Dispatch([]Family{f}, []string{"help", "start"}, streams)
+	code, ok := dispatch(t.Context(), []Family{f}, []string{"help", "start"}, streams)
 
 	assert.True(t, ok)
 	assert.Equal(t, ExitOK, code)
@@ -217,7 +265,7 @@ func TestDispatchHelpForVerbWithoutUsageFallsBackToHelp(t *testing.T) {
 	f := &fakeFamily{verbs: verbInfos("start")}
 	outBuf := &bytes.Buffer{}
 
-	code, ok := Dispatch([]Family{f}, []string{"help", "start"}, IO{Out: outBuf, Err: &bytes.Buffer{}})
+	code, ok := dispatch(t.Context(), []Family{f}, []string{"help", "start"}, IO{Out: outBuf, Err: &bytes.Buffer{}})
 
 	assert.True(t, ok)
 	assert.Equal(t, ExitOK, code)
@@ -229,7 +277,7 @@ func TestDispatchHelpForUnknownVerbFallsBackToTopLevelList(t *testing.T) {
 	outBuf := &bytes.Buffer{}
 	errBuf := &bytes.Buffer{}
 
-	code, ok := Dispatch([]Family{f}, []string{"help", "bogus"}, IO{Out: outBuf, Err: errBuf})
+	code, ok := dispatch(t.Context(), []Family{f}, []string{"help", "bogus"}, IO{Out: outBuf, Err: errBuf})
 
 	assert.True(t, ok)
 	assert.Equal(t, ExitUsage, code)
@@ -247,7 +295,7 @@ func TestDispatchVerbHelpFlag(t *testing.T) {
 			outBuf := &bytes.Buffer{}
 			streams := IO{Out: outBuf, Err: &bytes.Buffer{}}
 
-			code, ok := Dispatch([]Family{f}, []string{"start", helpArg}, streams)
+			code, ok := dispatch(t.Context(), []Family{f}, []string{"start", helpArg}, streams)
 
 			assert.True(t, ok)
 			assert.Equal(t, ExitOK, code)
@@ -262,7 +310,7 @@ func TestDispatchVerbHelpFlagOnlyChecksImmediateNextToken(t *testing.T) {
 	f := &fakeFamily{verbs: verbInfos("start")}
 	streams := IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-	code, ok := Dispatch([]Family{f}, []string{"start", "--config", "/x", "--help"}, streams)
+	code, ok := dispatch(t.Context(), []Family{f}, []string{"start", "--config", "/x", "--help"}, streams)
 
 	assert.True(t, ok)
 	assert.Equal(t, ExitOK, code)

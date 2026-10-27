@@ -1,0 +1,7 @@
+[
+  {
+    "raw": "consumed line",
+    "host": "parityhost",
+    "source": "${BASE_DIR}/foo.txt"
+  }
+]

@@ -78,12 +78,21 @@ type systemdProxy struct {
 	unit       string
 }
 
-func newSystemdProxy() *systemdProxy {
-	return &systemdProxy{
+// errNotManaged means systemd is not running or does not have the collector
+// unit loaded.
+var errNotManaged = errors.New("not managed by systemd")
+
+// newSystemdProxy returns a proxy only if systemd manages the collector unit.
+func newSystemdProxy(ctx context.Context) (*systemdProxy, error) {
+	p := &systemdProxy{
 		runner:     execSystemctl{binary: "systemctl"},
 		runtimeDir: systemdRuntimeDir,
 		unit:       serviceUnitName,
 	}
+	if err := p.verify(ctx); err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 func (p *systemdProxy) booted() bool {
@@ -101,15 +110,18 @@ func (p *systemdProxy) loadState(ctx context.Context) (string, error) {
 	return value, nil
 }
 
-func (p *systemdProxy) managesUnit(ctx context.Context) (bool, error) {
+func (p *systemdProxy) verify(ctx context.Context) error {
 	if !p.booted() {
-		return false, nil
+		return errNotManaged
 	}
 	state, err := p.loadState(ctx)
 	if err != nil {
-		return false, err
+		return fmt.Errorf("failed to query systemd for %s: %w", p.unit, err)
 	}
-	return state == "loaded", nil
+	if state != "loaded" {
+		return errNotManaged
+	}
+	return nil
 }
 
 func (p *systemdProxy) dispatch(ctx context.Context, v verb, args []string, streams cli.IO) int {

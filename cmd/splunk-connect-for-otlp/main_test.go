@@ -13,15 +13,18 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 )
@@ -29,6 +32,33 @@ import (
 const (
 	defaultTimeout = 5 * time.Second
 )
+
+func TestDeriveEndpointFromRealm(t *testing.T) {
+	tests := []struct {
+		name  string
+		realm string
+		want  string
+	}{
+		{name: "US realm", realm: "us0", want: "https://ingest.us0.observability.splunkcloud.com"},
+		{name: "EU realm", realm: "eu0", want: "https://ingest.eu0.observability.splunkcloud.com"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, deriveEndpointFromRealm(tt.realm))
+		})
+	}
+}
+
+func TestNewObservabilityExporterConfig(t *testing.T) {
+	cfg := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
+	cfg = newObservabilityExporterConfig("eu0", "test-access-token", cfg)
+
+	require.Equal(t, "https://ingest.eu0.observability.splunkcloud.com/v2/datapoint/otlp", cfg.MetricsEndpoint)
+	require.Equal(t, "https://ingest.eu0.observability.splunkcloud.com/v2/trace/otlp", cfg.TracesEndpoint)
+	token, ok := cfg.ClientConfig.Headers.Get("X-SF-Token")
+	require.True(t, ok)
+	require.Equal(t, "test-access-token", string(token))
+}
 
 func TestMainPrintsScheme(t *testing.T) {
 	output := CaptureStdout(t, func() {
@@ -53,13 +83,16 @@ func TestRunReturnsErrorForInvalidInput(t *testing.T) {
 }
 
 func TestRunStartsAndStopsOnSignal(t *testing.T) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	authtest.SetupAuth(t, listener)
+	var loads atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		loads.Add(1)
+		_, _ = fmt.Fprint(w, `<feed><totalResults>0</totalResults><startIndex>0</startIndex></feed>`)
+	}))
+	defer server.Close()
 
 	restoreStdin := WriteToStdin(t, fmt.Sprintf(
 		`<input>
-  <server_uri>http://%s</server_uri>
+  <server_uri>%s</server_uri>
   <session_key>mysessionkey</session_key>
 <configuration>
   <stanza name="splunk-connect-for-otlp://test" app="search">
@@ -67,9 +100,12 @@ func TestRunStartsAndStopsOnSignal(t *testing.T) {
     <param name="http_port">0</param>
     <param name="listen_address">127.0.0.1</param>
     <param name="enableSSL">0</param>
+    <param name="refresh_interval">150ms</param>
+    <param name="refresh_timeout">1s</param>
+    <param name="max_staleness">3s</param>
   </stanza>
 </configuration>
-</input>`, listener.Addr().String(),
+</input>`, server.URL,
 	))
 	defer restoreStdin()
 
@@ -78,13 +114,14 @@ func TestRunStartsAndStopsOnSignal(t *testing.T) {
 		done <- run()
 	}()
 
-	time.AfterFunc(500*time.Millisecond, func() {
+	time.AfterFunc(3000*time.Millisecond, func() {
 		_ = syscall.Kill(os.Getpid(), syscall.SIGTERM)
 	})
 
 	select {
 	case err := <-done:
 		require.NoError(t, err)
+		require.GreaterOrEqual(t, loads.Load(), int32(2), "inputs.conf refresh_interval must reach the auth extension")
 	case <-time.After(5 * time.Second):
 		t.Fatal("run did not complete in time")
 	}

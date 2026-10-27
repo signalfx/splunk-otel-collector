@@ -48,9 +48,9 @@
       <Property Id="SPLUNK_SETUP_COLLECTOR_MODE" Value="agent" Secure="yes" />
 
       <!-- SPLUNK token properties -->
-      <Property Id="SPLUNK_ACCESS_TOKEN" Secure="yes" />
+      <Property Id="SPLUNK_ACCESS_TOKEN" Secure="yes" Hidden="yes" />
 
-      <Property Id="SPLUNK_HEC_TOKEN" Secure="yes" />
+      <Property Id="SPLUNK_HEC_TOKEN" Secure="yes" Hidden="yes" />
       <CustomAction Id="Set_SPLUNK_HEC_TOKEN" Property="SPLUNK_HEC_TOKEN" Value="[SPLUNK_ACCESS_TOKEN]" />
 
       <!-- SPLUNK_*_URL properties required to start the collector -->
@@ -62,7 +62,7 @@
       <Property Id="SPLUNK_HEC_URL" Secure="yes" />
       <Property Id="SPLUNK_OPAMP_SUPERVISOR_ENABLED" Secure="yes" />
       <Property Id="SPLUNK_PLATFORM_URL" Secure="yes" />
-      <Property Id="SPLUNK_PLATFORM_TOKEN" Secure="yes" />
+      <Property Id="SPLUNK_PLATFORM_TOKEN" Secure="yes" Hidden="yes" />
       <Property Id="SPLUNK_PLATFORM_LOGS_INDEX" Secure="yes" />
       <Property Id="SPLUNK_PLATFORM_METRICS_INDEX" Secure="yes" />
 

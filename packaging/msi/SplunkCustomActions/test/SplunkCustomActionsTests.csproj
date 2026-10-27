@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\splunk-otel-collector.wxs" Link="splunk-otel-collector.wxs" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\src\SplunkCustomActions.csproj" />
   </ItemGroup>
 

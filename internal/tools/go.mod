@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint/v2 v2.7.2
 	github.com/google/addlicense v1.2.0
 	github.com/jstemmer/go-junit-report v1.0.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor v0.163.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/cmd/opampsupervisor v0.164.1
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/build-tools/chloggen v0.26.0
 	go.opentelemetry.io/build-tools/multimod v0.30.0
@@ -36,7 +36,7 @@ require (
 	github.com/Djarvur/go-err113 v0.1.1 // indirect
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
-	github.com/Microsoft/go-winio v0.6.3 // indirect
+	github.com/Microsoft/go-winio v0.6.4 // indirect
 	github.com/MirrexOne/unqueryvet v1.3.0 // indirect
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
@@ -210,12 +210,12 @@ require (
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.21.2 // indirect
 	github.com/open-telemetry/opamp-go v0.24.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.163.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.163.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/basicauth v0.163.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/credentialsfile v0.163.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/secretprovider v0.163.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.163.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.164.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.164.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/basicauth v0.164.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/credentialsfile v0.164.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/internal/secretprovider v0.164.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.164.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.3.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/pjbgf/sha1cd v0.6.0 // indirect

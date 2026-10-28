@@ -33,9 +33,15 @@ type gnmiReceiver struct {
 	consumer consumer.Metrics
 	cfg      *Config
 	cancel   context.CancelFunc
-	server   *grpc.Server
+	servers  []*grpc.Server
 	settings receiver.Settings
 	wg       sync.WaitGroup
+}
+
+type grpcListener struct {
+	listener net.Listener
+	server   *grpc.Server
+	name     string
 }
 
 var _ receiver.Metrics = (*gnmiReceiver)(nil)
@@ -81,7 +87,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 		clients = append(clients, client)
 	}
 
-	var listener net.Listener
+	var listeners []grpcListener
 	if r.cfg.GNMIReverse != nil && r.cfg.GNMIReverse.NetAddr.Endpoint != "" {
 		endpoint := r.cfg.GNMIReverse.NetAddr.Endpoint
 		server, serverErr := r.cfg.GNMIReverse.ToServer(startCtx, host.GetExtensions(), r.settings.TelemetrySettings)
@@ -89,7 +95,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 			closeGNMIClients(clients)
 			return fmt.Errorf("create gNMI server: %w", serverErr)
 		}
-		listener, err = net.Listen(string(r.cfg.GNMIReverse.NetAddr.Transport), endpoint)
+		listener, err := net.Listen(string(r.cfg.GNMIReverse.NetAddr.Transport), endpoint)
 		if err != nil {
 			closeGNMIClients(clients)
 			return fmt.Errorf("listen for gNMI clients on %q: %w", endpoint, err)
@@ -101,7 +107,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 			),
 			logger: r.settings.TelemetrySettings.Logger,
 		})
-		r.server = server
+		listeners = append(listeners, grpcListener{name: endpoint, server: server, listener: listener})
 	}
 
 	ctx, cancel := context.WithCancel(context.WithoutCancel(startCtx))
@@ -112,10 +118,12 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 			client.run(ctx)
 		})
 	}
-	if listener != nil {
+	for _, l := range listeners {
+		r.servers = append(r.servers, l.server)
 		r.wg.Go(func() {
-			if serveErr := r.server.Serve(listener); serveErr != nil && !errors.Is(serveErr, grpc.ErrServerStopped) {
-				r.settings.TelemetrySettings.Logger.Error("gNMI server stopped", zap.Error(serveErr))
+			if serveErr := l.server.Serve(l.listener); serveErr != nil && !errors.Is(serveErr, grpc.ErrServerStopped) {
+				r.settings.TelemetrySettings.Logger.Error("gNMI server stopped",
+					zap.String("endpoint", l.name), zap.Error(serveErr))
 			}
 		})
 	}
@@ -126,21 +134,25 @@ func (r *gnmiReceiver) Shutdown(ctx context.Context) error {
 	if r.cancel != nil {
 		r.cancel()
 	}
-	if r.server != nil {
-		done := make(chan struct{})
-		go func() {
-			r.server.GracefulStop()
-			r.wg.Wait()
-			close(done)
-		}()
-		select {
-		case <-done:
-			return nil
-		case <-ctx.Done():
-			return ctx.Err()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for _, srv := range r.servers {
+			srv.GracefulStop()
 		}
+		r.wg.Wait()
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		for _, srv := range r.servers {
+			srv.Stop()
+		}
+		<-done
+		return ctx.Err()
 	}
-	return nil
 }
 
 func closeGNMIClients(clients []*gnmiClient) {

@@ -92,6 +92,40 @@ func TestDefault(t *testing.T) {
 	}
 }
 
+func TestSplunkPlatformLogs(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_GROUP") == "instrumentation" {
+		t.Skip("base cases run in base matrix")
+	}
+	for _, distro := range selectedDistros(t) {
+		for _, release := range releases() {
+			t.Run(distro+"/"+release, func(t *testing.T) {
+				c := container(t, distro, release)
+				version := d.Env("VERSION", "0.0.1")
+				platformURL := "https://splunk.example.com:8088/services/collector"
+				platformToken := "fake-platform-token"
+				platformIndex := "os-logs"
+				apply(t, c, manifest(
+					"collector_version => '"+version+"'",
+					"splunk_platform_url => '"+platformURL+"'",
+					"splunk_platform_token => '"+platformToken+"'",
+					"splunk_platform_logs_index => '"+platformIndex+"'",
+					"collector_command_line_args => '--discovery'",
+				))
+				d.PackageVersion(t, c, d.ServiceName, version)
+				env(t, c)
+				d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_URL", platformURL, true)
+				d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_TOKEN", platformToken, true)
+				d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_LOGS_INDEX", platformIndex, true)
+				d.KV(t, c, d.EnvPath, "SPLUNK_FILE_STORAGE_EXTENSION_PATH", "/var/lib/otelcol/filelogs", true)
+				d.KV(t, c, d.EnvPath, "OTELCOL_OPTIONS", "--discovery --config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption", true)
+				d.File(t, c, "/etc/otel/collector/splunk_logs_config_linux.yaml", true)
+				require.Equal(t, "splunk-otel-collector:splunk-otel-collector:700", strings.TrimSpace(d.Run(t, c, "stat -c '%U:%G:%a' /var/lib/otelcol/filelogs")))
+				d.ServiceRunning(t, c, d.ServiceOwner, "/usr/bin/otelcol")
+			})
+		}
+	}
+}
+
 func TestCustom(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_GROUP") == "instrumentation" {
 		t.Skip("base cases run in base matrix")

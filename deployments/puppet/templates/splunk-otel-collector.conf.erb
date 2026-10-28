@@ -12,8 +12,21 @@ SPLUNK_REALM=<%= @splunk_realm %>
 <% unless @gomemlimit.to_s.strip.empty? -%>
 GOMEMLIMIT=<%= @gomemlimit %>
 <% end -%>
-<% unless @collector_command_line_args.to_s.strip.empty? -%>
-OTELCOL_OPTIONS=<%= @collector_command_line_args %>
+<% collector_options = @collector_command_line_args.to_s.strip -%>
+<% unless @splunk_platform_url.to_s.strip.empty? -%>
+<% platform_logs_options = '--config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption' -%>
+<% collector_options = [collector_options, platform_logs_options].reject(&:empty?).join(' ') -%>
+<% end -%>
+<% unless collector_options.empty? -%>
+OTELCOL_OPTIONS=<%= collector_options %>
+<% end -%>
+<% unless @splunk_platform_url.to_s.strip.empty? -%>
+SPLUNK_PLATFORM_URL=<%= @splunk_platform_url %>
+SPLUNK_PLATFORM_TOKEN=<%= @splunk_platform_token %>
+SPLUNK_FILE_STORAGE_EXTENSION_PATH=/var/lib/otelcol/filelogs
+<% unless @splunk_platform_logs_index.to_s.strip.empty? -%>
+SPLUNK_PLATFORM_LOGS_INDEX=<%= @splunk_platform_logs_index %>
+<% end -%>
 <% end -%>
 
 # Custom environment variables.

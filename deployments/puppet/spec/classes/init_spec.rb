@@ -97,4 +97,85 @@ describe 'splunk_otel_collector' do
         .that_notifies('Service[splunk-otel-collector]')
     end
   end
+
+  context 'with Splunk Platform logs on Linux' do
+    let(:facts) do
+      linux_facts.merge(service_provider: 'systemd', local_groups: '', local_users: '')
+    end
+    let(:params) do
+      {
+        'splunk_access_token' => 'testing',
+        'splunk_realm' => 'test',
+        'splunk_platform_token' => 'platform-token',
+        'splunk_platform_url' => 'https://splunk.example.com:8088/services/collector',
+        'splunk_platform_logs_index' => 'os-logs',
+        'collector_command_line_args' => '--discovery',
+      }
+    end
+
+    it do
+      is_expected.to contain_file('/etc/otel/collector/splunk-otel-collector.conf')
+        .with_content(%r{(?=.*^SPLUNK_PLATFORM_URL=https://splunk\.example\.com:8088/services/collector$)(?=.*^SPLUNK_PLATFORM_TOKEN=platform-token$)(?=.*^SPLUNK_PLATFORM_LOGS_INDEX=os-logs$)(?=.*^SPLUNK_FILE_STORAGE_EXTENSION_PATH=/var/lib/otelcol/filelogs$)(?=.*^OTELCOL_OPTIONS=--discovery --config /etc/otel/collector/splunk_logs_config_linux\.yaml --feature-gates=confmap\.enableMergeAppendOption$)}m)
+    end
+
+    it do
+      is_expected.to contain_file('/var/lib/otelcol/filelogs').with(
+        ensure: 'directory',
+        owner: 'splunk-otel-collector',
+        group: 'splunk-otel-collector',
+        mode: '0700',
+      ).that_requires('Package[splunk-otel-collector]')
+        .that_requires('Class[splunk_otel_collector::collector_service_owner]')
+        .that_comes_before('Service[splunk-otel-collector]')
+    end
+  end
+
+  context 'with Splunk Platform logs and no explicit index' do
+    let(:facts) do
+      linux_facts.merge(service_provider: 'systemd', local_groups: '', local_users: '')
+    end
+    let(:params) do
+      {
+        'splunk_access_token' => 'testing',
+        'splunk_realm' => 'test',
+        'splunk_platform_token' => 'platform-token',
+        'splunk_platform_url' => 'https://splunk.example.com:8088/services/collector',
+      }
+    end
+
+    it do
+      is_expected.to contain_file('/etc/otel/collector/splunk-otel-collector.conf')
+        .with_content(%r{\A(?=.*^SPLUNK_PLATFORM_TOKEN=platform-token$)(?!.*^SPLUNK_PLATFORM_LOGS_INDEX=).*\z}m)
+    end
+  end
+
+  context 'with Splunk Platform parameters missing the required URL or token' do
+    let(:facts) do
+      linux_facts.merge(service_provider: 'systemd', local_groups: '', local_users: '')
+    end
+
+    context 'when only the token is set' do
+      let(:params) do
+        { 'splunk_access_token' => 'testing', 'splunk_realm' => 'test', 'splunk_platform_token' => 'platform-token' }
+      end
+
+      it { is_expected.to compile.and_raise_error(/splunk_platform_url parameter is required/) }
+    end
+
+    context 'when only the URL is set' do
+      let(:params) do
+        { 'splunk_access_token' => 'testing', 'splunk_realm' => 'test', 'splunk_platform_url' => 'https://splunk.example.com' }
+      end
+
+      it { is_expected.to compile.and_raise_error(/splunk_platform_token parameter is required/) }
+    end
+
+    context 'when only the logs index is set' do
+      let(:params) do
+        { 'splunk_access_token' => 'testing', 'splunk_realm' => 'test', 'splunk_platform_logs_index' => 'os-logs' }
+      end
+
+      it { is_expected.to compile.and_raise_error(/splunk_platform_url parameter is required/) }
+    end
+  end
 end

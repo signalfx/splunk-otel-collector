@@ -55,8 +55,6 @@ extensions:
       enabled: true
 
 receivers:
-  fluent_forward:
-    endpoint: 127.0.0.1:8006
   host_metrics:
     collection_interval: 10s
     scrapers:

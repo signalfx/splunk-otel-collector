@@ -51,12 +51,12 @@ resolve_version_commit() {
     fi
 
     if [[ -z "${commit_hash:-}" ]]; then
-        git -C "$repo_root" fetch --depth=1 origin "$ref"
-        commit_hash="$(git -C "$repo_root" rev-parse 'FETCH_HEAD^{commit}')"
+        git -C "$repo_root" fetch --depth=1 origin "$ref" || return 1
+        commit_hash="$(git -C "$repo_root" rev-parse 'FETCH_HEAD^{commit}')" || return 1
     else
-        git -C "$repo_root" fetch --depth=1 origin "$commit_hash"
+        git -C "$repo_root" fetch --depth=1 origin "$commit_hash" || return 1
     fi
-    git -C "$repo_root" checkout --detach "$commit_hash"
+    git -C "$repo_root" checkout --detach "$commit_hash" || return 1
     git -C "$repo_root" rev-parse HEAD
 }
 

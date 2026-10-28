@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -451,6 +452,50 @@ func TestReceiverShutdownWithoutStart(t *testing.T) {
 	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
 
 	require.NoError(t, r.Shutdown(context.Background()))
+}
+
+func TestReceiverShutdownWaitsForClientGoroutines(t *testing.T) {
+	srv := &mockGNMIServer{updates: 1}
+	addr, stop := startMockServer(t, srv)
+	defer stop()
+
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	var once sync.Once
+	gated, err := consumer.NewMetrics(func(context.Context, pmetric.Metrics) error {
+		once.Do(func() { close(entered) })
+		<-release
+		return nil
+	})
+	require.NoError(t, err)
+
+	cfg := &Config{Targets: []TargetConfig{testTarget(addr)}}
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), gated)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+
+	select {
+	case <-entered:
+	case <-time.After(2 * time.Second):
+		t.Fatal("client never reached ConsumeMetrics")
+	}
+
+	shutdownDone := make(chan error, 1)
+	go func() { shutdownDone <- r.Shutdown(context.Background()) }()
+
+	select {
+	case <-shutdownDone:
+		t.Fatal("Shutdown returned before the in-flight client goroutine finished")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	close(release)
+
+	select {
+	case err := <-shutdownDone:
+		require.NoError(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("Shutdown did not return after the client goroutine was unblocked")
+	}
 }
 
 func TestReceiverRedialsAfterSessionFailure(t *testing.T) {

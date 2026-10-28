@@ -32,15 +32,21 @@ resolve_version_commit() {
 
     if [[ "$version" == "latest" ]]; then
         local release_tag
-        release_tag="$(gh api "repos/$repo/releases/latest" --jq .tag_name)"
-        if [[ -z "$release_tag" || "$release_tag" == "null" ]]; then
-            echo "Failed to resolve latest release tag for $repo" >&2
+        if ! release_tag="$(gh api "repos/$repo/releases/latest" --jq '.tag_name // empty')"; then
+            echo "ERROR: Failed to get the latest release for $repo" >&2
+            return 1
+        fi
+        if [[ -z "$release_tag" ]]; then
+            echo "ERROR: Latest release tag is empty for $repo" >&2
             return 1
         fi
 
-        commit_hash="$(gh api "repos/$repo/commits/$release_tag" --jq .sha)"
-        if [[ -z "$commit_hash" || "$commit_hash" == "null" ]]; then
-            echo "Failed to resolve commit for $repo release $release_tag" >&2
+        if ! commit_hash="$(gh api "repos/$repo/commits/$release_tag" --jq '.sha // empty')"; then
+            echo "ERROR: Failed to resolve commit for $repo release $release_tag" >&2
+            return 1
+        fi
+        if [[ -z "$commit_hash" ]]; then
+            echo "ERROR: Commit SHA is empty for $repo release $release_tag" >&2
             return 1
         fi
         echo ">>> Resolved $repo latest release $release_tag to $commit_hash" >&2

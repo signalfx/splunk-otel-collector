@@ -268,7 +268,7 @@ require (
 	github.com/microsoft/go-mssqldb v1.11.2 // indirect
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/moby/moby/api v1.56.0 // indirect
+	github.com/moby/moby/api v1.56.1 // indirect
 	github.com/moby/moby/client v0.6.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.2 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
@@ -470,7 +470,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
 	github.com/signalfx/golib/v3 v3.5.0 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
-	github.com/snowflakedb/gosnowflake/v2 v2.2.0 // indirect
+	github.com/snowflakedb/gosnowflake/v2 v2.3.0 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.27.0 // indirect

@@ -5,7 +5,7 @@ go 1.26.10
 require (
 	github.com/containerd/platforms v0.2.1
 	github.com/google/uuid v1.6.0
-	github.com/moby/moby/api v1.56.0
+	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.163.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.163.0

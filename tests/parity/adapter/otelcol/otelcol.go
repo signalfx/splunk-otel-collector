@@ -49,6 +49,11 @@ const ConfigFile = "config.yaml"
 // directory.
 const splunkHomeDir = "splunkhome"
 
+// payloadMode is the mode a non-config case file is installed with. It carries
+// the execute bit because a payload file is typically a script, and splunkd will
+// not run one it cannot execute.
+const payloadMode = 0o755
+
 // Adapter drives one otelcol binary through a case.
 type Adapter struct {
 	cmd        *exec.Cmd
@@ -83,25 +88,32 @@ func (a *Adapter) Name() string { return "otelcol" }
 func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 
 // Prepare collects every *.yaml/*.yml file the runner wrote into configDir as a
-// --config source, sorted for a deterministic merge order. Any *.conf file goes
-// to installConf instead, and a case that ships one is configured from that tree
-// through the splunkconf provider. At least one source must resolve.
+// --config source, sorted for a deterministic merge order. Everything else goes
+// into a sandbox $SPLUNK_HOME (see installHome), and a case that ships a .conf
+// file is configured from that tree through the splunkconf provider. At least
+// one source must resolve.
+//
+// Only a .conf file adds the provider URI. A payload file needs the sandbox home
+// to live in, but on its own it configures nothing, so a case shipping one
+// alongside a collector config is still run from that config alone.
 func (a *Adapter) Prepare(configDir string, files []string) error {
-	var yamls, confs []string
+	var yamls, confs, payloads []string
 	for _, rel := range files {
 		switch filepath.Ext(rel) {
 		case ".yaml", ".yml":
 			yamls = append(yamls, filepath.Join(configDir, filepath.FromSlash(rel)))
 		case ".conf":
 			confs = append(confs, rel)
+		default:
+			payloads = append(payloads, rel)
 		}
 	}
 	sort.Strings(yamls)
-	if err := a.installConf(configDir, confs); err != nil {
+	if err := a.installHome(configDir, confs, payloads); err != nil {
 		return err
 	}
 	a.configs = yamls
-	if a.splunkHome != "" {
+	if len(confs) > 0 {
 		a.configs = append(a.configs, a.confRootURI())
 	}
 	if len(a.configs) == 0 {
@@ -117,34 +129,62 @@ func (a *Adapter) confRootURI() string {
 	return "splunkconf://" + filepath.ToSlash(filepath.Join(a.splunkHome, "etc"))
 }
 
-// installConf copies the case's .conf files into the etc/ of a sandbox
-// $SPLUNK_HOME, which Start then puts in the environment. A bare filename is
-// system config; a nested path is mirrored, so an app in the case's conf/ is an
-// installed app here too.
-func (a *Adapter) installConf(configDir string, rels []string) error {
-	if len(rels) == 0 {
+// installHome lays out the sandbox $SPLUNK_HOME the case is run from, which
+// Start then puts in the environment.
+//
+// A .conf file goes into etc/: a bare filename is system config, a nested path
+// is mirrored, so an app in the case's conf/ is an installed app here too. Every
+// other file lands at the path the case named it, relative to $SPLUNK_HOME
+// itself, because that is the only way to reach the directories outside etc/
+// that splunkd reads. A scripted input is the case in point: splunkd runs a
+// script only from $SPLUNK_HOME/bin/scripts or a bundle's bin, so bin/scripts/x
+// in a case installs there rather than under etc/.
+func (a *Adapter) installHome(configDir string, confs, payloads []string) error {
+	if len(confs) == 0 && len(payloads) == 0 {
 		return nil
 	}
 	home := filepath.Join(configDir, splunkHomeDir)
 	etcDir := filepath.Join(home, "etc")
-	for _, rel := range rels {
-		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
-		if err != nil {
-			return err
-		}
+	for _, rel := range confs {
 		dest := filepath.Join(etcDir, "system", "local", rel)
 		if strings.Contains(rel, "/") {
 			dest = filepath.Join(etcDir, filepath.FromSlash(rel))
 		}
-		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
-			return err
-		}
-		if err := os.WriteFile(dest, contents, 0o600); err != nil {
+		if err := copyInto(configDir, rel, dest, 0o600); err != nil {
 			return err
 		}
 	}
+	for _, rel := range payloads {
+		if err := copyInto(configDir, rel, filepath.Join(home, filepath.FromSlash(rel)), payloadMode); err != nil {
+			return err
+		}
+	}
+	// A Splunk install holds its data under var/lib/splunk, and an input that
+	// checkpoints there refuses to start when $SPLUNK_DB does not resolve to an
+	// existing directory. The sandbox is a $SPLUNK_HOME like any other, so it
+	// has the directory too.
+	if err := os.MkdirAll(filepath.Join(home, "var", "lib", "splunk"), 0o755); err != nil {
+		return err
+	}
 	a.splunkHome = home
 	return nil
+}
+
+// copyInto copies the staged file rel into dest with mode. The contents are
+// written restrictively and then chmod'ed, rather than written with mode
+// directly, so an execute bit never passes through os.WriteFile.
+func copyInto(configDir, rel, dest string, mode os.FileMode) error {
+	contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(dest, contents, 0o600); err != nil {
+		return err
+	}
+	return os.Chmod(dest, mode)
 }
 
 // args expands the resolved sources into repeated --config flags, followed by

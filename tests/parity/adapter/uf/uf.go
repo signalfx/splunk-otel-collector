@@ -51,20 +51,33 @@ func New(installDir string) *Adapter {
 func (a *Adapter) Name() string       { return "UF" }
 func (a *Adapter) InstallDir() string { return a.installDir }
 
-// Prepare copies every .conf file from configDir into the install's etc/,
-// recording a restore for each so the install is left as it was found. A bare
-// filename goes to etc/system/local; a nested path is mirrored, which is how a
-// case installs an app.
+// confMode is for config, which only splunkd reads. payloadMode carries the
+// execute bit because a payload file is typically a script, and splunkd will not
+// run one it cannot execute.
+const (
+	confMode    = 0o600
+	payloadMode = 0o755
+)
+
+// Prepare copies the case's files into the install, recording a restore for each
+// so it is left as it was found. A .conf file goes into etc/ (see confPath); any
+// other file lands at the path the case named it, relative to the install root,
+// which is how a case ships a script for a stanza to run. A collector config is
+// not the UF's and is skipped.
 func (a *Adapter) Prepare(configDir string, files []string) error {
 	for _, rel := range files {
-		if !strings.HasSuffix(rel, ".conf") {
+		dest, mode := filepath.Join(a.installDir, filepath.FromSlash(rel)), os.FileMode(payloadMode)
+		switch filepath.Ext(rel) {
+		case ".yaml", ".yml":
 			continue
+		case ".conf":
+			dest, mode = a.confPath(rel), confMode
 		}
 		contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 		if err != nil {
 			return err
 		}
-		if err := a.writeWithRestore(a.confPath(rel), contents); err != nil {
+		if err := a.writeWithRestore(dest, contents, mode); err != nil {
 			return err
 		}
 	}
@@ -121,10 +134,10 @@ func (a *Adapter) executable() string {
 	return filepath.Join(a.installDir, "bin", name)
 }
 
-// writeWithRestore writes contents to path and records a cleanup that restores
-// the prior contents, or removes the file and any directory it had to create.
-// Ported from the 1spl writeFileWithRestore.
-func (a *Adapter) writeWithRestore(path string, contents []byte) error {
+// writeWithRestore writes contents to path with mode and records a cleanup that
+// restores the prior contents, or removes the file and any directory it had to
+// create. Ported from the 1spl writeFileWithRestore.
+func (a *Adapter) writeWithRestore(path string, contents []byte, mode os.FileMode) error {
 	info, statErr := os.Stat(path)
 	existed := statErr == nil
 	var original []byte
@@ -144,7 +157,12 @@ func (a *Adapter) writeWithRestore(path string, contents []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
+	// Written restrictively and then chmod'ed, rather than written with mode
+	// directly, so an execute bit never passes through os.WriteFile.
 	if err := os.WriteFile(path, contents, 0o600); err != nil {
+		return err
+	}
+	if err := os.Chmod(path, mode); err != nil {
 		return err
 	}
 

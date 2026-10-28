@@ -46,14 +46,6 @@ class splunk_otel_collector (
   $auto_instrumentation_npm_path                = 'npm', # linux only
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
-  if empty($splunk_access_token) {
-    fail('The splunk_access_token parameter is required')
-  }
-
-  if empty($splunk_realm) {
-    fail('The splunk_realm parameter is required')
-  }
-
   if !empty($splunk_platform_token) and empty($splunk_platform_url) {
     fail('The splunk_platform_url parameter is required when splunk_platform_token is set')
   }
@@ -64,6 +56,14 @@ class splunk_otel_collector (
 
   if !empty($splunk_platform_logs_index) and empty($splunk_platform_url) {
     fail('The splunk_platform_url parameter is required when splunk_platform_logs_index is set')
+  }
+
+  if empty($splunk_access_token) and empty($splunk_platform_token) {
+    fail('The splunk_access_token or splunk_platform_token parameter is required')
+  }
+
+  if !empty($splunk_access_token) and empty($splunk_realm) {
+    fail('The splunk_realm parameter is required when splunk_access_token is set')
   }
 
   if $facts['os']['family'] == 'windows' and !empty($splunk_platform_url) {

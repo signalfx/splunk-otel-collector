@@ -4,8 +4,8 @@ describe 'splunk_otel_collector' do
   let(:title) { 'splunk_otel_collector' }
   let(:params) { { 'splunk_access_token' => '' } }
 
-  it "fails without access token" do
-    is_expected.to compile.and_raise_error(/splunk_access_token/)
+  it "fails without an access token or Platform HEC token" do
+    is_expected.to compile.and_raise_error(/splunk_access_token or splunk_platform_token/)
   end
 
   on_supported_os.each do |os, facts|
@@ -115,7 +115,7 @@ describe 'splunk_otel_collector' do
 
     it do
       is_expected.to contain_file('/etc/otel/collector/splunk-otel-collector.conf')
-        .with_content(%r{(?=.*^SPLUNK_PLATFORM_URL=https://splunk\.example\.com:8088/services/collector$)(?=.*^SPLUNK_PLATFORM_TOKEN=platform-token$)(?=.*^SPLUNK_PLATFORM_LOGS_INDEX=os-logs$)(?=.*^SPLUNK_FILE_STORAGE_EXTENSION_PATH=/var/lib/otelcol/filelogs$)(?=.*^OTELCOL_OPTIONS=--discovery --config /etc/otel/collector/splunk_logs_config_linux\.yaml --feature-gates=confmap\.enableMergeAppendOption$)}m)
+        .with_content(%r{(?=.*^SPLUNK_ACCESS_TOKEN=testing$)(?=.*^SPLUNK_REALM=test$)(?=.*^SPLUNK_API_URL=https://api\.test\.observability\.splunkcloud\.com$)(?=.*^SPLUNK_HEC_TOKEN=testing$)(?=.*^SPLUNK_HEC_URL=https://ingest\.test\.observability\.splunkcloud\.com/v1/log$)(?=.*^SPLUNK_PLATFORM_URL=https://splunk\.example\.com:8088/services/collector$)(?=.*^SPLUNK_PLATFORM_TOKEN=platform-token$)(?=.*^SPLUNK_PLATFORM_LOGS_INDEX=os-logs$)(?=.*^SPLUNK_FILE_STORAGE_EXTENSION_PATH=/var/lib/otelcol/filelogs$)(?=.*^OTELCOL_OPTIONS=--discovery --config /etc/otel/collector/agent_config\.yaml --config /etc/otel/collector/splunk_logs_config_linux\.yaml --feature-gates=confmap\.enableMergeAppendOption$)(?!.*^SPLUNK_CONFIG=)}m)
     end
 
     it do
@@ -127,6 +127,24 @@ describe 'splunk_otel_collector' do
       ).that_requires('Package[splunk-otel-collector]')
         .that_requires('Class[splunk_otel_collector::collector_service_owner]')
         .that_comes_before('Service[splunk-otel-collector]')
+    end
+  end
+
+  context 'with Splunk Platform logs only on Linux' do
+    let(:facts) do
+      linux_facts.merge(service_provider: 'systemd', local_groups: '', local_users: '')
+    end
+    let(:params) do
+      {
+        'splunk_platform_token' => 'platform-token',
+        'splunk_platform_url' => 'https://splunk.example.com:8088/services/collector',
+        'collector_command_line_args' => '--discovery',
+      }
+    end
+
+    it do
+      is_expected.to contain_file('/etc/otel/collector/splunk-otel-collector.conf')
+        .with_content(%r{(?=.*^SPLUNK_PLATFORM_URL=https://splunk\.example\.com:8088/services/collector$)(?=.*^SPLUNK_PLATFORM_TOKEN=platform-token$)(?=.*^SPLUNK_FILE_STORAGE_EXTENSION_PATH=/var/lib/otelcol/filelogs$)(?=.*^OTELCOL_OPTIONS=--discovery --config /etc/otel/collector/splunk_logs_config_linux\.yaml --feature-gates=confmap\.enableMergeAppendOption$)(?!.*^SPLUNK_ACCESS_TOKEN=)(?!.*^SPLUNK_API_URL=)(?!.*^SPLUNK_CONFIG=)(?!.*^SPLUNK_HEC_TOKEN=)(?!.*^SPLUNK_HEC_URL=)(?!.*^SPLUNK_INGEST_URL=)(?!.*^SPLUNK_REALM=)}m)
     end
   end
 

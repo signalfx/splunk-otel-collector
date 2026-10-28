@@ -104,20 +104,23 @@ func TestSplunkPlatformLogs(t *testing.T) {
 				platformURL := "https://splunk.example.com:8088/services/collector"
 				platformToken := "fake-platform-token"
 				platformIndex := "os-logs"
-				apply(t, c, manifest(
-					"collector_version => '"+version+"'",
-					"splunk_platform_url => '"+platformURL+"'",
-					"splunk_platform_token => '"+platformToken+"'",
-					"splunk_platform_logs_index => '"+platformIndex+"'",
-					"collector_command_line_args => '--discovery'",
-				))
+				apply(t, c, fmt.Sprintf(`class { splunk_otel_collector:
+    collector_version => '%s',
+    splunk_platform_url => '%s',
+    splunk_platform_token => '%s',
+    splunk_platform_logs_index => '%s',
+    collector_command_line_args => '--discovery',
+}
+`, version, platformURL, platformToken, platformIndex))
 				d.PackageVersion(t, c, d.ServiceName, version)
-				env(t, c)
 				d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_URL", platformURL, true)
 				d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_TOKEN", platformToken, true)
 				d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_LOGS_INDEX", platformIndex, true)
 				d.KV(t, c, d.EnvPath, "SPLUNK_FILE_STORAGE_EXTENSION_PATH", "/var/lib/otelcol/filelogs", true)
 				d.KV(t, c, d.EnvPath, "OTELCOL_OPTIONS", "--discovery --config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption", true)
+				for _, key := range []string{"SPLUNK_ACCESS_TOKEN", "SPLUNK_API_URL", "SPLUNK_CONFIG", "SPLUNK_HEC_TOKEN", "SPLUNK_HEC_URL", "SPLUNK_INGEST_URL", "SPLUNK_REALM"} {
+					d.KV(t, c, d.EnvPath, key, ".*", false)
+				}
 				d.File(t, c, "/etc/otel/collector/splunk_logs_config_linux.yaml", true)
 				require.Equal(t, "splunk-otel-collector:splunk-otel-collector:700", strings.TrimSpace(d.Run(t, c, "stat -c '%U:%G:%a' /var/lib/otelcol/filelogs")))
 				d.ServiceRunning(t, c, d.ServiceOwner, "/usr/bin/otelcol")

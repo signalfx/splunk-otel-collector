@@ -1,20 +1,29 @@
+<% unless @splunk_access_token.to_s.strip.empty? -%>
 SPLUNK_ACCESS_TOKEN=<%= @splunk_access_token %>
 SPLUNK_API_URL=<%= @splunk_api_url %>
+<% if @splunk_platform_url.to_s.strip.empty? -%>
 SPLUNK_CONFIG=<%= @collector_config_dest %>
+<% end -%>
 SPLUNK_HEC_TOKEN=<%= @splunk_hec_token %>
 SPLUNK_HEC_URL=<%= @splunk_hec_url %>
 SPLUNK_INGEST_URL=<%= @splunk_ingest_url %>
+SPLUNK_REALM=<%= @splunk_realm %>
+<% end -%>
 SPLUNK_MEMORY_TOTAL_MIB=<%= @splunk_memory_total_mib %>
 <% unless @splunk_listen_interface.to_s.strip.empty? -%>
 SPLUNK_LISTEN_INTERFACE=<%= @splunk_listen_interface %>
 <% end -%>
-SPLUNK_REALM=<%= @splunk_realm %>
 <% unless @gomemlimit.to_s.strip.empty? -%>
 GOMEMLIMIT=<%= @gomemlimit %>
 <% end -%>
 <% collector_options = @collector_command_line_args.to_s.strip -%>
 <% unless @splunk_platform_url.to_s.strip.empty? -%>
-<% platform_logs_options = '--config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption' -%>
+<% platform_logs_options = [] -%>
+<% unless @splunk_access_token.to_s.strip.empty? -%>
+<% platform_logs_options << "--config #{@collector_config_dest}" -%>
+<% end -%>
+<% platform_logs_options << '--config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption' -%>
+<% platform_logs_options = platform_logs_options.join(' ') -%>
 <% collector_options = [collector_options, platform_logs_options].reject(&:empty?).join(' ') -%>
 <% end -%>
 <% unless collector_options.empty? -%>

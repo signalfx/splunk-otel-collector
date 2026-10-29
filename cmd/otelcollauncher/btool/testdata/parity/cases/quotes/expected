@@ -1,0 +1,7 @@
+[s]
+a = "double"
+b = 'single'
+c = "unterminated
+d = say "hi" there
+e = ""
+EXIT=0

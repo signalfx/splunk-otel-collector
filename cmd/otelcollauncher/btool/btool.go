@@ -25,12 +25,28 @@ import (
 	"sort"
 	"strings"
 
-	"gopkg.in/ini.v1"
-
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
 )
 
-const usage = "usage: otelcollauncher btool [--app=<app>] [--dir=<etc-dir>] <conf-file> list [stanza-prefix] [--debug]"
+const usage = "usage: otelcollauncher btool [--app=<app>] [--dir=<etc-dir>] [--expand-stanzas=<true|false>] <conf-file> list [stanza-prefix] [--debug]"
+
+// builtinInputs are the inputs.conf stanza types that Splunk handles itself.
+// Any other "<scheme>://" stanza is a modular input, and the bare "[<scheme>]"
+// stanzas that configure them are not listed by btool.
+var builtinInputs = map[string]bool{
+	"SSL":           true,
+	"batch":         true,
+	"fifo":          true,
+	"fschange":      true,
+	"http":          true,
+	"monitor":       true,
+	"script":        true,
+	"splunktcp":     true,
+	"splunktcp-ssl": true,
+	"tcp":           true,
+	"tcp-ssl":       true,
+	"udp":           true,
+}
 
 type Manager struct{}
 
@@ -45,33 +61,37 @@ func (m *Manager) Verbs() []cli.VerbInfo {
 }
 
 func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams cli.IO) int {
-	options, err := parseArgs(args)
+	options, code, err := parseArgs(args)
 	if err != nil {
 		fmt.Fprintf(streams.Err, "%v\n%s\n", err, usage)
-		return cli.ExitUsage
+		return code
 	}
 
+	home := os.Getenv("SPLUNK_HOME")
 	etcDir := options.dir
 	if etcDir == "" {
-		home := os.Getenv("SPLUNK_HOME")
 		if home == "" {
 			fmt.Fprintln(streams.Err, "$SPLUNK_HOME is not defined; set it or use --dir=<etc-dir>")
 			return cli.ExitFailure
 		}
 		etcDir = filepath.Join(home, "etc")
+	} else if home == "" {
+		home = filepath.Dir(etcDir)
 	}
 
-	dirs, err := configDirs(etcDir, options.app)
+	dirs, err := configDirs(etcDir, options.app, options.confName)
 	if err != nil {
 		fmt.Fprintln(streams.Err, err)
 		return cli.ExitFailure
 	}
-	merged, err := readMerged(options.confName, dirs)
+	vars := expansionVars{lookupEnv: os.LookupEnv, etcDir: etcDir, home: home}
+	merged, err := readMerged(options.confName, dirs, vars, options.expand)
 	if err != nil {
 		fmt.Fprintf(streams.Err, "failed to read %s: %v\n", options.confName, err)
 		return cli.ExitFailure
 	}
-	if err := printSettings(streams.Out, merged, options.prefix, options.debug); err != nil {
+	visible := resolve(options.confName, merged)
+	if err := printSettings(streams.Out, visible, options.prefix, options.debug); err != nil {
 		fmt.Fprintf(streams.Err, "failed to write settings: %v\n", err)
 		return cli.ExitFailure
 	}
@@ -84,55 +104,82 @@ type commandOptions struct {
 	app      string
 	dir      string
 	debug    bool
+	expand   bool
 }
 
-func parseArgs(args []string) (commandOptions, error) {
-	var options commandOptions
+// parseArgs returns the exit code to use alongside any error, matching the
+// codes of splunk btool: 2 for a malformed command, 1 for anything else.
+func parseArgs(args []string) (commandOptions, int, error) {
+	options := commandOptions{expand: true}
 	var positional []string
 	for _, arg := range args {
 		switch {
 		case arg == "--debug":
 			options.debug = true
+		case arg == "--raw", arg == "--no-log":
+			// Accepted for compatibility; they have no effect on list output.
+		case arg == "--expand-stanzas=true":
+			options.expand = true
+		case arg == "--expand-stanzas=false":
+			options.expand = false
 		case strings.HasPrefix(arg, "--app="):
 			options.app = strings.TrimPrefix(arg, "--app=")
 			if !validName(options.app) {
-				return options, fmt.Errorf("invalid app name %q", options.app)
+				return options, cli.ExitFailure, fmt.Errorf("invalid app name %q", options.app)
 			}
 		case strings.HasPrefix(arg, "--dir="):
 			options.dir = strings.TrimPrefix(arg, "--dir=")
 			if !filepath.IsAbs(options.dir) {
-				return options, fmt.Errorf("--dir must be an absolute path: %q", options.dir)
+				return options, cli.ExitFailure, fmt.Errorf("--dir must be an absolute path: %q", options.dir)
 			}
 		case strings.HasPrefix(arg, "-"):
-			return options, fmt.Errorf("unsupported option %q", arg)
+			return options, cli.ExitFailure, fmt.Errorf("unsupported option %q", arg)
 		default:
 			positional = append(positional, arg)
 		}
 	}
 	if len(positional) < 2 || len(positional) > 3 || positional[1] != "list" {
-		return options, errors.New("expected <conf-file> list [stanza-prefix]")
+		return options, cli.ExitUsage, errors.New("expected <conf-file> list [stanza-prefix]")
 	}
-	options.confName = positional[0]
-	if !strings.HasSuffix(options.confName, ".conf") {
-		options.confName += ".conf"
-	}
+	options.confName = positional[0] + ".conf"
 	if !validName(options.confName) {
-		return options, fmt.Errorf("invalid configuration file %q", positional[0])
+		return options, cli.ExitFailure, fmt.Errorf("invalid configuration file %q", positional[0])
 	}
 	if len(positional) == 3 {
 		options.prefix = positional[2]
 	}
-	return options, nil
+	return options, cli.ExitOK, nil
 }
 
 func validName(name string) bool {
 	return name != "" && name != "." && name != ".." && !strings.ContainsAny(name, `/\\`)
 }
 
+// appDisabled reports whether the app's [install] state setting, merged from
+// default/app.conf and local/app.conf, is present and anything but "enabled".
+func appDisabled(appDir string) bool {
+	state, found := "", false
+	for _, layer := range []string{"default", "local"} {
+		payload, err := os.ReadFile(filepath.Join(appDir, layer, "app.conf"))
+		if err != nil {
+			continue
+		}
+		for _, s := range parseConf(payload) {
+			if s.stanza == "install" && s.key == "state" && !s.header {
+				state, found = s.value, true
+			}
+		}
+	}
+	return found && state != "enabled"
+}
+
 // configDirs returns paths in increasing precedence order. Global Splunk
 // settings give alphabetically earlier apps priority over later apps.
-func configDirs(etcDir, selectedApp string) ([]string, error) {
+// Disabled apps are skipped, except for their app.conf which is how the
+// disabled state itself is reported.
+func configDirs(etcDir, selectedApp, confName string) ([]string, error) {
 	appsDir := filepath.Join(etcDir, "apps")
+	skipDisabled := confName != "app.conf"
 	if selectedApp != "" {
 		appDir := filepath.Join(appsDir, selectedApp)
 		info, err := os.Stat(appDir)
@@ -141,6 +188,9 @@ func configDirs(etcDir, selectedApp string) ([]string, error) {
 		}
 		if err != nil {
 			return nil, fmt.Errorf("stat %s: %w", appDir, err)
+		}
+		if skipDisabled && appDisabled(appDir) {
+			return nil, fmt.Errorf("application is disabled: %s", selectedApp)
 		}
 		return []string{filepath.Join(appDir, "default"), filepath.Join(appDir, "local")}, nil
 	}
@@ -151,9 +201,13 @@ func configDirs(etcDir, selectedApp string) ([]string, error) {
 	}
 	var apps []string
 	for _, entry := range entries {
-		if entry.IsDir() {
-			apps = append(apps, entry.Name())
+		if !entry.IsDir() {
+			continue
 		}
+		if skipDisabled && appDisabled(filepath.Join(appsDir, entry.Name())) {
+			continue
+		}
+		apps = append(apps, entry.Name())
 	}
 	dirs := []string{filepath.Join(etcDir, "system", "default")}
 	// os.ReadDir sorts by filename; reverse it because later layers win.
@@ -178,9 +232,8 @@ type stanzaSettings struct {
 	path   string
 }
 
-func readMerged(confName string, dirs []string) (map[string]*stanzaSettings, error) {
+func readMerged(confName string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
 	merged := make(map[string]*stanzaSettings)
-	defaults := make(map[string]valueSource)
 	for _, dir := range dirs {
 		path := filepath.Join(dir, confName)
 		payload, err := os.ReadFile(path)
@@ -190,23 +243,13 @@ func readMerged(confName string, dirs []string) (map[string]*stanzaSettings, err
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", path, err)
 		}
-		parsed, err := ini.Load(payload)
-		if err != nil {
-			return nil, fmt.Errorf("parse %s: %w", path, err)
-		}
-		for _, section := range parsed.Sections() {
-			name := section.Name()
-			if name == ini.DefaultSection {
-				name = "default"
-				if len(section.Keys()) == 0 {
-					continue
-				}
+		for _, s := range parseConf(payload) {
+			name := s.stanza
+			if expand {
+				name = expandStanzaName(name, vars)
 			}
-			if confName == "inputs.conf" && strings.EqualFold(name, "default") {
-				for _, key := range section.Keys() {
-					defaults[key.Name()] = valueSource{value: key.Value(), path: path}
-				}
-				continue
+			if confName == "inputs.conf" {
+				name = resolveRelativeInput(name, inputBaseDir(vars.etcDir, dir))
 			}
 			settings := merged[name]
 			if settings == nil {
@@ -214,21 +257,107 @@ func readMerged(confName string, dirs []string) (map[string]*stanzaSettings, err
 				merged[name] = settings
 			}
 			settings.path = path
-			for _, key := range section.Keys() {
-				settings.values[key.Name()] = valueSource{value: key.Value(), path: path}
-			}
-		}
-	}
-	if confName == "inputs.conf" {
-		for _, settings := range merged {
-			for key, value := range defaults {
-				if _, exists := settings.values[key]; !exists {
-					settings.values[key] = value
-				}
+			if !s.header {
+				settings.values[s.key] = valueSource{value: s.value, path: path}
 			}
 		}
 	}
 	return merged, nil
+}
+
+// inputBaseDir is the directory that "<scheme>://./" input paths are relative
+// to: the app owning the layer, or the layer directory itself outside apps.
+func inputBaseDir(etcDir, layerDir string) string {
+	appsDir := filepath.Join(etcDir, "apps") + string(filepath.Separator)
+	if rel, ok := strings.CutPrefix(layerDir, appsDir); ok {
+		app, _, _ := strings.Cut(rel, string(filepath.Separator))
+		return filepath.Join(appsDir, app)
+	}
+	return layerDir
+}
+
+func resolveRelativeInput(name, baseDir string) string {
+	scheme, rest, ok := strings.Cut(name, "://")
+	if !ok {
+		return name
+	}
+	if relative, ok := strings.CutPrefix(rest, "./"); ok {
+		return scheme + "://" + baseDir + "/" + relative
+	}
+	return name
+}
+
+// resolve applies [default] inheritance and the inputs.conf specifics, and
+// drops the stanzas that btool does not list.
+func resolve(confName string, merged map[string]*stanzaSettings) map[string]*stanzaSettings {
+	isInputs := confName == "inputs.conf"
+	defaults := merged[defaultStanza]
+	visible := make(map[string]*stanzaSettings, len(merged))
+	for name, settings := range merged {
+		if name == defaultStanza {
+			if !isInputs {
+				visible[name] = settings
+			}
+			continue
+		}
+		if isInputs && !strings.Contains(name, ":") && !builtinInputs[name] {
+			continue
+		}
+		resolved := &stanzaSettings{path: settings.path, values: make(map[string]valueSource, len(settings.values))}
+		for key, value := range settings.values {
+			resolved.values[key] = value
+		}
+		visible[name] = resolved
+
+		inherit := func(from *stanzaSettings, keys ...string) {
+			if from == nil {
+				return
+			}
+			if len(keys) == 0 {
+				for key := range from.values {
+					keys = append(keys, key)
+				}
+			}
+			for _, key := range keys {
+				if _, exists := resolved.values[key]; exists {
+					continue
+				}
+				if value, ok := from.values[key]; ok {
+					resolved.values[key] = value
+				}
+			}
+		}
+		if scheme, _, ok := strings.Cut(name, "://"); isInputs && ok && !builtinInputs[scheme] {
+			// Modular inputs inherit from their bare scheme stanza, and from
+			// [default] only host and index, which have no source file.
+			inherit(merged[scheme])
+			for _, key := range []string{"host", "index"} {
+				if _, exists := resolved.values[key]; !exists && defaults != nil {
+					if value, ok := defaults.values[key]; ok {
+						resolved.values[key] = valueSource{value: value.value}
+					}
+				}
+			}
+			continue
+		}
+		if confName == "indexes.conf" && isVirtualIndexProvider(name) {
+			for key := range resolved.values {
+				if !strings.HasPrefix(key, "vix.") {
+					delete(resolved.values, key)
+				}
+			}
+			continue
+		}
+		inherit(defaults)
+	}
+	return visible
+}
+
+// isVirtualIndexProvider reports indexes.conf stanzas that configure a
+// virtual index provider. btool lists only their vix.* settings and they do
+// not inherit from [default].
+func isVirtualIndexProvider(name string) bool {
+	return strings.HasPrefix(name, "provider:") || strings.HasPrefix(name, "provider-family:")
 }
 
 func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix string, debug bool) error {
@@ -249,13 +378,19 @@ func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix stri
 			}
 		}
 	}
+	line := func(path, text string) error {
+		var err error
+		switch {
+		case !debug || path == "":
+			_, err = fmt.Fprintln(out, text)
+		default:
+			_, err = fmt.Fprintf(out, "%-*s %s\n", pathWidth, path, text)
+		}
+		return err
+	}
 	for _, name := range stanzas {
 		settings := merged[name]
-		if debug {
-			if _, err := fmt.Fprintf(out, "%-*s [%s]\n", pathWidth, settings.path, name); err != nil {
-				return err
-			}
-		} else if _, err := fmt.Fprintf(out, "[%s]\n", name); err != nil {
+		if err := line(settings.path, "["+name+"]"); err != nil {
 			return err
 		}
 		keys := make([]string, 0, len(settings.values))
@@ -265,13 +400,7 @@ func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix stri
 		sort.Strings(keys)
 		for _, key := range keys {
 			setting := settings.values[key]
-			var err error
-			if debug {
-				_, err = fmt.Fprintf(out, "%-*s %s = %s\n", pathWidth, setting.path, key, setting.value)
-			} else {
-				_, err = fmt.Fprintf(out, "%s = %s\n", key, setting.value)
-			}
-			if err != nil {
+			if err := line(setting.path, key+" = "+setting.value); err != nil {
 				return err
 			}
 		}

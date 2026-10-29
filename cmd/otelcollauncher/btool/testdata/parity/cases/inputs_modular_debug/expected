@@ -1,0 +1,28 @@
+@ETC@/apps/B/local/inputs.conf [foo://c]
+@ETC@/apps/A/default/inputs.conf from_bare = 1
+@ETC@/apps/B/local/inputs.conf from_bare_local = 1
+host = h2
+index = i2
+@ETC@/apps/A/default/inputs.conf interval = 77
+@ETC@/apps/A/default/inputs.conf own = 1
+@ETC@/apps/B/local/inputs.conf own2 = 2
+@ETC@/apps/A/default/inputs.conf [foo://d]
+@ETC@/apps/A/default/inputs.conf from_bare = 1
+@ETC@/apps/B/local/inputs.conf from_bare_local = 1
+host = h2
+index = i2
+@ETC@/apps/A/default/inputs.conf interval = 77
+@ETC@/apps/A/default/inputs.conf [foo:single]
+@ETC@/system/local/inputs.conf _TCP_ROUTING = r2
+@ETC@/system/local/inputs.conf _rcvbuf = 5
+@ETC@/system/local/inputs.conf connection_host = ch2
+@ETC@/system/local/inputs.conf customkey = dv
+@ETC@/system/local/inputs.conf disabled = 1
+@ETC@/system/local/inputs.conf host = h2
+@ETC@/system/local/inputs.conf index = i2
+@ETC@/system/local/inputs.conf interval = 5
+@ETC@/system/local/inputs.conf queue = q2
+@ETC@/apps/A/default/inputs.conf s = 1
+@ETC@/system/local/inputs.conf source = s2
+@ETC@/system/local/inputs.conf sourcetype = st2
+EXIT=0

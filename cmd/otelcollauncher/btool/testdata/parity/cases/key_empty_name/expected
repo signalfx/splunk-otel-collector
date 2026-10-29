@@ -1,0 +1,4 @@
+[s]
+ = novalue
+a b = spaced key
+EXIT=0

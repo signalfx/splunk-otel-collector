@@ -1,0 +1,14 @@
+@ETC@/apps/Splunk_TA_otel/local/inputs.conf [Splunk_TA_otel://local_run]
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf disabled = false
+host = myhost
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf index = _internal
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf interval = 0
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf sourcetype = Splunk_TA_otel
+@ETC@/apps/Splunk_TA_otel/local/inputs.conf splunk_access_token = F3K3TestT0Ken
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf splunk_collector_cmd_args = 
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf splunk_collector_env_vars = 
+@ETC@/apps/Splunk_TA_otel/local/inputs.conf splunk_collector_log_level = info
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf splunk_config = $SPLUNK_HOME/etc/apps/$SPLUNK_MODINPUT_BASE_DIR_NAME/configs/agent_config.yaml
+@ETC@/apps/Splunk_TA_otel/local/inputs.conf splunk_realm = us0
+@ETC@/apps/Splunk_TA_otel/default/inputs.conf start_by_shell = false
+EXIT=0

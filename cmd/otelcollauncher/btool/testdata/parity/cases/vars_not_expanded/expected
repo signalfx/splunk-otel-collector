@@ -1,0 +1,21 @@
+[$]
+a = 1
+[$$SPLUNK_HOME]
+a = 1
+[$SPLUNK_HOME/etcx]
+a = 1
+[$SPLUNK_HOME/var/$SPLUNK_HOME]
+a = 1
+[$SPLUNK_HOMEx]
+a = 1
+[$splunk_home]
+a = 1
+[${SPLUNK_HOME}/z]
+a = 1
+[cost $5]
+a = 1
+[monitor://$SPLUNK_DB/x]
+a = 1
+[x$SPLUNK_HOME/y]
+a = 1
+EXIT=0

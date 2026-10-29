@@ -1,0 +1,5 @@
+@ETC@/system/local/zzcmp.conf [s]
+@ETC@/system/local/zzcmp.conf a = one
+two
+@ETC@/system/local/zzcmp.conf b = 3
+EXIT=0

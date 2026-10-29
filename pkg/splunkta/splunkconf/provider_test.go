@@ -560,20 +560,16 @@ type s2sConfig struct {
 	Server string `mapstructure:"server"`
 }
 
-// s2sFactory maps [tcpout] the way the closed-source S2S exporter does, which is
-// the registration path WithOutputMappers exists for.
-type s2sFactory struct {
-	exporter.Factory
-}
-
-func newS2SFactory() s2sFactory {
-	return s2sFactory{Factory: exporter.NewFactory(
+// newS2SFactory maps [tcpout] the way the closed-source S2S exporter does, which
+// is the registration path WithOutputMappers exists for.
+func newS2SFactory() splunkconf.MappingExporterFactory {
+	return splunkconf.NewMappingExporter(exporter.NewFactory(
 		otelcomponent.MustNewType("splunk_s2s"),
 		func() otelcomponent.Config { return &s2sConfig{} },
-	)}
+	), mapS2SOutputs)
 }
 
-func (s2sFactory) MapOutputs(outputs []splunkconf.Output) (map[string]otelcomponent.Config, error) {
+func mapS2SOutputs(outputs []splunkconf.Output) (map[string]otelcomponent.Config, error) {
 	instances := map[string]otelcomponent.Config{}
 	for _, o := range outputs {
 		if o.Name.Kind != "tcpout" {

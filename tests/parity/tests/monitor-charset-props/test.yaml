@@ -1,0 +1,10 @@
+name: "Monitor charset props"
+description: >
+  CHARSET in a [<sourcetype>] props.conf stanza is honored when decoding
+  a monitored file, so a non-UTF-9 byte decodes correctly instead of 
+  being hex-escaped.
+setup: |
+  printf 'Witaj \xb6wiecie!\n' > foo.txt
+expected:
+  raw: true
+

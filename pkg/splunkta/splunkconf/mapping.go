@@ -73,7 +73,7 @@ func stableName(raw string) string {
 // every receiver every app's props, which is not what a stanza resolves to:
 // splunkd gives an app's inputs its own layers merged with system and nothing
 // from a sibling app.
-func newConf(confRoot string, inputs []conf.Input) (Conf, error) {
+func newConf(confRoot string, inputs []conf.Input, schemeDefaults map[string]conf.Input) (Conf, error) {
 	byApp := map[string][]conf.Input{}
 	for _, in := range inputs {
 		if in.Configuration.Stanza.IsDisabled() {
@@ -113,10 +113,11 @@ func newConf(confRoot string, inputs []conf.Input) (Conf, error) {
 				return Conf{}, fmt.Errorf("splunkconf: parse stanza %q: %w", name, err)
 			}
 			tree.Inputs = append(tree.Inputs, Input{
-				Input:      in,
-				Name:       parsed,
-				Props:      props,
-				Transforms: transforms,
+				Input:         in,
+				Name:          parsed,
+				Props:         props,
+				Transforms:    transforms,
+				SchemeDefault: schemeDefaults[parsed.Kind].Configuration.Stanza.Params,
 			})
 		}
 	}
@@ -149,6 +150,42 @@ func (p *provider) mapInputs(tree Conf) (out []emitted, skipped []string, err er
 		}
 	}
 	return out, skipped, nil
+}
+
+// mapProcessors asks every registered mapper for its instances, in registration
+// order, which is the order they take in the pipeline. There is no claiming: a
+// processor answers to no stanza, so nothing can collide and nothing is skipped.
+func (p *provider) mapProcessors(tree Conf) ([]emitted, error) {
+	var out []emitted
+	for _, m := range p.processorMappers {
+		typeStr := m.Type().String()
+		instances, err := m.MapProcessors(tree)
+		if err != nil {
+			return nil, fmt.Errorf("splunkconf: %s: %w", typeStr, err)
+		}
+		for _, name := range sortedNames(instances) {
+			marshaled, mErr := marshalConfig(instances[name])
+			if mErr != nil {
+				return nil, fmt.Errorf("splunkconf: %s: processor %q: %w", typeStr, name, mErr)
+			}
+			id := typeStr
+			if name != "" {
+				id = typeStr + "/" + name
+			}
+			out = append(out, emitted{id: id, cfg: marshaled})
+		}
+	}
+	return out, nil
+}
+
+// sortedNames keeps the emitted pipeline independent of map iteration.
+func sortedNames(m map[string]component.Config) []string {
+	names := make([]string, 0, len(m))
+	for name := range m {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 // claim records the instances one mapper returned and assigns each the component

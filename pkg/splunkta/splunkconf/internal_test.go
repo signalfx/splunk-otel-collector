@@ -11,48 +11,96 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 )
 
-// stubMapper claims whatever stanza names it is given, so the dispatch
-// invariants can be exercised without a real receiver.
-type stubMapper struct {
-	receiver.Factory
-	claims map[string]component.Config
-	err    error
+// stub claims whatever stanza names it is given, so the dispatch invariants can
+// be exercised without a real receiver.
+func stub(typeStr string, claims map[string]component.Config, err error) MappingReceiverFactory {
+	return NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return claims, err },
+	)
 }
 
-func (s stubMapper) MapInputs(Conf) (map[string]component.Config, error) {
-	return s.claims, s.err
+// outStub is the output-side counterpart of stub.
+func outStub(typeStr string, claims map[string]component.Config, err error) MappingExporterFactory {
+	return NewMappingExporter(
+		exporter.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func([]Output) (map[string]component.Config, error) { return claims, err },
+	)
 }
 
-func stub(typeStr string, claims map[string]component.Config, err error) stubMapper {
-	return stubMapper{
-		Factory: receiver.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
-		claims:  claims,
-		err:     err,
+func procStub(typeStr string, instances map[string]component.Config, err error) MappingProcessorFactory {
+	return NewMappingProcessor(
+		processor.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return instances, err },
+	)
+}
+
+func TestMapProcessorsAssignsIDs(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_linebreak", map[string]component.Config{"": &struct{}{}}, nil),
+		procStub("splunk_meta", map[string]component.Config{"named": &struct{}{}}, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, []string{"splunk_linebreak", "splunk_meta/named"}, ids(got))
+}
+
+func TestMapProcessorsKeepsRegistrationOrder(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("zzz_first", map[string]component.Config{"": &struct{}{}}, nil),
+		procStub("aaa_second", map[string]component.Config{"": &struct{}{}}, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, []string{"zzz_first", "aaa_second"}, ids(got))
+}
+
+func TestMapProcessorsOrdersOneMappersInstancesByName(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_p", map[string]component.Config{
+			"c": &struct{}{}, "a": &struct{}{}, "b": &struct{}{},
+		}, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, []string{"splunk_p/a", "splunk_p/b", "splunk_p/c"}, ids(got))
+}
+
+func TestMapProcessorsNoInstances(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_p", nil, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Empty(t, got)
+}
+
+func TestMapProcessorsError(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_p", nil, errors.New("boom")),
+	}}
+
+	_, err := p.mapProcessors(Conf{})
+	require.ErrorContains(t, err, "splunk_p")
+	require.ErrorContains(t, err, "boom")
+}
+
+func ids(es []emitted) []string {
+	out := make([]string, 0, len(es))
+	for _, e := range es {
+		out = append(out, e.id)
 	}
-}
-
-// stubOutputMapper is the output-side counterpart of stubMapper.
-type stubOutputMapper struct {
-	exporter.Factory
-	claims map[string]component.Config
-	err    error
-}
-
-func (s stubOutputMapper) MapOutputs([]Output) (map[string]component.Config, error) {
-	return s.claims, s.err
-}
-
-func outStub(typeStr string, claims map[string]component.Config, err error) stubOutputMapper {
-	return stubOutputMapper{
-		Factory: exporter.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
-		claims:  claims,
-		err:     err,
-	}
+	return out
 }
 
 // The provider, not a mapper, decides the component ID, so the same stanza
@@ -85,7 +133,7 @@ func TestMapInputsRejectsDoubleClaim(t *testing.T) {
 func TestMapInputsReportsUnclaimed(t *testing.T) {
 	tree, err := newConf(t.TempDir(), []conf.Input{
 		{Configuration: conf.Configuration{Stanza: conf.Stanza{Name: "tcp-ssl://9998"}}},
-	})
+	}, nil)
 	require.NoError(t, err)
 
 	p := &provider{inputMappers: []MappingReceiverFactory{stub("splunk_a", nil, nil)}}
@@ -112,7 +160,7 @@ func TestNewConfDropsDisabled(t *testing.T) {
 			Name:   "monitor:///off",
 			Params: conf.Params{{Name: "disabled", Value: "1"}},
 		}}},
-	})
+	}, nil)
 	require.NoError(t, err)
 	require.Empty(t, tree.Inputs)
 }
@@ -266,4 +314,39 @@ func TestMapOutputs(t *testing.T) {
 
 func TestStableNameOfUnslugabbleStanza(t *testing.T) {
 	require.Regexp(t, "^[0-9a-f]{8}$", stableName(":::"))
+}
+
+func TestNewMappingReceiver(t *testing.T) {
+	want := map[string]component.Config{"monitor:///x": &struct{}{}}
+	f := NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType("splunk_a"), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return want, nil },
+	)
+
+	require.Equal(t, "splunk_a", f.Type().String())
+	got, err := f.MapInputs(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+}
+
+func TestNewMappingReceiverPropagatesError(t *testing.T) {
+	f := NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType("splunk_a"), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return nil, errors.New("boom") },
+	)
+	_, err := f.MapInputs(Conf{})
+	require.EqualError(t, err, "boom")
+}
+
+func TestNewMappingExporter(t *testing.T) {
+	want := map[string]component.Config{"hecout": &struct{}{}}
+	f := NewMappingExporter(
+		exporter.NewFactory(component.MustNewType("splunk_e"), func() component.Config { return &struct{}{} }),
+		func([]Output) (map[string]component.Config, error) { return want, nil },
+	)
+
+	require.Equal(t, "splunk_e", f.Type().String())
+	got, err := f.MapOutputs(nil)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
 }

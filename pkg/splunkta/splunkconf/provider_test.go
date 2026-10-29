@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,6 +18,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exportertest"
+	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
@@ -558,20 +560,16 @@ type s2sConfig struct {
 	Server string `mapstructure:"server"`
 }
 
-// s2sFactory maps [tcpout] the way the closed-source S2S exporter does, which is
-// the registration path WithOutputMappers exists for.
-type s2sFactory struct {
-	exporter.Factory
-}
-
-func newS2SFactory() s2sFactory {
-	return s2sFactory{Factory: exporter.NewFactory(
+// newS2SFactory maps [tcpout] the way the closed-source S2S exporter does, which
+// is the registration path WithOutputMappers exists for.
+func newS2SFactory() splunkconf.MappingExporterFactory {
+	return splunkconf.NewMappingExporter(exporter.NewFactory(
 		otelcomponent.MustNewType("splunk_s2s"),
 		func() otelcomponent.Config { return &s2sConfig{} },
-	)}
+	), mapS2SOutputs)
 }
 
-func (s2sFactory) MapOutputs(outputs []splunkconf.Output) (map[string]otelcomponent.Config, error) {
+func mapS2SOutputs(outputs []splunkconf.Output) (map[string]otelcomponent.Config, error) {
 	instances := map[string]otelcomponent.Config{}
 	for _, o := range outputs {
 		if o.Name.Kind != "tcpout" {
@@ -586,9 +584,187 @@ func (s2sFactory) MapOutputs(outputs []splunkconf.Output) (map[string]otelcompon
 	return instances, nil
 }
 
+type lineBreakConfig struct {
+	Sourcetypes []string `mapstructure:"sourcetypes"`
+}
+
+func newLineBreakFactory() splunkconf.MappingProcessorFactory {
+	return splunkconf.NewMappingProcessor(processor.NewFactory(
+		otelcomponent.MustNewType("splunk_linebreak"),
+		func() otelcomponent.Config { return &lineBreakConfig{} },
+	), mapLineBreakProcessors)
+}
+
+func mapLineBreakProcessors(c splunkconf.Conf) (map[string]otelcomponent.Config, error) {
+	if len(c.Inputs) == 0 {
+		return nil, nil
+	}
+	cfg := &lineBreakConfig{}
+	for _, in := range c.Inputs {
+		if p := in.Configuration.Stanza.Params.Get("sourcetype"); p != nil {
+			cfg.Sourcetypes = append(cfg.Sourcetypes, p.Value)
+		}
+	}
+	sort.Strings(cfg.Sourcetypes)
+	return map[string]otelcomponent.Config{"": cfg}, nil
+}
+
+func TestRegisteredProcessorMapper(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/foo]\nsourcetype = syslog\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\n",
+	})
+
+	f := newLineBreakFactory()
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(splunkmonitor.NewFactory()),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+			splunkconf.WithProcessorMappers(f),
+		)},
+	})
+	require.NoError(t, err)
+	resolved, err := res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	const procID = "splunk_linebreak"
+	sub, err := resolved.Sub("service::pipelines::logs/uf")
+	require.NoError(t, err)
+	var pl struct {
+		Receivers  []string `mapstructure:"receivers"`
+		Processors []string `mapstructure:"processors"`
+		Exporters  []string `mapstructure:"exporters"`
+	}
+	require.NoError(t, sub.Unmarshal(&pl))
+	require.Equal(t, []string{procID}, pl.Processors)
+	require.NotEmpty(t, pl.Receivers)
+	require.NotEmpty(t, pl.Exporters)
+
+	processors, err := resolved.Sub("processors")
+	require.NoError(t, err)
+	procSub, err := processors.Sub(procID)
+	require.NoError(t, err)
+	cfg := f.CreateDefaultConfig()
+	require.NoError(t, procSub.Unmarshal(cfg))
+	require.Equal(t, &lineBreakConfig{Sourcetypes: []string{"syslog"}}, cfg)
+}
+
+func TestNoProcessorMappersEmitsNoProcessors(t *testing.T) {
+	merged := resolve(t, confURI)
+	require.NotContains(t, merged.ToStringMap(), "processors")
+
+	sub, err := merged.Sub("service::pipelines::logs/uf")
+	require.NoError(t, err)
+	require.NotContains(t, sub.ToStringMap(), "processors")
+}
+
 // An exporter registered from outside this package reaches outputs.conf through
 // the same path the built-in [hecout] mapping does, and its own config type
 // survives the marshal/unmarshal round trip the emitted fragment forces.
+// capturingFactory records the tree it is handed, so a test can assert on what
+// the provider built rather than on what it emitted.
+type capturingFactory struct {
+	receiver.Factory
+	seen *[]splunkconf.Input
+}
+
+func newCapturingFactory() capturingFactory {
+	return capturingFactory{
+		Factory: receiver.NewFactory(
+			otelcomponent.MustNewType("splunk_cap"),
+			func() otelcomponent.Config { return &struct{}{} },
+		),
+		seen: &[]splunkconf.Input{},
+	}
+}
+
+func (c capturingFactory) MapInputs(conf splunkconf.Conf) (map[string]otelcomponent.Config, error) {
+	*c.seen = append(*c.seen, conf.Inputs...)
+	return map[string]otelcomponent.Config{"g": &struct{}{}}, nil
+}
+
+// ApplyGlobals folds a [<scheme>] stanza into its instances and drops it, so a
+// mapper reading only the instance cannot tell an inherited setting from one the
+// stanza declared. A use_single_instance scheme schedules from its scheme
+// default's interval alone, so it needs the stanza itself.
+func TestSchemeDefaultReachesTheMapper(t *testing.T) {
+	uri := "splunkconf://" + writeAppConfTree(t, "myapp", map[string]string{
+		"inputs.conf": "[myScheme://aaa]\n\n[myScheme://bbb]\ninterval = 30\n\n[myScheme]\ninterval = 60\nhost = h1\n",
+	})
+
+	f := newCapturingFactory()
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(f),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+		)},
+	})
+	require.NoError(t, err)
+	_, err = res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	seen := *f.seen
+	require.Len(t, seen, 2)
+	for _, in := range seen {
+		require.NotNil(t, in.SchemeDefault, "stanza %s carries no scheme default", in.Configuration.Stanza.Name)
+		p := in.SchemeDefault.Get("interval")
+		require.NotNil(t, p)
+		require.Equal(t, "60", p.Value, "the scheme default's own interval, not the instance's")
+	}
+
+	// The fold still happened, so bbb keeps the interval it declared and aaa
+	// inherited the scheme's.
+	byName := map[string]splunkconf.Input{}
+	for _, in := range seen {
+		byName[in.Name.Target] = in
+	}
+	require.Equal(t, "60", byName["aaa"].Configuration.Stanza.Params.Get("interval").Value)
+	require.Equal(t, "30", byName["bbb"].Configuration.Stanza.Params.Get("interval").Value)
+}
+
+// A tree with no [<scheme>] stanza leaves SchemeDefault nil rather than empty,
+// so a receiver can tell "no default" from "a default that sets nothing".
+func TestNoSchemeDefaultIsNil(t *testing.T) {
+	uri := "splunkconf://" + writeAppConfTree(t, "myapp", map[string]string{
+		"inputs.conf": "[myScheme://aaa]\ninterval = 30\n",
+	})
+
+	f := newCapturingFactory()
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(f),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+		)},
+	})
+	require.NoError(t, err)
+	_, err = res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	seen := *f.seen
+	require.Len(t, seen, 1)
+	require.Nil(t, seen[0].SchemeDefault)
+}
+
+// writeAppConfTree writes an app's inputs.conf plus the system outputs.conf the
+// provider needs, and returns the config root.
+func writeAppConfTree(t *testing.T, app string, files map[string]string) string {
+	t.Helper()
+	root := filepath.Join(t.TempDir(), "etc")
+	local := filepath.Join(root, "apps", app, "local")
+	require.NoError(t, os.MkdirAll(local, 0o700))
+	for name, content := range files {
+		require.NoError(t, os.WriteFile(filepath.Join(local, name), []byte(content), 0o600))
+	}
+	sys := filepath.Join(root, "system", "local")
+	require.NoError(t, os.MkdirAll(sys, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(sys, "outputs.conf"),
+		[]byte("[hecout]\nuri = https://localhost:8088\nhttpEventCollectorToken = t\n"), 0o600))
+	return root
+}
+
 func TestRegisteredOutputMapper(t *testing.T) {
 	uri := "splunkconf://" + writeConfTree(t, map[string]string{
 		"inputs.conf":  "[monitor:///var/log/foo]\n",

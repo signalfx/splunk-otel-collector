@@ -1,0 +1,7 @@
+change_type: enhancement
+component: msi
+note: Validate Splunk Platform properties the same way install.sh does.
+issues: [8351]
+subtext: |
+  The installation now fails if SPLUNK_PLATFORM_LOGS_INDEX or SPLUNK_PLATFORM_METRICS_INDEX is set without
+  SPLUNK_PLATFORM_URL, or if SPLUNK_PLATFORM_URL is set with SPLUNK_SETUP_COLLECTOR_MODE=gateway.

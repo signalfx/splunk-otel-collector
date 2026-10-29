@@ -23,6 +23,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk v0.164.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/pprofreceiver v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.164.1
 	github.com/openconfig/gnmi v0.14.1
 	github.com/openconfig/goyang v1.6.3
@@ -538,6 +539,8 @@ require (
 	go.opentelemetry.io/collector/processor/xprocessor v0.164.0 // indirect
 	go.opentelemetry.io/collector/receiver/nopreceiver v0.164.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.164.0 // indirect
+	go.opentelemetry.io/collector/scraper/scraperhelper/xscraperhelper v0.164.0 // indirect
+	go.opentelemetry.io/collector/scraper/xscraper v0.164.0 // indirect
 	go.opentelemetry.io/collector/service/hostcapabilities v0.164.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.20.0 // indirect
 	go.opentelemetry.io/contrib/detectors/aws/ecs v1.45.0 // indirect

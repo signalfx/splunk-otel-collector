@@ -101,6 +101,7 @@ func TestDefaultComponents(t *testing.T) {
 		"oracledb",
 		"otlp",
 		"postgresql",
+		"pprof",
 		"prometheus",
 		"prometheus_remote_write",
 		"prometheus_simple",

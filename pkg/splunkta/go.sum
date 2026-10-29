@@ -279,6 +279,8 @@ go.opentelemetry.io/collector/pipeline v1.69.0 h1:zUimUSVCh+ects/w9gOdUZaIHTKd4d
 go.opentelemetry.io/collector/pipeline v1.69.0/go.mod h1:4S7iD/7hGDNXg4yPi+5es5WTvwo/Uie2OoHio79xokI=
 go.opentelemetry.io/collector/pipeline/xpipeline v0.163.0 h1:j1M4z68B5PtxgvV9+AhbUG+CJAMBROntSDkaCLbzsV4=
 go.opentelemetry.io/collector/pipeline/xpipeline v0.163.0/go.mod h1:aG5gJf1JwOG2UXSc9ltNpYPqDkUtOh2hFE8VtPtWANM=
+go.opentelemetry.io/collector/processor v1.69.0 h1:eYsi/RL67cfThLgjq8Tc4veEPMAcVUxSa+8ddo1Df5A=
+go.opentelemetry.io/collector/processor v1.69.0/go.mod h1:nUo9fX3auCiyCk3PQMHuCXZpz+f33sBgiiMSioorAeE=
 go.opentelemetry.io/collector/receiver v1.69.0 h1:XRK6OXrvlmNZXJu5Nvs+ihFlzglKEuI8eUCyXoBnHF4=
 go.opentelemetry.io/collector/receiver v1.69.0/go.mod h1:d8QaZMEnzz1ju65PSwrgPpadcyZrIwVkqfnrpHZ4I70=
 go.opentelemetry.io/collector/receiver/receiverhelper v0.163.0 h1:uni+wobCouwb1I6YKZdKlUSubN9X2kiFOpCM/3R7XxU=

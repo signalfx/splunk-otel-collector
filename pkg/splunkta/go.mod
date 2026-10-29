@@ -16,6 +16,7 @@ require (
 	go.opentelemetry.io/collector/exporter/exportertest v0.163.0
 	go.opentelemetry.io/collector/featuregate v1.69.0
 	go.opentelemetry.io/collector/pdata v1.69.0
+	go.opentelemetry.io/collector/processor v1.69.0
 	go.opentelemetry.io/collector/receiver v1.69.0
 	go.opentelemetry.io/collector/receiver/receivertest v0.163.0
 	go.opentelemetry.io/otel/metric v1.47.0

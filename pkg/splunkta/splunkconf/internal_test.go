@@ -133,7 +133,7 @@ func TestMapInputsRejectsDoubleClaim(t *testing.T) {
 func TestMapInputsReportsUnclaimed(t *testing.T) {
 	tree, err := newConf(t.TempDir(), []conf.Input{
 		{Configuration: conf.Configuration{Stanza: conf.Stanza{Name: "tcp-ssl://9998"}}},
-	})
+	}, nil)
 	require.NoError(t, err)
 
 	p := &provider{inputMappers: []MappingReceiverFactory{stub("splunk_a", nil, nil)}}
@@ -160,7 +160,7 @@ func TestNewConfDropsDisabled(t *testing.T) {
 			Name:   "monitor:///off",
 			Params: conf.Params{{Name: "disabled", Value: "1"}},
 		}}},
-	})
+	}, nil)
 	require.NoError(t, err)
 	require.Empty(t, tree.Inputs)
 }

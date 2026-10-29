@@ -29,6 +29,14 @@ type Input struct {
 	Name       stanza.Name
 	Props      []conf.Prop
 	Transforms []conf.Transform
+
+	// SchemeDefault is the [<scheme>] stanza's params for a modular input, nil
+	// for anything else. Those params are already folded into this input, but
+	// the fold is lossy: afterwards an inherited setting looks the same as one
+	// the instance declared. A receiver that has to tell them apart reads this,
+	// which is what a use_single_instance scheme needs, since it schedules from
+	// the scheme default's interval alone and ignores every instance's own.
+	SchemeDefault conf.Params
 }
 
 // Conf is the resolved .conf tree a mapper builds its instances from.

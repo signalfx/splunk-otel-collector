@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after December 2026. Use the `host_metrics` receiver instead.**
+
   metrics:
     process.cpu_time_seconds:
       description: Total CPU usage of the process in seconds.  If you analyze this metric as a rate/second, it tells you how many CPU cores the process is using.

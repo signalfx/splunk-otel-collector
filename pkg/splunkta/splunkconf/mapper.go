@@ -6,6 +6,7 @@ package splunkconf
 import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
@@ -92,6 +93,42 @@ type MappingExporterFactory interface {
 	OutputMapper
 }
 
+// ProcessorMapper is implemented by a processor that belongs in the emitted
+// pipeline, for a receiver whose records are not ready to export as they are.
+//
+// Nothing in inputs.conf declares a processor, so unlike InputMapper it claims
+// no stanza and an empty result is not an error. It is given the whole tree
+// because props.conf and transforms.conf resolve per input, and keys by the
+// instance's own name because there is no stanza to take one from.
+type ProcessorMapper interface {
+	MapProcessors(Conf) (map[string]component.Config, error)
+}
+
+// MappingProcessorFactory is a processor factory that maps itself into the
+// emitted pipeline, taking the factory for the reason MappingReceiverFactory
+// does.
+type MappingProcessorFactory interface {
+	processor.Factory
+	ProcessorMapper
+}
+
+// MapProcessorsFunc is a processor's mapping as a plain function.
+type MapProcessorsFunc func(Conf) (map[string]component.Config, error)
+
+// NewMappingProcessor pairs a processor factory with its mapping.
+func NewMappingProcessor(f processor.Factory, mapProcessors MapProcessorsFunc) MappingProcessorFactory {
+	return mappingProcessor{Factory: f, mapProcessors: mapProcessors}
+}
+
+type mappingProcessor struct {
+	processor.Factory
+	mapProcessors MapProcessorsFunc
+}
+
+func (m mappingProcessor) MapProcessors(c Conf) (map[string]component.Config, error) {
+	return m.mapProcessors(c)
+}
+
 // Attrs holds the settings every input stanza can carry, whatever its kind.
 type Attrs struct {
 	Extra      map[string]string
@@ -157,5 +194,17 @@ func WithInputMappers(mappers ...MappingReceiverFactory) Option {
 func WithOutputMappers(mappers ...MappingExporterFactory) Option {
 	return func(p *provider) {
 		p.outputMappers = append(p.outputMappers, mappers...)
+	}
+}
+
+// WithProcessorMappers registers the processors that place themselves in the
+// emitted pipeline; a provider with none emits receivers and exporters alone.
+//
+// Registration order is pipeline order, since the .conf tree does not state it.
+// Instances of one mapper are ordered by name, so a mapper needing a particular
+// order between them should be registered as several.
+func WithProcessorMappers(mappers ...MappingProcessorFactory) Option {
+	return func(p *provider) {
+		p.processorMappers = append(p.processorMappers, mappers...)
 	}
 }

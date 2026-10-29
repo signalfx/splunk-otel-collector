@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,6 +18,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exportertest"
+	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
@@ -584,6 +586,81 @@ func (s2sFactory) MapOutputs(outputs []splunkconf.Output) (map[string]otelcompon
 		instances[o.Configuration.Stanza.Name] = cfg
 	}
 	return instances, nil
+}
+
+type lineBreakConfig struct {
+	Sourcetypes []string `mapstructure:"sourcetypes"`
+}
+
+func newLineBreakFactory() splunkconf.MappingProcessorFactory {
+	return splunkconf.NewMappingProcessor(processor.NewFactory(
+		otelcomponent.MustNewType("splunk_linebreak"),
+		func() otelcomponent.Config { return &lineBreakConfig{} },
+	), mapLineBreakProcessors)
+}
+
+func mapLineBreakProcessors(c splunkconf.Conf) (map[string]otelcomponent.Config, error) {
+	if len(c.Inputs) == 0 {
+		return nil, nil
+	}
+	cfg := &lineBreakConfig{}
+	for _, in := range c.Inputs {
+		if p := in.Configuration.Stanza.Params.Get("sourcetype"); p != nil {
+			cfg.Sourcetypes = append(cfg.Sourcetypes, p.Value)
+		}
+	}
+	sort.Strings(cfg.Sourcetypes)
+	return map[string]otelcomponent.Config{"": cfg}, nil
+}
+
+func TestRegisteredProcessorMapper(t *testing.T) {
+	uri := "splunkconf://" + writeConfTree(t, map[string]string{
+		"inputs.conf":  "[monitor:///var/log/foo]\nsourcetype = syslog\n",
+		"outputs.conf": "[hecout]\nuri = https://localhost:8088\n",
+	})
+
+	f := newLineBreakFactory()
+	res, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs: []string{uri},
+		ProviderFactories: []confmap.ProviderFactory{splunkconf.NewFactory(
+			splunkconf.WithInputMappers(splunkmonitor.NewFactory()),
+			splunkconf.WithOutputMappers(splunkhecout.NewFactory()),
+			splunkconf.WithProcessorMappers(f),
+		)},
+	})
+	require.NoError(t, err)
+	resolved, err := res.Resolve(context.Background())
+	require.NoError(t, err)
+
+	const procID = "splunk_linebreak"
+	sub, err := resolved.Sub("service::pipelines::logs/uf")
+	require.NoError(t, err)
+	var pl struct {
+		Receivers  []string `mapstructure:"receivers"`
+		Processors []string `mapstructure:"processors"`
+		Exporters  []string `mapstructure:"exporters"`
+	}
+	require.NoError(t, sub.Unmarshal(&pl))
+	require.Equal(t, []string{procID}, pl.Processors)
+	require.NotEmpty(t, pl.Receivers)
+	require.NotEmpty(t, pl.Exporters)
+
+	processors, err := resolved.Sub("processors")
+	require.NoError(t, err)
+	procSub, err := processors.Sub(procID)
+	require.NoError(t, err)
+	cfg := f.CreateDefaultConfig()
+	require.NoError(t, procSub.Unmarshal(cfg))
+	require.Equal(t, &lineBreakConfig{Sourcetypes: []string{"syslog"}}, cfg)
+}
+
+func TestNoProcessorMappersEmitsNoProcessors(t *testing.T) {
+	merged := resolve(t, confURI)
+	require.NotContains(t, merged.ToStringMap(), "processors")
+
+	sub, err := merged.Sub("service::pipelines::logs/uf")
+	require.NoError(t, err)
+	require.NotContains(t, sub.ToStringMap(), "processors")
 }
 
 // An exporter registered from outside this package reaches outputs.conf through

@@ -3,9 +3,10 @@
 
 // Package splunkconf is a confmap.Provider that reads a Splunk .conf tree and
 // emits an in-memory pipeline (default name logs/uf) built from the input and
-// output stanzas. It is Retrieve-only: it does not watch files. Reload rides the
-// collector's existing trigger (SIGHUP or an OpAMP-pushed config), consistent
-// with UF's pull/triggered model.
+// output stanzas, with the registered processors between them. It is
+// Retrieve-only: it does not watch files. Reload rides the collector's existing
+// trigger (SIGHUP or an OpAMP-pushed config), consistent with UF's
+// pull/triggered model.
 //
 // URI form: splunkconf://<config-root>?pipeline=<name>
 //
@@ -50,14 +51,16 @@ const nopReceiverID = "nop"
 var pipelineRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,62}$`)
 
 type provider struct {
-	logger        *zap.Logger
-	inputMappers  []MappingReceiverFactory
-	outputMappers []MappingExporterFactory
+	logger           *zap.Logger
+	inputMappers     []MappingReceiverFactory
+	outputMappers    []MappingExporterFactory
+	processorMappers []MappingProcessorFactory
 }
 
 // NewFactory returns a confmap.ProviderFactory for the splunkconf scheme. Pass
-// WithInputMappers to register the receivers that map input stanzas, and
-// WithOutputMappers the exporters that map output stanzas.
+// WithInputMappers to register the receivers that map input stanzas,
+// WithOutputMappers the exporters that map output stanzas, and
+// WithProcessorMappers the processors that go between them.
 func NewFactory(opts ...Option) confmap.ProviderFactory {
 	return confmap.NewProviderFactory(func(set confmap.ProviderSettings) confmap.Provider {
 		// Only confmap.NewResolver substitutes a nop logger for a nil one, and
@@ -179,6 +182,11 @@ func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 		return nil, fmt.Errorf("splunkconf: no supported output stanzas found under %s (skipped: %v)", confRoot, skippedOut)
 	}
 
+	procs, err := p.mapProcessors(tree)
+	if err != nil {
+		return nil, err
+	}
+
 	receivers := map[string]any{}
 	recvIDs := make([]string, 0, len(recvs))
 	for _, e := range recvs {
@@ -195,18 +203,37 @@ func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 	}
 	sort.Strings(expIDs)
 
-	return map[string]any{
+	// Processors keep the order mapProcessors returned them in, which is
+	// registration order: a pipeline's processors run in sequence, so sorting
+	// them the way receivers and exporters are sorted would change behavior.
+	processors := map[string]any{}
+	procIDs := make([]string, 0, len(procs))
+	for _, e := range procs {
+		processors[e.id] = e.cfg
+		procIDs = append(procIDs, e.id)
+	}
+
+	logs := map[string]any{
+		"receivers": toAnySlice(recvIDs),
+		"exporters": toAnySlice(expIDs),
+	}
+	frag := map[string]any{
 		"receivers": receivers,
 		"exporters": exporters,
 		"service": map[string]any{
 			"pipelines": map[string]any{
-				"logs/" + pipeline: map[string]any{
-					"receivers": toAnySlice(recvIDs),
-					"exporters": toAnySlice(expIDs),
-				},
+				"logs/" + pipeline: logs,
 			},
 		},
-	}, nil
+	}
+	// Both keys are left out entirely when nothing mapped, rather than emitted
+	// empty: a provider with no processor mappers has to produce the fragment it
+	// did before there were any.
+	if len(procIDs) > 0 {
+		frag["processors"] = processors
+		logs["processors"] = toAnySlice(procIDs)
+	}
+	return frag, nil
 }
 
 func toAnySlice(s []string) []any {

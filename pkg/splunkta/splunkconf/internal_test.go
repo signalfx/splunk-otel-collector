@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
@@ -53,6 +54,75 @@ func outStub(typeStr string, claims map[string]component.Config, err error) stub
 		claims:  claims,
 		err:     err,
 	}
+}
+
+func procStub(typeStr string, instances map[string]component.Config, err error) MappingProcessorFactory {
+	return NewMappingProcessor(
+		processor.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return instances, err },
+	)
+}
+
+func TestMapProcessorsAssignsIDs(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_linebreak", map[string]component.Config{"": &struct{}{}}, nil),
+		procStub("splunk_meta", map[string]component.Config{"named": &struct{}{}}, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, []string{"splunk_linebreak", "splunk_meta/named"}, ids(got))
+}
+
+func TestMapProcessorsKeepsRegistrationOrder(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("zzz_first", map[string]component.Config{"": &struct{}{}}, nil),
+		procStub("aaa_second", map[string]component.Config{"": &struct{}{}}, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, []string{"zzz_first", "aaa_second"}, ids(got))
+}
+
+func TestMapProcessorsOrdersOneMappersInstancesByName(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_p", map[string]component.Config{
+			"c": &struct{}{}, "a": &struct{}{}, "b": &struct{}{},
+		}, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, []string{"splunk_p/a", "splunk_p/b", "splunk_p/c"}, ids(got))
+}
+
+func TestMapProcessorsNoInstances(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_p", nil, nil),
+	}}
+
+	got, err := p.mapProcessors(Conf{})
+	require.NoError(t, err)
+	require.Empty(t, got)
+}
+
+func TestMapProcessorsError(t *testing.T) {
+	p := &provider{processorMappers: []MappingProcessorFactory{
+		procStub("splunk_p", nil, errors.New("boom")),
+	}}
+
+	_, err := p.mapProcessors(Conf{})
+	require.ErrorContains(t, err, "splunk_p")
+	require.ErrorContains(t, err, "boom")
+}
+
+func ids(es []emitted) []string {
+	out := make([]string, 0, len(es))
+	for _, e := range es {
+		out = append(out, e.id)
+	}
+	return out
 }
 
 // The provider, not a mapper, decides the component ID, so the same stanza

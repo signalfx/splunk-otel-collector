@@ -151,6 +151,42 @@ func (p *provider) mapInputs(tree Conf) (out []emitted, skipped []string, err er
 	return out, skipped, nil
 }
 
+// mapProcessors asks every registered mapper for its instances, in registration
+// order, which is the order they take in the pipeline. There is no claiming: a
+// processor answers to no stanza, so nothing can collide and nothing is skipped.
+func (p *provider) mapProcessors(tree Conf) ([]emitted, error) {
+	var out []emitted
+	for _, m := range p.processorMappers {
+		typeStr := m.Type().String()
+		instances, err := m.MapProcessors(tree)
+		if err != nil {
+			return nil, fmt.Errorf("splunkconf: %s: %w", typeStr, err)
+		}
+		for _, name := range sortedNames(instances) {
+			marshaled, mErr := marshalConfig(instances[name])
+			if mErr != nil {
+				return nil, fmt.Errorf("splunkconf: %s: processor %q: %w", typeStr, name, mErr)
+			}
+			id := typeStr
+			if name != "" {
+				id = typeStr + "/" + name
+			}
+			out = append(out, emitted{id: id, cfg: marshaled})
+		}
+	}
+	return out, nil
+}
+
+// sortedNames keeps the emitted pipeline independent of map iteration.
+func sortedNames(m map[string]component.Config) []string {
+	names := make([]string, 0, len(m))
+	for name := range m {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
 // claim records the instances one mapper returned and assigns each the component
 // ID the provider owns, rejecting a stanza something else already claimed.
 func claim(claimedBy map[string]string, typeStr string, instances map[string]component.Config) ([]emitted, error) {

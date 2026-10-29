@@ -35,12 +35,17 @@ var schemeGlobalKeys = []string{"host", "index"}
 //
 // A modular input's [<scheme>] stanza is consumed either way, even with no
 // instances to configure, so an unprefixed stanza never comes back as an input.
+// Those stanzas are returned separately, keyed by scheme name, because the fold
+// is lossy: afterwards a setting an instance declared is indistinguishable from
+// one it inherited. A use_single_instance scheme is the case in point, since it
+// schedules from its scheme default's interval alone and ignores every
+// instance's own.
 //
 // Call this after merging the conf layers, not per file. Stanza specificity
 // outranks layer precedence, so a [default] in a higher layer must not override
 // a value the instance sets in a lower one, and resolving each stanza across
 // layers first is what gives that.
-func ApplyGlobals(inputs []Input) []Input {
+func ApplyGlobals(inputs []Input) ([]Input, map[string]Input) {
 	var (
 		global      Input
 		hasGlobal   bool
@@ -86,7 +91,7 @@ func ApplyGlobals(inputs []Input) []Input {
 		}
 		out = append(out, in)
 	}
-	return out
+	return out, schemeOf
 }
 
 // layer merges base beneath in, keeping in's identity. mergeInput returns the

@@ -1,0 +1,19 @@
+github_project: signalfx/splunk-otel-collector
+type: splunk_auth
+display_name: Splunk Authentication Extension
+description: Authenticates inbound HTTP and gRPC requests using Splunk HEC tokens.
+
+status:
+  class: extension
+  stability:
+    alpha: [extension]
+  disable_codecov_badge: true
+  codeowners:
+    active: []
+
+tests:
+  # Startup requires a live Splunk API. TestConfiguredLifecycle supplies a test server.
+  skip_lifecycle: true
+  config:
+    endpoint: http://localhost:8089
+    session_key: test-session

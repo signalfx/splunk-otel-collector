@@ -128,7 +128,7 @@ func run() (runErr error) {
 	cfg := rf.CreateDefaultConfig().(*otlpreceiver.Config)
 	cfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint = fmt.Sprintf("%s:%d", xmlCfg.ListenAddress, xmlCfg.GrpcPort)
 	cfg.Protocols.HTTP.GetOrInsertDefault().ServerConfig.NetAddr.Endpoint = fmt.Sprintf("%s:%d", xmlCfg.ListenAddress, xmlCfg.HTTPPort)
-	extID := component.MustNewID("splunkauth")
+	extID := component.MustNewID("splunk_auth")
 	cfg.Protocols.GRPC.Get().Auth.GetOrInsertDefault().AuthenticatorID = extID
 	cfg.Protocols.HTTP.Get().ServerConfig.Auth.GetOrInsertDefault().Config.AuthenticatorID = extID
 
@@ -167,7 +167,7 @@ func run() (runErr error) {
 	h.Start()
 
 	var authExtension extension.Extension
-	authFactory := splunkauthextension.NewFactory(auth.NewTokenSource(xmlCfg.ServerURI, xmlCfg.SessionKey))
+	authFactory := splunkauthextension.NewFactoryWithTokenSource(auth.NewTokenSource(xmlCfg.ServerURI, xmlCfg.SessionKey))
 	if authExtension, err = authFactory.Create(ctx, extension.Settings{
 		ID:                extID,
 		TelemetrySettings: settings,

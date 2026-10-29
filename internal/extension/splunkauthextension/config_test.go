@@ -9,8 +9,38 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/extension/extensiontest"
 )
+
+func TestConfiguredSourceValidation(t *testing.T) {
+	for _, endpoint := range []string{"splunk:8089", "ftp://splunk:8089", "https://", "https://user:secret@splunk:8089", "https://splunk:8089?token=secret", "https://splunk:8089#fragment"} {
+		t.Run(endpoint, func(t *testing.T) {
+			cfg := NewDefaultConfig()
+			cfg.Endpoint, cfg.SessionKey = endpoint, "secret"
+			require.Error(t, cfg.Validate())
+		})
+	}
+	for _, values := range []map[string]any{
+		{"endpoint": "https://splunk:8089"},
+		{"session_key": "secret"},
+		{"unknown_field": true},
+		{"refresh_interval": "not a duration"},
+	} {
+		cfg := NewDefaultConfig()
+		err := confmap.NewFromStringMap(values).Unmarshal(cfg)
+		if err == nil {
+			require.Error(t, cfg.Validate())
+		}
+	}
+	secret := confmap.NewFromStringMap(map[string]any{"endpoint": "https://splunk:8089", "session_key": "secret"})
+	cfg := NewDefaultConfig()
+	require.NoError(t, secret.Unmarshal(cfg))
+	require.NoError(t, cfg.Validate())
+	redacted := confmap.New()
+	require.NoError(t, redacted.Marshal(cfg))
+	require.NotContains(t, redacted.ToStringMap()["session_key"], "secret")
+}
 
 func TestValidateRefreshWindow(t *testing.T) {
 	const maxDuration = time.Duration(1<<63 - 1)
@@ -31,7 +61,7 @@ func TestValidateRefreshWindow(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := &Config{RefreshInterval: tc.interval, RefreshTimeout: tc.timeout, MaxStaleness: tc.staleness}
-			factory := NewFactory(sourceFunc(func(context.Context) ([]HecTokenConfig, error) { return nil, nil }))
+			factory := NewFactoryWithTokenSource(sourceFunc(func(context.Context) ([]HecTokenConfig, error) { return nil, nil }))
 			_, err := factory.Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), cfg)
 			if tc.valid {
 				require.NoError(t, cfg.Validate())

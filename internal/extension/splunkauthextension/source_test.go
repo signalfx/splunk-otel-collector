@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package auth
+package splunkauthextension
 
 import (
 	"context"
@@ -36,12 +36,11 @@ import (
 	"go.opentelemetry.io/collector/extension/extensionauth"
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
-	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
 
 func newTestAuth(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
-	factory := splunkauthextension.NewFactory(NewTokenSource(serverURI, sessionKey))
-	e, err := factory.Create(ctx, extension.Settings{ID: component.MustNewID("splunkauth"), TelemetrySettings: settings}, factory.CreateDefaultConfig())
+	factory := NewFactoryWithTokenSource(NewTokenSource(serverURI, sessionKey))
+	e, err := factory.Create(ctx, extension.Settings{ID: component.MustNewID("splunk_auth"), TelemetrySettings: settings}, factory.CreateDefaultConfig())
 	if err != nil {
 		return nil, err
 	}

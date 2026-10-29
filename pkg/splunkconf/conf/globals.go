@@ -3,7 +3,7 @@
 
 package conf
 
-import "github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
+import "github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 
 // defaultStanza is the inputs.conf stanza holding settings that apply to every
 // other stanza in the file, including the ones written above the first stanza

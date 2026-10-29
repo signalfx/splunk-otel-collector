@@ -5,7 +5,7 @@
 package batchreceiver
 
 import (
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 )
 
 // Config holds the configuration for the batch receiver.

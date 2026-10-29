@@ -24,7 +24,7 @@ import (
 	nooptrace "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/filter"
 )
 

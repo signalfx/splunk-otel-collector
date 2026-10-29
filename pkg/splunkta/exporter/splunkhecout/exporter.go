@@ -21,8 +21,8 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 )
 
 // TypeStr is the UF-native HEC output exporter type.

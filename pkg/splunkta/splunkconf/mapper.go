@@ -62,24 +62,10 @@ type MappingReceiverFactory interface {
 	InputMapper
 }
 
-// MapInputsFunc is a receiver's mapping as a plain function, so
-// NewMappingReceiver can take it without the receiver declaring a type to hang a
-// method on.
+// MapInputsFunc is a receiver's mapping as a plain function.
 type MapInputsFunc func(Conf) (map[string]component.Config, error)
 
 // NewMappingReceiver pairs a receiver factory with its mapping.
-//
-// Satisfying MappingReceiverFactory directly takes more ceremony than it looks:
-// receiver.NewFactory returns an interface, and a method cannot be declared on an
-// interface value, so a mapping receiver otherwise declares a struct embedding
-// receiver.Factory purely to carry MapInputs. Its constructor then has to return
-// that concrete type as well, because returning receiver.Factory compiles while
-// satisfying nothing, and the mistake surfaces only where the factory is
-// registered, which is usually another module.
-//
-// What the interface exists for is kept: the type the instances are emitted under
-// still comes from the factory, so it cannot disagree with the one registered in
-// the collector's component set.
 func NewMappingReceiver(f receiver.Factory, mapInputs MapInputsFunc) MappingReceiverFactory {
 	return mappingReceiver{Factory: f, mapInputs: mapInputs}
 }
@@ -124,12 +110,10 @@ type MappingExporterFactory interface {
 	OutputMapper
 }
 
-// MapOutputsFunc is an exporter's mapping as a plain function, the output-side
-// counterpart of MapInputsFunc.
+// MapOutputsFunc is an exporter's mapping as a plain function.
 type MapOutputsFunc func([]Output) (map[string]component.Config, error)
 
-// NewMappingExporter pairs an exporter factory with its mapping, for the reasons
-// NewMappingReceiver does on the input side.
+// NewMappingExporter is NewMappingReceiver's output-side counterpart.
 func NewMappingExporter(f exporter.Factory, mapOutputs MapOutputsFunc) MappingExporterFactory {
 	return mappingExporter{Factory: f, mapOutputs: mapOutputs}
 }

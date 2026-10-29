@@ -1,0 +1,5 @@
+[install]
+state = disabled
+[ui]
+label = e
+EXIT=0

@@ -1,0 +1,5 @@
+[default]
+a = default-level-syslocal
+[s]
+a = stanza-level-sysdefault
+EXIT=0

@@ -1,0 +1,6 @@
+[p]
+l = A-local
+only_a_d = 1
+only_b_d = 1
+v = A-default
+EXIT=0

@@ -1,0 +1,6 @@
+[s]
+a = x\
+b = next
+[t]
+c = 1
+EXIT=0

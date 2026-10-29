@@ -1,0 +1,4 @@
+@ETC@/system/local/zzcmp.conf [default]
+@ETC@/system/local/zzcmp.conf [s]
+@ETC@/system/local/zzcmp.conf k = v
+EXIT=0

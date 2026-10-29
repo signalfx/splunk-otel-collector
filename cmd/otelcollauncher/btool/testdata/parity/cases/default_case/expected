@@ -1,0 +1,12 @@
+[DEFAULT]
+l = 3
+u = 1
+[Default]
+l = 3
+m = 2
+[default]
+l = 3
+[s]
+a = 1
+l = 3
+EXIT=0

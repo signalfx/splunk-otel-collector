@@ -1,0 +1,28 @@
+[foo://c]
+from_bare = 1
+from_bare_local = 1
+host = h2
+index = i2
+interval = 77
+own = 1
+own2 = 2
+[foo://d]
+from_bare = 1
+from_bare_local = 1
+host = h2
+index = i2
+interval = 77
+[foo:single]
+_TCP_ROUTING = r2
+_rcvbuf = 5
+connection_host = ch2
+customkey = dv
+disabled = 1
+host = h2
+index = i2
+interval = 5
+queue = q2
+s = 1
+source = s2
+sourcetype = st2
+EXIT=0

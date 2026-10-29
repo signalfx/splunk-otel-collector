@@ -1,0 +1,21 @@
+[$]
+a = 1
+[$/opt/splunk]
+a = 1
+[$SPLUNK_HOMEx]
+a = 1
+[$splunk_home]
+a = 1
+[${SPLUNK_HOME}/z]
+a = 1
+[/opt/splunk/etcx]
+a = 1
+[/opt/splunk/var//opt/splunk]
+a = 1
+[cost $5]
+a = 1
+[monitor:///opt/splunk/var/lib/splunk/x]
+a = 1
+[x/opt/splunk/y]
+a = 1
+EXIT=0

@@ -1,0 +1,8 @@
+[default]
+d1 = sys
+[s]
+a = 1
+d1 = sys
+[t]
+d1 = own
+EXIT=0

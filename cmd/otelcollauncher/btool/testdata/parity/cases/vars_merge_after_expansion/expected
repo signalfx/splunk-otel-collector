@@ -1,0 +1,4 @@
+[monitor:///opt/splunk/var/log]
+a = 1
+b = 2
+EXIT=0

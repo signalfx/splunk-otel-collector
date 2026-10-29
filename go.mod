@@ -23,7 +23,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk v0.164.1
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/pprofreceiver v0.164.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.164.1
 	github.com/openconfig/gnmi v0.14.1
 	github.com/openconfig/goyang v1.6.3
@@ -404,6 +403,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.164.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/pprofreceiver v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusremotewritereceiver v0.164.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceiver v0.164.1 // indirect

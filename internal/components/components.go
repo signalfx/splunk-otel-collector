@@ -19,8 +19,6 @@ import (
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/pprofreceiver"
-
 	"github.com/signalfx/splunk-otel-collector/baseline"
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
@@ -76,7 +74,6 @@ func Get() (otelcol.Factories, error) {
 		gnmireceiver.NewFactory(),
 		promqlreceiver.NewFactory(),
 		ptpreceiver.NewFactory(),
-		pprofreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
 	)
 	if enableTARunner.IsEnabled() {

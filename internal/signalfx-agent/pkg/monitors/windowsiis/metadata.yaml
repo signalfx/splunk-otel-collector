@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after December 2026. Use the `iis` receiver instead.**
+
     (Windows Only) This monitor reports metrics for Windows Internet Information Services.
     It is used to drive the Windows IIS dashboard content.
 

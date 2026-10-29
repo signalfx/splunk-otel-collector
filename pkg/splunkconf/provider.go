@@ -37,8 +37,6 @@ import (
 
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
 const schemeName = "splunkconf"
@@ -146,9 +144,9 @@ func parseURI(uri string) (confRoot, pipeline string, err error) {
 // build reads inputs.conf, outputs.conf, props.conf and transforms.conf across
 // the Splunk conf search path and assembles the confmap fragment.
 func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
-	dirs := tabuilder.ConfRootDirs(confRoot)
+	dirs := ConfRootDirs(confRoot)
 
-	inputs, schemeDefaults, err := tabuilder.ReadInputs(dirs)
+	inputs, schemeDefaults, err := ReadInputs(dirs)
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: read inputs.conf: %w", err)
 	}
@@ -170,7 +168,7 @@ func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 		recvs = []emitted{{id: nopReceiverID, cfg: map[string]any{}}}
 	}
 
-	merged, err := tabuilder.ReadOutputsFromDirs(dirs)
+	merged, err := ReadOutputs(dirs)
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: read outputs.conf: %w", err)
 	}

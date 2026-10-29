@@ -1,7 +1,7 @@
 // Copyright Splunk, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-package splunkconf_test
+package mapping
 
 import (
 	"context"
@@ -22,7 +22,8 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
@@ -30,8 +31,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunktcp"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkudp"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkwineventlog"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
 const (
@@ -313,10 +312,10 @@ func TestStanzasNotEmitted(t *testing.T) {
 
 // A system receiver gets the system props/transforms set.
 func TestPropsTransformsParity(t *testing.T) {
-	dirs := tabuilder.SystemConfRootDirs(confRoot)
-	wantProps, err := tabuilder.ReadProps(dirs)
+	dirs := splunkconf.SystemConfRootDirs(confRoot)
+	wantProps, err := splunkconf.ReadProps(dirs)
 	require.NoError(t, err)
-	wantTransforms, err := tabuilder.ReadTransforms(dirs)
+	wantTransforms, err := splunkconf.ReadTransforms(dirs)
 	require.NoError(t, err)
 	require.NotEmpty(t, wantProps, "fixture must carry props for this to mean anything")
 	require.NotEmpty(t, wantTransforms)

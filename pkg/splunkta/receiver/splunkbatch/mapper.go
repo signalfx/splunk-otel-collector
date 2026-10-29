@@ -6,7 +6,7 @@ package splunkbatch
 import (
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
 )
 
 // kind is the inputs.conf stanza kind this receiver owns.

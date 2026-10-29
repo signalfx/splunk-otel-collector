@@ -20,8 +20,8 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 

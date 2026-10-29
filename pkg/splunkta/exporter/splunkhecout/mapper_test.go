@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 )
 
 func output(t *testing.T, name string, params ...conf.Param) splunkconf.Output {

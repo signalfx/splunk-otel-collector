@@ -12,15 +12,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/script"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 )
 
 // ScriptedInput is an operator that executes scripts and processes their output.

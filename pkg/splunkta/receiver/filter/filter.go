@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/text/encoding/ianaindex"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 )
 
 // NewWhitelistOperator returns a filter operator that drops entries whose

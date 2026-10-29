@@ -35,6 +35,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
@@ -42,7 +43,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunktcp"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkudp"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkwineventlog"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
 )
 
 // envVarWarnings is a map of warnings to be logged when a specific environment variable is used in a user config.

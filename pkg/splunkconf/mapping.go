@@ -14,9 +14,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 )
 
 // emitted is one confmap entry: a fully-qualified component ID (type/name) and
@@ -93,15 +92,15 @@ func newConf(confRoot string, inputs []conf.Input, schemeDefaults map[string]con
 	systemDir := filepath.Join(confRoot, "system")
 	var tree Conf
 	for _, appDir := range appDirs {
-		dirs := tabuilder.AppConfRootDirs(confRoot, appDir)
+		dirs := AppConfRootDirs(confRoot, appDir)
 		if appDir == systemDir {
-			dirs = tabuilder.SystemConfRootDirs(confRoot)
+			dirs = SystemConfRootDirs(confRoot)
 		}
-		props, err := tabuilder.ReadProps(dirs)
+		props, err := ReadProps(dirs)
 		if err != nil {
 			return Conf{}, fmt.Errorf("splunkconf: read props.conf for %s: %w", appDir, err)
 		}
-		transforms, err := tabuilder.ReadTransforms(dirs)
+		transforms, err := ReadTransforms(dirs)
 		if err != nil {
 			return Conf{}, fmt.Errorf("splunkconf: read transforms.conf for %s: %w", appDir, err)
 		}

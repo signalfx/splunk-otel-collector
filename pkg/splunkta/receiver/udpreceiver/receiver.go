@@ -11,8 +11,8 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/transformer/noop"
 
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/operator/prop"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/adapter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"

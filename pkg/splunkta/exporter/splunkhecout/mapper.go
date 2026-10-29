@@ -6,7 +6,7 @@ package splunkhecout
 import (
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
 )
 
 // kind is the outputs.conf stanza kind this exporter owns.

@@ -13,7 +13,7 @@ import (
 const kind = "batch"
 
 // MapInputs builds one config per [batch://...] stanza.
-func (Factory) MapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
+func mapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
 	out := map[string]component.Config{}
 	for _, in := range c.Inputs {
 		if in.Name.Kind != kind {

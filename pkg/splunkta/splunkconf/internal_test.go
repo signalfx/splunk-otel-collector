@@ -17,43 +17,21 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 )
 
-// stubMapper claims whatever stanza names it is given, so the dispatch
-// invariants can be exercised without a real receiver.
-type stubMapper struct {
-	receiver.Factory
-	claims map[string]component.Config
-	err    error
+// stub claims whatever stanza names it is given, so the dispatch invariants can
+// be exercised without a real receiver.
+func stub(typeStr string, claims map[string]component.Config, err error) MappingReceiverFactory {
+	return NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return claims, err },
+	)
 }
 
-func (s stubMapper) MapInputs(Conf) (map[string]component.Config, error) {
-	return s.claims, s.err
-}
-
-func stub(typeStr string, claims map[string]component.Config, err error) stubMapper {
-	return stubMapper{
-		Factory: receiver.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
-		claims:  claims,
-		err:     err,
-	}
-}
-
-// stubOutputMapper is the output-side counterpart of stubMapper.
-type stubOutputMapper struct {
-	exporter.Factory
-	claims map[string]component.Config
-	err    error
-}
-
-func (s stubOutputMapper) MapOutputs([]Output) (map[string]component.Config, error) {
-	return s.claims, s.err
-}
-
-func outStub(typeStr string, claims map[string]component.Config, err error) stubOutputMapper {
-	return stubOutputMapper{
-		Factory: exporter.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
-		claims:  claims,
-		err:     err,
-	}
+// outStub is the output-side counterpart of stub.
+func outStub(typeStr string, claims map[string]component.Config, err error) MappingExporterFactory {
+	return NewMappingExporter(
+		exporter.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func([]Output) (map[string]component.Config, error) { return claims, err },
+	)
 }
 
 func procStub(typeStr string, instances map[string]component.Config, err error) MappingProcessorFactory {
@@ -155,7 +133,7 @@ func TestMapInputsRejectsDoubleClaim(t *testing.T) {
 func TestMapInputsReportsUnclaimed(t *testing.T) {
 	tree, err := newConf(t.TempDir(), []conf.Input{
 		{Configuration: conf.Configuration{Stanza: conf.Stanza{Name: "tcp-ssl://9998"}}},
-	})
+	}, nil)
 	require.NoError(t, err)
 
 	p := &provider{inputMappers: []MappingReceiverFactory{stub("splunk_a", nil, nil)}}
@@ -182,7 +160,7 @@ func TestNewConfDropsDisabled(t *testing.T) {
 			Name:   "monitor:///off",
 			Params: conf.Params{{Name: "disabled", Value: "1"}},
 		}}},
-	})
+	}, nil)
 	require.NoError(t, err)
 	require.Empty(t, tree.Inputs)
 }
@@ -336,4 +314,39 @@ func TestMapOutputs(t *testing.T) {
 
 func TestStableNameOfUnslugabbleStanza(t *testing.T) {
 	require.Regexp(t, "^[0-9a-f]{8}$", stableName(":::"))
+}
+
+func TestNewMappingReceiver(t *testing.T) {
+	want := map[string]component.Config{"monitor:///x": &struct{}{}}
+	f := NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType("splunk_a"), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return want, nil },
+	)
+
+	require.Equal(t, "splunk_a", f.Type().String())
+	got, err := f.MapInputs(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+}
+
+func TestNewMappingReceiverPropagatesError(t *testing.T) {
+	f := NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType("splunk_a"), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return nil, errors.New("boom") },
+	)
+	_, err := f.MapInputs(Conf{})
+	require.EqualError(t, err, "boom")
+}
+
+func TestNewMappingExporter(t *testing.T) {
+	want := map[string]component.Config{"hecout": &struct{}{}}
+	f := NewMappingExporter(
+		exporter.NewFactory(component.MustNewType("splunk_e"), func() component.Config { return &struct{}{} }),
+		func([]Output) (map[string]component.Config, error) { return want, nil },
+	)
+
+	require.Equal(t, "splunk_e", f.Type().String())
+	got, err := f.MapOutputs(nil)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
 }

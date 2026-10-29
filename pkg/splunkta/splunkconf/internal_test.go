@@ -338,9 +338,6 @@ func TestStableNameOfUnslugabbleStanza(t *testing.T) {
 	require.Regexp(t, "^[0-9a-f]{8}$", stableName(":::"))
 }
 
-// NewMappingReceiver exists so a receiver does not declare a struct purely to
-// carry MapInputs. The value it returns has to satisfy the interface and
-// delegate both halves: the factory's type, and the mapping.
 func TestNewMappingReceiver(t *testing.T) {
 	want := map[string]component.Config{"monitor:///x": &struct{}{}}
 	f := NewMappingReceiver(
@@ -354,8 +351,6 @@ func TestNewMappingReceiver(t *testing.T) {
 	require.Equal(t, want, got)
 }
 
-// An error from the mapping is the mapper's, so it has to come back unwrapped
-// for mapInputs to attribute it to the type.
 func TestNewMappingReceiverPropagatesError(t *testing.T) {
 	f := NewMappingReceiver(
 		receiver.NewFactory(component.MustNewType("splunk_a"), func() component.Config { return &struct{}{} }),

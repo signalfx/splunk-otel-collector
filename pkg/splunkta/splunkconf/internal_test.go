@@ -17,43 +17,21 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
 )
 
-// stubMapper claims whatever stanza names it is given, so the dispatch
-// invariants can be exercised without a real receiver.
-type stubMapper struct {
-	receiver.Factory
-	claims map[string]component.Config
-	err    error
+// stub claims whatever stanza names it is given, so the dispatch invariants can
+// be exercised without a real receiver.
+func stub(typeStr string, claims map[string]component.Config, err error) MappingReceiverFactory {
+	return NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return claims, err },
+	)
 }
 
-func (s stubMapper) MapInputs(Conf) (map[string]component.Config, error) {
-	return s.claims, s.err
-}
-
-func stub(typeStr string, claims map[string]component.Config, err error) stubMapper {
-	return stubMapper{
-		Factory: receiver.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
-		claims:  claims,
-		err:     err,
-	}
-}
-
-// stubOutputMapper is the output-side counterpart of stubMapper.
-type stubOutputMapper struct {
-	exporter.Factory
-	claims map[string]component.Config
-	err    error
-}
-
-func (s stubOutputMapper) MapOutputs([]Output) (map[string]component.Config, error) {
-	return s.claims, s.err
-}
-
-func outStub(typeStr string, claims map[string]component.Config, err error) stubOutputMapper {
-	return stubOutputMapper{
-		Factory: exporter.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
-		claims:  claims,
-		err:     err,
-	}
+// outStub is the output-side counterpart of stub.
+func outStub(typeStr string, claims map[string]component.Config, err error) MappingExporterFactory {
+	return NewMappingExporter(
+		exporter.NewFactory(component.MustNewType(typeStr), func() component.Config { return &struct{}{} }),
+		func([]Output) (map[string]component.Config, error) { return claims, err },
+	)
 }
 
 func procStub(typeStr string, instances map[string]component.Config, err error) MappingProcessorFactory {

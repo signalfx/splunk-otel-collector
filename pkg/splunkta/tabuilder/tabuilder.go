@@ -318,19 +318,7 @@ func SystemConfRootDirs(confRoot string) []string {
 // ReadInputs discovers and merges inputs.conf files from the given search
 // directories. Use ConfDirs or ConfDirsWithSystem to build the dirs slice.
 // Returns nil (no error) when no inputs.conf files are found.
-func ReadInputs(dirs []string) ([]conf.Input, error) {
-	inputs, _, err := readInputs(dirs)
-	return inputs, err
-}
-
-// ReadInputsWithSchemeDefaults is ReadInputs, additionally returning the
-// [<scheme>] stanzas folded into the modular instances, keyed by scheme name.
-// See conf.ApplyGlobalsWithSchemeDefaults for why a caller may need them.
-func ReadInputsWithSchemeDefaults(dirs []string) ([]conf.Input, map[string]conf.Input, error) {
-	return readInputs(dirs)
-}
-
-func readInputs(dirs []string) ([]conf.Input, map[string]conf.Input, error) {
+func ReadInputs(dirs []string) ([]conf.Input, map[string]conf.Input, error) {
 	var layers [][]conf.Input
 	for _, path := range confFilePaths(dirs, "inputs.conf") {
 		b, err := os.ReadFile(path)
@@ -350,14 +338,14 @@ func readInputs(dirs []string) ([]conf.Input, map[string]conf.Input, error) {
 	// Globals are folded after the layers merge, not per file: stanza
 	// specificity outranks layer precedence, so each stanza has to be resolved
 	// across layers before a global can fill in what it leaves unset.
-	out, schemeDefaults := conf.ApplyGlobalsWithSchemeDefaults(conf.MergeInputs(layers))
+	out, schemeDefaults := conf.ApplyGlobals(conf.MergeInputs(layers))
 	return out, schemeDefaults, nil
 }
 
 // ReadSystemInputs returns inputs.conf stanzas defined only in etc/system,
 // excluding any stanza already owned by a TA. These are run once globally.
 func ReadSystemInputs(splunkHome string) ([]conf.Input, error) {
-	systemInputs, err := ReadInputs(systemDirs(splunkHome))
+	systemInputs, _, err := ReadInputs(systemDirs(splunkHome))
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +361,7 @@ func ReadSystemInputs(splunkHome string) ([]conf.Input, error) {
 	// Collect stanza names owned by any TA so we can exclude them.
 	taOwned := map[string]struct{}{}
 	for _, taDir := range taDirs {
-		inputs, err := ReadInputs([]string{filepath.Join(taDir, "default"), filepath.Join(taDir, "local")})
+		inputs, _, err := ReadInputs([]string{filepath.Join(taDir, "default"), filepath.Join(taDir, "local")})
 		if err != nil {
 			return nil, err
 		}
@@ -399,7 +387,7 @@ func ReadInputsForTA(splunkHome, taDir string) ([]conf.Input, error) {
 	allDirs := taDirsWithSystem(splunkHome, taDir)
 
 	// First pass: collect stanza names defined in the TA's own dirs.
-	taInputs, err := ReadInputs(taDirs)
+	taInputs, _, err := ReadInputs(taDirs)
 	if err != nil {
 		return nil, err
 	}
@@ -412,7 +400,7 @@ func ReadInputsForTA(splunkHome, taDir string) ([]conf.Input, error) {
 	}
 
 	// Second pass: merge all layers (including system) for full precedence.
-	merged, err := ReadInputs(allDirs)
+	merged, _, err := ReadInputs(allDirs)
 	if err != nil {
 		return nil, err
 	}

@@ -148,7 +148,7 @@ func parseURI(uri string) (confRoot, pipeline string, err error) {
 func (p *provider) build(confRoot, pipeline string) (map[string]any, error) {
 	dirs := tabuilder.ConfRootDirs(confRoot)
 
-	inputs, schemeDefaults, err := tabuilder.ReadInputsWithSchemeDefaults(dirs)
+	inputs, schemeDefaults, err := tabuilder.ReadInputs(dirs)
 	if err != nil {
 		return nil, fmt.Errorf("splunkconf: read inputs.conf: %w", err)
 	}

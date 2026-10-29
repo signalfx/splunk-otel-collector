@@ -337,3 +337,43 @@ func TestMapOutputs(t *testing.T) {
 func TestStableNameOfUnslugabbleStanza(t *testing.T) {
 	require.Regexp(t, "^[0-9a-f]{8}$", stableName(":::"))
 }
+
+// NewMappingReceiver exists so a receiver does not declare a struct purely to
+// carry MapInputs. The value it returns has to satisfy the interface and
+// delegate both halves: the factory's type, and the mapping.
+func TestNewMappingReceiver(t *testing.T) {
+	want := map[string]component.Config{"monitor:///x": &struct{}{}}
+	f := NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType("splunk_a"), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return want, nil },
+	)
+
+	require.Equal(t, "splunk_a", f.Type().String())
+	got, err := f.MapInputs(Conf{})
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+}
+
+// An error from the mapping is the mapper's, so it has to come back unwrapped
+// for mapInputs to attribute it to the type.
+func TestNewMappingReceiverPropagatesError(t *testing.T) {
+	f := NewMappingReceiver(
+		receiver.NewFactory(component.MustNewType("splunk_a"), func() component.Config { return &struct{}{} }),
+		func(Conf) (map[string]component.Config, error) { return nil, errors.New("boom") },
+	)
+	_, err := f.MapInputs(Conf{})
+	require.EqualError(t, err, "boom")
+}
+
+func TestNewMappingExporter(t *testing.T) {
+	want := map[string]component.Config{"hecout": &struct{}{}}
+	f := NewMappingExporter(
+		exporter.NewFactory(component.MustNewType("splunk_e"), func() component.Config { return &struct{}{} }),
+		func([]Output) (map[string]component.Config, error) { return want, nil },
+	)
+
+	require.Equal(t, "splunk_e", f.Type().String())
+	got, err := f.MapOutputs(nil)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+}

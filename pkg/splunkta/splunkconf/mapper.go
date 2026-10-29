@@ -62,6 +62,37 @@ type MappingReceiverFactory interface {
 	InputMapper
 }
 
+// MapInputsFunc is a receiver's mapping as a plain function, so
+// NewMappingReceiver can take it without the receiver declaring a type to hang a
+// method on.
+type MapInputsFunc func(Conf) (map[string]component.Config, error)
+
+// NewMappingReceiver pairs a receiver factory with its mapping.
+//
+// Satisfying MappingReceiverFactory directly takes more ceremony than it looks:
+// receiver.NewFactory returns an interface, and a method cannot be declared on an
+// interface value, so a mapping receiver otherwise declares a struct embedding
+// receiver.Factory purely to carry MapInputs. Its constructor then has to return
+// that concrete type as well, because returning receiver.Factory compiles while
+// satisfying nothing, and the mistake surfaces only where the factory is
+// registered, which is usually another module.
+//
+// What the interface exists for is kept: the type the instances are emitted under
+// still comes from the factory, so it cannot disagree with the one registered in
+// the collector's component set.
+func NewMappingReceiver(f receiver.Factory, mapInputs MapInputsFunc) MappingReceiverFactory {
+	return mappingReceiver{Factory: f, mapInputs: mapInputs}
+}
+
+type mappingReceiver struct {
+	receiver.Factory
+	mapInputs MapInputsFunc
+}
+
+func (m mappingReceiver) MapInputs(c Conf) (map[string]component.Config, error) {
+	return m.mapInputs(c)
+}
+
 // Output is one output stanza with its name already split into kind and target.
 // As with Input, the provider parses every name once, so a mapper filters on
 // Name.Kind instead of re-parsing and re-reporting.
@@ -91,6 +122,25 @@ type OutputMapper interface {
 type MappingExporterFactory interface {
 	exporter.Factory
 	OutputMapper
+}
+
+// MapOutputsFunc is an exporter's mapping as a plain function, the output-side
+// counterpart of MapInputsFunc.
+type MapOutputsFunc func([]Output) (map[string]component.Config, error)
+
+// NewMappingExporter pairs an exporter factory with its mapping, for the reasons
+// NewMappingReceiver does on the input side.
+func NewMappingExporter(f exporter.Factory, mapOutputs MapOutputsFunc) MappingExporterFactory {
+	return mappingExporter{Factory: f, mapOutputs: mapOutputs}
+}
+
+type mappingExporter struct {
+	exporter.Factory
+	mapOutputs MapOutputsFunc
+}
+
+func (m mappingExporter) MapOutputs(o []Output) (map[string]component.Config, error) {
+	return m.mapOutputs(o)
 }
 
 // ProcessorMapper is implemented by a processor that belongs in the emitted

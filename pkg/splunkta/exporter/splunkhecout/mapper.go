@@ -13,7 +13,7 @@ import (
 const kind = "hecout"
 
 // MapOutputs builds one config per [hecout] stanza.
-func (Factory) MapOutputs(outputs []splunkconf.Output) (map[string]component.Config, error) {
+func mapOutputs(outputs []splunkconf.Output) (map[string]component.Config, error) {
 	out := map[string]component.Config{}
 	for _, o := range outputs {
 		if o.Name.Kind != kind {

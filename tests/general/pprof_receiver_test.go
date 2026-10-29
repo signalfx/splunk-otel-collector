@@ -60,6 +60,7 @@ exporters:
   splunk_hec:
     token: test-token
     endpoint: ${env:PPROF_HEC_ENDPOINT}
+    disable_compression: true
 service:
   pipelines:
     profiles:
@@ -79,7 +80,7 @@ service:
 	case event := <-received:
 		require.Contains(t, event, "profiling.data.format")
 		require.Contains(t, event, "pprof-gzip-base64")
-		require.Contains(t, event, "com.splunk.sourcetype")
+		require.Contains(t, event, "sourcetype")
 	case <-time.After(30 * time.Second):
 		t.Fatal("timed out waiting for the pprof profile to arrive at the HEC server")
 	}

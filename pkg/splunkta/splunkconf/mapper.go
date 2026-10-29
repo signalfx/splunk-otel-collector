@@ -62,6 +62,23 @@ type MappingReceiverFactory interface {
 	InputMapper
 }
 
+// MapInputsFunc is a receiver's mapping as a plain function.
+type MapInputsFunc func(Conf) (map[string]component.Config, error)
+
+// NewMappingReceiver pairs a receiver factory with its mapping.
+func NewMappingReceiver(f receiver.Factory, mapInputs MapInputsFunc) MappingReceiverFactory {
+	return mappingReceiver{Factory: f, mapInputs: mapInputs}
+}
+
+type mappingReceiver struct {
+	receiver.Factory
+	mapInputs MapInputsFunc
+}
+
+func (m mappingReceiver) MapInputs(c Conf) (map[string]component.Config, error) {
+	return m.mapInputs(c)
+}
+
 // Output is one output stanza with its name already split into kind and target.
 // As with Input, the provider parses every name once, so a mapper filters on
 // Name.Kind instead of re-parsing and re-reporting.
@@ -91,6 +108,23 @@ type OutputMapper interface {
 type MappingExporterFactory interface {
 	exporter.Factory
 	OutputMapper
+}
+
+// MapOutputsFunc is an exporter's mapping as a plain function.
+type MapOutputsFunc func([]Output) (map[string]component.Config, error)
+
+// NewMappingExporter is NewMappingReceiver's output-side counterpart.
+func NewMappingExporter(f exporter.Factory, mapOutputs MapOutputsFunc) MappingExporterFactory {
+	return mappingExporter{Factory: f, mapOutputs: mapOutputs}
+}
+
+type mappingExporter struct {
+	exporter.Factory
+	mapOutputs MapOutputsFunc
+}
+
+func (m mappingExporter) MapOutputs(o []Output) (map[string]component.Config, error) {
+	return m.mapOutputs(o)
 }
 
 // ProcessorMapper is implemented by a processor that belongs in the emitted

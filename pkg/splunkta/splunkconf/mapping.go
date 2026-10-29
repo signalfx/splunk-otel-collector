@@ -73,7 +73,7 @@ func stableName(raw string) string {
 // every receiver every app's props, which is not what a stanza resolves to:
 // splunkd gives an app's inputs its own layers merged with system and nothing
 // from a sibling app.
-func newConf(confRoot string, inputs []conf.Input) (Conf, error) {
+func newConf(confRoot string, inputs []conf.Input, schemeDefaults map[string]conf.Input) (Conf, error) {
 	byApp := map[string][]conf.Input{}
 	for _, in := range inputs {
 		if in.Configuration.Stanza.IsDisabled() {
@@ -113,10 +113,11 @@ func newConf(confRoot string, inputs []conf.Input) (Conf, error) {
 				return Conf{}, fmt.Errorf("splunkconf: parse stanza %q: %w", name, err)
 			}
 			tree.Inputs = append(tree.Inputs, Input{
-				Input:      in,
-				Name:       parsed,
-				Props:      props,
-				Transforms: transforms,
+				Input:         in,
+				Name:          parsed,
+				Props:         props,
+				Transforms:    transforms,
+				SchemeDefault: schemeDefaults[parsed.Kind].Configuration.Stanza.Params,
 			})
 		}
 	}

@@ -41,6 +41,23 @@ var schemeGlobalKeys = []string{"host", "index"}
 // a value the instance sets in a lower one, and resolving each stanza across
 // layers first is what gives that.
 func ApplyGlobals(inputs []Input) []Input {
+	out, _ := applyGlobals(inputs)
+	return out
+}
+
+// ApplyGlobalsWithSchemeDefaults is ApplyGlobals, additionally returning the
+// [<scheme>] stanzas it folded in, keyed by scheme name.
+//
+// The fold is lossy: afterwards a setting an instance declared is
+// indistinguishable from one it inherited. A caller that has to tell them apart
+// needs the stanza itself, which is why splunkd keeps reading it separately. A
+// use_single_instance scheme is the case in point, since it schedules from its
+// scheme default's interval alone and ignores every instance's own.
+func ApplyGlobalsWithSchemeDefaults(inputs []Input) ([]Input, map[string]Input) {
+	return applyGlobals(inputs)
+}
+
+func applyGlobals(inputs []Input) ([]Input, map[string]Input) {
 	var (
 		global      Input
 		hasGlobal   bool
@@ -86,7 +103,7 @@ func ApplyGlobals(inputs []Input) []Input {
 		}
 		out = append(out, in)
 	}
-	return out
+	return out, schemeOf
 }
 
 // layer merges base beneath in, keeping in's identity. mergeInput returns the

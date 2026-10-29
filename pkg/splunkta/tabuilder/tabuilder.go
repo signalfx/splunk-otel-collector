@@ -319,6 +319,18 @@ func SystemConfRootDirs(confRoot string) []string {
 // directories. Use ConfDirs or ConfDirsWithSystem to build the dirs slice.
 // Returns nil (no error) when no inputs.conf files are found.
 func ReadInputs(dirs []string) ([]conf.Input, error) {
+	inputs, _, err := readInputs(dirs)
+	return inputs, err
+}
+
+// ReadInputsWithSchemeDefaults is ReadInputs, additionally returning the
+// [<scheme>] stanzas folded into the modular instances, keyed by scheme name.
+// See conf.ApplyGlobalsWithSchemeDefaults for why a caller may need them.
+func ReadInputsWithSchemeDefaults(dirs []string) ([]conf.Input, map[string]conf.Input, error) {
+	return readInputs(dirs)
+}
+
+func readInputs(dirs []string) ([]conf.Input, map[string]conf.Input, error) {
 	var layers [][]conf.Input
 	for _, path := range confFilePaths(dirs, "inputs.conf") {
 		b, err := os.ReadFile(path)
@@ -326,19 +338,20 @@ func ReadInputs(dirs []string) ([]conf.Input, error) {
 			continue
 		}
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		appDir := filepath.Dir(filepath.Dir(path)) // strip /default or /local
 		inputs, err := conf.ReadInput(b, appDir)
 		if err != nil {
-			return nil, fmt.Errorf("parse %s: %w", path, err)
+			return nil, nil, fmt.Errorf("parse %s: %w", path, err)
 		}
 		layers = append(layers, inputs)
 	}
 	// Globals are folded after the layers merge, not per file: stanza
 	// specificity outranks layer precedence, so each stanza has to be resolved
 	// across layers before a global can fill in what it leaves unset.
-	return conf.ApplyGlobals(conf.MergeInputs(layers)), nil
+	out, schemeDefaults := conf.ApplyGlobalsWithSchemeDefaults(conf.MergeInputs(layers))
+	return out, schemeDefaults, nil
 }
 
 // ReadSystemInputs returns inputs.conf stanzas defined only in etc/system,

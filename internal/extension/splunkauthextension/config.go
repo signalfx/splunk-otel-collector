@@ -21,7 +21,6 @@ type HecTokenConfig struct {
 }
 
 // Config controls token refresh and the lifetime of cached authorization data.
-// A token source can also be supplied programmatically through NewFactoryWithTokenSource.
 type Config struct {
 	// Endpoint defaults to SPLUNK_MANAGEMENT_URI when using NewFactory.
 	Endpoint string `mapstructure:"endpoint"`
@@ -35,24 +34,16 @@ type Config struct {
 
 var _ component.Config = (*Config)(nil)
 
-// NewDefaultConfig returns the default refresh settings for programmatic callers.
-func NewDefaultConfig() *Config {
-	return &Config{
-		RefreshInterval: 3 * time.Minute,
-		RefreshTimeout:  30 * time.Second,
-		MaxStaleness:    10 * time.Minute,
-	}
-}
-
 func (cfg *Config) Validate() error {
-	if cfg.Endpoint != "" {
-		u, err := url.Parse(cfg.Endpoint)
-		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
-			return errors.New("endpoint must be an HTTP or HTTPS URL without credentials, query, or fragment")
-		}
+	if cfg.Endpoint == "" {
+		return errors.New("endpoint is required")
 	}
-	if (cfg.Endpoint == "") != (cfg.SessionKey == "") {
-		return errors.New("endpoint and session_key must be configured together")
+	if cfg.SessionKey == "" {
+		return errors.New("session_key is required")
+	}
+	u, err := url.Parse(cfg.Endpoint)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+		return errors.New("endpoint must be an HTTP or HTTPS URL without credentials, query, or fragment")
 	}
 	if cfg.RefreshInterval <= 0 {
 		return errors.New("refresh_interval must be positive")

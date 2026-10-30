@@ -19,8 +19,3 @@ import "github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthe
 const ContextKey = splunkauthextension.ContextKey
 
 type HecTokenConfig = splunkauthextension.HecTokenConfig
-
-// NewTokenSource returns a source that fetches a complete HEC token listing.
-func NewTokenSource(serverURI, sessionKey string) splunkauthextension.TokenSource {
-	return splunkauthextension.NewTokenSource(serverURI, sessionKey)
-}

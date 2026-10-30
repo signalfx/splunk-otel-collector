@@ -55,21 +55,15 @@ The extension authenticates requests and attaches index settings to their contex
 it does not enforce index authorization or rewrite telemetry. The modular input
 performs that additional authorization in its consumers.
 
-Programmatic callers can use `NewFactoryWithTokenSource(source)` instead of
-`NewFactory()`. Do not combine an injected source with `endpoint` or `session_key`.
-Injected-source factories and `NewDefaultConfig()` do not read these environment
-variables, since the source supplies its own management credentials.
-Each `TokenSource.Load(ctx)` must
-return a complete token listing, honor context cancellation, and return an error
-if any part of retrieval fails. The source must support concurrent loads when
-shared by multiple extension instances. Returned slices must remain stable while
-the extension copies them. A source can retrieve tokens from Splunk REST, a file,
-or another store without changing authentication or refresh scheduling.
+`splunk-connect-for-otlp` isn't implemented as a collector and has no YAML to
+request a TLS exception explicitly, so it builds its `Config` through the
+factory and sets `TLS.InsecureSkipVerify` itself, using the same loopback-HTTPS
+heuristic the TA's other modular inputs use. The extension's own defaults,
+reached through the YAML factory, always enable certificate verification.
 
-`NewTokenSource(serverURI, sessionKey)` provides the Splunk REST
-implementation. It retains the existing pagination and management endpoint TLS
-behavior. Its session key is fixed for the source's lifetime; refreshing HEC
-tokens does not renew that management credential.
+The extension privately creates the REST token source from the configuration.
+`Validate()` checks the management credentials and refresh settings before the
+source is created. Token retrieval retains the existing pagination behavior.
 
 The factory's configuration controls refresh behavior:
 
@@ -96,9 +90,9 @@ and a successful load restores authentication. Requests already authenticated
 retain their original authorization metadata; subsequent requests use the new
 snapshot. Authentication never performs network requests.
 
-`splunk-connect-for-otlp` injects the REST source and accepts the same three
+`splunk-connect-for-otlp` supplies its management credentials and accepts the same three
 settings in `inputs.conf`, using the defaults above when they are omitted. See
-[the input configuration documentation](../../../../packaging/otlpinput/README.md#token-refresh)
+[the input configuration documentation](../../../packaging/otlpinput/README.md#token-refresh)
 for an example.
-The previous static `tokens` configuration has been replaced by the injected
-source and these refresh settings.
+The previous static `tokens` configuration has been replaced by REST token
+retrieval and these refresh settings.

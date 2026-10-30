@@ -4,7 +4,6 @@
 package splunkauthextension
 
 import (
-	"context"
 	"encoding/pem"
 	"net/http"
 	"net/http/httptest"
@@ -42,13 +41,6 @@ func TestFactoryDefaultCredentials(t *testing.T) {
 			require.Equal(t, "https://explicit.example.com:8089", cfg.Endpoint)
 			require.Equal(t, configopaque.String("explicit-session"), cfg.SessionKey)
 			require.NoError(t, cfg.Validate())
-			injected := NewFactoryWithTokenSource(sourceFunc(func(context.Context) ([]HecTokenConfig, error) { return nil, nil }))
-			injectedCfg := injected.CreateDefaultConfig().(*Config)
-			require.Empty(t, injectedCfg.Endpoint)
-			require.Empty(t, injectedCfg.SessionKey)
-			ext, err := injected.Create(t.Context(), extensiontest.NewNopSettings(injected.Type()), injectedCfg)
-			require.NoError(t, err)
-			require.NoError(t, ext.Shutdown(t.Context()))
 		})
 	}
 }
@@ -69,11 +61,11 @@ func TestConfiguredTLS(t *testing.T) {
 		{name: "configured CA", ca: caFile, valid: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := NewDefaultConfig()
+			factory := NewFactory()
+			cfg := factory.CreateDefaultConfig().(*Config)
 			cfg.Endpoint, cfg.SessionKey = api.URL, "session"
 			cfg.TLS.InsecureSkipVerify = tc.skipVerify
 			cfg.TLS.CAFile = tc.ca
-			factory := NewFactory()
 			ext, err := factory.Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), cfg)
 			require.NoError(t, err)
 			err = ext.Start(t.Context(), componenttest.NewNopHost())
@@ -85,20 +77,18 @@ func TestConfiguredTLS(t *testing.T) {
 			require.NoError(t, ext.Shutdown(t.Context()))
 		})
 	}
-	cfg := NewDefaultConfig()
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig().(*Config)
 	cfg.Endpoint, cfg.SessionKey = api.URL, "session"
 	cfg.TLS.CAFile = "testdata/nonexistent-ca.pem"
-	factory := NewFactory()
 	_, err := factory.Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), cfg)
 	require.Error(t, err)
-	cfg.TLS.CAFile = ""
-	_, err = NewFactoryWithTokenSource(sourceFunc(func(context.Context) ([]HecTokenConfig, error) { return nil, nil })).Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), cfg)
-	require.ErrorContains(t, err, "cannot be combined")
 }
 
 func TestFactoryCreate(t *testing.T) {
-	factory := NewFactoryWithTokenSource(sourceFunc(func(_ context.Context) ([]HecTokenConfig, error) { return nil, nil }))
+	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig().(*Config)
+	cfg.Endpoint, cfg.SessionKey = "http://localhost:8089", "session"
 	require.Equal(t, 3*time.Minute, cfg.RefreshInterval)
 	require.Equal(t, 30*time.Second, cfg.RefreshTimeout)
 	require.Equal(t, 10*time.Minute, cfg.MaxStaleness)
@@ -106,8 +96,10 @@ func TestFactoryCreate(t *testing.T) {
 	ext, err := factory.Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), cfg)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
-	_, err = NewFactoryWithTokenSource(nil).Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), cfg)
-	require.EqualError(t, err, "endpoint and session_key are required without an injected token source")
+	missingEndpoint := *cfg
+	missingEndpoint.Endpoint = ""
+	_, err = factory.Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), &missingEndpoint)
+	require.EqualError(t, err, "endpoint is required")
 	for _, field := range []string{"interval", "timeout", "staleness"} {
 		for _, value := range []time.Duration{0, -time.Second} {
 			invalid := *cfg

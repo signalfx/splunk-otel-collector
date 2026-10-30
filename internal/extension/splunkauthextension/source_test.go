@@ -39,8 +39,10 @@ import (
 )
 
 func newTestAuth(ctx context.Context, settings component.TelemetrySettings, serverURI, sessionKey string) (extension.Extension, error) {
-	factory := NewFactoryWithTokenSource(NewTokenSource(serverURI, sessionKey))
-	e, err := factory.Create(ctx, extension.Settings{ID: component.MustNewID("splunk_auth"), TelemetrySettings: settings}, factory.CreateDefaultConfig())
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig().(*Config)
+	cfg.Endpoint, cfg.SessionKey = serverURI, configopaque.String(sessionKey)
+	e, err := factory.Create(ctx, extension.Settings{ID: component.MustNewID("splunk_auth"), TelemetrySettings: settings}, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -72,14 +74,6 @@ func TestAuth(t *testing.T) {
 		"Authorization": {"Splunk 00000000-0000-0000-0000-111111111111"},
 	})
 	require.Error(t, err)
-}
-
-func TestAuthSucceedsForLoopbackTLSCertificateWithoutIPSANs(t *testing.T) {
-	server := authtest.NewTLSServer(t)
-
-	e, err := newTestAuth(context.Background(), componenttest.NewNopTelemetrySettings(), server.URL, "foo")
-	require.NoError(t, err)
-	t.Cleanup(func() { require.NoError(t, e.Shutdown(context.Background())) })
 }
 
 func TestReadTokensDisabled(t *testing.T) {
@@ -293,7 +287,8 @@ func TestTokenSourceReloadsAllPages(t *testing.T) {
 		_, _ = fmt.Fprint(w, body)
 	}))
 	defer server.Close()
-	source := NewTokenSource(server.URL, "session-key")
+	source, err := newTokenSource(t.Context(), &Config{Endpoint: server.URL, SessionKey: "session-key"})
+	require.NoError(t, err)
 	for i := range int32(2) {
 		generation.Store(i)
 		tokens, err := source.Load(t.Context())

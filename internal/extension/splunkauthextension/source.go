@@ -22,8 +22,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
-
 	"go.opentelemetry.io/collector/config/configopaque"
 )
 
@@ -60,14 +58,18 @@ func readTokens(f feed) []HecTokenConfig {
 	return tokens
 }
 
-// NewTokenSource returns a source that fetches a complete HEC token listing.
-// Construction does not perform network requests; each Load uses its own context.
-func NewTokenSource(serverURI, sessionKey string) TokenSource {
-	return &splunkTokenSource{
-		serverURI:  serverURI,
-		sessionKey: sessionKey,
-		client:     splunkhttp.NewClient(serverURI, 0, nil),
+func newTokenSource(ctx context.Context, cfg *Config) (tokenSource, error) {
+	tlsConfig, err := cfg.TLS.LoadTLSConfig(ctx)
+	if err != nil {
+		return nil, err
 	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = tlsConfig
+	return &splunkTokenSource{
+		serverURI:  cfg.Endpoint,
+		sessionKey: string(cfg.SessionKey),
+		client:     &http.Client{Transport: transport},
+	}, nil
 }
 
 type splunkTokenSource struct {

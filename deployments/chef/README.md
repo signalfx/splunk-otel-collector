@@ -40,9 +40,11 @@ collector service and not to the entire machine.
 This cookbook can be downloaded and installed from [Chef Supermarket](https://supermarket.chef.io/cookbooks/splunk_otel_collector).
 
 To install the Collector, include the
-`splunk_otel_collector::default` recipe in the `run_list`, and set the
-attributes on the node's `run_state`. Below is an example to configure the
-required `splunk_access_token` attribute and some optional attributes:
+`splunk_otel_collector::default` recipe in the `run_list`, and set its node
+attributes. Provide a Splunk Observability Cloud access token for the standard
+Collector configuration, or provide the Splunk Platform HEC URL and token for
+Platform-only log collection. The two destinations can also be configured
+together.
 ```yaml 
 {
     "splunk-otel-collector": {
@@ -54,32 +56,56 @@ required `splunk_access_token` attribute and some optional attributes:
 
 ### Send host logs to Splunk Platform
 
-The collector package includes a Splunk Platform logs configuration for each
-supported operating system. Enable config merging and provide the HEC settings
-as additional environment variables:
+The collector package includes a Splunk Platform logs configuration for Linux
+and Windows. Set the Chef attributes corresponding to the installer's
+`--splunk-platform-token`, `--splunk-platform-url`, and
+`--splunk-platform-logs-index` options. Providing the URL and token enables log
+collection. The cookbook selects the packaged logs config automatically and
+adds the required merge feature gate when also sending telemetry to
+Observability Cloud:
 
 ```yaml
 {
     "splunk-otel-collector": {
-        "collector_command_line_args": "--feature-gates=confmap.enableMergeAppendOption",
-        "collector_additional_env_vars": {
-            "SPLUNK_PLATFORM_URL": "https://<your-splunk-host>:8088/services/collector",
-            "SPLUNK_PLATFORM_TOKEN": "<your-hec-token>"
-        }
+        "splunk_platform_url": "https://<your-splunk-host>:8088/services/collector",
+        "splunk_platform_token": "<your-hec-token>",
+        "splunk_platform_logs_index": "<your-index>"
     }
 }
 ```
 
-You can also specify the `SPLUNK_PLATFORM_LOGS_INDEX` if you don't want to use
-the default index `main`.
+`splunk_platform_token` and `splunk_platform_url` must be provided together.
+`splunk_platform_logs_index` is recommended. If omitted, Splunk routes events to
+the default index configured on the HEC token. If the token has no default
+index, events may be silently dropped. On Windows, Platform-only collection
+omits `SPLUNK_CONFIG`, so the MSI starts the Collector with the packaged logs
+config. With an Observability token, Chef passes the base config and the MSI
+adds the Platform logs config and merge feature gate. Linux continues to use
+the packaged Linux logs config through the Collector environment file.
 
 # This cookbook accepts the following attributes
 
 ### Collector
 
-- `splunk_access_token` (**Required**): The [Splunk access token](
+- `splunk_access_token`: The [Splunk Observability Cloud access token](
   https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
-  to authenticate requests.
+  to authenticate requests. Required for the standard Observability config or
+  combined collection; can be omitted for Platform-only logs collection.
+
+- `splunk_platform_token`: HEC token for sending host logs to
+  Splunk Platform. Required when `splunk_platform_url` is configured. Maps to
+  the installer's `--splunk-platform-token` option.
+
+- `splunk_platform_url`: Splunk Platform HEC endpoint URL, e.g.
+  `https://splunk.example.com:8088/services/collector`. Setting this together
+  with `splunk_platform_token` enables the packaged host logs config for Linux
+  and Windows.
+  Maps to the installer's `--splunk-platform-url` option.
+
+- `splunk_platform_logs_index`: Splunk index for host logs.
+  Recommended; if omitted, events are routed to the HEC token's default index.
+  Ensure the token has a default index configured to avoid dropped events.
+  Maps to the installer's `--splunk-platform-logs-index` option.
 
 - `splunk_realm`: Which Splunk realm to send the data to, e.g. `us1`. The
   `SPLUNK_REALM` environment variable will be set with this value for the
@@ -155,7 +181,10 @@ the default index `main`.
 - `collector_command_line_args`: Additional command line arguments to pass to the
   collector service. On Linux the value will be set to the `OTELCOL_OPTIONS` environment
   variable for the collector service. On Windows, this option is only supported
-  by versions `>= 0.127.0` (**default:** `''`).
+  by versions `>= 0.127.0` (**default:** `''`). On Linux, the cookbook appends
+  the packaged logs config when Splunk Platform log collection is enabled. It
+  also appends the config merge feature gate when the Observability config is
+  loaded alongside it.
 
 ### Auto Instrumentation on Linux
 

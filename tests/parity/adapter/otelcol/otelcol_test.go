@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/parity"
@@ -60,7 +61,9 @@ func TestPrepareNoSources(t *testing.T) {
 }
 
 // TestPrepareMultipleConfigs covers the core behavior: every *.yaml/*.yml file
-// becomes a --config (sorted) and non-yaml files are ignored.
+// becomes a --config (sorted). A file that is neither a collector config nor a
+// .conf is installed into the sandbox home instead, and contributes no --config
+// of its own.
 func TestPrepareMultipleConfigs(t *testing.T) {
 	dir := t.TempDir()
 	for _, f := range []string{ConfigFile, "override.yml", "notes.txt"} {
@@ -259,7 +262,7 @@ func TestInstallConfLayout(t *testing.T) {
 	}
 
 	a := New("bin")
-	if err := a.installConf(dir, rels); err != nil {
+	if err := a.installHome(dir, rels, nil); err != nil {
 		t.Fatal(err)
 	}
 	for _, want := range []string{
@@ -269,5 +272,78 @@ func TestInstallConfLayout(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(a.splunkHome, want)); err != nil {
 			t.Errorf("%s not installed: %v", want, err)
 		}
+	}
+}
+
+// A non-config file lands at the path the case named it, relative to
+// $SPLUNK_HOME rather than to etc/, and is executable: splunkd runs a scripted
+// input only from $SPLUNK_HOME/bin/scripts or a bundle's bin.
+func TestInstallHomePayload(t *testing.T) {
+	dir := t.TempDir()
+	rels := []string{"bin/scripts/hello.sh", "etc/apps/my_app/bin/run.sh"}
+	for _, rel := range rels {
+		stage(t, dir, rel)
+	}
+
+	a := New("bin")
+	if err := a.installHome(dir, nil, rels); err != nil {
+		t.Fatal(err)
+	}
+	for _, rel := range rels {
+		info, err := os.Stat(filepath.Join(a.splunkHome, filepath.FromSlash(rel)))
+		if err != nil {
+			t.Errorf("%s not installed: %v", rel, err)
+			continue
+		}
+		if info.Mode().Perm()&0o111 == 0 {
+			t.Errorf("%s mode = %v, want the execute bit set", rel, info.Mode().Perm())
+		}
+	}
+}
+
+// splunkd derives $SPLUNK_DB from $SPLUNK_HOME and an input that checkpoints
+// there refuses to start when it does not exist, so the sandbox home has it.
+func TestInstallHomeCreatesSplunkDB(t *testing.T) {
+	dir := t.TempDir()
+	stage(t, dir, "inputs.conf")
+
+	a := New("bin")
+	if err := a.installHome(dir, []string{"inputs.conf"}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(a.splunkHome, "var", "lib", "splunk")); err != nil {
+		t.Errorf("var/lib/splunk not created: %v", err)
+	}
+}
+
+// A payload file needs the sandbox home to live in, but configures nothing on
+// its own, so it must not turn a collector-config case into a .conf one.
+func TestPreparePayloadDoesNotAddConfRootURI(t *testing.T) {
+	dir := t.TempDir()
+	stage(t, dir, "config.yaml")
+	stage(t, dir, "bin/scripts/hello.sh")
+
+	a := New("bin")
+	if err := a.Prepare(dir, []string{"bin/scripts/hello.sh", "config.yaml"}); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range a.configs {
+		if strings.HasPrefix(c, "splunkconf://") {
+			t.Errorf("configs = %v, want no splunkconf:// source", a.configs)
+		}
+	}
+	if a.splunkHome == "" {
+		t.Error("splunkHome is empty, want the payload installed into a sandbox home")
+	}
+}
+
+func stage(t *testing.T, dir, rel string) {
+	t.Helper()
+	p := filepath.Join(dir, filepath.FromSlash(rel))
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(p, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
 	}
 }

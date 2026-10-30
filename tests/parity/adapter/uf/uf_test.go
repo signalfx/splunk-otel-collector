@@ -77,7 +77,7 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	configDir := t.TempDir()
 	writeFile(t, filepath.Join(configDir, "inputs.conf"), "new-inputs")
 	writeFile(t, filepath.Join(configDir, "outputs.conf"), "new-outputs")
-	writeFile(t, filepath.Join(configDir, "notes.txt"), "ignored") // not a .conf
+	writeFile(t, filepath.Join(configDir, "notes.txt"), "payload") // not a .conf
 	writeFile(t, filepath.Join(configDir, "apps", "my_app", "local", "inputs.conf"), "app-inputs")
 
 	a := New(install)
@@ -99,8 +99,13 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	if got := readFile(t, filepath.Join(localDir, "outputs.conf")); got != "new-outputs" {
 		t.Errorf("outputs.conf = %q", got)
 	}
+	// A non-conf file is not config, so it goes to the path the case named it
+	// relative to the install root rather than into etc/system/local.
 	if _, err := os.Stat(filepath.Join(localDir, "notes.txt")); !os.IsNotExist(err) {
-		t.Error("non-conf file should not be copied")
+		t.Error("non-conf file should not be installed as system config")
+	}
+	if got := readFile(t, filepath.Join(install, "notes.txt")); got != "payload" {
+		t.Errorf("notes.txt = %q, want %q", got, "payload")
 	}
 
 	if err := a.Cleanup(); err != nil {
@@ -122,6 +127,54 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	// Cleanup is idempotent: a second call is a no-op.
 	if err := a.Cleanup(); err != nil {
 		t.Errorf("second Cleanup: %v", err)
+	}
+}
+
+// A payload file installs executable, because splunkd runs a scripted input
+// only from $SPLUNK_HOME/bin/scripts or a bundle's bin and will not run a script
+// it cannot execute. Cleanup takes it, and the directories it created, away
+// again so the next case runs against an unchanged install.
+func TestPreparePayloadIsExecutableAndRestored(t *testing.T) {
+	install := t.TempDir()
+	configDir := t.TempDir()
+	rel := "bin/scripts/hello.sh"
+	writeFile(t, filepath.Join(configDir, filepath.FromSlash(rel)), "#!/bin/sh\necho hi\n")
+
+	a := New(install)
+	if err := a.Prepare(configDir, []string{rel}); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+
+	installed := filepath.Join(install, filepath.FromSlash(rel))
+	info, err := os.Stat(installed)
+	if err != nil {
+		t.Fatalf("%s not installed: %v", rel, err)
+	}
+	if info.Mode().Perm()&0o111 == 0 {
+		t.Errorf("mode = %v, want the execute bit set", info.Mode().Perm())
+	}
+
+	if err := a.Cleanup(); err != nil {
+		t.Fatalf("Cleanup: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(install, "bin")); !os.IsNotExist(err) {
+		t.Error("bin/ should be removed on cleanup")
+	}
+}
+
+// A collector config belongs to the candidate, not the UF, so it is skipped
+// rather than installed as a payload file.
+func TestPrepareSkipsCollectorConfig(t *testing.T) {
+	install := t.TempDir()
+	configDir := t.TempDir()
+	writeFile(t, filepath.Join(configDir, "config.yaml"), "receivers: {}")
+
+	a := New(install)
+	if err := a.Prepare(configDir, []string{"config.yaml"}); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(install, "config.yaml")); !os.IsNotExist(err) {
+		t.Error("a collector config should not be installed into the UF")
 	}
 }
 

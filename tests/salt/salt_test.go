@@ -250,7 +250,7 @@ func TestPlatformLogsOnly(t *testing.T) {
 			d.Config(t, c, d.EnvPath, `^SPLUNK_ACCESS_TOKEN=`, false)
 			d.Config(t, c, d.EnvPath, `^SPLUNK_PLATFORM_LOGS_INDEX=`, false)
 			d.KV(t, c, d.EnvPath, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0", true)
-			d.Config(t, c, d.ConfigDir+"/splunk_logs_config_linux.yaml", `index: "\$\{env:SPLUNK_PLATFORM_LOGS_INDEX:-main\}"`, true)
+			d.Config(t, c, d.ConfigDir+"/splunk_logs_config_linux.yaml", `[[:space:]]*index: "\$\{env:SPLUNK_PLATFORM_LOGS_INDEX:-main\}"`, true)
 			require.Equal(t, "700", strings.TrimSpace(d.Run(t, c, "stat -c '%a' /var/lib/otelcol/filelogs")))
 			d.ServiceRunning(t, c, d.ServiceOwner, "/usr/bin/otelcol")
 		})

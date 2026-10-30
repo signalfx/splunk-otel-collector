@@ -96,3 +96,25 @@ func TestListMergesAllAppsAndReportsWinningSources(t *testing.T) {
 		t.Fatalf("missing app: exit code %d, stderr: %s", code, stderr.String())
 	}
 }
+
+func TestInputsBuiltinStanzasMatchCaseInsensitively(t *testing.T) {
+	etcDir := t.TempDir()
+	local := filepath.Join(etcDir, "system", "local")
+	if err := os.MkdirAll(local, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	conf := "[filter]\na = 1\n[FIFO]\nb = 1\n[Ssl]\nc = 1\n[SSL://x]\nd = 1\n[myscheme]\ne = 1\n[myscheme://x]\nf = 1\n"
+	if err := os.WriteFile(filepath.Join(local, "inputs.conf"), []byte(conf), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	code := New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
+	if code != cli.ExitOK {
+		t.Fatalf("exit code %d, stderr: %s", code, stderr.String())
+	}
+	want := "[FIFO]\nb = 1\n[SSL://x]\nd = 1\n[Ssl]\nc = 1\n[filter]\na = 1\n[myscheme://x]\ne = 1\nf = 1\n"
+	if got := stdout.String(); got != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
+}

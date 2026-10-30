@@ -14,9 +14,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 )
 
 // emitted is one confmap entry: a fully-qualified component ID (type/name) and
@@ -75,11 +74,11 @@ func stableName(raw string) string {
 // from a sibling app.
 func newConf(confRoot string, inputs []conf.Input, schemeDefaults map[string]conf.Input) (Conf, error) {
 	byApp := map[string][]conf.Input{}
-	for _, in := range inputs {
-		if in.Configuration.Stanza.IsDisabled() {
+	for i := range inputs {
+		if inputs[i].Configuration.Stanza.IsDisabled() {
 			continue
 		}
-		byApp[in.AppDir] = append(byApp[in.AppDir], in)
+		byApp[inputs[i].AppDir] = append(byApp[inputs[i].AppDir], inputs[i])
 	}
 
 	// Fixed order so the emitted set, and the error naming an unmappable
@@ -93,27 +92,28 @@ func newConf(confRoot string, inputs []conf.Input, schemeDefaults map[string]con
 	systemDir := filepath.Join(confRoot, "system")
 	var tree Conf
 	for _, appDir := range appDirs {
-		dirs := tabuilder.AppConfRootDirs(confRoot, appDir)
+		dirs := AppConfRootDirs(confRoot, appDir)
 		if appDir == systemDir {
-			dirs = tabuilder.SystemConfRootDirs(confRoot)
+			dirs = SystemConfRootDirs(confRoot)
 		}
-		props, err := tabuilder.ReadProps(dirs)
+		props, err := ReadProps(dirs)
 		if err != nil {
 			return Conf{}, fmt.Errorf("splunkconf: read props.conf for %s: %w", appDir, err)
 		}
-		transforms, err := tabuilder.ReadTransforms(dirs)
+		transforms, err := ReadTransforms(dirs)
 		if err != nil {
 			return Conf{}, fmt.Errorf("splunkconf: read transforms.conf for %s: %w", appDir, err)
 		}
 
-		for _, in := range byApp[appDir] {
-			name := in.Configuration.Stanza.Name
+		appInputs := byApp[appDir]
+		for i := range appInputs {
+			name := appInputs[i].Configuration.Stanza.Name
 			parsed, err := stanza.ParseName(name)
 			if err != nil {
 				return Conf{}, fmt.Errorf("splunkconf: parse stanza %q: %w", name, err)
 			}
 			tree.Inputs = append(tree.Inputs, Input{
-				Input:         in,
+				Input:         appInputs[i],
 				Name:          parsed,
 				Props:         props,
 				Transforms:    transforms,
@@ -144,9 +144,10 @@ func (p *provider) mapInputs(tree Conf) (out []emitted, skipped []string, err er
 		out = append(out, claimed...)
 	}
 
-	for _, in := range tree.Inputs {
-		if _, claimed := claimedBy[in.Configuration.Stanza.Name]; !claimed {
-			skipped = append(skipped, in.Configuration.Stanza.Name)
+	for i := range tree.Inputs {
+		name := tree.Inputs[i].Configuration.Stanza.Name
+		if _, claimed := claimedBy[name]; !claimed {
+			skipped = append(skipped, name)
 		}
 	}
 	return out, skipped, nil

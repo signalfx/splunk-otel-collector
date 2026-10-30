@@ -5,18 +5,14 @@ splunk_platform_url = (
   node.run_state.dig('splunk_otel_collector', 'splunk_platform_url') ||
   node['splunk_otel_collector']['splunk_platform_url']
 ).to_s.strip
-splunk_platform_token = (
-  node.run_state.dig('splunk_otel_collector', 'splunk_platform_token') ||
-  node['splunk_otel_collector']['splunk_platform_token']
-)
+splunk_platform_token = node.run_state.dig('splunk_otel_collector', 'splunk_platform_token') ||
+                        node['splunk_otel_collector']['splunk_platform_token']
 splunk_platform_logs_index = (
   node.run_state.dig('splunk_otel_collector', 'splunk_platform_logs_index') ||
   node['splunk_otel_collector']['splunk_platform_logs_index']
 ).to_s.strip
-splunk_access_token = (
-  node.run_state.dig('splunk_otel_collector', 'splunk_access_token') ||
-  node['splunk_otel_collector']['splunk_access_token']
-)
+splunk_access_token = node.run_state.dig('splunk_otel_collector', 'splunk_access_token') ||
+                      node['splunk_otel_collector']['splunk_access_token']
 platform_only = !splunk_platform_url.empty? && splunk_access_token.to_s.strip.empty?
 
 collector_env_vars = [

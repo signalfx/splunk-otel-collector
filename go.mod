@@ -26,6 +26,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.163.0
 	github.com/openconfig/gnmi v0.14.1
 	github.com/openconfig/goyang v1.6.3
+	github.com/openconfig/grpctunnel v0.2.0
 	github.com/openconfig/ygot v0.35.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/common v0.72.1
@@ -47,6 +48,7 @@ require (
 	go.opentelemetry.io/collector/config/confighttp v0.163.0
 	go.opentelemetry.io/collector/config/configopaque v1.69.0
 	go.opentelemetry.io/collector/config/configoptional v1.69.0
+	go.opentelemetry.io/collector/config/configtls v1.69.0
 	go.opentelemetry.io/collector/confmap v1.69.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.69.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.69.0
@@ -504,7 +506,6 @@ require (
 	go.opentelemetry.io/collector/config/confignet v1.69.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v1.69.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.163.0 // indirect
-	go.opentelemetry.io/collector/config/configtls v1.69.0 // indirect
 	go.opentelemetry.io/collector/confmap/xconfmap v0.163.0 // indirect
 	go.opentelemetry.io/collector/connector v0.163.0 // indirect
 	go.opentelemetry.io/collector/connector/connectortest v0.163.0 // indirect

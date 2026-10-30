@@ -34,9 +34,11 @@ func NewFactory() receiver.Factory {
 
 func createDefaultConfig() component.Config {
 	gnmiReverseConfig := NewDefaultGNMIReverseConfig()
+	tunnelConfig := NewDefaultTunnelConfig()
 	return &Config{
 		Targets:     []TargetConfig{},
 		GNMIReverse: &gnmiReverseConfig,
+		Tunnel:      &tunnelConfig,
 	}
 }
 

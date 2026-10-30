@@ -1454,6 +1454,8 @@ github.com/openconfig/gnmi v0.14.1 h1:qKMuFvhIRR2/xxCOsStPQ25aKpbMDdWr3kI+nP9bhM
 github.com/openconfig/gnmi v0.14.1/go.mod h1:whr6zVq9PCU8mV1D0K9v7Ajd3+swoN6Yam9n8OH3eT0=
 github.com/openconfig/goyang v1.6.3 h1:9nWXBwd6b4+nZr8ni7O4zUXVhrVMXCLFz8os5YWFuo4=
 github.com/openconfig/goyang v1.6.3/go.mod h1:5WolITjek1NF8yrNERyVZ7jqjOClJTpO8p/+OwmETM4=
+github.com/openconfig/grpctunnel v0.2.0 h1:BHkORzsmOeJ7g9g9NmPwqx6JvxfJXSvTPojWQ0MIWiU=
+github.com/openconfig/grpctunnel v0.2.0/go.mod h1:fmJUk4OjycBhtja77+55VqnmGav6QWU2poZSOy6pyJc=
 github.com/openconfig/ygot v0.35.0 h1:RCS7a5h40cyGAZQjQZGA7SunPuKl188l94DYTnHFX9A=
 github.com/openconfig/ygot v0.35.0/go.mod h1:bMjol0ooiK1suQZ8vG3OVj+I6D8yk9/aP6zXCf+V0kQ=
 github.com/opencontainers/cgroups v0.0.6 h1:tfZFWTIIGaUUFImTyuTg+Mr5x8XRiSdZESgEBW7UxuI=

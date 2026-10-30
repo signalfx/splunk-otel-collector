@@ -8,7 +8,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
 )
 
 // kind is the inputs.conf stanza kind this receiver owns. Kinds are matched
@@ -21,7 +21,7 @@ const kind = "monitor"
 // whitelist and blacklist are deliberately not modeled: the underlying receiver
 // reads both straight off the stanza params, so they round-trip verbatim through
 // Extra instead of being re-encoded here.
-func (Factory) MapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
+func mapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
 	out := map[string]component.Config{}
 	for _, in := range c.Inputs {
 		if in.Name.Kind != kind {

@@ -5,6 +5,7 @@ go 1.26.10
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.163.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.163.0
+	github.com/signalfx/splunk-otel-collector/pkg/splunkconf v0.163.1
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component v1.69.0
 	go.opentelemetry.io/collector/component/componenttest v0.163.0
@@ -16,6 +17,7 @@ require (
 	go.opentelemetry.io/collector/exporter/exportertest v0.163.0
 	go.opentelemetry.io/collector/featuregate v1.69.0
 	go.opentelemetry.io/collector/pdata v1.69.0
+	go.opentelemetry.io/collector/processor v1.69.0
 	go.opentelemetry.io/collector/receiver v1.69.0
 	go.opentelemetry.io/collector/receiver/receivertest v0.163.0
 	go.opentelemetry.io/otel/metric v1.47.0
@@ -23,8 +25,9 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/text v0.43.0
-	gopkg.in/ini.v1 v1.67.3
 )
+
+require gopkg.in/ini.v1 v1.67.3 // indirect
 
 require (
 	github.com/Microsoft/go-winio v0.6.3 // indirect
@@ -115,3 +118,5 @@ require (
 	google.golang.org/grpc v1.84.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
+
+replace github.com/signalfx/splunk-otel-collector/pkg/splunkconf => ../splunkconf

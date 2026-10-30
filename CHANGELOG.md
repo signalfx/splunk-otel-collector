@@ -145,7 +145,7 @@ and the [opentelemetry-collector-contrib v0.164.0](https://github.com/open-telem
   helper is shared with the SignalFx exporter, whose retry classification
   changes in the same way.
 - (Contrib) `extension/docker_observer`: Fix endpoint flapping by selecting a stable IP address for containers attached to multiple networks. ([#51726](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/51726))
-- (Contrib) `extension/google_cloud_logentry_encoding`: Do not drop log entries with an unparseable `httpRequest.requestUrl`. ([#52044](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52044))
+- (Contrib) `extension/google_cloud_logentry_encoding`: Do not drop log entries with an unparsable `httpRequest.requestUrl`. ([#52044](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52044))
   The raw value is kept in `url.full`; `url.path`, `url.query` and `url.domain` are omitted.
 - (Contrib) `internal/kafka`: Reject extensions that do not implement Token(context.Context) during OAUTHBEARER SASL configuration instead of panicking at runtime. ([#51958](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/51958))
 - (Contrib) `pkg/ottl`: Fix context inference for statements that pass an all-uppercase converter name, such as `SHA256`, as a function argument. ([#52192](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/52192))

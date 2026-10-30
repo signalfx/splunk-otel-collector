@@ -36,6 +36,7 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.163.1
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.163.1
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.163.1
+	github.com/signalfx/splunk-otel-collector/pkg/splunkconf v0.163.1
 	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.163.1
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
@@ -190,7 +191,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.15 // indirect
 	github.com/go-openapi/analysis v1.0.0 // indirect
 	github.com/go-openapi/errors v0.22.9 // indirect
@@ -817,6 +818,7 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
+	github.com/signalfx/splunk-otel-collector/pkg/splunkconf => ./pkg/splunkconf
 	github.com/signalfx/splunk-otel-collector/pkg/splunkta => ./pkg/splunkta
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )

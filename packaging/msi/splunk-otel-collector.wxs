@@ -68,6 +68,9 @@
 
       <Launch Condition="NOT SPLUNK_PLATFORM_URL OR SPLUNK_PLATFORM_TOKEN" Message="SPLUNK_PLATFORM_TOKEN is required when SPLUNK_PLATFORM_URL is set." />
       <Launch Condition="NOT SPLUNK_PLATFORM_TOKEN OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_TOKEN is set." />
+      <Launch Condition="NOT SPLUNK_PLATFORM_LOGS_INDEX OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_LOGS_INDEX is set." />
+      <Launch Condition="NOT SPLUNK_PLATFORM_METRICS_INDEX OR SPLUNK_PLATFORM_URL" Message="SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_METRICS_INDEX is set." />
+      <Launch Condition="NOT SPLUNK_PLATFORM_URL OR SPLUNK_SETUP_COLLECTOR_MODE&lt;&gt;&quot;gateway&quot;" Message="Splunk Platform ingestion is not supported in gateway mode." />
       <Launch Condition="NOT SPLUNK_SERVICE_ACCOUNT_TYPE OR SPLUNK_SERVICE_ACCOUNT_TYPE=&quot;virtual&quot; OR SPLUNK_SERVICE_ACCOUNT_TYPE=&quot;localsystem&quot;" Message="SPLUNK_SERVICE_ACCOUNT_TYPE must be empty, 'virtual', or 'localsystem'." />
 
       <CustomAction Id="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" Property="COLLECTOR_SVC_ARGS" Value="--config &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml&quot;" />
@@ -96,16 +99,17 @@
          <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions" Condition="NOT SPLUNK_INGEST_URL" />
          <Custom Action="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" After="CheckLaunchConditions" Condition="SPLUNK_ACCESS_TOKEN AND NOT SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
          <Custom Action="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" After="AppendDefaultConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_ACCESS_TOKEN AND NOT SPLUNK_CONFIG AND NOT COLLECTOR_SVC_ARGS" />
-         <Custom Action="Set_SPLUNK_PLATFORM_LOGS_ENABLED" After="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND (SPLUNK_PLATFORM_LOGS_INDEX OR NOT SPLUNK_PLATFORM_METRICS_INDEX)" />
-         <Custom Action="Set_SPLUNK_PLATFORM_METRICS_ENABLED" After="Set_SPLUNK_PLATFORM_LOGS_ENABLED" Condition="SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND SPLUNK_PLATFORM_METRICS_INDEX" />
-         <Custom Action="Set_SPLUNK_PLATFORM_MERGE_CONFIGS_ENABLED" After="Set_SPLUNK_PLATFORM_METRICS_ENABLED" Condition="SPLUNK_PLATFORM_URL AND NOT SPLUNK_CONFIG AND (SPLUNK_ACCESS_TOKEN OR (SPLUNK_PLATFORM_LOGS_ENABLED AND SPLUNK_PLATFORM_METRICS_ENABLED))" />
+         <!-- SPLUNK_CONFIG is the base config and goes first, platform configs are merged on top of it (same as install.sh) -->
+         <Custom Action="AppendSplunkConfigTo_COLLECTOR_SVC_ARGS" After="SetDefaultConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
+         <Custom Action="SetSplunkConfigTo_COLLECTOR_SVC_ARGS" After="AppendSplunkConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_CONFIG AND NOT COLLECTOR_SVC_ARGS" />
+         <Custom Action="Set_SPLUNK_PLATFORM_LOGS_ENABLED" After="SetSplunkConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_URL AND (SPLUNK_PLATFORM_LOGS_INDEX OR NOT SPLUNK_PLATFORM_METRICS_INDEX)" />
+         <Custom Action="Set_SPLUNK_PLATFORM_METRICS_ENABLED" After="Set_SPLUNK_PLATFORM_LOGS_ENABLED" Condition="SPLUNK_PLATFORM_URL AND SPLUNK_PLATFORM_METRICS_INDEX" />
+         <Custom Action="Set_SPLUNK_PLATFORM_MERGE_CONFIGS_ENABLED" After="Set_SPLUNK_PLATFORM_METRICS_ENABLED" Condition="SPLUNK_PLATFORM_URL AND (SPLUNK_ACCESS_TOKEN OR SPLUNK_CONFIG OR (SPLUNK_PLATFORM_LOGS_ENABLED AND SPLUNK_PLATFORM_METRICS_ENABLED))" />
          <Custom Action="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" After="Set_SPLUNK_PLATFORM_MERGE_CONFIGS_ENABLED" Condition="SPLUNK_PLATFORM_LOGS_ENABLED AND COLLECTOR_SVC_ARGS" />
          <Custom Action="SetLogsConfigTo_COLLECTOR_SVC_ARGS" After="AppendLogsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_LOGS_ENABLED AND NOT COLLECTOR_SVC_ARGS" />
          <Custom Action="AppendMetricsConfigTo_COLLECTOR_SVC_ARGS" After="SetLogsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_METRICS_ENABLED AND COLLECTOR_SVC_ARGS" />
          <Custom Action="SetMetricsConfigTo_COLLECTOR_SVC_ARGS" After="AppendMetricsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_METRICS_ENABLED AND NOT COLLECTOR_SVC_ARGS" />
          <Custom Action="AppendMergeOptionTo_COLLECTOR_SVC_ARGS" After="SetMetricsConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_PLATFORM_MERGE_CONFIGS_ENABLED AND COLLECTOR_SVC_ARGS" />
-         <Custom Action="AppendSplunkConfigTo_COLLECTOR_SVC_ARGS" After="AppendMergeOptionTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_CONFIG AND COLLECTOR_SVC_ARGS" />
-         <Custom Action="SetSplunkConfigTo_COLLECTOR_SVC_ARGS" After="AppendSplunkConfigTo_COLLECTOR_SVC_ARGS" Condition="SPLUNK_CONFIG AND NOT COLLECTOR_SVC_ARGS" />
          <!-- The properties below depend on another properties and should be run only after all other properties are set -->
          <Custom Action="Set_SPLUNK_HEC_URL" After="CostFinalize" Condition="NOT SPLUNK_HEC_URL" />
          <!-- Prepare protected Collector roots before any Collector files or configuration are created. -->

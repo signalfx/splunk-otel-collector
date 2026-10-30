@@ -21,7 +21,8 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 )
 
 // TypeStr is the UF-native HEC output exporter type.
@@ -88,16 +89,12 @@ func (c *Config) hecConfig(f exporter.Factory) (component.Config, error) {
 	return hecCfg, nil
 }
 
-// Factory is the UF-native HEC output exporter factory. It maps its own [hecout]
-// stanzas, so the .conf provider models no output kind itself.
-type Factory struct {
-	exporter.Factory
-}
-
 // NewFactory returns the UF-native HEC output exporter factory.
-func NewFactory() Factory {
+// It maps its own [hecout] stanzas, so the .conf provider models no output
+// kind itself.
+func NewFactory() splunkconf.MappingExporterFactory {
 	hec := splunkhecexporter.NewFactory()
-	return Factory{exporter.NewFactory(
+	return splunkconf.NewMappingExporter(exporter.NewFactory(
 		component.MustNewType(TypeStr),
 		func() component.Config { return &Config{} },
 		exporter.WithLogs(
@@ -113,5 +110,5 @@ func NewFactory() Factory {
 			},
 			component.StabilityLevelDevelopment,
 		),
-	)}
+	), mapOutputs)
 }

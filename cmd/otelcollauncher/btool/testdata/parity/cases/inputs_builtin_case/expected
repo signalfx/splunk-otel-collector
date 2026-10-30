@@ -1,0 +1,12 @@
+[FIFO]
+b = 1
+[SSL://x]
+d = 1
+[Ssl]
+c = 1
+[filter]
+a = 1
+[myscheme://x]
+e = 1
+f = 1
+EXIT=0

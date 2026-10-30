@@ -34,17 +34,18 @@ const usage = "usage: otelcollauncher btool [--app=<app>] [--dir=<etc-dir>] [--e
 // Any other "<scheme>://" stanza is a modular input, and the bare "[<scheme>]"
 // stanzas that configure them are not listed by btool.
 var builtinInputs = map[string]bool{
-	"SSL":           true,
 	"batch":         true,
 	"fifo":          true,
+	"filter":        true,
 	"fschange":      true,
 	"http":          true,
 	"monitor":       true,
 	"script":        true,
-	"splunktcp":     true,
 	"splunktcp-ssl": true,
-	"tcp":           true,
+	"splunktcp":     true,
+	"ssl":           true,
 	"tcp-ssl":       true,
+	"tcp":           true,
 	"udp":           true,
 }
 
@@ -287,6 +288,11 @@ func resolveRelativeInput(name, baseDir string) string {
 	return name
 }
 
+// isBuiltinInput matches case-insensitively, like Splunk does.
+func isBuiltinInput(name string) bool {
+	return builtinInputs[strings.ToLower(name)]
+}
+
 // resolve applies [default] inheritance and the inputs.conf specifics, and
 // drops the stanzas that btool does not list.
 func resolve(confName string, merged map[string]*stanzaSettings) map[string]*stanzaSettings {
@@ -300,7 +306,7 @@ func resolve(confName string, merged map[string]*stanzaSettings) map[string]*sta
 			}
 			continue
 		}
-		if isInputs && !strings.Contains(name, ":") && !builtinInputs[name] {
+		if isInputs && !strings.Contains(name, ":") && !isBuiltinInput(name) {
 			continue
 		}
 		resolved := &stanzaSettings{path: settings.path, values: make(map[string]valueSource, len(settings.values))}
@@ -327,7 +333,7 @@ func resolve(confName string, merged map[string]*stanzaSettings) map[string]*sta
 				}
 			}
 		}
-		if scheme, _, ok := strings.Cut(name, "://"); isInputs && ok && !builtinInputs[scheme] {
+		if scheme, _, ok := strings.Cut(name, "://"); isInputs && ok && !isBuiltinInput(scheme) {
 			// Modular inputs inherit from their bare scheme stanza, and from
 			// [default] only host and index, which have no source file.
 			inherit(merged[scheme])

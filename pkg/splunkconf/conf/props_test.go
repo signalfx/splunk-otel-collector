@@ -29,7 +29,7 @@ func TestReadPropsNoCharset(t *testing.T) {
 	props, err := ReadProps([]byte("[no_charset]\nTIME_PREFIX = ^\n"))
 	require.NoError(t, err)
 	require.Len(t, props, 1)
-	require.Equal(t, "", props[0].Charset)
+	require.Empty(t, props[0].Charset)
 }
 
 func TestPropType(t *testing.T) {

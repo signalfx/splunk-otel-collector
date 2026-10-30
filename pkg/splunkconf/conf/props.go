@@ -77,12 +77,12 @@ func MergeProps(layers [][]Prop) []Prop {
 	seen := make(map[string]int)
 	var result []Prop
 	for _, layer := range layers {
-		for _, p := range layer {
-			if idx, ok := seen[p.Name]; ok {
-				result[idx] = p
+		for i := range layer {
+			if idx, ok := seen[layer[i].Name]; ok {
+				result[idx] = layer[i]
 			} else {
-				seen[p.Name] = len(result)
-				result = append(result, p)
+				seen[layer[i].Name] = len(result)
+				result = append(result, layer[i])
 			}
 		}
 	}
@@ -96,9 +96,9 @@ func Charset(props []Prop, sourcetype string) string {
 	if sourcetype == "" {
 		return ""
 	}
-	for _, p := range props {
-		if p.Type() == SourceType && p.Name == sourcetype {
-			return p.Charset
+	for i := range props {
+		if props[i].Type() == SourceType && props[i].Name == sourcetype {
+			return props[i].Charset
 		}
 	}
 	return ""

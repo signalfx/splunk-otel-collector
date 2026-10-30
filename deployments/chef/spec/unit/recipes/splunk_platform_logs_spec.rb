@@ -162,19 +162,70 @@ describe 'splunk_otel_collector::default' do
     end
   end
 
-  context 'when Platform HEC options are set on Windows' do
+  context 'with Splunk Platform HEC as the only destination on Windows' do
     let(:chef_run) do
       ChefSpec::SoloRunner.new(platform: 'windows', version: '2019') do |node|
-        node.normal['splunk_otel_collector'] = {
-          'splunk_access_token' => 'observability-token',
+        node.normal['splunk_otel_collector'].merge!(
+          'collector_version' => '0.127.0',
           'splunk_platform_url' => 'https://hec.example.com:8088',
           'splunk_platform_token' => 'platform-token',
-        }
+          'splunk_platform_logs_index' => 'host-logs'
+        )
       end.converge described_recipe
     end
 
-    it 'raises an unsupported platform error' do
-      expect { chef_run }.to raise_error(RuntimeError, /only supported.*Linux/)
+    it 'passes the HEC settings and lets the MSI select the packaged logs config' do
+      expect { chef_run }.not_to raise_error
+      env_vars = chef_run.node['splunk_otel_collector']['collector_win_env_vars']
+
+      expect(env_vars).to include(
+        name: 'SPLUNK_PLATFORM_URL', type: :string, data: 'https://hec.example.com:8088'
+      )
+      expect(env_vars).to include(
+        name: 'SPLUNK_PLATFORM_TOKEN', type: :string, data: 'platform-token'
+      )
+      expect(env_vars).to include(
+        name: 'SPLUNK_PLATFORM_LOGS_INDEX', type: :string, data: 'host-logs'
+      )
+      expect(env_vars).not_to include(
+        hash_including(name: 'SPLUNK_CONFIG')
+      )
+    end
+  end
+
+  context 'with Splunk Platform HEC alongside Observability on Windows' do
+    let(:chef_run) do
+      ChefSpec::SoloRunner.new(platform: 'windows', version: '2019') do |node|
+        node.normal['splunk_otel_collector'].merge!(
+          'collector_version' => '0.127.0',
+          'splunk_access_token' => 'observability-token',
+          'splunk_platform_url' => 'https://hec.example.com:8088',
+          'splunk_platform_token' => 'platform-token',
+          'splunk_platform_logs_index' => 'host-logs',
+          'collector_command_line_args' => '--discovery'
+        )
+      end.converge described_recipe
+    end
+
+    it 'passes the base config and Platform settings for MSI config composition' do
+      expect { chef_run }.not_to raise_error
+      env_vars = chef_run.node['splunk_otel_collector']['collector_win_env_vars']
+
+      expect(env_vars).to include(
+        name: 'SPLUNK_CONFIG',
+        type: :string,
+        data: chef_run.node['splunk_otel_collector']['collector_config_dest']
+      )
+      expect(env_vars).to include(
+        name: 'SPLUNK_PLATFORM_URL', type: :string, data: 'https://hec.example.com:8088'
+      )
+      expect(env_vars).to include(
+        name: 'SPLUNK_PLATFORM_TOKEN', type: :string, data: 'platform-token'
+      )
+      expect(env_vars).to include(
+        name: 'SPLUNK_PLATFORM_LOGS_INDEX', type: :string, data: 'host-logs'
+      )
+      expect(chef_run.node['splunk_otel_collector']['collector_command_line_args']).to eq('--discovery')
     end
   end
 end

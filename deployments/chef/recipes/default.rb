@@ -12,11 +12,7 @@ has_splunk_access_token = !(
   node['splunk_otel_collector']['splunk_access_token']
 ).to_s.strip.empty?
 
-if platform_family?('windows') && has_splunk_platform_options
-  raise 'Splunk Platform HEC log collection is only supported by this cookbook on Linux.'
-end
-
-if platform_family?('debian', 'rhel', 'amazon', 'suse') &&
+if platform_family?('windows', 'debian', 'rhel', 'amazon', 'suse') &&
    (splunk_platform_url.to_s.strip.empty? != splunk_platform_token.to_s.strip.empty? ||
      (splunk_platform_url.to_s.strip.empty? && !splunk_platform_logs_index.to_s.strip.empty?))
   if splunk_platform_url.to_s.strip.empty?
@@ -26,7 +22,7 @@ if platform_family?('debian', 'rhel', 'amazon', 'suse') &&
   end
 end
 
-if (!platform_family?('debian', 'rhel', 'amazon', 'suse') || !has_splunk_platform_options) &&
+if (!platform_family?('windows', 'debian', 'rhel', 'amazon', 'suse') || !has_splunk_platform_options) &&
    !has_splunk_access_token
   raise "Set ['splunk_otel_collector']['splunk_access_token'] as an attribute or on the node's run_state."
 end

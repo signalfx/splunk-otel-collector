@@ -56,8 +56,8 @@ together.
 
 ### Send host logs to Splunk Platform
 
-The collector package includes a Splunk Platform logs configuration for Linux.
-Set the Chef attributes corresponding to the Linux installer's
+The collector package includes a Splunk Platform logs configuration for Linux
+and Windows. Set the Chef attributes corresponding to the installer's
 `--splunk-platform-token`, `--splunk-platform-url`, and
 `--splunk-platform-logs-index` options. Providing the URL and token enables log
 collection. The cookbook selects the packaged logs config automatically and
@@ -77,11 +77,11 @@ Observability Cloud:
 `splunk_platform_token` and `splunk_platform_url` must be provided together.
 `splunk_platform_logs_index` is recommended. If omitted, Splunk routes events to
 the default index configured on the HEC token. If the token has no default
-index, events may be silently dropped. These settings apply to Linux nodes; the
-cookbook does not configure Splunk Platform log collection on Windows. When
-Platform-only collection is configured, Chef selects the logs config by itself
-and omits the Observability environment variables. When an Observability token
-is also provided, Chef loads both configs and enables config merging.
+index, events may be silently dropped. On Windows, Platform-only collection
+omits `SPLUNK_CONFIG`, so the MSI starts the Collector with the packaged logs
+config. With an Observability token, Chef passes the base config and the MSI
+adds the Platform logs config and merge feature gate. Linux continues to use
+the packaged Linux logs config through the Collector environment file.
 
 # This cookbook accepts the following attributes
 
@@ -92,16 +92,17 @@ is also provided, Chef loads both configs and enables config merging.
   to authenticate requests. Required for the standard Observability config or
   combined collection; can be omitted for Platform-only logs collection.
 
-- `splunk_platform_token` (Linux only): HEC token for sending host logs to
+- `splunk_platform_token`: HEC token for sending host logs to
   Splunk Platform. Required when `splunk_platform_url` is configured. Maps to
   the installer's `--splunk-platform-token` option.
 
-- `splunk_platform_url` (Linux only): Splunk Platform HEC endpoint URL, e.g.
+- `splunk_platform_url`: Splunk Platform HEC endpoint URL, e.g.
   `https://splunk.example.com:8088/services/collector`. Setting this together
-  with `splunk_platform_token` enables the packaged Linux host logs config.
+  with `splunk_platform_token` enables the packaged host logs config for Linux
+  and Windows.
   Maps to the installer's `--splunk-platform-url` option.
 
-- `splunk_platform_logs_index` (Linux only): Splunk index for host logs.
+- `splunk_platform_logs_index`: Splunk index for host logs.
   Recommended; if omitted, events are routed to the HEC token's default index.
   Ensure the token has a default index configured to avoid dropped events.
   Maps to the installer's `--splunk-platform-logs-index` option.

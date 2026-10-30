@@ -15,7 +15,7 @@ require (
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
+	github.com/gobwas/glob v1.0.0
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gorilla/mux v1.8.1
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect

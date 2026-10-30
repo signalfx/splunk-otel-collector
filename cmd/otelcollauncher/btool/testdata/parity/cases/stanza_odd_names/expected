@@ -1,0 +1,17 @@
+[]
+x = 3
+[ spaced ]
+x = 2
+[a b]
+x = 8
+[a[b]c]
+x = 1
+[junk]
+x = 6
+[trailing]
+x = 5
+[with = eq]
+x = 4
+[ünï]
+x = 7
+EXIT=0

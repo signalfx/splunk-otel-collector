@@ -1,0 +1,9 @@
+@ETC@/apps/A/local/zzcmp.conf [default]
+@ETC@/system/default/zzcmp.conf d1 = sys
+@ETC@/apps/A/local/zzcmp.conf d2 = app
+@ETC@/apps/A/local/zzcmp.conf [s]
+@ETC@/system/default/zzcmp.conf a = 1
+@ETC@/apps/A/local/zzcmp.conf b = 1
+@ETC@/system/default/zzcmp.conf d1 = sys
+@ETC@/apps/A/local/zzcmp.conf d2 = app
+EXIT=0

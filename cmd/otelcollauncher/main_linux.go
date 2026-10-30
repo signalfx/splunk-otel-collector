@@ -19,6 +19,7 @@ package main
 import (
 	"golang.org/x/sys/unix"
 
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/btool"
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/health"
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/lifecycle"
@@ -39,5 +40,5 @@ func run(args, env []string, paths launcher.Paths) error {
 // Linux. A new command family requires implementing cli.Family in its own
 // package and appending its constructor here.
 func commandFamilies() []cli.Family {
-	return []cli.Family{lifecycle.NewLinux(), health.New()}
+	return []cli.Family{lifecycle.NewLinux(), btool.New(), health.New()}
 }

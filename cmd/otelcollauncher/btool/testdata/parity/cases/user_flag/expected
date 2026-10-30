@@ -1,0 +1,2 @@
+Error: if a user context is set, an app context must also be set.
+EXIT=1

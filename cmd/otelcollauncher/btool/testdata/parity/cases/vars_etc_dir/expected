@@ -1,0 +1,5 @@
+[@ETC@]
+a = 1
+[@ETC@/apps]
+a = 1
+EXIT=0

@@ -1,0 +1,5 @@
+[s]
+a = C:\Program Files\x
+b = \d+\s*
+c = a\tb
+EXIT=0

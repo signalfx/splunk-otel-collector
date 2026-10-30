@@ -1,0 +1,6 @@
+[default]
+d = 1
+[s]
+a = 1
+d = 1
+EXIT=0

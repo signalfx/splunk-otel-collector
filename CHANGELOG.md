@@ -16,7 +16,6 @@ and the [opentelemetry-collector-contrib v0.164.0](https://github.com/open-telem
   The receiver is still part of the distribution and can be added back to a custom configuration.
 - (Splunk) `splunk_inputs`: Remove the `splunk_inputs` receiver. Reading a Splunk `.conf` tree is now the `splunkconf` config provider's job. ([#8330](https://github.com/signalfx/splunk-otel-collector/pull/8330))
 - (Splunk) `splunk_outputs`: Remove the `splunk_outputs` exporter. The forwarding destination now comes from the `splunkconf` config provider reading `outputs.conf`. ([#8331](https://github.com/signalfx/splunk-otel-collector/pull/8331))
-
 - (Contrib) `exporter/prometheus_remote_write`: Always preserve leading and consecutive underscores in label names. ([#50429](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50429))
   Remove `-pkg.translator.prometheus.PermissiveLabelSanitization` from `--feature-gates`; disabling this gate now causes a startup error.
 - (Contrib) `pkg/azurelogs`: Promote the `pkg.translator.azurelogs.EmitV1LogConventions` and `pkg.translator.azurelogs.DontEmitV0LogConventions` feature gates to beta. ([#52096](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52096))
@@ -37,7 +36,6 @@ and the [opentelemetry-collector-contrib v0.164.0](https://github.com/open-telem
   `opLatencies.*.latency` is a cumulative total, so the metric is now a monotonic sum like every
   other cumulative duration in the receiver. It is `enabled: false` and `stability: development`.
 - (Contrib) `receiver/prometheus`: Remove the stable `receiver.prometheusreceiver.IgnoreScopeInfoMetric` feature gate. ([#47312](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/47312))
-
 - (Contrib) `processor/probabilistic_sampler`: Add the `otelcol_processor_probabilistic_sampler_count_spans_processed` metric and deprecate `otelcol_processor_probabilistic_sampler_count_traces_sampled` in favor of it. ([#50954](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50954))
   The deprecated metric remains available for compatibility.
   NOTE: Marked as breaking only because new metrics are enabled by default, potentially impacting resource usage and billing.
@@ -70,8 +68,8 @@ and the [opentelemetry-collector-contrib v0.164.0](https://github.com/open-telem
   Note: This requires the healthcheckv2 extension to be enabled in the collector configuration.
 - (Splunk) `msi`: Mark a few MSI properties as hidden so their values are not written to the installer log. ([#8350](https://github.com/signalfx/splunk-otel-collector/pull/8350))
 - (Splunk) `msi`: Validate Splunk Platform properties the same way install.sh does. ([#8351](https://github.com/signalfx/splunk-otel-collector/pull/8351))
-  The installation now fails if SPLUNK_PLATFORM_LOGS_INDEX or SPLUNK_PLATFORM_METRICS_INDEX is set without
-  SPLUNK_PLATFORM_URL, or if SPLUNK_PLATFORM_URL is set with SPLUNK_SETUP_COLLECTOR_MODE=gateway.
+  The installation now fails if `SPLUNK_PLATFORM_LOGS_INDEX` or `SPLUNK_PLATFORM_METRICS_INDEX` is set without
+  `SPLUNK_PLATFORM_URL`, or if `SPLUNK_PLATFORM_URL` is set with `SPLUNK_SETUP_COLLECTOR_MODE=gateway`.
 - (Splunk) `otelcollauncher`: Add an internal command-family dispatch framework to `otelcollauncher` ([#8125](https://github.com/signalfx/splunk-otel-collector/pull/8125))
   Introduces `cmd/otelcollauncher/cli`, an extensibility point for future `otelcollauncher`
   subcommands, along with a `help` command listing registered subcommands and per-command

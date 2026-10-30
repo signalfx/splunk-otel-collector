@@ -1140,6 +1140,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbrecei
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.164.1/go.mod h1:hynLmGVhGpS0brTdyhRYGy70TgowuYLHmglYzxla7s4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.164.1 h1:PBwiMlRJZZPPchvGti7EIRo50wGxv7qsHnLam/wt8rI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.164.1/go.mod h1:jbVwcyNycnJYGbSCv/+jhCzMgot49PbcX5ovFOx40CU=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/pprofreceiver v0.164.1 h1:sEneoTu3ypOrITsh8S//78oaojH/pePFuetw1/lAgFA=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/pprofreceiver v0.164.1/go.mod h1:3QPvQukBbHkaHCL4RH2kRI84AHP9iq6NhpjjP+pRzgk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.164.1 h1:WqIp5e2HS43dCcanVPG+ze1iGEVFkmXTyECupKnBhTA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.164.1/go.mod h1:TDL42xO48gLTz8kExwULerYJBnSwmbgQkkkV51OdmJg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusremotewritereceiver v0.164.1 h1:C5NF5WztSEKOLJZANAdOJWzGGNfQctmpF65tsZa/hLY=
@@ -1615,8 +1617,12 @@ go.opentelemetry.io/collector/scraper v0.164.0 h1:PrKJy3I4AC0w/OqBMqFt7Mi6Wx+igS
 go.opentelemetry.io/collector/scraper v0.164.0/go.mod h1:kFMYY9KVEY/Q4rrEQGkWbYA7kxqSvB3y6vqEPiTvHGs=
 go.opentelemetry.io/collector/scraper/scraperhelper v0.164.0 h1:7bBAozXPKGMwqYhCcXCvq3h27JDaDxvpKoZIoSDoLqc=
 go.opentelemetry.io/collector/scraper/scraperhelper v0.164.0/go.mod h1:3kLVTMnmLCBZjWR+t4XtrSSIJq7JvSlXR0ughmk0G/E=
+go.opentelemetry.io/collector/scraper/scraperhelper/xscraperhelper v0.164.0 h1:XM0+OrSe1TLDabPI8ROMKHFH8SASKd0dopEvL3lptE0=
+go.opentelemetry.io/collector/scraper/scraperhelper/xscraperhelper v0.164.0/go.mod h1:XJ+ocAqXRylPQmePlus25pmhTBdBMBYp3+L9wPmvVgI=
 go.opentelemetry.io/collector/scraper/scrapertest v0.164.0 h1:gJf5O0FCzWnoIZLhBYqfSkXC/Qdbi/MtKAC3YlDZzp4=
 go.opentelemetry.io/collector/scraper/scrapertest v0.164.0/go.mod h1:HUAs/UTMnncxPJwr1VY8SszlW82GnflV1meStIvYJ7E=
+go.opentelemetry.io/collector/scraper/xscraper v0.164.0 h1:DEwa5VqLARESAS+wMwlwJBQRGG5HbTfajHrqr5adsi8=
+go.opentelemetry.io/collector/scraper/xscraper v0.164.0/go.mod h1:cN89yjBNNFAkFsQ8UCU0eXg0yrrKDLltYwxudJyV8r4=
 go.opentelemetry.io/collector/semconv v0.128.1-0.20250610090210-188191247685 h1:XCN7qkZRNzRYfn6chsMZkbFZxoFcW6fZIsZs2aCzcbc=
 go.opentelemetry.io/collector/semconv v0.128.1-0.20250610090210-188191247685/go.mod h1:OPXer4l43X23cnjLXIZnRj/qQOjSuq4TgBLI76P9hns=
 go.opentelemetry.io/collector/service v0.164.0 h1:8raIqnhzuZwxxcbGtq8O0wZGlbkW3mo/cEfB+hQVjTM=

@@ -1,6 +1,10 @@
 splunk-otel-collector:
   splunk_access_token: 12345
   splunk_realm: us0
+  # Platform HEC settings are optional. Provide both splunk_platform_url and splunk_platform_token to enable host logs.
+  splunk_platform_url: ""
+  splunk_platform_token: ""
+  splunk_platform_logs_index: ""
   splunk_repo_base_url: https://splunk.jfrog.io/splunk
   splunk_otel_collector_config: '/etc/otel/collector/agent_config.yaml'
   splunk_service_user: splunk-otel-collector

@@ -81,13 +81,13 @@ func MergeInputs(layers [][]Input) []Input {
 	seen := make(map[string]int)
 	var result []Input
 	for _, layer := range layers {
-		for _, input := range layer {
-			name := input.Configuration.Stanza.Name
+		for i := range layer {
+			name := layer[i].Configuration.Stanza.Name
 			if idx, ok := seen[name]; ok {
-				result[idx] = mergeInput(result[idx], input)
+				result[idx] = mergeInput(result[idx], layer[i])
 			} else {
 				seen[name] = len(result)
-				result = append(result, input)
+				result = append(result, layer[i])
 			}
 		}
 	}

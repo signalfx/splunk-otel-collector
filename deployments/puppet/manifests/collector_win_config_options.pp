@@ -11,14 +11,10 @@ class splunk_otel_collector::collector_win_config_options {
         'SPLUNK_REALM' => $splunk_otel_collector::splunk_realm,
     }
 
-    $platform_env_vars = if !$splunk_otel_collector::splunk_platform_url.strip().empty? {
-        {
-            'SPLUNK_PLATFORM_URL' => $splunk_otel_collector::splunk_platform_url,
-            'SPLUNK_PLATFORM_TOKEN' => $splunk_otel_collector::splunk_platform_token,
-        } + if !$splunk_otel_collector::splunk_platform_logs_index.strip().empty? {
-            { 'SPLUNK_PLATFORM_LOGS_INDEX' => $splunk_otel_collector::splunk_platform_logs_index }
-        } else {
-            {}
+    $platform_env_vars = if !empty($splunk_otel_collector::splunk_platform_url) {
+        { 'SPLUNK_PLATFORM_URL' => $splunk_otel_collector::splunk_platform_url,
+          'SPLUNK_PLATFORM_TOKEN' => $splunk_otel_collector::splunk_platform_token,
+          'SPLUNK_PLATFORM_LOGS_INDEX' => $splunk_otel_collector::splunk_platform_logs_index
         }
     } else {
         {}

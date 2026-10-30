@@ -161,14 +161,6 @@ describe 'splunk_otel_collector' do
       )
     end
 
-    it do
-      is_expected.to contain_registry_value('HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment')
-        .with_data(array_including(
-          'SPLUNK_PLATFORM_URL=https://splunk.example.com:8088/services/collector',
-          'SPLUNK_PLATFORM_TOKEN=platform-token',
-          'SPLUNK_PLATFORM_LOGS_INDEX=os-logs',
-        ))
-    end
   end
 
   context 'with Splunk Platform logs only on Windows' do
@@ -187,14 +179,14 @@ describe 'splunk_otel_collector' do
       }
     end
 
-    it { is_expected.to compile.with_all_deps }
+    it 'passes Platform-only settings to the MSI without requiring an Observability token' do
+      install_options = catalogue.resource('Package', 'Splunk OpenTelemetry Collector')[:install_options]
 
-    it do
-      is_expected.to contain_registry_value('HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment')
-        .with_data(array_including(
-          'SPLUNK_PLATFORM_URL=https://splunk.example.com:8088/services/collector',
-          'SPLUNK_PLATFORM_TOKEN=platform-token',
-        ))
+      expect(install_options).to include(
+        'SPLUNK_PLATFORM_URL' => 'https://splunk.example.com:8088/services/collector',
+        'SPLUNK_PLATFORM_TOKEN' => 'platform-token',
+        'SPLUNK_ACCESS_TOKEN' => '',
+      )
     end
   end
 

@@ -12,12 +12,12 @@ import (
 // params flattens a stanza's params for comparison.
 func params(t *testing.T, inputs []Input, name string) map[string]string {
 	t.Helper()
-	for _, in := range inputs {
-		if in.Configuration.Stanza.Name != name {
+	for i := range inputs {
+		if inputs[i].Configuration.Stanza.Name != name {
 			continue
 		}
 		got := map[string]string{}
-		for _, p := range in.Configuration.Stanza.Params {
+		for _, p := range inputs[i].Configuration.Stanza.Params {
 			got[p.Name] = p.Value
 		}
 		return got
@@ -28,8 +28,8 @@ func params(t *testing.T, inputs []Input, name string) map[string]string {
 
 func names(inputs []Input) []string {
 	out := make([]string, 0, len(inputs))
-	for _, in := range inputs {
-		out = append(out, in.Configuration.Stanza.Name)
+	for i := range inputs {
+		out = append(out, inputs[i].Configuration.Stanza.Name)
 	}
 	return out
 }

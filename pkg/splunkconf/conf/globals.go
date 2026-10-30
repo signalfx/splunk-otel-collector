@@ -53,35 +53,37 @@ func ApplyGlobals(inputs []Input) ([]Input, map[string]Input) {
 		modInstance []Input
 		schemeOf    = map[string]Input{}
 	)
-	for _, in := range inputs {
-		name := in.Configuration.Stanza.Name
+	for i := range inputs {
+		name := inputs[i].Configuration.Stanza.Name
 		switch {
 		case name == defaultStanza:
-			global, hasGlobal = in, true
+			global, hasGlobal = inputs[i], true
 		case !stanza.IsModularInput(name):
-			ordinary = append(ordinary, in)
+			ordinary = append(ordinary, inputs[i])
 		default:
 			switch parsed, err := stanza.ParseName(name); {
 			case err != nil:
 				// Left alone so the name parse reports it.
-				ordinary = append(ordinary, in)
+				ordinary = append(ordinary, inputs[i])
 			case parsed.Kind == "":
 				// The scheme on its own is that scheme's defaults stanza.
-				schemeOf[name] = in
+				schemeOf[name] = inputs[i]
 			default:
-				modInstance = append(modInstance, in)
+				modInstance = append(modInstance, inputs[i])
 			}
 		}
 	}
 
 	out := make([]Input, 0, len(ordinary)+len(modInstance))
-	for _, in := range ordinary {
+	for i := range ordinary {
+		in := ordinary[i]
 		if hasGlobal {
 			in = layer(global, in)
 		}
 		out = append(out, in)
 	}
-	for _, in := range modInstance {
+	for i := range modInstance {
+		in := modInstance[i]
 		parsed, _ := stanza.ParseName(in.Configuration.Stanza.Name)
 		if scheme, ok := schemeOf[parsed.Kind]; ok {
 			in = layer(scheme, in)

@@ -1,5 +1,5 @@
 change_type: enhancement
 component: puppet
-note: Enable Linux host log collection to Splunk Platform over HEC through the Puppet module.
+note: Enable host log collection to Splunk Platform over HEC on Linux and Windows through the Puppet module.
 issues: [8359]
 subtext: Configure `splunk_platform_token` and `splunk_platform_url` to enable the packaged logs pipeline; set `splunk_platform_logs_index` to select the target index.

@@ -25,6 +25,7 @@ describe 'splunk_otel_collector' do
   end
 
   linux_facts = on_supported_os.find { |os, _facts| !os.start_with?('windows') }.last
+  windows_facts = on_supported_os.find { |os, _facts| os.start_with?('windows') }.last
   context 'with auto-instrumentation on Debian' do
     let(:facts) do
       on_supported_os.fetch('debian-12-x86_64').merge(
@@ -127,6 +128,73 @@ describe 'splunk_otel_collector' do
       ).that_requires('Package[splunk-otel-collector]')
         .that_requires('Class[splunk_otel_collector::collector_service_owner]')
         .that_comes_before('Service[splunk-otel-collector]')
+    end
+  end
+
+  context 'with Splunk Platform logs on Windows' do
+    let(:facts) do
+      windows_facts.merge(
+        'win_temp' => 'C:\\Windows\\Temp',
+        'win_programfiles' => 'C:\\Program Files',
+        'win_programdata' => 'C:\\ProgramData',
+        'win_systemdrive' => 'C:',
+      )
+    end
+    let(:params) do
+      {
+        'splunk_access_token' => 'testing',
+        'splunk_realm' => 'test',
+        'splunk_platform_token' => 'platform-token',
+        'splunk_platform_url' => 'https://splunk.example.com:8088/services/collector',
+        'splunk_platform_logs_index' => 'os-logs',
+      }
+    end
+
+    it 'passes Platform settings to the MSI so it can compose the base and Windows logs configs' do
+      install_options = catalogue.resource('Package', 'Splunk OpenTelemetry Collector')[:install_options]
+
+      expect(install_options).to include(
+        'SPLUNK_CONFIG' => 'C:\\ProgramData\\Splunk\\OpenTelemetry Collector\\agent_config.yaml',
+        'SPLUNK_PLATFORM_URL' => 'https://splunk.example.com:8088/services/collector',
+        'SPLUNK_PLATFORM_TOKEN' => 'platform-token',
+        'SPLUNK_PLATFORM_LOGS_INDEX' => 'os-logs',
+      )
+    end
+
+    it do
+      is_expected.to contain_registry_value('HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment')
+        .with_data(array_including(
+          'SPLUNK_PLATFORM_URL=https://splunk.example.com:8088/services/collector',
+          'SPLUNK_PLATFORM_TOKEN=platform-token',
+          'SPLUNK_PLATFORM_LOGS_INDEX=os-logs',
+        ))
+    end
+  end
+
+  context 'with Splunk Platform logs only on Windows' do
+    let(:facts) do
+      windows_facts.merge(
+        'win_temp' => 'C:\\Windows\\Temp',
+        'win_programfiles' => 'C:\\Program Files',
+        'win_programdata' => 'C:\\ProgramData',
+        'win_systemdrive' => 'C:',
+      )
+    end
+    let(:params) do
+      {
+        'splunk_platform_token' => 'platform-token',
+        'splunk_platform_url' => 'https://splunk.example.com:8088/services/collector',
+      }
+    end
+
+    it { is_expected.to compile.with_all_deps }
+
+    it do
+      is_expected.to contain_registry_value('HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment')
+        .with_data(array_including(
+          'SPLUNK_PLATFORM_URL=https://splunk.example.com:8088/services/collector',
+          'SPLUNK_PLATFORM_TOKEN=platform-token',
+        ))
     end
   end
 

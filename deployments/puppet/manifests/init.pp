@@ -66,10 +66,6 @@ class splunk_otel_collector (
     fail('The splunk_realm parameter is required when splunk_access_token is set')
   }
 
-  if $facts['os']['family'] == 'windows' and !empty($splunk_platform_url) {
-    fail('Splunk Platform log collection is only supported on Linux')
-  }
-
   if $facts['os']['family'] == 'windows' {
     if empty($collector_version) {
       fail('The $collector_version parameter is required for Windows')

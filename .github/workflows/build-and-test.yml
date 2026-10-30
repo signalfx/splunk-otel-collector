@@ -119,7 +119,7 @@ jobs:
     name: test-${{ matrix.OS }}-race_detection:${{ matrix.TEST_RACE }}-coverage:${{ !matrix.TEST_RACE && github.actor != 'dependabot[bot]' }}
     strategy:
       matrix:
-        OS: [ "ubuntu-24.04", "macos-14", "macos-15", "windows-2025", "windows-11-arm" ]
+        OS: [ "ubuntu-24.04", "macos-15", "macos-26", "windows-2025", "windows-11-arm" ]
         TEST_RACE: [ true, false ]
         exclude:
           - OS: "windows-11-arm"

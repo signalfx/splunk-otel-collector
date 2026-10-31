@@ -188,7 +188,6 @@ func TestDefaultComponents(t *testing.T) {
 		"rolling_span_latency",
 		"span",
 		"tail_sampling",
-		"timestamp",
 		"transform",
 	}
 	expectedProcessorAliases := map[string]string{

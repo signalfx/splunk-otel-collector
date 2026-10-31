@@ -30,7 +30,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/ptpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
-	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
@@ -96,9 +95,6 @@ func Get() (otelcol.Factories, error) {
 		// supplied by a flavor registering its own output mapper.
 		b.AddExporters(splunkhecout.NewFactory())
 	}
-	b.AddProcessors(
-		timestampprocessor.NewFactory(),
-	)
 
 	return b.Build()
 }

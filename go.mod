@@ -34,7 +34,6 @@ require (
 	github.com/signalfx/splunk-otel-collector/baseline v0.164.0
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.164.0
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.164.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.164.0
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.164.0
 	github.com/signalfx/splunk-otel-collector/pkg/splunkconf v0.164.0
 	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.164.0
@@ -820,7 +819,6 @@ replace (
 	github.com/signalfx/splunk-otel-collector/baseline => ./baseline
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension => ./pkg/extension/oracleencodingextension
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
-	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/pkg/splunkconf => ./pkg/splunkconf
 	github.com/signalfx/splunk-otel-collector/pkg/splunkta => ./pkg/splunkta

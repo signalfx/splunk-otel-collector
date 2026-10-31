@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
+	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
+
+	"go.opentelemetry.io/collector/config/configopaque"
 )
 
 const (
@@ -62,7 +65,15 @@ type InputConfig struct {
 }
 
 func (x XMLInput) Extract() (InputConfig, error) {
-	authConfig := splunkauthextension.NewDefaultConfig()
+	// splunkd's management port commonly presents a self-signed certificate on the
+	// loopback interface; the modular input isn't implemented as a collector and has
+	// no YAML to request this explicitly, so it applies the same default skip-verify
+	// heuristic used by the TA's other modular inputs.
+	authConfig := splunkauthextension.NewFactory().CreateDefaultConfig().(*splunkauthextension.Config)
+	authConfig.Endpoint = x.ServerURI
+	authConfig.SessionKey = configopaque.String(x.SessionKey)
+	authConfig.TLS.InsecureSkipVerify = splunkhttp.DefaultInsecureSkipVerify(x.ServerURI)
+
 	grpcPort := DefaultGrpcPort
 	httpPort := DefaultHTTPPort
 	listeningAddress := DefaultListenAddress

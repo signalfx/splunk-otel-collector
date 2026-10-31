@@ -247,7 +247,6 @@ func splunkConfProviderFactory() confmap.ProviderFactory {
 // ConfMapConverterFactories returns confmap.Converters for the collector core service.
 func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 	confMapConverterFactories := []confmap.ConverterFactory{
-		configconverter.ConverterFactoryFromConverter(configconverter.NewOverwritePropertiesConverter(s.setProperties)),
 		configconverter.ConverterFactoryFromFunc(configconverter.MigrateTelemetryResourceAttributes),
 		configconverter.ConverterFactoryFromFunc(configconverter.SetupDiscovery),
 	}

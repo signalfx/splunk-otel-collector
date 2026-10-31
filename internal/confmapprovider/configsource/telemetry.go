@@ -162,7 +162,6 @@ func (t *TelemetryHook) observeConfigSourceUsage(_ context.Context, observer met
 }
 
 var customConfigSources = map[string]struct{}{
-	"env":           {},
 	"etcd2":         {},
 	"include":       {},
 	"splunk_secret": {},

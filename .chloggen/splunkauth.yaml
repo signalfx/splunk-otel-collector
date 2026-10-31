@@ -1,0 +1,4 @@
+change_type: new_component
+component: Splunk_TA_otel
+note: Add the Splunk authentication extension to the collector to authenticate receiver requests using HEC tokens retrieved from Splunk.
+issues: [8382]

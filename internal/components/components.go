@@ -23,6 +23,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver"
@@ -64,6 +65,7 @@ func Get() (otelcol.Factories, error) {
 
 	b.AddExporters(splunkmodinputexporter.NewFactory())
 	b.AddExtensions(
+		splunkauthextension.NewFactory(),
 		configsourcetelemetryextension.NewFactory(),
 		oracleencodingextension.NewFactory(),
 		smartagentextension.NewFactory(),

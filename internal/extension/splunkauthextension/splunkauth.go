@@ -30,10 +30,10 @@ type Key string
 
 const ContextKey Key = "hec"
 
-// TokenSource supplies complete snapshots of tokens and their authorization metadata.
+// tokenSource supplies complete snapshots of tokens and their authorization metadata.
 // Load must honor context cancellation and return an error for incomplete results.
 // Sources can be shared by multiple extension instances and must support concurrent loads.
-type TokenSource interface {
+type tokenSource interface {
 	Load(context.Context) ([]HecTokenConfig, error)
 }
 
@@ -44,7 +44,7 @@ type tokenSnapshot struct {
 
 type splunkAuth struct {
 	logger   *zap.Logger
-	source   TokenSource
+	source   tokenSource
 	snapshot atomic.Pointer[tokenSnapshot]
 	cancel   context.CancelFunc
 	done     chan struct{}
@@ -60,7 +60,7 @@ const (
 	defaultScheme = "Splunk"
 )
 
-func newSplunkAuth(cfg *Config, source TokenSource, logger *zap.Logger) *splunkAuth {
+func newSplunkAuth(cfg *Config, source tokenSource, logger *zap.Logger) *splunkAuth {
 	return &splunkAuth{
 		header: defaultHeader,
 		scheme: defaultScheme,

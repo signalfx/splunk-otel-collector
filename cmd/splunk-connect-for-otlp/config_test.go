@@ -4,13 +4,19 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/extension/extensiontest"
 
+	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
+	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
 )
 
 func TestValidate(t *testing.T) {
@@ -47,7 +53,10 @@ func TestValidate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.cfg.AuthConfig = splunkauthextension.NewDefaultConfig()
+			authConfig := splunkauthextension.NewFactory().CreateDefaultConfig().(*splunkauthextension.Config)
+			authConfig.Endpoint, authConfig.SessionKey = "http://localhost:8089", "session"
+			tt.cfg.AuthConfig = authConfig
+
 			err := tt.cfg.Validate()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -111,7 +120,26 @@ func TestParseInput(t *testing.T) {
 	require.Equal(t, 2*time.Minute, xmlCfg.AuthConfig.RefreshInterval)
 	require.Equal(t, 15*time.Second, xmlCfg.AuthConfig.RefreshTimeout)
 	require.Equal(t, 8*time.Minute, xmlCfg.AuthConfig.MaxStaleness)
+	require.True(t, xmlCfg.AuthConfig.TLS.InsecureSkipVerify)
 	require.NoError(t, xmlCfg.Validate())
+}
+
+// splunkd's management port commonly presents a self-signed certificate on the
+// loopback interface. This confirms the Extract()-applied skip-verify default lets
+// the auth extension complete its initial token load against such a certificate.
+func TestAuthConfigSucceedsOverLoopbackTLS(t *testing.T) {
+	server := authtest.NewTLSServer(t)
+
+	input := XMLInput{ServerURI: server.URL, SessionKey: "session"}
+	xmlCfg, err := input.Extract()
+	require.NoError(t, err)
+	require.NoError(t, xmlCfg.AuthConfig.Validate())
+
+	factory := splunkauthextension.NewFactory()
+	ext, err := factory.Create(t.Context(), extensiontest.NewNopSettings(factory.Type()), xmlCfg.AuthConfig)
+	require.NoError(t, err)
+	require.NoError(t, ext.Start(t.Context(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, ext.Shutdown(context.Background())) })
 }
 
 func TestAuthInputSettings(t *testing.T) {
@@ -133,7 +161,7 @@ func TestAuthInputSettings(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			params := append([]XMLParam{{Name: "enableSSL", Value: "0"}}, tc.params...)
-			input := XMLInput{Configuration: XMLConfig{Stanza: XMLStanza{Params: params}}}
+			input := XMLInput{ServerURI: "http://localhost:8089", SessionKey: "session", Configuration: XMLConfig{Stanza: XMLStanza{Params: params}}}
 			cfg, err := input.Extract()
 			if err == nil {
 				err = cfg.Validate()
@@ -143,7 +171,10 @@ func TestAuthInputSettings(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			expected := splunkauthextension.NewDefaultConfig()
+			expected := splunkauthextension.NewFactory().CreateDefaultConfig().(*splunkauthextension.Config)
+			expected.Endpoint, expected.SessionKey = input.ServerURI, configopaque.String(input.SessionKey)
+			expected.TLS.InsecureSkipVerify = splunkhttp.DefaultInsecureSkipVerify(input.ServerURI)
+
 			if len(tc.params) != 0 {
 				expected.RefreshInterval = 2 * time.Minute
 			}

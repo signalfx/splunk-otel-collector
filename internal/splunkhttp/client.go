@@ -39,14 +39,16 @@ import (
 func NewClient(endpoint string, timeout time.Duration, insecureSkipVerify *bool) *http.Client {
 	client := &http.Client{Timeout: timeout}
 	skipVerify := insecureSkipVerify != nil && *insecureSkipVerify
-	fallbackToInsecure := insecureSkipVerify == nil && isLoopbackHTTPS(endpoint)
+	fallbackToInsecure := insecureSkipVerify == nil && DefaultInsecureSkipVerify(endpoint)
 	if skipVerify || fallbackToInsecure {
 		client.Transport = insecureTransport()
 	}
 	return client
 }
 
-func isLoopbackHTTPS(endpoint string) bool {
+// DefaultInsecureSkipVerify reports the default TLS verification policy for
+// a Splunk modular input's management endpoint.
+func DefaultInsecureSkipVerify(endpoint string) bool {
 	parsed, err := url.Parse(endpoint)
 	if err != nil || !strings.EqualFold(parsed.Scheme, "https") {
 		return false

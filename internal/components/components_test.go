@@ -47,6 +47,7 @@ func TestDefaultComponents(t *testing.T) {
 		"oracle_encoding",
 		"pprof",
 		"smartagent",
+		"splunk_auth",
 		"text_encoding",
 		"zpages",
 	}

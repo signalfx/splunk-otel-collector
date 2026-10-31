@@ -1,10 +1,5 @@
 # This collector config file is designed for use within an ECS task.
 # The collector should run in a sidecar container within an ECS task.
-config_sources:
-  env:
-    defaults:
-      METRICS_TO_EXCLUDE: []
-
 extensions:
   headers_setter:
     headers:

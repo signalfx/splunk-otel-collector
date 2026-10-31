@@ -129,7 +129,7 @@ func TestExpressInstrumentation(t *testing.T) {
 	for _, distro := range selectedDistros(t) {
 		for _, arch := range selectedArches(t) {
 			t.Run(distro+"/"+arch, func(t *testing.T) {
-				container, otelcol := prepareInstrumentationContainer(t, distro, arch, "NODE_VERSION=v18")
+				container, otelcol := prepareInstrumentationContainer(t, distro, arch, "NODE_VERSION=v22.23.4")
 				installInstrumentationPackage(t, container, distro, arch)
 
 				assertExec(t, container, 5*time.Minute, "mkdir -p "+libDir+"/splunk-otel-js")

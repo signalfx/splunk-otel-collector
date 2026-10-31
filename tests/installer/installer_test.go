@@ -129,7 +129,7 @@ func TestInstallerInstrumentation(t *testing.T) {
 						if installerGroup() != method {
 							t.Skip("instrumentation method is selected by the CI matrix")
 						}
-						nodeVersion := "v18"
+						nodeVersion := "v22.23.4"
 						if arch == "arm64" && distro == "centos-7" {
 							nodeVersion = "v14"
 						}

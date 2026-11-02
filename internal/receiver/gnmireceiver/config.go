@@ -113,14 +113,14 @@ type GNMIReverseConfig struct {
 // TunnelConfig defines the optional receiver-hosted gRPC tunnel server and
 // the subscription set applied to every target that registers over it.
 type TunnelConfig struct {
-	Username                configopaque.String    `mapstructure:"username"`
-	Password                configopaque.String    `mapstructure:"password"`
-	Encoding                string                 `mapstructure:"encoding"`
-	ClientTLS               configtls.ClientConfig `mapstructure:"client_tls"`
-	Subscriptions           []SubscriptionConfig   `mapstructure:"subscriptions"`
-	TargetTypes             []string               `mapstructure:"target_types"`
+	Username                configopaque.String  `mapstructure:"username"`
+	Password                configopaque.String  `mapstructure:"password"`
+	Encoding                string               `mapstructure:"encoding"`
+	Subscriptions           []SubscriptionConfig `mapstructure:"subscriptions"`
+	TargetTypes             []string             `mapstructure:"target_types"`
 	configgrpc.ServerConfig `mapstructure:",squash"`
-	Redial                  time.Duration `mapstructure:"redial"`
+	ClientTLS               configtls.ClientConfig `mapstructure:"client_tls"`
+	Redial                  time.Duration          `mapstructure:"redial"`
 }
 
 func (t *TunnelConfig) targetConfig(targetType string) TargetConfig {

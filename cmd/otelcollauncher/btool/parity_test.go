@@ -62,8 +62,10 @@ func TestParity(t *testing.T) {
 				t.Fatalf("malformed expected file: %v", err)
 			}
 
-			// The recordings were made with Splunk installed in /opt/splunk.
+			// Match the environment used by record.sh, which sets SPLUNK_ETC
+			// to the fixture's configuration root.
 			t.Setenv("SPLUNK_HOME", "/opt/splunk")
+			t.Setenv("SPLUNK_ETC", etcDir)
 			t.Setenv("SPLUNK_DB", "")
 
 			var stdout, stderr bytes.Buffer

@@ -17,7 +17,42 @@ package btool
 import (
 	"reflect"
 	"testing"
+	"unicode/utf16"
 )
+
+func utf16Bytes(text string, bigEndian bool) []byte {
+	out := []byte{0xff, 0xfe}
+	if bigEndian {
+		out = []byte{0xfe, 0xff}
+	}
+	for _, u := range utf16.Encode([]rune(text)) {
+		if bigEndian {
+			out = append(out, byte(u>>8), byte(u))
+		} else {
+			out = append(out, byte(u), byte(u>>8))
+		}
+	}
+	return out
+}
+
+func TestParseConfDecodesUTF16AndStripsNULs(t *testing.T) {
+	const text = "[s]\r\nk = v\u00e9\U0001F600\r\n"
+	for name, tc := range map[string]struct {
+		payload []byte
+		value   string
+	}{
+		"utf16le": {payload: utf16Bytes(text, false), value: "v\u00e9\U0001F600"},
+		"utf16be": {payload: utf16Bytes(text, true), value: "v\u00e9\U0001F600"},
+		"nuls":    {payload: []byte("[s]\nk\x00 = v\x00al\n"), value: "val"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			want := []setting{{stanza: "s", header: true}, {stanza: "s", key: "k", value: tc.value}}
+			if got := parseConf(tc.payload); !reflect.DeepEqual(got, want) {
+				t.Errorf("parseConf() = %#v, want %#v", got, want)
+			}
+		})
+	}
+}
 
 func TestParseConf(t *testing.T) {
 	tests := []struct {
@@ -102,6 +137,31 @@ func TestExpandStanzaName(t *testing.T) {
 		"$SPLUNK_HOMEx":                  "$SPLUNK_HOMEx",
 		"$$SPLUNK_HOME":                  "$/splunk",
 		"cost $5 $":                      "cost $5 $",
+	}
+	for input, want := range tests {
+		if got := expandStanzaName(input, vars); got != want {
+			t.Errorf("expandStanzaName(%q) = %q, want %q", input, got, want)
+		}
+	}
+}
+
+func TestExpandStanzaNameWithWindowsPaths(t *testing.T) {
+	vars := expansionVars{
+		home:   `C:\SplunkUniversalForwarder`,
+		etcDir: `D:\SplunkConfig`,
+		lookupEnv: func(string) (string, bool) {
+			return "", false
+		},
+	}
+	tests := map[string]string{
+		`$SPLUNK_HOME\etc`:           `D:\SplunkConfig`,
+		`$SPLUNK_HOME\etc\apps`:      `D:\SplunkConfig\apps`,
+		`$SPLUNK_HOME/etc\apps`:      `D:\SplunkConfig\apps`,
+		`$SPLUNK_HOME\etc/apps`:      `D:\SplunkConfig/apps`,
+		`$SPLUNK_HOME\etcx`:          `C:\SplunkUniversalForwarder\etcx`,
+		`$SPLUNK_HOME\etc-other`:     `C:\SplunkUniversalForwarder\etc-other`,
+		`$SPLUNK_ETC\apps`:           `D:\SplunkConfig\apps`,
+		`monitor://$SPLUNK_HOME\var`: `monitor://C:\SplunkUniversalForwarder\var`,
 	}
 	for input, want := range tests {
 		if got := expandStanzaName(input, vars); got != want {

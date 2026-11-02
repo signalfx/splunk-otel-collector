@@ -24,11 +24,15 @@
 //     conf.conf path mappings are not consulted, so peer-app locations are
 //     not supported, and the "learned" app is ordered like any other app
 //     rather than at the lowest precedence of its tier.
-//   - Stanza names are expanded ($VARIABLE) before layering and prefix
-//     filtering, while native does both on the raw name and expands only for
-//     display. A stanza spelled with a variable and one spelled literally
-//     therefore merge by layer order here, whereas native lets the literal
-//     stanza win.
+//   - Stanza names are expanded ($VARIABLE and relative input paths)
+//     before layering and prefix filtering, while native does both on the raw
+//     name and expands only for display. A stanza spelled with a variable and
+//     one spelled literally therefore merge by layer order here, whereas
+//     native lets the literal stanza win. "://./" paths are resolved per app,
+//     so two apps with the same relative stanza produce separate stanzas.
+//   - indexes.conf handling is partial: provider: and provider-family:
+//     stanzas are reduced to their vix.* settings, but provider-family
+//     inheritance, virtual indexes and federated indexes are not handled.
 //   - Files are decoded as UTF-8 or BOM-prefixed UTF-16 (UTF-32 is not
 //     supported), and a stanza header cannot be continued across lines with a
 //     trailing backslash. The set of whitespace characters trimmed also differs
@@ -52,6 +56,25 @@ import (
 )
 
 const usage = "usage: otelcollauncher btool [--app=<app>] [--dir=<etc-dir>] [--expand-stanzas=<true|false>] [--raw] <conf-file> list [stanza-prefix] [--debug]"
+
+// builtinInputs are the inputs.conf stanza types that Splunk handles itself.
+// Any other "<scheme>://" stanza is a modular input, and the bare "[<scheme>]"
+// stanzas that configure them are not listed by btool.
+var builtinInputs = map[string]bool{
+	"batch":         true,
+	"fifo":          true,
+	"filter":        true,
+	"fschange":      true,
+	"http":          true,
+	"monitor":       true,
+	"script":        true,
+	"splunktcp-ssl": true,
+	"splunktcp":     true,
+	"ssl":           true,
+	"tcp-ssl":       true,
+	"tcp":           true,
+	"udp":           true,
+}
 
 type Manager struct{}
 
@@ -105,12 +128,12 @@ func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams c
 		return cli.ExitFailure
 	}
 	vars := expansionVars{lookupEnv: os.LookupEnv, etcDir: expansionEtcDir, home: home}
-	merged, err := readMerged(options.confName, dirs, vars, options.expand)
+	merged, err := readMerged(options.confName, etcDir, dirs, vars, options.expand)
 	if err != nil {
 		fmt.Fprintf(streams.Err, "failed to read %s: %v\n", options.confName, err)
 		return cli.ExitFailure
 	}
-	visible := resolve(merged)
+	visible := resolve(options.confName, merged)
 	if err := printSettings(streams.Out, visible, options.prefix, options.debug, options.raw); err != nil {
 		fmt.Fprintf(streams.Err, "failed to write settings: %v\n", err)
 		return cli.ExitFailure
@@ -304,7 +327,7 @@ type stanzaSettings struct {
 	path   string
 }
 
-func readMerged(confName string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
+func readMerged(confName, etcDir string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
 	merged := make(map[string]*stanzaSettings)
 	for _, dir := range dirs {
 		path := filepath.Join(dir, confName)
@@ -326,6 +349,9 @@ func readMerged(confName string, dirs []string, vars expansionVars, expand bool)
 			if expand {
 				name = expandStanzaName(name, vars)
 			}
+			if expand && confName == "inputs.conf" {
+				name = resolveRelativeInput(name, inputBaseDir(etcDir, dir))
+			}
 			settings := merged[name]
 			if settings == nil {
 				settings = &stanzaSettings{values: make(map[string]valueSource)}
@@ -340,13 +366,47 @@ func readMerged(confName string, dirs []string, vars expansionVars, expand bool)
 	return merged, nil
 }
 
-// resolve applies [default] inheritance.
-func resolve(merged map[string]*stanzaSettings) map[string]*stanzaSettings {
+// inputBaseDir is the directory that "<scheme>://./" input paths are relative
+// to: the app owning the layer, or the layer directory itself outside apps.
+func inputBaseDir(etcDir, layerDir string) string {
+	appsDir := filepath.Join(etcDir, "apps") + string(filepath.Separator)
+	if rel, ok := strings.CutPrefix(layerDir, appsDir); ok {
+		app, _, _ := strings.Cut(rel, string(filepath.Separator))
+		return filepath.Join(appsDir, app)
+	}
+	return layerDir
+}
+
+func resolveRelativeInput(name, baseDir string) string {
+	scheme, rest, ok := strings.Cut(name, "://")
+	if !ok {
+		return name
+	}
+	if len(rest) >= 2 && rest[0] == '.' && os.IsPathSeparator(rest[1]) {
+		return scheme + "://" + baseDir + rest[1:]
+	}
+	return name
+}
+
+// isBuiltinInput matches case-insensitively, like Splunk does.
+func isBuiltinInput(name string) bool {
+	return builtinInputs[strings.ToLower(name)]
+}
+
+// resolve applies [default] inheritance and the inputs.conf specifics, and
+// drops the stanzas that btool does not list.
+func resolve(confName string, merged map[string]*stanzaSettings) map[string]*stanzaSettings {
+	isInputs := confName == "inputs.conf"
 	defaults := merged[defaultStanza]
 	visible := make(map[string]*stanzaSettings, len(merged))
 	for name, settings := range merged {
 		if name == defaultStanza {
-			visible[name] = settings
+			if !isInputs {
+				visible[name] = settings
+			}
+			continue
+		}
+		if isInputs && !strings.Contains(name, ":") && !isBuiltinInput(name) {
 			continue
 		}
 		resolved := &stanzaSettings{path: settings.path, values: make(map[string]valueSource, len(settings.values))}
@@ -373,9 +433,39 @@ func resolve(merged map[string]*stanzaSettings) map[string]*stanzaSettings {
 				}
 			}
 		}
+		if scheme, _, ok := strings.Cut(name, "://"); isInputs && ok && !isBuiltinInput(scheme) {
+			// Modular inputs inherit from their bare scheme stanza, and from
+			// [default] only host and index, which have no source file.
+			inherit(merged[scheme])
+			for _, key := range []string{"host", "index"} {
+				if _, exists := resolved.values[key]; !exists && defaults != nil {
+					if value, ok := defaults.values[key]; ok && value.value != "" {
+						resolved.values[key] = valueSource{value: value.value}
+					}
+				}
+			}
+			continue
+		}
+		if confName == "indexes.conf" && isVirtualIndexProvider(name) {
+			for key := range resolved.values {
+				if !strings.HasPrefix(key, "vix.") {
+					delete(resolved.values, key)
+				}
+			}
+			continue
+		}
 		inherit(defaults)
 	}
 	return visible
+}
+
+// isVirtualIndexProvider reports indexes.conf stanzas that configure a
+// virtual index provider. btool lists only their vix.* settings and they do
+// not inherit from [default]. Native btool also layers providers over their
+// provider-family and special-cases virtual and federated indexes; those are
+// not implemented here.
+func isVirtualIndexProvider(name string) bool {
+	return strings.HasPrefix(name, "provider:") || strings.HasPrefix(name, "provider-family:")
 }
 
 func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix string, debug, raw bool) error {

@@ -66,6 +66,10 @@ Observability Cloud alongside Platform logs. If it is omitted, the role runs
 with the Platform logs configuration only. For Observability-only deployment,
 provide `splunk_access_token` and omit the Platform settings.
 
+These variables work on both Linux and Windows. On Windows, the role passes
+them to the MSI installer, which configures the packaged Windows logs config
+and merges it with the agent config when `splunk_access_token` is provided.
+
 ## Role Variables
 
 ### Collector

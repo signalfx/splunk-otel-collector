@@ -11,6 +11,16 @@
       Provide splunk_access_token for Splunk Observability and/or both
       splunk_platform_url and splunk_platform_token for Splunk Platform.
 
+- name: Validate Splunk Platform log collection settings
+  ansible.builtin.assert:
+    that:
+      - (splunk_platform_url | default('') | trim == '') or (splunk_platform_token | default('') | trim != '')
+      - (splunk_platform_token | default('') | trim == '') or (splunk_platform_url | default('') | trim != '')
+      - (splunk_platform_logs_index | default('') | trim == '') or (splunk_platform_url | default('') | trim != '')
+    fail_msg: >-
+      splunk_platform_url and splunk_platform_token must be provided together;
+      splunk_platform_logs_index requires splunk_platform_url.
+
 - name: Make sure host OS is supported
   ansible.builtin.assert:
     that: ansible_os_family in ["Debian", "RedHat", "Windows", "Suse"]

@@ -5,16 +5,6 @@
   ansible.builtin.set_fact:
     splunk_repo_base_url: https://splunk.jfrog.io/splunk
 
-- name: Validate Splunk Platform log collection settings
-  ansible.builtin.assert:
-    that:
-      - (splunk_platform_url | trim == '') or (splunk_platform_token | trim != '')
-      - (splunk_platform_token | trim == '') or (splunk_platform_url | trim != '')
-      - (splunk_platform_logs_index | trim == '') or (splunk_platform_url | trim != '')
-    fail_msg: >-
-      splunk_platform_url and splunk_platform_token must be provided together;
-      splunk_platform_logs_index requires splunk_platform_url.
-
 - name: Enable Splunk Platform log collection
   ansible.builtin.set_fact:
     splunk_listen_interface: "{{ splunk_listen_interface if splunk_listen_interface | trim != '' else '0.0.0.0' }}"

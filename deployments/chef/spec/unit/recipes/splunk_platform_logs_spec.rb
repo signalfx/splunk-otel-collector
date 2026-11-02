@@ -166,7 +166,7 @@ describe 'splunk_otel_collector::default' do
     let(:chef_run) do
       ChefSpec::SoloRunner.new(platform: 'windows', version: '2019') do |node|
         node.normal['splunk_otel_collector'].merge!(
-          'collector_version' => '0.127.0',
+          'collector_version' => '0.154.0',
           'splunk_platform_url' => 'https://hec.example.com:8088',
           'splunk_platform_token' => 'platform-token',
           'splunk_platform_logs_index' => 'host-logs'
@@ -197,7 +197,7 @@ describe 'splunk_otel_collector::default' do
     let(:chef_run) do
       ChefSpec::SoloRunner.new(platform: 'windows', version: '2019') do |node|
         node.normal['splunk_otel_collector'].merge!(
-          'collector_version' => '0.127.0',
+          'collector_version' => '0.154.0',
           'splunk_access_token' => 'observability-token',
           'splunk_platform_url' => 'https://hec.example.com:8088',
           'splunk_platform_token' => 'platform-token',
@@ -226,6 +226,22 @@ describe 'splunk_otel_collector::default' do
         name: 'SPLUNK_PLATFORM_LOGS_INDEX', type: :string, data: 'host-logs'
       )
       expect(chef_run.node['splunk_otel_collector']['collector_command_line_args']).to eq('--discovery')
+    end
+  end
+
+  context 'with Splunk Platform HEC on an unsupported Windows Collector version' do
+    let(:chef_run) do
+      ChefSpec::SoloRunner.new(platform: 'windows', version: '2019') do |node|
+        node.normal['splunk_otel_collector'].merge!(
+          'collector_version' => '0.153.0',
+          'splunk_platform_url' => 'https://hec.example.com:8088',
+          'splunk_platform_token' => 'platform-token'
+        )
+      end.converge described_recipe
+    end
+
+    it 'fails with the minimum supported MSI version' do
+      expect { chef_run }.to raise_error(RuntimeError, /requires Collector version 0\.154\.0 or newer/)
     end
   end
 end

@@ -14,6 +14,12 @@ splunk_platform_logs_index = (
 splunk_access_token = node.run_state.dig('splunk_otel_collector', 'splunk_access_token') ||
                       node['splunk_otel_collector']['splunk_access_token']
 platform_only = !splunk_platform_url.empty? && splunk_access_token.to_s.strip.empty?
+collector_version = node['splunk_otel_collector']['collector_version'].to_s
+
+if !splunk_platform_url.empty? && collector_version != 'latest' &&
+   Gem::Version.new(collector_version) < Gem::Version.new('0.154.0')
+  raise 'Splunk Platform HEC log collection on Windows requires Collector version 0.154.0 or newer.'
+end
 
 collector_env_vars = [
   { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token.to_s },

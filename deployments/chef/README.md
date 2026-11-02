@@ -77,11 +77,9 @@ Observability Cloud:
 `splunk_platform_token` and `splunk_platform_url` must be provided together.
 `splunk_platform_logs_index` is recommended. If omitted, Splunk routes events to
 the default index configured on the HEC token. If the token has no default
-index, events may be silently dropped. On Windows, Platform-only collection
-omits `SPLUNK_CONFIG`, so the MSI starts the Collector with the packaged logs
-config. With an Observability token, Chef passes the base config and the MSI
-adds the Platform logs config and merge feature gate. Linux continues to use
-the packaged Linux logs config through the Collector environment file.
+index, events may be silently dropped. Windows Platform HEC collection
+requires Collector version `0.154.0` or newer; the default `latest` version is
+supported.
 
 # This cookbook accepts the following attributes
 
@@ -181,10 +179,11 @@ the packaged Linux logs config through the Collector environment file.
 - `collector_command_line_args`: Additional command line arguments to pass to the
   collector service. On Linux the value will be set to the `OTELCOL_OPTIONS` environment
   variable for the collector service. On Windows, this option is only supported
-  by versions `>= 0.127.0` (**default:** `''`). On Linux, the cookbook appends
-  the packaged logs config when Splunk Platform log collection is enabled. It
-  also appends the config merge feature gate when the Observability config is
-  loaded alongside it.
+  by versions `>= 0.127.0` (**default:** `''`). On Linux, the cookbook adds the
+  packaged logs config when Splunk Platform log collection is enabled and adds
+  the config merge feature gate when the Observability config is also loaded.
+  On Windows, the MSI composes the same config arguments and enables config
+  merging when both configs are loaded.
 
 ### Auto Instrumentation on Linux
 

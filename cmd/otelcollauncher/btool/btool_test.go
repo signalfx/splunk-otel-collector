@@ -17,6 +17,7 @@ package btool
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,26 +28,34 @@ import (
 
 func TestListMergesAllAppsAndReportsWinningSources(t *testing.T) {
 	etcDir := t.TempDir()
-	writeConf := func(relative, contents string) {
+	writeConf := func(relative, contents string) string {
 		t.Helper()
-		writeFile(t, filepath.Join(etcDir, relative), contents)
+		path := filepath.Join(etcDir, relative)
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		return path
 	}
 	const stanza = "monitor:///tmp/btool-smoke.log"
-	writeConf("system/default/inputs.conf", "[default]\nhost = inherited\n["+stanza+"]\nvalue = system-default\n")
+	systemDefault := writeConf("system/default/inputs.conf", "[default]\nhost = inherited\n["+stanza+"]\nvalue = system-default\n")
 	writeConf("apps/B/default/inputs.conf", "["+stanza+"]\nvalue = b-default\n")
 	writeConf("apps/B/local/inputs.conf", "["+stanza+"]\nvalue = b-local\n")
-	writeConf("apps/A/local/inputs.conf", "["+stanza+"]\nvalue = a-local\n[monitor:///tmp/other.log]\nvalue = hidden-by-prefix\n")
+	aLocal := writeConf("apps/A/local/inputs.conf", "["+stanza+"]\nvalue = a-local\n[monitor:///tmp/other.log]\nvalue = hidden-by-prefix\n")
 	writeConf("system/local/inputs.conf", "[system-only]\nvalue = system-local\n")
 	if err := os.MkdirAll(filepath.Join(etcDir, "apps/C/default"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 
 	var stdout, stderr bytes.Buffer
-	code := New().Dispatch(t.Context(), "btool", []string{"--dir=" + etcDir, "inputs", "list", "monitor:///tmp/btool"}, cli.IO{Out: &stdout, Err: &stderr})
+	code := New().Dispatch(t.Context(), "btool", []string{"--debug", "--dir=" + etcDir, "inputs", "list", "monitor:///tmp/btool"}, cli.IO{Out: &stdout, Err: &stderr})
 	if code != cli.ExitOK {
 		t.Fatalf("exit code %d, stderr: %s", code, stderr.String())
 	}
-	want := "[" + stanza + "]\nhost = inherited\nvalue = a-local\n"
+	pathWidth := max(len(aLocal), len(systemDefault))
+	want := fmt.Sprintf("%-*s [%s]\n%-*s host = inherited\n%-*s value = a-local\n", pathWidth, aLocal, stanza, pathWidth, systemDefault, pathWidth, aLocal)
 	if got := stdout.String(); got != want {
 		t.Fatalf("unexpected btool output:\n%s\nwant:\n%s", got, want)
 	}
@@ -162,8 +171,8 @@ func TestParseArgsNativeSpellings(t *testing.T) {
 			t.Errorf("--expand-stanzas=%q: expand=%v err=%v, want %v", arg, options.expand, err, want)
 		}
 	}
-	options, _, err := parseArgs([]string{"--dir=relative/etc", "inputs", "list", "prefix", "ignored"})
-	if err != nil || !filepath.IsAbs(options.dir) || options.prefix != "prefix" {
+	options, _, err := parseArgs([]string{"--dir=relative/etc", "--raw", "inputs", "list", "prefix", "ignored"})
+	if err != nil || !filepath.IsAbs(options.dir) || !options.raw || options.prefix != "prefix" {
 		t.Fatalf("unexpected options %+v, err %v", options, err)
 	}
 	if _, _, err := parseArgs([]string{"inputs", "list", "a", "b", "c"}); err == nil {
@@ -183,6 +192,17 @@ func TestListFollowsSymlinkedApps(t *testing.T) {
 	}
 	if out, code := runList(t, "--dir="+etcDir, "server", "list"); code != cli.ExitOK || out != "[general]\nk = linked\n" {
 		t.Fatalf("code %d, output %q", code, out)
+	}
+}
+
+func TestControlCharactersAreEscapedUnlessRaw(t *testing.T) {
+	etcDir := t.TempDir()
+	writeFile(t, filepath.Join(etcDir, "system", "local", "server.conf"), "[general]\nk = a\x1b[0m\tb\x7f\u00e9\n")
+	if out, _ := runList(t, "--dir="+etcDir, "server", "list"); out != "[general]\nk = a\\x1B[0m\tb\\x7F\u00e9\n" {
+		t.Fatalf("escaped output %q", out)
+	}
+	if out, _ := runList(t, "--raw", "--dir="+etcDir, "server", "list"); out != "[general]\nk = a\x1b[0m\tb\x7f\u00e9\n" {
+		t.Fatalf("raw output %q", out)
 	}
 }
 

@@ -3,6 +3,8 @@ monitors:
     cpu:
       description: "The number/id of the core/cpu on the system.  Only present if `reportPerCPU: true`."
   doc: |
+    **This monitor is deprecated and will be removed on or after December 2026. Use the `host_metrics` receiver instead.**
+
     This monitor reports cpu metrics.
 
     On Linux hosts, this monitor relies on the `/proc` filesystem.

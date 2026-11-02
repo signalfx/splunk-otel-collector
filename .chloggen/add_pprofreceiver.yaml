@@ -1,0 +1,6 @@
+change_type: new_component
+component: receiver/pprof
+note: Add the `pprof` receiver to the Splunk distribution
+issues: [4448]
+subtext: |
+  Profiles can be collected and exported to Splunk HEC by enabling the `service.profilesSupport` feature gate.

@@ -6,7 +6,7 @@ package splunkscript
 import (
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
 )
 
 // kind is the inputs.conf stanza kind this receiver owns. An unprefixed stanza
@@ -17,7 +17,7 @@ const kind = "script"
 //
 // AppDir carries the app that declared the stanza so a relative script target
 // resolves against it rather than the collector's working directory.
-func (Factory) MapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
+func mapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
 	out := map[string]component.Config{}
 	for _, in := range c.Inputs {
 		if in.Name.Kind != kind {

@@ -61,6 +61,7 @@ type Monitor struct {
 // Configure the monitor and kick off event syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("[NOTICE] The smartagent/kubernetes-events monitor is deprecated and will be removed on or after December 2026. Use the k8s_events receiver instead.")
 	k8sClient, err := kubernetes.MakeClient(conf.KubernetesAPI)
 	if err != nil {
 		return err

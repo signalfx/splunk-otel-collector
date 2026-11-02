@@ -8,10 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
 )
 
 func input(t *testing.T, name string, params conf.Params) splunkconf.Input {

@@ -6,8 +6,8 @@ package splunktcp
 import (
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 )
 
 // kind is the inputs.conf stanza kind this receiver owns. [tcp-ssl://...] is a
@@ -15,7 +15,7 @@ import (
 const kind = "tcp"
 
 // MapInputs builds one config per [tcp://...] stanza.
-func (Factory) MapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
+func mapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
 	out := map[string]component.Config{}
 	for _, in := range c.Inputs {
 		if in.Name.Kind != kind {

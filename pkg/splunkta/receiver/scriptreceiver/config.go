@@ -4,7 +4,7 @@
 // Package scriptreceiver implements the script receiver.
 package scriptreceiver
 
-import "github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+import "github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 
 // Config holds the configuration for the script receiver.
 type Config struct {

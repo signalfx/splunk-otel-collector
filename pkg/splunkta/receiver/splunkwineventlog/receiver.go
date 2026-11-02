@@ -18,7 +18,8 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/tabuilder"
 )
 
@@ -73,17 +74,13 @@ func (c *Config) input() conf.Input {
 	}
 }
 
-// Factory is the UF-native wineventlog receiver factory. It maps its own
-// [WinEventLog://...] stanzas, so the .conf provider models no input kind itself.
-type Factory struct {
-	receiver.Factory
-}
-
 // NewFactory returns the UF-native Windows Event Log receiver factory.
-func NewFactory() Factory {
-	return Factory{receiver.NewFactory(
+// It maps its own [WinEventLog://...] stanzas, so the .conf provider models no
+// input kind itself.
+func NewFactory() splunkconf.MappingReceiverFactory {
+	return splunkconf.NewMappingReceiver(receiver.NewFactory(
 		component.MustNewType(TypeStr),
 		func() component.Config { return &Config{} },
 		receiver.WithLogs(splunkWineventlog{}.CreateLogs, component.StabilityLevelAlpha),
-	)}
+	), mapInputs)
 }

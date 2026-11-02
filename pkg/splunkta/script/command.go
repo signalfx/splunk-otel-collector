@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 )
 
 // DetermineCommandName determines the command name from the input configuration.

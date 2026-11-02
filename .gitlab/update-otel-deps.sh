@@ -18,6 +18,7 @@ create_collector_pr() {
   local repo="signalfx/splunk-otel-collector"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
   local message="Update OpenTelemetry Dependencies to $OTEL_VERSION"
+  local base_commit
   local check_for_pr="true"
   if [ "$OTEL_VERSION" = "main" ]; then
     check_for_pr="false"
@@ -28,13 +29,19 @@ create_collector_pr() {
   cd collector-mirror
 
   setup_branch "$BRANCH" "$repo_url" "$check_for_pr"
+  base_commit="$(git rev-parse origin/main)"
 
   echo ">>> Updating otel deps to $OTEL_VERSION ..."
   OTEL_VERSION="$OTEL_VERSION" ./update-deps
 
-  # Only create the PR if there are changes
-  if ! git diff --exit-code >/dev/null 2>&1; then
-    git commit -S -am "$message"
+  if [[ -n "$(git status --porcelain)" ]]; then
+    git add -u
+    git commit -S -m "$message"
+  fi
+
+  # The updater commits the Core sync before syncing Contrib, so compare
+  # against the branch base instead of only checking for uncommitted changes.
+  if ! git diff --quiet "$base_commit" HEAD; then
     git push -f "$repo_url" "$BRANCH"
     pr_count="$( get_pr_count "$BRANCH" "$repo_url" )"
     if [ "$pr_count" = "0" ]; then

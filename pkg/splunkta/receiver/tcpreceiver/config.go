@@ -5,8 +5,8 @@
 package tcpreceiver
 
 import (
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/conf"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/stanza"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/stanza"
 )
 
 // Config holds the configuration for the TCP receiver.

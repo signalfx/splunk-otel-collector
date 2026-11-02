@@ -66,6 +66,7 @@ func (m *Monitor) parseFileForDatapoints(contents []byte) []*datapoint.Datapoint
 // Configure and run the monitor on linux
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The smartagent/vmem monitor is deprecated and will be removed on or after December 2026. Use the host_metrics receiver instead.")
 
 	// create contexts for managing the plugin loop
 	var ctx context.Context

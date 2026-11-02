@@ -222,6 +222,7 @@ func (m *Monitor) emitDatapoints() {
 // on a varied interval
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The smartagent/filesystems monitor is deprecated and will be removed on or after December 2026. Use the host_metrics receiver instead.")
 
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())

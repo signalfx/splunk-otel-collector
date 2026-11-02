@@ -6,7 +6,7 @@ package splunkwineventlog
 import (
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/splunkconf"
+	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf"
 )
 
 // kind is the inputs.conf stanza kind this receiver owns. It is the only input
@@ -16,7 +16,7 @@ import (
 const kind = "WinEventLog"
 
 // MapInputs builds one config per [WinEventLog://...] stanza.
-func (Factory) MapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
+func mapInputs(c splunkconf.Conf) (map[string]component.Config, error) {
 	out := map[string]component.Config{}
 	for _, in := range c.Inputs {
 		if in.Name.Kind != kind {

@@ -18,6 +18,8 @@ monitors:
         from the primary shard only or across all shards. Valid values - primaries,
         total respectively (only on index stats)
   doc: |
+    **This monitor is deprecated and will be removed on or after December 2026. Use the `elasticsearch` receiver instead.**
+
     This monitor collects stats from Elasticsearch. It collects node, cluster
     and index level stats.
 

@@ -8,14 +8,14 @@ import (
 
 // Defaults used when translating telemetry to Splunk HEC events. Telemetry attributes take precedence.
 type Config struct {
-	// Index default destination index. An empty value lets the output consumer select its default index.
-	Index string `mapstructure:"index"`
-
 	// Source default HEC source identifying the event origin.
 	Source string `mapstructure:"source"`
 
 	// Sourcetype default HEC sourcetype identifying the event format.
 	Sourcetype string `mapstructure:"sourcetype"`
+
+	// Index default destination index. An empty value lets the output consumer select its default index.
+	Index string `mapstructure:"index"`
 
 	// prevent unkeyed literal initialization
 	_ struct{}
@@ -23,8 +23,8 @@ type Config struct {
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		Index:      "",
 		Source:     "",
 		Sourcetype: "",
+		Index:      "",
 	}
 }

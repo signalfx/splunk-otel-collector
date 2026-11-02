@@ -1,5 +1,0 @@
-change_type: breaking
-component: splunk_outputs
-note: Remove the `splunk_outputs` exporter. The forwarding destination now comes from the `splunkconf` config provider reading `outputs.conf`.
-issues: [8331]
-subtext:

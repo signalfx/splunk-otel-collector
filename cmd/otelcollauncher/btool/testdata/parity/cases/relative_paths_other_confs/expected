@@ -1,0 +1,5 @@
+@ETC@/apps/A/default/props.conf [./y]
+@ETC@/apps/A/default/props.conf a = 1
+@ETC@/apps/A/default/props.conf [source::./x]
+@ETC@/apps/A/default/props.conf a = 1
+EXIT=0

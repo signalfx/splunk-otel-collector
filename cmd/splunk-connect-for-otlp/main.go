@@ -27,7 +27,6 @@ import (
 	noopmetric "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace/noop"
 
-	"github.com/signalfx/splunk-otel-collector/internal/auth"
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 )
@@ -128,7 +127,7 @@ func run() (runErr error) {
 	cfg := rf.CreateDefaultConfig().(*otlpreceiver.Config)
 	cfg.Protocols.GRPC.GetOrInsertDefault().NetAddr.Endpoint = fmt.Sprintf("%s:%d", xmlCfg.ListenAddress, xmlCfg.GrpcPort)
 	cfg.Protocols.HTTP.GetOrInsertDefault().ServerConfig.NetAddr.Endpoint = fmt.Sprintf("%s:%d", xmlCfg.ListenAddress, xmlCfg.HTTPPort)
-	extID := component.MustNewID("splunkauth")
+	extID := component.MustNewID("splunk_auth")
 	cfg.Protocols.GRPC.Get().Auth.GetOrInsertDefault().AuthenticatorID = extID
 	cfg.Protocols.HTTP.Get().ServerConfig.Auth.GetOrInsertDefault().Config.AuthenticatorID = extID
 
@@ -167,7 +166,7 @@ func run() (runErr error) {
 	h.Start()
 
 	var authExtension extension.Extension
-	authFactory := splunkauthextension.NewFactory(auth.NewTokenSource(xmlCfg.ServerURI, xmlCfg.SessionKey))
+	authFactory := splunkauthextension.NewFactory()
 	if authExtension, err = authFactory.Create(ctx, extension.Settings{
 		ID:                extID,
 		TelemetrySettings: settings,

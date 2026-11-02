@@ -1,0 +1,7 @@
+[foo]
+x = 1
+[foo:bar]
+x = 5
+[foobar]
+x = 2
+EXIT=0

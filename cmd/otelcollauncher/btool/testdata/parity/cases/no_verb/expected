@@ -1,0 +1,18 @@
+Missing command argument
+Usage:
+	btool [options] CONF_FILE {list|layer|add|delete} [stanzaPrefix]
+	btool [options] {check|validate-strptime|validate-regex}
+Options:
+	--raw [has no effect if --json is used]
+	--json
+	--debug
+	--debug-logfile=FILENAME
+	--debug-print=[user|app|stanza|sourcefile]
+	--user=SPLUNK_USERNAME
+	--app=SPLUNK_APP
+	--dir=ETC_DIR
+	--slave-apps=SLAVE_APPS [DEPRECATED, use --peer-apps=]
+	--peer-apps=PEER_APPS
+	--peername=SEARCH_PEER_NAME
+	--expand-stanzas=[true|false]
+EXIT=2

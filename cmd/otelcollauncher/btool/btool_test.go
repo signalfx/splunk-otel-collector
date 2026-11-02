@@ -118,3 +118,178 @@ func TestInputsBuiltinStanzasMatchCaseInsensitively(t *testing.T) {
 		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
 	}
 }
+
+func writeFile(t *testing.T, path, contents string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func runList(t *testing.T, args ...string) (string, int) {
+	t.Helper()
+	var stdout, stderr bytes.Buffer
+	code := New().Dispatch(t.Context(), "btool", args, cli.IO{Out: &stdout, Err: &stderr})
+	if code != cli.ExitOK {
+		t.Logf("stderr: %s", stderr.String())
+	}
+	return stdout.String(), code
+}
+
+func TestSplunkEtcEnvironment(t *testing.T) {
+	etcDir := t.TempDir()
+	writeFile(t, filepath.Join(etcDir, "system", "local", "server.conf"), "[general]\nk = from-etc\n")
+	other := t.TempDir()
+	writeFile(t, filepath.Join(other, "etc", "system", "local", "server.conf"), "[general]\nk = from-home\n")
+
+	t.Setenv("SPLUNK_HOME", other)
+	t.Setenv("SPLUNK_ETC", etcDir)
+	if out, code := runList(t, "server", "list"); code != cli.ExitOK || out != "[general]\nk = from-etc\n" {
+		t.Fatalf("SPLUNK_ETC: code %d, output %q", code, out)
+	}
+	if out, code := runList(t, "--dir="+filepath.Join(other, "etc"), "server", "list"); code != cli.ExitOK || out != "[general]\nk = from-home\n" {
+		t.Fatalf("--dir should win: code %d, output %q", code, out)
+	}
+	t.Setenv("SPLUNK_ETC", filepath.Join(etcDir, "missing"))
+	if out, code := runList(t, "server", "list"); code != cli.ExitOK || out != "[general]\nk = from-home\n" {
+		t.Fatalf("invalid SPLUNK_ETC should fall back: code %d, output %q", code, out)
+	}
+}
+
+func TestParseArgsNativeSpellings(t *testing.T) {
+	for arg, want := range map[string]bool{
+		"true": true, "TRUE": true, "yes": true, "1": true, "t": true, "": true, "garbage": true,
+		"false": false, "False": false, "no": false, "0": false, "f": false,
+	} {
+		options, _, err := parseArgs([]string{"--expand-stanzas=" + arg, "inputs", "list"})
+		if err != nil || options.expand != want {
+			t.Errorf("--expand-stanzas=%q: expand=%v err=%v, want %v", arg, options.expand, err, want)
+		}
+	}
+	options, _, err := parseArgs([]string{"--dir=relative/etc", "--raw", "inputs", "list", "prefix", "ignored"})
+	if err != nil || !filepath.IsAbs(options.dir) || !options.raw || options.prefix != "prefix" {
+		t.Fatalf("unexpected options %+v, err %v", options, err)
+	}
+	if _, _, err := parseArgs([]string{"inputs", "list", "a", "b", "c"}); err == nil {
+		t.Fatal("five positionals should be rejected")
+	}
+}
+
+func TestListFollowsSymlinkedApps(t *testing.T) {
+	etcDir := t.TempDir()
+	target := filepath.Join(t.TempDir(), "real")
+	writeFile(t, filepath.Join(target, "default", "server.conf"), "[general]\nk = linked\n")
+	if err := os.MkdirAll(filepath.Join(etcDir, "apps"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, filepath.Join(etcDir, "apps", "linked")); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+	if out, code := runList(t, "--dir="+etcDir, "server", "list"); code != cli.ExitOK || out != "[general]\nk = linked\n" {
+		t.Fatalf("code %d, output %q", code, out)
+	}
+}
+
+func TestExpandStanzasFalseKeepsRelativeInputPaths(t *testing.T) {
+	etcDir := t.TempDir()
+	writeFile(t, filepath.Join(etcDir, "apps", "A", "local", "inputs.conf"), "[monitor://./logs]\nk = v\n")
+	if out, code := runList(t, "--expand-stanzas=false", "--dir="+etcDir, "inputs", "list"); code != cli.ExitOK || out != "[monitor://./logs]\nk = v\n" {
+		t.Fatalf("code %d, output %q", code, out)
+	}
+	want := "[monitor://" + filepath.Join(etcDir, "apps", "A") + "/logs]\nk = v\n"
+	if out, code := runList(t, "--dir="+etcDir, "inputs", "list"); code != cli.ExitOK || out != want {
+		t.Fatalf("code %d, output %q, want %q", code, out, want)
+	}
+}
+
+func TestModularInputSkipsEmptyDefaults(t *testing.T) {
+	etcDir := t.TempDir()
+	writeFile(t, filepath.Join(etcDir, "system", "local", "inputs.conf"), "[default]\nhost =\nindex = main\n[foo://x]\ninterval = 5\n")
+	want := "[foo://x]\nindex = main\ninterval = 5\n"
+	if out, code := runList(t, "--dir="+etcDir, "inputs", "list"); code != cli.ExitOK || out != want {
+		t.Fatalf("code %d, output %q, want %q", code, out, want)
+	}
+}
+
+func TestControlCharactersAreEscapedUnlessRaw(t *testing.T) {
+	etcDir := t.TempDir()
+	writeFile(t, filepath.Join(etcDir, "system", "local", "server.conf"), "[general]\nk = a\x1b[0m\tb\x7f\u00e9\n")
+	if out, _ := runList(t, "--dir="+etcDir, "server", "list"); out != "[general]\nk = a\\x1B[0m\tb\\x7F\u00e9\n" {
+		t.Fatalf("escaped output %q", out)
+	}
+	if out, _ := runList(t, "--raw", "--dir="+etcDir, "server", "list"); out != "[general]\nk = a\x1b[0m\tb\x7f\u00e9\n" {
+		t.Fatalf("raw output %q", out)
+	}
+}
+
+func TestDirOverridePreservesEnvironmentExpansion(t *testing.T) {
+	home := t.TempDir()
+	envEtcDir := t.TempDir()
+	readDir := t.TempDir()
+	appDir := filepath.Join(readDir, "apps", "A")
+	separator := string(filepath.Separator)
+
+	for _, environment := range []struct {
+		name        string
+		home        string
+		etcDir      string
+		expandedEtc string
+	}{
+		{name: "relocated", home: home, etcDir: envEtcDir, expandedEtc: envEtcDir},
+		{name: "home-default", home: home, expandedEtc: filepath.Join(home, "etc")},
+		{name: "standalone", expandedEtc: readDir},
+	} {
+		t.Run(environment.name, func(t *testing.T) {
+			t.Setenv("SPLUNK_HOME", environment.home)
+			t.Setenv("SPLUNK_ETC", environment.etcDir)
+			expandedHome := environment.home
+			if expandedHome == "" {
+				expandedHome = filepath.Dir(readDir)
+			}
+			for _, tc := range []struct {
+				name  string
+				input string
+				want  string
+			}{
+				{name: "etc", input: "monitor://$SPLUNK_ETC/logs", want: "monitor://" + environment.expandedEtc + "/logs"},
+				{name: "home-etc", input: "monitor://$SPLUNK_HOME/etc/apps", want: "monitor://" + environment.expandedEtc + "/apps"},
+				{name: "home", input: "monitor://$SPLUNK_HOME/var/log", want: "monitor://" + expandedHome + "/var/log"},
+				{name: "relative", input: "monitor://." + separator + "logs", want: "monitor://" + appDir + separator + "logs"},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					writeFile(t, filepath.Join(appDir, "local", "inputs.conf"), "["+tc.input+"]\nk = v\n")
+					want := "[" + tc.want + "]\nk = v\n"
+					if out, code := runList(t, "--dir="+readDir, "inputs", "list"); code != cli.ExitOK || out != want {
+						t.Fatalf("code %d, output %q, want %q", code, out, want)
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestRelativeInputPathSeparators(t *testing.T) {
+	baseDir := filepath.Join(t.TempDir(), "app")
+	backslashWant := `monitor://.\logs`
+	if filepath.Separator == '\\' {
+		backslashWant = "monitor://" + baseDir + `\logs`
+	}
+	for _, tc := range []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "forward-slash", input: "monitor://./logs", want: "monitor://" + baseDir + "/logs"},
+		{name: "backslash", input: `monitor://.\logs`, want: backslashWant},
+		{name: "parent", input: "monitor://../logs", want: "monitor://../logs"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := resolveRelativeInput(tc.input, baseDir); got != tc.want {
+				t.Fatalf("resolveRelativeInput(%q) = %q, want %q", tc.input, got, tc.want)
+			}
+		})
+	}
+}

@@ -16,6 +16,7 @@ package btool
 
 import (
 	"strings"
+	"unicode/utf16"
 )
 
 // defaultStanza is the stanza whose settings every other stanza inherits.
@@ -43,9 +44,15 @@ type setting struct {
 //   - A line ending in a backslash is joined with the next line, whatever that
 //     line contains, using a newline; exactly one backslash is removed.
 //   - Settings that appear before any stanza belong to the default stanza.
-//   - A stanza header is everything between the first "[" and the last "]".
+//   - A stanza header is everything between the first "[" and the last "]". A
+//     header is recognized on its first physical line, so unlike native btool
+//     it cannot be continued with a trailing backslash.
+//
+// The payload may be UTF-8 (with or without a BOM) or UTF-16 with a BOM. NUL
+// characters are removed.
 func parseConf(payload []byte) []setting {
-	text := strings.TrimPrefix(string(payload), "\xef\xbb\xbf")
+	text := strings.TrimPrefix(decodeText(payload), "\xef\xbb\xbf")
+	text = strings.ReplaceAll(text, "\x00", "")
 	lines := strings.Split(text, "\n")
 	for i, line := range lines {
 		lines[i] = strings.TrimSuffix(line, "\r")
@@ -81,6 +88,26 @@ func parseConf(payload []byte) []setting {
 	return settings
 }
 
+// decodeText converts a BOM-prefixed UTF-16 payload to UTF-8 and returns
+// anything else unchanged.
+func decodeText(payload []byte) string {
+	var order func([]byte) uint16
+	switch {
+	case len(payload) >= 2 && payload[0] == 0xff && payload[1] == 0xfe:
+		order = func(b []byte) uint16 { return uint16(b[0]) | uint16(b[1])<<8 }
+	case len(payload) >= 2 && payload[0] == 0xfe && payload[1] == 0xff:
+		order = func(b []byte) uint16 { return uint16(b[1]) | uint16(b[0])<<8 }
+	default:
+		return string(payload)
+	}
+	payload = payload[2:]
+	units := make([]uint16, 0, len(payload)/2)
+	for ; len(payload) >= 2; payload = payload[2:] {
+		units = append(units, order(payload))
+	}
+	return string(utf16.Decode(units))
+}
+
 // splitSetting splits a logical line at the first "=" that is not escaped
 // with a backslash, unescaping the key.
 func splitSetting(line string) (key, value string, found bool) {
@@ -110,8 +137,8 @@ func parseStanzaName(line string) string {
 
 // expandStanzaName replaces $NAME references in a stanza name the way btool
 // does: names that resolve are substituted, anything else is left untouched,
-// and ${NAME} is not recognized. $SPLUNK_HOME/etc resolves to the etc
-// directory in use.
+// and ${NAME} is not recognized. $SPLUNK_HOME/etc, with either slash style,
+// resolves to the environment's etc directory independently of --dir.
 func expandStanzaName(name string, vars expansionVars) string {
 	if !strings.Contains(name, "$") {
 		return name
@@ -135,7 +162,7 @@ func expandStanzaName(name string, vars expansionVars) string {
 			continue
 		}
 		if varName == "SPLUNK_HOME" {
-			if rest := name[end:]; strings.HasPrefix(rest, "/etc") && (len(rest) == len("/etc") || rest[len("/etc")] == '/') {
+			if rest := name[end:]; len(rest) >= 4 && isStanzaPathSeparator(rest[0]) && rest[1:4] == "etc" && (len(rest) == 4 || isStanzaPathSeparator(rest[4])) {
 				value = vars.etcDir
 				end += len("/etc")
 			}
@@ -144,6 +171,10 @@ func expandStanzaName(name string, vars expansionVars) string {
 		i = end
 	}
 	return out.String()
+}
+
+func isStanzaPathSeparator(c byte) bool {
+	return c == '/' || c == '\\'
 }
 
 func isVarChar(c byte) bool {

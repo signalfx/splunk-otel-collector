@@ -13,6 +13,33 @@
 // limitations under the License.
 
 // Package btool implements the read-only btool list command for Splunk .conf files.
+//
+// It is a deliberate subset of native btool. Only "list" is supported: layer,
+// add, delete, check, check-schemes, validate, the *-debug commands, and the
+// --user, --peername, --peer-apps, --slave-apps, --searchpool, --json,
+// --debug-print, --debug-logfile and --log-warnings options are rejected.
+//
+// Known differences from native btool within list:
+//   - Only system/{default,local} and apps/*/{default,local} are read. The
+//     conf.conf path mappings are not consulted, so peer-app locations are
+//     not supported, and the "learned" app is ordered like any other app
+//     rather than at the lowest precedence of its tier.
+//   - Stanza names are expanded ($VARIABLE and relative input paths)
+//     before layering and prefix filtering, while native does both on the raw
+//     name and expands only for display. A stanza spelled with a variable and
+//     one spelled literally therefore merge by layer order here, whereas
+//     native lets the literal stanza win. "://./" paths are resolved per app,
+//     so two apps with the same relative stanza produce separate stanzas.
+//   - indexes.conf handling is partial: provider: and provider-family:
+//     stanzas are reduced to their vix.* settings, but provider-family
+//     inheritance, virtual indexes and federated indexes are not handled.
+//   - Files are decoded as UTF-8 or BOM-prefixed UTF-16 (UTF-32 is not
+//     supported), and a stanza header cannot be continued across lines with a
+//     trailing backslash. The set of whitespace characters trimmed also differs
+//     slightly for exotic Unicode spaces.
+//   - A configuration file that cannot be read for a reason other than not
+//     existing fails the command; native logs a warning and skips it. Errors
+//     are written to stderr rather than stdout.
 package btool
 
 import (
@@ -28,7 +55,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
 )
 
-const usage = "usage: otelcollauncher btool [--app=<app>] [--dir=<etc-dir>] [--expand-stanzas=<true|false>] <conf-file> list [stanza-prefix] [--debug]"
+const usage = "usage: otelcollauncher btool [--app=<app>] [--dir=<etc-dir>] [--expand-stanzas=<true|false>] [--raw] <conf-file> list [stanza-prefix] [--debug]"
 
 // builtinInputs are the inputs.conf stanza types that Splunk handles itself.
 // Any other "<scheme>://" stanza is a modular input, and the bare "[<scheme>]"
@@ -57,7 +84,7 @@ func (m *Manager) Verbs() []cli.VerbInfo {
 	return []cli.VerbInfo{{
 		Name:  "btool",
 		Help:  "inspect merged Splunk .conf settings",
-		Usage: usage + "\n\nReads $SPLUNK_HOME/etc unless --dir is supplied.",
+		Usage: usage + "\n\nReads --dir, else $SPLUNK_ETC, else $SPLUNK_HOME/etc.",
 	}}
 }
 
@@ -69,14 +96,29 @@ func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams c
 	}
 
 	home := os.Getenv("SPLUNK_HOME")
+	envEtcDir := os.Getenv("SPLUNK_ETC")
 	etcDir := options.dir
 	if etcDir == "" {
+		etcDir = etcFromEnv(envEtcDir)
+	}
+	if etcDir == "" {
 		if home == "" {
-			fmt.Fprintln(streams.Err, "$SPLUNK_HOME is not defined; set it or use --dir=<etc-dir>")
+			fmt.Fprintln(streams.Err, "neither $SPLUNK_HOME nor $SPLUNK_ETC is defined; set one or use --dir=<etc-dir>")
 			return cli.ExitFailure
 		}
 		etcDir = filepath.Join(home, "etc")
-	} else if home == "" {
+	}
+
+	// --dir selects files without changing environment references in stanza names.
+	expansionEtcDir := envEtcDir
+	if expansionEtcDir == "" {
+		if home != "" {
+			expansionEtcDir = filepath.Join(home, "etc")
+		} else {
+			expansionEtcDir = etcDir
+		}
+	}
+	if home == "" {
 		home = filepath.Dir(etcDir)
 	}
 
@@ -85,18 +127,30 @@ func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams c
 		fmt.Fprintln(streams.Err, err)
 		return cli.ExitFailure
 	}
-	vars := expansionVars{lookupEnv: os.LookupEnv, etcDir: etcDir, home: home}
-	merged, err := readMerged(options.confName, dirs, vars, options.expand)
+	vars := expansionVars{lookupEnv: os.LookupEnv, etcDir: expansionEtcDir, home: home}
+	merged, err := readMerged(options.confName, etcDir, dirs, vars, options.expand)
 	if err != nil {
 		fmt.Fprintf(streams.Err, "failed to read %s: %v\n", options.confName, err)
 		return cli.ExitFailure
 	}
 	visible := resolve(options.confName, merged)
-	if err := printSettings(streams.Out, visible, options.prefix, options.debug); err != nil {
+	if err := printSettings(streams.Out, visible, options.prefix, options.debug, options.raw); err != nil {
 		fmt.Fprintf(streams.Err, "failed to write settings: %v\n", err)
 		return cli.ExitFailure
 	}
 	return cli.ExitOK
+}
+
+// etcFromEnv returns the SPLUNK_ETC value if it names an existing absolute
+// directory, and "" otherwise so that the caller falls back to $SPLUNK_HOME/etc.
+func etcFromEnv(value string) string {
+	if value == "" || !filepath.IsAbs(value) {
+		return ""
+	}
+	if info, err := os.Stat(value); err != nil || !info.IsDir() {
+		return ""
+	}
+	return filepath.Clean(value)
 }
 
 type commandOptions struct {
@@ -106,6 +160,7 @@ type commandOptions struct {
 	dir      string
 	debug    bool
 	expand   bool
+	raw      bool
 }
 
 // parseArgs returns the exit code to use alongside any error, matching the
@@ -117,39 +172,52 @@ func parseArgs(args []string) (commandOptions, int, error) {
 		switch {
 		case arg == "--debug":
 			options.debug = true
-		case arg == "--raw", arg == "--no-log":
-			// Accepted for compatibility; they have no effect on list output.
-		case arg == "--expand-stanzas=true":
-			options.expand = true
-		case arg == "--expand-stanzas=false":
-			options.expand = false
+		case arg == "--raw":
+			options.raw = true
+		case arg == "--no-log":
+			// Accepted for compatibility; it has no effect on list output.
+		case strings.HasPrefix(arg, "--expand-stanzas="):
+			options.expand = parseBool(strings.TrimPrefix(arg, "--expand-stanzas="))
 		case strings.HasPrefix(arg, "--app="):
 			options.app = strings.TrimPrefix(arg, "--app=")
 			if !validName(options.app) {
 				return options, cli.ExitFailure, fmt.Errorf("invalid app name %q", options.app)
 			}
 		case strings.HasPrefix(arg, "--dir="):
-			options.dir = strings.TrimPrefix(arg, "--dir=")
-			if !filepath.IsAbs(options.dir) {
-				return options, cli.ExitFailure, fmt.Errorf("--dir must be an absolute path: %q", options.dir)
+			dir := strings.TrimPrefix(arg, "--dir=")
+			abs, err := filepath.Abs(dir)
+			if dir == "" || err != nil {
+				return options, cli.ExitFailure, fmt.Errorf("invalid --dir %q", dir)
 			}
+			options.dir = abs
 		case strings.HasPrefix(arg, "-"):
 			return options, cli.ExitFailure, fmt.Errorf("unsupported option %q", arg)
 		default:
 			positional = append(positional, arg)
 		}
 	}
-	if len(positional) < 2 || len(positional) > 3 || positional[1] != "list" {
+	// Native accepts a fourth positional (a key) that list ignores.
+	if len(positional) < 2 || len(positional) > 4 || positional[1] != "list" {
 		return options, cli.ExitUsage, errors.New("expected <conf-file> list [stanza-prefix]")
 	}
 	options.confName = positional[0] + ".conf"
 	if !validName(options.confName) {
 		return options, cli.ExitFailure, fmt.Errorf("invalid configuration file %q", positional[0])
 	}
-	if len(positional) == 3 {
+	if len(positional) >= 3 {
 		options.prefix = positional[2]
 	}
 	return options, cli.ExitOK, nil
+}
+
+// parseBool accepts the spellings of native btool; empty or unrecognized
+// values mean true.
+func parseBool(value string) bool {
+	switch strings.ToLower(value) {
+	case "f", "false", "no", "0":
+		return false
+	}
+	return true
 }
 
 func validName(name string) bool {
@@ -202,7 +270,8 @@ func configDirs(etcDir, selectedApp, confName string) ([]string, error) {
 	}
 	var apps []string
 	for _, entry := range entries {
-		if !entry.IsDir() {
+		// Like native btool, follow symlinks to app directories.
+		if !entry.IsDir() && !isDirSymlink(filepath.Join(appsDir, entry.Name()), entry) {
 			continue
 		}
 		if skipDisabled && appDisabled(filepath.Join(appsDir, entry.Name())) {
@@ -223,6 +292,14 @@ func configDirs(etcDir, selectedApp, confName string) ([]string, error) {
 	return dirs, nil
 }
 
+func isDirSymlink(path string, entry os.DirEntry) bool {
+	if entry.Type()&os.ModeSymlink == 0 {
+		return false
+	}
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
+}
+
 type valueSource struct {
 	value string
 	path  string
@@ -233,7 +310,7 @@ type stanzaSettings struct {
 	path   string
 }
 
-func readMerged(confName string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
+func readMerged(confName, etcDir string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
 	merged := make(map[string]*stanzaSettings)
 	for _, dir := range dirs {
 		path := filepath.Join(dir, confName)
@@ -241,6 +318,8 @@ func readMerged(confName string, dirs []string, vars expansionVars, expand bool)
 		if errors.Is(err, os.ErrNotExist) {
 			continue
 		}
+		// Unlike native btool, which warns and skips an unreadable layer, fail:
+		// skipping would silently produce a plausible but wrong effective config.
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", path, err)
 		}
@@ -249,8 +328,8 @@ func readMerged(confName string, dirs []string, vars expansionVars, expand bool)
 			if expand {
 				name = expandStanzaName(name, vars)
 			}
-			if confName == "inputs.conf" {
-				name = resolveRelativeInput(name, inputBaseDir(vars.etcDir, dir))
+			if expand && confName == "inputs.conf" {
+				name = resolveRelativeInput(name, inputBaseDir(etcDir, dir))
 			}
 			settings := merged[name]
 			if settings == nil {
@@ -282,8 +361,8 @@ func resolveRelativeInput(name, baseDir string) string {
 	if !ok {
 		return name
 	}
-	if relative, ok := strings.CutPrefix(rest, "./"); ok {
-		return scheme + "://" + baseDir + "/" + relative
+	if len(rest) >= 2 && rest[0] == '.' && os.IsPathSeparator(rest[1]) {
+		return scheme + "://" + baseDir + rest[1:]
 	}
 	return name
 }
@@ -339,7 +418,7 @@ func resolve(confName string, merged map[string]*stanzaSettings) map[string]*sta
 			inherit(merged[scheme])
 			for _, key := range []string{"host", "index"} {
 				if _, exists := resolved.values[key]; !exists && defaults != nil {
-					if value, ok := defaults.values[key]; ok {
+					if value, ok := defaults.values[key]; ok && value.value != "" {
 						resolved.values[key] = valueSource{value: value.value}
 					}
 				}
@@ -361,12 +440,20 @@ func resolve(confName string, merged map[string]*stanzaSettings) map[string]*sta
 
 // isVirtualIndexProvider reports indexes.conf stanzas that configure a
 // virtual index provider. btool lists only their vix.* settings and they do
-// not inherit from [default].
+// not inherit from [default]. Native btool also layers providers over their
+// provider-family and special-cases virtual and federated indexes; those are
+// not implemented here.
 func isVirtualIndexProvider(name string) bool {
 	return strings.HasPrefix(name, "provider:") || strings.HasPrefix(name, "provider-family:")
 }
 
-func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix string, debug bool) error {
+func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix string, debug, raw bool) error {
+	esc := func(s string) string {
+		if raw {
+			return s
+		}
+		return escapeControl(s)
+	}
 	stanzas := make([]string, 0, len(merged))
 	for name := range merged {
 		if strings.HasPrefix(name, prefix) {
@@ -396,7 +483,7 @@ func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix stri
 	}
 	for _, name := range stanzas {
 		settings := merged[name]
-		if err := line(settings.path, "["+name+"]"); err != nil {
+		if err := line(settings.path, "["+esc(name)+"]"); err != nil {
 			return err
 		}
 		keys := make([]string, 0, len(settings.values))
@@ -406,10 +493,39 @@ func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix stri
 		sort.Strings(keys)
 		for _, key := range keys {
 			setting := settings.values[key]
-			if err := line(setting.path, key+" = "+setting.value); err != nil {
+			if err := line(setting.path, esc(key)+" = "+esc(setting.value)); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// escapeControl renders control characters other than tab, newline and
+// carriage return as \xNN, like native btool does without --raw. It works on
+// bytes so multibyte UTF-8 sequences are left intact.
+func escapeControl(s string) string {
+	clean := true
+	for i := 0; i < len(s); i++ {
+		if needsEscape(s[i]) {
+			clean = false
+			break
+		}
+	}
+	if clean {
+		return s
+	}
+	var out strings.Builder
+	for i := 0; i < len(s); i++ {
+		if needsEscape(s[i]) {
+			fmt.Fprintf(&out, "\\x%02X", s[i])
+			continue
+		}
+		out.WriteByte(s[i])
+	}
+	return out.String()
+}
+
+func needsEscape(b byte) bool {
+	return (b < 0x20 || b == 0x7f) && b != '\t' && b != '\n' && b != '\r'
 }

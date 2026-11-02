@@ -49,16 +49,14 @@ const ConfigFile = "config.yaml"
 // directory.
 const splunkHomeDir = "splunkhome"
 
-// payloadMode is the mode a non-config case file is installed with. It carries
-// the execute bit because a payload file is typically a script, and splunkd will
-// not run one it cannot execute.
+// payloadMode is the mode a non-config case file is installed with.
 const payloadMode = 0o755
 
 // Adapter drives one otelcol binary through a case.
 type Adapter struct {
 	cmd        *exec.Cmd
 	bin        string
-	splunkHome string   // sandbox $SPLUNK_HOME, set by Prepare when the case has .conf files
+	splunkHome string   // sandbox $SPLUNK_HOME, set by Prepare when the case has files to install
 	gates      []string // feature gates to enable
 	configs    []string // resolved --config sources, set by Prepare
 }
@@ -92,10 +90,6 @@ func (a *Adapter) InstallDir() string { return filepath.Dir(a.bin) }
 // into a sandbox $SPLUNK_HOME (see installHome), and a case that ships a .conf
 // file is configured from that tree through the splunkconf provider. At least
 // one source must resolve.
-//
-// Only a .conf file adds the provider URI. A payload file needs the sandbox home
-// to live in, but on its own it configures nothing, so a case shipping one
-// alongside a collector config is still run from that config alone.
 func (a *Adapter) Prepare(configDir string, files []string) error {
 	var yamls, confs, payloads []string
 	for _, rel := range files {
@@ -130,15 +124,10 @@ func (a *Adapter) confRootURI() string {
 }
 
 // installHome lays out the sandbox $SPLUNK_HOME the case is run from, which
-// Start then puts in the environment.
-//
-// A .conf file goes into etc/: a bare filename is system config, a nested path
-// is mirrored, so an app in the case's conf/ is an installed app here too. Every
-// other file lands at the path the case named it, relative to $SPLUNK_HOME
-// itself, because that is the only way to reach the directories outside etc/
-// that splunkd reads. A scripted input is the case in point: splunkd runs a
-// script only from $SPLUNK_HOME/bin/scripts or a bundle's bin, so bin/scripts/x
-// in a case installs there rather than under etc/.
+// Start then puts in the environment. A .conf file goes into etc/: a bare
+// filename is system config, a nested path is mirrored, so an app in the case's
+// conf/ is an installed app here too. Every other file lands at the path the
+// case named it, relative to $SPLUNK_HOME itself.
 func (a *Adapter) installHome(configDir string, confs, payloads []string) error {
 	if len(confs) == 0 && len(payloads) == 0 {
 		return nil
@@ -159,10 +148,8 @@ func (a *Adapter) installHome(configDir string, confs, payloads []string) error 
 			return err
 		}
 	}
-	// A Splunk install holds its data under var/lib/splunk, and an input that
-	// checkpoints there refuses to start when $SPLUNK_DB does not resolve to an
-	// existing directory. The sandbox is a $SPLUNK_HOME like any other, so it
-	// has the directory too.
+	// $SPLUNK_DB defaults to var/lib/splunk, and an input that checkpoints there
+	// refuses to start without it.
 	if err := os.MkdirAll(filepath.Join(home, "var", "lib", "splunk"), 0o755); err != nil {
 		return err
 	}
@@ -170,9 +157,7 @@ func (a *Adapter) installHome(configDir string, confs, payloads []string) error 
 	return nil
 }
 
-// copyInto copies the staged file rel into dest with mode. The contents are
-// written restrictively and then chmod'ed, rather than written with mode
-// directly, so an execute bit never passes through os.WriteFile.
+// copyInto copies the staged file rel into dest with mode.
 func copyInto(configDir, rel, dest string, mode os.FileMode) error {
 	contents, err := os.ReadFile(filepath.Join(configDir, filepath.FromSlash(rel)))
 	if err != nil {

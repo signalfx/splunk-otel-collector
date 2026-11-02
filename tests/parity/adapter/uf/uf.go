@@ -51,9 +51,7 @@ func New(installDir string) *Adapter {
 func (a *Adapter) Name() string       { return "UF" }
 func (a *Adapter) InstallDir() string { return a.installDir }
 
-// confMode is for config, which only splunkd reads. payloadMode carries the
-// execute bit because a payload file is typically a script, and splunkd will not
-// run one it cannot execute.
+// Modes a case's files are installed with: a payload file is executable.
 const (
 	confMode    = 0o600
 	payloadMode = 0o755
@@ -61,9 +59,8 @@ const (
 
 // Prepare copies the case's files into the install, recording a restore for each
 // so it is left as it was found. A .conf file goes into etc/ (see confPath); any
-// other file lands at the path the case named it, relative to the install root,
-// which is how a case ships a script for a stanza to run. A collector config is
-// not the UF's and is skipped.
+// other file lands at the path the case named it, relative to the install root.
+// A collector config is not the UF's and is skipped.
 func (a *Adapter) Prepare(configDir string, files []string) error {
 	for _, rel := range files {
 		dest, mode := filepath.Join(a.installDir, filepath.FromSlash(rel)), os.FileMode(payloadMode)
@@ -157,8 +154,6 @@ func (a *Adapter) writeWithRestore(path string, contents []byte, mode os.FileMod
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
-	// Written restrictively and then chmod'ed, rather than written with mode
-	// directly, so an execute bit never passes through os.WriteFile.
 	if err := os.WriteFile(path, contents, 0o600); err != nil {
 		return err
 	}
@@ -169,7 +164,10 @@ func (a *Adapter) writeWithRestore(path string, contents []byte, mode os.FileMod
 	a.restores = append(a.restores, func() error {
 		switch {
 		case existed:
-			return os.WriteFile(path, original, info.Mode())
+			if err := os.WriteFile(path, original, info.Mode()); err != nil {
+				return err
+			}
+			return os.Chmod(path, info.Mode())
 		case created != "":
 			return os.RemoveAll(created)
 		default:

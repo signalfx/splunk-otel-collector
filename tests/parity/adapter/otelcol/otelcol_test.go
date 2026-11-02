@@ -61,9 +61,7 @@ func TestPrepareNoSources(t *testing.T) {
 }
 
 // TestPrepareMultipleConfigs covers the core behavior: every *.yaml/*.yml file
-// becomes a --config (sorted). A file that is neither a collector config nor a
-// .conf is installed into the sandbox home instead, and contributes no --config
-// of its own.
+// becomes a --config (sorted) and other files add none.
 func TestPrepareMultipleConfigs(t *testing.T) {
 	dir := t.TempDir()
 	for _, f := range []string{ConfigFile, "override.yml", "notes.txt"} {
@@ -276,8 +274,7 @@ func TestInstallConfLayout(t *testing.T) {
 }
 
 // A non-config file lands at the path the case named it, relative to
-// $SPLUNK_HOME rather than to etc/, and is executable: splunkd runs a scripted
-// input only from $SPLUNK_HOME/bin/scripts or a bundle's bin.
+// $SPLUNK_HOME rather than to etc/, and is executable.
 func TestInstallHomePayload(t *testing.T) {
 	dir := t.TempDir()
 	rels := []string{"bin/scripts/hello.sh", "etc/apps/my_app/bin/run.sh"}
@@ -295,14 +292,14 @@ func TestInstallHomePayload(t *testing.T) {
 			t.Errorf("%s not installed: %v", rel, err)
 			continue
 		}
-		if info.Mode().Perm()&0o111 == 0 {
+		// Windows reports no execute bit for a regular file.
+		if runtime.GOOS != "windows" && info.Mode().Perm()&0o111 == 0 {
 			t.Errorf("%s mode = %v, want the execute bit set", rel, info.Mode().Perm())
 		}
 	}
 }
 
-// splunkd derives $SPLUNK_DB from $SPLUNK_HOME and an input that checkpoints
-// there refuses to start when it does not exist, so the sandbox home has it.
+// The sandbox home has var/lib/splunk, the default $SPLUNK_DB.
 func TestInstallHomeCreatesSplunkDB(t *testing.T) {
 	dir := t.TempDir()
 	stage(t, dir, "inputs.conf")
@@ -316,8 +313,8 @@ func TestInstallHomeCreatesSplunkDB(t *testing.T) {
 	}
 }
 
-// A payload file needs the sandbox home to live in, but configures nothing on
-// its own, so it must not turn a collector-config case into a .conf one.
+// A payload file is installed but does not turn a collector-config case into a
+// .conf one.
 func TestPreparePayloadDoesNotAddConfRootURI(t *testing.T) {
 	dir := t.TempDir()
 	stage(t, dir, "config.yaml")

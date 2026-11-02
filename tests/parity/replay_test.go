@@ -205,8 +205,7 @@ func TestCandidateRun(t *testing.T) {
 		t.Errorf("conf-driven case files = %v, want %v", got, want)
 	}
 
-	// A payload file is handed to the candidate alongside the .conf files, so a
-	// stanza naming a script it ships can resolve.
+	// A payload file is handed to the candidate alongside the .conf files.
 	script := "#!/bin/sh\necho hi\n"
 	if err := os.MkdirAll(filepath.Join(dir, confDir, "bin", "scripts"), 0o755); err != nil {
 		t.Fatal(err)
@@ -300,11 +299,8 @@ func optionalCaseFile(t *testing.T, casePath, name string) (string, bool) {
 
 // caseConf reads the case's conf/ directory, the Splunk .conf structure the
 // oracle is configured from and, for a case without a collector.yaml, the
-// candidate too.
-//
-// Every file is read, not only *.conf: a case may also ship a payload file for
-// the agent to run, which each adapter installs relative to its $SPLUNK_HOME
-// rather than into etc/.
+// candidate too. Every file is read, not only *.conf, so a case can ship a
+// payload file for the agent to run.
 func caseConf(t *testing.T, casePath string) map[string]string {
 	t.Helper()
 	dir := filepath.Join(filepath.Dir(casePath), confDir)
@@ -334,8 +330,7 @@ func caseConf(t *testing.T, casePath string) map[string]string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// A payload file on its own configures nothing, so a case still has to carry
-	// at least one .conf for either agent to read.
+	// A payload file configures nothing, so a case still needs a .conf.
 	if confCount == 0 {
 		t.Fatalf("no *.conf files in %s", dir)
 	}

@@ -73,6 +73,13 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(localDir, "inputs.conf"), []byte("original"), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.Chmod(filepath.Join(localDir, "inputs.conf"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	origInfo, statErr := os.Stat(filepath.Join(localDir, "inputs.conf"))
+	if statErr != nil {
+		t.Fatal(statErr)
+	}
 
 	configDir := t.TempDir()
 	writeFile(t, filepath.Join(configDir, "inputs.conf"), "new-inputs")
@@ -99,8 +106,6 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	if got := readFile(t, filepath.Join(localDir, "outputs.conf")); got != "new-outputs" {
 		t.Errorf("outputs.conf = %q", got)
 	}
-	// A non-conf file is not config, so it goes to the path the case named it
-	// relative to the install root rather than into etc/system/local.
 	if _, err := os.Stat(filepath.Join(localDir, "notes.txt")); !os.IsNotExist(err) {
 		t.Error("non-conf file should not be installed as system config")
 	}
@@ -111,9 +116,16 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	if err := a.Cleanup(); err != nil {
 		t.Fatalf("Cleanup: %v", err)
 	}
-	// Pre-existing file restored to its original contents.
+	// Pre-existing file restored to its original contents and mode.
 	if got := readFile(t, filepath.Join(localDir, "inputs.conf")); got != "original" {
 		t.Errorf("inputs.conf after cleanup = %q, want %q", got, "original")
+	}
+	info, statErr := os.Stat(filepath.Join(localDir, "inputs.conf"))
+	if statErr != nil {
+		t.Fatal(statErr)
+	}
+	if info.Mode() != origInfo.Mode() {
+		t.Errorf("inputs.conf mode after cleanup = %v, want %v", info.Mode(), origInfo.Mode())
 	}
 	// Newly created file removed.
 	if _, err := os.Stat(filepath.Join(localDir, "outputs.conf")); !os.IsNotExist(err) {
@@ -130,10 +142,8 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	}
 }
 
-// A payload file installs executable, because splunkd runs a scripted input
-// only from $SPLUNK_HOME/bin/scripts or a bundle's bin and will not run a script
-// it cannot execute. Cleanup takes it, and the directories it created, away
-// again so the next case runs against an unchanged install.
+// A payload file installs executable, and Cleanup removes it along with the
+// directories it created.
 func TestPreparePayloadIsExecutableAndRestored(t *testing.T) {
 	install := t.TempDir()
 	configDir := t.TempDir()
@@ -150,7 +160,8 @@ func TestPreparePayloadIsExecutableAndRestored(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s not installed: %v", rel, err)
 	}
-	if info.Mode().Perm()&0o111 == 0 {
+	// Windows reports no execute bit for a regular file.
+	if runtime.GOOS != "windows" && info.Mode().Perm()&0o111 == 0 {
 		t.Errorf("mode = %v, want the execute bit set", info.Mode().Perm())
 	}
 

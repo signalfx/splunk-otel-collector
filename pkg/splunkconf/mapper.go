@@ -242,9 +242,12 @@ func WithOutputMappers(mappers ...MappingExporterFactory) Option {
 // WithProcessorMappers registers the processors that place themselves in the
 // emitted pipeline; a provider with none emits receivers and exporters alone.
 //
-// Registration order is pipeline order, since the .conf tree does not state it.
-// Instances of one mapper are ordered by name, so a mapper needing a particular
-// order between them should be registered as several.
+// The .conf tree does not state processor order, so the emitted processor
+// chain follows registration order: the first mapper registered runs first.
+// Nothing reorders or validates it, so the caller owns it and should follow
+// splunkd's parsing pipeline: charset conversion first, then line breaking,
+// then event breaking, then index-time transforms. Instances one mapper
+// returns run in name order.
 func WithProcessorMappers(mappers ...MappingProcessorFactory) Option {
 	return func(p *provider) {
 		p.processorMappers = append(p.processorMappers, mappers...)

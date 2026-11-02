@@ -3,7 +3,7 @@ component: receiver/gnmi
 note: >
   Add gNMI dial-out over the OpenConfig gRPC tunnel service, so devices behind NAT 
   or a firewall can dial the collector and have it subscribe back through the tunnel.
-issues: []
+issues: [8400]
 subtext: |
   Configure a `tunnel:` block with the collector-hosted tunnel server endpoint 
   and a single `subscriptions` list that is applied to every device registering 

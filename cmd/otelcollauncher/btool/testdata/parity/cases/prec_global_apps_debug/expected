@@ -1,0 +1,6 @@
+@ETC@/apps/A/local/zzcmp.conf [p]
+@ETC@/apps/A/local/zzcmp.conf l = A-local
+@ETC@/apps/A/default/zzcmp.conf only_a_d = 1
+@ETC@/apps/B/default/zzcmp.conf only_b_d = 1
+@ETC@/apps/A/default/zzcmp.conf v = A-default
+EXIT=0

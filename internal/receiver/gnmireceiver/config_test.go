@@ -117,6 +117,104 @@ func TestValidateGNMIReverseSubscriptions(t *testing.T) {
 	require.NoError(t, cfg.Validate(), "disabled gnmireverse subscriptions are not validated")
 }
 
+func TestLoadTunnelConfig(t *testing.T) {
+	t.Parallel()
+
+	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config-tunnel.yaml"))
+	require.NoError(t, err)
+
+	sub, err := cm.Sub("gnmi")
+	require.NoError(t, err)
+
+	cfg := createDefaultConfig().(*Config)
+	require.NoError(t, sub.Unmarshal(cfg))
+	require.NoError(t, confmap.Validate(cfg))
+
+	require.NotNil(t, cfg.Tunnel)
+	require.Equal(t, "localhost:0", cfg.Tunnel.NetAddr.Endpoint)
+	require.Equal(t, "tcp", string(cfg.Tunnel.NetAddr.Transport))
+	require.Equal(t, []string{targetTypeGNMIGNOIInsecure}, cfg.Tunnel.TargetTypes)
+	require.Equal(t, "admin", string(cfg.Tunnel.Username))
+	require.Equal(t, "secret", string(cfg.Tunnel.Password))
+	require.Equal(t, 15*time.Second, cfg.Tunnel.Redial)
+	require.Equal(t, encodingProto, cfg.Tunnel.Encoding, "encoding default should survive when not set in YAML")
+	require.Len(t, cfg.Tunnel.Subscriptions, 1)
+}
+
+func TestValidateTunnelSubscriptions(t *testing.T) {
+	t.Parallel()
+
+	newCfg := func() *Config {
+		tunnelCfg := NewDefaultTunnelConfig()
+		tunnelCfg.NetAddr.Endpoint = "localhost:0"
+		tunnelCfg.Subscriptions = []SubscriptionConfig{{
+			Path:    "/interfaces/interface/state/counters",
+			Default: &MetricConfig{Type: metricTypeSum},
+		}}
+		return &Config{Tunnel: &tunnelCfg}
+	}
+
+	cfg := newCfg()
+	require.ErrorContains(t, confmap.Validate(cfg), "mode is required",
+		"unlike gnmireverse, tunnel subscriptions require mode since the collector issues the Subscribe")
+
+	cfg = newCfg()
+	cfg.Tunnel.Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
+	require.NoError(t, confmap.Validate(cfg))
+
+	cfg = newCfg()
+	cfg.Tunnel.Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.TargetTypes = nil
+	require.ErrorContains(t, confmap.Validate(cfg), "target_types must contain at least one target type")
+
+	cfg = newCfg()
+	cfg.Tunnel.Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.TargetTypes = []string{"BOGUS"}
+	require.ErrorContains(t, confmap.Validate(cfg), "invalid target_types entry")
+
+	cfg = newCfg()
+	cfg.Tunnel.Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.TargetTypes = []string{targetTypeGNMIGNOI, targetTypeGNMIGNOI}
+	require.ErrorContains(t, confmap.Validate(cfg), "duplicate target_types entry")
+
+	cfg = newCfg()
+	cfg.Tunnel.TargetTypes = nil // would be invalid if the tunnel block were enabled
+	cfg.Tunnel.NetAddr.Endpoint = ""
+	target := NewDefaultTargetConfig()
+	target.ClientConfig.Endpoint = "localhost:57400"
+	target.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: time.Second,
+		Default:        &MetricConfig{Type: metricTypeSum},
+	}}
+	cfg.Targets = []TargetConfig{target}
+	require.NoError(t, confmap.Validate(cfg),
+		"disabled tunnel block must not be validated even though its fields are otherwise invalid")
+
+	empty := &Config{}
+	require.ErrorContains(t, confmap.Validate(empty),
+		"at least one target, a gnmireverse endpoint, or a tunnel endpoint must be specified")
+}
+
+func TestTunnelInnerTLSPerTargetType(t *testing.T) {
+	t.Parallel()
+
+	tunnelCfg := NewDefaultTunnelConfig()
+	tunnelCfg.ClientTLS.InsecureSkipVerify = true
+
+	gnoi := tunnelCfg.targetConfig(targetTypeGNMIGNOI)
+	require.Equal(t, tunnelCfg.ClientTLS, gnoi.ClientConfig.TLS, "GNMI_GNOI targets use the configured client_tls")
+
+	insecure := tunnelCfg.targetConfig(targetTypeGNMIGNOIInsecure)
+	require.True(t, insecure.ClientConfig.TLS.Insecure, "GNMI_GNOI_INSECURE targets are always dialed in plaintext")
+	require.False(t, insecure.ClientConfig.TLS.InsecureSkipVerify, "GNMI_GNOI_INSECURE must not inherit the configured client_tls")
+}
+
 func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {
 	t.Parallel()
 

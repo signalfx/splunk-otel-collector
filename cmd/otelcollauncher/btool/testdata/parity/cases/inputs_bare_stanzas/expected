@@ -1,0 +1,22 @@
+[SSL]
+index = idx
+m_ssl = 1
+[fifo]
+index = idx
+m_fifo = 1
+[http]
+index = idx
+m_http = 1
+[monitor]
+index = idx
+m_monitor = 1
+[monitor:///x]
+a = 1
+index = idx
+[splunktcp-ssl]
+index = idx
+m_splunktcp_ssl = 1
+[tcp-ssl]
+index = idx
+m_tcp_ssl = 1
+EXIT=0

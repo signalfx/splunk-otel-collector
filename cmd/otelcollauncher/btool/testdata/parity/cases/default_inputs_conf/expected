@@ -1,0 +1,4 @@
+[monitor:///x]
+host = foo
+index = main
+EXIT=0

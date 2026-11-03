@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/confmap"
 )
@@ -68,12 +69,6 @@ type Config struct {
 	// stream gNMI Subscribe or Get responses to the receiver. An empty endpoint disables it.
 	GNMIReverse *GNMIReverseConfig `mapstructure:"gnmireverse"`
 
-	// Tunnel configures an optional OpenConfig gRPC tunnel server for devices
-	// that dial out to the receiver and register a tunnel target. The receiver
-	// then dials back through the tunnel and runs a normal gNMI Subscribe.
-	// An empty endpoint disables it.
-	Tunnel *TunnelConfig `mapstructure:"tunnel"`
-
 	// YangModules is a list of YANG module files and/or directories used to
 	// derive each leaf's metric type (gauge/sum), unit, and enum/identityref
 	// value set directly from the schema. Directories are searched
@@ -85,6 +80,13 @@ type Config struct {
 	// still fills in whatever the schema left blank (e.g. "unit", which most
 	// OpenConfig models omit). Optional.
 	YangModules []string `mapstructure:"yang_modules"`
+
+	// Tunnel configures an optional OpenConfig gRPC tunnel server for devices
+	// that dial out to the receiver and register a tunnel target. The receiver
+	// then dials back through the tunnel and runs a normal gNMI Subscribe.
+	// Disabled when absent or when explicitly "enabled: false"; once enabled,
+	// "endpoint" is required.
+	Tunnel configoptional.Optional[TunnelConfig] `mapstructure:"tunnel"`
 }
 
 // TargetConfig defines connectivity, authentication, and subscriptions for a
@@ -151,7 +153,7 @@ func NewDefaultGNMIReverseConfig() GNMIReverseConfig {
 	return GNMIReverseConfig{ServerConfig: configgrpc.NewDefaultServerConfig()}
 }
 
-func NewDefaultTunnelConfig() TunnelConfig {
+func newDefaultTunnelConfig() TunnelConfig {
 	return TunnelConfig{
 		ServerConfig: configgrpc.NewDefaultServerConfig(),
 		ClientTLS:    configtls.NewDefaultClientConfig(),
@@ -250,7 +252,7 @@ func (t *TargetConfig) Unmarshal(conf *confmap.Conf) error {
 // Unmarshal applies tunnel defaults (target types, encoding, redial, tunnel transport,
 // and inner-TLS defaults) before decoding user-supplied values.
 func (t *TunnelConfig) Unmarshal(conf *confmap.Conf) error {
-	*t = NewDefaultTunnelConfig()
+	*t = newDefaultTunnelConfig()
 	return conf.Unmarshal(t)
 }
 
@@ -259,11 +261,8 @@ func (cfg *Config) Validate() error {
 	if cfg.GNMIReverse != nil {
 		gnmiReverseEndpoint = cfg.GNMIReverse.NetAddr.Endpoint
 	}
-	tunnelEndpoint := ""
-	if cfg.Tunnel != nil {
-		tunnelEndpoint = cfg.Tunnel.NetAddr.Endpoint
-	}
-	if len(cfg.Targets) == 0 && gnmiReverseEndpoint == "" && tunnelEndpoint == "" {
+	tunnelEnabled := cfg.Tunnel.HasValue()
+	if len(cfg.Targets) == 0 && gnmiReverseEndpoint == "" && !tunnelEnabled {
 		return errors.New("at least one target, a gnmireverse endpoint, or a tunnel endpoint must be specified")
 	}
 	if gnmiReverseEndpoint != "" && len(cfg.GNMIReverse.Subscriptions) == 0 {
@@ -295,8 +294,8 @@ func (cfg *Config) Validate() error {
 				return err
 			}
 		}
-		if tunnelEndpoint != "" {
-			if err := validateSubscriptionMetricConfig(cfg.Tunnel.Subscriptions, "tunnel.subscriptions", true); err != nil {
+		if tunnelEnabled {
+			if err := validateSubscriptionMetricConfig(cfg.Tunnel.Get().Subscriptions, "tunnel.subscriptions", true); err != nil {
 				return err
 			}
 		}
@@ -424,9 +423,8 @@ func validateRedial(redial time.Duration) error {
 }
 
 func (t *TunnelConfig) Validate() error {
-	// if endpoint not provided we assume it's disabled
 	if t.NetAddr.Endpoint == "" {
-		return nil
+		return errors.New("endpoint is required")
 	}
 	if len(t.Subscriptions) == 0 {
 		return errors.New("at least one subscription must be specified")

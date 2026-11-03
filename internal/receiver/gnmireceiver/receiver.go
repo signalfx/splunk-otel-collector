@@ -114,10 +114,10 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 	}
 
 	var tunnelSrv *tunnelServer
-	if r.cfg.Tunnel != nil && r.cfg.Tunnel.NetAddr.Endpoint != "" {
+	if tunnelCfg := r.cfg.Tunnel.Get(); tunnelCfg != nil && tunnelCfg.NetAddr.Endpoint != "" {
 		tunnelSrv, err = newTunnelServer(
 			startCtx,
-			r.cfg.Tunnel,
+			tunnelCfg,
 			schema,
 			host,
 			r.settings.TelemetrySettings,
@@ -129,7 +129,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 			return fmt.Errorf("create gNMI tunnel server: %w", err)
 		}
 		listeners = append(listeners, grpcListener{
-			name:     r.cfg.Tunnel.NetAddr.Endpoint,
+			name:     tunnelCfg.NetAddr.Endpoint,
 			server:   tunnelSrv.server,
 			listener: tunnelSrv.listener,
 		})

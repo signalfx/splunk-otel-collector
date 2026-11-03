@@ -32,6 +32,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -276,7 +277,7 @@ func TestReceiverSubscribesThroughGRPCTunnel(t *testing.T) {
 	tunnelEndpoint := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	tunnelConfig := NewDefaultTunnelConfig()
+	tunnelConfig := newDefaultTunnelConfig()
 	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
 	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
 	tunnelConfig.Subscriptions = []SubscriptionConfig{{
@@ -285,7 +286,7 @@ func TestReceiverSubscribesThroughGRPCTunnel(t *testing.T) {
 		SampleInterval: 10 * time.Millisecond,
 		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
 	}}
-	cfg := &Config{Tunnel: &tunnelConfig}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
 	sink := new(consumertest.MetricsSink)
 	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
 	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
@@ -316,7 +317,7 @@ func TestTunnelTargetTypeFiltering(t *testing.T) {
 	tunnelEndpoint := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	tunnelConfig := NewDefaultTunnelConfig()
+	tunnelConfig := newDefaultTunnelConfig()
 	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
 	tunnelConfig.Subscriptions = []SubscriptionConfig{{
 		Path:           "/interfaces/interface/state/counters",
@@ -324,7 +325,7 @@ func TestTunnelTargetTypeFiltering(t *testing.T) {
 		SampleInterval: 10 * time.Millisecond,
 		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
 	}}
-	cfg := &Config{Tunnel: &tunnelConfig}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
 
 	core, logs := observer.New(zap.InfoLevel)
 	settings := receivertest.NewNopSettings(rcvrmetadata.Type)
@@ -354,7 +355,7 @@ func TestTunnelTargetDeregistrationStopsSubscription(t *testing.T) {
 	tunnelEndpoint := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	tunnelConfig := NewDefaultTunnelConfig()
+	tunnelConfig := newDefaultTunnelConfig()
 	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
 	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
 	tunnelConfig.Subscriptions = []SubscriptionConfig{{
@@ -363,7 +364,7 @@ func TestTunnelTargetDeregistrationStopsSubscription(t *testing.T) {
 		SampleInterval: 10 * time.Millisecond,
 		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
 	}}
-	cfg := &Config{Tunnel: &tunnelConfig}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
 
 	core, logs := observer.New(zap.InfoLevel)
 	settings := receivertest.NewNopSettings(rcvrmetadata.Type)
@@ -395,7 +396,7 @@ func TestTunnelTargetReRegistration(t *testing.T) {
 	tunnelEndpoint := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	tunnelConfig := NewDefaultTunnelConfig()
+	tunnelConfig := newDefaultTunnelConfig()
 	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
 	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
 	tunnelConfig.Subscriptions = []SubscriptionConfig{{
@@ -404,7 +405,7 @@ func TestTunnelTargetReRegistration(t *testing.T) {
 		SampleInterval: 10 * time.Millisecond,
 		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
 	}}
-	cfg := &Config{Tunnel: &tunnelConfig}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
 
 	core, logs := observer.New(zap.InfoLevel)
 	settings := receivertest.NewNopSettings(rcvrmetadata.Type)
@@ -444,7 +445,7 @@ func TestTunnelMultipleTargetsConcurrently(t *testing.T) {
 	tunnelEndpoint := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	tunnelConfig := NewDefaultTunnelConfig()
+	tunnelConfig := newDefaultTunnelConfig()
 	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
 	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
 	tunnelConfig.Subscriptions = []SubscriptionConfig{{
@@ -453,7 +454,7 @@ func TestTunnelMultipleTargetsConcurrently(t *testing.T) {
 		SampleInterval: 10 * time.Millisecond,
 		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
 	}}
-	cfg := &Config{Tunnel: &tunnelConfig}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
 
 	sink := new(consumertest.MetricsSink)
 	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)

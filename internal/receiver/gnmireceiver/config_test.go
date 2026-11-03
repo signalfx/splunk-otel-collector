@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
@@ -130,28 +131,29 @@ func TestLoadTunnelConfig(t *testing.T) {
 	require.NoError(t, sub.Unmarshal(cfg))
 	require.NoError(t, confmap.Validate(cfg))
 
-	require.NotNil(t, cfg.Tunnel)
-	require.Equal(t, "localhost:0", cfg.Tunnel.NetAddr.Endpoint)
-	require.Equal(t, "tcp", string(cfg.Tunnel.NetAddr.Transport))
-	require.Equal(t, []string{targetTypeGNMIGNOIInsecure}, cfg.Tunnel.TargetTypes)
-	require.Equal(t, "admin", string(cfg.Tunnel.Username))
-	require.Equal(t, "secret", string(cfg.Tunnel.Password))
-	require.Equal(t, 15*time.Second, cfg.Tunnel.Redial)
-	require.Equal(t, encodingProto, cfg.Tunnel.Encoding, "encoding default should survive when not set in YAML")
-	require.Len(t, cfg.Tunnel.Subscriptions, 1)
+	require.True(t, cfg.Tunnel.HasValue())
+	tunnelCfg := cfg.Tunnel.Get()
+	require.Equal(t, "localhost:0", tunnelCfg.NetAddr.Endpoint)
+	require.Equal(t, "tcp", string(tunnelCfg.NetAddr.Transport))
+	require.Equal(t, []string{targetTypeGNMIGNOIInsecure}, tunnelCfg.TargetTypes)
+	require.Equal(t, "admin", string(tunnelCfg.Username))
+	require.Equal(t, "secret", string(tunnelCfg.Password))
+	require.Equal(t, 15*time.Second, tunnelCfg.Redial)
+	require.Equal(t, encodingProto, tunnelCfg.Encoding, "encoding default should survive when not set in YAML")
+	require.Len(t, tunnelCfg.Subscriptions, 1)
 }
 
 func TestValidateTunnelSubscriptions(t *testing.T) {
 	t.Parallel()
 
 	newCfg := func() *Config {
-		tunnelCfg := NewDefaultTunnelConfig()
+		tunnelCfg := newDefaultTunnelConfig()
 		tunnelCfg.NetAddr.Endpoint = "localhost:0"
 		tunnelCfg.Subscriptions = []SubscriptionConfig{{
 			Path:    "/interfaces/interface/state/counters",
 			Default: &MetricConfig{Type: metricTypeSum},
 		}}
-		return &Config{Tunnel: &tunnelCfg}
+		return &Config{Tunnel: configoptional.Some(tunnelCfg)}
 	}
 
 	cfg := newCfg()
@@ -159,31 +161,35 @@ func TestValidateTunnelSubscriptions(t *testing.T) {
 		"unlike gnmireverse, tunnel subscriptions require mode since the collector issues the Subscribe")
 
 	cfg = newCfg()
-	cfg.Tunnel.Subscriptions[0].Mode = modeSample
-	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
 	require.NoError(t, confmap.Validate(cfg))
 
 	cfg = newCfg()
-	cfg.Tunnel.Subscriptions[0].Mode = modeSample
-	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
-	cfg.Tunnel.TargetTypes = nil
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().TargetTypes = nil
 	require.ErrorContains(t, confmap.Validate(cfg), "target_types must contain at least one target type")
 
 	cfg = newCfg()
-	cfg.Tunnel.Subscriptions[0].Mode = modeSample
-	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
-	cfg.Tunnel.TargetTypes = []string{"BOGUS"}
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().TargetTypes = []string{"BOGUS"}
 	require.ErrorContains(t, confmap.Validate(cfg), "invalid target_types entry")
 
 	cfg = newCfg()
-	cfg.Tunnel.Subscriptions[0].Mode = modeSample
-	cfg.Tunnel.Subscriptions[0].SampleInterval = time.Second
-	cfg.Tunnel.TargetTypes = []string{targetTypeGNMIGNOI, targetTypeGNMIGNOI}
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().TargetTypes = []string{targetTypeGNMIGNOI, targetTypeGNMIGNOI}
 	require.ErrorContains(t, confmap.Validate(cfg), "duplicate target_types entry")
 
 	cfg = newCfg()
-	cfg.Tunnel.TargetTypes = nil // would be invalid if the tunnel block were enabled
-	cfg.Tunnel.NetAddr.Endpoint = ""
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().NetAddr.Endpoint = ""
+	require.ErrorContains(t, confmap.Validate(cfg), "endpoint is required",
+		"endpoint is required once the tunnel block is enabled, unlike a block left out entirely")
+
 	target := NewDefaultTargetConfig()
 	target.ClientConfig.Endpoint = "localhost:57400"
 	target.Subscriptions = []SubscriptionConfig{{
@@ -192,9 +198,10 @@ func TestValidateTunnelSubscriptions(t *testing.T) {
 		SampleInterval: time.Second,
 		Default:        &MetricConfig{Type: metricTypeSum},
 	}}
-	cfg.Targets = []TargetConfig{target}
-	require.NoError(t, confmap.Validate(cfg),
-		"disabled tunnel block must not be validated even though its fields are otherwise invalid")
+	absent := &Config{Targets: []TargetConfig{target}}
+	require.NoError(t, confmap.Validate(absent),
+		"a tunnel block that was never configured (zero-value Optional) must not be validated, "+
+			"even though its zero-value contents would otherwise be invalid")
 
 	empty := &Config{}
 	require.ErrorContains(t, confmap.Validate(empty),
@@ -204,7 +211,7 @@ func TestValidateTunnelSubscriptions(t *testing.T) {
 func TestTunnelInnerTLSPerTargetType(t *testing.T) {
 	t.Parallel()
 
-	tunnelCfg := NewDefaultTunnelConfig()
+	tunnelCfg := newDefaultTunnelConfig()
 	tunnelCfg.ClientTLS.InsecureSkipVerify = true
 
 	gnoi := tunnelCfg.targetConfig(targetTypeGNMIGNOI)

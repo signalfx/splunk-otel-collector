@@ -172,7 +172,8 @@ The tunnel server embeds the standard collector [gRPC server settings][configgrp
 
 | Field           | Default     | Description                                                        |
 | --------------- | ----------- | ------------------------------------------------------------------ |
-| `endpoint`      | (disabled)  | `host:port` the tunnel server listens on. Empty disables the tunnel transport. |
+| `enabled`       | `true`      | Set to `false` to disable the tunnel server even if `tunnel:` is otherwise configured. The block is also disabled when omitted entirely. |
+| `endpoint`      | (required)  | `host:port` the tunnel server listens on. Required once the block is enabled; omit the whole `tunnel:` block (or set `enabled: false`) to disable. |
 | `tls`           |             | Standard collector TLS server settings, for the tunnel transport.  |
 | `target_types`  | `[GNMI_GNOI]` | Tunnel target types to accept; targets of any other type are ignored. |
 | `client_tls`    |             | TLS client settings for the gNMI session inside the tunnel. Applies only to `GNMI_GNOI` targets; `GNMI_GNOI_INSECURE` is always plaintext. |

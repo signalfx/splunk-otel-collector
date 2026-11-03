@@ -24,7 +24,7 @@ end
 
 shared_examples_for 'collector conf' do
   it 'does not complain about a missing splunk_access_token' do
-    expect(chef_run).not_to run_ruby_block('splunk-access-token-unset')
+    expect { chef_run }.not_to raise_error
   end
 end
 

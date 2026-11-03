@@ -11,6 +11,15 @@ class splunk_otel_collector::collector_win_config_options {
         'SPLUNK_REALM' => $splunk_otel_collector::splunk_realm,
     }
 
+    $platform_env_vars = if !empty($splunk_otel_collector::splunk_platform_url) {
+        { 'SPLUNK_PLATFORM_URL' => $splunk_otel_collector::splunk_platform_url,
+          'SPLUNK_PLATFORM_TOKEN' => $splunk_otel_collector::splunk_platform_token,
+          'SPLUNK_PLATFORM_LOGS_INDEX' => $splunk_otel_collector::splunk_platform_logs_index
+        }
+    } else {
+        {}
+    }
+
     $gomemlimit = if ($splunk_otel_collector::collector_version == 'latest' or
         versioncmp($splunk_otel_collector::collector_version, '0.97.0') >= 0) and
         !$splunk_otel_collector::gomemlimit.strip().empty() {
@@ -32,5 +41,5 @@ class splunk_otel_collector::collector_win_config_options {
             {}
         }
 
-    $collector_env_vars = $base_env_vars + $gomemlimit + $listen_interface + $custom_cmd_line
+    $collector_env_vars = $base_env_vars + $platform_env_vars + $gomemlimit + $listen_interface + $custom_cmd_line
 }

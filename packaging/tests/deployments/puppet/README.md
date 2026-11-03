@@ -1,9 +1,9 @@
 # Puppet deployment tests
 
 The deployment tests are Go tests in [`tests/puppet`](../../../../tests/puppet).
-They cover default and custom Collector settings, auto-instrumentation with and
-without systemd, migration from libsplunk to the otel injector, and Windows
-service configuration.
+They cover default and custom Collector settings, Splunk Platform log
+collection, auto-instrumentation with and without systemd, migration from
+libsplunk to the otel injector, and Windows service configuration.
 
 On Linux, Docker must be available. From the `tests` directory:
 

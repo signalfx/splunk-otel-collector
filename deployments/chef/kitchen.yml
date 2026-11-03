@@ -101,6 +101,28 @@ suites:
         splunk_access_token: testing123
         splunk_realm: test
 
+  - name: platform_logs
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk_otel_collector:
+        local_artifact_testing_enabled: true
+        splunk_platform_url: https://fake-splunk-hec.com:8088/services/collector
+        splunk_platform_token: fake-platform-token
+        splunk_platform_logs_index: chef-test
+
+  - name: platform_logs_with_observability
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk_otel_collector:
+        local_artifact_testing_enabled: true
+        splunk_access_token: testing123
+        splunk_realm: test
+        splunk_platform_url: https://fake-splunk-hec.com:8088/services/collector
+        splunk_platform_token: fake-platform-token
+        splunk_platform_logs_index: chef-test
+
   - name: custom_vars
     run_list:
       - recipe[splunk_otel_collector]

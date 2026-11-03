@@ -1,8 +1,18 @@
+<%
+splunk_platform_url = (node.run_state.dig('splunk_otel_collector', 'splunk_platform_url') || node['splunk_otel_collector']['splunk_platform_url']).to_s.strip
+splunk_platform_token = node.run_state.dig('splunk_otel_collector', 'splunk_platform_token') || node['splunk_otel_collector']['splunk_platform_token']
+splunk_platform_logs_index = (node.run_state.dig('splunk_otel_collector', 'splunk_platform_logs_index') || node['splunk_otel_collector']['splunk_platform_logs_index']).to_s.strip
+splunk_access_token = node.run_state.dig('splunk_otel_collector', 'splunk_access_token') || node['splunk_otel_collector']['splunk_access_token']
+has_splunk_access_token = !splunk_access_token.to_s.strip.empty?
+-%>
+<% if splunk_platform_url.empty? -%>
 # Path to the config file for the collector.
 SPLUNK_CONFIG=<%= node['splunk_otel_collector']['collector_config_dest'] %>
+<% end -%>
 
+<% if has_splunk_access_token -%>
 # Access token to authenticate requests.
-SPLUNK_ACCESS_TOKEN=<%= node.run_state.dig('splunk_otel_collector', 'splunk_access_token') || node['splunk_otel_collector']['splunk_access_token'] %>
+SPLUNK_ACCESS_TOKEN=<%= splunk_access_token %>
 
 # Which realm to send the data to.
 SPLUNK_REALM=<%= node['splunk_otel_collector']['splunk_realm'] %>
@@ -18,6 +28,18 @@ SPLUNK_HEC_URL=<%= node['splunk_otel_collector']['splunk_hec_url'] %>
 
 # Splunk HEC token.
 SPLUNK_HEC_TOKEN=<%= node.run_state.dig('splunk_otel_collector', 'splunk_hec_token') || node['splunk_otel_collector']['splunk_hec_token'] %>
+<% end -%>
+
+<% unless splunk_platform_url.empty? -%>
+# Splunk Platform HEC endpoint URL and token.
+SPLUNK_PLATFORM_URL=<%= splunk_platform_url %>
+SPLUNK_PLATFORM_TOKEN=<%= splunk_platform_token %>
+<% unless splunk_platform_logs_index.empty? -%>
+# Splunk Platform index for host logs.
+SPLUNK_PLATFORM_LOGS_INDEX=<%= splunk_platform_logs_index %>
+<% end -%>
+SPLUNK_FILE_STORAGE_EXTENSION_PATH=/var/lib/otelcol/filelogs
+<% end -%>
 
 # Total memory in MIB to allocate to the collector.
 # Automatically configures the memory limit.
@@ -32,9 +54,29 @@ SPLUNK_LISTEN_INTERFACE=<%= node['splunk_otel_collector']['splunk_listen_interfa
 GOMEMLIMIT=<%= node['splunk_otel_collector']['gomemlimit'] %>
 <% end -%>
 
-<% unless node['splunk_otel_collector']['collector_command_line_args'].to_s.strip.empty? -%>
+<%
+collector_command_line_args = node['splunk_otel_collector']['collector_command_line_args'].to_s.strip
+unless splunk_platform_url.empty?
+  if has_splunk_access_token
+    collector_command_line_args = [collector_command_line_args, "--config #{node['splunk_otel_collector']['collector_config_dest']}"].reject(&:empty?).join(' ')
+  end
+  collector_command_line_args = [collector_command_line_args, '--config /etc/otel/collector/splunk_logs_config_linux.yaml'].reject(&:empty?).join(' ')
+  if has_splunk_access_token
+    feature_gate = 'confmap.enableMergeAppendOption'
+    if collector_command_line_args =~ /--feature-gates=([^\s]+)/
+      gates = Regexp.last_match(1)
+      unless gates.split(',').include?(feature_gate)
+        collector_command_line_args = collector_command_line_args.sub("--feature-gates=#{gates}", "--feature-gates=#{gates},#{feature_gate}")
+      end
+    else
+      collector_command_line_args = [collector_command_line_args, "--feature-gates=#{feature_gate}"].reject(&:empty?).join(' ')
+    end
+  end
+end
+unless collector_command_line_args.empty?
+-%>
 # Additional command line arguments for the collector.
-OTELCOL_OPTIONS=<%= node['splunk_otel_collector']['collector_command_line_args'] %>
+OTELCOL_OPTIONS=<%= collector_command_line_args %>
 <% end -%>
 
 # Additional environment variables.

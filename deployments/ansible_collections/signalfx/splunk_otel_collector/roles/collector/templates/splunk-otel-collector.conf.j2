@@ -1,5 +1,8 @@
 OTELCOL_OPTIONS={{ splunk_otel_collector_command_line_args }}
+{% if not (splunk_platform_url is defined and splunk_platform_url) %}
 SPLUNK_CONFIG={{ splunk_otel_collector_config }}
+{% endif %}
+{% if splunk_access_token is defined and splunk_access_token %}
 SPLUNK_ACCESS_TOKEN={{ splunk_access_token }}
 SPLUNK_REALM={{ splunk_realm }}
 SPLUNK_API_URL={{ splunk_api_url | default("https://api." + splunk_realm + ".observability.splunkcloud.com") }}
@@ -12,6 +15,14 @@ SPLUNK_HEC_URL={{ splunk_ingest_url + "/v1/log" }}
 SPLUNK_HEC_URL={{ "https://ingest." + splunk_realm + ".observability.splunkcloud.com/v1/log" }}
 {% endif %}
 SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
+{% endif %}
+{% if splunk_platform_url is defined and splunk_platform_url %}
+SPLUNK_PLATFORM_URL={{ splunk_platform_url }}
+SPLUNK_PLATFORM_TOKEN={{ splunk_platform_token }}
+{% if splunk_platform_logs_index is defined and splunk_platform_logs_index %}
+SPLUNK_PLATFORM_LOGS_INDEX={{ splunk_platform_logs_index }}
+{% endif %}
+{% endif %}
 SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
 {% if splunk_listen_interface is defined and splunk_listen_interface %}
 SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}

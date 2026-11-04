@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Add host log collection to Splunk Platform with `splunk_platform_token`,
+  `splunk_platform_url`, and optional `splunk_platform_logs_index` role variables.
+  Support Platform-only installs and merge the agent config when an Observability
+  access token is also supplied.
+
 ## ansible-v1.3.0
 
 ### 🛑 Breaking changes 🛑

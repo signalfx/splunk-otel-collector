@@ -1,0 +1,15 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: enhancement
+
+# The name of the component, or a single word describing the area of concern.
+component: testing
+
+# A brief description of the change.
+note: Add an end-to-end acceptance test framework for comparing Splunk Universal Forwarder and OTel Collector TA processing.
+
+# One or more tracking issues related to the change
+issues: [8116]
+
+# Additional information rendered under the primary note.
+subtext: |
+  The framework provisions a Universal Forwarder, OTel Collector, and Splunk Enterprise environment and validates sourcetype, event count, field, and timestamp parity.

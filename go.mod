@@ -28,7 +28,7 @@ require (
 	github.com/openconfig/goyang v1.6.3
 	github.com/openconfig/ygot v0.35.0
 	github.com/prometheus/client_golang v1.25.0
-	github.com/prometheus/common v0.72.1
+	github.com/prometheus/common v0.73.0
 	github.com/prometheus/prometheus v0.315.1
 	github.com/shirou/gopsutil/v4 v4.26.9
 	github.com/signalfx/splunk-otel-collector/baseline v0.164.0
@@ -441,6 +441,7 @@ require (
 	github.com/outcaste-io/ristretto v0.2.3 // indirect
 	github.com/outscale/osc-sdk-go/v2 v2.35.0 // indirect
 	github.com/ovh/go-ovh v1.9.0 // indirect
+	github.com/pandatix/go-abnf v0.5.1 // indirect
 	github.com/paulmach/orb v0.13.0 // indirect
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0 // indirect
 	github.com/pb33f/jsonpath v0.8.2 // indirect

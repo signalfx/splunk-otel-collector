@@ -1,0 +1,4 @@
+@ETC@/apps/an_app_with_a_very_long_name_to_test_column_widths/local/zzcmp.conf [s]
+@ETC@/apps/an_app_with_a_very_long_name_to_test_column_widths/local/zzcmp.conf long = 2
+@ETC@/system/default/zzcmp.conf short = 1
+EXIT=0

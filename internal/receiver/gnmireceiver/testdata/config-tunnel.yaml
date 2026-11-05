@@ -1,0 +1,14 @@
+gnmi:
+  tunnel:
+    endpoint: localhost:0
+    target_types: [GNMI_GNOI_INSECURE]
+    username: admin
+    password: secret
+    redial: 15s
+    subscriptions:
+      - path: /interfaces/interface/state/counters
+        mode: sample
+        sample_interval: 10s
+        default:
+          type: sum
+          unit: By

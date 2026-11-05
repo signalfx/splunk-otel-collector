@@ -26,6 +26,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.164.1
 	github.com/openconfig/gnmi v0.14.1
 	github.com/openconfig/goyang v1.6.3
+	github.com/openconfig/grpctunnel v0.2.0
 	github.com/openconfig/ygot v0.35.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/common v0.72.1

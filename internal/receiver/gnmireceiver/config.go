@@ -23,6 +23,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configoptional"
+	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/confmap"
 )
 
@@ -49,6 +51,15 @@ const (
 
 const defaultRedial = 10 * time.Second
 
+// Target types accepted from devices registering over the gRPC tunnel.
+//   - GNMI_GNOI is production.
+//   - GNMI_GNOI_INSECURE is Cisco's testing-only variant
+//     (dials the device's insecure gNMI port inside the still-TLS tunnel).
+const (
+	targetTypeGNMIGNOI         = "GNMI_GNOI"
+	targetTypeGNMIGNOIInsecure = "GNMI_GNOI_INSECURE"
+)
+
 // Config defines the configuration for the gNMI receiver.
 type Config struct {
 	// Targets is the list of gNMI devices to subscribe to.
@@ -69,6 +80,13 @@ type Config struct {
 	// still fills in whatever the schema left blank (e.g. "unit", which most
 	// OpenConfig models omit). Optional.
 	YangModules []string `mapstructure:"yang_modules"`
+
+	// Tunnel configures an optional OpenConfig gRPC tunnel server for devices
+	// that dial out to the receiver and register a tunnel target. The receiver
+	// then dials back through the tunnel and runs a normal gNMI Subscribe.
+	// Disabled when absent or when explicitly "enabled: false"; once enabled,
+	// "endpoint" is required.
+	Tunnel configoptional.Optional[TunnelConfig] `mapstructure:"tunnel"`
 }
 
 // TargetConfig defines connectivity, authentication, and subscriptions for a
@@ -94,6 +112,35 @@ type GNMIReverseConfig struct {
 	configgrpc.ServerConfig `mapstructure:",squash"`
 }
 
+// TunnelConfig defines the optional receiver-hosted gRPC tunnel server and
+// the subscription set applied to every target that registers over it.
+type TunnelConfig struct {
+	Username                configopaque.String  `mapstructure:"username"`
+	Password                configopaque.String  `mapstructure:"password"`
+	Encoding                string               `mapstructure:"encoding"`
+	Subscriptions           []SubscriptionConfig `mapstructure:"subscriptions"`
+	TargetTypes             []string             `mapstructure:"target_types"`
+	configgrpc.ServerConfig `mapstructure:",squash"`
+	ClientTLS               configtls.ClientConfig `mapstructure:"client_tls"`
+	Redial                  time.Duration          `mapstructure:"redial"`
+}
+
+func (t *TunnelConfig) targetConfig(targetType string) TargetConfig {
+	tc := NewDefaultTargetConfig()
+	tc.Username = t.Username
+	tc.Password = t.Password
+	tc.Encoding = t.Encoding
+	tc.Redial = t.Redial
+	tc.Subscriptions = t.Subscriptions
+	if targetType == targetTypeGNMIGNOIInsecure {
+		tc.ClientConfig.TLS = configtls.NewDefaultClientConfig()
+		tc.ClientConfig.TLS.Insecure = true
+	} else {
+		tc.ClientConfig.TLS = t.ClientTLS
+	}
+	return tc
+}
+
 func NewDefaultTargetConfig() TargetConfig {
 	return TargetConfig{
 		ClientConfig: configgrpc.NewDefaultClientConfig(),
@@ -104,6 +151,16 @@ func NewDefaultTargetConfig() TargetConfig {
 
 func NewDefaultGNMIReverseConfig() GNMIReverseConfig {
 	return GNMIReverseConfig{ServerConfig: configgrpc.NewDefaultServerConfig()}
+}
+
+func newDefaultTunnelConfig() TunnelConfig {
+	return TunnelConfig{
+		ServerConfig: configgrpc.NewDefaultServerConfig(),
+		ClientTLS:    configtls.NewDefaultClientConfig(),
+		TargetTypes:  []string{targetTypeGNMIGNOI},
+		Encoding:     encodingProto,
+		Redial:       defaultRedial,
+	}
 }
 
 // SubscriptionConfig defines a single gNMI path subscription.
@@ -138,6 +195,22 @@ type SubscriptionConfig struct {
 	SuppressRedundant bool `mapstructure:"suppress_redundant"`
 }
 
+func (sc SubscriptionConfig) copy() SubscriptionConfig {
+	out := sc
+	if sc.Default != nil {
+		d := *sc.Default
+		out.Default = &d
+	}
+	if len(sc.Overrides) > 0 {
+		overrides := make(map[string]MetricConfig, len(sc.Overrides))
+		for leaf, cfg := range sc.Overrides {
+			overrides[leaf] = cfg
+		}
+		out.Overrides = overrides
+	}
+	return out
+}
+
 // MetricConfig declares how a gNMI leaf value is represented as an OTel metric.
 type MetricConfig struct {
 	// Type is the OTel metric type: "gauge" or "sum".
@@ -165,6 +238,8 @@ var (
 	_ confmap.Unmarshaler = (*TargetConfig)(nil)
 	_ confmap.Validator   = (*TargetConfig)(nil)
 	_ confmap.Validator   = (*MetricConfig)(nil)
+	_ confmap.Unmarshaler = (*TunnelConfig)(nil)
+	_ confmap.Validator   = (*TunnelConfig)(nil)
 )
 
 // Unmarshal applies per-target defaults (embedded gRPC client defaults,
@@ -174,13 +249,21 @@ func (t *TargetConfig) Unmarshal(conf *confmap.Conf) error {
 	return conf.Unmarshal(t)
 }
 
+// Unmarshal applies tunnel defaults (target types, encoding, redial, tunnel transport,
+// and inner-TLS defaults) before decoding user-supplied values.
+func (t *TunnelConfig) Unmarshal(conf *confmap.Conf) error {
+	*t = newDefaultTunnelConfig()
+	return conf.Unmarshal(t)
+}
+
 func (cfg *Config) Validate() error {
 	gnmiReverseEndpoint := ""
 	if cfg.GNMIReverse != nil {
 		gnmiReverseEndpoint = cfg.GNMIReverse.NetAddr.Endpoint
 	}
-	if len(cfg.Targets) == 0 && gnmiReverseEndpoint == "" {
-		return errors.New("at least one target or a gnmireverse endpoint must be specified")
+	tunnelEnabled := cfg.Tunnel.HasValue()
+	if len(cfg.Targets) == 0 && gnmiReverseEndpoint == "" && !tunnelEnabled {
+		return errors.New("at least one target, a gnmireverse endpoint, or a tunnel endpoint must be specified")
 	}
 	if gnmiReverseEndpoint != "" && len(cfg.GNMIReverse.Subscriptions) == 0 {
 		return errors.New("gnmireverse.subscriptions must contain at least one subscription when gnmireverse.endpoint is set")
@@ -207,7 +290,14 @@ func (cfg *Config) Validate() error {
 			return err
 		}
 		if gnmiReverseEndpoint != "" {
-			return validateSubscriptionMetricConfig(cfg.GNMIReverse.Subscriptions, "gnmireverse.subscriptions", false)
+			if err := validateSubscriptionMetricConfig(cfg.GNMIReverse.Subscriptions, "gnmireverse.subscriptions", false); err != nil {
+				return err
+			}
+		}
+		if tunnelEnabled {
+			if err := validateSubscriptionMetricConfig(cfg.Tunnel.Get().Subscriptions, "tunnel.subscriptions", true); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -287,28 +377,82 @@ func (t *TargetConfig) Validate() error {
 		return errors.New("endpoint is required")
 	}
 
-	switch t.Encoding {
-	case encodingProto, encodingJSON, encodingJSONIETF:
-	case "":
-		return errors.New("encoding is required")
-	default:
-		return fmt.Errorf("invalid encoding %q (supported: %q, %q, %q)",
-			t.Encoding, encodingProto, encodingJSON, encodingJSONIETF)
+	if err := validateEncoding(t.Encoding); err != nil {
+		return err
 	}
-
-	if t.Username == "" && t.Password != "" {
-		return errors.New("password requires username to be set")
+	if err := validateCredentials(t.Username, t.Password); err != nil {
+		return err
 	}
-
-	if t.Redial < 0 {
-		return errors.New("redial must not be negative (use 0 to disable reconnection)")
-	}
-	if t.Redial > 0 && t.Redial < time.Second {
-		return errors.New("redial must be at least 1s (or 0 to disable reconnection)")
+	if err := validateRedial(t.Redial); err != nil {
+		return err
 	}
 
 	if len(t.Subscriptions) == 0 {
 		return errors.New("at least one subscription must be specified")
+	}
+	return nil
+}
+
+func validateEncoding(encoding string) error {
+	switch encoding {
+	case encodingProto, encodingJSON, encodingJSONIETF:
+		return nil
+	case "":
+		return errors.New("encoding is required")
+	default:
+		return fmt.Errorf("invalid encoding %q (supported: %q, %q, %q)",
+			encoding, encodingProto, encodingJSON, encodingJSONIETF)
+	}
+}
+
+func validateCredentials(username, password configopaque.String) error {
+	if username == "" && password != "" {
+		return errors.New("password requires username to be set")
+	}
+	return nil
+}
+
+func validateRedial(redial time.Duration) error {
+	if redial < 0 {
+		return errors.New("redial must not be negative (use 0 to disable reconnection)")
+	}
+	if redial > 0 && redial < time.Second {
+		return errors.New("redial must be at least 1s (or 0 to disable reconnection)")
+	}
+	return nil
+}
+
+func (t *TunnelConfig) Validate() error {
+	if t.NetAddr.Endpoint == "" {
+		return errors.New("endpoint is required")
+	}
+	if len(t.Subscriptions) == 0 {
+		return errors.New("at least one subscription must be specified")
+	}
+	if len(t.TargetTypes) == 0 {
+		return errors.New("target_types must contain at least one target type")
+	}
+	seen := make(map[string]struct{}, len(t.TargetTypes))
+	for _, tt := range t.TargetTypes {
+		switch tt {
+		case targetTypeGNMIGNOI, targetTypeGNMIGNOIInsecure:
+		default:
+			return fmt.Errorf("invalid target_types entry %q (supported: %q, %q)",
+				tt, targetTypeGNMIGNOI, targetTypeGNMIGNOIInsecure)
+		}
+		if _, ok := seen[tt]; ok {
+			return fmt.Errorf("duplicate target_types entry %q", tt)
+		}
+		seen[tt] = struct{}{}
+	}
+	if err := validateEncoding(t.Encoding); err != nil {
+		return err
+	}
+	if err := validateCredentials(t.Username, t.Password); err != nil {
+		return err
+	}
+	if err := validateRedial(t.Redial); err != nil {
+		return err
 	}
 	return nil
 }
@@ -338,4 +482,12 @@ func (m *MetricConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+func copySubscriptions(subs []SubscriptionConfig) []SubscriptionConfig {
+	out := make([]SubscriptionConfig, len(subs))
+	for i, s := range subs {
+		out[i] = s.copy()
+	}
+	return out
 }

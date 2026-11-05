@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
@@ -115,6 +116,110 @@ func TestValidateGNMIReverseSubscriptions(t *testing.T) {
 	}}
 	cfg.Targets = []TargetConfig{target}
 	require.NoError(t, cfg.Validate(), "disabled gnmireverse subscriptions are not validated")
+}
+
+func TestLoadTunnelConfig(t *testing.T) {
+	t.Parallel()
+
+	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config-tunnel.yaml"))
+	require.NoError(t, err)
+
+	sub, err := cm.Sub("gnmi")
+	require.NoError(t, err)
+
+	cfg := createDefaultConfig().(*Config)
+	require.NoError(t, sub.Unmarshal(cfg))
+	require.NoError(t, confmap.Validate(cfg))
+
+	require.True(t, cfg.Tunnel.HasValue())
+	tunnelCfg := cfg.Tunnel.Get()
+	require.Equal(t, "localhost:0", tunnelCfg.NetAddr.Endpoint)
+	require.Equal(t, "tcp", string(tunnelCfg.NetAddr.Transport))
+	require.Equal(t, []string{targetTypeGNMIGNOIInsecure}, tunnelCfg.TargetTypes)
+	require.Equal(t, "admin", string(tunnelCfg.Username))
+	require.Equal(t, "secret", string(tunnelCfg.Password))
+	require.Equal(t, 15*time.Second, tunnelCfg.Redial)
+	require.Equal(t, encodingProto, tunnelCfg.Encoding, "encoding default should survive when not set in YAML")
+	require.Len(t, tunnelCfg.Subscriptions, 1)
+}
+
+func TestValidateTunnelSubscriptions(t *testing.T) {
+	t.Parallel()
+
+	newCfg := func() *Config {
+		tunnelCfg := newDefaultTunnelConfig()
+		tunnelCfg.NetAddr.Endpoint = "localhost:0"
+		tunnelCfg.Subscriptions = []SubscriptionConfig{{
+			Path:    "/interfaces/interface/state/counters",
+			Default: &MetricConfig{Type: metricTypeSum},
+		}}
+		return &Config{Tunnel: configoptional.Some(tunnelCfg)}
+	}
+
+	cfg := newCfg()
+	require.ErrorContains(t, confmap.Validate(cfg), "mode is required",
+		"unlike gnmireverse, tunnel subscriptions require mode since the collector issues the Subscribe")
+
+	cfg = newCfg()
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	require.NoError(t, confmap.Validate(cfg))
+
+	cfg = newCfg()
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().TargetTypes = nil
+	require.ErrorContains(t, confmap.Validate(cfg), "target_types must contain at least one target type")
+
+	cfg = newCfg()
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().TargetTypes = []string{"BOGUS"}
+	require.ErrorContains(t, confmap.Validate(cfg), "invalid target_types entry")
+
+	cfg = newCfg()
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().TargetTypes = []string{targetTypeGNMIGNOI, targetTypeGNMIGNOI}
+	require.ErrorContains(t, confmap.Validate(cfg), "duplicate target_types entry")
+
+	cfg = newCfg()
+	cfg.Tunnel.Get().Subscriptions[0].Mode = modeSample
+	cfg.Tunnel.Get().Subscriptions[0].SampleInterval = time.Second
+	cfg.Tunnel.Get().NetAddr.Endpoint = ""
+	require.ErrorContains(t, confmap.Validate(cfg), "endpoint is required",
+		"endpoint is required once the tunnel block is enabled, unlike a block left out entirely")
+
+	target := NewDefaultTargetConfig()
+	target.ClientConfig.Endpoint = "localhost:57400"
+	target.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: time.Second,
+		Default:        &MetricConfig{Type: metricTypeSum},
+	}}
+	absent := &Config{Targets: []TargetConfig{target}}
+	require.NoError(t, confmap.Validate(absent),
+		"a tunnel block that was never configured (zero-value Optional) must not be validated, "+
+			"even though its zero-value contents would otherwise be invalid")
+
+	empty := &Config{}
+	require.ErrorContains(t, confmap.Validate(empty),
+		"at least one target, a gnmireverse endpoint, or a tunnel endpoint must be specified")
+}
+
+func TestTunnelInnerTLSPerTargetType(t *testing.T) {
+	t.Parallel()
+
+	tunnelCfg := newDefaultTunnelConfig()
+	tunnelCfg.ClientTLS.InsecureSkipVerify = true
+
+	gnoi := tunnelCfg.targetConfig(targetTypeGNMIGNOI)
+	require.Equal(t, tunnelCfg.ClientTLS, gnoi.ClientConfig.TLS, "GNMI_GNOI targets use the configured client_tls")
+
+	insecure := tunnelCfg.targetConfig(targetTypeGNMIGNOIInsecure)
+	require.True(t, insecure.ClientConfig.TLS.Insecure, "GNMI_GNOI_INSECURE targets are always dialed in plaintext")
+	require.False(t, insecure.ClientConfig.TLS.InsecureSkipVerify, "GNMI_GNOI_INSECURE must not inherit the configured client_tls")
 }
 
 func TestLoadConfigWithYangModulesOmitsTypeAndOverrides(t *testing.T) {

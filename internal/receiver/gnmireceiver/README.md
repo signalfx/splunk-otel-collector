@@ -16,7 +16,8 @@ updates into OpenTelemetry metrics.
 
 The receiver opens a long-lived gNMI `Subscribe` stream to each configured target. Each
 stream can contain multiple path `subscriptions`. It can also expose an Arista gNMIReverse
-server that accepts streamed gNMI Subscribe and Get responses.
+server that accepts streamed gNMI Subscribe and Get responses, or an OpenConfig gRPC
+tunnel server that devices behind NAT or a firewall dial out to.
 
 The inbound endpoint implements Arista's gNMIReverse protocol and works with the Arista
 [`gnmireverse` client](https://github.com/aristanetworks/goarista/tree/master/gnmireverse).
@@ -74,15 +75,78 @@ receivers:
 
 `gnmireverse` is optional. When configured, the receiver listens on its endpoint and ingests
 the values in incoming gNMIReverse `Publish` and `PublishGet` streams. The receiver can run
-with only `gnmireverse` configured; outbound `targets` are optional in that case. The server
-requires `subscriptions` to select incoming paths and map their values. It uses the standard
-collector gRPC server settings, including TLS, authentication, and message size limits. A
-message's `prefix.target` is used for the `server.address` resource attribute when present;
-otherwise the configured server endpoint is used.
+with only `gnmireverse` configured, or only `tunnel` (below) configured; outbound `targets`
+are optional in that case. The server requires `subscriptions` to select incoming paths and
+map their values. It uses the standard collector gRPC server settings, including TLS,
+authentication, and message size limits. A message's `prefix.target` is used for the
+`server.address` resource attribute when present; otherwise the configured server endpoint
+is used.
 For `gnmireverse.subscriptions`, configure only `path`, `origin`, and the metric mapping fields
 (`default` and `overrides`). Outbound subscription controls (`mode`, `sample_interval`,
 `heartbeat_interval`, and `suppress_redundant`) are not supported on this inbound stream and
 are rejected when set.
+
+### gRPC tunnel dial-out
+
+Cisco devices (IOS-XE `gnxi grpctunnel`, IOS-XR `grpc tunnel destination`, NX-OS
+`feature grpctunnel`) implement the [OpenConfig gRPC tunnel][grpctunnel] instead of
+gNMIReverse: the **device dials the collector** and registers a tunnel target, and the
+**collector then dials back through that tunnel** and runs a normal gNMI `Subscribe`. This is
+the single most confusing thing about this transport — the TCP connection direction and the
+gNMI RPC direction are opposite. Because the collector still issues the `Subscribe`, unlike
+`gnmireverse`, the outbound subscription controls (`mode`, `sample_interval`,
+`heartbeat_interval`, `suppress_redundant`) **are** supported here, and `mode` is **required**.
+
+A single shared `subscriptions` list applies to *every* target that registers over the
+tunnel — there is no per-device configuration.
+
+```yaml
+receivers:
+  gnmi:
+    tunnel:
+      endpoint: 0.0.0.0:57400       # tunnel server; devices dial this
+      tls:                          # tunnel transport (device -> collector); mandatory on every Cisco platform
+        cert_file: /etc/otelcol/certs/tunnel-server.crt
+        key_file: /etc/otelcol/certs/tunnel-server.key
+      target_types: [GNMI_GNOI]     # GNMI_GNOI (default) | GNMI_GNOI_INSECURE (lab only)
+      client_tls:                   # gNMI session inside the tunnel; GNMI_GNOI only
+        insecure_skip_verify: true  # or server_name_override, since the dial target is a bare tunnel ID
+      username: admin
+      password: ${env:GNMI_PASSWORD}
+      encoding: proto
+      redial: 30s
+      subscriptions:
+        - path: /interfaces/interface/state/counters
+          origin: openconfig
+          mode: sample               # mode is required here, unlike gnmireverse
+          sample_interval: 10s
+          default:
+            type: sum
+            unit: "1"
+```
+
+Notes:
+
+- `tls` configures the **tunnel transport** itself. Every Cisco platform requires this to be
+  TLS; the device is configured with an `identity-trustpoint` (IOS-XE) or an installed
+  collector certificate (IOS-XR) pointing at it.
+- `client_tls` configures the **gNMI session carried inside the tunnel**, and only applies to
+  `GNMI_GNOI` targets. `GNMI_GNOI_INSECURE` targets are always dialed in plaintext inside the
+  (still TLS) tunnel; Cisco documents this type for testing only.
+- `server.address` is set to the tunnel target ID the device registered — not a host:port.
+- **TLS gotcha:** the inner gNMI dial target is the bare tunnel target ID (e.g. `router1`),
+  not a reachable address, so its default TLS `ServerName` will not match a device
+  certificate's SAN. Set `client_tls.server_name_override` or `client_tls.insecure_skip_verify`.
+- `max_recv_msg_size_mib` (from the standard gRPC server settings) limits the outer tunnel
+  `Data` frames, not the inner gNMI messages — it is not the right knob for a large gNMI
+  response.
+- A device registering with a target type outside `target_types` is ignored and logged at
+  **info** with the exact type string received, so a misconfigured allowlist is visible at
+  default verbosity. Other tunnel-server errors (e.g. duplicate registrations) are logged at
+  **debug**.
+- Device-side configuration differs by platform: IOS-XE uses `gnxi grpctunnel`, IOS-XR uses
+  `grpc tunnel destination`, and NX-OS uses `feature grpctunnel` — expect one of these three
+  syntaxes depending on the fleet.
 
 ### Target
 
@@ -98,6 +162,26 @@ Each target embeds the standard collector [gRPC client settings][configgrpc]
 | `redial`        | `10s`     | Delay before reconnecting after a session failure (min `1s`). Set to `0` to disable automatic reconnection. |
 | `tls`           |           | Standard collector TLS client settings.                            |
 | `subscriptions` | (required)| One or more path subscriptions (below).                            |
+
+### Tunnel
+
+The tunnel server embeds the standard collector [gRPC server settings][configgrpc]
+(`endpoint`, `tls`, `keepalive`, `auth`, ...) plus the fields below. Its `tls` is the tunnel
+*transport*; see [gRPC tunnel dial-out](#grpc-tunnel-dial-out) above for the distinction from
+`client_tls`.
+
+| Field           | Default     | Description                                                        |
+| --------------- | ----------- | ------------------------------------------------------------------ |
+| `enabled`       | `true`      | Set to `false` to disable the tunnel server even if `tunnel:` is otherwise configured. The block is also disabled when omitted entirely. |
+| `endpoint`      | (required)  | `host:port` the tunnel server listens on. Required once the block is enabled; omit the whole `tunnel:` block (or set `enabled: false`) to disable. |
+| `tls`           |             | Standard collector TLS server settings, for the tunnel transport.  |
+| `target_types`  | `[GNMI_GNOI]` | Tunnel target types to accept; targets of any other type are ignored. |
+| `client_tls`    |             | TLS client settings for the gNMI session inside the tunnel. Applies only to `GNMI_GNOI` targets; `GNMI_GNOI_INSECURE` is always plaintext. |
+| `username`      |             | Sent as gNMI gRPC metadata on every tunneled session (not an `Authorization` header). |
+| `password`      |             | Sent as gNMI gRPC metadata alongside `username`. Redacted in logs. Requires `username`. |
+| `encoding`      | `proto`     | gNMI encoding: `proto`, `json`, or `json_ietf`.                    |
+| `redial`        | `10s`       | Delay before re-subscribing after a tunneled session failure (min `1s`). Set to `0` to disable automatic reconnection. |
+| `subscriptions` | (required)  | One or more path subscriptions (below), applied to every accepted target. |
 
 ### Subscription
 
@@ -325,6 +409,7 @@ with a blank password). Setting `password` without `username` is rejected at sta
   does not support `proto`.
 
 [configgrpc]: https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configgrpc/README.md
+[grpctunnel]: https://github.com/openconfig/grpctunnel
 [UCUM]: https://ucum.org/ucum
 [spec-stream]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#35152-stream-subscriptions
 [spec-auth]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#31-session-security-authentication-and-rpc-authorization

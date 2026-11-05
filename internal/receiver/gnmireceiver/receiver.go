@@ -62,13 +62,15 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 
 	clients := make([]*gnmiClient, 0, len(r.cfg.Targets))
 	for i := range r.cfg.Targets {
+		endpoint := r.cfg.Targets[i].ClientConfig.Endpoint
 		parser := newMetricParser(
-			r.cfg.Targets[i].ClientConfig.Endpoint,
+			endpoint,
 			r.cfg.Targets[i].Subscriptions,
 			schema,
 			r.settings.TelemetrySettings.Logger,
 		)
 		client := newGNMIClient(
+			endpoint,
 			&r.cfg.Targets[i],
 			host,
 			r.settings.TelemetrySettings,
@@ -82,7 +84,7 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 					_ = started.conn.Close()
 				}
 			}
-			return fmt.Errorf("target %q: %w", client.target.ClientConfig.Endpoint, err)
+			return fmt.Errorf("target %q: %w", client.name, err)
 		}
 		clients = append(clients, client)
 	}
@@ -95,7 +97,8 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 			closeGNMIClients(clients)
 			return fmt.Errorf("create gNMI server: %w", serverErr)
 		}
-		listener, err := net.Listen(string(r.cfg.GNMIReverse.NetAddr.Transport), endpoint)
+		var listener net.Listener
+		listener, err = net.Listen(string(r.cfg.GNMIReverse.NetAddr.Transport), endpoint)
 		if err != nil {
 			closeGNMIClients(clients)
 			return fmt.Errorf("listen for gNMI clients on %q: %w", endpoint, err)
@@ -110,9 +113,34 @@ func (r *gnmiReceiver) Start(startCtx context.Context, host component.Host) erro
 		listeners = append(listeners, grpcListener{name: endpoint, server: server, listener: listener})
 	}
 
+	var tunnelSrv *tunnelServer
+	if tunnelCfg := r.cfg.Tunnel.Get(); tunnelCfg != nil && tunnelCfg.NetAddr.Endpoint != "" {
+		tunnelSrv, err = newTunnelServer(
+			startCtx,
+			tunnelCfg,
+			schema,
+			host,
+			r.settings.TelemetrySettings,
+			r.consumer,
+		)
+		if err != nil {
+			closeGNMIClients(clients)
+			closeListeners(listeners)
+			return fmt.Errorf("create gNMI tunnel server: %w", err)
+		}
+		listeners = append(listeners, grpcListener{
+			name:     tunnelCfg.NetAddr.Endpoint,
+			server:   tunnelSrv.server,
+			listener: tunnelSrv.listener,
+		})
+	}
+
 	ctx, cancel := context.WithCancel(context.WithoutCancel(startCtx))
 	r.cancel = cancel
 
+	if tunnelSrv != nil {
+		tunnelSrv.start(ctx, &r.wg)
+	}
 	for _, client := range clients {
 		r.wg.Go(func() {
 			client.run(ctx)
@@ -160,5 +188,11 @@ func closeGNMIClients(clients []*gnmiClient) {
 		if client.conn != nil {
 			_ = client.conn.Close()
 		}
+	}
+}
+
+func closeListeners(listeners []grpcListener) {
+	for _, l := range listeners {
+		_ = l.listener.Close()
 	}
 }

@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 
@@ -34,9 +35,11 @@ func NewFactory() receiver.Factory {
 
 func createDefaultConfig() component.Config {
 	gnmiReverseConfig := NewDefaultGNMIReverseConfig()
+	tunnelConfig := newDefaultTunnelConfig()
 	return &Config{
 		Targets:     []TargetConfig{},
 		GNMIReverse: &gnmiReverseConfig,
+		Tunnel:      configoptional.Default(tunnelConfig),
 	}
 }
 

@@ -51,7 +51,51 @@ import (
 	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
 )
 
-const usage = "usage: otelcollauncher btool [--app=<app>] [--dir=<etc-dir>] [--expand-stanzas=<true|false>] <conf-file> list [stanza-prefix]"
+const usageText = `Print the effective settings of a Splunk configuration file, merged from
+every layer under a Splunk etc directory the way "splunk btool <conf-file> list"
+does. This is a read-only subset of native btool: only "list" is supported.
+
+Usage:
+  otelcollauncher btool [flags] <conf-file> list [stanza-prefix]
+
+Arguments:
+  <conf-file>      Name of the configuration file without the ".conf" extension
+                   (e.g. "server" for server.conf).
+  stanza-prefix    Only print stanzas whose name starts with this prefix.
+
+Flags (written as --flag=value):
+  --dir=<etc-dir>               Splunk etc directory to read. If unset, uses
+                                $SPLUNK_ETC when it is an existing absolute
+                                directory, else $SPLUNK_HOME/etc.
+  --app=<app>                   Only merge this app's default/ and local/ layers
+                                instead of the whole etc directory. Fails if
+                                the app does not exist or is disabled.
+  --expand-stanzas=<true|false> Expand $VARIABLE references (such as
+                                $SPLUNK_HOME or $SPLUNK_DB) in stanza names
+                                (default true).
+  --no-log                      Accepted for compatibility; has no effect.
+
+Settings are merged in increasing precedence: system/default, apps/*/default,
+apps/*/local, system/local. Disabled apps are skipped, except for app.conf.
+Settings in the [default] stanza are inherited by every other stanza. Output is
+sorted, with a "[stanza]" header followed by "key = value" lines.
+
+Exit codes: 0 on success, 2 for a malformed command, 1 for any other error.
+
+Not supported: native btool accepts the following, but this command rejects
+them with an error.
+  Commands: layer, add, delete, check, check-schemes, validate,
+            validate-strptime, validate-regex, and the -debug variants of
+            commands such as list-debug.
+  Flags:    --user, --peername, --peer-apps, --slave-apps, --searchpool,
+            --json, --debug-print, --debug-logfile, --log-warnings.
+
+Examples:
+  otelcollauncher btool server list
+  otelcollauncher btool inputs list monitor://
+  otelcollauncher btool --app=search props list
+  otelcollauncher btool --dir=/opt/splunk/etc --expand-stanzas=false outputs list
+`
 
 type Manager struct{}
 
@@ -61,14 +105,14 @@ func (m *Manager) Verbs() []cli.VerbInfo {
 	return []cli.VerbInfo{{
 		Name:  "btool",
 		Help:  "inspect merged Splunk .conf settings",
-		Usage: usage + "\n\nReads --dir, else $SPLUNK_ETC, else $SPLUNK_HOME/etc.",
+		Usage: usageText,
 	}}
 }
 
 func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams cli.IO) int {
 	options, code, err := parseArgs(args)
 	if err != nil {
-		fmt.Fprintf(streams.Err, "%v\n%s\n", err, usage)
+		fmt.Fprintf(streams.Err, "%v\n\n%s", err, usageText)
 		return code
 	}
 

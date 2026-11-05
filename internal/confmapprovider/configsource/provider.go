@@ -25,7 +25,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
-	"github.com/signalfx/splunk-otel-collector/internal/configsource/envvarconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/etcd2configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/includeconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/splunksecretconfigsource"
@@ -36,7 +35,6 @@ import (
 var configSourceFactories = func() configsource.Factories {
 	factories := make(configsource.Factories)
 	for _, f := range []configsource.Factory{
-		envvarconfigsource.NewFactory(),
 		includeconfigsource.NewFactory(),
 		vaultconfigsource.NewFactory(),
 		zookeeperconfigsource.NewFactory(),

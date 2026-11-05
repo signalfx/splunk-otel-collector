@@ -1,0 +1,23 @@
+@ETC@/apps/A/default/inputs.conf [batch://@ETC@/apps/A/w]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [modx://@ETC@/apps/A/m]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [monitor://x/./y]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [script://.]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [script://..]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [script://.hidden]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [script:///./c]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [script://@ETC@/apps/A/a/./b]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/system/local/inputs.conf [script://@ETC@/system/local/local.sh]
+@ETC@/system/local/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [script://bin/y.sh]
+@ETC@/apps/A/default/inputs.conf a = 1
+@ETC@/apps/A/default/inputs.conf [tcp://@ETC@/apps/A/m]
+@ETC@/apps/A/default/inputs.conf a = 1
+EXIT=0

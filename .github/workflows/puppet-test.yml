@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - '.github/workflows/puppet-test.yml'
+      - '.github/actions/setup-windows-go-cache/**'
       - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/puppet/**'
       - 'instrumentation/**'
@@ -21,6 +22,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/puppet-test.yml'
+      - '.github/actions/setup-windows-go-cache/**'
       - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/puppet/**'
       - 'instrumentation/**'
@@ -297,6 +299,8 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
+
+      - uses: ./.github/actions/setup-windows-go-cache
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0

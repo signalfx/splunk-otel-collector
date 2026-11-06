@@ -75,10 +75,6 @@ jobs:
             exit 1
           fi
 
-      - name: Clear Go build cache before Windows race tests
-        if: ${{ runner.os == 'Windows' && inputs.TEST_RACE }}
-        run: go clean -cache
-
       - name: Report disk space before unit tests
         if: runner.os == 'Windows'
         shell: pwsh

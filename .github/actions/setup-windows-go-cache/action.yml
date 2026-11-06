@@ -1,0 +1,35 @@
+name: Set up Windows Go caches
+description: Use the runner work disk for Go caches and GNU tar for cache archives.
+
+runs:
+  using: composite
+  steps:
+    # Run before setup-go so restore, builds, and the post-job save use the
+    # same paths. Changing paths causes a one-time Windows cache miss.
+    - name: Put Go caches on the runner work disk
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $workDrive = Split-Path -Qualifier $env:RUNNER_TEMP
+        $localDrive = Split-Path -Qualifier $env:LOCALAPPDATA
+        if ($workDrive -eq $localDrive) {
+          Write-Host "Runner temp and Go defaults share $workDrive; keeping default cache paths"
+          exit 0
+        }
+        $cacheRoot = Join-Path $env:RUNNER_TEMP 'go'
+        "GOCACHE=$cacheRoot\build" >> $env:GITHUB_ENV
+        "GOMODCACHE=$cacheRoot\pkg\mod" >> $env:GITHUB_ENV
+        Write-Host "Go caches will use $cacheRoot on the runner work disk"
+
+    - name: Use GNU tar for cache archives
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $tarDir = Join-Path $env:ProgramFiles 'Git\usr\bin'
+        if (-not (Test-Path (Join-Path $tarDir 'tar.exe') -PathType Leaf)) {
+          throw "Git for Windows GNU tar is missing from $tarDir"
+        }
+        # GITHUB_PATH applies to subsequent steps, including cache post steps.
+        if (($env:PATH -split ';')[0] -ne $tarDir) {
+          $tarDir >> $env:GITHUB_PATH
+        }

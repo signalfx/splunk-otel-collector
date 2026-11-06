@@ -272,7 +272,7 @@ func writeDiskUsage(ctx context.Context, logger *logger, w io.Writer) error {
 				logger.Warnf("disk collection timed out after %s; keeping collected data", diskCollectionTimeout)
 				break
 			}
-			logger.Warnf("skipping disk usage for %s: %v", p.Mountpoint, err)
+			logger.Warnf("skipping disk usage for device %q mounted at %q: %v", p.Device, p.Mountpoint, err)
 			continue
 		}
 		if _, err := fmt.Fprintf(w, "Device: %q\nMountpoint: %q\nTotal: %d\nUsed: %d\nAvailable: %d\nUsed (%%): %.1f\n\n",

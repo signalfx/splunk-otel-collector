@@ -29,12 +29,12 @@ const usageText = `Collect troubleshooting data into an archive for the Splunk O
 
 Flags:
   -c, --config-dir string  Collector configuration directory to include (defaults to the platform collector configuration directory).
-  -t, --tmpdir string      Temporary working directory for bundle contents; it must not exist (defaults to a timestamped directory under the platform temp root).
+  -t, --tmp-dir string     Temporary working directory for bundle contents; it must not exist (defaults to a timestamped directory under the platform temp root).
 
 Examples:
   otelcollauncher support-bundle
   otelcollauncher support-bundle --config-dir /etc/otel/collector
-  otelcollauncher support-bundle --tmpdir /tmp/support-bundle
+  otelcollauncher support-bundle --tmp-dir /tmp/support-bundle
 `
 
 type Family struct{}
@@ -74,8 +74,8 @@ func parseArgs(args []string, streams cli.IO) (options, int, bool) {
 	var opts options
 	fs.StringVar(&opts.configDir, "config-dir", "", "collector configuration directory")
 	fs.StringVar(&opts.configDir, "c", "", "collector configuration directory (shorthand for --config-dir)")
-	fs.StringVar(&opts.tempDir, "tmpdir", "", "temporary working directory for bundle contents")
-	fs.StringVar(&opts.tempDir, "t", "", "temporary working directory for bundle contents (shorthand for --tmpdir)")
+	fs.StringVar(&opts.tempDir, "tmp-dir", "", "temporary working directory for bundle contents")
+	fs.StringVar(&opts.tempDir, "t", "", "temporary working directory for bundle contents (shorthand for --tmp-dir)")
 
 	if err := fs.Parse(args); err != nil {
 		return options{}, cli.ExitUsage, false

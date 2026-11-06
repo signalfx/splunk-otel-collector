@@ -26,7 +26,7 @@ import (
 func TestParseArgs(t *testing.T) {
 	streams := cli.IO{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
 
-	opts, code, ok := parseArgs([]string{"--config-dir", "/etc/otel/collector", "--tmpdir", "/tmp/support-bundle"}, streams)
+	opts, code, ok := parseArgs([]string{"--config-dir", "/etc/otel/collector", "--tmp-dir", "/tmp/support-bundle"}, streams)
 
 	require.True(t, ok)
 	require.Equal(t, cli.ExitOK, code)

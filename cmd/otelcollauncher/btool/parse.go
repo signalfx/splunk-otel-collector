@@ -76,22 +76,13 @@ func parseConf(payload []byte) ([]setting, error) {
 			settings = append(settings, setting{stanza: stanza, header: true})
 			continue
 		}
-		if strings.HasSuffix(line, "\\") {
-			var sb strings.Builder
-			for {
-				if !strings.HasSuffix(line, "\\") {
-					sb.WriteString(line)
-					break
-				}
-				sb.WriteString(strings.TrimSuffix(line, "\\"))
-				if i+1 >= len(lines) {
-					break
-				}
-				i++
-				sb.WriteByte('\n')
-				line = lines[i]
+		for strings.HasSuffix(line, "\\") {
+			line = strings.TrimSuffix(line, "\\")
+			if i+1 >= len(lines) {
+				break
 			}
-			line = sb.String()
+			i++
+			line += "\n" + lines[i]
 		}
 		key, value, found := splitSetting(line)
 		if !found {

@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 )
@@ -216,26 +218,56 @@ func schemeAppDirs(confRoot string) (map[string]string, error) {
 	return owners, nil
 }
 
-// declaredSchemes returns the scheme of every [<scheme>://...] stanza header in
-// a spec file. The headers are all that is taken from a spec file, and the rest
-// is prose, so it is scanned for them instead of parsed as a .conf file. An
-// unreadable spec file declares nothing.
+// modinputIdentifier is what splunkd accepts as a scheme or parameter name.
+var modinputIdentifier = regexp.MustCompile(`^[0-9a-zA-Z][0-9a-zA-Z_-]*$`)
+
+// declaredSchemes returns the schemes a spec file declares, read the way splunkd
+// reads one. A [<scheme>://...] header declares its scheme only once a setting
+// with a valid parameter name follows it, because splunkd records a spec stanza
+// when it records the stanza's first setting. A header indented by whitespace is
+// an example and is ignored, so the settings after it stay with the stanza
+// before. A line starting # or ; is a comment, and any other line without an =
+// is prose. An unreadable spec file declares nothing.
 func declaredSchemes(specPath string) []string {
 	b, err := os.ReadFile(specPath)
 	if err != nil {
 		return nil
 	}
 	var schemes []string
+	current, recorded := "", false
 	for _, line := range strings.Split(string(b), "\n") {
-		line = strings.TrimSpace(line)
-		if !strings.HasPrefix(line, "[") || !strings.HasSuffix(line, "]") {
-			continue
-		}
-		if scheme, _, ok := strings.Cut(line[1:len(line)-1], "://"); ok && scheme != "" {
-			schemes = append(schemes, scheme)
+		body := strings.TrimLeftFunc(line, unicode.IsSpace)
+		switch {
+		case body == "", body[0] == '#', body[0] == ';':
+		case body[0] == '[':
+			if body != line {
+				continue
+			}
+			name := body[1:]
+			if i := strings.LastIndexByte(name, ']'); i >= 0 {
+				name = name[:i]
+			}
+			current, recorded = specScheme(name), false
+		default:
+			key, _, ok := strings.Cut(body, "=")
+			if ok && current != "" && !recorded && modinputIdentifier.MatchString(strings.TrimSpace(key)) {
+				schemes = append(schemes, current)
+				recorded = true
+			}
 		}
 	}
 	return schemes
+}
+
+// specScheme is the scheme a spec stanza name defines, or "" when it defines
+// none. splunkd cuts the name at its first '<', ':' or '.', and only a cut at
+// "://" leaves a scheme.
+func specScheme(name string) string {
+	i := strings.IndexAny(name, "<:.")
+	if i < 0 || !strings.HasPrefix(name[i:], "://") || !modinputIdentifier.MatchString(name[:i]) {
+		return ""
+	}
+	return name[:i]
 }
 
 func confFilePaths(dirs []string, filename string) []string {

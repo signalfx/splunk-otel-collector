@@ -5,6 +5,7 @@ package splunkconf
 
 import (
 	"errors"
+	"path/filepath"
 	"sort"
 	"testing"
 
@@ -163,6 +164,37 @@ func TestNewConfDropsDisabled(t *testing.T) {
 	}, nil)
 	require.NoError(t, err)
 	require.Empty(t, tree.Inputs)
+}
+
+// A modular input carries the app that declares its scheme, wherever the stanza
+// is written, and one whose declaring app is disabled never reaches a mapper.
+func TestNewConfResolvesSchemeApp(t *testing.T) {
+	confRoot := t.TempDir()
+	writeSpec(t, filepath.Join(confRoot, "apps", "my_ta"), "mycollector")
+	writeSpec(t, filepath.Join(confRoot, "apps", "off_ta"), "blocked")
+	writeApp(t, confRoot, "off_ta", "local", "[install]\nstate = disabled\n")
+
+	system := filepath.Join(confRoot, "system")
+	in := func(name string) conf.Input {
+		return conf.Input{AppDir: system, Configuration: conf.Configuration{Stanza: conf.Stanza{Name: name}}}
+	}
+	tree, err := newConf(confRoot, []conf.Input{
+		in("mycollector://prod"),
+		in("undeclared://x"),
+		in("blocked://y"),
+		in("monitor:///var/log"),
+	}, nil)
+	require.NoError(t, err)
+
+	got := map[string]string{}
+	for _, i := range tree.Inputs {
+		got[i.Configuration.Stanza.Name] = i.SchemeAppDir
+	}
+	require.Equal(t, map[string]string{
+		"mycollector://prod": filepath.Join(confRoot, "apps", "my_ta"),
+		"undeclared://x":     "",
+		"monitor:///var/log": "",
+	}, got)
 }
 
 func TestParseURI(t *testing.T) {

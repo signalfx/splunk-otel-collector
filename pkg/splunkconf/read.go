@@ -184,6 +184,60 @@ func appEnabled(appDir string) bool {
 	return !set || state == "enabled"
 }
 
+// schemeAppDirs maps each modular-input scheme to the app directory whose
+// README/inputs.conf.spec declares it, which is where splunkd runs the scheme
+// from, whichever app's inputs.conf holds a stanza of it.
+//
+// system is read first, then every app in byte order of its directory name, and
+// the first declaration wins. A disabled app takes part: it still wins, and
+// splunkd then does not run the scheme at all rather than passing it to a later
+// app, so its schemes map to "". system is never disabled.
+func schemeAppDirs(confRoot string) (map[string]string, error) {
+	apps, err := appDirs(confRoot)
+	if err != nil {
+		return nil, err
+	}
+	owners := map[string]string{}
+	claim := func(appDir string, enabled bool) {
+		owner := ""
+		if enabled {
+			owner = appDir
+		}
+		for _, scheme := range declaredSchemes(filepath.Join(appDir, "README", "inputs.conf.spec")) {
+			if _, seen := owners[scheme]; !seen {
+				owners[scheme] = owner
+			}
+		}
+	}
+	claim(filepath.Join(confRoot, "system"), true)
+	for _, appDir := range apps {
+		claim(appDir, appEnabled(appDir))
+	}
+	return owners, nil
+}
+
+// declaredSchemes returns the scheme of every [<scheme>://...] stanza header in
+// a spec file. The headers are all that is taken from a spec file, and the rest
+// is prose, so it is scanned for them instead of parsed as a .conf file. An
+// unreadable spec file declares nothing.
+func declaredSchemes(specPath string) []string {
+	b, err := os.ReadFile(specPath)
+	if err != nil {
+		return nil
+	}
+	var schemes []string
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "[") || !strings.HasSuffix(line, "]") {
+			continue
+		}
+		if scheme, _, ok := strings.Cut(line[1:len(line)-1], "://"); ok && scheme != "" {
+			schemes = append(schemes, scheme)
+		}
+	}
+	return schemes
+}
+
 func confFilePaths(dirs []string, filename string) []string {
 	paths := make([]string, len(dirs))
 	for i, dir := range dirs {

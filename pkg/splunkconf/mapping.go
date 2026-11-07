@@ -72,7 +72,15 @@ func stableName(raw string) string {
 // every receiver every app's props, which is not what a stanza resolves to:
 // splunkd gives an app's inputs its own layers merged with system and nothing
 // from a sibling app.
+//
+// A modular input resolves its scheme's app across the whole root instead, since
+// that comes from whichever app's spec file declares the scheme.
 func newConf(confRoot string, inputs []conf.Input, schemeDefaults map[string]conf.Input) (Conf, error) {
+	schemeApps, err := schemeAppDirs(confRoot)
+	if err != nil {
+		return Conf{}, fmt.Errorf("splunkconf: read inputs.conf.spec: %w", err)
+	}
+
 	byApp := map[string][]conf.Input{}
 	for i := range inputs {
 		if inputs[i].Configuration.Stanza.IsDisabled() {
@@ -112,12 +120,21 @@ func newConf(confRoot string, inputs []conf.Input, schemeDefaults map[string]con
 			if err != nil {
 				return Conf{}, fmt.Errorf("splunkconf: parse stanza %q: %w", name, err)
 			}
+			var schemeAppDir string
+			if stanza.IsModularInput(name) {
+				dir, declared := schemeApps[parsed.Kind]
+				if declared && dir == "" {
+					continue
+				}
+				schemeAppDir = dir
+			}
 			tree.Inputs = append(tree.Inputs, Input{
 				Input:         appInputs[i],
 				Name:          parsed,
 				Props:         props,
 				Transforms:    transforms,
 				SchemeDefault: schemeDefaults[parsed.Kind].Configuration.Stanza.Params,
+				SchemeAppDir:  schemeAppDir,
 			})
 		}
 	}

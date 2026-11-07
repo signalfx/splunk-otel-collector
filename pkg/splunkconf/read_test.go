@@ -6,6 +6,7 @@ package splunkconf
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -313,4 +314,62 @@ func TestDiscoverAppsMissingAppsDir(t *testing.T) {
 	apps, err := discoverApps(t.TempDir())
 	require.NoError(t, err)
 	require.Empty(t, apps)
+}
+
+// writeSpec declares schemes in dir's README/inputs.conf.spec, between the prose
+// and the non-modular headers a real spec file carries.
+func writeSpec(t *testing.T, dir string, schemes ...string) {
+	t.Helper()
+	var body strings.Builder
+	body.WriteString("# A comment.\n[default]\n* Not a scheme.\n\n[splunktcp]\n[tcp:<port>]\n")
+	for _, s := range schemes {
+		body.WriteString("[" + s + "://<name>]\n* A setting.\n\n[" + s + "]\n")
+	}
+	readme := filepath.Join(dir, "README")
+	require.NoError(t, os.MkdirAll(readme, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(readme, "inputs.conf.spec"), []byte(body.String()), 0o600))
+}
+
+// A scheme belongs to the first app that declares it, reading system and then
+// the apps in byte order, and a disabled app that wins blocks the scheme.
+func TestSchemeAppDirs(t *testing.T) {
+	confRoot := t.TempDir()
+	app := func(name string) string { return filepath.Join(confRoot, "apps", name) }
+
+	writeSpec(t, filepath.Join(confRoot, "system"), "WinEventLog", "shared")
+	// system is never disabled, whatever its app.conf says.
+	sysDefault := filepath.Join(confRoot, "system", "default")
+	require.NoError(t, os.MkdirAll(sysDefault, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(sysDefault, "app.conf"), []byte("[install]\nstate = disabled\n"), 0o600))
+	writeSpec(t, app("my_ta"), "mycollector", "shared")
+
+	// Byte order puts uppercase before lowercase and "app10" before "app9".
+	writeSpec(t, app("aapp"), "casefirst")
+	writeSpec(t, app("Zapp"), "casefirst")
+	writeSpec(t, app("app9"), "numeric")
+	writeSpec(t, app("app10"), "numeric")
+
+	writeSpec(t, app("a_disabled"), "blocked")
+	writeApp(t, confRoot, "a_disabled", "local", "[install]\nstate = disabled\n")
+	writeSpec(t, app("b_enabled"), "blocked")
+
+	writeSpec(t, app(".hidden"), "hidden")
+	writeApp(t, confRoot, "no_readme", "local", "")
+
+	got, err := schemeAppDirs(confRoot)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{
+		"WinEventLog": filepath.Join(confRoot, "system"),
+		"shared":      filepath.Join(confRoot, "system"),
+		"mycollector": app("my_ta"),
+		"casefirst":   app("Zapp"),
+		"numeric":     app("app10"),
+		"blocked":     "",
+	}, got)
+}
+
+func TestSchemeAppDirsEmptyRoot(t *testing.T) {
+	got, err := schemeAppDirs(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, got)
 }

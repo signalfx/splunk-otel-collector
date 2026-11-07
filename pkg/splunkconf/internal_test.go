@@ -5,6 +5,7 @@ package splunkconf
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -195,6 +196,16 @@ func TestNewConfResolvesSchemeApp(t *testing.T) {
 		"undeclared://x":     "",
 		"monitor:///var/log": "",
 	}, got)
+}
+
+// An apps directory that cannot be listed fails the tree rather than leaving
+// every scheme undeclared.
+func TestNewConfUnreadableApps(t *testing.T) {
+	confRoot := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(confRoot, "apps"), nil, 0o600))
+
+	_, err := newConf(confRoot, nil, nil)
+	require.ErrorContains(t, err, "splunkconf: read inputs.conf.spec")
 }
 
 func TestParseURI(t *testing.T) {

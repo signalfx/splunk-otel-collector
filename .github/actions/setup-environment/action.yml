@@ -10,6 +10,8 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: ./.github/actions/setup-windows-go-cache
+
     - name: Set up Go
       uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
       with:

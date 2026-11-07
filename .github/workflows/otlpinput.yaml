@@ -10,6 +10,8 @@ on:
       - 'cmd/splunk-connect-for-otlp/**'
       - 'internal/**'
       - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
   pull_request:
     paths:
       - 'packaging/otlpinput/**'
@@ -17,6 +19,8 @@ on:
       - 'cmd/splunk-connect-for-otlp/**'
       - 'internal/**'
       - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
   workflow_dispatch: {}
 
 env:
@@ -60,7 +64,8 @@ jobs:
 
   # Checks that the modular input's TLS calls work against IP-literal
   # targets (see internal/auth/auth.go, and the server certificate in
-  # packaging/otlpinput/example/generate-certs.sh).
+  # packaging/otlpinput/example/generate-certs.sh). Also verifies that Splunk
+  # indexes logs, metrics, and traces with their OTLP payload timestamps.
   otlpinput-tls-ip-sans-test:
     needs: ta-v2-build-packages
     runs-on: ubuntu-24.04
@@ -82,7 +87,7 @@ jobs:
         with:
           install_tools: "false"
 
-      - name: Run TLS IP SANs regression check
+      - name: Run TLS IP SANs and indexed timestamp regression checks
         env:
           OTLP_PACKAGE_PATH: ${{ github.workspace }}/packaging/otlpinput/out/distribution/splunk-connect-for-otlp.tgz
         run: |

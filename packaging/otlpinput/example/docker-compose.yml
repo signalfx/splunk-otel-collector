@@ -79,6 +79,8 @@ services:
       - certs:/certs:ro
       # Override inputs.conf to enable SSL and point to the cert files
       - ./splunk-inputs-local.conf:/opt/splunk/etc/apps/splunk-connect-for-otlp/local/inputs.conf
+      # Disable timestamp detection for the example's custom sourcetype
+      - ./splunk-props-local.conf:/opt/splunk/etc/apps/splunk-connect-for-otlp/local/props.conf
     # Healthcheck gates on port 8089 (management API) so token-init only
     # starts once the REST API is genuinely ready to serve requests.
     healthcheck:

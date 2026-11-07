@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -201,6 +202,9 @@ func TestNewConfResolvesSchemeApp(t *testing.T) {
 // An apps directory that cannot be listed fails the tree rather than leaving
 // every scheme undeclared.
 func TestNewConfUnreadableApps(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows reports listing a file as a directory as not found, which reads as no apps")
+	}
 	confRoot := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(confRoot, "apps"), nil, 0o600))
 

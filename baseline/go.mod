@@ -539,7 +539,7 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/sijms/go-ora/v2 v2.9.0 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
-	github.com/snowflakedb/gosnowflake/v2 v2.2.0 // indirect
+	github.com/snowflakedb/gosnowflake/v2 v2.3.0 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect

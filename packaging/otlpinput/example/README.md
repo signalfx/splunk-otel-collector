@@ -34,7 +34,7 @@ The `SPLUNK_APPS_URL` environment variable in `docker-compose.yml` installs the 
 
 The `splunk-inputs-local.conf` file is mounted into the Splunk container as the app's `local/inputs.conf`, overriding the defaults to enable SSL and point to the certificate files.
 
-The `splunk-props-local.conf` file is mounted as the app's `local/props.conf`. It adds a `[mysourcetype]` stanza with `DATETIME_CONFIG = NONE`, because the example's custom sourcetype does not inherit the TA's default stanza.
+The `splunk-props-local.conf` file is mounted as the app's `local/props.conf`. It adds a `[mysourcetype]` stanza for the example's custom sourcetype. See the exporter's [Event timestamps](../../../internal/exporter/splunkmodinputexporter/README.md#event-timestamps) for why custom sourcetypes need their own settings.
 
 Once Splunk is running, visit the [Search app](http://localhost:18000/en-US/app/search) to see the logs collected by Splunk.
 

@@ -44,6 +44,10 @@ each event select its own index. The TA performs no authentication or index
 authorization, so any sender that can reach the collector's receivers could then
 write to any existing index.
 
+When enabling HEC extraction, follow the exporter's
+[Event timestamps](../../internal/exporter/splunkmodinputexporter/README.md#event-timestamps)
+guidance to preserve telemetry timestamps during indexing.
+
 ### Splunk Modular Input Primer
 
 This section is a very brief introduction to the general architecture of a

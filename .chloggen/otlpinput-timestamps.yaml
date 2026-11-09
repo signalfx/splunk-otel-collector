@@ -1,0 +1,4 @@
+change_type: bug_fix
+component: splunk-connect-for-otlp
+note: Use OTLP payload timestamps when indexing events whose bodies contain other timestamps.
+issues: [8414]

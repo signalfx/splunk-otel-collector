@@ -94,6 +94,11 @@ of the modular input that collects standard output:
   of the raw text and do not affect where data is stored. Splunk_TA_otel uses
   this mode by default.
 
+Set `DATETIME_CONFIG = NONE` for the input's sourcetype to preserve the HEC
+`time` supplied by the exporter instead of detecting timestamps in event bodies.
+Splunk Connect for OTLP includes this setting for its default sourcetype;
+custom sourcetypes need the same setting.
+
 The exporter performs no authentication or index authorization, and Splunk does
 not apply HEC token restrictions to modular input output. When event fields take
 effect, any sender that can set `com.splunk.index` can write to any existing

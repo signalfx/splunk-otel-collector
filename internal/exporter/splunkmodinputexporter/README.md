@@ -94,16 +94,49 @@ of the modular input that collects standard output:
   of the raw text and do not affect where data is stored. Splunk_TA_otel uses
   this mode by default.
 
-Set `DATETIME_CONFIG = NONE` for the input's sourcetype to preserve the HEC
-`time` supplied by the exporter instead of detecting timestamps in event bodies.
-Splunk Connect for OTLP includes this setting for its default sourcetype;
-custom sourcetypes need the same setting.
+See [Event timestamps](#event-timestamps) for timestamp selection and the
+configuration needed to preserve the HEC `time` during indexing.
 
 The exporter performs no authentication or index authorization, and Splunk does
 not apply HEC token restrictions to modular input output. When event fields take
 effect, any sender that can set `com.splunk.index` can write to any existing
 index unless the input restricts it. Splunk Connect for OTLP applies the HEC
 token's default and allowed indexes before forwarding data to this exporter.
+
+## Event timestamps
+
+The exporter selects the HEC `time` field from the OpenTelemetry data:
+
+| Signal | Timestamp used for HEC `time` |
+| ------ | ----------------------------- |
+| Logs | Log record event timestamp, or observed timestamp when the event timestamp is absent. |
+| Metrics | Data point timestamp. |
+| Traces | Span start timestamp. |
+
+The conversion follows the upstream
+[`pkg/translator/splunk`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/translator/splunk)
+package of opentelemetry-collector-contrib. The HEC `time` is expressed in Unix
+seconds, including fractional seconds.
+
+To use that time as Splunk's indexed event timestamp (`_time`), configure
+`props.conf` for the modular input's sourcetype:
+
+```ini
+[my_input_sourcetype]
+INDEXED_EXTRACTIONS = HEC
+DATETIME_CONFIG = NONE
+```
+
+`INDEXED_EXTRACTIONS = HEC` makes Splunk parse the HEC envelope.
+`DATETIME_CONFIG = NONE` prevents timestamp detection in the event body from
+overriding the envelope's `time`. Without HEC extraction, the envelope's `time`
+is only part of the raw text; it does not directly set `_time`.
+
+The input sourcetype is configured in `inputs.conf`. If you change it, add both
+settings to the new sourcetype's `props.conf` stanza. Events can also override
+the sourcetype through `com.splunk.sourcetype` or the exporter's `sourcetype`
+setting. Add `DATETIME_CONFIG = NONE` to each such event sourcetype's stanza
+as well; it does not inherit the input sourcetype's settings.
 
 ## Development
 

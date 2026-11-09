@@ -118,6 +118,21 @@ All other resource and individual log record attributes are mapped to indexed fi
 
 This mapping follows the OpenTelemetry specification.
 
+### Event timestamps
+
+Splunk indexes logs using their OTLP event timestamp, or the observed timestamp
+when the event timestamp is absent. Metrics use the data point timestamp, and
+traces use the span start timestamp. The exporter writes these as the HEC `time`
+field; the conversion is defined upstream in the
+[`pkg/translator/splunk`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/translator/splunk)
+package of opentelemetry-collector-contrib. The TA sets `DATETIME_CONFIG = NONE`
+so dates in event bodies do not override that timestamp.
+
+If you set `com.splunk.sourcetype`, add `DATETIME_CONFIG = NONE` to that
+sourcetype's `props.conf` stanza as well. If you configure a custom input
+sourcetype in `inputs.conf`, copy both `INDEXED_EXTRACTIONS = HEC` and
+`DATETIME_CONFIG = NONE` to its `props.conf` stanza.
+
 ### Index selection and authorization
 
 The input writes each event to standard output as an HEC JSON line. Its

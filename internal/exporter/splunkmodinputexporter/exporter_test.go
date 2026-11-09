@@ -169,6 +169,56 @@ func TestHECJSONEncoding(t *testing.T) {
 	}
 }
 
+func TestHECTimestamps(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name string
+		ts   pcommon.Timestamp
+		want float64
+	}{
+		{name: "whole_seconds", ts: 1760000000000000000, want: 1760000000},
+		{name: "fractional_seconds", ts: 1760000000123456000, want: 1760000000.123456},
+	} {
+		for _, signal := range []string{"logs", "logs_observed", "metrics", "traces"} {
+			t.Run(tc.name+"/"+signal, func(t *testing.T) {
+				t.Parallel()
+				out := newTestOutput(t)
+				e := newModinputExporter(&Config{}, componenttest.NewNopTelemetrySettings(), out)
+				switch signal {
+				case "logs", "logs_observed":
+					ld := prepareLogs()
+					record := ld.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
+					if signal == "logs_observed" {
+						record.SetObservedTimestamp(tc.ts)
+					} else {
+						record.SetTimestamp(tc.ts)
+						record.SetObservedTimestamp(tc.ts + 1000000000)
+					}
+					ld.MarkReadOnly()
+					require.NoError(t, e.pushLogs(t.Context(), ld))
+				case "metrics":
+					md := prepareMetricsData("test.metric")
+					dp := md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0)
+					dp.SetStartTimestamp(tc.ts - 1000000000)
+					dp.SetTimestamp(tc.ts)
+					md.MarkReadOnly()
+					require.NoError(t, e.pushMetrics(t.Context(), md))
+				case "traces":
+					td := prepareTracesData("", "", "")
+					span := td.ResourceSpans().At(0).ScopeSpans().At(0).Spans().At(0)
+					span.SetStartTimestamp(tc.ts)
+					span.SetEndTimestamp(tc.ts + 1000000000)
+					td.MarkReadOnly()
+					require.NoError(t, e.pushTraces(t.Context(), td))
+				}
+				var event translator.Event
+				require.NoError(t, json.Unmarshal([]byte(readTestOutput(t, out)), &event))
+				assert.InDelta(t, tc.want, event.Time, 0.000001)
+			})
+		}
+	}
+}
+
 func TestConfigDefaultsAndAttributePrecedence(t *testing.T) {
 	t.Parallel()
 	for _, signal := range []string{"logs", "metrics", "traces"} {

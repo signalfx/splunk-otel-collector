@@ -4,9 +4,6 @@
 package udpreceiver
 
 import (
-	"context"
-	"sync/atomic"
-
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/input/udp"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/transformer/move"
 
@@ -18,11 +15,9 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/operator/prop"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/adapter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"go.opentelemetry.io/collector/component"
-	"go.uber.org/zap"
 )
 
 type monitor struct{}
@@ -54,65 +49,13 @@ func (monitor) BaseConfig(cfg component.Config) adapter.BaseConfig {
 	endNoop := noop.NewConfigWithID("end")
 
 	metadata := renameMetadata()
-	parsed, _ := stanza.ParseName(rcfg.Input.Configuration.Stanza.Name)
-	listenAddress := stanza.ListenAddress(parsed.Target)
-	count := newReceiveCountConfig(listenAddress, metadata[0].ID())
-	endNoop.OutputIDs = []string{count.ID()}
+	endNoop.OutputIDs = []string{metadata[0].ID()}
 	operators = append(operators, operator.NewConfig(endNoop))
-	operators = append(operators, operator.NewConfig(count))
 	operators = append(operators, metadata...)
 
 	return adapter.BaseConfig{
 		Operators: operators,
 	}
-}
-
-// receiveCountConfig adds a diagnostic counter after the UDP input. These
-// parity inputs send one line per datagram, so each processed entry represents
-// one packet received by the UDP input.
-type receiveCountConfig struct {
-	helper.TransformerConfig
-	listenAddress string
-}
-
-func newReceiveCountConfig(listenAddress, outputID string) *receiveCountConfig {
-	c := &receiveCountConfig{
-		TransformerConfig: helper.NewTransformerConfig("udp-receive-count", "udp_receive_count"),
-		listenAddress:     listenAddress,
-	}
-	c.SetOutputIDs([]string{outputID})
-	return c
-}
-
-func (c *receiveCountConfig) Type() string { return "udp_receive_count" }
-
-func (c *receiveCountConfig) Build(set component.TelemetrySettings) (operator.Operator, error) {
-	transformer, err := c.TransformerConfig.Build(set)
-	if err != nil {
-		return nil, err
-	}
-	set.Logger.Info("UDP input listen address", zap.String("listen_address", c.listenAddress))
-	return &receiveCount{TransformerOperator: transformer}, nil
-}
-
-type receiveCount struct {
-	helper.TransformerOperator
-	count atomic.Uint64
-}
-
-func (c *receiveCount) Process(ctx context.Context, e *entry.Entry) error {
-	c.count.Add(1)
-	return c.Write(ctx, e)
-}
-
-func (c *receiveCount) ProcessBatch(ctx context.Context, entries []*entry.Entry) error {
-	c.count.Add(uint64(len(entries)))
-	return c.WriteBatch(ctx, entries)
-}
-
-func (c *receiveCount) Stop() error {
-	c.Logger().Info("UDP input packet receive count", zap.Uint64("received_packets", c.count.Load()))
-	return c.TransformerOperator.Stop()
 }
 
 func (t monitor) InputConfig(config component.Config) operator.Config {

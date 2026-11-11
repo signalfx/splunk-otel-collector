@@ -4,6 +4,10 @@ The Splunk OpenTelemetry Collector for HashiCorp Nomad is an orchestrator deploy
 
 **Note**: _Job files are provided as a reference only and are not intended for production use._
 
+**Deprecation notice**: Nomad deployment support in this repository is deprecated and
+scheduled for removal in February 2027. For new deployments, use the
+[OpenTelemetry Collector Nomad Pack](https://github.com/hashicorp/nomad-pack-community-registry/tree/main/packs/opentelemetry_collector).
+
 ## Deployment
 
 To run the job files you need:

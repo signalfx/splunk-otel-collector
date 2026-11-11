@@ -65,6 +65,13 @@ func TestListMergesAllAppsAndReportsWinningSources(t *testing.T) {
 
 	stdout.Reset()
 	stderr.Reset()
+	code = New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
+	if code != cli.ExitOK || strings.Contains(stdout.String(), "[default]") {
+		t.Fatalf("inputs.conf default stanza was displayed: exit code %d, output: %s", code, stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
 	code = New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "monitor:///tmp/btool", "--app=B", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
 	if code != cli.ExitOK {
 		t.Fatalf("app context exit code %d, stderr: %s", code, stderr.String())
@@ -119,6 +126,28 @@ func TestUTF32ConfFilesFailInsteadOfBeingMisread(t *testing.T) {
 			t.Fatalf("exit code %d, stderr: %s", code, stderr.String())
 		}
 	})
+}
+
+func TestInputsBuiltinStanzasMatchCaseInsensitively(t *testing.T) {
+	etcDir := t.TempDir()
+	local := filepath.Join(etcDir, "system", "local")
+	if err := os.MkdirAll(local, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	conf := "[filter]\na = 1\n[FIFO]\nb = 1\n[Ssl]\nc = 1\n[SSL://x]\nd = 1\n[myscheme]\ne = 1\n[myscheme://x]\nf = 1\n"
+	if err := os.WriteFile(filepath.Join(local, "inputs.conf"), []byte(conf), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	code := New().Dispatch(t.Context(), "btool", []string{"inputs", "list", "--dir=" + etcDir}, cli.IO{Out: &stdout, Err: &stderr})
+	if code != cli.ExitOK {
+		t.Fatalf("exit code %d, stderr: %s", code, stderr.String())
+	}
+	want := "[FIFO]\nb = 1\n[SSL://x]\nd = 1\n[Ssl]\nc = 1\n[filter]\na = 1\n[myscheme://x]\ne = 1\nf = 1\n"
+	if got := stdout.String(); got != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
 }
 
 func writeFile(t *testing.T, path, contents string) {
@@ -195,6 +224,27 @@ func TestListFollowsSymlinkedApps(t *testing.T) {
 	}
 }
 
+func TestExpandStanzasFalseKeepsRelativeInputPaths(t *testing.T) {
+	etcDir := t.TempDir()
+	writeFile(t, filepath.Join(etcDir, "apps", "A", "local", "inputs.conf"), "[monitor://./logs]\nk = v\n")
+	if out, code := runList(t, "--expand-stanzas=false", "--dir="+etcDir, "inputs", "list"); code != cli.ExitOK || out != "[monitor://./logs]\nk = v\n" {
+		t.Fatalf("code %d, output %q", code, out)
+	}
+	want := "[monitor://" + filepath.Join(etcDir, "apps", "A") + "/logs]\nk = v\n"
+	if out, code := runList(t, "--dir="+etcDir, "inputs", "list"); code != cli.ExitOK || out != want {
+		t.Fatalf("code %d, output %q, want %q", code, out, want)
+	}
+}
+
+func TestModularInputSkipsEmptyDefaults(t *testing.T) {
+	etcDir := t.TempDir()
+	writeFile(t, filepath.Join(etcDir, "system", "local", "inputs.conf"), "[default]\nhost =\nindex = main\n[foo://x]\ninterval = 5\n")
+	want := "[foo://x]\nindex = main\ninterval = 5\n"
+	if out, code := runList(t, "--dir="+etcDir, "inputs", "list"); code != cli.ExitOK || out != want {
+		t.Fatalf("code %d, output %q, want %q", code, out, want)
+	}
+}
+
 func TestControlCharactersAreEscapedUnlessRaw(t *testing.T) {
 	etcDir := t.TempDir()
 	writeFile(t, filepath.Join(etcDir, "system", "local", "server.conf"), "[general]\nk = a\x1b[0m\tb\x7f\u00e9\n")
@@ -211,6 +261,7 @@ func TestDirOverridePreservesEnvironmentExpansion(t *testing.T) {
 	envEtcDir := t.TempDir()
 	readDir := t.TempDir()
 	appDir := filepath.Join(readDir, "apps", "A")
+	separator := string(filepath.Separator)
 
 	for _, environment := range []struct {
 		name        string
@@ -237,6 +288,7 @@ func TestDirOverridePreservesEnvironmentExpansion(t *testing.T) {
 				{name: "etc", input: "monitor://$SPLUNK_ETC/logs", want: "monitor://" + environment.expandedEtc + "/logs"},
 				{name: "home-etc", input: "monitor://$SPLUNK_HOME/etc/apps", want: "monitor://" + environment.expandedEtc + "/apps"},
 				{name: "home", input: "monitor://$SPLUNK_HOME/var/log", want: "monitor://" + expandedHome + "/var/log"},
+				{name: "relative", input: "monitor://." + separator + "logs", want: "monitor://" + appDir + separator + "logs"},
 			} {
 				t.Run(tc.name, func(t *testing.T) {
 					writeFile(t, filepath.Join(appDir, "local", "inputs.conf"), "["+tc.input+"]\nk = v\n")
@@ -245,6 +297,29 @@ func TestDirOverridePreservesEnvironmentExpansion(t *testing.T) {
 						t.Fatalf("code %d, output %q, want %q", code, out, want)
 					}
 				})
+			}
+		})
+	}
+}
+
+func TestRelativeInputPathSeparators(t *testing.T) {
+	baseDir := filepath.Join(t.TempDir(), "app")
+	backslashWant := `monitor://.\logs`
+	if filepath.Separator == '\\' {
+		backslashWant = "monitor://" + baseDir + `\logs`
+	}
+	for _, tc := range []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "forward-slash", input: "monitor://./logs", want: "monitor://" + baseDir + "/logs"},
+		{name: "backslash", input: `monitor://.\logs`, want: backslashWant},
+		{name: "parent", input: "monitor://../logs", want: "monitor://../logs"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := resolveRelativeInput(tc.input, baseDir); got != tc.want {
+				t.Fatalf("resolveRelativeInput(%q) = %q, want %q", tc.input, got, tc.want)
 			}
 		})
 	}

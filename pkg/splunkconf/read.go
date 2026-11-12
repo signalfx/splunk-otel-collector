@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkconf/conf"
 )
@@ -182,6 +184,95 @@ func appEnabled(appDir string) bool {
 	}
 	state, set := merged["install"]["state"]
 	return !set || state == "enabled"
+}
+
+// schemeAppDirs maps each modular-input scheme to the app directory whose
+// README/inputs.conf.spec declares it, which is where splunkd runs the scheme
+// from, whichever app's inputs.conf holds a stanza of it.
+//
+// system is read first, then every entry under apps in byte order, and the
+// first declaration wins. That includes dotfile directories, which splunkd's
+// spec scan reads although they are not in the bundle. A disabled app takes
+// part: it still wins, and splunkd then does not run the scheme at all rather
+// than passing it to a later app, so its schemes map to "". system and dotfile
+// directories are never disabled.
+func schemeAppDirs(confRoot string) (map[string]string, error) {
+	appsDir := filepath.Join(confRoot, "apps")
+	entries, err := os.ReadDir(appsDir)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("splunkconf: failed to scan %s: %w", appsDir, err)
+	}
+	owners := map[string]string{}
+	claim := func(appDir string, enabled bool) {
+		owner := ""
+		if enabled {
+			owner = appDir
+		}
+		for _, scheme := range declaredSchemes(filepath.Join(appDir, "README", "inputs.conf.spec")) {
+			if _, seen := owners[scheme]; !seen {
+				owners[scheme] = owner
+			}
+		}
+	}
+	claim(filepath.Join(confRoot, "system"), true)
+	for _, entry := range entries {
+		appDir := filepath.Join(appsDir, entry.Name())
+		claim(appDir, strings.HasPrefix(entry.Name(), ".") || appEnabled(appDir))
+	}
+	return owners, nil
+}
+
+// modinputIdentifier is what splunkd accepts as a scheme or parameter name.
+var modinputIdentifier = regexp.MustCompile(`^[0-9a-zA-Z][0-9a-zA-Z_-]*$`)
+
+// declaredSchemes returns the schemes a spec file declares, read the way splunkd
+// reads one. A [<scheme>://...] header declares its scheme only once a setting
+// with a valid parameter name follows it, because splunkd records a spec stanza
+// when it records the stanza's first setting. A header indented by whitespace is
+// an example and is ignored, so the settings after it stay with the stanza
+// before. A line starting # or ; is a comment, and any other line without an =
+// is prose. An unreadable spec file declares nothing.
+func declaredSchemes(specPath string) []string {
+	b, err := os.ReadFile(specPath)
+	if err != nil {
+		return nil
+	}
+	var schemes []string
+	current, recorded := "", false
+	for _, line := range strings.Split(string(b), "\n") {
+		trimmed := strings.TrimLeftFunc(line, unicode.IsSpace)
+		switch {
+		case trimmed == "", trimmed[0] == '#', trimmed[0] == ';':
+		case trimmed[0] == '[':
+			// splunkd ignores an indented header as an example.
+			if trimmed != line {
+				continue
+			}
+			name := trimmed[1:]
+			if i := strings.LastIndexByte(name, ']'); i >= 0 {
+				name = name[:i]
+			}
+			current, recorded = specScheme(name), false
+		default:
+			key, _, ok := strings.Cut(trimmed, "=")
+			if ok && current != "" && !recorded && modinputIdentifier.MatchString(strings.TrimSpace(key)) {
+				schemes = append(schemes, current)
+				recorded = true
+			}
+		}
+	}
+	return schemes
+}
+
+// specScheme is the scheme a spec stanza name defines, or "" when it defines
+// none. splunkd cuts the name at its first '<', ':' or '.', and only a cut at
+// "://" leaves a scheme.
+func specScheme(name string) string {
+	i := strings.IndexAny(name, "<:.")
+	if i < 0 || !strings.HasPrefix(name[i:], "://") || !modinputIdentifier.MatchString(name[:i]) {
+		return ""
+	}
+	return name[:i]
 }
 
 func confFilePaths(dirs []string, filename string) []string {

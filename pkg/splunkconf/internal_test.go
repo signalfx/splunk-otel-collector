@@ -5,6 +5,9 @@ package splunkconf
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -163,6 +166,50 @@ func TestNewConfDropsDisabled(t *testing.T) {
 	}, nil)
 	require.NoError(t, err)
 	require.Empty(t, tree.Inputs)
+}
+
+// A modular input carries the app that declares its scheme, wherever the stanza
+// is written, and one whose declaring app is disabled never reaches a mapper.
+func TestNewConfResolvesSchemeApp(t *testing.T) {
+	confRoot := t.TempDir()
+	writeSpec(t, filepath.Join(confRoot, "apps", "my_ta"), "mycollector")
+	writeSpec(t, filepath.Join(confRoot, "apps", "off_ta"), "blocked")
+	writeApp(t, confRoot, "off_ta", "local", "[install]\nstate = disabled\n")
+
+	system := filepath.Join(confRoot, "system")
+	in := func(name string) conf.Input {
+		return conf.Input{AppDir: system, Configuration: conf.Configuration{Stanza: conf.Stanza{Name: name}}}
+	}
+	tree, err := newConf(confRoot, []conf.Input{
+		in("mycollector://prod"),
+		in("undeclared://x"),
+		in("blocked://y"),
+		in("monitor:///var/log"),
+	}, nil)
+	require.NoError(t, err)
+
+	got := map[string]string{}
+	for _, i := range tree.Inputs {
+		got[i.Configuration.Stanza.Name] = i.SchemeAppDir
+	}
+	require.Equal(t, map[string]string{
+		"mycollector://prod": filepath.Join(confRoot, "apps", "my_ta"),
+		"undeclared://x":     "",
+		"monitor:///var/log": "",
+	}, got)
+}
+
+// An apps directory that cannot be listed fails the tree rather than leaving
+// every scheme undeclared.
+func TestNewConfUnreadableApps(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows reports listing a file as a directory as not found, which reads as no apps")
+	}
+	confRoot := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(confRoot, "apps"), nil, 0o600))
+
+	_, err := newConf(confRoot, nil, nil)
+	require.ErrorContains(t, err, "splunkconf: read inputs.conf.spec")
 }
 
 func TestParseURI(t *testing.T) {

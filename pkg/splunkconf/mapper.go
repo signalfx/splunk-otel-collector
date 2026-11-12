@@ -30,6 +30,15 @@ type Input struct {
 	Props      []conf.Prop
 	Transforms []conf.Transform
 
+	// SchemeAppDir is, for a modular input, the app directory whose
+	// README/inputs.conf.spec declares the scheme. splunkd runs the scheme from
+	// that app rather than from AppDir, so a stanza written in etc/system or in
+	// a config-only app still runs the binary its TA ships. It is empty for
+	// anything else and for a scheme no spec file declares. A modular input
+	// whose declaring app is disabled never reaches a mapper, since splunkd does
+	// not run it.
+	SchemeAppDir string
+
 	// SchemeDefault is the [<scheme>] stanza's params for a modular input, nil
 	// for anything else. Those params are already folded into this input, but
 	// the fold is lossy: afterwards an inherited setting looks the same as one

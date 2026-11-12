@@ -190,14 +190,17 @@ func appEnabled(appDir string) bool {
 // README/inputs.conf.spec declares it, which is where splunkd runs the scheme
 // from, whichever app's inputs.conf holds a stanza of it.
 //
-// system is read first, then every app in byte order of its directory name, and
-// the first declaration wins. A disabled app takes part: it still wins, and
-// splunkd then does not run the scheme at all rather than passing it to a later
-// app, so its schemes map to "". system is never disabled.
+// system is read first, then every entry under apps in byte order, and the
+// first declaration wins. That includes dotfile directories, which splunkd's
+// spec scan reads although they are not in the bundle. A disabled app takes
+// part: it still wins, and splunkd then does not run the scheme at all rather
+// than passing it to a later app, so its schemes map to "". system and dotfile
+// directories are never disabled.
 func schemeAppDirs(confRoot string) (map[string]string, error) {
-	apps, err := appDirs(confRoot)
-	if err != nil {
-		return nil, err
+	appsDir := filepath.Join(confRoot, "apps")
+	entries, err := os.ReadDir(appsDir)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("splunkconf: failed to scan %s: %w", appsDir, err)
 	}
 	owners := map[string]string{}
 	claim := func(appDir string, enabled bool) {
@@ -212,8 +215,9 @@ func schemeAppDirs(confRoot string) (map[string]string, error) {
 		}
 	}
 	claim(filepath.Join(confRoot, "system"), true)
-	for _, appDir := range apps {
-		claim(appDir, appEnabled(appDir))
+	for _, entry := range entries {
+		appDir := filepath.Join(appsDir, entry.Name())
+		claim(appDir, strings.HasPrefix(entry.Name(), ".") || appEnabled(appDir))
 	}
 	return owners, nil
 }

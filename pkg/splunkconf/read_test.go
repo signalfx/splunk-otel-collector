@@ -353,8 +353,14 @@ func TestSchemeAppDirs(t *testing.T) {
 	writeApp(t, confRoot, "a_disabled", "local", "[install]\nstate = disabled\n")
 	writeSpec(t, app("b_enabled"), "blocked")
 
-	writeSpec(t, app(".hidden"), "hidden")
+	// A dotfile directory sorts first and is never disabled, whatever its
+	// app.conf says.
+	writeSpec(t, app(".hidden"), "dotfirst")
+	writeApp(t, confRoot, ".hidden", "local", "[install]\nstate = disabled\n")
+	writeSpec(t, app("aaa"), "dotfirst")
+
 	writeApp(t, confRoot, "no_readme", "local", "")
+	require.NoError(t, os.WriteFile(app("not_a_dir"), nil, 0o600))
 
 	got, err := schemeAppDirs(confRoot)
 	require.NoError(t, err)
@@ -365,6 +371,7 @@ func TestSchemeAppDirs(t *testing.T) {
 		"casefirst":   app("Zapp"),
 		"numeric":     app("app10"),
 		"blocked":     "",
+		"dotfirst":    app(".hidden"),
 	}, got)
 }
 

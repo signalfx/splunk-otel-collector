@@ -236,20 +236,21 @@ func declaredSchemes(specPath string) []string {
 	var schemes []string
 	current, recorded := "", false
 	for _, line := range strings.Split(string(b), "\n") {
-		body := strings.TrimLeftFunc(line, unicode.IsSpace)
+		trimmed := strings.TrimLeftFunc(line, unicode.IsSpace)
 		switch {
-		case body == "", body[0] == '#', body[0] == ';':
-		case body[0] == '[':
-			if body != line {
+		case trimmed == "", trimmed[0] == '#', trimmed[0] == ';':
+		case trimmed[0] == '[':
+			// splunkd ignores an indented header as an example.
+			if trimmed != line {
 				continue
 			}
-			name := body[1:]
+			name := trimmed[1:]
 			if i := strings.LastIndexByte(name, ']'); i >= 0 {
 				name = name[:i]
 			}
 			current, recorded = specScheme(name), false
 		default:
-			key, _, ok := strings.Cut(body, "=")
+			key, _, ok := strings.Cut(trimmed, "=")
 			if ok && current != "" && !recorded && modinputIdentifier.MatchString(strings.TrimSpace(key)) {
 				schemes = append(schemes, current)
 				recorded = true

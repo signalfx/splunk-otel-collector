@@ -1,10 +1,16 @@
 ---
 # defaults file for splunk-otel-collector role vars
 
-# splunk_access_token is REQUIRED variable
+# Provide splunk_access_token for Splunk Observability, or a Splunk Platform
+# token and URL for Platform log ingestion.
 splunk_access_token: ""
 
 splunk_realm: us0
+
+# Enable host log collection to Splunk Platform.
+splunk_platform_token: ""
+splunk_platform_url: ""
+splunk_platform_logs_index: ""
 
 splunk_otel_collector_version: latest
 

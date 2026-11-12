@@ -8,3 +8,9 @@
 - name: Install Auto Instrumentation for .NET
   ansible.builtin.import_tasks: win_install_dotnet_auto_instrumentation.yml
   when: install_splunk_dotnet_auto_instrumentation
+
+- name: Ensure Splunk OpenTelemetry Collector service is running on Windows
+  ansible.windows.win_service:
+    name: splunk-otel-collector
+    state: started
+  when: start_service

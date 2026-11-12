@@ -55,3 +55,21 @@
       check_mode: yes
       register: config
       failed_when: config is changed
+
+    - name: Assert the agent config is selected through SPLUNK_CONFIG
+      ansible.builtin.lineinfile:
+        line: SPLUNK_CONFIG=/etc/otel/collector/agent_config.yaml
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert no additional collector command-line arguments are required
+      ansible.builtin.lineinfile:
+        line: OTELCOL_OPTIONS=
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed

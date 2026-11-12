@@ -1,0 +1,53 @@
+---
+- name: Verify Windows Splunk Platform log collection only
+  hosts: all
+  gather_facts: false
+  become: no
+  tasks:
+    - name: Get Splunk OpenTelemetry Collector service status
+      ansible.windows.win_service_info:
+        name: splunk-otel-collector
+      register: collector_service
+
+    - name: Assert the collector service is running
+      ansible.builtin.assert:
+        that:
+          - collector_service.exists
+          - collector_service.services | length > 0
+          - collector_service.services[0].state == 'started'
+
+    - name: Get splunk-otel-collector service environment
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+        name: Environment
+      register: collector_env
+
+    - name: Assert Splunk Platform HEC settings are present
+      ansible.builtin.assert:
+        that:
+          - "'SPLUNK_PLATFORM_URL=https://splunk.example.com:8088/services/collector' in collector_env.value"
+          - "'SPLUNK_PLATFORM_TOKEN=fake-platform-token' in collector_env.value"
+          - "'SPLUNK_ACCESS_TOKEN=fake-token' not in collector_env.value"
+          - "'SPLUNK_PLATFORM_LOGS_INDEX=custom-index' not in collector_env.value"
+
+    - name: Get splunk-otel-collector service ImagePath
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+        name: ImagePath
+      register: collector_imagepath
+
+    - name: Assert only the packaged Windows logs config is selected
+      ansible.builtin.assert:
+        that:
+          - "'splunk_logs_config_windows.yaml' in collector_imagepath.value"
+          - "'agent_config.yaml' not in collector_imagepath.value"
+          - "'confmap.enableMergeAppendOption' not in collector_imagepath.value"
+
+    - name: Check the packaged Windows logs config exists
+      ansible.windows.win_stat:
+        path: C:\ProgramData\Splunk\OpenTelemetry Collector\splunk_logs_config_windows.yaml
+      register: logs_config
+
+    - name: Assert the packaged Windows logs config is installed
+      ansible.builtin.assert:
+        that: logs_config.stat.exists

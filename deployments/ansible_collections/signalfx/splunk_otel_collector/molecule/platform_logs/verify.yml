@@ -1,0 +1,133 @@
+---
+- name: Verify Splunk Platform log collection only
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Assert Platform HEC environment variables are set
+      ansible.builtin.lineinfile:
+        line: "{{ item }}"
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      loop:
+        - SPLUNK_PLATFORM_URL=https://splunk.example.com:8088/services/collector
+        - SPLUNK_PLATFORM_TOKEN=fake-platform-token
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert the packaged logs config is the only config argument
+      ansible.builtin.lineinfile:
+        line: OTELCOL_OPTIONS=--config /etc/otel/collector/splunk_logs_config_linux.yaml
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert agent config is not selected for Platform-only collection
+      ansible.builtin.lineinfile:
+        line: SPLUNK_CONFIG=/etc/otel/collector/agent_config.yaml
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Observability credentials are omitted
+      ansible.builtin.lineinfile:
+        line: SPLUNK_ACCESS_TOKEN=fake-token
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert the optional Platform logs index is omitted when unset
+      ansible.builtin.lineinfile:
+        line: SPLUNK_PLATFORM_LOGS_INDEX=custom-index
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert the packaged logs config defaults to the main index
+      ansible.builtin.lineinfile:
+        line: '    index: "${env:SPLUNK_PLATFORM_LOGS_INDEX:-main}"'
+        dest: /etc/otel/collector/splunk_logs_config_linux.yaml
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert Platform logs storage directory permissions
+      ansible.builtin.stat:
+        path: /var/lib/otelcol/filelogs
+      register: filelogs_dir
+
+    - name: Verify Platform logs storage directory permissions
+      ansible.builtin.assert:
+        that:
+          - filelogs_dir.stat.isdir
+          - filelogs_dir.stat.mode == '0700'
+
+    - name: Reject Platform URL without a token
+      block:
+        - name: Include role with incomplete Platform credentials
+          ansible.builtin.include_role:
+            name: signalfx.splunk_otel_collector.collector
+          vars:
+            local_artifact_testing_enabled: true
+            splunk_access_token: ""
+            splunk_platform_token: ""
+            splunk_platform_url: https://splunk.example.com:8088/services/collector
+            start_service: false
+      rescue:
+        - name: Record expected validation failure
+          ansible.builtin.set_fact:
+            url_without_token_rejected: true
+
+    - name: Verify Platform URL without token is rejected
+      ansible.builtin.assert:
+        that: url_without_token_rejected | default(false)
+
+    - name: Reject Platform token without a URL
+      block:
+        - name: Include role with incomplete Platform credentials
+          ansible.builtin.include_role:
+            name: signalfx.splunk_otel_collector.collector
+          vars:
+            local_artifact_testing_enabled: true
+            splunk_access_token: ""
+            splunk_platform_token: fake-platform-token
+            splunk_platform_url: ""
+            start_service: false
+      rescue:
+        - name: Record expected validation failure
+          ansible.builtin.set_fact:
+            token_without_url_rejected: true
+
+    - name: Verify Platform token without URL is rejected
+      ansible.builtin.assert:
+        that: token_without_url_rejected | default(false)
+
+    - name: Reject Platform index without a URL
+      block:
+        - name: Include role with an index but no Platform URL
+          ansible.builtin.include_role:
+            name: signalfx.splunk_otel_collector.collector
+          vars:
+            local_artifact_testing_enabled: true
+            splunk_access_token: fake-token
+            splunk_platform_token: ""
+            splunk_platform_url: ""
+            splunk_platform_logs_index: custom-index
+            start_service: false
+      rescue:
+        - name: Record expected validation failure
+          ansible.builtin.set_fact:
+            index_without_url_rejected: true
+
+    - name: Verify Platform index without URL is rejected
+      ansible.builtin.assert:
+        that: index_without_url_rejected | default(false)

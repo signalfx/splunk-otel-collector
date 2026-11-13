@@ -38,6 +38,6 @@ max_concurrency = 20
 max_redirects = 200
 max_retries = 20
 
-retry_wait_time = 30
+retry_wait_time = 1
 
 timeout = 30

@@ -394,8 +394,9 @@ exporters:
     sourcetype: "otel"
     # Splunk index, optional name of the Splunk index targeted.
     index: "metrics"
-    # Maximum idle HTTP connections the client can keep open.
-    max_idle_conns: 200
+    keepalive:
+      # Maximum idle HTTP connections the client can keep open.
+      max_idle_conns: 200
     # Whether to disable gzip compression over HTTP. Defaults to false.
     disable_compression: false
     # HTTP timeout when sending data. Defaults to 10s.

@@ -30,10 +30,6 @@ exclude = [
     "https://cloud-native.slack.com/archives/*", # Channel archives require an authenticated Slack session
     "https://github.com/signalfx/signalfx-agent/*", # The repository is private, preserving the links
     "https://www.freedesktop.org/*", # Answers 418 I'm a teapot, rejecting the user agent
-    "https://www.splunk.com/en_us/products/splunk-enterprise.html", # Failing with 403 Forbidden
-    "https://www.splunk.com/en_us/products/splunk-cloud-platform.html", # Failing with 403 Forbidden
-    "https://www.splunk.com/en_us/form/contributions.html", # Failing with 403 Forbidden
-    "https://www.splunk.com/en_us/products/observability.html", # Failing with 403 Forbidden
 ]
 
 include-fragments = true

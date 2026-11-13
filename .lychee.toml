@@ -32,6 +32,7 @@ exclude = [
     "https://www.freedesktop.org/*", # Answers 418 I'm a teapot, rejecting the user agent
     "https://www.splunk.com/en_us/products/splunk-enterprise.html", # Failing with 403 Forbidden
     "https://www.splunk.com/en_us/products/splunk-cloud-platform.html", # Failing with 403 Forbidden
+    "https://www.splunk.com/en_us/form/contributions.html", # Failing with 403 Forbidden
 ]
 
 include-fragments = true

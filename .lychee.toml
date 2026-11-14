@@ -39,7 +39,7 @@ exclude = [
 include-fragments = true
 
 max_concurrency = 20
-max_redirects = 30
+max_redirects = 100
 max_retries = 10
 
 retry_wait_time = 1

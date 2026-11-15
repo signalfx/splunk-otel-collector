@@ -1,4 +1,4 @@
-FROM kong/kong-gateway:3.16.0.1
+FROM kong/kong-gateway:3.16.0.2
 
 COPY kong.yml /kong/declarative/kong.yml
 

@@ -93,8 +93,6 @@ and the [opentelemetry-collector-contrib v0.165.0](https://github.com/open-telem
   Detection does not cross connectors or inspect exporter wrappers that hide exporterhelper's batching capability.
 - (Core) `pkg/xprocessorhelper`: Instrument `xprocessorhelper.NewProfiles` with `otelcol_processor_incoming_items`, `otelcol_processor_outgoing_items`, and `otelcol_processor_internal_duration`, consistent with the other signal constructors. ([#15523](https://github.com/open-telemetry/opentelemetry-collector/issues/15523))
 - (Core) `processor/memory_limiter`: Add `garbage_collector` config section to allow disabling forced garbage collection via `enabled` field. ([#15081](https://github.com/open-telemetry/opentelemetry-collector/issues/15081))
-- (Core) `processor/queue_batch`: Promote the queue_batch processor to beta for traces, metrics, and logs, and to alpha for profiles. ([#12022](https://github.com/open-telemetry/opentelemetry-collector/issues/12022))
-- (Core) `processor/queue_batch`: Report queue and batch metrics as processor metrics ([#14038](https://github.com/open-telemetry/opentelemetry-collector/issues/14038))
 - (Contrib) `connector/span_metrics`: Reduce consume-path allocations by reusing shared metric keys, avoiding per-event attribute map copies, and filtering resource key attributes without a full map copy. ([#49860](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/49860))
   When `calls_dimensions` and `histogram.dimensions` are both empty, the duration
   histogram reuses the calls metric key. Delta timestamp maps are allocated only
@@ -104,7 +102,6 @@ and the [opentelemetry-collector-contrib v0.165.0](https://github.com/open-telem
   copied into the resource key hash.
 - (Contrib) `exporter/load_balancing`: Route logs without `service.name` by a hash of their resource attributes with `routing_key: service`, instead of sending all of them to one backend. ([#52483](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/52483))
   Logs without `service.name` now spread over several backends instead of one. Setups with stateful processing behind the exporter will see a one-time rebalance after the upgrade.
-- (Contrib) `exporter/prometheus`: Add the pkg.prometheus.KeepIdentifyingResourceAttributes feature gate to preserve service.name, service.namespace, and service.instance.id on target_info. ([#48890](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48890))
 - (Contrib) `exporter/prometheus_remote_write`: Add the pkg.prometheus.KeepIdentifyingResourceAttributes feature gate to preserve service.name, service.namespace, and service.instance.id on target_info. ([#48890](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/48890))
 - (Contrib) `exporter/prometheus_remote_write`: Add `otelcol_exporter_prometheusremotewrite_wal_send_failed_batches` and `otelcol_exporter_prometheusremotewrite_wal_send_failed_samples` to count batches the write-ahead log drops after the remote endpoint rejects them ([#51710](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/51710))
 - (Contrib) `exporter/splunk_hec`: Map eBPF CPU and allocation profiles to AlwaysOn Profiling and count dropped unsupported profile records. ([#52218](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/52218))

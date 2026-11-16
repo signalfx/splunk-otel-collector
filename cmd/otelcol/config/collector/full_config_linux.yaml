@@ -543,14 +543,15 @@ extensions:
   # Enables the pprof extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension
   pprof:
-    #endpoint: 0.0.0.0:1777
+    #endpoint: 127.0.0.1:1777
 
   # Enables the zpages extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension
   zpages:
-    #endpoint: 0.0.0.0:55679
-    expvar:
-      enabled: true
+    #endpoint: 127.0.0.1:55679
+    # Use expvar for config details, see https://github.com/open-telemetry/opentelemetry-collector/blob/v0.165.0/extension/zpagesextension/README.md#expvarz
+    # expvar:
+    #   enabled: true
 
 ###############################################################################
 # Service

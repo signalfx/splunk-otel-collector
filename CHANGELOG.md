@@ -8,7 +8,7 @@
 ## v0.165.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.165.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.165.0)
-and the [opentelemetry-collector-contrib v0.165.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.165.0) releases where appropriate.
+and the [opentelemetry-collector-contrib v0.165.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.165.1) releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
@@ -248,6 +248,7 @@ and the [opentelemetry-collector-contrib v0.165.0](https://github.com/open-telem
 - (Contrib) `receiver/splunk_enterprise`: Close the HTTP response body when setting the search job TTL ([#51986](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/51986))
   The response body of the search job TTL request was never closed on a successful response, or when reading it failed.
   This leaked a connection on every search scrape. The body is now always closed.
+- (Contrib) `processor/resource_detection`: Revert consul api/v2 bump and pin api to <2.0.0 ([#52874](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/52874))
 
 ## v0.164.0
 

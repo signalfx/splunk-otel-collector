@@ -35,6 +35,14 @@ and the [opentelemetry-collector-contrib v0.165.0](https://github.com/open-telem
 - (Contrib) `receiver/file_log`: Remove stable gate filelog.protobufCheckpointEncoding ([#52387](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52387))
 - (Contrib) `receiver/kafka_metrics`: Remove stable receiver.kafkametricsreceiver.UseFranzGo gate ([#52241](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/52241))
 - (Contrib) `receiver/prometheus`: `__scheme__` and `__metrics_path__` labels on scraped samples are no longer dropped from datapoint attributes. ([#52736](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/52736))
+- (Contrib) `pkg/jaeger`: Promote "pkg.translator.jaeger.EmitV1HttpConventions" and "pkg.translator.jaeger.DontEmitV0HttpConventions" feature gates to Beta. ([#52146](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52146))
+  The Jaeger translator now emits `http.response.status_code` instead of the deprecated `http.status_code` by default.
+- (Contrib) `pkg/zipkin`: Promote "pkg.translator.zipkin.EmitV1CloudResourceConventions" and "pkg.translator.zipkin.DontEmitV0CloudResourceConventions" feature gates to Beta. ([#52148](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52148))
+  The Zipkin translator now emits `cloud.resource_id` instead of the deprecated `faas.id` by default.
+- (Contrib) `pkg/zipkin`: Promote "pkg.translator.zipkin.EmitV1NetworkConventions" and "pkg.translator.zipkin.DontEmitV0NetworkConventions" feature gates to Stable. ([#52250](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52250))
+  The gates can no longer be disabled. The Zipkin translator now always emits `network.local.address`,
+  `network.peer.address`, and `service.peer.name`, and no longer emits the deprecated `net.host.ip`,
+  `net.peer.ip`, and `peer.service` attributes.
 
 ### 🚩 Deprecations 🚩
 
@@ -144,6 +152,7 @@ and the [opentelemetry-collector-contrib v0.165.0](https://github.com/open-telem
   making harder to developer new observers that could be used with the `receivercreator`.
 - (Contrib) `receiver/sql_server`: Support database credential providers through `db_auth`. ([#50294](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50294))
 - (Contrib) `receiver/sql_server`: Add `databases` and `exclude_databases` options to limit the databases that metrics and events report on. ([#52529](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52529))
+- (Contrib) `receiver/sql_query`: Support Microsoft Entra authentication for Azure SQL and Azure Database for PostgreSQL, including managed identities. ([#50294](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50294))
 - (Contrib) `receiver/udp_log`: Add `resolve_names` option to allow disabling reverse DNS lookups when network attributes are enabled. ([#52603](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52603))
 
 ### 🧰 Bug fixes 🧰
@@ -207,6 +216,7 @@ and the [opentelemetry-collector-contrib v0.165.0](https://github.com/open-telem
   `GODEBUG=fips140=only` no longer fails or panics when a statement uses them. The algorithms themselves
   are still not FIPS approved and must not be used for any security function.
 - (Contrib) `pkg/prometheus`: Correct UCUM time and byte unit conversions behind the pkg.translator.prometheus.CorrectUCUMUnits feature gate. ([#52480](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52480))
+- (Contrib) `pkg/coreinternal`: Fix strptime time parsing never returning for a format that repeats a directive, such as `%H %H`. ([#52627](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/52627))
 - (Contrib) `pkg/stanza`: Preserve multiline message bodies in the syslog parser for RFC3164 records without octet counting. ([#51554](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/51554))
 - (Contrib) `processor/cumulative_to_delta`: Return an error when an invalid regexp is configured in `include` or `exclude` instead of panicking on the first metric batch ([#51963](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/51963))
 - (Contrib) `processor/redaction`: Record the `body` key in the redaction summary attributes when a string log body matches an allowed value ([#50417](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/50417))

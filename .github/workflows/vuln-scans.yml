@@ -223,14 +223,11 @@ jobs:
         with:
           sarif_file: snyk.sarif
 
-  govulncheck-run:
+  govulncheck-run-sarif:
+    name: govulncheck-run (sarif)
     # Running on a large runner to reliably use scan mode as symbol without hitting OOM.
     if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
     runs-on: otel-linux-large
-    strategy:
-      fail-fast: false
-      matrix:
-        output: [ "sarif", "stdout" ]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -238,23 +235,34 @@ jobs:
 
       - name: Echo `govulncheck` version
         continue-on-error: true
-        run: govulncheck --version 
+        run: govulncheck --version
 
       - name: Run `govulncheck` to generate SARIF files
-        if: ${{ matrix.output == 'sarif' }}
         env:
           GOVULN_OPTS: --format sarif --scan symbol
         run: ./.github/workflows/scripts/govulncheck-run.sh
 
       - name: Save govulncheck results as artifact
-        if: ${{ matrix.output == 'sarif' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: govulncheck-results
           path: ./govulncheck/
 
+  govulncheck-run-stdout:
+    name: govulncheck-run (stdout)
+    # Running on a large runner to reliably use scan mode as symbol without hitting OOM.
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan') }}
+    runs-on: otel-linux-large
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-environment
+
+      - name: Echo `govulncheck` version
+        continue-on-error: true
+        run: govulncheck --version
+
       - name: Run `govulncheck` to fail the workflow if vulnerabilities are found
-        if: ${{ matrix.output == 'stdout' }}
         env:
           GOVULN_OPTS: --show verbose --scan symbol
         run: ./.github/workflows/scripts/govulncheck-run.sh
@@ -284,8 +292,8 @@ jobs:
 
   govulncheck-upload:
     runs-on: ubuntu-24.04
-    needs: [govulncheck-run, govulncheck-categories]
-    if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) }} # Always run to upload results to code-scanning even if the scan fails
+    needs: [govulncheck-run-sarif, govulncheck-categories]
+    if: ${{ always() && needs.govulncheck-run-sarif.result == 'success' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Run vulnerabilities scan')) }} # Upload results to code-scanning when the SARIF scan succeeds, even if the stdout scan fails
     strategy:
       matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
     steps:

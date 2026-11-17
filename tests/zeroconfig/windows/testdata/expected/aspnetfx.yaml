@@ -72,7 +72,7 @@ resourceSpans:
                 stringValue: "4.8"
       schemaUrl: https://opentelemetry.io/schemas/1.44.0
       scopeSpans:
-        - schemaUrl: https://opentelemetry.io/schemas/1.36.0
+        - schemaUrl: https://opentelemetry.io/schemas/1.45.0
           scope:
             name: OpenTelemetry.Instrumentation.AspNet
             version: 1.19.0

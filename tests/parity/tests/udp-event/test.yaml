@@ -5,13 +5,18 @@ description: |
 script: |
   for _ in $(seq 60); do
     if lsof -nP -iUDP:19100 > /dev/null 2>&1; then
-      printf '2026-01-02 03:04:05 alpha\n' > /dev/udp/127.0.0.1/19100
-      exit 0
+      break
     fi
     sleep 1
   done
-  echo "nothing bound port 19100" >&2
-  exit 1
+  if ! lsof -nP -iUDP:19100; then
+    echo "nothing bound port 19100" >&2
+    exit 1
+  fi
+  if ! printf '%s\n' '2026-01-02 03:04:05 alpha' > /dev/udp/127.0.0.1/19100; then
+    echo "failed to send UDP datagram to 127.0.0.1:19100" >&2
+    exit 1
+  fi
 expected:
   raw: true
   host: true

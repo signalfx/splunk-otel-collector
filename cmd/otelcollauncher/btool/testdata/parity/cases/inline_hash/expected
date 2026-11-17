@@ -1,0 +1,6 @@
+[s]
+a = val # trailing
+b = val; trailing
+c = val ;trailing
+d = x#y
+EXIT=0

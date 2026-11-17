@@ -1,0 +1,10 @@
+[/opt/splunk]
+x = 1
+[monitor:///opt/splunk/var/log]
+x = 1
+[s]
+a = $SPLUNK_HOME/var
+b = ${SPLUNK_HOME}/var
+c = $SPLUNK_DB
+d = $HOME
+EXIT=0

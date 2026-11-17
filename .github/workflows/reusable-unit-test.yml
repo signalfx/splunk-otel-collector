@@ -14,7 +14,7 @@ on:
         type: boolean
 
 env:
-  GO_VERSION: 1.26.10
+  GO_VERSION: 1.26.11
 
 jobs:
   unit-test:

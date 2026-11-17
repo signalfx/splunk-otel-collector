@@ -1,5 +1,0 @@
-change_type: enhancement
-component: chef
-note: Add Splunk Platform HEC log collection settings to the Chef cookbook, including Platform-only and combined collection modes.
-issues: [8329]
-subtext:

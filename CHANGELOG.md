@@ -12,6 +12,13 @@ and the [opentelemetry-collector-contrib v0.165.1](https://github.com/open-telem
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) `configs`: Disable `expvarz` and use zpages default configurations in all configuration files. ([#8447](https://github.com/signalfx/splunk-otel-collector/pull/8447))
+  All configuration files now use the default settings (loopback endpoint) for the
+  [zpages extension](https://github.com/open-telemetry/opentelemetry-collector/blob/v0.165.0/extension/zpagesextension/README.md#expvarz)
+  and `expvar` is no longer enabled out-of-the-box in these configurations.
+  To enable `expvar` on zpages, use the command-line argument
+  `--set=extensions.zpages.expvar.enabled=true` or update the configuration
+  file used to launch the collector.
 - (Splunk) `processor/timestamp`: Remove the deprecated timestamp processor. ([#8385](https://github.com/signalfx/splunk-otel-collector/pull/8385))
   Use the transform processor instead.
 - (Core) `pkg/confighttp`: Remove deprecated fields `IdleConnTimeout`, `MaxIdleConns`, `MaxIdleConnsPerHost`, `DisableKeepAlives`. ([#15973](https://github.com/open-telemetry/opentelemetry-collector/pull/15973))

@@ -5,7 +5,7 @@ go 1.26.11
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.165.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.165.1
-	github.com/signalfx/splunk-otel-collector/pkg/splunkconf v0.164.0
+	github.com/signalfx/splunk-otel-collector/pkg/splunkconf v0.165.0
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component v1.71.0
 	go.opentelemetry.io/collector/component/componenttest v0.165.0

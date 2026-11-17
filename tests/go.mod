@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/tests
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/containerd/platforms v0.2.1

@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4

@@ -15,8 +15,10 @@ extensions:
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
   zpages:
-    expvar:
-      enabled: true
+    #endpoint: 127.0.0.1:55679
+    # Use expvar for config details, see https://github.com/open-telemetry/opentelemetry-collector/blob/v0.165.0/extension/zpagesextension/README.md#expvarz
+    # expvar:
+    #   enabled: true
 
 receivers:
 

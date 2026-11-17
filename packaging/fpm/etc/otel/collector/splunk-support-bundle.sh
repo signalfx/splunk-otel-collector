@@ -176,7 +176,11 @@ getZpages() {
     echo "INFO: Getting zpages information..."
     # It's possible user has disabled zpages extension
     if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/55679'; then
-        curl -s http://localhost:55679/debug/expvarz > "$TMPDIR"/zpages/expvarz.json 2>&1
+        # expvarz is only served when zpages.expvar.enabled is true, which is not the default
+        if ! curl -sf http://localhost:55679/debug/expvarz > "$TMPDIR"/zpages/expvarz.json 2>&1; then
+            echo "WARN: expvarz unavailable (zpages.expvar.enabled is not set) so config details not collected"
+            rm -f "$TMPDIR"/zpages/expvarz.json
+        fi
         curl -s http://localhost:55679/debug/tracez >"$TMPDIR"/zpages/tracez.html 2>&1
         # Recursively get pages to see output of samples
         wget -q -r -np -l 1 -P "$TMPDIR/zpages" http://localhost:55679/debug/tracez

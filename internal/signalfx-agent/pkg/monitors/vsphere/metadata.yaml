@@ -1,6 +1,8 @@
 monitors:
   - monitorType: vsphere
     doc: |
+      **This monitor is deprecated and will be removed on or after December 2026. Use the `vcenter` receiver instead.**
+
       A VMware vSphere deployment includes physical hosts, ESXi hypervisors, virtual machines, and a vCenter Server.
       
       To report metrics for a vSphere deployment, this monitor logs into a vCenter Server 

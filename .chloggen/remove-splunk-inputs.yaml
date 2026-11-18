@@ -1,5 +1,0 @@
-change_type: breaking
-component: splunk_inputs
-note: Remove the `splunk_inputs` receiver. Reading a Splunk `.conf` tree is now the `splunkconf` config provider's job.
-issues: [8330]
-subtext:

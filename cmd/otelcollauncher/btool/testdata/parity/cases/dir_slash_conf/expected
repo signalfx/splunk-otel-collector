@@ -1,0 +1,2 @@
+Directory traversal risk in /nobody/system/../x at segment "../x"
+EXIT=1

@@ -14,7 +14,7 @@ on:
         type: boolean
 
 env:
-  GO_VERSION: 1.26.10
+  GO_VERSION: 1.26.11
 
 jobs:
   unit-test:
@@ -74,10 +74,6 @@ jobs:
             echo "Discovery bundle.d config has changed. Run 'make bundle.d' and push the changes or ensure correct .tmpl updated."
             exit 1
           fi
-
-      - name: Clear Go build cache before Windows race tests
-        if: ${{ runner.os == 'Windows' && inputs.TEST_RACE }}
-        run: go clean -cache
 
       - name: Report disk space before unit tests
         if: runner.os == 'Windows'

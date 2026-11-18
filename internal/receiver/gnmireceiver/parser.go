@@ -51,6 +51,7 @@ type metricParser struct {
 }
 
 func newMetricParser(endpoint string, subscriptions []SubscriptionConfig, schema *yangSchema, logger *zap.Logger) *metricParser {
+	subscriptions = copySubscriptions(subscriptions)
 	for i := range subscriptions {
 		sub := &subscriptions[i]
 		if sub.Default != nil {

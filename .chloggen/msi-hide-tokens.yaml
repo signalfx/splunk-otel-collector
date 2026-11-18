@@ -1,5 +1,0 @@
-change_type: enhancement
-component: msi
-note: Mark a few MSI properties as hidden so their values are not written to the installer log.
-issues: [8350]
-subtext:

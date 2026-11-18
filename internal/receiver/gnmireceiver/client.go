@@ -24,6 +24,7 @@ import (
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/ygot/ygot"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -38,22 +39,28 @@ type gnmiClient struct {
 	logger   *zap.Logger
 	conn     *grpc.ClientConn
 	settings component.TelemetrySettings
+	name     string
+	dialOpts []configgrpc.ToClientConnOption
 }
 
 func newGNMIClient(
+	name string,
 	target *TargetConfig,
 	host component.Host,
 	settings component.TelemetrySettings,
 	nextConsumer consumer.Metrics,
 	parser *metricParser,
+	dialOpts ...configgrpc.ToClientConnOption,
 ) *gnmiClient {
 	return &gnmiClient{
+		name:     name,
 		target:   target,
 		host:     host,
 		settings: settings,
 		consumer: nextConsumer,
 		parser:   parser,
 		logger:   settings.Logger,
+		dialOpts: dialOpts,
 	}
 }
 
@@ -64,7 +71,7 @@ func (c *gnmiClient) run(ctx context.Context) {
 		}
 	}()
 
-	endpoint := c.target.ClientConfig.Endpoint
+	endpoint := c.name
 	for ctx.Err() == nil {
 		if err := c.subscribe(ctx); err != nil && ctx.Err() == nil {
 			if c.target.Redial > 0 {
@@ -94,12 +101,21 @@ func (c *gnmiClient) connect(ctx context.Context) error {
 	if _, err := c.buildSubscribeRequest(); err != nil {
 		return err
 	}
-	conn, err := c.target.ClientConfig.ToClientConn(ctx, c.host.GetExtensions(), c.settings)
+	conn, err := c.target.ClientConfig.ToClientConn(ctx, c.host.GetExtensions(), c.settings, c.dialOpts...)
 	if err != nil {
 		return err
 	}
 	c.conn = conn
 	return nil
+}
+
+func (c *gnmiClient) connectAndRun(ctx context.Context) {
+	if err := c.connect(ctx); err != nil {
+		c.logger.Error("gNMI client failed to connect",
+			zap.String("endpoint", c.name), zap.Error(err))
+		return
+	}
+	c.run(ctx)
 }
 
 func (c *gnmiClient) subscribe(ctx context.Context) error {
@@ -127,7 +143,7 @@ func (c *gnmiClient) subscribe(ctx context.Context) error {
 			return err
 		}
 		c.logger.Debug("gNMI subscribe request send returned EOF, reading stream status",
-			zap.String("endpoint", c.target.ClientConfig.Endpoint))
+			zap.String("endpoint", c.name))
 	}
 
 	established := false
@@ -143,14 +159,14 @@ func (c *gnmiClient) subscribe(ctx context.Context) error {
 		if !established {
 			established = true
 			c.logger.Info("gNMI subscription established",
-				zap.String("endpoint", c.target.ClientConfig.Endpoint),
+				zap.String("endpoint", c.name),
 				zap.Int("subscriptions", len(c.target.Subscriptions)))
 		}
 
 		metrics, parseErr := c.parser.parse(resp)
 		if parseErr != nil {
 			c.logger.Error("failed to parse gNMI response",
-				zap.String("endpoint", c.target.ClientConfig.Endpoint),
+				zap.String("endpoint", c.name),
 				zap.Error(parseErr))
 		}
 		if metrics.DataPointCount() == 0 {
@@ -158,7 +174,7 @@ func (c *gnmiClient) subscribe(ctx context.Context) error {
 		}
 		if consumeErr := c.consumer.ConsumeMetrics(ctx, metrics); consumeErr != nil {
 			c.logger.Error("failed to forward metrics",
-				zap.String("endpoint", c.target.ClientConfig.Endpoint),
+				zap.String("endpoint", c.name),
 				zap.Error(consumeErr))
 		}
 	}

@@ -145,6 +145,7 @@ tests/host/
   conf/              the Splunk .conf structure, installed into the agent's etc/
     inputs.conf
     outputs.conf
+    bin/scripts/x.sh optional payload, installed under the agent's $SPLUNK_HOME
   collector.yaml     optional candidate config; without it the candidate reads conf/
   golden.json        generated
 ```
@@ -158,6 +159,23 @@ oracle, and it configures the candidate too unless the case supplies a
 A top-level `*.conf` is system config; a nested path is mirrored, so
 `conf/apps/my_app/local/inputs.conf` installs as an app rather than as system
 config. `tests/app-scoped-input` is an example.
+
+A file in `conf/` that is not a `*.conf` is not config, and installs at the path
+the case named it relative to the agent's `$SPLUNK_HOME` rather than to its
+`etc/`, with the execute bit set. That is how a case ships a file it then has the
+agent run: splunkd runs a scripted input only from `$SPLUNK_HOME/bin/scripts` or
+a bundle's `bin`, so
+
+```
+conf/bin/scripts/hello.sh
+```
+
+installs as `$SPLUNK_HOME/bin/scripts/hello.sh` in both agents, and a stanza
+reaches it as `[script://$SPLUNK_HOME/bin/scripts/hello.sh]`. Each agent expands
+`$SPLUNK_HOME` itself, so there is no token for it and nothing for the framework
+to substitute. Shipping such a file does not on its own make a case
+`.conf`-driven: a case with both a `collector.yaml` and a payload file is still
+run from the `collector.yaml`.
 
 `test.yaml` holds everything that is not agent config:
 

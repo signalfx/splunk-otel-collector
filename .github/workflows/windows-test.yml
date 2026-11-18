@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  GO_VERSION: 1.26.10
+  GO_VERSION: 1.26.11
 
 concurrency:
   group: windows-test-${{ github.event.pull_request.number || github.ref }}
@@ -28,6 +28,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Continue'
           & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
+
+      - uses: ./.github/actions/setup-windows-go-cache
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0

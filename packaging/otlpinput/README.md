@@ -118,6 +118,13 @@ All other resource and individual log record attributes are mapped to indexed fi
 
 This mapping follows the OpenTelemetry specification.
 
+### Event timestamps
+
+The add-on's default sourcetype includes `INDEXED_EXTRACTIONS = HEC` and
+`DATETIME_CONFIG = NONE` to preserve the timestamp supplied by the exporter.
+For timestamp selection and configuration of custom input or event sourcetypes,
+see the exporter's [Event timestamps](../../internal/exporter/splunkmodinputexporter/README.md#event-timestamps).
+
 ### Index selection and authorization
 
 The input writes each event to standard output as an HEC JSON line. Its

@@ -30,6 +30,15 @@ type Input struct {
 	Props      []conf.Prop
 	Transforms []conf.Transform
 
+	// SchemeAppDir is, for a modular input, the app directory whose
+	// README/inputs.conf.spec declares the scheme. splunkd runs the scheme from
+	// that app rather than from AppDir, so a stanza written in etc/system or in
+	// a config-only app still runs the binary its TA ships. It is empty for
+	// anything else and for a scheme no spec file declares. A modular input
+	// whose declaring app is disabled never reaches a mapper, since splunkd does
+	// not run it.
+	SchemeAppDir string
+
 	// SchemeDefault is the [<scheme>] stanza's params for a modular input, nil
 	// for anything else. Those params are already folded into this input, but
 	// the fold is lossy: afterwards an inherited setting looks the same as one
@@ -242,9 +251,12 @@ func WithOutputMappers(mappers ...MappingExporterFactory) Option {
 // WithProcessorMappers registers the processors that place themselves in the
 // emitted pipeline; a provider with none emits receivers and exporters alone.
 //
-// Registration order is pipeline order, since the .conf tree does not state it.
-// Instances of one mapper are ordered by name, so a mapper needing a particular
-// order between them should be registered as several.
+// The .conf tree does not state processor order, so the emitted processor
+// chain follows registration order: the first mapper registered runs first.
+// Nothing reorders or validates it, so the caller owns it and should follow
+// splunkd's parsing pipeline: charset conversion first, then line breaking,
+// then event breaking, then index-time transforms. Instances one mapper
+// returns run in name order.
 func WithProcessorMappers(mappers ...MappingProcessorFactory) Option {
 	return func(p *provider) {
 		p.processorMappers = append(p.processorMappers, mappers...)

@@ -6,6 +6,7 @@ package splunkconf
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -313,4 +314,112 @@ func TestDiscoverAppsMissingAppsDir(t *testing.T) {
 	apps, err := discoverApps(t.TempDir())
 	require.NoError(t, err)
 	require.Empty(t, apps)
+}
+
+// writeSpec declares schemes in dir's README/inputs.conf.spec, between the prose
+// and the non-modular headers a real spec file carries.
+func writeSpec(t *testing.T, dir string, schemes ...string) {
+	t.Helper()
+	var body strings.Builder
+	body.WriteString("# A comment.\n[default]\n* Not a scheme.\n\n[splunktcp]\n[tcp:<port>]\n")
+	for _, s := range schemes {
+		body.WriteString("[" + s + "://<name>]\n* A scheme.\n\nparam = <value>\n* A setting.\n\n")
+	}
+	readme := filepath.Join(dir, "README")
+	require.NoError(t, os.MkdirAll(readme, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(readme, "inputs.conf.spec"), []byte(body.String()), 0o600))
+}
+
+// A scheme belongs to the first app that declares it, reading system and then
+// the apps in byte order, and a disabled app that wins blocks the scheme.
+func TestSchemeAppDirs(t *testing.T) {
+	confRoot := t.TempDir()
+	app := func(name string) string { return filepath.Join(confRoot, "apps", name) }
+
+	writeSpec(t, filepath.Join(confRoot, "system"), "WinEventLog", "shared")
+	// system is never disabled, whatever its app.conf says.
+	sysDefault := filepath.Join(confRoot, "system", "default")
+	require.NoError(t, os.MkdirAll(sysDefault, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(sysDefault, "app.conf"), []byte("[install]\nstate = disabled\n"), 0o600))
+	writeSpec(t, app("my_ta"), "mycollector", "shared")
+
+	// Byte order puts uppercase before lowercase and "app10" before "app9".
+	writeSpec(t, app("aapp"), "casefirst")
+	writeSpec(t, app("Zapp"), "casefirst")
+	writeSpec(t, app("app9"), "numeric")
+	writeSpec(t, app("app10"), "numeric")
+
+	writeSpec(t, app("a_disabled"), "blocked")
+	writeApp(t, confRoot, "a_disabled", "local", "[install]\nstate = disabled\n")
+	writeSpec(t, app("b_enabled"), "blocked")
+
+	// A dotfile directory sorts first and is never disabled, whatever its
+	// app.conf says.
+	writeSpec(t, app(".hidden"), "dotfirst")
+	writeApp(t, confRoot, ".hidden", "local", "[install]\nstate = disabled\n")
+	writeSpec(t, app("aaa"), "dotfirst")
+
+	writeApp(t, confRoot, "no_readme", "local", "")
+	require.NoError(t, os.WriteFile(app("not_a_dir"), nil, 0o600))
+
+	got, err := schemeAppDirs(confRoot)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{
+		"WinEventLog": filepath.Join(confRoot, "system"),
+		"shared":      filepath.Join(confRoot, "system"),
+		"mycollector": app("my_ta"),
+		"casefirst":   app("Zapp"),
+		"numeric":     app("app10"),
+		"blocked":     "",
+		"dotfirst":    app(".hidden"),
+	}, got)
+}
+
+// A spec file is read the way splunkd reads one, which decides what counts as a
+// declaration.
+func TestDeclaredSchemes(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		spec string
+		want []string
+	}{
+		{name: "a header and a setting", spec: "[a://<name>]\nparam = <value>\n", want: []string{"a"}},
+		{name: "a header alone declares nothing", spec: "[a://<name>]\n* Prose.\n"},
+		{
+			name: "only an invalid parameter name declares nothing",
+			spec: "[a://<name>]\npython.version = python3\n* Defaults to x = 1.\nmy param = 1\n",
+		},
+		{name: "a commented setting declares nothing", spec: "[a://<name>]\n# param = 1\n; param = 1\n"},
+		{name: "an indented setting counts", spec: "[a://<name>]\n   param = 1\n", want: []string{"a"}},
+		{
+			name: "an indented header leaves its settings with the stanza before",
+			spec: "[a://<name>]\n  [b://<name>]\nparam = 1\n",
+			want: []string{"a"},
+		},
+		{name: "text after the closing bracket", spec: "[a://<name>] trailing\nparam = 1\n", want: []string{"a"}},
+		{name: "a hyphenated scheme", spec: "[my-scheme://default]\nparam = 1\n", want: []string{"my-scheme"}},
+		{name: "CRLF line endings", spec: "[a://<name>]\r\nparam = 1\r\n", want: []string{"a"}},
+		{
+			name: "a name cut before :// is not a scheme",
+			spec: "[a.b://x]\np = 1\n[a<b://x]\np = 1\n[a:b://x]\np = 1\n[_a://x]\np = 1\n[://x]\np = 1\n",
+		},
+		{name: "not a scheme stanza", spec: "[default]\np = 1\n[tcp:<port>]\np = 1\n[splunktcp]\np = 1\n"},
+		{
+			name: "every scheme in file order, once each",
+			spec: "[b://<name>]\np = 1\nq = 2\n\n[a://<name>]\np = 1\n",
+			want: []string{"b", "a"},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "inputs.conf.spec")
+			require.NoError(t, os.WriteFile(path, []byte(tt.spec), 0o600))
+			assert.Equal(t, tt.want, declaredSchemes(path))
+		})
+	}
+}
+
+func TestSchemeAppDirsEmptyRoot(t *testing.T) {
+	got, err := schemeAppDirs(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, got)
 }

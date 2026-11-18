@@ -47,6 +47,7 @@ func TestDefaultComponents(t *testing.T) {
 		"oracle_encoding",
 		"pprof",
 		"smartagent",
+		"splunk_auth",
 		"text_encoding",
 		"zpages",
 	}
@@ -101,6 +102,7 @@ func TestDefaultComponents(t *testing.T) {
 		"oracledb",
 		"otlp",
 		"postgresql",
+		"pprof",
 		"prometheus",
 		"prometheus_remote_write",
 		"prometheus_simple",
@@ -186,7 +188,6 @@ func TestDefaultComponents(t *testing.T) {
 		"rolling_span_latency",
 		"span",
 		"tail_sampling",
-		"timestamp",
 		"transform",
 	}
 	expectedProcessorAliases := map[string]string{

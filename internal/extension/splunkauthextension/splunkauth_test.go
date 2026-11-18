@@ -52,7 +52,7 @@ type sourceFunc func(context.Context) ([]HecTokenConfig, error)
 
 func (f sourceFunc) Load(ctx context.Context) ([]HecTokenConfig, error) { return f(ctx) }
 
-func newTestAuthenticator(t *testing.T, source TokenSource, configure func(*Config)) *splunkAuth {
+func newTestAuthenticator(t *testing.T, source tokenSource, configure func(*Config)) *splunkAuth {
 	t.Helper()
 	cfg := createDefaultConfig().(*Config)
 	if configure != nil {

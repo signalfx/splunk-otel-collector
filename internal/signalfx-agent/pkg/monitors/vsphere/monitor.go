@@ -30,6 +30,7 @@ func (m *Monitor) Configure(conf *model.Config) error {
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The smartagent/vsphere monitor is deprecated and will be removed on or after December 2026. Use the vcenter receiver instead.")
 	r := newRunner(ctx, m.logger, conf, m)
 	// 20 seconds is the fixed, real-time metrics interval for vsphere/esxi
 	utils.RunOnInterval(ctx, r.run, model.RealtimeMetricsInterval*time.Second)

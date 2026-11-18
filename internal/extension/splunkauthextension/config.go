@@ -5,10 +5,12 @@ package splunkauthextension
 
 import (
 	"errors"
+	"net/url"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configtls"
 )
 
 type HecTokenConfig struct {
@@ -19,25 +21,30 @@ type HecTokenConfig struct {
 }
 
 // Config controls token refresh and the lifetime of cached authorization data.
-// The token source is supplied separately through NewFactory.
 type Config struct {
-	RefreshInterval time.Duration `mapstructure:"refresh_interval"`
-	RefreshTimeout  time.Duration `mapstructure:"refresh_timeout"`
-	MaxStaleness    time.Duration `mapstructure:"max_staleness"`
+	// Endpoint defaults to SPLUNK_MANAGEMENT_URI when using NewFactory.
+	Endpoint string `mapstructure:"endpoint"`
+	// SessionKey defaults to SPLUNK_SESSION_KEY when using NewFactory.
+	SessionKey      configopaque.String    `mapstructure:"session_key"`
+	TLS             configtls.ClientConfig `mapstructure:"tls"`
+	RefreshInterval time.Duration          `mapstructure:"refresh_interval"`
+	RefreshTimeout  time.Duration          `mapstructure:"refresh_timeout"`
+	MaxStaleness    time.Duration          `mapstructure:"max_staleness"`
 }
 
 var _ component.Config = (*Config)(nil)
 
-// NewDefaultConfig returns the default refresh settings for programmatic callers.
-func NewDefaultConfig() *Config {
-	return &Config{
-		RefreshInterval: 3 * time.Minute,
-		RefreshTimeout:  30 * time.Second,
-		MaxStaleness:    10 * time.Minute,
-	}
-}
-
 func (cfg *Config) Validate() error {
+	if cfg.Endpoint == "" {
+		return errors.New("endpoint is required")
+	}
+	if cfg.SessionKey == "" {
+		return errors.New("session_key is required")
+	}
+	u, err := url.Parse(cfg.Endpoint)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+		return errors.New("endpoint must be an HTTP or HTTPS URL without credentials, query, or fragment")
+	}
 	if cfg.RefreshInterval <= 0 {
 		return errors.New("refresh_interval must be positive")
 	}

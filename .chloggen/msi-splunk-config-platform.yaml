@@ -1,5 +1,0 @@
-change_type: bug_fix
-component: msi
-note: Allow Splunk Platform logs and metrics configurations to be merged when SPLUNK_CONFIG is set.
-issues: [8351]
-subtext:

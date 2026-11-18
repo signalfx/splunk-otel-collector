@@ -41,23 +41,13 @@ type ValidationItems struct {
 
 // ReadValidationXML reads and parses the <items> XML sent by Splunk during --validate-arguments mode.
 func ReadValidationXML(reader io.Reader) (*ValidationItems, error) {
-	var xmlData strings.Builder
-	scanner := bufio.NewScanner(reader)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		xmlData.WriteString(line)
-		if strings.Contains(line, "</items>") {
-			break
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
+	data, err := readUntilClosingTag(reader, "</items>")
+	if err != nil {
 		return nil, fmt.Errorf("error reading validation input: %w", err)
 	}
 
 	var items ValidationItems
-	if err := xml.Unmarshal([]byte(xmlData.String()), &items); err != nil {
+	if err := xml.Unmarshal(data, &items); err != nil {
 		return nil, fmt.Errorf("error unmarshaling validation XML: %w", err)
 	}
 
@@ -114,20 +104,29 @@ func UnmarshalInputXML(data []byte) (*Input, error) {
 }
 
 func ReadXML(reader io.Reader) (*Input, error) {
+	data, err := readUntilClosingTag(reader, "</input>")
+	if err != nil {
+		return nil, fmt.Errorf("error reading input: %w", err)
+	}
+
+	return UnmarshalInputXML(data)
+}
+
+func readUntilClosingTag(reader io.Reader, closingTag string) ([]byte, error) {
 	var xmlData strings.Builder
 	scanner := bufio.NewScanner(reader)
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		xmlData.WriteString(line)
-		if strings.Contains(line, "</input>") {
+		if strings.Contains(line, closingTag) {
 			break
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading input: %w", err)
+		return nil, err
 	}
 
-	return UnmarshalInputXML([]byte(xmlData.String()))
+	return []byte(xmlData.String()), nil
 }

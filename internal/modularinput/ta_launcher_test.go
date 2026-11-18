@@ -27,6 +27,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func testInputXML(stanza string) string {
+	return `<input>
+	<server_host>testhost</server_host>
+	<server_uri>https://localhost:8089</server_uri>
+	<session_key>test_key</session_key>
+	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
+	<configuration>
+` + stanza + `	</configuration>
+</input>`
+}
+
 func TestHandleLaunchAsTA_NotTARunMode(t *testing.T) {
 	// Save original function and restore after test
 	originalIsParentFn := isParentProcessSplunkdFn
@@ -145,18 +156,11 @@ func TestHandleLaunchAsTA_Success(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 			<param name="splunk_api_key">secret123</param>
 			<param name="splunk_endpoint">https://api.example.com</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -194,17 +198,10 @@ func TestHandleLaunchAsTA_SuccessWithEnvExpansion(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 	t.Setenv("TEST_VAR", "expanded_value")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 			<param name="splunk_config_value">$TEST_VAR</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -239,17 +236,10 @@ func TestHandleLaunchAsTA_SetEnvError(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 			<param name="splunk_api_key">secret123</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -284,17 +274,10 @@ func TestHandleLaunchAsTA_StanzaNotFound(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="other-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="other-stanza" app="test-app">
 			<param name="api_key">secret123</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -335,16 +318,9 @@ func TestHandleLaunchAsTA_EmptyStanza(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -559,17 +535,10 @@ func TestHandleLaunchAsTA_StanzaEnvVars(t *testing.T) {
 
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="Splunk_TA_otel://default" app="Splunk_TA_otel">
+	xmlData := testInputXML(`		<stanza name="Splunk_TA_otel://default" app="Splunk_TA_otel">
 			<param name="splunk_realm">us0</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	_, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "Splunk_TA_otel", "<scheme></scheme>", nil)
@@ -598,17 +567,10 @@ func TestHandleLaunchAsTA_StanzaEnvVars_NoMatchingStanza(t *testing.T) {
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
 	// Stanza name does not match the prefix: neither env var is set.
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="other-stanza://default" app="other-app">
+	xmlData := testInputXML(`		<stanza name="other-stanza://default" app="other-app">
 			<param name="splunk_realm">us0</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	_, _, err := HandleLaunchAsTA(args, strings.NewReader(xmlData), "Splunk_TA_otel", "<scheme></scheme>", nil)
@@ -642,20 +604,13 @@ func TestHandleLaunchAsTA_TwoPassFiltering(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 			<param name="splunk_realm">us0</param>
 			<param name="splunk_access_token">secret123</param>
 			<param name="other_param">should_not_be_set</param>
 			<param name="api_key">also_not_set</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -699,20 +654,13 @@ func TestHandleLaunchAsTA_DependencyOrdering(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 			<param name="splunk_ingest_url">https://ingest.${SPLUNK_REALM}.observability.splunkcloud.com</param>
 			<param name="splunk_realm">us0</param>
 			<param name="splunk_api_url">https://api.${SPLUNK_REALM}.observability.splunkcloud.com</param>
 			<param name="splunk_access_token">secret123</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -818,19 +766,12 @@ func TestHandleLaunchAsTA_MixedCaseSplunkPrefix(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 			<param name="SPLUNK_Realm">us0</param>
 			<param name="Splunk_Access_Token">secret123</param>
 			<param name="splunk_trace_url">http://localhost:9411</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -871,21 +812,14 @@ func TestHandleLaunchAsTA_ComplexDependencies(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="test-stanza" app="test-app">
+	xmlData := testInputXML(`		<stanza name="test-stanza" app="test-app">
 			<param name="splunk_url">${SPLUNK_PROTOCOL}://${SPLUNK_HOST}:${SPLUNK_PORT}</param>
 			<param name="splunk_protocol">https</param>
 			<param name="splunk_host">api.example.com</param>
 			<param name="splunk_port">8088</param>
 			<param name="splunk_token">abc123</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -1050,21 +984,14 @@ func TestHandleLaunchAsTA_StanzaPrefixMatch(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="otel://my-instance-123" app="test-app">
+	xmlData := testInputXML(`		<stanza name="otel://my-instance-123" app="test-app">
 			<param name="splunk_realm">us0</param>
 			<param name="splunk_access_token">secret123</param>
 		</stanza>
 		<stanza name="other://instance" app="test-app">
 			<param name="splunk_realm">eu0</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -1102,17 +1029,10 @@ func TestHandleLaunchAsTA_StanzaPrefixNoMatch(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="otel://instance1" app="test-app">
+	xmlData := testInputXML(`		<stanza name="otel://instance1" app="test-app">
 			<param name="splunk_realm">us0</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)
@@ -1347,20 +1267,13 @@ func TestHandleLaunchAsTA_StanzaPrefixFirstMatch(t *testing.T) {
 	// Set SPLUNK_HOME
 	t.Setenv("SPLUNK_HOME", "/opt/splunk")
 
-	xmlData := `<input>
-	<server_host>testhost</server_host>
-	<server_uri>https://localhost:8089</server_uri>
-	<session_key>test_key</session_key>
-	<checkpoint_dir>/tmp/checkpoint</checkpoint_dir>
-	<configuration>
-		<stanza name="otel://instance1" app="test-app">
+	xmlData := testInputXML(`		<stanza name="otel://instance1" app="test-app">
 			<param name="splunk_realm">us0</param>
 		</stanza>
 		<stanza name="otel://instance2" app="test-app">
 			<param name="splunk_realm">eu0</param>
 		</stanza>
-	</configuration>
-</input>`
+`)
 
 	args := []string{"program"}
 	reader := strings.NewReader(xmlData)

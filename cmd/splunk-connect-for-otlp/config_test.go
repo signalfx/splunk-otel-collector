@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"encoding/xml"
 	"testing"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/auth/authtest"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
+	"github.com/signalfx/splunk-otel-collector/internal/modularinput"
 	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
 )
 
@@ -95,13 +95,11 @@ func TestParseInput(t *testing.T) {
   </configuration>
 </input>`
 
-	var config XMLInput
-	err := xml.Unmarshal([]byte(input), &config)
+	config, err := modularinput.UnmarshalInputXML([]byte(input))
 	require.NoError(t, err)
+	require.Equal(t, "splunk-connect-for-otlp://specialmind", config.Configuration.Stanza[0].Name)
 
-	require.Equal(t, "splunk-connect-for-otlp://specialmind", config.Configuration.Stanza.Name)
-
-	xmlCfg, err := config.Extract()
+	xmlCfg, err := ExtractInputConfig(config)
 	require.NoError(t, err)
 
 	require.Equal(t, 4317, xmlCfg.GrpcPort)
@@ -130,8 +128,8 @@ func TestParseInput(t *testing.T) {
 func TestAuthConfigSucceedsOverLoopbackTLS(t *testing.T) {
 	server := authtest.NewTLSServer(t)
 
-	input := XMLInput{ServerURI: server.URL, SessionKey: "session"}
-	xmlCfg, err := input.Extract()
+	input := &modularinput.Input{ServerURI: server.URL, SessionKey: "session"}
+	xmlCfg, err := ExtractInputConfig(input)
 	require.NoError(t, err)
 	require.NoError(t, xmlCfg.AuthConfig.Validate())
 
@@ -146,23 +144,23 @@ func TestAuthInputSettings(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
 		wantErr string
-		params  []XMLParam
+		params  []modularinput.Param
 	}{
 		{name: "defaults"},
-		{name: "partial override", params: []XMLParam{{Name: "refresh_interval", Value: " 2m "}}},
-		{name: "missing units", params: []XMLParam{{Name: "refresh_interval", Value: "180"}}, wantErr: "invalid refresh_interval"},
-		{name: "malformed timeout", params: []XMLParam{{Name: "refresh_timeout", Value: "soon"}}, wantErr: "invalid refresh_timeout"},
-		{name: "empty staleness", params: []XMLParam{{Name: "max_staleness", Value: ""}}, wantErr: "invalid max_staleness"},
-		{name: "duration overflow", params: []XMLParam{{Name: "max_staleness", Value: "999999999999h"}}, wantErr: "invalid max_staleness"},
-		{name: "zero interval", params: []XMLParam{{Name: "refresh_interval", Value: "0s"}}, wantErr: "refresh_interval must be positive"},
-		{name: "negative timeout", params: []XMLParam{{Name: "refresh_timeout", Value: "-1s"}}, wantErr: "refresh_timeout must be positive"},
-		{name: "zero staleness", params: []XMLParam{{Name: "max_staleness", Value: "0s"}}, wantErr: "max_staleness must be positive"},
-		{name: "insufficient staleness", params: []XMLParam{{Name: "max_staleness", Value: "3m30s"}}, wantErr: "max_staleness must be greater than refresh_interval + refresh_timeout"},
+		{name: "partial override", params: []modularinput.Param{{Name: "refresh_interval", Value: " 2m "}}},
+		{name: "missing units", params: []modularinput.Param{{Name: "refresh_interval", Value: "180"}}, wantErr: "invalid refresh_interval"},
+		{name: "malformed timeout", params: []modularinput.Param{{Name: "refresh_timeout", Value: "soon"}}, wantErr: "invalid refresh_timeout"},
+		{name: "empty staleness", params: []modularinput.Param{{Name: "max_staleness", Value: ""}}, wantErr: "invalid max_staleness"},
+		{name: "duration overflow", params: []modularinput.Param{{Name: "max_staleness", Value: "999999999999h"}}, wantErr: "invalid max_staleness"},
+		{name: "zero interval", params: []modularinput.Param{{Name: "refresh_interval", Value: "0s"}}, wantErr: "refresh_interval must be positive"},
+		{name: "negative timeout", params: []modularinput.Param{{Name: "refresh_timeout", Value: "-1s"}}, wantErr: "refresh_timeout must be positive"},
+		{name: "zero staleness", params: []modularinput.Param{{Name: "max_staleness", Value: "0s"}}, wantErr: "max_staleness must be positive"},
+		{name: "insufficient staleness", params: []modularinput.Param{{Name: "max_staleness", Value: "3m30s"}}, wantErr: "max_staleness must be greater than refresh_interval + refresh_timeout"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			params := append([]XMLParam{{Name: "enableSSL", Value: "0"}}, tc.params...)
-			input := XMLInput{ServerURI: "http://localhost:8089", SessionKey: "session", Configuration: XMLConfig{Stanza: XMLStanza{Params: params}}}
-			cfg, err := input.Extract()
+			params := append([]modularinput.Param{{Name: "enableSSL", Value: "0"}}, tc.params...)
+			input := &modularinput.Input{ServerURI: "http://localhost:8089", SessionKey: "session", Configuration: modularinput.Configuration{Stanza: []modularinput.Stanza{{Param: params}}}}
+			cfg, err := ExtractInputConfig(input)
 			if err == nil {
 				err = cfg.Validate()
 			}

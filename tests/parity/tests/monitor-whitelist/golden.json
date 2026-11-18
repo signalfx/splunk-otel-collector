@@ -1,7 +1,0 @@
-[
-  {
-    "raw": "kept line",
-    "host": "parityhost",
-    "source": "${BASE_DIR}/logs/keep.log"
-  }
-]

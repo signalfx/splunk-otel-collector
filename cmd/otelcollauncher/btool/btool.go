@@ -155,7 +155,7 @@ func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams c
 		return cli.ExitFailure
 	}
 	visible := resolve(merged)
-	if err := printSettings(streams.Out, visible, options.prefix); err != nil {
+	if err := printSettings(streams.Out, visible, options.prefix, options.debug, options.raw); err != nil {
 		fmt.Fprintf(streams.Err, "failed to write settings: %v\n", err)
 		return cli.ExitFailure
 	}
@@ -179,7 +179,9 @@ type commandOptions struct {
 	prefix   string
 	app      string
 	dir      string
+	debug    bool
 	expand   bool
+	raw      bool
 }
 
 // parseArgs returns the exit code to use alongside any error, matching the
@@ -189,6 +191,10 @@ func parseArgs(args []string) (commandOptions, int, error) {
 	var positional []string
 	for _, arg := range args {
 		switch {
+		case arg == "--debug":
+			options.debug = true
+		case arg == "--raw":
+			options.raw = true
 		case arg == "--no-log":
 			// Accepted for compatibility; it has no effect on list output.
 		case strings.HasPrefix(arg, "--expand-stanzas="):
@@ -332,8 +338,14 @@ func isDirSymlink(path string, entry os.DirEntry) bool {
 	return err == nil && info.IsDir()
 }
 
+type valueSource struct {
+	value string
+	path  string
+}
+
 type stanzaSettings struct {
-	values map[string]string
+	values map[string]valueSource
+	path   string
 }
 
 func readMerged(confName string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
@@ -360,11 +372,12 @@ func readMerged(confName string, dirs []string, vars expansionVars, expand bool)
 			}
 			settings := merged[name]
 			if settings == nil {
-				settings = &stanzaSettings{values: make(map[string]string)}
+				settings = &stanzaSettings{values: make(map[string]valueSource)}
 				merged[name] = settings
 			}
+			settings.path = path
 			if !s.header {
-				settings.values[s.key] = s.value
+				settings.values[s.key] = valueSource{value: s.value, path: path}
 			}
 		}
 	}
@@ -380,7 +393,7 @@ func resolve(merged map[string]*stanzaSettings) map[string]*stanzaSettings {
 			visible[name] = settings
 			continue
 		}
-		resolved := &stanzaSettings{values: make(map[string]string, len(settings.values))}
+		resolved := &stanzaSettings{path: settings.path, values: make(map[string]valueSource, len(settings.values))}
 		for key, value := range settings.values {
 			resolved.values[key] = value
 		}
@@ -409,7 +422,13 @@ func resolve(merged map[string]*stanzaSettings) map[string]*stanzaSettings {
 	return visible
 }
 
-func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix string) error {
+func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix string, debug, raw bool) error {
+	esc := func(s string) string {
+		if raw {
+			return s
+		}
+		return escapeControl(s)
+	}
 	stanzas := make([]string, 0, len(merged))
 	for name := range merged {
 		if strings.HasPrefix(name, prefix) {
@@ -417,21 +436,71 @@ func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix stri
 		}
 	}
 	sort.Strings(stanzas)
+	pathWidth := 0
+	if debug {
+		for _, name := range stanzas {
+			settings := merged[name]
+			pathWidth = max(pathWidth, len(settings.path))
+			for _, setting := range settings.values {
+				pathWidth = max(pathWidth, len(setting.path))
+			}
+		}
+	}
+	line := func(path, text string) error {
+		var err error
+		switch {
+		case !debug || path == "":
+			_, err = fmt.Fprintln(out, text)
+		default:
+			_, err = fmt.Fprintf(out, "%-*s %s\n", pathWidth, path, text)
+		}
+		return err
+	}
 	for _, name := range stanzas {
-		if _, err := fmt.Fprintf(out, "[%s]\n", name); err != nil {
+		settings := merged[name]
+		if err := line(settings.path, "["+esc(name)+"]"); err != nil {
 			return err
 		}
-		settings := merged[name]
 		keys := make([]string, 0, len(settings.values))
 		for key := range settings.values {
 			keys = append(keys, key)
 		}
 		sort.Strings(keys)
 		for _, key := range keys {
-			if _, err := fmt.Fprintf(out, "%s = %s\n", key, settings.values[key]); err != nil {
+			setting := settings.values[key]
+			if err := line(setting.path, esc(key)+" = "+esc(setting.value)); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// escapeControl renders control characters other than tab, newline and
+// carriage return as \xNN, like native btool does without --raw. It works on
+// bytes so multibyte UTF-8 sequences are left intact.
+func escapeControl(s string) string {
+	clean := true
+	for i := 0; i < len(s); i++ {
+		if needsEscape(s[i]) {
+			clean = false
+			break
+		}
+	}
+	if clean {
+		return s
+	}
+	var out strings.Builder
+	for i := 0; i < len(s); i++ {
+		if needsEscape(s[i]) {
+			fmt.Fprintf(&out, "\\x%02X", s[i])
+			continue
+		}
+		out.WriteByte(s[i])
+	}
+	return out.String()
+}
+
+func needsEscape(b byte) bool {
+	return (b < 0x20 || b == 0x7f) && b != '\t' && b != '\n' && b != '\r'
 }

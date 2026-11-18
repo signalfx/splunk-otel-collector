@@ -1,0 +1,8 @@
+change_type: breaking
+component: collector
+note: Remove the experimental TA runner components and the `enableTARunner` feature gate.
+issues: [8452]
+subtext: |
+  The `splunkconf` configuration provider and the `splunk_monitor`, `splunk_tcp`,
+  `splunk_udp`, `splunk_script`, `splunk_batch`, `splunk_wineventlog` receivers
+  and `splunk_hecout` exporter are no longer available.

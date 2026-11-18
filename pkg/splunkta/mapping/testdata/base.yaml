@@ -1,9 +1,0 @@
-receivers:
-  nop:
-exporters:
-  nop:
-service:
-  pipelines:
-    logs/base:
-      receivers: [nop]
-      exporters: [nop]

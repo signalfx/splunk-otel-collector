@@ -74,7 +74,7 @@ func run() (runErr error) {
 		Resource:       pcommon.NewResource(),
 	}
 
-	xmlCfg, errExtract := config.Extract()
+	xmlCfg, errExtract := ExtractInputConfig(config)
 	if errExtract != nil {
 		return fmt.Errorf("cannot start TA due to invalid configuration: %w", errExtract)
 	}

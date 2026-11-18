@@ -71,7 +71,7 @@
         {% if splunk_listen_interface -%}
         SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}
         {% elif splunk_platform_url -%}
-        SPLUNK_LISTEN_INTERFACE=0.0.0.0
+        SPLUNK_LISTEN_INTERFACE=127.0.0.1
         {% endif -%}
 {% for key, value in collector_additional_env_vars.items() %}
         {{ key }}={{ value }}

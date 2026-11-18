@@ -117,7 +117,8 @@ provide `splunk_access_token` and omit the Platform settings.
 - `gomemlimit`: `splunk_ballast_size_mib` is deprecated and removed. For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).  (**default:** 90% of `splunk_memory_total_mib`, otherwise)
 
 - `splunk_listen_interface`: The network interface the collector receivers will listen
-  on. (**default:** `127.0.0.1` for agent config, `0.0.0.0` otherwise)
+  on. (**default:** `127.0.0.1` for agent config or Platform log collection,
+  `0.0.0.0` otherwise)
 
 - `splunk_otel_collector_command_line_args`: Additional command line arguments to
   pass to the Splunk OTel Collector service. This value will be set as the

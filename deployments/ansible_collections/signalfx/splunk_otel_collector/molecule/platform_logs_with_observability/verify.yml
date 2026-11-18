@@ -20,7 +20,7 @@
     - name: Assert both configs and merge feature gate are selected
       ansible.builtin.lineinfile:
         line: >-
-          OTELCOL_OPTIONS=--config /etc/otel/collector/agent_config.yaml
+          OTELCOL_OPTIONS=--config "/etc/otel/collector/agent_config.yaml"
           --config /etc/otel/collector/splunk_logs_config_linux.yaml
           --feature-gates=confmap.enableMergeAppendOption
         dest: /etc/otel/collector/splunk-otel-collector.conf

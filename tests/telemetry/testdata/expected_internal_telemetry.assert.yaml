@@ -1,0 +1,84 @@
+version: 1
+signal: metrics
+resources:
+    - scopes:
+        - metrics:
+            - name: otelcol_process_cpu_seconds
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - {}
+            - name: otelcol_exporter_queue_capacity
+              type: gauge
+              datapoints:
+                - {}
+            - name: otelcol_process_runtime_heap_alloc_bytes
+              type: gauge
+              datapoints:
+                - {}
+            - name: promhttp_metric_handler_errors_total
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - attributes:
+                    cause: encoding
+                - attributes:
+                    cause: gathering
+            - name: otelcol_process_runtime_total_sys_memory_bytes
+              type: gauge
+              datapoints:
+                - {}
+            - name: otelcol_exporter_queue_size
+              type: gauge
+              datapoints:
+                - {}
+            - name: otelcol_process_runtime_total_alloc_bytes
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - {}
+            - name: otelcol_process_uptime
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - {}
+            - name: otelcol_exporter_sent_metric_points
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - {}
+            - name: otelcol_process_memory_rss
+              type: gauge
+              datapoints:
+                - {}
+            - name: otelcol_receiver_accepted_metric_points
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - {}
+            - name: otelcol_receiver_failed_metric_points
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - {}
+            - name: otelcol_receiver_refused_metric_points
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - {}
+            - name: target_info
+              type: gauge
+              datapoints:
+                - {}
+            - name: otelcol_exporter_in_flight_requests
+              type: gauge
+              datapoints:
+                - {}

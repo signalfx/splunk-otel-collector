@@ -1,0 +1,30 @@
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: internal-telemetry
+          scrape_interval: 1s
+          static_configs:
+            - targets: ["localhost:8889"]
+exporters:
+  otlp_grpc:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+service:
+  telemetry:
+    metrics:
+      level: detailed
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: localhost
+                port: 8889
+                without_scope_info: true
+                without_units: true
+                without_type_suffix: true
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      exporters: [otlp_grpc]

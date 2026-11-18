@@ -16,7 +16,6 @@
 package components
 
 import (
-	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 
 	"github.com/signalfx/splunk-otel-collector/baseline"
@@ -31,25 +30,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkmonitor"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkscript"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunktcp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkudp"
-	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkwineventlog"
-)
-
-const (
-	enableTARunnerFeatureGateID = "enableTARunner"
-)
-
-var enableTARunner = featuregate.GlobalRegistry().MustRegister(
-	enableTARunnerFeatureGateID,
-	featuregate.StageAlpha,
-	featuregate.WithRegisterDescription("When enabled, the collector supports working with .conf configuration files via the UF-native `splunk_*` receiver and exporter types. "+
-		"When disabled (default), those components are not available and the collector will crash if it tries to run them."),
-	featuregate.WithRegisterFromVersion("v0.158.0"),
 )
 
 // Get returns the public splunk-otel-collector component set: the shared,
@@ -58,7 +38,7 @@ var enableTARunner = featuregate.GlobalRegistry().MustRegister(
 //
 // The public collector is itself a flavor — it layers the Splunk delta below
 // onto baseline.NewBaseline(), exactly as a private flavor (appd, UC) would
-// layer its own delta. Feature-gated components are appended inline.
+// layer its own delta.
 func Get() (otelcol.Factories, error) {
 	b := baseline.NewBaseline()
 
@@ -77,24 +57,6 @@ func Get() (otelcol.Factories, error) {
 		ptpreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
 	)
-	if enableTARunner.IsEnabled() {
-		// UF-native receiver types, one per input stanza scheme. Undocumented:
-		// they exist to be emitted from a .conf config source, not written by
-		// hand in YAML.
-		b.AddReceivers(
-			splunkmonitor.NewFactory(),
-			splunktcp.NewFactory(),
-			splunkudp.NewFactory(),
-			splunkscript.NewFactory(),
-			splunkbatch.NewFactory(),
-			splunkwineventlog.NewFactory(),
-		)
-
-		// UF-native exporter types, one per output stanza kind. [hecout] is
-		// experimental and can be removed at any time without notice; [tcpout] is
-		// supplied by a flavor registering its own output mapper.
-		b.AddExporters(splunkhecout.NewFactory())
-	}
 
 	return b.Build()
 }

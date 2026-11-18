@@ -4,8 +4,6 @@
 package main
 
 import (
-	"bufio"
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"os"
@@ -14,6 +12,7 @@ import (
 	"time"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
+	"github.com/signalfx/splunk-otel-collector/internal/modularinput"
 	"github.com/signalfx/splunk-otel-collector/internal/splunkhttp"
 
 	"go.opentelemetry.io/collector/config/configopaque"
@@ -24,28 +23,6 @@ const (
 	DefaultHTTPPort      = 4318
 	DefaultListenAddress = "0.0.0.0"
 )
-
-type XMLInput struct {
-	ServerHost    string    `xml:"server_host"`
-	ServerURI     string    `xml:"server_uri"`
-	SessionKey    string    `xml:"session_key"`
-	Configuration XMLConfig `xml:"configuration"`
-}
-
-type XMLConfig struct {
-	Stanza XMLStanza `xml:"stanza"`
-}
-
-type XMLStanza struct {
-	Name   string     `xml:"name,attr"`
-	App    string     `xml:"app,attr"`
-	Params []XMLParam `xml:"param"`
-}
-
-type XMLParam struct {
-	Name  string `xml:"name,attr"`
-	Value string `xml:",innerxml"`
-}
 
 type InputConfig struct {
 	AuthConfig    *splunkauthextension.Config
@@ -64,7 +41,12 @@ type InputConfig struct {
 	EnableSSL     bool
 }
 
-func (x XMLInput) Extract() (InputConfig, error) {
+func ExtractInputConfig(x *modularinput.Input) (InputConfig, error) {
+	var stanza modularinput.Stanza
+	if len(x.Configuration.Stanza) > 0 {
+		stanza = x.Configuration.Stanza[0]
+	}
+
 	// splunkd's management port commonly presents a self-signed certificate on the
 	// loopback interface; the modular input isn't implemented as a collector and has
 	// no YAML to request this explicitly, so it applies the same default skip-verify
@@ -89,7 +71,7 @@ func (x XMLInput) Extract() (InputConfig, error) {
 	serverURI := x.ServerURI
 	sessionKey := x.SessionKey
 
-	for _, p := range x.Configuration.Stanza.Params {
+	for _, p := range stanza.Param {
 		switch p.Name {
 		case "grpc_port":
 			grpcPort, _ = strconv.Atoi(p.Value)
@@ -166,14 +148,6 @@ func convertBool(value string) bool {
 	}
 }
 
-func ReadFromStdin() (XMLInput, error) {
-	scanner := bufio.NewScanner(os.Stdin)
-	b := strings.Builder{}
-	for scanner.Scan() {
-		b.WriteString(scanner.Text())
-	}
-
-	var config XMLInput
-	err := xml.Unmarshal([]byte(b.String()), &config)
-	return config, err
+func ReadFromStdin() (*modularinput.Input, error) {
+	return modularinput.ReadXML(os.Stdin)
 }

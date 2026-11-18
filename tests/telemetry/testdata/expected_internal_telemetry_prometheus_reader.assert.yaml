@@ -1,90 +1,166 @@
 version: 1
 signal: metrics
 resources:
-    - scopes:
-        - metrics:
-            - name: otelcol_process_cpu_seconds
+    - attributes/include:
+        host.name/exists: true
+        os.type/exists: true
+        server.port: "8889"
+        service.instance.id/exists: true
+        service.name/exists: true
+        service.version/exists: true
+        url.scheme: http
+      scopes:
+        - name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver
+          version/exists: true
+          metrics:
+            - name: otelcol.resourcedetection.attributes.detected
+              type: gauge
+            - name: otelcol.resourcedetection.detector.duration
+              type: histogram
+              temporality: cumulative
+              datapoints:
+                - attributes/include:
+                    detector: system
+                    outcome: success
+            - name: otelcol.resourcedetection.detector.results
               type: sum
               temporality: cumulative
               monotonic: true
               datapoints:
-                - {}
+                - attributes/include:
+                    detector: system
+                    outcome: success
+            - name: otelcol_exporter_enqueue_size
+              type: histogram
+              temporality: cumulative
+              datapoints:
+                - attributes/include:
+                    exporter: otlp_grpc
+            - name: otelcol_exporter_enqueue_size_bytes
+              type: histogram
+              temporality: cumulative
+              datapoints:
+                - attributes/include:
+                    exporter: otlp_grpc
+            - name: otelcol_exporter_in_flight_requests
+              type: gauge
+              datapoints:
+                - attributes/include:
+                    data_type: metrics
+                    exporter: otlp_grpc
             - name: otelcol_exporter_queue_capacity
               type: gauge
               datapoints:
-                - {}
-            - name: otelcol_process_runtime_heap_alloc_bytes
-              type: gauge
-              datapoints:
-                - {}
-            - name: promhttp_metric_handler_errors_total
-              type: sum
-              temporality: cumulative
-              monotonic: true
-              datapoints:
-                - attributes:
-                    cause: encoding
-                - attributes:
-                    cause: gathering
-            - name: otelcol_process_runtime_total_sys_memory_bytes
-              type: gauge
-              datapoints:
-                - {}
+                - attributes/include:
+                    data_type: metrics
+                    exporter: otlp_grpc
             - name: otelcol_exporter_queue_size
               type: gauge
               datapoints:
-                - {}
-            - name: otelcol_process_runtime_total_alloc_bytes
-              type: sum
-              temporality: cumulative
-              monotonic: true
-              datapoints:
-                - {}
-            - name: otelcol_process_uptime
-              type: sum
-              temporality: cumulative
-              monotonic: true
-              datapoints:
-                - {}
+                - attributes/include:
+                    data_type: metrics
+                    exporter: otlp_grpc
             - name: otelcol_exporter_sent_metric_points
               type: sum
               temporality: cumulative
               monotonic: true
               datapoints:
-                - {}
+                - attributes/include:
+                    exporter: otlp_grpc
+                    server.address/exists: true
+                    server.port/exists: true
+            - name: otelcol_process_cpu_seconds
+              type: sum
+              temporality: cumulative
+              monotonic: true
             - name: otelcol_process_memory_rss
               type: gauge
+            - name: otelcol_process_runtime_heap_alloc_bytes
+              type: gauge
+            - name: otelcol_process_runtime_total_alloc_bytes
+              type: sum
+              temporality: cumulative
+              monotonic: true
+            - name: otelcol_process_runtime_total_sys_memory_bytes
+              type: gauge
+            - name: otelcol_process_uptime
+              type: sum
+              temporality: cumulative
+              monotonic: true
+            - name: otelcol_processor_incoming_items
+              type: sum
+              temporality: cumulative
+              monotonic: true
               datapoints:
-                - {}
+                - attributes/include:
+                    otel.signal: metrics
+                    processor: resourcedetection
+            - name: otelcol_processor_internal_duration
+              type: histogram
+              temporality: cumulative
+              datapoints:
+                - attributes/include:
+                    otel.signal: metrics
+                    processor: resourcedetection
+            - name: otelcol_processor_outgoing_items
+              type: sum
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - attributes/include:
+                    otel.signal: metrics
+                    processor: resourcedetection
             - name: otelcol_receiver_accepted_metric_points
               type: sum
               temporality: cumulative
               monotonic: true
               datapoints:
-                - {}
+                - attributes/include:
+                    receiver: prometheus
+                    transport: http
             - name: otelcol_receiver_failed_metric_points
               type: sum
               temporality: cumulative
               monotonic: true
               datapoints:
-                - {}
+                - attributes/include:
+                    receiver: prometheus
+                    transport: http
             - name: otelcol_receiver_refused_metric_points
               type: sum
               temporality: cumulative
               monotonic: true
               datapoints:
-                - {}
-            - name: target_info
-              type: gauge
-              datapoints:
-                - {}
-            - name: otelcol_exporter_in_flight_requests
-              type: gauge
-              datapoints:
-                - {}
-            - name: otelcol.receiver.produced.items
+                - attributes/include:
+                    receiver: prometheus
+                    transport: http
+            - name: promhttp_metric_handler_errors_total
               type: sum
               temporality: cumulative
               monotonic: true
               datapoints:
-                - {}
+                - attributes/include:
+                    cause/exists: true
+                - attributes/include:
+                    cause/exists: true
+            - name: rpc.client.call.duration
+              type: histogram
+              temporality: cumulative
+              datapoints:
+                - attributes/include:
+                    rpc.method/exists: true
+                    rpc.response.status_code: OK
+                    rpc.system.name: grpc
+                    server.address/exists: true
+                    server.port/exists: true
+            - name: scrape_duration_seconds
+              type: gauge
+              unit: s
+            - name: scrape_samples_post_metric_relabeling
+              type: gauge
+            - name: scrape_samples_scraped
+              type: gauge
+            - name: scrape_series_added
+              type: gauge
+            - name: up
+              type: gauge

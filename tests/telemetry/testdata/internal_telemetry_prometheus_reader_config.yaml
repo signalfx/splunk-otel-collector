@@ -6,6 +6,9 @@ receivers:
           scrape_interval: 1s
           static_configs:
             - targets: ["localhost:8889"]
+processors:
+  resourcedetection:
+    detectors: [system]
 exporters:
   otlp_grpc:
     endpoint: "${OTLP_ENDPOINT}"
@@ -27,4 +30,5 @@ service:
   pipelines:
     metrics:
       receivers: [prometheus]
+      processors: [resourcedetection]
       exporters: [otlp_grpc]

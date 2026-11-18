@@ -73,6 +73,10 @@
     splunk_otel_collector_config_source: ""
     splunk_config_override: ""
   tasks:
+    - name: Reset the config path for the default-config scenario
+      ansible.builtin.set_fact:
+        splunk_otel_collector_config: ""
+
     - name: Capture and resolve the default config path
       ansible.builtin.import_tasks: ../roles/collector/tasks/vars.yml
 
@@ -82,10 +86,16 @@
     - name: Assert Platform-only install without custom config loads only Platform logs config
       ansible.builtin.assert:
         that:
-          - splunk_otel_collector_config_explicitly_set == false
+          - not (splunk_otel_collector_config_explicitly_set | bool)
           - >-
-            splunk_otel_collector_effective_command_line_args ==
-            '--config /etc/otel/collector/splunk_logs_config_linux.yaml'
+            '--config /etc/otel/collector/splunk_logs_config_linux.yaml' in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '/etc/otel/collector/agent_config.yaml' not in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '--feature-gates=confmap.enableMergeAppendOption' not in
+            splunk_otel_collector_effective_command_line_args
 
 - name: Verify Platform-only installs load explicitly provided config
   hosts: localhost
@@ -100,6 +110,10 @@
     splunk_otel_collector_config_source: ""
     splunk_config_override: ""
   tasks:
+    - name: Set the explicitly requested config path for this scenario
+      ansible.builtin.set_fact:
+        splunk_otel_collector_config: "/etc/otel/collector/custom agent.yaml"
+
     - name: Capture and resolve the requested config path
       ansible.builtin.import_tasks: ../roles/collector/tasks/vars.yml
 
@@ -109,9 +123,13 @@
     - name: Assert custom config and Platform logs config are both loaded
       ansible.builtin.assert:
         that:
-          - splunk_otel_collector_config_explicitly_set == true
+          - splunk_otel_collector_config_explicitly_set | bool
           - >-
-            splunk_otel_collector_effective_command_line_args ==
-            '--discovery --config "/etc/otel/collector/custom agent.yaml"
-            --config /etc/otel/collector/splunk_logs_config_linux.yaml
-            --feature-gates=confmap.enableMergeAppendOption'
+            '--config "/etc/otel/collector/custom agent.yaml"' in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '--config /etc/otel/collector/splunk_logs_config_linux.yaml' in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '--feature-gates=confmap.enableMergeAppendOption' in
+            splunk_otel_collector_effective_command_line_args

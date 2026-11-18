@@ -638,7 +638,7 @@ func TestDefaultConfigsDoNotEnableExpvar(t *testing.T) {
 			)
 			defer shutdown()
 
-			// tracez is always served by the zpages extension: use it to know that the
+			// servicez is always served by the zpages extension: use it to know that the
 			// extension is up before asserting that expvarz is not being served.
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
 				assert.Equal(c, http.StatusOK, getStatus(t, "http://localhost:55679/debug/servicez"))

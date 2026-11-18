@@ -1,0 +1,10 @@
+change_type: deprecation
+
+component: receiver/smartagent
+
+note: Deprecate the vSphere Smart Agent monitor
+
+issues: [8451]
+
+subtext: |
+  The vSphere monitor is deprecated and will be removed on or after December 2026. Use the `vcenter` receiver instead.

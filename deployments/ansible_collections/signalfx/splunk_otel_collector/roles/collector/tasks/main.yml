@@ -29,6 +29,14 @@
 - name: Set Vars based on ansible_os_family
   ansible.builtin.import_tasks: vars.yml
 
+- name: Reject gateway config with Splunk Platform log collection
+  ansible.builtin.assert:
+    that:
+      - >-
+        (splunk_platform_url | default('') | trim == '') or
+        ((splunk_otel_collector_config | replace('\\', '/') | basename) != 'gateway_config.yaml')
+    fail_msg: Splunk Platform log collection is only supported in agent mode; use the agent config instead of gateway_config.yaml.
+
 - name: Linux deployment
   ansible.builtin.import_tasks: linux_install.yml
   when: ansible_os_family != "Windows"

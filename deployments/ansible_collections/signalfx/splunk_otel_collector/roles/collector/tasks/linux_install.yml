@@ -7,14 +7,11 @@
 
 - name: Enable Splunk Platform log collection
   ansible.builtin.set_fact:
-    splunk_listen_interface: "{{ splunk_listen_interface if splunk_listen_interface | trim != '' else '0.0.0.0' }}"
-    splunk_otel_collector_command_line_args: >-
-      {{ [
-        splunk_otel_collector_command_line_args,
-        ('--config ' + splunk_otel_collector_config) if splunk_access_token | trim != '' else '',
-        '--config /etc/otel/collector/splunk_logs_config_linux.yaml',
-        ('--feature-gates=confmap.enableMergeAppendOption') if splunk_access_token | trim != '' else ''
-      ] | reject('equalto', '') | join(' ') }}
+    splunk_listen_interface: "{{ splunk_listen_interface if splunk_listen_interface | trim != '' else '127.0.0.1' }}"
+  when: splunk_platform_url | trim != ''
+
+- name: Build Collector command line arguments for Splunk Platform logs
+  ansible.builtin.import_tasks: platform_logs_args.yml
   when: splunk_platform_url | trim != ''
 
 - name: Install Splunk OpenTelemetry Collector with apt package manager

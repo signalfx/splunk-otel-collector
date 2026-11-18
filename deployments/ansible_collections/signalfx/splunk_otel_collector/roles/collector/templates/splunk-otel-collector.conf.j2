@@ -1,5 +1,5 @@
-OTELCOL_OPTIONS={{ splunk_otel_collector_command_line_args }}
-{% if not (splunk_platform_url is defined and splunk_platform_url) %}
+OTELCOL_OPTIONS={{ splunk_otel_collector_effective_command_line_args | default(splunk_otel_collector_command_line_args) }}
+{% if splunk_platform_url | default('') | trim == '' %}
 SPLUNK_CONFIG={{ splunk_otel_collector_config }}
 {% endif %}
 {% if splunk_access_token is defined and splunk_access_token %}
@@ -16,7 +16,7 @@ SPLUNK_HEC_URL={{ "https://ingest." + splunk_realm + ".observability.splunkcloud
 {% endif %}
 SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
 {% endif %}
-{% if splunk_platform_url is defined and splunk_platform_url %}
+{% if splunk_platform_url | default('') | trim != '' %}
 SPLUNK_PLATFORM_URL={{ splunk_platform_url }}
 SPLUNK_PLATFORM_TOKEN={{ splunk_platform_token }}
 {% if splunk_platform_logs_index is defined and splunk_platform_logs_index %}

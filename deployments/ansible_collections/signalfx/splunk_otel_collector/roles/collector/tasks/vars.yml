@@ -1,4 +1,9 @@
 ---
+- name: Record whether a Linux config path was explicitly provided
+  ansible.builtin.set_fact:
+    splunk_otel_collector_config_explicitly_set: "{{ splunk_otel_collector_config | trim != '' }}"
+  when: ansible_os_family != "Windows"
+
 - name: Set default vars for Linux
   ansible.builtin.set_fact:
     splunk_otel_collector_config: |-

@@ -61,6 +61,8 @@ splunk_platform_logs_index: "<your-index>" # optional
 
 `splunk_platform_token` and `splunk_platform_url` must be provided together.
 The index is optional; when omitted, the logs configuration uses `main`.
+Platform log collection is supported only with the agent config; the role fails
+if `splunk_otel_collector_config` selects `gateway_config.yaml`.
 Set `splunk_access_token` as well to send the regular agent telemetry to
 Observability Cloud alongside Platform logs. If it is omitted, the role runs
 with the Platform logs configuration only. For Observability-only deployment,
@@ -69,6 +71,12 @@ provide `splunk_access_token` and omit the Platform settings.
 These variables work on both Linux and Windows. On Windows, the role passes
 them to the MSI installer, which configures the packaged Windows logs config
 and merges it with the agent config when `splunk_access_token` is provided.
+The MSI properties are applied only when the package is installed or upgraded.
+Rerunning the role with the same Collector version does not update Platform
+settings on an existing Windows installation. To apply changed settings,
+rerun the role while upgrading `splunk_otel_collector_version`; if you must
+keep the same version, uninstall the existing package and rerun the role to
+install it with the new settings.
 
 ## Role Variables
 
@@ -157,8 +165,9 @@ and merges it with the agent config when `splunk_access_token` is provided.
 
 - `gomemlimit`: The `GOMEMLIMIT` environment variable is introduced for the Splunk Otel Collector version >=0.97.0, allowing the limitation of memory usage in the GO runtime. This feature can help enhance GC (Garbage Collection) related performance and prevent GC related Out of Memory (OOM) situations.
 
-- `splunk_listen_interface`: The network interface the collector receivers will listen on.
-  (**default** `0.0.0.0`).
+- `splunk_listen_interface`: Optional network interface for the Collector's listening
+  endpoints. When unset, the role uses `127.0.0.1` with the default agent config
+  and `0.0.0.0` with gateway or other configs.
 
 - `splunk_skip_repo` (Linux only): If installing the collector from a custom or self-hosted
   apt/yum repo, set to `true` to skip the installation of the default repo

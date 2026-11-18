@@ -31,14 +31,12 @@ const (
 )
 
 func TestInternalTelemetryPrometheusNames(t *testing.T) {
-	t.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
 	testutils.RunMetricsCollectionTest(t, internalTelemetryConfigFile, internalTelemetryExpectedFile,
 		testutils.WithMetricsAssertionFile(internalTelemetryExpectedFile),
 	)
 }
 
 func TestInternalTelemetryPrometheusReaderNames(t *testing.T) {
-	t.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
 	testutils.RunMetricsCollectionTest(t, internalTelemetryPrometheusReaderConfigFile, internalTelemetryPrometheusReaderExpectedFile,
 		testutils.WithMetricsAssertionFile(internalTelemetryPrometheusReaderExpectedFile),
 	)

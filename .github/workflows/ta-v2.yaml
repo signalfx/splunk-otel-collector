@@ -127,7 +127,7 @@ jobs:
           # Passing --config replaces splunk_config, so the agent config must be listed explicitly.
           cp tests/smoke/splunk_modinput_config.yaml ./build-out/${APP_NAME}/configs/splunk_modinput_config.yaml
           CONFIGS_DIR="/opt/splunk/etc/apps/${APP_NAME}/configs"
-          CONFIG_ARGS="--config=${CONFIGS_DIR}/agent_config.yaml --config=${CONFIGS_DIR}/splunk_modinput_config.yaml --feature-gates=confmap.enableMergeAppendOption"
+          CONFIG_ARGS="--config=${CONFIGS_DIR}/agent_config.yaml --config=${CONFIGS_DIR}/splunk_modinput_config.yaml --feature-gates=confmap.enableMergeAppendOption --set=extensions.zpages.expvar.enabled=true"
           sed -i 's/^splunk_collector_env_vars[[:space:]]*=[[:space:]]*$/splunk_collector_env_vars = OTEL_RESOURCE_ATTRIBUTES=ta.smoke.test=smoke_test_value/' ./build-out/${APP_NAME}/local/inputs.conf
           sed -i "s|^splunk_collector_cmd_args[[:space:]]*=[[:space:]]*\$|splunk_collector_cmd_args = --discovery  --set=processors.batch.timeout=10s ${CONFIG_ARGS}|" ./build-out/${APP_NAME}/local/inputs.conf
 
@@ -156,7 +156,7 @@ jobs:
           timeout=180
           elapsed=0
           echo -n "Waiting for expvar endpoint to be available: "
-          while ! docker exec -i "$CONTAINER_NAME" curl http://localhost:55679/debug/expvarz --silent > /dev/null; do
+          while ! docker exec -i "$CONTAINER_NAME" curl http://localhost:55679/debug/expvarz --silent --fail > /dev/null; do
               if [ $elapsed -ge $timeout ]; then
                   echo ""
                   echo "Timeout: expvar endpoint was not available within $timeout seconds"
@@ -411,7 +411,7 @@ jobs:
           # Forward slashes and quotes are required since the cmd args are split with POSIX shell rules.
           Copy-Item -Path "${{ github.workspace }}\packaging\ta-v2\tests\smoke\splunk_modinput_config.yaml" -Destination "$modularInputDir\configs\splunk_modinput_config.yaml" -Force
           $configsDir = "$($Env:ProgramFiles -replace '\\', '/')/SplunkUniversalForwarder/etc/apps/$appName/configs"
-          $configArgs = "--config=`"$configsDir/agent_config.yaml`" --config=`"$configsDir/splunk_modinput_config.yaml`" --feature-gates=confmap.enableMergeAppendOption"
+          $configArgs = "--config=`"$configsDir/agent_config.yaml`" --config=`"$configsDir/splunk_modinput_config.yaml`" --feature-gates=confmap.enableMergeAppendOption --set=extensions.zpages.expvar.enabled=true"
           $inputsContent = Get-Content -Path $inputsConfPath
           $tokenLineFound = $false
           $updatedContent = $inputsContent | ForEach-Object {

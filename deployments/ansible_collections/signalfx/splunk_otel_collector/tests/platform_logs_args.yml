@@ -37,6 +37,7 @@
       ansible.builtin.template:
         src: ../roles/collector/templates/splunk-otel-collector.conf.j2
         dest: "{{ collector_env_file.path }}"
+        mode: '0600'
 
     - name: Read rendered Collector environment
       ansible.builtin.slurp:

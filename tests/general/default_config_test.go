@@ -613,12 +613,15 @@ func TestDefaultAgentConfig(t *testing.T) {
 // TestDefaultConfigsDoNotEnableExpvar ensures that none of the default configs expose
 // the zpages expvar page, since it can leak the effective configuration.
 func TestDefaultConfigsDoNotEnableExpvar(t *testing.T) {
+	// Bind to all interfaces so the test can reach zpages through the container's
+	// published port. Keep expvar untouched to verify the shipped default.
+	const zpagesEndpoint = "--set=extensions.zpages.endpoint=0.0.0.0:55679"
 	tests := []struct {
 		name string
 		args []string
 	}{
-		{name: "gateway"},
-		{name: "agent", args: []string{"--config", "/etc/otel/collector/agent_config.yaml"}},
+		{name: "gateway", args: []string{zpagesEndpoint}},
+		{name: "agent", args: []string{"--config", "/etc/otel/collector/agent_config.yaml", zpagesEndpoint}},
 	}
 
 	for _, tt := range tests {

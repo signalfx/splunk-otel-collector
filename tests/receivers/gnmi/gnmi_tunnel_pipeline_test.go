@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
@@ -32,9 +31,9 @@ import (
 func createTarget(port string) *testutils.Container {
 	target := testutils.NewContainer().
 		WithNetworkMode("host").
-		WithEnv(map[string]string{"TUNNEL_ADDR": "localhost:" + port}).
+		WithCmd("-tunnel_addr", "localhost:"+port).
 		WillWaitForLogs("listening").
-		WithContext(path.Join(".", "testdata", "tunnel_server")).
+		WithContext(path.Join(".", "testdata", "server")).
 		WithStartupTimeout(5 * time.Minute).
 		Build()
 
@@ -46,7 +45,8 @@ func TestGNMIReceiverTunnelPipeline(t *testing.T) {
 	target := createTarget(port)
 
 	testutils.RunMetricsCollectionTest(t,
-		"tunnel_pipeline_config.yaml", "tunnel_pipeline_expected.yaml",
+		"tunnel_pipeline_config.yaml", "",
+		testutils.WithMetricsAssertionFile("tunnel_pipeline_expected.assert.yaml"),
 		testutils.WithCollectorEnvVars(map[string]string{"GNMI_TUNNEL_PORT": port}),
 		testutils.WithAfterCollectorStart(func(t *testing.T) {
 			require.NoError(t, target.Start(context.Background()))
@@ -56,11 +56,5 @@ func TestGNMIReceiverTunnelPipeline(t *testing.T) {
 				}
 			})
 		}),
-		testutils.WithCompareMetricsOptions(
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-		),
 	)
 }

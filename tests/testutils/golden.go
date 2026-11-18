@@ -182,13 +182,13 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
 
-	if opts.afterCollectorStart != nil {
-		opts.afterCollectorStart(t)
-	}
-
 	t.Cleanup(func() {
 		require.NoError(t, p.Shutdown())
 	})
+
+	if opts.afterCollectorStart != nil {
+		opts.afterCollectorStart(t)
+	}
 
 	var expected pmetric.Metrics
 	if opts.metricsAssertionFile == "" {

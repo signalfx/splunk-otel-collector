@@ -1,8 +1,8 @@
-{% set splunk_access_token = salt['pillar.get']('splunk-otel-collector:splunk_access_token', '') | trim %}
-{% set splunk_platform_url = salt['pillar.get']('splunk-otel-collector:splunk_platform_url', '') | trim %}
-{% set splunk_platform_token = salt['pillar.get']('splunk-otel-collector:splunk_platform_token', '') | trim %}
-{% set splunk_platform_logs_index = salt['pillar.get']('splunk-otel-collector:splunk_platform_logs_index', '') | trim %}
-{% set splunk_realm = salt['pillar.get']('splunk-otel-collector:splunk_realm', '') | trim %}
+{% set splunk_access_token = (salt['pillar.get']('splunk-otel-collector:splunk_access_token', '') or '') | trim %}
+{% set splunk_platform_url = (salt['pillar.get']('splunk-otel-collector:splunk_platform_url', '') or '') | trim %}
+{% set splunk_platform_token = (salt['pillar.get']('splunk-otel-collector:splunk_platform_token', '') or '') | trim %}
+{% set splunk_platform_logs_index = (salt['pillar.get']('splunk-otel-collector:splunk_platform_logs_index', '') or '') | trim %}
+{% set splunk_realm = (salt['pillar.get']('splunk-otel-collector:splunk_realm', '') or '') | trim %}
 
 {% if grains['os_family'] not in ['Debian', 'RedHat', 'Suse'] %}
 Check OS family:

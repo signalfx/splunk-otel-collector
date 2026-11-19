@@ -1,33 +1,33 @@
-{% set splunk_service_user = salt['pillar.get']('splunk-otel-collector:service_user', 'splunk-otel-collector') %}
+{% set splunk_service_user = salt['pillar.get']('splunk-otel-collector:service_user', 'splunk-otel-collector') or 'splunk-otel-collector' %}
 
-{% set splunk_service_group = salt['pillar.get']('splunk-otel-collector:service_group', 'splunk-otel-collector') %}
+{% set splunk_service_group = salt['pillar.get']('splunk-otel-collector:service_group', 'splunk-otel-collector') or 'splunk-otel-collector' %}
 
-{% set splunk_access_token = salt['pillar.get']('splunk-otel-collector:splunk_access_token', '') | trim %}
-{% set splunk_platform_url = salt['pillar.get']('splunk-otel-collector:splunk_platform_url', '') | trim %}
-{% set splunk_platform_token = salt['pillar.get']('splunk-otel-collector:splunk_platform_token', '') | trim %}
-{% set splunk_platform_logs_index = salt['pillar.get']('splunk-otel-collector:splunk_platform_logs_index', '') | trim %}
+{% set splunk_access_token = (salt['pillar.get']('splunk-otel-collector:splunk_access_token', '') or '') | trim %}
+{% set splunk_platform_url = (salt['pillar.get']('splunk-otel-collector:splunk_platform_url', '') or '') | trim %}
+{% set splunk_platform_token = (salt['pillar.get']('splunk-otel-collector:splunk_platform_token', '') or '') | trim %}
+{% set splunk_platform_logs_index = (salt['pillar.get']('splunk-otel-collector:splunk_platform_logs_index', '') or '') | trim %}
 {% set splunk_platform_logs_config = '/etc/otel/collector/splunk_logs_config_linux.yaml' %}
 {% set splunk_file_storage_extension_path = '/var/lib/otelcol/filelogs' %}
 
-{% set splunk_realm = salt['pillar.get']('splunk-otel-collector:splunk_realm', 'us0') %}
+{% set splunk_realm = salt['pillar.get']('splunk-otel-collector:splunk_realm', 'us0') or 'us0' %}
 
-{% set splunk_api_url = salt['pillar.get']('splunk-otel-collector:splunk_api_url', 'https://api.' + splunk_realm + '.observability.splunkcloud.com' ) %}
+{% set splunk_api_url = salt['pillar.get']('splunk-otel-collector:splunk_api_url', '') or 'https://api.' + splunk_realm + '.observability.splunkcloud.com' %}
 
-{% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.observability.splunkcloud.com') %}
+{% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', '') or 'https://ingest.' + splunk_realm + '.observability.splunkcloud.com' %}
 
-{% set splunk_hec_url = salt['pillar.get']('splunk-otel-collector:splunk_hec_url', splunk_ingest_url + '/v1/log') %}
+{% set splunk_hec_url = salt['pillar.get']('splunk-otel-collector:splunk_hec_url', '') or splunk_ingest_url + '/v1/log' %}
 
-{% set splunk_hec_token = salt['pillar.get']('splunk-otel-collector:splunk_hec_token', splunk_access_token) %}
+{% set splunk_hec_token = salt['pillar.get']('splunk-otel-collector:splunk_hec_token', '') or splunk_access_token %}
 
-{% set splunk_otel_collector_config = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_config', '/etc/otel/collector/agent_config.yaml') %}
+{% set splunk_otel_collector_config = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_config', '') or '/etc/otel/collector/agent_config.yaml' %}
 
-{% set splunk_memory_total_mib = salt['pillar.get']('splunk-otel-collector:splunk_memory_total_mib', '512') %}
+{% set splunk_memory_total_mib = salt['pillar.get']('splunk-otel-collector:splunk_memory_total_mib', '') or '512' %}
 
-{% set gomemlimit = salt['pillar.get']('splunk-otel-collector:gomemlimit', '') %}
+{% set gomemlimit = salt['pillar.get']('splunk-otel-collector:gomemlimit', '') or '' %}
 
-{% set splunk_listen_interface = salt['pillar.get']('splunk-otel-collector:splunk_listen_interface', '') %}
+{% set splunk_listen_interface = salt['pillar.get']('splunk-otel-collector:splunk_listen_interface', '') or '' %}
 
-{% set splunk_otel_collector_command_line_args = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_command_line_args', '') %}
+{% set splunk_otel_collector_command_line_args = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_command_line_args', '') or '' %}
 
 {% set otelcol_options = [splunk_otel_collector_command_line_args] %}
 {% if splunk_platform_url %}
@@ -41,7 +41,7 @@
 {% endif %}
 {% set otelcol_options = otelcol_options | reject('equalto', '') | join(' ') %}
 
-{% set collector_additional_env_vars = salt['pillar.get']('splunk-otel-collector:collector_additional_env_vars', {}) %}
+{% set collector_additional_env_vars = salt['pillar.get']('splunk-otel-collector:collector_additional_env_vars', {}) or {} %}
 
 /etc/otel/collector/splunk-otel-collector.conf:
   file.managed:

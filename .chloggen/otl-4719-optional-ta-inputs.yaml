@@ -1,4 +1,4 @@
 change_type: enhancement
 component: splunk_ta
 note: Make the access token, realm, and config file optional in the Splunk TA input scheme for OTL-4719.
-issues: [4719]
+issues: [8457]

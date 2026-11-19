@@ -5,6 +5,31 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.165.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.165.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.165.0)
+and the [opentelemetry-collector-contrib v0.165.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.165.1) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `collector`: Remove the experimental TA runner components and the `enableTARunner` feature gate. ([#8452](https://github.com/signalfx/splunk-otel-collector/pull/8452))
+  The `splunkconf` configuration provider and the `splunk_monitor`, `splunk_tcp`,
+  `splunk_udp`, `splunk_script`, `splunk_batch`, `splunk_wineventlog` receivers
+  and `splunk_hecout` exporter are no longer available.
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) `receiver/smartagent`: Deprecate the vSphere Smart Agent monitor ([#8451](https://github.com/signalfx/splunk-otel-collector/pull/8451))
+  The vSphere monitor is deprecated and will be removed on or after December 2026. Use the `vcenter` receiver instead.
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `telemetry`: Fix bug causing internal telemetry to not respect configured escaping scheme ([#8461](https://github.com/signalfx/splunk-otel-collector/pull/8461))
+  This bug was causing all internal telemetry metrics and resource attributes to be sent
+  with underscores as the separator, regardless of the configured escaping scheme.
+  This was [addressed upstream](https://github.com/prometheus/common/pull/1035) in the
+  `prometheus/common` package in `v0.74.0`, this change picks up that fix.
+
 ## v0.165.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.165.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.165.0)

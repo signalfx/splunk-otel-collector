@@ -16,12 +16,43 @@ package main
 
 import (
 	"bytes"
+	"encoding/xml"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestTAModularInputSchemeMakesConfigFieldsOptional(t *testing.T) {
+	var scheme struct {
+		Endpoint struct {
+			Args []struct {
+				Name             string `xml:"name,attr"`
+				RequiredOnEdit   *bool  `xml:"required_on_edit"`
+				RequiredOnCreate *bool  `xml:"required_on_create"`
+			} `xml:"args>arg"`
+		} `xml:"endpoint"`
+	}
+	require.NoError(t, xml.Unmarshal([]byte(modularInputSchemeXML), &scheme))
+
+	optional := map[string]bool{
+		"splunk_access_token": false,
+		"splunk_realm":        false,
+		"splunk_config":       false,
+	}
+	for _, arg := range scheme.Endpoint.Args {
+		if _, ok := optional[arg.Name]; !ok {
+			continue
+		}
+		require.NotNil(t, arg.RequiredOnCreate, "%s must define required_on_create", arg.Name)
+		require.NotNil(t, arg.RequiredOnEdit, "%s must define required_on_edit", arg.Name)
+		assert.False(t, *arg.RequiredOnCreate, "%s must be optional on create", arg.Name)
+		assert.False(t, *arg.RequiredOnEdit, "%s must be optional on edit", arg.Name)
+		delete(optional, arg.Name)
+	}
+	assert.Empty(t, optional, "all configurable fields should be declared in the scheme")
+}
 
 // validationModeXML is a minimal <items> XML document sent by Splunk on stdin
 // when invoking the modular input with --validate-arguments.

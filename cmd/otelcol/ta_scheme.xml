@@ -10,22 +10,22 @@
                 <title>Splunk Access Token</title>
                 <description>Access token used to send data to Splunk Observability</description>
                 <data_type>string</data_type>
-                <required_on_edit>true</required_on_edit>
-                <required_on_create>true</required_on_create>
+                <required_on_edit>false</required_on_edit>
+                <required_on_create>false</required_on_create>
             </arg>
             <arg name="splunk_realm" defaultValue="">
                 <title>Splunk Realm</title>
                 <description>Splunk Observability realm to which data will be sent to</description>
                 <data_type>string</data_type>
-                <required_on_edit>true</required_on_edit>
-                <required_on_create>true</required_on_create>
+                <required_on_edit>false</required_on_edit>
+                <required_on_create>false</required_on_create>
             </arg>
             <arg name="splunk_config" defaultValue="$SPLUNK_HOME/etc/apps/$SPLUNK_MODINPUT_BASE_DIR_NAME/configs/agent_config.yaml">
                 <title>Splunk Config</title>
                 <description>Config file that will be used by the Splunk_TA_otel</description>
                 <data_type>string</data_type>
-                <required_on_edit>true</required_on_edit>
-                <required_on_create>true</required_on_create>
+                <required_on_edit>false</required_on_edit>
+                <required_on_create>false</required_on_create>
             </arg>
             <arg name="splunk_collector_log_level" defaultValue="error">
                 <title>Splunk Collector Log Level</title>

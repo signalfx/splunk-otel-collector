@@ -6,7 +6,7 @@ updates into OpenTelemetry metrics.
 
 | Status        |                                                                                                                                     |
 | ------------- |-------------------------------------------------------------------------------------------------------------------------------------|
-| Stability     | [development](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md#development): metrics |
+| Stability     | [alpha](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md#alpha): metrics |
 | Distributions | [Splunk](https://github.com/signalfx/splunk-otel-collector)                                                                         |
 | [Code Owners](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/CONTRIBUTING.md#becoming-a-code-owner)    | [@jkoronaAtCisco](https://www.github.com/jkoronaAtCisco)                                                                            |
 

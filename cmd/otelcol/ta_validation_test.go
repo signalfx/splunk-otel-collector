@@ -28,9 +28,9 @@ func TestTAModularInputSchemeMakesConfigFieldsOptional(t *testing.T) {
 	var scheme struct {
 		Endpoint struct {
 			Args []struct {
-				Name             string `xml:"name,attr"`
 				RequiredOnEdit   *bool  `xml:"required_on_edit"`
 				RequiredOnCreate *bool  `xml:"required_on_create"`
+				Name             string `xml:"name,attr"`
 			} `xml:"args>arg"`
 		} `xml:"endpoint"`
 	}

@@ -1315,6 +1315,31 @@ func TestHandleLaunchAsTA_CmdArgsSuffix(t *testing.T) {
 	assert.Equal(t, []string{"program", "--config=/etc/otel/config.yaml", "--feature-gates=foo"}, resultArgs)
 }
 
+func TestHandleLaunchAsTA_CmdArgsSuffix_ExpandsEnvRefs(t *testing.T) {
+	originalIsParentFn := isParentProcessSplunkdFn
+	defer func() { isParentProcessSplunkdFn = originalIsParentFn }()
+	isParentProcessSplunkdFn = func() bool { return true }
+
+	t.Setenv("SPLUNK_HOME", "/opt/splunk dir")
+
+	xmlData := `<input>
+	<configuration>
+		<stanza name="test-stanza" app="test-app">
+			<param name="splunk_collector_cmd_args">--config=$SPLUNK_HOME/a.yaml --config=${SPLUNK_HOME}/b.yaml --config=${file:./c.yaml}</param>
+		</stanza>
+	</configuration>
+</input>`
+
+	resultArgs, _, err := HandleLaunchAsTA([]string{"program"}, strings.NewReader(xmlData), "test-stanza", "<scheme></scheme>", nil)
+	require.NoError(t, err)
+	assert.Equal(t, []string{
+		"program",
+		"--config=/opt/splunk dir/a.yaml",
+		"--config=/opt/splunk dir/b.yaml",
+		"--config=${file:./c.yaml}",
+	}, resultArgs)
+}
+
 func TestHandleLaunchAsTA_CmdArgsSuffix_QuotedArgs(t *testing.T) {
 	originalIsParentFn := isParentProcessSplunkdFn
 	originalSetEnvFn := setEnvFn

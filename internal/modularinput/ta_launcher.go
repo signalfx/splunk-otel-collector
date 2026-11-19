@@ -191,6 +191,13 @@ func HandleLaunchAsTA(args []string, stdin io.Reader, configStanzaPrefix, scheme
 		return nil, mode, err
 	}
 
+	// Expand environment variable references (e.g. $SPLUNK_HOME) in the cmd args. This is done
+	// after the split so expanded values containing spaces remain a single argument, and after
+	// the environment is set so references to variables defined by the stanza also resolve.
+	for i, a := range cmdArgs {
+		cmdArgs[i] = expandEnvRefs(a)
+	}
+
 	return append(args, cmdArgs...), mode, nil
 }
 

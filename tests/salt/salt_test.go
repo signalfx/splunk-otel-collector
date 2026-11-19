@@ -357,6 +357,36 @@ func TestPlatformLogsValidation(t *testing.T) {
 	}
 }
 
+func TestInvalidCredentialsLeaveExistingConfigUnchanged(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
+		t.Skip("Platform scenarios run in custom case")
+	}
+	all, opts := distros(t)
+	distro := all[0]
+	c := container(t, distro, opts)
+
+	validConfig := withArtifacts(t, c, distro, opts, platformLogsConfig(d.Token, "custom-index"), false)
+	apply(t, c, validConfig)
+
+	configPath := d.ConfigDir + "/agent_config.yaml"
+	d.File(t, c, configPath, true)
+	existingConfig := d.Run(t, c, "cat "+d.Quote(configPath))
+
+	invalidSource := existingConfig + "\n# invalid credentials must not replace this config\n"
+	require.NotEqual(t, existingConfig, invalidSource)
+	d.CopyText(t, c, invalidSource, "/srv/salt/templates/invalid-credentials-test.yaml")
+	invalidConfig := `splunk-otel-collector:
+  splunk_access_token:
+  splunk_platform_url: 'https://splunk.example.com:8088/services/collector'
+  splunk_platform_token:
+  splunk_otel_collector_config_source: salt://templates/invalid-credentials-test.yaml
+`
+	invalidConfig = withArtifacts(t, c, distro, opts, invalidConfig, false)
+	applyExpectFailure(t, c, invalidConfig, "splunk_platform_url and splunk_platform_token must be provided together.")
+
+	require.Equal(t, existingConfig, d.Run(t, c, "cat "+d.Quote(configPath)))
+}
+
 func instrumentationConfig(version, collector string, systemd, custom bool) string {
 	config := defaultConfig()
 	if custom {

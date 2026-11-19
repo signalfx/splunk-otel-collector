@@ -29,8 +29,7 @@ Check splunk_realm:
   test.fail_without_changes:
     - name: "splunk_realm is not specified!"
     - failhard: True
-{% endif %}
-
+{% else %}
 {% set install_auto_instrumentation = salt['pillar.get']('splunk-otel-collector:install_auto_instrumentation', False) | to_bool %}
 
 include:
@@ -41,4 +40,5 @@ include:
   - splunk-otel-collector.service
 {% if install_auto_instrumentation %}
   - splunk-otel-collector.auto_instrumentation
+{% endif %}
 {% endif %}

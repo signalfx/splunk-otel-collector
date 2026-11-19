@@ -52,10 +52,6 @@
     (OPTIONAL) Set the base API URL explicitly instead of the URL inferred from the specified realm (default: https://api.REALM.observability.splunkcloud.com).
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.observability.splunkcloud.com"
-.PARAMETER hec_url
-    (DEPRECATED) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.observability.splunkcloud.com/v1/log).
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://ingest.us1.observability.splunkcloud.com/v1/log"
 .PARAMETER hec_token
     (OPTIONAL) Set the HEC token if different than the specified Splunk access_token.
     .EXAMPLE
@@ -156,7 +152,6 @@ param(
     [string]$network_interface = "",
     [string]$ingest_url = "",
     [string]$api_url = "",
-    [string]$hec_url = "",
     [string]$hec_token = "",
     [string]$godebug = "",
     [bool]$insecure = $false,
@@ -634,12 +629,7 @@ if ($api_url -eq "") {
     $api_url = "https://api.$realm.observability.splunkcloud.com"
 }
 
-if ($hec_url -eq "") {
-    $hec_url = "$ingest_url/v1/log"
-}
-else {
-    Write-Warning "[DEPRECATED] The parameter '-hec_url' is deprecated and will be removed in September 2026."
-}
+$hec_url = "$ingest_url/v1/log"
 
 if ($hec_token -eq "" -And $PSBoundParameters.ContainsKey("access_token")) {
     $hec_token = "$access_token"

@@ -4,6 +4,21 @@ set -euo pipefail
 
 source .gitlab/collector-docker-common.sh
 
+promote_alias() {
+    local repository="$1" digest="$2" target="$3" attempt
+    for attempt in 1 2 3; do
+        if copy_collector_image "$repository" "$digest" "$target"; then
+            return 0
+        fi
+        if (( attempt < 3 )); then
+            echo "Could not promote $target on attempt $attempt. Retrying." >&2
+            sleep "$((attempt * 2))"
+        fi
+    done
+    echo "Could not promote $target after 3 attempts. Retry this promotion job to finish updating the aliases." >&2
+    return 1
+}
+
 image_tag="$1"
 latest_tag="$2"
 source_dir="dist/docker/${DOCKER_HUB_COLLECTOR_REPO}"
@@ -36,6 +51,6 @@ for i in "${!images[@]}"; do
     quay_repo="${images[i]}"
     hub_repo="${DOCKER_HUB_COLLECTOR_REPO}${quay_repo#"$QUAY_COLLECTOR_REPO"}"
     alias="${latest_tag}${suffixes[i]}"
-    copy_collector_image "$quay_repo" "${digests[i]}" "${quay_repo}:${alias}"
-    copy_collector_image "$hub_repo" "${digests[i]}" "${hub_repo}:${alias}"
+    promote_alias "$quay_repo" "${digests[i]}" "${quay_repo}:${alias}"
+    promote_alias "$hub_repo" "${digests[i]}" "${hub_repo}:${alias}"
 done

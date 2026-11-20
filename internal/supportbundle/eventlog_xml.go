@@ -33,20 +33,28 @@ type eventLogEntry struct {
 }
 
 type renderedEvent struct {
-	System struct {
-		Provider struct {
-			Name            string `xml:"Name,attr"`
-			EventSourceName string `xml:"EventSourceName,attr"`
-		} `xml:"Provider"`
-		TimeCreated struct {
-			SystemTime string `xml:"SystemTime,attr"`
-		} `xml:"TimeCreated"`
-		EventID uint32 `xml:"EventID"`
-		Level   uint16 `xml:"Level"`
-	} `xml:"System"`
-	EventData struct {
-		Data []string `xml:"Data"`
-	} `xml:"EventData"`
+	System    renderedEventSystem `xml:"System"`
+	EventData renderedEventData   `xml:"EventData"`
+}
+
+type renderedEventSystem struct {
+	Provider    renderedEventProvider    `xml:"Provider"`
+	TimeCreated renderedEventTimeCreated `xml:"TimeCreated"`
+	EventID     uint32                   `xml:"EventID"`
+	Level       uint16                   `xml:"Level"`
+}
+
+type renderedEventProvider struct {
+	Name            string `xml:"Name,attr"`
+	EventSourceName string `xml:"EventSourceName,attr"`
+}
+
+type renderedEventTimeCreated struct {
+	SystemTime string `xml:"SystemTime,attr"`
+}
+
+type renderedEventData struct {
+	Data []string `xml:"Data"`
 }
 
 func parseEventLogEvent(data []byte) (eventLogEntry, error) {

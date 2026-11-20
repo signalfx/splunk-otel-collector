@@ -434,12 +434,12 @@ func inputBaseDir(etcDir, layerDir string) string {
 }
 
 func resolveRelativeInput(name, baseDir string) string {
-	scheme, rest, ok := strings.Cut(name, inputSchemeSeparator)
+	scheme, path, ok := strings.Cut(name, inputSchemeSeparator)
 	if !ok {
 		return name
 	}
-	if len(rest) >= 2 && rest[0] == '.' && os.IsPathSeparator(rest[1]) {
-		return scheme + inputSchemeSeparator + baseDir + rest[1:]
+	if len(path) >= 2 && path[0] == '.' && os.IsPathSeparator(path[1]) {
+		return scheme + inputSchemeSeparator + baseDir + path[1:]
 	}
 	return name
 }

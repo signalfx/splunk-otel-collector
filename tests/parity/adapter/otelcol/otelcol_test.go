@@ -117,13 +117,13 @@ func TestFeatureGates(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, ConfigFile), []byte("x"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	a := New("bin").EnableFeatureGates("enableTARunner", "other")
+	a := New("bin").EnableFeatureGates("someGate", "other")
 	if err := a.Prepare(dir, []string{ConfigFile}); err != nil {
 		t.Fatalf("Prepare: %v", err)
 	}
 	want := []string{
 		"--config", filepath.Join(dir, ConfigFile),
-		"--feature-gates=+enableTARunner,+other",
+		"--feature-gates=+someGate,+other",
 	}
 	got := a.args()
 	if len(got) != len(want) {

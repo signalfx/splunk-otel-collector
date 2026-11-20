@@ -38,9 +38,6 @@ import (
 // `make update-goldens`, which installs the pinned UF and sets it.
 var update = flag.Bool("update", false, "regenerate golden files by running the UF oracle")
 
-// taRunnerGate registers the splunk_* wrapper receivers the provider emits.
-const taRunnerGate = "enableTARunner"
-
 // confDir is the case subdirectory holding the Splunk .conf structure.
 const confDir = "conf"
 
@@ -64,7 +61,7 @@ func TestParity(t *testing.T) {
 	} else {
 		ocAdapter := otelcol.New("")
 		if _, err := os.Stat(ocAdapter.InstallDir()); err != nil {
-			t.Skipf("otelcol binary dir not found at %s (run `make otelcol`): %v", ocAdapter.InstallDir(), err)
+			t.Skipf("otelcol binary dir not found at %s (run `make otelcol` in tests/parity): %v", ocAdapter.InstallDir(), err)
 		}
 	}
 
@@ -243,7 +240,7 @@ func candidateRun(t *testing.T, casePath, index string) parity.AgentRun {
 		}
 	}
 	return parity.AgentRun{
-		Adapter:     otelcol.New("").EnableFeatureGates(taRunnerGate),
+		Adapter:     otelcol.New(""),
 		ConfigFiles: splunkconfFiles(caseConf(t, casePath)),
 		Index:       index,
 	}

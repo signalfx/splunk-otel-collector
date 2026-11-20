@@ -51,19 +51,15 @@
       register: config
       failed_when: config is changed
 
-    - name: Assert the packaged logs config defaults to the main index
-      ansible.builtin.lineinfile:
-        line: '    index: "${env:SPLUNK_PLATFORM_LOGS_INDEX:-main}"'
-        dest: /etc/otel/collector/splunk_logs_config_linux.yaml
-        state: present
-      check_mode: yes
-      register: config
-      failed_when: config is changed
-
     - name: Read the configured Platform logs config
       ansible.builtin.slurp:
         src: /etc/otel/collector/splunk_logs_config_linux.yaml
       register: platform_logs_config
+
+    - name: Assert the packaged logs config defaults to the main index
+      ansible.builtin.assert:
+        that:
+          - (platform_logs_config.content | b64decode | from_yaml)['exporters']['splunk_hec/logs']['index'] == '${env:SPLUNK_PLATFORM_LOGS_INDEX:-main}'
 
     - name: Assert the override is merged into the Platform logs config
       ansible.builtin.assert:

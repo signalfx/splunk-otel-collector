@@ -1,0 +1,8 @@
+[
+  {
+    "raw": "index routed line",
+    "host": "parityhost",
+    "source": "${BASE_DIR}/foo.txt",
+    "index": "parity_monitor-index"
+  }
+]

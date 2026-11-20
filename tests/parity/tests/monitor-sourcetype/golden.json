@@ -1,0 +1,8 @@
+[
+  {
+    "raw": "sourcetyped line",
+    "host": "parityhost",
+    "source": "${BASE_DIR}/foo.txt",
+    "sourcetype": "parity_st"
+  }
+]

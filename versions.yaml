@@ -25,10 +25,13 @@ module-sets:
       - github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension
       - github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension
       - github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
+      - github.com/signalfx/splunk-otel-collector/pkg/splunkconf
+      - github.com/signalfx/splunk-otel-collector/pkg/splunkta
 excluded-modules:
   - github.com/signalfx/signalfx-agent
   - github.com/signalfx/splunk-otel-collector/internal/tools
   - github.com/signalfx/splunk-otel-collector/tests
+  - github.com/signalfx/splunk-otel-collector/tests/parity
   - github.com/signalfx/splunk-otel-collector/tests/tools
   - github.com/signalfx/splunk-otel-collector/packaging/ta-v2/tests
   - github.com/signalfx/splunk-otel-collector/packaging/otlpinput/example

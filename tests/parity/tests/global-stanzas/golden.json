@@ -1,0 +1,14 @@
+[
+  {
+    "raw": "inherits line",
+    "host": "global_host",
+    "source": "${BASE_DIR}/a.txt",
+    "sourcetype": "default_st"
+  },
+  {
+    "raw": "overrides line",
+    "host": "global_host",
+    "source": "${BASE_DIR}/b.txt",
+    "sourcetype": "own_st"
+  }
+]

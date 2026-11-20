@@ -184,7 +184,7 @@ func (m *Manager) Dispatch(_ context.Context, _ string, args []string, streams c
 		return cli.ExitFailure
 	}
 	vars := expansionVars{lookupEnv: os.LookupEnv, etcDir: expansionEtcDir, home: home}
-	merged, err := readMerged(options.confName, etcDir, dirs, vars, options.expand)
+	merged, err := readAndMergeConfigLayers(options.confName, etcDir, dirs, vars, options.expand)
 	if err != nil {
 		fmt.Fprintf(streams.Err, "failed to read %s: %v\n", options.confName, err)
 		return cli.ExitFailure
@@ -383,7 +383,7 @@ type stanzaSettings struct {
 	path   string
 }
 
-func readMerged(confName, etcDir string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
+func readAndMergeConfigLayers(confName, etcDir string, dirs []string, vars expansionVars, expand bool) (map[string]*stanzaSettings, error) {
 	merged := make(map[string]*stanzaSettings)
 	for _, dir := range dirs {
 		path := filepath.Join(dir, confName)

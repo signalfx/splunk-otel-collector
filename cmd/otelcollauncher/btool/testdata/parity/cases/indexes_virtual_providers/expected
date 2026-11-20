@@ -1,0 +1,20 @@
+[default]
+dk = 1
+[federated:f]
+dk = 1
+own = 1
+[idx]
+dk = 1
+own = 1
+[provider-family:pf]
+vix.mode = report
+[provider-x:q]
+dk = 1
+own = 1
+[provider:p1]
+vix.a = 2
+vix.env.X = 4
+[volume:v]
+dk = 1
+own = 1
+EXIT=0

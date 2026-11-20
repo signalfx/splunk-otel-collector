@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package otelcol is the parity Adapter for the Splunk OTel Collector, run as a
-// candidate. It runs the already-built otelcol binary against the case's
-// rendered config.yaml, mirroring how testutils.CollectorProcess drives a local
-// binary. The binary must be built first (make otelcol); this adapter does not
-// build it.
+// Package otelcol is the parity Adapter for the test-only collector in
+// cmd/otelcol, run as a candidate. It runs the already-built otelcol binary
+// against the case's rendered config.yaml, mirroring how
+// testutils.CollectorProcess drives a local binary. The binary must be built
+// first (make otelcol in tests/parity); this adapter does not build it.
 package otelcol
 
 import (
@@ -32,9 +32,9 @@ import (
 )
 
 // DefaultBin is the built binary used when PARITY_OTELCOL_BIN is unset. It is
-// relative to the test working directory (tests/parity), pointing at the repo
-// root's bin/otelcol produced by `make otelcol`.
-const DefaultBin = "../../bin/otelcol"
+// relative to the test working directory (tests/parity), pointing at the
+// bin/otelcol produced by `make otelcol` there.
+const DefaultBin = "bin/otelcol"
 
 // EnvBin overrides the otelcol binary location.
 const EnvBin = "PARITY_OTELCOL_BIN"
@@ -200,7 +200,7 @@ func (a *Adapter) env() []string {
 
 func (a *Adapter) Start(ctx context.Context) error {
 	if _, err := os.Stat(a.bin); err != nil {
-		return fmt.Errorf("otelcol binary %s not found (build it with `make otelcol`, or set %s): %w", a.bin, EnvBin, err)
+		return fmt.Errorf("otelcol binary %s not found (build it with `make otelcol` in tests/parity, or set %s): %w", a.bin, EnvBin, err)
 	}
 	cmd := exec.CommandContext(ctx, a.bin, a.args()...) //nolint:gosec // G204: binary path and config sources are test-controlled inputs
 	cmd.Env = a.env()

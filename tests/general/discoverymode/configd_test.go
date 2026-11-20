@@ -160,10 +160,8 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 		"processors": map[string]any{
-			"batch/from-config-file": map[string]any{
-				"send_batch_size": 123456789,
-			},
-			"batch/from-configd": map[string]any{},
+			"batch/from-config-file": nil,
+			"batch/from-configd":     map[string]any{},
 		},
 		"receivers": map[string]any{
 			"otlp/from-config-file": map[string]any{
@@ -220,8 +218,7 @@ extensions:
     expvar:
       enabled: true
 processors:
-  batch/from-config-file:
-    send_batch_size: 123456789
+  batch/from-config-file: null
   batch/from-configd: {}
 receivers:
   otlp/from-config-file:

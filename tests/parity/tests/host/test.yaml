@@ -1,0 +1,8 @@
+name: "Set host"
+description: We use a custom host set when monitoring a file.
+setup: |
+  echo "initial text" > foo.txt
+script:
+expected:
+  raw: true
+  host: true

@@ -15,6 +15,8 @@ variables:
     description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
   GO_VERSION: 1.26.11
   SPLUNKBASE_USERNAME: "srv-prod-gdi-otel"
+  QUAY_COLLECTOR_REPO: quay.io/signalfx/splunk-otel-collector
+  DOCKER_HUB_COLLECTOR_REPO: docker.io/splunk/otel-collector
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -150,11 +152,15 @@ sast-scan:
   creds-helper init
   eval $(creds-helper artifactory --eval "artifactory:v2/cloud/role/generic-test-releaser-role")
 
-.docker-publish-login: &docker-publish-login |
-  if [[ "$BASE_TAG" == docker.io/* ]]; then
-    printf '%s\n' "$DOCKER_HUB_TOKEN" | docker login --username "${DOCKER_HUB_USERNAME:?DOCKER_HUB_USERNAME is required}" --password-stdin
-  else
-    printf '%s\n' "$CIRCLECI_QUAY_PASSWORD" | docker login --username "$CIRCLECI_QUAY_USERNAME" --password-stdin quay.io
+.quay-login: &quay-login |
+  printf '%s\n' "$CIRCLECI_QUAY_PASSWORD" | docker login --username "$CIRCLECI_QUAY_USERNAME" --password-stdin quay.io
+
+.set-docker-latest-tag: &set-docker-latest-tag |
+  VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+  LATEST_TAG=""
+  # Keep latest for stable releases and unversioned main builds.
+  if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ || ( -z "$VERSION_TAG" && "${CI_COMMIT_BRANCH:-}" == main ) ]]; then
+    LATEST_TAG="latest"
   fi
 
 .sign-docker:
@@ -166,7 +172,7 @@ sast-scan:
         - $CICD_VAULT_ADDR
         - $SIGNING_PRD_URL
   script:
-    - *docker-publish-login
+    - *quay-login
     - echo "listing images to be signed"
     - cat tags_to_sign
     - cat tags_to_sign | xargs -L1 artifact-ci sign docker
@@ -874,30 +880,18 @@ build-push-linux-image:
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
-  parallel:
-    matrix:
-      - BASE_TAG: &docker-base-tags ["quay.io/signalfx/splunk-otel-collector", "docker.io/splunk/otel-collector"]
   script:
     - *docker-reader-role
-    - *docker-publish-login
+    - *quay-login
+    - *set-docker-latest-tag
     - |
-      # Set env vars
       set -e
-      if [[ -n "${RELEASE_VERSION:-}" ]]; then
-        IMAGE_NAME="${BASE_TAG}"
-        IMAGE_TAG=${RELEASE_VERSION#v}
-      elif [[ -n "${CI_COMMIT_TAG:-}" ]]; then
-        IMAGE_NAME="${BASE_TAG}"
-        IMAGE_TAG=${CI_COMMIT_TAG#v}
+      if [[ -n "$VERSION_TAG" ]]; then
+        IMAGE_NAME="$QUAY_COLLECTOR_REPO"
+        IMAGE_TAG=${VERSION_TAG#v}
       else
-        IMAGE_NAME="${BASE_TAG}-dev"
+        IMAGE_NAME="${QUAY_COLLECTOR_REPO}-dev"
         IMAGE_TAG=${CI_COMMIT_SHA}
-      fi
-      LATEST_TAG=""
-      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # Only push latest tag for main and stable releases (no beta/rc)
-        LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
     - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
@@ -905,7 +899,7 @@ build-push-linux-image:
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
       json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
-      mkdir -p "dist/docker/${BASE_TAG}"
+      mkdir -p "dist/docker/${QUAY_COLLECTOR_REPO}"
       for arch in "amd64" "arm64" "ppc64le"; do
         arch_tag="${IMAGE_TAG}-${arch}"
         echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
@@ -916,11 +910,11 @@ build-push-linux-image:
           echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
           docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
         fi
-        echo "${IMAGE_NAME}:${arch_tag}" > "dist/docker/${BASE_TAG}/tags_to_sign_${arch}"
+        echo "${IMAGE_NAME}:${arch_tag}" > "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${arch}"
       done
   artifacts:
     paths:
-      - dist/docker/${BASE_TAG}/tags_to_sign_*
+      - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_*
 
 build-push-linux-fips-image:
   extends: .trigger-filter
@@ -931,27 +925,18 @@ build-push-linux-fips-image:
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
-  parallel:
-    matrix:
-      - BASE_TAG: *docker-base-tags
   script:
     - *docker-reader-role
-    - *docker-publish-login
+    - *quay-login
+    - *set-docker-latest-tag
     - |
-      # Set env vars
       set -e
-      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      if [[ -n "${VERSION_TAG}" ]]; then
-        IMAGE_NAME="${BASE_TAG}-fips"
+      if [[ -n "$VERSION_TAG" ]]; then
+        IMAGE_NAME="${QUAY_COLLECTOR_REPO}-fips"
         IMAGE_TAG=${VERSION_TAG#v}
       else
-        IMAGE_NAME="${BASE_TAG}-fips-dev"
+        IMAGE_NAME="${QUAY_COLLECTOR_REPO}-fips-dev"
         IMAGE_TAG=${CI_COMMIT_SHA}
-      fi
-      LATEST_TAG=""
-      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # Only push latest tag for main and stable releases
-        LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
     - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
@@ -959,7 +944,7 @@ build-push-linux-fips-image:
       # DEPRECATED: Push manifests for each arch
       set -eo pipefail
       json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
-      mkdir -p "dist/docker/${BASE_TAG}"
+      mkdir -p "dist/docker/${QUAY_COLLECTOR_REPO}"
       for arch in "amd64" "arm64"; do
         arch_tag="${IMAGE_TAG}-${arch}"
         echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
@@ -970,40 +955,37 @@ build-push-linux-fips-image:
           echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
           docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
         fi
-        echo "${IMAGE_NAME}:${arch_tag}" > "dist/docker/${BASE_TAG}/tags_to_sign_${arch}-fips"
+        echo "${IMAGE_NAME}:${arch_tag}" > "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${arch}-fips"
       done
   artifacts:
     paths:
-      - dist/docker/${BASE_TAG}/tags_to_sign_*-fips
+      - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_*-fips
 
 sign-linux-image-fips:
   extends: .sign-docker
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
-        BASE_TAG: *docker-base-tags
   needs:
     - build-push-linux-fips-image
   before_script:
-    - mv "dist/docker/${BASE_TAG}/tags_to_sign_${ARCH}-fips" tags_to_sign
+    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${ARCH}-fips" tags_to_sign
 
 sign-linux-image:
   extends: .sign-docker
   parallel:
     matrix:
       - ARCH: [amd64, arm64, ppc64le]
-        BASE_TAG: *docker-base-tags
   needs:
     - build-push-linux-image
   before_script:
-    - mv "dist/docker/${BASE_TAG}/tags_to_sign_${ARCH}" tags_to_sign
+    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${ARCH}" tags_to_sign
 
 build-push-windows-image:
   extends: .trigger-filter
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
-        BASE_TAG: *docker-base-tags
   needs:
     - job: sign-exe
       artifacts: true
@@ -1028,35 +1010,30 @@ build-push-windows-image:
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
   script:
-    - &docker-publish-login-windows |
-      if ($env:BASE_TAG -like 'docker.io/*') {
-        if (-not $env:DOCKER_HUB_USERNAME) { throw 'DOCKER_HUB_USERNAME is required' }
-        $env:DOCKER_HUB_TOKEN | docker login --username $env:DOCKER_HUB_USERNAME --password-stdin
-      } else {
-        $env:CIRCLECI_QUAY_PASSWORD | docker login --username $env:CIRCLECI_QUAY_USERNAME --password-stdin quay.io
-      }
+    - &quay-login-windows |
+      $env:CIRCLECI_QUAY_PASSWORD | docker login --username $env:CIRCLECI_QUAY_USERNAME --password-stdin quay.io
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       # Set env vars
       if ($env:RELEASE_VERSION) {
-        $IMAGE_NAME = $env:BASE_TAG
-        $OLD_IMAGE_NAME = "${env:BASE_TAG}-windows"
+        $IMAGE_NAME = $env:QUAY_COLLECTOR_REPO
+        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-windows"
         $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } elseif ($env:CI_COMMIT_TAG) {
-        $IMAGE_NAME = $env:BASE_TAG
-        $OLD_IMAGE_NAME = "${env:BASE_TAG}-windows"
+        $IMAGE_NAME = $env:QUAY_COLLECTOR_REPO
+        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-windows"
         $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } else {
-        $IMAGE_NAME = "${env:BASE_TAG}-dev"
-        $OLD_IMAGE_NAME = "${env:BASE_TAG}-windows-dev"
+        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-dev"
+        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-windows-dev"
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
       }
       $LATEST_TAG = ""
       $VERSION_TAG = if ($env:RELEASE_VERSION) { $env:RELEASE_VERSION } else { $env:CI_COMMIT_TAG }
-      if ($env:CI_COMMIT_BRANCH -eq "main" -or $VERSION_TAG -match '^v\d+\.\d+\.\d+$') {
-        # Only push latest tag for main and stable releases
+      if ($VERSION_TAG -match '^v\d+\.\d+\.\d+$' -or (-not $VERSION_TAG -and $env:CI_COMMIT_BRANCH -eq "main")) {
+        # Keep latest for stable releases and unversioned main builds.
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
     - |
@@ -1132,19 +1109,18 @@ build-push-windows-image:
         if ($LASTEXITCODE -ne 0) { exit 1 }
       }
     - |
-      $tagFile = "dist/docker/${env:BASE_TAG}/tags_to_sign_${env:WIN_VERSION}"
+      $tagFile = "dist/docker/${env:QUAY_COLLECTOR_REPO}/tags_to_sign_${env:WIN_VERSION}"
       New-Item -ItemType Directory -Force -Path (Split-Path -Parent $tagFile) | Out-Null
       "${IMAGE_NAME}:${IMAGE_TAG}`n${OLD_IMAGE_NAME}:${IMAGE_TAG}`n" | Set-Content -Encoding ascii -NoNewline -Path $tagFile
   artifacts:
     paths:
-      - dist/docker/${BASE_TAG}/tags_to_sign_${WIN_VERSION}
+      - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${WIN_VERSION}
 
 build-push-windows-fips-image:
   extends: .trigger-filter
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
-        BASE_TAG: *docker-base-tags
   needs:
     - job: sign-exe
       artifacts: true
@@ -1170,27 +1146,28 @@ build-push-windows-fips-image:
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
   script:
-    - *docker-publish-login-windows
+    - *quay-login-windows
     - |
       # Set env vars
       if ($env:RELEASE_VERSION) {
-        $IMAGE_NAME = "${env:BASE_TAG}-fips"
-        $OLD_IMAGE_NAME = "${env:BASE_TAG}-fips-windows"
+        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips"
+        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-windows"
         $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } elseif ($env:CI_COMMIT_TAG) {
-        $IMAGE_NAME = "${env:BASE_TAG}-fips"
-        $OLD_IMAGE_NAME = "${env:BASE_TAG}-fips-windows"
+        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips"
+        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-windows"
         $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
         $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
       } else {
-        $IMAGE_NAME = "${env:BASE_TAG}-fips-dev"
-        $OLD_IMAGE_NAME = "${env:BASE_TAG}-fips-windows-dev"
+        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-dev"
+        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-windows-dev"
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
       }
       $LATEST_TAG = ""
-      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:RELEASE_VERSION -match '^v\d+\.\d+\.\d+$' -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
-        # Only push latest tag for main and stable releases (manual or tag)
+      $VERSION_TAG = if ($env:RELEASE_VERSION) { $env:RELEASE_VERSION } else { $env:CI_COMMIT_TAG }
+      if ($VERSION_TAG -match '^v\d+\.\d+\.\d+$' -or (-not $VERSION_TAG -and $env:CI_COMMIT_BRANCH -eq "main")) {
+        # Keep latest for stable releases and unversioned main builds.
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
     - |
@@ -1266,12 +1243,12 @@ build-push-windows-fips-image:
         if ($LASTEXITCODE -ne 0) { exit 1 }
       }
     - |
-      $tagFile = "dist/docker/${env:BASE_TAG}/tags_to_sign_${env:WIN_VERSION}-fips"
+      $tagFile = "dist/docker/${env:QUAY_COLLECTOR_REPO}/tags_to_sign_${env:WIN_VERSION}-fips"
       New-Item -ItemType Directory -Force -Path (Split-Path -Parent $tagFile) | Out-Null
       "${IMAGE_NAME}:${IMAGE_TAG}`n${OLD_IMAGE_NAME}:${IMAGE_TAG}`n" | Set-Content -Encoding ascii -NoNewline -Path $tagFile
   artifacts:
     paths:
-      - dist/docker/${BASE_TAG}/tags_to_sign_${WIN_VERSION}-fips
+      - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${WIN_VERSION}-fips
 
 sign-windows-image:
   extends: .sign-docker
@@ -1279,12 +1256,11 @@ sign-windows-image:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
         FIPS: ["-fips", ""]
-        BASE_TAG: *docker-base-tags
   needs:
     - build-push-windows-image
     - build-push-windows-fips-image
   before_script:
-    - mv "dist/docker/${BASE_TAG}/tags_to_sign_${WIN_VERSION}${FIPS}" tags_to_sign
+    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${WIN_VERSION}${FIPS}" tags_to_sign
 
 release-debs:
   extends:
@@ -1674,7 +1650,6 @@ push-multiarch-manifest:
     matrix:
       - MANIFEST: [multiarch, windows_multiarch]
         FIPS: ["-fips",""]
-        BASE_TAG: *docker-base-tags
   needs:
     - job: sign-linux-image
       artifacts: false
@@ -1687,23 +1662,18 @@ push-multiarch-manifest:
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
   script:
-    - *docker-publish-login
+    - *quay-login
+    - *set-docker-latest-tag
     - |
       # Set env vars
-      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      if [[ -n "${VERSION_TAG}" ]]; then
-        MANIFEST_NAME="${BASE_TAG}${FIPS}"
-        WIN_MANIFEST_NAME="${BASE_TAG}${FIPS}-windows"
+      if [[ -n "$VERSION_TAG" ]]; then
+        MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}"
+        WIN_MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}-windows"
         MANIFEST_TAG=${VERSION_TAG#v}
       else
-        MANIFEST_NAME="${BASE_TAG}${FIPS}-dev"
-        WIN_MANIFEST_NAME="${BASE_TAG}${FIPS}-windows-dev"
+        MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}-dev"
+        WIN_MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}-windows-dev"
         MANIFEST_TAG=${CI_COMMIT_SHA}
-      fi
-      LATEST_TAG=""
-      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # Only push latest manifest tag for main and stable releases (no beta/rc)
-        LATEST_TAG="latest"
       fi
       if [[ "$MANIFEST" = "windows_multiarch" ]]; then
         MANIFEST_NAME=$WIN_MANIFEST_NAME
@@ -1781,10 +1751,10 @@ push-multiarch-manifest:
         echo "Invalid digest for ${MANIFEST_NAME}:${MANIFEST_TAG}: $digest"
         exit 1
       fi
-    - mkdir -p "dist/docker/${BASE_TAG}"
-    - echo "[${MANIFEST_NAME}@${digest}]" | tee "dist/docker/${BASE_TAG}/${MANIFEST}${FIPS}_digest.txt"
-    - echo "${MANIFEST_NAME}:${MANIFEST_TAG}" > "dist/docker/${BASE_TAG}/tags_to_sign_${MANIFEST}${FIPS}"
-    - if [[ "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" || "$BASE_TAG" != quay.io/* ]]; then exit 0; fi
+    - mkdir -p "dist/docker/${QUAY_COLLECTOR_REPO}"
+    - echo "[${MANIFEST_NAME}@${digest}]" | tee "dist/docker/${QUAY_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt"
+    - echo "${MANIFEST_NAME}:${MANIFEST_TAG}" > "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}"
+    - if [[ "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" ]]; then exit 0; fi
     # Push the Quay multiarch manifest for the main branch to the docker-test artifactory repo for xray scanning
     # TODO: Add new job to trigger xray scanning for the manifest whenever it is supported
     - *docker-test-releaser-role
@@ -1794,8 +1764,8 @@ push-multiarch-manifest:
     - docker buildx imagetools inspect $target
   artifacts:
     paths:
-      - dist/docker/${BASE_TAG}/${MANIFEST}${FIPS}_digest.txt
-      - dist/docker/${BASE_TAG}/tags_to_sign_${MANIFEST}${FIPS}
+      - dist/docker/${QUAY_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt
+      - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}
 
 sign-multiarch-manifest:
   extends: .sign-docker
@@ -1803,11 +1773,28 @@ sign-multiarch-manifest:
     matrix:
       - MANIFEST: [multiarch, windows_multiarch]
         FIPS: ["-fips",""]
-        BASE_TAG: *docker-base-tags
   needs:
     - push-multiarch-manifest
   before_script:
-    - mv "dist/docker/${BASE_TAG}/tags_to_sign_${MANIFEST}${FIPS}" tags_to_sign
+    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}" tags_to_sign
+
+mirror-docker-images:
+  extends: .sign-docker
+  parallel:
+    matrix:
+      - MANIFEST: [multiarch, windows_multiarch]
+        FIPS: ["-fips",""]
+  needs:
+    - push-multiarch-manifest
+    - job: sign-multiarch-manifest
+      artifacts: false
+  script:
+    - *quay-login
+    - *set-docker-latest-tag
+    - bash .gitlab/mirror-collector-docker-images.sh "$MANIFEST" "$FIPS" "$LATEST_TAG"
+  artifacts:
+    paths:
+      - dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt
 
 xray-scan-docker:
   rules:
@@ -1825,7 +1812,7 @@ xray-scan-docker:
   variables:
     create_jira: "true"
   before_script:
-    - CONTAINER_IMAGE="$(cat dist/docker/quay.io/signalfx/splunk-otel-collector/tags_to_sign_multiarch)"
+    - CONTAINER_IMAGE="$(cat "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_multiarch")"
     - export CONTAINER_IMAGE="${CONTAINER_IMAGE}-${CHILD}"
     - echo $CONTAINER_IMAGE
 
@@ -1860,8 +1847,8 @@ github-release:
       artifacts: true
     - job: push-multiarch-manifest
       artifacts: true
-    - job: sign-multiarch-manifest
-      artifacts: false
+    - job: mirror-docker-images
+      artifacts: true
     - job: release-msi
       artifacts: false
       optional: true

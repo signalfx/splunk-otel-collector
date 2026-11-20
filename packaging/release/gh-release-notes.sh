@@ -25,7 +25,10 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR"/../../ && pwd )"
 
 VERSION="$1"
-MULTIARCH_DIGEST="$( get_digest "${REPO_DIR}/dist/docker/quay.io/signalfx/splunk-otel-collector/multiarch_digest.txt" )"
+QUAY_COLLECTOR_REPO="${QUAY_COLLECTOR_REPO:-quay.io/signalfx/splunk-otel-collector}"
+DOCKER_HUB_COLLECTOR_REPO="${DOCKER_HUB_COLLECTOR_REPO:-docker.io/splunk/otel-collector}"
+QUAY_DIGEST="$( get_digest "${REPO_DIR}/dist/docker/${QUAY_COLLECTOR_REPO}/multiarch_digest.txt" )"
+DOCKER_HUB_DIGEST="$( get_digest "${REPO_DIR}/dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/multiarch_digest.txt" )"
 CHANGELOG="${REPO_DIR}/CHANGELOG.md"
 
 changes="$( awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' "$CHANGELOG" )"
@@ -39,6 +42,6 @@ $changes
 
 > Docker Image Manifests:
 > - Linux (amd64, arm64, ppc64le) and Windows (2019 amd64, 2022 amd64):
->   - \`quay.io/signalfx/splunk-otel-collector:${VERSION#v}\`
->   - digest: \`$MULTIARCH_DIGEST\`
+>   - Quay: \`${QUAY_COLLECTOR_REPO}:${VERSION#v}\` (digest: \`$QUAY_DIGEST\`)
+>   - Docker Hub: \`${DOCKER_HUB_COLLECTOR_REPO}:${VERSION#v}\` (digest: \`$DOCKER_HUB_DIGEST\`)
 EOH

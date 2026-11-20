@@ -56,13 +56,11 @@ func TestTelemetryHook_OnRetrieve(t *testing.T) {
 				"config_sources": map[string]any{
 					"vault/prod":    map[string]any{},
 					"vault/staging": map[string]any{},
-					"env/test":      map[string]any{},
 					"include/base":  map[string]any{},
 				},
 			},
 			expectedSources: map[string]bool{
 				"vault":   true,
-				"env":     true,
 				"include": true,
 			},
 		},
@@ -238,7 +236,7 @@ func TestIsCustomConfigSource(t *testing.T) {
 		csType   string
 		expected bool
 	}{
-		{"env is custom", "env", true},
+		{"env is custom", "env", false},
 		{"include is custom", "include", true},
 		{"vault is custom", "vault", true},
 		{"zookeeper is custom", "zookeeper", true},

@@ -12,7 +12,7 @@ variables:
     description: "Version to release (must be in format v1.2.3)"
   DRY_RUN:
     value: ""
-    description: "Set to 'true' to do a dry-run of most jobs, publishing dev images and test packages when appropriate."
+    description: "Set to 'true' for a dry run. Docker publishing requires a protected branch and credentials scoped to the dev repositories."
   GO_VERSION: 1.26.11
   SPLUNKBASE_USERNAME: "srv-prod-gdi-otel"
   QUAY_COLLECTOR_REPO: quay.io/signalfx/splunk-otel-collector
@@ -152,19 +152,34 @@ sast-scan:
   creds-helper init
   eval $(creds-helper artifactory --eval "artifactory:v2/cloud/role/generic-test-releaser-role")
 
-.quay-login: &quay-login |
-  printf '%s\n' "$CIRCLECI_QUAY_PASSWORD" | docker login --username "$CIRCLECI_QUAY_USERNAME" --password-stdin quay.io
+.docker-publish-rules:
+  rules:
+    - if: '$DRY_RUN == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_BRANCH == "main" || ($CI_COMMIT_BRANCH && $RELEASE_VERSION == ""))'
+    - if: '$DRY_RUN'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
-.set-docker-latest-tag: &set-docker-latest-tag |
-  VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+.collector-docker-functions: &collector-docker-functions |
+  source .gitlab/collector-docker-common.sh
+
+.set-docker-tags: &set-docker-tags |
+  VERSION_TAG=""
+  if [[ -z "${DRY_RUN:-}" ]]; then
+    VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+  fi
+  IMAGE_TAG="${VERSION_TAG#v}"
   LATEST_TAG=""
-  # Keep latest for stable releases and unversioned main builds.
-  if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ || ( -z "$VERSION_TAG" && "${CI_COMMIT_BRANCH:-}" == main ) ]]; then
+  if [[ -z "$VERSION_TAG" ]]; then
+    IMAGE_TAG="$CI_COMMIT_SHA"
+  fi
+  if [[ -n "${DRY_RUN:-}" ]]; then
+    IMAGE_TAG="${CI_COMMIT_SHA}-dryrun-${CI_PIPELINE_ID}"
+  elif [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ || ( -z "$VERSION_TAG" && "${CI_COMMIT_BRANCH:-}" == main ) ]]; then
     LATEST_TAG="latest"
   fi
 
 .sign-docker:
-  extends: .trigger-filter
+  extends: .docker-publish-rules
   retry: 2
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
@@ -172,10 +187,14 @@ sast-scan:
         - $CICD_VAULT_ADDR
         - $SIGNING_PRD_URL
   script:
-    - *quay-login
+    - *collector-docker-functions
+    - login_to_quay
     - echo "listing images to be signed"
     - cat tags_to_sign
-    - cat tags_to_sign | xargs -L1 artifact-ci sign docker
+    - |
+      while read -r tag digest; do
+        artifact-ci sign docker "${tag%:*}@${digest}"
+      done < tags_to_sign
 
 .get-artifactory-stage: &get-artifactory-stage
   - |
@@ -872,7 +891,7 @@ verify-signed-packages:
       done
 
 build-push-linux-image:
-  extends: .trigger-filter
+  extends: .docker-publish-rules
   needs:
     - job: compile
       artifacts: true
@@ -880,44 +899,51 @@ build-push-linux-image:
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
-  script:
+  variables:
+    DOCKER_ARCHES: amd64,arm64,ppc64le
+    DOCKER_FIPS_SUFFIX: ""
+  script: &build-push-linux-docker
     - *docker-reader-role
-    - *quay-login
-    - *set-docker-latest-tag
+    - *collector-docker-functions
+    - login_to_quay
+    - *set-docker-tags
     - |
-      set -e
-      if [[ -n "$VERSION_TAG" ]]; then
-        IMAGE_NAME="$QUAY_COLLECTOR_REPO"
-        IMAGE_TAG=${VERSION_TAG#v}
-      else
-        IMAGE_NAME="${QUAY_COLLECTOR_REPO}-dev"
-        IMAGE_TAG=${CI_COMMIT_SHA}
-      fi
-    - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol ARCH=amd64,arm64,ppc64le DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
-    - |
-      # DEPRECATED: Push manifests for each arch
       set -eo pipefail
-      json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
-      mkdir -p "dist/docker/${QUAY_COLLECTOR_REPO}"
-      for arch in "amd64" "arm64" "ppc64le"; do
-        arch_tag="${IMAGE_TAG}-${arch}"
-        echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
-        echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" | tee ${arch}.json
-        docker buildx imagetools create --tag ${IMAGE_NAME}:${arch_tag} --file ${arch}.json
-        if [[ -n "$LATEST_TAG" ]]; then
-          latest_tag="${LATEST_TAG}-${arch}"
-          echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
-          docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
-        fi
-        echo "${IMAGE_NAME}:${arch_tag}" > "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${arch}"
+      artifact_dir="dist/docker/${QUAY_COLLECTOR_REPO}"
+      mkdir -p "$artifact_dir"
+      fips=false
+      if [[ -n "$DOCKER_FIPS_SUFFIX" ]]; then
+        fips=true
+      fi
+      image_name="${QUAY_COLLECTOR_REPO}${DOCKER_FIPS_SUFFIX}"
+      if [[ -z "$VERSION_TAG" ]]; then
+        image_name="${image_name}-dev"
+      fi
+
+      echo "Building and pushing ${image_name}:${IMAGE_TAG}"
+      make docker-otelcol FIPS="$fips" ARCH="$DOCKER_ARCHES" DOCKER_REPO="$DOCKER_HUB_REPO" \
+        IMAGE_NAME="$image_name" IMAGE_TAG="$IMAGE_TAG" IMAGE_METADATA_FILE=build_metadata.json \
+        SKIP_COMPILE=true PUSH=true
+      linux_digest="$(read_build_digest build_metadata.json)"
+      printf '%s@%s\n' "$image_name" "$linux_digest" > "${artifact_dir}/linux_index${DOCKER_FIPS_SUFFIX}"
+      json="$(docker buildx imagetools inspect --raw "${image_name}@${linux_digest}")"
+
+      # Preserve the legacy single-architecture tags.
+      IFS=, read -r -a arches <<< "$DOCKER_ARCHES"
+      for arch in "${arches[@]}"; do
+        image="${image_name}:${IMAGE_TAG}-${arch}"
+        jq -er --arg arch "$arch" '.manifests[] | select(.platform.architecture == $arch and .platform.os == "linux")' \
+          <<< "$json" > descriptor.json
+        digest="$(push_collector_index "$image" --file descriptor.json)"
+        printf '%s %s\n' "$image" "$digest" > "${artifact_dir}/tags_to_sign_${arch}${DOCKER_FIPS_SUFFIX}"
       done
   artifacts:
     paths:
+      - dist/docker/${QUAY_COLLECTOR_REPO}/linux_index
       - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_*
 
 build-push-linux-fips-image:
-  extends: .trigger-filter
+  extends: .docker-publish-rules
   needs:
     - job: otelcol-fips
       artifacts: true
@@ -925,64 +951,17 @@ build-push-linux-fips-image:
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
-  script:
-    - *docker-reader-role
-    - *quay-login
-    - *set-docker-latest-tag
-    - |
-      set -e
-      if [[ -n "$VERSION_TAG" ]]; then
-        IMAGE_NAME="${QUAY_COLLECTOR_REPO}-fips"
-        IMAGE_TAG=${VERSION_TAG#v}
-      else
-        IMAGE_NAME="${QUAY_COLLECTOR_REPO}-fips-dev"
-        IMAGE_TAG=${CI_COMMIT_SHA}
-      fi
-    - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true PUSH=true
-    - |
-      # DEPRECATED: Push manifests for each arch
-      set -eo pipefail
-      json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
-      mkdir -p "dist/docker/${QUAY_COLLECTOR_REPO}"
-      for arch in "amd64" "arm64"; do
-        arch_tag="${IMAGE_TAG}-${arch}"
-        echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
-        echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" | tee ${arch}.json
-        docker buildx imagetools create --tag ${IMAGE_NAME}:${arch_tag} --file ${arch}.json
-        if [[ -n "$LATEST_TAG" ]]; then
-          latest_tag="${LATEST_TAG}-${arch}"
-          echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
-          docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
-        fi
-        echo "${IMAGE_NAME}:${arch_tag}" > "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${arch}-fips"
-      done
+  variables:
+    DOCKER_ARCHES: amd64,arm64
+    DOCKER_FIPS_SUFFIX: "-fips"
+  script: *build-push-linux-docker
   artifacts:
     paths:
+      - dist/docker/${QUAY_COLLECTOR_REPO}/linux_index-fips
       - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_*-fips
 
-sign-linux-image-fips:
-  extends: .sign-docker
-  parallel:
-    matrix:
-      - ARCH: [amd64, arm64]
-  needs:
-    - build-push-linux-fips-image
-  before_script:
-    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${ARCH}-fips" tags_to_sign
-
-sign-linux-image:
-  extends: .sign-docker
-  parallel:
-    matrix:
-      - ARCH: [amd64, arm64, ppc64le]
-  needs:
-    - build-push-linux-image
-  before_script:
-    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${ARCH}" tags_to_sign
-
 build-push-windows-image:
-  extends: .trigger-filter
+  extends: .docker-publish-rules
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
@@ -995,6 +974,7 @@ build-push-windows-image:
   retry: 2
   variables:
     ErrorActionPreference: stop
+    DOCKER_FIPS_SUFFIX: ""
   before_script:
     - . .gitlab/windows/runner-setup-helpers.ps1
     - Install-Chocolatey
@@ -1010,114 +990,46 @@ build-push-windows-image:
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
   script:
-    - &quay-login-windows |
-      $env:CIRCLECI_QUAY_PASSWORD | docker login --username $env:CIRCLECI_QUAY_USERNAME --password-stdin quay.io
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      # Set env vars
-      if ($env:RELEASE_VERSION) {
-        $IMAGE_NAME = $env:QUAY_COLLECTOR_REPO
-        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-windows"
-        $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
-        $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
-      } elseif ($env:CI_COMMIT_TAG) {
-        $IMAGE_NAME = $env:QUAY_COLLECTOR_REPO
-        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-windows"
-        $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
-        $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
+    - &setup-windows-docker |
+      . .gitlab/windows/collector-docker-publish.ps1
+      Connect-CollectorQuay
+      $VERSION_TAG = if (-not $env:DRY_RUN) {
+        if ($env:RELEASE_VERSION) { $env:RELEASE_VERSION } else { $env:CI_COMMIT_TAG }
+      }
+      $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}${env:DOCKER_FIPS_SUFFIX}"
+      $OLD_IMAGE_NAME = "${IMAGE_NAME}-windows"
+      if ($VERSION_TAG) {
+        $tagNumber = $VERSION_TAG.TrimStart("v")
       } else {
-        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-dev"
-        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-windows-dev"
-        $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
+        $IMAGE_NAME = "${IMAGE_NAME}-dev"
+        $OLD_IMAGE_NAME = "${OLD_IMAGE_NAME}-dev"
+        $tagNumber = $env:CI_COMMIT_SHA
       }
-      $LATEST_TAG = ""
-      $VERSION_TAG = if ($env:RELEASE_VERSION) { $env:RELEASE_VERSION } else { $env:CI_COMMIT_TAG }
-      if ($VERSION_TAG -match '^v\d+\.\d+\.\d+$' -or (-not $VERSION_TAG -and $env:CI_COMMIT_BRANCH -eq "main")) {
-        # Keep latest for stable releases and unversioned main builds.
-        $LATEST_TAG = "latest-${env:WIN_VERSION}"
+      if ($env:DRY_RUN) {
+        $tagNumber = "${tagNumber}-dryrun-${env:CI_PIPELINE_ID}"
       }
+      $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker push ${IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      # DEPRECATED: Push image to the windows repo
-      echo "Tagging and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG}"
+    - &publish-windows-docker |
+      $osVersion = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
+      if ($LASTEXITCODE -ne 0 -or -not $osVersion) { throw "Could not read the OS version of $BASE_IMAGE" }
+      $imageRecord = Publish-CollectorWindowsManifest $IMAGE_NAME $IMAGE_TAG $osVersion
       docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
       if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker push ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      echo "Getting os.version from ${BASE_IMAGE}"
-      $os_version = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      echo "$os_version"
-    - |
-      echo "Creating and pushing ${IMAGE_NAME}:${IMAGE_TAG} manifest"
-      docker manifest rm ${IMAGE_NAME}:${IMAGE_TAG}
-      docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest push ${IMAGE_NAME}:${IMAGE_TAG} --purge
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      # DEPRECATED: Push manifest to the windows repo
-      echo "Creating and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG} manifest"
-      docker manifest rm ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      docker manifest create ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest push ${OLD_IMAGE_NAME}:${IMAGE_TAG} --purge
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      if ($LATEST_TAG) {
-        echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker push ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        echo "Creating and pushing ${IMAGE_NAME}:${LATEST_TAG} manifest"
-        docker manifest rm ${IMAGE_NAME}:${LATEST_TAG}
-        docker manifest create ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${IMAGE_NAME}:${LATEST_TAG} --purge
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-      }
-    - |
-      # DEPRECATED: Push latest tag to the windows repo
-      if ($LATEST_TAG) {
-        echo "Tagging and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG}"
-        docker tag ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker push ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        echo "Creating and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG} manifest"
-        docker manifest rm ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        docker manifest create ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${OLD_IMAGE_NAME}:${LATEST_TAG} --purge
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-      }
-    - |
-      $tagFile = "dist/docker/${env:QUAY_COLLECTOR_REPO}/tags_to_sign_${env:WIN_VERSION}"
+      $legacyRecord = Publish-CollectorWindowsManifest $OLD_IMAGE_NAME $IMAGE_TAG $osVersion
+      $tagFile = "dist/docker/${env:QUAY_COLLECTOR_REPO}/tags_to_sign_${env:WIN_VERSION}${env:DOCKER_FIPS_SUFFIX}"
       New-Item -ItemType Directory -Force -Path (Split-Path -Parent $tagFile) | Out-Null
-      "${IMAGE_NAME}:${IMAGE_TAG}`n${OLD_IMAGE_NAME}:${IMAGE_TAG}`n" | Set-Content -Encoding ascii -NoNewline -Path $tagFile
+      ($imageRecord, $legacyRecord -join [char]10) + [char]10 |
+        Set-Content -Encoding ascii -NoNewline -Path $tagFile
   artifacts:
     paths:
       - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${WIN_VERSION}
 
 build-push-windows-fips-image:
-  extends: .trigger-filter
+  extends: .docker-publish-rules
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
@@ -1130,6 +1042,7 @@ build-push-windows-fips-image:
   retry: 2
   variables:
     ErrorActionPreference: stop
+    DOCKER_FIPS_SUFFIX: "-fips"
   before_script:
     - . .gitlab/windows/runner-setup-helpers.ps1
     - Install-Chocolatey
@@ -1146,121 +1059,15 @@ build-push-windows-fips-image:
       docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
   script:
-    - *quay-login-windows
-    - |
-      # Set env vars
-      if ($env:RELEASE_VERSION) {
-        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips"
-        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-windows"
-        $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
-        $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
-      } elseif ($env:CI_COMMIT_TAG) {
-        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips"
-        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-windows"
-        $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
-        $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
-      } else {
-        $IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-dev"
-        $OLD_IMAGE_NAME = "${env:QUAY_COLLECTOR_REPO}-fips-windows-dev"
-        $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
-      }
-      $LATEST_TAG = ""
-      $VERSION_TAG = if ($env:RELEASE_VERSION) { $env:RELEASE_VERSION } else { $env:CI_COMMIT_TAG }
-      if ($VERSION_TAG -match '^v\d+\.\d+\.\d+$' -or (-not $VERSION_TAG -and $env:CI_COMMIT_BRANCH -eq "main")) {
-        # Keep latest for stable releases and unversioned main builds.
-        $LATEST_TAG = "latest-${env:WIN_VERSION}"
-      }
+    - *setup-windows-docker
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker push ${IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      # DEPRECATED: Push image to the windows repo
-      echo "Tagging and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG}"
-      docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker push ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      echo "Getting os.version from ${BASE_IMAGE}"
-      $os_version = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      echo "$os_version"
-    - |
-      echo "Creating and pushing ${IMAGE_NAME}:${IMAGE_TAG} manifest"
-      docker manifest rm ${IMAGE_NAME}:${IMAGE_TAG}
-      docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest push ${IMAGE_NAME}:${IMAGE_TAG} --purge
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      # DEPRECATED: Push manifest to the windows repo
-      echo "Creating and pushing ${OLD_IMAGE_NAME}:${IMAGE_TAG} manifest"
-      docker manifest rm ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      docker manifest create ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${IMAGE_TAG}
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-      docker manifest push ${OLD_IMAGE_NAME}:${IMAGE_TAG} --purge
-      if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
-      if ($LATEST_TAG) {
-        echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker push ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        echo "Creating and pushing ${IMAGE_NAME}:${LATEST_TAG} manifest"
-        docker manifest rm ${IMAGE_NAME}:${LATEST_TAG}
-        docker manifest create ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${LATEST_TAG} ${IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${IMAGE_NAME}:${LATEST_TAG} --purge
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-      }
-    - |
-      # DEPRECATED: Push latest tag to the windows repo
-      if ($LATEST_TAG) {
-        echo "Tagging and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG}"
-        docker tag ${OLD_IMAGE_NAME}:${IMAGE_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker push ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        echo "Creating and pushing ${OLD_IMAGE_NAME}:${LATEST_TAG} manifest"
-        docker manifest rm ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        docker manifest create ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${OLD_IMAGE_NAME}:${LATEST_TAG} ${OLD_IMAGE_NAME}:${LATEST_TAG}
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-        docker manifest push ${OLD_IMAGE_NAME}:${LATEST_TAG} --purge
-        if ($LASTEXITCODE -ne 0) { exit 1 }
-      }
-    - |
-      $tagFile = "dist/docker/${env:QUAY_COLLECTOR_REPO}/tags_to_sign_${env:WIN_VERSION}-fips"
-      New-Item -ItemType Directory -Force -Path (Split-Path -Parent $tagFile) | Out-Null
-      "${IMAGE_NAME}:${IMAGE_TAG}`n${OLD_IMAGE_NAME}:${IMAGE_TAG}`n" | Set-Content -Encoding ascii -NoNewline -Path $tagFile
+    - *publish-windows-docker
   artifacts:
     paths:
       - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${WIN_VERSION}-fips
-
-sign-windows-image:
-  extends: .sign-docker
-  parallel:
-    matrix:
-      - WIN_VERSION: ["2019", "2022"]
-        FIPS: ["-fips", ""]
-  needs:
-    - build-push-windows-image
-    - build-push-windows-fips-image
-  before_script:
-    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${WIN_VERSION}${FIPS}" tags_to_sign
 
 release-debs:
   extends:
@@ -1645,159 +1452,82 @@ otlpinput-splunkbase-release:
       fi
 
 push-multiarch-manifest:
-  extends: .trigger-filter
+  extends: .docker-publish-rules
   parallel:
-    matrix:
+    matrix: &collector-manifest-matrix
       - MANIFEST: [multiarch, windows_multiarch]
-        FIPS: ["-fips",""]
+        FIPS: ["-fips", ""]
   needs:
-    - job: sign-linux-image
-      artifacts: false
-    - job: sign-linux-image-fips
-      artifacts: false
-    - job: sign-windows-image
-      artifacts: false
+    - build-push-linux-image
+    - build-push-linux-fips-image
+    - build-push-windows-image
+    - build-push-windows-fips-image
   retry: 2
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
   script:
-    - *quay-login
-    - *set-docker-latest-tag
-    - |
-      # Set env vars
-      if [[ -n "$VERSION_TAG" ]]; then
-        MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}"
-        WIN_MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}-windows"
-        MANIFEST_TAG=${VERSION_TAG#v}
-      else
-        MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}-dev"
-        WIN_MANIFEST_NAME="${QUAY_COLLECTOR_REPO}${FIPS}-windows-dev"
-        MANIFEST_TAG=${CI_COMMIT_SHA}
-      fi
-      if [[ "$MANIFEST" = "windows_multiarch" ]]; then
-        MANIFEST_NAME=$WIN_MANIFEST_NAME
-      fi
-    - |
-      set -e
-      if [[ "$MANIFEST" = "multiarch" ]]; then
-        # Update the linux multiarch manifest to include the windows images
-        echo "Updating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
-        docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
-          ${MANIFEST_NAME}:${MANIFEST_TAG} \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
-      else
-        # DEPRECATED: Create the windows multiarch manifest for the windows images
-        echo "Creating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
-        docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
-      fi
-    - |
-      set -e
-      if [[ -n "$LATEST_TAG" ]]; then
-        echo "Creating and pushing ${MANIFEST_NAME}:${LATEST_TAG} manifest"
-        docker buildx imagetools create --tag ${MANIFEST_NAME}:${LATEST_TAG} ${MANIFEST_NAME}:${MANIFEST_TAG}
-      fi
-    - |
-      # Check the manifests
-      set -eo pipefail
-      for tag in $MANIFEST_TAG $LATEST_TAG; do
-        json=$( docker buildx imagetools inspect --raw ${MANIFEST_NAME}:${tag} )
-        echo "${MANIFEST_NAME}:${tag} manifest:"
-        echo "$json"
-        # Check number of images in the manifest
-        count=$( echo "$json" | jq -r ".manifests | length" )
-        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 5 ]]; then
-          exit 1
-        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 4 ]]; then
-          exit 1
-        elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 2 ]]; then
-          exit 1
-        fi
-        # Check the manifest for the linux images
-        if [[ "$MANIFEST" != "windows_multiarch" ]]; then
-          for arch in "amd64" "arm64" "ppc64le"; do
-            if [[ "$FIPS" != "" && "$arch" == "ppc64le" ]]; then
-              continue
-            fi
-            found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" )
-            if [[ -z "$found" ]]; then
-              echo "linux/${arch} not found in ${MANIFEST_NAME}:${tag}"
-              exit 1
-            fi
-          done
-        fi
-        # Check the manifest for the windows images
-        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
-          os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
-          if [[ -z "$os_version" ]]; then
-            echo "Failed to get os.version from $base_image"
-            exit 1
-          fi
-          found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
-          if [[ -z "$found" ]]; then
-            echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
-            exit 1
-          fi
-        done
-      done
-    - |
-      # Get the manifest digest
-      set -eo pipefail
-      digest=$( docker buildx imagetools inspect --format '{{json .Manifest}}' ${MANIFEST_NAME}:${MANIFEST_TAG} | jq -r '.digest' )
-      if [[ ! "$digest" =~ ^sha256:[A-Fa-f0-9]{64}$ ]]; then
-        echo "Invalid digest for ${MANIFEST_NAME}:${MANIFEST_TAG}: $digest"
-        exit 1
-      fi
-    - mkdir -p "dist/docker/${QUAY_COLLECTOR_REPO}"
-    - echo "[${MANIFEST_NAME}@${digest}]" | tee "dist/docker/${QUAY_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt"
-    - echo "${MANIFEST_NAME}:${MANIFEST_TAG}" > "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}"
-    - if [[ "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" ]]; then exit 0; fi
-    # Push the Quay multiarch manifest for the main branch to the docker-test artifactory repo for xray scanning
-    # TODO: Add new job to trigger xray scanning for the manifest whenever it is supported
+    - *collector-docker-functions
+    - login_to_quay
+    - *set-docker-tags
+    - bash .gitlab/publish-collector-docker-manifest.sh "$MANIFEST" "$FIPS" "$VERSION_TAG" "$IMAGE_TAG"
+    - if [[ -n "${DRY_RUN:-}" || "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" ]]; then exit 0; fi
+    # Copy the Quay manifest to Artifactory for Xray. Use the same digest the mirror will copy.
     - *docker-test-releaser-role
-    - manifest="${MANIFEST_NAME}:${MANIFEST_TAG}"
-    - target="${DOCKER_TEST_XRAY_REPO}/splunk-otel-collector/$(basename $manifest)"
-    - docker buildx imagetools create --tag $target $manifest
-    - docker buildx imagetools inspect $target
+    - |
+      read -r image digest < "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}"
+      target="${DOCKER_TEST_XRAY_REPO}/splunk-otel-collector/${image##*/}"
+      copy_collector_image "${image%:*}" "$digest" "$target"
+      docker buildx imagetools inspect "$target"
   artifacts:
     paths:
       - dist/docker/${QUAY_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt
       - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}
+      - dist/docker/${QUAY_COLLECTOR_REPO}/images_${MANIFEST}${FIPS}.txt
 
 sign-multiarch-manifest:
   extends: .sign-docker
   parallel:
-    matrix:
-      - MANIFEST: [multiarch, windows_multiarch]
-        FIPS: ["-fips",""]
+    matrix: *collector-manifest-matrix
   needs:
     - push-multiarch-manifest
   before_script:
-    - mv "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}" tags_to_sign
+    - cp "dist/docker/${QUAY_COLLECTOR_REPO}/images_${MANIFEST}${FIPS}.txt" tags_to_sign
+  artifacts:
+    paths:
+      - dist/docker/${QUAY_COLLECTOR_REPO}/images_${MANIFEST}${FIPS}.txt
+      - dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}
+      - dist/docker/${QUAY_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt
 
 mirror-docker-images:
   extends: .sign-docker
   parallel:
-    matrix:
-      - MANIFEST: [multiarch, windows_multiarch]
-        FIPS: ["-fips",""]
+    matrix: *collector-manifest-matrix
   needs:
-    - push-multiarch-manifest
-    - job: sign-multiarch-manifest
-      artifacts: false
+    - sign-multiarch-manifest
   script:
-    - *quay-login
-    - *set-docker-latest-tag
-    - bash .gitlab/mirror-collector-docker-images.sh "$MANIFEST" "$FIPS" "$LATEST_TAG"
+    - *collector-docker-functions
+    - login_to_quay
+    - bash .gitlab/mirror-collector-docker-images.sh "${MANIFEST}${FIPS}"
   artifacts:
     paths:
       - dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt
+      - dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/images_${MANIFEST}${FIPS}.txt
+
+promote-docker-latest:
+  extends: .docker-publish-rules
+  needs:
+    - mirror-docker-images
+  resource_group: collector-docker-latest
+  script:
+    - *set-docker-tags
+    - if [[ -z "$LATEST_TAG" ]]; then exit 0; fi
+    - bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" "$LATEST_TAG"
 
 xray-scan-docker:
   rules:
+    - if: '$DRY_RUN'
+      when: never
     - <<: *no-schedules-condition
     - <<: *main-condition
   extends: .container-scan
@@ -1812,8 +1542,8 @@ xray-scan-docker:
   variables:
     create_jira: "true"
   before_script:
-    - CONTAINER_IMAGE="$(cat "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_multiarch")"
-    - export CONTAINER_IMAGE="${CONTAINER_IMAGE}-${CHILD}"
+    - read -r image digest < "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_multiarch"
+    - export CONTAINER_IMAGE="${image}-${CHILD}"
     - echo $CONTAINER_IMAGE
 
 github-release:
@@ -1845,10 +1575,15 @@ github-release:
       artifacts: true
     - job: sign-tar
       artifacts: true
-    - job: push-multiarch-manifest
+    - job: sign-multiarch-manifest
       artifacts: true
+      optional: true
     - job: mirror-docker-images
       artifacts: true
+      optional: true
+    - job: promote-docker-latest
+      artifacts: false
+      optional: true
     - job: release-msi
       artifacts: false
       optional: true

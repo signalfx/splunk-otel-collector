@@ -29,6 +29,10 @@ QUAY_COLLECTOR_REPO="${QUAY_COLLECTOR_REPO:-quay.io/signalfx/splunk-otel-collect
 DOCKER_HUB_COLLECTOR_REPO="${DOCKER_HUB_COLLECTOR_REPO:-docker.io/splunk/otel-collector}"
 QUAY_DIGEST="$( get_digest "${REPO_DIR}/dist/docker/${QUAY_COLLECTOR_REPO}/multiarch_digest.txt" )"
 DOCKER_HUB_DIGEST="$( get_digest "${REPO_DIR}/dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/multiarch_digest.txt" )"
+if [[ "$QUAY_DIGEST" != "$DOCKER_HUB_DIGEST" ]]; then
+  echo "Release image digests differ between Quay and Docker Hub" >&2
+  exit 1
+fi
 CHANGELOG="${REPO_DIR}/CHANGELOG.md"
 
 changes="$( awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' "$CHANGELOG" )"

@@ -1,0 +1,7 @@
+[
+  {
+    "raw": "from the directory",
+    "host": "parityhost",
+    "source": "${BASE_DIR}/logs/only.log"
+  }
+]

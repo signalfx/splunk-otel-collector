@@ -824,6 +824,8 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension => ./pkg/extension/oracleencodingextension
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
+	github.com/signalfx/splunk-otel-collector/pkg/splunkconf => ./pkg/splunkconf
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta => ./pkg/splunkta
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )
 

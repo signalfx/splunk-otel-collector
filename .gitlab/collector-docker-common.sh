@@ -21,6 +21,17 @@ login_to_docker_hub() {
     printf '%s\n' "$token" | docker login --username "$username" --password-stdin
 }
 
+latest_collector_release_tag() {
+    local tags
+    tags="$(git ls-remote --tags --refs --sort=-version:refname \
+        https://github.com/signalfx/splunk-otel-collector.git 'refs/tags/v*')" || return
+    awk '$2 ~ /^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+$/ {
+        sub(/^refs\/tags\//, "", $2)
+        print $2
+        exit
+    }' <<< "$tags"
+}
+
 read_build_digest() {
     jq -er '."containerimage.digest" | select(test("^sha256:[a-f0-9]{64}$"))' "$1"
 }

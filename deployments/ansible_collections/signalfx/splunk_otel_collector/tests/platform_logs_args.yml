@@ -1,0 +1,135 @@
+---
+- name: Verify user-supplied Collector arguments are preserved with Platform logs
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_os_family: Debian
+    splunk_access_token: fake-observability-token
+    splunk_api_url: https://api.fake-realm.observability.splunkcloud.com
+    splunk_hec_token: fake-hec-token
+    splunk_hec_url: https://ingest.fake-realm.observability.splunkcloud.com/v1/log
+    splunk_ingest_url: https://ingest.fake-realm.observability.splunkcloud.com
+    splunk_listen_interface: 127.0.0.1
+    splunk_memory_total_mib: "512"
+    splunk_otel_collector_additional_env_vars: {}
+    splunk_platform_token: fake-platform-token
+    splunk_platform_url: https://splunk.example.com:8088/services/collector
+    splunk_realm: fake-realm
+    splunk_otel_collector_config: /etc/otel/collector/agent config.yaml
+    splunk_otel_collector_config_source: ""
+    splunk_config_override: ""
+    splunk_platform_logs_index: custom-index
+    gomemlimit: ""
+  tasks:
+    - name: Capture and resolve the requested config path
+      ansible.builtin.import_tasks: ../roles/collector/tasks/vars.yml
+
+    - name: Assemble Collector arguments using the role task
+      ansible.builtin.import_tasks: ../roles/collector/tasks/platform_logs_args.yml
+
+    - name: Create temporary environment file
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .conf
+      register: collector_env_file
+
+    - name: Render Collector environment template
+      ansible.builtin.template:
+        src: ../roles/collector/templates/splunk-otel-collector.conf.j2
+        dest: "{{ collector_env_file.path }}"
+        mode: '0600'
+
+    - name: Read rendered Collector environment
+      ansible.builtin.slurp:
+        src: "{{ collector_env_file.path }}"
+      register: collector_env
+
+    - name: Assert user arguments and both config paths are preserved
+      ansible.builtin.assert:
+        that:
+          - splunk_otel_collector_command_line_args == '--set=service.telemetry.logs.level=debug'
+          - >-
+            'OTELCOL_OPTIONS=--set=service.telemetry.logs.level=debug
+            --config "/etc/otel/collector/agent config.yaml"
+            --config /etc/otel/collector/splunk_logs_config_linux.yaml
+            --feature-gates=confmap.enableMergeAppendOption' in
+            (collector_env.content | b64decode)
+
+    - name: Remove temporary environment file
+      ansible.builtin.file:
+        path: "{{ collector_env_file.path }}"
+        state: absent
+
+- name: Verify Platform-only config selection
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_os_family: Debian
+    splunk_access_token: ""
+    splunk_platform_token: fake-platform-token
+    splunk_platform_url: https://splunk.example.com:8088/services/collector
+    splunk_otel_collector_command_line_args: ""
+    splunk_otel_collector_config: ""
+    splunk_otel_collector_config_source: ""
+    splunk_config_override: ""
+  tasks:
+    - name: Reset the config path for the default-config scenario
+      ansible.builtin.set_fact:
+        splunk_otel_collector_config: ""
+
+    - name: Capture and resolve the default config path
+      ansible.builtin.import_tasks: ../roles/collector/tasks/vars.yml
+
+    - name: Assemble Collector arguments using the role task
+      ansible.builtin.import_tasks: ../roles/collector/tasks/platform_logs_args.yml
+
+    - name: Assert Platform-only install without custom config loads only Platform logs config
+      ansible.builtin.assert:
+        that:
+          - not (splunk_otel_collector_config_explicitly_set | bool)
+          - >-
+            '--config /etc/otel/collector/splunk_logs_config_linux.yaml' in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '/etc/otel/collector/agent_config.yaml' not in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '--feature-gates=confmap.enableMergeAppendOption' not in
+            splunk_otel_collector_effective_command_line_args
+
+- name: Verify Platform-only installs load explicitly provided config
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_os_family: Debian
+    splunk_access_token: ""
+    splunk_platform_token: fake-platform-token
+    splunk_platform_url: https://splunk.example.com:8088/services/collector
+    splunk_otel_collector_command_line_args: --discovery
+    splunk_otel_collector_config: "/etc/otel/collector/custom agent.yaml"
+    splunk_otel_collector_config_source: ""
+    splunk_config_override: ""
+  tasks:
+    - name: Set the explicitly requested config path for this scenario
+      ansible.builtin.set_fact:
+        splunk_otel_collector_config: "/etc/otel/collector/custom agent.yaml"
+
+    - name: Capture and resolve the requested config path
+      ansible.builtin.import_tasks: ../roles/collector/tasks/vars.yml
+
+    - name: Assemble Collector arguments using the role task
+      ansible.builtin.import_tasks: ../roles/collector/tasks/platform_logs_args.yml
+
+    - name: Assert custom config and Platform logs config are both loaded
+      ansible.builtin.assert:
+        that:
+          - splunk_otel_collector_config_explicitly_set | bool
+          - >-
+            '--config "/etc/otel/collector/custom agent.yaml"' in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '--config /etc/otel/collector/splunk_logs_config_linux.yaml' in
+            splunk_otel_collector_effective_command_line_args
+          - >-
+            '--feature-gates=confmap.enableMergeAppendOption' in
+            splunk_otel_collector_effective_command_line_args

@@ -1,0 +1,17 @@
+---
+- name: Assemble Collector command line arguments for Splunk Platform logs
+  ansible.builtin.set_fact:
+    splunk_otel_collector_effective_command_line_args: >-
+      {{ [
+        splunk_otel_collector_command_line_args,
+        ('--config "' + splunk_otel_collector_config + '"')
+          if _load_agent_config | bool else '',
+        '--config /etc/otel/collector/splunk_logs_config_linux.yaml',
+        ('--feature-gates=confmap.enableMergeAppendOption')
+          if _load_agent_config | bool else ''
+      ] | reject('equalto', '') | join(' ') }}
+  vars:
+    _load_agent_config: >-
+      {{ splunk_access_token | trim != '' or
+         splunk_otel_collector_config_explicitly_set | default(false) or
+         splunk_otel_collector_config_source | trim != '' }}

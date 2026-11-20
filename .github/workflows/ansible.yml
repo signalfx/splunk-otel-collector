@@ -105,6 +105,12 @@ jobs:
           setup_python: "false"
           working_directory: "deployments/ansible_collections/signalfx/splunk_otel_collector"
 
+      - name: Test Platform log command line argument assembly
+        run: >-
+          ansible-playbook -i localhost, -c local
+          tests/platform_logs_args.yml
+          -e 'splunk_otel_collector_command_line_args=--set=service.telemetry.logs.level=debug'
+
       - name: Run Ansible sanity tests
         run: ansible-test sanity
 
@@ -205,6 +211,8 @@ jobs:
           - custom_vars
           - with_instrumentation
           - custom_vars_install_old_version
+          - platform_logs
+          - platform_logs_with_observability
     steps:
       
       - name: Check out the codebase.

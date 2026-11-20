@@ -83,6 +83,26 @@ public class MultiStringEnvironmentTests
     }
 
     [Fact]
+    public void CustomVariablesOverrideExistingVariablesIgnoringCase()
+    {
+        try
+        {
+            Registry.SetValue(TestKey, TestValueName,
+                new[] { "SPLUNK_REALM=us0", "GODEBUG=old", "KEEP=unchanged" }, RegistryValueKind.MultiString);
+
+            using var environment = new MultiStringEnvironment(RegistryHive.CurrentUser, TestSubKey, TestValueName);
+            environment.AddEnvironmentVariables(CustomEnvironmentVariables.Parse("splunk_realm=us1,GODEBUG=x%2Cy,EMPTY="));
+
+            Assert.Equal(new[] { "EMPTY=", "GODEBUG=x,y", "KEEP=unchanged", "SPLUNK_REALM=us1" },
+                environment.GetEnvironmentValue());
+        }
+        finally
+        {
+            DeleteTestSubKey();
+        }
+    }
+
+    [Fact]
     public void DefaultConstructorShouldFail()
     {
         var invalidOperationException = Assert.Throws<InvalidOperationException>(() => new MultiStringEnvironment());

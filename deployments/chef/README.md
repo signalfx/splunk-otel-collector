@@ -19,7 +19,7 @@ Currently, the following Linux distributions and versions are supported:
 - Amazon Linux: 2
 - CentOS / Red Hat: 8, 9, 10
 - Oracle: 8, 9, 10
-- Debian: 11, 12, 13
+- Debian: 12, 13
 - SUSE: 15, 16
 - Ubuntu: 22.04, 24.04, 26.04
 
@@ -40,9 +40,11 @@ collector service and not to the entire machine.
 This cookbook can be downloaded and installed from [Chef Supermarket](https://supermarket.chef.io/cookbooks/splunk_otel_collector).
 
 To install the Collector, include the
-`splunk_otel_collector::default` recipe in the `run_list`, and set the
-attributes on the node's `run_state`. Below is an example to configure the
-required `splunk_access_token` attribute and some optional attributes:
+`splunk_otel_collector::default` recipe in the `run_list`, and set its node
+attributes. Provide a Splunk Observability Cloud access token for the standard
+Collector configuration, or provide the Splunk Platform HEC URL and token for
+Platform-only log collection. The two destinations can also be configured
+together.
 ```yaml 
 {
     "splunk-otel-collector": {
@@ -52,13 +54,56 @@ required `splunk_access_token` attribute and some optional attributes:
 }
 ```
 
+### Send host logs to Splunk Platform
+
+The collector package includes a Splunk Platform logs configuration for Linux
+and Windows. Set the Chef attributes corresponding to the installer's
+`--splunk-platform-token`, `--splunk-platform-url`, and
+`--splunk-platform-logs-index` options. Providing the URL and token enables log
+collection. The cookbook selects the packaged logs config automatically and
+adds the required merge feature gate when also sending telemetry to
+Observability Cloud:
+
+```yaml
+{
+    "splunk-otel-collector": {
+        "splunk_platform_url": "https://<your-splunk-host>:8088/services/collector",
+        "splunk_platform_token": "<your-hec-token>",
+        "splunk_platform_logs_index": "<your-index>"
+    }
+}
+```
+
+`splunk_platform_token` and `splunk_platform_url` must be provided together.
+`splunk_platform_logs_index` is recommended. If omitted, Splunk routes events to
+the default index configured on the HEC token. If the token has no default
+index, events may be silently dropped. Windows Platform HEC collection
+requires Collector version `0.154.0` or newer; the default `latest` version is
+supported.
+
 # This cookbook accepts the following attributes
 
 ### Collector
 
-- `splunk_access_token` (**Required**): The [Splunk access token](
+- `splunk_access_token`: The [Splunk Observability Cloud access token](
   https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
-  to authenticate requests.
+  to authenticate requests. Required for the standard Observability config or
+  combined collection; can be omitted for Platform-only logs collection.
+
+- `splunk_platform_token`: HEC token for sending host logs to
+  Splunk Platform. Required when `splunk_platform_url` is configured. Maps to
+  the installer's `--splunk-platform-token` option.
+
+- `splunk_platform_url`: Splunk Platform HEC endpoint URL, e.g.
+  `https://splunk.example.com:8088/services/collector`. Setting this together
+  with `splunk_platform_token` enables the packaged host logs config for Linux
+  and Windows.
+  Maps to the installer's `--splunk-platform-url` option.
+
+- `splunk_platform_logs_index`: Splunk index for host logs.
+  Recommended; if omitted, events are routed to the HEC token's default index.
+  Ensure the token has a default index configured to avoid dropped events.
+  Maps to the installer's `--splunk-platform-logs-index` option.
 
 - `splunk_realm`: Which Splunk realm to send the data to, e.g. `us1`. The
   `SPLUNK_REALM` environment variable will be set with this value for the
@@ -134,7 +179,11 @@ required `splunk_access_token` attribute and some optional attributes:
 - `collector_command_line_args`: Additional command line arguments to pass to the
   collector service. On Linux the value will be set to the `OTELCOL_OPTIONS` environment
   variable for the collector service. On Windows, this option is only supported
-  by versions `>= 0.127.0` (**default:** `''`).
+  by versions `>= 0.127.0` (**default:** `''`). On Linux, the cookbook adds the
+  packaged logs config when Splunk Platform log collection is enabled and adds
+  the config merge feature gate when the Observability config is also loaded.
+  On Windows, the MSI composes the same config arguments and enables config
+  merging when both configs are loaded.
 
 ### Auto Instrumentation on Linux
 
@@ -153,7 +202,7 @@ after installation/configuration in order for any change to take effect.
   Currently, the following values are supported:
   - `java`: [Splunk OpenTelemetry for Java](https://github.com/signalfx/splunk-otel-java)
   - `nodejs`: [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js)
-  - `dotnet`: [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64 only)
+  - `dotnet`: [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64, plus arm64 for package versions newer than `0.159.0`)
 
   **Note:** This recipe does not manage the installation/configuration of
   Node.js, `npm`, or Node.js applications. If `nodejs` is included in this
@@ -168,14 +217,21 @@ after installation/configuration in order for any change to take effect.
 
 - `auto_instrumentation_systemd` (Linux only): By default, the
   `/etc/ld.so.preload` file on the node will be configured for the
-  `/usr/lib/splunk-instrumentation/libsplunk.so` [shared object library](
+  `/usr/lib/splunk-instrumentation/libotelinject.so` [shared object library](
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation)
   provided by the `splunk-otel-auto-instrumentation` package to activate and
   configure auto instrumentation system-wide for all supported applications.
+  Package versions through `0.159.0` use `libsplunk.so` instead. When
+  upgrading a node from a `libsplunk.so`-based version, the package preserves
+  the legacy `/etc/splunk/zeroconfig/` files under
+  `/usr/lib/splunk-instrumentation/legacy-zeroconfig/` before removing them.
+  This cookbook does not manage or clean up that backup directory; remove it
+  manually on each node (or via the package's `preuninstall.sh` with
+  `REMOVE_LEGACY_CONFIG=true`) once any custom settings have been migrated.
   Alternatively, set this option to `true` to activate and configure auto
   instrumentation ***only*** for supported applications running as `systemd`
   services. If this option is set to `true`,
-  `/usr/lib/splunk-instrumentation/libsplunk.so` will not be added to
+  the package's shared object library will not be added to
   `/etc/ld.so.preload`. Instead, the
   `/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf`
   `systemd` drop-in file will be created and configured for environment

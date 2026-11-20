@@ -55,7 +55,7 @@ func TestSplunkSecretLoadConfig(t *testing.T) {
 			SessionKey:         "some_session_key",
 			App:                defaultApp,
 			User:               defaultUser,
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: new(true),
 			Timeout:            5 * time.Second,
 		},
 	}

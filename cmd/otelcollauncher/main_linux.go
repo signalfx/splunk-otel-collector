@@ -19,6 +19,9 @@ package main
 import (
 	"golang.org/x/sys/unix"
 
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/cli"
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/health"
+	"github.com/signalfx/splunk-otel-collector/cmd/otelcollauncher/lifecycle"
 	"github.com/signalfx/splunk-otel-collector/internal/opampsupervisor/launcher"
 )
 
@@ -30,4 +33,11 @@ func run(args, env []string, paths launcher.Paths) error {
 		return err
 	}
 	return unix.Exec(cmd.Path, append([]string{cmd.Path}, cmd.Args...), cmd.Env)
+}
+
+// commandFamilies lists the otelcollauncher command families available on
+// Linux. A new command family requires implementing cli.Family in its own
+// package and appending its constructor here.
+func commandFamilies() []cli.Family {
+	return []cli.Family{lifecycle.NewLinux(), health.New()}
 }

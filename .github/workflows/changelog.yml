@@ -19,9 +19,61 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.26.6
+  GO_VERSION: 1.26.11
 
 jobs:
+  changelog-version:
+    name: Ensure changelog version matches versions.yaml
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Check changelog version
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- CHANGELOG.md; then
+            echo "CHANGELOG.md was not modified; skipping version consistency check."
+            exit 0
+          fi
+
+          # Extract the latest version from the CHANGELOG.md file using SED:
+          # Explanation by line:
+          #   - -nE suppresses unmatched lines and enables extended regular expressions.
+          #   - The pattern prints version tokens from headings in CHANGELOG.md.
+          #   - head keeps the first match, which is the latest version heading.
+          changelog_version=$(
+            sed -nE \
+              's/^## (v[^[:space:]]+).*$/\1/p' \
+              CHANGELOG.md |
+              head -n 1
+          )
+
+          # Extract the `module-sets.splunk-otel-collector.version` field from versions.yaml.
+          versions_version=$(yq '."module-sets"."splunk-otel-collector".version' versions.yaml)
+
+          if [[ -z "$changelog_version" ]]; then
+            echo "Could not find a version heading in CHANGELOG.md."
+            exit 1
+          fi
+
+          if [[ -z "$versions_version" ]]; then
+            echo "Could not find the splunk-otel-collector version in versions.yaml."
+            exit 1
+          fi
+
+          if [[ "$changelog_version" != "$versions_version" ]]; then
+            echo "The latest CHANGELOG.md version ($changelog_version) does not match the splunk-otel-collector version in versions.yaml ($versions_version)."
+            exit 1
+          fi
+
+          echo "Latest changelog version matches versions.yaml: $versions_version"
+
   changelog:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'dependencies') && !contains(github.event.pull_request.labels.*.name, 'Skip Changelog') && !contains(github.event.pull_request.title, '[chore]')}}

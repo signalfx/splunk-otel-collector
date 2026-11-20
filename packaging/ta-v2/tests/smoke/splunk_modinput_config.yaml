@@ -1,0 +1,17 @@
+# Extra config used only by the ta-v2 smoke tests (see .github/workflows/ta-v2.yaml).
+# It is merged with agent_config.yaml and relies on the
+# confmap.enableMergeAppendOption feature gate to append the splunk_modinput
+# exporter to the pipelines defined there instead of replacing their exporters.
+exporters:
+  splunk_modinput:
+    source: ta-smoke-source
+    sourcetype: ta-smoke-sourcetype
+
+service:
+  pipelines:
+    logs:
+      exporters: [splunk_modinput]
+    metrics:
+      exporters: [splunk_modinput]
+    traces:
+      exporters: [splunk_modinput]

@@ -16,6 +16,7 @@ package gnmireceiver
 
 import (
 	"context"
+	"io"
 	"math"
 	"net"
 	"sync"
@@ -23,11 +24,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aristanetworks/goarista/gnmireverse"
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
+	tpb "github.com/openconfig/grpctunnel/proto/tunnel"
+	"github.com/openconfig/grpctunnel/tunnel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configoptional"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -35,6 +41,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
@@ -179,6 +186,67 @@ func testTarget(endpoint string) TargetConfig {
 	return tc
 }
 
+type tunnelTargetListener struct {
+	conns  chan net.Conn
+	closed chan struct{}
+	once   sync.Once
+}
+
+func (l *tunnelTargetListener) Accept() (net.Conn, error) {
+	select {
+	case c := <-l.conns:
+		return c, nil
+	case <-l.closed:
+		return nil, net.ErrClosed
+	}
+}
+
+func (l *tunnelTargetListener) Close() error {
+	l.once.Do(func() { close(l.closed) })
+	return nil
+}
+
+func (l *tunnelTargetListener) Addr() net.Addr { return &net.TCPAddr{} }
+
+func startTunnelTarget(t *testing.T, endpoint string, target tunnel.Target, srv *mockGNMIServer) func() {
+	t.Helper()
+	cc, err := grpc.NewClient(endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+
+	lis := &tunnelTargetListener{conns: make(chan net.Conn, 1), closed: make(chan struct{})}
+	client, err := tunnel.NewClient(tpb.NewTunnelClient(cc), tunnel.ClientConfig{
+		RegisterHandler: func(tunnel.Target) error { return nil },
+		Handler: func(_ tunnel.Target, rwc io.ReadWriteCloser) error {
+			select {
+			case lis.conns <- &tunnel.Conn{ReadWriteCloser: rwc}:
+				return nil
+			case <-lis.closed:
+				return rwc.Close()
+			}
+		},
+	}, map[tunnel.Target]struct{}{target: {}})
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	require.NoError(t, client.Register(ctx))
+
+	started := make(chan struct{})
+	go func() { defer close(started); client.Start(ctx) }()
+
+	grpcServer := grpc.NewServer()
+	gnmipb.RegisterGNMIServer(grpcServer, srv)
+	served := make(chan struct{})
+	go func() { defer close(served); _ = grpcServer.Serve(lis) }()
+
+	return func() {
+		grpcServer.Stop()
+		cancel()
+		_ = cc.Close()
+		<-served
+		<-started
+	}
+}
+
 func TestReceiverStartShutdown(t *testing.T) {
 	srv := &mockGNMIServer{updates: 3}
 	addr, stop := startMockServer(t, srv)
@@ -201,6 +269,228 @@ func TestReceiverStartShutdown(t *testing.T) {
 	require.Len(t, sl.GetSubscription(), 1)
 
 	require.NoError(t, r.Shutdown(context.Background()))
+}
+
+func TestReceiverSubscribesThroughGRPCTunnel(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	tunnelEndpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	tunnelConfig := newDefaultTunnelConfig()
+	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
+	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
+	tunnelConfig.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Millisecond,
+		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
+	sink := new(consumertest.MetricsSink)
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, r.Shutdown(context.Background())) })
+
+	srv := &mockGNMIServer{updates: 3}
+	stop := startTunnelTarget(t, tunnelEndpoint, tunnel.Target{ID: "router1", Type: targetTypeGNMIGNOIInsecure}, srv)
+	t.Cleanup(stop)
+
+	require.Eventually(t, func() bool {
+		return srv.subscribeHit.Load() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	require.Eventually(t, func() bool {
+		return sink.DataPointCount() > 0
+	}, 2*time.Second, 10*time.Millisecond)
+
+	allMetrics := sink.AllMetrics()
+	require.NotEmpty(t, allMetrics)
+	serverAddress, ok := allMetrics[0].ResourceMetrics().At(0).Resource().Attributes().Get("server.address")
+	require.True(t, ok)
+	assert.Equal(t, "router1", serverAddress.Str())
+}
+
+func TestTunnelTargetTypeFiltering(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	tunnelEndpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	tunnelConfig := newDefaultTunnelConfig()
+	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
+	tunnelConfig.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Millisecond,
+		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
+
+	core, logs := observer.New(zap.InfoLevel)
+	settings := receivertest.NewNopSettings(rcvrmetadata.Type)
+	settings.Logger = zap.New(core)
+
+	r := newGNMIReceiver(cfg, settings, new(consumertest.MetricsSink))
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, r.Shutdown(context.Background())) })
+
+	srv := &mockGNMIServer{updates: 1}
+	stop := startTunnelTarget(t, tunnelEndpoint, tunnel.Target{ID: "router1", Type: "SSH"}, srv)
+	t.Cleanup(stop)
+
+	require.Eventually(t, func() bool {
+		return logs.FilterMessage("ignoring gNMI tunnel target with unaccepted type").
+			FilterField(zap.String("target_type", "SSH")).Len() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	require.Never(t, func() bool {
+		return srv.subscribeHit.Load() > 0
+	}, 100*time.Millisecond, 10*time.Millisecond, "an unaccepted target type must not be subscribed to")
+}
+
+func TestTunnelTargetDeregistrationStopsSubscription(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	tunnelEndpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	tunnelConfig := newDefaultTunnelConfig()
+	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
+	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
+	tunnelConfig.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Millisecond,
+		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
+
+	core, logs := observer.New(zap.InfoLevel)
+	settings := receivertest.NewNopSettings(rcvrmetadata.Type)
+	settings.Logger = zap.New(core)
+
+	r := newGNMIReceiver(cfg, settings, new(consumertest.MetricsSink))
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, r.Shutdown(context.Background())) })
+
+	srv := &mockGNMIServer{updates: 1}
+	target := tunnel.Target{ID: "router1", Type: targetTypeGNMIGNOIInsecure}
+	stop := startTunnelTarget(t, tunnelEndpoint, target, srv)
+
+	require.Eventually(t, func() bool {
+		return srv.subscribeHit.Load() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	stop()
+
+	require.Eventually(t, func() bool {
+		return logs.FilterMessage("gNMI tunnel target deleted").
+			FilterField(zap.String("target", "router1")).Len() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+}
+
+func TestTunnelTargetReRegistration(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	tunnelEndpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	tunnelConfig := newDefaultTunnelConfig()
+	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
+	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
+	tunnelConfig.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Millisecond,
+		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
+
+	core, logs := observer.New(zap.InfoLevel)
+	settings := receivertest.NewNopSettings(rcvrmetadata.Type)
+	settings.Logger = zap.New(core)
+
+	r := newGNMIReceiver(cfg, settings, new(consumertest.MetricsSink))
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, r.Shutdown(context.Background())) })
+
+	target := tunnel.Target{ID: "router1", Type: targetTypeGNMIGNOIInsecure}
+
+	srv1 := &mockGNMIServer{updates: 1}
+	stop1 := startTunnelTarget(t, tunnelEndpoint, target, srv1)
+	require.Eventually(t, func() bool {
+		return srv1.subscribeHit.Load() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+	stop1()
+
+	require.Eventually(t, func() bool {
+		return logs.FilterMessage("gNMI tunnel target deleted").Len() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	srv2 := &mockGNMIServer{updates: 1}
+	stop2 := startTunnelTarget(t, tunnelEndpoint, target, srv2)
+	t.Cleanup(stop2)
+	require.Eventually(t, func() bool {
+		return srv2.subscribeHit.Load() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	assert.Len(t, logs.FilterMessage("gNMI tunnel target added").All(), 2,
+		"expected one registration log per connect/disconnect/reconnect cycle")
+}
+
+func TestTunnelMultipleTargetsConcurrently(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	tunnelEndpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	tunnelConfig := newDefaultTunnelConfig()
+	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
+	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
+	tunnelConfig.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Millisecond,
+		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
+
+	sink := new(consumertest.MetricsSink)
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, r.Shutdown(context.Background())) })
+
+	srvA := &mockGNMIServer{updates: 1}
+	stopA := startTunnelTarget(t, tunnelEndpoint, tunnel.Target{ID: "routerA", Type: targetTypeGNMIGNOIInsecure}, srvA)
+	t.Cleanup(stopA)
+
+	srvB := &mockGNMIServer{updates: 1}
+	stopB := startTunnelTarget(t, tunnelEndpoint, tunnel.Target{ID: "routerB", Type: targetTypeGNMIGNOIInsecure}, srvB)
+	t.Cleanup(stopB)
+
+	require.Eventually(t, func() bool {
+		return srvA.subscribeHit.Load() >= 1 && srvB.subscribeHit.Load() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	require.Eventually(t, func() bool {
+		return sink.DataPointCount() > 0
+	}, 2*time.Second, 10*time.Millisecond)
+
+	seen := map[string]bool{}
+	for _, m := range sink.AllMetrics() {
+		for i := 0; i < m.ResourceMetrics().Len(); i++ {
+			addr, ok := m.ResourceMetrics().At(i).Resource().Attributes().Get("server.address")
+			if ok {
+				seen[addr.Str()] = true
+			}
+		}
+	}
+	assert.True(t, seen["routerA"] && seen["routerB"], "expected metrics from both concurrently-registered targets, got %v", seen)
+}
+
+func TestTunnelTargetTypeConstantMatchesProto(t *testing.T) {
+	assert.Equal(t, targetTypeGNMIGNOI, tpb.TargetType_GNMI_GNOI.String())
 }
 
 func TestSubscriptionEstablishedLoggedOnlyAfterResponse(t *testing.T) {
@@ -319,6 +609,99 @@ func TestReceiverEmitsMetricsEndToEnd(t *testing.T) {
 	assert.Equal(t, "eth0", name.Str())
 }
 
+func TestReceiverServerIngestsGNMIReverseResponses(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	endpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	gnmiReverseConfig := NewDefaultGNMIReverseConfig()
+	gnmiReverseConfig.NetAddr.Endpoint = endpoint
+	gnmiReverseConfig.Subscriptions = []SubscriptionConfig{{
+		Path:    "/interfaces/interface/state/counters",
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{GNMIReverse: &gnmiReverseConfig}
+	sink := new(consumertest.MetricsSink)
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() { require.NoError(t, r.Shutdown(context.Background())) })
+
+	conn, err := grpc.NewClient(endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, conn.Close()) })
+
+	client := gnmireverse.NewGNMIReverseClient(conn)
+	ctx := context.Background()
+	publishStream, err := client.Publish(ctx)
+	require.NoError(t, err)
+	prefix := &gnmipb.Path{Elem: []*gnmipb.PathElem{
+		{Name: "interfaces"},
+		{Name: "interface", Key: map[string]string{"name": "eth0"}},
+		{Name: "state"},
+		{Name: "counters"},
+	}, Target: "device-1"}
+	updateNotification := &gnmipb.Notification{
+		Prefix: prefix,
+		Update: []*gnmipb.Update{
+			{
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "in-octets"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 42}},
+			},
+			{
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "out-octets"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 84}},
+			},
+		},
+	}
+	updateResponse := &gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{Update: updateNotification},
+	}
+	require.NoError(t, publishStream.Send(updateResponse))
+	_, err = publishStream.CloseAndRecv()
+	require.NoError(t, err)
+
+	getStream, err := client.PublishGet(ctx)
+	require.NoError(t, err)
+	getNotification := &gnmipb.Notification{
+		Prefix: prefix,
+		Update: []*gnmipb.Update{{
+			Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "in-errors"}}},
+			Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 7}},
+		}},
+	}
+	require.NoError(t, getStream.Send(&gnmipb.GetResponse{
+		Notification: []*gnmipb.Notification{getNotification},
+	}))
+	_, err = getStream.CloseAndRecv()
+	require.NoError(t, err)
+
+	allMetrics := sink.AllMetrics()
+	require.Len(t, allMetrics, 2)
+	metrics := allMetrics[0].ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	require.Equal(t, 2, metrics.Len())
+	serverAddress, ok := allMetrics[0].ResourceMetrics().At(0).Resource().Attributes().Get("server.address")
+	require.True(t, ok)
+	assert.Equal(t, "device-1", serverAddress.Str())
+	metric := metrics.At(0)
+	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "By", metric.Unit())
+	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
+	dp := metric.Sum().DataPoints().At(0)
+	assert.Equal(t, int64(42), dp.IntValue())
+	name, ok := dp.Attributes().Get("name")
+	require.True(t, ok)
+	assert.Equal(t, "eth0", name.Str())
+
+	assert.Equal(t, "interfaces.interface.state.counters.out-octets", metrics.At(1).Name())
+	assert.Equal(t, int64(84), metrics.At(1).Sum().DataPoints().At(0).IntValue())
+
+	getMetrics := allMetrics[1].ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	require.Equal(t, 1, getMetrics.Len())
+	assert.Equal(t, "interfaces.interface.state.counters.in-errors", getMetrics.At(0).Name())
+	assert.Equal(t, int64(7), getMetrics.At(0).Sum().DataPoints().At(0).IntValue())
+}
+
 // TestReceiverForwardsPartialSuccessOnParseError covers a review comment on
 // PR #7918: a uint64 leaf above math.MaxInt64 (e.g. a wrapped counter64)
 // makes parser.parse() return an error, but parse() already keeps every
@@ -356,6 +739,50 @@ func TestReceiverShutdownWithoutStart(t *testing.T) {
 	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), new(consumertest.MetricsSink))
 
 	require.NoError(t, r.Shutdown(context.Background()))
+}
+
+func TestReceiverShutdownWaitsForClientGoroutines(t *testing.T) {
+	srv := &mockGNMIServer{updates: 1}
+	addr, stop := startMockServer(t, srv)
+	defer stop()
+
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	var once sync.Once
+	gated, err := consumer.NewMetrics(func(context.Context, pmetric.Metrics) error {
+		once.Do(func() { close(entered) })
+		<-release
+		return nil
+	})
+	require.NoError(t, err)
+
+	cfg := &Config{Targets: []TargetConfig{testTarget(addr)}}
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), gated)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+
+	select {
+	case <-entered:
+	case <-time.After(2 * time.Second):
+		t.Fatal("client never reached ConsumeMetrics")
+	}
+
+	shutdownDone := make(chan error, 1)
+	go func() { shutdownDone <- r.Shutdown(context.Background()) }()
+
+	select {
+	case <-shutdownDone:
+		t.Fatal("Shutdown returned before the in-flight client goroutine finished")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	close(release)
+
+	select {
+	case err := <-shutdownDone:
+		require.NoError(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("Shutdown did not return after the client goroutine was unblocked")
+	}
 }
 
 func TestReceiverRedialsAfterSessionFailure(t *testing.T) {

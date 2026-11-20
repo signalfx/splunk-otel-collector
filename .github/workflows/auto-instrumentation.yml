@@ -12,17 +12,17 @@ on:
       - 'internal/**'
       - '!**.md'
       - 'packaging/**'
+      - 'tests/go.mod'
+      - 'tests/go.sum'
+      - 'tests/instrumentation/**'
+      - 'tests/testutils/**'
 
 concurrency:
   group: auto-instrumentation-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  # EOL REFERENCE: https://endoflife.date/python
-  PYTHON_VERSION: '3.13'
-  PIP_VERSION: '24.2'
-  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.26.6
+  GO_VERSION: 1.26.11
 
 jobs:
   cross-compile:
@@ -34,28 +34,14 @@ jobs:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   build-package:
-    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
         ARCH: [ "amd64", "arm64"]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Run tests
-        run: make -C instrumentation tests ARCH=${{ matrix.ARCH }}
-
-      - name: Build ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} package
-        run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
-          path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
+    uses: ./.github/workflows/reusable-build-instrumentation-package.yml
+    with:
+      SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
+      ARCH: ${{ matrix.ARCH }}
 
   test-package-matrix:
     runs-on: ubuntu-24.04
@@ -75,9 +61,9 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch="\"amd64\", \"arm64\""
           testcase="\"express\",\"tomcat\",\"dotnet\""
-          # splunk-otel-dotnet currently not supported on arm64
-          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
+          excluded_distros="centos-8 oraclelinux-8 rockylinux-8"
+          exclude=$(for d in $excluded_distros; do echo -n "{\"DISTRO\": \"$d\", \"ARCH\": \"arm64\", \"TESTCASE\": \"dotnet\"},"; done)
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude%,}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
@@ -105,48 +91,70 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist
 
-      - name: Setup python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
-
-      - name: Install pytest
-        run: |
-          if which pip; then
-              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
-          else
-              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
-          fi
-          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: 'tests/go.sum'
 
       - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
-        id: pytest
+        id: go-test
         continue-on-error: true
+        working-directory: tests
         run: |
           distro="${{ matrix.DISTRO }}"
-          testcase="${{ matrix.TESTCASE }} or uninstall"
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
-            packaging/tests/instrumentation/instrumentation_test.py
+          arch="${{ matrix.ARCH }}"
+          case "${{ matrix.TESTCASE }}" in
+            tomcat) test_name="TestTomcatInstrumentation" ;;
+            express) test_name="TestExpressInstrumentation" ;;
+            dotnet) test_name="TestDotnetInstrumentation" ;;
+            *) echo "Unknown instrumentation test case '${{ matrix.TESTCASE }}'" >&2; exit 1 ;;
+          esac
+          test_result=0
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 40m -count 1 ./instrumentation \
+            -run "^${test_name}/${distro}/${arch}$" || test_result=1
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 15m -count 1 ./instrumentation \
+            -run "^TestPackage(Uninstall|UpgradeFromLibsplunk)/${distro}/${arch}$" || test_result=1
+          exit "$test_result"
 
       # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ steps.pytest.outcome == 'failure' }}
+        if: ${{ steps.go-test.outcome == 'failure' }}
+        working-directory: tests
         run: |
           distro="${{ matrix.DISTRO }}"
-          testcase="${{ matrix.TESTCASE }} or uninstall"
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
-            --last-failed \
-            packaging/tests/instrumentation/instrumentation_test.py
+          arch="${{ matrix.ARCH }}"
+          case "${{ matrix.TESTCASE }}" in
+            tomcat) test_name="TestTomcatInstrumentation" ;;
+            express) test_name="TestExpressInstrumentation" ;;
+            dotnet) test_name="TestDotnetInstrumentation" ;;
+            *) echo "Unknown instrumentation test case '${{ matrix.TESTCASE }}'" >&2; exit 1 ;;
+          esac
+          test_result=0
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 40m -count 1 ./instrumentation \
+            -run "^${test_name}/${distro}/${arch}$" || test_result=1
+          PACKAGE_TEST_TYPE="$SYS_PACKAGE" \
+          PACKAGE_TEST_DISTRO="$distro" \
+          PACKAGE_TEST_ARCH="$arch" \
+          go test -tags integration -v -timeout 15m -count 1 ./instrumentation \
+            -run "^TestPackage(Uninstall|UpgradeFromLibsplunk)/${distro}/${arch}$" || test_result=1
+          exit "$test_result"

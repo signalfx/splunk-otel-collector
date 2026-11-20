@@ -38,6 +38,10 @@ GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 else
 GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 endif
+# Pin the Go toolchain so local builds match the version in go.mod and CI.
+# Override with e.g. `make lint GOTOOLCHAIN=go1.27.3` or via the environment.
+GOTOOLCHAIN?=go1.26.11
+export GOTOOLCHAIN
 GOCMD?= go
 GOTEST=$(GOCMD) test
 GOOS=$(shell $(GOCMD) env GOOS)
@@ -47,6 +51,7 @@ MDLINKCHECK=markdown-link-check
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
 CHLOGGEN=chloggen
+MULTIMOD=multimod
 LINT=golangci-lint
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release

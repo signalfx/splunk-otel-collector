@@ -18,16 +18,11 @@
 package baseline
 
 import (
-	"go.opentelemetry.io/collector/connector"
-	"go.opentelemetry.io/collector/exporter"
-	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/processor"
-	"go.opentelemetry.io/collector/receiver"
-
 	countconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector"
 	routingconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	spanmetricsconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	sumconnector "github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector"
+	awskinesisexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter"
 	awss3exporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter"
 	fileexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	googlecloudstorageexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/googlecloudstorageexporter"
@@ -44,6 +39,7 @@ import (
 	textencodingextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension"
 	headerssetterextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	healthcheckextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
+	healthcheckv2extension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckv2extension"
 	httpforwarderextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
 	k8sleaderelector "github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector"
 	oauth2clientauthextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
@@ -60,12 +56,14 @@ import (
 	groupbyattrsprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor"
 	k8sattributesprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor"
 	logstransformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor"
+	lookupprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/lookupprocessor"
 	metricsgenerationprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricsgenerationprocessor"
 	metricstransformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 	probabilisticsamplerprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	redactionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor"
 	resourcedetectionprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
 	resourceprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
+	rollingspanlatencyprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/rollingspanlatencyprocessor"
 	spanprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	tailsamplingprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	transformprocessor "github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
@@ -112,6 +110,7 @@ import (
 	ntpreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver"
 	oracledbreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver"
 	postgresqlreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/pprofreceiver"
 	prometheusreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 	prometheusremotewritereceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusremotewritereceiver"
 	purefareceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceiver"
@@ -136,21 +135,25 @@ import (
 	tlscheckreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver"
 	udplogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver"
 	vcenterreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver"
-	wavefrontreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
 	windowseventlogreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	windowsperfcountersreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	windowsservicereceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver"
 	yanggrpcreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/yanggrpcreceiver"
 	zipkinreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	zookeeperreceiver "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver"
+	"go.opentelemetry.io/collector/connector"
 	forwardconnector "go.opentelemetry.io/collector/connector/forwardconnector"
+	"go.opentelemetry.io/collector/exporter"
 	debugexporter "go.opentelemetry.io/collector/exporter/debugexporter"
 	nopexporter "go.opentelemetry.io/collector/exporter/nopexporter"
 	otlpexporter "go.opentelemetry.io/collector/exporter/otlpexporter"
 	otlphttpexporter "go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/extension"
 	zpagesextension "go.opentelemetry.io/collector/extension/zpagesextension"
+	"go.opentelemetry.io/collector/processor"
 	batchprocessor "go.opentelemetry.io/collector/processor/batchprocessor"
 	memorylimiterprocessor "go.opentelemetry.io/collector/processor/memorylimiterprocessor"
+	"go.opentelemetry.io/collector/receiver"
 	nopreceiver "go.opentelemetry.io/collector/receiver/nopreceiver"
 	otlpreceiver "go.opentelemetry.io/collector/receiver/otlpreceiver"
 )
@@ -171,6 +174,7 @@ func NewBaseline() *Baseline {
 			googlecloudlogentryencodingextension.NewFactory(),
 			headerssetterextension.NewFactory(),
 			healthcheckextension.NewFactory(),
+			healthcheckv2extension.NewFactory(),
 			hostobserver.NewFactory(),
 			httpforwarderextension.NewFactory(),
 			k8sleaderelector.NewFactory(),
@@ -227,6 +231,7 @@ func NewBaseline() *Baseline {
 			oracledbreceiver.NewFactory(),
 			otlpreceiver.NewFactory(),
 			postgresqlreceiver.NewFactory(),
+			pprofreceiver.NewFactory(),
 			prometheusreceiver.NewFactory(),
 			prometheusremotewritereceiver.NewFactory(),
 			purefareceiver.NewFactory(),
@@ -251,7 +256,6 @@ func NewBaseline() *Baseline {
 			tlscheckreceiver.NewFactory(),
 			udplogreceiver.NewFactory(),
 			vcenterreceiver.NewFactory(),
-			wavefrontreceiver.NewFactory(),
 			windowseventlogreceiver.NewFactory(),
 			windowsperfcountersreceiver.NewFactory(),
 			windowsservicereceiver.NewFactory(),
@@ -266,6 +270,7 @@ func NewBaseline() *Baseline {
 			filterprocessor.NewFactory(),
 			groupbyattrsprocessor.NewFactory(),
 			k8sattributesprocessor.NewFactory(),
+			lookupprocessor.NewFactory(),
 			logstransformprocessor.NewFactory(),
 			memorylimiterprocessor.NewFactory(),
 			metricsgenerationprocessor.NewFactory(),
@@ -274,11 +279,13 @@ func NewBaseline() *Baseline {
 			redactionprocessor.NewFactory(),
 			resourcedetectionprocessor.NewFactory(),
 			resourceprocessor.NewFactory(),
+			rollingspanlatencyprocessor.NewFactory(),
 			spanprocessor.NewFactory(),
 			tailsamplingprocessor.NewFactory(),
 			transformprocessor.NewFactory(),
 		},
 		exporters: []exporter.Factory{
+			awskinesisexporter.NewFactory(),
 			awss3exporter.NewFactory(),
 			debugexporter.NewFactory(),
 			fileexporter.NewFactory(),

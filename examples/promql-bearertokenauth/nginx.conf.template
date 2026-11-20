@@ -1,0 +1,16 @@
+map $http_authorization $authorized {
+    default 0;
+    "Bearer ${PROMETHEUS_BEARER_TOKEN}" 1;
+}
+
+server {
+    listen 8080;
+
+    location / {
+        if ($authorized = 0) {
+            return 401;
+        }
+
+        proxy_pass http://prometheus:9090;
+    }
+}

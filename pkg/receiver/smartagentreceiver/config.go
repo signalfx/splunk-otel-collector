@@ -22,6 +22,7 @@ import (
 
 	"github.com/signalfx/defaults"
 	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/featuregate"
 	"gopkg.in/yaml.v2"
 
 	_ "github.com/signalfx/signalfx-agent/pkg/core" // required to invoke monitor registration via init() calls
@@ -32,9 +33,18 @@ import (
 
 const defaultIntervalSeconds = 10
 
+const telegrafExecFeatureGateID = "receiver.smartagentreceiver.TelegrafExec"
+
 var (
 	_ confmap.Unmarshaler = (*Config)(nil)
 	_ confmap.Validator   = (*Config)(nil)
+
+	telegrafExecFeatureGate = featuregate.GlobalRegistry().MustRegister(
+		telegrafExecFeatureGateID,
+		featuregate.StageAlpha,
+		featuregate.WithRegisterDescription("When enabled, the telegraf/exec monitor is allowed to be used. This monitor is planned for removal in December 2026."),
+		featuregate.WithRegisterFromVersion("v0.162.0"),
+	)
 )
 
 type Config struct {
@@ -50,6 +60,9 @@ type Config struct {
 func (cfg *Config) Validate() error {
 	if cfg.MonitorType == "" {
 		return fmt.Errorf(`you must specify a "type" for a smartagent receiver`)
+	}
+	if cfg.MonitorType == "telegraf/exec" && !telegrafExecFeatureGate.IsEnabled() {
+		return fmt.Errorf("the telegraf/exec monitor is disabled by default; enable it with --feature-gates=+%s (planned removal: December 2026)", telegrafExecFeatureGateID)
 	}
 
 	monitorConfigCore := cfg.monitorConfig.MonitorConfigCore()

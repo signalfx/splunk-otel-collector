@@ -7,7 +7,7 @@ ARG DISTRO_IMAGE
 ARG PKG_MGR=dnf
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest
-ENV NODE_VERSION=18.20.8
+ENV NODE_VERSION=22.23.4
 ENV container=docker
 
 # config for centos

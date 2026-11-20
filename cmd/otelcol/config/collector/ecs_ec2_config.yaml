@@ -40,14 +40,12 @@ extensions:
         headers:
           X-SF-Token: "${SPLUNK_ACCESS_TOKEN}"
   zpages:
-    endpoint: 0.0.0.0:55679
-    expvar:
-      enabled: true
+    #endpoint: 127.0.0.1:55679
+    # Use expvar for config details, see https://github.com/open-telemetry/opentelemetry-collector/blob/v0.165.0/extension/zpagesextension/README.md#expvarz
+    # expvar:
+    #   enabled: true
 
 receivers:
-  # The fluent_forward receiver can be used to forward logs from the Docker fluentd logging driver.
-  fluent_forward:
-    endpoint: 0.0.0.0:8006
   host_metrics:
     collection_interval: 10s
     scrapers:
@@ -193,7 +191,7 @@ service:
       processors: [memory_limiter, batch, filter, resource_detection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [otlp, fluent_forward]
+      receivers: [otlp]
       processors:
         - memory_limiter
         - batch

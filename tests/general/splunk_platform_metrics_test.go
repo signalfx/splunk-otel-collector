@@ -40,6 +40,7 @@ func TestSplunkPlatformMetricsEffectiveConfig(t *testing.T) {
 		func(collector testutils.Collector) testutils.Collector {
 			return collector.WithArgs(
 				"--config", "/etc/otel/collector/splunk_metrics_config_linux.yaml",
+				enableExpvar,
 			).WithEnv(map[string]string{
 				"SPLUNK_PLATFORM_TOKEN":         "test-token",
 				"SPLUNK_PLATFORM_URL":           "https://http-inputs-test.splunkcloud.com/services/collector",
@@ -117,6 +118,7 @@ func TestSplunkPlatformMetricsWithO11yEffectiveConfig(t *testing.T) {
 				"--config", "/etc/otel/collector/agent_config.yaml",
 				"--config", "/etc/otel/collector/splunk_metrics_config_linux.yaml",
 				"--feature-gates=confmap.enableMergeAppendOption",
+				enableExpvar,
 			).WithEnv(map[string]string{
 				"SPLUNK_ACCESS_TOKEN":           "not.real",
 				"SPLUNK_REALM":                  "not.real",

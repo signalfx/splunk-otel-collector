@@ -6,7 +6,7 @@ updates into OpenTelemetry metrics.
 
 | Status        |                                                                                                                                     |
 | ------------- |-------------------------------------------------------------------------------------------------------------------------------------|
-| Stability     | [development](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md#development): metrics |
+| Stability     | [alpha](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md#alpha): metrics |
 | Distributions | [Splunk](https://github.com/signalfx/splunk-otel-collector)                                                                         |
 | [Code Owners](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/CONTRIBUTING.md#becoming-a-code-owner)    | [@jkoronaAtCisco](https://www.github.com/jkoronaAtCisco)                                                                            |
 
@@ -15,11 +15,30 @@ updates into OpenTelemetry metrics.
 ## Configuration
 
 The receiver opens a long-lived gNMI `Subscribe` stream to each configured target. Each
-stream can contain multiple path `subscriptions`.
+stream can contain multiple path `subscriptions`. It can also expose an Arista gNMIReverse
+server that accepts streamed gNMI Subscribe and Get responses, or an OpenConfig gRPC
+tunnel server that devices behind NAT or a firewall dial out to.
+
+The inbound endpoint implements Arista's gNMIReverse protocol and works with the Arista
+[`gnmireverse` client](https://github.com/aristanetworks/goarista/tree/master/gnmireverse).
+See the [goarista repository](https://github.com/aristanetworks/goarista), the
+[gNMIReverse documentation](https://github.com/aristanetworks/goarista/blob/master/gnmireverse/README.md),
+and its [protobuf service definition](https://github.com/aristanetworks/goarista/blob/master/gnmireverse/gnmireverse.proto).
 
 ```yaml
 receivers:
   gnmi:
+    gnmireverse:
+      endpoint: 0.0.0.0:57400
+      subscriptions:
+        - path: /interfaces/interface/state/counters
+          origin: openconfig
+          default:
+            type: sum
+            unit: "1"
+      # tls:
+      #   cert_file: server.crt
+      #   key_file: server.key
     targets:
       - endpoint: 10.0.0.1:57400
         username: admin
@@ -54,6 +73,81 @@ receivers:
                 enum_values: [UP, DOWN, TESTING]
 ```
 
+`gnmireverse` is optional. When configured, the receiver listens on its endpoint and ingests
+the values in incoming gNMIReverse `Publish` and `PublishGet` streams. The receiver can run
+with only `gnmireverse` configured, or only `tunnel` (below) configured; outbound `targets`
+are optional in that case. The server requires `subscriptions` to select incoming paths and
+map their values. It uses the standard collector gRPC server settings, including TLS,
+authentication, and message size limits. A message's `prefix.target` is used for the
+`server.address` resource attribute when present; otherwise the configured server endpoint
+is used.
+For `gnmireverse.subscriptions`, configure only `path`, `origin`, and the metric mapping fields
+(`default` and `overrides`). Outbound subscription controls (`mode`, `sample_interval`,
+`heartbeat_interval`, and `suppress_redundant`) are not supported on this inbound stream and
+are rejected when set.
+
+### gRPC tunnel dial-out
+
+Cisco devices (IOS-XE `gnxi grpctunnel`, IOS-XR `grpc tunnel destination`, NX-OS
+`feature grpctunnel`) implement the [OpenConfig gRPC tunnel][grpctunnel] instead of
+gNMIReverse: the **device dials the collector** and registers a tunnel target, and the
+**collector then dials back through that tunnel** and runs a normal gNMI `Subscribe`. This is
+the single most confusing thing about this transport — the TCP connection direction and the
+gNMI RPC direction are opposite. Because the collector still issues the `Subscribe`, unlike
+`gnmireverse`, the outbound subscription controls (`mode`, `sample_interval`,
+`heartbeat_interval`, `suppress_redundant`) **are** supported here, and `mode` is **required**.
+
+A single shared `subscriptions` list applies to *every* target that registers over the
+tunnel — there is no per-device configuration.
+
+```yaml
+receivers:
+  gnmi:
+    tunnel:
+      endpoint: 0.0.0.0:57400       # tunnel server; devices dial this
+      tls:                          # tunnel transport (device -> collector); mandatory on every Cisco platform
+        cert_file: /etc/otelcol/certs/tunnel-server.crt
+        key_file: /etc/otelcol/certs/tunnel-server.key
+      target_types: [GNMI_GNOI]     # GNMI_GNOI (default) | GNMI_GNOI_INSECURE (lab only)
+      client_tls:                   # gNMI session inside the tunnel; GNMI_GNOI only
+        insecure_skip_verify: true  # or server_name_override, since the dial target is a bare tunnel ID
+      username: admin
+      password: ${env:GNMI_PASSWORD}
+      encoding: proto
+      redial: 30s
+      subscriptions:
+        - path: /interfaces/interface/state/counters
+          origin: openconfig
+          mode: sample               # mode is required here, unlike gnmireverse
+          sample_interval: 10s
+          default:
+            type: sum
+            unit: "1"
+```
+
+Notes:
+
+- `tls` configures the **tunnel transport** itself. Every Cisco platform requires this to be
+  TLS; the device is configured with an `identity-trustpoint` (IOS-XE) or an installed
+  collector certificate (IOS-XR) pointing at it.
+- `client_tls` configures the **gNMI session carried inside the tunnel**, and only applies to
+  `GNMI_GNOI` targets. `GNMI_GNOI_INSECURE` targets are always dialed in plaintext inside the
+  (still TLS) tunnel; Cisco documents this type for testing only.
+- `server.address` is set to the tunnel target ID the device registered — not a host:port.
+- **TLS gotcha:** the inner gNMI dial target is the bare tunnel target ID (e.g. `router1`),
+  not a reachable address, so its default TLS `ServerName` will not match a device
+  certificate's SAN. Set `client_tls.server_name_override` or `client_tls.insecure_skip_verify`.
+- `max_recv_msg_size_mib` (from the standard gRPC server settings) limits the outer tunnel
+  `Data` frames, not the inner gNMI messages — it is not the right knob for a large gNMI
+  response.
+- A device registering with a target type outside `target_types` is ignored and logged at
+  **info** with the exact type string received, so a misconfigured allowlist is visible at
+  default verbosity. Other tunnel-server errors (e.g. duplicate registrations) are logged at
+  **debug**.
+- Device-side configuration differs by platform: IOS-XE uses `gnxi grpctunnel`, IOS-XR uses
+  `grpc tunnel destination`, and NX-OS uses `feature grpctunnel` — expect one of these three
+  syntaxes depending on the fleet.
+
 ### Target
 
 Each target embeds the standard collector [gRPC client settings][configgrpc]
@@ -68,6 +162,26 @@ Each target embeds the standard collector [gRPC client settings][configgrpc]
 | `redial`        | `10s`     | Delay before reconnecting after a session failure (min `1s`). Set to `0` to disable automatic reconnection. |
 | `tls`           |           | Standard collector TLS client settings.                            |
 | `subscriptions` | (required)| One or more path subscriptions (below).                            |
+
+### Tunnel
+
+The tunnel server embeds the standard collector [gRPC server settings][configgrpc]
+(`endpoint`, `tls`, `keepalive`, `auth`, ...) plus the fields below. Its `tls` is the tunnel
+*transport*; see [gRPC tunnel dial-out](#grpc-tunnel-dial-out) above for the distinction from
+`client_tls`.
+
+| Field           | Default     | Description                                                        |
+| --------------- | ----------- | ------------------------------------------------------------------ |
+| `enabled`       | `true`      | Set to `false` to disable the tunnel server even if `tunnel:` is otherwise configured. The block is also disabled when omitted entirely. |
+| `endpoint`      | (required)  | `host:port` the tunnel server listens on. Required once the block is enabled; omit the whole `tunnel:` block (or set `enabled: false`) to disable. |
+| `tls`           |             | Standard collector TLS server settings, for the tunnel transport.  |
+| `target_types`  | `[GNMI_GNOI]` | Tunnel target types to accept; targets of any other type are ignored. |
+| `client_tls`    |             | TLS client settings for the gNMI session inside the tunnel. Applies only to `GNMI_GNOI` targets; `GNMI_GNOI_INSECURE` is always plaintext. |
+| `username`      |             | Sent as gNMI gRPC metadata on every tunneled session (not an `Authorization` header). |
+| `password`      |             | Sent as gNMI gRPC metadata alongside `username`. Redacted in logs. Requires `username`. |
+| `encoding`      | `proto`     | gNMI encoding: `proto`, `json`, or `json_ietf`.                    |
+| `redial`        | `10s`       | Delay before re-subscribing after a tunneled session failure (min `1s`). Set to `0` to disable automatic reconnection. |
+| `subscriptions` | (required)  | One or more path subscriptions (below), applied to every accepted target. |
 
 ### Subscription
 
@@ -190,17 +304,80 @@ Notes:
 ### Metric type, unit, and enum resolution
 
 gNMI carries a value's data type but not whether it is a counter or a gauge, nor its
-unit or possible values — that information lives in the YANG schema. The receiver
-resolves it from configuration instead:
+unit or possible values — that information lives in the YANG schema:
 
 - `type`: `sum` (emitted as a monotonic Sum) or `gauge` (emitted as a Gauge).
 - `unit`: metric unit, ideally [UCUM] (e.g. `By`, `1`, `By/s`).
 - `enum_values`: closed set of string values, for leaves emitted as a state metric
   (see [Enum leaves](#enum-leaves)).
 
-For each leaf the receiver applies the matching `overrides` entry if present, otherwise
-`default`. **A leaf matched by neither is dropped** (no metric is emitted). A subscription
-must therefore define at least one of `default` or `overrides`.
+The receiver resolves these either from the YANG schema (`yang_modules`, below) or from
+configuration, with an explicit `overrides` entry taking precedence over both, per field:
+
+1. `overrides[<leaf name>]`, if present, is applied first. Any of `type`/`unit`/
+   `enum_values` it does not set falls through to the next layer below — a
+   unit-only override, for example, still gets its `type` from the schema.
+2. The loaded YANG schema, if `yang_modules` is set and it resolves the leaf, fills in
+   anything the override left blank.
+3. `default` fills in anything both the override and the schema left blank
+   (most commonly `unit`: OpenConfig models rarely declare a `units` statement).
+
+**A leaf matched by none of the above is dropped** (no metric is emitted), and logged
+once per distinct path. Without `yang_modules`, a subscription must define at least one
+of `default` or `overrides`, and every `default`/`overrides` entry must set `type`; with
+`yang_modules` set, both become optional.
+
+#### YANG schema resolution (`yang_modules`)
+
+```yaml
+receivers:
+  gnmi:
+    yang_modules:
+      - /etc/yang/openconfig-interfaces.yang
+      - /etc/yang/vendor-models/          # directory: every *.yang file in it, searched recursively
+    targets:
+      - endpoint: 10.0.0.1:57400
+        ...
+```
+
+`yang_modules` is a top-level, receiver-wide list of YANG module files and/or
+directories, loaded once at startup. A directory is searched recursively for
+`*.yang` files and is also added as an import/include search path, so a module that
+only exists to satisfy another module's `import` statement does not need to be listed
+explicitly — only the top-level modules you actually subscribe under do.
+
+From the loaded schema, the receiver derives, per leaf:
+
+- **`type`**: a leaf typed (directly or via a typedef chain) as `counter32`/`counter64`
+  resolves to `sum`; every other numeric type resolves to `gauge`.
+- **`unit`**: from the leaf's or its type's `units` statement, when present.
+- **`enum_values`**: from an `enumeration` type's declared enum names, or from an
+  `identityref` type's set of identities derived from its base — either way replacing
+  a hand-maintained `enum_values` list, including the "stale enum list" failure mode
+  from a vendor adding a new value.
+- **Numeric string leaves**: a leaf resolved by the schema as a genuine YANG `string`
+  is emitted as an info metric even if its value happens to look numeric (e.g. `"42"`),
+  instead of the value-guessing behavior used for unconfigured/legacy `type` leaves.
+
+A `union` or `leafref` that cannot be followed to a concrete type, and `binary`/`empty`
+leaves, are not resolved by the schema; such a leaf falls back to `overrides`/`default`
+exactly as if no `yang_modules` were configured. Startup fails if a listed file is
+missing, fails to parse, or the module set has unresolved imports — every
+`import`ed/`include`d module must be reachable via `yang_modules`. Startup also fails
+if two loaded modules define the same gNMI-visible path (leaf/container names are not
+module-qualified) with conflicting types, rather than silently letting one module's
+resolution win over the other's.
+
+#### `yang_modules` and `origin`
+
+A gNMI path's `origin` identifies which schema/data tree it belongs to (a subscription's
+`origin`, see [Subscription](#subscription) above, is matched against the update's
+origin when picking `overrides`/`default`). The YANG schema built from `yang_modules`
+does not have this concept: it is a single flat tree indexed by path only, regardless
+of `origin`. All loaded `yang_modules` are expected to describe one schema tree; if two
+origins expose the same path with different types, the schema cannot tell them apart,
+and — per the previous paragraph — loading fails rather than silently picking one.
+Per-origin schema resolution is not currently supported.
 
 ### Credentials
 
@@ -232,6 +409,7 @@ with a blank password). Setting `password` without `username` is rejected at sta
   does not support `proto`.
 
 [configgrpc]: https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configgrpc/README.md
+[grpctunnel]: https://github.com/openconfig/grpctunnel
 [UCUM]: https://ucum.org/ucum
-[spec-stream]: https://openconfig.net/docs/gnmi/gnmi-specification/#35152-stream-subscriptions
-[spec-auth]: https://openconfig.net/docs/gnmi/gnmi-specification/#31-session-security-authentication-and-rpc-authorization
+[spec-stream]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#35152-stream-subscriptions
+[spec-auth]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#31-session-security-authentication-and-rpc-authorization

@@ -18,14 +18,20 @@ package tests
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
+
+// enableExpvar turns on zpages expvar, which the shipped configs leave disabled,
+// so that the tests can read the initial and effective config from /debug/expvarz.
+const enableExpvar = "--set=extensions.zpages.expvar.enabled=true"
 
 func TestDefaultGatewayConfig(t *testing.T) {
 	for _, ip := range []string{"default", "0.0.0.0"} {
@@ -45,7 +51,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					if ip != "default" {
 						env["SPLUNK_LISTEN_INTERFACE"] = ip
 					}
-					return collector.WithArgs().WithEnv(env)
+					return collector.WithArgs(enableExpvar).WithEnv(env)
 				},
 			)
 			defer shutdown()
@@ -161,7 +167,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 					},
 					"zpages": map[string]any{
-						"endpoint": fmt.Sprintf("%s:55679", ip),
 						"expvar": map[string]any{
 							"enabled": true,
 						},
@@ -332,6 +337,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					}
 					return collector.WithArgs(
 						"--config", "/etc/otel/collector/agent_config.yaml",
+						enableExpvar,
 					).WithEnv(env)
 				},
 			)
@@ -469,7 +475,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 					},
 				},
 				"receivers": map[string]any{
-					"fluent_forward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
 					"host_metrics": map[string]any{
 						"collection_interval": "10s",
 						"scrapers": map[string]any{
@@ -534,7 +539,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
 							"processors": []any{"memory_limiter", "batch", "resource_detection"},
-							"receivers":  []any{"fluent_forward", "otlp"},
+							"receivers":  []any{"otlp"},
 						},
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
@@ -603,4 +608,56 @@ func TestDefaultAgentConfig(t *testing.T) {
 			}, 20*time.Second, time.Second)
 		})
 	}
+}
+
+// TestDefaultConfigsDoNotEnableExpvar ensures that none of the default configs expose
+// the zpages expvar page, since it can leak the effective configuration.
+func TestDefaultConfigsDoNotEnableExpvar(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{name: "gateway"},
+		{name: "agent", args: []string{"--config", "/etc/otel/collector/agent_config.yaml"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tc := testutils.NewTestcase(t)
+			defer tc.PrintLogsOnFailure()
+			defer tc.ShutdownOTLPReceiverSink()
+
+			_, shutdown := tc.SplunkOtelCollectorContainer(
+				"",
+				func(collector testutils.Collector) testutils.Collector {
+					return collector.WithArgs(tt.args...).WithEnv(map[string]string{
+						"SPLUNK_ACCESS_TOKEN": "not.real",
+						"SPLUNK_REALM":        "not.real",
+					})
+				},
+			)
+			defer shutdown()
+
+			// servicez is always served by the zpages extension: use it to know that the
+			// extension is up before asserting that expvarz is not being served.
+			require.EventuallyWithT(t, func(c *assert.CollectT) {
+				assert.Equal(c, http.StatusOK, getStatus(t, "http://localhost:55679/debug/servicez"))
+			}, 30*time.Second, 100*time.Millisecond)
+
+			require.Equal(t, http.StatusNotFound, getStatus(t, "http://localhost:55679/debug/expvarz"))
+		})
+	}
+}
+
+func getStatus(t *testing.T, url string) int {
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, url, http.NoBody)
+	if err != nil {
+		return 0
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode
 }

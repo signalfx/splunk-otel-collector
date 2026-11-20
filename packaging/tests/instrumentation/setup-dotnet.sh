@@ -2,13 +2,20 @@
 
 set -euo pipefail
 
+# TARGETARCH-style arch name (amd64 or arm64), defaults to amd64
+ARCH="${1:-amd64}"
+case "$ARCH" in
+    arm64) DOTNET_ARCH="arm64" ;;
+    *)     DOTNET_ARCH="x64" ;;
+esac
+
 DOTNET_SDK_HOME=/opt/dotnet-sdk
 DOTNET_BIN=${DOTNET_SDK_HOME}/dotnet
 DOTNET_APP_HOME=/opt/dotnet
 
 useradd -r -m -U -d $DOTNET_APP_HOME -s /bin/false dotnet
 
-wget -nv https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.414/dotnet-sdk-8.0.414-linux-x64.tar.gz -O dotnet-sdk.tar.gz
+wget -nv "https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.414/dotnet-sdk-8.0.414-linux-${DOTNET_ARCH}.tar.gz" -O dotnet-sdk.tar.gz
 mkdir -p $DOTNET_SDK_HOME
 tar -xzf dotnet-sdk.tar.gz -C $DOTNET_SDK_HOME
 rm -f dotnet-sdk.tar.gz
@@ -18,7 +25,7 @@ chmod a+x $DOTNET_BIN
 wget -nv https://github.com/docker/docker-dotnet-sample/archive/c7f01a5a7f2058bc1e1e29f8cfdb92fd1800054d.tar.gz -O docker-dotnet-sample.tar.gz
 tar -xzf docker-dotnet-sample.tar.gz -C /tmp
 rm -f docker-dotnet-sample.tar.gz
-$DOTNET_BIN publish /tmp/docker-dotnet-sample-c7f01a5a7f2058bc1e1e29f8cfdb92fd1800054d/src -a x64 -o $DOTNET_APP_HOME
+$DOTNET_BIN publish /tmp/docker-dotnet-sample-c7f01a5a7f2058bc1e1e29f8cfdb92fd1800054d/src -a "$DOTNET_ARCH" -o $DOTNET_APP_HOME
 chown -R dotnet:dotnet $DOTNET_APP_HOME
 
 mkdir -p /etc/systemd/system

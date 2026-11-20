@@ -6,6 +6,9 @@ class splunk_otel_collector (
   $splunk_api_url          = "https://api.${splunk_realm}.observability.splunkcloud.com",
   $splunk_hec_url          = "${splunk_ingest_url}/v1/log",
   $splunk_hec_token        = $splunk_access_token,
+  $splunk_platform_token      = '',
+  $splunk_platform_url        = '',
+  $splunk_platform_logs_index = '',
   $splunk_memory_total_mib = '512',
   $splunk_listen_interface = '',
   $collector_command_line_args = '',
@@ -43,12 +46,24 @@ class splunk_otel_collector (
   $auto_instrumentation_npm_path                = 'npm', # linux only
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
-  if empty($splunk_access_token) {
-    fail('The splunk_access_token parameter is required')
+  if !empty($splunk_platform_token) and empty($splunk_platform_url) {
+    fail('The splunk_platform_url parameter is required when splunk_platform_token is set')
   }
 
-  if empty($splunk_realm) {
-    fail('The splunk_realm parameter is required')
+  if !empty($splunk_platform_url) and empty($splunk_platform_token) {
+    fail('The splunk_platform_token parameter is required when splunk_platform_url is set')
+  }
+
+  if !empty($splunk_platform_logs_index) and empty($splunk_platform_url) {
+    fail('The splunk_platform_url parameter is required when splunk_platform_logs_index is set')
+  }
+
+  if empty($splunk_access_token) and empty($splunk_platform_token) {
+    fail('The splunk_access_token or splunk_platform_token parameter is required')
+  }
+
+  if !empty($splunk_access_token) and empty($splunk_realm) {
+    fail('The splunk_realm parameter is required when splunk_access_token is set')
   }
 
   if $facts['os']['family'] == 'windows' {
@@ -138,6 +153,19 @@ class splunk_otel_collector (
     $collector_config_dir = $collector_config_dest.split('/')[0, - 2].join('/')
     $env_file_path = '/etc/otel/collector/splunk-otel-collector.conf'
 
+    if !empty($splunk_platform_url) {
+      $platform_logs_config_path = '/etc/otel/collector/splunk_logs_config_linux.yaml'
+      $platform_logs_storage_path = '/var/lib/otelcol/filelogs'
+
+      file { $platform_logs_storage_path:
+        ensure  => directory,
+        owner   => $service_user,
+        group   => $service_group,
+        mode    => '0700',
+        require => [Package[$collector_package_name], Class['splunk_otel_collector::collector_service_owner']],
+      }
+    }
+
     class { 'splunk_otel_collector::collector_service_owner':
       service_name  => $collector_service_name,
       service_user  => $service_user,
@@ -168,6 +196,10 @@ class splunk_otel_collector (
       enable    => true,
       subscribe => [File[$collector_config_dest, $env_file_path]],
     }
+
+    if !empty($splunk_platform_url) {
+      File[$platform_logs_storage_path] -> Service[$collector_service_name]
+    }
   } else {
     if $collector_config_source != $splunk_otel_collector::params::default_win_config_file {
       file { $collector_config_dest:
@@ -194,13 +226,20 @@ class splunk_otel_collector (
     $auto_instrumentation_package_name = 'splunk-otel-auto-instrumentation'
     $ld_so_preload_path =  '/etc/ld.so.preload'
     $libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
+    $libotelinject_path = '/usr/lib/splunk-instrumentation/libotelinject.so'
     $instrumentation_config_path = '/usr/lib/splunk-instrumentation/instrumentation.conf'
     $zeroconfig_java_config_path = '/etc/splunk/zeroconfig/java.conf'
     $zeroconfig_node_config_path = '/etc/splunk/zeroconfig/node.conf'
     $zeroconfig_dotnet_config_path = '/etc/splunk/zeroconfig/dotnet.conf'
     $zeroconfig_systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf'
+    $opentelemetry_config_dir = '/etc/opentelemetry'
+    $injector_config_dir = "${opentelemetry_config_dir}/injector"
+    $injector_config_path = "${injector_config_dir}/injector.conf"
+    $injector_default_env_path = "${injector_config_dir}/default_env.conf"
     $with_new_instrumentation = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0
-    $dotnet_supported = $facts['os']['architecture'] in ['amd64', 'x86_64'] and ($auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.99.0') >= 0) # lint:ignore:140chars
+    $with_otel_injector = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.159.0') > 0
+    $dotnet_arch_supported = $facts['os']['architecture'] in ['amd64', 'x86_64'] or ($with_otel_injector and $facts['os']['architecture'] in ['arm64', 'aarch64']) # lint:ignore:140chars
+    $dotnet_supported = $dotnet_arch_supported and ($auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.99.0') >= 0) # lint:ignore:140chars
 
     if $facts['os']['family'] == 'debian' {
       package { $auto_instrumentation_package_name:
@@ -238,7 +277,52 @@ class splunk_otel_collector (
       require => Package[$auto_instrumentation_package_name],
     }
 
-    if $auto_instrumentation_systemd {
+    if !$with_otel_injector {
+      file { [$injector_config_path, $injector_default_env_path]:
+        ensure  => absent,
+        require => Package[$auto_instrumentation_package_name],
+      }
+    }
+
+    if $with_otel_injector {
+      file { [$zeroconfig_java_config_path, $zeroconfig_node_config_path, $zeroconfig_dotnet_config_path, $instrumentation_config_path]:
+        ensure  => absent,
+        require => Package[$auto_instrumentation_package_name],
+      }
+      file { $opentelemetry_config_dir:
+        ensure  => directory,
+        require => Package[$auto_instrumentation_package_name],
+      }
+      -> file { $injector_config_dir:
+        ensure => directory,
+      }
+      -> file { $injector_config_path:
+        ensure  => file,
+        content => template('splunk_otel_collector/injector.conf.erb'),
+        require => Package[$auto_instrumentation_package_name],
+      }
+      -> file { $injector_default_env_path:
+        ensure  => file,
+        content => template('splunk_otel_collector/default_env.conf.erb'),
+        require => Package[$auto_instrumentation_package_name],
+      }
+      if $auto_instrumentation_systemd {
+        file { ['/usr/lib/systemd', '/usr/lib/systemd/system.conf.d']:
+          ensure => directory,
+        }
+        -> file { $zeroconfig_systemd_config_path:
+          ensure  => file,
+          content => template('splunk_otel_collector/00-splunk-otel-auto-instrumentation.conf.erb'),
+          require => Package[$auto_instrumentation_package_name],
+          notify  => Exec['systemctl daemon-reload'],
+        }
+      } else {
+        file { $zeroconfig_systemd_config_path:
+          ensure => absent,
+          notify => Exec['systemctl daemon-reload'],
+        }
+      }
+    } elsif $auto_instrumentation_systemd {
       file { [$zeroconfig_java_config_path, $zeroconfig_node_config_path, $zeroconfig_dotnet_config_path, $instrumentation_config_path]:
         ensure  => absent,
         require => Package[$auto_instrumentation_package_name],

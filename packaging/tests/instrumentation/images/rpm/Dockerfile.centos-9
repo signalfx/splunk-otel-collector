@@ -26,15 +26,13 @@ COPY --from=tomcat /opt/java /opt/java
 COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
-ARG NODE_VERSION=v18
+ARG NODE_VERSION=v22.23.4
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 
 COPY instrumentation/setup-dotnet.sh /opt
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-    dnf install -y libicu && \
-    bash /opt/setup-dotnet.sh; \
-    fi
+RUN dnf install -y libicu && \
+    bash /opt/setup-dotnet.sh "$TARGETARCH"
 
 VOLUME [ "/sys/fs/cgroup" ]
 

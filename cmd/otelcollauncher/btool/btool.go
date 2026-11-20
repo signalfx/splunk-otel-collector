@@ -101,6 +101,18 @@ Examples:
   otelcollauncher btool --dir=/opt/splunk/etc --expand-stanzas=false outputs list
 `
 
+const (
+	inputsConfName                   = "inputs.conf"
+	indexesConfName                  = "indexes.conf"
+	appsDirName                      = "apps"
+	inputSchemeSeparator             = "://"
+	inputHostSetting                 = "host"
+	inputIndexSetting                = "index"
+	virtualIndexSettingPrefix        = "vix."
+	virtualIndexProviderPrefix       = "provider:"
+	virtualIndexProviderFamilyPrefix = "provider-family:"
+)
+
 // builtinInputs are the inputs.conf stanza types that Splunk handles itself.
 // Any other "<scheme>://" stanza is a modular input, and the bare "[<scheme>]"
 // stanzas that configure them are not listed by btool.
@@ -296,7 +308,7 @@ func appDisabled(appDir string) (bool, error) {
 // Disabled apps are skipped, except for their app.conf which is how the
 // disabled state itself is reported.
 func configDirs(etcDir, selectedApp, confName string) ([]string, error) {
-	appsDir := filepath.Join(etcDir, "apps")
+	appsDir := filepath.Join(etcDir, appsDirName)
 	skipDisabled := confName != "app.conf"
 	if selectedApp != "" {
 		appDir := filepath.Join(appsDir, selectedApp)
@@ -393,7 +405,7 @@ func readMerged(confName, etcDir string, dirs []string, vars expansionVars, expa
 			if expand {
 				name = expandStanzaName(name, vars)
 			}
-			if expand && confName == "inputs.conf" {
+			if expand && confName == inputsConfName {
 				name = resolveRelativeInput(name, inputBaseDir(etcDir, dir))
 			}
 			settings := merged[name]
@@ -413,7 +425,7 @@ func readMerged(confName, etcDir string, dirs []string, vars expansionVars, expa
 // inputBaseDir is the directory that "<scheme>://./" input paths are relative
 // to: the app owning the layer, or the layer directory itself outside apps.
 func inputBaseDir(etcDir, layerDir string) string {
-	appsDir := filepath.Join(etcDir, "apps") + string(filepath.Separator)
+	appsDir := filepath.Join(etcDir, appsDirName) + string(filepath.Separator)
 	if rel, ok := strings.CutPrefix(layerDir, appsDir); ok {
 		app, _, _ := strings.Cut(rel, string(filepath.Separator))
 		return filepath.Join(appsDir, app)
@@ -422,12 +434,12 @@ func inputBaseDir(etcDir, layerDir string) string {
 }
 
 func resolveRelativeInput(name, baseDir string) string {
-	scheme, rest, ok := strings.Cut(name, "://")
+	scheme, rest, ok := strings.Cut(name, inputSchemeSeparator)
 	if !ok {
 		return name
 	}
 	if len(rest) >= 2 && rest[0] == '.' && os.IsPathSeparator(rest[1]) {
-		return scheme + "://" + baseDir + rest[1:]
+		return scheme + inputSchemeSeparator + baseDir + rest[1:]
 	}
 	return name
 }
@@ -440,7 +452,7 @@ func isBuiltinInput(name string) bool {
 // resolve applies [default] inheritance and the inputs.conf specifics, and
 // drops the stanzas that btool does not list.
 func resolve(confName string, merged map[string]*stanzaSettings) map[string]*stanzaSettings {
-	isInputs := confName == "inputs.conf"
+	isInputs := confName == inputsConfName
 	defaults := merged[defaultStanza]
 	visible := make(map[string]*stanzaSettings, len(merged))
 	for name, settings := range merged {
@@ -477,11 +489,11 @@ func resolve(confName string, merged map[string]*stanzaSettings) map[string]*sta
 				}
 			}
 		}
-		if scheme, _, ok := strings.Cut(name, "://"); isInputs && ok && !isBuiltinInput(scheme) {
+		if scheme, _, ok := strings.Cut(name, inputSchemeSeparator); isInputs && ok && !isBuiltinInput(scheme) {
 			// Modular inputs inherit from their bare scheme stanza, and from
 			// [default] only host and index, which have no source file.
 			inherit(merged[scheme])
-			for _, key := range []string{"host", "index"} {
+			for _, key := range []string{inputHostSetting, inputIndexSetting} {
 				if _, exists := resolved.values[key]; !exists && defaults != nil {
 					if value, ok := defaults.values[key]; ok && value.value != "" {
 						resolved.values[key] = valueSource{value: value.value}
@@ -490,9 +502,9 @@ func resolve(confName string, merged map[string]*stanzaSettings) map[string]*sta
 			}
 			continue
 		}
-		if confName == "indexes.conf" && isVirtualIndexProvider(name) {
+		if confName == indexesConfName && isVirtualIndexProvider(name) {
 			for key := range resolved.values {
-				if !strings.HasPrefix(key, "vix.") {
+				if !strings.HasPrefix(key, virtualIndexSettingPrefix) {
 					delete(resolved.values, key)
 				}
 			}
@@ -509,7 +521,7 @@ func resolve(confName string, merged map[string]*stanzaSettings) map[string]*sta
 // provider-family and special-cases virtual and federated indexes; those are
 // not implemented here.
 func isVirtualIndexProvider(name string) bool {
-	return strings.HasPrefix(name, "provider:") || strings.HasPrefix(name, "provider-family:")
+	return strings.HasPrefix(name, virtualIndexProviderPrefix) || strings.HasPrefix(name, virtualIndexProviderFamilyPrefix)
 }
 
 func printSettings(out io.Writer, merged map[string]*stanzaSettings, prefix string, debug, raw bool) error {

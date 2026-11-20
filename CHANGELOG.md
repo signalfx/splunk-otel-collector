@@ -9163,7 +9163,7 @@ Suffixes can be disabled by setting add_metric_suffixes to false on the exporter
 
 ### 💡 Enhancements 💡
 
-- (Splunk) `jmxreceiver`: Bundle latest [JMX Metric Gatherer](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/jmx-metrics) in installer packages and images for Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
+- (Splunk) `jmxreceiver`: Bundle latest [JMX Metric Gatherer](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/release/v1.29.x/jmx-metrics) in installer packages and images for Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
 - (Splunk) `solacereceiver`: Added solace receiver to the splunk otel collector ([#3590](https://github.com/signalfx/splunk-otel-collector/pull/3590))
 - (Splunk) `receiver/smartagent`: Move to gopsutil 3.23.7 and remove the need to set environment variables ([#3509](https://github.com/signalfx/splunk-otel-collector/pull/3509))
 - (Splunk) Update splunk-otel-javaagent to 1.27.0 ([#3537](https://github.com/signalfx/splunk-otel-collector/pull/3537))

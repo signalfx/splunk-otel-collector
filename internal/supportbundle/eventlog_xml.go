@@ -35,7 +35,8 @@ type eventLogEntry struct {
 type renderedEvent struct {
 	System struct {
 		Provider struct {
-			Name string `xml:"Name,attr"`
+			Name            string `xml:"Name,attr"`
+			EventSourceName string `xml:"EventSourceName,attr"`
 		} `xml:"Provider"`
 		TimeCreated struct {
 			SystemTime string `xml:"SystemTime,attr"`
@@ -53,8 +54,12 @@ func parseEventLogEvent(data []byte) (eventLogEntry, error) {
 	if err := xml.Unmarshal(data, &event); err != nil {
 		return eventLogEntry{}, fmt.Errorf("decode event XML: %w", err)
 	}
-	if event.System.Provider.Name == "" {
-		return eventLogEntry{}, errors.New("event XML is missing the provider name")
+	source := event.System.Provider.Name
+	if source == "" {
+		source = event.System.Provider.EventSourceName
+	}
+	if source == "" {
+		return eventLogEntry{}, errors.New("event XML is missing the provider name or event source name")
 	}
 
 	timeGenerated, err := time.Parse(time.RFC3339Nano, event.System.TimeCreated.SystemTime)
@@ -64,7 +69,7 @@ func parseEventLogEvent(data []byte) (eventLogEntry, error) {
 
 	return eventLogEntry{
 		TimeGenerated: timeGenerated,
-		Source:        event.System.Provider.Name,
+		Source:        source,
 		Strings:       event.EventData.Data,
 		EventID:       event.System.EventID,
 		Level:         event.System.Level,

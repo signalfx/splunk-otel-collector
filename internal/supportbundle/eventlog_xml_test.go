@@ -69,7 +69,7 @@ func TestParseEventLogEvent(t *testing.T) {
 		{
 			name:    "missing provider",
 			event:   `<Event><System><EventID>1</EventID><TimeCreated SystemTime="2023-11-14T22:13:20Z"/></System></Event>`,
-			wantErr: "missing the provider name",
+			wantErr: "missing the provider name or event source name",
 		},
 		{
 			name:    "invalid time",

@@ -87,13 +87,13 @@ func collectUninstallInfo() string {
 
 	root, err := registry.OpenKey(registry.LOCAL_MACHINE, base, registry.ENUMERATE_SUB_KEYS)
 	if err != nil {
-		return fmt.Sprintf("ERROR: %v\n", err)
+		return fmt.Sprintf("ERROR: failed to open registry key %q: %v\n", base, err)
 	}
 	defer root.Close()
 
 	names, err := root.ReadSubKeyNames(-1)
 	if err != nil {
-		return fmt.Sprintf("ERROR: %v\n", err)
+		return fmt.Sprintf("ERROR: failed to enumerate subkeys under registry key %q: %v\n", base, err)
 	}
 
 	var sb strings.Builder

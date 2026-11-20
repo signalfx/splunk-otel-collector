@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/tabwriter"
 	"time"
 	"unsafe"
 
@@ -124,11 +125,17 @@ func queryServiceStatus(name string) (string, error) {
 		displayName = cfg.DisplayName
 	}
 
-	return fmt.Sprintf(
-		"Status   Name                DisplayName\n"+
-			"------   ----                -----------\n"+
-			"%-8s %-19s %s\n",
-		serviceStateString(status.State), name, displayName), nil
+	return formatServiceStatus(serviceStateString(status.State), name, displayName), nil
+}
+
+func formatServiceStatus(state, name, displayName string) string {
+	var output strings.Builder
+	writer := tabwriter.NewWriter(&output, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(writer, "Status\tName\tDisplayName")
+	fmt.Fprintln(writer, "------\t----\t-----------")
+	fmt.Fprintf(writer, "%s\t%s\t%s\n", state, name, displayName)
+	_ = writer.Flush()
+	return output.String()
 }
 
 func serviceStateString(s svc.State) string {
@@ -179,11 +186,10 @@ func readApplicationEventLog(source string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	provider, err := xpathStringLiteral(source)
-	if err != nil {
-		return "", err
-	}
-	query, err := windows.UTF16PtrFromString(fmt.Sprintf("*[System[Provider[@Name=%s]]]", provider))
+	query, err := windows.UTF16PtrFromString(fmt.Sprintf(
+		"*[System[Provider[@Name='%s' or @EventSourceName='%s']]]",
+		source, source,
+	))
 	if err != nil {
 		return "", err
 	}
@@ -202,6 +208,7 @@ func readApplicationEventLog(source string) (string, error) {
 
 	var sb strings.Builder
 	scanned := 0
+	renderer := eventXMLRenderer{}
 	for scanned < maxEventLogRecordsScanned {
 		batchSize := min(eventLogBatchSize, maxEventLogRecordsScanned-scanned)
 		events := make([]windows.Handle, batchSize)
@@ -225,7 +232,7 @@ func readApplicationEventLog(source string) (string, error) {
 			break
 		}
 
-		entries, err := readEventLogBatch(events[:returned])
+		entries, err := readEventLogBatch(events[:returned], &renderer)
 		if err != nil {
 			return sb.String(), err
 		}
@@ -239,12 +246,12 @@ func readApplicationEventLog(source string) (string, error) {
 	return sb.String(), nil
 }
 
-func readEventLogBatch(events []windows.Handle) ([]eventLogEntry, error) {
+func readEventLogBatch(events []windows.Handle, renderer *eventXMLRenderer) ([]eventLogEntry, error) {
 	defer closeEventHandles(events)
 
 	entries := make([]eventLogEntry, 0, len(events))
 	for _, event := range events {
-		xml, err := renderEventXML(event)
+		xml, err := renderer.render(event)
 		if err != nil {
 			return entries, err
 		}
@@ -263,7 +270,11 @@ func closeEventHandles(events []windows.Handle) {
 	}
 }
 
-func renderEventXML(event windows.Handle) ([]byte, error) {
+type eventXMLRenderer struct {
+	buffer []uint16
+}
+
+func (r *eventXMLRenderer) render(event windows.Handle) ([]byte, error) {
 	var bufferUsed, propertyCount uint32
 	ok, _, callErr := procEvtRender.Call(
 		0,
@@ -284,30 +295,24 @@ func renderEventXML(event windows.Handle) ([]byte, error) {
 		return nil, fmt.Errorf("EvtRender returned invalid XML buffer size %d", bufferUsed)
 	}
 
-	buffer := make([]uint16, bufferUsed/2)
+	if cap(r.buffer) < int(bufferUsed/2) {
+		r.buffer = make([]uint16, bufferUsed/2)
+	} else {
+		r.buffer = r.buffer[:bufferUsed/2]
+	}
 	ok, _, callErr = procEvtRender.Call(
 		0,
 		uintptr(event),
 		evtRenderEventXML,
 		uintptr(bufferUsed),
-		uintptr(unsafe.Pointer(&buffer[0])),
+		uintptr(unsafe.Pointer(&r.buffer[0])),
 		uintptr(unsafe.Pointer(&bufferUsed)),
 		uintptr(unsafe.Pointer(&propertyCount)),
 	)
 	if ok == 0 {
 		return nil, fmt.Errorf("EvtRender: %w", callErr)
 	}
-	return []byte(windows.UTF16ToString(buffer)), nil
-}
-
-func xpathStringLiteral(value string) (string, error) {
-	if !strings.Contains(value, "'") {
-		return "'" + value + "'", nil
-	}
-	if !strings.Contains(value, `"`) {
-		return `"` + value + `"`, nil
-	}
-	return "", fmt.Errorf("provider name contains both single and double quotes")
+	return []byte(windows.UTF16ToString(r.buffer[:bufferUsed/2])), nil
 }
 
 func writeEventEntries(sb *strings.Builder, entries []eventLogEntry) {

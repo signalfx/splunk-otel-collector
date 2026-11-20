@@ -598,7 +598,7 @@ func TestReceiverEmitsMetricsEndToEnd(t *testing.T) {
 	require.NoError(t, r.Shutdown(context.Background()))
 
 	metric := sink.AllMetrics()[0].ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name())
 	assert.Equal(t, "By", metric.Unit())
 	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
 
@@ -684,7 +684,7 @@ func TestReceiverServerIngestsGNMIReverseResponses(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "device-1", serverAddress.Str())
 	metric := metrics.At(0)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name())
 	assert.Equal(t, "By", metric.Unit())
 	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
 	dp := metric.Sum().DataPoints().At(0)
@@ -693,12 +693,12 @@ func TestReceiverServerIngestsGNMIReverseResponses(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "eth0", name.Str())
 
-	assert.Equal(t, "interfaces.interface.state.counters.out-octets", metrics.At(1).Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.out-octets", metrics.At(1).Name())
 	assert.Equal(t, int64(84), metrics.At(1).Sum().DataPoints().At(0).IntValue())
 
 	getMetrics := allMetrics[1].ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	require.Equal(t, 1, getMetrics.Len())
-	assert.Equal(t, "interfaces.interface.state.counters.in-errors", getMetrics.At(0).Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-errors", getMetrics.At(0).Name())
 	assert.Equal(t, int64(7), getMetrics.At(0).Sum().DataPoints().At(0).IntValue())
 }
 
@@ -730,7 +730,7 @@ func TestReceiverForwardsPartialSuccessOnParseError(t *testing.T) {
 			names = append(names, metrics.At(i).Name())
 		}
 	}
-	assert.Contains(t, names, "interfaces.interface.state.counters.in-errors",
+	assert.Contains(t, names, "openconfig.interfaces.interface.state.counters.in-errors",
 		"the valid leaf must not be dropped alongside the overflowing one, got %v", names)
 }
 

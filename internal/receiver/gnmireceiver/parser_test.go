@@ -151,7 +151,7 @@ func TestParseUintEmitsIntSum(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name())
 	assert.Equal(t, "By", metric.Unit())
 	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
 	assert.True(t, metric.Sum().IsMonotonic())
@@ -270,7 +270,7 @@ func TestParseStringEmitsInfoMetric(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.oper-status_info", metric.Name())
 	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
 	dp := metric.Gauge().DataPoints().At(0)
 	assert.Equal(t, int64(1), dp.IntValue())
@@ -285,7 +285,7 @@ func TestParseEnumEmitsStateForEachDeclaredValue(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.oper-status_state", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.oper-status_state", metric.Name())
 	assert.Equal(t, "1", metric.Unit())
 	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
 
@@ -369,7 +369,7 @@ func TestParseEnumTakesPrecedenceOverNumericString(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.oper-status_state", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.oper-status_state", metric.Name())
 	assert.Equal(t, int64(1), stateValue(t, metric, "1"))
 	assert.Equal(t, int64(0), stateValue(t, metric, "0"))
 }
@@ -380,7 +380,7 @@ func TestParseEnumLeafWithIntValueBypassesEnumHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.oper-status", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.oper-status", metric.Name())
 	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
 	assert.Equal(t, int64(1), metric.Gauge().DataPoints().At(0).IntValue())
 }
@@ -403,11 +403,11 @@ func TestParseEnumAndInfoCoexistInSameBatch(t *testing.T) {
 	byName := metricsByName(m)
 	require.Len(t, byName, 2)
 
-	state := byName["interfaces.interface.state.counters.oper-status_state"]
+	state := byName["openconfig.interfaces.interface.state.counters.oper-status_state"]
 	require.Equal(t, pmetric.MetricTypeGauge, state.Type())
 	assert.Equal(t, 2, state.Gauge().DataPoints().Len())
 
-	info := byName["interfaces.interface.state.counters.admin-status_info"]
+	info := byName["openconfig.interfaces.interface.state.counters.admin-status_info"]
 	require.Equal(t, pmetric.MetricTypeGauge, info.Type())
 	value, ok := info.Gauge().DataPoints().At(0).Attributes().Get("value")
 	require.True(t, ok)
@@ -497,7 +497,7 @@ func TestParseJoinsNotificationPrefix(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name())
 	dp := metric.Sum().DataPoints().At(0)
 	name, ok := dp.Attributes().Get("name")
 	require.True(t, ok)
@@ -526,6 +526,33 @@ func TestParseOriginPrefixesMetricName(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets",
+		onlyMetric(t, m).Name())
+}
+
+func TestParsePrefixOriginPrefixesMetricName(t *testing.T) {
+	m, err := testParser().parse(&gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{
+			Update: &gnmipb.Notification{
+				Prefix: &gnmipb.Path{
+					Origin: "cisco-native",
+				},
+				Update: []*gnmipb.Update{{
+					Path: &gnmipb.Path{
+						Elem: []*gnmipb.PathElem{
+							{Name: "interfaces"},
+							{Name: "interface"},
+							{Name: "state"},
+							{Name: "counters"},
+							{Name: "in-octets"},
+						},
+					},
+					Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 1}},
+				}},
+			},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "cisco-native.interfaces.interface.state.counters.in-octets",
 		onlyMetric(t, m).Name())
 }
 
@@ -576,17 +603,17 @@ func TestParseJSONFlattensObject(t *testing.T) {
 	}
 	require.Len(t, byName, 3)
 
-	octets := byName["interfaces.interface.state.counters.in-octets"]
+	octets := byName["openconfig.interfaces.interface.state.counters.in-octets"]
 	require.Equal(t, pmetric.MetricTypeSum, octets.Type())
 	assert.Equal(t, "By", octets.Unit())
 	assert.Equal(t, pmetric.NumberDataPointValueTypeInt, octets.Sum().DataPoints().At(0).ValueType())
 	assert.Equal(t, int64(10), octets.Sum().DataPoints().At(0).IntValue())
 
-	rate := byName["interfaces.interface.state.counters.in-octets-rate"]
+	rate := byName["openconfig.interfaces.interface.state.counters.in-octets-rate"]
 	require.Equal(t, pmetric.MetricTypeGauge, rate.Type())
 	assert.InDelta(t, 1.5, rate.Gauge().DataPoints().At(0).DoubleValue(), 0.0001)
 
-	_, hasInfo := byName["interfaces.interface.state.counters.oper-status_info"]
+	_, hasInfo := byName["openconfig.interfaces.interface.state.counters.oper-status_info"]
 	assert.True(t, hasInfo, "string leaf should become an info metric")
 }
 
@@ -610,7 +637,7 @@ func TestParseJSONIETFQuotedNumberRespectsConfiguredType(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name(),
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name(),
 		"a quoted number for a leaf configured as sum must not become an _info metric")
 	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
 	dp := metric.Sum().DataPoints().At(0)
@@ -638,7 +665,7 @@ func TestParseJSONNestedObjectExtendsName(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", onlyMetric(t, m).Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", onlyMetric(t, m).Name())
 }
 
 func TestParseJSONArrayUsesIndexAttribute(t *testing.T) {
@@ -669,7 +696,7 @@ func TestParseJSONArrayUsesIndexAttribute(t *testing.T) {
 	// single Metric with one datapoint per element, per the general OTel
 	// recommendation to reuse a Metric across identical series.
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.queue", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.queue", metric.Name())
 	require.Equal(t, 2, metric.Sum().DataPoints().Len())
 	indexes := map[string]int64{}
 	for i := 0; i < metric.Sum().DataPoints().Len(); i++ {
@@ -715,7 +742,7 @@ func TestParseLeafListUsesIndexAttribute(t *testing.T) {
 	// Both leaf-list elements share the same leaf name, so they merge into a
 	// single Metric with one datapoint per element.
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name())
 	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
 	require.Equal(t, 2, metric.Sum().DataPoints().Len())
 	byIndex := map[string]int64{}
@@ -746,7 +773,7 @@ func TestParseLeafListOfStringsEmitsInfoMetrics(t *testing.T) {
 	// Both leaf-list elements share the same _info metric name, so they merge
 	// into a single Metric with one datapoint per element.
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.oper-status_info", metric.Name())
 	require.Equal(t, 2, metric.Gauge().DataPoints().Len())
 	values := map[string]string{}
 	for i := 0; i < metric.Gauge().DataPoints().Len(); i++ {
@@ -854,13 +881,27 @@ func TestParseOriginlessSubscriptionMatchesAnyOrigin(t *testing.T) {
 	assert.Equal(t, 1, m.DataPointCount())
 }
 
+func TestParseOmittedOriginMatchesOpenConfigSubscription(t *testing.T) {
+	sc := SubscriptionConfig{
+		Path:    "/interfaces/interface/state/counters",
+		Mode:    modeSample,
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+		Origin:  "openconfig",
+	}
+	m, err := testParser(sc).parse(
+		updateResponse("in-octets", &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 1}}),
+	)
+	require.NoError(t, err)
+	assert.Equal(t, 1, m.DataPointCount())
+}
+
 func TestParseJSONIETFNumericStringRespectsConfiguredType(t *testing.T) {
 	m, err := testParser().parse(updateResponse("in-octets",
 		&gnmipb.TypedValue{Value: &gnmipb.TypedValue_StringVal{StringVal: "123"}}))
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name(),
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name(),
 		"a numeric string for a leaf configured as sum must not become an _info metric")
 	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
 	dp := metric.Sum().DataPoints().At(0)
@@ -874,7 +915,7 @@ func TestParseJSONIETFNumericStringGauge(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets-rate", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets-rate", metric.Name())
 	require.Equal(t, pmetric.MetricTypeGauge, metric.Type())
 	dp := metric.Gauge().DataPoints().At(0)
 	assert.Equal(t, pmetric.NumberDataPointValueTypeDouble, dp.ValueType())
@@ -887,7 +928,7 @@ func TestParseNonNumericStringStillBecomesInfoMetric(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.oper-status_info", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.oper-status_info", metric.Name())
 	value, ok := metric.Gauge().DataPoints().At(0).Attributes().Get("value")
 	require.True(t, ok)
 	assert.Equal(t, "UP", value.Str())
@@ -1009,7 +1050,7 @@ func TestParseMergesSameLeafAcrossInterfacesIntoOneMetric(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.in-octets", metric.Name())
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-octets", metric.Name())
 	require.Equal(t, pmetric.MetricTypeSum, metric.Type())
 	require.Equal(t, 2, metric.Sum().DataPoints().Len())
 
@@ -1151,7 +1192,7 @@ func TestParseSchemaStringLeafWithNumericLookingValueStaysInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := onlyMetric(t, m)
-	assert.Equal(t, "interfaces.interface.state.counters.board-id_info", metric.Name(),
+	assert.Equal(t, "openconfig.interfaces.interface.state.counters.board-id_info", metric.Name(),
 		"a schema-typed string leaf must not be coerced to a number just because its value looks numeric")
 	value, ok := metric.Gauge().DataPoints().At(0).Attributes().Get("value")
 	require.True(t, ok)

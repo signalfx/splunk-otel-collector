@@ -1,6 +1,6 @@
-{% set splunk_service_user = salt['pillar.get']('splunk-otel-collector:splunk_service_user', 'splunk-otel-collector') %}
+{% set splunk_service_user = salt['pillar.get']('splunk-otel-collector:splunk_service_user', 'splunk-otel-collector') or 'splunk-otel-collector' %}
 
-{% set splunk_service_group = salt['pillar.get']('splunk-otel-collector:splunk_service_group', 'splunk-otel-collector') %}
+{% set splunk_service_group = salt['pillar.get']('splunk-otel-collector:splunk_service_group', 'splunk-otel-collector') or 'splunk-otel-collector' %}
 
 splunk_service_group:
   group.present:

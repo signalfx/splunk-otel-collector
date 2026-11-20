@@ -76,7 +76,7 @@
 
 - name: Copy the custom config
   ansible.builtin.copy:
-    content: '{{ updated_config | to_nice_yaml(indent=2) }}'
+    content: '{{ updated_config | to_nice_yaml(indent=2, default_style="\"") }}'
     dest: "{{ splunk_otel_collector_config }}"
     mode: '644'
   when: splunk_config_override != ''

@@ -92,7 +92,7 @@
 
 - name: Copy the custom config
   ansible.windows.win_copy:
-    content: '{{ updated_config | to_nice_yaml(indent=2) }}'
+    content: '{{ updated_config | to_nice_yaml(indent=2, default_style="\"") }}'
     dest: "{{ splunk_otel_collector_config }}"
   when: splunk_config_override != ''
 

@@ -35,8 +35,19 @@ setup_git
 echo ">>> Cloning $REPO ..."
 git clone --no-checkout "$REPO_URL" repo-tmp
 cd repo-tmp
-git fetch origin
+git fetch --tags origin
 git checkout "$COMMIT_SHA"
+
+if git show-ref --verify --quiet "refs/tags/${VERSION_TAG}"; then
+  tagged_commit="$(git rev-parse --verify "refs/tags/${VERSION_TAG}^{commit}")"
+  if [[ "$tagged_commit" != "$COMMIT_SHA" ]]; then
+    echo "$VERSION_TAG already points to $tagged_commit instead of $COMMIT_SHA" >&2
+    exit 1
+  fi
+  # The module set's tags are pushed atomically, so the original job can resume.
+  echo "Module tags for $VERSION_TAG are already published at $COMMIT_SHA"
+  exit 0
+fi
 
 echo ">>> Creating signed tags for module set $MODULE_SET ($VERSION_TAG) at $COMMIT_SHA ..."
 tags="$( multimod tag --module-set-name "$MODULE_SET" --commit-hash "$COMMIT_SHA" --print-tags | sort -u )"

@@ -103,5 +103,9 @@ if [ -n "$platforms" ]; then
     else
         DOCKER_OPTS="--load $DOCKER_OPTS"
     fi
-    docker buildx build --builder $MULTIARCH_OTELCOL_BUILDER --platform ${platforms#,} --tag ${IMAGE_NAME}:${IMAGE_TAG} $DOCKER_OPTS
+    metadata_opts=()
+    if [[ -n "${IMAGE_METADATA_FILE:-}" ]]; then
+        metadata_opts=(--metadata-file "$IMAGE_METADATA_FILE")
+    fi
+    docker buildx build --builder $MULTIARCH_OTELCOL_BUILDER --platform ${platforms#,} --tag ${IMAGE_NAME}:${IMAGE_TAG} "${metadata_opts[@]}" $DOCKER_OPTS
 fi

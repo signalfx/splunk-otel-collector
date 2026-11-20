@@ -1514,16 +1514,6 @@ mirror-docker-images:
       - dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/${MANIFEST}${FIPS}_digest.txt
       - dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/images_${MANIFEST}${FIPS}.txt
 
-promote-docker-latest:
-  extends: .docker-publish-rules
-  needs:
-    - mirror-docker-images
-  resource_group: collector-docker-latest
-  script:
-    - *set-docker-tags
-    - if [[ -z "$LATEST_TAG" ]]; then exit 0; fi
-    - bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" "$LATEST_TAG"
-
 xray-scan-docker:
   rules:
     - if: '$DRY_RUN'
@@ -1536,21 +1526,27 @@ xray-scan-docker:
       # - CHILD: ["amd64", "arm64", "ppc64le", "2019", "2022"]
       - CHILD: ["amd64"]  # the .container-scan template currently only supports linux/amd64 images
   needs:
-    - push-multiarch-manifest
-    - job: sign-multiarch-manifest
-      artifacts: false
+    - sign-multiarch-manifest
   variables:
     create_jira: "true"
   before_script:
-    - read -r image digest < "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_multiarch"
-    - export CONTAINER_IMAGE="${image}-${CHILD}"
-    - echo $CONTAINER_IMAGE
+    - |
+      records="dist/docker/${QUAY_COLLECTOR_REPO}/images_multiarch.txt"
+      record="$(awk -v suffix="-${CHILD}$" '$1 ~ suffix { print $1, $2 }' "$records")"
+      read -r image digest <<< "$record"
+      if [[ -z "$image" || ! "$digest" =~ ^sha256:[a-f0-9]{64}$ || "$record" == *$'\n'* ]]; then
+        echo "Expected one signed Docker digest for linux/${CHILD}" >&2
+        exit 1
+      fi
+      export CONTAINER_IMAGE="${image%:*}@${digest}"
+      echo "$CONTAINER_IMAGE"
 
 github-release:
   extends:
     - .trigger-filter
     - .go-cache
   tags: [large]
+  resource_group: collector-docker-latest
   needs:
     - job: compile
       artifacts: true
@@ -1581,9 +1577,6 @@ github-release:
     - job: mirror-docker-images
       artifacts: true
       optional: true
-    - job: promote-docker-latest
-      artifacts: false
-      optional: true
     - job: release-msi
       artifacts: false
       optional: true
@@ -1603,18 +1596,28 @@ github-release:
     - cp dist/signed/* dist/assets/
     - cp packaging/ta-v2/out/distribution/* dist/assets/
     - cp packaging/otlpinput/out/distribution/* dist/assets/
+    - *collector-docker-functions
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       pushd dist/assets && shasum -a 256 * > checksums.txt && popd
       if [[ -z "${DRY_RUN:-}" ]]; then
+        stable_release=false
+        if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          stable_release=true
+          release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
+          latest_release="$(latest_collector_release_tag)"
+          if [[ -n "$latest_release" && "$(printf '%s\n' "$latest_release" "$VERSION_TAG" | sort -V | sed -n '1p')" != "$latest_release" ]]; then
+            echo "Cannot release $VERSION_TAG after $latest_release" >&2
+            exit 1
+          fi
+        fi
         # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
         if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
           ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
         fi
         # Only create github release for stable release tags
-        if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
+        if [[ "$stable_release" == true ]]; then
           ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$VERSION_TAG" -b "$release_notes" --replace "$VERSION_TAG" dist/assets/
         fi
       else
@@ -1625,6 +1628,43 @@ github-release:
     when: always
     paths:
       - dist/assets
+
+.promote-docker-latest:
+  resource_group: collector-docker-latest
+  script:
+    - *collector-docker-functions
+    - *set-docker-tags
+    - |
+      # Stable GitHub tags are the release version record. Check it while the
+      # same resource lock blocks other GitHub releases and alias promotions.
+      if [[ -n "$VERSION_TAG" ]]; then
+        latest_release="$(latest_collector_release_tag)"
+        if [[ "$VERSION_TAG" != "$latest_release" ]]; then
+          echo "Cannot promote $VERSION_TAG; newest stable GitHub tag is ${latest_release:-missing}" >&2
+          exit 1
+        fi
+      fi
+    - bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" "$LATEST_TAG"
+
+promote-docker-latest:
+  extends: .promote-docker-latest
+  rules:
+    - if: '$DRY_RUN'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION == ""'
+  needs:
+    - mirror-docker-images
+
+promote-docker-stable-latest:
+  extends: .promote-docker-latest
+  rules:
+    - if: '$DRY_RUN'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  needs:
+    - mirror-docker-images
+    - job: github-release
+      artifacts: false
 
 .ansible:
   image: 'cimg/python:3.13'

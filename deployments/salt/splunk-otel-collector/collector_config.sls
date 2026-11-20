@@ -20,6 +20,8 @@
 {% set splunk_hec_token = salt['pillar.get']('splunk-otel-collector:splunk_hec_token', '') or splunk_access_token %}
 
 {% set splunk_otel_collector_config = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_config', '') or '/etc/otel/collector/agent_config.yaml' %}
+{% set splunk_otel_collector_config_source = (salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_config_source', '') or '') | trim %}
+{% set load_base_config = splunk_access_token or splunk_otel_collector_config_source or splunk_otel_collector_config != '/etc/otel/collector/agent_config.yaml' %}
 
 {% set splunk_memory_total_mib = salt['pillar.get']('splunk-otel-collector:splunk_memory_total_mib', '') or '512' %}
 
@@ -31,11 +33,11 @@
 
 {% set otelcol_options = [splunk_otel_collector_command_line_args] %}
 {% if splunk_platform_url %}
-{% if splunk_access_token %}
+{% if load_base_config %}
 {% set otelcol_options = otelcol_options + ['--config ' + splunk_otel_collector_config] %}
 {% endif %}
 {% set otelcol_options = otelcol_options + ['--config ' + splunk_platform_logs_config] %}
-{% if splunk_access_token %}
+{% if load_base_config %}
 {% set otelcol_options = otelcol_options + ['--feature-gates=confmap.enableMergeAppendOption'] %}
 {% endif %}
 {% endif %}

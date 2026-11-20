@@ -56,8 +56,11 @@ splunk-otel-collector:
 The index is optional; when omitted, the packaged logs configuration uses
 `main`. Set `splunk_access_token` as well to send the regular agent telemetry to
 Observability Cloud alongside Platform logs. If it is omitted, the formula runs
-with the Platform logs configuration only. For Observability-only deployment,
-provide `splunk_access_token` and omit the Platform settings.
+with the Platform logs configuration only. You can also provide
+`splunk_otel_collector_config_source` to load a custom base config alongside the
+packaged Platform logs config without an Observability access token. For
+Observability-only deployment, provide `splunk_access_token` and omit the
+Platform settings.
 
 ## This Salt Formula accepts the following attributes:
 

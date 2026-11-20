@@ -287,6 +287,31 @@ func TestPlatformLogsWithObservability(t *testing.T) {
 	}
 }
 
+func TestPlatformLogsWithCustomConfigSource(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
+		t.Skip("Platform scenarios run in custom case")
+	}
+	all, opts := distros(t)
+	for _, distro := range all {
+		t.Run(distro, func(t *testing.T) {
+			c := container(t, distro, opts)
+			customConfigPath := d.ConfigDir + "/custom_platform_config.yaml"
+			customConfigSource, err := os.ReadFile(filepath.Join(d.Root(t), "tests/salt/testdata/custom_platform_config.yaml"))
+			require.NoError(t, err)
+			d.CopyText(t, c, string(customConfigSource), "/srv/salt/templates/custom_platform_config.yaml")
+			config := platformLogsConfig("", "") + fmt.Sprintf("  splunk_otel_collector_config: '%s'\n", customConfigPath)
+			config += "  splunk_otel_collector_config_source: 'salt://templates/custom_platform_config.yaml'\n"
+			config = withArtifacts(t, c, distro, opts, config, false)
+			apply(t, c, config)
+			verifyCollector(t, c)
+			expectedOptions := "--config " + customConfigPath + " --config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption"
+			d.KV(t, c, d.EnvPath, "OTELCOL_OPTIONS", expectedOptions, true)
+			d.Config(t, c, d.EnvPath, `SPLUNK_ACCESS_TOKEN=.*`, false)
+			d.ServiceRunning(t, c, d.ServiceOwner, "/usr/bin/otelcol")
+		})
+	}
+}
+
 func TestPlatformLogsValidation(t *testing.T) {
 	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
 		t.Skip("Platform scenarios run in custom case")

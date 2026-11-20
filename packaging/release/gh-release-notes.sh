@@ -25,7 +25,7 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR"/../../ && pwd )"
 
 VERSION="$1"
-MULTIARCH_DIGEST="$( get_digest "${REPO_DIR}/dist/multiarch_digest.txt" )"
+MULTIARCH_DIGEST="$( get_digest "${REPO_DIR}/dist/docker/quay.io/signalfx/splunk-otel-collector/multiarch_digest.txt" )"
 CHANGELOG="${REPO_DIR}/CHANGELOG.md"
 
 changes="$( awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' "$CHANGELOG" )"

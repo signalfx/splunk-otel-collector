@@ -32,8 +32,7 @@ func TestDryRunDoesntExpandEnvVars(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	config := `
-exporters:
+	config := `exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}
     tls:

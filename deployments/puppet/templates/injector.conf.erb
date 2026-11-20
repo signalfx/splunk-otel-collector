@@ -1,0 +1,10 @@
+jvm_auto_instrumentation_agent_path=<%= @auto_instrumentation_java_agent_jar %>
+nodejs_auto_instrumentation_agent_path=/usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument.js
+dotnet_auto_instrumentation_agent_path_prefix=/usr/lib/splunk-instrumentation/splunk-otel-dotnet
+<% disabled_runtimes = [] -%>
+<% disabled_runtimes << 'jvm' unless @with_auto_instrumentation_sdks.include?('java') -%>
+<% disabled_runtimes << 'nodejs' unless @with_auto_instrumentation_sdks.include?('nodejs') -%>
+<% disabled_runtimes << 'dotnet' unless @with_auto_instrumentation_sdks.include?('dotnet') && @dotnet_supported -%>
+<% unless disabled_runtimes.empty? -%>
+auto_instrumentation_disabled=<%= disabled_runtimes.join(',') %>
+<% end -%>

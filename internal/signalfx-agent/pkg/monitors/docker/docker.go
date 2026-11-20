@@ -88,6 +88,7 @@ type dockerContainer struct {
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The smartagent/docker-container-stats monitor is deprecated and will be removed on or after December 2026. Use the docker_stats receiver instead.")
 
 	enhancedMetricsConfig := EnableExtraGroups(conf.EnhancedMetricsConfig, m.Output.EnabledMetrics())
 

@@ -146,11 +146,6 @@ receivers:
   # Logs
   #############################################################################
 
-  # Enables the fluent_forward receiver with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver
-  fluent_forward:
-    endpoint: 0.0.0.0:8006
-
   # Enables file_log receiver
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
   file_log:
@@ -399,8 +394,9 @@ exporters:
     sourcetype: "otel"
     # Splunk index, optional name of the Splunk index targeted.
     index: "metrics"
-    # Maximum idle HTTP connections the client can keep open.
-    max_idle_conns: 200
+    keepalive:
+      # Maximum idle HTTP connections the client can keep open.
+      max_idle_conns: 200
     # Whether to disable gzip compression over HTTP. Defaults to false.
     disable_compression: false
     # HTTP timeout when sending data. Defaults to 10s.
@@ -547,14 +543,15 @@ extensions:
   # Enables the pprof extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension
   pprof:
-    #endpoint: 0.0.0.0:1777
+    #endpoint: 127.0.0.1:1777
 
   # Enables the zpages extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension
   zpages:
-    #endpoint: 0.0.0.0:55679
-    expvar:
-      enabled: true
+    #endpoint: 127.0.0.1:55679
+    # Use expvar for config details, see https://github.com/open-telemetry/opentelemetry-collector/blob/v0.165.0/extension/zpagesextension/README.md#expvarz
+    # expvar:
+    #   enabled: true
 
 ###############################################################################
 # Service
@@ -607,6 +604,6 @@ service:
       processors: [memory_limiter, batch, resource_detection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [fluent_forward, otlp]
+      receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]

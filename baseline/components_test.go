@@ -42,13 +42,13 @@ func TestNewBaselineBuilds(t *testing.T) {
 func TestBaselineIsUpstreamOnly(t *testing.T) {
 	factories, err := NewBaseline().Build()
 	require.NoError(t, err)
+	assert.NotContains(t, factories.Exporters, component.MustNewType("splunk_modinput"))
 
 	for _, splunk := range []string{
 		"smartagent",
-		"splunk_inputs",
+		"splunk_monitor",
 		"discovery",
 		"gnmi",
-		"lightprometheus",
 		"signalfxgatewayprometheusremotewrite",
 	} {
 		typ := component.MustNewType(splunk)

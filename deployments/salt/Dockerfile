@@ -2,7 +2,7 @@
 # Salt Stack Salt Dev Container
 #
 
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest
@@ -13,8 +13,12 @@ RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold
 RUN apt-get install -y pipx curl
 
 RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public | tee /etc/apt/keyrings/salt-archive-keyring.pgp
-RUN curl -fsSL https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.sources | tee /etc/apt/sources.list.d/salt.sources
+RUN apt-get install -y gnupg
+RUN curl -fsSL https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public \
+  | gpg --dearmor -o /etc/apt/keyrings/salt-archive-keyring.gpg
+RUN curl -fsSL https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.sources \
+  | sed 's|^Signed-By:.*|Signed-By: /etc/apt/keyrings/salt-archive-keyring.gpg|' \
+  | tee /etc/apt/sources.list.d/salt.sources
 RUN apt-get update
 RUN apt-get install -y salt-minion
 

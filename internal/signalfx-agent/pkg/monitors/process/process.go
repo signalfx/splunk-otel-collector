@@ -64,6 +64,7 @@ type Monitor struct {
 // on a varied interval
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The smartagent/process monitor is deprecated and will be removed on or after December 2026. Use the host_metrics receiver instead.")
 
 	// create contexts for managing the plugin loop
 	var ctx context.Context

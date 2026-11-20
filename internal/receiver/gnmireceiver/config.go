@@ -23,6 +23,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configoptional"
+	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/confmap"
 )
 
@@ -49,10 +51,42 @@ const (
 
 const defaultRedial = 10 * time.Second
 
+// Target types accepted from devices registering over the gRPC tunnel.
+//   - GNMI_GNOI is production.
+//   - GNMI_GNOI_INSECURE is Cisco's testing-only variant
+//     (dials the device's insecure gNMI port inside the still-TLS tunnel).
+const (
+	targetTypeGNMIGNOI         = "GNMI_GNOI"
+	targetTypeGNMIGNOIInsecure = "GNMI_GNOI_INSECURE"
+)
+
 // Config defines the configuration for the gNMI receiver.
 type Config struct {
 	// Targets is the list of gNMI devices to subscribe to.
 	Targets []TargetConfig `mapstructure:"targets"`
+
+	// GNMIReverse configures an optional gNMIReverse gRPC server for devices that
+	// stream gNMI Subscribe or Get responses to the receiver. An empty endpoint disables it.
+	GNMIReverse *GNMIReverseConfig `mapstructure:"gnmireverse"`
+
+	// YangModules is a list of YANG module files and/or directories used to
+	// derive each leaf's metric type (gauge/sum), unit, and enum/identityref
+	// value set directly from the schema. Directories are searched
+	// recursively for "*.yang" files and are also added as import/include
+	// search paths, so a module that only exists to satisfy another module's
+	// "import" statement does not need to be listed explicitly. When set,
+	// "default"/"overrides" and their "type" become optional: an explicit
+	// "overrides" entry still wins outright over the schema, and "default"
+	// still fills in whatever the schema left blank (e.g. "unit", which most
+	// OpenConfig models omit). Optional.
+	YangModules []string `mapstructure:"yang_modules"`
+
+	// Tunnel configures an optional OpenConfig gRPC tunnel server for devices
+	// that dial out to the receiver and register a tunnel target. The receiver
+	// then dials back through the tunnel and runs a normal gNMI Subscribe.
+	// Disabled when absent or when explicitly "enabled: false"; once enabled,
+	// "endpoint" is required.
+	Tunnel configoptional.Optional[TunnelConfig] `mapstructure:"tunnel"`
 }
 
 // TargetConfig defines connectivity, authentication, and subscriptions for a
@@ -72,9 +106,58 @@ type TargetConfig struct {
 	Redial time.Duration `mapstructure:"redial"`
 }
 
+// GNMIReverseConfig defines the optional receiver-side gNMI server.
+type GNMIReverseConfig struct {
+	Subscriptions           []SubscriptionConfig `mapstructure:"subscriptions"`
+	configgrpc.ServerConfig `mapstructure:",squash"`
+}
+
+// TunnelConfig defines the optional receiver-hosted gRPC tunnel server and
+// the subscription set applied to every target that registers over it.
+type TunnelConfig struct {
+	Username                configopaque.String  `mapstructure:"username"`
+	Password                configopaque.String  `mapstructure:"password"`
+	Encoding                string               `mapstructure:"encoding"`
+	Subscriptions           []SubscriptionConfig `mapstructure:"subscriptions"`
+	TargetTypes             []string             `mapstructure:"target_types"`
+	configgrpc.ServerConfig `mapstructure:",squash"`
+	ClientTLS               configtls.ClientConfig `mapstructure:"client_tls"`
+	Redial                  time.Duration          `mapstructure:"redial"`
+}
+
+func (t *TunnelConfig) targetConfig(targetType string) TargetConfig {
+	tc := NewDefaultTargetConfig()
+	tc.Username = t.Username
+	tc.Password = t.Password
+	tc.Encoding = t.Encoding
+	tc.Redial = t.Redial
+	tc.Subscriptions = t.Subscriptions
+	if targetType == targetTypeGNMIGNOIInsecure {
+		tc.ClientConfig.TLS = configtls.NewDefaultClientConfig()
+		tc.ClientConfig.TLS.Insecure = true
+	} else {
+		tc.ClientConfig.TLS = t.ClientTLS
+	}
+	return tc
+}
+
 func NewDefaultTargetConfig() TargetConfig {
 	return TargetConfig{
 		ClientConfig: configgrpc.NewDefaultClientConfig(),
+		Encoding:     encodingProto,
+		Redial:       defaultRedial,
+	}
+}
+
+func NewDefaultGNMIReverseConfig() GNMIReverseConfig {
+	return GNMIReverseConfig{ServerConfig: configgrpc.NewDefaultServerConfig()}
+}
+
+func newDefaultTunnelConfig() TunnelConfig {
+	return TunnelConfig{
+		ServerConfig: configgrpc.NewDefaultServerConfig(),
+		ClientTLS:    configtls.NewDefaultClientConfig(),
+		TargetTypes:  []string{targetTypeGNMIGNOI},
 		Encoding:     encodingProto,
 		Redial:       defaultRedial,
 	}
@@ -112,6 +195,22 @@ type SubscriptionConfig struct {
 	SuppressRedundant bool `mapstructure:"suppress_redundant"`
 }
 
+func (sc SubscriptionConfig) copy() SubscriptionConfig {
+	out := sc
+	if sc.Default != nil {
+		d := *sc.Default
+		out.Default = &d
+	}
+	if len(sc.Overrides) > 0 {
+		overrides := make(map[string]MetricConfig, len(sc.Overrides))
+		for leaf, cfg := range sc.Overrides {
+			overrides[leaf] = cfg
+		}
+		out.Overrides = overrides
+	}
+	return out
+}
+
 // MetricConfig declares how a gNMI leaf value is represented as an OTel metric.
 type MetricConfig struct {
 	// Type is the OTel metric type: "gauge" or "sum".
@@ -138,8 +237,9 @@ var (
 	_ confmap.Validator   = (*Config)(nil)
 	_ confmap.Unmarshaler = (*TargetConfig)(nil)
 	_ confmap.Validator   = (*TargetConfig)(nil)
-	_ confmap.Validator   = (*SubscriptionConfig)(nil)
 	_ confmap.Validator   = (*MetricConfig)(nil)
+	_ confmap.Unmarshaler = (*TunnelConfig)(nil)
+	_ confmap.Validator   = (*TunnelConfig)(nil)
 )
 
 // Unmarshal applies per-target defaults (embedded gRPC client defaults,
@@ -149,9 +249,125 @@ func (t *TargetConfig) Unmarshal(conf *confmap.Conf) error {
 	return conf.Unmarshal(t)
 }
 
+// Unmarshal applies tunnel defaults (target types, encoding, redial, tunnel transport,
+// and inner-TLS defaults) before decoding user-supplied values.
+func (t *TunnelConfig) Unmarshal(conf *confmap.Conf) error {
+	*t = newDefaultTunnelConfig()
+	return conf.Unmarshal(t)
+}
+
 func (cfg *Config) Validate() error {
-	if len(cfg.Targets) == 0 {
-		return errors.New("at least one target must be specified")
+	gnmiReverseEndpoint := ""
+	if cfg.GNMIReverse != nil {
+		gnmiReverseEndpoint = cfg.GNMIReverse.NetAddr.Endpoint
+	}
+	tunnelEnabled := cfg.Tunnel.HasValue()
+	if len(cfg.Targets) == 0 && gnmiReverseEndpoint == "" && !tunnelEnabled {
+		return errors.New("at least one target, a gnmireverse endpoint, or a tunnel endpoint must be specified")
+	}
+	if gnmiReverseEndpoint != "" && len(cfg.GNMIReverse.Subscriptions) == 0 {
+		return errors.New("gnmireverse.subscriptions must contain at least one subscription when gnmireverse.endpoint is set")
+	}
+	if gnmiReverseEndpoint != "" {
+		for i, sub := range cfg.GNMIReverse.Subscriptions {
+			prefix := fmt.Sprintf("gnmireverse.subscriptions[%d]", i)
+			if sub.Mode != "" {
+				return fmt.Errorf("%s.mode is not supported for gnmireverse subscriptions", prefix)
+			}
+			if sub.SampleInterval != 0 {
+				return fmt.Errorf("%s.sample_interval is not supported for gnmireverse subscriptions", prefix)
+			}
+			if sub.HeartbeatInterval != 0 {
+				return fmt.Errorf("%s.heartbeat_interval is not supported for gnmireverse subscriptions", prefix)
+			}
+			if sub.SuppressRedundant {
+				return fmt.Errorf("%s.suppress_redundant is not supported for gnmireverse subscriptions", prefix)
+			}
+		}
+	}
+	if len(cfg.YangModules) == 0 {
+		if err := validateMetricConfigRequired(cfg.Targets); err != nil {
+			return err
+		}
+		if gnmiReverseEndpoint != "" {
+			if err := validateSubscriptionMetricConfig(cfg.GNMIReverse.Subscriptions, "gnmireverse.subscriptions", false); err != nil {
+				return err
+			}
+		}
+		if tunnelEnabled {
+			if err := validateSubscriptionMetricConfig(cfg.Tunnel.Get().Subscriptions, "tunnel.subscriptions", true); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// validateMetricConfigRequired enforces that every leaf has a source of  "type"
+// when there is no YANG schema to supply one. It is skipped entirely when yang_modules is set:
+// at runtime, resolve() merges an "overrides" (or "default") entry onto the schema result per field,
+// so a "type" left blank there is expected to be filled in by the schema, not a validation gap.
+func validateMetricConfigRequired(targets []TargetConfig) error {
+	for ti := range targets {
+		for si, sub := range targets[ti].Subscriptions {
+			prefix := fmt.Sprintf("targets[%d].subscriptions[%d]", ti, si)
+			if err := validateOneSubscriptionMetricConfig(sub, prefix, true); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func validateSubscriptionMetricConfig(subscriptions []SubscriptionConfig, prefix string, validateMode bool) error {
+	for i, sub := range subscriptions {
+		if err := validateOneSubscriptionMetricConfig(sub, fmt.Sprintf("%s[%d]", prefix, i), validateMode); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateOneSubscriptionMetricConfig(sub SubscriptionConfig, prefix string, validateMode bool) error {
+	if sub.Default == nil && len(sub.Overrides) == 0 {
+		return fmt.Errorf("%s: at least one of \"default\" or \"overrides\" must be specified when yang_modules is not set", prefix)
+	}
+	if sub.Default != nil && sub.Default.Type == "" {
+		return fmt.Errorf("%s.default: type is required when yang_modules is not set", prefix)
+	}
+	for leaf, override := range sub.Overrides {
+		if override.Type == "" {
+			return fmt.Errorf("%s.overrides[%q]: type is required when yang_modules is not set", prefix, leaf)
+		}
+	}
+
+	if sub.Path == "" {
+		return errors.New("path is required")
+	}
+	if !strings.HasPrefix(sub.Path, "/") {
+		return fmt.Errorf("path %q must be absolute (start with %q)", sub.Path, "/")
+	}
+
+	if validateMode {
+		switch sub.Mode {
+		case modeSample:
+			if sub.SampleInterval <= 0 {
+				return errors.New("sample_interval must be > 0 for \"sample\" mode")
+			}
+		case modeOnChange, modeTargetDefined:
+			if sub.SampleInterval != 0 {
+				return fmt.Errorf("sample_interval must not be set for %q mode", sub.Mode)
+			}
+		case "":
+			return errors.New("mode is required")
+		default:
+			return fmt.Errorf("invalid mode %q (supported: %q, %q, %q)",
+				sub.Mode, modeSample, modeOnChange, modeTargetDefined)
+		}
+	}
+
+	if sub.HeartbeatInterval < 0 {
+		return errors.New("heartbeat_interval must be >= 0")
 	}
 	return nil
 }
@@ -161,24 +377,14 @@ func (t *TargetConfig) Validate() error {
 		return errors.New("endpoint is required")
 	}
 
-	switch t.Encoding {
-	case encodingProto, encodingJSON, encodingJSONIETF:
-	case "":
-		return errors.New("encoding is required")
-	default:
-		return fmt.Errorf("invalid encoding %q (supported: %q, %q, %q)",
-			t.Encoding, encodingProto, encodingJSON, encodingJSONIETF)
+	if err := validateEncoding(t.Encoding); err != nil {
+		return err
 	}
-
-	if t.Username == "" && t.Password != "" {
-		return errors.New("password requires username to be set")
+	if err := validateCredentials(t.Username, t.Password); err != nil {
+		return err
 	}
-
-	if t.Redial < 0 {
-		return errors.New("redial must not be negative (use 0 to disable reconnection)")
-	}
-	if t.Redial > 0 && t.Redial < time.Second {
-		return errors.New("redial must be at least 1s (or 0 to disable reconnection)")
+	if err := validateRedial(t.Redial); err != nil {
+		return err
 	}
 
 	if len(t.Subscriptions) == 0 {
@@ -187,45 +393,73 @@ func (t *TargetConfig) Validate() error {
 	return nil
 }
 
-func (s *SubscriptionConfig) Validate() error {
-	if s.Path == "" {
-		return errors.New("path is required")
-	}
-	if !strings.HasPrefix(s.Path, "/") {
-		return fmt.Errorf("path %q must be absolute (start with %q)", s.Path, "/")
-	}
-
-	switch s.Mode {
-	case modeSample:
-		if s.SampleInterval <= 0 {
-			return errors.New("sample_interval must be > 0 for \"sample\" mode")
-		}
-	case modeOnChange, modeTargetDefined:
-		if s.SampleInterval != 0 {
-			return fmt.Errorf("sample_interval must not be set for %q mode", s.Mode)
-		}
+func validateEncoding(encoding string) error {
+	switch encoding {
+	case encodingProto, encodingJSON, encodingJSONIETF:
+		return nil
 	case "":
-		return errors.New("mode is required")
+		return errors.New("encoding is required")
 	default:
-		return fmt.Errorf("invalid mode %q (supported: %q, %q, %q)",
-			s.Mode, modeSample, modeOnChange, modeTargetDefined)
+		return fmt.Errorf("invalid encoding %q (supported: %q, %q, %q)",
+			encoding, encodingProto, encodingJSON, encodingJSONIETF)
 	}
+}
 
-	if s.HeartbeatInterval < 0 {
-		return errors.New("heartbeat_interval must be >= 0")
+func validateCredentials(username, password configopaque.String) error {
+	if username == "" && password != "" {
+		return errors.New("password requires username to be set")
 	}
+	return nil
+}
 
-	if s.Default == nil && len(s.Overrides) == 0 {
-		return errors.New("at least one of \"default\" or \"overrides\" must be specified")
+func validateRedial(redial time.Duration) error {
+	if redial < 0 {
+		return errors.New("redial must not be negative (use 0 to disable reconnection)")
+	}
+	if redial > 0 && redial < time.Second {
+		return errors.New("redial must be at least 1s (or 0 to disable reconnection)")
+	}
+	return nil
+}
+
+func (t *TunnelConfig) Validate() error {
+	if t.NetAddr.Endpoint == "" {
+		return errors.New("endpoint is required")
+	}
+	if len(t.Subscriptions) == 0 {
+		return errors.New("at least one subscription must be specified")
+	}
+	if len(t.TargetTypes) == 0 {
+		return errors.New("target_types must contain at least one target type")
+	}
+	seen := make(map[string]struct{}, len(t.TargetTypes))
+	for _, tt := range t.TargetTypes {
+		switch tt {
+		case targetTypeGNMIGNOI, targetTypeGNMIGNOIInsecure:
+		default:
+			return fmt.Errorf("invalid target_types entry %q (supported: %q, %q)",
+				tt, targetTypeGNMIGNOI, targetTypeGNMIGNOIInsecure)
+		}
+		if _, ok := seen[tt]; ok {
+			return fmt.Errorf("duplicate target_types entry %q", tt)
+		}
+		seen[tt] = struct{}{}
+	}
+	if err := validateEncoding(t.Encoding); err != nil {
+		return err
+	}
+	if err := validateCredentials(t.Username, t.Password); err != nil {
+		return err
+	}
+	if err := validateRedial(t.Redial); err != nil {
+		return err
 	}
 	return nil
 }
 
 func (m *MetricConfig) Validate() error {
 	switch m.Type {
-	case metricTypeGauge, metricTypeSum:
-	case "":
-		return errors.New("type is required")
+	case metricTypeGauge, metricTypeSum, "":
 	default:
 		return fmt.Errorf("invalid type %q (supported: %q, %q)",
 			m.Type, metricTypeGauge, metricTypeSum)
@@ -248,4 +482,12 @@ func (m *MetricConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+func copySubscriptions(subs []SubscriptionConfig) []SubscriptionConfig {
+	out := make([]SubscriptionConfig, len(subs))
+	for i, s := range subs {
+		out[i] = s.copy()
+	}
+	return out
 }

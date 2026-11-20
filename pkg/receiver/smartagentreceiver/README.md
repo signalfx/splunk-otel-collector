@@ -29,8 +29,8 @@ of your Collector configuration.
 and [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/README.md).
 1. To replace or modify metrics, use
 [Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md).
-1. If you have a monitor that sends [events](https://dev.splunk.com/observability/docs/datamodel/custom_events) (e.g. `kubernetes-events`,
-`nagios`, `processlist`, and some `telegraf` monitors like `telegraf/exec`), add it to a `logs` pipeline that uses a
+1. If you have a monitor that sends [events](https://dev.splunk.com/observability/docs/datamodel/custom_events) (e.g. `nagios`,
+`processlist`, and some `telegraf` monitors like `telegraf/exec`), add it to a `logs` pipeline that uses a
 [SignalFx exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md).
 It's recommended, and in the case of the Processlist monitor required, to put into the same pipeline a
 [Resource Detection processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md),

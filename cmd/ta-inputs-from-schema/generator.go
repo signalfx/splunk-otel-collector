@@ -24,11 +24,11 @@ func generateInputsConf(scheme *Scheme, globalSettings, inputName string) string
 	var sb strings.Builder
 
 	// Write header with input name
-	sb.WriteString(fmt.Sprintf(
+	fmt.Fprintf(&sb,
 		"# ATTENTION: If copying this file as base for your local/inputs.conf\n"+
 			"# rename the stanza below to something in the form [%s://<data_input_name>]\n"+
 			"[%s]\n\n",
-		inputName, inputName))
+		inputName, inputName)
 
 	// Write global settings
 	sb.WriteString(globalSettings)
@@ -56,7 +56,7 @@ func generateInputsConfSpec(scheme *Scheme, inputName string) string {
 	var sb strings.Builder
 
 	// Write header with input name
-	sb.WriteString(fmt.Sprintf("[%s://<name>]\n\n", inputName))
+	fmt.Fprintf(&sb, "[%s://<name>]\n\n", inputName)
 
 	// Write each argument specification
 	for _, arg := range scheme.Endpoint.Args {

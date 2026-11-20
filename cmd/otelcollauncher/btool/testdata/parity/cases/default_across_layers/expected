@@ -1,0 +1,8 @@
+[default]
+d1 = app1
+d2 = syslocal
+[s]
+a = 2
+d1 = app1
+d2 = syslocal
+EXIT=0

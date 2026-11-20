@@ -8,8 +8,14 @@ DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
+
+# Module set released by multimod; must match a set in versions.yaml.
+MODSET?=splunk-otel-collector
+
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
+
+FIPS140_CERTIFIED_VERSION?=v1.0.0
 
 FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
@@ -246,6 +252,7 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
 	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
+	cd ./internal/tools && go install go.opentelemetry.io/build-tools/multimod
 	cd ./internal/tools && go install mvdan.cc/gofumpt
 
 .PHONY: generate-metrics
@@ -404,20 +411,15 @@ else ifeq ($(GOOS), windows)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
     endif
 	$(eval EXTENSION = .exe)
+	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2}")
 else
 	$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
 endif
-	docker buildx build --pull \
-		--tag otelcol-fips-builder-$(GOOS)-$(GOARCH) \
-		--platform linux/$(GOARCH) \
-		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
-		--build-arg BUILD_INFO='$(BUILD_INFO)' \
-		--file cmd/otelcol/fips/build/Dockerfile.$(GOOS) ./
-	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null 2>&1 || true
 	@mkdir -p ./bin
-	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
-	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
-	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
+	go generate ./...
+	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(FIPS140_CERTIFIED_VERSION) CGO_ENABLED=0 \
+		go build -trimpath -o ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	go version -m ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION) | grep -E 'GOFIPS140=$(FIPS140_CERTIFIED_VERSION)($$|[-])'
 
 FILENAME?=$(shell git branch --show-current)
 .PHONY: chlog-new
@@ -436,12 +438,28 @@ chlog-preview:
 chlog-update:
 	$(CHLOGGEN) update -v $(VERSION)
 
-.PHONY: prepare-changelog
-prepare-changelog:
+.PHONY: multimod-verify
+multimod-verify:
+	@echo "Validating versions.yaml"
+	$(MULTIMOD) verify
+
+.PHONY: multimod-prerelease
+multimod-prerelease:
+	$(MULTIMOD) prerelease -s=true -b=false -v ./versions.yaml -m $(MODSET)
+
+# Bumps the module set version in versions.yaml, rewrites intra-set module
+# requires to it via multimod, and rolls up the changelog.
+.PHONY: prepare-release
+prepare-release:
 	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
-		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
+		echo "Error: VERSION is required. Usage: make prepare-release VERSION=v0.132.0"; \
 		exit 1; \
 	fi
-	@make chlog-update
-	@echo "Preparing changelog for $(VERSION)..."
+	@echo "Preparing release $(VERSION) for module set $(MODSET)..."
+	awk -v set="$(MODSET)" -v ver="$(VERSION)" \
+		'$$0 ~ "^  " set ":" {inset=1} inset && /^    version:/ {sub(/version:.*/, "version: " ver); inset=0} {print}' \
+		versions.yaml > versions.yaml.tmp && mv versions.yaml.tmp versions.yaml
+	git add versions.yaml && git commit -m "Prepare $(MODSET) $(VERSION)"
+	@$(MAKE) multimod-prerelease
+	@$(MAKE) chlog-update
 	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

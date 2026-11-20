@@ -141,6 +141,7 @@ func (sinfo *sharedInfo) getAllSharedInfo() (map[string]string, map[string]strin
 // Configure monitor
 func (m *Monitor) Configure(c *Config) error {
 	m.logger = utils.NewThrottledLogger(log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": c.MonitorID}), 20*time.Second)
+	m.logger.Warn("[NOTICE] The smartagent/elasticsearch monitor is deprecated and will be removed on or after December 2026. Use the elasticsearch receiver instead.")
 
 	// conf is a config shallow copy that will be mutated and used to configure monitor
 	conf := &Config{}

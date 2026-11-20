@@ -42,10 +42,16 @@ type msiTest struct {
 	name                   string
 	collectorMSIProperties map[string]string
 	genericMSIProperties   map[string]string
+	expectedCustomEnvVars  map[string]string
 	skipUninstall          bool
 	skipSvcStart           bool
 	skipSvcStop            bool
 }
+
+const (
+	localSystemServiceAccount = "LocalSystem"
+	virtualServiceAccount     = `NT SERVICE\splunk-otel-collector`
+)
 
 func TestMSI(t *testing.T) {
 	msiInstallerPath := getInstallerPath(t)
@@ -62,6 +68,13 @@ func TestMSI(t *testing.T) {
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN": "fakeToken",
 				"COLLECTOR_SVC_ARGS":  "--discovery --set=processors.batch.timeout=10s",
+			},
+		},
+		{
+			name: "localsystem-service-account",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
+				"SPLUNK_SERVICE_ACCOUNT_TYPE": "localsystem",
 			},
 		},
 		{
@@ -93,6 +106,23 @@ func TestMSI(t *testing.T) {
 			},
 		},
 		{
+			name: "custom-environment-variables",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":          "fakeToken",
+				"GOMEMLIMIT":                   "128MiB",
+				"SPLUNK_ENVIRONMENT_VARIABLES": "CUSTOM_LIST=a%2Cb%2cc,CUSTOM_SPECIAL=a%3Bb%3Dc%25%20%22%5B%5D,CUSTOM_EMPTY=,CUSTOM_PLUS=a+b,CUSTOM_ONCE=%252C,GOMEMLIMIT=256MiB,splunk_access_token=customToken",
+			},
+			expectedCustomEnvVars: map[string]string{
+				"CUSTOM_LIST":         "a,b,c",
+				"CUSTOM_SPECIAL":      "a;b=c% \"[]",
+				"CUSTOM_EMPTY":        "",
+				"CUSTOM_PLUS":         "a+b",
+				"CUSTOM_ONCE":         "%2C",
+				"GOMEMLIMIT":          "256MiB",
+				"SPLUNK_ACCESS_TOKEN": "customToken",
+			},
+		},
+		{
 			name: "platform-logs",
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
@@ -109,6 +139,17 @@ func TestMSI(t *testing.T) {
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN": "fakeToken",
 				"SPLUNK_CONFIG":       `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`,
+			},
+		},
+		{
+			name: "splunk-config-and-platform-logs",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
+				"SPLUNK_CONFIG":               `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`,
+				"SPLUNK_PLATFORM_URL":         "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":       "platformToken",
+				"SPLUNK_PLATFORM_LOGS_INDEX":  "otel_logs",
+				"SPLUNK_SETUP_COLLECTOR_MODE": "agent",
 			},
 		},
 		{
@@ -182,6 +223,14 @@ func TestMSILaunchConditions(t *testing.T) {
 		expectedLogMessage     string
 	}{
 		{
+			name: "invalid-custom-environment",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":          "fakeToken",
+				"SPLUNK_ENVIRONMENT_VARIABLES": "KEY=value,invalid-entry",
+			},
+			expectedLogMessage: "SPLUNK_ENVIRONMENT_VARIABLES must contain comma-separated KEY=VALUE entries",
+		},
+		{
 			name: "platform-url-requires-platform-token",
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN": "fakeToken",
@@ -196,6 +245,32 @@ func TestMSILaunchConditions(t *testing.T) {
 				"SPLUNK_PLATFORM_TOKEN": "platformToken",
 			},
 			expectedLogMessage: "SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_TOKEN is set.",
+		},
+		{
+			name: "platform-logs-index-requires-platform-url",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":        "fakeToken",
+				"SPLUNK_PLATFORM_LOGS_INDEX": "otel_logs",
+			},
+			expectedLogMessage: "SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_LOGS_INDEX is set.",
+		},
+		{
+			name: "platform-metrics-index-requires-platform-url",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":           "fakeToken",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedLogMessage: "SPLUNK_PLATFORM_URL is required when SPLUNK_PLATFORM_METRICS_INDEX is set.",
+		},
+		{
+			name: "platform-not-supported-in-gateway-mode",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":         "fakeToken",
+				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
+				"SPLUNK_PLATFORM_URL":         "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":       "platformToken",
+			},
+			expectedLogMessage: "Splunk Platform ingestion is not supported in gateway mode.",
 		},
 	}
 
@@ -217,6 +292,7 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 	logsConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "splunk_logs_config_windows.yaml"))
 	metricsConfigArg := "--config " + quotedIfRequired(filepath.Join(collectorConfigDir, "splunk_metrics_config_windows.yaml"))
 	mergeAppendFeatureGateArg := "--feature-gates=confmap.enableMergeAppendOption"
+	splunkConfigArg := `--config "C:\custom\config.yaml"`
 
 	tests := []struct {
 		name                         string
@@ -319,6 +395,55 @@ func TestExpectedCollectorServiceArgs(t *testing.T) {
 				"SPLUNK_CONFIG":       `C:\custom\config.yaml`,
 			},
 			expectedArgs: `--feature-gates=foo --config "C:\custom\config.yaml"`,
+		},
+		{
+			// SPLUNK_CONFIG is the base config and the platform configs are
+			// merged on top of it, same as install.sh --collector-config.
+			name: "splunk-config-and-platform-logs",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":   "fakeToken",
+				"SPLUNK_CONFIG":         `C:\custom\config.yaml`,
+				"SPLUNK_PLATFORM_URL":   "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN": "platformToken",
+			},
+			expectedArgs:                 strings.Join([]string{splunkConfigArg, logsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			name: "splunk-config-and-platform-metrics",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":           "fakeToken",
+				"SPLUNK_CONFIG":                 `C:\custom\config.yaml`,
+				"SPLUNK_PLATFORM_URL":           "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedArgs:                 strings.Join([]string{splunkConfigArg, metricsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			name: "splunk-config-and-platform-logs-and-metrics",
+			msiProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN":           "fakeToken",
+				"SPLUNK_CONFIG":                 `C:\custom\config.yaml`,
+				"SPLUNK_PLATFORM_URL":           "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN":         "platformToken",
+				"SPLUNK_PLATFORM_LOGS_INDEX":    "otel_logs",
+				"SPLUNK_PLATFORM_METRICS_INDEX": "otel_metrics",
+			},
+			expectedArgs:                 strings.Join([]string{splunkConfigArg, logsConfigArg, metricsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
+		},
+		{
+			name: "splunk-config-and-platform-logs-with-user-svc-args",
+			msiProperties: map[string]string{
+				"COLLECTOR_SVC_ARGS":    "--feature-gates=foo",
+				"SPLUNK_CONFIG":         `C:\custom\config.yaml`,
+				"SPLUNK_PLATFORM_URL":   "http://localhost:8088/services/collector",
+				"SPLUNK_PLATFORM_TOKEN": "platformToken",
+			},
+			expectedArgs:                 strings.Join([]string{"--feature-gates=foo", splunkConfigArg, logsConfigArg, mergeAppendFeatureGateArg}, " "),
+			expectMergeAppendFeatureGate: true,
 		},
 	}
 
@@ -432,7 +557,7 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 	svcConfig, err := service.Config()
 	require.NoError(t, err, "Failed to get service configuration")
 
-	assertServiceConfiguration(t, test.collectorMSIProperties, svcConfig)
+	assertServiceConfiguration(t, test.collectorMSIProperties, test.expectedCustomEnvVars, svcConfig)
 }
 
 func startServiceIfStopped(t *testing.T, service *mgr.Service) {
@@ -477,7 +602,7 @@ func runMsiInstallFailureTest(t *testing.T, test msiTest, msiInstallerPath, expe
 	assert.Contains(t, installLog, expectedLogMessage)
 }
 
-func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, svcConfig mgr.Config) {
+func assertServiceConfiguration(t *testing.T, msiProperties, expectedCustomEnvVars map[string]string, svcConfig mgr.Config) {
 	programDataDir := os.Getenv("PROGRAMDATA")
 	require.NotEmpty(t, programDataDir, "PROGRAMDATA environment variable is not set")
 	programFilesDir := os.Getenv("PROGRAMFILES")
@@ -495,7 +620,8 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	}
 
 	configFileName := installMode + "_config.yaml"
-	configFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", configFileName)
+	collectorProgramDataDir := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector")
+	configFileFullName := filepath.Join(collectorProgramDataDir, configFileName)
 	assert.FileExists(t, configFileFullName)
 	assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", configFileName))
 	if msiProperties["SPLUNK_PLATFORM_URL"] != "" {
@@ -538,6 +664,9 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	}
 
 	// Verify the environment variables set for the service
+	for key, value := range expectedCustomEnvVars {
+		expectedEnvVars[key] = value
+	}
 	svcEnvVars := getServiceEnvVars(t, "splunk-otel-collector")
 	assert.Equal(t, expectedEnvVars, svcEnvVars)
 
@@ -551,6 +680,50 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 			return configErr == nil && runtimeConfigErr == nil
 		}, 10*time.Second, 500*time.Millisecond, "Supervisor configuration files were not created")
 	}
+
+	expectedServiceAccount := virtualServiceAccount
+	if msiProperties["SPLUNK_SERVICE_ACCOUNT_TYPE"] == "localsystem" {
+		expectedServiceAccount = localSystemServiceAccount
+	}
+	assert.Equal(t, expectedServiceAccount, svcConfig.ServiceStartName)
+
+	assertCollectorDirectoryAcl(t, installDir, "", "")
+	assertCollectorDirectoryAcl(t, collectorProgramDataDir, "", "")
+	if expectedServiceAccount == virtualServiceAccount {
+		assertCollectorDirectoryAcl(t, installDir, virtualServiceAccount, "ReadAndExecute")
+		assertCollectorDirectoryAcl(t, collectorProgramDataDir, virtualServiceAccount, "ReadAndExecute")
+		assertCollectorDirectoryAcl(t, filepath.Join(collectorProgramDataDir, "FileStorage"), virtualServiceAccount, "Modify")
+		assertCollectorDirectoryAcl(t, filepath.Join(collectorProgramDataDir, "FileStorage", "Temp"), virtualServiceAccount, "Modify")
+		assertCollectorDirectoryAcl(t, filepath.Join(collectorProgramDataDir, "supervisor"), virtualServiceAccount, "Modify")
+	}
+}
+
+func assertCollectorDirectoryAcl(t *testing.T, path, account, rights string) {
+	t.Helper()
+
+	output, err := exec.Command("icacls", path).CombinedOutput()
+	require.NoErrorf(t, err, "Failed to read Collector directory ACL for %q: %s", path, output)
+
+	acl := string(output)
+	if account == "" {
+		assert.NotContainsf(t, acl, "(I)", "Collector directory ACL for %q should be protected: %s", path, acl)
+		return
+	}
+
+	expectedRight := map[string]string{
+		"ReadAndExecute": "(RX)",
+		"Modify":         "(M)",
+	}[rights]
+	require.NotEmptyf(t, expectedRight, "Unsupported expected ACL right %q", rights)
+
+	for _, rule := range strings.Split(acl, "\n") {
+		if strings.Contains(strings.ToLower(rule), strings.ToLower(account)) {
+			assert.Containsf(t, rule, expectedRight, "Collector directory ACL for %q should grant %s %s: %s", path, account, rights, acl)
+			return
+		}
+	}
+
+	require.Failf(t, "Service account ACL is missing", "Collector directory ACL for %q should grant %s %s: %s", path, account, rights, acl)
 }
 
 func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {
@@ -617,11 +790,10 @@ func expectedCollectorServiceArgs(t *testing.T, msiProperties map[string]string)
 	collectorServiceArgs = strings.Trim(collectorServiceArgs, "\"")
 	collectorServiceArgs = strings.ReplaceAll(collectorServiceArgs, "\"\"", "\"")
 
-	if splunkConfig, ok := msiProperties["SPLUNK_CONFIG"]; ok {
-		return appendServiceArg(collectorServiceArgs, `--config "`+splunkConfig+`"`)
-	}
-
-	if msiProperties["SPLUNK_ACCESS_TOKEN"] != "" {
+	splunkConfig := msiProperties["SPLUNK_CONFIG"]
+	if splunkConfig != "" {
+		collectorServiceArgs = appendServiceArg(collectorServiceArgs, `--config "`+splunkConfig+`"`)
+	} else if msiProperties["SPLUNK_ACCESS_TOKEN"] != "" {
 		installMode := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_SETUP_COLLECTOR_MODE", "agent")
 		configFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", installMode+"_config.yaml")
 		collectorServiceArgs = appendServiceArg(collectorServiceArgs, "--config "+quotedIfRequired(configFileFullName))
@@ -631,7 +803,7 @@ func expectedCollectorServiceArgs(t *testing.T, msiProperties map[string]string)
 		(msiProperties["SPLUNK_PLATFORM_LOGS_INDEX"] != "" || msiProperties["SPLUNK_PLATFORM_METRICS_INDEX"] == "")
 	metricsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" && msiProperties["SPLUNK_PLATFORM_METRICS_INDEX"] != ""
 	mergeConfigsEnabled := msiProperties["SPLUNK_PLATFORM_URL"] != "" &&
-		(msiProperties["SPLUNK_ACCESS_TOKEN"] != "" || (logsEnabled && metricsEnabled))
+		(msiProperties["SPLUNK_ACCESS_TOKEN"] != "" || splunkConfig != "" || (logsEnabled && metricsEnabled))
 
 	if logsEnabled {
 		logsConfigFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", "splunk_logs_config_windows.yaml")

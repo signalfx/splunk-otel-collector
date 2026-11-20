@@ -9,14 +9,18 @@ on:
   push:
     paths:
       - '.github/workflows/ansible.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/galaxy.yml'
+      - 'instrumentation/**'
       - 'packaging/msi/**'
     branches:
       - main
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
+      - '.github/workflows/reusable-build-instrumentation-package.yml'
       - 'deployments/ansible_collections/signalfx/splunk_otel_collector/**'
+      - 'instrumentation/**'
       - 'packaging/msi/**'
       - '!**.md'
   schedule:
@@ -51,26 +55,15 @@ jobs:
       ARCH: ${{ matrix.ARCH }}
 
   build-auto-instrumentation-package:
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
         ARCH: [ "amd64" ]
       fail-fast: false
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Build ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} auto-instrumentation package
-        run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
-
-      - name: Upload ${{ matrix.ARCH }} ${{ matrix.SYS_PACKAGE }} auto-instrumentation package
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
-          path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
+    uses: ./.github/workflows/reusable-build-instrumentation-package.yml
+    with:
+      SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
+      ARCH: ${{ matrix.ARCH }}
 
   msi-custom-actions:
     needs: lint
@@ -93,7 +86,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python 3.
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
 
@@ -106,7 +99,7 @@ jobs:
         run: yamllint .
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@665d9e07a1943254d2910faffc106adaf7ea7294 # v26.8.0
+        uses: ansible/ansible-lint@9bce2bfb8f4a984e6b13767bc0d6bf0a49492164 # v26.10.1
         with:
           requirements_file: "molecule/requirements.yml"
           setup_python: "false"
@@ -137,7 +130,6 @@ jobs:
           - amazonlinux2023
           - centos9
           - centos10
-          - debian11
           - debian12
           - debian13
           - oraclelinux9
@@ -151,7 +143,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: /tmp
 
@@ -168,7 +160,7 @@ jobs:
           EOF
 
       - name: Set up Python 3.
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -229,7 +221,7 @@ jobs:
       - name: Make tmp directory for msi build artifact
         run: mkdir -p /tmp/msi-build
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: msi-build-amd64
           path: /tmp/msi-build
@@ -248,7 +240,11 @@ jobs:
 
       - name: Install vagrant and virtualbox
         run: |
-          sudo apt update && sudo apt install -y virtualbox
+          curl -fsSL https://www.virtualbox.org/download/oracle_vbox_2016.asc |
+            sudo gpg --dearmor --yes -o /usr/share/keyrings/oracle-virtualbox-2016.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" |
+            sudo tee /etc/apt/sources.list.d/virtualbox.list
+          sudo apt-get update && sudo apt-get install -y virtualbox-7.2
           sudo modprobe vboxdrv
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
@@ -266,7 +262,7 @@ jobs:
           EOF
 
       - name: Set up Python 3.
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
           cache: 'pip'

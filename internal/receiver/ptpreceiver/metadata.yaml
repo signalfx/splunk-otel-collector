@@ -1,0 +1,94 @@
+type: ptp
+display_name: PTP Receiver
+description: Collects PTP clock status from a local linuxptp ptp4l daemon.
+
+status:
+  class: receiver
+  stability:
+    development: [metrics]
+  distributions: [splunk]
+  codeowners:
+    active: []
+
+resource_attributes:
+  ptp.clock.type:
+    description: >-
+      Type of the local PTP clock reported by CLOCK_DESCRIPTION. LinuxPTP's
+      clock type codes map to `OC` (ordinary clock), `BC` (boundary clock),
+      `P2P_TC` (peer-to-peer transparent clock), and `E2E_TC` (end-to-end
+      transparent clock). Unrecognized clock type codes map to `UNKNOWN`.
+    enabled: true
+    type: string
+    enum: [OC, BC, P2P_TC, E2E_TC, UNKNOWN]
+  ptp.socket_path:
+    description: Unix domain socket of the ptp4l daemon.
+    enabled: true
+    type: string
+
+attributes:
+  ptp.clock.state:
+    description: State of the local PTP clock inferred from its port states.
+    type: string
+    enum: [SLAVE, MASTER, UNCALIBRATED, FAULTY, UNSYNCHRONIZED, UNKNOWN]
+  ptp.grandmaster.identity:
+    description: Identity of the selected PTP grandmaster.
+    type: string
+  ptp.port.identity:
+    description: LinuxPTP port identity, a unique combination of the clock identity and the port number. Formatted as `<clock-identity>-<port-number>` (e.g. `001122.fffe.334455-1`).
+    type: string
+  ptp.port.state:
+    description: State of the local PTP port.
+    type: string
+    enum: [INITIALIZING, FAULTY, DISABLED, LISTENING, PRE_MASTER, MASTER, PASSIVE, UNCALIBRATED, SLAVE, GRAND_MASTER]
+
+metrics:
+  ptp.clock.state:
+    description: Local PTP clock state inferred from the states of its ports (1 for the reported state).
+    extended_documentation: >-
+      For boundary clocks with both slave and master ports, the clock state is
+      `SLAVE` to represent upstream synchronization. Otherwise, state priority
+      is `MASTER` (including a LinuxPTP `GRAND_MASTER` port), `UNCALIBRATED`,
+      then `FAULTY`. Other port states map to `UNSYNCHRONIZED`.
+    enabled: true
+    stability: development
+    gauge:
+      value_type: int
+    unit: "1"
+    attributes: [ptp.clock.state]
+  ptp.grandmaster.info:
+    description: Selected remote PTP grandmaster identity (1 for the selected identity). Omitted when ptp4l reports no remote grandmaster.
+    enabled: true
+    stability: development
+    gauge:
+      value_type: int
+    unit: "1"
+    attributes: [ptp.grandmaster.identity]
+  ptp.grandmaster.present:
+    description: Whether ptp4l reports a remote grandmaster (1 for present, 0 when the local clock is reported as grandmaster).
+    enabled: true
+    stability: development
+    gauge:
+      value_type: int
+    unit: "1"
+  ptp.offset:
+    description: Signed offset of the local PTP clock from a remote grandmaster. Omitted when ptp4l reports no remote grandmaster.
+    enabled: true
+    stability: development
+    gauge:
+      value_type: double
+    unit: s
+  ptp.path.delay:
+    description: Mean path delay to a remote PTP grandmaster. Omitted when ptp4l reports no remote grandmaster.
+    enabled: true
+    stability: development
+    gauge:
+      value_type: double
+    unit: s
+  ptp.port.state:
+    description: State of each local PTP port (1 for the reported state).
+    enabled: true
+    stability: development
+    gauge:
+      value_type: int
+    unit: "1"
+    attributes: [ptp.port.identity, ptp.port.state]

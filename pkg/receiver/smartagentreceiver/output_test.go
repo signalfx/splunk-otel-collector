@@ -57,7 +57,6 @@ func TestOutput(t *testing.T) {
 	assert.NotSame(t, &output, output.Copy())
 	output.SendDatapoints()
 	output.SendEvent(new(event.Event))
-	output.SendSpans()
 	output.SendDimensionUpdate(new(types.Dimension))
 	output.AddExtraDimension("", "")
 }

@@ -52,10 +52,6 @@
     (OPTIONAL) Set the base API URL explicitly instead of the URL inferred from the specified realm (default: https://api.REALM.observability.splunkcloud.com).
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.observability.splunkcloud.com"
-.PARAMETER hec_url
-    (DEPRECATED) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.observability.splunkcloud.com/v1/log).
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -hec_url "https://ingest.us1.observability.splunkcloud.com/v1/log"
 .PARAMETER hec_token
     (OPTIONAL) Set the HEC token if different than the specified Splunk access_token.
     .EXAMPLE
@@ -109,8 +105,19 @@
 .PARAMETER msi_public_properties
     (OPTIONAL) Specify public MSI properties to be used when installing the Splunk OpenTelemetry Collector MSI package.
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
+    For Collector versions newer than v0.162.0, use SPLUNK_ENVIRONMENT_VARIABLES to set arbitrary service environment variables.
+    Separate KEY=VALUE entries with commas and percent encode commas inside values as %2C. Other special characters can also be percent encoded.
+    Variable names must be nonempty and contain only ASCII letters, numbers, and underscores, including after percent decoding.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ARPCOMMENTS=DO_NOT_UNINSTALL" 
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties 'SPLUNK_ENVIRONMENT_VARIABLES=OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name%3Dproduction%2Cservice.namespace%3Dpayments,CUSTOM_MESSAGE=hello%20world%3B%20100%25'
+.PARAMETER service_account_type
+    (OPTIONAL) Select the Windows service account type: `virtual` uses the dedicated, passwordless
+    `NT SERVICE\splunk-otel-collector` virtual account and `localsystem` uses LocalSystem. If omitted,
+    a fresh install uses the dedicated account and an upgrade preserves its current account.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -service_account_type virtual
 .PARAMETER config_path
     (OPTIONAL) Specify a local path to an alternative configuration file for the Splunk OpenTelemetry Collector.
     If specified, the -mode parameter will be ignored.
@@ -145,7 +152,6 @@ param(
     [string]$network_interface = "",
     [string]$ingest_url = "",
     [string]$api_url = "",
-    [string]$hec_url = "",
     [string]$hec_token = "",
     [string]$godebug = "",
     [bool]$insecure = $false,
@@ -154,6 +160,7 @@ param(
     [ValidateSet('test', 'beta', 'release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
+    [string]$service_account_type = "",
     [string]$config_path = "",
     [bool]$preserve_prev_default_config = $false,
     [string]$collector_msi_url = "",
@@ -180,6 +187,12 @@ else {
 $format = "msi"
 $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.observability.splunkcloud.com"
+$virtual_service_account = "NT SERVICE\splunk-otel-collector"
+$previous_service_account = ""
+
+if ($service_account_type -ne "" -and $service_account_type -notin @("virtual", "localsystem")) {
+    throw "service_account_type must be either 'virtual' or 'localsystem'."
+}
 
 try {
     Resolve-Path $env:TEMP 2>&1>$null
@@ -512,6 +525,17 @@ if (-not (Get-Service -Name $service_name -ErrorAction SilentlyContinue)) {
 else {
     if (-not $uninstall_collector) {
         Write-Host "The $service_name service is already installed. Checking installation for automatic update."
+
+        $existing_service_account = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$service_name" -Name ObjectName).ObjectName
+        if ($existing_service_account -eq "LocalSystem" -or $existing_service_account -eq "NT AUTHORITY\SYSTEM") {
+            $previous_service_account = "LocalSystem"
+        }
+        elseif ($existing_service_account -eq $virtual_service_account) {
+            $previous_service_account = $virtual_service_account
+        }
+        elseif ($service_account_type -eq "") {
+            throw "The existing $service_name service uses '$existing_service_account'. Its password cannot be preserved by the installer. Rerun with -service_account_type virtual or -service_account_type localsystem."
+        }
     }
 
     $uninstall_collector_using_msi = $true
@@ -605,12 +629,7 @@ if ($api_url -eq "") {
     $api_url = "https://api.$realm.observability.splunkcloud.com"
 }
 
-if ($hec_url -eq "") {
-    $hec_url = "$ingest_url/v1/log"
-}
-else {
-    Write-Warning "[DEPRECATED] The parameter '-hec_url' is deprecated and will be removed in September 2026."
-}
+$hec_url = "$ingest_url/v1/log"
 
 if ($hec_token -eq "" -And $PSBoundParameters.ContainsKey("access_token")) {
     $hec_token = "$access_token"
@@ -671,6 +690,13 @@ if ($PSBoundParameters.ContainsKey("access_token")) {
     $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_ACCESS_TOKEN" -value $access_token
 }
 
+if ($service_account_type -ne "") {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_SERVICE_ACCOUNT_TYPE" -value $service_account_type
+}
+elseif ($previous_service_account -ne "") {
+    $msi_public_properties = add_msi_public_property -properties $msi_public_properties -name "SPLUNK_PREVIOUS_SERVICE_ACCOUNT" -value $previous_service_account
+}
+
 if ($config_path -Ne "") {
     if (!(Test-Path -Path "$config_path")) {
         throw "Valid Collector configuration file not found at $config_path."
@@ -714,6 +740,10 @@ changes by restarting the system or running the following PowerShell commands:
 "
 echo "$message"
 
+if ($service_account_type -eq "" -and $previous_service_account -eq "LocalSystem") {
+    Write-Warning "The $CollectorServiceDisplayName service remains configured as LocalSystem. To use the dedicated service account, run: msiexec.exe /i `"$msi_path`" /qn SPLUNK_SERVICE_ACCOUNT_TYPE=virtual"
+}
+
 $otel_resource_attributes = ""
 if ($deployment_env -ne "") {
     echo "Setting deployment environment to $deployment_env"
@@ -731,7 +761,11 @@ if ($with_dotnet_instrumentation) {
     }
 
     # If the variable dotnet_auto_zip_path is an empty string, then the Installer will download the .NET Instrumentation from the default repository.
-    Install-OpenTelemetryCore -LocalPath $dotnet_auto_zip_path
+    $installArguments = @{ LocalPath = $dotnet_auto_zip_path }
+    if ((Get-Command Install-OpenTelemetryCore).Parameters.ContainsKey('SkipReleaseVerification')) {
+        $installArguments.SkipReleaseVerification = $true
+    }
+    Install-OpenTelemetryCore @installArguments
 
     $installed_version = Get-SplunkOpenTelemetryForDotNetVersion
     if ($otel_resource_attributes -ne "") {

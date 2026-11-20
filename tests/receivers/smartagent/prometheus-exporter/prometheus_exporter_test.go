@@ -58,20 +58,12 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 
 func TestPrometheusExporterScrapesTargets(t *testing.T) {
 	testutils.RunMetricsCollectionTest(t, "httpd_metrics_config.yaml", "expected_httpd.yaml",
-		testutils.WithCompareMetricsOptions(
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-		),
+		testutils.WithMetricsAssertionFile("expected_httpd.assert.yaml"),
 	)
 }
 
 func TestPrometheusExporterScrapesTargetsWithFilter(t *testing.T) {
 	testutils.RunMetricsCollectionTest(t, "httpd_metrics_config_with_filter.yaml", "expected_httpd_filtered.yaml",
-		testutils.WithCompareMetricsOptions(
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-		),
+		testutils.WithMetricsAssertionFile("expected_httpd_filtered.assert.yaml"),
 	)
 }

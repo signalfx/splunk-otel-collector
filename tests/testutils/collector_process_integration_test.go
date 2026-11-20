@@ -27,7 +27,7 @@ func TestCollectorPath(t *testing.T) {
 	p, err := findCollectorPath()
 	require.NoError(t, err)
 	require.NotEmpty(t, p)
-	assert.True(t, strings.HasSuffix(p, "/bin/otelcol"))
+	assert.True(t, strings.HasSuffix(p, binaryPathSuffix))
 }
 
 func TestConfigPathNotRequiredUponBuildWithArgs(t *testing.T) {

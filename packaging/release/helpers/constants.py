@@ -40,8 +40,6 @@ SMART_AGENT_RELEASE_PATH = REPO_DIR / "packaging" / "smart-agent-release.txt"
 WIX_IMAGE = "quay.io/signalfx/wix-dev:latest"
 WXS_PATH = "packaging/msi/splunk-otel-collector.wxs"
 MSI_CONFIG = "cmd/otelcol/config/collector/agent_config.yaml"
-FLUENTD_CONFIG = "packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
-FLUENTD_CONFD = "packaging/msi/fluentd/conf.d"
 
 # Installer scripts
 INSTALLER_SCRIPTS_DIR = REPO_DIR / "packaging" / "installer"

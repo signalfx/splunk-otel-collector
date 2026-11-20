@@ -29,7 +29,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.dml_locks.limit
-            unit: '{locks}'
+            unit: '{lock}'
           - description: Current count of active DML (Data Manipulation Language) locks.
             gauge:
               dataPoints:
@@ -37,7 +37,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.dml_locks.usage
-            unit: '{locks}'
+            unit: '{lock}'
           - description: Total number of deadlocks between table or row locks in different sessions.
             name: oracledb.enqueue_deadlocks
             sum:
@@ -47,7 +47,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{deadlocks}'
+            unit: '{deadlock}'
           - description: Maximum limit of active enqueue locks, -1 if unlimited.
             gauge:
               dataPoints:
@@ -55,7 +55,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.enqueue_locks.limit
-            unit: '{locks}'
+            unit: '{lock}'
           - description: Current count of active enqueue locks.
             gauge:
               dataPoints:
@@ -63,7 +63,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.enqueue_locks.usage
-            unit: '{locks}'
+            unit: '{lock}'
           - description: Maximum limit of active enqueue resources, -1 if unlimited.
             gauge:
               dataPoints:
@@ -71,7 +71,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.enqueue_resources.limit
-            unit: '{resources}'
+            unit: '{resource}'
           - description: Current count of active enqueue resources.
             gauge:
               dataPoints:
@@ -79,7 +79,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.enqueue_resources.usage
-            unit: '{resources}'
+            unit: '{resource}'
           - description: Number of times that a process detected a potential deadlock when exchanging two buffers and raised an internal, restartable error. Index scans are the only operations that perform exchanges.
             name: oracledb.exchange_deadlocks
             sum:
@@ -89,7 +89,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{deadlocks}'
+            unit: '{deadlock}'
           - description: Total number of calls (user and recursive) that executed SQL statements
             name: oracledb.executions
             sum:
@@ -99,7 +99,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{executions}'
+            unit: '{execution}'
           - description: Number of hard parses
             name: oracledb.hard_parses
             sum:
@@ -109,7 +109,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{parses}'
+            unit: '{parse}'
           - description: Number of logical reads
             name: oracledb.logical_reads
             sum:
@@ -119,7 +119,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{reads}'
+            unit: '{read}'
           - description: Total number of parse calls.
             name: oracledb.parse_calls
             sum:
@@ -129,7 +129,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{parses}'
+            unit: '{parse}'
           - description: Session PGA (Program Global Area) memory
             name: oracledb.pga_memory
             sum:
@@ -149,7 +149,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{reads}'
+            unit: '{read}'
           - description: Maximum limit of active processes, -1 if unlimited.
             gauge:
               dataPoints:
@@ -157,7 +157,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.processes.limit
-            unit: '{processes}'
+            unit: '{process}'
           - description: Current count of active processes.
             gauge:
               dataPoints:
@@ -165,7 +165,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.processes.usage
-            unit: '{processes}'
+            unit: '{process}'
           - description: Maximum limit of active sessions, -1 if unlimited.
             gauge:
               dataPoints:
@@ -173,7 +173,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.sessions.limit
-            unit: '{sessions}'
+            unit: '{session}'
           - description: Count of active sessions.
             gauge:
               dataPoints:
@@ -198,7 +198,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.sessions.usage
-            unit: '{sessions}'
+            unit: '{session}'
           - description: Maximum size of tablespace in bytes, -1 if unlimited.
             gauge:
               dataPoints:
@@ -286,7 +286,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.transactions.limit
-            unit: '{transactions}'
+            unit: '{transaction}'
           - description: Current count of active transactions.
             gauge:
               dataPoints:
@@ -294,7 +294,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: oracledb.transactions.usage
-            unit: '{transactions}'
+            unit: '{transaction}'
           - description: Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate.
             name: oracledb.user_commits
             sum:
@@ -304,7 +304,7 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
-            unit: '{commits}'
+            unit: '{commit}'
           - description: Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions
             name: oracledb.user_rollbacks
             sum:

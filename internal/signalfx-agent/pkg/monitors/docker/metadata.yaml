@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed on or after December 2026. Use the `docker_stats` receiver instead.**
+
     This monitor reads container stats from a
     Docker API server.  It is meant as a metric-compatible replacement of our
     [docker-collectd](https://github.com/signalfx/docker-collectd-plugin)

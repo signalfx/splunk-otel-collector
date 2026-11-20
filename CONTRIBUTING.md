@@ -83,7 +83,7 @@ same as for any contribution: you own the result and can stand behind it.
   the feedback in the code or respond yourself.
 - AI-assisted code must meet the same bar as everything else: follow the coding
   standards, include tests, and be documented.
-- Disclose significant AI assistance with an `Assisted-by:` commit message trailer (e.g.
+- Optionally disclose significant AI assistance with an `Assisted-by:` commit message trailer (e.g.
   `Assisted-by: Claude Opus 4.5`). Do NOT use a `Co-authored-by:` trailer as it breaks
   the EasyCLA check and blocks the PR.
 

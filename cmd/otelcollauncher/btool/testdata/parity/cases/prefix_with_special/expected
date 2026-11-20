@@ -1,0 +1,5 @@
+[monitor:///a]
+x = 1
+[monitor:///b]
+x = 2
+EXIT=0

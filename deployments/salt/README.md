@@ -11,7 +11,7 @@ Currently, the following Linux distributions and versions are supported:
 - Amazon Linux: 2, 2023
 - CentOS / Red Hat: 8, 9, 10
 - Oracle: 8, 9, 10
-- Debian: 11, 12
+- Debian: 12
 - SUSE: 15, 16
 - Ubuntu: 22.04, 24.04, 26.04
 
@@ -35,6 +35,23 @@ splunk-otel-collector:
   splunk_service_user: splunk-otel-collector
   splunk_service_group: splunk-otel-collector
 ```
+
+### Send host logs to Splunk Platform
+
+The collector package includes a Splunk Platform logs configuration for each
+supported operating system. Enable config merging and provide the HEC settings
+as additional environment variables:
+
+```yaml
+splunk-otel-collector:
+  splunk_otel_collector_command_line_args: "--feature-gates=confmap.enableMergeAppendOption"
+  collector_additional_env_vars:
+    SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
+    SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+```
+
+You can also specify the `SPLUNK_PLATFORM_LOGS_INDEX` if you don't want to use
+the default index `main`.
 
 ## This Salt Formula accepts the following attributes:
 
@@ -128,7 +145,7 @@ after installation/configuration in order for any changes to take effect.
   Currently, the following values are supported:
   - `java`: [Splunk OpenTelemetry for Java](https://github.com/signalfx/splunk-otel-java)
   - `nodejs`: [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js)
-  - `dotnet`: [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64 only)
+  - `dotnet`: [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64, plus arm64 for package versions newer than `0.159.0`)
 
   **Note:** This formula does not manage the installation/configuration of
   Node.js, `npm`, or Node.js applications. If `nodejs` is included in this
@@ -137,14 +154,22 @@ after installation/configuration in order for any changes to take effect.
 
 - `auto_instrumentation_systemd`: By default, the `/etc/ld.so.preload` file on
   the node will be configured for the
-  `/usr/lib/splunk-instrumentation/libsplunk.so` [shared object library](
+  `/usr/lib/splunk-instrumentation/libotelinject.so` [shared object library](
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation)
   provided by the `splunk-otel-auto-instrumentation` package to activate and
   configure auto instrumentation system-wide for all supported applications.
+  Package versions through `0.159.0` use `libsplunk.so` instead. When
+  upgrading a node from a `libsplunk.so`-based version, the package preserves
+  the legacy `/etc/splunk/zeroconfig/` files under
+  `/usr/lib/splunk-instrumentation/legacy-zeroconfig/` before removing them.
+  This formula does not manage or clean up that backup directory across the
+  fleet; remove it manually on each node (or via the package's
+  `preuninstall.sh` with `REMOVE_LEGACY_CONFIG=true`) once any custom
+  settings have been migrated.
   Alternatively, set this option to `True` to activate and configure auto
   instrumentation ***only*** for supported applications running as `systemd`
   services. If this option is set to `True`,
-  `/usr/lib/splunk-instrumentation/libsplunk.so` will not be added to
+  the package's shared object library will not be added to
   `/etc/ld.so.preload`. Instead, the
   `/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf`
   `systemd` drop-in file will be created and configured for environment

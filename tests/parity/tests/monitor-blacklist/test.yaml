@@ -1,0 +1,10 @@
+name: "Monitor blacklist"
+description: blacklist drops the monitored files whose path matches it.
+setup: |
+  mkdir -p logs
+  echo "kept line" > logs/keep.log
+  echo "dropped line" > logs/skip.log
+expected:
+  raw: true
+  host: true
+  source: true

@@ -273,8 +273,6 @@ exists to test. Handed a case's `*.conf`, the adapter installs them into
 `etc/system/local` of a sandbox `$SPLUNK_HOME`, the same way the UF adapter
 installs them into its own install, and resolves `${SPLUNK_HOME}` in the URI to
 that tree, standing in for the shell that would expand it in a real deployment.
-The case also enables `enableTARunner`, the alpha gate the emitted `splunk_*`
-receivers are registered behind.
 
 `outputs.conf` is the one file such a case does not supply to the candidate: the
 oracle ships events with `[httpout]`, which the provider does not map, so the
@@ -287,7 +285,10 @@ Prerequisites for a normal (replay) run:
 - A Splunk. Either Docker, which lets the suite start its own (the image is
   amd64-only; on Apple Silicon it runs under emulation), or an existing instance
   selected with `PARITY_SPLUNK_HEC_URL` and `PARITY_SPLUNK_MGMT_URL`.
-- The collector binary. Build it with `make otelcol` from the repo root.
+- The candidate collector binary. Build it with `make otelcol` in
+  `tests/parity`. This is a test-only build from `cmd/otelcol`, not the shipped
+  Splunk OTel Collector: the UF-native receivers and exporter the splunkconf
+  provider emits live only there, under `cmd/otelcol/internal`.
 
 Pointing at an existing Splunk is what lets the suite run where it cannot start
 its own — a GitHub-hosted Windows runner runs Windows containers and cannot host
@@ -300,7 +301,7 @@ Environment variables:
 
 | Variable                 | Purpose                                                                     |
 | ------------------------ | ---------------------------------------------------------------------------- |
-| `PARITY_OTELCOL_BIN`     | collector binary. Defaults to `../../bin/otelcol`.                          |
+| `PARITY_OTELCOL_BIN`     | collector binary. Defaults to `bin/otelcol`.                                |
 | `PARITY_UF_DIR`          | UF install root. Set by `make update-goldens`.                             |
 | `PARITY_SPLUNK_HEC_URL`  | HEC base URL of an existing Splunk, e.g. `https://splunk:8088`. Setting it skips the container. |
 | `PARITY_SPLUNK_MGMT_URL` | Management/search base URL, e.g. `https://splunk:8089`. Required alongside the above. |

@@ -8,6 +8,11 @@ SPLUNK_UF_PASSWORD ?= parityTest123!
 UF_ROOT := $(CURDIR)/.local
 UF_DIR := $(UF_ROOT)/splunkforwarder
 
+# The candidate is a test-only collector, not the shipped one; see cmd/otelcol.
+.PHONY: otelcol
+otelcol:
+	cd cmd/otelcol && CGO_ENABLED=0 $(GOCMD) build -trimpath -o $(CURDIR)/bin/otelcol .
+
 .PHONY: update-goldens
 update-goldens: install-uf
 	PARITY_UF_DIR=$(UF_DIR) $(GOTEST) -update -v -timeout 30m .

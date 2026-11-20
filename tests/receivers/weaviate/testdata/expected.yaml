@@ -27,7 +27,7 @@ resourceMetrics:
             stringValue: http
     scopeMetrics:
       - metrics:
-          - description: Number of collections per node
+          - description: Number of collections per node and namespace
             gauge:
               dataPoints:
                 - asDouble: 0
@@ -47,6 +47,19 @@ resourceMetrics:
                 value:
                   stringValue: counter
             name: weaviate_internal_counter_raft_state_candidate
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - description: weaviate_internal_counter_raft_apply
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: weaviate_internal_counter_raft_apply
             sum:
               aggregationTemporality: 2
               dataPoints:
@@ -81,7 +94,7 @@ resourceMetrics:
                   attributes:
                     - key: branch
                       value:
-                        stringValue: v1.33.2
+                        stringValue: v1.39.13
                     - key: goarch
                       value:
                         stringValue: arm64
@@ -90,16 +103,16 @@ resourceMetrics:
                         stringValue: linux
                     - key: goversion
                       value:
-                        stringValue: go1.24.9
+                        stringValue: go1.26.10
                     - key: revision
                       value:
-                        stringValue: 7c65630
+                        stringValue: e54e5b6
                     - key: tags
                       value:
                         stringValue: unknown
                     - key: version
                       value:
-                        stringValue: 1.33.2
+                        stringValue: 1.39.13
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type

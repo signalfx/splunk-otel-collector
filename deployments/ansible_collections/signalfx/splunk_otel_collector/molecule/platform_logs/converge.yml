@@ -7,6 +7,11 @@
     splunk_access_token: ""
     splunk_platform_token: fake-platform-token
     splunk_platform_url: https://splunk.example.com:8088/services/collector
+    splunk_config_override:
+      service:
+        telemetry:
+          logs:
+            level: debug
     start_service: false
   tasks:
     - name: Include signalfx.splunk_otel_collector.collector role

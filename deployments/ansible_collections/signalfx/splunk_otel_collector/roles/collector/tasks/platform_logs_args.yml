@@ -14,5 +14,4 @@
     _load_agent_config: >-
       {{ splunk_access_token | trim != '' or
          splunk_otel_collector_config_explicitly_set | default(false) or
-         splunk_otel_collector_config_source | trim != '' or
-         splunk_config_override != '' }}
+         splunk_otel_collector_config_source | trim != '' }}

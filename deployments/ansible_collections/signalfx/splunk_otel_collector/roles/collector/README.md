@@ -123,7 +123,9 @@ install it with the new settings.
   mode. (**default:** `/etc/otel/collector/agent_config.yaml` on Linux, 
   **default:** `%ProgramData%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
 
-- `splunk_config_override`: Custom Splunk OTel Collector config that will be merged into the default config.
+- `splunk_config_override`: Custom Splunk OTel Collector config that will be merged into the base config. For
+  Platform-only collection, it is merged into the packaged Platform logs config unless an explicit config path
+  or config source is provided.
 
 - `splunk_config_override_list_merge`: This variable is used to configure `list_merge` option for merging lists in `splunk_config_override` with lists in default config. Allowed options are `replace`, `keep`, `append`, `prepend`, `append_rp` or `prepend_rp`. More details: https://docs.ansible.com/ansible/latest/user_guide/playbooks_filters.html#combining-hashes-dictionaries. (**default:** `replace`)
 

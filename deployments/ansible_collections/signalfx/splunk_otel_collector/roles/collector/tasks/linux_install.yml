@@ -10,6 +10,16 @@
     splunk_listen_interface: "{{ splunk_listen_interface if splunk_listen_interface | trim != '' else '127.0.0.1' }}"
   when: splunk_platform_url | trim != ''
 
+- name: Use the packaged Platform logs config as the override base for Platform-only installs
+  ansible.builtin.set_fact:
+    splunk_otel_collector_config: /etc/otel/collector/splunk_logs_config_linux.yaml
+  when:
+    - splunk_platform_url | trim != ''
+    - splunk_access_token | trim == ''
+    - not (splunk_otel_collector_config_explicitly_set | default(false) | bool)
+    - splunk_otel_collector_config_source | trim == ''
+    - splunk_config_override != ''
+
 - name: Build Collector command line arguments for Splunk Platform logs
   ansible.builtin.import_tasks: platform_logs_args.yml
   when: splunk_platform_url | trim != ''

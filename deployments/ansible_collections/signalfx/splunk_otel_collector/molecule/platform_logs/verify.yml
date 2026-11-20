@@ -60,6 +60,16 @@
       register: config
       failed_when: config is changed
 
+    - name: Read the configured Platform logs config
+      ansible.builtin.slurp:
+        src: /etc/otel/collector/splunk_logs_config_linux.yaml
+      register: platform_logs_config
+
+    - name: Assert the override is merged into the Platform logs config
+      ansible.builtin.assert:
+        that:
+          - (platform_logs_config.content | b64decode | from_yaml)['service']['telemetry']['logs']['level'] == 'debug'
+
     - name: Assert Platform logs storage directory permissions
       ansible.builtin.stat:
         path: /var/lib/otelcol/filelogs

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import hashlib
 import gzip
 import os
@@ -20,9 +21,11 @@ import sys
 import tempfile
 import time
 import urllib.parse
+from contextlib import closing
 
 import boto3
 import requests
+from botocore.exceptions import ClientError
 from defusedxml import ElementTree as ET
 
 from .constants import (
@@ -39,6 +42,11 @@ from .constants import (
 
 
 METADATA_POLL_INTERVAL = 60
+MSI_VERSION_PATTERN = r"[0-9]+(?:\.[0-9]+){2,3}"
+MSI_WRITE_ATTEMPTS = 5
+MSI_LATEST_MAX_BYTES = 128
+S3_PRECONDITION_ERRORS = {"PreconditionFailed", "412"}
+S3_WRITE_CONFLICTS = {"ConditionalRequestConflict", "409"}
 
 
 class MetadataNotReady(Exception):
@@ -81,12 +89,15 @@ class Asset(object):
             return self.path
         return None
 
+def stream_checksum(stream, hash_obj):
+    for block in iter(lambda: stream.read(1024 * 1024), b""):
+        hash_obj.update(block)
+    return hash_obj.hexdigest().lower()
+
+
 def get_checksum(path, hash_obj):
-    with open(path, "rb") as f:
-        # Read and update hash string value in blocks of 4K
-        for byte_block in iter(lambda: f.read(4096), b""):
-            hash_obj.update(byte_block)
-        return str(hash_obj.hexdigest()).lower()
+    with open(path, "rb") as stream:
+        return stream_checksum(stream, hash_obj)
 
 
 def upload_file_to_artifactory(src, dest, user, token):
@@ -470,7 +481,7 @@ def s3_file_exists(s3_client, path):
     return False
 
 
-def invalidate_cloudfront(paths):
+def invalidate_cloudfront(paths, *, wait=False):
     session = boto3.Session()
     cloudfront = session.client("cloudfront")
     print(f"Invalidating cloudfront for {paths} ...")
@@ -483,6 +494,10 @@ def invalidate_cloudfront(paths):
     )
     print(resp)
     assert resp.get("ResponseMetadata", {}).get("HTTPStatusCode") == 201, "Failed to submit invalidation request!"
+    if wait:
+        cloudfront.get_waiter("invalidation_completed").wait(
+            DistributionId=CLOUDFRONT_DISTRIBUTION_ID, Id=resp["Invalidation"]["Id"],
+        )
 
 
 def upload_file_to_s3(local_path, s3_path, force=False):
@@ -495,7 +510,126 @@ def upload_file_to_s3(local_path, s3_path, force=False):
     print(f"Uploading {local_path} to {S3_BUCKET}/{s3_path} ...")
     s3_client.upload_file(local_path, S3_BUCKET, s3_path)
 
+
+def msi_version_key(version):
+    if not re.fullmatch(MSI_VERSION_PATTERN, version):
+        raise ValueError(f"Invalid MSI version {version!r}")
+    parts = tuple(int(part) for part in version.split("."))
+    return parts + (0,) * (4 - len(parts))
+
+
+def promote_stable_msi_latest(path, version):
+    s3 = boto3.Session().client("s3")
+    candidate = msi_version_key(version)
+    for attempt in range(MSI_WRITE_ATTEMPTS):
+        try:
+            current = s3.get_object(Bucket=S3_BUCKET, Key=path)
+        except ClientError as error:
+            if error.response["Error"]["Code"] not in {"NoSuchKey", "404"}:
+                raise
+            condition = {"IfNoneMatch": "*"}
+        else:
+            with closing(current["Body"]) as content:
+                raw = content.read(MSI_LATEST_MAX_BYTES + 1)
+            if len(raw) > MSI_LATEST_MAX_BYTES or len(raw) != current.get("ContentLength"):
+                raise ValueError(f"Invalid MSI version pointer at {S3_BUCKET}/{path}")
+            current_version = raw.decode("ascii").strip()
+            if candidate <= msi_version_key(current_version):
+                print(f"Keeping {S3_BUCKET}/{path} at version '{current_version}'")
+                return
+            etag = current.get("ETag")
+            if not isinstance(etag, str) or not re.fullmatch(r'"[^"\r\n]+"', etag):
+                raise ValueError(f"Invalid S3 ETag for {S3_BUCKET}/{path}")
+            condition = {"IfMatch": etag}
+
+        # A concurrent promotion can change latest after the read. Recheck its version on conflict.
+        try:
+            s3.put_object(Bucket=S3_BUCKET, Key=path, Body=version.encode("ascii"), **condition)
+        except ClientError as error:
+            if (error.response["Error"]["Code"] not in S3_PRECONDITION_ERRORS | S3_WRITE_CONFLICTS
+                    or attempt == MSI_WRITE_ATTEMPTS - 1):
+                raise
+        else:
+            print(f"Updated {S3_BUCKET}/{path} to version '{version}'")
+            return
+
+
+def upload_stable_msi(s3, local_path, s3_path):
+    with open(local_path, "rb") as body:
+        checksum = stream_checksum(body, hashlib.sha256())
+        checksum_header = base64.b64encode(bytes.fromhex(checksum)).decode("ascii")
+        for attempt in range(MSI_WRITE_ATTEMPTS):
+            body.seek(0)
+            try:
+                s3.put_object(Bucket=S3_BUCKET, Key=s3_path, Body=body, IfNoneMatch="*",
+                              ChecksumSHA256=checksum_header)
+            except ClientError as error:
+                code = error.response["Error"]["Code"]
+                if code in S3_PRECONDITION_ERRORS:
+                    # Read the bytes so legacy multipart uploads can be verified too.
+                    existing = s3.get_object(Bucket=S3_BUCKET, Key=s3_path)
+                    with closing(existing["Body"]) as content:
+                        published_checksum = stream_checksum(content, hashlib.sha256())
+                    if published_checksum != checksum:
+                        raise ValueError(f"Published MSI checksum mismatch for {S3_BUCKET}/{s3_path}")
+                    print(f"Verified existing signed MSI at {S3_BUCKET}/{s3_path}")
+                    return
+                if code not in S3_WRITE_CONFLICTS or attempt == MSI_WRITE_ATTEMPTS - 1:
+                    raise
+            else:
+                print(f"Uploaded {local_path} to {S3_BUCKET}/{s3_path}")
+                return
+
+
+def msi_version_and_arch(asset):
+    match = re.fullmatch(rf"{re.escape(PACKAGE_NAME)}-({MSI_VERSION_PATTERN})-(amd64|arm64)\.msi", asset.name)
+    if not match:
+        raise ValueError(f"Failed to get version and architecture from '{asset.name}'")
+    return match.groups()
+
+
+def release_stable_msi_to_s3(assets, args):
+    if args.stage != "release":
+        raise ValueError("Stable MSI batch publication requires the release stage")
+    versions = set()
+    packages = {}
+    for asset in assets:
+        version, arch = msi_version_and_arch(asset)
+        if arch in packages:
+            raise ValueError(f"Duplicate stable MSI architecture {arch}")
+        versions.add(version)
+        packages[arch] = asset
+    if len(versions) != 1:
+        raise ValueError("Stable MSI batches must contain a single version")
+    if not args.not_latest and packages.keys() != {"amd64", "arm64"}:
+        raise ValueError("Stable MSI latest requires both signed packages via --paths. Use --not-latest for a single package.")
+
+    base = f"{S3_MSI_BASE_DIR}/release"
+    paths = []
+    s3 = boto3.Session().client("s3")
+    # Use the same architecture order for concurrent attempts of the same version.
+    for arch in sorted(packages):
+        asset = packages[arch]
+        path = f"{base}/{asset.name}"
+        upload_stable_msi(s3, asset.path, path)
+        paths.append(path)
+
+    if args.not_latest:
+        invalidate_cloudfront(paths)
+        return
+
+    # Clear cached errors for either package before the public pointer can expose it.
+    invalidate_cloudfront(paths, wait=True)
+    latest_path = f"{base}/latest.txt"
+    promote_stable_msi_latest(latest_path, next(iter(versions)))
+    invalidate_cloudfront([latest_path])
+
+
 def release_msi_to_s3(asset, args):
+    if args.stage == "release":
+        release_stable_msi_to_s3([asset], args)
+        return
+
     msi_path = asset.path
 
     s3_path = f"{S3_MSI_BASE_DIR}/{args.stage}/{asset.name}"
@@ -503,12 +637,10 @@ def release_msi_to_s3(asset, args):
 
     s3_latest_path = f"{S3_MSI_BASE_DIR}/{args.stage}/latest.txt"
     if not args.not_latest:
+        msi_version, _ = msi_version_and_arch(asset)
         with tempfile.TemporaryDirectory() as tmpdir:
             latest_txt = os.path.join(tmpdir, "latest.txt")
-            match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-(amd64|arm64)\.msi$", asset.name)
-            assert match, f"Failed to get version from '{asset.name}'!"
-            msi_version = match.group(1)
-            with open(latest_txt, "w") as fd:
+            with open(latest_txt, "w", encoding="ascii") as fd:
                 fd.write(msi_version)
             print(f"Updating {S3_BUCKET}/{s3_latest_path} for version '{msi_version}' ...")
             upload_file_to_s3(latest_txt, s3_latest_path, force=True)

@@ -31,24 +31,57 @@ source_dir="dist/docker/${DOCKER_HUB_COLLECTOR_REPO}"
 images=()
 digests=()
 suffixes=()
+repository_suffix=""
+if [[ "$image_tag" =~ ^[0-9a-f]{40}-staging-[0-9]+$ ]]; then
+    repository_suffix="-dev"
+fi
 
 # Assemble the complete promotion plan before changing any mutable tags.
 for artifact in multiarch multiarch-fips windows_multiarch windows_multiarch-fips; do
+    expected_suffixes=('' -2019 -2022)
+    case "$artifact" in
+        multiarch)
+            variant=""
+            expected_suffixes+=(-amd64 -arm64 -ppc64le)
+            ;;
+        multiarch-fips)
+            variant="-fips"
+            expected_suffixes+=(-amd64 -arm64)
+            ;;
+        windows_multiarch) variant="-windows" ;;
+        windows_multiarch-fips) variant="-fips-windows" ;;
+    esac
+    repository="${QUAY_COLLECTOR_REPO}${variant}${repository_suffix}"
+    pending_refs=()
+    for suffix in "${expected_suffixes[@]}"; do
+        pending_refs+=("${repository}:${image_tag}${suffix}")
+    done
     records="${source_dir}/images_${artifact}.txt"
     if [[ ! -s "$records" ]]; then
         echo "Missing image records for $artifact" >&2
         exit 1
     fi
-    while read -r image digest; do
-        tag="${image##*:}"
-        if [[ "$tag" != "$image_tag" && "$tag" != "$image_tag"-* ]] || [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
-            echo "Unexpected image record for $image" >&2
+    while read -r image digest || [[ -n "$image$digest" ]]; do
+        if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "Invalid image digest for $image in $records" >&2
             exit 1
         fi
-        images+=("${image%:*}")
-        digests+=("$digest")
-        suffixes+=("${tag#"$image_tag"}")
+        for i in "${!pending_refs[@]}"; do
+            if [[ "$image" == "${pending_refs[i]}" ]]; then
+                unset 'pending_refs[i]'
+                images+=("$repository")
+                digests+=("$digest")
+                suffixes+=("${image#"${repository}:${image_tag}"}")
+                continue 2
+            fi
+        done
+        echo "Unexpected or duplicate image record for $image in $records" >&2
+        exit 1
     done < "$records"
+    if [[ -n "${pending_refs[*]:-}" ]]; then
+        echo "Missing image records in $records for: ${pending_refs[*]}" >&2
+        exit 1
+    fi
 done
 
 login_to_quay

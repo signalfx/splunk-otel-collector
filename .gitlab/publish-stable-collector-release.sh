@@ -4,6 +4,7 @@ set -euo pipefail
 
 source .gitlab/collector-docker-common.sh
 source .gitlab/collector-release-snapshot.sh
+source .gitlab/collector-release-assets.sh
 
 version="$1"
 staging_tag="$2"
@@ -13,27 +14,54 @@ if [[ -n "$mode" && "$mode" != --recover-only && "$mode" != --recover-from-tag ]
     exit 1
 fi
 
-# ghr can upload to a draft, but does not expose GitHub's make_latest flag.
-publish_superseded_draft() {
-    local page=1 releases release id
-    while :; do
-        releases="$(collector_github_api "releases?per_page=100&page=$page" --fail)"
-        release="$(jq -c --arg version "$version" '[.[] | select(.tag_name == $version)] | sort_by(.draft) | first // empty' <<< "$releases")"
-        if [[ -n "$release" ]]; then
-            if [[ "$(jq -r '.draft' <<< "$release")" == true ]]; then
-                id="$(jq -er '.id | numbers' <<< "$release")"
-                collector_github_api "releases/$id" --fail --request PATCH \
-                    --header 'Content-Type: application/json' \
-                    --data '{"draft":false,"make_latest":"false"}' > /dev/null
-            fi
-            return
-        fi
-        if [[ "$(jq 'length' <<< "$releases")" -lt 100 ]]; then
-            echo "Could not find GitHub draft release for $version" >&2
+github_release_for_tag() {
+    local response status
+    response="$(collector_github_api "releases/tags/$version" --write-out $'\n%{http_code}')" || return
+    status="${response##*$'\n'}"
+    case "$status" in
+        200)
+            response="${response%$'\n'*}"
+            github_release_id "$version" "$response" > /dev/null || return
+            printf '%s\n' "$response"
+            ;;
+        404)
+            # The tag endpoint only returns published releases. Drafts are visible in the authenticated list.
+            github_release_pages releases | jq -cs --arg version "$version" '
+                [.[][] | select(.tag_name == $version)]
+                | if length <= 1 then .[] else error("Several GitHub releases match the tag") end
+            '
+            ;;
+        *)
+            echo "Could not check publication of $version (HTTP $status)" >&2
             return 1
+            ;;
+    esac
+}
+
+finish_github_assets() {
+    local id="$1" expected="$2" plan uploads name starter encoded_name
+    plan="$(github_asset_upload_plan "$id" "$expected")" || return
+    if [[ "$plan" == '[]' ]]; then
+        return 0
+    fi
+    uploads="$(jq -r '.[] | [.name, .starter] | @tsv' <<< "$plan")" || return
+    while IFS=$'\t' read -r name starter; do
+        if [[ -n "$starter" ]]; then
+            # GitHub can leave an empty placeholder after an upload fails upstream.
+            collector_github_api "releases/assets/$starter" --fail --request DELETE > /dev/null || return
         fi
-        ((page += 1))
-    done
+        encoded_name="$(jq -rn --arg name "$name" '$name | @uri')" || return
+        curl --silent --show-error --fail --header "Authorization: Bearer $GITHUB_TOKEN" \
+            --header 'Accept: application/vnd.github+json' --header 'Content-Type: application/octet-stream' \
+            --data-binary "@dist/assets/$name" \
+            "https://uploads.github.com/repos/signalfx/splunk-otel-collector/releases/$id/assets?name=$encoded_name" \
+            > /dev/null || return
+    done <<< "$uploads"
+    plan="$(github_asset_upload_plan "$id" "$expected")" || return
+    if [[ "$plan" != '[]' ]]; then
+        echo "GitHub release $version still has incomplete asset uploads" >&2
+        return 1
+    fi
 }
 
 : "${GITHUB_TOKEN:?}" "${CI_COMMIT_SHA:?}"
@@ -47,25 +75,12 @@ fi
 latest_published="$(latest_published_collector_release)"
 if [[ -n "$published_ref" ]]; then
     snapshot="$(read_release_snapshot "$version" "$published_ref" "$mode")"
-    if [[ -n "$mode" ]]; then
-        release_status="$(collector_github_api "releases/tags/$version" --output /dev/null --write-out '%{http_code}')"
-        case "$release_status" in
-            200)
-                echo "$version is already published on GitHub"
-                exit 0
-                ;;
-            404) ;; # No published release exists for this tag yet.
-            *)
-                echo "Could not check publication of $version (HTTP $release_status)" >&2
-                exit 1
-                ;;
-        esac
-    fi
+    release="$(github_release_for_tag)"
     if [[ "$mode" == --recover-from-tag ]]; then
         export_release_snapshot_registries "$snapshot"
         staging_tag="$(release_snapshot_staging_tag "$version" "$snapshot")"
     fi
-    for part in assets docker tools; do
+    for part in assets docker; do
         restore_release_input "$snapshot" "$part"
     done
 else
@@ -86,24 +101,40 @@ if [[ "$mode" == --recover-from-tag ]]; then
     if ! git cat-file -e "$release_commit:CHANGELOG.md"; then
         git fetch --no-tags https://github.com/signalfx/splunk-otel-collector.git "refs/tags/$version"
     fi
-    release_notes="$(git show "$release_commit:CHANGELOG.md" | ./packaging/release/gh-release-notes.sh "$version" /dev/stdin)"
+    release_notes="$(git show "$release_commit:CHANGELOG.md" | ./packaging/release/gh-release-notes.sh "$version" "$staging_tag" /dev/stdin)"
 else
-    release_notes="$(./packaging/release/gh-release-notes.sh "$version")"
+    release_notes="$(./packaging/release/gh-release-notes.sh "$version" "$staging_tag")"
 fi
-test -x dist/github-release-tools/ghr
-export PATH="$PWD/dist/github-release-tools:$PATH"
+expected_assets="$(local_release_assets | jq -cs '.')"
 if [[ -n "$published_ref" ]]; then
     bash .gitlab/promote-collector-docker-images.sh "$staging_tag" "${version#v}" verify
 else
     test -x dist/github-release-tools/multimod
+    export PATH="$PWD/dist/github-release-tools:$PATH"
     bash .gitlab/promote-collector-docker-images.sh "$staging_tag" "${version#v}"
     ./.gitlab/create-github-tag.sh "$version" "$CI_COMMIT_SHA" "$snapshot"
+    release="$(github_release_for_tag)"
 fi
-# Preserve a published release, while allowing a retry to finish a draft.
-ghr_args=(-t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$version" -b "$release_notes" --soft --replace "$version" dist/assets/)
-if collector_version_is_older "$version" "$latest_published"; then
-    ghr --draft "${ghr_args[@]}"
-    publish_superseded_draft
-else
-    ghr "${ghr_args[@]}"
+
+if [[ -z "$release" ]]; then
+    payload="$(jq -cn --arg tag "$version" --arg notes "$release_notes" \
+        '{tag_name:$tag,name:$tag,body:$notes,draft:true,prerelease:false}')"
+    release="$(collector_github_api releases --fail --request POST \
+        --header 'Content-Type: application/json' --data "$payload")"
+    jq -e '.draft == true' <<< "$release" > /dev/null
+fi
+release_id="$(github_release_id "$version" "$release")"
+finish_github_assets "$release_id" "$expected_assets"
+
+if [[ "$(jq -r '.draft' <<< "$release")" == true ]]; then
+    latest_published="$(latest_published_collector_release)"
+    make_latest=true
+    if collector_version_is_older "$version" "$latest_published"; then
+        make_latest=false
+    fi
+    payload="$(jq -cn --arg latest "$make_latest" '{draft:false,make_latest:$latest}')"
+    published="$(collector_github_api "releases/$release_id" --fail --request PATCH \
+        --header 'Content-Type: application/json' --data "$payload")"
+    [[ "$(github_release_id "$version" "$published")" == "$release_id" ]]
+    jq -e '.draft == false' <<< "$published" > /dev/null
 fi

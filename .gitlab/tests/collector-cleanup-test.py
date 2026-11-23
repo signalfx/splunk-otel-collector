@@ -83,6 +83,205 @@ class CleanupTest(unittest.TestCase):
         self.assertNotIn("gitlab/pipelines/102/jobs", [call.args[0] for call in pages.call_args_list])
         api.assert_called_once_with(f"gitlab/jobs/11/artifacts/{cleanup.ATTEMPT_FILE}", "fixture")
 
+    def test_malformed_discovery_keeps_the_attempt_and_continues(self):
+        malformed = archived_release(100)
+        malformed[0]["artifacts"] = [None]
+        later = archived_release(101, receipt=False)
+        later[-1]["started_at"] = None
+        pipelines = [None, {"id": 100, "status": "failed"}, {"id": 101, "status": "success"}]
+        with patch.object(cleanup, "pages", side_effect=[pipelines, malformed, later]), \
+                patch.object(cleanup, "api", side_effect=[204, {"id": 1011, "artifacts": []}]) as api, \
+                contextlib.redirect_stderr(io.StringIO()) as warnings:
+            attempts = list(cleanup.archived_attempts("gitlab", "fixture", "42"))
+            plan, incomplete = plan_cleanup(attempts)
+            cleanup.apply_cleanup(plan, "gitlab", "fixture")
+        self.assertTrue(incomplete)
+        self.assertEqual([entry["receipt_status"] for entry in plan], ["malformed", "malformed", "missing"])
+        self.assertEqual([entry["archives"] for entry in plan], [[], [], ["1011"]])
+        self.assertIn("could not discover archived artifacts for pipeline 100", warnings.getvalue())
+        self.assertEqual([call.args[0] for call in api.call_args_list], ["gitlab/jobs/1011/artifacts", "gitlab/jobs/1011"])
+
+    def test_nonstable_inventory_selects_only_the_expected_staging_tags(self):
+        sha = "a" * 40
+        rc_tag = "1.2.3-rc.1-staging-100-2022"
+        dev_tag = f"{sha}-staging-101-linux"
+        quay = "quay.io/fixture/collector"
+        hub = cleanup.DEFAULT_COLLECTOR_REPOSITORIES["docker.io"]
+        dryrun_tag = f"{sha}-dryrun-103-amd64"
+        tags = {
+            quay: ["1.2.3-staging-100-amd64", "1.2.3-rc.1", "latest", f"{sha}-staging-101-amd64"],
+            quay + "-fips-dev": [dev_tag, f"{sha}-staging-101-ppc64le", "1.2.3-beta.1-staging-102"],
+            hub + "-windows": [rc_tag, "1.2.3-rc.1-staging-100-linux", "1.2.3-rc.1-staging-100-2025"],
+            hub + "-dev": [f"{sha}-staging-101-linux", dryrun_tag, "1.2.3-rc.1-dryrun-103-amd64", f"{sha}-amd64"],
+        }
+        with patch.dict(os.environ, {"QUAY_COLLECTOR_REPO": quay}, clear=True), \
+                patch.object(cleanup, "repository_tags", side_effect=lambda repo, _: iter(tags.get(repo, []))):
+            candidates, incomplete = cleanup.nonstable_staging_candidates()
+        self.assertFalse(incomplete)
+        self.assertEqual(candidates, {
+            "100": {("1.2.3-rc.1", "staging", "docker.io", hub, "-windows", f"{hub}-windows:{rc_tag}")},
+            "101": {(sha, "staging", "quay.io", quay, "-fips", f"{quay}-fips-dev:{dev_tag}")},
+            "103": {(sha, "dryrun", "docker.io", hub, "", f"{hub}-dev:{dryrun_tag}")},
+        })
+
+    def test_malformed_archive_file_preserves_receipt_free_attempt_and_continues(self):
+        jobs = archived_release(100, receipt=False)
+        jobs[0]["started_at"] = None
+        jobs[1]["artifacts_file"] = ["collector-v1.2.3-100-release.zip"]
+        attempts = [
+            cleanup.ArchivedAttempt("100", ["1001"], [], None, "missing", jobs),
+            cleanup.ArchivedAttempt("101", ["1011"], [], None, "missing"),
+        ]
+        with patch.object(cleanup, "api", side_effect=[204, {"id": 1011, "artifacts": []}]) as api, \
+                contextlib.redirect_stderr(io.StringIO()) as warnings:
+            plan, incomplete = plan_cleanup(attempts)
+            cleanup.apply_cleanup(plan, "gitlab", "fixture")
+        self.assertTrue(incomplete)
+        self.assertEqual([entry["archives"] for entry in plan], [[], ["1011"]])
+        self.assertIn("Invalid GitLab archive metadata for job 1001", warnings.getvalue())
+        self.assertEqual([call.args[0] for call in api.call_args_list], ["gitlab/jobs/1011/artifacts", "gitlab/jobs/1011"])
+
+    def test_nonstable_retention_checks_age_ownership_and_retry_state(self):
+        cutoff = cleanup.datetime.fromisoformat("2026-10-24T00:00:00Z")
+        sha = "a" * 40
+        quay = "quay.io/fixture/collector"
+        candidate_data = {
+            "100": ("1.2.3-beta.1", "success"),
+            "101": (sha, "failed"),
+            "102": ("1.2.4-rc.1", "canceled"),
+            "103": (sha, "running"),
+            "104": (sha, "success"),  # Inside the retry window.
+            "105": (sha, "success"),  # Retryable job.
+            "106": (sha, "success"),  # Protected by a signed release pipeline pin.
+            "107": (sha, "success"),  # Protected by a signed release job pin.
+            "108": (sha, "success"),  # Wrong historical repository.
+            "109": (sha, "success"),  # Malformed pipeline response.
+            "110": (sha, "success"),  # Different commit.
+        }
+        candidates = {}
+        for pipeline, (base, _) in candidate_data.items():
+            repo = quay + ("-dev" if base == sha else "")
+            candidates[pipeline] = {(base, "staging", "quay.io", quay, "", f"{repo}:{base}-staging-{pipeline}-amd64")}
+
+        def read(url, _token, **kwargs):
+            if url.startswith("gitlab/jobs/") and url.endswith("/trace"):
+                self.assertEqual(kwargs, {"missing_ok": True, "reader": cleanup.release_trace_records})
+                job_id = url.split("/")[2]
+                if job_id == "1021":
+                    return trace_records("Manual release triggered for version v1.2.4-rc.1")
+                pipeline = str(int(job_id) // 10)
+                base, _ = candidate_data[pipeline]
+                stage = f"{base}-staging-{pipeline}-linux"
+                repo = quay + ("-dev" if base == sha else "")
+                return trace_records(f"Building and pushing {repo}:{stage}")
+            self.assertEqual(kwargs, {"same_origin": True})
+            pipeline = url.split("/")[2]
+            base, status = candidate_data[pipeline]
+            if url.endswith("/variables"):
+                if pipeline == "100":
+                    return [{"key": "RELEASE_VERSION", "value": "v" + base}]
+                if pipeline == "108":
+                    return [{"key": "QUAY_COLLECTOR_REPO", "value": "quay.io/other/collector"}]
+                return []
+            if pipeline == "109":
+                return None
+            return {"id": int(pipeline), "project_id": 42, "ref": "main", "tag": False, "source": "web",
+                    "sha": "b" * 40 if pipeline == "110" else sha, "status": status,
+                    "updated_at": "2026-10-24T00:00:00.001Z" if pipeline == "104" else "2026-10-24T00:00:00Z"}
+
+        def jobs(url, _token, **kwargs):
+            self.assertEqual(kwargs, {"include_retried": "true"})
+            pipeline = url.split("/")[2]
+            result = [job(int(pipeline) * 10, "build-push-linux-image", archived=pipeline != "105", archive=False)]
+            if pipeline == "102":
+                result.append(job(1021, "manual_release_trigger", archive=False))
+            return result
+
+        with patch.object(cleanup, "api", side_effect=read) as api, patch.object(cleanup, "pages", side_effect=jobs) as pages, \
+                contextlib.redirect_stderr(io.StringIO()) as warnings:
+            plan, incomplete = cleanup.nonstable_cleanup_plan(candidates, {"106"}, {"1070"}, "gitlab", "fixture", "42", cutoff)
+        self.assertTrue(incomplete)
+        self.assertEqual([entry["pipeline"] for entry in plan], ["100", "101", "102"])
+        for entry in plan:
+            self.assertEqual(entry["staging_tags"], [next(iter(candidates[entry["pipeline"]]))[-1]])
+            self.assertEqual(entry["archives"], [])
+            self.assertEqual(entry["receipts"], [])
+        self.assertNotIn("gitlab/pipelines/106", [call.args[0] for call in api.call_args_list])
+        self.assertNotIn("gitlab/pipelines/104/jobs", [call.args[0] for call in pages.call_args_list])
+        for pipeline in ("108", "109", "110"):
+            self.assertIn(f"could not verify temporary image tags for pipeline {pipeline}", warnings.getvalue())
+        with patch.object(cleanup, "inventory_token", return_value="fixture"), \
+                patch.object(cleanup, "delete_staging_tag") as delete_tag, patch.object(cleanup, "api") as api:
+            cleanup.apply_cleanup(plan, "gitlab", "fixture")
+        self.assertEqual([call.args[0] for call in delete_tag.call_args_list], [entry["staging_tags"][0] for entry in plan])
+        api.assert_not_called()
+
+    def test_nonstable_cleanup_requires_original_publisher_repository_evidence(self):
+        sha = "a" * 40
+        old_quay = "quay.io/original/collector"
+        old_hub = "docker.io/original/collector"
+        different_quay = "quay.io/different/collector"
+        stage = f"{sha}-staging-100"
+        details = {"id": 100, "project_id": 42, "ref": "main", "tag": False, "source": "push", "sha": sha,
+                   "status": "failed", "updated_at": "2026-09-01T00:00:00Z"}
+        jobs = [job(1001, "build-push-windows-image: [2022]", archive=False),
+                job(1002, "mirror-docker-images: [multiarch, ]")]
+        records = io.BytesIO()
+        with ZipFile(records, "w") as archive:
+            archive.writestr(f"dist/docker/{old_hub}/images_multiarch.txt", "fixture")
+        original_trace = trace_records(f"Building {old_quay}-dev:{stage}-2022")
+        cutoff = cleanup.datetime.fromisoformat("2026-10-24T00:00:00Z")
+
+        for quay, trace, variables, expected in (
+            (old_quay, original_trace, [], True),
+            (different_quay, original_trace, [], False),
+            (different_quay, original_trace, [{"key": "QUAY_COLLECTOR_REPO", "value": different_quay}], False),
+            (old_quay, None, [], False),
+        ):
+            with self.subTest(quay=quay, trace=trace):
+                refs = {(sha, "staging", "quay.io", quay, "-windows", f"{quay}-windows-dev:{stage}-2022"),
+                        (sha, "staging", "docker.io", old_hub, "", f"{old_hub}-dev:{stage}-2022")}
+                responses = [details, variables, trace, None, records.getvalue()]
+                with patch.object(cleanup, "api", side_effect=responses), \
+                        patch.object(cleanup, "pages", return_value=jobs), contextlib.redirect_stderr(io.StringIO()):
+                    plan, incomplete = cleanup.nonstable_cleanup_plan(
+                        {"100": refs}, set(), set(), "gitlab", "fixture", "42", cutoff
+                    )
+                self.assertEqual(incomplete, not expected)
+                self.assertEqual([entry["staging_tags"] for entry in plan],
+                                 [sorted(entry[-1] for entry in refs)] if expected else [])
+
+    def test_dryrun_cleanup_requires_matching_web_pipeline_variables_and_commit(self):
+        sha = "a" * 40
+        quay = "quay.io/fixture/collector"
+        ref = f"{quay}-dev:{sha}-dryrun-100-amd64"
+        candidates = {"100": {(sha, "dryrun", "quay.io", quay, "", ref)}}
+        cutoff = cleanup.datetime.fromisoformat("2026-10-24T00:00:00Z")
+        details = {"id": 100, "project_id": 42, "ref": "feature", "tag": False, "source": "web",
+                   "sha": sha, "status": "failed", "updated_at": "2026-09-01T00:00:00Z"}
+        jobs = [job(1001, "build-push-linux-image", archive=False)]
+        trace = trace_records(f"Building and pushing {quay}-dev:{sha}-dryrun-100-linux")
+        for overrides, dry_run, release, publisher, expected in (
+            ({}, "true", "", trace, True),
+            ({"ref": "main"}, "true", "v1.2.3", trace, True),
+            ({"source": "push"}, "true", "", trace, False),
+            ({}, "", "", trace, False),
+            ({}, "true", "v1.2.3", trace, False),
+            ({"sha": "b" * 40}, "true", "", trace, False),
+            ({}, "true", "", trace_records(f"Building and pushing {quay}-dev:{sha}-staging-100-linux"), False),
+        ):
+            with self.subTest(overrides=overrides, dry_run=dry_run, release=release, publisher=publisher):
+                variables = [{"key": "DRY_RUN", "value": dry_run}, {"key": "RELEASE_VERSION", "value": release}]
+                with patch.object(cleanup, "api", side_effect=[details | overrides, variables, publisher]), \
+                        patch.object(cleanup, "pages", return_value=jobs), contextlib.redirect_stderr(io.StringIO()):
+                    plan, incomplete = cleanup.nonstable_cleanup_plan(
+                        candidates, set(), set(), "gitlab", "fixture", "42", cutoff
+                    )
+                self.assertEqual(incomplete, not expected)
+                self.assertEqual([entry["staging_tags"] for entry in plan], [[ref]] if expected else [])
+                if expected:
+                    self.assertEqual(plan[0]["archives"], [])
+
     def test_pins_even_when_signature_verification_is_unavailable(self):
         refs = (
             "tag-a\trefs/tags/v1.2.3\ncommit-a\trefs/tags/v1.2.3^{}\n"
@@ -101,9 +300,10 @@ class CleanupTest(unittest.TestCase):
 
     def test_bad_snapshot_prevents_planning(self):
         refs = "tag\trefs/tags/v1.2.3\ncommit\trefs/tags/v1.2.3^{}\n"
-        tag = {"sha": "tag", "tag": "v1.2.3", "message": cleanup.SNAPSHOT + "invalid json"}
-        with patch.object(cleanup.subprocess, "check_output", return_value=refs), patch.object(cleanup, "api", return_value=tag):
-            with self.assertRaises(ValueError):
+        for payload in ("invalid json", "null", "[]"):
+            tag = {"sha": "tag", "tag": "v1.2.3", "message": cleanup.SNAPSHOT + payload}
+            with self.subTest(payload=payload), patch.object(cleanup.subprocess, "check_output", return_value=refs), \
+                    patch.object(cleanup, "api", return_value=tag), self.assertRaises(ValueError):
                 cleanup.pinned_release_inputs("42", "fixture")
 
     def test_plan_preserves_pins_and_only_generates_staging_tags(self):
@@ -116,7 +316,7 @@ class CleanupTest(unittest.TestCase):
 
         trace = trace_records(cleanup.ATTEMPT_LOG + json.dumps(ATTEMPT))
         catalog = ["1.2.3-staging-100-linux", "1.2.3-staging-101-linux", "1.2.3-staging-100-unknown", "latest", "1.2.3"]
-        with patch.dict(os.environ, {}, clear=True), patch.object(cleanup, "api", return_value=trace), \
+        with patch.dict(os.environ, {}, clear=True), patch.object(cleanup, "api", side_effect=[trace, []]), \
                 patch.object(cleanup, "repository_tags", return_value=catalog) as registry:
             plan, incomplete = plan_cleanup(attempts)
         self.assertFalse(incomplete)
@@ -327,6 +527,47 @@ class CleanupTest(unittest.TestCase):
         self.assertTrue(incomplete)
         self.assertEqual(plan[0]["archives"], [])
         self.assertEqual(plan[0]["staging_tags"], ["quay.io/splunk/collector-fips:1.2.3-staging-100-linux"])
+
+    def test_conflicting_repository_override_preserves_the_attempt_and_allows_other_cleanup(self):
+        records = io.BytesIO()
+        with ZipFile(records, "w") as archive:
+            archive.writestr(f"dist/docker/{ATTEMPT['quay']}/linux_index", "fixture")
+        variables = [
+            {"key": "RELEASE_VERSION", "value": ATTEMPT["version"]},
+            {"key": "QUAY_COLLECTOR_REPO", "value": "quay.io/other/collector"},
+        ]
+        unrelated = cleanup.ArchivedAttempt("101", ["1011"], [], None, "missing")
+        pinned = cleanup.ArchivedAttempt("102", ["1021"], ["1020"], None, "unreadable")
+        for receipt_status in ("missing", "unreadable", "valid"):
+            with self.subTest(receipt_status=receipt_status):
+                jobs = archived_release(100, receipt=receipt_status != "missing")
+                jobs[2]["artifacts"] = [{"file_type": "archive"}]
+                receipt = METADATA if receipt_status == "valid" else None
+                receipt_ids = ["1000"] if receipt else []
+                attempt = cleanup.ArchivedAttempt("100", ["1001"], receipt_ids, receipt, receipt_status, jobs)
+                preflight = trace_records(cleanup.ATTEMPT_LOG + json.dumps(ATTEMPT)) if receipt else None
+
+                def read(url, *_args, **_kwargs):
+                    return {
+                        "gitlab/jobs/1000/trace": preflight,
+                        "gitlab/jobs/1002/trace": None,
+                        "gitlab/jobs/1002/artifacts": records.getvalue(),
+                        "gitlab/pipelines/100/variables": variables,
+                    }[url]
+
+                with patch.object(cleanup, "api", side_effect=read), \
+                        patch.object(cleanup, "repository_tags", return_value=[]) as inventory, \
+                        contextlib.redirect_stderr(io.StringIO()) as warnings:
+                    plan, incomplete = plan_cleanup([attempt, unrelated, pinned], {"102"}, {"1021"})
+                self.assertTrue(incomplete)
+                self.assertEqual(plan[0]["staging_tags"], [])
+                self.assertEqual(plan[0]["archives"], [])
+                self.assertEqual(plan[0]["receipts"], [])
+                self.assertEqual(plan[1]["archives"], ["1011"])
+                self.assertEqual(plan[2]["archives"], [])
+                self.assertEqual(plan[2]["receipts"], [])
+                self.assertIn("Conflicting historical quay.io repositories", warnings.getvalue())
+                inventory.assert_not_called()
 
     def test_canceled_unstarted_publisher_does_not_require_registry_evidence(self):
         jobs = archived_release(100, receipt=False)
@@ -575,7 +816,7 @@ class CleanupTest(unittest.TestCase):
         expiring["artifacts_expire_at"] = "2026-11-21T00:00:00Z"
         for failed_keep in (ValueError("HTTP 404"), expiring, job(1002, "mirror-docker-images", archive=False)):
             with self.subTest(failed_keep=failed_keep), \
-                    patch.object(cleanup, "api", side_effect=[failed_keep, 204, {"artifacts": []}]) as api:
+                    patch.object(cleanup, "api", side_effect=[failed_keep, 204, {"id": 1011, "artifacts": []}]) as api:
                 with self.assertRaisesRegex(ValueError, "Cleanup incomplete for pipeline 100"):
                     cleanup.apply_cleanup(plan, "gitlab", "fixture")
             self.assertEqual([(call.args[0], call.kwargs.get("method", "GET")) for call in api.call_args_list], [
@@ -620,11 +861,34 @@ class CleanupTest(unittest.TestCase):
         self.assertIn("docker.io/other/collector-fips:1.2.3-staging-100", plan[0]["staging_tags"])
         tags.assert_called_once_with("docker.io/other/collector-fips", "hub-read-fixture")
 
-    def test_conflicting_receipts_fall_back_to_registry_evidence(self):
+    def test_conflicting_receipts_block_cleanup_for_that_attempt(self):
         alternate = dict(ATTEMPT, hub="other/collector")
-        with patch.object(cleanup, "api", side_effect=[ATTEMPT, alternate]), contextlib.redirect_stderr(io.StringIO()):
-            tags, receipts, status = cleanup.read_receipts("gitlab", "fixture", "42", "100", ["11", "12"])
-        self.assertEqual((tags, receipts, status), (None, [], "unreadable"))
+        jobs = archived_release(100) + [job(1003, "manual_release_trigger")]
+        signed_jobs = archived_release(101, receipt=False)
+        unrelated_jobs = archived_release(102, receipt=False)
+        unrelated_jobs[2]["started_at"] = None
+        pipelines = [{"id": pipeline, "status": "failed"} for pipeline in (100, 101, 102)]
+        with patch.object(cleanup, "pages", side_effect=[pipelines, jobs, signed_jobs, unrelated_jobs]), \
+                patch.object(cleanup, "api", side_effect=[ATTEMPT, alternate, 204, {"id": 1021, "artifacts": []}]) as api, \
+                patch.object(cleanup, "repository_tags") as inventory, contextlib.redirect_stderr(io.StringIO()) as warnings:
+            attempts = list(cleanup.archived_attempts("gitlab", "fixture", "42"))
+            plan, incomplete = plan_cleanup(attempts, {"101"}, {"1011"})
+            cleanup.apply_cleanup(plan, "gitlab", "fixture")
+
+        self.assertTrue(incomplete)
+        self.assertEqual(attempts[0].receipts, ["1000", "1003"])
+        self.assertEqual(plan[0], {"pipeline": "100", "receipt_status": "conflicting",
+                                  "staging_tags": [], "archives": [], "receipts": []})
+        self.assertEqual(plan[1]["archives"], [])
+        self.assertEqual(plan[2]["archives"], ["1021"])
+        self.assertIn("conflicting cleanup receipts for pipeline 100", warnings.getvalue())
+        inventory.assert_not_called()
+        self.assertEqual([(call.args[0], call.kwargs.get("method", "GET")) for call in api.call_args_list], [
+            (f"gitlab/jobs/1000/artifacts/{cleanup.ATTEMPT_FILE}", "GET"),
+            (f"gitlab/jobs/1003/artifacts/{cleanup.ATTEMPT_FILE}", "GET"),
+            ("gitlab/jobs/1021/artifacts", "DELETE"),
+            ("gitlab/jobs/1021", "GET"),
+        ])
 
     def test_apply_only_requires_credentials_for_registries_with_tags(self):
         plan = [{"pipeline": "100", "staging_tags": ["quay.io/splunk/collector:1.2.3-staging-100-linux"], "archives": [], "receipts": []}]
@@ -644,8 +908,10 @@ class CleanupTest(unittest.TestCase):
             "COLLECTOR_CLEANUP_DOCKER_HUB_TOKEN": "hub-secret-fixture",
         }
         auth = {"access_token": "hub-access-fixture"}
-        removed = {"artifacts": []}
-        with patch.dict(os.environ, credentials), patch.object(cleanup, "api", side_effect=[auth, 204, 204, 204, removed, 204, removed]) as api:
+        removed_archive = {"id": 13, "artifacts": []}
+        removed_receipt = {"id": 11, "artifacts": []}
+        with patch.dict(os.environ, credentials), \
+                patch.object(cleanup, "api", side_effect=[auth, 204, 204, 204, removed_archive, 204, removed_receipt]) as api:
             cleanup.apply_cleanup(plan, "gitlab", "fixture")
             api.assert_any_call(f"{cleanup.DOCKER_HUB_API}/auth/token", method="POST",
                                 payload={"identifier": "hub-fixture", "secret": "hub-secret-fixture"})
@@ -656,7 +922,7 @@ class CleanupTest(unittest.TestCase):
                 ("gitlab/jobs/13/artifacts", "fixture"),
                 ("gitlab/jobs/11/artifacts", "fixture"),
             ])
-            api.assert_called_with("gitlab/jobs/11", "fixture")
+            api.assert_called_with("gitlab/jobs/11", "fixture", same_origin=True)
 
             api.reset_mock(side_effect=True)
             api.side_effect = [auth, 204, ValueError("registry failure")]
@@ -669,23 +935,80 @@ class CleanupTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Docker Hub did not delete"):
                 cleanup.apply_cleanup(plan, "gitlab", "fixture")
             api.assert_called_with(f"{cleanup.DOCKER_HUB_API}/namespaces/splunk/repositories/collector/tags/{tag}",
-                                   "hub-access-fixture", missing_ok=True)
+                                   "hub-access-fixture", same_origin=True)
 
             api.reset_mock(side_effect=True)
-            api.side_effect = [auth, None, {"tags": [{"name": tag}]}]
+            api.side_effect = [auth, None, {"tags": [{"name": tag}], "has_additional": False}]
             with self.assertRaisesRegex(ValueError, "Quay did not delete"):
                 cleanup.apply_cleanup(plan, "gitlab", "fixture")
             self.assertEqual(api.call_count, 3)
 
             api.reset_mock(side_effect=True)
-            api.side_effect = [auth, None, {"tags": []}, None, None, 204, removed, 204, removed]
+            api.side_effect = [auth, None, {"tags": [], "has_additional": False}, None, cleanup.NotFound(),
+                               204, removed_archive, 204, removed_receipt]
             cleanup.apply_cleanup(plan, "gitlab", "fixture")
-            api.assert_called_with("gitlab/jobs/11", "fixture")
+            api.assert_any_call(f"https://quay.io/api/v1/repository/splunk/collector/tag/?"
+                                f"onlyActiveTags=true&limit=100&specificTag={tag}&page=1",
+                                "quay-fixture", same_origin=True)
+            api.assert_called_with("gitlab/jobs/11", "fixture", same_origin=True)
+
+    def test_tag_delete_404_holds_archives_and_receipts_when_confirmation_is_unreliable(self):
+        tag = "1.2.3-staging-100"
+        for registry, endpoint in (("quay.io", "https://quay.io"), ("docker.io", "https://hub.docker.com")):
+            for outcome in ("cross-origin redirect", "JSON null", "access denied"):
+                with self.subTest(registry=registry, outcome=outcome):
+                    requests = []
+                    plan = [{"pipeline": "100", "staging_tags": [f"{registry}/splunk/collector:{tag}"],
+                             "archives": ["13"], "receipts": ["11"]}]
+
+                    def opener(redirects):
+                        def respond(request, *, timeout):
+                            requests.append(request)
+                            self.assertTrue(request.full_url.startswith(endpoint + "/"))
+                            self.assertEqual(request.get_header("Authorization"), "Bearer registry-fixture")
+                            if request.get_method() == "DELETE":
+                                raise cleanup.HTTPError(request.full_url, 404, "Not Found", None, None)
+                            if outcome == "JSON null":
+                                return io.BytesIO(b"null")
+                            if outcome == "access denied":
+                                raise cleanup.HTTPError(request.full_url, 403, "Forbidden", None, None)
+                            other_url = "https://redirect.example.invalid/tag"
+                            redirected = redirects.redirect_request(request, None, 302, "Found", {}, other_url)
+                            if redirected is not None:
+                                raise cleanup.HTTPError(redirected.full_url, 404, "Not Found", None, None)
+                            raise cleanup.HTTPError(request.full_url, 302, "Found", None, None)
+
+                        return Mock(open=respond)
+
+                    with patch.object(cleanup, "inventory_token", return_value="registry-fixture"), \
+                            patch.object(cleanup, "build_opener", side_effect=opener):
+                        with self.assertRaisesRegex(ValueError, "Cleanup incomplete for pipeline 100"):
+                            cleanup.apply_cleanup(plan, "https://gitlab.example.invalid", "fixture")
+                    self.assertEqual([request.get_method() for request in requests], ["DELETE", "GET"])
+
+    def test_tag_deletion_requires_registry_credentials(self):
+        with patch.object(cleanup, "api") as api:
+            with self.assertRaisesRegex(ValueError, "Missing quay.io cleanup credentials"):
+                cleanup.delete_staging_tag("quay.io/splunk/collector:1.2.3-staging-100", None, "hub-fixture")
+            api.assert_not_called()
+
+    def test_quay_tag_delete_404_rechecks_repository_when_tag_inventory_is_missing(self):
+        ref = "quay.io/splunk/collector:1.2.3-staging-100"
+        repository = "https://quay.io/api/v1/repository/splunk/collector?includeTags=false"
+        with patch.object(cleanup, "api", side_effect=[None, cleanup.NotFound(), {"name": "collector"}]) as api:
+            with self.assertRaisesRegex(ValueError, "Could not confirm absence"):
+                cleanup.delete_staging_tag(ref, "quay-fixture", None)
+            api.assert_called_with(repository, "quay-fixture", same_origin=True)
+        with patch.object(cleanup, "api", side_effect=[None, cleanup.NotFound(), cleanup.NotFound()]) as api:
+            cleanup.delete_staging_tag(ref, "quay-fixture", None)
+            api.assert_called_with(repository, "quay-fixture", same_origin=True)
 
     def test_apply_with_pinned_staging_tags_only_uses_gitlab(self):
         plan = [{"pipeline": "100", "staging_tags": [], "archives": ["13"], "receipts": ["11"]}]
-        removed = {"artifacts": []}
-        with patch.dict(os.environ, {}, clear=True), patch.object(cleanup, "api", side_effect=[204, removed, 204, removed]) as api:
+        removed_archive = {"id": 13, "artifacts": [{"file_type": "trace"}]}
+        removed_receipt = {"id": 11, "artifacts": []}
+        with patch.dict(os.environ, {}, clear=True), \
+                patch.object(cleanup, "api", side_effect=[204, removed_archive, 204, removed_receipt]) as api:
             cleanup.apply_cleanup(plan, "gitlab", "fixture")
             self.assertEqual([call.args[0] for call in api.call_args_list], [
                 "gitlab/jobs/13/artifacts", "gitlab/jobs/13", "gitlab/jobs/11/artifacts", "gitlab/jobs/11",
@@ -700,7 +1023,38 @@ class CleanupTest(unittest.TestCase):
             api.side_effect = [204, job(13, "prepare-stable-github-release")]
             with self.assertRaisesRegex(ValueError, "GitLab did not delete the archive"):
                 cleanup.apply_cleanup(plan, "gitlab", "fixture")
-            api.assert_called_with("gitlab/jobs/13", "fixture")
+            api.assert_called_with("gitlab/jobs/13", "fixture", same_origin=True)
+
+    def test_malformed_archive_confirmation_preserves_receipts_and_continues_later_attempts(self):
+        plan = [
+            {"pipeline": "100", "staging_tags": [], "archives": ["13", "15"], "receipts": ["11"]},
+            {"pipeline": "101", "staging_tags": [], "archives": ["14"], "receipts": ["12"]},
+        ]
+        malformed = [
+            None,
+            {"id": 13},
+            {"artifacts": []},
+            {"id": 99, "artifacts": []},
+            {"id": 13, "artifacts": None},
+            {"id": 13, "artifacts": {}},
+            {"id": 13, "artifacts": [None]},
+            {"id": 13, "artifacts": [{}]},
+            {"id": 13, "artifacts": [{"file_type": None}]},
+            {"id": 13, "artifacts": [{"file_type": " archive "}]},
+        ]
+        for response in malformed:
+            with self.subTest(response=response), patch.object(cleanup, "api", side_effect=[
+                204, response, 204, {"id": 14, "artifacts": [{"file_type": "trace"}]},
+                204, {"id": 12, "artifacts": []},
+            ]) as api:
+                with self.assertRaisesRegex(ValueError, "Cleanup incomplete for pipeline 100: Invalid GitLab .* job 13"):
+                    cleanup.apply_cleanup(plan, "gitlab", "fixture")
+            self.assertEqual([call.args[0] for call in api.call_args_list], [
+                "gitlab/jobs/13/artifacts", "gitlab/jobs/13",
+                "gitlab/jobs/14/artifacts", "gitlab/jobs/14",
+                "gitlab/jobs/12/artifacts", "gitlab/jobs/12",
+            ])
+            self.assertTrue(all(call.kwargs == {"same_origin": True} for call in api.call_args_list[1::2]))
 
     def test_apply_continues_after_tag_archive_and_credential_failures(self):
         plan = [
@@ -711,7 +1065,7 @@ class CleanupTest(unittest.TestCase):
         ]
         with patch.dict(os.environ, {"COLLECTOR_CLEANUP_QUAY_TOKEN": "quay-fixture"}, clear=True), \
                 patch.object(cleanup, "delete_staging_tag", side_effect=ValueError("tag deletion failure")), \
-                patch.object(cleanup, "api", side_effect=[ValueError("archive deletion failure"), 204, {"artifacts": []}]) as api:
+                patch.object(cleanup, "api", side_effect=[ValueError("archive deletion failure"), 204, {"id": 40, "artifacts": []}]) as api:
             with self.assertRaises(ValueError) as error:
                 cleanup.apply_cleanup(plan, "gitlab", "fixture")
         self.assertIn("pipeline 100: tag deletion failure", str(error.exception))
@@ -741,11 +1095,50 @@ class CleanupTest(unittest.TestCase):
         environment = {"CI_PROJECT_ID": "42", "CI_API_V4_URL": "https://gitlab.example.invalid", "COLLECTOR_CLEANUP_GITLAB_TOKEN": "fixture", "GITHUB_TOKEN": "fixture"}
         with patch.dict(os.environ, environment), patch("sys.argv", ["cleanup", "plan"]), \
                 patch.object(cleanup, "archived_attempts", return_value=[cleanup.ArchivedAttempt("100", ["12"], ["11"], METADATA, "valid")]), \
+                patch.object(cleanup, "nonstable_staging_candidates", return_value=({}, False)), \
                 patch.object(cleanup, "pinned_release_inputs", return_value=({"100"}, {"12"})), \
                 patch.object(cleanup, "apply_cleanup") as apply, contextlib.redirect_stdout(io.StringIO()) as output:
             cleanup.main()
         self.assertEqual(json.loads(output.getvalue())["archives"], [])
         apply.assert_not_called()
+
+    def test_malformed_pipeline_page_preserves_progress_in_both_cleanup_paths(self):
+        first = archived_release(100, receipt=False)
+        first[-1]["started_at"] = None
+        protected = archived_release(101, receipt=False)
+        first_page = [{"id": 100, "status": "failed"}, {"id": 101, "status": "success"}]
+        first_page += [{"id": 200 + i, "status": "running"} for i in range(98)]
+
+        def read(url, *_args, **_kwargs):
+            if "/pipelines/100/jobs?" in url:
+                return first
+            if "/pipelines/101/jobs?" in url:
+                return protected
+            if "&page=1&" in url:
+                return first_page
+            if "&page=2&" in url:
+                return None
+            self.fail(f"Unexpected request {url}")
+
+        environment = {"CI_PROJECT_ID": "42", "CI_API_V4_URL": "https://gitlab.example.invalid",
+                       "COLLECTOR_CLEANUP_GITLAB_TOKEN": "fixture", "GITHUB_TOKEN": "fixture"}
+        temporary = {"pipeline": "102", "staging_tags": ["quay.io/fixture/collector:1.2.3-rc.1-staging-102"],
+                     "archives": [], "receipts": []}
+        with patch.dict(os.environ, environment), patch("sys.argv", ["cleanup", "apply"]), \
+                patch.object(cleanup, "api", side_effect=read), \
+                patch.object(cleanup, "nonstable_staging_candidates", return_value=({}, False)) as discover, \
+                patch.object(cleanup, "pinned_release_inputs", return_value=({"101"}, {"1011"})), \
+                patch.object(cleanup, "nonstable_cleanup_plan", return_value=([temporary], False)), \
+                patch.object(cleanup, "apply_cleanup") as apply, contextlib.redirect_stdout(io.StringIO()), \
+                contextlib.redirect_stderr(io.StringIO()) as warnings, self.assertRaises(SystemExit) as error:
+            cleanup.main()
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn("could not finish discovering archived release attempts", warnings.getvalue())
+        self.assertIn("Expected a list on page 2", warnings.getvalue())
+        discover.assert_called_once()
+        plan = apply.call_args.args[0]
+        self.assertEqual([entry["archives"] for entry in plan], [["1001"], [], []])
+        self.assertEqual(plan[-1], temporary)
 
 
 if __name__ == "__main__":

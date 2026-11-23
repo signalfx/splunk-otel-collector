@@ -51,7 +51,7 @@ for windows in 2019 2022; do
 done
 
 image="${repository}:${image_tag}"
-if [[ "$image_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+-staging-[0-9]+$ ]]; then
+if [[ "$image_tag" =~ -(staging|dryrun)-[0-9]+$ ]]; then
     printf 'Publishing image %s\n' "$image"
 fi
 digest="$(push_collector_index "$image" "${sources[@]}")"

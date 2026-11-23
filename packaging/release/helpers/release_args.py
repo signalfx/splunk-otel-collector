@@ -106,7 +106,8 @@ def get_args_and_asset():
         metavar="PATH",
         required=False,
         help="""
-            Release a batch of local files. Only supported for deb/rpm packages.
+            Release a batch of local deb or rpm packages, or a stable MSI release.
+            Supply both signed MSI architectures of the same version to update stable latest.txt.
         """,
     )
     parser.add_argument(
@@ -125,9 +126,8 @@ def get_args_and_asset():
         default=False,
         required=False,
         help="""
-            Only applicable if the --path option is specified for a MSI file.
-            By default, the latest.txt file on dl.observability.splunkcloud.com is automatically updated with the version of the MSI.
-            If uploading an older version of the MSI, specify this option to skip this step.
+            Skip updating latest.txt when publishing MSI packages.
+            Use this option to publish a single stable MSI without promoting it.
         """,
     )
     parser.add_argument(
@@ -162,7 +162,8 @@ def get_args_and_asset():
         components = {asset.component for asset in args.assets}
         assert len(components) == 1, f"All --paths assets must have the same component: {components}"
         component = next(iter(components))
-        assert component in ("deb", "rpm"), "--paths is only supported for deb/rpm packages"
+        if component not in ("deb", "rpm") and not (component == "msi" and args.stage == "release"):
+            parser.error("--paths is only supported for deb/rpm packages and stable MSI packages")
         if len(args.assets) == 1:
             asset = args.assets[0]
 

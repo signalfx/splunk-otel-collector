@@ -9,6 +9,7 @@ import subprocess
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from http.client import HTTPException
 from io import BytesIO
 from urllib.error import HTTPError
@@ -21,11 +22,20 @@ GITHUB_REPO = "https://github.com/signalfx/splunk-otel-collector.git"
 GITHUB_API = "https://api.github.com/repos/signalfx/splunk-otel-collector"
 STABLE_TAG = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+")
 STAGING_TAG = re.compile(r"([0-9]+\.[0-9]+\.[0-9]+)-staging-([1-9][0-9]*)(.*)")
+PRERELEASE = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+-(?:beta|rc)\.[0-9]+")
+COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
+NONSTABLE_STAGING_TAG = re.compile(
+    r"(?P<base>[0-9a-f]{40}|[0-9]+\.[0-9]+\.[0-9]+-(?:beta|rc)\.[0-9]+)"
+    r"-(?P<kind>staging|dryrun)-(?P<pipeline>[1-9][0-9]*)(?P<suffix>.*)"
+)
+NONSTABLE_RETENTION = timedelta(days=30)
 PUBLISHED_REF = re.compile(
     r"(?:Building(?: and pushing)?|Publishing image|pushing sha256:[a-f0-9]{64} to) "
     r"([a-z0-9_./-]+):([a-z0-9.-]+)(?=$|\s|\x1b)"
 )
-LEGACY_RELEASE_LOG = re.compile(r"Manual release triggered for version (v[0-9]+\.[0-9]+\.[0-9]+)(?=$|\s|\x1b)")
+LEGACY_RELEASE_LOG = re.compile(
+    r"Manual release triggered for version (v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:beta|rc)\.[0-9]+)?)(?=$|\s|\x1b)"
+)
 SNAPSHOT = "Collector-Release-Snapshot: "
 ATTEMPT_LOG = "Collector-Release-Attempt: "
 ATTEMPT_FILE = "dist/release-inputs/attempt.json"
@@ -51,6 +61,10 @@ PUBLISH_REPOSITORIES = (
     ("quay.io", "quay", "QUAY_COLLECTOR_REPO"),
     ("docker.io", "hub", "DOCKER_HUB_COLLECTOR_REPO"),
 )
+DEFAULT_COLLECTOR_REPOSITORIES = {
+    "quay.io": "quay.io/signalfx/splunk-otel-collector",
+    "docker.io": "docker.io/splunk/otel-collector",
+}
 DOCKER_HUB_API = "https://hub.docker.com/v2"
 IO_ERRORS = (KeyError, TypeError, ValueError, OSError, HTTPException)
 TRACE_BLOCK_SIZE = 64 * 1024
@@ -125,9 +139,9 @@ def api(url, token=None, *, method="GET", payload=None, delete_statuses=(204,), 
 def pages(url, token, **params):
     for page in range(1, 1001):
         query = urlencode(dict(params, page=page, per_page=100))
-        batch = api(f"{url}?{query}", token)
+        batch = api(f"{url}?{query}", token, same_origin=True)
         if not isinstance(batch, list):
-            raise ValueError(f"Expected a paginated list from {url}")
+            raise ValueError(f"Expected a list on page {page} from {url}")
         yield from batch
         if len(batch) < 100:
             return
@@ -165,6 +179,8 @@ def pinned_release_inputs(project, github_token):
             raise ValueError(f"Ambiguous release snapshot on {ref}")
         # Preserve pins even if GitHub cannot verify an older signing key today.
         snapshot = json.loads(entries[0])
+        if not isinstance(snapshot, dict):
+            raise ValueError(f"Invalid release snapshot on {ref}")
         if positive_id(snapshot.get("project", project)) != project:
             continue
         pinned_pipelines.add(positive_id(snapshot["pipeline"]))
@@ -200,7 +216,16 @@ def attempt_metadata(data, project, pipeline):
 
 
 def has_archive(job):
-    return any(artifact["file_type"] == "archive" for artifact in job.get("artifacts") or ())
+    artifacts = job.get("artifacts")
+    if not isinstance(artifacts, list):
+        raise ValueError(f"Invalid GitLab artifacts list for job {job.get('id')}")
+    found_archive = False
+    for artifact in artifacts:
+        file_type = artifact.get("file_type") if isinstance(artifact, dict) else None
+        if not isinstance(file_type, str) or not file_type or file_type.strip() != file_type:
+            raise ValueError(f"Invalid GitLab artifact entry for job {job.get('id')}")
+        found_archive |= file_type == "archive"
+    return found_archive
 
 
 def read_receipts(gitlab, token, project, pipeline, receipts):
@@ -220,29 +245,44 @@ def read_receipts(gitlab, token, project, pipeline, receipts):
             print(f"Warning: unreadable cleanup receipt on pipeline {pipeline}, job {job}.", file=sys.stderr)
     if conflicting:
         print(f"Warning: conflicting cleanup receipts for pipeline {pipeline}.", file=sys.stderr)
-        return None, [], "unreadable"
+        return None, readable, "conflicting"
     return metadata, readable, status
+
+
+def archived_pipeline_jobs(gitlab, token, pipeline):
+    jobs = list(pages(f"{gitlab}/pipelines/{pipeline}/jobs", token, include_retried="true"))
+    for job in jobs:
+        positive_id(job["id"])
+        if not isinstance(job["archived"], bool) or not isinstance(job["name"], str) or not isinstance(job["status"], str):
+            raise ValueError(f"Invalid GitLab job metadata for job {job['id']}")
+    if jobs and all(job["archived"] and job["status"] in STOPPED_STATUSES for job in jobs):
+        return jobs
+    return None
 
 
 def archived_attempts(gitlab, token, project):
     for pipeline in pages(f"{gitlab}/pipelines", token, ref="main", source="parent_pipeline"):
-        if pipeline["status"] not in STOPPED_STATUSES:
-            continue
-        pipeline_id = positive_id(pipeline["id"])
-        jobs = list(pages(f"{gitlab}/pipelines/{pipeline_id}/jobs", token, include_retried="true"))
-        if any(job.get("archived") is not True or job["status"] not in STOPPED_STATUSES for job in jobs):
-            continue
-        if ARCHIVE_JOBS.keys().isdisjoint(job["name"] for job in jobs):
-            continue
-
-        receipts = [
-            positive_id(job["id"])
-            for job in jobs
-            if job["name"] == "manual_release_trigger" and has_archive(job)
-        ]
-        archives = [positive_id(job["id"]) for job in jobs if job["name"] in ARCHIVE_JOBS and has_archive(job)]
-        receipt, receipts, status = read_receipts(gitlab, token, project, pipeline_id, receipts)
-        yield ArchivedAttempt(pipeline_id, archives, receipts, receipt, status, jobs)
+        pipeline_id = "unknown"
+        try:
+            pipeline_id = positive_id(pipeline["id"])
+            if not isinstance(pipeline["status"], str):
+                raise ValueError("Invalid GitLab pipeline status")
+            if pipeline["status"] not in STOPPED_STATUSES:
+                continue
+            jobs = archived_pipeline_jobs(gitlab, token, pipeline_id)
+            if not jobs or ARCHIVE_JOBS.keys().isdisjoint(job["name"] for job in jobs):
+                continue
+            receipts = [
+                positive_id(job["id"])
+                for job in jobs
+                if job["name"] == "manual_release_trigger" and has_archive(job)
+            ]
+            archives = [positive_id(job["id"]) for job in jobs if job["name"] in ARCHIVE_JOBS and has_archive(job)]
+            receipt, receipts, status = read_receipts(gitlab, token, project, pipeline_id, receipts)
+            yield ArchivedAttempt(pipeline_id, archives, receipts, receipt, status, jobs)
+        except IO_ERRORS as error:
+            print(f"Warning: could not discover archived artifacts for pipeline {pipeline_id}. {error}", file=sys.stderr)
+            yield ArchivedAttempt(pipeline_id, [], [], None, "malformed")
 
 
 def docker_hub_access_token():
@@ -255,7 +295,7 @@ def docker_hub_access_token():
     return token
 
 
-def repository_tags(repository, token=None):
+def repository_tags(repository, token=None, *, specific_tag=None):
     registry, repo = repository.split("/", 1)
     if registry == "quay.io":
         repo_url = f"https://quay.io/api/v1/repository/{repo}"
@@ -263,6 +303,8 @@ def repository_tags(repository, token=None):
         metadata_url = f"{repo_url}?includeTags=false"
         items, next_page = "tags", "has_additional"
         params = {"onlyActiveTags": "true", "limit": 100}
+        if specific_tag is not None:
+            params["specificTag"] = specific_tag
     else:
         namespace, name = repo.split("/", 1)
         metadata_url = f"{DOCKER_HUB_API}/namespaces/{namespace}/repositories/{name}"
@@ -282,6 +324,10 @@ def repository_tags(repository, token=None):
             except NotFound:
                 return
             raise ValueError(f"Could not confirm absence of {repository} after its tag inventory returned 404")
+        if not isinstance(result, dict) or not isinstance(result.get(items), list) or next_page not in result:
+            raise ValueError(f"Invalid tag inventory for {repository}")
+        if registry == "quay.io" and not isinstance(result[next_page], bool):
+            raise ValueError(f"Invalid tag inventory for {repository}")
         yield from (item["name"] for item in result[items])
         if not result[next_page]:
             return
@@ -348,6 +394,17 @@ def release_trace_records(response):
     return records
 
 
+def docker_record_roots(archive, registries):
+    with ZipFile(BytesIO(archive)) as records:
+        for path in records.namelist():
+            match = re.fullmatch(r"dist/docker/((?:quay\.io/|docker\.io/)?[^/]+/[^/]+)/[^/]+", path)
+            if match:
+                root = match[1]
+                registry = "quay.io" if root.startswith("quay.io/") else "docker.io"
+                if registry in registries:
+                    yield registry, repository_root(registry, root)
+
+
 def historical_metadata(attempt, publishers, repositories, gitlab, token, project):
     versions = defaultdict(set)
     roots = defaultdict(lambda: defaultdict(set))
@@ -358,9 +415,14 @@ def historical_metadata(attempt, publishers, repositories, gitlab, token, projec
             roots[registry][root].update(attempt.receipts)
     for job in attempt.jobs:
         archive_kind = ARCHIVE_JOBS.get(job["name"])
-        filename = (job.get("artifacts_file") or {}).get("filename", "")
         job_id = positive_id(job["id"])
         if archive_kind and has_archive(job):
+            archive_file = job.get("artifacts_file")
+            if archive_file is None:
+                archive_file = {}
+            if not isinstance(archive_file, dict) or not isinstance(archive_file.get("filename", ""), str):
+                raise ValueError(f"Invalid GitLab archive metadata for job {job_id}")
+            filename = archive_file.get("filename", "")
             name = re.fullmatch(rf"collector-(v[0-9]+\.[0-9]+\.[0-9]+)-{attempt.pipeline}-{archive_kind}\.zip", filename)
             if name:
                 versions[name[1]].add(job_id)
@@ -411,7 +473,6 @@ def historical_metadata(attempt, publishers, repositories, gitlab, token, projec
                     roots[registry][root].add(None)
 
     # Only Docker job ZIPs contain repository records. Other release archives can be large.
-    needed = {registry for registry in repositories if not any(None in ids for ids in roots[registry].values())}
     for job in attempt.jobs:
         name = job["name"].partition(":")[0]
         if name in QUAY_PUBLISHERS | {HUB_PUBLISHER, "retain-stable-docker-records"} and has_archive(job):
@@ -419,34 +480,29 @@ def historical_metadata(attempt, publishers, repositories, gitlab, token, projec
             archive = read_evidence(f"{gitlab}/jobs/{job_id}/artifacts", token, binary=True)
             if archive:
                 try:
-                    with ZipFile(BytesIO(archive)) as records:
-                        for path in records.namelist():
-                            match = re.fullmatch(r"dist/docker/((?:quay\.io/|docker\.io/)?[^/]+/[^/]+)/[^/]+", path)
-                            if match:
-                                root = match[1]
-                                registry = "quay.io" if root.startswith("quay.io/") else "docker.io"
-                                if registry in repositories:
-                                    roots[registry][repository_root(registry, root)].add(job_id)
+                    for registry, root in docker_record_roots(archive, repositories):
+                        roots[registry][root].add(job_id)
                 except BadZipFile:
                     print(f"Warning: unreadable Docker records on pipeline {attempt.pipeline}, job {job['id']}.", file=sys.stderr)
 
-    if attempt.receipt_status != "valid" or not any(None in ids for ids in versions.values()) or needed:
-        variables = read_evidence(f"{gitlab}/pipelines/{attempt.pipeline}/variables", token) or []
-        missing = {registry for registry in needed if not roots[registry]}
-        for variable in variables:
-            if variable["key"] == "RELEASE_VERSION":
-                versions[variable["value"]].add(None)
-                independent_version = True
-            for registry, _, key in PUBLISH_REPOSITORIES:
-                if variable["key"] == key and registry in needed:
-                    root = repository_root(registry, variable["value"])
-                    if registry in missing or root in roots[registry]:
-                        roots[registry][root].add(None)
+    # Historical overrides must agree with the repositories found in other evidence.
+    variables = read_evidence(f"{gitlab}/pipelines/{attempt.pipeline}/variables", token) or []
+    for variable in variables:
+        if variable["key"] == "RELEASE_VERSION":
+            versions[variable["value"]].add(None)
+            independent_version = True
+        for registry, _, key in PUBLISH_REPOSITORIES:
+            if variable["key"] == key and registry in repositories:
+                root = repository_root(registry, variable["value"])
+                roots[registry][root].add(None)
 
     if not independent_version or len(versions) != 1 or not STABLE_TAG.fullmatch(next(iter(versions))):
         raise ValueError("Could not verify a single historical release version")
-    if any(len(roots[registry]) != 1 for registry in repositories):
-        raise ValueError("Could not verify the original publishing repositories")
+    for registry in repositories:
+        if len(roots[registry]) > 1:
+            raise ValueError(f"Conflicting historical {registry} repositories: {', '.join(sorted(roots[registry]))}")
+        if not roots[registry]:
+            raise ValueError(f"Could not verify the original publishing repository on {registry}")
     version, version_sources = next(iter(versions.items()))
     verified_roots = {registry: next(iter(roots[registry])) for registry in repositories}
     sources = [roots[registry][root] for registry, root in verified_roots.items()] + [version_sources]
@@ -532,11 +588,11 @@ def cleanup_plan(attempts, pinned_pipelines, pinned_jobs, gitlab, token, project
         pinned = attempt.pipeline in pinned_pipelines or not pinned_jobs.isdisjoint(attempt.archives + attempt.receipts)
         tags = set()
         retained, keep = set(), set()
-        unresolved = False
+        unresolved = attempt.receipt_status in {"conflicting", "malformed"}
         archives = set(attempt.archives) - pinned_jobs
         # Keep receipts with failed reads so they can be recovered on a later run.
         receipts = set(attempt.receipts) - pinned_jobs if attempt.receipt_status == "valid" else set()
-        if not pinned:
+        if not pinned and not unresolved:
             try:
                 tags, unresolved, sources = attempt_tags(attempt, gitlab, token, project, inventory, registry_tokens)
                 retained, keep = retain_evidence(attempt, sources, archives | receipts)
@@ -560,29 +616,208 @@ def cleanup_plan(attempts, pinned_pipelines, pinned_jobs, gitlab, token, project
     return plan, incomplete
 
 
+def nonstable_staging_candidates():
+    candidates = defaultdict(set)
+    incomplete = False
+    for registry, _, variable in PUBLISH_REPOSITORIES:
+        try:
+            root = repository_root(registry, os.environ.get(variable) or DEFAULT_COLLECTOR_REPOSITORIES[registry])
+            registry_token = inventory_token(registry)
+        except IO_ERRORS as error:
+            incomplete = True
+            print(f"Warning: could not discover temporary image tags on {registry}. {error}", file=sys.stderr)
+            continue
+        for variant in REPOSITORY_TAGS:
+            for development in (False, True):
+                repository = root + variant + ("-dev" if development else "")
+                suffixes = tag_suffixes(registry, variant)
+                try:
+                    tags = set(repository_tags(repository, registry_token))
+                    if any(not isinstance(tag, str) for tag in tags):
+                        raise ValueError("Invalid registry tag name")
+                except IO_ERRORS as error:
+                    incomplete = True
+                    print(f"Warning: could not list temporary image tags in {repository}. {error}", file=sys.stderr)
+                    continue
+                for tag in tags:
+                    match = NONSTABLE_STAGING_TAG.fullmatch(tag)
+                    if not match or match["suffix"] not in suffixes:
+                        continue
+                    base, kind, pipeline = match["base"], match["kind"], match["pipeline"]
+                    if bool(COMMIT_SHA.fullmatch(base)) == development and (kind == "staging" or development):
+                        candidates[pipeline].add((base, kind, registry, root, variant, f"{repository}:{tag}"))
+    return candidates, incomplete
+
+
+def nonstable_pipeline_variables(pipeline_url, token):
+    entries = api(f"{pipeline_url}/variables", token, same_origin=True)
+    if not isinstance(entries, list):
+        raise ValueError("Invalid GitLab pipeline variables")
+    relevant = {"DRY_RUN", "RELEASE_VERSION"} | {key for _, _, key in PUBLISH_REPOSITORIES}
+    variables = {}
+    for entry in entries:
+        key = entry["key"]
+        if key in relevant:
+            value = entry["value"]
+            if not isinstance(value, str) or (key in variables and variables[key] != value):
+                raise ValueError(f"Unverifiable historical pipeline variable {key}")
+            variables[key] = value
+    return variables
+
+
+def historical_prerelease_version(jobs, gitlab, token):
+    versions = set()
+    for job in jobs:
+        if job["name"] == "manual_release_trigger" and job["status"] == "success":
+            trace = read_evidence(f"{gitlab}/jobs/{positive_id(job['id'])}/trace", token,
+                                  reader=release_trace_records) or ()
+            for record in trace:
+                match = LEGACY_RELEASE_LOG.fullmatch(record)
+                if match:
+                    versions.add(match[1])
+    if len(versions) != 1:
+        raise ValueError("Could not verify one historical prerelease version")
+    return versions.pop()
+
+
+def nonstable_publisher_roots(job, registry, variants, pipeline, base, kind, gitlab, token):
+    roots = set()
+    job_url = f"{gitlab}/jobs/{positive_id(job['id'])}"
+    windows_build = job["name"].startswith("build-push-windows-")
+    if len(variants) == 1 or windows_build:
+        # Windows build logs identify the primary repository. The same job creates the legacy sibling.
+        variant = variants[0]
+        suffix = variant + ("-dev" if COMMIT_SHA.fullmatch(base) else "")
+        trace = read_evidence(f"{job_url}/trace", token, reader=release_trace_records) or ()
+        for record in trace:
+            if windows_build and not record.startswith("Building "):
+                continue
+            log = PUBLISHED_REF.fullmatch(record)
+            if log:
+                tag = NONSTABLE_STAGING_TAG.fullmatch(log[2])
+                if (tag and (tag["base"], tag["kind"], tag["pipeline"]) == (base, kind, pipeline)
+                        and tag["suffix"] in tag_suffixes(registry, variant) and log[1].endswith(suffix)):
+                    roots.add(repository_root(registry, log[1].removesuffix(suffix)))
+    if has_archive(job):
+        archive = read_evidence(f"{job_url}/artifacts", token, binary=True)
+        if archive:
+            try:
+                roots.update(root for _, root in docker_record_roots(archive, {registry}))
+            except BadZipFile:
+                print(f"Warning: unreadable Docker records on pipeline {pipeline}, job {job['id']}.", file=sys.stderr)
+    return roots
+
+
+def nonstable_cleanup_plan(candidates, pinned_pipelines, pinned_jobs, gitlab, token, project, cutoff):
+    plan = []
+    incomplete = False
+    for pipeline, tags in sorted(candidates.items(), key=lambda item: int(item[0])):
+        if pipeline in pinned_pipelines:
+            continue
+        url = f"{gitlab}/pipelines/{pipeline}"
+        try:
+            kinds = {tag[1] for tag in tags}
+            if len(kinds) != 1:
+                raise ValueError("Conflicting temporary tag kinds for one pipeline")
+            kind = kinds.pop()
+            details = api(url, token, same_origin=True)
+            if positive_id(details["id"]) != pipeline or positive_id(details["project_id"]) != project:
+                raise ValueError("Unexpected GitLab pipeline identity")
+            source, branch = details["source"], details["ref"]
+            if details["tag"] is not False or not isinstance(source, str) or not isinstance(branch, str) or not branch:
+                raise ValueError("Expected a GitLab branch pipeline")
+            if kind == "dryrun" and source != "web":
+                raise ValueError("Expected a manually started dry-run pipeline")
+            if kind == "staging" and (branch != "main" or source == "parent_pipeline"):
+                raise ValueError("Expected a top-level main branch pipeline")
+            if not isinstance(details["status"], str):
+                raise ValueError("Invalid GitLab pipeline status")
+            if details["status"] not in STOPPED_STATUSES:
+                continue
+            updated = datetime.fromisoformat(details["updated_at"])
+            if updated.tzinfo is None:
+                raise ValueError("GitLab pipeline timestamp has no timezone")
+            if updated > cutoff:
+                continue
+            jobs = archived_pipeline_jobs(gitlab, token, pipeline)
+            if not jobs or any(positive_id(job["id"]) in pinned_jobs for job in jobs):
+                continue
+            if not ARCHIVE_JOBS.keys().isdisjoint(job["name"] for job in jobs):
+                raise ValueError("Pipeline contains stable release jobs")
+
+            variables = nonstable_pipeline_variables(url, token)
+            release = variables.get("RELEASE_VERSION", "")
+            if kind == "dryrun":
+                if variables.get("DRY_RUN") != "true" or (branch != "main" and release):
+                    raise ValueError("GitLab variables do not match a Docker dry run")
+                base = details["sha"]
+            else:
+                if "RELEASE_VERSION" not in variables and any(PRERELEASE.fullmatch("v" + tag[0]) for tag in tags):
+                    release = historical_prerelease_version(jobs, gitlab, token)
+                if variables.get("DRY_RUN") or (release and not PRERELEASE.fullmatch(release)):
+                    raise ValueError("Expected a development or prerelease image pipeline")
+                base = release[1:] if release else details["sha"]
+            if (kind == "dryrun" or not release) and not COMMIT_SHA.fullmatch(base):
+                raise ValueError("Invalid GitLab pipeline commit")
+            roots = {registry: {repository_root(registry, variables[key])}
+                     for registry, _, key in PUBLISH_REPOSITORIES if key in variables}
+            candidate_registries = {tag[2] for tag in tags}
+            published = defaultdict(set)
+            for job in jobs:
+                scope = publishing_job(job)
+                if scope:
+                    registry, variants = scope
+                    published[registry].update(variants)
+                    if registry in candidate_registries:
+                        roots.setdefault(registry, set()).update(
+                            nonstable_publisher_roots(job, registry, variants, pipeline, base, kind, gitlab, token)
+                        )
+            for tag_base, _, registry, root, variant, ref in tags:
+                if tag_base != base or roots.get(registry) != {root} or variant not in published[registry]:
+                    raise ValueError(f"Staging tag {ref} does not match its historical pipeline")
+        except IO_ERRORS as error:
+            incomplete = True
+            print(f"Warning: could not verify temporary image tags for pipeline {pipeline}. {error}", file=sys.stderr)
+            continue
+        plan.append({"pipeline": pipeline, "staging_tags": sorted(tag[-1] for tag in tags), "archives": [], "receipts": []})
+    return plan, incomplete
+
+
 def delete_staging_tag(ref, quay_token, hub_token):
     registry, repo_tag = ref.split("/", 1)
     repo, tag = repo_tag.split(":", 1)
+    credentials = {"quay.io": quay_token, "docker.io": hub_token}
+    if registry not in credentials:
+        raise ValueError(f"Unsupported cleanup registry {registry}")
+    token = credentials[registry]
+    if not token:
+        raise ValueError(f"Missing {registry} cleanup credentials")
+
     if registry == "quay.io":
         tag_url = f"https://quay.io/api/v1/repository/{repo}/tag/"
-        deleted = api(f"{tag_url}{tag}", quay_token, method="DELETE", missing_ok=True)
-        if deleted is None:
-            query = urlencode({"specificTag": tag, "onlyActiveTags": "true"})
-            tags = api(f"{tag_url}?{query}", quay_token, missing_ok=True)
-            if tags is not None and tags["tags"]:
-                raise ValueError(f"Quay did not delete {ref}")
-    elif registry == "docker.io":
+        deleted = api(f"{tag_url}{tag}", token, method="DELETE", missing_ok=True)
+        if deleted is None and list(repository_tags(f"{registry}/{repo}", token, specific_tag=tag)):
+            raise ValueError(f"Quay did not delete {ref}")
+    else:
         # Use the tag endpoint from Docker's hub-tool. A staging tag can share a
         # manifest digest with a release tag.
-        deleted = api(f"{DOCKER_HUB_API}/repositories/{repo}/tags/{tag}/", hub_token,
+        deleted = api(f"{DOCKER_HUB_API}/repositories/{repo}/tags/{tag}/", token,
                       method="DELETE", delete_statuses=(200, 204), missing_ok=True)
         if deleted is None:
             namespace, name = repo.split("/", 1)
             tag_url = f"{DOCKER_HUB_API}/namespaces/{namespace}/repositories/{name}/tags/{tag}"
-            if api(tag_url, hub_token, missing_ok=True) is not None:
-                raise ValueError(f"Docker Hub did not delete {ref}")
-    else:
-        raise ValueError(f"Unsupported cleanup registry {registry}")
+            try:
+                api(tag_url, token, same_origin=True)
+            except NotFound:
+                return
+            raise ValueError(f"Docker Hub did not delete {ref}")
+
+
+def confirm_archive_removed(job, job_id):
+    if not isinstance(job, dict) or str(job.get("id")) != job_id:
+        raise ValueError(f"Invalid GitLab job response while verifying archive deletion for job {job_id}")
+    if has_archive(job):
+        raise ValueError(f"GitLab did not delete the archive for job {job_id}")
 
 
 def apply_cleanup(plan, gitlab, token):
@@ -607,8 +842,7 @@ def apply_cleanup(plan, gitlab, token):
             for job in entry["archives"] + entry["receipts"]:
                 job_url = f"{gitlab}/jobs/{job}"
                 api(f"{job_url}/artifacts", token, method="DELETE")
-                if has_archive(api(job_url, token)):
-                    raise ValueError(f"GitLab did not delete the archive for job {job}")
+                confirm_archive_removed(api(job_url, token, same_origin=True), job)
         except IO_ERRORS as error:
             failures.append(f"pipeline {entry['pipeline']}: {error}")
     if failures:
@@ -625,7 +859,9 @@ def main():
             "with Quay OAuth write access and COLLECTOR_CLEANUP_DOCKER_HUB_USERNAME/TOKEN "
             "with Docker Hub tag deletion permissions. If a receipt is missing or unreadable, "
             "historical GitLab evidence must identify the release version and publishing repositories. "
-            "Keep traces and Docker records until cleanup has completed."
+            "Keep traces and Docker records until cleanup has completed. Development, prerelease, and dry-run "
+            "tags are eligible 30 days after the pipeline's last update, once its jobs are archived. "
+            "Use QUAY_COLLECTOR_REPO or DOCKER_HUB_COLLECTOR_REPO to inventory a historical repository override."
         ),
     )
     parser.add_argument("mode", choices=("plan", "apply"))
@@ -634,17 +870,34 @@ def main():
         project = positive_id(os.environ["CI_PROJECT_ID"])
         gitlab = f"{os.environ['CI_API_V4_URL']}/projects/{project}"
         token = os.environ["COLLECTOR_CLEANUP_GITLAB_TOKEN"]
-        attempts = list(archived_attempts(gitlab, token, project))
-        if not attempts:
-            print("No archived stable release attempts.")
+        attempts = []
+        stable_discovery_incomplete = False
+        try:
+            # Keep complete attempts yielded before an invalid pipeline-list page.
+            attempts.extend(archived_attempts(gitlab, token, project))
+        except IO_ERRORS as error:
+            stable_discovery_incomplete = True
+            print(f"Warning: could not finish discovering archived release attempts. {error}", file=sys.stderr)
+        candidates, inventory_incomplete = nonstable_staging_candidates()
+        discovery_incomplete = stable_discovery_incomplete or inventory_incomplete
+        if not attempts and not candidates:
+            if discovery_incomplete:
+                parser.exit(1, "Staging tag discovery was incomplete. See warnings above.\n")
+            print("No archived release attempts or expired staging tags.")
             return
         pinned_pipelines, pinned_jobs = pinned_release_inputs(project, os.environ["GITHUB_TOKEN"])
         plan, incomplete = cleanup_plan(attempts, pinned_pipelines, pinned_jobs, gitlab, token, project)
+        temporary_plan, temporary_incomplete = nonstable_cleanup_plan(
+            candidates, pinned_pipelines, pinned_jobs, gitlab, token, project, datetime.now(timezone.utc) - NONSTABLE_RETENTION
+        )
+        plan.extend(temporary_plan)
+        if not plan and not (incomplete or discovery_incomplete or temporary_incomplete):
+            print("No archived release attempts or expired staging tags.")
         for entry in plan:
             print(json.dumps(entry), flush=True)
         if args.mode == "apply":
             apply_cleanup(plan, gitlab, token)
-        if incomplete:
+        if incomplete or discovery_incomplete or temporary_incomplete:
             parser.exit(1, "Staging tag discovery was incomplete. See warnings above.\n")
     except (*IO_ERRORS, subprocess.SubprocessError) as error:
         parser.exit(1, f"Cleanup stopped: {error}\n")

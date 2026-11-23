@@ -10,7 +10,7 @@ variables:
     description: "Set to 'true' with RELEASE_VERSION to recover a tagged stable release from a fresh pipeline on main."
   CLEANUP_RELEASE_ATTEMPTS:
     value: ""
-    description: "Set to 'plan' to list archived release cleanup candidates or 'apply' to remove them."
+    description: "Set to 'plan' to preview cleanup of archived release attempts and expired staging tags, or 'apply' to remove them."
 
 include:
   - local: .gitlab/collector-pipeline.yml

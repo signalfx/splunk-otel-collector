@@ -64,8 +64,8 @@ manual_release_trigger:
         exit 1
       fi
 
-      if [[ -z "${DRY_RUN:-}" && "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        if [[ "${CI_PIPELINE_SOURCE:-}" != "parent_pipeline" ]]; then
+      if [[ -z "${DRY_RUN:-}" ]]; then
+        if [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ && "${CI_PIPELINE_SOURCE:-}" != "parent_pipeline" ]]; then
           echo "Stable releases must run in the child pipeline started by stable-collector-release." >&2
           exit 1
         fi
@@ -74,7 +74,10 @@ manual_release_trigger:
         source .gitlab/collector-docker-common.sh
         published_ref="$(collector_release_refs "refs/tags/${RELEASE_VERSION}")"
         if [[ -n "$published_ref" ]]; then
-          echo "$RELEASE_VERSION is already tagged on GitHub. Run recover-stable-release in the original child, or start a pipeline on main with RECOVER_RELEASE=true." >&2
+          echo "$RELEASE_VERSION is already tagged on GitHub." >&2
+          if [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Run recover-stable-release in the original child, or start a pipeline on main with RECOVER_RELEASE=true." >&2
+          fi
           exit 1
         fi
       fi
@@ -194,18 +197,12 @@ sast-scan:
   if [[ -z "${DRY_RUN:-}" ]]; then
     VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
   fi
-  IMAGE_TAG="${VERSION_TAG#v}"
-  LATEST_TAG=""
-  if [[ -z "$VERSION_TAG" ]]; then
-    IMAGE_TAG="$CI_COMMIT_SHA"
-  fi
+  PUBLISH_TAG="${VERSION_TAG#v}"
+  PUBLISH_TAG="${PUBLISH_TAG:-$CI_COMMIT_SHA}"
   if [[ -n "${DRY_RUN:-}" ]]; then
-    IMAGE_TAG="${CI_COMMIT_SHA}-dryrun-${CI_PIPELINE_ID}"
-  elif [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    IMAGE_TAG="${IMAGE_TAG}-staging-${CI_PIPELINE_ID:?}"
-    LATEST_TAG="latest"
-  elif [[ -z "$VERSION_TAG" && "${CI_COMMIT_BRANCH:-}" == main ]]; then
-    LATEST_TAG="latest"
+    IMAGE_TAG="${PUBLISH_TAG}-dryrun-${CI_PIPELINE_ID:?}"
+  else
+    IMAGE_TAG="${PUBLISH_TAG}-staging-${CI_PIPELINE_ID:?}"
   fi
 
 .sign-docker:
@@ -279,13 +276,16 @@ sast-scan:
         echo "DRY_RUN: skipping S3/Artifactory publish"
       else
         if [ -n "${PATHS:-}" ]; then
-          for path in $PATHS; do
-            if [ ! -f "$path" ]; then
-              echo "$path not found!"
-              exit 1
-            fi
-            python3 packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
-          done
+          paths=($PATHS)
+          if [[ "$STAGE" == release ]]; then
+            # Publish the stable MSI pair together before advancing latest.txt.
+            python3 packaging/release/release.py --force --stage="$STAGE" --paths "${paths[@]}" ${OPTIONS:-}
+          else
+            for path in "${paths[@]}"; do
+              python3 packaging/release/release.py --force --stage="$STAGE" --path="$path" ${OPTIONS:-}
+            done
+          fi
+          sha256sum -- "${paths[@]}" > dist/published-msi.sha256
         elif [ -n "${INSTALLERS:-}" ]; then
           python3 packaging/release/release.py --force --installers ${OPTIONS:-}
         else
@@ -950,11 +950,8 @@ build-push-linux-image:
         image_name="${image_name}-dev"
       fi
 
-      linux_tag="$IMAGE_TAG"
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # Keep the Linux index tagged for retries of the multiarch job.
-        linux_tag="${IMAGE_TAG}-linux"
-      fi
+      # Keep the Linux index available by digest without overwriting the combined manifest on retries.
+      linux_tag="${IMAGE_TAG}-linux"
       echo "Building and pushing ${image_name}:${linux_tag}"
       make docker-otelcol FIPS="$fips" ARCH="$DOCKER_ARCHES" DOCKER_REPO="$DOCKER_HUB_REPO" \
         IMAGE_NAME="$image_name" IMAGE_TAG="$linux_tag" IMAGE_METADATA_FILE=build_metadata.json \
@@ -1040,10 +1037,10 @@ build-push-windows-image:
         $OLD_IMAGE_NAME = "${OLD_IMAGE_NAME}-dev"
         $tagNumber = $env:CI_COMMIT_SHA
       }
+      if (-not $env:CI_PIPELINE_ID) { throw 'CI_PIPELINE_ID is required for image staging' }
       if ($env:DRY_RUN) {
         $tagNumber = "${tagNumber}-dryrun-${env:CI_PIPELINE_ID}"
-      } elseif ($VERSION_TAG -cmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
-        if (-not $env:CI_PIPELINE_ID) { throw 'CI_PIPELINE_ID is required for stable image staging' }
+      } else {
         $tagNumber = "${tagNumber}-staging-${env:CI_PIPELINE_ID}"
       }
       $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
@@ -1296,6 +1293,9 @@ release-msi:
       artifacts: true
   variables:
     PATHS: dist/signed/*.msi
+  artifacts:
+    paths:
+      - dist/published-msi.sha256
 
 # only upload the installer scripts to S3 for stable release tags
 release-installers:
@@ -1515,6 +1515,9 @@ push-multiarch-manifest:
     - |
       read -r image digest < "dist/docker/${QUAY_COLLECTOR_REPO}/tags_to_sign_${MANIFEST}${FIPS}"
       target="${DOCKER_TEST_XRAY_REPO}/splunk-otel-collector/${image##*/}"
+      if [[ ! "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        target="${target%:*}:$PUBLISH_TAG"
+      fi
       copy_collector_image "${image%:*}" "$digest" "$target"
       docker buildx imagetools inspect "$target"
   artifacts:
@@ -1588,7 +1591,7 @@ xray-scan-docker:
   before_script: []
   script:
     - cd internal/tools
-    - CGO_ENABLED=0 GOBIN="$CI_PROJECT_DIR/dist/github-release-tools" go install github.com/tcnksm/ghr go.opentelemetry.io/build-tools/multimod
+    - CGO_ENABLED=0 GOBIN="$CI_PROJECT_DIR/dist/github-release-tools" go install go.opentelemetry.io/build-tools/multimod
   artifacts:
     paths:
       - dist/github-release-tools/
@@ -1647,7 +1650,7 @@ build-stable-github-release-tools:
       artifacts: true
       optional: true
     - job: release-msi
-      artifacts: false
+      artifacts: true
       optional: true
     - job: release-installers
       artifacts: false
@@ -1666,6 +1669,7 @@ prepare-stable-github-release:
     - if: *stable-release-job
   needs: *github-release-inputs
   script:
+    - sha256sum -- dist/signed/*.msi | diff -u dist/published-msi.sha256 -
     - bash .gitlab/prepare-github-release-assets.sh
     - mkdir -p dist/release-inputs
     - printf '%s\n' "$CI_JOB_ID" > dist/release-inputs/assets
@@ -1716,10 +1720,8 @@ github-release:
         if [[ -n "${DRY_RUN:-}" ]]; then
           echo "DRY_RUN: skipping GitHub tag creation and release"
         elif [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
-          tools_dir="$CI_PROJECT_DIR/dist/github-release-tools"
-          test -x "$tools_dir/multimod"
-          export PATH="$tools_dir:$PATH"
-          ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
+          # This job holds collector-docker-latest through the tag check and image publication.
+          bash .gitlab/publish-prerelease-collector-release.sh "$VERSION_TAG" "$IMAGE_TAG"
         fi
       fi
 
@@ -1733,6 +1735,9 @@ github-release:
 
 promote-docker-latest:
   extends: .promote-docker-latest
+  environment:
+    name: collector-development-images/$CI_COMMIT_SHA
+    deployment_tier: development
   rules:
     - if: '$DRY_RUN'
       when: never
@@ -1741,10 +1746,30 @@ promote-docker-latest:
     - mirror-docker-images
   script:
     - *set-docker-tags
-    - bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" "$LATEST_TAG"
+    - |
+      set -e
+      source .gitlab/collector-docker-common.sh
+      newest_pipeline="$(newest_collector_dev_pipeline)"
+      if (( newest_pipeline > CI_PIPELINE_ID )); then
+        echo "Skipping development image aliases for pipeline $CI_PIPELINE_ID because pipeline $newest_pipeline already started promotion for $CI_COMMIT_SHA"
+        exit 0
+      fi
+      bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" "$PUBLISH_TAG"
+      main_ref="$(git ls-remote --exit-code origin refs/heads/main)"
+      read -r main_commit main_branch <<< "$main_ref"
+      if [[ ! "$main_commit" =~ ^[0-9a-f]{40}$ || "$main_branch" != refs/heads/main || "$main_ref" == *$'\n'* ]]; then
+        echo "Could not verify the current main branch tip" >&2
+        exit 1
+      fi
+      if [[ "$CI_COMMIT_SHA" == "$main_commit" ]]; then
+        bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" latest
+      else
+        echo "Skipping development latest for $CI_COMMIT_SHA because main is now at $main_commit"
+      fi
 
 promote-docker-stable-latest:
   extends: .promote-docker-latest
+  tags: [large]
   retry: 2
   rules:
     - if: *stable-release-job

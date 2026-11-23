@@ -22,8 +22,16 @@ login_to_docker_hub() {
 }
 
 collector_release_refs() {
-    git ls-remote --tags --refs --sort=-version:refname \
+    git ls-remote --tags --sort=-version:refname \
         https://github.com/signalfx/splunk-otel-collector.git "$@"
+}
+
+collector_release_tag_commit() {
+    local ref="refs/tags/$1" refs
+    refs="$(collector_release_refs "$ref" "$ref^{}")" || return
+    # Prefer the target of an annotated tag. A lightweight tag points directly at the commit.
+    awk -v ref="$ref" '$2 == ref { tag = $1 } $2 == ref "^{}" { commit = $1 }
+        END { if (tag) print (commit ? commit : tag) }' <<< "$refs"
 }
 
 latest_collector_release_tag() {
@@ -44,12 +52,15 @@ collector_github_api() {
         "$@" "https://api.github.com/repos/signalfx/splunk-otel-collector/$endpoint"
 }
 
-latest_published_collector_release() {
+latest_collector_github_release() {
     local response
     response="$(collector_github_api releases/latest --write-out $'\n%{http_code}')" || return
     case "${response##*$'\n'}" in
         200)
-            jq -er '.tag_name | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))' <<< "${response%$'\n'*}"
+            jq -ces '
+                select(length == 1) | .[0]
+                | select(.draft == false and .prerelease == false and (.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")))
+            ' <<< "${response%$'\n'*}"
             ;;
         404) return 0 ;;
         *)
@@ -59,8 +70,67 @@ latest_published_collector_release() {
     esac
 }
 
+latest_published_collector_release() {
+    local release
+    release="$(latest_collector_github_release)" || return
+    jq -r '.tag_name // empty' <<< "$release"
+}
+
 collector_version_is_older() {
     [[ -n "$2" && "$1" != "$2" && "$(printf '%s\n' "$1" "$2" | sort -V | sed -n '1p')" == "$1" ]]
+}
+
+newest_collector_dev_pipeline() {
+    local page response summary count latest current current_seen=false newest=0
+    # The resource group holds the lock before GitLab starts this deployment.
+    # A failed or canceled job can have written aliases if it started running.
+    for ((page = 1; page <= 100; page++)); do
+        response="$(curl --fail --silent --show-error --max-time 30 --get \
+            --header "JOB-TOKEN: ${CI_JOB_TOKEN:?}" \
+            --data-urlencode "environment=${CI_ENVIRONMENT_NAME:?}" \
+            --data-urlencode "page=$page" --data-urlencode 'per_page=100' \
+            --data-urlencode 'order_by=id' --data-urlencode 'sort=asc' \
+            "${CI_API_V4_URL:?}/projects/${CI_PROJECT_ID:?}/deployments")" || return
+        summary="$(jq -er --arg environment "$CI_ENVIRONMENT_NAME" --arg sha "${CI_COMMIT_SHA:?}" \
+            --arg job "${CI_JOB_ID:?}" --arg pipeline "${CI_PIPELINE_ID:?}" '
+            if type != "array" then error("Invalid development deployment list") else . end
+            | map(
+                if .environment.name != $environment or .sha != $sha
+                then error("Unexpected development deployment") else . end
+                | .status as $status
+                | if ["created","blocked","running","success","failed","canceled","skipped"] | index($status) != null
+                  then . else error("Invalid development deployment status") end
+                | (.deployable.pipeline.id
+                   | if type == "number" and . > 0 and . == floor
+                     then . else error("Invalid development deployment pipeline ID") end) as $id
+                | {status: $status, pipeline: $id, job: .deployable.id,
+                   never_started: (.deployable | has("started_at") and .started_at == null)}
+            )
+            | [length,
+               ([.[] | select(.status == "running" or .status == "success"
+                              or ((.status == "failed" or .status == "canceled") and (.never_started | not)))
+                      | .pipeline] | max // 0),
+               any(.[]; (.job | tostring) == $job and (.pipeline | tostring) == $pipeline)]
+            | @tsv
+        ' <<< "$response")" || return
+        read -r count latest current <<< "$summary"
+        if (( latest > newest )); then
+            newest="$latest"
+        fi
+        if [[ "$current" == true ]]; then
+            current_seen=true
+        fi
+        if (( count < 100 )); then
+            if [[ "$current_seen" != true ]]; then
+                echo "GitLab deployment history did not include the current promotion job" >&2
+                return 1
+            fi
+            printf '%s\n' "$newest"
+            return 0
+        fi
+    done
+    echo "Could not read the complete development deployment history" >&2
+    return 1
 }
 
 read_build_digest() {

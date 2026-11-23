@@ -36,6 +36,8 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension v0.165.1
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.165.1
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.165.1
+	github.com/signalfx/splunk-otel-collector/pkg/splunkconf v0.165.0
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta v0.0.0-00010101000000-000000000000
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
@@ -824,6 +826,8 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension => ./pkg/extension/oracleencodingextension
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
+	github.com/signalfx/splunk-otel-collector/pkg/splunkconf => ./pkg/splunkconf
+	github.com/signalfx/splunk-otel-collector/pkg/splunkta => ./pkg/splunkta
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )
 

@@ -1,0 +1,60 @@
+version: 1
+signal: metrics
+resources:
+    - attributes:
+        server.address/regex: '.+'
+      scopes:
+        - name: github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver
+          metrics:
+            - name: openconfig.interfaces.interface.state.counters.in-octets
+              type: sum
+              unit: By
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - attributes:
+                    name: eth0
+                  int_value: 9007199254740993
+                - attributes:
+                    name: eth1
+                  int_value: 111
+            - name: openconfig.interfaces.interface.state.counters.out-octets
+              type: sum
+              unit: By
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - attributes:
+                    name: eth0
+                  int_value: 54321
+            - name: openconfig.interfaces.interface.state.counters.in-errors
+              type: sum
+              unit: '{error}'
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - attributes:
+                    name: eth0
+                  int_value: 7
+            - name: openconfig.interfaces.interface.subinterfaces.subinterface.state.counters.in-octets
+              type: sum
+              unit: By
+              temporality: cumulative
+              monotonic: true
+              datapoints:
+                - attributes:
+                    name: eth0
+                    index: "0"
+                  int_value: 222
+            - name: openconfig.interfaces.interface.state.oper-status_state
+              type: gauge
+              unit: "1"
+              datapoints:
+                - attributes:
+                    name: eth0
+                    state: UP
+                  int_value: 1
+                - attributes:
+                    name: eth0
+                    state: DOWN
+                  int_value: 0

@@ -47,6 +47,7 @@ import (
 type metricCollectionTestOpts struct {
 	collectorEnvVars      map[string]string
 	fileMounts            map[string]string
+	afterCollectorStart   func(*testing.T)
 	metricsAssertionFile  string
 	compareMetricsOptions []pmetrictest.CompareMetricsOption
 }
@@ -68,6 +69,12 @@ func WithCollectorEnvVars(envVars map[string]string) MetricsCollectionTestOption
 		for k, v := range envVars {
 			opts.collectorEnvVars[k] = v
 		}
+	}
+}
+
+func WithAfterCollectorStart(cb func(*testing.T)) MetricsCollectionTestOption {
+	return func(opts *metricCollectionTestOpts) {
+		opts.afterCollectorStart = cb
 	}
 }
 
@@ -174,9 +181,14 @@ func RunMetricsCollectionTest(t *testing.T, configFile, expectedFilePath string,
 	p, err := cc.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
+
 	t.Cleanup(func() {
 		require.NoError(t, p.Shutdown())
 	})
+
+	if opts.afterCollectorStart != nil {
+		opts.afterCollectorStart(t)
+	}
 
 	var expected pmetric.Metrics
 	if opts.metricsAssertionFile == "" {

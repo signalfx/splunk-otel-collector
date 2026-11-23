@@ -1,0 +1,10 @@
+name: "Monitor charset ignored"
+description: >
+  CHARSET set on a [monitor://...] stanza itself is not a recognized
+  inputs.conf attribute, so it must be ignored rather than applied - 
+  the file sill miscodes. Regression guard against wiring CHARSET
+  from the input stanza instead of props.conf.
+setup: |
+  printf 'Witaj \xd1\xbfwiecie!\n' > foo.txt
+expected:
+  raw: true

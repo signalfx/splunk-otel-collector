@@ -1,0 +1,18 @@
+name: "TCP event"
+description: |
+  Text sent to a tcp stanza's port lands as an event carrying the host, source
+  and index the stanza names.
+script: |
+  for _ in $(seq 60); do
+    if printf '2026-01-02 03:04:05 alpha\n' > /dev/tcp/127.0.0.1/19099; then
+      exit 0
+    fi
+    sleep 1
+  done
+  echo "nothing accepted a connection on port 19099" >&2
+  exit 1
+expected:
+  raw: true
+  host: true
+  source: true
+  index: true

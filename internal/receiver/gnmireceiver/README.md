@@ -188,7 +188,7 @@ The tunnel server embeds the standard collector [gRPC server settings][configgrp
 | Field                | Default   | Description                                                                 |
 | -------------------- | --------- | --------------------------------------------------------------------------- |
 | `path`               | (required)| gNMI path to subscribe to. Must be absolute (start with `/`).               |
-| `origin`             |           | YANG model origin (e.g. `openconfig`).                                      |
+| `origin`             |           | YANG model origin. A response with no origin is matched as `openconfig`.    |
 | `mode`               | (required)| Per-path mode within a `STREAM` subscription: `sample`, `on_change`, or `target_defined`. The receiver does not support `ONCE` or `POLL` SubscriptionLists. |
 | `sample_interval`    |           | Sampling period. Required and must be `> 0` when `mode` is `sample`; must not be set for other modes. |
 | `heartbeat_interval` |           | Forces an update at this interval even if the value has not changed.        |
@@ -198,12 +198,13 @@ The tunnel server embeds the standard collector [gRPC server settings][configgrp
 
 ### Metric names and attributes
 
-Metric names are the gNMI path elements joined with dots, prefixed with the model
-origin when the target supplies one:
+Metric names are the gNMI origin followed by the path elements, joined with dots.
+When the target omits the origin, `openconfig` is assumed according to gNMI
+[specification][origin-spec], so it becomes the prefix.
 
 ```
 /interfaces/interface[name=eth0]/state/counters/in-octets
-  -> interfaces.interface.state.counters.in-octets
+  -> openconfig.interfaces.interface.state.counters.in-octets
 ```
 
 Path keys are not part of the name; they become datapoint attributes (`name=eth0`
@@ -235,8 +236,8 @@ An info metric reports only the current value, not every possible value — an
 explicit `0` for the state that's no longer active:
 
 ```
-interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="UP"
-interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="DOWN"
+openconfig.interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="UP"
+openconfig.interfaces.interface.state.oper-status_info{name="eth0"} 1  # value="DOWN"
 ```
 
 For a leaf whose possible values are known in advance, `enum_values` (below) emits
@@ -274,14 +275,14 @@ This makes transitions unambiguous: the same notification that reports `DOWN` al
 reports `UP` going back to `0`.
 
 ```
-interfaces.interface.state.counters.oper-status_state{name="eth0",state="UP"}      1
-interfaces.interface.state.counters.oper-status_state{name="eth0",state="DOWN"}    0
-interfaces.interface.state.counters.oper-status_state{name="eth0",state="TESTING"} 0
+openconfig.interfaces.interface.state.counters.oper-status_state{name="eth0",state="UP"}      1
+openconfig.interfaces.interface.state.counters.oper-status_state{name="eth0",state="DOWN"}    0
+openconfig.interfaces.interface.state.counters.oper-status_state{name="eth0",state="TESTING"} 0
 
 # after a transition to DOWN:
-interfaces.interface.state.counters.oper-status_state{name="eth0",state="UP"}      0
-interfaces.interface.state.counters.oper-status_state{name="eth0",state="DOWN"}    1
-interfaces.interface.state.counters.oper-status_state{name="eth0",state="TESTING"} 0
+openconfig.interfaces.interface.state.counters.oper-status_state{name="eth0",state="UP"}      0
+openconfig.interfaces.interface.state.counters.oper-status_state{name="eth0",state="DOWN"}    1
+openconfig.interfaces.interface.state.counters.oper-status_state{name="eth0",state="TESTING"} 0
 ```
 
 Notes:
@@ -372,9 +373,9 @@ resolution win over the other's.
 
 A gNMI path's `origin` identifies which schema/data tree it belongs to (a subscription's
 `origin`, see [Subscription](#subscription) above, is matched against the update's
-origin when picking `overrides`/`default`). The YANG schema built from `yang_modules`
-does not have this concept: it is a single flat tree indexed by path only, regardless
-of `origin`. All loaded `yang_modules` are expected to describe one schema tree; if two
+origin when picking `overrides`/`default`; where the update has none, `openconfig` is used).
+The YANG schema built from `yang_modules` does not have this concept: it is a single flat tree indexed by path only, 
+regardless of `origin`. All loaded `yang_modules` are expected to describe one schema tree; if two
 origins expose the same path with different types, the schema cannot tell them apart,
 and — per the previous paragraph — loading fails rather than silently picking one.
 Per-origin schema resolution is not currently supported.
@@ -413,3 +414,4 @@ with a blank password). Setting `password` without `username` is rejected at sta
 [UCUM]: https://ucum.org/ucum
 [spec-stream]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#35152-stream-subscriptions
 [spec-auth]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#31-session-security-authentication-and-rpc-authorization
+[origin-spec]: https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md#271-special-values-of-origin

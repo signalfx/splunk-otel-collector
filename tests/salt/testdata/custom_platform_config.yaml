@@ -10,11 +10,11 @@ processors:
     check_interval: 2s
     limit_mib: 512
 exporters:
-  logging/debug:
+  debug:
     verbosity: detailed
 service:
   pipelines:
     metrics:
       receivers: [prometheus]
       processors: [memory_limiter]
-      exporters: [logging/debug]
+      exporters: [debug]

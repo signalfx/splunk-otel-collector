@@ -51,6 +51,9 @@ for windows in 2019 2022; do
 done
 
 image="${repository}:${image_tag}"
+if [[ "$image_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+-staging-[0-9]+$ ]]; then
+    printf 'Publishing image %s\n' "$image"
+fi
 digest="$(push_collector_index "$image" "${sources[@]}")"
 json="$(docker buildx imagetools inspect --raw "${repository}@${digest}")"
 jq -e --argjson expected "$((${#linux_arches[@]} + ${#windows_versions[@]}))" \

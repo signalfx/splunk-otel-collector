@@ -5,10 +5,20 @@ variables:
   DRY_RUN:
     value: ""
     description: "Set to 'true' for a dry run. Docker publishing requires a protected branch and credentials scoped to the dev repositories."
+  RECOVER_RELEASE:
+    value: ""
+    description: "Set to 'true' with RELEASE_VERSION to recover a tagged stable release from a fresh pipeline on main."
+  CLEANUP_RELEASE_ATTEMPTS:
+    value: ""
+    description: "Set to 'plan' to list archived release cleanup candidates or 'apply' to remove them."
 
 include:
   - local: .gitlab/collector-pipeline.yml
     rules:
+      - if: &cleanup_requested '$CLEANUP_RELEASE_ATTEMPTS != null && $CLEANUP_RELEASE_ATTEMPTS != ""'
+        when: never
+      - if: &recovery_requested '$RECOVER_RELEASE != null && $RECOVER_RELEASE != ""'
+        when: never
       # Stable releases run only inside the child pipeline holding the version lock.
       - if: &stable_release '$CI_COMMIT_REF_NAME == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ && ($DRY_RUN == null || $DRY_RUN == "")'
         when: never
@@ -17,6 +27,10 @@ include:
 stable-collector-release:
   stage: deploy
   rules:
+    - if: *cleanup_requested
+      when: never
+    - if: *recovery_requested
+      when: never
     - if: *stable_release
   # Retry this trigger if a release stops before creating the GitHub tag.
   resource_group: collector-stable-${RELEASE_VERSION}
@@ -27,3 +41,37 @@ stable-collector-release:
     forward:
       yaml_variables: false
       pipeline_variables: true
+
+recover-tagged-stable-release:
+  stage: deploy
+  image: "${DOCKER_CICD_REPO}/ci-container/debian-bookworm:3.5.0"
+  tags: [large]
+  resource_group: collector-docker-latest
+  rules:
+    - if: *cleanup_requested
+      when: never
+    - if: '$RECOVER_RELEASE != null && $RECOVER_RELEASE != "" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_PROTECTED == "true"'
+  needs: []
+  script:
+    - |
+      if [[ "$RECOVER_RELEASE" != true || -n "${DRY_RUN:-}" || ! "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Set RECOVER_RELEASE=true and RELEASE_VERSION=vX.Y.Z with DRY_RUN empty to recover a tagged release." >&2
+        exit 1
+      fi
+    - bash .gitlab/publish-stable-collector-release.sh "$RELEASE_VERSION" "" --recover-from-tag
+    - bash .gitlab/promote-stable-collector-latest.sh "$RELEASE_VERSION" "" --recover-from-tag
+
+cleanup-stable-release-attempts:
+  stage: deploy
+  image: "${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0"
+  resource_group: collector-docker-latest
+  rules:
+    - if: '$CLEANUP_RELEASE_ATTEMPTS != null && $CLEANUP_RELEASE_ATTEMPTS != "" && ($CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule") && $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_PROTECTED == "true"'
+  needs: []
+  script:
+    - |
+      if [[ -n "${RECOVER_RELEASE:-}${RELEASE_VERSION:-}${DRY_RUN:-}" ]]; then
+        echo "Set CLEANUP_RELEASE_ATTEMPTS by itself to run cleanup." >&2
+        exit 1
+      fi
+    - python3 .gitlab/cleanup-stable-release-attempts.py "$CLEANUP_RELEASE_ATTEMPTS"

@@ -4,7 +4,7 @@ set -euo pipefail
 
 source .gitlab/collector-docker-common.sh
 
-promote_alias() {
+promote_tag() {
     local repository="$1" digest="$2" target="$3" attempt
     for attempt in 1 2 3; do
         if copy_collector_image "$repository" "$digest" "$target"; then
@@ -15,12 +15,18 @@ promote_alias() {
             sleep "$((attempt * 2))"
         fi
     done
-    echo "Could not promote $target after 3 attempts. Retry this promotion job to finish updating the aliases." >&2
+    echo "Could not promote $target after 3 attempts." >&2
     return 1
 }
 
 image_tag="$1"
-latest_tag="$2"
+target_tag="$2"
+action="${3:-publish}"
+if [[ -z "$image_tag" || -z "$target_tag" || ( "$action" != publish && "$action" != verify ) ]]; then
+    echo "Usage: $0 <source-tag> <target-tag> [publish|verify]" >&2
+    exit 1
+fi
+
 source_dir="dist/docker/${DOCKER_HUB_COLLECTOR_REPO}"
 images=()
 digests=()
@@ -50,7 +56,12 @@ login_to_docker_hub
 for i in "${!images[@]}"; do
     quay_repo="${images[i]}"
     hub_repo="${DOCKER_HUB_COLLECTOR_REPO}${quay_repo#"$QUAY_COLLECTOR_REPO"}"
-    alias="${latest_tag}${suffixes[i]}"
-    promote_alias "$quay_repo" "${digests[i]}" "${quay_repo}:${alias}"
-    promote_alias "$hub_repo" "${digests[i]}" "${hub_repo}:${alias}"
+    tag="${target_tag}${suffixes[i]}"
+    if [[ "$action" == verify ]]; then
+        verify_collector_image "${digests[i]}" "${quay_repo}:${tag}"
+        verify_collector_image "${digests[i]}" "${hub_repo}:${tag}"
+    else
+        promote_tag "$quay_repo" "${digests[i]}" "${quay_repo}:${tag}"
+        promote_tag "$hub_repo" "${digests[i]}" "${hub_repo}:${tag}"
+    fi
 done

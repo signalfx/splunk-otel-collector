@@ -33,7 +33,7 @@ if [[ "$QUAY_DIGEST" != "$DOCKER_HUB_DIGEST" ]]; then
   echo "Release image digests differ between Quay and Docker Hub" >&2
   exit 1
 fi
-CHANGELOG="${REPO_DIR}/CHANGELOG.md"
+CHANGELOG="${2:-${REPO_DIR}/CHANGELOG.md}"
 
 changes="$( awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' "$CHANGELOG" )"
 

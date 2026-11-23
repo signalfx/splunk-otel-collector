@@ -74,7 +74,7 @@ manual_release_trigger:
         source .gitlab/collector-docker-common.sh
         published_ref="$(collector_release_refs "refs/tags/${RELEASE_VERSION}")"
         if [[ -n "$published_ref" ]]; then
-          echo "$RELEASE_VERSION is already tagged on GitHub. Retry release upload or alias promotion in the original child pipeline." >&2
+          echo "$RELEASE_VERSION is already tagged on GitHub. Run recover-stable-release in the original child, or start a pipeline on main with RECOVER_RELEASE=true." >&2
           exit 1
         fi
       fi
@@ -122,12 +122,24 @@ manual_release_trigger:
         exit 1
       fi
 
+      if [[ -z "${DRY_RUN:-}" && "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        mkdir -p dist/release-inputs
+        attempt=$(jq -cn --arg project "$CI_PROJECT_ID" --arg pipeline "$CI_PIPELINE_ID" --arg version "$RELEASE_VERSION" \
+          --arg quay "$QUAY_COLLECTOR_REPO" --arg hub "$DOCKER_HUB_COLLECTOR_REPO" \
+          '{project:$project, pipeline:$pipeline, version:$version, quay:$quay, hub:$hub}')
+        printf '%s\n' "$attempt" > dist/release-inputs/attempt.json
+        printf 'Collector-Release-Attempt: %s\n' "$attempt"
+      fi
       echo "Manual release triggered for version $RELEASE_VERSION"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION != null && $RELEASE_VERSION != ""'
       when: on_success
   allow_failure: false
   needs: []
+  artifacts:
+    expire_in: never
+    paths:
+      - dist/release-inputs/attempt.json
 
 fossa:
   extends: .oss-scan
@@ -189,7 +201,10 @@ sast-scan:
   fi
   if [[ -n "${DRY_RUN:-}" ]]; then
     IMAGE_TAG="${CI_COMMIT_SHA}-dryrun-${CI_PIPELINE_ID}"
-  elif [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ || ( -z "$VERSION_TAG" && "${CI_COMMIT_BRANCH:-}" == main ) ]]; then
+  elif [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    IMAGE_TAG="${IMAGE_TAG}-staging-${CI_PIPELINE_ID:?}"
+    LATEST_TAG="latest"
+  elif [[ -z "$VERSION_TAG" && "${CI_COMMIT_BRANCH:-}" == main ]]; then
     LATEST_TAG="latest"
   fi
 
@@ -935,9 +950,14 @@ build-push-linux-image:
         image_name="${image_name}-dev"
       fi
 
-      echo "Building and pushing ${image_name}:${IMAGE_TAG}"
+      linux_tag="$IMAGE_TAG"
+      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Keep the Linux index tagged for retries of the multiarch job.
+        linux_tag="${IMAGE_TAG}-linux"
+      fi
+      echo "Building and pushing ${image_name}:${linux_tag}"
       make docker-otelcol FIPS="$fips" ARCH="$DOCKER_ARCHES" DOCKER_REPO="$DOCKER_HUB_REPO" \
-        IMAGE_NAME="$image_name" IMAGE_TAG="$IMAGE_TAG" IMAGE_METADATA_FILE=build_metadata.json \
+        IMAGE_NAME="$image_name" IMAGE_TAG="$linux_tag" IMAGE_METADATA_FILE=build_metadata.json \
         SKIP_COMPILE=true PUSH=true
       linux_digest="$(read_build_digest build_metadata.json)"
       printf '%s@%s\n' "$image_name" "$linux_digest" > "${artifact_dir}/linux_index${DOCKER_FIPS_SUFFIX}"
@@ -1022,6 +1042,9 @@ build-push-windows-image:
       }
       if ($env:DRY_RUN) {
         $tagNumber = "${tagNumber}-dryrun-${env:CI_PIPELINE_ID}"
+      } elseif ($VERSION_TAG -cmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+        if (-not $env:CI_PIPELINE_ID) { throw 'CI_PIPELINE_ID is required for stable image staging' }
+        $tagNumber = "${tagNumber}-staging-${env:CI_PIPELINE_ID}"
       }
       $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
     - |
@@ -1556,13 +1579,44 @@ xray-scan-docker:
       export CONTAINER_IMAGE="${image%:*}@${digest}"
       echo "$CONTAINER_IMAGE"
 
-github-release:
-  extends:
-    - .trigger-filter
-    - .go-cache
+.github-release-tools:
+  extends: .go-cache
   tags: [large]
-  resource_group: collector-docker-latest
   needs:
+    - job: manual_release_trigger
+      artifacts: false
+  before_script: []
+  script:
+    - cd internal/tools
+    - CGO_ENABLED=0 GOBIN="$CI_PROJECT_DIR/dist/github-release-tools" go install github.com/tcnksm/ghr go.opentelemetry.io/build-tools/multimod
+  artifacts:
+    paths:
+      - dist/github-release-tools/
+
+build-github-release-tools:
+  extends: .github-release-tools
+  rules:
+    - if: '$DRY_RUN'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+-(beta|rc)\.[0-9]+$/'
+
+build-stable-github-release-tools:
+  extends: .github-release-tools
+  rules:
+    - if: &stable-release-job '$CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ && ($DRY_RUN == null || $DRY_RUN == "")'
+  script:
+    - !reference [.github-release-tools, script]
+    - mkdir -p "$CI_PROJECT_DIR/dist/release-inputs"
+    - printf '%s\n' "$CI_JOB_ID" > "$CI_PROJECT_DIR/dist/release-inputs/tools"
+  artifacts:
+    name: "collector-${RELEASE_VERSION}-${CI_PIPELINE_ID}-release-tools"
+    expire_in: never
+    paths:
+      - dist/github-release-tools/
+      - dist/release-inputs/tools
+
+.github-release-inputs:
+  needs: &github-release-inputs
     - job: compile
       artifacts: true
     - job: otelcol-fips
@@ -1602,42 +1656,71 @@ github-release:
       artifacts: true
     - job: pack-otlpinput
       artifacts: true
+    - job: build-github-release-tools
+      artifacts: true
+      optional: true
+
+prepare-stable-github-release:
+  tags: [large]
+  rules:
+    - if: *stable-release-job
+  needs: *github-release-inputs
   script:
-    - mkdir -p dist/assets
-    - cp bin/otelcol_aix_ppc64 dist/assets/
-    - cp bin/otelcol_linux_* dist/assets/
-    - cp bin/otelcol-fips_linux_* dist/assets/
-    - cp instrumentation/dist/libotelinject_*.so dist/assets/
-    - cp dist/signed/* dist/assets/
-    - cp packaging/ta-v2/out/distribution/* dist/assets/
-    - cp packaging/otlpinput/out/distribution/* dist/assets/
-    - *collector-docker-functions
+    - bash .gitlab/prepare-github-release-assets.sh
+    - mkdir -p dist/release-inputs
+    - printf '%s\n' "$CI_JOB_ID" > dist/release-inputs/assets
+  artifacts:
+    name: "collector-${RELEASE_VERSION}-${CI_PIPELINE_ID}-release"
+    expire_in: never
+    paths:
+      - dist/assets/
+      - dist/release-inputs/assets
+
+retain-stable-docker-records:
+  rules:
+    - if: *stable-release-job
+  needs:
+    - sign-multiarch-manifest
+    - mirror-docker-images
+  script:
+    - test -s "dist/docker/${QUAY_COLLECTOR_REPO}/multiarch_digest.txt"
+    - test -s "dist/docker/${DOCKER_HUB_COLLECTOR_REPO}/multiarch_digest.txt"
+    - mkdir -p dist/release-inputs
+    - printf '%s\n' "$CI_JOB_ID" > dist/release-inputs/docker
+  artifacts:
+    name: "collector-${RELEASE_VERSION}-${CI_PIPELINE_ID}-docker-records"
+    expire_in: never
+    paths:
+      - dist/docker/
+      - dist/release-inputs/docker
+
+github-release:
+  tags: [large]
+  resource_group: collector-docker-latest
+  rules:
+    - if: *stable-release-job
+      needs:
+        - prepare-stable-github-release
+        - retain-stable-docker-records
+        - build-stable-github-release-tools
+    - !reference [.trigger-filter, rules]
+  needs: *github-release-inputs
+  script:
+    - *set-docker-tags
     - |
       set -e
-      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      pushd dist/assets && shasum -a 256 * > checksums.txt && popd
-      if [[ -z "${DRY_RUN:-}" ]]; then
-        stable_release=false
-        if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          stable_release=true
-          release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
-          latest_release="$(latest_collector_release_tag)"
-          if [[ -n "$latest_release" && "$(printf '%s\n' "$latest_release" "$VERSION_TAG" | sort -V | sed -n '1p')" != "$latest_release" ]]; then
-            echo "Cannot release $VERSION_TAG after $latest_release" >&2
-            exit 1
-          fi
-        fi
-        # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
-        if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
+      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        bash .gitlab/publish-stable-collector-release.sh "$VERSION_TAG" "$IMAGE_TAG"
+      else
+        bash .gitlab/prepare-github-release-assets.sh
+        if [[ -n "${DRY_RUN:-}" ]]; then
+          echo "DRY_RUN: skipping GitHub tag creation and release"
+        elif [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
+          tools_dir="$CI_PROJECT_DIR/dist/github-release-tools"
+          test -x "$tools_dir/multimod"
+          export PATH="$tools_dir:$PATH"
           ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
         fi
-        # Only create github release for stable release tags
-        if [[ "$stable_release" == true ]]; then
-          # Preserve a published release, while allowing a retry to finish a draft.
-          ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$VERSION_TAG" -b "$release_notes" --soft --replace "$VERSION_TAG" dist/assets/
-        fi
-      else
-        echo "DRY_RUN: skipping GitHub tag creation and release"
       fi
 
   artifacts:
@@ -1647,20 +1730,6 @@ github-release:
 
 .promote-docker-latest:
   resource_group: collector-docker-latest
-  script:
-    - *collector-docker-functions
-    - *set-docker-tags
-    - |
-      # Stable GitHub tags are the release version record. Check it while the
-      # same resource lock blocks other GitHub releases and alias promotions.
-      if [[ -n "$VERSION_TAG" ]]; then
-        latest_release="$(latest_collector_release_tag)"
-        if [[ "$VERSION_TAG" != "$latest_release" ]]; then
-          echo "Cannot promote $VERSION_TAG; newest stable GitHub tag is ${latest_release:-missing}" >&2
-          exit 1
-        fi
-      fi
-    - bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" "$LATEST_TAG"
 
 promote-docker-latest:
   extends: .promote-docker-latest
@@ -1670,17 +1739,36 @@ promote-docker-latest:
     - if: '$CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION == ""'
   needs:
     - mirror-docker-images
+  script:
+    - *set-docker-tags
+    - bash .gitlab/promote-collector-docker-images.sh "$IMAGE_TAG" "$LATEST_TAG"
 
 promote-docker-stable-latest:
   extends: .promote-docker-latest
+  retry: 2
   rules:
-    - if: '$DRY_RUN'
-      when: never
-    - if: '$CI_COMMIT_BRANCH == "main" && $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+    - if: *stable-release-job
   needs:
-    - mirror-docker-images
+    - retain-stable-docker-records
     - job: github-release
       artifacts: false
+  script:
+    - *set-docker-tags
+    - bash .gitlab/promote-stable-collector-latest.sh "$VERSION_TAG" "$IMAGE_TAG"
+
+recover-stable-release:
+  tags: [large]
+  resource_group: collector-docker-latest
+  rules:
+    - if: *stable-release-job
+      when: manual
+      allow_failure: true
+  # Start without downloading artifacts from the latest attempts of build jobs.
+  needs: []
+  script:
+    - *set-docker-tags
+    - bash .gitlab/publish-stable-collector-release.sh "$VERSION_TAG" "$IMAGE_TAG" --recover-only
+    - bash .gitlab/promote-stable-collector-latest.sh "$VERSION_TAG" "$IMAGE_TAG"
 
 .ansible:
   image: 'cimg/python:3.13'

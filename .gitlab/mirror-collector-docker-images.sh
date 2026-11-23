@@ -17,6 +17,9 @@ fi
 login_to_docker_hub
 while read -r image digest; do
     target="${DOCKER_HUB_COLLECTOR_REPO}${image#"$QUAY_COLLECTOR_REPO"}"
+    if [[ "$target" =~ :[0-9]+\.[0-9]+\.[0-9]+-staging-[0-9]+($|-) ]]; then
+        printf 'Publishing image %s\n' "$target"
+    fi
     copy_collector_image "${image%:*}" "$digest" "$target"
     artifact-ci sign docker "${target%:*}@${digest}"
 done < "$records"

@@ -36,6 +36,33 @@ latest_collector_release_tag() {
     }' <<< "$tags"
 }
 
+collector_github_api() {
+    local endpoint="$1"
+    shift
+    curl --silent --show-error --header 'Accept: application/vnd.github+json' \
+        --header "Authorization: Bearer ${GITHUB_TOKEN:?}" \
+        "$@" "https://api.github.com/repos/signalfx/splunk-otel-collector/$endpoint"
+}
+
+latest_published_collector_release() {
+    local response
+    response="$(collector_github_api releases/latest --write-out $'\n%{http_code}')" || return
+    case "${response##*$'\n'}" in
+        200)
+            jq -er '.tag_name | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))' <<< "${response%$'\n'*}"
+            ;;
+        404) return 0 ;;
+        *)
+            echo "Could not determine latest published GitHub release (HTTP ${response##*$'\n'})" >&2
+            return 1
+            ;;
+    esac
+}
+
+collector_version_is_older() {
+    [[ -n "$2" && "$1" != "$2" && "$(printf '%s\n' "$1" "$2" | sort -V | sed -n '1p')" == "$1" ]]
+}
+
 read_build_digest() {
     jq -er '."containerimage.digest" | select(test("^sha256:[a-f0-9]{64}$"))' "$1"
 }
@@ -54,8 +81,13 @@ push_collector_index() {
 }
 
 copy_collector_image() {
-    local source="$1" digest="$2" target="$3" actual_digest
+    local source="$1" digest="$2" target="$3"
     docker buildx imagetools create --tag "$target" "${source}@${digest}" || return
+    verify_collector_image "$digest" "$target"
+}
+
+verify_collector_image() {
+    local digest="$1" target="$2" actual_digest
     actual_digest="$(docker buildx imagetools inspect --format '{{json .Manifest}}' "$target" | jq -er '.digest')" || return
     if [[ "$actual_digest" != "$digest" ]]; then
         echo "Digest mismatch for $target: expected $digest, got $actual_digest" >&2

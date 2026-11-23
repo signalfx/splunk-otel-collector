@@ -390,6 +390,41 @@ func TestTunnelTargetDeregistrationStopsSubscription(t *testing.T) {
 	}, 2*time.Second, 10*time.Millisecond)
 }
 
+func TestReceiverShutdownWithOpenTunnelRegistration(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	tunnelEndpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	tunnelConfig := newDefaultTunnelConfig()
+	tunnelConfig.NetAddr.Endpoint = tunnelEndpoint
+	tunnelConfig.TargetTypes = []string{targetTypeGNMIGNOIInsecure}
+	tunnelConfig.Subscriptions = []SubscriptionConfig{{
+		Path:           "/interfaces/interface/state/counters",
+		Mode:           modeSample,
+		SampleInterval: 10 * time.Millisecond,
+		Default:        &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{Tunnel: configoptional.Some(tunnelConfig)}
+	sink := new(consumertest.MetricsSink)
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+
+	srv := &mockGNMIServer{updates: 3}
+	stop := startTunnelTarget(t, tunnelEndpoint, tunnel.Target{ID: "router1", Type: targetTypeGNMIGNOIInsecure}, srv)
+	t.Cleanup(stop)
+
+	require.Eventually(t, func() bool {
+		return srv.subscribeHit.Load() >= 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	start := time.Now()
+	require.NoError(t, r.Shutdown(ctx))
+	assert.Less(t, time.Since(start), shutdownGracePeriod+2*time.Second)
+}
+
 func TestTunnelTargetReRegistration(t *testing.T) {
 	listener, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
@@ -700,6 +735,61 @@ func TestReceiverServerIngestsGNMIReverseResponses(t *testing.T) {
 	require.Equal(t, 1, getMetrics.Len())
 	assert.Equal(t, "openconfig.interfaces.interface.state.counters.in-errors", getMetrics.At(0).Name())
 	assert.Equal(t, int64(7), getMetrics.At(0).Sum().DataPoints().At(0).IntValue())
+}
+
+func TestReceiverShutdownWithOpenGNMIReversePublishStream(t *testing.T) {
+	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+	endpoint := listener.Addr().String()
+	require.NoError(t, listener.Close())
+
+	gnmiReverseConfig := NewDefaultGNMIReverseConfig()
+	gnmiReverseConfig.NetAddr.Endpoint = endpoint
+	gnmiReverseConfig.Subscriptions = []SubscriptionConfig{{
+		Path:    "/interfaces/interface/state/counters",
+		Default: &MetricConfig{Type: metricTypeSum, Unit: "By"},
+	}}
+	cfg := &Config{GNMIReverse: &gnmiReverseConfig}
+	sink := new(consumertest.MetricsSink)
+	r := newGNMIReceiver(cfg, receivertest.NewNopSettings(rcvrmetadata.Type), sink)
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+
+	conn, err := grpc.NewClient(endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = conn.Close() })
+
+	client := gnmireverse.NewGNMIReverseClient(conn)
+	publishStream, err := client.Publish(context.Background())
+	require.NoError(t, err)
+	prefix := &gnmipb.Path{Elem: []*gnmipb.PathElem{
+		{Name: "interfaces"},
+		{Name: "interface", Key: map[string]string{"name": "eth0"}},
+		{Name: "state"},
+		{Name: "counters"},
+	}, Target: "device-1"}
+	updateNotification := &gnmipb.Notification{
+		Prefix: prefix,
+		Update: []*gnmipb.Update{
+			{
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "in-octets"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_UintVal{UintVal: 42}},
+			},
+		},
+	}
+	updateResponse := &gnmipb.SubscribeResponse{
+		Response: &gnmipb.SubscribeResponse_Update{Update: updateNotification},
+	}
+	require.NoError(t, publishStream.Send(updateResponse))
+
+	require.Eventually(t, func() bool {
+		return len(sink.AllMetrics()) > 0
+	}, 2*time.Second, 10*time.Millisecond)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	start := time.Now()
+	require.NoError(t, r.Shutdown(ctx))
+	assert.Less(t, time.Since(start), shutdownGracePeriod+2*time.Second)
 }
 
 // TestReceiverForwardsPartialSuccessOnParseError covers a review comment on

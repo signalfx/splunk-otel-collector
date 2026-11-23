@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/aristanetworks/goarista/gnmireverse"
 	"go.opentelemetry.io/collector/component"
@@ -43,6 +44,8 @@ type grpcListener struct {
 	server   *grpc.Server
 	name     string
 }
+
+const shutdownGracePeriod = 5 * time.Second
 
 var _ receiver.Metrics = (*gnmiReceiver)(nil)
 
@@ -165,9 +168,7 @@ func (r *gnmiReceiver) Shutdown(ctx context.Context) error {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		for _, srv := range r.servers {
-			srv.GracefulStop()
-		}
+		stopServers(r.servers, shutdownGracePeriod)
 		r.wg.Wait()
 	}()
 
@@ -180,6 +181,35 @@ func (r *gnmiReceiver) Shutdown(ctx context.Context) error {
 		}
 		<-done
 		return ctx.Err()
+	}
+}
+
+func stopServers(servers []*grpc.Server, timeout time.Duration) {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	var gracefulWg sync.WaitGroup
+	gracefulWg.Add(len(servers))
+
+	for _, srv := range servers {
+		go func() {
+			defer gracefulWg.Done()
+			srv.GracefulStop()
+		}()
+	}
+
+	graceful := make(chan struct{})
+	go func() {
+		gracefulWg.Wait()
+		close(graceful)
+	}()
+
+	select {
+	case <-timer.C:
+		for _, srv := range servers {
+			srv.Stop()
+		}
+	case <-graceful: // all servers stopped gracefully
 	}
 }
 

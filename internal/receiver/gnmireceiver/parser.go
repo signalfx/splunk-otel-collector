@@ -39,6 +39,7 @@ const (
 	infoValueAttr     = "value"
 	stateValueAttr    = "state"
 	indexAttr         = "index"
+	defaultOrigin     = "openconfig"
 )
 
 // metricParser converts gNMI SubscribeResponse messages into OTel metrics.
@@ -51,6 +52,7 @@ type metricParser struct {
 }
 
 func newMetricParser(endpoint string, subscriptions []SubscriptionConfig, schema *yangSchema, logger *zap.Logger) *metricParser {
+	subscriptions = copySubscriptions(subscriptions)
 	for i := range subscriptions {
 		sub := &subscriptions[i]
 		if sub.Default != nil {
@@ -149,6 +151,10 @@ func (p *metricParser) parse(resp *gnmipb.SubscribeResponse) (pmetric.Metrics, e
 		origin := notification.GetPrefix().GetOrigin()
 		if origin == "" {
 			origin = update.GetPath().GetOrigin()
+		}
+		// gNMI spec: an omitted origin means openconfig
+		if origin == "" {
+			origin = defaultOrigin
 		}
 
 		if err := p.appendUpdate(b, origin, elems, keys, update.GetVal(), ts); err != nil {

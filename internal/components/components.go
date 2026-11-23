@@ -23,13 +23,13 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/splunkmodinputexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/configsourcetelemetryextension"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/diskqueuestorageextension"
+	"github.com/signalfx/splunk-otel-collector/internal/extension/splunkauthextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/gnmireceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/promqlreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/ptpreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/oracleencodingextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
-	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/exporter/splunkhecout"
 	"github.com/signalfx/splunk-otel-collector/pkg/splunkta/receiver/splunkbatch"
@@ -64,6 +64,7 @@ func Get() (otelcol.Factories, error) {
 
 	b.AddExporters(splunkmodinputexporter.NewFactory())
 	b.AddExtensions(
+		splunkauthextension.NewFactory(),
 		configsourcetelemetryextension.NewFactory(),
 		oracleencodingextension.NewFactory(),
 		smartagentextension.NewFactory(),
@@ -94,9 +95,6 @@ func Get() (otelcol.Factories, error) {
 		// supplied by a flavor registering its own output mapper.
 		b.AddExporters(splunkhecout.NewFactory())
 	}
-	b.AddProcessors(
-		timestampprocessor.NewFactory(),
-	)
 
 	return b.Build()
 }

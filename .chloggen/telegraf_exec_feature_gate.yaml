@@ -1,6 +1,0 @@
-change_type: deprecation
-component: receiver/smartagent
-note: Require the `receiver.smartagentreceiver.TelegrafExec` feature gate to use the Smart Agent `telegraf/exec` monitor.
-issues: [8274]
-subtext: |
-  Configurations using this monitor fail validation unless the gate is enabled with `--feature-gates=+receiver.smartagentreceiver.TelegrafExec`. The monitor is planned for removal in December 2026.

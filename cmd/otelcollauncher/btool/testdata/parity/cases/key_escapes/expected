@@ -1,0 +1,16 @@
+[s]
+a"b = 2
+a=b = 3
+a\b = 1
+atb = 4
+c = x\\y
+d = x\"y
+e = \\server\share
+f\ = 5
+g\\h = 6
+i\"j = 7
+[s\"u]
+x = 1
+[s\\t]
+x = 1
+EXIT=0

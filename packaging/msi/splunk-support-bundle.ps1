@@ -278,7 +278,13 @@ function getZpages {
     try {
         $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55679)
         if ($connection.Connected) {
-            (Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz").Content > $TMPDIR/zpages/expvarz.json 2>&1
+            # expvarz is only served when zpages.expvar.enabled is true, which is not the default
+            try {
+                (Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz" -UseBasicParsing).Content > $TMPDIR/zpages/expvarz.json 2>&1
+            }
+            catch {
+                Write-Output "WARN: expvarz unavailable (zpages.expvar.enabled is not set) so config details not collected"
+            }
             (Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez").Content > $TMPDIR/zpages/tracez.html 2>&1
             $packages = Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez" -UseBasicParsing
             foreach ($package in $packages.links.href) {

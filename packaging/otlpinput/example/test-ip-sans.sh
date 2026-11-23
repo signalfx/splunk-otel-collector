@@ -16,7 +16,8 @@
 #     does. The checks after the wait loop cover that.
 #
 # It then sends logs, metrics and traces through the receiver and checks that
-# the output of the splunk_modinput exporter was indexed by Splunk.
+# the output of the splunk_modinput exporter was indexed by Splunk with the
+# timestamp from the OTLP payload, including fractional seconds.
 #
 # Usage: OTLP_PACKAGE_PATH=/path/to/splunk-connect-for-otlp.tgz sh test-ip-sans.sh
 #
@@ -153,7 +154,12 @@ if [ "${TEST_HEC_PAGINATION:-0}" = 1 ]; then
 fi
 
 echo "==> Sending telemetry through the receiver"
-now_ns="$(date +%s)000000000"
+# A delayed event distinguishes payload time from ingestion time. Keep it
+# recent enough to pass Splunk's default timestamp age checks.
+event_seconds=$(($(date +%s) - 7200))
+event_time="${event_seconds}.123456"
+event_ns="${event_seconds}123456000"
+end_ns="$((event_seconds + 1))123456000"
 send() {
     curl -sS --fail --max-time 10 --cacert "$CA_CRT" -X POST \
         -H "Authorization: Splunk ${SMOKE_TOKEN}" \
@@ -163,16 +169,17 @@ send() {
 resource() {
     printf '{"attributes":[{"key":"com.splunk.source","value":{"stringValue":"otlp-smoke-%s"}}]}' "$1"
 }
-send logs '{"resourceLogs":[{"resource":'"$(resource logs)"',"scopeLogs":[{"logRecords":[{"timeUnixNano":"'"$now_ns"'","body":{"stringValue":"modinput_smoke_log"}}]}]}]}'
-send metrics '{"resourceMetrics":[{"resource":'"$(resource metrics)"',"scopeMetrics":[{"metrics":[{"name":"modinput_smoke_metric","gauge":{"dataPoints":[{"asInt":"1","timeUnixNano":"'"$now_ns"'"}]}}]}]}]}'
-send traces '{"resourceSpans":[{"resource":'"$(resource traces)"',"scopeSpans":[{"spans":[{"traceId":"5b8efff798038103d269b633813fc60c","spanId":"eee19b7ec3c1b174","name":"modinput_smoke_span","kind":1,"startTimeUnixNano":"'"$now_ns"'","endTimeUnixNano":"'"$now_ns"'"}]}]}]}'
+# A conflicting timestamp in the body must not override the HEC envelope time.
+send logs '{"resourceLogs":[{"resource":'"$(resource logs)"',"scopeLogs":[{"logRecords":[{"timeUnixNano":"'"$event_ns"'","observedTimeUnixNano":"'"$end_ns"'","body":{"stringValue":"2010-01-01T00:00:00Z modinput_smoke_log"}}]}]}]}'
+send metrics '{"resourceMetrics":[{"resource":'"$(resource metrics)"',"scopeMetrics":[{"metrics":[{"name":"modinput_smoke_metric","gauge":{"dataPoints":[{"asInt":"1","timeUnixNano":"'"$event_ns"'"}]}}]}]}]}'
+send traces '{"resourceSpans":[{"resource":'"$(resource traces)"',"scopeSpans":[{"spans":[{"traceId":"5b8efff798038103d269b633813fc60c","spanId":"eee19b7ec3c1b174","name":"modinput_smoke_span","kind":1,"startTimeUnixNano":"'"$event_ns"'","endTimeUnixNano":"'"$end_ns"'"}]}]}]}'
 
 echo "==> Checking the events were indexed by Splunk"
 for signal in logs metrics traces; do
     elapsed=0
     printf 'Waiting for %s to be searchable: ' "$signal"
     while true; do
-        count="$($COMPOSE exec -T splunk sh -c "curl -ksS --max-time 30 -u \"admin:\$SPLUNK_PASSWORD\" https://localhost:8089/services/search/jobs/export --data-urlencode 'search=search index=main source=\"otlp-smoke-${signal}\" | stats count' -d earliest_time=-30m -d output_mode=csv" 2>/dev/null | tail -n 1 | tr -d '"\r' || true)"
+        count="$($COMPOSE exec -T splunk sh -c "curl -ksS --max-time 30 -u \"admin:\$SPLUNK_PASSWORD\" https://localhost:8089/services/search/jobs/export --data-urlencode 'search=search index=main source=\"otlp-smoke-${signal}\" | stats count' -d earliest_time=-1d -d output_mode=csv" 2>/dev/null | tail -n 1 | tr -d '"\r' || true)"
         case "$count" in
             ''|*[!0-9]*) ;;
             *) if [ "$count" -gt 0 ]; then echo "ok"; break; fi ;;
@@ -186,6 +193,15 @@ for signal in logs metrics traces; do
         elapsed=$((elapsed + 5))
         printf '.'
     done
+    # Compare numeric _time rather than its default formatted display. Splunk
+    # stores microseconds; allow one microsecond for floating-point rounding.
+    matches="$($COMPOSE exec -T splunk sh -c "curl -ksS --fail --max-time 30 -u \"admin:\$SPLUNK_PASSWORD\" https://localhost:8089/services/search/jobs/export --data-urlencode 'search=search index=main source=\"otlp-smoke-${signal}\" | eval timestamp_matches=if(abs(_time - ${event_time}) < 0.000001, 1, 0) | stats min(timestamp_matches) as matches' -d earliest_time=-1d -d output_mode=csv" | tail -n 1 | tr -d '"\r')"
+    if [ "$matches" != 1 ]; then
+        echo "FAIL: ${signal} indexed _time does not match OTLP timestamp ${event_time}"
+        $COMPOSE exec -T splunk sh -c "curl -ksS --max-time 30 -u \"admin:\$SPLUNK_PASSWORD\" https://localhost:8089/services/search/jobs/export --data-urlencode 'search=search index=main source=\"otlp-smoke-${signal}\" | table _time _indextime _raw' -d earliest_time=-1d -d output_mode=csv"
+        exit 1
+    fi
+    echo "OK: ${signal} indexed with OTLP timestamp ${event_time}"
 done
 
-echo "==> All telemetry was indexed"
+echo "==> All telemetry was indexed with the expected timestamps"

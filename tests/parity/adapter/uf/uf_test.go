@@ -73,11 +73,18 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(localDir, "inputs.conf"), []byte("original"), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.Chmod(filepath.Join(localDir, "inputs.conf"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	origInfo, statErr := os.Stat(filepath.Join(localDir, "inputs.conf"))
+	if statErr != nil {
+		t.Fatal(statErr)
+	}
 
 	configDir := t.TempDir()
 	writeFile(t, filepath.Join(configDir, "inputs.conf"), "new-inputs")
 	writeFile(t, filepath.Join(configDir, "outputs.conf"), "new-outputs")
-	writeFile(t, filepath.Join(configDir, "notes.txt"), "ignored") // not a .conf
+	writeFile(t, filepath.Join(configDir, "notes.txt"), "payload") // not a .conf
 	writeFile(t, filepath.Join(configDir, "apps", "my_app", "local", "inputs.conf"), "app-inputs")
 
 	a := New(install)
@@ -100,15 +107,25 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 		t.Errorf("outputs.conf = %q", got)
 	}
 	if _, err := os.Stat(filepath.Join(localDir, "notes.txt")); !os.IsNotExist(err) {
-		t.Error("non-conf file should not be copied")
+		t.Error("non-conf file should not be installed as system config")
+	}
+	if got := readFile(t, filepath.Join(install, "notes.txt")); got != "payload" {
+		t.Errorf("notes.txt = %q, want %q", got, "payload")
 	}
 
 	if err := a.Cleanup(); err != nil {
 		t.Fatalf("Cleanup: %v", err)
 	}
-	// Pre-existing file restored to its original contents.
+	// Pre-existing file restored to its original contents and mode.
 	if got := readFile(t, filepath.Join(localDir, "inputs.conf")); got != "original" {
 		t.Errorf("inputs.conf after cleanup = %q, want %q", got, "original")
+	}
+	info, statErr := os.Stat(filepath.Join(localDir, "inputs.conf"))
+	if statErr != nil {
+		t.Fatal(statErr)
+	}
+	if info.Mode() != origInfo.Mode() {
+		t.Errorf("inputs.conf mode after cleanup = %v, want %v", info.Mode(), origInfo.Mode())
 	}
 	// Newly created file removed.
 	if _, err := os.Stat(filepath.Join(localDir, "outputs.conf")); !os.IsNotExist(err) {
@@ -122,6 +139,53 @@ func TestPrepareCopiesConfsAndCleanup(t *testing.T) {
 	// Cleanup is idempotent: a second call is a no-op.
 	if err := a.Cleanup(); err != nil {
 		t.Errorf("second Cleanup: %v", err)
+	}
+}
+
+// A payload file installs executable, and Cleanup removes it along with the
+// directories it created.
+func TestPreparePayloadIsExecutableAndRestored(t *testing.T) {
+	install := t.TempDir()
+	configDir := t.TempDir()
+	rel := "bin/scripts/hello.sh"
+	writeFile(t, filepath.Join(configDir, filepath.FromSlash(rel)), "#!/bin/sh\necho hi\n")
+
+	a := New(install)
+	if err := a.Prepare(configDir, []string{rel}); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+
+	installed := filepath.Join(install, filepath.FromSlash(rel))
+	info, err := os.Stat(installed)
+	if err != nil {
+		t.Fatalf("%s not installed: %v", rel, err)
+	}
+	// Windows reports no execute bit for a regular file.
+	if runtime.GOOS != "windows" && info.Mode().Perm()&0o111 == 0 {
+		t.Errorf("mode = %v, want the execute bit set", info.Mode().Perm())
+	}
+
+	if err := a.Cleanup(); err != nil {
+		t.Fatalf("Cleanup: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(install, "bin")); !os.IsNotExist(err) {
+		t.Error("bin/ should be removed on cleanup")
+	}
+}
+
+// A collector config belongs to the candidate, not the UF, so it is skipped
+// rather than installed as a payload file.
+func TestPrepareSkipsCollectorConfig(t *testing.T) {
+	install := t.TempDir()
+	configDir := t.TempDir()
+	writeFile(t, filepath.Join(configDir, "config.yaml"), "receivers: {}")
+
+	a := New(install)
+	if err := a.Prepare(configDir, []string{"config.yaml"}); err != nil {
+		t.Fatalf("Prepare: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(install, "config.yaml")); !os.IsNotExist(err) {
+		t.Error("a collector config should not be installed into the UF")
 	}
 }
 

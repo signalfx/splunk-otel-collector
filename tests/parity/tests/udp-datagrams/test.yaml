@@ -6,15 +6,23 @@ description: |
 script: |
   for _ in $(seq 60); do
     if lsof -nP -iUDP:19101 > /dev/null 2>&1; then
-      printf '2026-01-02 03:04:05 alpha\n' > /dev/udp/127.0.0.1/19101
-      printf '2026-01-02 03:04:06 bravo\n' > /dev/udp/127.0.0.1/19101
-      printf '2026-01-02 03:04:07 charlie\n' > /dev/udp/127.0.0.1/19101
-      exit 0
+      break
     fi
     sleep 1
   done
-  echo "nothing bound port 19101" >&2
-  exit 1
+  if ! lsof -nP -iUDP:19101; then
+    echo "nothing bound port 19101" >&2
+    exit 1
+  fi
+  send_datagram() {
+    if ! printf '%s\n' "$1" > /dev/udp/127.0.0.1/19101; then
+      echo "failed to send UDP datagram to 127.0.0.1:19101: $1" >&2
+      return 1
+    fi
+  }
+  send_datagram '2026-01-02 03:04:05 alpha' || exit 1
+  send_datagram '2026-01-02 03:04:06 bravo' || exit 1
+  send_datagram '2026-01-02 03:04:07 charlie' || exit 1
 expected:
   raw: true
   host: true

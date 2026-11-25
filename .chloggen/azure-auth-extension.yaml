@@ -8,9 +8,9 @@ component: extension/azure_auth
 note: Add the `azure_auth` extension component to the distribution.
 
 # One or more tracking issues related to this change
-issues: []
+issues: [8505]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
-subtext:
+subtext: "Tracked internally as SFXIMMID-I-862."

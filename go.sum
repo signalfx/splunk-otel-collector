@@ -334,6 +334,8 @@ github.com/containerd/ttrpc v1.2.8 h1:xbVu6D4qF2jihdh9rDVOKqUMiFBQk6YctTdo1zk087
 github.com/containerd/ttrpc v1.2.8/go.mod h1:wyZW2K79t4Hfcxl+GUvkZqRBzJlqFFvgEeeWXa42tyE=
 github.com/containerd/typeurl/v2 v2.2.3 h1:yNA/94zxWdvYACdYO8zofhrTVuQY73fFU1y++dYSw40=
 github.com/containerd/typeurl/v2 v2.2.3/go.mod h1:95ljDnPfD3bAbDJRugOiShd/DlAAsxGtUBhJxIn7SCk=
+github.com/coreos/go-oidc/v3 v3.21.0 h1:wZo4Q9Pum8dYEj0eMUPrqR+kvuGkeUplbLpNCkBqoWM=
+github.com/coreos/go-oidc/v3 v3.21.0/go.mod h1:DYCf24+ncYi+XkIH97GY1+dqoRlbaSI26KVTCI9SrY4=
 github.com/coreos/go-semver v0.3.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-semver v0.3.1 h1:yi21YpKnrx1gt5R+la8n5WgS0kCrsPp33dmEyHReZr4=
 github.com/coreos/go-semver v0.3.1/go.mod h1:irMmmIw/7yzSRPWryHsK7EYSg09caPQL03VsM8rvUec=
@@ -1106,6 +1108,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexpo
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.165.1/go.mod h1:cvjx7TTeckb14611DBig5ZAAiHjrp47Vsv0+8UQUGp4=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.165.1 h1:2xwdtjRBHXEeJbAMLCrlgz908PRVlR97HtKXPEU9EqQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.165.1/go.mod h1:EzEEZU/bkE0fvih946NXjR6MsOifSmWrmLWguSbid0E=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/azureauthextension v0.165.1 h1:PTwyO12ValIJesj6H2sZqe2lCRN1OEgxzXsosFwJoFM=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/azureauthextension v0.165.1/go.mod h1:l+b/0LC5gHUDwF8RJxGtdrXqbs7nCZ0cLolV1GxDjSo=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.165.1 h1:hUZTyVPvnR+MbEr0VTbvapzVSouMxVN6AyDK7OqqwRk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.165.1/go.mod h1:4migcpMoXmTnFC9McX8CCuncu2n/aPgPIEfRzdUIOh0=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.165.1 h1:baCNG9lCIpS0iTIH2PgAGTPoaOEQLjPG4UTuG4+80sY=

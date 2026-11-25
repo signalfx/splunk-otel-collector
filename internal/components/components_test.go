@@ -27,6 +27,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []string{
 		"ack",
 		"aws_iam_db_auth",
+		"azure_auth",
 		"basicauth",
 		"bearertokenauth",
 		"config_source_telemetry",
@@ -53,6 +54,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 	expectedExtensionAliases := map[string]string{
 		"googlecloudlogentry_encoding": "google_cloud_logentry_encoding",
+		"azureauth":                    "azure_auth",
 	}
 	expectedReceivers := []string{
 		"active_directory_ds",

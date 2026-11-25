@@ -104,8 +104,8 @@ docker run -d --name otelcol-test --network segment-routing_mgmt --ip 10.10.20.2
 ```
 
 The rest of this guide assumes `10.10.20.200`; substitute your address everywhere if you
-choose a different one. Verify from the router console (`docker attach xrd-1`, credentials
-`cisco`/`C1sco12345`; detach with `Ctrl-P Ctrl-Q`):
+choose a different one. Verify from the router console (`docker attach xrd-1`, sandbox credentials;
+detach with `Ctrl-P Ctrl-Q`):
 
 ```
 RP/0/RP0/CPU0:xrd-1#ping 10.10.20.200

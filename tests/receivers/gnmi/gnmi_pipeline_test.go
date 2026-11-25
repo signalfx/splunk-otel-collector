@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
@@ -67,14 +66,8 @@ func TestGNMIReceiverPipeline(t *testing.T) {
 
 	endpoint := startTarget(t)
 
-	testutils.RunMetricsCollectionTest(t, "pipeline_config.yaml", "pipeline_expected.yaml",
+	testutils.RunMetricsCollectionTest(t, "pipeline_config.yaml", "",
+		testutils.WithMetricsAssertionFile("pipeline_expected.assert.yaml"),
 		testutils.WithCollectorEnvVars(map[string]string{"GNMI_ENDPOINT": endpoint}),
-		testutils.WithCompareMetricsOptions(
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-			pmetrictest.IgnoreResourceAttributeValue("server.address"),
-		),
 	)
 }

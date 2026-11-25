@@ -1,0 +1,47 @@
+# Example configuration for manual validation of gRPC tunnel dial-out against the
+# Cisco DevNet "XRd Sandbox" (ios-xrd-sandbox), segment-routing topology.
+#
+# The router dials the collector, so the collector must run on the sandbox's macvlan
+# network (10.10.20.200 below), with the tunnel certificate and key in /data. The full
+# procedure, including router configuration, is in ../TESTING_GUIDE.md.
+#
+# Run with:
+#   /data/otelcol_linux_amd64 --config /data/xrd-sandbox-tunnel.yaml
+receivers:
+  gnmi:
+    tunnel:
+      endpoint: 0.0.0.0:57500
+      tls:
+        # The tunnel transport (router -> collector) the device dials into.
+        cert_file: /data/tunnel-server.crt
+        key_file: /data/tunnel-server.key
+      client_tls:
+        # The router's gNMI agent is "no-tls" (plaintext), so the inner gNMI session
+        # must fully disable TLS - insecure_skip_verify would still attempt (and
+        # fail) a TLS handshake.
+        insecure: true
+      username: cisco
+      password: C1sco12345
+      encoding: proto
+      redial: 30s
+      subscriptions:
+        - path: /interfaces/interface/state/counters
+          origin: openconfig
+          mode: sample
+          sample_interval: 10s
+          default:
+            type: sum
+            unit: "1"
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    metrics:
+      receivers: [gnmi]
+      exporters: [debug]

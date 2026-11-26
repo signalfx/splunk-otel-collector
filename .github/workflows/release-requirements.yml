@@ -4,7 +4,13 @@ on:
   pull_request:
     paths:
       - '.github/workflows/release-requirements.yml'
-      - 'packaging/release/requirements.txt'
+      - '.gitlab-ci.yml'
+      - '.gitlab/**'
+      - 'packaging/docker-otelcol.sh'
+      - 'packaging/release/**'
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -25,3 +31,12 @@ jobs:
           cache-dependency-path: 'packaging/release/requirements.txt'
 
       - run: pip install -r packaging/release/requirements.txt
+
+      - name: Test Docker release and recovery
+        run: bash .gitlab/tests/collector-docker-release-test.sh
+
+      - name: Test release cleanup
+        run: python -B .gitlab/tests/collector-cleanup-test.py
+
+      - name: Test MSI publication
+        run: python -B -m unittest discover -s packaging/release -p test_msi_release.py

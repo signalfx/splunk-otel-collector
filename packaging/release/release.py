@@ -24,6 +24,7 @@ from helpers.util import (
     release_msi_to_s3,
     release_rpms_to_artifactory,
     release_rpm_to_artifactory,
+    release_stable_msi_to_s3,
 )
 
 
@@ -46,6 +47,8 @@ def main():
             release_debs_to_artifactory(assets, args)
         elif component == "rpm":
             release_rpms_to_artifactory(assets, args)
+        elif component == "msi":
+            release_stable_msi_to_s3(assets, args)
         else:
             raise AssertionError(f"Batch release is not supported for {component}")
     elif asset:

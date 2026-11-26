@@ -32,6 +32,7 @@ import (
 	signalfxexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter"
 	splunkhecexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	ackextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension"
+	azureauthextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/azureauthextension"
 	basicauthextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension"
 	bearertokenauthextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension"
 	awsiamdbauthextension "github.com/open-telemetry/opentelemetry-collector-contrib/extension/dbauth/awsiamdbauthextension"
@@ -168,6 +169,7 @@ func NewBaseline() *Baseline {
 			basicauthextension.NewFactory(),
 			bearertokenauthextension.NewFactory(),
 			awsiamdbauthextension.NewFactory(),
+			azureauthextension.NewFactory(),
 			dockerobserver.NewFactory(),
 			ecsobserver.NewFactory(),
 			filestorage.NewFactory(),

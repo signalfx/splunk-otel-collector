@@ -1,12 +1,15 @@
 # Splunk OpenTelemetry Collector Ansible Role
 
 Ansible role that installs Splunk OpenTelemetry Collector configured to
-collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
+collect metrics, traces and logs from Linux machines and send data to [Splunk
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html)
+or logs to Splunk Platform.
 
 ## Prerequisites
 
-- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
+- A [Splunk Access Token](https://help.splunk.com/en/splunk-observability-cloud/administer/authentication-and-security/authentication-tokens/org-access-tokens
+  for Observability Cloud, or a [Splunk Platform HEC URL and token](https://help.splunk.com/en/data-management/collect-http-event-data/use-hec-in-splunk-cloud-platform/set-up-and-use-http-event-collector-in-splunk-web)
+  for Platform-only log collection.
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Double-check exposed ports](https://docs.splunk.com/observability/en/gdi/opentelemetry/exposed-endpoints.html)
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
@@ -46,31 +49,57 @@ $> ansible-playbook playbook.yaml -e start_service=false
 
 ### Send host logs to Splunk Platform
 
-The collector package includes a Splunk Platform logs configuration for each
-supported operating system. Enable config merging and provide the HEC settings
-as additional environment variables.
+Provide the HEC endpoint and token to enable host log collection. The role adds
+the package's logs configuration and the required config merge feature gate
+automatically:
 
 ```yaml
-splunk_otel_collector_command_line_args: >-
-  --feature-gates=confmap.enableMergeAppendOption
-splunk_otel_collector_additional_env_vars:
-  SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
-  SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+splunk_platform_token: "<your-hec-token>"
+splunk_platform_url: "https://<your-splunk-host>:8088/services/collector"
+splunk_platform_logs_index: "<your-index>" # optional
 ```
 
-You can also specify the `SPLUNK_PLATFORM_LOGS_INDEX` if you don't want to use
-the default index `main`.
+`splunk_platform_token` and `splunk_platform_url` must be provided together.
+The index is optional; when omitted, the logs configuration uses `main`.
+Platform log collection is supported only with the agent config; the role fails
+if `splunk_otel_collector_config` selects `gateway_config.yaml`.
+Set `splunk_access_token` as well to send the regular agent telemetry to
+Observability Cloud alongside Platform logs. If it is omitted, the role runs
+with the Platform logs configuration only. For Observability-only deployment,
+provide `splunk_access_token` and omit the Platform settings.
+
+These variables work on both Linux and Windows. On Windows, the role passes
+them to the MSI installer, which configures the packaged Windows logs config
+and merges it with the agent config when `splunk_access_token` is provided.
+The MSI properties are applied only when the package is installed or upgraded.
+Rerunning the role with the same Collector version does not update Platform
+settings on an existing Windows installation. To apply changed settings,
+rerun the role while upgrading `splunk_otel_collector_version`; if you must
+keep the same version, uninstall the existing package and rerun the role to
+install it with the new settings.
 
 ## Role Variables
 
 ### Collector
 
-- `splunk_access_token` (**Required**): The Splunk access token to
-  authenticate requests.
+- `splunk_access_token`: The Splunk Observability Cloud access token. Required
+  for Observability-only or combined Observability and Platform collection;
+  can be omitted for Platform-only logs collection.
 
 - `splunk_realm`: Which realm to send the data to. The `SPLUNK_REALM`
   environment variable will be set with this value for the Splunk OTel 
   Collector service. (**default:** `us0`)
+
+- `splunk_platform_token`: HEC token for sending host logs to Splunk Platform.
+  Required together with `splunk_platform_url`; (**default:** `""`).
+
+- `splunk_platform_url`: Splunk Platform HEC endpoint URL, for
+  example `https://splunk.example.com:8088/services/collector`. Required
+  together with `splunk_platform_token`; (**default:** `""`).
+
+- `splunk_platform_logs_index`: Index for host logs sent to Splunk
+  Platform. Optional; defaults to `main` in the packaged logs configuration
+  (**default:** `""`).
 
 - `splunk_ingest_url`: The Splunk ingest URL, e.g.
   `https://ingest.us0.observability.splunkcloud.com`. The `SPLUNK_INGEST_URL` environment
@@ -94,7 +123,9 @@ the default index `main`.
   mode. (**default:** `/etc/otel/collector/agent_config.yaml` on Linux, 
   **default:** `%ProgramData%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
 
-- `splunk_config_override`: Custom Splunk OTel Collector config that will be merged into the default config.
+- `splunk_config_override`: Custom Splunk OTel Collector config that will be merged into the base config. For
+  Platform-only collection, it is merged into the packaged Platform logs config unless an explicit config path
+  or config source is provided.
 
 - `splunk_config_override_list_merge`: This variable is used to configure `list_merge` option for merging lists in `splunk_config_override` with lists in default config. Allowed options are `replace`, `keep`, `append`, `prepend`, `append_rp` or `prepend_rp`. More details: https://docs.ansible.com/ansible/latest/user_guide/playbooks_filters.html#combining-hashes-dictionaries. (**default:** `replace`)
 
@@ -136,8 +167,9 @@ the default index `main`.
 
 - `gomemlimit`: The `GOMEMLIMIT` environment variable is introduced for the Splunk Otel Collector version >=0.97.0, allowing the limitation of memory usage in the GO runtime. This feature can help enhance GC (Garbage Collection) related performance and prevent GC related Out of Memory (OOM) situations.
 
-- `splunk_listen_interface`: The network interface the collector receivers will listen on.
-  (**default** `0.0.0.0`).
+- `splunk_listen_interface`: Optional network interface for the Collector's listening
+  endpoints. When unset, the role uses `127.0.0.1` with the default agent config
+  and `0.0.0.0` with gateway or other configs.
 
 - `splunk_skip_repo` (Linux only): If installing the collector from a custom or self-hosted
   apt/yum repo, set to `true` to skip the installation of the default repo

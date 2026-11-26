@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Add host log collection to Splunk Platform with `splunk_platform_token`,
+  `splunk_platform_url`, and optional `splunk_platform_logs_index` role variables.
+  Support Platform-only installs and merge the agent config when an Observability
+  access token is also supplied. Platform log collection requires Collector
+  package version `v0.154.0` or later, which includes the Platform log config files.
+  On Windows, the settings are applied by MSI during installation or upgrade;
+  rerunning the role with the same version does not reconfigure an existing install.
+  Upgrade `splunk_otel_collector_version`, or uninstall and reinstall the same
+  version, to apply changed settings.
+
 ## ansible-v1.3.0
 
 ### 🛑 Breaking changes 🛑

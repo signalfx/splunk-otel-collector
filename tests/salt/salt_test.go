@@ -157,6 +157,32 @@ func customConfig() string {
 `
 }
 
+func platformLogsConfig(accessToken, index string) string {
+	config := "splunk-otel-collector:\n"
+	if accessToken != "" {
+		config += fmt.Sprintf("  splunk_access_token: '%s'\n  splunk_realm: '%s'\n", accessToken, d.Realm)
+	} else {
+		config += "  splunk_access_token:\n"
+	}
+	config += `  splunk_platform_url: 'https://splunk.example.com:8088/services/collector'
+  splunk_platform_token: 'fake-platform-token'
+`
+	if index != "" {
+		config += fmt.Sprintf("  splunk_platform_logs_index: '%s'\n", index)
+	} else {
+		config += "  splunk_platform_logs_index:\n"
+	}
+	return config
+}
+
+func applyExpectFailure(t *testing.T, c *d.Container, config, expectedMessage string) {
+	t.Helper()
+	d.CopyText(t, c, config, "/srv/pillar/splunk-otel-collector.sls")
+	rc, output := d.Exec(t, c, "salt-call --local state.apply")
+	require.NotZero(t, rc, output)
+	require.Contains(t, output, expectedMessage)
+}
+
 func absentInstrumentation(t *testing.T, c *d.Container, deb bool) {
 	t.Helper()
 	cmd := "rpm -q splunk-otel-auto-instrumentation"
@@ -210,6 +236,180 @@ func TestCustom(t *testing.T) {
 			absentInstrumentation(t, c, isDeb(opts, distro))
 		})
 	}
+}
+
+func TestPlatformLogsOnly(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
+		t.Skip("Platform scenarios run in custom case")
+	}
+	all, opts := distros(t)
+	for _, distro := range all {
+		t.Run(distro, func(t *testing.T) {
+			c := container(t, distro, opts)
+			config := withArtifacts(t, c, distro, opts, platformLogsConfig("", ""), false)
+			apply(t, c, config)
+			verifyCollector(t, c)
+			d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_URL", "https://splunk.example.com:8088/services/collector", true)
+			d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_TOKEN", "fake-platform-token", true)
+			d.KV(t, c, d.EnvPath, "SPLUNK_FILE_STORAGE_EXTENSION_PATH", "/var/lib/otelcol/filelogs", true)
+			d.KV(t, c, d.EnvPath, "OTELCOL_OPTIONS", "--config /etc/otel/collector/splunk_logs_config_linux.yaml", true)
+			d.Config(t, c, d.EnvPath, `SPLUNK_CONFIG=.*`, false)
+			d.Config(t, c, d.EnvPath, `SPLUNK_ACCESS_TOKEN=.*`, false)
+			d.Config(t, c, d.EnvPath, `SPLUNK_PLATFORM_LOGS_INDEX=.*`, false)
+			d.KV(t, c, d.EnvPath, "SPLUNK_LISTEN_INTERFACE", "127.0.0.1", true)
+			d.Config(t, c, d.ConfigDir+"/splunk_logs_config_linux.yaml", `[[:space:]]*index: "\$\{env:SPLUNK_PLATFORM_LOGS_INDEX:-main\}"`, true)
+			require.Equal(t, "700", strings.TrimSpace(d.Run(t, c, "stat -c '%a' /var/lib/otelcol/filelogs")))
+			d.ServiceRunning(t, c, d.ServiceOwner, "/usr/bin/otelcol")
+		})
+	}
+}
+
+func TestPlatformLogsWithObservability(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
+		t.Skip("Platform scenarios run in custom case")
+	}
+	all, opts := distros(t)
+	for _, distro := range all {
+		t.Run(distro, func(t *testing.T) {
+			c := container(t, distro, opts)
+			config := withArtifacts(t, c, distro, opts, platformLogsConfig(d.Token, "custom-index"), false)
+			apply(t, c, config)
+			verifyCollector(t, c)
+			d.KV(t, c, d.EnvPath, "SPLUNK_ACCESS_TOKEN", d.Token, true)
+			d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_URL", "https://splunk.example.com:8088/services/collector", true)
+			d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_TOKEN", "fake-platform-token", true)
+			d.KV(t, c, d.EnvPath, "SPLUNK_PLATFORM_LOGS_INDEX", "custom-index", true)
+			d.KV(t, c, d.EnvPath, "OTELCOL_OPTIONS", "--config /etc/otel/collector/agent_config.yaml --config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption", true)
+			d.Config(t, c, d.EnvPath, `SPLUNK_CONFIG=.*`, false)
+			d.KV(t, c, d.EnvPath, "SPLUNK_FILE_STORAGE_EXTENSION_PATH", "/var/lib/otelcol/filelogs", true)
+			d.ServiceRunning(t, c, d.ServiceOwner, "/usr/bin/otelcol")
+		})
+	}
+}
+
+func TestPlatformLogsWithCustomConfigSource(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
+		t.Skip("Platform scenarios run in custom case")
+	}
+	all, opts := distros(t)
+	for _, distro := range all {
+		t.Run(distro, func(t *testing.T) {
+			c := container(t, distro, opts)
+			customConfigPath := d.ConfigDir + "/custom_platform_config.yaml"
+			customConfigSource, err := os.ReadFile(filepath.Join(d.Root(t), "tests/salt/testdata/custom_platform_config.yaml"))
+			require.NoError(t, err)
+			d.CopyText(t, c, string(customConfigSource), "/srv/salt/templates/custom_platform_config.yaml")
+			config := platformLogsConfig("", "") + fmt.Sprintf("  splunk_otel_collector_config: '%s'\n", customConfigPath)
+			config += "  splunk_otel_collector_config_source: 'salt://templates/custom_platform_config.yaml'\n"
+			config = withArtifacts(t, c, distro, opts, config, false)
+			apply(t, c, config)
+			verifyCollector(t, c)
+			expectedOptions := "--config " + customConfigPath + " --config /etc/otel/collector/splunk_logs_config_linux.yaml --feature-gates=confmap.enableMergeAppendOption"
+			d.KV(t, c, d.EnvPath, "OTELCOL_OPTIONS", expectedOptions, true)
+			d.Config(t, c, d.EnvPath, `SPLUNK_ACCESS_TOKEN=.*`, false)
+			d.ServiceRunning(t, c, d.ServiceOwner, "/usr/bin/otelcol")
+		})
+	}
+}
+
+func TestPlatformLogsValidation(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
+		t.Skip("Platform scenarios run in custom case")
+	}
+	all, opts := distros(t)
+	distro := all[0]
+	c := container(t, distro, opts)
+	for _, test := range []struct {
+		name    string
+		config  string
+		message string
+	}{
+		{
+			name:    "missing both credentials",
+			config:  "splunk-otel-collector:\n",
+			message: "Provide splunk_access_token or both splunk_platform_url and splunk_platform_token.",
+		},
+		{
+			name: "blank access token without Platform settings",
+			config: `splunk-otel-collector:
+  splunk_access_token:
+`,
+			message: "Provide splunk_access_token or both splunk_platform_url and splunk_platform_token.",
+		},
+		{
+			name: "Platform URL without token",
+			config: `splunk-otel-collector:
+  splunk_platform_url: 'https://splunk.example.com:8088/services/collector'
+`,
+			message: "splunk_platform_url and splunk_platform_token must be provided together.",
+		},
+		{
+			name: "Platform token without URL",
+			config: `splunk-otel-collector:
+  splunk_platform_token: 'fake-platform-token'
+`,
+			message: "splunk_platform_url and splunk_platform_token must be provided together.",
+		},
+		{
+			name: "blank Platform token with URL",
+			config: fmt.Sprintf(`splunk-otel-collector:
+  splunk_access_token: '%s'
+  splunk_realm: '%s'
+  splunk_platform_url: 'https://splunk.example.com:8088/services/collector'
+  splunk_platform_token:
+`, d.Token, d.Realm),
+			message: "splunk_platform_url and splunk_platform_token must be provided together.",
+		},
+		{
+			name: "blank Platform URL with token",
+			config: fmt.Sprintf(`splunk-otel-collector:
+  splunk_access_token: '%s'
+  splunk_realm: '%s'
+  splunk_platform_url:
+  splunk_platform_token: 'fake-platform-token'
+`, d.Token, d.Realm),
+			message: "splunk_platform_url and splunk_platform_token must be provided together.",
+		},
+		{
+			name:    "Platform logs index without URL",
+			config:  fmt.Sprintf("splunk-otel-collector:\n  splunk_access_token: '%s'\n  splunk_realm: '%s'\n  splunk_platform_logs_index: 'custom-index'\n", d.Token, d.Realm),
+			message: "splunk_platform_logs_index requires splunk_platform_url.",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			applyExpectFailure(t, c, test.config, test.message)
+		})
+	}
+}
+
+func TestInvalidCredentialsLeaveExistingConfigUnchanged(t *testing.T) {
+	if os.Getenv("DEPLOYMENT_TEST_CASE") == "default" {
+		t.Skip("Platform scenarios run in custom case")
+	}
+	all, opts := distros(t)
+	distro := all[0]
+	c := container(t, distro, opts)
+
+	validConfig := withArtifacts(t, c, distro, opts, platformLogsConfig(d.Token, "custom-index"), false)
+	apply(t, c, validConfig)
+
+	configPath := d.ConfigDir + "/agent_config.yaml"
+	d.File(t, c, configPath, true)
+	existingConfig := d.Run(t, c, "cat "+d.Quote(configPath))
+
+	invalidSource := existingConfig + "\n# invalid credentials must not replace this config\n"
+	require.NotEqual(t, existingConfig, invalidSource)
+	d.CopyText(t, c, invalidSource, "/srv/salt/templates/invalid-credentials-test.yaml")
+	invalidConfig := `splunk-otel-collector:
+  splunk_access_token:
+  splunk_platform_url: 'https://splunk.example.com:8088/services/collector'
+  splunk_platform_token:
+  splunk_otel_collector_config_source: salt://templates/invalid-credentials-test.yaml
+`
+	invalidConfig = withArtifacts(t, c, distro, opts, invalidConfig, false)
+	applyExpectFailure(t, c, invalidConfig, "splunk_platform_url and splunk_platform_token must be provided together.")
+
+	require.Equal(t, existingConfig, d.Run(t, c, "cat "+d.Quote(configPath)))
 }
 
 func instrumentationConfig(version, collector string, systemd, custom bool) string {

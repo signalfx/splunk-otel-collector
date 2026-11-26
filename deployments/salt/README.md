@@ -17,8 +17,11 @@ Currently, the following Linux distributions and versions are supported:
 
 ## Prerequisites
 
-- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
+- A [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
+  for Observability Cloud, or a [Splunk Platform HEC URL and token](https://help.splunk.com/en/data-management/collect-http-event-data/use-hec-in-splunk-cloud-platform/set-up-and-use-http-event-collector-in-splunk-web)
+  for Platform-only log collection.
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
+  for Observability Cloud collection.
 - [Double-check exposed ports](https://docs.splunk.com/observability/en/gdi/opentelemetry/exposed-endpoints.html) 
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
 
@@ -38,27 +41,34 @@ splunk-otel-collector:
 
 ### Send host logs to Splunk Platform
 
-The collector package includes a Splunk Platform logs configuration for each
-supported operating system. Enable config merging and provide the HEC settings
-as additional environment variables:
+Provide the HEC URL and token in pillar to enable host log collection. The
+formula selects the packaged logs configuration and enables config merging when
+an Observability access token is also supplied:
 
 ```yaml
 splunk-otel-collector:
-  splunk_otel_collector_command_line_args: "--feature-gates=confmap.enableMergeAppendOption"
-  collector_additional_env_vars:
-    SPLUNK_PLATFORM_URL: "https://<your-splunk-host>:8088/services/collector"
-    SPLUNK_PLATFORM_TOKEN: "<your-hec-token>"
+  splunk_platform_url: "https://<your-splunk-host>:8088/services/collector"
+  splunk_platform_token: "<your-hec-token>"
+  splunk_platform_logs_index: "<your-index>" # optional
 ```
 
-You can also specify the `SPLUNK_PLATFORM_LOGS_INDEX` if you don't want to use
-the default index `main`.
+`splunk_platform_url` and `splunk_platform_token` must be provided together.
+The index is optional; when omitted, the packaged logs configuration uses
+`main`. Set `splunk_access_token` as well to send the regular agent telemetry to
+Observability Cloud alongside Platform logs. If it is omitted, the formula runs
+with the Platform logs configuration only. You can also provide
+`splunk_otel_collector_config_source` to load a custom base config alongside the
+packaged Platform logs config without an Observability access token. For
+Observability-only deployment, provide `splunk_access_token` and omit the
+Platform settings.
 
 ## This Salt Formula accepts the following attributes:
 
 ### Collector
 
-- `splunk_access_token` (**Required**): The Splunk access token to
-  authenticate requests.
+- `splunk_access_token`: The Splunk Observability Cloud access token. Required
+  for Observability-only or combined Observability and Platform collection;
+  can be omitted for Platform-only logs collection.
 
 - `splunk_realm`: Which realm to send the data to. The `SPLUNK_REALM`
   environment variable will be set with this value for the Splunk OTel 
@@ -68,6 +78,15 @@ the default index `main`.
   `splunk_access_token`. The `SPLUNK_HEC_TOKEN` environment 
   variable will be set with this value for the collector service. (**default:**
   `splunk_access_token`)
+
+- `splunk_platform_url`: Splunk Platform HEC endpoint URL. Required together
+  with `splunk_platform_token`. (**default:** `""`)
+
+- `splunk_platform_token`: HEC token for sending host logs to Splunk Platform.
+  Required together with `splunk_platform_url`. (**default:** `""`)
+
+- `splunk_platform_logs_index`: Splunk Platform index for host logs. Optional;
+  defaults to `main` in the packaged logs configuration. (**default:** `""`)
 
 - `splunk_ingest_url`: The Splunk ingest URL, e.g.
   `https://ingest.us0.observability.splunkcloud.com`. The `SPLUNK_INGEST_URL` environment 
@@ -101,7 +120,8 @@ the default index `main`.
 - `gomemlimit`: `splunk_ballast_size_mib` is deprecated and removed. For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).  (**default:** 90% of `splunk_memory_total_mib`, otherwise)
 
 - `splunk_listen_interface`: The network interface the collector receivers will listen
-  on. (**default:** `127.0.0.1` for agent config, `0.0.0.0` otherwise)
+  on. (**default:** `127.0.0.1` for agent config or Platform log collection,
+  `0.0.0.0` otherwise)
 
 - `splunk_otel_collector_command_line_args`: Additional command line arguments to
   pass to the Splunk OTel Collector service. This value will be set as the
